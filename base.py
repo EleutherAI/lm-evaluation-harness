@@ -39,3 +39,7 @@ class Dataset(abc.ABC):
     def doc_to_text(self, doc, include_target=True):
         pass
     
+    @abc.abstractmethod
+    def evaluate(self, docs, lm):
+        pass
+    
