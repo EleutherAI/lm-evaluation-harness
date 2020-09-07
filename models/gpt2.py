@@ -22,5 +22,5 @@ class GPT2LM(LM):
         # chop off the prompt and the final eos token
         return self.tok.decode(res[0][len(context[0]):-1]).strip()
 
-    def nll_of(self, context, continuation):
+    def loglikelihood(self, context, continuation):
         pass
