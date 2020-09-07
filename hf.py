@@ -1,7 +1,6 @@
 import base
 import nlp
 
-
 def yesno(x):
     if x: return 'yes'
     else: return 'no'
@@ -24,15 +23,8 @@ class BoolQ(base.Dataset):
     def test_docs(self):
         return []
     
-    def fewshot_examples(self, k):
-        traindocs = list(self.training_docs())
-        random.seed(123)
-        random.shuffle(traindocs)
-
-        return traindocs[:k]
-    
     def fewshot_description(self):
-        return "Read the following passage and answer the question with a yes or a no."
+        return "Read the following passages and answer each question with a yes or a no."
 
     def doc_to_text(self, doc, include_target=True):    
         return f"{doc['passage']}\nquestion: {doc['question']}\nanswer: " + (yesno(doc['answer']) if include_target else "")
@@ -40,9 +32,9 @@ class BoolQ(base.Dataset):
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         acc = []
         for doc in docs:
-            ctx = '\n\n'.join(map(doc_to_text, self.fewshot_examples())) + '\n\n'
-            ctx += doc_to_text(doc, include_target=False)
-            ctx = ((self.fewshot_description() + "\n") if provide_description else "") + ctx
+            ctx = '\n\n'.join(map(self.doc_to_text, self.fewshot_examples(k=num_fewshot))) + '\n\n'
+            ctx += self.doc_to_text(doc, include_target=False).strip()
+            ctx = ((self.fewshot_description() + "\n\n") if provide_description else "") + ctx
 
             ans = lm.loglikelihood(ctx, 'yes') > lm.loglikelihood(ctx, 'no')
 
