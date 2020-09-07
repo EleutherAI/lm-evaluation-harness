@@ -4,7 +4,7 @@ from . import TASK_REGISTRY
 
 @TASK_REGISTRY.register("boolq")
 class BoolQ(NLP_TASK):
-    NLP_PATH = "superglue"
+    NLP_PATH = "super_glue"
     NLP_NAME = "boolq"
 
     def has_training_docs(self):
@@ -21,10 +21,10 @@ class BoolQ(NLP_TASK):
 
     def doc_to_text(self, doc, include_target=True):
         return f"{doc['passage']}\nquestion: {doc['question']}\nanswer: " \
-            + (yesno(doc['answer']) if include_target else "")
+            + (yesno(doc['label']) if include_target else "")
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
-        golds = [doc["answer"] for doc in docs]
+        golds = [doc["label"] for doc in docs]
         preds = []
         for doc in docs:
             ctx = self.fewshot_context(

@@ -80,7 +80,6 @@ class Dataset(abc.ABC):
         traindocs = list(self.training_docs())
         random.seed(123)
         random.shuffle(traindocs)
-
         return traindocs[:k]
 
     @abc.abstractmethod
@@ -107,7 +106,8 @@ class Dataset(abc.ABC):
         return ""
 
     def fewshot_context(self, doc, num_fewshot, provide_description):
-        description = (self.fewshot_description() + "\n\n") if provide_description else ""
+        raw_description = self.fewshot_description()
+        description = (raw_description + "\n\n") if provide_description and raw_description else ""
         labeled_examples = "\n\n".join(
             map(self.doc_to_text, self.fewshot_examples(k=num_fewshot))
         ) + "\n\n"

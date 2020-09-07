@@ -177,7 +177,7 @@ class RTE(NLP_TASK):
             doc["sentence2"],
         )
         if include_target:
-            text += " {}".format({1: "True", 0: "False"}[doc["label"]])
+            text += " {}".format({0: "True", 1: "False"}[doc["label"]])
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
@@ -189,7 +189,7 @@ class RTE(NLP_TASK):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            preds.append(lm.loglikelihood(ctx, ' True') > lm.loglikelihood(ctx, ' False'))
+            preds.append(lm.loglikelihood(ctx, ' False') > lm.loglikelihood(ctx, ' True'))
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 

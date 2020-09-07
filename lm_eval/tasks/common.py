@@ -1,6 +1,6 @@
-import abc
 import nlp
 import numpy as np
+import random
 from ..base import Dataset
 
 
@@ -22,6 +22,12 @@ class NLP_TASK(Dataset):
     def test_docs(self):
         if self.has_test_docs():
             return self._load_nlp_dataset()["test"]
+
+    def fewshot_examples(self, k):
+        training_docs = self.training_docs()
+        n = len(training_docs)
+        indices = random.sample(range(n), k)
+        return [training_docs[i] for i in indices]
 
 
 def simple_accuracy_metric(preds, golds):
