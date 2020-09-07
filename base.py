@@ -40,6 +40,6 @@ class Dataset(abc.ABC):
         pass
     
     @abc.abstractmethod
-    def evaluate(self, docs, lm):
+    def evaluate(self, docs, lm, provide_description, num_fewshot):
         pass
     
