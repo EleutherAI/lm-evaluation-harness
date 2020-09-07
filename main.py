@@ -1,5 +1,7 @@
 import argparse
 import json
+import numpy as np
+import random
 
 from lm_eval import models, tasks
 
@@ -11,11 +13,15 @@ def parse_args():
     parser.add_argument('--tasks', default="all_tasks")
     parser.add_argument('--provide_description', action="store_true")
     parser.add_argument('--num_fewshot', type=int, default=1)
+    parser.add_argument('--seed', type=int, default=1234)
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+
     lm = models.get_model(args.model).create_from_arg_string(args.model_args)
     if args.tasks == "all_tasks":
         task_names = tasks.ALL_TASKS

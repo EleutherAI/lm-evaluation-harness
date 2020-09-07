@@ -78,7 +78,6 @@ class Dataset(abc.ABC):
     
     def fewshot_examples(self, k):
         traindocs = list(self.training_docs())
-        random.seed(123)
         random.shuffle(traindocs)
         return traindocs[:k]
 
