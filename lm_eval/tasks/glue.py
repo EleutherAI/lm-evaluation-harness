@@ -177,6 +177,8 @@ class RTE(NLP_TASK):
             doc["sentence2"],
         )
         if include_target:
+            # 0 = entailment
+            # 1 = not_entailment
             text += " {}".format({0: "True", 1: "False"}[doc["label"]])
         return text
 
