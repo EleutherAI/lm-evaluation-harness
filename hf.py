@@ -23,7 +23,7 @@ class BoolQ(base.Dataset):
     def test_docs(self):
         return []
     
-    def fewshot_description(self):
+    def fewshot_prefix(self):
         return "Read the following passages and answer each question with a yes or a no."
 
     def doc_to_text(self, doc, include_target=True):    

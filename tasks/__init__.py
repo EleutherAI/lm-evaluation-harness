@@ -16,5 +16,8 @@ for file in os.listdir(tasks_dir):
         module = importlib.import_module('lm_evaluation_harness.tasks.' + module_name)
 
 
+ALL_TASKS = sorted(list(TASK_REGISTRY.registry))
+
+
 def get_task(model_name):
     return TASK_REGISTRY.registry[model_name]

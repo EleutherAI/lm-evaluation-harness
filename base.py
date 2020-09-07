@@ -103,14 +103,16 @@ class Dataset(abc.ABC):
         """
         pass
 
-    def fewshot_prefix(self):
+    def fewshot_description(self):
         return ""
 
-    def fewshot_context(self, doc, k):
-        prefix = self.fewshot_prefix()
-        labeled_examples = "\n\n".join([self.doc_to_text(doc) for doc in self.fewshot_examples(k)])
-        example = self.doc_to_text(doc, include_target=False)
-        return prefix + labeled_examples + example
+    def fewshot_context(self, doc, num_fewshot, provide_description):
+        description = (self.fewshot_description() + "\n\n") if provide_description else ""
+        labeled_examples = "\n\n".join(
+            map(self.doc_to_text, self.fewshot_examples(k=num_fewshot))
+        ) + "\n\n"
+        example = self.doc_to_text(doc, include_target=False).strip()
+        return description + labeled_examples + example
 
 
 class Registry:
