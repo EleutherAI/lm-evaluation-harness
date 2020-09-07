@@ -28,7 +28,7 @@ class GPT3LM(LM):
         )
         return response.choices[0]["text"]
 
-    def logprob_of(self, context, continuation):
+    def loglikelihood(self, context, continuation):
         full_text = context + continuation
         full_text_length = len(self.tokenizer.tokenize(full_text))
         context_length = len(self.tokenizer.tokenize(context))

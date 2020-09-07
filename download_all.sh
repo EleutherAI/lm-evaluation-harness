@@ -1,3 +1,4 @@
+# NLP generally do not require separately downloading data
 
 #coqa
 mkdir -p data/coqa

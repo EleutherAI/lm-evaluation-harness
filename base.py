@@ -18,7 +18,7 @@ class LM(abc.ABC):
 
     @abc.abstractmethod
     def loglikelihood(self, context, continuation):
-        """Compute log-prob of a generation a continuation from a context
+        """Compute log-likelihood of a generation a continuation from a context
 
         Assume that the final text will simple be
             context + continuation
@@ -46,14 +46,26 @@ class LM(abc.ABC):
 class Dataset(abc.ABC):
     @abc.abstractmethod
     def has_training_docs(self):
+        """Whether the task has a training set"""
         pass
     
     @abc.abstractmethod
     def has_validation_docs(self):
+        """Whether the task has a validation set"""
+        pass
+
+    @abc.abstractmethod
+    def has_test_docs(self):
+        """Whether the task has a test set"""
         pass
 
     @abc.abstractmethod
     def training_docs(self):
+        """
+
+        :return: Iterable[obj]
+            A iterable of any object, that doc_to_text can handle
+        """
         pass
     
     @abc.abstractmethod
@@ -70,10 +82,6 @@ class Dataset(abc.ABC):
         random.shuffle(traindocs)
 
         return traindocs[:k]
-    
-    @abc.abstractmethod
-    def fewshot_description(self):
-        pass
 
     @abc.abstractmethod
     def doc_to_text(self, doc, include_target=True):
@@ -81,7 +89,28 @@ class Dataset(abc.ABC):
     
     @abc.abstractmethod
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        """Take iterable of docs and evaluates, returning a dict with the following format:
+
+        {
+            "major": float,
+            "minor": dict,
+            "higher_is_better": bool,
+        }
+
+        * `major` should be a single, representative number, for programmatic comparison
+        * `minor` should be a dictionary containing all relevant sub-metrics
+        * `higher_is_better` determines whether a higher metric is better
+        """
         pass
+
+    def fewshot_prefix(self):
+        return ""
+
+    def fewshot_context(self, doc, k):
+        prefix = self.fewshot_prefix()
+        labeled_examples = "\n\n".join([self.doc_to_text(doc) for doc in self.fewshot_examples(k)])
+        example = self.doc_to_text(doc, include_target=False)
+        return prefix + labeled_examples + example
 
 
 class Registry:
