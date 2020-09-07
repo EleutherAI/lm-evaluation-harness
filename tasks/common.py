@@ -31,3 +31,10 @@ def simple_accuracy_metric(preds, golds):
         "minor": {"acc": acc},
         "higher_is_better": True,
     }
+
+
+def yesno(x):
+    if x:
+        return 'yes'
+    else:
+        return 'no'
