@@ -1,6 +1,4 @@
-import transformers
-import torch
-from ..base import LM
+from lm_eval.base import LM
 from . import MODEL_REGISTRY
 
 

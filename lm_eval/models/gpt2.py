@@ -1,8 +1,8 @@
 import transformers
 import torch
 import torch.nn.functional as F
-from ..base import LM
-from .. import utils
+from lm_eval.base import LM
+from lm_eval import utils
 from . import MODEL_REGISTRY
 
 

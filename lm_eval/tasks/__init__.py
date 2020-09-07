@@ -1,6 +1,6 @@
 import importlib
 import os
-from ..base import Registry
+from lm_eval.base import Registry
 
 TASK_REGISTRY = Registry(registry_name="tasks")
 # Load all modules in models directory to populate registry
@@ -13,7 +13,7 @@ for file in os.listdir(tasks_dir):
         and (file.endswith('.py') or os.path.isdir(path))
     ):
         module_name = file[:file.find('.py')] if file.endswith('.py') else file
-        module = importlib.import_module('lm_evaluation_harness.tasks.' + module_name)
+        module = importlib.import_module('lm_eval.tasks.' + module_name)
 
 
 ALL_TASKS = sorted(list(TASK_REGISTRY.registry))

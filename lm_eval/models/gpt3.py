@@ -1,8 +1,8 @@
 import os
 import openai
 import transformers
-from ..base import LM
-from .. import utils
+from lm_eval.base import LM
+from lm_eval import utils
 from . import MODEL_REGISTRY
 
 
@@ -15,7 +15,7 @@ class GPT3LM(LM):
         openai.api_key = os.environ["OPENAI_API_SECRET_KEY"]
 
     @classmethod
-    def create_from_args(cls, arg_string):
+    def create_from_arg_string(cls, arg_string):
         args = utils.simple_parse_args_string(arg_string)
         return cls(engine=args.get("engine", "davinci"))
 
@@ -37,6 +37,7 @@ class GPT3LM(LM):
         response = openai.Completion.create(
             engine=self.engine,
             prompt=full_text,
+            echo=True,
             max_tokens=0, temperature=0.0,
             logprobs=0,
         )
