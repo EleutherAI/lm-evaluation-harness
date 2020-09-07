@@ -7,7 +7,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def nll_of(self, context, continuation):
+    def loglikelihood(self, context, continuation):
         pass
 
 
