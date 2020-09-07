@@ -1,9 +1,10 @@
-
-from base import Dataset
-import os
 import json
 import random
+from ..base import Dataset
+from . import TASK_REGISTRY
 
+
+@TASK_REGISTRY.register("coqa")
 class CoQA(Dataset):
     def has_training_docs(self):
         return True
