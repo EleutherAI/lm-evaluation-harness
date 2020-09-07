@@ -1,4 +1,4 @@
-from gpt2 import GPT2LM
+from models.gpt2 import GPT2LM
 
 lm = GPT2LM()
 
