@@ -1,6 +1,6 @@
 import json
 import random
-from ..base import Dataset
+from lm_eval.base import Dataset
 from . import TASK_REGISTRY
 
 
