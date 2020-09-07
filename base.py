@@ -13,6 +13,14 @@ class LM(abc.ABC):
 
 class Dataset(abc.ABC):
     @abc.abstractmethod
+    def has_training_docs(self):
+        pass
+    
+    @abc.abstractmethod
+    def has_validation_docs(self):
+        pass
+
+    @abc.abstractmethod
     def training_docs(self):
         pass
     
