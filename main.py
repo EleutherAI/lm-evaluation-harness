@@ -1,5 +1,49 @@
-from gpt2 import GPT2LM
+import argparse
+import json
+import numpy as np
+import random
 
-lm = GPT2LM()
+from lm_eval import models, tasks
 
-print(lm.generate('1 + 1 = 2.\n3 + 5 = 8.\n4 + 9 = 13.\n4 + 3 = 7.\n2 + 3 =', '.'))
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', required=True)
+    parser.add_argument('--model_args', default="")
+    parser.add_argument('--tasks', default="all_tasks")
+    parser.add_argument('--provide_description', action="store_true")
+    parser.add_argument('--num_fewshot', type=int, default=1)
+    parser.add_argument('--seed', type=int, default=1234)
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+
+    lm = models.get_model(args.model).create_from_arg_string(args.model_args)
+    if args.tasks == "all_tasks":
+        task_names = tasks.ALL_TASKS
+    else:
+        task_names = args.tasks.split(",")
+    task_dict = {
+        task_name: tasks.get_task(task_name)()
+        for task_name in task_names
+    }
+    results = {}
+    for task_name, task in task_dict.items():
+        if not task.has_validation_docs():
+            continue
+        result = task.evaluate(
+            docs=task.validation_docs(),
+            lm=lm,
+            provide_description=args.provide_description,
+            num_fewshot=args.num_fewshot,
+        )
+        results[task_name] = result
+    print(json.dumps(results, indent=2))
+
+
+if __name__ == "__main__":
+    main()
