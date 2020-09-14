@@ -19,5 +19,12 @@ for file in os.listdir(tasks_dir):
 ALL_TASKS = sorted(list(TASK_REGISTRY.registry))
 
 
-def get_task(model_name):
-    return TASK_REGISTRY.registry[model_name]
+def get_task(task_name):
+    return TASK_REGISTRY.registry[task_name]
+
+
+def get_task_dict(task_name_list):
+    return {
+        task_name: get_task(task_name)()
+        for task_name in task_name_list
+    }
