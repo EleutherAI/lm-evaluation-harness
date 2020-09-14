@@ -40,7 +40,7 @@ def main():
             num_fewshot=args.num_fewshot,
         )
         results[task_name] = result
-                
+
     dumped = json.dumps(results, indent=2)
     print(dumped)
     if args.output_path:

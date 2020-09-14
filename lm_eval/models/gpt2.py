@@ -19,12 +19,12 @@ class GPT2LM(LM):
         return cls(device=args.get("device", "cpu"))
 
     def generate(self, context, max_gen_length, truncate=True):
-        context = torch.tensor([self.tokenizer.encode(context.strip())], dtype=torch.long).to(self.device)
+        context_tensor = torch.tensor([self.tokenizer.encode(context.strip())], dtype=torch.long).to(self.device)
         res = self.gpt2.generate(
-            context,
+            context_tensor,
             eos_token_id=self.tokenizer.eos_token_id,
             do_sample=False,
-            max_length=max_gen_length,
+            max_length=self.num_tokens(context) + max_gen_length,
         )
 
         # chop off the prompt and the final eos token
