@@ -28,10 +28,7 @@ def main():
         task_names = tasks.ALL_TASKS
     else:
         task_names = args.tasks.split(",")
-    task_dict = {
-        task_name: tasks.get_task(task_name)()
-        for task_name in task_names
-    }
+    task_dict = tasks.get_task_dict(task_names)
     results = {}
     for task_name, task in task_dict.items():
         if not task.has_validation_docs():
@@ -43,6 +40,7 @@ def main():
             num_fewshot=args.num_fewshot,
         )
         results[task_name] = result
+                
     dumped = json.dumps(results, indent=2)
     print(dumped)
     if args.output_path:
