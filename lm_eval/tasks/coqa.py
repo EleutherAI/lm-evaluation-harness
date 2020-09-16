@@ -11,7 +11,10 @@ class CoQA(Dataset):
 
     def has_validation_docs(self):
         return False
-    
+
+    def has_test_docs(self):
+        return False
+
     def training_docs(self):
         myjson = json.load(open('data/coqa/coqa-train-v1.0.json'))['data']
         return self.load_doc(myjson)
