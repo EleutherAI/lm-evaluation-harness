@@ -18,23 +18,26 @@ class GPT2LM(LM):
         args = utils.simple_parse_args_string(arg_string)
         return cls(device=args.get("device", "cpu"))
 
-    def generate(self, context, max_gen_length):
-        context = torch.tensor([self.tokenizer.encode(context.strip())], dtype=torch.long).to(self.device)
+    def generate(self, context, max_gen_length, truncate=True):
+        context_tensor = torch.tensor([self.tokenizer.encode(context.strip())], dtype=torch.long).to(self.device)
         res = self.gpt2.generate(
-            context,
+            context_tensor,
             eos_token_id=self.tokenizer.eos_token_id,
             do_sample=False,
-            max_length=max_gen_length,
+            max_length=self.num_tokens(context) + max_gen_length,
         )
 
         # chop off the prompt and the final eos token
         return self.tokenizer.decode(res[0][len(context[0]):-1]).strip()
 
-    def loglikelihood(self, context, continuation):
+    def loglikelihood(self, context, continuation, truncate=True):
         inp = torch.tensor([self.tokenizer.encode(context + continuation)], dtype=torch.long).to(self.device)
         ctxlen = len(self.tokenizer.encode(context.strip()))
 
-        cont_toks = inp[:, ctxlen:] # [batch, seq]
+        cont_toks = inp[:, ctxlen:]  # [batch, seq]
         logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
 
         return torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)
+
+    def num_tokens(self, string):
+        return len(self.tokenizer.tokenize(string))

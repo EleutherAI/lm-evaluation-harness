@@ -41,7 +41,7 @@ class CoLA(NLP_TASK):
         return "Does this sentence make sense?:\tTrue or False?"
 
     def doc_to_text(self, doc, include_target=True):
-        text = "\nSentence:{}\nAnswer: ".format(doc["sentence"])
+        text = "Sentence: {}\nAnswer:".format(doc["sentence"])
         if include_target:
             text += " {}".format({1: "True", 0: "False"}[doc["label"]])
         return text
@@ -153,7 +153,7 @@ class MRPC(NLP_TASK):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            preds.append(lm.loglikelihood(ctx, ' yes') > lm.loglikelihood(ctx, ' no'))
+            preds.append(lm.loglikelihood(ctx, 'yes') > lm.loglikelihood(ctx, 'no'))
         return get_accuracy_and_f1(preds=preds, golds=golds)
 
 
@@ -210,14 +210,14 @@ class QNLI(NLP_TASK):
         return True
 
     def doc_to_text(self, doc, include_target=True):
-        text = "{}\nquestion:\t{}\tTrue or False?\nanswer:".format(
+        text = "question:\t{}\nresponse:\t{}\nDoes this answer the question, Yes or No?:".format(
             doc["question"],
             doc["sentence"],
         )
         if include_target:
             # True = entailment
             # False = not entailment
-            text += " {}".format({0: "True", 1: "False"}[doc["label"]])
+            text += " {}".format({0: "Yes", 1: "No"}[doc["label"]])
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
@@ -248,7 +248,7 @@ class QQP(NLP_TASK):
         return True
 
     def fewshot_description(self):
-        return "Indicate if both sentences mean the same thing."
+        return "Indicate if both questions ask the same thing."
 
     def doc_to_text(self, doc, include_target=True):
         text = "question 1:\t{}\nquestion 2:\t{}\nanswer:".format(
@@ -296,7 +296,7 @@ class STSB(NLP_TASK):
             doc["sentence2"],
         )
         if include_target:
-            text += " {}".format(yesno(doc["label"]))
+            text += " {}".format(doc["label"])
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
@@ -314,6 +314,7 @@ class STSB(NLP_TASK):
                 pred = max(min(float(first_element), 5.0), 0.0)
             else:
                 pred = 2.5
+            import pdb; pdb.set_trace()
             preds.append(pred)
         pearson_corr = float(pearsonr(preds, golds)[0])
         spearman_corr = float(spearmanr(preds, golds)[0])
@@ -383,8 +384,8 @@ class WNLI(NLP_TASK):
 
     def doc_to_text(self, doc, include_target=True):
         text = "{}\nquestion:\t{}\tTrue, False or Neither?\nanswer:".format(
-            doc["premise"],
-            doc["hypothesis"],
+            doc["sentence1"],
+            doc["sentence2"],
         )
         if include_target:
             # True = entailment

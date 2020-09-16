@@ -9,6 +9,83 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 
 The raw Google doc can be found here: https://docs.google.com/document/d/177dwJpH8GHebISXYZSn4NL98sXdCtQMH82b7O5F7jmw/edit?usp=sharing
 
+## Usage
+
+### Evaluate a task
+
+To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. RTE, Winograd Scheme Challenge), you can run the following command.
+
+```bash
+python main.py \
+	--model gpt2 \
+	--model_args device=cuda:0 \
+	--tasks rte,wsc \
+	--provide_description \
+	--num_fewshot 2
+```
+
+If you have access to an OpenAI API key, you can also evaluate GPT-3 on various tasks with the following command:
+
+```bash
+export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
+python main.py \
+	--model gpt3 \
+	--tasks rte,wsc \
+	--provide_description \
+	--num_fewshot 2
+```
+
+To inspect what the LM inputs look like, you can run the following command:
+
+```bash
+python write_out.py \
+	--tasks all_tasks \
+	--provide_description \
+	--num_fewshot 5 \
+	--num_examples 10 \
+	--output_base_path /path/to/output/folder
+```
+
+This will write out one text file for each task.
+
+### Code Structure
+
+There are two major components of the library:
+
+1. LMs (language models), e.g. GPT-2, GPT-3
+2. Tasks, e.g. MNLI, RTE, SQuAD (coming soon)
+
+Both LMs (`lm_eval.models`) and Tasks (`lm_eval.tasks`) are kept in a registry data structure, for easy CLI instantiation.
+
+**If you want to extend either models or tasks, simply add a new LM or Task subclass, and decorate with the registry decorator**.
+
+**GLUE**
+- [X] CoLA
+- [X] MNLI
+- [X] MRPC
+- [X] RTE
+- [X] QNLI
+- [X] QQP
+- [X] STS-B
+- [X] SST-2
+- [X] WNLI
+
+**SuperGLUE**
+- [X] BoolQ
+- [X] CommitmentBank
+- [X] COPA
+- [ ] MultiRC
+- [ ] ReCoRD
+- [X] RTE (See: GLUE)
+- [X] WiC
+- [X] WSC
+
+**QA Tasks**
+- [ ] CoQA 
+- [ ] DROP
+
+## Description
+
 ### 1. LM Evaluation
 Given an LM, we want to evaluate it on a wide range of NLU tasks. We should at least cover the set of tasks in the GPT-3 paper, and any other tasks/benchmarks that are relevant. We will follow the GPT-3 format of a) zero-shot, b) one-shot, c) few-shot evaluation.
 
@@ -49,8 +126,5 @@ This part is the easiest. I guess we just write out some text files containing t
 ## Summary (need to convert from google docs at some point):
 https://docs.google.com/document/d/177dwJpH8GHebISXYZSn4NL98sXdCtQMH82b7O5F7jmw/edit?usp=sharing
 
-## Current Datasets:
-
-[] CoQA 
-[] DROP
+## Current Tasks:
 
