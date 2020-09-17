@@ -3,10 +3,8 @@ import torch
 import torch.nn.functional as F
 from lm_eval.base import LM
 from lm_eval import utils
-from . import MODEL_REGISTRY
 
 
-@MODEL_REGISTRY.register("gpt2")
 class GPT2LM(LM):
     def __init__(self, device="cpu"):
         self.device = torch.device(device)

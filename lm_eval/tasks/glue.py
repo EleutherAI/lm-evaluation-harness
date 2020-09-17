@@ -3,7 +3,6 @@ from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef
 from tqdm import auto as tqdm_lib
 from . common import NLP_TASK, simple_accuracy_metric, yesno
-from . import TASK_REGISTRY
 
 
 def get_accuracy_and_f1(preds, golds):
@@ -23,7 +22,6 @@ def get_accuracy_and_f1(preds, golds):
     }
 
 
-@TASK_REGISTRY.register("cola")
 class CoLA(NLP_TASK):
     NLP_PATH = "glue"
     NLP_NAME = "cola"
@@ -66,7 +64,6 @@ class CoLA(NLP_TASK):
         }
 
 
-@TASK_REGISTRY.register("mnli")
 class MNLI(NLP_TASK):
     NLP_PATH = "glue"
     NLP_NAME = "mnli"
@@ -110,15 +107,14 @@ class MNLI(NLP_TASK):
                 num_fewshot=num_fewshot,
             )
             probs = np.array([
-                self.lm.loglikelihood(ctx, ' True'),
-                self.lm.loglikelihood(ctx, ' Neither'),
-                self.lm.loglikelihood(ctx, ' False'),
+                lm.loglikelihood(ctx, ' True'),
+                lm.loglikelihood(ctx, ' Neither'),
+                lm.loglikelihood(ctx, ' False'),
             ])
             preds.append(np.argmax(probs))
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-@TASK_REGISTRY.register("mrpc")
 class MRPC(NLP_TASK):
     NLP_PATH = "glue"
     NLP_NAME = "mrpc"
@@ -157,7 +153,6 @@ class MRPC(NLP_TASK):
         return get_accuracy_and_f1(preds=preds, golds=golds)
 
 
-@TASK_REGISTRY.register("rte")
 class RTE(NLP_TASK):
     NLP_PATH = "glue"
     NLP_NAME = "rte"
@@ -195,7 +190,6 @@ class RTE(NLP_TASK):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-@TASK_REGISTRY.register("qnli")
 class QNLI(NLP_TASK):
     NLP_PATH = "glue"
     NLP_NAME = "qnli"
@@ -229,11 +223,10 @@ class QNLI(NLP_TASK):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            preds.append(self.lm.loglikelihood(ctx, ' False') > self.lm.loglikelihood(ctx, ' True'))
+            preds.append(lm.loglikelihood(ctx, ' False') > lm.loglikelihood(ctx, ' True'))
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-@TASK_REGISTRY.register("qqp")
 class QQP(NLP_TASK):
     NLP_PATH = "glue"
     NLP_NAME = "qqp"
@@ -272,7 +265,6 @@ class QQP(NLP_TASK):
         return get_accuracy_and_f1(preds=preds, golds=golds)
 
 
-@TASK_REGISTRY.register("stsb")
 class STSB(NLP_TASK):
     NLP_PATH = "glue"
     NLP_NAME = "stsb"
@@ -330,7 +322,6 @@ class STSB(NLP_TASK):
         }
 
 
-@TASK_REGISTRY.register("sst")
 class SST(NLP_TASK):
     NLP_PATH = "glue"
     NLP_NAME = "sst2"
@@ -368,7 +359,6 @@ class SST(NLP_TASK):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-@TASK_REGISTRY.register("wnli")
 class WNLI(NLP_TASK):
     NLP_PATH = "glue"
     NLP_NAME = "wnli"
@@ -404,9 +394,9 @@ class WNLI(NLP_TASK):
                 num_fewshot=num_fewshot,
             )
             probs = np.array([
-                self.lm.loglikelihood(ctx, ' True'),
-                self.lm.loglikelihood(ctx, ' Neither'),
-                self.lm.loglikelihood(ctx, ' False'),
+                lm.loglikelihood(ctx, ' True'),
+                lm.loglikelihood(ctx, ' Neither'),
+                lm.loglikelihood(ctx, ' False'),
             ])
             preds.append(np.argmax(probs))
         return simple_accuracy_metric(preds=preds, golds=golds)
