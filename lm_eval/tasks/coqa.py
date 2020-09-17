@@ -1,10 +1,8 @@
 import json
 import random
 from lm_eval.base import Dataset
-from . import TASK_REGISTRY
 
 
-@TASK_REGISTRY.register("coqa")
 class CoQA(Dataset):
     def has_training_docs(self):
         return True
