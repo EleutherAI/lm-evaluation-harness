@@ -124,7 +124,6 @@ class Copa(NLP_TASK):
         return choice[0].lower() + choice[1:]
 
 
-
 @TASK_REGISTRY.register("wic")
 class WordsInContext(NLP_TASK):
     NLP_PATH = "super_glue"
