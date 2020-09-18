@@ -122,17 +122,3 @@ class Dataset(abc.ABC):
         ) + "\n\n"
         example = self.doc_to_text(doc, include_target=False).strip()
         return description + labeled_examples + example
-
-
-class Registry:
-    def __init__(self, registry_name):
-        self.registry_name = registry_name
-        self.registry = {}
-
-    def register(self, name):
-        def register_cls(new_cls):
-            if name in self.registry:
-                raise ValueError('Cannot register duplicate ({})'.format(self.registry_name, name))
-            self.registry[name] = new_cls
-            return new_cls
-        return register_cls
