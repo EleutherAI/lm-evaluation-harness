@@ -2,6 +2,7 @@ from . import superglue
 from . import glue
 from . import arc
 from . import race
+from . import webqs
 
 TASK_REGISTRY = {
     "cola": glue.CoLA,
@@ -21,6 +22,7 @@ TASK_REGISTRY = {
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
     "race": race.RACE,
+    "webqs": webqs.WebQs,
 }
 
 
