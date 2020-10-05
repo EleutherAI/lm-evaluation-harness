@@ -120,6 +120,63 @@ class Copa(HFNLPTask):
         return choice[0].lower() + choice[1:]
 
 
+class MultiRC(HFNLPTask):
+    NLP_PATH = "super_glue"
+    NLP_NAME = "multirc"
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def fewshot_description(self):
+        return "READING COMPREHENSION ANSWER KEY"
+
+    def doc_to_text(self, doc, include_target=True):
+        return f"{doc['paragraph']}\n\n{doc['question']}\n" \
+            + (self.format_answer(answer=doc["answer"], label=doc["label"])
+               if include_target else "")
+
+    @staticmethod
+    def format_answer(answer, label):
+        label_str = "True" if label else "False"
+        return f"[{label_str}] {answer}"
+
+    def evaluate(self, docs, lm, provide_description, num_fewshot):
+        preds = []
+        for doc in docs:
+            ctx = self.fewshot_context(
+                doc=doc,
+                provide_description=provide_description,
+                num_fewshot=num_fewshot,
+            )
+            true_choice = self.format_answer(answer=doc["answer"], label=True)
+            false_choice = self.format_answer(answer=doc["answer"], label=False)
+            preds.append(
+                lm.loglikelihood(ctx, f' {true_choice}')
+                > lm.loglikelihood(ctx, f' {false_choice}')
+            )
+
+        # Only count as correct if all answers are labeled correctly for each question
+        question_scoring_dict = {}
+        for doc, pred in zip(docs, preds):
+            question_id = doc["idx"]["question"]
+            if question_id not in question_scoring_dict:
+                question_scoring_dict[question_id] = []
+            gold_label = doc["label"] == 1
+            question_scoring_dict[question_id].append(gold_label == pred)
+        acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
+        return {
+            "major": acc,
+            "minor": {"acc": acc},
+            "higher_is_better": True,
+        }
+
+
 class WordsInContext(HFNLPTask):
     NLP_PATH = "super_glue"
     NLP_NAME = "wic"
