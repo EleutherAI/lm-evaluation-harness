@@ -4,7 +4,7 @@ import random
 from ..base import Dataset
 
 
-class HF_Dataset(Dataset):
+class HFTask(Dataset):
     DATASET_PATH = None
     DATASET_NAME = None
 
