@@ -2,10 +2,8 @@ import os
 import transformers
 from lm_eval.base import LM
 from lm_eval import utils
-from . import MODEL_REGISTRY
 
 
-@MODEL_REGISTRY.register("gpt3")
 class GPT3LM(LM):
 
     MAX_LENGTH = 2048

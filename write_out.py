@@ -32,8 +32,9 @@ def main():
     os.makedirs(args.output_base_path, exist_ok=True)
     for task_name, task in task_dict.items():
         if not task.has_validation_docs():
-            continue
-        docs = task.validation_docs()
+            docs = task.training_docs()
+        else:
+            docs = task.validation_docs()
         with open(os.path.join(args.output_base_path, task_name), "w") as f:
             for i, doc in zip(range(args.num_examples), docs):
                 f.write(EXAMPLE_DIVIDER.format(i=i))

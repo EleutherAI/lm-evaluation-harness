@@ -26,6 +26,15 @@ class CoLA(HF_Dataset):
     DATASET_PATH = "glue"
     DATASET_NAME = "cola"
 
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
     def fewshot_description(self):
         return "Does this sentence make sense?:\tTrue or False?"
 
@@ -58,7 +67,7 @@ class CoLA(HF_Dataset):
 class MNLI(HF_Dataset):
     DATASET_PATH = "glue"
     DATASET_NAME = "mnli"
-
+    
     def has_training_docs(self):
         return True
 
@@ -147,6 +156,7 @@ class MRPC(HF_Dataset):
 class RTE(HF_Dataset):
     DATASET_PATH = "glue"
     DATASET_NAME = "rte"
+
 
     def has_training_docs(self):
         return True
@@ -316,7 +326,7 @@ class STSB(HF_Dataset):
 class SST(HF_Dataset):
     DATASET_PATH = "glue"
     DATASET_NAME = "sst2"
-
+    
     def has_training_docs(self):
         return True
 
@@ -353,7 +363,7 @@ class SST(HF_Dataset):
 class WNLI(HF_Dataset):
     DATASET_PATH = "glue"
     DATASET_NAME = "wnli"
-
+    
     def has_training_docs(self):
         return True
 
