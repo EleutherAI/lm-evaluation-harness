@@ -1,5 +1,6 @@
 from . import superglue
 from . import glue
+from . import arc
 
 TASK_REGISTRY = {
     "cola": glue.CoLA,
@@ -16,6 +17,8 @@ TASK_REGISTRY = {
     "copa": superglue.Copa,
     "wic": superglue.WordsInContext,
     "wsc": superglue.WinogradSchemaChallenge,
+    "arc_easy": arc.ARCEasy,
+    "arc_challenge": arc.ARCChallenge,
 }
 
 
