@@ -2,8 +2,7 @@ import numpy as np
 from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef
 from tqdm import auto as tqdm_lib
-from . common import HFNLPTask, simple_accuracy_metric, yesno
-
+from . common import HFTask, simple_accuracy_metric, yesno
 
 def get_accuracy_and_f1(preds, golds):
     golds = np.array(golds)
@@ -22,10 +21,10 @@ def get_accuracy_and_f1(preds, golds):
     }
 
 
-class CoLA(HFNLPTask):
-    NLP_PATH = "glue"
-    NLP_NAME = "cola"
-
+class CoLA(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "cola"
+    
     def has_training_docs(self):
         return True
 
@@ -64,9 +63,9 @@ class CoLA(HFNLPTask):
         }
 
 
-class MNLI(HFNLPTask):
-    NLP_PATH = "glue"
-    NLP_NAME = "mnli"
+class MNLI(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "mnli"
 
     def has_training_docs(self):
         return True
@@ -79,11 +78,11 @@ class MNLI(HFNLPTask):
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return self._load_nlp_dataset()["validation_matched"]
+            return self.data["validation_matched"]
 
     def test_docs(self):
         if self.has_test_docs():
-            return self._load_nlp_dataset()["test_matched"]
+            return self.data["test_matched"]
 
     def doc_to_text(self, doc, include_target=True):
         text = "{}\nquestion:\t{}\tTrue, False or Neither?\nanswer:".format(
@@ -115,9 +114,9 @@ class MNLI(HFNLPTask):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class MRPC(HFNLPTask):
-    NLP_PATH = "glue"
-    NLP_NAME = "mrpc"
+class MRPC(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "mrpc"
 
     def has_training_docs(self):
         return True
@@ -152,10 +151,10 @@ class MRPC(HFNLPTask):
             preds.append(lm.loglikelihood(ctx, 'yes') > lm.loglikelihood(ctx, 'no'))
         return get_accuracy_and_f1(preds=preds, golds=golds)
 
-
-class RTE(HFNLPTask):
-    NLP_PATH = "glue"
-    NLP_NAME = "rte"
+      
+class RTE(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "rte"
 
     def has_training_docs(self):
         return True
@@ -190,9 +189,9 @@ class RTE(HFNLPTask):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class QNLI(HFNLPTask):
-    NLP_PATH = "glue"
-    NLP_NAME = "qnli"
+class QNLI(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "qnli"
 
     def has_training_docs(self):
         return True
@@ -227,9 +226,9 @@ class QNLI(HFNLPTask):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class QQP(HFNLPTask):
-    NLP_PATH = "glue"
-    NLP_NAME = "qqp"
+class QQP(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "qqp"
 
     def has_training_docs(self):
         return True
@@ -265,9 +264,9 @@ class QQP(HFNLPTask):
         return get_accuracy_and_f1(preds=preds, golds=golds)
 
 
-class STSB(HFNLPTask):
-    NLP_PATH = "glue"
-    NLP_NAME = "stsb"
+class STSB(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "stsb"
 
     def has_training_docs(self):
         return True
@@ -322,9 +321,9 @@ class STSB(HFNLPTask):
         }
 
 
-class SST(HFNLPTask):
-    NLP_PATH = "glue"
-    NLP_NAME = "sst2"
+class SST(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "sst2"
 
     def has_training_docs(self):
         return True
@@ -359,10 +358,10 @@ class SST(HFNLPTask):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class WNLI(HFNLPTask):
-    NLP_PATH = "glue"
-    NLP_NAME = "wnli"
-
+class WNLI(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "wnli"
+    
     def has_training_docs(self):
         return True
 
