@@ -4,7 +4,6 @@ from sklearn.metrics import f1_score, matthews_corrcoef
 from tqdm import auto as tqdm_lib
 from . common import HFTask, simple_accuracy_metric, yesno
 
-
 def get_accuracy_and_f1(preds, golds):
     golds = np.array(golds)
     preds = np.array(preds)
@@ -25,6 +24,15 @@ def get_accuracy_and_f1(preds, golds):
 class CoLA(HFTask):
     DATASET_PATH = "glue"
     DATASET_NAME = "cola"
+    
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
 
     def fewshot_description(self):
         return "Does this sentence make sense?:\tTrue or False?"
@@ -143,7 +151,7 @@ class MRPC(HFTask):
             preds.append(lm.loglikelihood(ctx, 'yes') > lm.loglikelihood(ctx, 'no'))
         return get_accuracy_and_f1(preds=preds, golds=golds)
 
-
+      
 class RTE(HFTask):
     DATASET_PATH = "glue"
     DATASET_NAME = "rte"
@@ -353,7 +361,7 @@ class SST(HFTask):
 class WNLI(HFTask):
     DATASET_PATH = "glue"
     DATASET_NAME = "wnli"
-
+    
     def has_training_docs(self):
         return True
 
