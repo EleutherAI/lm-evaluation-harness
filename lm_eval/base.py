@@ -55,7 +55,6 @@ class LM(abc.ABC):
 
 class Dataset(abc.ABC):
 
-    @abc.abstractmethod
     def download(self):
         """Downloads the task dataset if necessary"""
         pass
