@@ -2,7 +2,7 @@ import numpy as np
 from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef
 from tqdm import auto as tqdm_lib
-from . common import NLP_TASK, simple_accuracy_metric, yesno
+from . common import HFNLPTask, simple_accuracy_metric, yesno
 
 
 def get_accuracy_and_f1(preds, golds):
@@ -22,7 +22,7 @@ def get_accuracy_and_f1(preds, golds):
     }
 
 
-class CoLA(NLP_TASK):
+class CoLA(HFNLPTask):
     NLP_PATH = "glue"
     NLP_NAME = "cola"
 
@@ -64,7 +64,7 @@ class CoLA(NLP_TASK):
         }
 
 
-class MNLI(NLP_TASK):
+class MNLI(HFNLPTask):
     NLP_PATH = "glue"
     NLP_NAME = "mnli"
 
@@ -115,7 +115,7 @@ class MNLI(NLP_TASK):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class MRPC(NLP_TASK):
+class MRPC(HFNLPTask):
     NLP_PATH = "glue"
     NLP_NAME = "mrpc"
 
@@ -153,7 +153,7 @@ class MRPC(NLP_TASK):
         return get_accuracy_and_f1(preds=preds, golds=golds)
 
 
-class RTE(NLP_TASK):
+class RTE(HFNLPTask):
     NLP_PATH = "glue"
     NLP_NAME = "rte"
 
@@ -190,7 +190,7 @@ class RTE(NLP_TASK):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class QNLI(NLP_TASK):
+class QNLI(HFNLPTask):
     NLP_PATH = "glue"
     NLP_NAME = "qnli"
 
@@ -227,7 +227,7 @@ class QNLI(NLP_TASK):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class QQP(NLP_TASK):
+class QQP(HFNLPTask):
     NLP_PATH = "glue"
     NLP_NAME = "qqp"
 
@@ -265,7 +265,7 @@ class QQP(NLP_TASK):
         return get_accuracy_and_f1(preds=preds, golds=golds)
 
 
-class STSB(NLP_TASK):
+class STSB(HFNLPTask):
     NLP_PATH = "glue"
     NLP_NAME = "stsb"
 
@@ -322,7 +322,7 @@ class STSB(NLP_TASK):
         }
 
 
-class SST(NLP_TASK):
+class SST(HFNLPTask):
     NLP_PATH = "glue"
     NLP_NAME = "sst2"
 
@@ -359,7 +359,7 @@ class SST(NLP_TASK):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class WNLI(NLP_TASK):
+class WNLI(HFNLPTask):
     NLP_PATH = "glue"
     NLP_NAME = "wnli"
 

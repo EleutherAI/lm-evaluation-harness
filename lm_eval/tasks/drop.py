@@ -3,7 +3,7 @@ import json
 from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef
 from tqdm import auto as tqdm_lib
-from . common import NLP_TASK, simple_accuracy_metric, yesno
+from . common import HFNLPTask, simple_accuracy_metric, yesno
 from pathlib import Path
 from ..base import Dataset
 

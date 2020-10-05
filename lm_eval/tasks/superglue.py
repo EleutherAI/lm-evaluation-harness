@@ -1,9 +1,9 @@
 import numpy as np
 from tqdm import auto as tqdm_lib
-from . common import NLP_TASK, simple_accuracy_metric, yesno
+from . common import HFNLPTask, simple_accuracy_metric, yesno
 
 
-class BoolQ(NLP_TASK):
+class BoolQ(HFNLPTask):
     NLP_PATH = "super_glue"
     NLP_NAME = "boolq"
 
@@ -36,7 +36,7 @@ class BoolQ(NLP_TASK):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class CommitmentBank(NLP_TASK):
+class CommitmentBank(HFNLPTask):
     NLP_PATH = "super_glue"
     NLP_NAME = "cb"
 
@@ -79,7 +79,7 @@ class CommitmentBank(NLP_TASK):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class Copa(NLP_TASK):
+class Copa(HFNLPTask):
     NLP_PATH = "super_glue"
     NLP_NAME = "copa"
 
@@ -120,7 +120,7 @@ class Copa(NLP_TASK):
         return choice[0].lower() + choice[1:]
 
 
-class WordsInContext(NLP_TASK):
+class WordsInContext(HFNLPTask):
     NLP_PATH = "super_glue"
     NLP_NAME = "wic"
 
@@ -157,7 +157,7 @@ class WordsInContext(NLP_TASK):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class WinogradSchemaChallenge(NLP_TASK):
+class WinogradSchemaChallenge(HFNLPTask):
     NLP_PATH = "super_glue"
     NLP_NAME = "wsc"
 
