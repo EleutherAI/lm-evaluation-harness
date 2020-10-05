@@ -1,6 +1,7 @@
 from . import superglue
 from . import glue
 from . import arc
+from . import race
 
 TASK_REGISTRY = {
     "cola": glue.CoLA,
@@ -19,6 +20,7 @@ TASK_REGISTRY = {
     "wsc": superglue.WinogradSchemaChallenge,
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
+    "race": race.RACE,
 }
 
 
