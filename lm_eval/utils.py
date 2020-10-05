@@ -1,3 +1,15 @@
+import os
+
+
+class ExitCodeError(Exception):
+    pass
+
+
+def sh(x):
+    if os.system(x):
+        raise ExitCodeError()
+
+
 def simple_parse_args_string(args_string):
     """
     Parses something like
