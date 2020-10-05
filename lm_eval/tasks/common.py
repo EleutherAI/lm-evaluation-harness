@@ -4,7 +4,7 @@ import random
 from ..base import Dataset
 
 
-class NLP_TASK(Dataset):
+class HFNLPTask(Dataset):
     NLP_PATH = None
     NLP_NAME = None
 
