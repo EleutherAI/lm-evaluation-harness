@@ -1,10 +1,10 @@
-from . common import HFNLPTask
+from . common import HFTask
 from ..utils_stream import X, each, apply, join, filt, one
 import collections
 import nlp
 
 
-class RACE(HFNLPTask):
+class RACE(HFTask):
     NLP_PATH = "race"
     NLP_NAME = "high"
 

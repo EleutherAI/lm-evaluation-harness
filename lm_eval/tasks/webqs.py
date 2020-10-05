@@ -1,6 +1,6 @@
-from . common import HFNLPTask
+from . common import HFTask
 
-class WebQs(HFNLPTask):
+class WebQs(HFTask):
     NLP_PATH = "web_questions"
     NLP_NAME = None
 

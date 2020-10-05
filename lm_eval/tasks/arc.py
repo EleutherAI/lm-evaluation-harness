@@ -1,6 +1,6 @@
-from . common import HFNLPTask
+from . common import HFTask
 
-class ARCEasy(HFNLPTask):
+class ARCEasy(HFTask):
     NLP_PATH = "ai2_arc"
     NLP_NAME = "ARC-Easy"
 
