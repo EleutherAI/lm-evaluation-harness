@@ -55,12 +55,13 @@ class RACE(HFNLPTask):
         return ""
 
     def doc_to_text(self, doc, include_target=True):
-        print(doc)
         r = "Article:\n" + doc['article'] + '\n\n'
 
-        r += doc['problems'] >> each(
-            lambda x: 'Q: ' + x['question'] + '\n\nA: ' + x['options'][['A', 'B', 'C', 'D'].index(x['answer'])]) \
-                >> join('\n\n')
+        r += doc['problems'] >> apply(enumerate) >> each(
+            lambda x: 'Q: ' + x[1]['question'] + '\n\nA:' 
+            + ((' ' + x[1]['options'][['A', 'B', 'C', 'D'].index(x[1]['answer'])]) \
+                if x[0] != len(doc['problems']) - 1 or include_target else '')) \
+            >> join('\n\n')
 
         return r
 

@@ -18,9 +18,8 @@ class ARCEasy(HFNLPTask):
         return ""
 
     def doc_to_text(self, doc, include_target=True):
-        print(doc)
         q = "Question: " + doc['question'] + '\n'
-        a = "Answer:" + (" " + doc['choices']['text'][doc['choices']['label'].index(doc['answerKey'])]) if include_target else ""
+        a = "Answer:" + ((" " + doc['choices']['text'][doc['choices']['label'].index(doc['answerKey'])]) if include_target else "")
         return q + a
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
