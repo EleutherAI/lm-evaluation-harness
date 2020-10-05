@@ -1,5 +1,5 @@
 from lm_eval.base import Dataset
-from ..utils import sh
+from lm_eval.utils import sh
 import json
 import requests
 import ftfy
