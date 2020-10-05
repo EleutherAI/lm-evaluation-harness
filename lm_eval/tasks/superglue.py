@@ -4,8 +4,8 @@ from . common import HFTask, simple_accuracy_metric, yesno
 
 
 class BoolQ(HFTask):
-    NLP_PATH = "super_glue"
-    NLP_NAME = "boolq"
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "boolq"
 
     def has_training_docs(self):
         return True
@@ -37,8 +37,8 @@ class BoolQ(HFTask):
 
 
 class CommitmentBank(HFTask):
-    NLP_PATH = "super_glue"
-    NLP_NAME = "cb"
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "cb"
 
     def has_training_docs(self):
         return True
@@ -80,8 +80,8 @@ class CommitmentBank(HFTask):
 
 
 class Copa(HFTask):
-    NLP_PATH = "super_glue"
-    NLP_NAME = "copa"
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "copa"
 
     def has_training_docs(self):
         return True
@@ -121,8 +121,8 @@ class Copa(HFTask):
 
 
 class MultiRC(HFTask):
-    NLP_PATH = "super_glue"
-    NLP_NAME = "multirc"
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "multirc"
 
     def has_training_docs(self):
         return True
@@ -178,8 +178,8 @@ class MultiRC(HFTask):
 
 
 class WordsInContext(HFTask):
-    NLP_PATH = "super_glue"
-    NLP_NAME = "wic"
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "wic"
 
     def has_training_docs(self):
         return True
@@ -215,8 +215,8 @@ class WordsInContext(HFTask):
 
 
 class WinogradSchemaChallenge(HFTask):
-    NLP_PATH = "super_glue"
-    NLP_NAME = "wsc"
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "wsc"
 
     def has_training_docs(self):
         return True
