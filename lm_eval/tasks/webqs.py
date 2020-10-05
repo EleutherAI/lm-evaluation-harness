@@ -19,12 +19,12 @@ class WebQs(HFNLPTask):
 
     def doc_to_text(self, doc, include_target=True):
         print(doc)
-        q = "Question: " + doc['question'] + '\n'
+        q = "Q: " + doc['question'] + '\n'
 
         # this picks one answer to be the "correct" one, despite sometimes 
         # multiple correct answers being possible.
         # TODO: make sure we're actually handling multi-answer correctly
-        a = "Answer:" + ((" " + doc['answers'][0]) if include_target else '')
+        a = "A:" + ((" " + doc['answers'][0]) if include_target else '')
         return q + a
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
