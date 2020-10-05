@@ -4,14 +4,14 @@ import random
 from ..base import Dataset
 
 
-class HFNLPTask(Dataset):
-    NLP_PATH = None
-    NLP_NAME = None
+class HFTask(Dataset):
+    DATASET_PATH = None
+    DATASET_NAME = None
 
     def __init__(self):
         super().__init__()
         self._training_docs = None
-        self.data = datasets.load_dataset(path=self.NLP_PATH, name=self.NLP_NAME)
+        self.data = datasets.load_dataset(path=self.DATASET_PATH, name=self.DATASET_NAME)
 
     def has_training_docs(self):
         """Whether the task has a training set"""
