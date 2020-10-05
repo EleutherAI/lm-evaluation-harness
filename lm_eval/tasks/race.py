@@ -5,8 +5,8 @@ import nlp
 
 
 class RACE(HFTask):
-    NLP_PATH = "race"
-    NLP_NAME = "high"
+    DATASET_PATH = "race"
+    DATASET_NAME = "high"
 
     cache = {}
 
@@ -26,7 +26,7 @@ class RACE(HFTask):
         # is shown that one document is made per passage.
 
         r = collections.defaultdict(list)
-        for item in nlp.load_dataset(path=self.NLP_PATH, name=self.NLP_NAME)[set]:
+        for item in nlp.load_dataset(path=self.DATASET_PATH, name=self.DATASET_NAME)[set]:
             r[item['article']].append(item)
         
         res = list(r.values() >> each(lambda x: {

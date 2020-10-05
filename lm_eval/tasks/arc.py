@@ -1,8 +1,8 @@
 from . common import HFTask
 
 class ARCEasy(HFTask):
-    NLP_PATH = "ai2_arc"
-    NLP_NAME = "ARC-Easy"
+    DATASET_PATH = "ai2_arc"
+    DATASET_NAME = "ARC-Easy"
 
     def has_training_docs(self):
         return True
@@ -27,5 +27,5 @@ class ARCEasy(HFTask):
         raise NotImplementedError()
 
 class ARCChallenge(ARCEasy):
-    NLP_PATH = "ai2_arc"
-    NLP_NAME = "ARC-Challenge"
+    DATASET_PATH = "ai2_arc"
+    DATASET_NAME = "ARC-Challenge"

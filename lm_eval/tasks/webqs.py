@@ -1,8 +1,8 @@
 from . common import HFTask
 
 class WebQs(HFTask):
-    NLP_PATH = "web_questions"
-    NLP_NAME = None
+    DATASET_PATH = "web_questions"
+    DATASET_NAME = None
 
     def has_training_docs(self):
         return True
