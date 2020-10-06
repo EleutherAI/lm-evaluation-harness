@@ -54,6 +54,9 @@ class LM(abc.ABC):
 
 
 class Dataset(abc.ABC):
+    @abc.abstractmethod
+    def __init__(self):
+        self.download()
 
     def download(self):
         """Downloads the task dataset if necessary"""
