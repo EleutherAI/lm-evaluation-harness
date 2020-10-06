@@ -3,6 +3,7 @@ from . import glue
 from . import arc
 from . import race
 from . import webqs
+from . import anli
 
 TASK_REGISTRY = {
     # GLUE
@@ -27,6 +28,9 @@ TASK_REGISTRY = {
     "arc_challenge": arc.ARCChallenge,
     "race": race.RACE,
     "webqs": webqs.WebQs,
+    "anli_r1": anli.ANLIRound1,
+    "anli_r2": anli.ANLIRound2,
+    "anli_r3": anli.ANLIRound3,
 }
 
 
