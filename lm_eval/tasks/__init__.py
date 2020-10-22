@@ -4,6 +4,7 @@ from . import arc
 from . import race
 from . import webqs
 from . import anli
+from . import squad
 
 TASK_REGISTRY = {
     # GLUE
@@ -26,6 +27,7 @@ TASK_REGISTRY = {
     # Order by benchmark/genre?
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
+    "squad": squad.SQuAD,
     "race": race.RACE,
     "webqs": webqs.WebQs,
     "anli_r1": anli.ANLIRound1,
