@@ -14,6 +14,9 @@ class SQuAD(HFTask):
     def has_validation_docs(self):
         return True
 
+    def has_test_docs(self):
+        return False
+
     def training_docs(self):
         if self.has_training_docs():
             return self.data["train"]
