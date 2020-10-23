@@ -218,7 +218,7 @@ class WordsInContext(HFTask):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class WinogradSchemaChallenge(HFTask):
+class WSC(HFTask):
     DATASET_PATH = "super_glue"
     DATASET_NAME = "wsc"
 

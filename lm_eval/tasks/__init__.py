@@ -27,7 +27,7 @@ TASK_REGISTRY = {
     "copa": superglue.Copa,
     "multirc": superglue.MultiRC,
     "wic": superglue.WordsInContext,
-    "wsc": superglue.WinogradSchemaChallenge,
+    "wsc": superglue.WSC,
     # Order by benchmark/genre?
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
