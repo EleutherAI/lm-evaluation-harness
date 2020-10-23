@@ -5,6 +5,8 @@ from . import race
 from . import webqs
 from . import anli
 from . import quac
+from . import hellaswag
+from . import openbookqa
 from . import squad
 
 TASK_REGISTRY = {
@@ -29,6 +31,8 @@ TASK_REGISTRY = {
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
     "quac": quac.QuAC,
+    "hellaswag": hellaswag.HellaSwag,
+    "openbookqa": openbookqa.OpenBookQA,
     "squad": squad.SQuAD,
     "race": race.RACE,
     "webqs": webqs.WebQs,
