@@ -59,30 +59,7 @@ Both LMs (`lm_eval.models`) and Tasks (`lm_eval.tasks`) are kept in a registry d
 
 **If you want to extend either models or tasks, simply add a new LM or Task subclass, and decorate with the registry decorator**.
 
-**GLUE**
-- [X] CoLA
-- [X] MNLI
-- [X] MRPC
-- [X] RTE
-- [X] QNLI
-- [X] QQP
-- [X] STS-B
-- [X] SST-2
-- [X] WNLI
-
-**SuperGLUE**
-- [X] BoolQ
-- [X] CommitmentBank
-- [X] COPA
-- [ ] MultiRC
-- [ ] ReCoRD
-- [X] RTE (See: GLUE)
-- [X] WiC
-- [X] WSC
-
-**QA Tasks**
-- [ ] CoQA 
-- [ ] DROP
+The [GPT-3 Evaluations Project](https://github.com/EleutherAI/lm_evaluation_harness/projects/1) tracks our progress implementing new tasks. Right now, we are focused on getting all the datasets loaded so that we can dedupe against the training data. Implementing the actual evaluations is nice but not necessary at the current moment.
 
 ## Description
 
@@ -122,9 +99,6 @@ With the data downloader in place, we simply need to (1) expose the val/test exa
 
 ### 3. Adding task training data to LM training set
 This part is the easiest. I guess we just write out some text files containing the training data? We can let the usual LM preprocessing pipeline handle it from there.
-=======
+
 ## Summary (need to convert from google docs at some point):
 https://docs.google.com/document/d/177dwJpH8GHebISXYZSn4NL98sXdCtQMH82b7O5F7jmw/edit?usp=sharing
-
-## Current Tasks:
-
