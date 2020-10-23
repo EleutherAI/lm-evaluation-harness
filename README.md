@@ -59,31 +59,6 @@ Both LMs (`lm_eval.models`) and Tasks (`lm_eval.tasks`) are kept in a registry d
 
 **If you want to extend either models or tasks, simply add a new LM or Task subclass, and decorate with the registry decorator**.
 
-**GLUE**
-- [X] CoLA
-- [X] MNLI
-- [X] MRPC
-- [X] RTE
-- [X] QNLI
-- [X] QQP
-- [X] STS-B
-- [X] SST-2
-- [X] WNLI
-
-**SuperGLUE**
-- [X] BoolQ
-- [X] CommitmentBank
-- [X] COPA
-- [ ] MultiRC
-- [ ] ReCoRD
-- [X] RTE (See: GLUE)
-- [X] WiC
-- [X] WSC
-
-**QA Tasks**
-- [ ] CoQA 
-- [ ] DROP
-
 ## Description
 
 ### 1. LM Evaluation
