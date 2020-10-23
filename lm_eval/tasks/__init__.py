@@ -4,6 +4,7 @@ from . import arc
 from . import race
 from . import webqs
 from . import anli
+from . import openbookqa
 from . import squad
 
 TASK_REGISTRY = {
@@ -27,6 +28,7 @@ TASK_REGISTRY = {
     # Order by benchmark/genre?
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
+    "openbookqa": openbookqa.OpenBookQA,
     "squad": squad.SQuAD,
     "race": race.RACE,
     "webqs": webqs.WebQs,
