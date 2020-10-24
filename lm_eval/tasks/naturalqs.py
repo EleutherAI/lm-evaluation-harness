@@ -1,5 +1,4 @@
 from . common import HFTask
-import apache_beam
 
 class NaturalQs(HFTask):
     DATASET_PATH = "natural_questions"
