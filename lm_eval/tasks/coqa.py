@@ -28,10 +28,10 @@ class CoQA(Dataset):
         return json.load(open('data/coqa/coqa-train-v1.0.json'))['data']
 
     def validation_docs(self):
-        pass
+        return  json.load(open('data/coqa/coqa-dev-v1.0.json'))['data']  
 
     def test_docs(self):
-        return  json.load(open('data/coqa/coqa-dev-v1.0.json'))['data']     
+        pass   
     
     def fewshot_description(self):
         pass
