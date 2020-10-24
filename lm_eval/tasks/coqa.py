@@ -41,7 +41,10 @@ class CoQA(Dataset):
         for pair in zip(doc['questions'], doc['answers']):
             text.append('\n\n')
             text.append(''.join(['Q: ',pair[0]['input_text'], '\n\n']))
-            text.append(''.join(['A: ',pair[1]['input_text']]))
+            if include_target:
+                text.append(''.join(['A: ',pair[1]['input_text']]))
+            else:
+                text.append('A: ')
 
         return ''.join(text)
 
