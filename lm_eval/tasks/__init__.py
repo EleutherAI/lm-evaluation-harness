@@ -4,6 +4,7 @@ from . import arc
 from . import race
 from . import webqs
 from . import anli
+from . import wsc273
 from . import winogrande
 from . import quac
 from . import hellaswag
@@ -27,7 +28,7 @@ TASK_REGISTRY = {
     "copa": superglue.Copa,
     "multirc": superglue.MultiRC,
     "wic": superglue.WordsInContext,
-    "wsc": superglue.WinogradSchemaChallenge,
+    "wsc": superglue.SGWinogradSchemaChallenge,
     # Order by benchmark/genre?
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
@@ -37,6 +38,7 @@ TASK_REGISTRY = {
     "squad": squad.SQuAD,
     "race": race.RACE,
     "webqs": webqs.WebQs,
+    "wsc273": wsc273.WinogradSchemaChallenge273,
     "winogrande": winogrande.Winogrande,
     "anli_r1": anli.ANLIRound1,
     "anli_r2": anli.ANLIRound2,
