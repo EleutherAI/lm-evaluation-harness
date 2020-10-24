@@ -15,6 +15,7 @@ TASK_REGISTRY = {
     # GLUE
     "cola": glue.CoLA,
     "mnli": glue.MNLI,
+    "mnli_mismatched": glue.MNLIMismatched,
     "mrpc": glue.MRPC,
     "rte": glue.RTE,
     "qnli": glue.QNLI,
