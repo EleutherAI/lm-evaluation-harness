@@ -19,7 +19,7 @@ class CoQA(Dataset):
         return True
 
     def has_validation_docs(self):
-        return False
+        return True
 
     def has_test_docs(self):
         return False
