@@ -10,6 +10,9 @@ from ..base import Dataset
 class DROP(Dataset):
     DATAFOLDER = Path(__file__).parent / "../../data/drop"
     
+    def __init__(self):
+        self.download()
+
     def has_training_docs(self):
         """Whether the task has a training set"""
         return True
@@ -35,10 +38,10 @@ class DROP(Dataset):
         pass
     
     def doc_to_text(self, doc, include_target=True):
-        doctext = "Passage: {}\n\n".format(doc["passage"])
+        doctext = "Passage: {}\n".format(doc["passage"])
         qa_texts = []
         for pair in doc["qa_pairs"]:
-            text = ''.join(['Q: ', pair['question'],'\nA: '])
+            text = ''.join(['Question: ', pair['question'],'\nAnswer: '])
             if include_target:
                 def get_answer(ans_dict):
                     if ans_dict['number'] != '':
@@ -52,7 +55,7 @@ class DROP(Dataset):
                                      ans_dict['date']['year']]).strip() 
                 text = ''.join([text, get_answer(pair['answer'])])
             qa_texts.append(text)
-        return ''.join([doctext, '\n\n'.join(qa_texts)])
+        return ''.join([doctext, '\n'.join(qa_texts)])
             
     
     def evaluate(self, docs, lm, provide_description, num_fewshot):
