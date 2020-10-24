@@ -114,6 +114,17 @@ class MNLI(HFTask):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
+class MNLIMismatched(MNLI):
+
+    def validation_docs(self):
+        if self.has_validation_docs():
+            return self.data["validation_mismatched"]
+
+    def test_docs(self):
+        if self.has_test_docs():
+            return self.data["test_mismatched"]
+
+
 class MRPC(HFTask):
     DATASET_PATH = "glue"
     DATASET_NAME = "mrpc"
