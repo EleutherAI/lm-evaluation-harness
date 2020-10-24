@@ -28,16 +28,13 @@ class NaturalQs(HFTask):
         short_answer = doc['annotations']['short_answers'][0]['text']
         long_answer_start = doc['annotations']['long_answer'][0]['start_token']
         long_answer_end = doc['annotations']['long_answer'][0]['end_token']
-        passage = " ".join(doc['document']['tokens']['token'][long_answer_start:long_answer_end])
+        long_answer = " ".join(doc['document']['tokens']['token'][long_answer_start:long_answer_end])
         
         text = 'Q: ' + question + '\n\n' + 'A: '
 
         if include_target:
-            # What if there is no short answer? This will be an empty string. Currently, default to the long answer otherwise.
-            if short_answer:
-                text += short_answer[0]
-            else:
-                text += long_answer
+            # There's a short answer and a long answer. Based on the paper, I'm using the long answer.
+            text += long_answer # Replace with short_answer[0] for short answer
 
         return text
 
