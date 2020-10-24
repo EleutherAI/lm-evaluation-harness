@@ -40,7 +40,10 @@ class StoryCloze(Dataset):
         pass
     
     def doc_to_text(self, doc, include_target=True):
-        return ' '.join([*doc[1:5],doc[int(doc[-1])-4]]) 
+        if include_target:
+            return ' '.join([*doc[1:5],doc[int(doc[-1])-4]]) 
+        else:
+            return ' '.join([*doc[1:5]])
 
     def evaluate(self, docs, lm):
         pass

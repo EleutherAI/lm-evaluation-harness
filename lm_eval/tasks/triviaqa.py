@@ -38,8 +38,10 @@ class TriviaQA(Dataset):
         pass
     
     def doc_to_text(self, doc, include_target=True):
-        return ''.join(['Q: ', doc['Question'], '\n\n','A: ', doc['Answer']['Aliases'][0]])
-
+        if include_target:
+            return ''.join(['Q: ', doc['Question'], '\n\n','A: ', doc['Answer']['Aliases'][0]])
+        else:
+            return ''.join(['Q: ', doc['Question'], '\n\n','A: '])
     def evaluate(self, docs, lm):
         pass
 
