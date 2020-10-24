@@ -7,7 +7,7 @@ class TriviaQA(Dataset):
     def __init__(self):
         self.download()
     def download(self):
-        pass
+        #pass
         #TODO: don't download if files already there
         sh("""
            mkdir -p data/triviaqa
