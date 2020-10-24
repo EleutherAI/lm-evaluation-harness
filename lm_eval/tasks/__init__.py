@@ -10,6 +10,7 @@ from . import quac
 from . import hellaswag
 from . import openbookqa
 from . import squad
+from . import naturalqs
 
 TASK_REGISTRY = {
     # GLUE
@@ -38,6 +39,7 @@ TASK_REGISTRY = {
     "openbookqa": openbookqa.OpenBookQA,
     "squad": squad.SQuAD,
     "race": race.RACE,
+    "naturalqs": naturalqs.NaturalQs,
     "webqs": webqs.WebQs,
     "wsc273": wsc273.WinogradSchemaChallenge273,
     "winogrande": winogrande.Winogrande,
