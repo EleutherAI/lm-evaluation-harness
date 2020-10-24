@@ -20,9 +20,8 @@ class NaturalQs(HFTask):
     def training_docs(self):
         # Cache training for faster few-shot.
         # Data is too large to fit in memory.
-        self.data["train"])
 
-        return self.data["train"])
+        return self.data["train"]
 
     def doc_to_text(self, doc, include_target=True):
         question = doc['question']['text']
