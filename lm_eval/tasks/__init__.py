@@ -11,6 +11,7 @@ from . import hellaswag
 from . import openbookqa
 from . import squad
 from . import naturalqs
+from . import sat
 
 TASK_REGISTRY = {
     # GLUE
@@ -37,6 +38,7 @@ TASK_REGISTRY = {
     "quac": quac.QuAC,
     "hellaswag": hellaswag.HellaSwag,
     "openbookqa": openbookqa.OpenBookQA,
+    "sat": sat.SATAnalogies,
     "squad": squad.SQuAD,
     "race": race.RACE,
     "naturalqs": naturalqs.NaturalQs,
