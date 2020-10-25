@@ -6,7 +6,8 @@ import ftfy
 
 
 class Lambada(Dataset):
-
+    def __init__(self):
+        self.download()
     def download(self):
         sh("mkdir -p data/lambada")
         with open("data/lambada/lambada_test.json", 'w') as f:
@@ -32,14 +33,16 @@ class Lambada(Dataset):
         pass
 
     def load_doc(self, myjson):
-        return [doc['text'] for doc in myjson]
+        return [doc for doc in myjson]
 
     def test_docs(self):
         myjson = json.load(open("data/lambada/lambada_test.json"))
         return self.load_doc(myjson)
 
     def doc_to_text(self, doc, include_target=True):
-        pass
+        #TODO: check if this is how OA does it
+        #label = doc[]
+        return doc
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         pass

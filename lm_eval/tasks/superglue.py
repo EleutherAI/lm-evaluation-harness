@@ -218,7 +218,7 @@ class WordsInContext(HFTask):
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
-class WinogradSchemaChallenge(HFTask):
+class SGWinogradSchemaChallenge(HFTask):
     DATASET_PATH = "super_glue"
     DATASET_NAME = "wsc"
 
@@ -282,3 +282,25 @@ class WinogradSchemaChallenge(HFTask):
             )
             preds.append(1 if generated == to_predict else 0)
         return simple_accuracy_metric(preds=preds, golds=golds)
+
+class RTE(HFTask):
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "rte"
+
+    def fewshot_description(self):
+        #TODO: implement
+        pass
+
+    def doc_to_text(self, doc, include_target=True):
+        if include_target:
+            if doc['label'] == 0:
+                answer = 'True'
+            else:
+                answer = 'False'
+            return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: ', answer])
+        else:
+            return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: '])
+    def evaluate(self, docs, lm, provide_description, num_fewshot):
+        #TODO: 
+        pass
+
