@@ -9,6 +9,7 @@ class GPT2LM(LM):
     def __init__(self, device="cpu"):
         self.device = torch.device(device)
         self.gpt2 = transformers.GPT2LMHeadModel.from_pretrained('gpt2').to(self.device)
+        self.gpt2.eval()
         self.tokenizer = transformers.GPT2Tokenizer.from_pretrained('gpt2')
 
     @classmethod
