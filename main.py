@@ -2,6 +2,7 @@ import argparse
 import json
 import numpy as np
 import random
+import itertools
 
 from lm_eval import models, tasks
 
@@ -17,14 +18,6 @@ def parse_args():
     parser.add_argument('--output_path', default=None)
     parser.add_argument('--limit', default=None)
     return parser.parse_args()
-
-
-def limit(it, lim):
-    for i, x in enumerate(it):
-        if i >= lim: break
-        
-        yield x
-
 
 def main():
     args = parse_args()
@@ -42,7 +35,7 @@ def main():
         if not task.has_validation_docs():
             continue
         result = task.evaluate(
-            docs=limit(task.validation_docs(), args.limit),
+            docs=itertools.isslice(task.validation_docs(), 0, args.limit),
             lm=lm,
             provide_description=args.provide_description,
             num_fewshot=args.num_fewshot,
