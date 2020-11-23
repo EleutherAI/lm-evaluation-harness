@@ -15,6 +15,7 @@ def parse_args():
     parser.add_argument('--num_fewshot', type=int, default=1)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--output_path', default=None)
+    parser.add_argument('--truncate', default=None)
     return parser.parse_args()
 
 
@@ -34,7 +35,7 @@ def main():
         if not task.has_validation_docs():
             continue
         result = task.evaluate(
-            docs=task.validation_docs(),
+            docs=itertools.isslice(task.validation_docs(), stop=args.truncate),
             lm=lm,
             provide_description=args.provide_description,
             num_fewshot=args.num_fewshot,
