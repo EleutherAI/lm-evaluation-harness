@@ -15,7 +15,15 @@ def parse_args():
     parser.add_argument('--num_fewshot', type=int, default=1)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--output_path', default=None)
+    parser.add_argument('--limit', default=None)
     return parser.parse_args()
+
+
+def limit(it, lim):
+    for i, x in enumerate(it):
+        if i >= lim: break
+        
+        yield x
 
 
 def main():
@@ -34,7 +42,7 @@ def main():
         if not task.has_validation_docs():
             continue
         result = task.evaluate(
-            docs=task.validation_docs(),
+            docs=limit(task.validation_docs(), args.limit),
             lm=lm,
             provide_description=args.provide_description,
             num_fewshot=args.num_fewshot,
