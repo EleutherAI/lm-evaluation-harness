@@ -19,7 +19,6 @@ def parse_args():
     parser.add_argument('--limit', default=None)
     return parser.parse_args()
 
-
 def main():
     args = parse_args()
     random.seed(args.seed)
@@ -36,7 +35,7 @@ def main():
         if not task.has_validation_docs():
             continue
         result = task.evaluate(
-            docs=itertools.isslice(task.validation_docs(), stop=args.limit),
+            docs=itertools.isslice(task.validation_docs(), 0, args.limit),
             lm=lm,
             provide_description=args.provide_description,
             num_fewshot=args.num_fewshot,
