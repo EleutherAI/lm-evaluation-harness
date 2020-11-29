@@ -3,10 +3,11 @@ from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef
 from tqdm import auto as tqdm_lib
 from . common import HFTask, simple_accuracy_metric, yesno
+import torch
 
 def get_accuracy_and_f1(preds, golds):
     golds = np.array(golds)
-    preds = np.array(preds)
+    preds = np.array([p.cpu().numpy()[0][0] for p in preds]) # Classification metrics require same target types
     acc = float((preds == golds).mean())
     f1 = float(f1_score(y_true=golds, y_pred=preds))
     minor = {
@@ -43,7 +44,7 @@ class CoLA(HFTask):
             text += " {}".format({1: "True", 0: "False"}[doc["label"]])
         return text
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
+    def evaluate(self, docs, lm, provide_description, num_fewshot):  
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -54,7 +55,7 @@ class CoLA(HFTask):
             )
             preds.append(lm.loglikelihood(ctx, ' True') > lm.loglikelihood(ctx, ' False'))
         golds = np.array(golds)
-        preds = np.array(preds)
+        preds = np.array([p.cpu().numpy()[0][0] for p in preds])  # Classification metrics require same target types
         mcc = float(matthews_corrcoef(y_true=golds, y_pred=preds))
         return {
             "major": mcc,
@@ -110,7 +111,14 @@ class MNLI(HFTask):
                 lm.loglikelihood(ctx, ' Neither'),
                 lm.loglikelihood(ctx, ' False'),
             ])
-            preds.append(np.argmax(probs))
+
+            probs_are_present = all(p.shape==(1,1) for p in probs)
+            if (probs_are_present):
+                preds.append(np.argmax(probs)) 
+            else:
+                print("WARN: Missing probabilities for %s - defaulting to 1 (Neither)" % doc)
+                preds.append(1)
+        
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
@@ -316,7 +324,7 @@ class STSB(HFTask):
                 pred = max(min(float(first_element), 5.0), 0.0)
             else:
                 pred = 2.5
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             preds.append(pred)
         pearson_corr = float(pearsonr(preds, golds)[0])
         spearman_corr = float(spearmanr(preds, golds)[0])
