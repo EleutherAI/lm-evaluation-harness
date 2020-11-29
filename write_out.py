@@ -36,7 +36,7 @@ def main():
         else:
             docs = task.validation_docs()
         with open(os.path.join(args.output_base_path, task_name), "w") as f:
-            for i, doc in zip(range(args.num_examples), docs):
+            for i, doc in zip(range(args.num_examples), docs) if args.num_examples > 0 else enumerate(docs):
                 f.write(EXAMPLE_DIVIDER.format(i=i))
                 ctx = task.fewshot_context(
                     doc=doc,
