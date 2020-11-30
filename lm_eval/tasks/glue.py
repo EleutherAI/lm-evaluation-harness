@@ -76,6 +76,10 @@ class MNLI(HFTask):
     def has_test_docs(self):
         return True
 
+    def training_docs(self):
+        if self.has_validation_docs():
+            return self.data["train_matched"]
+
     def validation_docs(self):
         if self.has_validation_docs():
             return self.data["validation_matched"]
