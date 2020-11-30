@@ -57,6 +57,7 @@ class Dataset(abc.ABC):
     @abc.abstractmethod
     def __init__(self):
         self.download()
+        self._traindocs = None
 
     def download(self):
         """Downloads the task dataset if necessary"""
@@ -95,9 +96,10 @@ class Dataset(abc.ABC):
         pass
     
     def fewshot_examples(self, k):
-        traindocs = list(self.training_docs())
-        random.shuffle(traindocs)
-        return traindocs[:k]
+        if self._traindocs is None:
+            self._traindocs = list(self.training_docs())
+
+        return random.sample(self._traindocs, k)
 
     @abc.abstractmethod
     def doc_to_text(self, doc, include_target=True):
