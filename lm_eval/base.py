@@ -10,8 +10,8 @@ class LM(abc.ABC):
         :param context: str
             Context string
         :param continuation: str
-            The continuation over which log likelihood will be calculated. If
-            there is a word boundary, the space should be in the continuation.
+            The continuation over which log likelihood will be calculated. If 
+            there is a word boundary, the space should be in the continuation. 
             For example, context="hello" continuation=" world" is correct.
         :return: float
         """

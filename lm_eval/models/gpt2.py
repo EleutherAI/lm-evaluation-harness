@@ -12,7 +12,7 @@ class GPT2LM(LM):
         self.device = torch.device(device)
         self.gpt2 = transformers.GPT2LMHeadModel.from_pretrained("gpt2").to(self.device)
         self.gpt2.eval()
-        self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained("gpt2")
+        self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
 
     @classmethod
     def create_from_arg_string(cls, arg_string):
@@ -23,12 +23,8 @@ class GPT2LM(LM):
         # when too long to fit in context, truncate from the left
         context_enc = self.tokenizer.encode(context)
         continuation_enc = self.tokenizer.encode(continuation)
-        inp = torch.tensor(
-            [(context_enc + continuation_enc)[-1024:]], dtype=torch.long
-        ).to(self.device)
-        ctxlen = len(context_enc) - max(
-            0, len(context_enc) + len(continuation_enc) - 1024
-        )
+        inp = torch.tensor([(context_enc + continuation_enc)[-1024:]], dtype=torch.long).to(self.device)
+        ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - 1024)
 
         cont_toks = inp[:, ctxlen:]  # [batch, seq]
         logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[
