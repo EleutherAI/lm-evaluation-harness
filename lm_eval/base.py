@@ -5,10 +5,7 @@ import random
 class LM(abc.ABC):
     @abc.abstractmethod
     def loglikelihood(self, context, continuation):
-        """Compute log-likelihood of a generation a continuation from a context
-
-        Assume that the final text will simple be
-            context + continuation
+        """Compute log-likelihood of generating a continuation from a context
 
         :param context: str
             Context string
