@@ -139,6 +139,11 @@ class MNLI(HFTask):
 
 
 class MNLIMismatched(MNLI):
+
+    def training_docs(self):
+        if self.has_validation_docs():
+            return self.data["train_mismatched"]
+
     def validation_docs(self):
         if self.has_validation_docs():
             return self.data["validation_mismatched"]
