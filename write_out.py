@@ -11,13 +11,13 @@ EXAMPLE_DIVIDER = "!!@@##@@!! -- Example {i}\n"
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_base_path", required=True)
-    parser.add_argument("--tasks", default="all_tasks")
-    parser.add_argument("--provide_description", action="store_true")
-    parser.add_argument("--sets", type=str, default="val")  # example: val,test
-    parser.add_argument("--num_fewshot", type=int, default=1)
-    parser.add_argument("--seed", type=int, default=1234)
-    parser.add_argument("--num_examples", type=int, default=1)
+    parser.add_argument('--output_base_path', required=True)
+    parser.add_argument('--tasks', default="all_tasks")
+    parser.add_argument('--provide_description', action="store_true")
+    parser.add_argument('--sets', type=str, default="val") # example: val,test
+    parser.add_argument('--num_fewshot', type=int, default=1)
+    parser.add_argument('--seed', type=int, default=1234)
+    parser.add_argument('--num_examples', type=int, default=1)
     return parser.parse_args()
 
 
@@ -37,14 +37,14 @@ def main():
         iters = []
 
         for set in args.sets.split(","):
-            if set == "train" and task.has_train_docs():
+            if set == 'train' and task.has_train_docs():
                 docs = task.train_docs()
-            if set == "val" and task.has_validation_docs():
+            if set == 'val' and task.has_validation_docs():
                 docs = task.validation_docs()
-            if set == "test" and task.has_test_docs():
+            if set == 'test' and task.has_test_docs():
                 docs = task.test_docs()
             iters.append(docs)
-
+        
         docs = join_iters(iters)
 
         with open(os.path.join(args.output_base_path, task_name), "w") as f:

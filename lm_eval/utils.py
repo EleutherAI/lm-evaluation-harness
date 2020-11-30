@@ -26,7 +26,6 @@ def simple_parse_args_string(args_string):
         args_dict[k] = v
     return args_dict
 
-
 def join_iters(iters):
     for iter in iters:
         yield from iter
