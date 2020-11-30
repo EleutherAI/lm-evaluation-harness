@@ -1,4 +1,5 @@
 from . common import HFTask
+from itertools import islice
 
 class NaturalQs(HFTask):
     DATASET_PATH = "natural_questions"
