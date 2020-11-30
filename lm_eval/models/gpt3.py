@@ -47,4 +47,3 @@ class GPT3LM(LM):
         logprobs = response.choices[0]["logprobs"]["token_logprobs"]
         continuation_logprobs = logprobs[ctxlen:]
         return sum(continuation_logprobs)
-

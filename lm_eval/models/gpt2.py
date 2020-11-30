@@ -28,6 +28,3 @@ class GPT2LM(LM):
         logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
 
         return torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)
-
-    def num_tokens(self, string):
-        return len(self.tokenizer.tokenize(string))
