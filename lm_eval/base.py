@@ -21,16 +21,6 @@ class LM(abc.ABC):
         pass
 
     @classmethod
-    def num_tokens(cls, string):
-        """Return the number of tokens in a string, based on tokenization
-
-        :param string: str
-            Input string
-        :return: int
-        """
-        pass
-
-    @classmethod
     def create_from_arg_string(cls, arg_string):
         """Constructor method, in case models need additional arguments
         e.g. OpenAI API engine, paths for loading, other params
