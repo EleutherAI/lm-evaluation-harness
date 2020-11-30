@@ -37,12 +37,13 @@ def main():
         iters = []
 
         for set in args.sets.split(","):
-            if set == 'train' and task.has_train_docs():
-                docs = task.train_docs()
-            if set == 'val' and task.has_validation_docs():
-                docs = task.validation_docs()
-            if set == 'test' and task.has_test_docs():
-                docs = task.test_docs()
+            if set == 'val':
+                if task.has_train_docs():
+                    docs = task.train_docs()
+                elif task.has_validation_docs():
+                    docs = task.validation_docs()
+                elif task.has_test_docs():
+                    docs = task.test_docs()
             iters.append(docs)
         
         docs = join_iters(iters)
