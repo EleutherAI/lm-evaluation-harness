@@ -4,40 +4,16 @@ import random
 
 class LM(abc.ABC):
     @abc.abstractmethod
-    def generate(self, context, max_gen_length):
-        """Conditional text generation with an LM
-
-        :param context: str
-            Context string for conditional generation
-        :param max_gen_length: int
-            Maximum number of tokens to generate
-        :return: str
-
-        """
-        pass
-
-    @abc.abstractmethod
     def loglikelihood(self, context, continuation):
-        """Compute log-likelihood of a generation a continuation from a context
-
-        Assume that the final text will simple be
-            context + continuation
+        """Compute log-likelihood of generating a continuation from a context
 
         :param context: str
-            Context string for conditional generation
+            Context string
         :param continuation: str
-            Maximum number of tokens to generate
+            The continuation over which log likelihood will be calculated. If 
+            there is a word boundary, the space should be in the continuation. 
+            For example, context="hello" continuation=" world" is correct.
         :return: float
-        """
-        pass
-
-    @classmethod
-    def num_tokens(cls, string):
-        """Return the number of tokens in a string, based on tokenization
-
-        :param string: str
-            Input string
-        :return: int
         """
         pass
 
