@@ -6,6 +6,8 @@ from lm_eval import utils
 
 
 class GPT2LM(LM):
+    MAX_LENGTH = 1024
+
     def __init__(self, device="cpu"):
         self.device = torch.device(device)
         self.gpt2 = transformers.GPT2LMHeadModel.from_pretrained('gpt2').to(self.device)
@@ -19,7 +21,7 @@ class GPT2LM(LM):
 
     def generate(self, context, max_gen_length, truncate=True):
         # when too long to fit in context, truncate from the left
-        context_tensor = torch.tensor([self.tokenizer.encode(context.strip())[max_gen_length - 1024:]], dtype=torch.long).to(self.device)
+        context_tensor = torch.tensor([self.tokenizer.encode(context.strip())[max_gen_length - self.MAX_LENGTH:]], dtype=torch.long).to(self.device)
         res = self.gpt2.generate(
             context_tensor,
             # TODO: change to have until rather than using eos_token_id
@@ -29,12 +31,16 @@ class GPT2LM(LM):
         )
 
         # chop off the prompt and the final eos token
-        return self.tokenizer.decode(res[0][min(1024 - max_gen_length, len(context_tensor[0])):-1]).strip()
+        return self.tokenizer.decode(res[0][min(self.MAX_LENGTH - max_gen_length, len(context_tensor[0])):-1]).strip()
 
     def loglikelihood(self, context, continuation, truncate=True):
         # when too long to fit in context, truncate from the left
-        inp = torch.tensor([self.tokenizer.encode(context + continuation)[-1024:]], dtype=torch.long).to(self.device)
-        ctxlen = len(self.tokenizer.encode(context.strip()))
+        inp = torch.tensor([self.tokenizer.encode(context + continuation)[-self.MAX_LENGTH:]], dtype=torch.long).to(self.device)
+        
+        if len(self.tokenizer.encode(context + continuation)) <= self.MAX_LENGTH:
+            ctxlen = len(self.tokenizer.encode(context.strip()))
+        else:
+            ctxlen = self.MAX_LENGTH - 1
 
         cont_toks = inp[:, ctxlen:]  # [batch, seq]
         logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
