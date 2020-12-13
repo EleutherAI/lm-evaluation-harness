@@ -40,7 +40,7 @@ class GPT2LM(LM):
         if len(self.tokenizer.encode(context + continuation)) <= self.MAX_LENGTH:
             ctxlen = len(self.tokenizer.encode(context.strip()))
         else:
-            ctxlen = self.MAX_LENGTH - 1
+            ctxlen = self.MAX_LENGTH - len(self.tokenizer.encode(continuation))
 
         cont_toks = inp[:, ctxlen:]  # [batch, seq]
         logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
