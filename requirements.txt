@@ -1,10 +1,4 @@
-datasets>=1.1
-lm_dataformat==0.0.19
+black==20.8b1
+click>=7.1
 torch>=1.7
 transformers>=4.1
-
-# Dev tools
-black==20.8b1
-
-# For batch_eval
-click>=7.1
