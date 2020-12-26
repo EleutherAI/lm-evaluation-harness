@@ -32,11 +32,13 @@ def main():
     task_dict = tasks.get_task_dict(task_names)
     results = {}
     for task_name, task in task_dict.items():
+        docs_to_retrieve = min(args.limit, len(task.validation_docs()))
         if not task.has_validation_docs():
             continue
         result = task.evaluate(
             docs=task.validation_docs() if args.limit is None 
-                else task.validation_docs().select(range(min(args.limit, len(task.validation_docs())))),
+                else task.validation_docs().select(range(docs_to_retrieve)) if not isinstance(task.validation_docs(), list) 
+                    else task.validation_docs()[0:docs_to_retrieve],
             lm=lm,
             provide_description=args.provide_description,
             num_fewshot=args.num_fewshot,
