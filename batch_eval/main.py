@@ -97,6 +97,7 @@ class InferenceWorker:
     def __init__(self, loop):
         self.loop = loop
         self.inference_requests = []
+        self.num_inferences = 0
 
         self.model = None
         self.tokenizer = None
@@ -113,6 +114,7 @@ class InferenceWorker:
         ).to("cuda")
         self.model = self.model.eval()
         self.tokenizer = AutoTokenizer.from_pretrained("gpt2")
+        self.tokenizer.pad_token = "<|endoftext|>"
 
         prompt = "The quick brown fox jumps over"
         encoded_prompt = self.tokenizer.encode(
@@ -149,47 +151,73 @@ class InferenceWorker:
                 await asyncio.sleep(0.01)
 
     def process_batch(self):
-        # TODO: optimize batch size
-        requests_to_process = self.inference_requests[:10]
-        self.inference_requests = self.inference_requests[10:]
+        batch_size = 20
+        requests_to_process = self.inference_requests[:batch_size]
+        self.inference_requests = self.inference_requests[batch_size:]
 
-        for inference_request in requests_to_process:
-            encoded_prompt_with_completion = self.tokenizer.encode(
-                inference_request.input_text,
-                add_special_tokens=False,
-                return_tensors="pt",
-            ).to("cuda")
-            start_time = time.time()
-            # This blocks the event loop, which is normally not recommended. (See https://docs.python.org/3/library/asyncio-dev.html#running-blocking-code)
-            # But when we evaluate a model, we are running a big batch of evaluations and we don't care about responsiveness, only about how long it takes overall.
-            # If we really want this to be non-blocking, we can move model inference to a separate thread.
-            output_logits = self.model(encoded_prompt_with_completion).logits
-            end_time = time.time()
-            print(f"Time to evaluate once: {end_time - start_time}")
+        input_texts = [
+            inference_request.input_text for inference_request in requests_to_process
+        ]
+        tokenized_inputs = self.tokenizer(
+            input_texts,
+            add_special_tokens=False,
+            return_tensors="pt",
+            padding="longest",
+        )[
+            # https://github.com/huggingface/transformers/issues/5480#issuecomment-653259416
+            "input_ids"
+        ].to(
+            "cuda"
+        )
 
-            # Align the output logits to the input tokens.
-            logits_for_input_positions = output_logits[
-                0,
-                # The last logit needs to be dropped, because it's predicting the "next token", and it doesn't correspond to any input token
-                :-1,
-                :,
-            ]
-            input_tokens_at_positions_with_logits = encoded_prompt_with_completion[
-                0,
-                # The model does not predict the first input token, so the first token needs to be dropped.
-                1:,
-            ]
-            # At each position, the model outputs ~50k logits, one for every possible token.
-            # To get the logits of the tokens that were actually provided, we need to select the right logit at each position.
-            logits_for_provided_tokens = torch.gather(
-                logits_for_input_positions,
-                1,
-                input_tokens_at_positions_with_logits.unsqueeze(1),
-            ).squeeze(1)
+        start_time = time.time()
+        # This blocks the event loop, which is normally not recommended. (See https://docs.python.org/3/library/asyncio-dev.html#running-blocking-code)
+        # But when we evaluate a model, we are running a big batch of evaluations and we don't care about responsiveness, only about how long it takes overall.
+        # If we really want this to be non-blocking, we can move model inference to a separate thread.
+        output_logits = self.model(tokenized_inputs).logits
+        self.num_inferences += 1
+        # This barrier is needed to properly measure how long the model inference took
+        # Source: https://discuss.pytorch.org/t/measuring-gpu-tensor-operation-speed/2513/4?u=ptrblck
+        torch.cuda.synchronize()
+        end_time = time.time()
+        print(
+            f"Time to evaluate once (inference #{self.num_inferences}): {end_time - start_time}"
+        )
 
-            inference_request.future.set_result(
-                logits_for_provided_tokens.mean().item()
-            )
+        # Align the output logits to the input tokens.
+        logits_for_input_positions = output_logits[
+            # The batch dimension
+            :,
+            # The position dimension
+            # The last logit needs to be dropped, because it's predicting the "next token", and it doesn't correspond to any input token
+            :-1,
+            # The embedding dimension
+            :,
+        ]
+        input_tokens_at_positions_with_logits = tokenized_inputs[
+            # The batch dimension
+            :,
+            # The position dimension
+            # The model does not predict the first input token, so the first token needs to be dropped.
+            1:,
+        ]
+        # At each position, the model outputs ~50k logits, one for every possible token.
+        # To get the logits of the tokens that were actually provided, we need to select the right logit at each position.
+        logits_for_provided_tokens = torch.gather(
+            logits_for_input_positions,
+            2,
+            input_tokens_at_positions_with_logits.unsqueeze(2),
+        ).squeeze(2)
+
+        mask_for_non_padded_positions = input_tokens_at_positions_with_logits != 50256
+        per_token_logits = (
+            logits_for_provided_tokens * mask_for_non_padded_positions
+        ).sum(1) / mask_for_non_padded_positions.sum(1)
+
+        for per_token_logit, inference_request in zip(
+            per_token_logits, requests_to_process
+        ):
+            inference_request.future.set_result(per_token_logit.item())
 
 
 if __name__ == "__main__":
