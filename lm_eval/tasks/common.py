@@ -41,12 +41,6 @@ class HFTask(Dataset):
         if self.has_test_docs():
             return self.data["test"]
 
-    def fewshot_examples(self, k):
-        training_docs = self.training_docs()
-        n = len(training_docs)
-        indices = random.sample(range(n), k)
-        return [training_docs[i] for i in indices]
-
 
 def simple_accuracy_metric(preds, golds):
     acc = float((np.array(preds) == np.array(golds)).mean())
