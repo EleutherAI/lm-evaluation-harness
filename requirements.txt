@@ -1,0 +1,4 @@
+black==20.8b1
+click>=7.1
+torch>=1.7
+transformers>=4.1
