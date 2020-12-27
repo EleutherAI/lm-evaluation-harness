@@ -276,11 +276,18 @@ class SGWinogradSchemaChallenge(HFTask):
             )
             to_predict = " " + doc["span1_text"]
             num_tokens = len(lm.tokenizer.tokenize(to_predict))
-            generated = lm.generate(
-                context=ctx,
-                max_gen_length=num_tokens,
-            )
-            preds.append(1 if generated == to_predict else 0)
+
+            max_gen_length=num_tokens
+            context_tensor = torch.tensor([lm.tokenizer.encode(ctx.strip())[max_gen_length - lm.MAX_LENGTH:]], dtype=torch.long).to(lm.device)
+            generated = lm.gpt2.generate(
+                context_tensor,
+                eos_token_id=lm.tokenizer.eos_token_id,
+                do_sample=False,
+                max_length=(len(lm.tokenizer.tokenize(ctx)) + max_gen_length))
+
+            output = lm.tokenizer.decode(res[0][min(lm.MAX_LENGTH - max_gen_length, len(context_tensor[0])):-1]).strip()
+
+            preds.append(1 if output == to_predict else 0)
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 class RTE(HFTask):
