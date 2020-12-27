@@ -310,6 +310,10 @@ class STSB(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # Use standard tokenizer (GPT2TokenizerFast causes runtime bug)
+        import transformers
+        localTokenizer = transformers.GPT2Tokenizer.from_pretrained('gpt2')
+        
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -318,7 +322,18 @@ class STSB(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            output = lm.generate(context=ctx, max_gen_length=5).strip()
+            
+            #output = lm.generate(context=ctx, max_gen_length=5).strip()
+            max_gen_length=5
+            context_tensor = torch.tensor([localTokenizer.encode(ctx.strip())[max_gen_length - lm.MAX_LENGTH:]], dtype=torch.long).to(lm.device)
+            res = lm.gpt2.generate(
+                context_tensor,
+                eos_token_id=localTokenizer.eos_token_id,
+                do_sample=False,
+                max_length=(len(localTokenizer.tokenize(ctx)) + max_gen_length))
+
+            output = localTokenizer.decode(res[0][min(lm.MAX_LENGTH - max_gen_length, len(context_tensor[0])):-1]).strip()
+
             first_element = output.split()[0]
             if first_element.isnumeric():
                 pred = max(min(float(first_element), 5.0), 0.0)
