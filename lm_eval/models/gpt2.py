@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 from lm_eval.base import LM
 from lm_eval import utils
+from tqdm import tqdm
 
 
 class GPT2LM(LM):
@@ -20,7 +21,7 @@ class GPT2LM(LM):
     def loglikelihood(self, requests):
         res = []
         # TODO: vectorize properly
-        for context, continuation in requests:
+        for context, continuation in tqdm(requests):
             # when too long to fit in context, truncate from the left
             context_enc = self.tokenizer.encode(context)
             continuation_enc = self.tokenizer.encode(continuation)
@@ -35,6 +36,6 @@ class GPT2LM(LM):
 
         return res
     
-    def gen_greedy(self, requests):
+    def greedy_until(self, requests):
         # TODO: implement
         pass

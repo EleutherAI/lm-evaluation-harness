@@ -3,6 +3,7 @@ import json
 import numpy as np
 import random
 import itertools
+import collections
 
 from lm_eval import models, tasks
 
@@ -30,17 +31,43 @@ def main():
     else:
         task_names = args.tasks.split(",")
     task_dict = tasks.get_task_dict(task_names)
+    task_dict_items = list(task_dict.items())
     results = {}
-    for task_name, task in task_dict.items():
+
+    requests = collections.defaultdict(list)
+    requests_lengths = collections.defaultdict(list)
+
+    for task_name, task in task_dict_items:
+        # TODO: fall back to test docs
         if not task.has_validation_docs():
             continue
-        result = task.evaluate(
-            docs=itertools.isslice(task.validation_docs(), 0, args.limit),
-            lm=lm,
-            provide_description=args.provide_description,
-            num_fewshot=args.num_fewshot,
-        )
-        results[task_name] = result
+
+        for doc in itertools.islice(task.validation_docs(), 0, args.limit):
+            ctx = task.fewshot_context(
+                doc=doc,
+                provide_description=args.provide_description,
+                num_fewshot=args.num_fewshot,
+            )
+
+            reqs = task.construct_requests(ctx)
+
+            lengths = collections.defaultdict(int)
+
+            for req in reqs:
+                requests[req.type].append(req)
+                lengths[req.type] += 1
+            
+            for type, ct in lengths.items():
+                requests_lengths[type].append(ct)
+
+    # TODO: finish implementation
+    for reqname, reqs in requests.items():
+        lm_res = getattr(lm, reqname)([req.args for req in reqs])
+
+    for task_name, task in task_dict_items:
+        if not task.has_validation_docs():
+            continue
+
 
     dumped = json.dumps(results, indent=2)
     print(dumped)

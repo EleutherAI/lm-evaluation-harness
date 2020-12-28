@@ -1,7 +1,7 @@
 import numpy as np
 from tqdm import auto as tqdm_lib
 from . common import HFTask, simple_accuracy_metric, yesno
-
+from lm_eval.base import rf, mean
 
 class BoolQ(HFTask):
     DATASET_PATH = "super_glue"
@@ -19,21 +19,33 @@ class BoolQ(HFTask):
     def fewshot_description(self):
         return "Read the following passages and answer each question with a yes or a no."
 
-    def doc_to_text(self, doc, include_target=True):
-        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer: " \
-            + (yesno(doc['label']) if include_target else "")
+    def doc_to_text(self, doc):
+        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer: "
+    
+    def doc_to_target(self, doc):
+        return yesno(doc['label']) 
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in docs:
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            preds.append(lm.loglikelihood(ctx, ' yes') > lm.loglikelihood(ctx, ' no'))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+    def construct_requests(self, ctx):
+
+        ll_yes = rf.loglikelihood(ctx, ' yes')
+        ll_no  = rf.loglikelihood(ctx, ' no')
+
+        return ll_yes, ll_no
+
+    def process_results(self, doc, results):
+        ll_yes, ll_no = results
+        gold = doc["label"]
+
+        acc = 1. if (ll_yes > ll_no) == gold else 0.
+
+        return [
+            {
+                "submetric": "acc",
+                "value": acc
+                "higher_is_better": True,
+                "aggregation": mean
+            }
+        ]
 
 
 class CommitmentBank(HFTask):
