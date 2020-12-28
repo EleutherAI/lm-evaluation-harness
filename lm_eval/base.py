@@ -26,7 +26,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def gen_greedy(self, requests):
+    def greedy_until(self, requests):
         """Generate greedily until a stopping sequence
 
         :param requests: list
@@ -104,7 +104,11 @@ class Dataset(abc.ABC):
         return random.sample(self._traindocs, k)
 
     @abc.abstractmethod
-    def doc_to_text(self, doc, include_target=True):
+    def doc_to_text(self, doc):
+        pass
+
+    @abc.abstractmethod
+    def doc_to_target(self, doc):
         pass
 
     @abc.abstractmethod
@@ -113,13 +117,14 @@ class Dataset(abc.ABC):
     
     @abc.abstractmethod
     def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a dict with the following format:
+        """Take a single document and the LM results and evaluates, returning a 
+        list of dicts, each with the following format:
 
         {
             "submetric": str,
             "value": float,
             "higher_is_better": bool,
-            "aggregation": (list -> float),
+            "aggregation": ([float] -> float),
         }
 
         * `submetric` should be the name of the metric
@@ -138,10 +143,12 @@ class Dataset(abc.ABC):
     def fewshot_context(self, doc, num_fewshot, provide_description):
         raw_description = self.fewshot_description()
         description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
+        
         labeled_examples = "\n\n".join(
-            map(self.doc_to_text, self.fewshot_examples(k=num_fewshot))
+            [self.doc_to_text(doc) + self.doc_to_target(doc) for doc in self.fewshot_examples(k=num_fewshot)]
         ) + "\n\n"
-        example = self.doc_to_text(doc, include_target=False).strip()
+
+        example = self.doc_to_text(doc).strip()
         return description + labeled_examples + example
 
 
@@ -153,12 +160,12 @@ def median(arr):
     return arr[len(arr) // 2]
 
 
-Request = collections.namedtuple('Request', ('type', 'args', 'kwargs'))
+Request = collections.namedtuple('Request', ('type', 'args'))
 
 class RequestFactory:
     def __getattr__(self, attr):
-        def fn(*args, **kwargs):
-            return Request(attr, args, kwargs)
+        def fn(*args):
+            return Request(attr, args)
         return fn
 
 
