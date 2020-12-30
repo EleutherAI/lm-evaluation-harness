@@ -11,6 +11,10 @@ The raw Google doc can be found here: https://docs.google.com/document/d/177dwJp
 
 ## Usage
 
+### Download datasets
+
+The StoryCloze dataset must be downloaded manually. You can get it at https://www.cs.rochester.edu/nlp/rocstories/
+
 ### Evaluate a task
 
 To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. RTE, Winograd Scheme Challenge), you can run the following command.
