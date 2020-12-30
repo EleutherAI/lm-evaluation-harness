@@ -31,7 +31,7 @@ class GPT2LM(LM):
         )
 
         cont_toks = inp[:, ctxlen:]  # [batch, seq]
-        logits = F.log_softmax(self.model(inp)[0], dim=-1)[
+        logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[
             :, ctxlen - 1 : -1
         ]  # [batch, seq, vocab]
 
