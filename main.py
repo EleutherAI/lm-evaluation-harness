@@ -9,15 +9,16 @@ from lm_eval import models, tasks
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', required=True)
-    parser.add_argument('--model_args', default="")
-    parser.add_argument('--tasks', default="all_tasks")
-    parser.add_argument('--provide_description', action="store_true")
-    parser.add_argument('--num_fewshot', type=int, default=1)
-    parser.add_argument('--seed', type=int, default=1234)
-    parser.add_argument('--output_path', default=None)
-    parser.add_argument('--limit', type=int, default=None)
+    parser.add_argument("--model", required=True)
+    parser.add_argument("--model_args", default="")
+    parser.add_argument("--tasks", default="all_tasks")
+    parser.add_argument("--provide_description", action="store_true")
+    parser.add_argument("--num_fewshot", type=int, default=1)
+    parser.add_argument("--seed", type=int, default=1234)
+    parser.add_argument("--output_path", default=None)
+    parser.add_argument("--limit", type=int, default=None)
     return parser.parse_args()
+
 
 def main():
     args = parse_args()
@@ -32,13 +33,19 @@ def main():
     task_dict = tasks.get_task_dict(task_names)
     results = {}
     for task_name, task in task_dict.items():
-        docs_to_retrieve = min(args.limit, len(task.validation_docs()))
+        docs_to_retrieve = len(task.validation_docs())
+        if args.limit is not None:
+            docs_to_retrieve = min(args.limit, len(task.validation_docs()))
         if not task.has_validation_docs():
             continue
         result = task.evaluate(
-            docs=task.validation_docs() if args.limit is None 
-                else task.validation_docs().select(range(docs_to_retrieve)) if not isinstance(task.validation_docs(), list) 
-                    else task.validation_docs()[0:docs_to_retrieve],
+            docs=(
+                task.validation_docs()
+                if args.limit is None
+                else task.validation_docs().select(range(docs_to_retrieve))
+                if not isinstance(task.validation_docs(), list)
+                else task.validation_docs()[0:docs_to_retrieve]
+            ),
             lm=lm,
             provide_description=args.provide_description,
             num_fewshot=args.num_fewshot,
@@ -54,4 +61,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

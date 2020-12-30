@@ -1,4 +1,5 @@
-from . common import HFTask
+from .common import HFTask
+
 
 class WebQs(HFTask):
     DATASET_PATH = "web_questions"
@@ -19,12 +20,12 @@ class WebQs(HFTask):
 
     def doc_to_text(self, doc, include_target=True):
         print(doc)
-        q = "Q: " + doc['question'] + '\n'
+        q = "Q: " + doc["question"] + "\n"
 
-        # this picks one answer to be the "correct" one, despite sometimes 
+        # this picks one answer to be the "correct" one, despite sometimes
         # multiple correct answers being possible.
         # TODO: make sure we're actually handling multi-answer correctly
-        a = "A:" + ((" " + doc['answers'][0]) if include_target else '')
+        a = "A:" + ((" " + doc["answers"][0]) if include_target else "")
         return q + a
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):

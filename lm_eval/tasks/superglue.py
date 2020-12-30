@@ -1,6 +1,6 @@
 import numpy as np
 from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno
+from .common import HFTask, simple_accuracy_metric, yesno
 
 
 class BoolQ(HFTask):
@@ -17,11 +17,14 @@ class BoolQ(HFTask):
         return True
 
     def fewshot_description(self):
-        return "Read the following passages and answer each question with a yes or a no."
+        return (
+            "Read the following passages and answer each question with a yes or a no."
+        )
 
     def doc_to_text(self, doc, include_target=True):
-        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer: " \
-            + (yesno(doc['label']) if include_target else "")
+        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer: " + (
+            yesno(doc["label"]) if include_target else ""
+        )
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         golds = [doc["label"] for doc in docs]
@@ -32,7 +35,7 @@ class BoolQ(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            preds.append(lm.loglikelihood(ctx, ' yes') > lm.loglikelihood(ctx, ' no'))
+            preds.append(lm.loglikelihood(ctx, " yes") > lm.loglikelihood(ctx, " no"))
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
@@ -70,11 +73,13 @@ class CommitmentBank(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            probs = np.array([
-                lm.loglikelihood(ctx, ' true'),
-                lm.loglikelihood(ctx, ' neither'),
-                lm.loglikelihood(ctx, ' false'),
-            ])
+            probs = np.array(
+                [
+                    lm.loglikelihood(ctx, " true"),
+                    lm.loglikelihood(ctx, " neither"),
+                    lm.loglikelihood(ctx, " false"),
+                ]
+            )
             preds.append(np.argmax(probs))
         return simple_accuracy_metric(preds=preds, golds=golds)
 
@@ -116,7 +121,9 @@ class Copa(HFTask):
             )
             choice1 = " " + self.convert_choice(doc["choice1"])
             choice2 = " " + self.convert_choice(doc["choice2"])
-            preds.append(lm.loglikelihood(ctx, choice2) > lm.loglikelihood(ctx, choice1))
+            preds.append(
+                lm.loglikelihood(ctx, choice2) > lm.loglikelihood(ctx, choice1)
+            )
         return simple_accuracy_metric(preds=preds, golds=golds)
 
     @staticmethod
@@ -141,9 +148,11 @@ class MultiRC(HFTask):
         return "READING COMPREHENSION ANSWER KEY"
 
     def doc_to_text(self, doc, include_target=True):
-        return f"{doc['paragraph']}\n\n{doc['question']}\n" \
-            + (self.format_answer(answer=doc["answer"], label=doc["label"])
-               if include_target else "")
+        return f"{doc['paragraph']}\n\n{doc['question']}\n" + (
+            self.format_answer(answer=doc["answer"], label=doc["label"])
+            if include_target
+            else ""
+        )
 
     @staticmethod
     def format_answer(answer, label):
@@ -161,8 +170,8 @@ class MultiRC(HFTask):
             true_choice = self.format_answer(answer=doc["answer"], label=True)
             false_choice = self.format_answer(answer=doc["answer"], label=False)
             preds.append(
-                lm.loglikelihood(ctx, f' {true_choice}')
-                > lm.loglikelihood(ctx, f' {false_choice}')
+                lm.loglikelihood(ctx, f" {true_choice}")
+                > lm.loglikelihood(ctx, f" {false_choice}")
             )
 
         # Only count as correct if all answers are labeled correctly for each question
@@ -195,12 +204,14 @@ class WordsInContext(HFTask):
         return True
 
     def doc_to_text(self, doc, include_target=True):
-        text = "{}\n{}\nquestion\tIs the word '{}' used in the same way in the" \
-               " two sentences above?\nanswer:".format(
-                    doc["sentence1"],
-                    doc["sentence2"],
-                    doc["sentence1"][doc["start1"]:doc["end1"]],
-                )
+        text = (
+            "{}\n{}\nquestion\tIs the word '{}' used in the same way in the"
+            " two sentences above?\nanswer:".format(
+                doc["sentence1"],
+                doc["sentence2"],
+                doc["sentence1"][doc["start1"] : doc["end1"]],
+            )
+        )
         if include_target:
             text += " {}".format({0: "no", 1: "yes"}[doc["label"]])
         return text
@@ -214,7 +225,7 @@ class WordsInContext(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            preds.append(lm.loglikelihood(ctx, ' yes') > lm.loglikelihood(ctx, ' no'))
+            preds.append(lm.loglikelihood(ctx, " yes") > lm.loglikelihood(ctx, " no"))
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
@@ -236,29 +247,29 @@ class SGWinogradSchemaChallenge(HFTask):
             if self._training_docs is None:
                 # GPT-3 Paper's format only uses positive examples
                 self._training_docs = [
-                    doc for doc in
-                    self._load_nlp_dataset()["train"]
-                    if doc["label"]
+                    doc for doc in self._load_nlp_dataset()["train"] if doc["label"]
                 ]
             return self._training_docs
 
     def fewshot_description(self):
-        return "Final Exam with Answer Key\n" \
-           "Instructions: Please carefully read the following passages. " \
-           "For each passage, you must identify which noun the pronoun marked in *bold*" \
-           " refers to.\n====="
+        return (
+            "Final Exam with Answer Key\n"
+            "Instructions: Please carefully read the following passages. "
+            "For each passage, you must identify which noun the pronoun marked in *bold*"
+            " refers to.\n====="
+        )
 
     def doc_to_text(self, doc, include_target=True):
         raw_passage = doc["text"]
         passage = (
-            raw_passage[:doc["span2_index"]]
+            raw_passage[: doc["span2_index"]]
             + "*{}*".format(doc["span2_text"])
-            + raw_passage[doc["span2_index"] + len(doc["span2_text"]):]
+            + raw_passage[doc["span2_index"] + len(doc["span2_text"]) :]
         )
         pronoun = doc["span2_text"]
         text = (
             f"Passage: {passage}\n"
-            + f"Question: In the passage above, what does the pronoun \"*{pronoun}*\" refer to?\n"
+            + f'Question: In the passage above, what does the pronoun "*{pronoun}*" refer to?\n'
             + "Answer:"
         )
         if include_target:
@@ -277,37 +288,59 @@ class SGWinogradSchemaChallenge(HFTask):
             to_predict = " " + doc["span1_text"]
             num_tokens = len(lm.tokenizer.tokenize(to_predict))
 
-            max_gen_length=num_tokens
-            context_tensor = torch.tensor([lm.tokenizer.encode(ctx.strip())[max_gen_length - lm.MAX_LENGTH:]], dtype=torch.long).to(lm.device)
+            max_gen_length = num_tokens
+            context_tensor = torch.tensor(
+                [lm.tokenizer.encode(ctx.strip())[max_gen_length - lm.MAX_LENGTH :]],
+                dtype=torch.long,
+            ).to(lm.device)
             generated = lm.gpt2.generate(
                 context_tensor,
                 eos_token_id=lm.tokenizer.eos_token_id,
                 do_sample=False,
-                max_length=(len(lm.tokenizer.tokenize(ctx)) + max_gen_length))
+                max_length=(len(lm.tokenizer.tokenize(ctx)) + max_gen_length),
+            )
 
-            output = lm.tokenizer.decode(res[0][min(lm.MAX_LENGTH - max_gen_length, len(context_tensor[0])):-1]).strip()
+            output = lm.tokenizer.decode(
+                res[0][min(lm.MAX_LENGTH - max_gen_length, len(context_tensor[0])) : -1]
+            ).strip()
 
             preds.append(1 if output == to_predict else 0)
         return simple_accuracy_metric(preds=preds, golds=golds)
+
 
 class RTE(HFTask):
     DATASET_PATH = "super_glue"
     DATASET_NAME = "rte"
 
     def fewshot_description(self):
-        #TODO: implement
+        # TODO: implement
         pass
 
     def doc_to_text(self, doc, include_target=True):
         if include_target:
-            if doc['label'] == 0:
-                answer = 'True'
+            if doc["label"] == 0:
+                answer = "True"
             else:
-                answer = 'False'
-            return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: ', answer])
+                answer = "False"
+            return "".join(
+                [
+                    doc["premise"],
+                    "\nquestion: ",
+                    doc["hypothesis"],
+                    " True or False?\nanswer: ",
+                    answer,
+                ]
+            )
         else:
-            return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: '])
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        #TODO: 
-        pass
+            return "".join(
+                [
+                    doc["premise"],
+                    "\nquestion: ",
+                    doc["hypothesis"],
+                    " True or False?\nanswer: ",
+                ]
+            )
 
+    def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO:
+        pass

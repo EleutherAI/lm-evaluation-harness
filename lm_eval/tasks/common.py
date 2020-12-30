@@ -11,7 +11,9 @@ class HFTask(Dataset):
     def __init__(self):
         super().__init__()
         self._training_docs = None
-        self.data = datasets.load_dataset(path=self.DATASET_PATH, name=self.DATASET_NAME)
+        self.data = datasets.load_dataset(
+            path=self.DATASET_PATH, name=self.DATASET_NAME
+        )
 
     def has_training_docs(self):
         """Whether the task has a training set"""
@@ -53,6 +55,6 @@ def simple_accuracy_metric(preds, golds):
 
 def yesno(x):
     if x:
-        return 'yes'
+        return "yes"
     else:
-        return 'no'
+        return "no"

@@ -2,12 +2,15 @@ import numpy as np
 from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef
 from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno
+from .common import HFTask, simple_accuracy_metric, yesno
 import torch
+
 
 def get_accuracy_and_f1(preds, golds):
     golds = np.array(golds)
-    preds = np.array([p.cpu().numpy()[0][0] for p in preds]) # Classification metrics require same target types
+    preds = np.array(
+        [p.cpu().numpy()[0][0] for p in preds]
+    )  # Classification metrics require same target types
     acc = float((preds == golds).mean())
     f1 = float(f1_score(y_true=golds, y_pred=preds))
     minor = {
@@ -25,7 +28,7 @@ def get_accuracy_and_f1(preds, golds):
 class CoLA(HFTask):
     DATASET_PATH = "glue"
     DATASET_NAME = "cola"
-    
+
     def has_training_docs(self):
         return True
 
@@ -44,7 +47,7 @@ class CoLA(HFTask):
             text += " {}".format({1: "True", 0: "False"}[doc["label"]])
         return text
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):  
+    def evaluate(self, docs, lm, provide_description, num_fewshot):
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -53,9 +56,13 @@ class CoLA(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            preds.append(lm.loglikelihood(ctx, ' True') > lm.loglikelihood(ctx, ' False'))
+            preds.append(
+                lm.loglikelihood(ctx, " True") > lm.loglikelihood(ctx, " False")
+            )
         golds = np.array(golds)
-        preds = np.array([p.cpu().numpy()[0][0] for p in preds])  # Classification metrics require same target types
+        preds = np.array(
+            [p.cpu().numpy()[0][0] for p in preds]
+        )  # Classification metrics require same target types
         mcc = float(matthews_corrcoef(y_true=golds, y_pred=preds))
         return {
             "major": mcc,
@@ -106,24 +113,28 @@ class MNLI(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            probs = np.array([
-                lm.loglikelihood(ctx, ' True'),
-                lm.loglikelihood(ctx, ' Neither'),
-                lm.loglikelihood(ctx, ' False'),
-            ])
+            probs = np.array(
+                [
+                    lm.loglikelihood(ctx, " True"),
+                    lm.loglikelihood(ctx, " Neither"),
+                    lm.loglikelihood(ctx, " False"),
+                ]
+            )
 
-            probs_are_present = all(p.shape==(1,1) for p in probs)
-            if (probs_are_present):
-                preds.append(np.argmax(probs)) 
+            probs_are_present = all(p.shape == (1, 1) for p in probs)
+            if probs_are_present:
+                preds.append(np.argmax(probs))
             else:
-                print("WARN: Missing probabilities for %s - defaulting to 1 (Neither)" % doc)
+                print(
+                    "WARN: Missing probabilities for %s - defaulting to 1 (Neither)"
+                    % doc
+                )
                 preds.append(1)
-        
+
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
 class MNLIMismatched(MNLI):
-
     def validation_docs(self):
         if self.has_validation_docs():
             return self.data["validation_mismatched"]
@@ -167,10 +178,10 @@ class MRPC(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            preds.append(lm.loglikelihood(ctx, 'yes') > lm.loglikelihood(ctx, 'no'))
+            preds.append(lm.loglikelihood(ctx, "yes") > lm.loglikelihood(ctx, "no"))
         return get_accuracy_and_f1(preds=preds, golds=golds)
 
-      
+
 class RTE(HFTask):
     DATASET_PATH = "glue"
     DATASET_NAME = "rte"
@@ -204,7 +215,9 @@ class RTE(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            preds.append(lm.loglikelihood(ctx, ' False') > lm.loglikelihood(ctx, ' True'))
+            preds.append(
+                lm.loglikelihood(ctx, " False") > lm.loglikelihood(ctx, " True")
+            )
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
@@ -241,7 +254,9 @@ class QNLI(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            preds.append(lm.loglikelihood(ctx, ' False') > lm.loglikelihood(ctx, ' True'))
+            preds.append(
+                lm.loglikelihood(ctx, " False") > lm.loglikelihood(ctx, " True")
+            )
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
@@ -279,7 +294,7 @@ class QQP(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            preds.append(lm.loglikelihood(ctx, ' yes') > lm.loglikelihood(ctx, ' no'))
+            preds.append(lm.loglikelihood(ctx, " yes") > lm.loglikelihood(ctx, " no"))
         return get_accuracy_and_f1(preds=preds, golds=golds)
 
 
@@ -297,8 +312,10 @@ class STSB(HFTask):
         return True
 
     def fewshot_description(self):
-        return "Indicate if both sentences mean the same thing from a scale of 0-5, " \
-           "where 5 means identical and 0 means unrelated."
+        return (
+            "Indicate if both sentences mean the same thing from a scale of 0-5, "
+            "where 5 means identical and 0 means unrelated."
+        )
 
     def doc_to_text(self, doc, include_target=True):
         text = "sentence 1:\t{}\nsentence 2:\t{}\nanswer:".format(
@@ -312,8 +329,9 @@ class STSB(HFTask):
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # Use standard tokenizer (GPT2TokenizerFast causes runtime bug)
         import transformers
-        localTokenizer = transformers.GPT2Tokenizer.from_pretrained('gpt2')
-        
+
+        localTokenizer = transformers.GPT2Tokenizer.from_pretrained("gpt2")
+
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -322,17 +340,23 @@ class STSB(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            
-            #output = lm.generate(context=ctx, max_gen_length=5).strip()
-            max_gen_length=5
-            context_tensor = torch.tensor([localTokenizer.encode(ctx.strip())[max_gen_length - lm.MAX_LENGTH:]], dtype=torch.long).to(lm.device)
+
+            # output = lm.generate(context=ctx, max_gen_length=5).strip()
+            max_gen_length = 5
+            context_tensor = torch.tensor(
+                [localTokenizer.encode(ctx.strip())[max_gen_length - lm.MAX_LENGTH :]],
+                dtype=torch.long,
+            ).to(lm.device)
             res = lm.gpt2.generate(
                 context_tensor,
                 eos_token_id=localTokenizer.eos_token_id,
                 do_sample=False,
-                max_length=(len(localTokenizer.tokenize(ctx)) + max_gen_length))
+                max_length=(len(localTokenizer.tokenize(ctx)) + max_gen_length),
+            )
 
-            output = localTokenizer.decode(res[0][min(lm.MAX_LENGTH - max_gen_length, len(context_tensor[0])):-1]).strip()
+            output = localTokenizer.decode(
+                res[0][min(lm.MAX_LENGTH - max_gen_length, len(context_tensor[0])) : -1]
+            ).strip()
 
             first_element = output.split()[0]
             if first_element.isnumeric():
@@ -388,14 +412,16 @@ class SST(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            preds.append(lm.loglikelihood(ctx, ' Positive') > lm.loglikelihood(ctx, ' Negative'))
+            preds.append(
+                lm.loglikelihood(ctx, " Positive") > lm.loglikelihood(ctx, " Negative")
+            )
         return simple_accuracy_metric(preds=preds, golds=golds)
 
 
 class WNLI(HFTask):
     DATASET_PATH = "glue"
     DATASET_NAME = "wnli"
-    
+
     def has_training_docs(self):
         return True
 
@@ -426,10 +452,12 @@ class WNLI(HFTask):
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
             )
-            probs = np.array([
-                lm.loglikelihood(ctx, ' True'),
-                lm.loglikelihood(ctx, ' Neither'),
-                lm.loglikelihood(ctx, ' False'),
-            ])
+            probs = np.array(
+                [
+                    lm.loglikelihood(ctx, " True"),
+                    lm.loglikelihood(ctx, " Neither"),
+                    lm.loglikelihood(ctx, " False"),
+                ]
+            )
             preds.append(np.argmax(probs))
         return simple_accuracy_metric(preds=preds, golds=golds)
