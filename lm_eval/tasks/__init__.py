@@ -12,6 +12,7 @@ from . import openbookqa
 from . import squad
 from . import naturalqs
 from . import sat
+from . import storycloze
 
 
 TASK_REGISTRY = {
@@ -49,6 +50,7 @@ TASK_REGISTRY = {
     "anli_r1": anli.ANLIRound1,
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
+    'storycloze': storycloze.StoryCloze
 }
 
 
