@@ -1,4 +1,5 @@
-from . common import HFTask
+from .common import HFTask
+
 
 class ARCEasy(HFTask):
     DATASET_PATH = "ai2_arc"
@@ -18,13 +19,23 @@ class ARCEasy(HFTask):
         return ""
 
     def doc_to_text(self, doc, include_target=True):
-        q = "Question: " + doc['question'] + '\n'
-        a = "Answer:" + ((" " + doc['choices']['text'][doc['choices']['label'].index(doc['answerKey'])]) if include_target else "")
+        q = "Question: " + doc["question"] + "\n"
+        a = "Answer:" + (
+            (
+                " "
+                + doc["choices"]["text"][
+                    doc["choices"]["label"].index(doc["answerKey"])
+                ]
+            )
+            if include_target
+            else ""
+        )
         return q + a
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: implement
         raise NotImplementedError()
+
 
 class ARCChallenge(ARCEasy):
     DATASET_PATH = "ai2_arc"

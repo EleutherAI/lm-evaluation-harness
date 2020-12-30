@@ -1,4 +1,5 @@
-from . common import HFTask
+from .common import HFTask
+
 
 class ANLIBase(HFTask):
     DATASET_PATH = "anli"
@@ -35,23 +36,28 @@ class ANLIBase(HFTask):
     def doc_to_text(self, doc, include_target=True):
         print(doc)
         # OA does this a bit weirdly: they prepend "anli 1:  anli 1:  " to the beginning
-        # of the prompt (yes, repeating it!). also, " True, False, or Neither?" is directly 
-        # appended onto the question, with no "Answer:" or even a newline. Do we *really* 
+        # of the prompt (yes, repeating it!). also, " True, False, or Neither?" is directly
+        # appended onto the question, with no "Answer:" or even a newline. Do we *really*
         # want to do it exactly as OA did?
-        q = doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + '\n'
+        q = doc["premise"] + "\nQuestion: " + doc["hypothesis"] + "\n"
 
-        a = "True, False, or Neither?" + ((" " + ["True", "Neither", "False"][doc['label']]) if include_target else '')
+        a = "True, False, or Neither?" + (
+            (" " + ["True", "Neither", "False"][doc["label"]]) if include_target else ""
+        )
         return q + a
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: implement
         raise NotImplementedError()
 
+
 class ANLIRound1(ANLIBase):
     SPLIT = 1
 
+
 class ANLIRound2(ANLIBase):
     SPLIT = 2
+
 
 class ANLIRound3(ANLIBase):
     SPLIT = 3

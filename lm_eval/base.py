@@ -10,8 +10,8 @@ class LM(abc.ABC):
         :param context: str
             Context string
         :param continuation: str
-            The continuation over which log likelihood will be calculated. If 
-            there is a word boundary, the space should be in the continuation. 
+            The continuation over which log likelihood will be calculated. If
+            there is a word boundary, the space should be in the continuation.
             For example, context="hello" continuation=" world" is correct.
         :return: float
         """
@@ -43,7 +43,7 @@ class Dataset(abc.ABC):
     def has_training_docs(self):
         """Whether the task has a training set"""
         pass
-    
+
     @abc.abstractmethod
     def has_validation_docs(self):
         """Whether the task has a validation set"""
@@ -62,15 +62,15 @@ class Dataset(abc.ABC):
             A iterable of any object, that doc_to_text can handle
         """
         pass
-    
+
     @abc.abstractmethod
     def validation_docs(self):
         pass
-    
+
     @abc.abstractmethod
     def test_docs(self):
         pass
-    
+
     def fewshot_examples(self, k):
         if self._traindocs is None:
             self._traindocs = list(self.training_docs())
@@ -80,7 +80,7 @@ class Dataset(abc.ABC):
     @abc.abstractmethod
     def doc_to_text(self, doc, include_target=True):
         pass
-    
+
     @abc.abstractmethod
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         """Take iterable of docs and evaluates, returning a dict with the following format:
@@ -102,9 +102,14 @@ class Dataset(abc.ABC):
 
     def fewshot_context(self, doc, num_fewshot, provide_description):
         raw_description = self.fewshot_description()
-        description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
-        labeled_examples = "\n\n".join(
-            map(self.doc_to_text, self.fewshot_examples(k=num_fewshot))
-        ) + "\n\n"
+        description = (
+            (raw_description + "\n===\n\n")
+            if provide_description and raw_description
+            else ""
+        )
+        labeled_examples = (
+            "\n\n".join(map(self.doc_to_text, self.fewshot_examples(k=num_fewshot)))
+            + "\n\n"
+        )
         example = self.doc_to_text(doc, include_target=False).strip()
         return description + labeled_examples + example

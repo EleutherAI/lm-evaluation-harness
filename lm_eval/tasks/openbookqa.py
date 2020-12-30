@@ -2,7 +2,8 @@ import numpy as np
 from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef
 from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno
+from .common import HFTask, simple_accuracy_metric, yesno
+
 
 class OpenBookQA(HFTask):
     DATASET_PATH = "openbookqa"
@@ -35,20 +36,22 @@ class OpenBookQA(HFTask):
         return "Text of the question prompt\nText of the answer completion"
 
     def doc_to_text(self, doc, include_target=True):
-        text = doc['question_stem'] + '\n'
+        text = doc["question_stem"] + "\n"
         if include_target:
-            letter_answer = doc['answerKey']
-            if letter_answer == 'A':
+            letter_answer = doc["answerKey"]
+            if letter_answer == "A":
                 index = 0
-            elif letter_answer == 'B':
+            elif letter_answer == "B":
                 index = 1
-            elif letter_answer == 'C':
+            elif letter_answer == "C":
                 index = 2
-            elif letter_answer == 'D':
+            elif letter_answer == "D":
                 index = 3
             else:
-                raise ValueError("OpenBookQA from HF datasets contained an invalid answer key")
-            text += doc['choices']['text'][index] + '.'
+                raise ValueError(
+                    "OpenBookQA from HF datasets contained an invalid answer key"
+                )
+            text += doc["choices"]["text"][index] + "."
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):

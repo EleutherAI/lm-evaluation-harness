@@ -13,6 +13,7 @@ from . import squad
 from . import naturalqs
 from . import sat
 
+
 TASK_REGISTRY = {
     # GLUE
     "cola": glue.CoLA,
@@ -59,7 +60,4 @@ def get_task(task_name):
 
 
 def get_task_dict(task_name_list):
-    return {
-        task_name: get_task(task_name)()
-        for task_name in task_name_list
-    }
+    return {task_name: get_task(task_name)() for task_name in task_name_list}
