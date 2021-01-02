@@ -31,18 +31,27 @@ def main():
     else:
         task_names = args.tasks.split(",")
     task_dict = tasks.get_task_dict(task_names)
-    task_dict_items = list(task_dict.items())
+
+    # TODO: fall back to test docs
+    task_dict_items = [(name, task) for name, task in task_dict.items() if task.has_validation_docs()]
+
     results = {}
 
     requests = collections.defaultdict(list)
-    requests_lengths = collections.defaultdict(list)
+    requests_origin = collections.defaultdict(list)
+
+    # if we ever run into issues where the eval tasks don't fit in memory and we can't afford a machine with bigger memory,
+    # we can always modify this plumbing to support that, but i didn't want to include it just yet because overengineering is bad
+    # (or we could make it write the requests to disk and then read them back out again - probably using an sqlite db because of all the moving parts we have
+
+    # TODO: we need unit tests & sanity checks or something to ensure that the return of `validation_docs` is stable
+
+    docs = {}
 
     for task_name, task in task_dict_items:
-        # TODO: fall back to test docs
-        if not task.has_validation_docs():
-            continue
+        for doc_id, doc in enumerate(itertools.islice(task.validation_docs(), 0, args.limit)):
+            docs[(task_name, doc_id)] = doc
 
-        for doc in itertools.islice(task.validation_docs(), 0, args.limit):
             ctx = task.fewshot_context(
                 doc=doc,
                 provide_description=args.provide_description,
@@ -51,22 +60,40 @@ def main():
 
             reqs = task.construct_requests(ctx)
 
-            lengths = collections.defaultdict(int)
-
-            for req in reqs:
+            for i, req in enumerate(reqs):
                 requests[req.type].append(req)
-                lengths[req.type] += 1
-            
-            for type, ct in lengths.items():
-                requests_lengths[type].append(ct)
+                requests_origin[req.type].append((i, task_name, doc, doc_id))
 
-    # TODO: finish implementation
-    for reqname, reqs in requests.items():
-        lm_res = getattr(lm, reqname)([req.args for req in reqs])
+    process_res_queue = collections.defaultdict(list)
 
-    for task_name, task in task_dict_items:
-        if not task.has_validation_docs():
-            continue
+    for reqtype, reqs in requests.items():
+        resps = getattr(lm, reqtype)([req.args for req in reqs])
+
+        for resp, (i, task_name, doc, doc_id) in zip(resps, requests_origin[reqtype]):
+            process_res_queue[(task_name, doc_id)].append((i, resp))
+    
+    vals = collections.defaultdict(list)
+
+    for (task_name, doc_id), args in process_res_queue.items():
+        args.sort(lambda x: x[0])
+        args = [x[1] for x in args]
+
+        task = task_dict[task_name]
+        doc = docs[(task_name, doc_id)]
+
+        metrics = task.process_results(doc, args)
+        for metric in metrics:
+            results[(task_name, metric['submetric'])] = {
+                "higher_is_better": metric["higher_is_better"],
+                "aggregation": metric["aggregation"]
+            }
+            vals[(task_name, metric['submetric'])].append(metric['value'])
+    
+    for k in results.keys():
+        results[k]['value'] = results[k]['aggregation'](vals[k])
+
+        # can't serialize a function
+        del results[k]['aggregation']
 
 
     dumped = json.dumps(results, indent=2)
