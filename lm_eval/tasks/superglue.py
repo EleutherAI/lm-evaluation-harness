@@ -41,7 +41,7 @@ class BoolQ(HFTask):
         return [
             {
                 "submetric": "acc",
-                "value": acc
+                "value": acc,
                 "higher_is_better": True,
                 "aggregation": mean
             }
