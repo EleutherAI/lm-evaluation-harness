@@ -96,8 +96,6 @@ def main():
             # can't serialize a function
             del submetrics[k]['aggregation']
 
-    print(results)
-
     dumped = json.dumps(results, indent=2)
     print(dumped)
     if args.output_path:
