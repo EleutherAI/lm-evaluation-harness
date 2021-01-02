@@ -17,7 +17,7 @@ def parse_args():
     parser.add_argument('--num_fewshot', type=int, default=1)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--output_path', default=None)
-    parser.add_argument('--limit', default=None)
+    parser.add_argument('--limit', type=int, default=None)
     return parser.parse_args()
 
 def main():
@@ -35,7 +35,7 @@ def main():
     # TODO: fall back to test docs
     task_dict_items = [(name, task) for name, task in task_dict.items() if task.has_validation_docs()]
 
-    results = {}
+    results = collections.defaultdict(dict)
 
     requests = collections.defaultdict(list)
     requests_origin = collections.defaultdict(list)
@@ -74,27 +74,29 @@ def main():
     
     vals = collections.defaultdict(list)
 
-    for (task_name, doc_id), args in process_res_queue.items():
-        args.sort(lambda x: x[0])
-        args = [x[1] for x in args]
+    for (task_name, doc_id), requests in process_res_queue.items():
+        requests.sort(key=lambda x: x[0])
+        requests = [x[1] for x in requests]
 
         task = task_dict[task_name]
         doc = docs[(task_name, doc_id)]
 
-        metrics = task.process_results(doc, args)
+        metrics = task.process_results(doc, requests)
         for metric in metrics:
-            results[(task_name, metric['submetric'])] = {
+            results[task_name][metric['submetric']] = {
                 "higher_is_better": metric["higher_is_better"],
                 "aggregation": metric["aggregation"]
             }
             vals[(task_name, metric['submetric'])].append(metric['value'])
     
-    for k in results.keys():
-        results[k]['value'] = results[k]['aggregation'](vals[k])
+    for task_name, submetrics in results.items():
+        for k in submetrics.keys():
+            submetrics[k]['value'] = submetrics[k]['aggregation'](vals[(task_name, k)])
 
-        # can't serialize a function
-        del results[k]['aggregation']
+            # can't serialize a function
+            del submetrics[k]['aggregation']
 
+    print(results)
 
     dumped = json.dumps(results, indent=2)
     print(dumped)
