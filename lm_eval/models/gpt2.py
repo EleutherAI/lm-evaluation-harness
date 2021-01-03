@@ -32,7 +32,7 @@ class GPT2LM(LM):
             logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
 
             # TODO: implement isgreedy
-            res.append((torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1), False))
+            res.append((float(torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)), False))
 
         return res
     
