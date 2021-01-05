@@ -1,4 +1,7 @@
+# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
+
 from . common import HFTask
+from itertools import islice
 
 class NaturalQs(HFTask):
     DATASET_PATH = "natural_questions"

@@ -1,3 +1,5 @@
+# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
+
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef
@@ -26,6 +28,7 @@ class SQuAD(HFTask):
             return self.data["validation"]
 
     def fewshot_description(self):
+        # TODO: redo description
         return "Title: The_Title_of_It\n\nBackground: A text passage as background to answer the question with.\n\nQ: Question about the passage.\n\nA: Answer."
 
     def doc_to_text(self, doc, include_target=True):
