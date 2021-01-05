@@ -3,6 +3,7 @@ import json
 import numpy as np
 import random
 import itertools
+import collections
 
 from lm_eval import models, tasks
 
@@ -16,7 +17,7 @@ def parse_args():
     parser.add_argument('--num_fewshot', type=int, default=1)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--output_path', default=None)
-    parser.add_argument('--limit', default=None)
+    parser.add_argument('--limit', type=int, default=None)
     return parser.parse_args()
 
 def main():
@@ -30,17 +31,70 @@ def main():
     else:
         task_names = args.tasks.split(",")
     task_dict = tasks.get_task_dict(task_names)
-    results = {}
-    for task_name, task in task_dict.items():
-        if not task.has_validation_docs():
-            continue
-        result = task.evaluate(
-            docs=itertools.isslice(task.validation_docs(), 0, args.limit),
-            lm=lm,
-            provide_description=args.provide_description,
-            num_fewshot=args.num_fewshot,
-        )
-        results[task_name] = result
+
+    # TODO: fall back to test docs
+    task_dict_items = [(name, task) for name, task in task_dict.items() if task.has_validation_docs()]
+
+    results = collections.defaultdict(dict)
+
+    requests = collections.defaultdict(list)
+    requests_origin = collections.defaultdict(list)
+
+    # if we ever run into issues where the eval tasks don't fit in memory and we can't afford a machine with bigger memory,
+    # we can always modify this plumbing to support that, but i didn't want to include it just yet because overengineering is bad
+    # (or we could make it write the requests to disk and then read them back out again - probably using an sqlite db because of all the moving parts we have
+
+    # TODO: we need unit tests & sanity checks or something to ensure that the return of `validation_docs` is stable
+
+    docs = {}
+
+    for task_name, task in task_dict_items:
+        for doc_id, doc in enumerate(itertools.islice(task.validation_docs(), 0, args.limit)):
+            docs[(task_name, doc_id)] = doc
+
+            ctx = task.fewshot_context(
+                doc=doc,
+                provide_description=args.provide_description,
+                num_fewshot=args.num_fewshot,
+            )
+
+            reqs = task.construct_requests(ctx)
+
+            for i, req in enumerate(reqs):
+                requests[req.type].append(req)
+                requests_origin[req.type].append((i, task_name, doc, doc_id))
+
+    process_res_queue = collections.defaultdict(list)
+
+    for reqtype, reqs in requests.items():
+        resps = getattr(lm, reqtype)([req.args for req in reqs])
+
+        for resp, (i, task_name, doc, doc_id) in zip(resps, requests_origin[reqtype]):
+            process_res_queue[(task_name, doc_id)].append((i, resp))
+    
+    vals = collections.defaultdict(list)
+
+    for (task_name, doc_id), requests in process_res_queue.items():
+        requests.sort(key=lambda x: x[0])
+        requests = [x[1] for x in requests]
+
+        task = task_dict[task_name]
+        doc = docs[(task_name, doc_id)]
+
+        metrics = task.process_results(doc, requests)
+        for metric in metrics:
+            results[task_name][metric['submetric']] = {
+                "higher_is_better": metric["higher_is_better"],
+                "aggregation": metric["aggregation"]
+            }
+            vals[(task_name, metric['submetric'])].append(metric['value'])
+    
+    for task_name, submetrics in results.items():
+        for k in submetrics.keys():
+            submetrics[k]['value'] = submetrics[k]['aggregation'](vals[(task_name, k)])
+
+            # can't serialize a function
+            del submetrics[k]['aggregation']
 
     dumped = json.dumps(results, indent=2)
     print(dumped)

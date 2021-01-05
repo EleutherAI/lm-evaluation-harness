@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 from lm_eval.base import LM
 from lm_eval import utils
+from tqdm import tqdm
 
 
 class GPT2LM(LM):
@@ -17,14 +18,24 @@ class GPT2LM(LM):
         args = utils.simple_parse_args_string(arg_string)
         return cls(device=args.get("device", "cpu"))
 
-    def loglikelihood(self, context, continuation, truncate=True):
-        # when too long to fit in context, truncate from the left
-        context_enc = self.tokenizer.encode(context)
-        continuation_enc = self.tokenizer.encode(continuation)
-        inp = torch.tensor([(context_enc + continuation_enc)[-1024:]], dtype=torch.long).to(self.device)
-        ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - 1024)
+    def loglikelihood(self, requests):
+        res = []
+        # TODO: vectorize properly
+        for context, continuation in tqdm(requests):
+            # when too long to fit in context, truncate from the left
+            context_enc = self.tokenizer.encode(context)
+            continuation_enc = self.tokenizer.encode(continuation)
+            inp = torch.tensor([(context_enc + continuation_enc)[-1024:]], dtype=torch.long).to(self.device)
+            ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - 1024)
 
-        cont_toks = inp[:, ctxlen:]  # [batch, seq]
-        logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
+            cont_toks = inp[:, ctxlen:]  # [batch, seq]
+            logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
 
-        return torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)
+            # TODO: implement isgreedy
+            res.append((float(torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)), False))
+
+        return res
+    
+    def greedy_until(self, requests):
+        # TODO: implement
+        pass
