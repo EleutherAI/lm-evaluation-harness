@@ -7,8 +7,6 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 2. Removing task val/test data from LM training set
 3. Adding task training data to LM training set
 
-The raw Google doc can be found here: https://docs.google.com/document/d/177dwJpH8GHebISXYZSn4NL98sXdCtQMH82b7O5F7jmw/edit?usp=sharing
-
 ## Usage
 
 ### Evaluate a task
