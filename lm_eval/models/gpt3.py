@@ -1,3 +1,5 @@
+# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
+
 import os
 import transformers
 from lm_eval.base import LM

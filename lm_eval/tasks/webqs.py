@@ -1,3 +1,5 @@
+# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
+
 from . common import HFTask
 
 class WebQs(HFTask):
