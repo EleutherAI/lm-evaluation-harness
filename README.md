@@ -7,8 +7,6 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 2. Removing task val/test data from LM training set
 3. Adding task training data to LM training set
 
-The raw Google doc can be found here: https://docs.google.com/document/d/177dwJpH8GHebISXYZSn4NL98sXdCtQMH82b7O5F7jmw/edit?usp=sharing
-
 ## Usage
 
 ### Evaluate a task
@@ -99,6 +97,3 @@ With the data downloader in place, we simply need to (1) expose the val/test exa
 
 ### 3. Adding task training data to LM training set
 This part is the easiest. I guess we just write out some text files containing the training data? We can let the usual LM preprocessing pipeline handle it from there.
-
-## Summary (need to convert from google docs at some point):
-https://docs.google.com/document/d/177dwJpH8GHebISXYZSn4NL98sXdCtQMH82b7O5F7jmw/edit?usp=sharing
