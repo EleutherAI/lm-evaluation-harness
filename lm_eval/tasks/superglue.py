@@ -1,3 +1,5 @@
+# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
+
 import numpy as np
 from tqdm import auto as tqdm_lib
 from . common import HFTask, simple_accuracy_metric, yesno
