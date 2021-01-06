@@ -80,6 +80,8 @@ class WinogradSchemaChallenge273(Dataset):
         text = doc['completions']['T'] + ' True. ' + doc['completions']['F'] + ' False.'
         return text
 
-    def evaluate(self, docs, lm):
-        # TODO: Write evaluation function
-        raise NotImplementedError()
+    # TODO: Implement evaluation code
+
+    # ***IMPORTANT***: this evaluation function needs to be written for the new framework. 
+    # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+    # Remove this comment when the evaluation code is implemented.
