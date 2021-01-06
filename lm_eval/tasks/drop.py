@@ -58,23 +58,12 @@ class DROP(Dataset):
                 text = ''.join([text, get_answer(pair['answer'])])
             qa_texts.append(text)
         return ''.join([doctext, '\n'.join(qa_texts)])
-            
-    
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        """Take iterable of docs and evaluates, returning a dict with the following format:
-
-        {
-            "major": float,
-            "minor": dict,
-            "higher_is_better": bool,
-        }
-
-        * `major` should be a single, representative number, for programmatic comparison
-        * `minor` should be a dictionary containing all relevant sub-metrics
-        * `higher_is_better` determines whether a higher metric is better
-        """
-        pass
 
     def fewshot_description(self):
         return "Read the passage and answer the questions "
 
+    # TODO: Implement evaluation code
+
+    # ***IMPORTANT***: this evaluation function needs to be written for the new framework. 
+    # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+    # Remove this comment when the evaluation code is implemented.

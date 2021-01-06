@@ -67,6 +67,8 @@ class RACE(HFTask):
 
         return r
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: implement
-        raise NotImplementedError()
+    # TODO: Implement evaluation code
+
+    # ***IMPORTANT***: this evaluation function needs to be written for the new framework. 
+    # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+    # Remove this comment when the evaluation code is implemented.
