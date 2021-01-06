@@ -46,6 +46,12 @@ class CoLA(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -99,6 +105,11 @@ class MNLI(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -153,6 +164,11 @@ class MRPC(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -190,6 +206,11 @@ class RTE(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -227,6 +248,11 @@ class QNLI(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -265,6 +291,11 @@ class QQP(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -304,6 +335,11 @@ class STSB(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -359,6 +395,11 @@ class SST(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -397,6 +438,11 @@ class WNLI(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
