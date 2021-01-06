@@ -54,6 +54,8 @@ class PiQA(Dataset):
         #TODO: check if oa uses newline
         return  doc['goal'] + ' '
 
-    def evaluate(self, docs, lm):
-        pass
+    # TODO: Implement evaluation code
 
+    # ***IMPORTANT***: this evaluation function needs to be written for the new framework. 
+    # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+    # Remove this comment when the evaluation code is implemented.
