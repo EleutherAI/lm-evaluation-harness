@@ -3,7 +3,7 @@
 import json
 import random
 import os
-from lm_eval.base import Dataset
+from lm_eval.base import Dataset, rf, mean
 from tqdm import auto as tqdm_lib
 from . common import simple_accuracy_metric
 import numpy as np
@@ -96,21 +96,36 @@ class SATAnalogies(Dataset):
 
         return text
 
-    def evaluate(self, docs, lm):
-        golds = [doc["answer_key"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                num_fewshot=1,
-                provide_description=None,
-                # unless Dataset evaluate()s should get num_fewshot/ provide_description
-            )
-            probs_before_numpy = []
-            for choice in doc["choices"]:
-                this_choice = " " + choice
-                probs_before_numpy.append(lm.loglikelihood(ctx, this_choice))
-            probs = np.array(probs_before_numpy)
-            preds.append(np.argmax(probs))
+    def doc_to_target(self, doc):
+        # assumes answer_key is the true-answer's letter
+        return doc['answer_key']
 
-        return simple_accuracy_metric(preds=preds, golds=golds)
+    def construct_requests(self, ctx):
+        # assumes the output is the predicted-answer's letter
+        ll_a = rf.loglikelihood(ctx, ' a')
+        ll_b = rf.loglikelihood(ctx, ' b')
+        ll_c = rf.loglikelihood(ctx, ' c')
+        ll_d = rf.loglikelihood(ctx, ' d')
+        ll_e = rf.loglikelihood(ctx, ' e')
+
+        return ll_a, ll_b, ll_c, ll_d, ll_e
+
+    def process_results(self, doc, results):
+        predicted_odds = np.array(list(results))
+        gold = doc["answer_key"]
+
+        acc = 1. if np.argmax(predicted_odds) == gold else 0.
+
+        return [
+            {
+                "submetric": "acc",
+                "value": acc,
+                "higher_is_better": True,
+                "aggregation": mean
+            }
+        ]
+
+
+    def evaluate(self, docs, lm):
+        # functionality already implemented above
+        raise NotImplementedError()
