@@ -96,6 +96,7 @@ class SATAnalogies(Dataset):
 
         return text
 
+
     def doc_to_target(self, doc):
         # assumes answer_key is the true-answer's letter
         return doc['answer_key']
