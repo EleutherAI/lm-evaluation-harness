@@ -38,18 +38,22 @@ class BoolQ(HFTask):
     def process_results(self, doc, results):
         ll_yes, ll_no = results
         gold = doc["label"]
-        print(ll_yes > ll_no, gold)
 
         acc = 1. if (ll_yes > ll_no) == gold else 0.
 
-        return [
-            {
-                "submetric": "acc",
-                "value": acc,
-                "higher_is_better": True,
-                "aggregation": mean
-            }
-        ]
+        return {
+            "acc": acc
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
 
 class CommitmentBank(HFTask):
