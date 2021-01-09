@@ -19,6 +19,7 @@ class BoolQ(HFTask):
         return True
 
     def fewshot_description(self):
+        # TODO: figure out actual description
         return "Read the following passages and answer each question with a yes or a no."
 
     def doc_to_text(self, doc):
@@ -27,10 +28,10 @@ class BoolQ(HFTask):
     def doc_to_target(self, doc):
         return yesno(doc['label']) 
 
-    def construct_requests(self, ctx):
+    def construct_requests(self, doc, ctx):
 
-        ll_yes = rf.loglikelihood(ctx, ' yes')
-        ll_no  = rf.loglikelihood(ctx, ' no')
+        ll_yes, _ = rf.loglikelihood(ctx, ' yes')
+        ll_no , _ = rf.loglikelihood(ctx, ' no')
 
         return ll_yes, ll_no
 
@@ -40,14 +41,19 @@ class BoolQ(HFTask):
 
         acc = 1. if (ll_yes > ll_no) == gold else 0.
 
-        return [
-            {
-                "submetric": "acc",
-                "value": acc,
-                "higher_is_better": True,
-                "aggregation": mean
-            }
-        ]
+        return {
+            "acc": acc
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
 
 class CommitmentBank(HFTask):
