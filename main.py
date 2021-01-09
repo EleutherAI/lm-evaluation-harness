@@ -94,20 +94,13 @@ def main():
         doc = docs[(task_name, doc_id)]
 
         metrics = task.process_results(doc, requests)
-        for metric in metrics:
-            results[task_name][metric['submetric']] = {
-                "higher_is_better": metric["higher_is_better"],
-                "aggregation": metric["aggregation"]
-            }
-            vals[(task_name, metric['submetric'])].append(metric['value'])
+        for metric, value in metrics.items():
+            vals[(task_name, metric)].append(value)
     
     # aggregate results
-    for task_name, submetrics in results.items():
-        for k in submetrics.keys():
-            submetrics[k]['value'] = submetrics[k]['aggregation'](vals[(task_name, k)])
-
-            # can't serialize a function
-            del submetrics[k]['aggregation']
+    for (task_name, metric), items in vals.items():
+        task = task_dict[task_name]
+        results[task_name][metric] = task.aggregation()[metric](items)
 
     dumped = json.dumps(results, indent=2)
     print(dumped)
