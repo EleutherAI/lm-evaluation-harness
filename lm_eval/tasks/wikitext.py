@@ -15,8 +15,12 @@ class WikiText103(NLP_TASK):
 
     def doc_to_text(self, doc, include_target=True):
         return doc['text']
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        pass
+
+    # TODO: Implement evaluation code
+
+    # ***IMPORTANT***: this evaluation function needs to be written for the new framework. 
+    # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+    # Remove this comment when the evaluation code is implemented.
 
 
 class WikiText2(NLP_TASK):
@@ -28,5 +32,9 @@ class WikiText2(NLP_TASK):
 
     def doc_to_text(self, doc, include_target=True):
         return doc['text']
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        pass
+
+    # TODO: Implement evaluation code
+
+    # ***IMPORTANT***: this evaluation function needs to be written for the new framework. 
+    # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+    # Remove this comment when the evaluation code is implemented.
