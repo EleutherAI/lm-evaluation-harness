@@ -82,6 +82,11 @@ class CommitmentBank(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -126,6 +131,11 @@ class Copa(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -171,6 +181,11 @@ class MultiRC(HFTask):
         return f"[{label_str}] {answer}"
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         preds = []
         for doc in docs:
             ctx = self.fewshot_context(
@@ -226,6 +241,11 @@ class WordsInContext(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -286,6 +306,11 @@ class SGWinogradSchemaChallenge(HFTask):
         return text
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
+        # TODO: Implement evaluation code using new framework
+
+        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
+        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+        # Remove this comment when the evaluation code is implemented.
         golds = [doc["label"] for doc in docs]
         preds = []
         for doc in tqdm_lib.tqdm(docs):
@@ -320,7 +345,10 @@ class RTE(HFTask):
             return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: ', answer])
         else:
             return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: '])
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        #TODO: 
-        pass
+    
+    # TODO: Implement evaluation code
+
+    # ***IMPORTANT***: this evaluation function needs to be written for the new framework. 
+    # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
+    # Remove this comment when the evaluation code is implemented.
 
