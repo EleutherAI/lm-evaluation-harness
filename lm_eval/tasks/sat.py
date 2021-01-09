@@ -18,6 +18,7 @@ class SATAnalogies(Dataset):
         # We should be using a checksum here.
         # The canonical sha256 hash is below:
         # 9dece377d8d57253ef8c78370ff15de0bb1d9e90a82c815a67ba1e621e921bfc
+
         if not os.path.exists('data/sat/SAT-package-V3.txt'):
             raise NotImplementedError('SAT Analogies dataset is not provided. Follow instructions on https://aclweb.org/aclwiki/SAT_Analogy_Questions_(State_of_the_art) to locate.')
 
@@ -32,7 +33,6 @@ class SATAnalogies(Dataset):
 
     def training_docs(self):
         return []
-
     def test_docs(self):
         return []
 
