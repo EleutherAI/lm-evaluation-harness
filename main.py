@@ -48,6 +48,7 @@ def main():
 
     docs = {}
 
+    # get lists of each type of requeste
     for task_name, task in task_dict_items:
         for doc_id, doc in enumerate(itertools.islice(task.validation_docs(), 0, args.limit)):
             docs[(task_name, doc_id)] = doc
@@ -58,22 +59,33 @@ def main():
                 num_fewshot=args.num_fewshot,
             )
 
-            reqs = task.construct_requests(ctx)
+            reqs = task.construct_requests(doc, ctx)
 
             for i, req in enumerate(reqs):
                 requests[req.type].append(req)
+                # i: index in requests for a single task instance
+                # doc_id: unique id that we can get back to a doc using `docs`
                 requests_origin[req.type].append((i, task_name, doc, doc_id))
 
+    # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)
 
+    # execute each type of request
     for reqtype, reqs in requests.items():
+        # TODO: right now, this code runs multiple seperate LM requests for multiple Requests differing
+        # only in index. We could implement some kind of caching, but that would be more of a bandaid
+        # solution. we could also implement some kind of autogrouping here; they should end up next to each other.
+
         resps = getattr(lm, reqtype)([req.args for req in reqs])
+
+        resps = [x if req.index is None else x[req.index] for x, req in zip(resps, reqs)]
 
         for resp, (i, task_name, doc, doc_id) in zip(resps, requests_origin[reqtype]):
             process_res_queue[(task_name, doc_id)].append((i, resp))
     
     vals = collections.defaultdict(list)
 
+    # unpack results and sort back in order and return control to Task
     for (task_name, doc_id), requests in process_res_queue.items():
         requests.sort(key=lambda x: x[0])
         requests = [x[1] for x in requests]
@@ -82,19 +94,13 @@ def main():
         doc = docs[(task_name, doc_id)]
 
         metrics = task.process_results(doc, requests)
-        for metric in metrics:
-            results[task_name][metric['submetric']] = {
-                "higher_is_better": metric["higher_is_better"],
-                "aggregation": metric["aggregation"]
-            }
-            vals[(task_name, metric['submetric'])].append(metric['value'])
+        for metric, value in metrics.items():
+            vals[(task_name, metric)].append(value)
     
-    for task_name, submetrics in results.items():
-        for k in submetrics.keys():
-            submetrics[k]['value'] = submetrics[k]['aggregation'](vals[(task_name, k)])
-
-            # can't serialize a function
-            del submetrics[k]['aggregation']
+    # aggregate results
+    for (task_name, metric), items in vals.items():
+        task = task_dict[task_name]
+        results[task_name][metric] = task.aggregation()[metric](items)
 
     dumped = json.dumps(results, indent=2)
     print(dumped)
