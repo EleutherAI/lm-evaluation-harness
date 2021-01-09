@@ -3,7 +3,10 @@
 import json
 import random
 import os
-from lm_eval.base import Dataset
+from lm_eval.base import Dataset, rf, mean
+from tqdm import auto as tqdm_lib
+from . common import simple_accuracy_metric
+import numpy as np
 from ..utils import sh
 
 
@@ -15,31 +18,31 @@ class SATAnalogies(Dataset):
         # We should be using a checksum here.
         # The canonical sha256 hash is below:
         # 9dece377d8d57253ef8c78370ff15de0bb1d9e90a82c815a67ba1e621e921bfc
-        if not os.path.exists('data/sat') and os.path.exists('data/sat/SAT-package-V3.txt'):
+        if not os.path.exists('data/sat/SAT-package-V3.txt'):
             raise NotImplementedError('SAT Analogies dataset is not provided. Follow instructions on https://aclweb.org/aclwiki/SAT_Analogy_Questions_(State_of_the_art) to locate.')
 
     def has_training_docs(self):
         return False
 
     def has_validation_docs(self):
-        return False
+        return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def training_docs(self):
         return []
 
-    def validation_docs(self):
+    def test_docs(self):
         return []
 
-    def test_docs(self):
+    def validation_docs(self):
         data = []
 
         with open("data/sat/SAT-package-V3.txt", "r") as f:
-            lines = f.read().splitlines() 
             record = []
-            for line in lines:
+            for line in f:
+                line = line.strip()
                 if len(line) == 0 and record:
                     data.append(record)
                     record = []
@@ -49,8 +52,6 @@ class SATAnalogies(Dataset):
                     record.append(line)
             data.append(record)
 
-        docs = []
-
         for record in data:
             source = record[-8]
             query = record[-7]
@@ -59,40 +60,41 @@ class SATAnalogies(Dataset):
 
             doc = {
                 'source': source,
-                'query': query,
-                'choices': choices,
-                'answer_key': answer_key,
+                'query': query.split(' ')[:2],
+                'choices': [c.split(' ')[:2] for c in choices],
+                'answer_key': ['a','b','c','d','e'].index(answer_key.strip()),
             }
-            docs.append(doc)
-
-        return docs
+            yield doc
 
     
     def fewshot_description(self):
-        # This format is ONLY for the purposes of deduplication. For the task evaluation, we'll need to find a new strategy,
-        # to meet the needs of this particular task.
-        return "first thing is to second thing as\nthird thing is to fourth thing\nfifth thing is to sixth thing\nseventh thing is to eighth thing\nninth thing is to tenth thing\neleventh thing is to twelfth thing\nanswer which is either a b c d or e"
+        # TODO: figure out actual description
+        return ""
 
-    def doc_to_text(self, doc, include_target=True):
-        # SAT Analogies is currently only writing out full examples. Partial evaluation needs implementing.
-        format_qn = lambda x: x[0] + ' is to ' + x[1]
+    def doc_to_text(self, doc):
+        return "{} is to {} as ".format(*doc['query'])
 
-        query = doc['query']
-        choices = doc['choices']
-        answer = doc['answer_key']
+    def doc_to_target(self, doc):
+        return "{} is to {}".format(*doc['choices'][doc['answer_key']])
 
-        query_words = query.split(' ')[:2]
-        text = format_qn(query_words) + ' as' + '\n'
+    def construct_requests(self, doc, ctx):
+        lls = [
+            rf.loglikelihood(ctx, "{} is to {}".format(*doc['choices'][i]))[0]
+            for i in range(5)
+        ]
 
-        for choice in choices:
-            choice_words = choice.split(' ')[:2]
-            text += format_qn(choice_words) + '\n'
+        return lls
 
-        if include_target:
-            text += answer
+    def process_results(self, doc, results):
+        gold = doc["answer_key"]
 
-        return text
+        acc = 1. if np.argmax(results) == gold else 0.
 
-    def evaluate(self, docs, lm):
-        # TODO: Write evaluation function
-        raise NotImplementedError()
+        return [
+            {
+                "submetric": "acc",
+                "value": acc,
+                "higher_is_better": True,
+                "aggregation": mean
+            }
+        ]

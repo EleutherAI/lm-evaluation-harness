@@ -19,6 +19,7 @@ class GPT2LM(LM):
         return cls(device=args.get("device", "cpu"))
 
     def loglikelihood(self, requests):
+        print(requests)
         res = []
         # TODO: vectorize properly
         for context, continuation in tqdm(requests):
@@ -30,9 +31,10 @@ class GPT2LM(LM):
 
             cont_toks = inp[:, ctxlen:]  # [batch, seq]
             logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
+            logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1) # [batch, seq]
 
             # TODO: implement isgreedy
-            res.append((float(torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)), False))
+            res.append((float(logits.sum()), False))
 
         return res
     
