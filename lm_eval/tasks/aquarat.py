@@ -29,7 +29,6 @@ class AquaRat(HFTask):
         return True
 
     def fewshot_description(self):
-        # TODO: figure out actual description
         # TODO: Incorporate rationale and compute using BLEU score
         return "Read the following multiple choice questions and pick the correct choice"
 
