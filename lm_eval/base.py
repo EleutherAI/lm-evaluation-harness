@@ -1,7 +1,7 @@
 import abc
 import random
 import collections
-
+from sklearn.metrics import precision_recall_fscore_support as score
 
 class LM(abc.ABC):
     @abc.abstractmethod
@@ -179,6 +179,13 @@ class Dataset(abc.ABC):
 
 def mean(arr):
     return sum(arr) / len(arr)
+
+def f1_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    precision, recall, fscore, support = score(golds, preds)
+    return max(fscore)
 
 def median(arr):
     return arr[len(arr) // 2]
