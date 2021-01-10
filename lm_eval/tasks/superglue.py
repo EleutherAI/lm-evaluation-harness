@@ -3,7 +3,7 @@
 import numpy as np
 from tqdm import auto as tqdm_lib
 from . common import HFTask, simple_accuracy_metric, yesno, trueneitherfalse
-from lm_eval.base import rf, mean
+from lm_eval.base import rf, mean, f1_score
 
 class BoolQ(HFTask):
     DATASET_PATH = "super_glue"
@@ -96,10 +96,12 @@ class CommitmentBank(HFTask):
 
     def process_results(self, doc, results):
         gold = doc["label"]
-        acc = 1. if (np.argmax(results)) == gold else 0.
+        pred = np.argmax(results)
+        acc = 1. if pred == gold else 0.
 
         return {
-            "acc": acc
+            "acc": acc,
+            "f1": (pred, gold)
         }
     
     def higher_is_better(self):
@@ -109,7 +111,8 @@ class CommitmentBank(HFTask):
     
     def aggregation(self):
         return {
-            "acc": mean
+            "acc": mean,
+            "f1": f1_score
         }
 
 class Copa(HFTask):
