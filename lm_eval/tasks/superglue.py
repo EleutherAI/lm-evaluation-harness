@@ -2,7 +2,7 @@
 
 import numpy as np
 from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno
+from . common import HFTask, simple_accuracy_metric, yesno, trueneitherfalse
 from lm_eval.base import rf, mean
 
 class BoolQ(HFTask):
@@ -69,6 +69,9 @@ class CommitmentBank(HFTask):
     def has_test_docs(self):
         return True
 
+    def fewshot_description(self):
+        return "Given a premise and a hypothesis, classify whether the author of the premise is committed to the truth of the hypothesis. The three possible labels are true, false or neither."
+
     def doc_to_text(self, doc, include_target=True):
         text = "{}\nquestion:\t{}\ttrue, false or neither?\nanswer:".format(
             doc["premise"],
@@ -80,29 +83,34 @@ class CommitmentBank(HFTask):
             # Neither = neutral
             text += " {}".format({0: "true", 1: "neither", 2: "false"}[doc["label"]])
         return text
+    
+    def doc_to_target(self, doc):
+        return trueneitherfalse(doc['label']) 
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
+    def construct_requests(self, doc, ctx):
+        ll_true, _ = rf.loglikelihood(ctx, ' true')
+        ll_neither, _ = rf.loglikelihood(ctx, ' neither')
+        ll_false, _ = rf.loglikelihood(ctx, ' false')
 
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            probs = np.array([
-                lm.loglikelihood(ctx, ' true'),
-                lm.loglikelihood(ctx, ' neither'),
-                lm.loglikelihood(ctx, ' false'),
-            ])
-            preds.append(np.argmax(probs))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+        return ll_true, ll_neither, ll_false
 
+    def process_results(self, doc, results):
+        gold = doc["label"]
+        acc = 1. if (np.argmax(results)) == gold else 0.
+
+        return {
+            "acc": acc
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
 class Copa(HFTask):
     DATASET_PATH = "super_glue"
