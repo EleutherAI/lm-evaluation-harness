@@ -64,3 +64,10 @@ def trueneitherfalse(x):
         return 'neither'
     elif 2:
         return 'false'
+
+def truefalse(x):
+    if 0:
+        return 'false'
+    else:
+        return 'true'
+        
