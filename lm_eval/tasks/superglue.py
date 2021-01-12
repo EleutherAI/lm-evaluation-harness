@@ -2,7 +2,7 @@
 
 import numpy as np
 from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno, trueneitherfalse
+from . common import HFTask, simple_accuracy_metric, yesno, trueneitherfalse, truefalse
 from lm_eval.base import rf, mean, f1_score
 
 class BoolQ(HFTask):
@@ -128,6 +128,9 @@ class Copa(HFTask):
     def has_test_docs(self):
         return True
 
+    def fewshot_description(self):
+        return "Given a premise and two alternatives, one of which has a causal relation to the premise and the other does not, choose the more plausible alternative"
+
     def doc_to_text(self, doc, include_target=True):
         # Drop the period
         connector = {
@@ -141,24 +144,36 @@ class Copa(HFTask):
             text += self.convert_choice(correct_choice)
         return text
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
+    def doc_to_target(self, doc):
+        return truefalse(doc['label']) 
 
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
+    def construct_requests(self, doc, ctx):
             choice1 = " " + self.convert_choice(doc["choice1"])
             choice2 = " " + self.convert_choice(doc["choice2"])
-            preds.append(lm.loglikelihood(ctx, choice2) > lm.loglikelihood(ctx, choice1))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+        
+        ll_choice1, _ = rf.loglikelihood(ctx, choice1)
+        ll_choice2, _ = rf.loglikelihood(ctx, choice2)
+
+        return ll_choice1, ll_choice2
+
+    def process_results(self, doc, results):
+        gold = doc["label"]
+        pred = np.argmax(results)
+        acc = 1. if pred == gold else 0.
+
+        return {
+            "acc": acc
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
     @staticmethod
     def convert_choice(choice):
