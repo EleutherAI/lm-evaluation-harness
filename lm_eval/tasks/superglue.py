@@ -3,7 +3,7 @@
 import numpy as np
 from tqdm import auto as tqdm_lib
 from . common import HFTask, simple_accuracy_metric, yesno, trueneitherfalse, truefalse
-from lm_eval.base import rf, mean, f1_score
+from lm_eval.base import rf, mean, f1_score, acc_all
 
 class BoolQ(HFTask):
     DATASET_PATH = "super_glue"
@@ -129,7 +129,7 @@ class Copa(HFTask):
         return True
 
     def fewshot_description(self):
-        return "Given a premise and two alternatives, one of which has a causal relation to the premise and the other does not, choose the more plausible alternative"
+        return "Given a premise and one alternative with a causal relation to the premise and another without, choose the more plausible alternative"
 
     def doc_to_text(self, doc, include_target=True):
         # Drop the period
@@ -148,8 +148,8 @@ class Copa(HFTask):
         return truefalse(doc['label']) 
 
     def construct_requests(self, doc, ctx):
-            choice1 = " " + self.convert_choice(doc["choice1"])
-            choice2 = " " + self.convert_choice(doc["choice2"])
+        choice1 = " " + self.convert_choice(doc["choice1"])
+        choice2 = " " + self.convert_choice(doc["choice2"])
         
         ll_choice1, _ = rf.loglikelihood(ctx, choice1)
         ll_choice2, _ = rf.loglikelihood(ctx, choice2)
@@ -205,42 +205,37 @@ class MultiRC(HFTask):
     def format_answer(answer, label):
         label_str = "True" if label else "False"
         return f"[{label_str}] {answer}"
+    
+    def doc_to_target(self, doc):
+        return truefalse(doc['label']) 
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
+    def construct_requests(self, doc, ctx):
+        true_choice = self.format_answer(answer=doc["answer"], label=True)
+        false_choice = self.format_answer(answer=doc["answer"], label=False)
+        
+        ll_true_choice, _ = rf.loglikelihood(ctx, f' {true_choice}')
+        ll_false_choice, _ = rf.loglikelihood(ctx, f' {false_choice}')
 
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        preds = []
-        for doc in docs:
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            true_choice = self.format_answer(answer=doc["answer"], label=True)
-            false_choice = self.format_answer(answer=doc["answer"], label=False)
-            preds.append(
-                lm.loglikelihood(ctx, f' {true_choice}')
-                > lm.loglikelihood(ctx, f' {false_choice}')
-            )
+        return ll_true_choice, ll_false_choice
 
-        # Only count as correct if all answers are labeled correctly for each question
-        question_scoring_dict = {}
-        for doc, pred in zip(docs, preds):
-            question_id = doc["idx"]["question"]
-            if question_id not in question_scoring_dict:
-                question_scoring_dict[question_id] = []
-            gold_label = doc["label"] == 1
-            question_scoring_dict[question_id].append(gold_label == pred)
-        acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
+    def process_results(self, doc, results):
+        gold = doc["label"]
+        pred = np.argmax(results)
+        acc = 1. if pred == gold else 0.
+
         return {
-            "major": acc,
-            "minor": {"acc": acc},
-            "higher_is_better": True,
+            "acc": (pred, doc)
         }
-
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": acc_all
+        }
 
 class WordsInContext(HFTask):
     DATASET_PATH = "super_glue"
