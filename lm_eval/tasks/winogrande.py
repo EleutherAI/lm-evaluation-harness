@@ -34,18 +34,19 @@ class Winogrande(HFTask):
     def fewshot_description(self):
         return "Winograd schema sentence including a either a ___ blank with a missing word, making the pronoun ambiguous, or the same with the word filled in."
 
-    def doc_to_text(self, doc, include_target=True):
+    def doc_to_text(self, doc):
+        return doc['sentence']
+
+    def doc_to_target(self, doc):
         text = doc['sentence']
-        if include_target:
-            answer_n = doc['answer']
-            if answer_n == '1':
-                answer = doc['option1']
-            elif answer_n == '2':
-                answer = doc['option2']
-            else:
-                raise ValueError("Winogrande from HF datasets contained an invalid answer key")
-            text = text.replace("_", answer)
-        return text
+        answer_n = doc['answer']
+        if answer_n == '1':
+            answer = doc['option1']
+        elif answer_n == '2':
+            answer = doc['option2']
+        else:
+            raise ValueError("Winogrande from HF datasets contained an invalid answer key")
+        return text.replace("_", answer)
 
     # TODO: Implement evaluation code
 

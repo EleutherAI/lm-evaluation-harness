@@ -39,11 +39,11 @@ class CoLA(HFTask):
     def fewshot_description(self):
         return "Does this sentence make sense?:\tTrue or False?"
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "Sentence: {}\nAnswer:".format(doc["sentence"])
-        if include_target:
-            text += " {}".format({1: "True", 0: "False"}[doc["label"]])
-        return text
+    def doc_to_text(self, doc):
+        return "Sentence: {}\nAnswer:".format(doc["sentence"])
+
+    def doc_to_target(self, doc):
+        return " {}".format({1: "True", 0: "False"}[doc["label"]])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
 
@@ -92,17 +92,17 @@ class MNLI(HFTask):
         if self.has_test_docs():
             return self.data["test_matched"]
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "{}\nquestion:\t{}\tTrue, False or Neither?\nanswer:".format(
+    def doc_to_text(self, doc):
+        return "{}\nquestion:\t{}\tTrue, False or Neither?\nanswer:".format(
             doc["premise"],
             doc["hypothesis"],
         )
-        if include_target:
-            # True = entailment
-            # False = contradiction
-            # Neither = neutral
-            text += " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
-        return text
+
+    def doc_to_target(self, doc):
+        # True = entailment
+        # False = contradiction
+        # Neither = neutral
+        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -154,14 +154,14 @@ class MRPC(HFTask):
     def fewshot_description(self):
         return "Indicate if both sentences mean the same thing."
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "sentence 1:\t{}\nsentence 2:\t{}\nanswer:".format(
+    def doc_to_text(self, doc):
+        return "sentence 1:\t{}\nsentence 2:\t{}\nanswer:".format(
             doc["sentence1"],
             doc["sentence2"],
         )
-        if include_target:
-            text += " {}".format(yesno(doc["label"]))
-        return text
+
+    def doc_to_target(self, doc):
+        return " {}".format(yesno(doc["label"]))
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -194,16 +194,16 @@ class RTE(HFTask):
     def has_test_docs(self):
         return True
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "{}\nquestion:\t{}\tTrue or False?\nanswer:".format(
+    def doc_to_text(self, doc):
+        return "{}\nquestion:\t{}\tTrue or False?\nanswer:".format(
             doc["sentence1"],
             doc["sentence2"],
         )
-        if include_target:
-            # 0 = entailment
-            # 1 = not_entailment
-            text += " {}".format({0: "True", 1: "False"}[doc["label"]])
-        return text
+
+    def doc_to_target(self, doc):
+        # 0 = entailment
+        # 1 = not_entailment
+        return " {}".format({0: "True", 1: "False"}[doc["label"]])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -236,16 +236,16 @@ class QNLI(HFTask):
     def has_test_docs(self):
         return True
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "question:\t{}\nresponse:\t{}\nDoes this answer the question, Yes or No?:".format(
+    def doc_to_text(self, doc):
+        return "question:\t{}\nresponse:\t{}\nDoes this answer the question, Yes or No?:".format(
             doc["question"],
             doc["sentence"],
         )
-        if include_target:
-            # True = entailment
-            # False = not entailment
-            text += " {}".format({0: "Yes", 1: "No"}[doc["label"]])
-        return text
+
+    def doc_to_target(self, doc):
+        # True = entailment
+        # False = not entailment
+        return " {}".format({0: "Yes", 1: "No"}[doc["label"]])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -281,14 +281,14 @@ class QQP(HFTask):
     def fewshot_description(self):
         return "Indicate if both questions ask the same thing."
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "question 1:\t{}\nquestion 2:\t{}\nanswer:".format(
+    def doc_to_text(self, doc):
+        return "question 1:\t{}\nquestion 2:\t{}\nanswer:".format(
             doc["question1"],
             doc["question2"],
         )
-        if include_target:
-            text += " {}".format(yesno(doc["label"]))
-        return text
+
+    def doc_to_target(self, doc):
+        return " {}".format(yesno(doc["label"]))
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -325,14 +325,14 @@ class STSB(HFTask):
         return "Indicate if both sentences mean the same thing from a scale of 0-5, " \
            "where 5 means identical and 0 means unrelated."
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "sentence 1:\t{}\nsentence 2:\t{}\nanswer:".format(
+    def doc_to_text(self, doc):
+        return "sentence 1:\t{}\nsentence 2:\t{}\nanswer:".format(
             doc["sentence1"],
             doc["sentence2"],
         )
-        if include_target:
-            text += " {}".format(doc["label"])
-        return text
+
+    def doc_to_target(self, doc):
+        return " {}".format(doc["label"])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -386,13 +386,13 @@ class SST(HFTask):
     def fewshot_description(self):
         return "Indicate if each sentence is Positive or Negative."
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "sentence:\t{}\t\nanswer:".format(
+    def doc_to_text(self, doc):
+        return "sentence:\t{}\t\nanswer:".format(
             doc["sentence"],
         )
-        if include_target:
-            text += " {}".format({1: "Positive", 0: "Negative"}[doc["label"]])
-        return text
+
+    def doc_to_target(self, doc):
+        return " {}".format({1: "Positive", 0: "Negative"}[doc["label"]])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -425,17 +425,17 @@ class WNLI(HFTask):
     def has_test_docs(self):
         return True
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "{}\nquestion:\t{}\tTrue, False or Neither?\nanswer:".format(
+    def doc_to_text(self, doc):
+        return "{}\nquestion:\t{}\tTrue, False or Neither?\nanswer:".format(
             doc["sentence1"],
             doc["sentence2"],
         )
-        if include_target:
-            # True = entailment
-            # False = contradiction
-            # Neither = neutral
-            text += " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
-        return text
+
+    def doc_to_target(self, doc):
+        # True = entailment
+        # False = contradiction
+        # Neither = neutral
+        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework

@@ -47,12 +47,13 @@ class PiQA(Dataset):
     def fewshot_description(self):
         pass
     
-    def doc_to_text(self, doc, include_target=True):
-        if include_target:
-            rightanswer = int(doc[1][0])+1
-            return ''.join([doc[0]['goal'],' ',doc[0]['sol'+str(rightanswer)]])
+    def doc_to_text(self, doc):
         #TODO: check if oa uses newline
         return  doc['goal'] + ' '
+
+    def doc_to_target(self, doc):
+        rightanswer = int(doc[1][0]) + 1
+        return ''.join([doc[0]['goal'],' ',doc[0]['sol'+str(rightanswer)]])
 
     # TODO: Implement evaluation code
 
