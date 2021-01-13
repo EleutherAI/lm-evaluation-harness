@@ -39,11 +39,11 @@ class TriviaQA(Dataset):
     def fewshot_description(self):
         pass
     
-    def doc_to_text(self, doc, include_target=True):
-        if include_target:
-            return ''.join(['Q: ', doc['Question'], '\n\n','A: ', doc['Answer']['Aliases'][0]])
-        else:
-            return ''.join(['Q: ', doc['Question'], '\n\n','A: '])
+    def doc_to_text(self, doc):
+        return ''.join(['Q: ', doc['Question'], '\n\n','A: '])
+
+    def doc_to_target(self, doc):
+        return doc['Answer']['Aliases'][0]
 
     # TODO: Implement evaluation code
 

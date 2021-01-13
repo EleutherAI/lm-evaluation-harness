@@ -19,15 +19,15 @@ class WebQs(HFTask):
         # TODO: figure out description
         return ""
 
-    def doc_to_text(self, doc, include_target=True):
+    def doc_to_text(self, doc):
         print(doc)
-        q = "Q: " + doc['question'] + '\n'
+        return "Q: " + doc['question'] + '\nA:'
 
+    def doc_to_target(self, doc):
         # this picks one answer to be the "correct" one, despite sometimes 
         # multiple correct answers being possible.
         # TODO: make sure we're actually handling multi-answer correctly
-        a = "A:" + ((" " + doc['answers'][0]) if include_target else '')
-        return q + a
+        return " " + doc['answers'][0]
 
     # TODO: Implement evaluation code
 

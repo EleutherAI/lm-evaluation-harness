@@ -19,10 +19,11 @@ class ARCEasy(HFTask):
         # TODO: figure out description
         return ""
 
-    def doc_to_text(self, doc, include_target=True):
-        q = "Question: " + doc['question'] + '\n'
-        a = "Answer:" + ((" " + doc['choices']['text'][doc['choices']['label'].index(doc['answerKey'])]) if include_target else "")
-        return q + a
+    def doc_to_text(self, doc):
+        return "Question: " + doc['question'] + '\nAnswer:'
+
+    def doc_to_target(self, doc):
+        return " " + doc['choices']['text'][doc['choices']['label'].index(doc['answerKey'])]
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: implement
