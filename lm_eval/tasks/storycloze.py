@@ -41,11 +41,11 @@ class StoryCloze(Dataset):
     def fewshot_description(self):
         pass
     
-    def doc_to_text(self, doc, include_target=True):
-        if include_target:
-            return ' '.join([*doc[1:5],doc[int(doc[-1])-4]]) 
-        else:
-            return ' '.join([*doc[1:5]])
+    def doc_to_text(self, doc):
+        return ' '.join([*doc[1:5]])
+
+    def doc_to_target(self, doc):
+        return " " + doc[int(doc[-1]) - 4]
 
     # TODO: Implement evaluation code
 

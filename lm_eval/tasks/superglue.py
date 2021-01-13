@@ -69,17 +69,17 @@ class CommitmentBank(HFTask):
     def has_test_docs(self):
         return True
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "{}\nquestion:\t{}\ttrue, false or neither?\nanswer:".format(
+    def doc_to_text(self, doc):
+        return "{}\nquestion:\t{}\ttrue, false or neither?\nanswer:".format(
             doc["premise"],
             doc["hypothesis"],
         )
-        if include_target:
-            # True = entailment
-            # False = contradiction
-            # Neither = neutral
-            text += " {}".format({0: "true", 1: "neither", 2: "false"}[doc["label"]])
-        return text
+
+    def doc_to_target(self, doc):
+        # True = entailment
+        # False = contradiction
+        # Neither = neutral
+        return " {}".format({0: "true", 1: "neither", 2: "false"}[doc["label"]])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -117,18 +117,18 @@ class Copa(HFTask):
     def has_test_docs(self):
         return True
 
-    def doc_to_text(self, doc, include_target=True):
+    def doc_to_text(self, doc):
         # Drop the period
         connector = {
             "cause": "because",
             "effect": "therefore",
         }[doc["question"]]
-        text = doc["premise"].strip()[:-1] + f" {connector} "
-        if include_target:
-            correct_choice = doc["choice1"] if doc["label"] == 0 else doc["choice2"]
-            # Connect the sentences
-            text += self.convert_choice(correct_choice)
-        return text
+        return doc["premise"].strip()[:-1] + f" {connector} "
+
+    def doc_to_target(self, doc):
+        correct_choice = doc["choice1"] if doc["label"] == 0 else doc["choice2"]
+        # Connect the sentences
+        return self.convert_choice(correct_choice)
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -170,10 +170,11 @@ class MultiRC(HFTask):
     def fewshot_description(self):
         return "READING COMPREHENSION ANSWER KEY"
 
-    def doc_to_text(self, doc, include_target=True):
-        return f"{doc['paragraph']}\n\n{doc['question']}\n" \
-            + (self.format_answer(answer=doc["answer"], label=doc["label"])
-               if include_target else "")
+    def doc_to_text(self, doc):
+        return f"{doc['paragraph']}\n\n{doc['question']}\n"
+
+    def doc_to_target(self, doc):
+        return self.format_answer(answer=doc["answer"], label=doc["label"])
 
     @staticmethod
     def format_answer(answer, label):
@@ -229,16 +230,16 @@ class WordsInContext(HFTask):
     def has_test_docs(self):
         return True
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "{}\n{}\nquestion\tIs the word '{}' used in the same way in the" \
+    def doc_to_text(self, doc):
+        return "{}\n{}\nquestion\tIs the word '{}' used in the same way in the" \
                " two sentences above?\nanswer:".format(
                     doc["sentence1"],
                     doc["sentence2"],
                     doc["sentence1"][doc["start1"]:doc["end1"]],
                 )
-        if include_target:
-            text += " {}".format({0: "no", 1: "yes"}[doc["label"]])
-        return text
+
+    def doc_to_target(self, doc):
+        return " {}".format({0: "no", 1: "yes"}[doc["label"]])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -288,7 +289,7 @@ class SGWinogradSchemaChallenge(HFTask):
            "For each passage, you must identify which noun the pronoun marked in *bold*" \
            " refers to.\n====="
 
-    def doc_to_text(self, doc, include_target=True):
+    def doc_to_text(self, doc):
         raw_passage = doc["text"]
         passage = (
             raw_passage[:doc["span2_index"]]
@@ -301,9 +302,10 @@ class SGWinogradSchemaChallenge(HFTask):
             + f"Question: In the passage above, what does the pronoun \"*{pronoun}*\" refer to?\n"
             + "Answer:"
         )
-        if include_target:
-            text += " {}".format(doc["span1_text"])
         return text
+
+    def doc_to_target(self, doc):
+        return " {}".format(doc["span1_text"])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -336,16 +338,12 @@ class RTE(HFTask):
         #TODO: implement
         pass
 
-    def doc_to_text(self, doc, include_target=True):
-        if include_target:
-            if doc['label'] == 0:
-                answer = 'True'
-            else:
-                answer = 'False'
-            return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: ', answer])
-        else:
-            return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: '])
-    
+    def doc_to_text(self, doc):
+        return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: '])
+
+    def doc_to_target(self, doc):
+        return 'True' if doc['label'] == 0 else 'False'
+
     # TODO: Implement evaluation code
 
     # ***IMPORTANT***: this evaluation function needs to be written for the new framework. 
