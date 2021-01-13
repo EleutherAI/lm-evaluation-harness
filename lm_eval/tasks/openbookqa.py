@@ -36,22 +36,22 @@ class OpenBookQA(HFTask):
     def fewshot_description(self):
         return "Text of the question prompt\nText of the answer completion"
 
-    def doc_to_text(self, doc, include_target=True):
-        text = doc['question_stem'] + '\n'
-        if include_target:
-            letter_answer = doc['answerKey']
-            if letter_answer == 'A':
-                index = 0
-            elif letter_answer == 'B':
-                index = 1
-            elif letter_answer == 'C':
-                index = 2
-            elif letter_answer == 'D':
-                index = 3
-            else:
-                raise ValueError("OpenBookQA from HF datasets contained an invalid answer key")
-            text += doc['choices']['text'][index] + '.'
-        return text
+    def doc_to_text(self, doc):
+        return doc['question_stem'] + '\n'
+
+    def doc_to_target(self, doc):
+        letter_answer = doc['answerKey']
+        if letter_answer == 'A':
+            index = 0
+        elif letter_answer == 'B':
+            index = 1
+        elif letter_answer == 'C':
+            index = 2
+        elif letter_answer == 'D':
+            index = 3
+        else:
+            raise ValueError("OpenBookQA from HF datasets contained an invalid answer key")
+        return doc['choices']['text'][index] + '.'
 
     # TODO: Implement evaluation code
 

@@ -55,11 +55,11 @@ class QuAC(Dataset):
                 docs.append(doc)  
         return docs
     
-    def doc_to_text(self, doc, include_target=True):
-        text = 'TITLE: ' + doc['title'] + '\n' + 'PARAGRAPH: ' + doc['paragraph'] + '\n\n' + 'Q: ' + doc['question'] + '\n\n' + 'A: '
-        if include_target:
-            text += doc['answer']
-        return text
+    def doc_to_text(self, doc):
+        return 'TITLE: ' + doc['title'] + '\n' + 'PARAGRAPH: ' + doc['paragraph'] + '\n\n' + 'Q: ' + doc['question'] + '\n\n' + 'A: '
+
+    def doc_to_target(self, doc):
+        return doc['answer']
 
     # TODO: Implement evaluation code
 
