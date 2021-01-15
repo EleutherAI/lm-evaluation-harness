@@ -40,7 +40,7 @@ class Arithmetic(Dataset):
         return doc.answer_text
 
     def construct_requests(self, doc, ctx):
-        ll, is_prediction = rf.loglikelihood(ctx, doc.answer_text)
+        ll, is_prediction = rf.loglikelihood(ctx, ' '+doc.answer_text)
         # not sure what the difference between the two objects returned by rf.loglikehood are here
         return is_prediction
 
