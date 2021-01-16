@@ -34,16 +34,16 @@ class ANLIBase(HFTask):
         # TODO: figure out description
         return ""
 
-    def doc_to_text(self, doc, include_target=True):
+    def doc_to_text(self, doc):
         print(doc)
         # OA does this a bit weirdly: they prepend "anli 1:  anli 1:  " to the beginning
         # of the prompt (yes, repeating it!). also, " True, False, or Neither?" is directly 
         # appended onto the question, with no "Answer:" or even a newline. Do we *really* 
         # want to do it exactly as OA did?
-        q = doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + '\n'
+        return doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + '\nTrue, False, or Neither?'
 
-        a = "True, False, or Neither?" + ((" " + ["True", "Neither", "False"][doc['label']]) if include_target else '')
-        return q + a
+    def doc_to_target(self, doc):
+        return " " + ["True", "Neither", "False"][doc['label']]
 
     # TODO: Implement evaluation code
 
