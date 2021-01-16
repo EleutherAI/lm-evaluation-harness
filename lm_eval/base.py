@@ -193,15 +193,14 @@ def acc_all(items):
     question_scoring_dict = {}
     preds = list(zip(*items))[0]
     docs = list(zip(*items))[1]
-    for num in range(0, len(preds) - 1):
-        doc = docs[num]
-        pred = preds[num]
-        
+	
+    for (doc, pred) in zip(docs, preds):
         question_id = doc["idx"]["question"]
         if question_id not in question_scoring_dict:
             question_scoring_dict[question_id] = []
-            gold_label = doc["label"] == 1
-            question_scoring_dict[question_id].append(gold_label == pred)
+
+        gold_label = doc["label"] == 1
+        question_scoring_dict[question_id].append(gold_label == pred)
             
     acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
     return acc
