@@ -27,7 +27,7 @@ TASK_REGISTRY = {
     "wnli": glue.WNLI,
     # SuperGLUE
     "boolq": superglue.BoolQ,
-    "commitmentbank": superglue.CommitmentBank,
+    "cb": superglue.CommitmentBank,
     "copa": superglue.Copa,
     "multirc": superglue.MultiRC,
     "wic": superglue.WordsInContext,

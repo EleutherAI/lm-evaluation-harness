@@ -1,7 +1,8 @@
 import abc
 import random
 import collections
-
+import numpy as np
+from sklearn.metrics import precision_recall_fscore_support as score
 
 class LM(abc.ABC):
     @abc.abstractmethod
@@ -179,6 +180,30 @@ class Dataset(abc.ABC):
 
 def mean(arr):
     return sum(arr) / len(arr)
+
+def f1_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    precision, recall, fscore, support = score(golds, preds)
+    return max(fscore)
+
+def acc_all(items):
+    # Only count as correct if all answers are labeled correctly for each question
+    question_scoring_dict = {}
+    preds = list(zip(*items))[0]
+    docs = list(zip(*items))[1]
+	
+    for (doc, pred) in zip(docs, preds):
+        question_id = doc["idx"]["question"]
+        if question_id not in question_scoring_dict:
+            question_scoring_dict[question_id] = []
+
+        gold_label = doc["label"] == 1
+        question_scoring_dict[question_id].append(gold_label == pred)
+            
+    acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
+    return acc
 
 def median(arr):
     return arr[len(arr) // 2]
