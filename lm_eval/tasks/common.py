@@ -56,4 +56,3 @@ def yesno(x):
         return 'yes'
     else:
         return 'no'
-        
