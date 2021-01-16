@@ -56,18 +56,4 @@ def yesno(x):
         return 'yes'
     else:
         return 'no'
-
-def trueneitherfalse(x):
-    if 0:
-        return 'true'
-    elif 1:
-        return 'neither'
-    elif 2:
-        return 'false'
-
-def truefalse(x):
-    if 0:
-        return 'false'
-    else:
-        return 'true'
         
