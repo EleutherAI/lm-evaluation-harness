@@ -31,16 +31,16 @@ class SQuAD(HFTask):
         # TODO: redo description
         return "Title: The_Title_of_It\n\nBackground: A text passage as background to answer the question with.\n\nQ: Question about the passage.\n\nA: Answer."
 
-    def doc_to_text(self, doc, include_target=True):
-        text = 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Q: ' + doc['question'] + '\n\n' + 'A: '
-        if include_target:
-            answer_list = doc['answers']['text']
-            if len(answer_list) > 0:
-                answer = answer_list[0]
-            else:
-                answer = 'unanswerable'
-            text += answer
-        return text
+    def doc_to_text(self, doc):
+        return 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Q: ' + doc['question'] + '\n\n' + 'A: '
+
+    def doc_to_target(self, doc):
+        answer_list = doc['answers']['text']
+        if len(answer_list) > 0:
+            answer = answer_list[0]
+        else:
+            answer = 'unanswerable'
+        return answer
 
     # TODO: Implement evaluation code
 

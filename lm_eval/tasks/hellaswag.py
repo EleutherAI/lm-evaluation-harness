@@ -34,22 +34,22 @@ class HellaSwag(HFTask):
     def fewshot_description(self):
         return "Label for the relevant action: Sentences describing the context, with an incomplete sentence trailing\nanswer that plausibly completes the situation."
 
-    def doc_to_text(self, doc, include_target=True):
-        text = doc['activity_label'] + ': ' + doc['ctx'] + '\n'
-        if include_target:
-            letter_answer = doc['label']
-            if letter_answer == '0':
-                index = 0
-            elif letter_answer == '1':
-                index = 1
-            elif letter_answer == '2':
-                index = 2
-            elif letter_answer == '3':
-                index = 3
-            else:
-                raise ValueError("HellaSwag from HF datasets contained an invalid answer key")
-            text += doc['endings'][index]
-        return text
+    def doc_to_text(self, doc):
+        return doc['activity_label'] + ': ' + doc['ctx'] + '\n'
+
+    def doc_to_target(self, doc):
+        letter_answer = doc['label']
+        if letter_answer == '0':
+            index = 0
+        elif letter_answer == '1':
+            index = 1
+        elif letter_answer == '2':
+            index = 2
+        elif letter_answer == '3':
+            index = 3
+        else:
+            raise ValueError("HellaSwag from HF datasets contained an invalid answer key")
+        return doc['endings'][index]
 
     # TODO: Implement evaluation code
 

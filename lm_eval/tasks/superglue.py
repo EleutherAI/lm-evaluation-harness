@@ -2,7 +2,7 @@
 
 import numpy as np
 from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno, trueneitherfalse, truefalse
+from . common import HFTask, simple_accuracy_metric, yesno
 from lm_eval.base import rf, mean, f1_score, acc_all
 
 class BoolQ(HFTask):
@@ -55,7 +55,6 @@ class BoolQ(HFTask):
             "acc": mean
         }
 
-
 class CommitmentBank(HFTask):
     DATASET_PATH = "super_glue"
     DATASET_NAME = "cb"
@@ -72,20 +71,17 @@ class CommitmentBank(HFTask):
     def fewshot_description(self):
         return "Given a premise and a hypothesis, classify whether the author of the premise is committed to the truth of the hypothesis. The three possible labels are true, false or neither."
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "{}\nquestion:\t{}\ttrue, false or neither?\nanswer:".format(
+    def doc_to_text(self, doc):
+        return "{}\nquestion:\t{}\ttrue, false or neither?\nanswer:".format(
             doc["premise"],
             doc["hypothesis"],
         )
-        if include_target:
-            # True = entailment
-            # False = contradiction
-            # Neither = neutral
-            text += " {}".format({0: "true", 1: "neither", 2: "false"}[doc["label"]])
-        return text
-    
+
     def doc_to_target(self, doc):
-        return trueneitherfalse(doc['label']) 
+        # True = entailment
+        # False = contradiction
+        # Neither = neutral
+        return " {}".format({0: "true", 1: "neither", 2: "false"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
         ll_true, _ = rf.loglikelihood(ctx, ' true')
@@ -131,21 +127,18 @@ class Copa(HFTask):
     def fewshot_description(self):
         return "Given a premise and one alternative with a causal relation to the premise and another without, choose the more plausible alternative"
 
-    def doc_to_text(self, doc, include_target=True):
+    def doc_to_text(self, doc):
         # Drop the period
         connector = {
             "cause": "because",
             "effect": "therefore",
         }[doc["question"]]
-        text = doc["premise"].strip()[:-1] + f" {connector} "
-        if include_target:
-            correct_choice = doc["choice1"] if doc["label"] == 0 else doc["choice2"]
-            # Connect the sentences
-            text += self.convert_choice(correct_choice)
-        return text
+        return doc["premise"].strip()[:-1] + f" {connector} "
 
     def doc_to_target(self, doc):
-        return truefalse(doc['label']) 
+        correct_choice = doc["choice1"] if doc["label"] == 0 else doc["choice2"]
+        # Connect the sentences
+        return self.convert_choice(correct_choice)
 
     def construct_requests(self, doc, ctx):
         choice1 = " " + self.convert_choice(doc["choice1"])
@@ -196,18 +189,16 @@ class MultiRC(HFTask):
     def fewshot_description(self):
         return "READING COMPREHENSION ANSWER KEY"
 
-    def doc_to_text(self, doc, include_target=True):
-        return f"{doc['paragraph']}\n\n{doc['question']}\n" \
-            + (self.format_answer(answer=doc["answer"], label=doc["label"])
-               if include_target else "")
+    def doc_to_text(self, doc):
+        return f"{doc['paragraph']}\n\n{doc['question']}\n"
+
+    def doc_to_target(self, doc):
+        return self.format_answer(answer=doc["answer"], label=doc["label"])
 
     @staticmethod
     def format_answer(answer, label):
         label_str = "True" if label else "False"
         return f"[{label_str}] {answer}"
-    
-    def doc_to_target(self, doc):
-        return truefalse(doc['label']) 
 
     def construct_requests(self, doc, ctx):
         true_choice = self.format_answer(answer=doc["answer"], label=True)
@@ -250,16 +241,16 @@ class WordsInContext(HFTask):
     def has_test_docs(self):
         return True
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "{}\n{}\nquestion\tIs the word '{}' used in the same way in the" \
+    def doc_to_text(self, doc):
+        return "{}\n{}\nquestion\tIs the word '{}' used in the same way in the" \
                " two sentences above?\nanswer:".format(
                     doc["sentence1"],
                     doc["sentence2"],
                     doc["sentence1"][doc["start1"]:doc["end1"]],
                 )
-        if include_target:
-            text += " {}".format({0: "no", 1: "yes"}[doc["label"]])
-        return text
+
+    def doc_to_target(self, doc):
+        return " {}".format({0: "no", 1: "yes"}[doc["label"]])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -309,7 +300,7 @@ class SGWinogradSchemaChallenge(HFTask):
            "For each passage, you must identify which noun the pronoun marked in *bold*" \
            " refers to.\n====="
 
-    def doc_to_text(self, doc, include_target=True):
+    def doc_to_text(self, doc):
         raw_passage = doc["text"]
         passage = (
             raw_passage[:doc["span2_index"]]
@@ -322,9 +313,10 @@ class SGWinogradSchemaChallenge(HFTask):
             + f"Question: In the passage above, what does the pronoun \"*{pronoun}*\" refer to?\n"
             + "Answer:"
         )
-        if include_target:
-            text += " {}".format(doc["span1_text"])
         return text
+
+    def doc_to_target(self, doc):
+        return " {}".format(doc["span1_text"])
 
     def evaluate(self, docs, lm, provide_description, num_fewshot):
         # TODO: Implement evaluation code using new framework
@@ -357,16 +349,12 @@ class RTE(HFTask):
         #TODO: implement
         pass
 
-    def doc_to_text(self, doc, include_target=True):
-        if include_target:
-            if doc['label'] == 0:
-                answer = 'True'
-            else:
-                answer = 'False'
-            return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: ', answer])
-        else:
-            return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: '])
-    
+    def doc_to_text(self, doc):
+        return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: '])
+
+    def doc_to_target(self, doc):
+        return 'True' if doc['label'] == 0 else 'False'
+
     # TODO: Implement evaluation code
 
     # ***IMPORTANT***: this evaluation function needs to be written for the new framework. 
