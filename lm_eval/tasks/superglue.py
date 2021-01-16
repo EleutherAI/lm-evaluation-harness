@@ -72,7 +72,7 @@ class CommitmentBank(HFTask):
         return "Given a premise and a hypothesis, classify whether the author of the premise is committed to the truth of the hypothesis. The three possible labels are true, false or neither."
 
     def doc_to_text(self, doc):
-        return "{}\nquestion:\t{}\ttrue, false or neither?\nanswer:".format(
+        return "{}\nquestion: {} true, false or neither?\nanswer:".format(
             doc["premise"],
             doc["hypothesis"],
         )
@@ -102,7 +102,8 @@ class CommitmentBank(HFTask):
     
     def higher_is_better(self):
         return {
-            "acc": True
+            "acc": True,
+            "f1": True
         }
     
     def aggregation(self):
@@ -242,7 +243,7 @@ class WordsInContext(HFTask):
         return True
 
     def doc_to_text(self, doc):
-        return "{}\n{}\nquestion\tIs the word '{}' used in the same way in the" \
+        return "{}\n{}\nQuestion: Is the word '{}' used in the same way in the" \
                " two sentences above?\nanswer:".format(
                     doc["sentence1"],
                     doc["sentence2"],
