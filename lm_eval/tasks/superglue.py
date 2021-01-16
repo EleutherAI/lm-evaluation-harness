@@ -3,7 +3,7 @@
 import numpy as np
 from tqdm import auto as tqdm_lib
 from . common import HFTask, simple_accuracy_metric, yesno
-from lm_eval.base import rf, mean
+from lm_eval.base import rf, mean, f1_score, acc_all
 
 class BoolQ(HFTask):
     DATASET_PATH = "super_glue"
@@ -55,7 +55,6 @@ class BoolQ(HFTask):
             "acc": mean
         }
 
-
 class CommitmentBank(HFTask):
     DATASET_PATH = "super_glue"
     DATASET_NAME = "cb"
@@ -69,8 +68,11 @@ class CommitmentBank(HFTask):
     def has_test_docs(self):
         return True
 
+    def fewshot_description(self):
+        return "Given a premise and a hypothesis, classify whether the author of the premise is committed to the truth of the hypothesis. The three possible labels are true, false or neither."
+
     def doc_to_text(self, doc):
-        return "{}\nquestion:\t{}\ttrue, false or neither?\nanswer:".format(
+        return "{}\nquestion: {} true, false or neither?\nanswer:".format(
             doc["premise"],
             doc["hypothesis"],
         )
@@ -81,28 +83,34 @@ class CommitmentBank(HFTask):
         # Neither = neutral
         return " {}".format({0: "true", 1: "neither", 2: "false"}[doc["label"]])
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
+    def construct_requests(self, doc, ctx):
+        ll_true, _ = rf.loglikelihood(ctx, ' true')
+        ll_neither, _ = rf.loglikelihood(ctx, ' neither')
+        ll_false, _ = rf.loglikelihood(ctx, ' false')
 
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            probs = np.array([
-                lm.loglikelihood(ctx, ' true'),
-                lm.loglikelihood(ctx, ' neither'),
-                lm.loglikelihood(ctx, ' false'),
-            ])
-            preds.append(np.argmax(probs))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+        return ll_true, ll_neither, ll_false
 
+    def process_results(self, doc, results):
+        gold = doc["label"]
+        pred = np.argmax(results)
+        acc = 1. if pred == gold else 0.
+
+        return {
+            "acc": acc,
+            "f1": (pred, gold)
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True,
+            "f1": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": mean,
+            "f1": f1_score
+        }
 
 class Copa(HFTask):
     DATASET_PATH = "super_glue"
@@ -117,6 +125,9 @@ class Copa(HFTask):
     def has_test_docs(self):
         return True
 
+    def fewshot_description(self):
+        return "Given a premise and one alternative with a causal relation to the premise and another without, choose the more plausible alternative"
+
     def doc_to_text(self, doc):
         # Drop the period
         connector = {
@@ -130,24 +141,33 @@ class Copa(HFTask):
         # Connect the sentences
         return self.convert_choice(correct_choice)
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
+    def construct_requests(self, doc, ctx):
+        choice1 = " " + self.convert_choice(doc["choice1"])
+        choice2 = " " + self.convert_choice(doc["choice2"])
+        
+        ll_choice1, _ = rf.loglikelihood(ctx, choice1)
+        ll_choice2, _ = rf.loglikelihood(ctx, choice2)
 
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            choice1 = " " + self.convert_choice(doc["choice1"])
-            choice2 = " " + self.convert_choice(doc["choice2"])
-            preds.append(lm.loglikelihood(ctx, choice2) > lm.loglikelihood(ctx, choice1))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+        return ll_choice1, ll_choice2
+
+    def process_results(self, doc, results):
+        gold = doc["label"]
+        pred = np.argmax(results)
+        acc = 1. if pred == gold else 0.
+
+        return {
+            "acc": acc
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
     @staticmethod
     def convert_choice(choice):
@@ -181,41 +201,33 @@ class MultiRC(HFTask):
         label_str = "True" if label else "False"
         return f"[{label_str}] {answer}"
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
+    def construct_requests(self, doc, ctx):
+        true_choice = self.format_answer(answer=doc["answer"], label=True)
+        false_choice = self.format_answer(answer=doc["answer"], label=False)
+        
+        ll_true_choice, _ = rf.loglikelihood(ctx, f' {true_choice}')
+        ll_false_choice, _ = rf.loglikelihood(ctx, f' {false_choice}')
 
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        preds = []
-        for doc in docs:
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            true_choice = self.format_answer(answer=doc["answer"], label=True)
-            false_choice = self.format_answer(answer=doc["answer"], label=False)
-            preds.append(
-                lm.loglikelihood(ctx, f' {true_choice}')
-                > lm.loglikelihood(ctx, f' {false_choice}')
-            )
+        return ll_true_choice, ll_false_choice
 
-        # Only count as correct if all answers are labeled correctly for each question
-        question_scoring_dict = {}
-        for doc, pred in zip(docs, preds):
-            question_id = doc["idx"]["question"]
-            if question_id not in question_scoring_dict:
-                question_scoring_dict[question_id] = []
-            gold_label = doc["label"] == 1
-            question_scoring_dict[question_id].append(gold_label == pred)
-        acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
+    def process_results(self, doc, results):
+        gold = doc["label"]
+        pred = np.argmax(results)
+        acc = 1. if pred == gold else 0.
+
         return {
-            "major": acc,
-            "minor": {"acc": acc},
-            "higher_is_better": True,
+            "acc": (pred, doc)
         }
-
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": acc_all
+        }
 
 class WordsInContext(HFTask):
     DATASET_PATH = "super_glue"
@@ -231,7 +243,7 @@ class WordsInContext(HFTask):
         return True
 
     def doc_to_text(self, doc):
-        return "{}\n{}\nquestion\tIs the word '{}' used in the same way in the" \
+        return "{}\n{}\nQuestion: Is the word '{}' used in the same way in the" \
                " two sentences above?\nanswer:".format(
                     doc["sentence1"],
                     doc["sentence2"],
