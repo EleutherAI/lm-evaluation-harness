@@ -1,32 +1,19 @@
 # REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
 
 import numpy as np
+from lm_eval.base import rf, mean, f1_score, matthews_corrcoef
 from scipy.stats import pearsonr, spearmanr
-from sklearn.metrics import f1_score, matthews_corrcoef
 from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno
+from . common import HFTask, yesno
 
-def get_accuracy_and_f1(preds, golds):
-    golds = np.array(golds)
-    preds = np.array(preds)
-    acc = float((preds == golds).mean())
-    f1 = float(f1_score(y_true=golds, y_pred=preds))
-    minor = {
-        "acc": acc,
-        "f1": f1,
-        "acc_and_f1": (acc + f1) / 2,
-    }
-    return {
-        "major": minor["acc_and_f1"],
-        "minor": minor,
-        "higher_is_better": True,
-    }
+
+# Single-Sentence Tasks
 
 
 class CoLA(HFTask):
     DATASET_PATH = "glue"
     DATASET_NAME = "cola"
-    
+
     def has_training_docs(self):
         return True
 
@@ -45,30 +32,79 @@ class CoLA(HFTask):
     def doc_to_target(self, doc):
         return " {}".format({1: "True", 0: "False"}[doc["label"]])
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
+    def construct_requests(self, doc, ctx):
+        ll_true, _ = rf.loglikelihood(ctx, " True")
+        ll_false, _ = rf.loglikelihood(ctx, " False")
+        return ll_true, ll_false
 
-        # TODO: Implement evaluation code using new framework
-
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            preds.append(lm.loglikelihood(ctx, ' True') > lm.loglikelihood(ctx, ' False'))
-        golds = np.array(golds)
-        preds = np.array(preds)
-        mcc = float(matthews_corrcoef(y_true=golds, y_pred=preds))
+    def process_results(self, doc, results):
+        ll_true, ll_false = results
+        pred = ll_true > ll_false
+        gold = doc["label"]
         return {
-            "major": mcc,
-            "minor": {"mcc": mcc},
-            "higher_is_better": True,
+            "mcc": (gold, pred)
         }
+
+    def higher_is_better(self):
+        return {
+            "mcc": True
+        }
+
+    def aggregation(self):
+        return {
+            "mcc": matthews_corrcoef
+        }
+
+
+class SST(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "sst2"
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def fewshot_description(self):
+        return "Indicate if each sentence is Positive or Negative."
+
+    def doc_to_text(self, doc):
+        return "sentence:\t{}\t\nanswer:".format(
+            doc["sentence"],
+        )
+
+    def doc_to_target(self, doc):
+        return " {}".format({1: "Positive", 0: "Negative"}[doc["label"]])
+
+    def construct_requests(self, doc, ctx):
+        ll_positive, _ = rf.loglikelihood(ctx, " Positive")
+        ll_negative, _ = rf.loglikelihood(ctx, " Negative")
+        return ll_positive, ll_negative
+
+    def process_results(self, doc, results):
+        ll_positive, ll_negative = results
+        pred = ll_positive > ll_negative
+        gold = doc["label"]
+        return {
+            "acc": pred == gold
+        }
+
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
+
+
+# Inference Tasks
 
 
 class MNLI(HFTask):
@@ -104,27 +140,28 @@ class MNLI(HFTask):
         # Neither = neutral
         return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
+    def construct_requests(self, doc, ctx):
+        ll_true, _ = rf.loglikelihood(ctx, " True")
+        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
+        ll_false, _ = rf.loglikelihood(ctx, " False")
+        return ll_true, ll_neither, ll_false
 
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            probs = np.array([
-                lm.loglikelihood(ctx, ' True'),
-                lm.loglikelihood(ctx, ' Neither'),
-                lm.loglikelihood(ctx, ' False'),
-            ])
-            preds.append(np.argmax(probs))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+    def process_results(self, doc, results):
+        gold = doc["label"]
+        pred = np.argmax(results)
+        return {
+            "acc": pred == gold
+        }
+
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
 
 class MNLIMismatched(MNLI):
@@ -136,6 +173,154 @@ class MNLIMismatched(MNLI):
     def test_docs(self):
         if self.has_test_docs():
             return self.data["test_mismatched"]
+
+
+class QNLI(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "qnli"
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def doc_to_text(self, doc):
+        return "question:\t{}\nresponse:\t{}\nDoes this answer the question, Yes or No?:".format(
+            doc["question"],
+            doc["sentence"],
+        )
+
+    def doc_to_target(self, doc):
+        # True = entailment
+        # False = not entailment
+        return " {}".format({0: "Yes", 1: "No"}[doc["label"]])
+
+    def construct_requests(self, doc, ctx):
+        ll_yes, _ = rf.loglikelihood(ctx, " Yes")
+        ll_no, _ = rf.loglikelihood(ctx, " No")
+        return ll_yes, ll_no
+
+    def process_results(self, doc, results):
+        ll_yes, ll_no = results
+        pred = ll_no > ll_yes
+        gold = doc["label"]
+        return {
+            "acc": pred == gold
+        }
+
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
+
+
+class WNLI(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "wnli"
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def doc_to_text(self, doc):
+        return "{}\nquestion:\t{}\tTrue, False or Neither?\nanswer:".format(
+            doc["sentence1"],
+            doc["sentence2"],
+        )
+
+    def doc_to_target(self, doc):
+        # True = entailment
+        # False = contradiction
+        # Neither = neutral
+        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
+
+    def construct_requests(self, doc, ctx):
+        ll_true, _ = rf.loglikelihood(ctx, " True")
+        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
+        ll_false, _ = rf.loglikelihood(ctx, " False")
+        return ll_true, ll_neither, ll_false
+
+    def process_results(self, doc, results):
+        gold = doc["label"]
+        pred = np.argmax(results)
+        return {
+            "acc": pred == gold
+        }
+
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
+
+
+class RTE(HFTask):
+    DATASET_PATH = "glue"
+    DATASET_NAME = "rte"
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def doc_to_text(self, doc):
+        return "{}\nquestion:\t{}\tTrue or False?\nanswer:".format(
+            doc["sentence1"],
+            doc["sentence2"],
+        )
+
+    def doc_to_target(self, doc):
+        # 0 = entailment
+        # 1 = not_entailment
+        return " {}".format({0: "True", 1: "False"}[doc["label"]])
+
+    def construct_requests(self, doc, ctx):
+        ll_true, _ = rf.loglikelihood(ctx, " True")
+        ll_false, _ = rf.loglikelihood(ctx, " False")
+        return ll_true, ll_false
+
+    def process_results(self, doc, results):
+        ll_true, ll_false = results
+        pred = ll_false > ll_true
+        gold = doc["label"]
+        return {
+            "acc": pred == gold
+        }
+
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
+
+
+# Similarity and Paraphrase Tasks
 
 
 class MRPC(HFTask):
@@ -163,106 +348,31 @@ class MRPC(HFTask):
     def doc_to_target(self, doc):
         return " {}".format(yesno(doc["label"]))
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
+    def construct_requests(self, doc, ctx):
+        ll_yes, _ = rf.loglikelihood(ctx, " yes")
+        ll_no, _ = rf.loglikelihood(ctx, " no")
+        return ll_yes, ll_no
 
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            preds.append(lm.loglikelihood(ctx, 'yes') > lm.loglikelihood(ctx, 'no'))
-        return get_accuracy_and_f1(preds=preds, golds=golds)
+    def process_results(self, doc, results):
+        ll_yes, ll_no = results
+        gold = doc["label"]
+        pred = ll_yes > ll_no
+        return {
+            "acc": pred == gold,
+            "f1": (gold, pred),
+        }
 
-      
-class RTE(HFTask):
-    DATASET_PATH = "glue"
-    DATASET_NAME = "rte"
+    def higher_is_better(self):
+        return {
+            "acc": True,
+            "f1": True
+        }
 
-    def has_training_docs(self):
-        return True
-
-    def has_validation_docs(self):
-        return True
-
-    def has_test_docs(self):
-        return True
-
-    def doc_to_text(self, doc):
-        return "{}\nquestion:\t{}\tTrue or False?\nanswer:".format(
-            doc["sentence1"],
-            doc["sentence2"],
-        )
-
-    def doc_to_target(self, doc):
-        # 0 = entailment
-        # 1 = not_entailment
-        return " {}".format({0: "True", 1: "False"}[doc["label"]])
-
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
-
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            preds.append(lm.loglikelihood(ctx, ' False') > lm.loglikelihood(ctx, ' True'))
-        return simple_accuracy_metric(preds=preds, golds=golds)
-
-
-class QNLI(HFTask):
-    DATASET_PATH = "glue"
-    DATASET_NAME = "qnli"
-
-    def has_training_docs(self):
-        return True
-
-    def has_validation_docs(self):
-        return True
-
-    def has_test_docs(self):
-        return True
-
-    def doc_to_text(self, doc):
-        return "question:\t{}\nresponse:\t{}\nDoes this answer the question, Yes or No?:".format(
-            doc["question"],
-            doc["sentence"],
-        )
-
-    def doc_to_target(self, doc):
-        # True = entailment
-        # False = not entailment
-        return " {}".format({0: "Yes", 1: "No"}[doc["label"]])
-
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
-
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            preds.append(lm.loglikelihood(ctx, ' False') > lm.loglikelihood(ctx, ' True'))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+    def aggregation(self):
+        return {
+            "acc": mean,
+            "f1": f1_score
+        }
 
 
 class QQP(HFTask):
@@ -290,22 +400,31 @@ class QQP(HFTask):
     def doc_to_target(self, doc):
         return " {}".format(yesno(doc["label"]))
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
+    def construct_requests(self, doc, ctx):
+        ll_yes, _ = rf.loglikelihood(ctx, " yes")
+        ll_no, _ = rf.loglikelihood(ctx, " no")
+        return ll_yes, ll_no
 
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            preds.append(lm.loglikelihood(ctx, ' yes') > lm.loglikelihood(ctx, ' no'))
-        return get_accuracy_and_f1(preds=preds, golds=golds)
+    def process_results(self, doc, results):
+        ll_yes, ll_no = results
+        gold = doc["label"]
+        pred = ll_yes > ll_no
+        return {
+            "acc": pred == gold,
+            "f1": (gold, pred),
+        }
+
+    def higher_is_better(self):
+        return {
+            "acc": True,
+            "f1": True
+        }
+
+    def aggregation(self):
+        return {
+            "acc": mean,
+            "f1": f1_score
+        }
 
 
 class STSB(HFTask):
@@ -368,93 +487,3 @@ class STSB(HFTask):
             "minor": minor,
             "higher_is_better": True,
         }
-
-
-class SST(HFTask):
-    DATASET_PATH = "glue"
-    DATASET_NAME = "sst2"
-
-    def has_training_docs(self):
-        return True
-
-    def has_validation_docs(self):
-        return True
-
-    def has_test_docs(self):
-        return True
-
-    def fewshot_description(self):
-        return "Indicate if each sentence is Positive or Negative."
-
-    def doc_to_text(self, doc):
-        return "sentence:\t{}\t\nanswer:".format(
-            doc["sentence"],
-        )
-
-    def doc_to_target(self, doc):
-        return " {}".format({1: "Positive", 0: "Negative"}[doc["label"]])
-
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
-
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            preds.append(lm.loglikelihood(ctx, ' Positive') > lm.loglikelihood(ctx, ' Negative'))
-        return simple_accuracy_metric(preds=preds, golds=golds)
-
-
-class WNLI(HFTask):
-    DATASET_PATH = "glue"
-    DATASET_NAME = "wnli"
-    
-    def has_training_docs(self):
-        return True
-
-    def has_validation_docs(self):
-        return True
-
-    def has_test_docs(self):
-        return True
-
-    def doc_to_text(self, doc):
-        return "{}\nquestion:\t{}\tTrue, False or Neither?\nanswer:".format(
-            doc["sentence1"],
-            doc["sentence2"],
-        )
-
-    def doc_to_target(self, doc):
-        # True = entailment
-        # False = contradiction
-        # Neither = neutral
-        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
-
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
-
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            probs = np.array([
-                lm.loglikelihood(ctx, ' True'),
-                lm.loglikelihood(ctx, ' Neither'),
-                lm.loglikelihood(ctx, ' False'),
-            ])
-            preds.append(np.argmax(probs))
-        return simple_accuracy_metric(preds=preds, golds=golds)
