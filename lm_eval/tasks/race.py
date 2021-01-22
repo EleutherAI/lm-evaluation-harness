@@ -1,5 +1,3 @@
-# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
-
 from . common import HFTask
 from ..utils_stream import X, each, apply, join, filt, one
 import collections

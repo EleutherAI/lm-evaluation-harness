@@ -1,5 +1,3 @@
-# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
-
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef
@@ -34,7 +32,8 @@ class OpenBookQA(HFTask):
             return self.data["test"]
 
     def fewshot_description(self):
-        return "Text of the question prompt\nText of the answer completion"
+        # TODO: figure out fewshot description
+        return ""
 
     def doc_to_text(self, doc):
         return doc['question_stem'] + '\n'
