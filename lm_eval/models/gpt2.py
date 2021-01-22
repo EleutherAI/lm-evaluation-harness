@@ -31,10 +31,14 @@ class GPT2LM(LM):
 
             cont_toks = inp[:, ctxlen:]  # [batch, seq]
             logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
+            
+            greedy_tokens = logits.argmax(dim=-1)
+            max_equal = (greedy_tokens == cont_toks).all()
+
             logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1) # [batch, seq]
 
-            # TODO: implement isgreedy
-            res.append((float(logits.sum()), False))
+
+            res.append((float(logits.sum()), bool(max_equal)))
 
         return res
     
