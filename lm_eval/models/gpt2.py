@@ -38,7 +38,6 @@ class GPT2LM(LM):
             logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1) # [batch, seq]
 
 
-            # TODO: implement isgreedy
             res.append((float(logits.sum()), bool(max_equal)))
 
         return res
