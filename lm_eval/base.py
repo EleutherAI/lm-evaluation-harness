@@ -1,8 +1,7 @@
 import abc
 import random
-import collections
 import numpy as np
-from sklearn.metrics import precision_recall_fscore_support as score
+import sklearn
 
 class LM(abc.ABC):
     @abc.abstractmethod
@@ -177,15 +176,23 @@ class Dataset(abc.ABC):
         return description + labeled_examples + example
 
 
-
 def mean(arr):
     return sum(arr) / len(arr)
+
+def median(arr):
+    return arr[len(arr) // 2]
+
+def matthews_corrcoef(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    return sklearn.metrics.matthews_corrcoef(golds, preds)
 
 def f1_score(items):
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
-    precision, recall, fscore, support = score(golds, preds)
+    fscore = sklearn.metrics.f1_score(golds, preds)
     return max(fscore)
 
 def acc_all(items):
@@ -204,9 +211,6 @@ def acc_all(items):
             
     acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
     return acc
-
-def median(arr):
-    return arr[len(arr) // 2]
 
 req_ret_lens = {
     'loglikelihood': 2
