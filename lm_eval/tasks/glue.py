@@ -1,5 +1,3 @@
-# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
-
 import numpy as np
 from lm_eval.base import rf, mean, f1_score, matthews_corrcoef
 from scipy.stats import pearsonr, spearmanr

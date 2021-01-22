@@ -1,5 +1,3 @@
-# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
-
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef

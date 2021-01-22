@@ -1,5 +1,3 @@
-# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
-
 from lm_eval.base import Dataset
 from lm_eval.utils import sh
 import json
