@@ -3,6 +3,7 @@ import random
 import numpy as np
 import sklearn
 
+
 class LM(abc.ABC):
     @abc.abstractmethod
     def loglikelihood(self, requests):
@@ -179,14 +180,17 @@ class Dataset(abc.ABC):
 def mean(arr):
     return sum(arr) / len(arr)
 
+
 def median(arr):
     return arr[len(arr) // 2]
+
 
 def matthews_corrcoef(items):
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
     return sklearn.metrics.matthews_corrcoef(golds, preds)
+
 
 def f1_score(items):
     unzipped_list = list(zip(*items))
@@ -195,13 +199,14 @@ def f1_score(items):
     fscore = sklearn.metrics.f1_score(golds, preds)
     return max(fscore)
 
+
 def acc_all(items):
     # Only count as correct if all answers are labeled correctly for each question
     question_scoring_dict = {}
     preds = list(zip(*items))[0]
     docs = list(zip(*items))[1]
-	
-    for (doc, pred) in zip(docs, preds):
+
+    for doc, pred in zip(docs, preds):
         question_id = doc["idx"]["question"]
         if question_id not in question_scoring_dict:
             question_scoring_dict[question_id] = []
@@ -212,9 +217,20 @@ def acc_all(items):
     acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
     return acc
 
+
+def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
+    """Compute max metric between prediction and each ground truth."""
+    scores_for_ground_truths = []
+    for ground_truth in ground_truths:
+        score = metric_fn(prediction, ground_truth)
+        scores_for_ground_truths.append(score)
+    return max(scores_for_ground_truths)
+
+
 req_ret_lens = {
     'loglikelihood': 2
 }
+
 
 class Request:
     def __init__(self, type, args, index=None):
@@ -232,6 +248,7 @@ class Request:
     
     def __getitem__(self, i):
         return Request(self.type, self.args, i)
+
 
 class RequestFactory:
     def __getattr__(self, attr):
