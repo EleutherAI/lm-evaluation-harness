@@ -1,9 +1,14 @@
-# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
-
+"""
+To-do:
+    - WSC requires free-form generation
+    - ReCoRD
+"""
 import numpy as np
-from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno
-from lm_eval.base import rf, mean, f1_score, acc_all
+from . common import HFTask, yesno
+from lm_eval.base import rf, mean, acc_all, metric_max_over_ground_truths
+import sklearn
+import transformers.data.metrics.squad_metrics as squad_metrics
+
 
 class BoolQ(HFTask):
     DATASET_PATH = "super_glue"
@@ -31,7 +36,7 @@ class BoolQ(HFTask):
     def construct_requests(self, doc, ctx):
 
         ll_yes, _ = rf.loglikelihood(ctx, ' yes')
-        ll_no , _ = rf.loglikelihood(ctx, ' no')
+        ll_no, _ = rf.loglikelihood(ctx, ' no')
 
         return ll_yes, ll_no
 
@@ -55,6 +60,7 @@ class BoolQ(HFTask):
             "acc": mean
         }
 
+
 class CommitmentBank(HFTask):
     DATASET_PATH = "super_glue"
     DATASET_NAME = "cb"
@@ -69,7 +75,8 @@ class CommitmentBank(HFTask):
         return True
 
     def fewshot_description(self):
-        return "Given a premise and a hypothesis, classify whether the author of the premise is committed to the truth of the hypothesis. The three possible labels are true, false or neither."
+        return "Given a premise and a hypothesis, classify whether the author of the premise is committed" \
+            "to the truth of the hypothesis. The three possible labels are true, false or neither."
 
     def doc_to_text(self, doc):
         return "{}\nquestion: {} true, false or neither?\nanswer:".format(
@@ -105,12 +112,24 @@ class CommitmentBank(HFTask):
             "acc": True,
             "f1": True
         }
+
+    @classmethod
+    def cb_multi_fi(cls, items):
+        preds, golds = zip(*items)
+        preds = np.array(preds)
+        golds = np.array(golds)
+        f11 = sklearn.metrics.f1_score(y_true=golds == 0, y_pred=preds == 0)
+        f12 = sklearn.metrics.f1_score(y_true=golds == 1, y_pred=preds == 1)
+        f13 = sklearn.metrics.f1_score(y_true=golds == 2, y_pred=preds == 2)
+        avg_f1 = mean([f11, f12, f13])
+        return avg_f1
     
     def aggregation(self):
         return {
             "acc": mean,
-            "f1": f1_score
+            "f1": self.cb_multi_fi,
         }
+
 
 class Copa(HFTask):
     DATASET_PATH = "super_glue"
@@ -126,7 +145,8 @@ class Copa(HFTask):
         return True
 
     def fewshot_description(self):
-        return "Given a premise and one alternative with a causal relation to the premise and another without, choose the more plausible alternative"
+        return "Given a premise and one alternative with a causal relation to the premise and another without," \
+            "choose the more plausible alternative"
 
     def doc_to_text(self, doc):
         # Drop the period
@@ -211,10 +231,7 @@ class MultiRC(HFTask):
         return ll_true_choice, ll_false_choice
 
     def process_results(self, doc, results):
-        gold = doc["label"]
         pred = np.argmax(results)
-        acc = 1. if pred == gold else 0.
-
         return {
             "acc": (pred, doc)
         }
@@ -228,6 +245,89 @@ class MultiRC(HFTask):
         return {
             "acc": acc_all
         }
+
+
+class ReCoRD(HFTask):
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "record"
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def training_docs(self):
+        # In ReCoRD, each doc manifests multiple "examples" in the context of few shot example packing.
+        # Each doc consists of multiple answer candidates, each of which is scored yes/no.
+        # Hence, we one "doc" for each (context + passage, answer) pair.
+        # Moreover, we only use the correct answers for context packing
+        # (This is not an issue for evaluation, where we can directly score multiple candidates at once).
+        if self.has_training_docs():
+            if self._training_docs is None:
+                self._training_docs = []
+                for doc in self.data["train"]:
+                    for entity in list(set(doc["entities"])):
+                        self._training_docs.append({
+                            "passage": doc["passage"],
+                            "query": doc["query"],
+                            "entity": entity,
+                            "label": entity in doc["answers"],
+                        })
+            return self._training_docs
+
+    def doc_to_text(self, doc):
+        initial_text, *highlights = doc["passage"].strip().split("\n@highlight\n")
+        text = initial_text + "\n\n"
+        for highlight in highlights:
+            text += f"  - {highlight}.\n"
+        return text
+
+    @classmethod
+    def format_answer(cls, query, entity):
+        return f'  - {query}'.replace("@placeholder", entity)
+
+    def doc_to_target(self, doc):
+        return self.format_answer(query=doc["query"], entity=doc["entity"])
+
+    def construct_requests(self, doc, ctx):
+        requests = [
+            rf.loglikelihood(ctx, self.format_answer(query=doc["query"], entity=entity))
+            for entity in doc["entities"]
+        ]
+        return requests
+
+    def process_results(self, doc, results):
+        # ReCoRD's evaluation is actually deceptively simple:
+        # - Pick the maximum likelihood prediction entity
+        # - Evaluate the accuracy and token F1 PER EXAMPLE
+        # - Average over all examples
+        max_idx = np.argmax(np.array(results))
+        prediction = doc["entities"][max_idx]
+        gold_label_set = list(set(doc["answers"]))
+        f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, prediction, gold_label_set)
+        em = metric_max_over_ground_truths(squad_metrics.compute_exact, prediction, gold_label_set)
+
+        return {
+            "f1": f1,
+            "em": em,
+        }
+
+    def higher_is_better(self):
+        return {
+            "f1": True,
+            "em": True,
+        }
+
+    def aggregation(self):
+        return {
+            "f1": mean,
+            "em": mean,
+        }
+
 
 class WordsInContext(HFTask):
     DATASET_PATH = "super_glue"
@@ -253,22 +353,31 @@ class WordsInContext(HFTask):
     def doc_to_target(self, doc):
         return " {}".format({0: "no", 1: "yes"}[doc["label"]])
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
+    def construct_requests(self, doc, ctx):
+        ll_yes, _ = rf.loglikelihood(ctx, ' yes')
+        ll_no, _ = rf.loglikelihood(ctx, ' no')
 
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            preds.append(lm.loglikelihood(ctx, ' yes') > lm.loglikelihood(ctx, ' no'))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+        return ll_yes, ll_no
+
+    def process_results(self, doc, results):
+        ll_yes, ll_no = results
+        gold = doc["label"]
+
+        acc = 1. if (ll_yes > ll_no) == gold else 0.
+
+        return {
+            "acc": acc
+        }
+
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
 
 class SGWinogradSchemaChallenge(HFTask):
@@ -287,10 +396,10 @@ class SGWinogradSchemaChallenge(HFTask):
     def training_docs(self):
         if self.has_training_docs():
             if self._training_docs is None:
-                # GPT-3 Paper's format only uses positive examples
+                # GPT-3 Paper's format only uses positive examples for fewshot "training"
                 self._training_docs = [
                     doc for doc in
-                    self._load_nlp_dataset()["train"]
+                    self.data["train"]
                     if doc["label"]
                 ]
             return self._training_docs
@@ -319,84 +428,20 @@ class SGWinogradSchemaChallenge(HFTask):
     def doc_to_target(self, doc):
         return " {}".format(doc["span1_text"])
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        # TODO: Implement evaluation code using new framework
-
-        # ***IMPORTANT***: this evaluation function needs to be rewritten for the new framework. 
-        # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-        # Remove this comment when the evaluation code is implemented.
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            to_predict = " " + doc["span1_text"]
-            num_tokens = len(lm.tokenizer.tokenize(to_predict))
-            generated = lm.generate(
-                context=ctx,
-                max_gen_length=num_tokens,
-            )
-            preds.append(1 if generated == to_predict else 0)
-        return simple_accuracy_metric(preds=preds, golds=golds)
-
-class RTE(HFTask):
-    DATASET_PATH = "super_glue"
-    DATASET_NAME = "rte"
-
-    def fewshot_description(self):
-        #TODO: implement
-        pass
-
-    def doc_to_text(self, doc):
-        return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: '])
-
-    def doc_to_target(self, doc):
-        return 'True' if doc['label'] == 0 else 'False'
-
     def construct_requests(self, doc, ctx):
-        """ Uses RequestFactory to construct Requests and returns an iterable of 
-        Requests which will be sent to the LM.
+        # Evaluate probability of generating answer based on span1_text (coref target)
+        raise NotImplementedError("requires free-form generation")
 
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param ctx: str
-            The context string, generated by fewshot_context. This includes the natural 
-            language description, as well as the few shot examples, and the question
-            part of the document for `doc`. 
-        """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
-    
     def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a 
-        dict where keys are the names of submetrics and values are the values of 
-        the metric for that one document
-
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
-        """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
-
-    def aggregation(self):
-        """
-        :returns: {str: [float] -> float}
-            A dictionary where keys are the names of submetrics and values are 
-            functions that aggregate a list of metrics
-        """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        # Evaluate probability of generating answer based on span1_text (coref target)
+        raise NotImplementedError("requires evaluation from free-form generation")
 
     def higher_is_better(self):
-        """
-        :returns: {str: bool}
-            A dictionary where keys are the names of submetrics and values are 
-            whether a higher value of the submetric is better
-        """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        return {
+            "acc": True
+        }
+
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
