@@ -12,6 +12,7 @@ from . import openbookqa
 from . import squad
 from . import naturalqs
 from . import sat
+from . import arithmetic
 
 TASK_REGISTRY = {
     # GLUE
@@ -49,6 +50,18 @@ TASK_REGISTRY = {
     "anli_r1": anli.ANLIRound1,
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
+    # arithmetic
+    "arithmetic_2da": arithmetic.Arithmetic2DPlus,
+    "arithmetic_2ds": arithmetic.Arithmetic2DMinus,
+    "arithmetic_3da": arithmetic.Arithmetic3DPlus,
+    "arithmetic_3ds": arithmetic.Arithmetic3DMinus,
+    "arithmetic_4da": arithmetic.Arithmetic4DPlus,
+    "arithmetic_4ds": arithmetic.Arithmetic4DMinus,
+    "arithmetic_5da": arithmetic.Arithmetic5DPlus,
+    "arithmetic_5ds": arithmetic.Arithmetic5DMinus,
+    "arithmetic_2dm": arithmetic.Arithmetic2DMultiplication,
+    "arithmetic_1dc": arithmetic.Arithmetic1DComposite,
+
 }
 
 
