@@ -33,7 +33,7 @@ TASK_REGISTRY = {
     "multirc": superglue.MultiRC,
     "record": superglue.ReCoRD,
     "wic": superglue.WordsInContext,
-    #"wsc": superglue.SGWinogradSchemaChallenge, # not implemented yet
+    "wsc": superglue.SGWinogradSchemaChallenge,
     
     # Order by benchmark/genre?
 
