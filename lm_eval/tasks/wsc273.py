@@ -71,12 +71,14 @@ class WinogradSchemaChallenge273(Dataset):
             docs.append(doc)
  
         return docs
-    
-    def doc_to_text(self, doc, include_target=True):
-        # WSC273 is currently only writing out full examples. Partial evaluation needs implementing.
-        text = doc['completions']['T'] + ' True. ' + doc['completions']['F'] + ' False.'
-        return text
 
+    def doc_to_text(self, doc):
+        # TODO: implement
+        pass
+
+    def doc_to_target(self, doc):
+        # TODO: implement
+        pass
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of 

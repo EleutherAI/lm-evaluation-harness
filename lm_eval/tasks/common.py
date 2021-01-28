@@ -11,6 +11,8 @@ class HFTask(Dataset):
     def __init__(self):
         super().__init__()
         self._training_docs = None
+    
+    def download(self):
         self.data = datasets.load_dataset(path=self.DATASET_PATH, name=self.DATASET_NAME)
 
     def has_training_docs(self):
