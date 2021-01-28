@@ -12,7 +12,6 @@ class Arithmetic(Dataset):
 
     def __init__(self):
         super().__init__()
-        self.set_docs()
 
     def download(self):
         file_name, checksum = self.get_file_download_info()
@@ -20,6 +19,7 @@ class Arithmetic(Dataset):
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
         download_file(url, self.directory+file_name, checksum)
+        self.set_docs()
 
     @abc.abstractmethod
     def get_file_download_info(self):

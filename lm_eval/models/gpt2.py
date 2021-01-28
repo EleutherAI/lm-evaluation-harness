@@ -19,7 +19,6 @@ class GPT2LM(LM):
         return cls(device=args.get("device", "cpu"))
 
     def loglikelihood(self, requests):
-        print(requests)
         res = []
         # TODO: vectorize properly
         for context, continuation in tqdm(requests):
