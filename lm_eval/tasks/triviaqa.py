@@ -1,20 +1,18 @@
+import os
 import json
 import random
 from lm_eval.base import Dataset
 from ..utils import sh
 
 class TriviaQA(Dataset):
-    def __init__(self):
-        self.download()
     def download(self):
-        #pass
-        #TODO: don't download if files already there
-        sh("""
-           mkdir -p data/triviaqa
-           wget http://nlp.cs.washington.edu/triviaqa/data/triviaqa-unfiltered.tar.gz -O data/triviaqa/trivia_qa-unfiltered.tar.gz
-           tar -xf data/triviaqa/trivia_qa-unfiltered.tar.gz
-           mv triviaqa-unfiltered/ data/triviaqa/
-           """)
+        if not os.path.exists('data/triviaqa'):
+            sh("""
+            mkdir -p data/triviaqa
+            wget http://nlp.cs.washington.edu/triviaqa/data/triviaqa-unfiltered.tar.gz -O data/triviaqa/trivia_qa-unfiltered.tar.gz
+            tar -xf data/triviaqa/trivia_qa-unfiltered.tar.gz
+            mv triviaqa-unfiltered/ data/triviaqa/
+            """)
 
     def has_training_docs(self):
         return True

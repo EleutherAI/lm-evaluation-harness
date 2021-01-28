@@ -1,11 +1,23 @@
-# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
-
+import random
 from lm_eval.base import LM
-from . import MODEL_REGISTRY
 
 
-@MODEL_REGISTRY.register("dummy")
 class DummyLM(LM):
+    def __init__(self):
+        pass
 
-    def loglikelihood(self, context, continuation):
-        return 0.0
+    @classmethod
+    def create_from_arg_string(cls, arg_string):
+        return cls()
+
+    def loglikelihood(self, requests):
+        res = []
+        
+        for _ in requests:
+            res.append((-random.random(), False))
+
+        return res
+    
+    def greedy_until(self, requests):
+        # TODO: implement
+        pass

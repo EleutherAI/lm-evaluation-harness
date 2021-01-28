@@ -23,7 +23,7 @@ TASK_REGISTRY = {
     "rte": glue.RTE,
     "qnli": glue.QNLI,
     "qqp": glue.QQP,
-    "stsb": glue.STSB,
+    #"stsb": glue.STSB, # not implemented yet
     "sst": glue.SST,
     "wnli": glue.WNLI,
     # SuperGLUE
@@ -33,23 +33,25 @@ TASK_REGISTRY = {
     "multirc": superglue.MultiRC,
     "record": superglue.ReCoRD,
     "wic": superglue.WordsInContext,
-    "wsc": superglue.SGWinogradSchemaChallenge,
+    #"wsc": superglue.SGWinogradSchemaChallenge, # not implemented yet
+    
     # Order by benchmark/genre?
-    "arc_easy": arc.ARCEasy,
-    "arc_challenge": arc.ARCChallenge,
-    "quac": quac.QuAC,
-    "hellaswag": hellaswag.HellaSwag,
-    "openbookqa": openbookqa.OpenBookQA,
-    "sat": sat.SATAnalogies,
-    "squad": squad.SQuAD,
-    "race": race.RACE,
-    "naturalqs": naturalqs.NaturalQs,
-    "webqs": webqs.WebQs,
-    "wsc273": wsc273.WinogradSchemaChallenge273,
-    "winogrande": winogrande.Winogrande,
-    "anli_r1": anli.ANLIRound1,
-    "anli_r2": anli.ANLIRound2,
-    "anli_r3": anli.ANLIRound3,
+
+    # "arc_easy": arc.ARCEasy, # not implemented yet
+    # "arc_challenge": arc.ARCChallenge, # not implemented yet
+    # "quac": quac.QuAC, # not implemented yet
+    # "hellaswag": hellaswag.HellaSwag, # not implemented yet
+    # "openbookqa": openbookqa.OpenBookQA, # not implemented yet
+    # "sat": sat.SATAnalogies, # not implemented yet
+    # "squad": squad.SQuAD, # not implemented yet
+    # "race": race.RACE, # not implemented yet
+    # "naturalqs": naturalqs.NaturalQs, # not implemented yet
+    # "webqs": webqs.WebQs, # not implemented yet
+    # "wsc273": wsc273.WinogradSchemaChallenge273, # not implemented yet
+    # "winogrande": winogrande.Winogrande, # not implemented yet
+    # "anli_r1": anli.ANLIRound1, # not implemented yet
+    # "anli_r2": anli.ANLIRound2, # not implemented yet
+    # "anli_r3": anli.ANLIRound3, # not implemented yet
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
     "arithmetic_2ds": arithmetic.Arithmetic2DMinus,
