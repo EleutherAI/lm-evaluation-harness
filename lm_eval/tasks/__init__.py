@@ -40,7 +40,7 @@ TASK_REGISTRY = {
     # "arc_easy": arc.ARCEasy, # not implemented yet
     # "arc_challenge": arc.ARCChallenge, # not implemented yet
     # "quac": quac.QuAC, # not implemented yet
-    # "hellaswag": hellaswag.HellaSwag, # not implemented yet
+    "hellaswag": hellaswag.HellaSwag, # not implemented yet
     # "openbookqa": openbookqa.OpenBookQA, # not implemented yet
     # "sat": sat.SATAnalogies, # not implemented yet
     # "squad": squad.SQuAD, # not implemented yet
