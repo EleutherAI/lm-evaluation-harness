@@ -32,6 +32,8 @@ class GPT3LM(LM):
         return cls(engine=args.get("engine", "davinci"))
 
     def loglikelihood(self, context, continuation):
+        # TODO: implement new framework
+        
         import openai
         
         context_enc = self.tokenizer.encode(context)

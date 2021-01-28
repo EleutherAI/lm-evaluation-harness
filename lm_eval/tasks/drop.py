@@ -11,7 +11,7 @@ class DROP(Dataset):
     DATAFOLDER = Path(__file__).parent / "../../data/drop"
     
     def __init__(self):
-        self.download()
+        super().__init__()
 
     def has_training_docs(self):
         """Whether the task has a training set"""

@@ -54,16 +54,13 @@ class RACE(HFTask):
         # TODO: figure out description
         return ""
 
-    def doc_to_text(self, doc, include_target=True):
-        r = "Article:\n" + doc['article'] + '\n\n'
+    def doc_to_text(self, doc):
+        # TODO: implement
+        pass
 
-        r += doc['problems'] >> apply(enumerate) >> each(
-            lambda x: 'Q: ' + x[1]['question'] + '\n\nA:' 
-            + ((' ' + x[1]['options'][['A', 'B', 'C', 'D'].index(x[1]['answer'])]) \
-                if x[0] != len(doc['problems']) - 1 or include_target else '')) \
-            >> join('\n\n')
-
-        return r
+    def doc_to_target(self, doc):
+        # TODO: implement
+        pass
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of 

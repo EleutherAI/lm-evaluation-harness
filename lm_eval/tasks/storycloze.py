@@ -5,8 +5,8 @@ from ..utils import sh
 import csv
 
 class StoryCloze(Dataset):
-    def __init__(self):
-        self.download()
+    NEEDS_MANUAL_DL = True
+
     def download(self):
         #TODO: replace with Eye link
         pass
@@ -30,7 +30,7 @@ class StoryCloze(Dataset):
                 
 
     def validation_docs(self):
-        return  self.load_doc("data/storycloze/cloze_test_val__winter2018-cloze_test_ALL_val - 1 - 1.csv")
+        return self.load_doc("data/storycloze/cloze_test_val__winter2018-cloze_test_ALL_val - 1 - 1.csv")
 
     def test_docs(self):
         return self.load_doc("data/storycloze/cloze_test_test__winter2018-cloze_test_ALL_test - 1.csv")

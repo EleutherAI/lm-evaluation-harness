@@ -9,6 +9,8 @@ from ..utils import sh
 
 
 class SATAnalogies(Dataset):    
+    NEEDS_MANUAL_DL = True
+    
     def __init__(self):
         super().__init__()
 

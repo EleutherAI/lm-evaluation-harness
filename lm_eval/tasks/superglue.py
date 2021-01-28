@@ -75,6 +75,7 @@ class CommitmentBank(HFTask):
         return True
 
     def fewshot_description(self):
+        # TODO: figure out actual description
         return "Given a premise and a hypothesis, classify whether the author of the premise is committed" \
             "to the truth of the hypothesis. The three possible labels are true, false or neither."
 
@@ -145,6 +146,7 @@ class Copa(HFTask):
         return True
 
     def fewshot_description(self):
+        # TODO: figure out actual description
         return "Given a premise and one alternative with a causal relation to the premise and another without," \
             "choose the more plausible alternative"
 
@@ -208,6 +210,7 @@ class MultiRC(HFTask):
         return True
 
     def fewshot_description(self):
+        # TODO: figure out actual description
         return "READING COMPREHENSION ANSWER KEY"
 
     def doc_to_text(self, doc):
@@ -260,24 +263,37 @@ class ReCoRD(HFTask):
     def has_test_docs(self):
         return True
 
+    def fewshot_description(self):
+        # TODO: figure out actual description
+        return ""
+
     def training_docs(self):
         # In ReCoRD, each doc manifests multiple "examples" in the context of few shot example packing.
         # Each doc consists of multiple answer candidates, each of which is scored yes/no.
         # Hence, we one "doc" for each (context + passage, answer) pair.
         # Moreover, we only use the correct answers for context packing
         # (This is not an issue for evaluation, where we can directly score multiple candidates at once).
-        if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = []
-                for doc in self.data["train"]:
-                    for entity in list(set(doc["entities"])):
-                        self._training_docs.append({
-                            "passage": doc["passage"],
-                            "query": doc["query"],
-                            "entity": entity,
-                            "label": entity in doc["answers"],
-                        })
-            return self._training_docs
+        if self._training_docs is None:
+            self._training_docs = []
+            for doc in self.data["train"]:
+                for entity in list(set(doc["entities"])):
+                    self._training_docs.append({
+                        "passage": doc["passage"],
+                        "query": doc["query"],
+                        "entity": entity,
+                        "label": entity in doc["answers"],
+                    })
+        return self._training_docs
+
+    def validation_docs(self):
+        for doc in self.data["validation"]:
+            for entity in list(set(doc["entities"])):
+                yield {
+                    "passage": doc["passage"],
+                    "query": doc["query"],
+                    "entity": entity,
+                    "label": entity in doc["answers"],
+                }
 
     def doc_to_text(self, doc):
         initial_text, *highlights = doc["passage"].strip().split("\n@highlight\n")
@@ -296,7 +312,7 @@ class ReCoRD(HFTask):
     def construct_requests(self, doc, ctx):
         requests = [
             rf.loglikelihood(ctx, self.format_answer(query=doc["query"], entity=entity))
-            for entity in doc["entities"]
+            for entity in doc["entity"]
         ]
         return requests
 
@@ -341,6 +357,10 @@ class WordsInContext(HFTask):
 
     def has_test_docs(self):
         return True
+
+    def fewshot_description(self):
+        # TODO: figure out actual description
+        return ""
 
     def doc_to_text(self, doc):
         return "{}\n{}\nQuestion: Is the word '{}' used in the same way in the" \
@@ -405,6 +425,7 @@ class SGWinogradSchemaChallenge(HFTask):
             return self._training_docs
 
     def fewshot_description(self):
+        # TODO: figure out actual description
         return "Final Exam with Answer Key\n" \
            "Instructions: Please carefully read the following passages. " \
            "For each passage, you must identify which noun the pronoun marked in *bold*" \
