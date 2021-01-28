@@ -449,7 +449,7 @@ class SGWinogradSchemaChallenge(HFTask):
         return text
 
     def doc_to_target(self, doc):
-        return yesno(doc['label'])
+        return " " + yesno(doc['label'])
 
     def construct_requests(self, doc, ctx):
 
