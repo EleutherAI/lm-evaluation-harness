@@ -59,6 +59,11 @@ Both LMs (`lm_eval.models`) and Tasks (`lm_eval.tasks`) are kept in a registry d
 
 The [GPT-3 Evaluations Project](https://github.com/EleutherAI/lm_evaluation_harness/projects/1) tracks our progress implementing new tasks. Right now, we are focused on getting all the datasets loaded so that we can dedupe against the training data. Implementing the actual evaluations is nice but not necessary at the current moment.
 
+### Design philosophy for evaluations
+
+ - Use `loglikelihood` whenever possible, avoid `greedy_until` at all costs.
+ - For multiple choice: return metrics using **both** length-unnormalized and normalizeg by log probabilities by length in bytes, **not** tokens (use the `utf8len` function from utils). 
+
 ## Description
 
 ### 1. LM Evaluation
