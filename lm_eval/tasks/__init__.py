@@ -15,6 +15,8 @@ from . import sat
 from . import arithmetic
 from . import lambada
 from . import race 
+from . import piqa
+
 
 TASK_REGISTRY = {
     # GLUE
@@ -40,11 +42,12 @@ TASK_REGISTRY = {
     # Order by benchmark/genre?
 
     "lambada": lambada.LAMBADA,
+    "piqa": piqa.PiQA,
 
     # "arc_easy": arc.ARCEasy, # not implemented yet
     # "arc_challenge": arc.ARCChallenge, # not implemented yet
     # "quac": quac.QuAC, # not implemented yet
-    # "hellaswag": hellaswag.HellaSwag, # not implemented yet
+    "hellaswag": hellaswag.HellaSwag, # not implemented yet
     # "openbookqa": openbookqa.OpenBookQA, # not implemented yet
     # "sat": sat.SATAnalogies, # not implemented yet
     # "squad": squad.SQuAD, # not implemented yet
