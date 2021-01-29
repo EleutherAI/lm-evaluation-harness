@@ -59,7 +59,6 @@ class LM(abc.ABC):
 
 
 class Dataset(abc.ABC):
-    @abc.abstractmethod
     def __init__(self):
         self.download()
         self._traindocs = None
