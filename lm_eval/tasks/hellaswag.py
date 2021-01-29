@@ -1,3 +1,4 @@
+import re
 import numpy as np
 from ..base import rf, mean
 from . common import HFTask
@@ -34,7 +35,9 @@ class HellaSwag(HFTask):
             "plausibly completes the situation."
 
     def doc_to_text(self, doc):
-        return doc['activity_label'] + ': ' + doc['ctx'] + '\n'
+        text = doc['activity_label'] + ': ' + doc['ctx'] + '\n'
+        text += ''.join([ending + "\n" for ending in doc['endings']])
+        return text + "\n" 
 
     def doc_to_target(self, doc):
         letter_answer = doc['label']
