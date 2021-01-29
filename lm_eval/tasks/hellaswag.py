@@ -1,3 +1,4 @@
+import re
 import numpy as np
 from ..base import rf, mean
 from . common import HFTask
@@ -6,6 +7,15 @@ from . common import HFTask
 class HellaSwag(HFTask):
     DATASET_PATH = "hellaswag"
     DATASET_NAME = None
+
+    @classmethod
+    def remove_brackets(cls, text):
+        """ Removes brackets from HellaSwag documents. 
+        NOTE: The brackets are artifacts of the WikiHow dataset portion underlying
+        HellaSwag.
+        """
+        text = re.sub('\[.*?\]', '', text)
+        return text
 
     def has_training_docs(self):
         return True
@@ -34,7 +44,8 @@ class HellaSwag(HFTask):
             "plausibly completes the situation."
 
     def doc_to_text(self, doc):
-        return doc['activity_label'] + ': ' + doc['ctx'] + '\n'
+        text = doc['activity_label'] + ': ' + doc['ctx'] + '\n'
+        return self.remove_brackets(text)
 
     def doc_to_target(self, doc):
         letter_answer = doc['label']
@@ -49,12 +60,12 @@ class HellaSwag(HFTask):
         else:
             raise ValueError(
                 "HellaSwag from HF datasets contained an invalid answer key")
-        return doc['endings'][index]
+        target = doc['endings'][index]
+        return self.remove_brackets(target)
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
-
         :param doc:
             The document as returned from training_docs, validation_docs, or test_docs.
         :param ctx: str
@@ -62,16 +73,16 @@ class HellaSwag(HFTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        ll_answers = [
-            rf.loglikelihood(ctx, doc['endings'][i])[0] for i in range(4)
-        ]
+        ll_answers = []
+        for i in range(4):
+            continuation = self.remove_brackets(doc['endings'][i])
+            ll_answers.append(rf.loglikelihood(ctx, continuation))
         return ll_answers
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of submetrics and values are the values of
         the metric for that one document
-
         :param doc:
             The document as returned from training_docs, validation_docs, or test_docs.
         :param results:
