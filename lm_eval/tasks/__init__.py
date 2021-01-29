@@ -13,6 +13,7 @@ from . import squad
 from . import naturalqs
 from . import sat
 from . import arithmetic
+from . import lambada
 
 TASK_REGISTRY = {
     # GLUE
@@ -36,6 +37,8 @@ TASK_REGISTRY = {
     "wsc": superglue.SGWinogradSchemaChallenge,
     
     # Order by benchmark/genre?
+
+    "lambada": lambada.LAMBADA,
 
     # "arc_easy": arc.ARCEasy, # not implemented yet
     # "arc_challenge": arc.ARCChallenge, # not implemented yet
