@@ -1,7 +1,9 @@
-from . common import HFTask
-from ..utils_stream import X, each, apply, join, filt, one
 import collections
 import datasets
+import numpy as np
+from lm_eval.base import rf, mean
+from . common import HFTask
+from ..utils_stream import each
 
 
 class RACE(HFTask):
@@ -9,6 +11,7 @@ class RACE(HFTask):
     DATASET_NAME = "high"
 
     cache = {}
+    letter_to_num = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
 
     def has_training_docs(self):
         return True
@@ -54,13 +57,26 @@ class RACE(HFTask):
         # TODO: figure out description
         return ""
 
+    @classmethod
+    def get_answer_option(cls, problem):
+        answer = cls.letter_to_num[problem['answer']]
+        return problem['options'][answer]
+
+    @classmethod
+    def last_problem(cls, doc):
+        return doc['problems'][-1]
+
     def doc_to_text(self, doc):
-        # TODO: implement
-        pass
+        text = 'Article: ' + doc['article'] + '\n\n'
+        for problem in doc['problems'][:-1]:
+            question = 'Q: ' + problem['question'] + '\n\n'
+            answer = 'A: ' + self.get_answer_option(problem) + '\n\n'
+            text += question + answer
+        text += 'Q: ' + self.last_problem(doc)['question'] + '\n\n' + 'A:'
+        return text
 
     def doc_to_target(self, doc):
-        # TODO: implement
-        pass
+        return " " + self.get_answer_option(self.last_problem(doc))
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of 
@@ -73,9 +89,13 @@ class RACE(HFTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`. 
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
-    
+        problem = self.last_problem(doc)
+        ll_choices = [
+            rf.loglikelihood(ctx, " " + problem['options'][i])[0]
+            for i in range(4)
+        ]
+        return ll_choices
+
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a 
         dict where keys are the names of submetrics and values are the values of 
@@ -86,8 +106,11 @@ class RACE(HFTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        gold = self.letter_to_num[self.last_problem(doc)['answer']]
+        pred = np.argmax(results)
+        return {
+            "acc": int(pred == gold)
+        }
 
     def aggregation(self):
         """
@@ -95,8 +118,9 @@ class RACE(HFTask):
             A dictionary where keys are the names of submetrics and values are 
             functions that aggregate a list of metrics
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        return {
+            "acc": mean
+        }
 
     def higher_is_better(self):
         """
@@ -104,5 +128,6 @@ class RACE(HFTask):
             A dictionary where keys are the names of submetrics and values are 
             whether a higher value of the submetric is better
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        return {
+            "acc": True
+        }
