@@ -82,22 +82,19 @@ class Dataset(abc.ABC):
         """Whether the task has a test set"""
         pass
 
-    @abc.abstractmethod
     def training_docs(self):
         """
 
         :return: Iterable[obj]
             A iterable of any object, that doc_to_text can handle
         """
-        pass
+        return []
     
-    @abc.abstractmethod
     def validation_docs(self):
-        pass
+        return []
     
-    @abc.abstractmethod
     def test_docs(self):
-        pass
+        return []
     
     def fewshot_examples(self, k):
         if self._traindocs is None:
