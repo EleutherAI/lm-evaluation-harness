@@ -1,3 +1,5 @@
+import numpy as np
+from lm_eval.base import rf, mean
 from . common import HFTask
 
 class ANLIBase(HFTask):
@@ -33,7 +35,6 @@ class ANLIBase(HFTask):
         return ""
 
     def doc_to_text(self, doc):
-        print(doc)
         # OA does this a bit weirdly: they prepend "anli 1:  anli 1:  " to the beginning
         # of the prompt (yes, repeating it!). also, " True, False, or Neither?" is directly 
         # appended onto the question, with no "Answer:" or even a newline. Do we *really* 
@@ -41,6 +42,9 @@ class ANLIBase(HFTask):
         return doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + '\nTrue, False, or Neither?'
 
     def doc_to_target(self, doc):
+        # True = entailment
+        # False = contradiction
+        # Neither = neutral
         return " " + ["True", "Neither", "False"][doc['label']]
 
     def construct_requests(self, doc, ctx):
@@ -54,8 +58,10 @@ class ANLIBase(HFTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`. 
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        ll_true, _ = rf.loglikelihood(ctx, " True") 
+        ll_neither, _ = rf.loglikelihood(ctx, " Neither") 
+        ll_false, _ = rf.loglikelihood(ctx, " False") 
+        return ll_true, ll_neither, ll_false
     
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a 
@@ -67,8 +73,11 @@ class ANLIBase(HFTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        gold = doc["label"]
+        pred = np.argmax(results)
+        return {
+            "acc": pred == gold
+        }
 
     def aggregation(self):
         """
@@ -76,8 +85,9 @@ class ANLIBase(HFTask):
             A dictionary where keys are the names of submetrics and values are 
             functions that aggregate a list of metrics
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        return {
+            "acc": mean
+        }
 
     def higher_is_better(self):
         """
@@ -85,8 +95,9 @@ class ANLIBase(HFTask):
             A dictionary where keys are the names of submetrics and values are 
             whether a higher value of the submetric is better
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        return {
+            "acc": True
+        }
 
 class ANLIRound1(ANLIBase):
     SPLIT = 1
