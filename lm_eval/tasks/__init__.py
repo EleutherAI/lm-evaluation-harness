@@ -58,9 +58,9 @@ TASK_REGISTRY = {
     # "webqs": webqs.WebQs, # not implemented yet
     # "wsc273": wsc273.WinogradSchemaChallenge273, # not implemented yet
     # "winogrande": winogrande.Winogrande, # not implemented yet
-    # "anli_r1": anli.ANLIRound1, # not implemented yet
-    # "anli_r2": anli.ANLIRound2, # not implemented yet
-    # "anli_r3": anli.ANLIRound3, # not implemented yet
+    "anli_r1": anli.ANLIRound1,
+    "anli_r2": anli.ANLIRound2,
+    "anli_r3": anli.ANLIRound3,
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
     "arithmetic_2ds": arithmetic.Arithmetic2DMinus,
