@@ -1,7 +1,6 @@
 import os
 from functools import reduce
 import operator
-import lm_dataformat as lmd
 from tqdm import tqdm
 import json
 
