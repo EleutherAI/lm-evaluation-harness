@@ -1,4 +1,7 @@
 black==20.8b1
+best_download>=0.0.5
+datasets>=1.2.1
 click>=7.1
+scikit-learn>=0.24.1
 torch>=1.7
 transformers>=4.1
