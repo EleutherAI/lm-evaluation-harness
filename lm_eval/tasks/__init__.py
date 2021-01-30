@@ -16,6 +16,7 @@ from . import arithmetic
 from . import lambada
 from . import race 
 from . import piqa
+from . import triviaqa
 
 
 TASK_REGISTRY = {
@@ -44,6 +45,7 @@ TASK_REGISTRY = {
     "lambada": lambada.LAMBADA,
     "piqa": piqa.PiQA,
 
+    "triviaqa": triviaqa.TriviaQA,
     # "arc_easy": arc.ARCEasy, # not implemented yet
     # "arc_challenge": arc.ARCChallenge, # not implemented yet
     # "quac": quac.QuAC, # not implemented yet
