@@ -1,7 +1,6 @@
 from lm_eval.base import Dataset, rf, mean
 from lm_eval.utils import sh
 import json
-import requests
 import math
 from best_download import download_file
 

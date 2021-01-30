@@ -14,8 +14,10 @@ from . import naturalqs
 from . import sat
 from . import arithmetic
 from . import lambada
+from . import race 
 from . import piqa
 from . import triviaqa
+
 
 TASK_REGISTRY = {
     # GLUE
@@ -51,7 +53,7 @@ TASK_REGISTRY = {
     # "openbookqa": openbookqa.OpenBookQA, # not implemented yet
     # "sat": sat.SATAnalogies, # not implemented yet
     # "squad": squad.SQuAD, # not implemented yet
-    # "race": race.RACE, # not implemented yet
+    "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
     # "webqs": webqs.WebQs, # not implemented yet
     # "wsc273": wsc273.WinogradSchemaChallenge273, # not implemented yet
