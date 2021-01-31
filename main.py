@@ -32,8 +32,7 @@ def main():
         task_names = args.tasks.split(",")
     task_dict = tasks.get_task_dict(task_names)
 
-    # TODO: fall back to test docs
-    task_dict_items = [(name, task) for name, task in task_dict.items() if task.has_validation_docs()]
+    task_dict_items = [(name, task) for name, task in task_dict.items() if(task.has_validation_docs() or task.has_test_docs())]
 
     results = collections.defaultdict(dict)
 
@@ -50,7 +49,13 @@ def main():
 
     # get lists of each type of requeste
     for task_name, task in task_dict_items:
-        for doc_id, doc in enumerate(itertools.islice(task.validation_docs(), 0, args.limit)):
+        #default to validation doc, fall back to test doc if validation unavailable
+        if task.has_validation_docs():
+            task_doc_func = task.validation_docs
+        elif task.has_test_docs():
+            task_doc_func = task.test_docs
+
+        for doc_id, doc in enumerate(itertools.islice(task_doc_func(), 0, args.limit)):
             docs[(task_name, doc_id)] = doc
 
             ctx = task.fewshot_context(
