@@ -3,6 +3,10 @@ from itertools import islice
 import random
 
 class NaturalQs(HFTask):
+    # TODO: naturalqs has a *really* large train set that huggingface just
+    # automatically downloads even if you dont use it. we should try and only 
+    # download the val set and not even bother with the train set. 
+
     DATASET_PATH = "natural_questions"
     DATASET_NAME = None
 

@@ -21,7 +21,7 @@ class TriviaQA(Dataset):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def training_docs(self):
         return json.load(open('data/triviaqa/triviaqa-unfiltered/unfiltered-web-train.json'))['Data']
