@@ -1,5 +1,6 @@
 from . common import HFTask
 from itertools import islice
+import random
 
 class NaturalQs(HFTask):
     DATASET_PATH = "natural_questions"
