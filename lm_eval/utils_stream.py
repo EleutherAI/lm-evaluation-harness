@@ -5,11 +5,13 @@ from tqdm import tqdm
 import json
 
 
-class ExitCodeError(Exception): pass
+class ExitCodeError(Exception):
+    pass
 
 
 def sh(x):
-    if os.system(x): raise ExitCodeError()
+    if os.system(x):
+        raise ExitCodeError()
 
 def ls(x):
     return [x + '/' + fn for fn in os.listdir(x)]
@@ -64,7 +66,8 @@ class join:
         self.sep = sep
 
     def __rrshift__(self, other):
-        if other is None: return
+        if other is None:
+            return
         try:
             return self.sep.join(other)
         except:
