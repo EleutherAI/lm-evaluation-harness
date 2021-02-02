@@ -32,9 +32,15 @@ def main():
         task_names = args.tasks.split(",")
     task_dict = tasks.get_task_dict(task_names)
 
-    # TODO: fall back to test docs
-    task_dict_items = [(name, task) for name, task in task_dict.items() if task.has_validation_docs()]
-
+    task_dict_items = []
+    for name, task in task_dict.items():
+        if task.has_validation_docs():
+            task_dict_items.append((name, task, 'validation'))
+        elif task.has_test_docs():
+            task_dict_items.append((name, task, 'test'))
+        elif task.has_training_docs():
+            task_dict_items.append((name, task, 'training'))
+        
     results = collections.defaultdict(dict)
 
     requests = collections.defaultdict(list)
@@ -49,8 +55,15 @@ def main():
     docs = {}
 
     # get lists of each type of requeste
-    for task_name, task in task_dict_items:
-        for doc_id, doc in enumerate(itertools.islice(task.validation_docs(), 0, args.limit)):
+    for task_name, task, dset in task_dict_items:
+        if dset == 'training':
+            temp = task.training_docs()
+        elif dset == 'test':
+            temp = task.test_docs()
+        else:
+            temp = task.validation_docs()
+
+        for doc_id, doc in enumerate(itertools.islice(temp, 0, args.limit)):
             docs[(task_name, doc_id)] = doc
 
             ctx = task.fewshot_context(
