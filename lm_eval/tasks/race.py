@@ -23,7 +23,8 @@ class RACE(HFTask):
         return True
 
     def _collate_data(self, set):
-        if set in self.cache: return self.cache[set]
+        if set in self.cache:
+            return self.cache[set]
         # One big issue with HF's implementation of this dataset: it makes a
         # separate document for each question; meanwhile, in the GPT3 paper it
         # is shown that one document is made per passage.

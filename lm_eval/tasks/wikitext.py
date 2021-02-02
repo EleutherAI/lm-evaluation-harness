@@ -14,9 +14,11 @@ class WikiText103(NLP_TASK):
 
     def doc_to_text(self, doc):
         # TODO: implement
+        pass
 
     def doc_to_target(self, doc):
         # TODO: implement
+        pass
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of 
@@ -74,9 +76,11 @@ class WikiText2(NLP_TASK):
 
     def doc_to_text(self, doc):
         # TODO: implement
+        pass
 
     def doc_to_target(self, doc):
         # TODO: implement
+        pass
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of 
