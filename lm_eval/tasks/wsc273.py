@@ -1,11 +1,11 @@
 import json
 import random
 import os
-from lm_eval.base import Dataset
+from lm_eval.base import Task
 from ..utils import sh
 
 
-class WinogradSchemaChallenge273(Dataset):    
+class WinogradSchemaChallenge273(Task):    
     def __init__(self):
         super().__init__()
 
