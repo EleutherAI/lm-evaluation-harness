@@ -1,11 +1,11 @@
 import json
 import random
 import os
-from lm_eval.base import Dataset
+from lm_eval.base import Task
 from ..utils import sh
 
 
-class QuAC(Dataset):    
+class QuAC(Task):    
     def __init__(self):
         super().__init__()
 

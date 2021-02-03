@@ -2,11 +2,11 @@
 
 import json
 import random
-from lm_eval.base import Dataset
+from lm_eval.base import Task
 from ..utils import sh
 
 
-class CoQA(Dataset):
+class CoQA(Task):
     def __init__(self):
         self.download()
     def download(self):
