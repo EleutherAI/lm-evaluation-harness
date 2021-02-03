@@ -2,12 +2,12 @@ import abc
 import json
 import os
 from collections import namedtuple
-from lm_eval.base import Dataset, mean, rf
+from lm_eval.base import Task, mean, rf
 from best_download import download_file
 
 ArithmeticDoc = namedtuple('ArithmeticDoc', ['context', 'completion'])
 
-class Arithmetic(Dataset):
+class Arithmetic(Task):
     directory = 'data/arithmetic/'
 
     def __init__(self):

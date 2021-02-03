@@ -1,10 +1,10 @@
 import os
 import json
 import random
-from lm_eval.base import Dataset, mean, rf
+from lm_eval.base import Task, mean, rf
 from ..utils import sh
 
-class TriviaQA(Dataset):
+class TriviaQA(Task):
     def download(self):
         if not os.path.exists('data/triviaqa'):
             sh("""
@@ -21,7 +21,7 @@ class TriviaQA(Dataset):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def training_docs(self):
         return json.load(open('data/triviaqa/triviaqa-unfiltered/unfiltered-web-train.json'))['Data']
