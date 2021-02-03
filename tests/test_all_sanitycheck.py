@@ -8,10 +8,10 @@ import pytest
 @pytest.mark.parametrize("taskname,Task", tasks.TASK_REGISTRY.items())
 def test_basic_interface(taskname, Task):
     print('Evaluating task', taskname)
-    dl = Task.download
-    Task.download = MagicMock()
+    #dl = Task.download
+    #Task.download = MagicMock()
     task = Task()
-    Task.download = dl
+    #Task.download = dl
 
     assert task.has_training_docs() in [True, False]
     assert task.has_validation_docs() in [True, False]
