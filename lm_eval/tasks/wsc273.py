@@ -1,20 +1,46 @@
-import json
+import numpy as np
 import random
-import os
-from lm_eval.base import Task
-from ..utils import sh
+from lm_eval.base import rf, mean
+from . common import HFTask
+
+"""
+NOTE: This evaluation of Winograd Schema Challenge is based on `partial evaluation`
+as described by Trinh & Le in Simple Method for Commonsense Reasoning (2018).
+See: https://arxiv.org/abs/1806.02847
+"""
 
 
-class WinogradSchemaChallenge273(Task):    
+class WinogradSchemaChallenge273(HFTask):
+    DATASET_PATH = "winograd_wsc"
+    DATASET_NAME = "wsc273"
+
+    upper_pronouns = ["A", "An", "The", "She", "He",
+                      "It", "They", "My", "His", "Her", "Their"]
+
     def __init__(self):
         super().__init__()
+        self.data = self.__clean_data()
 
-    def download(self):
-        if not os.path.exists('data/wsc273'):
-            sh("""
-                mkdir -p data/wsc273 
-                wget https://git.cse.msu.edu/bakerb15/nlp-final-project/raw/master/Winogard/reproduce/commonsense_test/wsc273.json -O data/wsc273/wsc273.json
-                """)
+    def __clean_data(self):
+        # The HF implementation of `wsc273` is not `partial evaluation` friendly.
+        data = []
+        for doc in self.data["test"]:
+            doc["text"] = doc["text"].replace("  ", " ")
+            doc["options"][0] = self.__normalize_option(doc["options"][0], doc)
+            doc["options"][1] = self.__normalize_option(doc["options"][1], doc)
+            data.append(doc)
+        return {"test": data}
+
+    def __normalize_option(self, option, doc):
+        # Append `'s` to possessive determiner based options.
+        if doc["pronoun"].lower() in ["my", "his", "her", "our", "their"]: 
+            option += "'s"
+        # Appropriately lowercase the pronoun in the option.
+        pronoun = option.split()[0]
+        start_of_sentence = doc["text"][doc['pronoun_loc'] - 2] == '.'
+        if not start_of_sentence and pronoun in self.upper_pronouns:
+            return option.replace(pronoun, pronoun.lower())
+        return option
 
     def has_training_docs(self):
         return False
@@ -25,60 +51,35 @@ class WinogradSchemaChallenge273(Task):
     def has_test_docs(self):
         return True
 
-    def training_docs(self):
-        return []
+    def fewshot_examples(self, k):
+        # NOTE: `super().fewshot_examples` samples from training docs which are
+        # not available for this test-set-only dataset.
+        return random.sample(list(self.test_docs()), k)
 
-    def validation_docs(self):
-        return []
-
-    def test_docs(self):
-        myjson = json.load(open('data/wsc273/wsc273.json'))
-        return self.load_doc(myjson)
-    
     def fewshot_description(self):
         # TODO: redo description
         return "Winograd schema sentence with correct continuation. True. Winograd schema sentence with incorrect continuation. False."
 
-    def load_doc(self, myjson):
-        docs = []
-        for i in range(0, 273 * 2, 2):
-            item1 = myjson[i]
-            item2 = myjson[i+1]
+    @classmethod
+    def partial_context(cls, doc):
+        # Substitute the pronoun in the original text with each candidate 
+        # choice and ignore everything after. 
+        context1 = doc["text"][:doc["pronoun_loc"]] + doc["options"][0]
+        context2 = doc["text"][:doc["pronoun_loc"]] + doc["options"][1]
+        return context1, context2
 
-            if item1['question_id'] != item2['question_id']:
-                raise ValueError("WSC273 has missing completion pair.")
-
-            question_id = item1['question_id']
-
-            if item1['correctness'] == True:
-                doc = {
-                    'id': question_id,
-                    'completions': {
-                        'T': item1['substitution'],
-                        'F': item2['substitution'],
-                    },
-                }
-                
-            if item2['correctness'] == True:
-                doc = {
-                    'id': question_id,
-                    'completions': {
-                        'F': item1['substitution'],
-                        'T': item2['substitution'],
-                    },
-                }
-
-            docs.append(doc)
- 
-        return docs
+    @classmethod
+    def partial_target(cls, doc):
+        # The target is everything after the document specified pronoun.
+        start_index = doc["pronoun_loc"] + len(doc["pronoun"])
+        return doc["text"][start_index:].strip()
 
     def doc_to_text(self, doc):
-        # TODO: implement
-        pass
+        context1, context2 = self.partial_context(doc)
+        return context1 + '\n' + context2 + '\n'
 
     def doc_to_target(self, doc):
-        # TODO: implement
-        pass
+        return self.partial_target(doc)
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of 
@@ -91,9 +92,12 @@ class WinogradSchemaChallenge273(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`. 
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
-    
+        target = self.partial_target(doc)
+        context1, context2 = self.partial_context(doc)
+        ll_context1, _ = rf.loglikelihood(context1, " " + target)
+        ll_context2, _ = rf.loglikelihood(context2, " " + target)
+        return ll_context1, ll_context2
+
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a 
         dict where keys are the names of submetrics and values are the values of 
@@ -104,8 +108,9 @@ class WinogradSchemaChallenge273(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        return {
+            "acc": np.argmax(results) == doc["label"]
+        }
 
     def aggregation(self):
         """
@@ -113,8 +118,9 @@ class WinogradSchemaChallenge273(Task):
             A dictionary where keys are the names of submetrics and values are 
             functions that aggregate a list of metrics
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        return {
+            "acc": mean
+        }
 
     def higher_is_better(self):
         """
@@ -122,5 +128,6 @@ class WinogradSchemaChallenge273(Task):
             A dictionary where keys are the names of submetrics and values are 
             whether a higher value of the submetric is better
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        return {
+            "acc": True
+        }
