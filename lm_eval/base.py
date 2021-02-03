@@ -61,7 +61,7 @@ class LM(abc.ABC):
 class Task(abc.ABC):
     def __init__(self):
         self.download()
-        self.__training_docs = None
+        self._training_docs = None
 
     def download(self):
         """Downloads the task dataset if necessary"""
@@ -104,9 +104,9 @@ class Task(abc.ABC):
         return []
 
     def fewshot_examples(self, k):
-        if self.__training_docs is None:
-            self.__training_docs = list(self.training_docs())
-        return random.sample(self.__training_docs, k)
+        if self._training_docs is None:
+            self._training_docs = list(self.training_docs())
+        return random.sample(self._training_docs, k)
 
     @abc.abstractmethod
     def doc_to_text(self, doc):

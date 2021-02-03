@@ -30,9 +30,9 @@ class HFTask(Task):
         # Cache training for faster few-shot.
         # If data is too large to fit in memory, override this method.
         if self.has_training_docs():
-            if self.__training_docs is None:
-                self.__training_docs = list(self.data["train"])
-            return self.__training_docs
+            if self._training_docs is None:
+                self._training_docs = list(self.data["train"])
+            return self._training_docs
 
     def validation_docs(self):
         if self.has_validation_docs():
