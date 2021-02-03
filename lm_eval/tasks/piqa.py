@@ -1,10 +1,10 @@
 import json
 import random
-from lm_eval.base import Dataset, rf, mean
+from lm_eval.base import Task, rf, mean
 from ..utils import sh
 import os
 
-class PiQA(Dataset):
+class PiQA(Task):
     def download(self):
         if not os.path.exists('data/piqa'):
             #TODO: use best_download

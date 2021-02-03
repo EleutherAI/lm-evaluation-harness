@@ -30,10 +30,10 @@ class NaturalQs(HFTask):
 
     def fewshot_examples(self, k):
         # Data is too large to fit in memory. We just sample from the first bit.
-        if self._traindocs is None:
-            self._traindocs = list(islice(self.training_docs(), 0, 100000))
+        if self._training_docs is None:
+            self._training_docs = list(islice(self.training_docs(), 0, 100000))
 
-        return random.sample(self._traindocs, k)
+        return random.sample(self._training_docs, k)
 
     def doc_to_text(self, doc):
         return 'Q: ' + doc['question']['text'] + '\n\n' + 'A: '
