@@ -17,6 +17,7 @@ from . import lambada
 from . import race 
 from . import piqa
 from . import triviaqa
+from . import webqs
 
 
 TASK_REGISTRY = {
@@ -55,7 +56,7 @@ TASK_REGISTRY = {
     # "squad": squad.SQuAD, # not implemented yet
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
-    # "webqs": webqs.WebQs, # not implemented yet
+    "webqs": webqs.WebQs,
     # "wsc273": wsc273.WinogradSchemaChallenge273, # not implemented yet
     # "winogrande": winogrande.Winogrande, # not implemented yet
     "anli_r1": anli.ANLIRound1,
