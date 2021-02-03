@@ -50,6 +50,7 @@ def main():
     # get lists of each type of requeste
     for task_name, task in task_dict_items:
         #default to validation doc, fall back to test doc if validation unavailable
+        # TODO: the val-fallback-to-test system isn't final, we should revisit it at some point
         if task.has_validation_docs():
             task_doc_func = task.validation_docs
         elif task.has_test_docs():
