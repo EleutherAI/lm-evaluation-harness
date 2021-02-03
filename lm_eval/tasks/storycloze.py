@@ -1,10 +1,10 @@
 import json
 import random
-from lm_eval.base import Dataset
+from lm_eval.base import Task
 from ..utils import sh
 import csv
 
-class StoryCloze(Dataset):
+class StoryCloze(Task):
     NEEDS_MANUAL_DL = True
 
     def download(self):
