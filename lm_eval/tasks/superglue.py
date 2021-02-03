@@ -273,17 +273,17 @@ class ReCoRD(HFTask):
         # Hence, we one "doc" for each (context + passage, answer) pair.
         # Moreover, we only use the correct answers for context packing
         # (This is not an issue for evaluation, where we can directly score multiple candidates at once).
-        if self.__training_docs is None:
-            self.__training_docs = []
+        if self._training_docs is None:
+            self._training_docs = []
             for doc in self.data["train"]:
                 for entity in list(set(doc["entities"])):
-                    self.__training_docs.append({
+                    self._training_docs.append({
                         "passage": doc["passage"],
                         "query": doc["query"],
                         "entity": entity,
                         "label": entity in doc["answers"],
                     })
-        return self.__training_docs
+        return self._training_docs
 
     def validation_docs(self):
         for doc in self.data["validation"]:
@@ -417,14 +417,14 @@ class SGWinogradSchemaChallenge(HFTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            if self.__training_docs is None:
+            if self._training_docs is None:
                 # GPT-3 Paper's format only uses positive examples for fewshot "training"
-                self.__training_docs = [
+                self._training_docs = [
                     doc for doc in
                     self.data["train"]
                     if doc["label"]
                 ]
-            return self.__training_docs
+            return self._training_docs
 
     def fewshot_description(self):
         return "Final Exam with Answer Key\n" \
