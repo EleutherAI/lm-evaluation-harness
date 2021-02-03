@@ -1,11 +1,11 @@
-from lm_eval.base import Dataset, rf, mean
+from lm_eval.base import Task, rf, mean
 from lm_eval.utils import sh
 import json
 import math
 from best_download import download_file
 
 
-class LAMBADA(Dataset):
+class LAMBADA(Task):
     def download(self):
         sh("mkdir -p data/lambada")
         download_file(
