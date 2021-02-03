@@ -58,7 +58,7 @@ TASK_REGISTRY = {
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
     "webqs": webqs.WebQs,
     "wsc273": wsc273.WinogradSchemaChallenge273,
-    # "winogrande": winogrande.Winogrande, # not implemented yet
+    "winogrande": winogrande.Winogrande,
     "anli_r1": anli.ANLIRound1,
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
