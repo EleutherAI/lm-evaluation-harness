@@ -52,8 +52,6 @@ class LAMBADA(Task):
     def process_results(self, doc, results):
         ll, is_greedy = results
 
-        print(ll)
-
         return {
             'perplexity': ll,
             'accuracy': int(is_greedy)

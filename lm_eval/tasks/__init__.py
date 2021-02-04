@@ -37,7 +37,7 @@ TASK_REGISTRY = {
     "cb": superglue.CommitmentBank,
     "copa": superglue.Copa,
     "multirc": superglue.MultiRC,
-    "record": superglue.ReCoRD,
+    #"record": superglue.ReCoRD,
     "wic": superglue.WordsInContext,
     "wsc": superglue.SGWinogradSchemaChallenge,
     

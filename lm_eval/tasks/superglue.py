@@ -261,7 +261,7 @@ class ReCoRD(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -322,6 +322,7 @@ class ReCoRD(HFTask):
         # - Evaluate the accuracy and token F1 PER EXAMPLE
         # - Average over all examples
         max_idx = np.argmax(np.array(results))
+
         prediction = doc["entities"][max_idx]
         gold_label_set = list(set(doc["answers"]))
         f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, prediction, gold_label_set)

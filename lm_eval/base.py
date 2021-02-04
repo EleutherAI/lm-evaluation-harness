@@ -200,7 +200,8 @@ def f1_score(items):
     golds = unzipped_list[0]
     preds = unzipped_list[1]
     fscore = sklearn.metrics.f1_score(golds, preds)
-    return max(fscore)
+
+    return np.max(fscore)
 
 
 def acc_all(items):
