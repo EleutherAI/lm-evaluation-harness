@@ -12,7 +12,6 @@ def get_result(response, ctxlen):
 
     for i in range(ctxlen, len(response["logprobs"]["tokens"])):
         token = response["logprobs"]["tokens"][i]
-        print('TOK', token, response["logprobs"]["top_logprobs"][i])
         top_tokens = response["logprobs"]["top_logprobs"][i]
         top_token = max(top_tokens.keys(), key=lambda x: top_tokens[x])
         if top_token != token:

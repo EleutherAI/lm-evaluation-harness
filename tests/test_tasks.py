@@ -46,6 +46,6 @@ def test_documents_and_requests(taskname, Task):
 
             reqs = task.construct_requests(doc, txt)
 
-            # todo: mock lm by pluggin what's currently in main.py in here
+            # todo: mock lm after refactoring evaluator.py to not be a mess
             for req in reqs:
                 assert isinstance(req, base.Request)
