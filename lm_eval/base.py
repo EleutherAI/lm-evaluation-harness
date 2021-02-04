@@ -2,6 +2,7 @@ import abc
 import random
 import numpy as np
 import sklearn
+import math
 
 
 class LM(abc.ABC):
@@ -58,10 +59,10 @@ class LM(abc.ABC):
         return cls()
 
 
-class Dataset(abc.ABC):
+class Task(abc.ABC):
     def __init__(self):
         self.download()
-        self._traindocs = None
+        self._training_docs = None
 
     def download(self):
         """Downloads the task dataset if necessary"""
@@ -71,7 +72,7 @@ class Dataset(abc.ABC):
     def has_training_docs(self):
         """Whether the task has a training set"""
         pass
-    
+
     @abc.abstractmethod
     def has_validation_docs(self):
         """Whether the task has a validation set"""
@@ -84,23 +85,29 @@ class Dataset(abc.ABC):
 
     def training_docs(self):
         """
-
         :return: Iterable[obj]
             A iterable of any object, that doc_to_text can handle
         """
         return []
-    
-    def validation_docs(self):
-        return []
-    
-    def test_docs(self):
-        return []
-    
-    def fewshot_examples(self, k):
-        if self._traindocs is None:
-            self._traindocs = list(self.training_docs())
 
-        return random.sample(self._traindocs, k)
+    def validation_docs(self):
+        """
+        :return: Iterable[obj]
+            A iterable of any object, that doc_to_text can handle
+        """
+        return []
+
+    def test_docs(self):
+        """
+        :return: Iterable[obj]
+            A iterable of any object, that doc_to_text can handle
+        """
+        return []
+
+    def fewshot_examples(self, k):
+        if self._training_docs is None:
+            self._training_docs = list(self.training_docs())
+        return random.sample(self._training_docs, k)
 
     @abc.abstractmethod
     def doc_to_text(self, doc):
@@ -123,7 +130,7 @@ class Dataset(abc.ABC):
             part of the document for `doc`. 
         """
         pass
-    
+
     @abc.abstractmethod
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a 
@@ -161,7 +168,7 @@ class Dataset(abc.ABC):
     def fewshot_context(self, doc, num_fewshot, provide_description):
         raw_description = self.fewshot_description()
         description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
-        
+
         if num_fewshot == 0:
             labeled_examples = ""
         else:
@@ -193,7 +200,8 @@ def f1_score(items):
     golds = unzipped_list[0]
     preds = unzipped_list[1]
     fscore = sklearn.metrics.f1_score(golds, preds)
-    return max(fscore)
+
+    return np.max(fscore)
 
 
 def acc_all(items):
@@ -222,6 +230,9 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
         scores_for_ground_truths.append(score)
     return max(scores_for_ground_truths)
 
+
+def perplexity(items):
+    return math.exp(-mean(items))
 
 req_ret_lens = {
     'loglikelihood': 2

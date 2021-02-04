@@ -1,11 +1,11 @@
-from lm_eval.base import Dataset, rf, mean
+from lm_eval.base import Task, rf, mean, perplexity
 from lm_eval.utils import sh
 import json
 import math
 from best_download import download_file
 
 
-class LAMBADA(Dataset):
+class LAMBADA(Task):
     def download(self):
         sh("mkdir -p data/lambada")
         download_file(
@@ -45,7 +45,7 @@ class LAMBADA(Dataset):
         return ""
 
     def construct_requests(self, doc, ctx):
-        ll, is_greedy = rf.loglikelihood(doc, self.doc_to_target(doc))
+        ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
 
         return ll, is_greedy
     
@@ -53,13 +53,13 @@ class LAMBADA(Dataset):
         ll, is_greedy = results
 
         return {
-            'perplexity': math.exp(-ll),
+            'perplexity': ll,
             'accuracy': int(is_greedy)
         }
         
     def aggregation(self):
         return {
-            'perplexity': mean,
+            'perplexity': perplexity,
             'accuracy': mean
         }
 
