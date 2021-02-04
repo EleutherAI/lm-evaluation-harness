@@ -1,8 +1,13 @@
 import numpy as np
-from scipy.stats import pearsonr, spearmanr
-from sklearn.metrics import f1_score, matthews_corrcoef
-from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno
+from . common import HFTask
+from lm_eval.base import rf, mean
+
+"""
+This evaluation of Winogrande uses partial evaluation as described by
+Trinh & Le in Simple Method for Commonsense Reasoning (2018).
+Reference: https://arxiv.org/abs/1806.02847
+"""
+
 
 class Winogrande(HFTask):
     DATASET_PATH = "winogrande"
@@ -17,35 +22,31 @@ class Winogrande(HFTask):
     def has_test_docs(self):
         return True
 
-    def training_docs(self):
-        if self.has_training_docs():
-            return self.data["train"]
-
-    def validation_docs(self):
-        if self.has_validation_docs():
-            return self.data["validation"]
-
-    def test_docs(self):
-        if self.has_test_docs():
-            return self.data["test"]
-
     def fewshot_description(self):
         # TODO: redo description
         return "Winograd schema sentence including a either a ___ blank with a missing word, making the pronoun ambiguous, or the same with the word filled in."
 
+    @classmethod
+    def partial_context(cls, doc):
+        # Substitute the pronoun in the sentence with each candidate choice
+        # and ignore everything after.
+        pronoun_loc = doc["sentence"].index("_")
+        context1 = doc["sentence"][:pronoun_loc] + doc["option1"]
+        context2 = doc["sentence"][:pronoun_loc] + doc["option2"]
+        return context1, context2
+
+    @classmethod
+    def partial_target(cls, doc):
+        # The target is everything after the document specified pronoun.
+        pronoun_loc = doc["sentence"].index("_") + 1
+        return doc["sentence"][pronoun_loc:].strip()
+
     def doc_to_text(self, doc):
-        return doc['sentence']
+        context1, context2 = self.partial_context(doc)
+        return context1 + '\n' + context2 + '\n'
 
     def doc_to_target(self, doc):
-        text = doc['sentence']
-        answer_n = doc['answer']
-        if answer_n == '1':
-            answer = doc['option1']
-        elif answer_n == '2':
-            answer = doc['option2']
-        else:
-            raise ValueError("Winogrande from HF datasets contained an invalid answer key")
-        return text.replace("_", answer)
+        return self.partial_target(doc)
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of 
@@ -58,9 +59,12 @@ class Winogrande(HFTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`. 
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
-    
+        target = self.partial_target(doc)
+        context1, context2 = self.partial_context(doc)
+        ll_context1, _ = rf.loglikelihood(context1, " " + target)
+        ll_context2, _ = rf.loglikelihood(context2, " " + target)
+        return ll_context1, ll_context2
+
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a 
         dict where keys are the names of submetrics and values are the values of 
@@ -71,8 +75,10 @@ class Winogrande(HFTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        answer = int(doc["answer"]) - 1  # `- 1` b/c doc["answer"] ∈ {'1', '2'}
+        return {
+            "acc": np.argmax(results) == answer
+        }
 
     def aggregation(self):
         """
@@ -80,8 +86,9 @@ class Winogrande(HFTask):
             A dictionary where keys are the names of submetrics and values are 
             functions that aggregate a list of metrics
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        return {
+            "acc": mean
+        }
 
     def higher_is_better(self):
         """
@@ -89,5 +96,6 @@ class Winogrande(HFTask):
             A dictionary where keys are the names of submetrics and values are 
             whether a higher value of the submetric is better
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        return {
+            "acc": True
+        }

@@ -1,14 +1,14 @@
 import json
 import random
 import os
-from lm_eval.base import Dataset, rf, mean
+from lm_eval.base import Task, rf, mean
 from tqdm import auto as tqdm_lib
 from . common import simple_accuracy_metric
 import numpy as np
 from ..utils import sh
 
 
-class SATAnalogies(Dataset):    
+class SATAnalogies(Task):    
     NEEDS_MANUAL_DL = True
     
     def __init__(self):
