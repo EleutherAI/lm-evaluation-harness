@@ -1,4 +1,4 @@
-from lm_eval.base import Task, rf, mean
+from lm_eval.base import Task, rf, mean, perplexity
 from lm_eval.utils import sh
 import json
 import math
@@ -45,21 +45,23 @@ class LAMBADA(Task):
         return ""
 
     def construct_requests(self, doc, ctx):
-        ll, is_greedy = rf.loglikelihood(doc, self.doc_to_target(doc))
+        ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
 
         return ll, is_greedy
     
     def process_results(self, doc, results):
         ll, is_greedy = results
 
+        print(ll)
+
         return {
-            'perplexity': math.exp(-ll),
+            'perplexity': ll,
             'accuracy': int(is_greedy)
         }
         
     def aggregation(self):
         return {
-            'perplexity': mean,
+            'perplexity': perplexity,
             'accuracy': mean
         }
 
