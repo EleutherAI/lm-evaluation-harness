@@ -2,6 +2,7 @@ import abc
 import random
 import numpy as np
 import sklearn
+import math
 
 
 class LM(abc.ABC):
@@ -228,6 +229,9 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
         scores_for_ground_truths.append(score)
     return max(scores_for_ground_truths)
 
+
+def perplexity(items):
+    return math.exp(-mean(items))
 
 req_ret_lens = {
     'loglikelihood': 2
