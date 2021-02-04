@@ -49,6 +49,7 @@ class GPT3LM(LM):
         return cls(engine=args.get("engine", "davinci"))
 
     def loglikelihood(self, requests):
+        import openai
         for chunk in tqdm(utils.chunks(requests, self.REQ_CHUNK_SIZE)):
             inps = []
             ctxlens = []
