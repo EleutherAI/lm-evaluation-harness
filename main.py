@@ -5,7 +5,7 @@ import random
 import itertools
 import collections
 
-from lm_eval import models, tasks, evaluator
+from lm_eval import models, tasks, evaluator, base
 
 
 def parse_args():
@@ -18,14 +18,19 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--output_path', default=None)
     parser.add_argument('--limit', type=int, default=None)
+    parser.add_argument('--cache', action="store_true")
     return parser.parse_args()
 
 def main():
+
     args = parse_args()
     random.seed(args.seed)
     np.random.seed(args.seed)
 
     lm = models.get_model(args.model).create_from_arg_string(args.model_args)
+
+    if args.cache:
+        lm = base.CachingLM(lm, 'lm_cache/' + args.model + '_' + args.model_args.replace('=', '-').replace(',', '_') + '.db')
     if args.tasks == "all_tasks":
         task_names = tasks.ALL_TASKS
     else:
