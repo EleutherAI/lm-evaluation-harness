@@ -3,7 +3,19 @@ import datasets
 import numpy as np
 from lm_eval.base import rf, mean
 from . common import HFTask
-from ..utils_stream import each
+
+import os
+from functools import reduce
+import operator
+from tqdm import tqdm
+import json
+
+class each:
+    def __init__(self, f):
+        self.f = f
+
+    def __rrshift__(self, other):
+        return list(map(self.f, other))
 
 
 class RACE(HFTask):

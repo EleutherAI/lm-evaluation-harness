@@ -61,7 +61,7 @@ class HellaSwag(HFTask):
             raise ValueError(
                 "HellaSwag from HF datasets contained an invalid answer key")
         target = doc['endings'][index]
-        return self.remove_brackets(target)
+        return " " + self.remove_brackets(target)
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of
@@ -75,7 +75,7 @@ class HellaSwag(HFTask):
         """
         ll_answers = []
         for i in range(4):
-            continuation = self.remove_brackets(doc['endings'][i])
+            continuation = " " + self.remove_brackets(doc['endings'][i])
             ll_answers.append(rf.loglikelihood(ctx, continuation))
         return ll_answers
 
