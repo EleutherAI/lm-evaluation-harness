@@ -180,6 +180,35 @@ class Task(abc.ABC):
         return description + labeled_examples + example
 
 
+class MultipleChoiceTask(Task):
+    def construct_requests(self, doc, ctx):
+        lls = [
+            rf.loglikelihood(ctx, " {}".format(choice))[0]
+            for choice in doc['choices']
+        ]
+
+        return lls
+
+    def process_results(self, doc, results):
+        gold = doc["gold"]
+
+        acc = 1. if np.argmax(results) == gold else 0.
+
+        return {
+            "acc": acc
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
+
+
 def mean(arr):
     return sum(arr) / len(arr)
 
