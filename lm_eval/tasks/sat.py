@@ -1,14 +1,14 @@
 import json
 import random
 import os
-from lm_eval.base import Task, rf, mean
+from lm_eval.base import MultipleChoiceTask, rf, mean
 from tqdm import auto as tqdm_lib
 from . common import simple_accuracy_metric
 import numpy as np
 from ..utils import sh
 
 
-class SATAnalogies(Task):    
+class SATAnalogies(MultipleChoiceTask):    
     NEEDS_MANUAL_DL = True
     
     def __init__(self):
@@ -61,7 +61,7 @@ class SATAnalogies(Task):
             doc = {
                 'source': source,
                 'query': query.split(' ')[:2],
-                'choices': [" {} is to {}".format(*c.split(' ')[:2]) for c in choices],
+                'choices': ["{} is to {}".format(*c.split(' ')[:2]) for c in choices],
                 'gold': ['a','b','c','d','e'].index(answer_key.strip()),
             }
             yield doc
