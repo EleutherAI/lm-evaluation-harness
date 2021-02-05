@@ -4,9 +4,11 @@ import numpy as np
 import random
 import itertools
 import collections
+import logging
 
 from lm_eval import models, tasks, evaluator, base
 
+logging.getLogger("openai").setLevel(logging.WARNING)
 
 def parse_args():
     parser = argparse.ArgumentParser()
