@@ -38,6 +38,9 @@ class GPT3LM(LM):
         import openai
         self.engine = engine
         self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
+
+        # to make the annoying "Using pad_token, but it is not set yet." error go away
+        self.tokenizer.pad_token = "<|endoftext|>"
         self.truncate = truncate
 
         # Read from environment variable OPENAI_API_SECRET_KEY
@@ -50,11 +53,12 @@ class GPT3LM(LM):
 
     def loglikelihood(self, requests):
         import openai
-        for chunk in tqdm(utils.chunks(requests, self.REQ_CHUNK_SIZE)):
+        res = []
+
+        for chunk in tqdm(list(utils.chunks(requests, self.REQ_CHUNK_SIZE))):
             inps = []
             ctxlens = []
             for context, continuation in chunk:
-                print(context)
                 context_enc = self.tokenizer.encode(context)
                 continuation_enc = self.tokenizer.encode(continuation)
                 inp = (context_enc + continuation_enc)[-self.MAX_LENGTH:]
