@@ -18,21 +18,21 @@ class LAMBADA(Task):
         return False
 
     def has_validation_docs(self):
-        return False
+        return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def training_docs(self):
         pass
 
     def validation_docs(self):
-        pass
-
-    def test_docs(self):
         with open("data/lambada/lambada_test.jsonl") as fh:
             for line in fh:
                 yield json.loads(line)
+
+    def test_docs(self):
+        pass
 
     def doc_to_text(self, doc):
         return doc['text'].rsplit(' ', 1)[0]
