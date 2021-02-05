@@ -3,6 +3,7 @@ import transformers
 from lm_eval.base import LM
 from lm_eval import utils
 from tqdm import tqdm
+import time
 
 
 def get_result(response, ctxlen):
@@ -19,6 +20,18 @@ def get_result(response, ctxlen):
             break
     
     return continuation_logprobs, is_greedy
+
+
+def oa_completion(**kwargs):
+    import openai
+
+    backoff_time = 3
+    while True:
+        try:
+            return openai.Completion.create(**kwargs)
+        except openai.error.OpenAIError:
+            time.sleep(backoff_time)
+            backoff_time *= 1.5
 
 
 class GPT3LM(LM):
@@ -67,7 +80,7 @@ class GPT3LM(LM):
                 inps.append(inp)
                 ctxlens.append(ctxlen)
 
-            response = openai.Completion.create(
+            response = oa_completion(
                 engine=self.engine,
                 prompt=inps,
                 echo=True,
@@ -89,7 +102,7 @@ class GPT3LM(LM):
             inp = context_enc[-(self.MAX_LENGTH - self.MAX_GEN_TOKS):]
             ctxlen = len(context_enc) - max(0, len(context_enc) - (self.MAX_LENGTH - self.MAX_GEN_TOKS))
 
-            response = openai.Completion.create(
+            response = oa_completion(
                 engine=self.engine,
                 prompt=[inp],
                 max_tokens=self.MAX_GEN_TOKS, 
