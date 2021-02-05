@@ -1,14 +1,14 @@
 import json
 import random
 import os
-from lm_eval.base import Dataset, rf, mean
+from lm_eval.base import MultipleChoiceTask, rf, mean
 from tqdm import auto as tqdm_lib
 from . common import simple_accuracy_metric
 import numpy as np
 from ..utils import sh
 
 
-class SATAnalogies(Dataset):    
+class SATAnalogies(MultipleChoiceTask):    
     NEEDS_MANUAL_DL = True
     
     def __init__(self):
@@ -61,8 +61,8 @@ class SATAnalogies(Dataset):
             doc = {
                 'source': source,
                 'query': query.split(' ')[:2],
-                'choices': [c.split(' ')[:2] for c in choices],
-                'answer_key': ['a','b','c','d','e'].index(answer_key.strip()),
+                'choices': ["{} is to {}".format(*c.split(' ')[:2]) for c in choices],
+                'gold': ['a','b','c','d','e'].index(answer_key.strip()),
             }
             yield doc
 
@@ -72,35 +72,4 @@ class SATAnalogies(Dataset):
         return ""
 
     def doc_to_text(self, doc):
-        return "{} is to {} as ".format(*doc['query'])
-
-    def doc_to_target(self, doc):
-        return "{} is to {}".format(*doc['choices'][doc['answer_key']])
-
-    def construct_requests(self, doc, ctx):
-        lls = [
-            rf.loglikelihood(ctx, "{} is to {}".format(*doc['choices'][i]))[0]
-            for i in range(5)
-        ]
-
-        return lls
-
-    def process_results(self, doc, results):
-        gold = doc["answer_key"]
-
-        acc = 1. if np.argmax(results) == gold else 0.
-
-        return {
-            "acc": acc
-        }
-    
-    def higher_is_better(self):
-        return {
-            "acc": True
-        }
-    
-    def aggregation(self):
-        return {
-            "acc": mean
-        }
-
+        return "{} is to {} as".format(*doc['query'])

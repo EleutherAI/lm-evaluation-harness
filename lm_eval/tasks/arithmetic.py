@@ -2,12 +2,12 @@ import abc
 import json
 import os
 from collections import namedtuple
-from lm_eval.base import Dataset, mean, rf
+from lm_eval.base import Task, mean, rf
 from best_download import download_file
 
 ArithmeticDoc = namedtuple('ArithmeticDoc', ['context', 'completion'])
 
-class Arithmetic(Dataset):
+class Arithmetic(Task):
     directory = 'data/arithmetic/'
 
     def __init__(self):
@@ -32,7 +32,7 @@ class Arithmetic(Dataset):
         self._docs = [self.load_doc(json.loads(line)) for line in jsons]
 
     def has_training_docs(self):
-        return True
+        return False
 
     def has_validation_docs(self):
         return True
@@ -41,10 +41,10 @@ class Arithmetic(Dataset):
         return False
 
     def training_docs(self):
-        return self._docs
+        return NotImplemented
 
     def validation_docs(self):
-        return self._docs[:100]
+        return self._docs
 
     def test_docs(self):
         return NotImplemented

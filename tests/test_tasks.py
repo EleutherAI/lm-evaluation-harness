@@ -1,6 +1,5 @@
 import lm_eval.tasks as tasks
 import lm_eval.base as base
-from unittest.mock import MagicMock
 from itertools import islice
 import pytest
 
@@ -8,10 +7,10 @@ import pytest
 @pytest.mark.parametrize("taskname,Task", tasks.TASK_REGISTRY.items())
 def test_basic_interface(taskname, Task):
     print('Evaluating task', taskname)
-    dl = Task.download
-    Task.download = MagicMock()
+    #dl = Task.download
+    #Task.download = MagicMock()
     task = Task()
-    Task.download = dl
+    #Task.download = dl
 
     assert task.has_training_docs() in [True, False]
     assert task.has_validation_docs() in [True, False]
@@ -43,9 +42,13 @@ def test_documents_and_requests(taskname, Task):
 
             assert isinstance(txt, str)
             assert isinstance(tgt, str)
+            
+            # space convention
+            assert txt[-1] != ' '
+            assert tgt[0] == ' ' or txt[-1] == '\n'
 
             reqs = task.construct_requests(doc, txt)
 
-            # todo: mock lm by pluggin what's currently in main.py in here
+            # todo: mock lm after refactoring evaluator.py to not be a mess
             for req in reqs:
                 assert isinstance(req, base.Request)

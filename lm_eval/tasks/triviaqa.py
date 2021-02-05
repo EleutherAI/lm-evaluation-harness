@@ -1,10 +1,10 @@
 import os
 import json
 import random
-from lm_eval.base import Dataset, mean, rf
+from lm_eval.base import Task, mean, rf
 from ..utils import sh
 
-class TriviaQA(Dataset):
+class TriviaQA(Task):
     def download(self):
         if not os.path.exists('data/triviaqa'):
             sh("""

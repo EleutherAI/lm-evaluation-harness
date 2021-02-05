@@ -28,10 +28,10 @@ class BoolQ(HFTask):
         return "Read the following passages and answer each question with a yes or a no."
 
     def doc_to_text(self, doc):
-        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer: "
+        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer:"
     
     def doc_to_target(self, doc):
-        return yesno(doc['label']) 
+        return " " + yesno(doc['label']) 
 
     def construct_requests(self, doc, ctx):
 
@@ -156,12 +156,12 @@ class Copa(HFTask):
             "cause": "because",
             "effect": "therefore",
         }[doc["question"]]
-        return doc["premise"].strip()[:-1] + f" {connector} "
+        return doc["premise"].strip()[:-1] + f" {connector}"
 
     def doc_to_target(self, doc):
         correct_choice = doc["choice1"] if doc["label"] == 0 else doc["choice2"]
         # Connect the sentences
-        return self.convert_choice(correct_choice)
+        return " " + self.convert_choice(correct_choice)
 
     def construct_requests(self, doc, ctx):
         choice1 = " " + self.convert_choice(doc["choice1"])
@@ -261,7 +261,7 @@ class ReCoRD(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -322,6 +322,7 @@ class ReCoRD(HFTask):
         # - Evaluate the accuracy and token F1 PER EXAMPLE
         # - Average over all examples
         max_idx = np.argmax(np.array(results))
+
         prediction = doc["entities"][max_idx]
         gold_label_set = list(set(doc["answers"]))
         f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, prediction, gold_label_set)
