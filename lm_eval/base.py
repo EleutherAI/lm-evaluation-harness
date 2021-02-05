@@ -181,6 +181,9 @@ class Task(abc.ABC):
 
 
 class MultipleChoiceTask(Task):
+    def doc_to_target(self, doc):
+        return " " + doc['choices'][doc['gold']]
+
     def construct_requests(self, doc, ctx):
         lls = [
             rf.loglikelihood(ctx, " {}".format(choice))[0]
