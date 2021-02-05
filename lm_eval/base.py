@@ -176,7 +176,7 @@ class Task(abc.ABC):
                 [self.doc_to_text(doc) + self.doc_to_target(doc) for doc in self.fewshot_examples(k=num_fewshot)]
             ) + "\n\n"
 
-        example = self.doc_to_text(doc).strip()
+        example = self.doc_to_text(doc)
         return description + labeled_examples + example
 
 

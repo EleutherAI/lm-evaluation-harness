@@ -28,10 +28,10 @@ class BoolQ(HFTask):
         return "Read the following passages and answer each question with a yes or a no."
 
     def doc_to_text(self, doc):
-        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer: "
+        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer:"
     
     def doc_to_target(self, doc):
-        return yesno(doc['label']) 
+        return " " + yesno(doc['label']) 
 
     def construct_requests(self, doc, ctx):
 
@@ -156,12 +156,12 @@ class Copa(HFTask):
             "cause": "because",
             "effect": "therefore",
         }[doc["question"]]
-        return doc["premise"].strip()[:-1] + f" {connector} "
+        return doc["premise"].strip()[:-1] + f" {connector}"
 
     def doc_to_target(self, doc):
         correct_choice = doc["choice1"] if doc["label"] == 0 else doc["choice2"]
         # Connect the sentences
-        return self.convert_choice(correct_choice)
+        return " " + self.convert_choice(correct_choice)
 
     def construct_requests(self, doc, ctx):
         choice1 = " " + self.convert_choice(doc["choice1"])
