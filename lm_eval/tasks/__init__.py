@@ -47,6 +47,7 @@ TASK_REGISTRY = {
     "piqa": piqa.PiQA,
 
     "pubmedqa" : pubmedqa.Pubmed_QA,
+    "sciq" : pubmedqa.SciQ,
 
     #"triviaqa": triviaqa.TriviaQA,
     # "arc_easy": arc.ARCEasy, # not implemented yet
