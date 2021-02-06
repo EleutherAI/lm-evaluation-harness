@@ -44,7 +44,7 @@ def main():
             if set == 'test' and task.has_test_docs():
                 docs = task.test_docs()
             iters.append(docs)
-        
+
         docs = join_iters(iters)
 
         with open(os.path.join(args.output_base_path, task_name), "w") as f:
