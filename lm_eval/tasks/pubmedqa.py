@@ -128,7 +128,7 @@ class SciQ(MultipleChoiceTask):
         return self.load_docs("data/sciq/SciQ dataset-2 3/test.json")
 
     def doc_to_text(self, doc):
-        return " {}\n{}".format(doc["source"], doc["query"])
+        return "{}\n{}".format(doc["source"], doc["query"])
 
 class EmrQA():
     def load_docs(self, textfilename):
