@@ -48,8 +48,8 @@ TASK_REGISTRY = {
     "piqa": piqa.PiQA,
 
     #"triviaqa": triviaqa.TriviaQA,
-    # "arc_easy": arc.ARCEasy, # not implemented yet
-    # "arc_challenge": arc.ARCChallenge, # not implemented yet
+    "arc_easy": arc.ARCEasy,
+    "arc_challenge": arc.ARCChallenge,
     # "quac": quac.QuAC, # not implemented yet
     "hellaswag": hellaswag.HellaSwag, # not implemented yet
     # "openbookqa": openbookqa.OpenBookQA, # not implemented yet

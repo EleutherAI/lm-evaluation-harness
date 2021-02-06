@@ -1,6 +1,5 @@
 import lm_eval.tasks as tasks
 import lm_eval.base as base
-from unittest.mock import MagicMock
 from itertools import islice
 import pytest
 
@@ -43,6 +42,10 @@ def test_documents_and_requests(taskname, Task):
 
             assert isinstance(txt, str)
             assert isinstance(tgt, str)
+            
+            # space convention
+            assert txt[-1] != ' '
+            assert tgt[0] == ' ' or txt[-1] == '\n'
 
             reqs = task.construct_requests(doc, txt)
 

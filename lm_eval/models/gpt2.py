@@ -12,6 +12,7 @@ class GPT2LM(LM):
         self.gpt2 = transformers.GPT2LMHeadModel.from_pretrained('gpt2').to(self.device)
         self.gpt2.eval()
         self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
+        self.tokenizer.pad_token = "<|endoftext|>"
 
     @classmethod
     def create_from_arg_string(cls, arg_string):
