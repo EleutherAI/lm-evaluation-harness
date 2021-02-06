@@ -18,6 +18,7 @@ from . import race
 from . import piqa
 from . import triviaqa
 from . import pubmedqa
+from . import sciq
 from . import webqs
 
 
@@ -48,7 +49,7 @@ TASK_REGISTRY = {
     "piqa": piqa.PiQA,
 
     "pubmedqa" : pubmedqa.Pubmed_QA,
-    "sciq" : pubmedqa.SciQ,
+    "sciq" : sciq.SciQ,
 
     #"triviaqa": triviaqa.TriviaQA,
     "arc_easy": arc.ARCEasy,
