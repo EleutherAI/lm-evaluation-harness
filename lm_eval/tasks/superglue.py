@@ -435,11 +435,10 @@ class SGWinogradSchemaChallenge(HFTask):
 
     def doc_to_text(self, doc):
         raw_passage = doc["text"]
-        passage = (
-            raw_passage[:doc["span2_index"]]
-            + "*{}*".format(doc["span2_text"])
-            + raw_passage[doc["span2_index"] + len(doc["span2_text"]):]
-        )
+        # NOTE: HuggingFace span indices are word-based not character-based.
+        pre = " ".join(raw_passage.split()[:doc["span2_index"]])
+        post = raw_passage[len(pre) + len(doc["span2_text"]) + 1:]
+        passage = pre + " *{}*".format(doc['span2_text']) + post
         noun = doc["span1_text"]
         pronoun = doc["span2_text"]
         text = (
