@@ -46,12 +46,12 @@ class PiQA(Task):
         return ""
     
     def doc_to_text(self, doc):
-        return doc[0]['goal']
+        return doc[0]['goal'] + "\n"
 
     def doc_to_target(self, doc):
         #TODO: check if oa uses newline
         rightanswer = int(doc[1]) + 1
-        return '\n' + ''.join([doc[0]['goal'],' ',doc[0]['sol'+str(rightanswer)]])
+        return ''.join([doc[0]['goal'],' ',doc[0]['sol'+str(rightanswer)]])
 
     def construct_requests(self, doc, ctx):
         ll_1, _ = rf.loglikelihood(ctx, doc[0]['sol1'])

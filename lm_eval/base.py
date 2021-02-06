@@ -176,8 +176,40 @@ class Task(abc.ABC):
                 [self.doc_to_text(doc) + self.doc_to_target(doc) for doc in self.fewshot_examples(k=num_fewshot)]
             ) + "\n\n"
 
-        example = self.doc_to_text(doc).strip()
+        example = self.doc_to_text(doc)
         return description + labeled_examples + example
+
+
+class MultipleChoiceTask(Task):
+    def doc_to_target(self, doc):
+        return " " + doc['choices'][doc['gold']]
+
+    def construct_requests(self, doc, ctx):
+        lls = [
+            rf.loglikelihood(ctx, " {}".format(choice))[0]
+            for choice in doc['choices']
+        ]
+
+        return lls
+
+    def process_results(self, doc, results):
+        gold = doc["gold"]
+
+        acc = 1. if np.argmax(results) == gold else 0.
+
+        return {
+            "acc": acc
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
 
 def mean(arr):
@@ -235,8 +267,65 @@ def perplexity(items):
     return math.exp(-mean(items))
 
 req_ret_lens = {
-    'loglikelihood': 2
+    'loglikelihood': 2,
 }
+
+import os
+import json
+import hashlib
+from sqlitedict import SqliteDict
+
+def hash_args(args):
+    dat = b""
+    for arg in args:
+        assert isinstance(arg, str) or isinstance(arg, int)
+        dat += str(arg).encode()
+        dat += b"\0"
+    return hashlib.sha256(dat).hexdigest()
+
+
+class CachingLM:
+    def __init__(self, lm, cache_db):
+        self.lm = lm
+        self.cache_db = cache_db
+        os.makedirs(os.path.dirname(cache_db), exist_ok=True)
+        self.dbdict = SqliteDict(cache_db, autocommit=True)
+
+    def __getattr__(self, attr):
+        def fn(requests):
+            res = []
+            remaining_reqs = []
+            
+            # figure out which ones are cached and which ones are new
+            for req in requests:
+                hsh = attr + '_' + hash_args(req)
+                if hsh in self.dbdict:
+                    ob = self.dbdict[hsh]
+
+                    assert ob is not None
+
+                    res.append(ob)
+                else:
+                    res.append(None)
+                    remaining_reqs.append(req)
+            
+            # actually run the LM
+            rem_res = getattr(self.lm, attr)(remaining_reqs)
+
+            # stick the new ones back into the list and also cache any of the new ones
+            resptr = 0
+            for req, r in zip(remaining_reqs, rem_res):
+                while res[resptr] is not None: resptr += 1
+
+                res[resptr] = r
+
+                # caching
+                hsh = attr + '_' + hash_args(req)
+                self.dbdict[hsh] = r
+                
+
+            return res
+        return fn
 
 
 class Request:

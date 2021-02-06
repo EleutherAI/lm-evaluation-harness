@@ -1,6 +1,7 @@
 import lm_eval.tasks as tasks
 import lm_eval.models as models
 import lm_eval.evaluator as evaluator
+import random
 import pytest
 
 
@@ -11,4 +12,21 @@ import pytest
 def test_evaluator(taskname, Task):
     task_dict = tasks.get_task_dict([taskname])
     lm = models.get_model('dummy')()
+
+    def ll_fn(reqs):
+        for ctx, cont in reqs:
+            # space convention
+            assert ctx[-1] != ' '
+            assert cont[0] == ' ' or ctx[-1] == '\n'
+        
+        res = []
+        
+        random.seed(42)
+        for _ in reqs:
+            res.append((-random.random(), False))
+
+        return res
+        
+
+    lm.loglikelihood = ll_fn
     evaluator.evaluate(lm, task_dict, False, 0, 10)

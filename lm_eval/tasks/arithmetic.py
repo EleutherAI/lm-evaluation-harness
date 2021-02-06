@@ -32,7 +32,7 @@ class Arithmetic(Task):
         self._docs = [self.load_doc(json.loads(line)) for line in jsons]
 
     def has_training_docs(self):
-        return True
+        return False
 
     def has_validation_docs(self):
         return True
@@ -41,10 +41,10 @@ class Arithmetic(Task):
         return False
 
     def training_docs(self):
-        return self._docs
+        return NotImplemented
 
     def validation_docs(self):
-        return self._docs[:100]
+        return self._docs
 
     def test_docs(self):
         return NotImplemented

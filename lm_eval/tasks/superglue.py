@@ -28,10 +28,10 @@ class BoolQ(HFTask):
         return "Read the following passages and answer each question with a yes or a no."
 
     def doc_to_text(self, doc):
-        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer: "
+        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer:"
     
     def doc_to_target(self, doc):
-        return yesno(doc['label']) 
+        return " " + yesno(doc['label']) 
 
     def construct_requests(self, doc, ctx):
 
@@ -156,12 +156,12 @@ class Copa(HFTask):
             "cause": "because",
             "effect": "therefore",
         }[doc["question"]]
-        return doc["premise"].strip()[:-1] + f" {connector} "
+        return doc["premise"].strip()[:-1] + f" {connector}"
 
     def doc_to_target(self, doc):
         correct_choice = doc["choice1"] if doc["label"] == 0 else doc["choice2"]
         # Connect the sentences
-        return self.convert_choice(correct_choice)
+        return " " + self.convert_choice(correct_choice)
 
     def construct_requests(self, doc, ctx):
         choice1 = " " + self.convert_choice(doc["choice1"])
@@ -435,11 +435,10 @@ class SGWinogradSchemaChallenge(HFTask):
 
     def doc_to_text(self, doc):
         raw_passage = doc["text"]
-        passage = (
-            raw_passage[:doc["span2_index"]]
-            + "*{}*".format(doc["span2_text"])
-            + raw_passage[doc["span2_index"] + len(doc["span2_text"]):]
-        )
+        # NOTE: HuggingFace span indices are word-based not character-based.
+        pre = " ".join(raw_passage.split()[:doc["span2_index"]])
+        post = raw_passage[len(pre) + len(doc["span2_text"]) + 1:]
+        passage = pre + " *{}*".format(doc['span2_text']) + post
         noun = doc["span1_text"]
         pronoun = doc["span2_text"]
         text = (
