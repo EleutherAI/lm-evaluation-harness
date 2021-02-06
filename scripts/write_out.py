@@ -37,8 +37,8 @@ def main():
         iters = []
 
         for set in args.sets.split(","):
-            if set == 'train' and task.has_train_docs():
-                docs = task.train_docs()
+            if set == 'train' and task.has_training_docs():
+                docs = task.training_docs()
             if set == 'val' and task.has_validation_docs():
                 docs = task.validation_docs()
             if set == 'test' and task.has_test_docs():
