@@ -3,12 +3,12 @@
 import json
 import random
 import numpy as np
-from lm_eval.base import Dataset, rf, mean
+from lm_eval.base import Task, rf, mean
 from ..utils import sh
 from itertools import zip_longest
 import transformers.data.metrics.squad_metrics as squad_metrics
 
-class CoQA(Dataset):
+class CoQA(Task):
     def download(self):
         pass
         # -N only overwrites if the remote file has changed
@@ -44,7 +44,7 @@ class CoQA(Dataset):
         doc_text = doc["story"] + '\n\n'
         for (q, a) in zip_longest(doc["questions"], doc["answers"][:-1]):   # omit target answer
             question = f"Q: {q['input_text']}" + '\n\n'
-            answer = f"A: {a['input_text']}" + '\n\n' if a is not None else "A:\n\n"
+            answer = f"A: {a['input_text']}" + '\n\n' if a is not None else "A: "
             doc_text += question + answer
             print(doc_text)
         return doc_text
