@@ -20,6 +20,7 @@ from . import triviaqa
 from . import pubmedqa
 from . import sciq
 from . import webqs
+from . import ptb
 
 
 TASK_REGISTRY = {
@@ -45,6 +46,7 @@ TASK_REGISTRY = {
     
     # Order by benchmark/genre?
 
+    "ptb": ptb.PennTreebank,
     "lambada": lambada.LAMBADA,
     "piqa": piqa.PiQA,
 
