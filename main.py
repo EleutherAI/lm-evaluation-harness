@@ -47,6 +47,21 @@ def main():
         with open(args.output_path, "w") as f:
             f.write(dumped)
 
+    # MAKE TABLE
+    from pytablewriter import MarkdownTableWriter
+
+    writer = MarkdownTableWriter()
+    writer.headers = ["Task", "Metric", "Value"]
+
+    values = []
+
+    for k, dic in results.items():
+        for m, v in dic.items():
+            values.append([k, m, '%.4f' % v])
+            k = ""
+    writer.value_matrix = values
+
+    print(writer.dumps())
 
 if __name__ == "__main__":
     main()
