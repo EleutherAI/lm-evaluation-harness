@@ -18,6 +18,8 @@ from . import lambada
 from . import race 
 from . import piqa
 from . import triviaqa
+from . import pubmedqa
+from . import sciq
 from . import webqs
 
 
@@ -46,6 +48,9 @@ TASK_REGISTRY = {
     "coqa": coqa.CoQA,
     "lambada": lambada.LAMBADA,
     "piqa": piqa.PiQA,
+
+    "pubmedqa" : pubmedqa.Pubmed_QA,
+    "sciq" : sciq.SciQ,
 
     #"triviaqa": triviaqa.TriviaQA,
     "arc_easy": arc.ARCEasy,
