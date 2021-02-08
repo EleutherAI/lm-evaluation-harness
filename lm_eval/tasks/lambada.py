@@ -53,18 +53,18 @@ class LAMBADA(Task):
         ll, is_greedy = results
 
         return {
-            'perplexity': ll,
-            'accuracy': int(is_greedy)
+            'ppl': ll,
+            'acc': int(is_greedy)
         }
         
     def aggregation(self):
         return {
-            'perplexity': perplexity,
-            'accuracy': mean
+            'ppl': perplexity,
+            'acc': mean
         }
 
     def higher_is_better(self):
         return {
-            'perplexity': False,
-            'accuracy': True
+            'ppl': False,
+            'acc': True
         }
