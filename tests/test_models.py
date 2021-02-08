@@ -11,3 +11,5 @@ def test_gpt2():
     assert ll_dog > ll_cat
     assert not ig_cat
 
+    # test empty context
+    gpt2.loglikelihood([('', 'test')])

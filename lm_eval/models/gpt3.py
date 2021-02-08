@@ -72,7 +72,12 @@ class GPT3LM(LM):
             inps = []
             ctxlens = []
             for context, continuation in chunk:
-                context_enc = self.tokenizer.encode(context)
+                if context == "":
+                    # end of text as context
+                    context_enc = [50256]
+                else:
+                    context_enc = self.tokenizer.encode(context)
+                    
                 continuation_enc = self.tokenizer.encode(continuation)
                 inp = (context_enc + continuation_enc)[-self.MAX_LENGTH:]
                 ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - self.MAX_LENGTH)
