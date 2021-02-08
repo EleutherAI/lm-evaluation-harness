@@ -15,7 +15,8 @@ class LM(abc.ABC):
         :param requests: list
             A list of pairs (context, continuation)
             context: str
-                Context string
+                Context string. Implementations of LM must be able to handle an 
+                empty context string.
             continuation: str
                 The continuation over which log likelihood will be calculated. If 
                 there is a word boundary, the space should be in the continuation. 

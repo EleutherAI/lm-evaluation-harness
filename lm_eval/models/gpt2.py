@@ -24,7 +24,13 @@ class GPT2LM(LM):
         # TODO: vectorize properly
         for context, continuation in tqdm(requests):
             # when too long to fit in context, truncate from the left
-            context_enc = self.tokenizer.encode(context)
+            
+            if context == "":
+                # end of text as context
+                context_enc = [50256]
+            else:
+                context_enc = self.tokenizer.encode(context)
+            
             continuation_enc = self.tokenizer.encode(continuation)
             inp = torch.tensor([(context_enc + continuation_enc)[-1024:]], dtype=torch.long).to(self.device)
             ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - 1024)
