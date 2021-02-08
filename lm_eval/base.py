@@ -275,13 +275,9 @@ import json
 import hashlib
 from sqlitedict import SqliteDict
 
-def hash_args(args):
-    dat = b""
-    for arg in args:
-        assert isinstance(arg, str) or isinstance(arg, int)
-        dat += str(arg).encode()
-        dat += b"\0"
-    return hashlib.sha256(dat).hexdigest()
+def hash_args(attr, args):
+    dat = json.dumps([attr] + list(args))
+    return hashlib.sha256(dat.encode('utf-8')).hexdigest()
 
 
 class CachingLM:
@@ -298,7 +294,7 @@ class CachingLM:
             
             # figure out which ones are cached and which ones are new
             for req in requests:
-                hsh = attr + '_' + hash_args(req)
+                hsh = hash_args(attr, req)
                 if hsh in self.dbdict:
                     ob = self.dbdict[hsh]
 
@@ -320,9 +316,9 @@ class CachingLM:
                 res[resptr] = r
 
                 # caching
-                hsh = attr + '_' + hash_args(req)
+                hsh = hash_args(attr, req)
                 self.dbdict[hsh] = r
-                
+            self.dbdict.commit()
 
             return res
         return fn
@@ -344,6 +340,9 @@ class Request:
     
     def __getitem__(self, i):
         return Request(self.type, self.args, i)
+    
+    def __eq__(self, other):
+        return self.type == other.type and self.args == other.args and self.index == other.index
 
 
 class RequestFactory:
