@@ -4,19 +4,18 @@ import json
 import math
 from best_download import download_file
 
+def detokenize(string):
+    string = string.replace(" '", "'")
+    string = string.replace(" \n", "\n")
+    string = string.replace("\n ", "\n")
+    string = string.replace(" n't", "n't")
+    string = string.replace(" N ", " 1 ")
+    string = string.replace("$ 1", "$1")
+    string = string.replace("# 1", "#1")
+    return string
+
 
 class PennTreebank(Task):
-    def detokenizer(self,string):
-        string = string.replace(" '", "'")
-        string = string.replace(" \n", "\n")
-        string = string.replace("\n ", "\n")
-        string = string.replace(" n't", "n't")
-        string = string.replace(" N ", " 1 ")
-        string = string.replace("$ 1", "$1")
-        string = string.replace("# 1", "#1")
-        string = string.replace("\n", "")
-        return string
-
     def download(self):
         sh("mkdir -p data/ptb")
         download_file(
@@ -47,23 +46,23 @@ class PennTreebank(Task):
     def training_docs(self):
         with open("data/ptb/ptb.train.txt") as fh:
             for line in fh:
-                yield self.detokenizer(line)
+                yield line.strip()
 
     def validation_docs(self):
         with open("data/ptb/ptb.valid.txt") as fh:
             for line in fh:
-                yield self.detokenizer(line)
+                yield line.strip()
 
     def test_docs(self):
         with open("data/ptb/ptb.test.txt") as fh:
             for line in fh:
-                yield self.detokenizer(line)
+                yield line.strip()
 
     def doc_to_text(self, doc):
-        return doc.rsplit(' ', 1)[0]
+        return ""
 
     def doc_to_target(self, doc):
-        return " " + doc.rsplit(' ', 1)[1]
+        return detokenize(doc)
 
     
     def fewshot_description(self):
@@ -71,15 +70,15 @@ class PennTreebank(Task):
         return ""
 
     def construct_requests(self, doc, ctx):
-        ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
+        ll, _ = rf.loglikelihood(ctx, self.doc_to_target(doc))
 
-        return ll, is_greedy
+        return ll,
     
     def process_results(self, doc, results):
-        ll, is_greedy = results
-
+        ll, = results
+        
         return {
-            'ppl': ll
+            'ppl': ll / len(doc.split(' '))
         }
         
     def aggregation(self):
