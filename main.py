@@ -16,7 +16,7 @@ def parse_args():
     parser.add_argument('--model_args', default="")
     parser.add_argument('--tasks', default="all_tasks")
     parser.add_argument('--provide_description', action="store_true")
-    parser.add_argument('--num_fewshot', type=int, default=1)
+    parser.add_argument('--num_fewshot', type=int, default=0)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--output_path', default=None)
     parser.add_argument('--limit', type=int, default=None)

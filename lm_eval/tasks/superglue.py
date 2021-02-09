@@ -28,7 +28,7 @@ class BoolQ(HFTask):
         return "Read the following passages and answer each question with a yes or a no."
 
     def doc_to_text(self, doc):
-        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer:"
+        return f"{doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
     
     def doc_to_target(self, doc):
         return " " + yesno(doc['label']) 
@@ -80,7 +80,7 @@ class CommitmentBank(HFTask):
             "to the truth of the hypothesis. The three possible labels are true, false or neither."
 
     def doc_to_text(self, doc):
-        return "{}\nquestion: {} true, false or neither?\nanswer:".format(
+        return "{}\nQuestion: {}. True, False or Neither?\nAnswer:".format(
             doc["premise"],
             doc["hypothesis"],
         )
@@ -89,12 +89,12 @@ class CommitmentBank(HFTask):
         # True = entailment
         # False = contradiction
         # Neither = neutral
-        return " {}".format({0: "true", 1: "neither", 2: "false"}[doc["label"]])
+        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, ' true')
-        ll_neither, _ = rf.loglikelihood(ctx, ' neither')
-        ll_false, _ = rf.loglikelihood(ctx, ' false')
+        ll_true, _ = rf.loglikelihood(ctx, ' True')
+        ll_neither, _ = rf.loglikelihood(ctx, ' Neither')
+        ll_false, _ = rf.loglikelihood(ctx, ' False')
 
         return ll_true, ll_neither, ll_false
 
@@ -214,15 +214,15 @@ class MultiRC(HFTask):
         return "READING COMPREHENSION ANSWER KEY"
 
     def doc_to_text(self, doc):
-        return f"{doc['paragraph']}\n\n{doc['question']}\n"
+        return f"{doc['paragraph']}\nQuestion: {doc['question']}\nAnswer:"
 
     def doc_to_target(self, doc):
         return self.format_answer(answer=doc["answer"], label=doc["label"])
 
     @staticmethod
     def format_answer(answer, label):
-        label_str = "True" if label else "False"
-        return f"[{label_str}] {answer}"
+        label_str = "Yes" if label else "No"
+        return f"{label_str}, {answer}"
 
     def construct_requests(self, doc, ctx):
         true_choice = self.format_answer(answer=doc["answer"], label=True)
@@ -364,8 +364,8 @@ class WordsInContext(HFTask):
         return ""
 
     def doc_to_text(self, doc):
-        return "{}\n{}\nQuestion: Is the word '{}' used in the same way in the" \
-               " two sentences above?\nanswer:".format(
+        return "Sentence 1: {}\nSentence 2: {}\nQuestion: Is the word '{}' used in the same way in the" \
+               " two sentences above?\nAnswer:".format(
                     doc["sentence1"],
                     doc["sentence2"],
                     doc["sentence1"][doc["start1"]:doc["end1"]],
@@ -438,7 +438,7 @@ class SGWinogradSchemaChallenge(HFTask):
         # NOTE: HuggingFace span indices are word-based not character-based.
         pre = " ".join(raw_passage.split()[:doc["span2_index"]])
         post = raw_passage[len(pre) + len(doc["span2_text"]) + 1:]
-        passage = pre + " *{}*".format(doc['span2_text']) + post
+        passage = general_detokenize(pre + " *{}*".format(doc['span2_text']) + post)
         noun = doc["span1_text"]
         pronoun = doc["span2_text"]
         text = (
