@@ -21,11 +21,11 @@ class PiQA(HFTask):
         return ""
 
     def doc_to_text(self, doc):
-        return doc["goal"] + "\n"
+        return "Question: "+doc["goal"] + "\nAnswer:"
 
     def doc_to_target(self, doc):
         solutions = [doc["sol1"], doc["sol2"]]
-        return solutions[doc["label"]]
+        return " " + solutions[doc["label"]]
 
     def construct_requests(self, doc, ctx):
         ll_1, _ = rf.loglikelihood(ctx, doc['sol1'])

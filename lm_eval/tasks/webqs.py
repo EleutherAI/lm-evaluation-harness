@@ -19,7 +19,7 @@ class WebQs(HFTask):
         return ""
 
     def doc_to_text(self, doc):
-        return "Q: " + doc['question'] + '\nA:'
+        return "Question: " + doc['question'] + '\nAnswer:'
 
     def doc_to_target(self, doc):
         # this picks one answer to be the "correct" one, despite sometimes 

@@ -82,10 +82,10 @@ class RACE(HFTask):
     def doc_to_text(self, doc):
         text = 'Article: ' + doc['article'] + '\n\n'
         for problem in doc['problems'][:-1]:
-            question = 'Q: ' + problem['question'] + '\n\n'
-            answer = 'A: ' + self.get_answer_option(problem) + '\n\n'
-            text += question + answer
-        text += 'Q: ' + self.last_problem(doc)['question'] + '\n\n' + 'A:'
+            assert problem['question'][-6:] == '  _  .'
+
+            text += problem['question'][-5:] + self.get_answer_option(problem) + '\n'
+        text += self.last_problem(doc)['question']
         return text
 
     def doc_to_target(self, doc):
