@@ -68,19 +68,19 @@ class SST(HFTask):
         return True
 
     def fewshot_description(self):
-        return "Indicate if each sentence is Positive or Negative."
+        return "Indicate if the sentiment of each sentence is positive or negative."
 
     def doc_to_text(self, doc):
-        return "{}\nQuestion: Is this sentence Positive or Negative?\nAnswer:".format(
+        return "{}\nQuestion: Is this sentence positive or negative?\nAnswer:".format(
             general_detokenize(doc["sentence"]),
         )
 
     def doc_to_target(self, doc):
-        return " {}".format({1: "Positive", 0: "Negative"}[doc["label"]])
+        return " {}".format({1: "positive", 0: "negative"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_positive, _ = rf.loglikelihood(ctx, " Positive")
-        ll_negative, _ = rf.loglikelihood(ctx, " Negative")
+        ll_positive, _ = rf.loglikelihood(ctx, " positive")
+        ll_negative, _ = rf.loglikelihood(ctx, " negative")
         return ll_positive, ll_negative
 
     def process_results(self, doc, results):
@@ -129,7 +129,7 @@ class MNLI(HFTask):
     def doc_to_text(self, doc):
         return "{}\nQuestion: {} True, False or Neither?\nAnswer:".format(
             doc["premise"],
-            doc["hypothesis"] + ('' if doc["hypothesis"].endswith('.') else '.'),
+            doc["hypothesis"].strip() + ('' if doc["hypothesis"].strip().endswith('.') else '.'),
         )
 
     def doc_to_target(self, doc):
@@ -195,11 +195,11 @@ class QNLI(HFTask):
     def doc_to_target(self, doc):
         # True = entailment
         # False = not entailment
-        return " {}".format({0: "Yes", 1: "No"}[doc["label"]])
+        return " {}".format({0: "yes", 1: "no"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " Yes")
-        ll_no, _ = rf.loglikelihood(ctx, " No")
+        ll_yes, _ = rf.loglikelihood(ctx, " yes")
+        ll_no, _ = rf.loglikelihood(ctx, " no")
         return ll_yes, ll_no
 
     def process_results(self, doc, results):
@@ -347,8 +347,8 @@ class MRPC(HFTask):
         return " {}".format(yesno(doc["label"]))
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " Yes")
-        ll_no, _ = rf.loglikelihood(ctx, " No")
+        ll_yes, _ = rf.loglikelihood(ctx, " yes")
+        ll_no, _ = rf.loglikelihood(ctx, " no")
         return ll_yes, ll_no
 
     def process_results(self, doc, results):

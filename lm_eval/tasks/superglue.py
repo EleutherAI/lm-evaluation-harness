@@ -8,6 +8,7 @@ from . common import HFTask, yesno
 from lm_eval.base import rf, mean, acc_all, metric_max_over_ground_truths
 import sklearn
 import transformers.data.metrics.squad_metrics as squad_metrics
+from ..utils import general_detokenize
 
 
 class BoolQ(HFTask):
@@ -221,7 +222,7 @@ class MultiRC(HFTask):
 
     @staticmethod
     def format_answer(answer, label):
-        label_str = "Yes" if label else "No"
+        label_str = "yes" if label else "no"
         return f"{label_str}, {answer}"
 
     def construct_requests(self, doc, ctx):
