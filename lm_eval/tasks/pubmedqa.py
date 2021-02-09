@@ -30,7 +30,7 @@ class Pubmed_QA(HFTask):
 
     def doc_to_text(self, doc):
         ctxs = "\n".join(doc["context"]["contexts"])
-        return "abstract: {}\nquestion: {}\nanswer:".format(
+        return "Abstract: {}\nQuestion: {}\nAnswer:".format(
             ctxs,
             doc["question"],
             doc["final_decision"]

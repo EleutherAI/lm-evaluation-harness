@@ -22,17 +22,18 @@ class CoLA(HFTask):
         return True
 
     def fewshot_description(self):
-        return "Does this sentence make sense? (True or False)"
+        # TODO
+        return ""
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: Does this sentence make sense?\nAnswer:".format(doc["sentence"])
 
     def doc_to_target(self, doc):
-        return " {}".format({1: "True", 0: "False"}[doc["label"]])
+        return " {}".format({1: "yes", 0: "no"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
+        ll_true, _ = rf.loglikelihood(ctx, " yes")
+        ll_false, _ = rf.loglikelihood(ctx, " no")
         return ll_true, ll_false
 
     def process_results(self, doc, results):
