@@ -6,6 +6,17 @@ from best_download import download_file
 
 
 class PennTreebank(Task):
+    def detokenizer(self,string):
+        string = string.replace(" '", "'")
+        string = string.replace(" \n", "\n")
+        string = string.replace("\n ", "\n")
+        string = string.replace(" n't", "n't")
+        string = string.replace(" N ", " 1 ")
+        string = string.replace("$ 1", "$1")
+        string = string.replace("# 1", "#1")
+        string = string.replace("\n", "")
+        return string
+
     def download(self):
         sh("mkdir -p data/ptb")
         download_file(
@@ -36,23 +47,23 @@ class PennTreebank(Task):
     def training_docs(self):
         with open("data/ptb/ptb.train.txt") as fh:
             for line in fh:
-                yield line
+                yield self.detokenizer(line)
 
     def validation_docs(self):
         with open("data/ptb/ptb.valid.txt") as fh:
             for line in fh:
-                yield line
+                yield self.detokenizer(line)
 
     def test_docs(self):
         with open("data/ptb/ptb.test.txt") as fh:
             for line in fh:
-                yield line
+                yield self.detokenizer(line)
 
     def doc_to_text(self, doc):
-        return doc[1:-2].rsplit(' ', 1)[0]
+        return doc.rsplit(' ', 1)[0]
 
     def doc_to_target(self, doc):
-        return " " + doc[1:-2].rsplit(' ', 1)[1]
+        return " " + doc.rsplit(' ', 1)[1]
 
     
     def fewshot_description(self):
