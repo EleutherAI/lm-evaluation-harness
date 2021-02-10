@@ -1,6 +1,14 @@
+"""
+To-do:
+    - WSC requires free-form generation
+    - ReCoRD
+"""
 import numpy as np
-from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno
+from . common import HFTask, yesno
+from lm_eval.base import rf, mean, acc_all, metric_max_over_ground_truths
+import sklearn
+import transformers.data.metrics.squad_metrics as squad_metrics
+from ..utils import general_detokenize
 
 
 class BoolQ(HFTask):
@@ -17,23 +25,41 @@ class BoolQ(HFTask):
         return True
 
     def fewshot_description(self):
+        # TODO: figure out actual description
         return "Read the following passages and answer each question with a yes or a no."
 
-    def doc_to_text(self, doc, include_target=True):
-        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer: " \
-            + (yesno(doc['label']) if include_target else "")
+    def doc_to_text(self, doc):
+        return f"{doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
+    
+    def doc_to_target(self, doc):
+        return " " + yesno(doc['label']) 
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in docs:
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            preds.append(lm.loglikelihood(ctx, ' yes') > lm.loglikelihood(ctx, ' no'))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+    def construct_requests(self, doc, ctx):
+
+        ll_yes, _ = rf.loglikelihood(ctx, ' yes')
+        ll_no, _ = rf.loglikelihood(ctx, ' no')
+
+        return ll_yes, ll_no
+
+    def process_results(self, doc, results):
+        ll_yes, ll_no = results
+        gold = doc["label"]
+
+        acc = 1. if (ll_yes > ll_no) == gold else 0.
+
+        return {
+            "acc": acc
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
 
 class CommitmentBank(HFTask):
@@ -49,34 +75,62 @@ class CommitmentBank(HFTask):
     def has_test_docs(self):
         return True
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "{}\nquestion:\t{}\ttrue, false or neither?\nanswer:".format(
+    def fewshot_description(self):
+        # TODO: figure out actual description
+        return "Given a premise and a hypothesis, classify whether the author of the premise is committed" \
+            "to the truth of the hypothesis. The three possible labels are true, false or neither."
+
+    def doc_to_text(self, doc):
+        return "{}\nQuestion: {}. True, False or Neither?\nAnswer:".format(
             doc["premise"],
             doc["hypothesis"],
         )
-        if include_target:
-            # True = entailment
-            # False = contradiction
-            # Neither = neutral
-            text += " {}".format({0: "true", 1: "neither", 2: "false"}[doc["label"]])
-        return text
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            probs = np.array([
-                lm.loglikelihood(ctx, ' true'),
-                lm.loglikelihood(ctx, ' neither'),
-                lm.loglikelihood(ctx, ' false'),
-            ])
-            preds.append(np.argmax(probs))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+    def doc_to_target(self, doc):
+        # True = entailment
+        # False = contradiction
+        # Neither = neutral
+        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
+
+    def construct_requests(self, doc, ctx):
+        ll_true, _ = rf.loglikelihood(ctx, ' True')
+        ll_neither, _ = rf.loglikelihood(ctx, ' Neither')
+        ll_false, _ = rf.loglikelihood(ctx, ' False')
+
+        return ll_true, ll_neither, ll_false
+
+    def process_results(self, doc, results):
+        gold = doc["label"]
+        pred = np.argmax(results)
+        acc = 1. if pred == gold else 0.
+
+        return {
+            "acc": acc,
+            "f1": (pred, gold)
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True,
+            "f1": True
+        }
+
+    @classmethod
+    def cb_multi_fi(cls, items):
+        preds, golds = zip(*items)
+        preds = np.array(preds)
+        golds = np.array(golds)
+        f11 = sklearn.metrics.f1_score(y_true=golds == 0, y_pred=preds == 0)
+        f12 = sklearn.metrics.f1_score(y_true=golds == 1, y_pred=preds == 1)
+        f13 = sklearn.metrics.f1_score(y_true=golds == 2, y_pred=preds == 2)
+        avg_f1 = mean([f11, f12, f13])
+        return avg_f1
+    
+    def aggregation(self):
+        return {
+            "acc": mean,
+            "f1": self.cb_multi_fi,
+        }
 
 
 class Copa(HFTask):
@@ -92,32 +146,51 @@ class Copa(HFTask):
     def has_test_docs(self):
         return True
 
-    def doc_to_text(self, doc, include_target=True):
+    def fewshot_description(self):
+        # TODO: figure out actual description
+        return "Given a premise and one alternative with a causal relation to the premise and another without," \
+            "choose the more plausible alternative"
+
+    def doc_to_text(self, doc):
         # Drop the period
         connector = {
             "cause": "because",
             "effect": "therefore",
         }[doc["question"]]
-        text = doc["premise"].strip()[:-1] + f" {connector} "
-        if include_target:
-            correct_choice = doc["choice1"] if doc["label"] == 0 else doc["choice2"]
-            # Connect the sentences
-            text += self.convert_choice(correct_choice)
-        return text
+        return doc["premise"].strip()[:-1] + f" {connector}"
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            choice1 = " " + self.convert_choice(doc["choice1"])
-            choice2 = " " + self.convert_choice(doc["choice2"])
-            preds.append(lm.loglikelihood(ctx, choice2) > lm.loglikelihood(ctx, choice1))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+    def doc_to_target(self, doc):
+        correct_choice = doc["choice1"] if doc["label"] == 0 else doc["choice2"]
+        # Connect the sentences
+        return " " + self.convert_choice(correct_choice)
+
+    def construct_requests(self, doc, ctx):
+        choice1 = " " + self.convert_choice(doc["choice1"])
+        choice2 = " " + self.convert_choice(doc["choice2"])
+        
+        ll_choice1, _ = rf.loglikelihood(ctx, choice1)
+        ll_choice2, _ = rf.loglikelihood(ctx, choice2)
+
+        return ll_choice1, ll_choice2
+
+    def process_results(self, doc, results):
+        gold = doc["label"]
+        pred = np.argmax(results)
+        acc = 1. if pred == gold else 0.
+
+        return {
+            "acc": acc
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
     @staticmethod
     def convert_choice(choice):
@@ -138,46 +211,139 @@ class MultiRC(HFTask):
         return True
 
     def fewshot_description(self):
+        # TODO: figure out actual description
         return "READING COMPREHENSION ANSWER KEY"
 
-    def doc_to_text(self, doc, include_target=True):
-        return f"{doc['paragraph']}\n\n{doc['question']}\n" \
-            + (self.format_answer(answer=doc["answer"], label=doc["label"])
-               if include_target else "")
+    def doc_to_text(self, doc):
+        return f"{doc['paragraph']}\nQuestion: {doc['question']}\nAnswer:"
+
+    def doc_to_target(self, doc):
+        return self.format_answer(answer=doc["answer"], label=doc["label"])
 
     @staticmethod
     def format_answer(answer, label):
-        label_str = "True" if label else "False"
-        return f"[{label_str}] {answer}"
+        label_str = "yes" if label else "no"
+        return f"{label_str}, {answer}"
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        preds = []
-        for doc in docs:
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            true_choice = self.format_answer(answer=doc["answer"], label=True)
-            false_choice = self.format_answer(answer=doc["answer"], label=False)
-            preds.append(
-                lm.loglikelihood(ctx, f' {true_choice}')
-                > lm.loglikelihood(ctx, f' {false_choice}')
-            )
+    def construct_requests(self, doc, ctx):
+        true_choice = self.format_answer(answer=doc["answer"], label=True)
+        false_choice = self.format_answer(answer=doc["answer"], label=False)
+        
+        ll_true_choice, _ = rf.loglikelihood(ctx, f' {true_choice}')
+        ll_false_choice, _ = rf.loglikelihood(ctx, f' {false_choice}')
 
-        # Only count as correct if all answers are labeled correctly for each question
-        question_scoring_dict = {}
-        for doc, pred in zip(docs, preds):
-            question_id = doc["idx"]["question"]
-            if question_id not in question_scoring_dict:
-                question_scoring_dict[question_id] = []
-            gold_label = doc["label"] == 1
-            question_scoring_dict[question_id].append(gold_label == pred)
-        acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
+        return ll_true_choice, ll_false_choice
+
+    def process_results(self, doc, results):
+        pred = np.argmax(results)
         return {
-            "major": acc,
-            "minor": {"acc": acc},
-            "higher_is_better": True,
+            "acc": (pred, doc)
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": acc_all
+        }
+
+
+class ReCoRD(HFTask):
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "record"
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return False
+
+    def fewshot_description(self):
+        # TODO: figure out actual description
+        return ""
+
+    def training_docs(self):
+        # In ReCoRD, each doc manifests multiple "examples" in the context of few shot example packing.
+        # Each doc consists of multiple answer candidates, each of which is scored yes/no.
+        # Hence, we one "doc" for each (context + passage, answer) pair.
+        # Moreover, we only use the correct answers for context packing
+        # (This is not an issue for evaluation, where we can directly score multiple candidates at once).
+        if self._training_docs is None:
+            self._training_docs = []
+            for doc in self.data["train"]:
+                for entity in list(set(doc["entities"])):
+                    self._training_docs.append({
+                        "passage": doc["passage"],
+                        "query": doc["query"],
+                        "entity": entity,
+                        "label": entity in doc["answers"],
+                    })
+        return self._training_docs
+
+    def validation_docs(self):
+        for doc in self.data["validation"]:
+            for entity in list(set(doc["entities"])):
+                yield {
+                    "passage": doc["passage"],
+                    "query": doc["query"],
+                    "entity": entity,
+                    "label": entity in doc["answers"],
+                }
+
+    def doc_to_text(self, doc):
+        initial_text, *highlights = doc["passage"].strip().split("\n@highlight\n")
+        text = initial_text + "\n\n"
+        for highlight in highlights:
+            text += f"  - {highlight}.\n"
+        return text
+
+    @classmethod
+    def format_answer(cls, query, entity):
+        return f'  - {query}'.replace("@placeholder", entity)
+
+    def doc_to_target(self, doc):
+        return self.format_answer(query=doc["query"], entity=doc["entity"])
+
+    def construct_requests(self, doc, ctx):
+        requests = [
+            rf.loglikelihood(ctx, self.format_answer(query=doc["query"], entity=entity))
+            for entity in doc["entity"]
+        ]
+        return requests
+
+    def process_results(self, doc, results):
+        # ReCoRD's evaluation is actually deceptively simple:
+        # - Pick the maximum likelihood prediction entity
+        # - Evaluate the accuracy and token F1 PER EXAMPLE
+        # - Average over all examples
+        max_idx = np.argmax(np.array(results))
+
+        prediction = doc["entities"][max_idx]
+        gold_label_set = list(set(doc["answers"]))
+        f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, prediction, gold_label_set)
+        em = metric_max_over_ground_truths(squad_metrics.compute_exact, prediction, gold_label_set)
+
+        return {
+            "f1": f1,
+            "em": em,
+        }
+
+    def higher_is_better(self):
+        return {
+            "f1": True,
+            "em": True,
+        }
+
+    def aggregation(self):
+        return {
+            "f1": mean,
+            "em": mean,
         }
 
 
@@ -194,31 +360,51 @@ class WordsInContext(HFTask):
     def has_test_docs(self):
         return True
 
-    def doc_to_text(self, doc, include_target=True):
-        text = "{}\n{}\nquestion\tIs the word '{}' used in the same way in the" \
-               " two sentences above?\nanswer:".format(
+    def fewshot_description(self):
+        # TODO: figure out actual description
+        return ""
+
+    def doc_to_text(self, doc):
+        return "Sentence 1: {}\nSentence 2: {}\nQuestion: Is the word '{}' used in the same way in the" \
+               " two sentences above?\nAnswer:".format(
                     doc["sentence1"],
                     doc["sentence2"],
                     doc["sentence1"][doc["start1"]:doc["end1"]],
                 )
-        if include_target:
-            text += " {}".format({0: "no", 1: "yes"}[doc["label"]])
-        return text
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            preds.append(lm.loglikelihood(ctx, ' yes') > lm.loglikelihood(ctx, ' no'))
-        return simple_accuracy_metric(preds=preds, golds=golds)
+    def doc_to_target(self, doc):
+        return " {}".format({0: "no", 1: "yes"}[doc["label"]])
+
+    def construct_requests(self, doc, ctx):
+        ll_yes, _ = rf.loglikelihood(ctx, ' yes')
+        ll_no, _ = rf.loglikelihood(ctx, ' no')
+
+        return ll_yes, ll_no
+
+    def process_results(self, doc, results):
+        ll_yes, ll_no = results
+        gold = doc["label"]
+
+        acc = 1. if (ll_yes > ll_no) == gold else 0.
+
+        return {
+            "acc": acc
+        }
+
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
 
 class SGWinogradSchemaChallenge(HFTask):
+    # Note: This implementation differs from Fig G.32 because this is the SuperGLUE,
+    #       binary version of the task.
     DATASET_PATH = "super_glue"
     DATASET_NAME = "wsc"
 
@@ -234,10 +420,10 @@ class SGWinogradSchemaChallenge(HFTask):
     def training_docs(self):
         if self.has_training_docs():
             if self._training_docs is None:
-                # GPT-3 Paper's format only uses positive examples
+                # GPT-3 Paper's format only uses positive examples for fewshot "training"
                 self._training_docs = [
                     doc for doc in
-                    self._load_nlp_dataset()["train"]
+                    self.data["train"]
                     if doc["label"]
                 ]
             return self._training_docs
@@ -248,59 +434,47 @@ class SGWinogradSchemaChallenge(HFTask):
            "For each passage, you must identify which noun the pronoun marked in *bold*" \
            " refers to.\n====="
 
-    def doc_to_text(self, doc, include_target=True):
+    def doc_to_text(self, doc):
         raw_passage = doc["text"]
-        passage = (
-            raw_passage[:doc["span2_index"]]
-            + "*{}*".format(doc["span2_text"])
-            + raw_passage[doc["span2_index"] + len(doc["span2_text"]):]
-        )
+        # NOTE: HuggingFace span indices are word-based not character-based.
+        pre = " ".join(raw_passage.split()[:doc["span2_index"]])
+        post = raw_passage[len(pre) + len(doc["span2_text"]) + 1:]
+        passage = general_detokenize(pre + " *{}*".format(doc['span2_text']) + post)
+        noun = doc["span1_text"]
         pronoun = doc["span2_text"]
         text = (
             f"Passage: {passage}\n"
-            + f"Question: In the passage above, what does the pronoun \"*{pronoun}*\" refer to?\n"
+            + f"Question: In the passage above, does the pronoun \"*{pronoun}*\" refer to \"*{noun}*\"?\n"
             + "Answer:"
         )
-        if include_target:
-            text += " {}".format(doc["span1_text"])
         return text
 
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        golds = [doc["label"] for doc in docs]
-        preds = []
-        for doc in tqdm_lib.tqdm(docs):
-            ctx = self.fewshot_context(
-                doc=doc,
-                provide_description=provide_description,
-                num_fewshot=num_fewshot,
-            )
-            to_predict = " " + doc["span1_text"]
-            num_tokens = len(lm.tokenizer.tokenize(to_predict))
-            generated = lm.generate(
-                context=ctx,
-                max_gen_length=num_tokens,
-            )
-            preds.append(1 if generated == to_predict else 0)
-        return simple_accuracy_metric(preds=preds, golds=golds)
+    def doc_to_target(self, doc):
+        return " " + yesno(doc['label'])
 
-class RTE(HFTask):
-    DATASET_PATH = "super_glue"
-    DATASET_NAME = "rte"
+    def construct_requests(self, doc, ctx):
 
-    def fewshot_description(self):
-        #TODO: implement
-        pass
+        ll_yes, _ = rf.loglikelihood(ctx, ' yes')
+        ll_no, _ = rf.loglikelihood(ctx, ' no')
 
-    def doc_to_text(self, doc, include_target=True):
-        if include_target:
-            if doc['label'] == 0:
-                answer = 'True'
-            else:
-                answer = 'False'
-            return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: ', answer])
-        else:
-            return ''.join([doc['premise'], '\nquestion: ',doc['hypothesis'], ' True or False?\nanswer: '])
-    def evaluate(self, docs, lm, provide_description, num_fewshot):
-        #TODO: 
-        pass
+        return ll_yes, ll_no
 
+    def process_results(self, doc, results):
+        ll_yes, ll_no = results
+        gold = doc["label"]
+
+        acc = 1. if (ll_yes > ll_no) == gold else 0.
+
+        return {
+            "acc": acc
+        }
+
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+
+    def aggregation(self):
+        return {
+            "acc": mean
+        }

@@ -2,11 +2,43 @@ import os
 import transformers
 from lm_eval.base import LM
 from lm_eval import utils
+from tqdm import tqdm
+import time
+
+
+def get_result(response, ctxlen):
+    is_greedy = True
+    logprobs = response["logprobs"]["token_logprobs"]
+    continuation_logprobs = sum(logprobs[ctxlen:])
+
+    for i in range(ctxlen, len(response["logprobs"]["tokens"])):
+        token = response["logprobs"]["tokens"][i]
+        top_tokens = response["logprobs"]["top_logprobs"][i]
+        top_token = max(top_tokens.keys(), key=lambda x: top_tokens[x])
+        if top_token != token:
+            is_greedy = False
+            break
+    
+    return continuation_logprobs, is_greedy
+
+
+def oa_completion(**kwargs):
+    import openai
+
+    backoff_time = 3
+    while True:
+        try:
+            return openai.Completion.create(**kwargs)
+        except openai.error.OpenAIError:
+            time.sleep(backoff_time)
+            backoff_time *= 1.5
 
 
 class GPT3LM(LM):
 
     MAX_LENGTH = 2048
+    REQ_CHUNK_SIZE = 64
+    MAX_GEN_TOKS = 256
 
     def __init__(self, engine, truncate=False):
         """
@@ -18,7 +50,10 @@ class GPT3LM(LM):
         """
         import openai
         self.engine = engine
-        self.tokenizer = transformers.GPT2Tokenizer.from_pretrained('gpt2')
+        self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
+
+        # to make the annoying "Using pad_token, but it is not set yet." error go away
+        self.tokenizer.pad_token = "<|endoftext|>"
         self.truncate = truncate
 
         # Read from environment variable OPENAI_API_SECRET_KEY
@@ -29,49 +64,58 @@ class GPT3LM(LM):
         args = utils.simple_parse_args_string(arg_string)
         return cls(engine=args.get("engine", "davinci"))
 
-    def generate(self, context, max_gen_length):
+    def loglikelihood(self, requests):
         import openai
-        if self.truncate:
-            prompt = self.smart_truncate(context, buffer=max_gen_length)
-        else:
-            prompt = context
+        res = []
 
-        response = openai.Completion.create(
-            engine=self.engine,
-            prompt=prompt,
-            max_tokens=max_gen_length,
-            temperature=0.0,
-        )
-        return response.choices[0]["text"]
+        for chunk in tqdm(list(utils.chunks(requests, self.REQ_CHUNK_SIZE))):
+            inps = []
+            ctxlens = []
+            for context, continuation in chunk:
+                if context == "":
+                    # end of text as context
+                    context_enc = [50256]
+                else:
+                    context_enc = self.tokenizer.encode(context)
+                    
+                continuation_enc = self.tokenizer.encode(continuation)
+                inp = (context_enc + continuation_enc)[-self.MAX_LENGTH:]
+                ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - self.MAX_LENGTH)
 
-    def loglikelihood(self, context, continuation):
+                inps.append(inp)
+                ctxlens.append(ctxlen)
+
+            response = oa_completion(
+                engine=self.engine,
+                prompt=inps,
+                echo=True,
+                max_tokens=0, temperature=0.,
+                logprobs=10,
+            )
+
+            for resp, ctxlen in zip(response.choices, ctxlens):
+                res.append(get_result(resp, ctxlen))
+            
+        return res
+
+    def greedy_until(self, requests):
         import openai
-        full_text = context + continuation
-        full_text_length = len(self.tokenizer.tokenize(full_text))
-        context_length = len(self.tokenizer.tokenize(context))
-        continuation_length = len(self.tokenizer.tokenize(continuation))
-        assert full_text_length == context_length + continuation_length
-        if self.truncate:
-            prompt = self.smart_truncate(full_text, buffer=0)
-        else:
-            prompt = full_text
-        response = openai.Completion.create(
-            engine=self.engine,
-            prompt=prompt,
-            echo=True,
-            max_tokens=0, temperature=0.0,
-            logprobs=0,
-        )
-        logprobs = response.choices[0]["logprobs"]["token_logprobs"]
-        continuation_logprobs = logprobs[-continuation_length:]
-        return sum(continuation_logprobs)
+        res = []
 
-    def smart_truncate(self, string, buffer=1):
-        tokens = self.tokenizer.tokenize(string)
-        available_length = self.MAX_LENGTH - 1 - buffer  # OpenAI adds 1 token
-        kept_tokens = tokens[-available_length:]
-        new_string = self.tokenizer.convert_tokens_to_string(kept_tokens)
-        return new_string
+        for context, until in tqdm(requests):
+            context_enc = self.tokenizer.encode(context)
+            inp = context_enc[-(self.MAX_LENGTH - self.MAX_GEN_TOKS):]
+            ctxlen = len(context_enc) - max(0, len(context_enc) - (self.MAX_LENGTH - self.MAX_GEN_TOKS))
 
-    def num_tokens(self, string):
-        return len(self.tokenizer.tokenize(string))
+            response = oa_completion(
+                engine=self.engine,
+                prompt=[inp],
+                max_tokens=self.MAX_GEN_TOKS, 
+                temperature=0.,
+                logprobs=10,
+            )
+
+            res.append(response.choices[0]['text'])
+        
+        return res
+
