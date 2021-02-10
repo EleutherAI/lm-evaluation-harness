@@ -90,18 +90,18 @@ class WinogradSchemaChallenge273(HFTask):
             part of the document for `doc`.
         """
         target = self.partial_target(doc)
-        right_ctx, wrong_ctx = ctx, self._wrong_context(doc, ctx)
-        ll_right_ctx, _ = rf.loglikelihood(right_ctx, target)
-        ll_wrong_ctx, _ = rf.loglikelihood(wrong_ctx, target)
-        return ll_right_ctx, ll_wrong_ctx
+        ll = []
+        for option in doc["options"]:
+            partial_ctx = self.partial_context(doc, option)
+            full_ctx = self.append_context(ctx, partial_ctx)
+            ll.append(rf.loglikelihood(full_ctx, target)[0])
+        return ll
 
-    def _wrong_context(self, doc, ctx):
-        wrong_answer = int(not doc["label"])
-        wrong_option = doc["options"][wrong_answer]
-        wrong_ctx = self.partial_context(doc, wrong_option)
+    @classmethod
+    def append_context(cls, ctx, partial_ctx):
         ctx = ctx.split("\n\n")  # Each fewshot context is on its own new line.
-        ctx.pop()  # Remove the correct context.
-        return "\n\n".join([*ctx, wrong_ctx]) if ctx else wrong_ctx
+        ctx.pop()  # Remove the correct context put in by `doc_to_text`.
+        return "\n\n".join([*ctx, partial_ctx]) if ctx else partial_ctx
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
