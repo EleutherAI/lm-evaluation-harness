@@ -27,9 +27,6 @@ class QA4MRE(MultipleChoiceTask):
         }
         vpath = variable_year_path[year]
         url_path = f"{base_path}{vpath}QA4MRE-{year}-{lang}_GS.xml"
-        # Should all the years be concatenated together?
-        # Separate let's us compare with results from the competition
-        # Competition also separated out by topics
         if not os.path.exists("data/qa4mre"):
             os.mkdir("data/qa4mre")
         if not os.path.isfile(f"data/qa4mre/QA4MRE-{year}-{lang}"):
@@ -59,7 +56,7 @@ class QA4MRE(MultipleChoiceTask):
         out_doc = {
             "query" : question.find('q_str').text,
             "choices": choices, 
-            "gold" : int(question.find("./answer[@correct='Yes']").attrib["a_id"])-1,
+            "gold" : int(question.find("./answer[@correct='Yes']").attrib["a_id"]) - 1,
         }
         return out_doc
     
@@ -67,14 +64,12 @@ class QA4MRE(MultipleChoiceTask):
         tree = ET.parse(textfilename)
         root = tree.getroot()
         # TODO: context is much larger than the context sometimes
-        TRUNCATE = 4000
-        # Multiple questions per document
         for reading_test in root.iter('reading-test'):
             src = reading_test[0].text
             src = src.rstrip("\n\t\t\t").replace("\'", "'")
             for qid, question in enumerate(reading_test.iter('q')):
                 out_doc = self._convert_standard(question)
-                out_doc['source'] = src[:TRUNCATE]
+                out_doc['source'] = src
                 yield out_doc
 
     def fewshot_description(self):
