@@ -28,7 +28,7 @@ class SQuAD(HFTask):
         return ""
 
     def doc_to_text(self, doc):
-        return 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Q: ' + doc['question'] + '\n\n' + 'A: '
+        return 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Q: ' + doc['question'] + '\n\n' + 'A:'
 
     def doc_to_target(self, doc):
         answer_list = doc['answers']['text']
@@ -36,7 +36,7 @@ class SQuAD(HFTask):
             answer = answer_list[0]
         else:
             answer = 'unanswerable'
-        return answer
+        return " " + answer
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of 
@@ -76,6 +76,12 @@ class SQuAD(HFTask):
 
         metrics = squad_metric.compute(predictions=predictions, references=references)
 
+        metrics.pop('total', None)
+        metrics.pop('HasAns_total', None)
+        metrics.pop('NoAns_total', None)
+        metrics.pop('best_exact_thresh', None)
+        metrics.pop('best_f1_thresh', None)
+
         return metrics
 
     def aggregation(self):
@@ -87,17 +93,12 @@ class SQuAD(HFTask):
         return { 
             'exact': mean, # Exact match (the normalized answer exactly match the gold answer)
             'f1': mean, #  The F-score of predicted tokens versus the gold answer
-            'total': mean, # Number of score considered
             'HasAns_exact': mean, # Exact match (the normalized answer exactly match the gold answer)
             'HasAns_f1': mean, # The F-score of predicted tokens versus the gold answer
-            'HasAns_total': mean, # Number of score considered
             'NoAns_exact': mean, # Exact match (the normalized answer exactly match the gold answer)
             'NoAns_f1': mean, # The F-score of predicted tokens versus the gold answer
-            'NoAns_total': mean, # Number of score considered
             'best_exact': mean, # Best exact match (with varying threshold)
-            'best_exact_thresh': mean, # No-answer probability threshold associated to the best exact match
             'best_f1': mean, # Best F1 (with varying threshold)
-            'best_f1_thresh': mean, # No-answer probability threshold associated to the best F1
         }
 
     def higher_is_better(self):
@@ -109,15 +110,10 @@ class SQuAD(HFTask):
         return { 
             'exact': True, # Exact match (the normalized answer exactly match the gold answer)
             'f1': True, #  The F-score of predicted tokens versus the gold answer
-            'total': None, # Number of score considered
             'HasAns_exact': True, # Exact match (the normalized answer exactly match the gold answer)
             'HasAns_f1': True, # The F-score of predicted tokens versus the gold answer
-            'HasAns_total': None, # Number of score considered
             'NoAns_exact': True, # Exact match (the normalized answer exactly match the gold answer)
             'NoAns_f1': True, # The F-score of predicted tokens versus the gold answer
-            'NoAns_total': None, # Number of score considered
             'best_exact': True, # Best exact match (with varying threshold)
-            'best_exact_thresh': None, # No-answer probability threshold associated to the best exact match
             'best_f1': True, # Best F1 (with varying threshold)
-            'best_f1_thresh': None, # No-answer probability threshold associated to the best F1
         }
