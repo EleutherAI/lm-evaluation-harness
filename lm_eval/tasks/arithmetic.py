@@ -56,7 +56,10 @@ class Arithmetic(Task):
         return doc.completion
 
     def load_doc(self, doc_json):
-        return ArithmeticDoc(context=doc_json['context'].strip(), completion=doc_json['completion'].strip())
+        return ArithmeticDoc(context=doc_json['context'].strip()
+            .replace('\n\n', '\n')
+            .replace('Q:', 'Question:')
+            .replace('A:', 'Answer:'), completion=doc_json['completion'])
     
     def construct_requests(self, doc, ctx):
         ll, is_prediction = rf.loglikelihood(ctx, doc.completion)

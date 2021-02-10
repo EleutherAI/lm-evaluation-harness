@@ -218,7 +218,7 @@ class MultiRC(HFTask):
         return f"{doc['paragraph']}\nQuestion: {doc['question']}\nAnswer:"
 
     def doc_to_target(self, doc):
-        return self.format_answer(answer=doc["answer"], label=doc["label"])
+        return " " + self.format_answer(answer=doc["answer"], label=doc["label"])
 
     @staticmethod
     def format_answer(answer, label):

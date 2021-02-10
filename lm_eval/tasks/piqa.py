@@ -28,8 +28,8 @@ class PiQA(HFTask):
         return " " + solutions[doc["label"]]
 
     def construct_requests(self, doc, ctx):
-        ll_1, _ = rf.loglikelihood(ctx, doc['sol1'])
-        ll_2, _ = rf.loglikelihood(ctx, doc['sol2'])
+        ll_1, _ = rf.loglikelihood(ctx, " " + doc['sol1'])
+        ll_2, _ = rf.loglikelihood(ctx, " " + doc['sol2'])
         return ll_1, ll_2
 
     def process_results(self, doc, results):

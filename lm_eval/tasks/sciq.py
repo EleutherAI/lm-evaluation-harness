@@ -3,6 +3,7 @@ import json
 from ..utils import sh
 from lm_eval.base import MultipleChoiceTask, rf, mean
 import zipfile
+from best_download import download_file
 
 
 class SciQ(MultipleChoiceTask):
@@ -10,9 +11,11 @@ class SciQ(MultipleChoiceTask):
     def download(self):
         if not os.path.exists('data/sciq'):
             os.mkdir('data/sciq')
-            sh((
-                "wget https://ai2-public-datasets.s3.amazonaws.com/sciq/SciQ.zip -O data/sciq/SciQ.zip"
-            ))
+            download_file(
+                'https://ai2-public-datasets.s3.amazonaws.com/sciq/SciQ.zip',
+                'data/sciq/SciQ.zip', 
+                '7f3312f6ac6b09970b32942d106a8c44ec0dad46a0369f17d635aff8e348a87c',
+            )
             with zipfile.ZipFile("data/sciq/SciQ.zip", "r") as zf:
                 zf.extractall("data/sciq/")
 
@@ -48,8 +51,6 @@ class SciQ(MultipleChoiceTask):
             yield self._convert_standard(record)
 
     def fewshot_description(self):
-        # Average ctx length in labelled dataset is 238.9
-        # 2 few-shot exmamples pushes it beyond context window
         return ""
 
     def training_docs(self):
