@@ -70,8 +70,4 @@ class Pubmed_QA(HFTask):
     def higher_is_better(self):
         return {
             "acc" : True
-<<<<<<< HEAD
         }
-=======
-        }
->>>>>>> 79878d135a19846868c182aa986b6ec740e7c884
