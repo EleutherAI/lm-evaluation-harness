@@ -1,6 +1,4 @@
 import datasets
-from tqdm import auto as tqdm_lib
-
 from lm_eval.base import rf, f1_score, mean
 from . common import HFTask
 
