@@ -59,12 +59,12 @@ class Winogrande(HFTask):
             part of the document for `doc`.
         """
         target = self.partial_target(doc)
-        ll = []
+        lls = []
         for option in [doc["option1"], doc["option2"]]:
             partial_ctx = self.partial_context(doc, option)
             full_ctx = self.append_context(ctx, partial_ctx)
-            ll.append(rf.loglikelihood(full_ctx, target)[0])
-        return ll
+            lls.append(rf.loglikelihood(full_ctx, target)[0])
+        return lls
 
     @classmethod
     def append_context(cls, ctx, partial_ctx):
