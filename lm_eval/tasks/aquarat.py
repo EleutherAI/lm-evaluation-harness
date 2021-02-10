@@ -3,7 +3,7 @@ from tqdm import auto as tqdm_lib
 from . common import HFTask, simple_accuracy_metric, yesno
 from lm_eval.base import rf, mean
 
-class AquaRat(HFTask):
+class AquaRat():
     
     def __init__(self):
         self.download()
@@ -27,6 +27,18 @@ class AquaRat(HFTask):
 
     def has_test_docs(self):
         return True
+    
+    def training_docs(self):
+        doc_data = json.load(open('data/aquarat/aquarat-train.json')
+        return doc_data
+
+    def validation_docs(self):
+        doc_data = json.load(open('data/aquarat/aquarat-valid.json')
+        return doc_data
+
+    def test_docs(self):
+        doc_data = json.load(open('data/aquarat/aquarat-test.json')
+        return doc_data
 
     def fewshot_description(self):
         # TODO: Incorporate rationale and compute using BLEU score
@@ -37,7 +49,7 @@ class AquaRat(HFTask):
         return f"{doc['question']}\n{options}\nanswer: "
     
     def doc_to_target(self, doc):
-        return f"{doc['correct']}"
+        return doc['correct']
         
     def construct_requests(self, doc, ctx):
         lls = [
