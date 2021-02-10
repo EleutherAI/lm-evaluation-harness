@@ -1,16 +1,17 @@
 import datasets
 import numpy as np
-import random
-from ..base import Dataset
+from ..base import Task
 
 
-class HFTask(Dataset):
+class HFTask(Task):
     DATASET_PATH = None
     DATASET_NAME = None
 
     def __init__(self):
+        self.data = None
         super().__init__()
-        self._training_docs = None
+
+    def download(self):
         self.data = datasets.load_dataset(path=self.DATASET_PATH, name=self.DATASET_NAME)
 
     def has_training_docs(self):

@@ -1,6 +1,8 @@
 import abc
 import random
-import collections
+import numpy as np
+import sklearn
+import math
 
 
 class LM(abc.ABC):
@@ -13,7 +15,8 @@ class LM(abc.ABC):
         :param requests: list
             A list of pairs (context, continuation)
             context: str
-                Context string
+                Context string. Implementations of LM must be able to handle an 
+                empty context string.
             continuation: str
                 The continuation over which log likelihood will be calculated. If 
                 there is a word boundary, the space should be in the continuation. 
@@ -57,11 +60,10 @@ class LM(abc.ABC):
         return cls()
 
 
-class Dataset(abc.ABC):
-    @abc.abstractmethod
+class Task(abc.ABC):
     def __init__(self):
         self.download()
-        self._traindocs = None
+        self._training_docs = None
 
     def download(self):
         """Downloads the task dataset if necessary"""
@@ -71,7 +73,7 @@ class Dataset(abc.ABC):
     def has_training_docs(self):
         """Whether the task has a training set"""
         pass
-    
+
     @abc.abstractmethod
     def has_validation_docs(self):
         """Whether the task has a validation set"""
@@ -82,28 +84,31 @@ class Dataset(abc.ABC):
         """Whether the task has a test set"""
         pass
 
-    @abc.abstractmethod
     def training_docs(self):
         """
-
         :return: Iterable[obj]
             A iterable of any object, that doc_to_text can handle
         """
-        pass
-    
-    @abc.abstractmethod
-    def validation_docs(self):
-        pass
-    
-    @abc.abstractmethod
-    def test_docs(self):
-        pass
-    
-    def fewshot_examples(self, k):
-        if self._traindocs is None:
-            self._traindocs = list(self.training_docs())
+        return []
 
-        return random.sample(self._traindocs, k)
+    def validation_docs(self):
+        """
+        :return: Iterable[obj]
+            A iterable of any object, that doc_to_text can handle
+        """
+        return []
+
+    def test_docs(self):
+        """
+        :return: Iterable[obj]
+            A iterable of any object, that doc_to_text can handle
+        """
+        return []
+
+    def fewshot_examples(self, k):
+        if self._training_docs is None:
+            self._training_docs = list(self.training_docs())
+        return random.sample(self._training_docs, k)
 
     @abc.abstractmethod
     def doc_to_text(self, doc):
@@ -126,7 +131,7 @@ class Dataset(abc.ABC):
             part of the document for `doc`. 
         """
         pass
-    
+
     @abc.abstractmethod
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a 
@@ -164,7 +169,7 @@ class Dataset(abc.ABC):
     def fewshot_context(self, doc, num_fewshot, provide_description):
         raw_description = self.fewshot_description()
         description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
-        
+
         if num_fewshot == 0:
             labeled_examples = ""
         else:
@@ -172,20 +177,153 @@ class Dataset(abc.ABC):
                 [self.doc_to_text(doc) + self.doc_to_target(doc) for doc in self.fewshot_examples(k=num_fewshot)]
             ) + "\n\n"
 
-        example = self.doc_to_text(doc).strip()
+        example = self.doc_to_text(doc)
         return description + labeled_examples + example
 
+
+class MultipleChoiceTask(Task):
+    def doc_to_target(self, doc):
+        return " " + doc['choices'][doc['gold']]
+
+    def construct_requests(self, doc, ctx):
+        lls = [
+            rf.loglikelihood(ctx, " {}".format(choice))[0]
+            for choice in doc['choices']
+        ]
+
+        return lls
+
+    def process_results(self, doc, results):
+        gold = doc["gold"]
+
+        acc = 1. if np.argmax(results) == gold else 0.
+
+        return {
+            "acc": acc
+        }
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+    
+    def aggregation(self):
+        return {
+            "acc": mean
+        }
 
 
 def mean(arr):
     return sum(arr) / len(arr)
 
+
 def median(arr):
     return arr[len(arr) // 2]
 
+
+def matthews_corrcoef(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    return sklearn.metrics.matthews_corrcoef(golds, preds)
+
+
+def f1_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = sklearn.metrics.f1_score(golds, preds)
+
+    return np.max(fscore)
+
+
+def acc_all(items):
+    # Only count as correct if all answers are labeled correctly for each question
+    question_scoring_dict = {}
+    preds = list(zip(*items))[0]
+    docs = list(zip(*items))[1]
+
+    for doc, pred in zip(docs, preds):
+        question_id = doc["idx"]["question"]
+        if question_id not in question_scoring_dict:
+            question_scoring_dict[question_id] = []
+
+        gold_label = doc["label"] == 1
+        question_scoring_dict[question_id].append(gold_label == pred)
+            
+    acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
+    return acc
+
+
+def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
+    """Compute max metric between prediction and each ground truth."""
+    scores_for_ground_truths = []
+    for ground_truth in ground_truths:
+        score = metric_fn(prediction, ground_truth)
+        scores_for_ground_truths.append(score)
+    return max(scores_for_ground_truths)
+
+
+def perplexity(items):
+    return math.exp(-mean(items))
+
 req_ret_lens = {
-    'loglikelihood': 2
+    'loglikelihood': 2,
 }
+
+import os
+import json
+import hashlib
+from sqlitedict import SqliteDict
+
+def hash_args(attr, args):
+    dat = json.dumps([attr] + list(args))
+    return hashlib.sha256(dat.encode('utf-8')).hexdigest()
+
+
+class CachingLM:
+    def __init__(self, lm, cache_db):
+        self.lm = lm
+        self.cache_db = cache_db
+        os.makedirs(os.path.dirname(cache_db), exist_ok=True)
+        self.dbdict = SqliteDict(cache_db, autocommit=True)
+
+    def __getattr__(self, attr):
+        def fn(requests):
+            res = []
+            remaining_reqs = []
+            
+            # figure out which ones are cached and which ones are new
+            for req in requests:
+                hsh = hash_args(attr, req)
+                if hsh in self.dbdict:
+                    ob = self.dbdict[hsh]
+
+                    assert ob is not None
+
+                    res.append(ob)
+                else:
+                    res.append(None)
+                    remaining_reqs.append(req)
+            
+            # actually run the LM
+            rem_res = getattr(self.lm, attr)(remaining_reqs)
+
+            # stick the new ones back into the list and also cache any of the new ones
+            resptr = 0
+            for req, r in zip(remaining_reqs, rem_res):
+                while res[resptr] is not None: resptr += 1
+
+                res[resptr] = r
+
+                # caching
+                hsh = hash_args(attr, req)
+                self.dbdict[hsh] = r
+            self.dbdict.commit()
+
+            return res
+        return fn
+
 
 class Request:
     def __init__(self, type, args, index=None):
@@ -203,6 +341,10 @@ class Request:
     
     def __getitem__(self, i):
         return Request(self.type, self.args, i)
+    
+    def __eq__(self, other):
+        return self.type == other.type and self.args == other.args and self.index == other.index
+
 
 class RequestFactory:
     def __getattr__(self, attr):

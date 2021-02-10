@@ -1,12 +1,8 @@
-# REMINDER: this code needs to be rewritten for the new framework. Remove this comment when the code is fully converted.
+from lm_eval.base import MultipleChoiceTask
+from .common import HFTask
 
-import numpy as np
-from scipy.stats import pearsonr, spearmanr
-from sklearn.metrics import f1_score, matthews_corrcoef
-from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno
 
-class OpenBookQA(HFTask):
+class OpenBookQA(HFTask, MultipleChoiceTask):
     DATASET_PATH = "openbookqa"
     DATASET_NAME = "main"
 
@@ -19,42 +15,34 @@ class OpenBookQA(HFTask):
     def has_test_docs(self):
         return True
 
+    def _convert_standard(self, doc):
+        out_doc = {
+            "id": doc["id"],
+            "query": doc["question_stem"],
+            "choices": doc["choices"]["text"],
+            "gold": ["A", "B", "C", "D"].index(doc["answerKey"].strip()),
+        }
+        return out_doc
+
+    def _load_docs(self, docs):
+        for record in docs:
+            yield self._convert_standard(record)
+
     def training_docs(self):
-        if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.data["train"])
-            return self._training_docs
+        docs = super().training_docs()
+        return self._load_docs(docs)
 
     def validation_docs(self):
-        if self.has_validation_docs():
-            return self.data["validation"]
+        docs = super().validation_docs()
+        return self._load_docs(docs)
 
     def test_docs(self):
-        if self.has_test_docs():
-            return self.data["test"]
+        docs = super().test_docs()
+        return self._load_docs(docs)
 
     def fewshot_description(self):
-        return "Text of the question prompt\nText of the answer completion"
+        # TODO: figure out fewshot description
+        return ""
 
-    def doc_to_text(self, doc, include_target=True):
-        text = doc['question_stem'] + '\n'
-        if include_target:
-            letter_answer = doc['answerKey']
-            if letter_answer == 'A':
-                index = 0
-            elif letter_answer == 'B':
-                index = 1
-            elif letter_answer == 'C':
-                index = 2
-            elif letter_answer == 'D':
-                index = 3
-            else:
-                raise ValueError("OpenBookQA from HF datasets contained an invalid answer key")
-            text += doc['choices']['text'][index] + '.'
-        return text
-
-    # TODO: Implement evaluation code
-
-    # ***IMPORTANT***: this evaluation function needs to be written for the new framework. 
-    # For more info, check out the interface in base.py and the example BoolQ implementation in superglue.py. 
-    # Remove this comment when the evaluation code is implemented.
+    def doc_to_text(self, doc):
+        return doc["query"]

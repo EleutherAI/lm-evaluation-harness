@@ -1,4 +1,5 @@
 import os
+import re
 
 
 class ExitCodeError(Exception):
@@ -29,3 +30,23 @@ def simple_parse_args_string(args_string):
 def join_iters(iters):
     for iter in iters:
         yield from iter
+
+
+def chunks(iter, n):
+    arr = []
+    for x in iter:
+        arr.append(x)
+        if len(arr) == n:
+            yield arr
+            arr = []
+    
+    if arr: yield arr
+
+def general_detokenize(string):
+    string = string.replace(" n't", "n't")
+    string = string.replace(" )", ")")
+    string = string.replace("( ", "(")
+    string = string.replace("\" ", "\"")
+    string = string.replace(" \"", "\"")
+    string = re.sub(r" (['.,])", r"\1", string)
+    return string

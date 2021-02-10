@@ -1,11 +1,57 @@
 # Evaluation Harness for Large Language Models
 
+![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Python%20application/badge.svg)
+[![codecov](https://codecov.io/gh/EleutherAI/lm-evaluation-harness/branch/master/graph/badge.svg?token=JSG3O2427J)](https://codecov.io/gh/EleutherAI/lm-evaluation-harness)
+
 ## Overview 
 
 The goal of this project is to build a set of tools for evaluating LMs on typical NLU tasks, based on evaluation of GPT-3 as described in https://arxiv.org/pdf/2005.14165.pdf. Following the initial description, this repo should support 3 functions:
 1. LM Evaluation
 2. Removing task val/test data from LM training set
 3. Adding task training data to LM training set
+
+### Overview of Tasks
+
+|   Task Name   |Train|Val|Test|      Metrics       |
+|---------------|-----|---|----|--------------------|
+|cola           |✓    |✓  |✓   |mcc                 |
+|mnli           |✓    |✓  |✓   |acc                 |
+|mnli_mismatched|✓    |✓  |✓   |acc                 |
+|mrpc           |✓    |✓  |✓   |acc, f1             |
+|rte            |✓    |✓  |✓   |acc                 |
+|qnli           |✓    |✓  |✓   |acc                 |
+|qqp            |✓    |✓  |✓   |acc, f1             |
+|sst            |✓    |✓  |✓   |acc                 |
+|wnli           |✓    |✓  |✓   |acc                 |
+|boolq          |✓    |✓  |✓   |acc                 |
+|cb             |✓    |✓  |✓   |acc, f1             |
+|copa           |✓    |✓  |✓   |acc                 |
+|multirc        |✓    |✓  |✓   |acc                 |
+|wic            |✓    |✓  |✓   |acc                 |
+|wsc            |✓    |✓  |✓   |acc                 |
+|lambada        |     |✓  |    |perplexity, accuracy|
+|piqa           |✓    |✓  |    |acc                 |
+|arc_easy       |✓    |✓  |✓   |acc                 |
+|arc_challenge  |✓    |✓  |✓   |acc                 |
+|hellaswag      |✓    |✓  |✓   |acc                 |
+|race           |✓    |✓  |✓   |acc                 |
+|webqs          |✓    |   |✓   |acc                 |
+|wsc273         |     |   |✓   |acc                 |
+|winogrande     |✓    |✓  |✓   |acc                 |
+|anli_r1        |✓    |✓  |✓   |acc                 |
+|anli_r2        |✓    |✓  |✓   |acc                 |
+|anli_r3        |✓    |✓  |✓   |acc                 |
+|arithmetic_2da |     |✓  |    |acc                 |
+|arithmetic_2ds |     |✓  |    |acc                 |
+|arithmetic_3da |     |✓  |    |acc                 |
+|arithmetic_3ds |     |✓  |    |acc                 |
+|arithmetic_4da |     |✓  |    |acc                 |
+|arithmetic_4ds |     |✓  |    |acc                 |
+|arithmetic_5da |     |✓  |    |acc                 |
+|arithmetic_5ds |     |✓  |    |acc                 |
+|arithmetic_2dm |     |✓  |    |acc                 |
+|arithmetic_1dc |     |✓  |    |acc                 |
+
 
 ## Usage
 
