@@ -11,6 +11,16 @@ from . import hellaswag
 from . import openbookqa
 from . import squad
 from . import naturalqs
+from . import sat
+from . import arithmetic
+from . import lambada
+from . import race 
+from . import piqa
+from . import triviaqa
+from . import pubmedqa
+from . import sciq
+from . import webqs
+
 
 TASK_REGISTRY = {
     # GLUE
@@ -21,31 +31,54 @@ TASK_REGISTRY = {
     "rte": glue.RTE,
     "qnli": glue.QNLI,
     "qqp": glue.QQP,
-    "stsb": glue.STSB,
+    #"stsb": glue.STSB, # not implemented yet
     "sst": glue.SST,
     "wnli": glue.WNLI,
     # SuperGLUE
     "boolq": superglue.BoolQ,
-    "commitmentbank": superglue.CommitmentBank,
+    "cb": superglue.CommitmentBank,
     "copa": superglue.Copa,
     "multirc": superglue.MultiRC,
+    #"record": superglue.ReCoRD,
     "wic": superglue.WordsInContext,
     "wsc": superglue.SGWinogradSchemaChallenge,
+    
     # Order by benchmark/genre?
+
+    "lambada": lambada.LAMBADA,
+    "piqa": piqa.PiQA,
+
+    "pubmedqa" : pubmedqa.Pubmed_QA,
+    "sciq" : sciq.SciQ,
+
+    #"triviaqa": triviaqa.TriviaQA,
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
-    "quac": quac.QuAC,
-    "hellaswag": hellaswag.HellaSwag,
+    # "quac": quac.QuAC, # not implemented yet
+    "hellaswag": hellaswag.HellaSwag, # not implemented yet
     "openbookqa": openbookqa.OpenBookQA,
-    "squad": squad.SQuAD,
+    # "sat": sat.SATAnalogies, # not implemented yet
+    # "squad": squad.SQuAD, # not implemented yet
     "race": race.RACE,
-    "naturalqs": naturalqs.NaturalQs,
+    # "naturalqs": naturalqs.NaturalQs, # not implemented yet
     "webqs": webqs.WebQs,
     "wsc273": wsc273.WinogradSchemaChallenge273,
     "winogrande": winogrande.Winogrande,
     "anli_r1": anli.ANLIRound1,
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
+    # arithmetic
+    "arithmetic_2da": arithmetic.Arithmetic2DPlus,
+    "arithmetic_2ds": arithmetic.Arithmetic2DMinus,
+    "arithmetic_3da": arithmetic.Arithmetic3DPlus,
+    "arithmetic_3ds": arithmetic.Arithmetic3DMinus,
+    "arithmetic_4da": arithmetic.Arithmetic4DPlus,
+    "arithmetic_4ds": arithmetic.Arithmetic4DMinus,
+    "arithmetic_5da": arithmetic.Arithmetic5DPlus,
+    "arithmetic_5ds": arithmetic.Arithmetic5DMinus,
+    "arithmetic_2dm": arithmetic.Arithmetic2DMultiplication,
+    "arithmetic_1dc": arithmetic.Arithmetic1DComposite,
+
 }
 
 

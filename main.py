@@ -2,9 +2,13 @@ import argparse
 import json
 import numpy as np
 import random
+import itertools
+import collections
+import logging
 
-from lm_eval import models, tasks
+from lm_eval import models, tasks, evaluator, base
 
+logging.getLogger("openai").setLevel(logging.WARNING)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -12,34 +16,30 @@ def parse_args():
     parser.add_argument('--model_args', default="")
     parser.add_argument('--tasks', default="all_tasks")
     parser.add_argument('--provide_description', action="store_true")
-    parser.add_argument('--num_fewshot', type=int, default=1)
+    parser.add_argument('--num_fewshot', type=int, default=0)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--output_path', default=None)
+    parser.add_argument('--limit', type=int, default=None)
+    parser.add_argument('--cache', action="store_true")
     return parser.parse_args()
 
-
 def main():
+
     args = parse_args()
     random.seed(args.seed)
     np.random.seed(args.seed)
 
     lm = models.get_model(args.model).create_from_arg_string(args.model_args)
+
+    if args.cache:
+        lm = base.CachingLM(lm, 'lm_cache/' + args.model + '_' + args.model_args.replace('=', '-').replace(',', '_') + '.db')
     if args.tasks == "all_tasks":
         task_names = tasks.ALL_TASKS
     else:
         task_names = args.tasks.split(",")
     task_dict = tasks.get_task_dict(task_names)
-    results = {}
-    for task_name, task in task_dict.items():
-        if not task.has_validation_docs():
-            continue
-        result = task.evaluate(
-            docs=task.validation_docs(),
-            lm=lm,
-            provide_description=args.provide_description,
-            num_fewshot=args.num_fewshot,
-        )
-        results[task_name] = result
+
+    results = evaluator.evaluate(lm, task_dict, args.provide_description, args.num_fewshot, args.limit)
 
     dumped = json.dumps(results, indent=2)
     print(dumped)
@@ -47,6 +47,21 @@ def main():
         with open(args.output_path, "w") as f:
             f.write(dumped)
 
+    # MAKE TABLE
+    from pytablewriter import MarkdownTableWriter
+
+    writer = MarkdownTableWriter()
+    writer.headers = ["Task", "Metric", "Value"]
+
+    values = []
+
+    for k, dic in results.items():
+        for m, v in dic.items():
+            values.append([k, m, '%.4f' % v])
+            k = ""
+    writer.value_matrix = values
+
+    print(writer.dumps())
 
 if __name__ == "__main__":
     main()
