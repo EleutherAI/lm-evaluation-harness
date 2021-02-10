@@ -64,9 +64,10 @@ class QA4MRE(MultipleChoiceTask):
         tree = ET.parse(textfilename)
         root = tree.getroot()
         # TODO: context is much larger than the context sometimes
+        # at the moment, it just gets left-truncated by LM automatically, and maybe that's good enough?
         for reading_test in root.iter('reading-test'):
             src = reading_test[0].text
-            src = src.rstrip("\n\t\t\t").replace("\'", "'")
+            src = src.strip().replace("\'", "'")
             for qid, question in enumerate(reading_test.iter('q')):
                 out_doc = self._convert_standard(question)
                 out_doc['source'] = src
@@ -79,7 +80,7 @@ class QA4MRE(MultipleChoiceTask):
         return self.load_docs(f"data/qa4mre/QA4MRE-{self.YEAR}-EN_GS.xml")
 
     def doc_to_text(self, doc):
-        return " {}\n{}".format(doc["source"], doc["query"])
+        return "{}\nQuestion: {}\nAnswer:".format(doc["source"], doc["query"])
 
 class QA4MRE_2011(QA4MRE):
     YEAR = 2011
