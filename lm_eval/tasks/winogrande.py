@@ -39,13 +39,13 @@ class Winogrande(HFTask):
         return doc["sentence"][:pronoun_loc] + option
 
     def doc_to_target(self, doc):
-        return " " + self.partial_target(doc)
+        return self.partial_target(doc)
 
     @classmethod
     def partial_target(cls, doc):
         # The target is everything after the document specified pronoun.
         pronoun_loc = doc["sentence"].index("_") + 1
-        return doc["sentence"][pronoun_loc:].strip()
+        return " " + doc["sentence"][pronoun_loc:].strip()
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of

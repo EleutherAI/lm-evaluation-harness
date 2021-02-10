@@ -70,13 +70,13 @@ class WinogradSchemaChallenge273(HFTask):
         return doc["text"][:doc["pronoun_loc"]] + option
 
     def doc_to_target(self, doc):
-        return " " + self.partial_target(doc)
+        return self.partial_target(doc)
 
     @classmethod
     def partial_target(cls, doc):
         # The target is everything after the document specified pronoun.
         start_index = doc["pronoun_loc"] + len(doc["pronoun"])
-        return doc["text"][start_index:].strip()
+        return " " + doc["text"][start_index:].strip()
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
