@@ -66,7 +66,7 @@ class GPT2LM(LM):
 
             cont = self.gpt2.generate(
                 context_enc,
-                max_length=self.MAX_GEN_TOKS,
+                max_length=context_enc.shape[1] + self.MAX_GEN_TOKS,
                 eos_token_id=primary_until,
                 do_sample=False
             )
