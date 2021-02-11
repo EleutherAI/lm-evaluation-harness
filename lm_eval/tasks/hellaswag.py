@@ -14,7 +14,7 @@ class HellaSwag(HFTask, MultipleChoiceTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     @classmethod
     def preprocess(cls, text):
@@ -44,10 +44,6 @@ class HellaSwag(HFTask, MultipleChoiceTask):
 
     def validation_docs(self):
         docs = super().validation_docs()
-        return self._load_docs(docs)
-
-    def test_docs(self):
-        docs = super().test_docs()
         return self._load_docs(docs)
 
     def fewshot_description(self):
