@@ -113,6 +113,7 @@ class GPT3LM(LM):
                 max_tokens=self.MAX_GEN_TOKS, 
                 temperature=0.,
                 logprobs=10,
+                stop=until
             )
 
             res.append(response.choices[0]['text'])

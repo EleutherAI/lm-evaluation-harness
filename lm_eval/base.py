@@ -38,9 +38,9 @@ class LM(abc.ABC):
             A list of pairs (context, until)
             context: str
                 Context string
-            until: str
-                The string sequence to generate until. This string sequence may 
-                span across multiple tokens, or may be part of one token.
+            until: [str]
+                The string sequences to generate until. These string sequences 
+                may each span across multiple tokens, or may be part of one token.
         :return: list
             A list of strings continuation
             continuation: str
