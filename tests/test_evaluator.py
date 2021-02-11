@@ -8,7 +8,7 @@ import pytest
 # TODO: more fine grained unit tests rather than this big honking integration
 # test once we break evaluator into smaller, more manageable pieces
 
-@pytest.mark.parametrize("taskname,Task", tasks.TASK_REGISTRY.items())
+@pytest.mark.parametrize("taskname,Task", [('squad', tasks.squad.SQuAD)])
 def test_evaluator(taskname, Task):
     task_dict = tasks.get_task_dict([taskname])
     lm = models.get_model('dummy')()

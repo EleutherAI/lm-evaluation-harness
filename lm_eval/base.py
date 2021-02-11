@@ -269,6 +269,7 @@ def perplexity(items):
 
 req_ret_lens = {
     'loglikelihood': 2,
+    'greedy_until': None,
 }
 
 import os
@@ -335,11 +336,15 @@ class Request:
         self.index = index
     
     def __iter__(self):
+        if req_ret_lens[self.type] is None:
+            raise IndexError('This request type does not return multiple arguments!')
         i = 0
         for i in range(req_ret_lens[self.type]):
             yield Request(self.type, self.args, i)
     
     def __getitem__(self, i):
+        if req_ret_lens[self.type] is None:
+            raise IndexError('This request type does not return multiple arguments!')
         return Request(self.type, self.args, i)
     
     def __eq__(self, other):
