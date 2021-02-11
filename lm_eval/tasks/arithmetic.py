@@ -66,7 +66,7 @@ class Arithmetic(Task):
         return is_prediction
 
     def process_results(self, doc, results):
-        ll, is_prediction = results
+        is_prediction, = results
         return {
             "acc": is_prediction
         }
