@@ -26,7 +26,7 @@ class SQuAD(HFTask):
         return ""
 
     def doc_to_text(self, doc):
-        return 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Q: ' + doc['question'] + '\n\n' + 'A:'
+        return 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Question: ' + doc['question'] + '\n\n' + 'Answer:'
 
     def doc_to_target(self, doc):
         answer_list = doc['answers']['text']
@@ -62,9 +62,11 @@ class SQuAD(HFTask):
         """
         squad_metric = datasets.load_metric("squad_v2")
 
+        continuation, = results
+
         predictions = {
             'id': doc['id'],
-            'prediction_text': results[0],
+            'prediction_text': continuation,
         }
 
         references = {

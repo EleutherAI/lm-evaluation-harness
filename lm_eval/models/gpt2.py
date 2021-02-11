@@ -49,5 +49,29 @@ class GPT2LM(LM):
         return res
     
     def greedy_until(self, requests):
-        # TODO: implement
-        pass
+        # TODO: implement fully general `until` that handles untils that are 
+        # multiple tokens or that span multiple tokens correctly
+        res = []
+
+        for context, until in tqdm(requests):
+            if isinstance(until, str): until = [until]
+
+            context_enc = torch.tensor([self.tokenizer.encode(context)]).to(self.device)
+
+            primary_until, = self.tokenizer.encode(until[0])
+
+            cont = self.gpt2.generate(
+                context_enc,
+                max_length=context_enc.shape[1] + self.MAX_GEN_TOKS,
+                eos_token_id=primary_until,
+                do_sample=False
+            )
+
+            s = self.tokenizer.decode(cont[0].tolist()[context_enc.shape[1]:])
+
+            for term in until:
+                s = s.split(term)[0]
+            
+            res.append(s)
+        
+        return res
