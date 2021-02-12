@@ -71,9 +71,11 @@ def bleu(items):
 
     Higher is better
     """
-    preds = list(zip(*items))[0]
-    docs = list(zip(*items))[1]
-    pass
+    refs = list(zip(*items))[0]
+    preds = list(zip(*items))[1]
+    refs, preds = sacreformat(refs, preds)
+    return sacrebleu.corpus_bleu(preds, refs).score
+
 
 def chrf(items):
     """chrF++ is a tool for automatic evaluation of machine translation output
@@ -83,7 +85,11 @@ def chrf(items):
 
     Higher is better  # TODO I think
     """
-    pass
+    refs = list(zip(*items))[0]
+    preds = list(zip(*items))[1]
+    refs, preds = sacreformat(refs, preds)
+    return sacrebleu.corpus_chrf(preds, refs).score
+
 
 def ter(items):
     """Translation Error Rate is an error metric for machine translation that
@@ -94,4 +100,24 @@ def ter(items):
 
     Lower is better
     """
-    pass
+    refs = list(zip(*items))[0]
+    preds = list(zip(*items))[1]
+    refs, preds = sacreformat(refs, preds)
+    return sacrebleu.corpus_ter(preds, refs).score
+
+
+def sacreformat(refs, preds):
+    """Format refs and preds for sacrebleu corpus calculation. It is very particular"""
+    # Sacrebleu expects List[List[str]
+    #   e.g. sacrebleu.corpus_bleu([pred_t], [[ref1_stream], [ref2_stream], ...])
+
+    # We expect refs to be List[str] or List[List[str]]
+    if not isinstance(refs, list):
+        refs = list(refs)
+    if not isinstance(refs[0], list):
+        refs = [[ref] for ref in refs]
+
+    if not isinstance(preds, list):
+        preds = list(preds)
+
+    return refs, preds
