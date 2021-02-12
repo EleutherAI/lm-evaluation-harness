@@ -90,6 +90,8 @@ TASK_REGISTRY = {
 
     # TODO Perhaps make these groups of tasks
     #   e.g. anli, arithmetic, openai_translations, harness_translations
+
+    # e.g. wmt14-fr-en
     **translation.create_tasks_from_benchmarks(translation.selected_benchmarks)
 }
 
