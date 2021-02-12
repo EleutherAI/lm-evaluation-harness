@@ -24,7 +24,6 @@ sacrebleu_datasets = sacrebleu.DATASETS
 # Benchmarks one might want to run
 ########################################
 
-
 # 6 total
 gpt3_benchmarks = {
     "wmt14": ['en-fr', 'fr-en'],  # French
@@ -48,18 +47,21 @@ available_tests = {
     "all_tests": all_benchmarks
 }
 
-
-########################################
-# Tasks
-########################################
-
 def create_tasks_from_benchmarks(benchmark_dict):
-    """Creates a dictionary of tasks from a dict {dataset: [lang_pair, ...]}"""
+    """Creates a dictionary of tasks from a dict
+    :param benchmark_dict: { dataset: [lang_pair, ...] }
+    :return: {task_name: task}
+        e.g. {wmt14-fr-en: Task, wmt16-de-en: Task}
+    """
     return {
         f"{dataset}-{language_pair}": create_translation_task(dataset, language_pair)
         for dataset, language_pairs in benchmark_dict.items()
         for language_pair in language_pairs
     }
+
+########################################
+# Tasks
+########################################
 
 def create_translation_task(dataset, language_pair):
     class TranslationTask(GeneralTranslationTask):
@@ -198,7 +200,6 @@ def print_available_tests():
 
 
 def main():
-
     # print(sacrebleu.download_test_set("wmt14", "en-fr"))
     # print_available_tests()
     # sacrebleu.print_test_set("wmt14", "fr-en", "src")
@@ -212,11 +213,17 @@ def main():
     # Test task dictionary
     # for task, task_class in create_tasks_from_benchmarks(selected_benchmarks).items():
     #     print(task, task_class())
+    pass
 
 
 if __name__ == "__main__":
     main()
 
+
+
+########################################
+# Don't mind me...!
+########################################
 
 # Available tests as of 2020/02/11
 """

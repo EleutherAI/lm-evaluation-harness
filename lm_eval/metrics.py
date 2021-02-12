@@ -1,4 +1,5 @@
 import math
+from pprint import pprint
 
 import numpy as np
 import sacrebleu
@@ -73,7 +74,7 @@ def bleu(items):
     """
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
-    refs, preds = sacreformat(refs, preds)
+    refs, preds = _sacreformat(refs, preds)
     return sacrebleu.corpus_bleu(preds, refs).score
 
 
@@ -87,7 +88,7 @@ def chrf(items):
     """
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
-    refs, preds = sacreformat(refs, preds)
+    refs, preds = _sacreformat(refs, preds)
     return sacrebleu.corpus_chrf(preds, refs).score
 
 
@@ -102,22 +103,33 @@ def ter(items):
     """
     refs = list(zip(*items))[0]
     preds = list(zip(*items))[1]
-    refs, preds = sacreformat(refs, preds)
+    refs, preds = _sacreformat(refs, preds)
     return sacrebleu.corpus_ter(preds, refs).score
 
 
-def sacreformat(refs, preds):
+def _sacreformat(refs, preds):
     """Format refs and preds for sacrebleu corpus calculation. It is very particular"""
-    # Sacrebleu expects List[List[str]
+    # Sacrebleu expects (List[str], List[List[str])
     #   e.g. sacrebleu.corpus_bleu([pred_t], [[ref1_stream], [ref2_stream], ...])
 
-    # We expect refs to be List[str] or List[List[str]]
+    # Note [ref1_stream] is the first reference for each pred.
+    # So lists are size N and (M, N) for N preds and M possible refs for each pred
+    # This is a different order of dimensions that I would expect
+
+    # We expect refs to be List[str] or List[List[str]], the outer list corresponding to preds
+    # Must become List[List[str]] with the inner list corresponding to preds
     if not isinstance(refs, list):
         refs = list(refs)
     if not isinstance(refs[0], list):
         refs = [[ref] for ref in refs]
+    refs = list(zip(*refs))
+    # Note the number of refs in each ref list much match the number of preds
 
+    # We expect preds to be List[str] or List[List[str]]. Must become List[str]
     if not isinstance(preds, list):
         preds = list(preds)
+    if isinstance(preds[0], list):
+        assert len(preds[0]) == 1, f"Pred must be a str, was {preds[0]}"
+        preds = [pred[0] for pred in preds]
 
     return refs, preds
