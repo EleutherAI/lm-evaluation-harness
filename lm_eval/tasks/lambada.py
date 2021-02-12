@@ -1,4 +1,5 @@
-from lm_eval.base import Task, rf, mean, perplexity
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean, perplexity
 from lm_eval.utils import sh
 import json
 import math

@@ -5,7 +5,8 @@ To-do:
 """
 import numpy as np
 from . common import HFTask, yesno
-from lm_eval.base import rf, mean, acc_all, metric_max_over_ground_truths
+from lm_eval.base import rf
+from ..metrics import mean, acc_all, metric_max_over_ground_truths
 import sklearn
 import transformers.data.metrics.squad_metrics as squad_metrics
 from ..utils import general_detokenize

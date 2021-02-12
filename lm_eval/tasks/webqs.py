@@ -1,5 +1,7 @@
 from . common import HFTask
-from lm_eval.base import mean, rf
+from lm_eval.base import rf
+from ..metrics import mean
+
 
 class WebQs(HFTask):
     DATASET_PATH = "web_questions"

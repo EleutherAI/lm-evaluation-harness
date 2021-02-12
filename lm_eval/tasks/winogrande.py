@@ -1,6 +1,7 @@
 import numpy as np
 from . common import HFTask
-from lm_eval.base import rf, mean
+from lm_eval.base import rf
+from ..metrics import mean
 
 """
 This evaluation of Winogrande uses partial evaluation as described by
