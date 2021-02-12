@@ -19,7 +19,7 @@ class HeadQA(HFTask):
         return ""
 
     def doc_to_text(self, doc):
-        return "Q: " + doc['qtext'] + '\nA:'
+        return "Question: " + doc['qtext'] + '\nAnswer:'
 
     def doc_to_target(self, doc):
         # this picks one answer to be the "correct" one, despite sometimes 
