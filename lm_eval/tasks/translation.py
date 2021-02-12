@@ -26,32 +26,40 @@ sacrebleu_datasets = sacrebleu.DATASETS
 
 
 # 6 total
-gpt3_tests = {
+gpt3_benchmarks = {
     "wmt14": ['en-fr', 'fr-en'],  # French
     "wmt16": ['en-ro', 'ro-en', 'de-en', 'en-de'],  # German, Romanian
 }
 # 14 total
-selected_tests = {
-    **gpt3_tests,
+selected_benchmarks = {
+    **gpt3_benchmarks,
     "wmt20": ['fr-de', 'de-fr', 'en-ru', 'ru-en', 'en-iu', 'iu-en'],  # French, German, Russian, Inuit
     "iwslt17": ['en-ar', 'ar-en']  # Arabic
 }
 # 319 total
-all_tests = {
+all_benchmarks = {
     ts: sacrebleu.get_langpairs_for_testset(ts)
     for ts in sacrebleu.get_available_testsets()
 }
 
 available_tests = {
-    "gpt3_tests": gpt3_tests,
-    "selected_tests": selected_tests,
-    "all_tests": all_tests
+    "gpt3_tests": gpt3_benchmarks,
+    "selected_tests": selected_benchmarks,
+    "all_tests": all_benchmarks
 }
 
 
 ########################################
 # Tasks
 ########################################
+
+def create_tasks_from_benchmarks(benchmark_dict):
+    """Creates a dictionary of tasks from a dict {dataset: [lang_pair, ...]}"""
+    return {
+        f"{dataset}-{language_pair}": create_translation_task(dataset, language_pair)
+        for dataset, language_pairs in benchmark_dict.items()
+        for language_pair in language_pairs
+    }
 
 def create_translation_task(dataset, language_pair):
     class TranslationTask(GeneralTranslationTask):
@@ -125,10 +133,11 @@ class GeneralTranslationTask(Task):
     def process_results(self, doc, results):
         # These metrics are corpus-level not sentence level, so we'll hide the
         # results in this dict and compute the corpus score in the aggregate method
+        ref_pred = (doc["ref"], results)
         return {
-            "bleu": (doc["ref"], results),
-            "chrf": (doc["ref"], results),
-            "ter": (doc["ref"], results),
+            "bleu": ref_pred,
+            "chrf": ref_pred,
+            "ter": ref_pred,
         }
 
     def aggregation(self):
@@ -157,13 +166,21 @@ class GeneralTranslationTask(Task):
 
     def fewshot_description(self):
         language_codes = self.sacrebleu_language_pair.split("-")
-        return f"Translate {code_to_language(language_codes[0])} to {language_codes[1]}."
+        src_lang = code_to_language(language_codes[0])
+        tar_lang = code_to_language(language_codes[1])
+        return f"Translate these {src_lang} phrases to {tar_lang}."
 
     # TODO This should be something like
     #   French: {src_line}
     #   English: {ref_line}
     def fewshot_context(self, doc, num_fewshot, provide_description):
         return ""
+
+    def __str__(self):
+        language_codes = self.sacrebleu_language_pair.split("-")
+        src_lang = code_to_language(language_codes[0])
+        tar_lang = code_to_language(language_codes[1])
+        return f"{self.sacrebleu_dataset.upper()} {src_lang} to {tar_lang} Task"
 
 
 ########################################
@@ -173,7 +190,7 @@ class GeneralTranslationTask(Task):
 
 def code_to_language(code):
     # key is alpha_2 or alpha_3 depending on the code length
-    language_tuple = pycountry.languages.get({f"alpha_{len(code)}": code})
+    language_tuple = pycountry.languages.get(**{f"alpha_{len(code)}": code})
     return language_tuple.name
 
 def print_available_tests():
@@ -181,14 +198,20 @@ def print_available_tests():
 
 
 def main():
+
     # print(sacrebleu.download_test_set("wmt14", "en-fr"))
     # print_available_tests()
-    # print(len(sacrebleu.print_test_set("wmt14", "fr-en", "src")))
-    # print(GeneralTranslationTask("wmt14", "fr-en"))
-    print(sum(
-        [len(sacrebleu.get_langpairs_for_testset(ts)) for ts in sacrebleu.get_available_testsets()])
-    )
-    pass
+    # sacrebleu.print_test_set("wmt14", "fr-en", "src")
+
+    # # Print number of benchmarks
+    # print(sum([
+    #     len(sacrebleu.get_langpairs_for_testset(ts))
+    #     for ts in sacrebleu.get_available_testsets()
+    # ]))
+
+    # Test task dictionary
+    # for task, task_class in create_tasks_from_benchmarks(selected_benchmarks).items():
+    #     print(task, task_class())
 
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@ from . import pubmedqa
 from . import sciq
 from . import webqs
 from . import qa4mre
+from . import translation
 
 
 TASK_REGISTRY = {
@@ -85,6 +86,9 @@ TASK_REGISTRY = {
     "arithmetic_2dm": arithmetic.Arithmetic2DMultiplication,
     "arithmetic_1dc": arithmetic.Arithmetic1DComposite,
 
+    # TODO Perhaps make these groups of tasks
+    #   e.g. anli, arithmetic, openai_translations, harness_translations
+    **translation.create_tasks_from_benchmarks(translation.selected_benchmarks)
 }
 
 
