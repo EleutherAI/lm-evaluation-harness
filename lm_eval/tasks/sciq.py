@@ -1,7 +1,8 @@
 import os
 import json
 from ..utils import sh
-from lm_eval.base import MultipleChoiceTask, rf, mean
+from lm_eval.base import MultipleChoiceTask, rf
+from ..metrics import mean
 import zipfile
 from best_download import download_file
 

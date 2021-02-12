@@ -1,5 +1,6 @@
 import numpy as np
-from lm_eval.base import rf, mean
+from lm_eval.base import rf
+from ..metrics import mean
 from . common import HFTask
 
 

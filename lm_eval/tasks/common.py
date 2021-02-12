@@ -1,5 +1,7 @@
 import datasets
 import numpy as np
+
+import lm_eval.metrics
 from ..base import Task
 
 
@@ -44,7 +46,7 @@ class HFTask(Task):
 
 
 def simple_accuracy_metric(preds, golds):
-    acc = float((np.array(preds) == np.array(golds)).mean())
+    acc = float(lm_eval.metrics.mean())
     return {
         "major": acc,
         "minor": {"acc": acc},

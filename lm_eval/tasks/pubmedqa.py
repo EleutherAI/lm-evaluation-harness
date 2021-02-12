@@ -2,7 +2,8 @@ import numpy as np
 import json
 import random
 from .common import HFTask 
-from lm_eval.base import rf, mean
+from lm_eval.base import rf
+from ..metrics import mean
 
 
 class Pubmed_QA(HFTask):
