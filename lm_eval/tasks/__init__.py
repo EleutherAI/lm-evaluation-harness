@@ -24,7 +24,8 @@ from . import sciq
 from . import webqs
 from . import qa4mre
 from . import translation
-
+from . import headqa
+from . import mathqa
 
 TASK_REGISTRY = {
     # GLUE
@@ -70,6 +71,8 @@ TASK_REGISTRY = {
     # "squad": squad.SQuAD, # not implemented yet
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
+    "headqa": headqa.HeadQA,
+    "mathqa": mathqa.MathQA,
     "webqs": webqs.WebQs,
     "wsc273": wsc273.WinogradSchemaChallenge273,
     "winogrande": winogrande.Winogrande,
