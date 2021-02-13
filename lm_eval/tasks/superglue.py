@@ -272,7 +272,7 @@ class ReCoRD(HFTask):
     def training_docs(self):
         # In ReCoRD, each doc manifests multiple "examples" in the context of few shot example packing.
         # Each doc consists of multiple answer candidates, each of which is scored yes/no.
-        # Hence, we one "doc" for each (context + passage, answer) pair.
+        # Hence, we create one "doc" for each (context + passage, answer) pair.
         # Moreover, we only use the correct answers for context packing
         # (This is not an issue for evaluation, where we can directly score multiple candidates at once).
         if self._training_docs is None:
@@ -288,14 +288,10 @@ class ReCoRD(HFTask):
         return self._training_docs
 
     def validation_docs(self):
-        for doc in self.data["validation"]:
-            for entity in list(set(doc["entities"])):
-                yield {
-                    "passage": doc["passage"],
-                    "query": doc["query"],
-                    "entity": entity,
-                    "label": entity in doc["answers"],
-                }
+        # Following from .trianing_docs, for validation_docs, each document corresponds to
+        # the original doc from the dataset, i.e. comprises of lists of entities, and which
+        # entities are correct (potentially multiple)
+        yield from self.data["validation"]
 
     def doc_to_text(self, doc):
         initial_text, *highlights = doc["passage"].strip().split("\n@highlight\n")
@@ -314,7 +310,7 @@ class ReCoRD(HFTask):
     def construct_requests(self, doc, ctx):
         requests = [
             rf.loglikelihood(ctx, self.format_answer(query=doc["query"], entity=entity))
-            for entity in doc["entity"]
+            for entity in doc["entities"]
         ]
         return requests
 
