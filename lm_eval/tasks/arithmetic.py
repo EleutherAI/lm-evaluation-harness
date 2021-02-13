@@ -2,7 +2,8 @@ import abc
 import json
 import os
 from collections import namedtuple
-from lm_eval.base import Task, mean, rf
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean
 from best_download import download_file
 
 ArithmeticDoc = namedtuple('ArithmeticDoc', ['context', 'completion'])
