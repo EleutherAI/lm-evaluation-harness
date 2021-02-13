@@ -64,15 +64,20 @@ class SQuAD(HFTask):
 
         continuation, = results
 
-        predictions = {
+        no_answer_probability = 0.0
+        if continuation.startswith(' unanswerable'):
+            no_answer_probability = 1.0
+
+        predictions = [{
             'id': doc['id'],
             'prediction_text': continuation,
-        }
+            'no_answer_probability': no_answer_probability,
+        }]
 
-        references = {
+        references = [{
             'id': doc['id'],
             'answers': doc['answers'],
-        }
+        }]
 
         metrics = squad_metric.compute(predictions=predictions, references=references)
 
