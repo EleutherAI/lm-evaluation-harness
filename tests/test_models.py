@@ -11,3 +11,11 @@ def test_gpt2():
     assert ll_dog > ll_cat
     assert not ig_cat
 
+    # test empty context
+    gpt2.loglikelihood([('', 'test')])
+
+    gen, = gpt2.greedy_until([
+        ('The quick brown fox jumps over the lazy', ['.', '\n'])
+    ])
+
+    assert gen == ', lazy fox and they both fall to the ground'

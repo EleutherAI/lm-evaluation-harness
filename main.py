@@ -16,11 +16,11 @@ def parse_args():
     parser.add_argument('--model_args', default="")
     parser.add_argument('--tasks', default="all_tasks")
     parser.add_argument('--provide_description', action="store_true")
-    parser.add_argument('--num_fewshot', type=int, default=1)
+    parser.add_argument('--num_fewshot', type=int, default=0)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--output_path', default=None)
     parser.add_argument('--limit', type=int, default=None)
-    parser.add_argument('--cache', action="store_true")
+    parser.add_argument('--no_cache', action="store_true")
     return parser.parse_args()
 
 def main():
@@ -31,7 +31,7 @@ def main():
 
     lm = models.get_model(args.model).create_from_arg_string(args.model_args)
 
-    if args.cache:
+    if not args.no_cache:
         lm = base.CachingLM(lm, 'lm_cache/' + args.model + '_' + args.model_args.replace('=', '-').replace(',', '_') + '.db')
     if args.tasks == "all_tasks":
         task_names = tasks.ALL_TASKS
@@ -47,6 +47,21 @@ def main():
         with open(args.output_path, "w") as f:
             f.write(dumped)
 
+    # MAKE TABLE
+    from pytablewriter import MarkdownTableWriter
+
+    writer = MarkdownTableWriter()
+    writer.headers = ["Task", "Metric", "Value"]
+
+    values = []
+
+    for k, dic in results.items():
+        for m, v in dic.items():
+            values.append([k, m, '%.4f' % v])
+            k = ""
+    writer.value_matrix = values
+
+    print(writer.dumps())
 
 if __name__ == "__main__":
     main()

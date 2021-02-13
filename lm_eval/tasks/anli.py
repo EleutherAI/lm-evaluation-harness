@@ -1,5 +1,6 @@
 import numpy as np
-from lm_eval.base import rf, mean
+from lm_eval.base import rf
+from ..metrics import mean
 from . common import HFTask
 
 class ANLIBase(HFTask):
@@ -39,7 +40,7 @@ class ANLIBase(HFTask):
         # of the prompt (yes, repeating it!). also, " True, False, or Neither?" is directly 
         # appended onto the question, with no "Answer:" or even a newline. Do we *really* 
         # want to do it exactly as OA did?
-        return doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + '\nTrue, False, or Neither?'
+        return doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + ' True, False, or Neither?\nAnswer:'
 
     def doc_to_target(self, doc):
         # True = entailment

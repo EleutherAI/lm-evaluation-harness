@@ -2,7 +2,8 @@ import abc
 import json
 import os
 from collections import namedtuple
-from lm_eval.base import Task, mean, rf
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean
 from best_download import download_file
 
 ArithmeticDoc = namedtuple('ArithmeticDoc', ['context', 'completion'])
@@ -56,14 +57,17 @@ class Arithmetic(Task):
         return doc.completion
 
     def load_doc(self, doc_json):
-        return ArithmeticDoc(context=doc_json['context'], completion=doc_json['completion'])
+        return ArithmeticDoc(context=doc_json['context'].strip()
+            .replace('\n\n', '\n')
+            .replace('Q:', 'Question:')
+            .replace('A:', 'Answer:'), completion=doc_json['completion'])
     
     def construct_requests(self, doc, ctx):
         ll, is_prediction = rf.loglikelihood(ctx, doc.completion)
         return is_prediction
 
     def process_results(self, doc, results):
-        ll, is_prediction = results
+        is_prediction, = results
         return {
             "acc": is_prediction
         }
