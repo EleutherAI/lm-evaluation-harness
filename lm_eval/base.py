@@ -1,8 +1,8 @@
 import abc
 import random
 import numpy as np
-import sklearn
-import math
+
+from lm_eval.metrics import mean
 
 
 class LM(abc.ABC):
@@ -15,7 +15,8 @@ class LM(abc.ABC):
         :param requests: list
             A list of pairs (context, continuation)
             context: str
-                Context string
+                Context string. Implementations of LM must be able to handle an 
+                empty context string.
             continuation: str
                 The continuation over which log likelihood will be calculated. If 
                 there is a word boundary, the space should be in the continuation. 
@@ -29,6 +30,7 @@ class LM(abc.ABC):
         """
         pass
 
+    # TODO: Add an optional max length
     @abc.abstractmethod
     def greedy_until(self, requests):
         """Generate greedily until a stopping sequence
@@ -37,9 +39,9 @@ class LM(abc.ABC):
             A list of pairs (context, until)
             context: str
                 Context string
-            until: str
-                The string sequence to generate until. This string sequence may 
-                span across multiple tokens, or may be part of one token.
+            until: [str]
+                The string sequences to generate until. These string sequences 
+                may each span across multiple tokens, or may be part of one token.
         :return: list
             A list of strings continuation
             continuation: str
@@ -60,6 +62,14 @@ class LM(abc.ABC):
 
 
 class Task(abc.ABC):
+    """A task represents an entire benchmark including its dataset, problems,
+    answers, and evaluation methods. See BoolQ for a simple example implementation
+
+    A `doc` can be any python object which represents one instance of evaluation.
+    This is usually a dictionary e.g.
+        {"question": ..., "answer": ...} or
+        {"question": ..., question, answer)
+    """
     def __init__(self):
         self.download()
         self._training_docs = None
@@ -147,9 +157,9 @@ class Task(abc.ABC):
     @abc.abstractmethod
     def aggregation(self):
         """
-        :returns: {str: [float] -> float}
+        :returns: {str: [metric_score] -> float}
             A dictionary where keys are the names of submetrics and values are 
-            functions that aggregate a list of metrics
+            functions that aggregate a list of metric scores
         """
         pass
 
@@ -212,62 +222,9 @@ class MultipleChoiceTask(Task):
         }
 
 
-def mean(arr):
-    return sum(arr) / len(arr)
-
-
-def median(arr):
-    return arr[len(arr) // 2]
-
-
-def matthews_corrcoef(items):
-    unzipped_list = list(zip(*items))
-    golds = unzipped_list[0]
-    preds = unzipped_list[1]
-    return sklearn.metrics.matthews_corrcoef(golds, preds)
-
-
-def f1_score(items):
-    unzipped_list = list(zip(*items))
-    golds = unzipped_list[0]
-    preds = unzipped_list[1]
-    fscore = sklearn.metrics.f1_score(golds, preds)
-
-    return np.max(fscore)
-
-
-def acc_all(items):
-    # Only count as correct if all answers are labeled correctly for each question
-    question_scoring_dict = {}
-    preds = list(zip(*items))[0]
-    docs = list(zip(*items))[1]
-
-    for doc, pred in zip(docs, preds):
-        question_id = doc["idx"]["question"]
-        if question_id not in question_scoring_dict:
-            question_scoring_dict[question_id] = []
-
-        gold_label = doc["label"] == 1
-        question_scoring_dict[question_id].append(gold_label == pred)
-            
-    acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
-    return acc
-
-
-def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
-    """Compute max metric between prediction and each ground truth."""
-    scores_for_ground_truths = []
-    for ground_truth in ground_truths:
-        score = metric_fn(prediction, ground_truth)
-        scores_for_ground_truths.append(score)
-    return max(scores_for_ground_truths)
-
-
-def perplexity(items):
-    return math.exp(-mean(items))
-
 req_ret_lens = {
     'loglikelihood': 2,
+    'greedy_until': None,
 }
 
 import os
@@ -275,13 +232,9 @@ import json
 import hashlib
 from sqlitedict import SqliteDict
 
-def hash_args(args):
-    dat = b""
-    for arg in args:
-        assert isinstance(arg, str) or isinstance(arg, int)
-        dat += str(arg).encode()
-        dat += b"\0"
-    return hashlib.sha256(dat).hexdigest()
+def hash_args(attr, args):
+    dat = json.dumps([attr] + list(args))
+    return hashlib.sha256(dat.encode('utf-8')).hexdigest()
 
 
 class CachingLM:
@@ -298,7 +251,7 @@ class CachingLM:
             
             # figure out which ones are cached and which ones are new
             for req in requests:
-                hsh = attr + '_' + hash_args(req)
+                hsh = hash_args(attr, req)
                 if hsh in self.dbdict:
                     ob = self.dbdict[hsh]
 
@@ -320,9 +273,9 @@ class CachingLM:
                 res[resptr] = r
 
                 # caching
-                hsh = attr + '_' + hash_args(req)
+                hsh = hash_args(attr, req)
                 self.dbdict[hsh] = r
-                
+            self.dbdict.commit()
 
             return res
         return fn
@@ -338,12 +291,19 @@ class Request:
         self.index = index
     
     def __iter__(self):
+        if req_ret_lens[self.type] is None:
+            raise IndexError('This request type does not return multiple arguments!')
         i = 0
         for i in range(req_ret_lens[self.type]):
             yield Request(self.type, self.args, i)
     
     def __getitem__(self, i):
+        if req_ret_lens[self.type] is None:
+            raise IndexError('This request type does not return multiple arguments!')
         return Request(self.type, self.args, i)
+    
+    def __eq__(self, other):
+        return self.type == other.type and self.args == other.args and self.index == other.index
 
 
 class RequestFactory:

@@ -1,9 +1,10 @@
 import numpy as np
-from lm_eval.base import rf, mean, f1_score, matthews_corrcoef
+from lm_eval.base import rf
+from ..metrics import mean, matthews_corrcoef, f1_score
 from scipy.stats import pearsonr, spearmanr
 from tqdm import auto as tqdm_lib
 from . common import HFTask, yesno
-
+from ..utils import general_detokenize
 
 # Single-Sentence Tasks
 
@@ -22,17 +23,18 @@ class CoLA(HFTask):
         return True
 
     def fewshot_description(self):
-        return "Does this sentence make sense?:\tTrue or False?"
+        # TODO
+        return ""
 
     def doc_to_text(self, doc):
-        return "Sentence: {}\nAnswer:".format(doc["sentence"])
+        return "{}\nQuestion: Does this sentence make sense?\nAnswer:".format(doc["sentence"])
 
     def doc_to_target(self, doc):
-        return " {}".format({1: "True", 0: "False"}[doc["label"]])
+        return " {}".format({1: "yes", 0: "no"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
+        ll_true, _ = rf.loglikelihood(ctx, " yes")
+        ll_false, _ = rf.loglikelihood(ctx, " no")
         return ll_true, ll_false
 
     def process_results(self, doc, results):
@@ -68,19 +70,19 @@ class SST(HFTask):
         return True
 
     def fewshot_description(self):
-        return "Indicate if each sentence is Positive or Negative."
+        return "Indicate if the sentiment of each sentence is positive or negative."
 
     def doc_to_text(self, doc):
-        return "sentence:\t{}\t\nanswer:".format(
-            doc["sentence"],
+        return "{}\nQuestion: Is this sentence positive or negative?\nAnswer:".format(
+            general_detokenize(doc["sentence"]),
         )
 
     def doc_to_target(self, doc):
-        return " {}".format({1: "Positive", 0: "Negative"}[doc["label"]])
+        return " {}".format({1: "positive", 0: "negative"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_positive, _ = rf.loglikelihood(ctx, " Positive")
-        ll_negative, _ = rf.loglikelihood(ctx, " Negative")
+        ll_positive, _ = rf.loglikelihood(ctx, " positive")
+        ll_negative, _ = rf.loglikelihood(ctx, " negative")
         return ll_positive, ll_negative
 
     def process_results(self, doc, results):
@@ -127,9 +129,9 @@ class MNLI(HFTask):
             return self.data["test_matched"]
 
     def doc_to_text(self, doc):
-        return "{}\nquestion:\t{}\tTrue, False or Neither?\nanswer:".format(
+        return "{}\nQuestion: {} True, False or Neither?\nAnswer:".format(
             doc["premise"],
-            doc["hypothesis"],
+            doc["hypothesis"].strip() + ('' if doc["hypothesis"].strip().endswith('.') else '.'),
         )
 
     def doc_to_target(self, doc):
@@ -187,7 +189,7 @@ class QNLI(HFTask):
         return True
 
     def doc_to_text(self, doc):
-        return "question:\t{}\nresponse:\t{}\nDoes this answer the question, Yes or No?:".format(
+        return "{}\n{}\nQuestion: Does this response answer the question?\nAnswer:".format(
             doc["question"],
             doc["sentence"],
         )
@@ -195,11 +197,11 @@ class QNLI(HFTask):
     def doc_to_target(self, doc):
         # True = entailment
         # False = not entailment
-        return " {}".format({0: "Yes", 1: "No"}[doc["label"]])
+        return " {}".format({0: "yes", 1: "no"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " Yes")
-        ll_no, _ = rf.loglikelihood(ctx, " No")
+        ll_yes, _ = rf.loglikelihood(ctx, " yes")
+        ll_no, _ = rf.loglikelihood(ctx, " no")
         return ll_yes, ll_no
 
     def process_results(self, doc, results):
@@ -235,7 +237,7 @@ class WNLI(HFTask):
         return True
 
     def doc_to_text(self, doc):
-        return "{}\nquestion:\t{}\tTrue, False or Neither?\nanswer:".format(
+        return "{}\nQuestion: {} True, False or Neither?\nAnswer:".format(
             doc["sentence1"],
             doc["sentence2"],
         )
@@ -284,7 +286,7 @@ class RTE(HFTask):
         return True
 
     def doc_to_text(self, doc):
-        return "{}\nquestion:\t{}\tTrue or False?\nanswer:".format(
+        return "{}\nQuestion: {} True or False?\nAnswer:".format(
             doc["sentence1"],
             doc["sentence2"],
         )
@@ -338,9 +340,9 @@ class MRPC(HFTask):
         return "Indicate if both sentences mean the same thing."
 
     def doc_to_text(self, doc):
-        return "sentence 1:\t{}\nsentence 2:\t{}\nanswer:".format(
-            doc["sentence1"],
-            doc["sentence2"],
+        return "Sentence 1: {}\nSentence 2: {}\nQuestion: Do both sentences mean the same thing?\nAnswer:".format(
+            general_detokenize(doc["sentence1"]),
+            general_detokenize(doc["sentence2"]),
         )
 
     def doc_to_target(self, doc):
@@ -390,7 +392,7 @@ class QQP(HFTask):
         return "Indicate if both questions ask the same thing."
 
     def doc_to_text(self, doc):
-        return "question 1:\t{}\nquestion 2:\t{}\nanswer:".format(
+        return "Question 1: {}\nQuestion 2: {}\nQuestion: Do both questions ask the same thing?\nAnswer:".format(
             doc["question1"],
             doc["question2"],
         )
@@ -443,7 +445,7 @@ class STSB(HFTask):
            "where 5 means identical and 0 means unrelated."
 
     def doc_to_text(self, doc):
-        return "sentence 1:\t{}\nsentence 2:\t{}\nanswer:".format(
+        return "sentence 1: {}\nsentence 2: {}\nAnswer:".format(
             doc["sentence1"],
             doc["sentence2"],
         )
