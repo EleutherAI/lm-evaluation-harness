@@ -51,7 +51,7 @@ class CoQA(Task):
         doc_text = doc["story"] + '\n\n'
         for (q, a) in zip_longest(doc["questions"], doc["answers"][:-1]):   # omit target answer ai
             question = f"Q: {q['input_text']}" + '\n\n'
-            answer = f"A: {a['input_text']}" + '\n\n' if a is not None else "A: "
+            answer = f"A: {a['input_text']}" + '\n\n' if a is not None else "A:"
             doc_text += question + answer
             print(doc_text)
         return doc_text
