@@ -1,8 +1,8 @@
 import abc
 import random
 import numpy as np
-import sklearn
-import math
+
+from lm_eval.metrics import mean
 
 
 class LM(abc.ABC):
@@ -30,6 +30,7 @@ class LM(abc.ABC):
         """
         pass
 
+    # TODO: Add an optional max length
     @abc.abstractmethod
     def greedy_until(self, requests):
         """Generate greedily until a stopping sequence
@@ -61,6 +62,14 @@ class LM(abc.ABC):
 
 
 class Task(abc.ABC):
+    """A task represents an entire benchmark including its dataset, problems,
+    answers, and evaluation methods. See BoolQ for a simple example implementation
+
+    A `doc` can be any python object which represents one instance of evaluation.
+    This is usually a dictionary e.g.
+        {"question": ..., "answer": ...} or
+        {"question": ..., question, answer)
+    """
     def __init__(self):
         self.download()
         self._training_docs = None
@@ -148,9 +157,9 @@ class Task(abc.ABC):
     @abc.abstractmethod
     def aggregation(self):
         """
-        :returns: {str: [float] -> float}
+        :returns: {str: [metric_score] -> float}
             A dictionary where keys are the names of submetrics and values are 
-            functions that aggregate a list of metrics
+            functions that aggregate a list of metric scores
         """
         pass
 
@@ -212,60 +221,6 @@ class MultipleChoiceTask(Task):
             "acc": mean
         }
 
-
-def mean(arr):
-    return sum(arr) / len(arr)
-
-
-def median(arr):
-    return arr[len(arr) // 2]
-
-
-def matthews_corrcoef(items):
-    unzipped_list = list(zip(*items))
-    golds = unzipped_list[0]
-    preds = unzipped_list[1]
-    return sklearn.metrics.matthews_corrcoef(golds, preds)
-
-
-def f1_score(items):
-    unzipped_list = list(zip(*items))
-    golds = unzipped_list[0]
-    preds = unzipped_list[1]
-    fscore = sklearn.metrics.f1_score(golds, preds)
-
-    return np.max(fscore)
-
-
-def acc_all(items):
-    # Only count as correct if all answers are labeled correctly for each question
-    question_scoring_dict = {}
-    preds = list(zip(*items))[0]
-    docs = list(zip(*items))[1]
-
-    for doc, pred in zip(docs, preds):
-        question_id = doc["idx"]["question"]
-        if question_id not in question_scoring_dict:
-            question_scoring_dict[question_id] = []
-
-        gold_label = doc["label"] == 1
-        question_scoring_dict[question_id].append(gold_label == pred)
-            
-    acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
-    return acc
-
-
-def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
-    """Compute max metric between prediction and each ground truth."""
-    scores_for_ground_truths = []
-    for ground_truth in ground_truths:
-        score = metric_fn(prediction, ground_truth)
-        scores_for_ground_truths.append(score)
-    return max(scores_for_ground_truths)
-
-
-def perplexity(items):
-    return math.exp(-mean(items))
 
 req_ret_lens = {
     'loglikelihood': 2,

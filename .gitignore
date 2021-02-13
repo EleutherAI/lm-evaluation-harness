@@ -1,4 +1,4 @@
 env
 *.pyc
 data/
-.idea
+lm_cache
