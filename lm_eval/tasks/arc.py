@@ -1,5 +1,7 @@
+import numpy as np
 from lm_eval.base import MultipleChoiceTask
-from .common import HFTask
+from ..metrics import mean
+from . common import HFTask
 
 
 class ARCEasy(HFTask, MultipleChoiceTask):
