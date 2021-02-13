@@ -1,7 +1,8 @@
 from . common import HFTask
-from lm_eval.base import mean, rf
+from lm_eval.base import MultipleChoiceTask
 
-class HeadQA(HFTask):
+
+class HeadQA(HFTask, MultipleChoiceTask):
     DATASET_PATH = "head_qa"
     DATASET_NAME = None
 
@@ -14,51 +15,34 @@ class HeadQA(HFTask):
     def has_test_docs(self):
         return True
 
+    def _convert_standard(self, doc):
+        out_doc = {
+            "id": doc["qid"],
+            "query": "Question: " + doc["qtext"] + "\nAnswer:",
+            "choices": [answer["atext"] for answer in doc["answers"]],
+            "gold": int(doc["ra"]) - 1,
+        }
+        return out_doc
+
+    def _load_docs(self, docs):
+        for doc in docs:
+            yield self._convert_standard(doc)
+
+    def training_docs(self):
+        docs = super().training_docs()
+        return self._load_docs(docs)
+
+    def validation_docs(self):
+        docs = super().validation_docs()
+        return self._load_docs(docs)
+
+    def test_docs(self):
+        docs = super().test_docs()
+        return self._load_docs(docs)
+
     def fewshot_description(self):
         # TODO: figure out description
         return ""
 
     def doc_to_text(self, doc):
-        return "Question: " + doc['qtext'] + '\nAnswer:'
-
-    def doc_to_target(self, doc):
-        # this picks one answer to be the "correct" one, despite sometimes 
-        # multiple correct answers being possible.
-        # TODO: make sure we're actually handling multi-answer correctly
-        return " " + doc['answers'][0]['atext']
-        
-    def _remove_prefixes(self, aliases):
-        # Optimization: Remove any alias that has a strict prefix elsewhere in the list
-        # we can do this because if the prefix is acceptable by isgreedy, we can stop looking
-        aliases.sort()
-        ret = [aliases[0]]
-        for alias in aliases[1:]:
-            if not alias.startswith(ret[-1]):
-                ret.append(alias)
-
-        return ret
-        
-
-    def construct_requests(self, doc, ctx):
-
-        ret = []
-        atexts = [x['atext'] for x in doc['answers']]
-        for alias in self._remove_prefixes(atexts):
-            _, is_prediction = rf.loglikelihood(ctx, " " + alias)
-            ret.append(is_prediction)
-        return ret
-
-    def process_results(self, doc, results):
-        return {
-            "acc": float(any(results))
-        }
-
-    def aggregation(self):
-        return {
-            "acc": mean,
-        }
-
-    def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return doc["query"]
