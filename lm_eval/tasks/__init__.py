@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from . import superglue
 from . import glue
 from . import arc
@@ -21,6 +23,7 @@ from . import pubmedqa
 from . import sciq
 from . import webqs
 from . import qa4mre
+from . import translation
 from . import headqa
 from . import mathqa
 
@@ -88,6 +91,11 @@ TASK_REGISTRY = {
     "arithmetic_2dm": arithmetic.Arithmetic2DMultiplication,
     "arithmetic_1dc": arithmetic.Arithmetic1DComposite,
 
+    # TODO Perhaps make these groups of tasks
+    #   e.g. anli, arithmetic, openai_translations, harness_translations
+
+    # e.g. wmt14-fr-en
+    **translation.create_tasks_from_benchmarks(translation.selected_benchmarks)
 }
 
 
@@ -95,7 +103,12 @@ ALL_TASKS = sorted(list(TASK_REGISTRY))
 
 
 def get_task(task_name):
-    return TASK_REGISTRY[task_name]
+    try:
+        return TASK_REGISTRY[task_name]
+    except KeyError as e:
+        print("Available tasks:")
+        pprint(TASK_REGISTRY)
+        raise KeyError(f"Missing task {task_name}")
 
 
 def get_task_dict(task_name_list):
