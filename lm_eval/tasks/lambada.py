@@ -9,7 +9,7 @@ class LAMBADA(Task):
     def download(self):
         sh("mkdir -p data/lambada")
         download_file(
-            "https://storage.googleapis.com/gpt-2/data/lambada_test.jsonl", 
+            "http://eaidata.bmk.sh/data/lambada_test.jsonl", 
             "data/lambada/lambada_test.jsonl", 
             "4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226"
         )
