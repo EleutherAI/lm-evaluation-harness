@@ -199,6 +199,14 @@ def print_available_tests():
     pprint({ts: sacrebleu.get_langpairs_for_testset(ts) for ts in sacrebleu.get_available_testsets()})
 
 
+def print_available_pairs():
+    list_of_pairs = [sacrebleu.get_langpairs_for_testset(ts) for ts in sacrebleu.get_available_testsets()]
+    pairs = set([item for sublist in list_of_pairs for item in sublist])
+    pairs = sorted(["-".join(map(code_to_language, pair.split("-"))) for pair in pairs])
+    pprint(pairs)
+    print(len(pairs))
+
+
 def main():
     # print(sacrebleu.download_test_set("wmt14", "en-fr"))
     # print_available_tests()
@@ -213,6 +221,7 @@ def main():
     # Test task dictionary
     # for task, task_class in create_tasks_from_benchmarks(selected_benchmarks).items():
     #     print(task, task_class())
+    print_available_pairs()
     pass
 
 
