@@ -5,6 +5,7 @@ import sacrebleu
 from . import superglue
 from . import glue
 from . import arc
+from . import coqa
 from . import race
 from . import webqs
 from . import anli
@@ -81,7 +82,7 @@ TASK_REGISTRY = {
     "wsc": superglue.SGWinogradSchemaChallenge,
     
     # Order by benchmark/genre?
-
+    "coqa": coqa.CoQA,
     "lambada": lambada.LAMBADA,
     "piqa": piqa.PiQA,
 
