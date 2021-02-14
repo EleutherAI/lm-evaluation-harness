@@ -272,30 +272,25 @@ class ReCoRD(HFTask):
     def training_docs(self):
         # In ReCoRD, each doc manifests multiple "examples" in the context of few shot example packing.
         # Each doc consists of multiple answer candidates, each of which is scored yes/no.
-        # Hence, we create one "doc" for each (context + passage, answer) pair.
-        # Moreover, we only use the correct answers for context packing
         if self._training_docs is None:
             self._training_docs = []
             for doc in self.data["train"]:
-                for entity in list(set(doc["entities"])):
-                    self._training_docs.append({
-                        "passage": doc["passage"],
-                        "query": doc["query"],
-                        "entity": entity,
-                        "label": entity in doc["answers"],
-                    })
+                self._training_docs.append(self._process_doc(doc))
         return self._training_docs
 
     def validation_docs(self):
-        for example_idx, doc in enumerate(self.data["validation"]):
-            for entity in sorted(list(set(doc["entities"]))):
-                yield {
-                    "passage": doc["passage"],
-                    "query": doc["query"],
-                    "entity": entity,
-                    "label": entity in doc["answers"],
-                    "example_idx": example_idx,
-                }
+        # See: training_docs
+        for doc in self.data["validation"]:
+            yield self._process_doc(doc)
+
+    @classmethod
+    def _process_doc(cls, doc):
+        return {
+            "passage": doc["passage"],
+            "query": doc["query"],
+            "entities": sorted(list(set(doc["entities"]))),
+            "answers": sorted(list(set(doc["answers"]))),
+        }
 
     def doc_to_text(self, doc):
         initial_text, *highlights = doc["passage"].strip().split("\n@highlight\n")
@@ -309,26 +304,31 @@ class ReCoRD(HFTask):
         return f'  - {query}'.replace("@placeholder", entity)
 
     def doc_to_target(self, doc):
-        return self.format_answer(query=doc["query"], entity=doc["entity"])
+        # We only output the first correct entity in a doc
+        return self.format_answer(query=doc["query"], entity=doc["answers"][0])
 
     def construct_requests(self, doc, ctx):
         requests = [
-            rf.loglikelihood(ctx, self.format_answer(query=doc["query"], entity=doc["entity"]))
+            rf.loglikelihood(ctx, self.format_answer(query=doc["query"], entity=entity))
+            for entity in doc["entities"]
         ]
         return requests
 
     def process_results(self, doc, results):
-        # We defer the actual meat of ReCoRD's evaluation until we start collating the results across "docs"
-        assert len(results) == 1
-        scoring_info = {
-            "example_idx": doc["example_idx"],
-            "pred_score": results[0][0],
-            "entity": doc["entity"],
-            "label": doc["label"],
-        }
+        # ReCoRD's evaluation is actually deceptively simple:
+        # - Pick the maximum likelihood prediction entity
+        # - Evaluate the accuracy and token F1 PER EXAMPLE
+        # - Average over all examples
+        max_idx = np.argmax(np.array([result[0] for result in results]))
+
+        prediction = doc["entities"][max_idx]
+        gold_label_set = doc["answers"]
+        f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, prediction, gold_label_set)
+        em = metric_max_over_ground_truths(squad_metrics.compute_exact, prediction, gold_label_set)
+
         return {
-            "f1": scoring_info,
-            "em": scoring_info,
+            "f1": f1,
+            "em": em,
         }
 
     def higher_is_better(self):
@@ -339,48 +339,9 @@ class ReCoRD(HFTask):
 
     def aggregation(self):
         return {
-            "f1": self.record_eval_em,
-            "em": self.record_eval_f1,
+            "f1": mean,
+            "em": mean,
         }
-
-    @classmethod
-    def record_eval_aggregation(cls, items, scoring_function):
-        # ReCoRD's evaluation is actually deceptively simple:
-        # - Pick the maximum likelihood prediction entity
-        # - Evaluate the accuracy and token F1 PER EXAMPLE
-        # - Average over all examples
-
-        # Reconstruct an example_idx -> example results mapping
-        # (remember, each example spans multiple docs)
-        example_dict = {}
-        for item in items:
-            example_idx = item["example_idx"]
-            if example_idx not in example_dict:
-                example_dict[example_idx] = []
-            example_dict[example_idx].append(item)
-
-        # Compute score for each example
-        score_list = []
-        for example in example_dict.values():
-            max_idx = int(np.argmax(np.array([result["pred_score"] for result in example])))
-            entities = [result["entity"] for result in example]
-            prediction = entities[max_idx]
-            gold_label_set = list(set(result["entity"] for result in example if result["label"]))
-            if not gold_label_set:
-                # When we limit the number of docs processed, some examples may not have any valid answers.
-                # We skip these example.
-                continue
-            per_example_score = metric_max_over_ground_truths(scoring_function, prediction, gold_label_set)
-            score_list.append(per_example_score)
-        return np.mean(score_list)
-
-    @classmethod
-    def record_eval_em(cls, items):
-        return cls.record_eval_aggregation(items, scoring_function=squad_metrics.compute_exact)
-
-    @classmethod
-    def record_eval_f1(cls, items):
-        return cls.record_eval_aggregation(items, scoring_function=squad_metrics.compute_f1)
 
 
 class WordsInContext(HFTask):
