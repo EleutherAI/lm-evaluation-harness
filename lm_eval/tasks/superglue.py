@@ -278,12 +278,12 @@ class ReCoRD(HFTask):
             self._training_docs = []
             for doc in self.data["train"]:
                 for entity in list(set(doc["entities"])):
-                    self._training_docs.append({
-                        "passage": doc["passage"],
-                        "query": doc["query"],
-                        "entity": entity,
-                        "label": entity in doc["answers"],
-                    })
+                    if entity in doc["answers"]:
+                        self._training_docs.append({
+                            "passage": doc["passage"],
+                            "query": doc["query"],
+                            "entity": entity,
+                        })
         return self._training_docs
 
     def validation_docs(self):
