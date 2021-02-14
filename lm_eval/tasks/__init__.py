@@ -1,5 +1,7 @@
 from pprint import pprint
 
+import sacrebleu
+
 from . import superglue
 from . import glue
 from . import arc
@@ -26,6 +28,36 @@ from . import qa4mre
 from . import translation
 from . import headqa
 from . import mathqa
+
+########################################
+# Translation tasks
+########################################
+
+# 6 total
+gpt3_translation_benchmarks = {
+    "wmt14": ['en-fr', 'fr-en'],  # French
+    "wmt16": ['en-ro', 'ro-en', 'de-en', 'en-de'],  # German, Romanian
+}
+
+
+# 28 total
+selected_translation_benchmarks = {
+    **gpt3_translation_benchmarks,
+    "wmt20": sacrebleu.get_langpairs_for_testset("wmt20"),
+    "iwslt17": ['en-ar', 'ar-en']  # Arabic
+}
+
+# 319 total
+all_translation_benchmarks = {
+    ts: sacrebleu.get_langpairs_for_testset(ts)
+    for ts in sacrebleu.get_available_testsets()
+}
+
+
+########################################
+# All tasks
+########################################
+
 
 TASK_REGISTRY = {
     # GLUE
@@ -90,12 +122,13 @@ TASK_REGISTRY = {
     "arithmetic_5ds": arithmetic.Arithmetic5DMinus,
     "arithmetic_2dm": arithmetic.Arithmetic2DMultiplication,
     "arithmetic_1dc": arithmetic.Arithmetic1DComposite,
-
     # TODO Perhaps make these groups of tasks
     #   e.g. anli, arithmetic, openai_translations, harness_translations
 
     # e.g. wmt14-fr-en
-    **translation.create_tasks_from_benchmarks(translation.selected_benchmarks)
+    **translation.create_tasks_from_benchmarks(gpt3_translation_benchmarks),
+    # chef's selection, mostly wmt20
+    **translation.create_tasks_from_benchmarks(selected_translation_benchmarks),
 }
 
 
