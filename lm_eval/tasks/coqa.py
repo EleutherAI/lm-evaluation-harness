@@ -53,7 +53,6 @@ class CoQA(Task):
             question = f"Q: {q['input_text']}" + '\n\n'
             answer = f"A: {a['input_text']}" + '\n\n' if a is not None else "A:"
             doc_text += question + answer
-            print(doc_text)
         return doc_text
         
     @classmethod
@@ -108,7 +107,7 @@ class CoQA(Task):
         if turnid is None:
             turnid = len(doc["questions"])
         raw_text = doc['answers'][turnid - 1]["input_text"]
-        return raw_text
+        return " " + raw_text
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of 
