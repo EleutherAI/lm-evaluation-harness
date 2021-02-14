@@ -2,6 +2,7 @@ import abc
 import json
 import random
 import os
+from collections import Iterable
 from pprint import pprint
 
 import pycountry
@@ -20,36 +21,9 @@ See sacrebleu.DATASETS for all available datasets. There are a lot!
 sacrebleu_datasets = sacrebleu.DATASETS
 
 
-########################################
-# Benchmarks one might want to run
-########################################
-
-# 6 total
-gpt3_benchmarks = {
-    "wmt14": ['en-fr', 'fr-en'],  # French
-    "wmt16": ['en-ro', 'ro-en', 'de-en', 'en-de'],  # German, Romanian
-}
-# 14 total
-selected_benchmarks = {
-    **gpt3_benchmarks,
-    "wmt20": ['fr-de', 'de-fr', 'en-ru', 'ru-en', 'en-iu', 'iu-en'],  # French, German, Russian, Inuit
-    "iwslt17": ['en-ar', 'ar-en']  # Arabic
-}
-# 319 total
-all_benchmarks = {
-    ts: sacrebleu.get_langpairs_for_testset(ts)
-    for ts in sacrebleu.get_available_testsets()
-}
-
-available_tests = {
-    "gpt3_tests": gpt3_benchmarks,
-    "selected_tests": selected_benchmarks,
-    "all_tests": all_benchmarks
-}
-
 def create_tasks_from_benchmarks(benchmark_dict):
     """Creates a dictionary of tasks from a dict
-    :param benchmark_dict: { dataset: [lang_pair, ...] }
+    :param benchmark_dict: { dataset: [lang_pair, ...], }
     :return: {task_name: task}
         e.g. {wmt14-fr-en: Task, wmt16-de-en: Task}
     """
@@ -115,9 +89,8 @@ class GeneralTranslationTask(Task):
         return doc["src"]
 
     def doc_to_target(self, doc):
-        # TODO Note that some exotic tests have multiple ref lines.
-        #  How does sacrebleu handle opening these files?
-        return doc["ref"]
+        # This shows a single target, though there may be multiple targets in a lang test
+        return doc["ref"] if isinstance(doc["ref"], str) else doc["ref"][0]
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of
@@ -199,6 +172,14 @@ def print_available_tests():
     pprint({ts: sacrebleu.get_langpairs_for_testset(ts) for ts in sacrebleu.get_available_testsets()})
 
 
+def print_available_pairs():
+    list_of_pairs = [sacrebleu.get_langpairs_for_testset(ts) for ts in sacrebleu.get_available_testsets()]
+    pairs = set([item for sublist in list_of_pairs for item in sublist])
+    pairs = sorted(["-".join(map(code_to_language, pair.split("-"))) for pair in pairs])
+    pprint(pairs)
+    print(len(pairs))
+
+
 def main():
     # print(sacrebleu.download_test_set("wmt14", "en-fr"))
     # print_available_tests()
@@ -213,12 +194,12 @@ def main():
     # Test task dictionary
     # for task, task_class in create_tasks_from_benchmarks(selected_benchmarks).items():
     #     print(task, task_class())
+    print_available_pairs()
     pass
 
 
 if __name__ == "__main__":
     main()
-
 
 
 ########################################
