@@ -60,7 +60,7 @@ class GPT2LM(LM):
         for context, until in tqdm(requests):
             if isinstance(until, str): until = [until]
 
-            context_enc = torch.tensor([self.tokenizer.encode(context)]).to(self.device)
+            context_enc = torch.tensor([self.tokenizer.encode(context)[self.MAX_GEN_TOKS - 1024:]]).to(self.device)
 
             primary_until, = self.tokenizer.encode(until[0])
 
