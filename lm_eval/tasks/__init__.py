@@ -29,6 +29,7 @@ from . import qa4mre
 from . import translation
 from . import headqa
 from . import mathqa
+from . import ethics
 
 ########################################
 # Translation tasks
@@ -112,6 +113,10 @@ TASK_REGISTRY = {
     "anli_r1": anli.ANLIRound1,
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
+
+    "ethics_cm": ethics.EthicsCM,
+    "ethics_deontology": ethics.EthicsDeontology,
+
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
     "arithmetic_2ds": arithmetic.Arithmetic2DMinus,
