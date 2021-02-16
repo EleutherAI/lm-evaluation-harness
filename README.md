@@ -51,6 +51,11 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 |anli_r1        |✓    |✓  |✓   |acc            |
 |anli_r2        |✓    |✓  |✓   |acc            |
 |anli_r3        |✓    |✓  |✓   |acc            |
+|ethics_cm        |✓    |✓  |✓   |acc            |
+|ethics_deontology        |✓    |✓  |✓   |acc            |
+|ethics_justice        |✓    |✓  |✓   |acc            |
+|ethics_utilitarianism   |✓    |✓  |✓   |acc            |
+|ethics_virtue        |✓    |✓  |✓   |acc            |
 |arithmetic_2da |     |✓  |    |acc            |
 |arithmetic_2ds |     |✓  |    |acc            |
 |arithmetic_3da |     |✓  |    |acc            |
