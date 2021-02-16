@@ -7,7 +7,6 @@ import abc
 import csv
 import os
 
-
 class Ethics(Task):
     def download(self):
         if not os.path.exists('data/ethics'):
