@@ -52,8 +52,10 @@ class GPT3LM(LM):
         self.engine = engine
         self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
 
+
         # to make the annoying "Using pad_token, but it is not set yet." error go away
         self.tokenizer.pad_token = "<|endoftext|>"
+        assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373]
         self.truncate = truncate
 
         # Read from environment variable OPENAI_API_SECRET_KEY
@@ -115,8 +117,12 @@ class GPT3LM(LM):
                 logprobs=10,
                 stop=until
             )
+            s = response.choices[0]['text']
 
-            res.append(response.choices[0]['text'])
+            for term in until:
+                s = s.split(term)[0]
+
+            res.append(s)
         
         return res
 
