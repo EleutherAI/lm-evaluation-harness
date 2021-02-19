@@ -16,6 +16,8 @@ class GPT2LM(LM):
         self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained(pretrained)
         self.tokenizer.pad_token = "<|endoftext|>"
 
+        assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373]
+
     @classmethod
     def create_from_arg_string(cls, arg_string):
         args = utils.simple_parse_args_string(arg_string)
