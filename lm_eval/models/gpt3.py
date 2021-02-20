@@ -135,7 +135,7 @@ class GPT3LM(LM):
             )
 
             for resp in response.choices:
-                s = response.choices[0]['text']
+                s = resp['text']
 
                 for term in until:
                     s = s.split(term)[0]
