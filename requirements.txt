@@ -9,3 +9,4 @@ sqlitedict==1.6.0
 pytablewriter==0.58.0
 sacrebleu==1.5.0
 pycountry==20.7.3
+numexpr==2.7.2
