@@ -93,7 +93,7 @@ class DROP(Task):
         dict where keys are the names of submetrics and values are the values of
         the metric for that one document
 
-        :param
+        :param doc:
             The document as returned from training_docs, validation_docs, or test_docs.
         :param results:
             The results of the requests created in construct_requests.
@@ -161,9 +161,8 @@ class DROP(Task):
     def aggregation(self):
         """
         :returns: {str: [float] -> float}
-           A dictionary where keys are the names of submetrics and values are
-           A dictionary where keys are the names of submetrics and values are
-           functions that aggregate a list of metrics
+            A dictionary where keys are the names of submetrics and values are
+            functions that aggregate a list of metrics
         """
         return {
             "em": mean,
@@ -173,9 +172,8 @@ class DROP(Task):
     def higher_is_better(self):
         """
         :returns: {str: bool}
-           A dictionary where keys are the names of submetrics and values are
-           A dictionary where keys are the names of submetrics and values are
-           whether a higher value of the submetric is better
+            A dictionary where keys are the names of submetrics and values are
+            whether a higher value of the submetric is better
         """
         return {
             "em": True,
