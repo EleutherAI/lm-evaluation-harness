@@ -9,6 +9,11 @@ from lm_eval.metrics import mean
 from pathlib import Path
 from zipfile import ZipFile
 
+"""
+Acknowledgement: This implementation is based on the official evaluation for `DROP`:
+https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_rc/eval/drop_eval.py
+"""
+
 
 class DROP(Task):
     DATAFOLDER = Path("data/drop")
