@@ -132,7 +132,7 @@ class DROP(Task):
             for pred_index, pred_bag in enumerate(pred_bags):
                 print(self._is_number_match(gold_bag, pred_bag))
                 if self._is_number_match(gold_bag, pred_bag):
-                    scores[gold_index, pred_index] = self._bag_f1(pred_bag, gold_bag)
+                    scores[gold_index, pred_index] = self._bag_f1(gold_bag, pred_bag)
         print(scores)
         row_ind, col_ind = linear_sum_assignment(-scores)
         max_scores = np.zeros([max(len(gold_bags), len(pred_bags))])
@@ -158,6 +158,7 @@ class DROP(Task):
         def tokenize(text):
             return re.split(" |-", text)
         tokens = [squad_metrics.normalize_answer(token) for token in tokenize(answer)]
+        tokens = [token for token in tokens if token.strip()]
         normalized = " ".join(tokens).strip()
         return normalized
 
