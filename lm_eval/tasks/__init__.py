@@ -29,7 +29,7 @@ from . import qa4mre
 from . import translation
 from . import headqa
 from . import mathqa
-from . import anagrams
+from . import unscramble
 
 ########################################
 # Translation tasks
@@ -133,8 +133,11 @@ TASK_REGISTRY = {
     **translation.create_tasks_from_benchmarks(selected_translation_benchmarks),
 
     # Word Scrambling and Manipulation Tasks
-    "anagrams1": anagrams.Anagrams1,
-    "anagrams2": anagrams.Anagrams2
+    "anagrams1": unscramble.Anagrams1,
+    "anagrams2": unscramble.Anagrams2,
+    "cycle_letters": unscramble.CycleLetters,
+    "random_insertion": unscramble.RandomInsertion,
+    "reversed_words": unscramble.ReversedWords,
 }
 
 
