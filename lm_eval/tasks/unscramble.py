@@ -48,10 +48,6 @@ class WordUnscrambleTask(Task):
     def fewshot_description(self):
         return "Please unscramble the letters into a word, and write that word:"
 
-    def fewshot_examples(self, k):
-        # Override to avoid error caused by missing `training_docs`.
-        return random.sample(list(self.validation_docs()), k)
-
     def doc_to_text(self, doc):
         return doc["context"]
 
