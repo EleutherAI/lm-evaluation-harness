@@ -19,7 +19,7 @@ from . import naturalqs
 from . import sat
 from . import arithmetic
 from . import lambada
-from . import race 
+from . import race
 from . import piqa
 from . import triviaqa
 from . import pubmedqa
@@ -29,6 +29,7 @@ from . import qa4mre
 from . import translation
 from . import headqa
 from . import mathqa
+from . import unscramble
 
 ########################################
 # Translation tasks
@@ -130,6 +131,13 @@ TASK_REGISTRY = {
     **translation.create_tasks_from_benchmarks(gpt3_translation_benchmarks),
     # chef's selection, mostly wmt20
     **translation.create_tasks_from_benchmarks(selected_translation_benchmarks),
+
+    # Word Scrambling and Manipulation Tasks
+    "anagrams1": unscramble.Anagrams1,
+    "anagrams2": unscramble.Anagrams2,
+    "cycle_letters": unscramble.CycleLetters,
+    "random_insertion": unscramble.RandomInsertion,
+    "reversed_words": unscramble.ReversedWords,
 }
 
 
