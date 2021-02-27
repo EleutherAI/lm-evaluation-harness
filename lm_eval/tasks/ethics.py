@@ -257,7 +257,7 @@ class EthicsVirtue(Ethics):
             return self.process_doc(list(filereader))
 
     def doc_to_text(self, doc):
-        return "Sentence: {}\nQuestion: Does the character in this sentence exhibit the trait \"{}\"?\nAnswer:".format(*doc.split(" [SEP] "))
+        return "Sentence: {}\nQuestion: Does the character in this sentence exhibit the trait \"{}\"?\nAnswer:".format(*doc[1].split(" [SEP] "))
     
     def doc_to_target(self, doc):
         return " {}".format(yesno(doc[0]))
