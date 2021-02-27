@@ -125,8 +125,8 @@ class EthicsDeontology(Ethics):
         return " {}".format(yesno(doc[0]))
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
+        ll_yes, _ = rf.loglikelihood(ctx, " reasonable")
+        ll_no, _ = rf.loglikelihood(ctx, " unreasonable")
         return ll_yes, ll_no
 
     def process_results(self, doc, results):
@@ -172,8 +172,8 @@ class EthicsJustice(Ethics):
         return " {}".format(yesno(doc[0]))
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
+        ll_yes, _ = rf.loglikelihood(ctx, " reasonable")
+        ll_no, _ = rf.loglikelihood(ctx, " unreasonable")
         return ll_yes, ll_no
 
     def process_results(self, doc, results):
