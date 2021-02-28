@@ -1,7 +1,7 @@
 import json
 import numpy as np
 import re
-import transformers.data.metrics.squad_metrics as squad_metrics
+import string
 from best_download import download_file
 from scipy.optimize import linear_sum_assignment
 from lm_eval.base import Task, rf
@@ -16,15 +16,18 @@ https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_r
 
 
 class DROP(Task):
-    DATAFOLDER = Path("data/drop")
-    URL = "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip"
+    DATASET_PATH = Path("data/drop")
 
     def download(self):
-        if self.DATAFOLDER.exists(): return
-        Path.mkdir(self.DATAFOLDER)
-        download_file(self.URL, to=str(self.DATAFOLDER / "drop_dataset.zip"))
-        with ZipFile(self.DATAFOLDER / "drop_dataset.zip", "r") as zip:
-            zip.extractall(self.DATAFOLDER)
+        if self.DATASET_PATH.exists():
+            return
+        Path.mkdir(self.DATASET_PATH)
+        url = "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip"
+        checksum = "39d2278a29fd729de301b111a45f434c24834f40df8f4ff116d864589e3249d6"
+        zip_path = self.DATASET_PATH / "drop_dataset.zip"
+        download_file(url, str(zip_path), checksum)
+        with ZipFile(zip_path, "r") as zip:
+            zip.extractall(self.DATASET_PATH)
 
     def has_training_docs(self):
         return True
@@ -61,15 +64,12 @@ class DROP(Task):
                           answers["date"]["year"]]).strip()]
 
     def training_docs(self):
-        docs = json.load(open(self.DATAFOLDER / "drop_dataset" / "drop_dataset_train.json"))
+        docs = json.load(open(self.DATASET_PATH / "drop_dataset" / "drop_dataset_train.json"))
         return self._load_docs([docs[k] for k in docs.keys()])
 
     def validation_docs(self):
-        docs = json.load(open(self.DATAFOLDER / "drop_dataset" / "drop_dataset_dev.json"))
+        docs = json.load(open(self.DATASET_PATH / "drop_dataset" / "drop_dataset_dev.json"))
         return self._load_docs([docs[k] for k in docs.keys()])
-
-    def test_docs(self):
-        pass
 
     def doc_to_text(self, doc):
         return f"Passage: {doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
@@ -103,44 +103,55 @@ class DROP(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        golds, preds = doc["answers"], results
-        exact_match = self._exact_match(golds, preds)
-        f1_score = self._f1_score(golds, preds)
+        preds, golds = results, doc["answers"]
+        exact_match, f1_score = self.get_metrics(preds, golds)
         return {
             "em": exact_match,
             "f1": f1_score
         }
 
-    def _exact_match(self, golds, preds):
-        """ Returns the exact match of normalized gold answers and predictions. """
-        normalized_golds = set([self._normalize(gold) for gold in golds])
-        normalized_preds = set([self._normalize(pred) for pred in preds])
-        return int(normalized_golds == normalized_preds)
+    def get_metrics(self, preds, golds):
+        exact_match = self._exact_match(preds, golds)
+        f1_score = self._f1_score(preds, golds)
+        return exact_match, f1_score
 
-    def _f1_score(self, golds, preds):
-        """Returns the average F1-score over normalized gold answers and predictions. """
-        gold_bags = self._answer_to_bags(golds)
+    def _exact_match(self, preds, golds):
+        """ Returns the exact match of normalized gold answers and predictions. """
+        normalized_preds = [self._normalize(pred) for pred in preds]
+        normalized_golds = [self._normalize(gold) for gold in golds]
+        is_equal_sets = set(normalized_preds) == set(normalized_golds)
+        is_equal_length = len(normalized_preds) == len(normalized_golds)
+        return int(is_equal_sets and is_equal_length)
+
+    def _f1_score(self, preds, golds):
+        """Returns the average F1-score over normalized gold answers and predictions.
+        From Section 5 of Dua et al. "DROP:...":
+        "When an answer has multiple spans, we first perform a one-to-one
+        alignment greedily based on bag-of-word overlap on the set of spans
+        and then compute average F1 over each span."
+        """
         pred_bags = self._answer_to_bags(preds)
-        f1_per_bag = self._align_bags(gold_bags, pred_bags)
+        gold_bags = self._answer_to_bags(golds)
+        f1_per_bag = self._align_bags(pred_bags, gold_bags)
         return np.mean(f1_per_bag)
 
     def _answer_to_bags(self, answers):
         return [set(self._normalize(answer).split()) for answer in answers]
 
-    def _align_bags(self, gold_bags, pred_bags):
+    def _align_bags(self, pred_bags, gold_bags):
         """ Returns the max metric value over all the answers. """
         scores = np.zeros([len(gold_bags), len(pred_bags)])
         for gold_index, gold_bag in enumerate(gold_bags):
             for pred_index, pred_bag in enumerate(pred_bags):
-                if self._is_number_match(gold_bag, pred_bag):
-                    scores[gold_index, pred_index] = self._bag_f1(gold_bag, pred_bag)
+                if self._is_number_match(pred_bag, gold_bag):
+                    scores[gold_index, pred_index] = self._bag_f1(pred_bag, gold_bag)
         row_ind, col_ind = linear_sum_assignment(-scores)
         max_scores = np.zeros([max(len(gold_bags), len(pred_bags))])
         for row, column in zip(row_ind, col_ind):
             max_scores[row] = max(max_scores[row], scores[row, column])
         return max_scores
 
-    def _bag_f1(self, gold_bag, pred_bag):
+    def _bag_f1(self, pred_bag, gold_bag):
         intersection = len(gold_bag.intersection(pred_bag))
         if intersection == 0:
             return 0.0
@@ -149,15 +160,45 @@ class DROP(Task):
         f1 = (2 * precision * recall) / (precision + recall)
         return f1
 
-    def _is_number_match(self, gold_bag, pred_bag):
-        gold_numbers = set(filter(lambda s: s.isnumeric(), list(gold_bag)))
-        pred_numbers = set(filter(lambda s: s.isnumeric(), list(pred_bag)))
-        return (not gold_numbers) or gold_numbers.intersection(pred_numbers)
+    def _is_number_match(self, pred_bag, gold_bag):
+        pred_numbers = set([word for word in pred_bag if self._is_number(word)])
+        gold_numbers = set([word for word in gold_bag if self._is_number(word)])
+        if (not gold_numbers) or gold_numbers.intersection(pred_numbers):
+            return True
+        return False
+
+    def _is_number(self, text):
+        try:
+            float(text)
+            return True
+        except ValueError:
+            return False
 
     def _normalize(self, answer):
+        def remove_articles(text):
+            regex = re.compile(r"\b(a|an|the)\b", re.UNICODE)
+            return re.sub(regex, " ", text)
+
+        def white_space_fix(text):
+            return " ".join(text.split())
+
+        def remove_punc(text):
+            exclude = set(string.punctuation)
+            if not self._is_number(text):
+                return "".join(ch for ch in text if ch not in exclude)
+            else:
+                return text
+
+        def fix_number(text):
+            return str(float(text)) if self._is_number(text) else text
+
         def tokenize(text):
             return re.split(" |-", text)
-        tokens = [squad_metrics.normalize_answer(token) for token in tokenize(answer)]
+
+        tokens = [
+            white_space_fix(remove_articles(fix_number(remove_punc(token.lower()))))
+            for token in tokenize(answer)
+        ]
         tokens = [token for token in tokens if token.strip()]
         normalized = " ".join(tokens).strip()
         return normalized
