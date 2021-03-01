@@ -256,9 +256,6 @@ class EthicsUtilitarianism(Ethics):
         requests_b = [rf.loglikelihood(ctx[1], f" {str(i)}")[0] for i in range(1, 11)]
         requests_a.extend(requests_b)
 
-        print(ctx[0])
-        print(ctx[1])
-
         return requests_a
 
     def process_results(self, doc, results):
