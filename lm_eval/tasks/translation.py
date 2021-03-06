@@ -145,12 +145,6 @@ class GeneralTranslationTask(Task):
         tar_lang = code_to_language(language_codes[1])
         return f"Translate these {src_lang} phrases to {tar_lang}."
 
-    # TODO This should be something like
-    #   French: {src_line}
-    #   English: {ref_line}
-    def fewshot_context(self, doc, num_fewshot, provide_description):
-        return ""
-
     def __str__(self):
         language_codes = self.sacrebleu_language_pair.split("-")
         src_lang = code_to_language(language_codes[0])

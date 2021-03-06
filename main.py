@@ -30,6 +30,9 @@ def main():
     np.random.seed(args.seed)
 
     lm = models.get_model(args.model).create_from_arg_string(args.model_args)
+    
+    if args.limit:
+        print("WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.")
 
     if not args.no_cache:
         lm = base.CachingLM(lm, 'lm_cache/' + args.model + '_' + args.model_args.replace('=', '-').replace(',', '_') + '.db')
