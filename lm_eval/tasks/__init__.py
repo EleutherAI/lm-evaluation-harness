@@ -117,8 +117,8 @@ TASK_REGISTRY = {
     "ethics_cm": ethics.EthicsCM,
     "ethics_deontology": ethics.EthicsDeontology,
     "ethics_justice": ethics.EthicsJustice,
+    "ethics_utilitarianism_original": ethics.EthicsUtilitarianismOriginal,
     "ethics_utilitarianism": ethics.EthicsUtilitarianism,
-    "ethics_utilitarianismv2": ethics.EthicsUtilitarianismV2,
     "ethics_virtue": ethics.EthicsVirtue,
 
     # arithmetic
