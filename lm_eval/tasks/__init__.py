@@ -29,6 +29,7 @@ from . import qa4mre
 from . import translation
 from . import headqa
 from . import mathqa
+from . import drop
 from . import unscramble
 
 ########################################
@@ -84,6 +85,7 @@ TASK_REGISTRY = {
     
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
+    "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
     "piqa": piqa.PiQA,
 
