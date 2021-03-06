@@ -22,6 +22,7 @@ class GPT2LM(LM):
         return cls(device=args.get("device", "cpu"), pretrained=args.get("pretrained", "gpt2"))
 
     def loglikelihood(self, requests):
+        # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
         with torch.no_grad():
             # TODO: vectorize properly
