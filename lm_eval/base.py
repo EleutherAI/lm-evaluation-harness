@@ -305,6 +305,8 @@ class Request:
     def __eq__(self, other):
         return self.type == other.type and self.args == other.args and self.index == other.index
 
+    def __repr__(self):
+        return f"Req_{self.type}{self.args}[{self.index}]\n"
 
 class RequestFactory:
     def __getattr__(self, attr):
