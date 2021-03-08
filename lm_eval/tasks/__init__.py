@@ -32,6 +32,7 @@ from . import mathqa
 from . import ethics
 from . import drop
 from . import unscramble
+from . import logiqa
 
 ########################################
 # Translation tasks
@@ -102,6 +103,7 @@ TASK_REGISTRY = {
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
     # "quac": quac.QuAC, # not implemented yet
+    "logiqa": logiqa.LogiQA,
     "hellaswag": hellaswag.HellaSwag, # not implemented yet
     "openbookqa": openbookqa.OpenBookQA,
     # "sat": sat.SATAnalogies, # not implemented yet

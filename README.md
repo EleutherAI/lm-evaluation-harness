@@ -41,6 +41,7 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 |qa4mre_2013                   |     |   |✓   |acc            |
 |arc_easy                      |✓    |✓  |✓   |acc            |
 |arc_challenge                 |✓    |✓  |✓   |acc            |
+|logiqa                        |✓    |✓  |✓   |acc            |
 |hellaswag                     |✓    |✓  |    |acc            |
 |openbookqa                    |✓    |✓  |✓   |acc            |
 |race                          |✓    |✓  |✓   |acc            |
