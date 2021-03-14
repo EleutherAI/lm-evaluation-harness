@@ -59,6 +59,7 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 |ethics_utilitarianism_original|✓    |✓  |✓   |acc            |
 |ethics_utilitarianism         |✓    |✓  |✓   |acc            |
 |ethics_virtue                 |✓    |✓  |✓   |acc, em        |
+|math			       |✓    |✓  |✓   |acc           |
 |arithmetic_2da                |     |✓  |    |acc            |
 |arithmetic_2ds                |     |✓  |    |acc            |
 |arithmetic_3da                |     |✓  |    |acc            |
