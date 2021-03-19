@@ -37,7 +37,6 @@ class Math(Task):
 
         for doc in self._testing_docs:
             doc["answer"] = self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
-        self._testing_docs = self._testing_docs[200:300]
 
     def has_training_docs(self):
         return True
@@ -87,7 +86,6 @@ class Math(Task):
 
     def process_results(self, doc, results):
         retval = 0
-        print(results)
         indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
         if len(indices) <= 1:
             answer = results[0]
@@ -271,25 +269,20 @@ class Math(Task):
     def strip_string(self, string):
         # linebreaks  
         string = string.replace("\n", "")
-        #print(string)
 
         # remove inverse spaces
         string = string.replace("\\!", "")
-        #print(string)
 
         # replace \\ with \
         string = string.replace("\\\\", "\\")
-        #print(string)
 
         # replace tfrac and dfrac with frac
         string = string.replace("tfrac", "frac")
         string = string.replace("dfrac", "frac")
-        #print(string)
 
         # remove \left and \right
         string = string.replace("\\left", "")
         string = string.replace("\\right", "")
-        #print(string)
         
         # Remove circ (degrees)
         string = string.replace("^{\\circ}", "")
