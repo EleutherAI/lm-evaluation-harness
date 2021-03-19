@@ -37,6 +37,7 @@ class Math(Task):
 
         for doc in self._testing_docs:
             doc["answer"] = self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
+        self._testing_docs = self._testing_docs[200:300]
 
     def has_training_docs(self):
         return True
@@ -57,7 +58,7 @@ class Math(Task):
         return self._testing_docs
 
     def fewshot_examples(self, k):
-        assert k <= 7, "There are only 7 possible shots for this task."
+        assert k <= 8, "There are only 8 possible shots for this task."
         prompts = [
             {"problem": "What is $\left(\\frac{7}{8}\\right)^3 \cdot \left(\\frac{7}{8}\\right)^{-3}$?", "answer": "$1$"},
             {"problem": "In how many ways can 4 books be selected from a shelf of 6 books if the order in which the books are selected does not matter?", "answer": "$15$"},
@@ -86,8 +87,12 @@ class Math(Task):
 
     def process_results(self, doc, results):
         retval = 0
+        print(results)
         indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-        answer = results[0][indices[0]+1:indices[-1]]
+        if len(indices) <= 1:
+            answer = results[0]
+        else:
+            answer = results[0][indices[0]+1:indices[-1]]
 
         if self.is_equiv(answer, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))):
             retval = 1
