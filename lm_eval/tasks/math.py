@@ -18,7 +18,7 @@ class Math(Task):
 
     @abc.abstractmethod
     def get_file_info(self):
-        """returns a tuple of (file_name)"""
+        """returns directory name"""
         pass
 
     def set_docs(self):
