@@ -37,6 +37,8 @@ class Math(Task):
 
         for doc in self._testing_docs:
             doc["answer"] = self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
+        self._testing_docs = self._testing_docs[:25]
+
 
     def has_training_docs(self):
         return True
@@ -230,24 +232,6 @@ class Math(Task):
         else:
             return string
 
-    def order(self, string):
-        if "(" in string or ")" in string or "[" in string or "]" in string or ", " not in string:
-            return string
-
-        # otherwise, split by "," and sort
-        # ASSUMES commas have been removed from number representation (and spaces have been removed)
-        splits = string.split(", ")
-        splits = sorted(splits)
-        new_str = ""
-        for split in splits:
-            new_str += split + ", "
-        new_str = new_str[:-2]  # remove last ","
-        try:
-            assert new_str[-2:] != ", "  # for testing
-        except:
-            return string
-        return new_str
-
     def fix_sqrt(self, string):
         if "\\sqrt" not in string:
             return string
@@ -292,7 +276,7 @@ class Math(Task):
         string = string.replace("\\$", "")
         
         # remove units (on the right)
-        string = remove_right_units(string)
+        string = self.remove_right_units(string)
 
 
         # remove percentage
