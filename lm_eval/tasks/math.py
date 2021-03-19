@@ -37,7 +37,6 @@ class Math(Task):
 
         for doc in self._testing_docs:
             doc["answer"] = self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
-        self._testing_docs = self._testing_docs[:25]
 
 
     def has_training_docs(self):
