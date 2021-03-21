@@ -33,7 +33,7 @@ from . import ethics
 from . import drop
 from . import unscramble
 from . import logiqa
-from . import hendrycks
+from . import hendrycks_test
 
 ########################################
 # Translation tasks
@@ -142,7 +142,7 @@ TASK_REGISTRY = {
     #   e.g. anli, arithmetic, openai_translations, harness_translations
 
     # hendrycksTest (57 tasks)
-    **hendrycks.create_all_tasks(),
+    **hendrycks_test.create_all_tasks(),
 
     # e.g. wmt14-fr-en
     **translation.create_tasks_from_benchmarks(gpt3_translation_benchmarks),
