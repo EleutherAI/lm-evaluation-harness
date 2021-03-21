@@ -33,6 +33,7 @@ from . import ethics
 from . import drop
 from . import unscramble
 from . import logiqa
+from . import hendrycks
 
 ########################################
 # Translation tasks
@@ -139,6 +140,9 @@ TASK_REGISTRY = {
     "arithmetic_1dc": arithmetic.Arithmetic1DComposite,
     # TODO Perhaps make these groups of tasks
     #   e.g. anli, arithmetic, openai_translations, harness_translations
+
+    # hendrycksTest (57 tasks)
+    **hendrycks.create_all_tasks(),
 
     # e.g. wmt14-fr-en
     **translation.create_tasks_from_benchmarks(gpt3_translation_benchmarks),
