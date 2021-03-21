@@ -44,9 +44,10 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         if not os.path.exists(self.data_dir):
             sh("""
                 mkdir -p data
-                wget https://people.eecs.berkeley.edu/~hendrycks/hendrycksTest.tar.gz -P data/
-                tar -xf data/hendrycksTest.tar.gz -C data/
-                rm data/hendrycksTest.tar.gz
+                wget https://people.eecs.berkeley.edu/~hendrycks/data.tar -P data/
+                tar -xf data/data.tar -C data/
+                rm data/data.tar
+                mv data/data data/hendrycksTest
                 """)
 
     def has_training_docs(self):
@@ -89,8 +90,9 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         
     def training_docs(self):
         docs = []
-        # Use all files in the train, dev, val directories (including some UnifiedQA MC tasks)
-        for train_dir in ["train", "dev", "val"]:
+        # Use all files in the auxiliary_train, dev, val directories
+        # auxiliary_train includes some UnifiedQA MC tasks
+        for train_dir in ["auxiliary_train", "dev", "val"]:
             train_dir = os.path.join(self.data_dir, train_dir)
             for f in os.listdir(train_dir):
                 filename = os.path.join(train_dir, f)
