@@ -20,10 +20,10 @@ CHOICES = ['A','B','C','D']
 def create_all_tasks():
     """Creates a dictionary of tasks from a list of subjects
     :return: {task_name: task}
-        e.g. {hendrycks-abstract_algebra: Task, hendrycks-anatomy: Task}
+        e.g. {hendrycksTest-abstract_algebra: Task, hendrycksTest-anatomy: Task}
     """
     return {
-        f"hendrycks-{sub}": create_task(sub) for sub in SUBJECTS
+        f"hendrycksTest-{sub}": create_task(sub) for sub in SUBJECTS
     }
 
 def create_task(subject):
@@ -40,14 +40,14 @@ class GeneralHendrycksTest(Task):
 
     def download(self):
         
-        self.data_dir = "data/hendrycks/"
+        self.data_dir = "data/hendrycksTest/"
         if not os.path.exists(self.data_dir):
             sh("""
                 mkdir -p data
                 wget https://people.eecs.berkeley.edu/~hendrycks/data.tar -P data/
                 tar -xf data/data.tar -C data/
                 rm data/data.tar
-                mv data/data data/hendrycks
+                mv data/data data/hendrycksTest
                 """)
 
     def has_training_docs(self):
