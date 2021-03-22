@@ -60,10 +60,24 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         return True
 
     def _convert_standard(self, doc):
+        def format_example(doc, choices):
+            """
+                Question: <prompt>
+                A. <choice1>
+                B. <choice2>
+                C. <choice3>
+                D. <choice4>
+                Answer:
+            """
+            prompt = "Question: " + doc[0]
+            prompt += " ".join([f"\n{choices[j]}. {doc[j+1]}" for j in range(4)])
+            prompt += "\nAnswer:"
+            return prompt
+        choices = ['A', 'B', 'C', 'D']
         return {
-            "query": "Question: " + doc[0] + "\nAnswer:",
+            "query": format_example(doc, choices),
             "choices": doc[1:5],
-            "gold": ['A', 'B', 'C', 'D'].index(doc[5])
+            "gold": choices.index(doc[5])
         }
 
     def _load_docs(self, filename):
