@@ -21,7 +21,8 @@ class DummyLM(LM):
     def greedy_until(self, requests):
         res = []
         
-        for _ in requests:
+        for ctx, _ in requests:
             res.append("lol")
+            assert ctx.strip() != ''
 
         return res
