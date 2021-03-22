@@ -30,10 +30,27 @@ class LogiQA(MultipleChoiceTask):
         return True
 
     def _convert_standard(self, doc):
+        def format_example(doc, choices):
+            """
+                Passage: <passage>
+                Question: <question>
+                A. <choice1>
+                B. <choice2>
+                C. <choice3>
+                D. <choice4>
+                Answer:
+            """
+            prompt = "Passage: " + doc["passage"] + "\n"
+            prompt += "Question: " + doc["question"] + "\n"
+            for choice, option in zip(choices, doc["options"]):
+                prompt += f"{choice.upper()}. {option}\n"
+            prompt += "Answer:"
+            return prompt
+        choices = ['a', 'b', 'c', 'd']
         return {
-            "query": "Passage: " + doc["passage"] + "\nQuestion: " + doc["question"] + "\nAnswer:",
+            "query": format_example(doc, choices),
             "choices": doc["options"],
-            "gold": ["a", "b", "c", "d"].index(doc["answerKey"])
+            "gold": choices.index(doc["answerKey"])
         }
 
     def _load_docs(self, filename):
