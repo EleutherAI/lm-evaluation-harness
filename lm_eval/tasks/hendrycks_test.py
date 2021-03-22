@@ -54,7 +54,7 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         return True
 
     def has_validation_docs(self):
-        return False
+        return True
 
     def has_test_docs(self):
         return True
@@ -69,9 +69,9 @@ class GeneralHendrycksTest(MultipleChoiceTask):
                 D. <choice4>
                 Answer:
             """
-            prompt = "Question: " + doc[0]
-            prompt += " ".join([f"\n{choices[j]}. {doc[j+1]}" for j in range(4)])
-            prompt += "\nAnswer:"
+            prompt = "Question: " + doc[0] + "\n"
+            prompt += "".join([f"{choices[j]}. {doc[j+1]}\n" for j in range(4)])
+            prompt += "Answer:"
             return prompt
         choices = ['A', 'B', 'C', 'D']
         return {
@@ -85,16 +85,12 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         return (self._convert_standard(doc) for doc in reader)
 
     def training_docs(self):
-        # Use all files in the auxiliary_train, dev, val directories
-        # auxiliary_train includes some UnifiedQA MC tasks
-        docs = []
-        for train_dir in ["auxiliary_train", "dev", "val"]:
-            for f in (self.DATASET_PATH / train_dir).iterdir():
-                docs.extend(self._load_docs(f))
-        return docs
+        filename = self.DATASET_PATH / "dev" / f"{self.subject}_dev.csv"
+        return self._load_docs(filename)
 
     def validation_docs(self):
-        raise NotImplementedError
+        filename = self.DATASET_PATH / "val" / f"{self.subject}_val.csv"
+        return self._load_docs(filename)
 
     def test_docs(self):
         filename = self.DATASET_PATH / "test" / f"{self.subject}_test.csv"
