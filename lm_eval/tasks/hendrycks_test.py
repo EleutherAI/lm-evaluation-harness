@@ -85,8 +85,11 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         return (self._convert_standard(doc) for doc in reader)
 
     def training_docs(self):
-        filename = self.DATASET_PATH / "dev" / f"{self.subject}_dev.csv"
-        return self._load_docs(filename)
+        docs = []
+        for train_dir in ["auxiliary_train", "dev"]:
+            for f in (self.DATASET_PATH / train_dir).iterdir():
+                docs.extend(self._load_docs(f))
+        return docs
 
     def validation_docs(self):
         filename = self.DATASET_PATH / "val" / f"{self.subject}_val.csv"
