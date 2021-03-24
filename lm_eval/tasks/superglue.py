@@ -5,7 +5,8 @@ To-do:
 """
 import numpy as np
 from . common import HFTask, yesno
-from lm_eval.base import rf, mean, acc_all, metric_max_over_ground_truths
+from lm_eval.base import rf
+from ..metrics import mean, acc_all, metric_max_over_ground_truths
 import sklearn
 import transformers.data.metrics.squad_metrics as squad_metrics
 from ..utils import general_detokenize
@@ -218,7 +219,7 @@ class MultiRC(HFTask):
         return f"{doc['paragraph']}\nQuestion: {doc['question']}\nAnswer:"
 
     def doc_to_target(self, doc):
-        return self.format_answer(answer=doc["answer"], label=doc["label"])
+        return " " + self.format_answer(answer=doc["answer"], label=doc["label"])
 
     @staticmethod
     def format_answer(answer, label):
@@ -271,30 +272,25 @@ class ReCoRD(HFTask):
     def training_docs(self):
         # In ReCoRD, each doc manifests multiple "examples" in the context of few shot example packing.
         # Each doc consists of multiple answer candidates, each of which is scored yes/no.
-        # Hence, we one "doc" for each (context + passage, answer) pair.
-        # Moreover, we only use the correct answers for context packing
-        # (This is not an issue for evaluation, where we can directly score multiple candidates at once).
         if self._training_docs is None:
             self._training_docs = []
             for doc in self.data["train"]:
-                for entity in list(set(doc["entities"])):
-                    self._training_docs.append({
-                        "passage": doc["passage"],
-                        "query": doc["query"],
-                        "entity": entity,
-                        "label": entity in doc["answers"],
-                    })
+                self._training_docs.append(self._process_doc(doc))
         return self._training_docs
 
     def validation_docs(self):
+        # See: training_docs
         for doc in self.data["validation"]:
-            for entity in list(set(doc["entities"])):
-                yield {
-                    "passage": doc["passage"],
-                    "query": doc["query"],
-                    "entity": entity,
-                    "label": entity in doc["answers"],
-                }
+            yield self._process_doc(doc)
+
+    @classmethod
+    def _process_doc(cls, doc):
+        return {
+            "passage": doc["passage"],
+            "query": doc["query"],
+            "entities": sorted(list(set(doc["entities"]))),
+            "answers": sorted(list(set(doc["answers"]))),
+        }
 
     def doc_to_text(self, doc):
         initial_text, *highlights = doc["passage"].strip().split("\n@highlight\n")
@@ -308,12 +304,13 @@ class ReCoRD(HFTask):
         return f'  - {query}'.replace("@placeholder", entity)
 
     def doc_to_target(self, doc):
-        return self.format_answer(query=doc["query"], entity=doc["entity"])
+        # We only output the first correct entity in a doc
+        return self.format_answer(query=doc["query"], entity=doc["answers"][0])
 
     def construct_requests(self, doc, ctx):
         requests = [
             rf.loglikelihood(ctx, self.format_answer(query=doc["query"], entity=entity))
-            for entity in doc["entity"]
+            for entity in doc["entities"]
         ]
         return requests
 
@@ -322,10 +319,10 @@ class ReCoRD(HFTask):
         # - Pick the maximum likelihood prediction entity
         # - Evaluate the accuracy and token F1 PER EXAMPLE
         # - Average over all examples
-        max_idx = np.argmax(np.array(results))
+        max_idx = np.argmax(np.array([result[0] for result in results]))
 
         prediction = doc["entities"][max_idx]
-        gold_label_set = list(set(doc["answers"]))
+        gold_label_set = doc["answers"]
         f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, prediction, gold_label_set)
         em = metric_max_over_ground_truths(squad_metrics.compute_exact, prediction, gold_label_set)
 

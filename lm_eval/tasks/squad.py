@@ -1,5 +1,7 @@
 import datasets
-from lm_eval.base import rf, f1_score, mean
+from math import exp
+from lm_eval.base import rf
+from lm_eval.metrics import f1_score, mean
 from . common import HFTask
 
 class SQuAD(HFTask):
@@ -26,7 +28,7 @@ class SQuAD(HFTask):
         return ""
 
     def doc_to_text(self, doc):
-        return 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Q: ' + doc['question'] + '\n\n' + 'A:'
+        return 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Question: ' + doc['question'] + '\n\n' + 'Answer:'
 
     def doc_to_target(self, doc):
         answer_list = doc['answers']['text']
@@ -48,7 +50,8 @@ class SQuAD(HFTask):
             part of the document for `doc`. 
         """
         continuation = rf.greedy_until(ctx, ['\n'])
-        return continuation
+        is_unanswerable = rf.loglikelihood(ctx, [' unanswerable'])
+        return continuation, is_unanswerable
     
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a 
@@ -62,15 +65,22 @@ class SQuAD(HFTask):
         """
         squad_metric = datasets.load_metric("squad_v2")
 
-        predictions = {
-            'id': doc['id'],
-            'prediction_text': results[0],
-        }
+        continuation, is_unanswerable = results
 
-        references = {
+        logprob_unanswerable, is_greedy = is_unanswerable
+
+        no_answer_probability = exp(logprob_unanswerable)
+        
+        predictions = [{
+            'id': doc['id'],
+            'prediction_text': continuation,
+            'no_answer_probability': no_answer_probability,
+        }]
+
+        references = [{
             'id': doc['id'],
             'answers': doc['answers'],
-        }
+        }]
 
         metrics = squad_metric.compute(predictions=predictions, references=references)
 

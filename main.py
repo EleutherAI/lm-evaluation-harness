@@ -20,7 +20,7 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--output_path', default=None)
     parser.add_argument('--limit', type=int, default=None)
-    parser.add_argument('--cache', action="store_true")
+    parser.add_argument('--no_cache', action="store_true")
     return parser.parse_args()
 
 def main():
@@ -30,8 +30,11 @@ def main():
     np.random.seed(args.seed)
 
     lm = models.get_model(args.model).create_from_arg_string(args.model_args)
+    
+    if args.limit:
+        print("WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.")
 
-    if args.cache:
+    if not args.no_cache:
         lm = base.CachingLM(lm, 'lm_cache/' + args.model + '_' + args.model_args.replace('=', '-').replace(',', '_') + '.db')
     if args.tasks == "all_tasks":
         task_names = tasks.ALL_TASKS
