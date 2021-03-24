@@ -19,5 +19,10 @@ class DummyLM(LM):
         return res
     
     def greedy_until(self, requests):
-        # TODO: implement
-        pass
+        res = []
+        
+        for ctx, _ in requests:
+            res.append("lol")
+            assert ctx.strip() != ''
+
+        return res
