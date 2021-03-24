@@ -38,23 +38,22 @@ class Math(Task):
     def has_test_docs(self):
         return True
 
-    def training_docs(self):
-        path = self.DATASET_PATH / "train" / self.get_file_info()
-        for file in path.iterdir():
-            with open(file) as f:
-                yield json.load(f)
-
-    def validation_docs(self):
-        return NotImplemented
-
-    def test_docs(self):
-        path = self.DATASET_PATH / "test" / self.get_file_info()
+    def _load_docs(self, path):
         for file in path.iterdir():
             with open(file) as f:
                 doc = json.load(f)
                 doc["answer"] = self.remove_boxed(
                     self.last_boxed_only_string(doc["solution"]))
                 yield doc
+
+    def training_docs(self):
+        return self._load_docs(self.DATASET_PATH / "train" / self.get_file_info())
+
+    def validation_docs(self):
+        return NotImplemented
+
+    def test_docs(self):
+        return self._load_docs(self.DATASET_PATH / "test" / self.get_file_info())
 
     def fewshot_description(self):
         return "Given a mathematics problem, determine the answer. Simplify your answer as much as possible."
