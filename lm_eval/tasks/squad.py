@@ -50,7 +50,7 @@ class SQuAD(HFTask):
             part of the document for `doc`. 
         """
         continuation = rf.greedy_until(ctx, ['\n'])
-        is_unanswerable = rf.loglikelihood(ctx, [' unanswerable'])
+        is_unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
         return continuation, is_unanswerable
     
     def process_results(self, doc, results):
