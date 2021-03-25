@@ -100,9 +100,12 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         return self._load_docs(filename)
 
     def fewshot_examples(self, k):
-        assert k <= 5, "Maximum 5 few shot examples."
+        # fewshot_examples is not just sampling from train_docs because dev is 
+        # in the same distribution as val/test but auxiliary_train isn't
         filename = self.DATASET_PATH / "dev" / f"{self.subject}_dev.csv"
-        return random.sample(list(self._load_docs(filename)), k)
+        rnd = random.Random()
+        rnd.seed(42)
+        return rnd.sample(list(self._load_docs(filename)), k)
 
     def fewshot_description(self):
         subject = self.subject.replace("_", " ")
