@@ -117,7 +117,9 @@ class Task(abc.ABC):
     def fewshot_examples(self, k):
         if self._training_docs is None:
             self._training_docs = list(self.training_docs())
-        return random.sample(self._training_docs, k)
+        rnd = random.Random()
+        rnd.seed(42)
+        return rnd.sample(self._training_docs, k)
 
     @abc.abstractmethod
     def doc_to_text(self, doc):
