@@ -33,6 +33,7 @@ from . import ethics
 from . import drop
 from . import unscramble
 from . import logiqa
+from . import math
 
 ########################################
 # Translation tasks
@@ -125,6 +126,15 @@ TASK_REGISTRY = {
     "ethics_utilitarianism_original": ethics.EthicsUtilitarianismOriginal,
     "ethics_utilitarianism": ethics.EthicsUtilitarianism,
     "ethics_virtue": ethics.EthicsVirtue,
+
+    # math
+    "math_algebra": math.MathAlgebra,
+    "math_counting_and_prob": math.MathCountingAndProbability,
+    "math_geometry": math.MathGeometry,
+    "math_intermediate_algebra": math.MathIntermediateAlgebra,
+    "math_num_theory": math.MathNumberTheory,
+    "math_prealgebra": math.MathPrealgebra,
+    "math_precalc": math.MathPrecalculus,
 
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
