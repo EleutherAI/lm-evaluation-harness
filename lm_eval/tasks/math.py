@@ -58,20 +58,6 @@ class Math(Task):
     def fewshot_description(self):
         return "Given a mathematics problem, determine the answer. Simplify your answer as much as possible."
 
-    def fewshot_examples(self, k):
-        assert k <= 8, "There are only 8 possible shots for this task."
-        prompts = [
-            {"problem": "What is $\left(\\frac{7}{8}\\right)^3 \cdot \left(\\frac{7}{8}\\right)^{-3}$?", "answer": "$1$"},
-            {"problem": "In how many ways can 4 books be selected from a shelf of 6 books if the order in which the books are selected does not matter?", "answer": "$15$"},
-            {"problem": "Find the distance between the points $(2,1,-4)$ and $(5,8,-3).$", "answer": "$\sqrt{59}$"},
-            {"problem": "The faces of an octahedral die are labeled with digits $1$ through $8$. What is the probability, expressed as a common fraction, of rolling a sum of $15$ with a pair of such octahedral dice?", "answer": "$\\frac{1}{32}$"},
-            {"problem": "The first three terms of an arithmetic sequence are 1, 10 and 19, respectively. What is the value of the 21st term?", "answer": "$181$"},
-            {"problem": "Calculate $6 \\cdot 8\\frac{1}{3}", "answer": "$50$"},
-            {"problem": "When the binary number $100101110010_2$ is divided by 4, what is the remainder (give your answer in base 10)?", "answer": "$2$"},
-            {"problem": "How many zeros are at the end of the product 25 $\\times$ 240?", "answer": "$3$"}
-        ]
-        return random.sample(prompts, k)
-
     def doc_to_text(self, doc):
         return "Problem: " + doc["problem"] + "\nAnswer:"
 
