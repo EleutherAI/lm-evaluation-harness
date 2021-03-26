@@ -59,7 +59,9 @@ class WinogradSchemaChallenge273(HFTask):
     def fewshot_examples(self, k):
         # NOTE: `super().fewshot_examples` samples from training docs which are
         # not available for this test-set-only dataset.
-        return random.sample(list(self.test_docs()), k)
+        rnd = random.Random()
+        rnd.seed(42)
+        return rnd.sample(list(self.test_docs()), k)
 
     def doc_to_text(self, doc):
         return self.partial_context(doc, doc["options"][doc["label"]])
