@@ -46,12 +46,6 @@ class QA4MRE(MultipleChoiceTask):
     def has_test_docs(self):
         return True
 
-    def fewshot_examples(self, k):
-        # Since only test docs sample from test docs
-        if self._training_docs is None:
-            self._training_docs = list(self.test_docs())
-        return random.sample(self._training_docs, k)
-
     def _convert_standard(self, question):
         choices = [i.text for i in question.iter('answer')]
         out_doc = {
