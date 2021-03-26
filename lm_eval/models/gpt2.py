@@ -35,7 +35,13 @@ class GPT2LM(LM):
         with torch.no_grad():
             # TODO: vectorize properly
             # TODO: automatic batch size detection for vectorization
-            for context, continuation in tqdm(requests):
+
+            def _collate(x):
+                toks = self.tokenizer.encode(x[0] + x[1])[:-1]
+                return (len(toks), self.tokenizer.decode(toks))
+            
+            reord = utils.Reorderer(requests, _collate)
+            for context, continuation in tqdm(reord.get_reordered()):
                 # when too long to fit in context, truncate from the left
 
                 if context == "":
@@ -59,14 +65,20 @@ class GPT2LM(LM):
 
                 res.append((float(logits.sum()), bool(max_equal)))
 
-        return res
+        return reord.get_original(res)
     
     def greedy_until(self, requests):
         # TODO: implement fully general `until` that handles untils that are 
         # multiple tokens or that span multiple tokens correctly
         res = []
 
-        for context, until in tqdm(requests):
+        def _collate(x):
+            toks = self.tokenizer.encode(x[0])
+            return (len(toks), x[0])
+        
+        reord = utils.Reorderer(requests, _collate)
+
+        for context, until in tqdm(reord.get_reordered()):
             if isinstance(until, str): until = [until]
 
             context_enc = torch.tensor([self.tokenizer.encode(context)[self.MAX_GEN_TOKS - self.max_length:]]).to(self.device)
@@ -87,4 +99,4 @@ class GPT2LM(LM):
             
             res.append(s)
         
-        return res
+        return reord.get_original(res)
