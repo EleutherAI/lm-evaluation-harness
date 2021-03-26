@@ -33,7 +33,9 @@ class NaturalQs(HFTask):
         if self._training_docs is None:
             self._training_docs = list(islice(self.training_docs(), 0, 100000))
 
-        return random.sample(self._training_docs, k)
+        rnd = random.Random()
+        rnd.seed(42)
+        return rnd.sample(self._training_docs, k)
 
     def doc_to_text(self, doc):
         return 'Q: ' + doc['question']['text'] + '\n\n' + 'A: '
