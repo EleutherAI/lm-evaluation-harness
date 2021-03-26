@@ -9,11 +9,16 @@ from tqdm import tqdm
 class GPT2LM(LM):
     MAX_GEN_TOKS = 256
 
-    def __init__(self, device="cpu", pretrained='gpt2'):
-        self.device = torch.device(device)
+    def __init__(self, device=None, pretrained='gpt2'):
+        if device:
+            self.device = torch.device(device)
+        else:
+            self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(pretrained).to(self.device)
         self.gpt2.eval()
-        self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained(pretrained)
+
+        # pretrained tokenizer for neo is broken for now so just hardcoding this to gpt2
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained('gpt2')
         self.tokenizer.pad_token = "<|endoftext|>"
         self.max_length = self.gpt2.config.n_ctx
 
@@ -22,7 +27,7 @@ class GPT2LM(LM):
     @classmethod
     def create_from_arg_string(cls, arg_string):
         args = utils.simple_parse_args_string(arg_string)
-        return cls(device=args.get("device", "cpu"), pretrained=args.get("pretrained", "gpt2"))
+        return cls(device=args.get("device", None), pretrained=args.get("pretrained", "gpt2"))
 
     def loglikelihood(self, requests):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
