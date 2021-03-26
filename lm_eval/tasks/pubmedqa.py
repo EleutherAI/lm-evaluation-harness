@@ -40,12 +40,6 @@ class Pubmed_QA(HFTask):
     def doc_to_target(self, doc):
         return " {}".format(doc["final_decision"])
 
-    def fewshot_examples(self, k):
-        # Since only test docs sample from test docs
-        if self._training_docs is None:
-            self._training_docs = list(self.test_docs())
-        return random.sample(self._training_docs, k)
-
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns
         an iterable of Requests which will be sent to the LM.
