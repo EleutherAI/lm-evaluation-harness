@@ -70,7 +70,13 @@ class GPT3LM(LM):
         import openai
         res = []
 
-        for chunk in tqdm(list(utils.chunks(requests, self.REQ_CHUNK_SIZE))):
+        def _collate(x):
+            toks = self.tokenizer.encode(x[0] + x[1])[:-1]
+            return (len(toks), self.tokenizer.decode(toks))
+        
+        reord = utils.Reorderer(requests, _collate)
+        
+        for chunk in tqdm(list(utils.chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE))):
             inps = []
             ctxlens = []
             for context, continuation in chunk:
@@ -98,12 +104,18 @@ class GPT3LM(LM):
             for resp, ctxlen in zip(response.choices, ctxlens):
                 res.append(get_result(resp, ctxlen))
             
-        return res
+        return reord.get_original(res)
 
     def greedy_until(self, requests):
         if not requests: return []
         import openai
         res = []
+
+        def _collate(x):
+            toks = self.tokenizer.encode(x[0])
+            return (len(toks), x[0])
+        
+        reord = utils.Reorderer(requests, _collate)
 
         def sameuntil_chunks(xs, size):
             ret = []
@@ -118,7 +130,7 @@ class GPT3LM(LM):
             if ret: yield ret, lastuntil
 
         # todo: more intelligent batching for heterogenous `until`
-        for chunk, until in tqdm(list(sameuntil_chunks(requests, self.REQ_CHUNK_SIZE))):
+        for chunk, until in tqdm(list(sameuntil_chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE))):
             inps = []
             for context, _ in chunk:
                 context_enc = self.tokenizer.encode(context)
@@ -142,5 +154,5 @@ class GPT3LM(LM):
 
                 res.append(s)
         
-        return res
+        return reord.get_original(res)
 
