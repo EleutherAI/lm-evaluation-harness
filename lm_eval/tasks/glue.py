@@ -334,7 +334,7 @@ class MRPC(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         return "Indicate if both sentences mean the same thing."
@@ -386,7 +386,7 @@ class QQP(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         return "Indicate if both questions ask the same thing."
