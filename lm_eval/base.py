@@ -115,11 +115,10 @@ class Task(abc.ABC):
         """
         return []
 
-    def fewshot_examples(self, k):
+    def fewshot_examples(self, k, rnd):
         if self._training_docs is None:
             self._training_docs = list(self.training_docs())
-        rnd = random.Random()
-        rnd.seed(42)
+
         return rnd.sample(self._training_docs, k)
 
     @abc.abstractmethod
@@ -178,18 +177,17 @@ class Task(abc.ABC):
     def fewshot_description(self):
         return ""
 
-    def fewshot_context(self, doc, num_fewshot, provide_description):
+    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
         raw_description = self.fewshot_description()
         description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
 
         # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
         if self.has_training_docs():
-            fewshotex = self.fewshot_examples(k=num_fewshot)
+            fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
         else:
             if self._fewshot_docs is None:
                 self._fewshot_docs = list(self.validation_docs() if self.has_validation_docs else self.test_docs())
-            rnd = random.Random()
-            rnd.seed(42)
+
             fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
 
             # get rid of the doc that's the one we're evaluating, if it's in the fewshot

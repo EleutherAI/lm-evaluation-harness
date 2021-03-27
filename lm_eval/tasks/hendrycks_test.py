@@ -99,13 +99,16 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         filename = self.DATASET_PATH / "test" / f"{self.subject}_test.csv"
         return self._load_docs(filename)
 
-    def fewshot_examples(self, k):
+    def fewshot_examples(self, k, rnd):
         # fewshot_examples is not just sampling from train_docs because dev is 
         # in the same distribution as val/test but auxiliary_train isn't
+
         filename = self.DATASET_PATH / "dev" / f"{self.subject}_dev.csv"
-        rnd = random.Random()
-        rnd.seed(42)
-        return rnd.sample(list(self._load_docs(filename)), k)
+
+        if self._fewshot_docs is None:
+            self._fewshot_docs = list(self._load_docs(filename))
+
+        return rnd.sample(list(self._fewshot_docs), k)
 
     def fewshot_description(self):
         subject = self.subject.replace("_", " ")

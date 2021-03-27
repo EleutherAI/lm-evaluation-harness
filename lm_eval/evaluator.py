@@ -43,6 +43,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
                 doc=doc,
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
+                rnd=rnd
             )
 
             reqs = task.construct_requests(doc, ctx)
