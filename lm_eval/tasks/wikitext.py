@@ -1,7 +1,7 @@
-from . common import NLP_TASK
+from . common import HFTask
 
 
-class WikiText103(NLP_TASK):
+class WikiText103(HFTask):
     NLP_PATH = "wikitext"
     NLP_NAME = "wikitext-103-raw-v1"
 
@@ -63,7 +63,7 @@ class WikiText103(NLP_TASK):
         raise NotImplementedError('Evaluation not implemented')
 
 
-class WikiText2(NLP_TASK):
+class WikiText2(HFTask):
     NLP_PATH = "wikitext"
     NLP_NAME = "wikitext-2-raw-v1"
 
