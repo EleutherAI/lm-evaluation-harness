@@ -44,7 +44,7 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         if not self.DATASET_PATH.exists():
             sh("""
                 mkdir -p data
-                wget https://people.eecs.berkeley.edu/~hendrycks/data.tar -P data/
+                wget -c https://people.eecs.berkeley.edu/~hendrycks/data.tar -P data/
                 tar -xf data/data.tar -C data/
                 rm data/data.tar
                 mv data/data data/hendrycksTest

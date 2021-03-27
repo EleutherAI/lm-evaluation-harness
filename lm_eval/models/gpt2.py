@@ -18,7 +18,7 @@ class GPT2LM(LM):
         self.gpt2.eval()
 
         # pretrained tokenizer for neo is broken for now so just hardcoding this to gpt2
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained('gpt2')
+        self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
         self.tokenizer.pad_token = "<|endoftext|>"
         self.max_length = self.gpt2.config.n_ctx
 
