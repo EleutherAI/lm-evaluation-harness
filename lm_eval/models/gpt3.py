@@ -71,7 +71,10 @@ class GPT3LM(LM):
         res = []
 
         def _collate(x):
-            toks = self.tokenizer.encode(x[0] + x[1])[:-1]
+            # this doesn't efficiently handle last-token differences yet, but those are kinda annoying because
+            # it's not guaranteed that the 100 or so logprobs we get to see actually contain all the continuations
+            # we care about and so we need some kind of backup for when it isn't
+            toks = self.tokenizer.encode(x[0] + x[1])
             return (len(toks), self.tokenizer.decode(toks))
         
         reord = utils.Reorderer(requests, _collate)
