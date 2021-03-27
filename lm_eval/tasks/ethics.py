@@ -1,13 +1,13 @@
-from lm_eval.base import Task, rf
-from lm_eval.metrics import mean
-from lm_eval.utils import sh
-from .common import yesno
-
 import abc
 import csv
 import os
 import random
 import numpy as np
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean
+from lm_eval.utils import sh
+from .common import yesno
+
 
 class Ethics(Task):
     def download(self):

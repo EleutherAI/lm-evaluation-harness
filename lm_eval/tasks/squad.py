@@ -1,8 +1,5 @@
-import numpy as np
-from scipy.stats import pearsonr, spearmanr
-from sklearn.metrics import f1_score, matthews_corrcoef
-from tqdm import auto as tqdm_lib
-from . common import HFTask, simple_accuracy_metric, yesno
+from . common import HFTask
+
 
 class SQuAD(HFTask):
     DATASET_PATH = "squad_v2"

@@ -1,10 +1,9 @@
+import abc
 import json
-import random
 from lm_eval.utils import sh
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
 from pathlib import Path
-import abc
 
 
 class Math(Task):

@@ -1,16 +1,10 @@
 import os
 import json
+import transformers.data.metrics.squad_metrics as squad_metrics
 from lm_eval.base import Task, rf, mean
 from ..utils import sh
 from itertools import zip_longest
-import transformers.data.metrics.squad_metrics as squad_metrics
-import collections
-import datasets
-import numpy as np
-from lm_eval.base import rf, mean
-from . common import HFTask
-from tqdm import tqdm
-import string, re
+
 
 class CoQA(Task):
 
