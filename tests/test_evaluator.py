@@ -29,4 +29,4 @@ def test_evaluator(taskname, Task):
         
 
     lm.loglikelihood = ll_fn
-    evaluator.evaluate(lm, task_dict, False, 0, 3)
+    evaluator.evaluate(lm, task_dict, False, 0, 10)
