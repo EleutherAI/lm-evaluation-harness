@@ -1,12 +1,5 @@
-import json
-import random
 import os
-from lm_eval.base import MultipleChoiceTask, rf
-from ..metrics import mean
-from tqdm import auto as tqdm_lib
-from . common import simple_accuracy_metric
-import numpy as np
-from ..utils import sh
+from lm_eval.base import MultipleChoiceTask
 
 
 class SATAnalogies(MultipleChoiceTask):    

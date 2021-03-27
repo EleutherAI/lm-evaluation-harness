@@ -3,6 +3,7 @@ from lm_eval.base import rf
 from ..metrics import mean
 from . common import HFTask
 
+
 class ANLIBase(HFTask):
     DATASET_PATH = "anli"
     DATASET_NAME = None

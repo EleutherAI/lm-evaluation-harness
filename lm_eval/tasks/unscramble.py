@@ -1,6 +1,5 @@
 import gzip
 import json
-import random
 import shutil
 from pathlib import Path
 from best_download import download_file

@@ -1,15 +1,7 @@
-import argparse
-import json
-import numpy as np
 import random
-import itertools
-import collections
-import logging
-
-from lm_eval import models, tasks, evaluator, base
-import random
-from lm_eval.base import LM
 import transformers
+from lm_eval import tasks, evaluator
+from lm_eval.base import LM
 
 
 class DryrunLM(LM):

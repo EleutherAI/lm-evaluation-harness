@@ -1,5 +1,4 @@
 import json
-import random
 import os
 from lm_eval.base import Task
 from ..utils import sh

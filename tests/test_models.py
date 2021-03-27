@@ -1,5 +1,5 @@
 import lm_eval.models as models
-import lm_eval.base as base
+
 
 def test_gpt2():
     gpt2 = models.get_model('gpt2').create_from_arg_string("device=cpu")

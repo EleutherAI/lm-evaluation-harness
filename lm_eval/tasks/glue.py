@@ -1,8 +1,6 @@
 import numpy as np
 from lm_eval.base import rf
 from ..metrics import mean, matthews_corrcoef, f1_score
-from scipy.stats import pearsonr, spearmanr
-from tqdm import auto as tqdm_lib
 from . common import HFTask, yesno
 from ..utils import general_detokenize
 
