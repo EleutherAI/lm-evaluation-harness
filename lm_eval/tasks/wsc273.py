@@ -56,12 +56,14 @@ class WinogradSchemaChallenge273(HFTask):
         # TODO: redo description
         return "Winograd schema sentence with correct continuation. True. Winograd schema sentence with incorrect continuation. False."
 
-    def fewshot_examples(self, k):
+    def fewshot_examples(self, k, rnd):
         # NOTE: `super().fewshot_examples` samples from training docs which are
         # not available for this test-set-only dataset.
-        rnd = random.Random()
-        rnd.seed(42)
-        return rnd.sample(list(self.test_docs()), k)
+
+        if self._fewshot_docs is None:
+            self._fewshot_docs = list(self.test_docs())
+
+        return rnd.sample(list(self._fewshot_docs), k)
 
     def doc_to_text(self, doc):
         return self.partial_context(doc, doc["options"][doc["label"]])
