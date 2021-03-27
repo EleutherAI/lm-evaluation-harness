@@ -86,11 +86,14 @@ class GeneralTranslationTask(Task):
         } for src, ref in zip(self.src_data, self.ref_data)]
 
     def doc_to_text(self, doc):
-        return doc["src"]
+        language_codes = self.sacrebleu_language_pair.split("-")
+        src_lang = code_to_language(language_codes[0])
+        tar_lang = code_to_language(language_codes[1])
+        return f"{src_lang} phrase: " + doc["src"] + f"\n{tar_lang} phrase:"
 
     def doc_to_target(self, doc):
         # This shows a single target, though there may be multiple targets in a lang test
-        return doc["ref"] if isinstance(doc["ref"], str) else doc["ref"][0]
+        return " " + doc["ref"] if isinstance(doc["ref"], str) else doc["ref"][0]
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of
