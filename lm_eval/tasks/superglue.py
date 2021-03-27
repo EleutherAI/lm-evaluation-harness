@@ -23,7 +23,7 @@ class BoolQ(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -74,7 +74,7 @@ class CommitmentBank(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -145,7 +145,7 @@ class Copa(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -209,7 +209,7 @@ class MultiRC(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -355,7 +355,7 @@ class WordsInContext(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
