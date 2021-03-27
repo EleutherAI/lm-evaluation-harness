@@ -1,6 +1,7 @@
+import random
 from . common import HFTask
 from itertools import islice
-import random
+
 
 class NaturalQs(HFTask):
     # TODO: naturalqs has a *really* large train set that huggingface just

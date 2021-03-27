@@ -1,10 +1,7 @@
-import numpy as np
-from scipy.stats import pearsonr, spearmanr
-from sklearn.metrics import f1_score, matthews_corrcoef
-from tqdm import auto as tqdm_lib
-from . common import NLP_TASK, simple_accuracy_metric, yesno
+from . common import HFTask
 
-class WikiText103(NLP_TASK):
+
+class WikiText103(HFTask):
     NLP_PATH = "wikitext"
     NLP_NAME = "wikitext-103-raw-v1"
 
@@ -66,7 +63,7 @@ class WikiText103(NLP_TASK):
         raise NotImplementedError('Evaluation not implemented')
 
 
-class WikiText2(NLP_TASK):
+class WikiText2(HFTask):
     NLP_PATH = "wikitext"
     NLP_NAME = "wikitext-2-raw-v1"
 

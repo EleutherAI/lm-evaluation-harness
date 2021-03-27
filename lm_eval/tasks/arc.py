@@ -1,6 +1,4 @@
-import numpy as np
 from lm_eval.base import MultipleChoiceTask
-from ..metrics import mean
 from . common import HFTask
 
 
