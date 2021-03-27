@@ -60,12 +60,16 @@ class GPT2LM(LM):
                 greedy_tokens = logits.argmax(dim=-1)
                 max_equal = (greedy_tokens == cont_toks).all()
 
+                last_token_slice = logits[:, -1, :].squeeze(0).tolist()
+
                 logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1) # [batch, seq]
 
+                res.append((float(logits[:, :-1].sum() if logits.shape[-1] > 1 else 0), last_token_slice, bool(max_equal)))
 
-                res.append((float(logits.sum()), bool(max_equal)))
-
-        return reord.get_original(res)
+        # optimization: if two requests have everything the same except the last token, use 
+        # last token distribution to save compute
+        lasttoks = [self.tokenizer.encode(x[1])[-1] for x in requests]
+        return [(l + lts[lasttok], m) for (l, lts, m), lasttok in zip(reord.get_original(res), lasttoks)]
     
     def greedy_until(self, requests):
         # TODO: implement fully general `until` that handles untils that are 
