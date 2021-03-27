@@ -4,11 +4,11 @@ To-do:
     - ReCoRD
 """
 import numpy as np
+import sklearn
+import transformers.data.metrics.squad_metrics as squad_metrics
 from . common import HFTask, yesno
 from lm_eval.base import rf
 from ..metrics import mean, acc_all, metric_max_over_ground_truths
-import sklearn
-import transformers.data.metrics.squad_metrics as squad_metrics
 from ..utils import general_detokenize
 
 

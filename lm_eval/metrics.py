@@ -1,6 +1,5 @@
 import math
 from collections import Iterable
-from pprint import pprint
 
 import numpy as np
 import sacrebleu

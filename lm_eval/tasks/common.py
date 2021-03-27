@@ -1,6 +1,4 @@
 import datasets
-import numpy as np
-
 import lm_eval.metrics
 from ..base import Task
 
