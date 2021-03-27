@@ -73,6 +73,7 @@ class Task(abc.ABC):
     def __init__(self):
         self.download()
         self._training_docs = None
+        self._fewshot_docs = None
 
     def download(self):
         """Downloads the task dataset if necessary"""
@@ -181,11 +182,24 @@ class Task(abc.ABC):
         raw_description = self.fewshot_description()
         description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
 
+        # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
+        if self.has_training_docs():
+            fewshotex = self.fewshot_examples(k=num_fewshot)
+        else:
+            if self._fewshot_docs is None:
+                self._fewshot_docs = list(self.validation_docs() if self.has_validation_docs else self.test_docs())
+            rnd = random.Random()
+            rnd.seed(42)
+            fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
+
+            # get rid of the doc that's the one we're evaluating, if it's in the fewshot
+            fewshotex = [x for x in fewshotex if x != doc][:num_fewshot]
+
         if num_fewshot == 0:
             labeled_examples = ""
         else:
             labeled_examples = "\n\n".join(
-                [self.doc_to_text(doc) + self.doc_to_target(doc) for doc in self.fewshot_examples(k=num_fewshot)]
+                [self.doc_to_text(doc) + self.doc_to_target(doc) for doc in fewshotex]
             ) + "\n\n"
 
         example = self.doc_to_text(doc)
