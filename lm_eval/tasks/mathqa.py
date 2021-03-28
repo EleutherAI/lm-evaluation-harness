@@ -1,6 +1,7 @@
-from . common import HFTask
-from lm_eval.base import mean, rf, MultipleChoiceTask
 import re
+from lm_eval.base import MultipleChoiceTask
+from . common import HFTask
+
 
 class MathQA(HFTask, MultipleChoiceTask):
     DATASET_PATH = "math_qa"

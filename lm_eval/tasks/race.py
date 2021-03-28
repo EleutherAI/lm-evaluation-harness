@@ -5,11 +5,6 @@ from lm_eval.base import rf
 from ..metrics import mean
 from . common import HFTask
 
-import os
-from functools import reduce
-import operator
-from tqdm import tqdm
-import json
 
 class each:
     def __init__(self, f):

@@ -1,10 +1,8 @@
 import os
-import numpy as np
-from best_download import download_file
-from lm_eval.base import MultipleChoiceTask, rf
-from lm_eval.metrics import mean
 import xml.etree.ElementTree as ET
-import random
+from best_download import download_file
+from lm_eval.base import MultipleChoiceTask
+
 
 class QA4MRE(MultipleChoiceTask):
     YEAR = None
