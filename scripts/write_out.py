@@ -15,7 +15,7 @@ def parse_args():
     parser.add_argument('--provide_description', action="store_true")
     parser.add_argument('--sets', type=str, default="val") # example: val,test
     parser.add_argument('--num_fewshot', type=int, default=1)
-    parser.add_argument('--seed', type=int, default=1234)
+    parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--num_examples', type=int, default=1)
     return parser.parse_args()
 
@@ -23,8 +23,6 @@ def parse_args():
 def main():
     args = parse_args()
     np.random.seed(args.seed)
-    rnd = random.Random()
-    rnd.seed(args.seed)
 
     if args.tasks == "all_tasks":
         task_names = tasks.ALL_TASKS
@@ -33,6 +31,8 @@ def main():
     task_dict = tasks.get_task_dict(task_names)
     os.makedirs(args.output_base_path, exist_ok=True)
     for task_name, task in task_dict.items():
+        rnd = random.Random()
+        rnd.seed(args.seed)
 
         iters = []
 
