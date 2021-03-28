@@ -8,6 +8,7 @@ from best_download import download_file
 
 ArithmeticDoc = namedtuple('ArithmeticDoc', ['context', 'completion'])
 
+
 class Arithmetic(Task):
     directory = 'data/arithmetic/'
 
