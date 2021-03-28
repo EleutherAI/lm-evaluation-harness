@@ -109,7 +109,7 @@ TASK_REGISTRY = {
     "hellaswag": hellaswag.HellaSwag, # not implemented yet
     "openbookqa": openbookqa.OpenBookQA,
     # "sat": sat.SATAnalogies, # not implemented yet
-    # "squad": squad.SQuAD, # not implemented yet
+    "squad2": squad.SQuAD2,
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
     "headqa": headqa.HeadQA,
