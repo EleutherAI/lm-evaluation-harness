@@ -48,7 +48,6 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
 
             reqs = task.construct_requests(doc, ctx)
             if not isinstance(reqs, (list, tuple)): reqs = [reqs]
-            
             for i, req in enumerate(reqs):
                 requests[req.type].append(req)
                 # i: index in requests for a single task instance
