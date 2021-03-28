@@ -33,6 +33,8 @@ from . import ethics
 from . import drop
 from . import unscramble
 from . import logiqa
+from . import hendrycks_test
+from . import math
 
 ########################################
 # Translation tasks
@@ -126,6 +128,15 @@ TASK_REGISTRY = {
     "ethics_utilitarianism": ethics.EthicsUtilitarianism,
     "ethics_virtue": ethics.EthicsVirtue,
 
+    # math
+    "math_algebra": math.MathAlgebra,
+    "math_counting_and_prob": math.MathCountingAndProbability,
+    "math_geometry": math.MathGeometry,
+    "math_intermediate_algebra": math.MathIntermediateAlgebra,
+    "math_num_theory": math.MathNumberTheory,
+    "math_prealgebra": math.MathPrealgebra,
+    "math_precalc": math.MathPrecalculus,
+
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
     "arithmetic_2ds": arithmetic.Arithmetic2DMinus,
@@ -139,6 +150,9 @@ TASK_REGISTRY = {
     "arithmetic_1dc": arithmetic.Arithmetic1DComposite,
     # TODO Perhaps make these groups of tasks
     #   e.g. anli, arithmetic, openai_translations, harness_translations
+
+    # hendrycksTest (57 tasks)
+    **hendrycks_test.create_all_tasks(),
 
     # e.g. wmt14-fr-en
     **translation.create_tasks_from_benchmarks(gpt3_translation_benchmarks),

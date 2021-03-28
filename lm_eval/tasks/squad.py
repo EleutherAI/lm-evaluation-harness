@@ -17,7 +17,6 @@ def _squad_agg(key, items):
     return _squad_metric(predictions=predictions, references=references)[key]
 
 
-
 class SQuAD2(HFTask):
     DATASET_PATH = "squad_v2"
     DATASET_NAME = None

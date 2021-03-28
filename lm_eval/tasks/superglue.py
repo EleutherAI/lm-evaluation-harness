@@ -4,11 +4,11 @@ To-do:
     - ReCoRD
 """
 import numpy as np
+import sklearn
+import transformers.data.metrics.squad_metrics as squad_metrics
 from . common import HFTask, yesno
 from lm_eval.base import rf
 from ..metrics import mean, acc_all, metric_max_over_ground_truths
-import sklearn
-import transformers.data.metrics.squad_metrics as squad_metrics
 from ..utils import general_detokenize
 
 
@@ -23,7 +23,7 @@ class BoolQ(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -74,7 +74,7 @@ class CommitmentBank(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -145,7 +145,7 @@ class Copa(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -209,7 +209,7 @@ class MultiRC(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -355,7 +355,7 @@ class WordsInContext(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -412,7 +412,7 @@ class SGWinogradSchemaChallenge(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def training_docs(self):
         if self.has_training_docs():

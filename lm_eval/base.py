@@ -73,6 +73,7 @@ class Task(abc.ABC):
     def __init__(self):
         self.download()
         self._training_docs = None
+        self._fewshot_docs = None
 
     def download(self):
         """Downloads the task dataset if necessary"""
@@ -114,10 +115,11 @@ class Task(abc.ABC):
         """
         return []
 
-    def fewshot_examples(self, k):
+    def fewshot_examples(self, k, rnd):
         if self._training_docs is None:
             self._training_docs = list(self.training_docs())
-        return random.sample(self._training_docs, k)
+
+        return rnd.sample(self._training_docs, k)
 
     @abc.abstractmethod
     def doc_to_text(self, doc):
@@ -175,15 +177,27 @@ class Task(abc.ABC):
     def fewshot_description(self):
         return ""
 
-    def fewshot_context(self, doc, num_fewshot, provide_description):
+    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
         raw_description = self.fewshot_description()
         description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
 
         if num_fewshot == 0:
             labeled_examples = ""
         else:
+            # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
+            if self.has_training_docs():
+                fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
+            else:
+                if self._fewshot_docs is None:
+                    self._fewshot_docs = list(self.validation_docs() if self.has_validation_docs else self.test_docs())
+
+                fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
+
+                # get rid of the doc that's the one we're evaluating, if it's in the fewshot
+                fewshotex = [x for x in fewshotex if x != doc][:num_fewshot]
+
             labeled_examples = "\n\n".join(
-                [self.doc_to_text(doc) + self.doc_to_target(doc) for doc in self.fewshot_examples(k=num_fewshot)]
+                [self.doc_to_text(doc) + self.doc_to_target(doc) for doc in fewshotex]
             ) + "\n\n"
 
         example = self.doc_to_text(doc)
