@@ -22,8 +22,9 @@ def parse_args():
 
 def main():
     args = parse_args()
-    random.seed(args.seed)
     np.random.seed(args.seed)
+    rnd = random.Random()
+    rnd.seed(args.seed)
 
     if args.tasks == "all_tasks":
         task_names = tasks.ALL_TASKS
@@ -53,6 +54,7 @@ def main():
                     doc=doc,
                     provide_description=args.provide_description,
                     num_fewshot=args.num_fewshot,
+                    rnd=rnd
                 )
                 f.write(ctx + "\n")
 
