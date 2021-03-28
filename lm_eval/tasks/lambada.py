@@ -1,8 +1,7 @@
+import json
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, perplexity
 from lm_eval.utils import sh
-import json
-import math
 from best_download import download_file
 
 

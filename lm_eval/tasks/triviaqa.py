@@ -1,9 +1,9 @@
 import os
 import json
-import random
 from lm_eval.base import Task, rf
 from ..metrics import mean
 from ..utils import sh
+
 
 class TriviaQA(Task):
     def download(self):

@@ -1,11 +1,7 @@
-import argparse
 import json
 import numpy as np
 import random
-import itertools
-import collections
 import logging
-
 from lm_eval import models, tasks, evaluator, base
 
 logging.getLogger("openai").setLevel(logging.WARNING)

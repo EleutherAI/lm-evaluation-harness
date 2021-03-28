@@ -1,8 +1,6 @@
 import numpy as np
 from lm_eval.base import rf
 from ..metrics import mean, matthews_corrcoef, f1_score
-from scipy.stats import pearsonr, spearmanr
-from tqdm import auto as tqdm_lib
 from . common import HFTask, yesno
 from ..utils import general_detokenize
 
@@ -20,7 +18,7 @@ class CoLA(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO
@@ -67,7 +65,7 @@ class SST(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         return "Indicate if the sentiment of each sentence is positive or negative."
@@ -118,7 +116,7 @@ class MNLI(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def validation_docs(self):
         if self.has_validation_docs():
@@ -186,7 +184,7 @@ class QNLI(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def doc_to_text(self, doc):
         return "{}\n{}\nQuestion: Does this response answer the question?\nAnswer:".format(
@@ -234,7 +232,7 @@ class WNLI(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {} True, False or Neither?\nAnswer:".format(
@@ -283,7 +281,7 @@ class RTE(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {} True or False?\nAnswer:".format(
@@ -334,7 +332,7 @@ class MRPC(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         return "Indicate if both sentences mean the same thing."
@@ -386,7 +384,7 @@ class QQP(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         return "Indicate if both questions ask the same thing."

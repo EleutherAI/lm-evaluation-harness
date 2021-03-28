@@ -1,10 +1,8 @@
 import os
-import numpy as np
-from best_download import download_file
-from lm_eval.base import MultipleChoiceTask, rf
-from lm_eval.metrics import mean
 import xml.etree.ElementTree as ET
-import random
+from best_download import download_file
+from lm_eval.base import MultipleChoiceTask
+
 
 class QA4MRE(MultipleChoiceTask):
     YEAR = None
@@ -45,12 +43,6 @@ class QA4MRE(MultipleChoiceTask):
 
     def has_test_docs(self):
         return True
-
-    def fewshot_examples(self, k):
-        # Since only test docs sample from test docs
-        if self._training_docs is None:
-            self._training_docs = list(self.test_docs())
-        return random.sample(self._training_docs, k)
 
     def _convert_standard(self, question):
         choices = [i.text for i in question.iter('answer')]
