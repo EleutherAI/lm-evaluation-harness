@@ -29,12 +29,12 @@ from . import qa4mre
 from . import translation
 from . import headqa
 from . import mathqa
-from . import ethics
+from . import hendrycks_ethics
 from . import drop
 from . import unscramble
 from . import logiqa
 from . import hendrycks_test
-from . import math
+from . import hendrycks_math
 
 ########################################
 # Translation tasks
@@ -121,21 +121,21 @@ TASK_REGISTRY = {
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
 
-    "ethics_cm": ethics.EthicsCM,
-    "ethics_deontology": ethics.EthicsDeontology,
-    "ethics_justice": ethics.EthicsJustice,
-    "ethics_utilitarianism_original": ethics.EthicsUtilitarianismOriginal,
-    "ethics_utilitarianism": ethics.EthicsUtilitarianism,
-    "ethics_virtue": ethics.EthicsVirtue,
+    "ethics_cm": hendrycks_ethics.EthicsCM,
+    "ethics_deontology": hendrycks_ethics.EthicsDeontology,
+    "ethics_justice": hendrycks_ethics.EthicsJustice,
+    "ethics_utilitarianism_original": hendrycks_ethics.EthicsUtilitarianismOriginal,
+    "ethics_utilitarianism": hendrycks_ethics.EthicsUtilitarianism,
+    "ethics_virtue": hendrycks_ethics.EthicsVirtue,
 
     # math
-    "math_algebra": math.MathAlgebra,
-    "math_counting_and_prob": math.MathCountingAndProbability,
-    "math_geometry": math.MathGeometry,
-    "math_intermediate_algebra": math.MathIntermediateAlgebra,
-    "math_num_theory": math.MathNumberTheory,
-    "math_prealgebra": math.MathPrealgebra,
-    "math_precalc": math.MathPrecalculus,
+    "math_algebra": hendrycks_math.MathAlgebra,
+    "math_counting_and_prob": hendrycks_math.MathCountingAndProbability,
+    "math_geometry": hendrycks_math.MathGeometry,
+    "math_intermediate_algebra": hendrycks_math.MathIntermediateAlgebra,
+    "math_num_theory": hendrycks_math.MathNumberTheory,
+    "math_prealgebra": hendrycks_math.MathPrealgebra,
+    "math_precalc": hendrycks_math.MathPrecalculus,
 
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
