@@ -412,7 +412,7 @@ class SGWinogradSchemaChallenge(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def training_docs(self):
         if self.has_training_docs():
