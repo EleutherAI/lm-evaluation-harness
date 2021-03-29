@@ -1,5 +1,6 @@
 import math
 from collections import Iterable
+from pprint import pprint
 
 import numpy as np
 import sacrebleu
@@ -124,7 +125,7 @@ def _sacreformat(refs, preds):
     # Must become List[List[str]] with the inner list corresponding to preds
     if not is_non_str_iterable(refs):
         refs = list(refs)
-    if not is_non_str_iterable(refs):
+    if not is_non_str_iterable(refs[0]):
         refs = [[ref] for ref in refs]
     refs = list(zip(*refs))
     # Note the number of refs in each ref list much match the number of preds
