@@ -35,6 +35,7 @@ from . import unscramble
 from . import logiqa
 from . import hendrycks_test
 from . import hendrycks_math
+from . import cbt
 
 ########################################
 # Translation tasks
@@ -91,6 +92,8 @@ TASK_REGISTRY = {
     "coqa": coqa.CoQA,
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
+    "cbt-cn": cbt.CBTCN,
+    "cbt-ne": cbt.CBTNE,
     "piqa": piqa.PiQA,
 
     # Science related
