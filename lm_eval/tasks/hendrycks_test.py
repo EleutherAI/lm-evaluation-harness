@@ -63,13 +63,14 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         def format_example(doc, choices):
             """
                 Question: <prompt>
+                Choices:
                 A. <choice1>
                 B. <choice2>
                 C. <choice3>
                 D. <choice4>
                 Answer:
             """
-            prompt = "Question: " + doc[0] + "\n"
+            prompt = "Question: " + doc[0] + "\nChoices:\n"
             prompt += "".join([f"{choices[j]}. {doc[j+1]}\n" for j in range(4)])
             prompt += "Answer:"
             return prompt
