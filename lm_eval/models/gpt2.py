@@ -20,7 +20,11 @@ class GPT2LM(LM):
         # pretrained tokenizer for neo is broken for now so just hardcoding this to gpt2
         self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
         self.tokenizer.pad_token = "<|endoftext|>"
-        self.max_length = self.gpt2.config.n_ctx
+        try:
+            self.max_length = self.gpt2.config.n_ctx
+        except AttributeError:
+            # gptneoconfig doesn't have n_ctx apparantly
+            self.max_length = self.gpt2.config.max_position_embeddings
 
         assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373]
 
