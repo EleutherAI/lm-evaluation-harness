@@ -8,6 +8,12 @@ from lm_eval.metrics import mean
 from lm_eval.utils import sh
 from .common import yesno
 
+"""
+NOTE: The reported "group" accuracies for the Deontology, Justice, and Virtue
+tasks are refered to in this work as the `em` sub-metric. See Section 3. Metrics.
+of the paper.
+"""
+
 
 class Ethics(Task):
     def download(self):
