@@ -1,5 +1,4 @@
 import datasets
-import lm_eval.metrics
 from ..base import Task
 
 
@@ -41,15 +40,6 @@ class HFTask(Task):
     def test_docs(self):
         if self.has_test_docs():
             return self.data["test"]
-
-
-def simple_accuracy_metric(preds, golds):
-    acc = float(lm_eval.metrics.mean())
-    return {
-        "major": acc,
-        "minor": {"acc": acc},
-        "higher_is_better": True,
-    }
 
 
 def yesno(x):
