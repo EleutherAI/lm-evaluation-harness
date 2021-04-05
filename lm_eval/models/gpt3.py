@@ -48,6 +48,7 @@ class GPT3LM(LM):
         :param truncate: bool
             Truncate input if too long (if False and input is too long, throw error)
         """
+        super().__init__()
         import openai
         self.engine = engine
         self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
@@ -104,8 +105,13 @@ class GPT3LM(LM):
                 logprobs=10,
             )
 
-            for resp, ctxlen in zip(response.choices, ctxlens):
-                res.append(get_result(resp, ctxlen))
+            for resp, ctxlen, (context, continuation) in zip(response.choices, ctxlens, chunk):
+                answer = get_result(resp, ctxlen)
+
+                res.append(answer)
+
+                # partial caching
+                self.cache_hook.add_partial("loglikelihood", (context, continuation), answer)
             
         return reord.get_original(res)
 
@@ -149,13 +155,15 @@ class GPT3LM(LM):
                 stop=until
             )
 
-            for resp in response.choices:
+            for resp, (context, until) in zip(response.choices, chunk):
                 s = resp['text']
 
                 for term in until:
                     s = s.split(term)[0]
 
+                # partial caching
+                self.cache_hook.add_partial("greedy_until", (context, until), s)
+                
                 res.append(s)
         
-        return reord.get_original(res)
-
+        return reord.get_original(res)()

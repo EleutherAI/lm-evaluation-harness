@@ -10,6 +10,7 @@ class GPT2LM(LM):
     MAX_GEN_TOKS = 256
 
     def __init__(self, device=None, pretrained='gpt2'):
+        super().__init__()
         if device:
             self.device = torch.device(device)
         else:
@@ -69,7 +70,12 @@ class GPT2LM(LM):
 
                 logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1) # [batch, seq]
 
-                res.append((float(logits.sum()), bool(max_equal)))
+                answer = (float(logits.sum()), bool(max_equal))
+
+                # partial caching
+                self.cache_hook.add_partial("loglikelihood", (context, continuation), answer)
+
+                res.append(answer)
 
         return reord.get_original(res)
     
@@ -102,6 +108,9 @@ class GPT2LM(LM):
 
             for term in until:
                 s = s.split(term)[0]
+            
+            # partial caching
+            self.cache_hook.add_partial("greedy_until", (context, until), s)
             
             res.append(s)
         
