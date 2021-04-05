@@ -6,6 +6,9 @@ from lm_eval.metrics import mean
 
 
 class LM(abc.ABC):
+    def __init__(self):
+        self.cache_hook = CacheHook(None)
+
     @abc.abstractmethod
     def loglikelihood(self, requests):
         """Compute log-likelihood of generating a continuation from a context.
@@ -59,6 +62,9 @@ class LM(abc.ABC):
 
         """
         return cls()
+
+    def set_cache_hook(self, cache_hook):
+        self.cache_hook = cache_hook
 
 
 class Task(abc.ABC):
@@ -251,12 +257,30 @@ def hash_args(attr, args):
     return hashlib.sha256(dat.encode('utf-8')).hexdigest()
 
 
+class CacheHook:
+    def __init__(self, cachinglm):
+        if cachinglm is None: 
+            self.dbdict = None
+            return
+
+        self.dbdict = cachinglm.dbdict
+    
+    def add_partial(self, attr, req, res):
+        if self.dbdict is None:
+            return
+        hsh = hash_args(attr, req)
+        self.dbdict[hsh] = res
+
+
 class CachingLM:
     def __init__(self, lm, cache_db):
         self.lm = lm
         self.cache_db = cache_db
         os.makedirs(os.path.dirname(cache_db), exist_ok=True)
         self.dbdict = SqliteDict(cache_db, autocommit=True)
+
+        # add hook to lm
+        lm.set_cache_hook(self.get_cache_hook())
 
     def __getattr__(self, attr):
         def fn(requests):
@@ -293,6 +317,9 @@ class CachingLM:
 
             return res
         return fn
+    
+    def get_cache_hook(self):
+        return CacheHook(self)
 
 
 class Request:
