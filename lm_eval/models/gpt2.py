@@ -61,7 +61,7 @@ class GPT2LM(LM):
                 ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - self.max_length)
 
                 cont_toks = inp[:, ctxlen:]  # [batch, seq]
-                logits = F.log_softmax(self.gpt2(inp)[0], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
+                logits = F.log_softmax(self.gpt2(inp)[0][:, :, :50257], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
 
                 greedy_tokens = logits.argmax(dim=-1)
                 max_equal = (greedy_tokens == cont_toks).all()
