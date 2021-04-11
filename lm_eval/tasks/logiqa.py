@@ -34,6 +34,7 @@ class LogiQA(MultipleChoiceTask):
             """
                 Passage: <passage>
                 Question: <question>
+                Choices:
                 A. <choice1>
                 B. <choice2>
                 C. <choice3>
@@ -41,7 +42,7 @@ class LogiQA(MultipleChoiceTask):
                 Answer:
             """
             prompt = "Passage: " + doc["passage"] + "\n"
-            prompt += "Question: " + doc["question"] + "\n"
+            prompt += "Question: " + doc["question"] + "\nChoices:\n"
             for choice, option in zip(choices, doc["options"]):
                 prompt += f"{choice.upper()}. {option}\n"
             prompt += "Answer:"
