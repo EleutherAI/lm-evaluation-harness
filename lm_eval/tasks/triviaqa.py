@@ -34,7 +34,7 @@ class TriviaQA(Task):
         return map(json.loads, open('data/triviaqa/triviaqa-unfiltered/unfiltered-web-train.jsonl'))
 
     def validation_docs(self):
-        return map(json.loads, open('data/triviaqa/triviaqa-unfiltered/unfiltered-web-val.jsonl'))
+        return map(json.loads, open('data/triviaqa/triviaqa-unfiltered/unfiltered-web-dev.jsonl'))
 
     def test_docs(self):
         raise NotImplementedError()
