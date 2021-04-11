@@ -45,7 +45,7 @@ class GPT2LM(LM):
 
             continuation_enc = self.tokenizer.encode(continuation)
 
-            new_reqs.append((context_enc, continuation_enc))
+            new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
         return self._loglikelihood_tokens(new_reqs)
 
@@ -57,11 +57,11 @@ class GPT2LM(LM):
             # TODO: automatic batch size detection for vectorization
 
             def _collate(x):
-                toks = x[0] + x[1]
+                toks = x[1] + x[2]
                 return (len(toks), tuple(toks))
             
             reord = utils.Reorderer(requests, _collate)
-            for context_enc, continuation_enc in tqdm(reord.get_reordered()):
+            for cache_key, context_enc, continuation_enc in tqdm(reord.get_reordered()):
                 # when too long to fit in context, truncate from the left
                 inp = torch.tensor([(context_enc + continuation_enc)[-self.max_length:]], dtype=torch.long).to(self.device)
                 ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - self.max_length)
@@ -79,8 +79,8 @@ class GPT2LM(LM):
                 answer = (float(logits.sum()), bool(max_equal))
 
                 # partial caching
-                # TODO: make sure that decode reverses correctly
-                self.cache_hook.add_partial("loglikelihood", (self.tokenizer.decode(context_enc), self.tokenizer.decode(continuation_enc)), answer)
+                if cache_key is not None:
+                    self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
                 res.append(answer)
 
