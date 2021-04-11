@@ -1,7 +1,7 @@
 import numpy as np
-from lm_eval.base import rf
+from lm_eval.base import MultipleChoiceTask, rf
 from ..metrics import mean
-from . common import MultipleChoiceTask, HFTask
+from . common import HFTask
 
 
 class PiQA(HFTask, MultipleChoiceTask):
