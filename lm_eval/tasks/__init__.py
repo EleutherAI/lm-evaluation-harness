@@ -35,6 +35,7 @@ from . import unscramble
 from . import logiqa
 from . import hendrycks_test
 from . import hendrycks_math
+from . import cbt
 from . import lambada_cloze
 
 ########################################
@@ -93,6 +94,9 @@ TASK_REGISTRY = {
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
+    "cbt-cn": cbt.CBTCN,
+    "cbt-ne": cbt.CBTNE,
+
     "piqa": piqa.PiQA,
 
     # Science related
