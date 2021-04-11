@@ -225,7 +225,9 @@ class MultipleChoiceTask(Task):
     def process_results(self, doc, results):
         gold = doc["gold"]
 
-        acc = 1. if np.argmax(results) == gold else 0.
+        completion_len = np.array([float(len(i)) for i in doc["choices"]])
+
+        acc = 1. if np.argmax(results/completion_len) == gold else 0.
 
         return {
             "acc": acc
