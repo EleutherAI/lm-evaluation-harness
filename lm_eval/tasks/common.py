@@ -33,16 +33,16 @@ class HFTask(Task):
         # If data is too large to fit in memory, override this method.
         if self.has_training_docs():
             if self._training_docs is None:
-                self._training_docs = list(map(self._convert_standard(self.data["train"]))
+                self._training_docs = list(map(self._convert_standard, self.data["train"]))
             return self._training_docs
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return map(self._convert_standard(self.data["validation"])
+            return map(self._convert_standard, self.data["validation"])
 
     def test_docs(self):
         if self.has_test_docs():
-            return map(self._convert_standard(self.data["test"])
+            return map(self._convert_standard, self.data["test"])
 
 
 def yesno(x):
