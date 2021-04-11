@@ -1,10 +1,10 @@
 import numpy as np
 from lm_eval.base import rf
 from ..metrics import mean
-from . common import HFTask
+from . common import MultipleChoiceTask, HFTask
 
 
-class PiQA(HFTask):
+class PiQA(HFTask, MultipleChoiceTask):
     DATASET_PATH = "piqa"
     DATASET_NAME = None
 
@@ -21,32 +21,29 @@ class PiQA(HFTask):
         # TODO: figure out fewshot description
         return ""
 
+    def _convert_standard(self, doc):
+        out_doc = {
+            "goal": doc["goal"],
+            "choices": [doc["sol1"], doc["sol2"]],
+            "gold": doc["label"],
+        }
+        return out_doc
+
+    def _load_docs(self, docs):
+        for record in docs:
+            yield self._convert_standard(record)
+
+    def training_docs(self):
+        docs = super().training_docs()
+        return self._load_docs(docs)
+
+    def validation_docs(self):
+        docs = super().validation_docs()
+        return self._load_docs(docs)
+
+    def test_docs(self):
+        docs = super().test_docs()
+        return self._load_docs(docs)
+
     def doc_to_text(self, doc):
-        return "Question: "+doc["goal"] + "\nAnswer:"
-
-    def doc_to_target(self, doc):
-        solutions = [doc["sol1"], doc["sol2"]]
-        return " " + solutions[doc["label"]]
-
-    def construct_requests(self, doc, ctx):
-        ll_1, _ = rf.loglikelihood(ctx, " " + doc['sol1'])
-        ll_2, _ = rf.loglikelihood(ctx, " " + doc['sol2'])
-        return ll_1, ll_2
-
-    def process_results(self, doc, results):
-        completion_len = np.array([float(len(doc["sol1"])), float(len(doc["sol2"]))])
-
-        return {
-            'acc': np.argmax(results) == doc["label"],
-            'acc_norm': np.argmax(results / completion_len) == doc["label"]
-        }
-
-    def aggregation(self):
-        return {
-            'acc': mean
-        }
-
-    def higher_is_better(self):
-        return {
-            'acc': True
-        }
+        return "Question: " + doc["goal"] + "\nAnswer:"
