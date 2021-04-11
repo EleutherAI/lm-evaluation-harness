@@ -34,8 +34,11 @@ class PiQA(HFTask):
         return ll_1, ll_2
 
     def process_results(self, doc, results):
+        completion_len = np.array([float(len(doc["sol1"])), float(len(doc["sol2"]))])
+
         return {
-            'acc': np.argmax(results) == doc["label"]
+            'acc': np.argmax(results) == doc["label"],
+            'acc_norm': np.argmax(results / completion_len) == doc["label"]
         }
 
     def aggregation(self):
