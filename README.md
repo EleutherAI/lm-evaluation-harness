@@ -3,6 +3,8 @@
 ![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Python%20application/badge.svg)
 [![codecov](https://codecov.io/gh/EleutherAI/lm-evaluation-harness/branch/master/graph/badge.svg?token=JSG3O2427J)](https://codecov.io/gh/EleutherAI/lm-evaluation-harness)
 
+**WARNING**: This project is currently under active development. Interfaces and task implementations may change rapidly and without warning. 
+
 ## Overview 
 
 The goal of this project is to build a set of tools for evaluating LMs on typical NLU tasks, based on evaluation of GPT-3 as described in https://arxiv.org/pdf/2005.14165.pdf. Following the initial description, this repo should support 3 functions:
