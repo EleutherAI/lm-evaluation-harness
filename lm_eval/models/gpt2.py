@@ -78,6 +78,7 @@ class GPT2LM(LM):
             reord = utils.Reorderer(requests, _collate)
             for chunk in utils.chunks(tqdm(reord.get_reordered()), self.batch_size):
                 inps = []
+                inplens = []
                 ctxlens = []
 
                 padding_length = None
@@ -97,17 +98,16 @@ class GPT2LM(LM):
                     ], dim=0)
 
                     inps.append(inp.unsqueeze(0))
+                    inplens.append(inplen)
                     ctxlens.append(ctxlen)
 
                 multi_logits = F.log_softmax(self.gpt2(torch.cat(inps, dim=0))[0][:, :, :50257], dim=-1)  # [batch, seq, vocab]
 
-                for (cache_key, _, _), logits, ctxlen, inp in zip(chunk, multi_logits, ctxlens, inps):
-                    _, inplen = inp.shape
+                for (cache_key, _, _), logits, ctxlen, inp, inplen in zip(chunk, multi_logits, ctxlens, inps, inplens):
                     logits = logits[ctxlen - 1:inplen - 1].unsqueeze(0) # [1, seq, vocab]
 
                     greedy_tokens = logits.argmax(dim=-1)
-                    
-                    cont_toks = inp[:, ctxlen:]  # [1, seq]
+                    cont_toks = inp[:, ctxlen:inplen]  # [1, seq]
                     max_equal = (greedy_tokens == cont_toks).all()
 
                     last_token_slice = logits[:, -1, :].squeeze(0).tolist()
