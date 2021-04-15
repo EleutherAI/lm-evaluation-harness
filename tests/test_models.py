@@ -34,4 +34,4 @@ def test_gpt2():
     targets = [-61.60536193847656, -56.57843780517578, -62.131004333496094, -9.799489974975586, -153.96334838867188, -341.222900390625, -731.1475830078125, -61.60536193847656, -8.682319641113281]
 
     for (pred, _), tgt in zip(vals, targets):
-        assert pred == pytest.approx(tgt)
+        assert pred == pytest.approx(tgt, abs=1e-3)
