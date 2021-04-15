@@ -1,5 +1,6 @@
 import transformers
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from lm_eval.base import LM
 from lm_eval import utils
@@ -29,6 +30,15 @@ class GPT2LM(LM):
 
         assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373]
 
+        # multithreading and batching
+        gpus = torch.cuda.device_count()
+        batch_size_per_gpu = 2 # todo: adaptive batch size
+
+        self.batch_size = batch_size_per_gpu * gpus
+
+        if gpus > 1:
+            self.gpt2 = nn.DataParallel(self.gpt2)
+
     @classmethod
     def create_from_arg_string(cls, arg_string):
         args = utils.simple_parse_args_string(arg_string)
@@ -53,36 +63,65 @@ class GPT2LM(LM):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
         with torch.no_grad():
-            # TODO: vectorize properly
-            # TODO: automatic batch size detection for vectorization
 
             def _collate(x):
+                # the negative sign on len(toks) sorts descending - this has a few advantages:
+                # - time estimates will always be over not underestimates, which is more useful for planning
+                # - to know the size of a batch when going through the list, you know the first one is always the batch padded context length.
+                #   this is useful to simplify the batching logic and more importantly to make automatic adaptive batches much much easier to implement
+                # - any OOMs will happen right away rather than near the end
+
                 toks = x[1] + x[2]
-                return (len(toks), tuple(toks))
+                return (-len(toks), tuple(toks))
             
+            # TODO: automatic (variable) batch size detection for vectorization
             reord = utils.Reorderer(requests, _collate)
-            for cache_key, context_enc, continuation_enc in tqdm(reord.get_reordered()):
-                # when too long to fit in context, truncate from the left
-                inp = torch.tensor([(context_enc + continuation_enc)[-self.max_length:]], dtype=torch.long).to(self.device)
-                ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - self.max_length)
+            for chunk in utils.chunks(tqdm(reord.get_reordered()), self.batch_size):
+                inps = []
+                ctxlens = []
+                inplens = []
 
-                cont_toks = inp[:, ctxlen:]  # [batch, seq]
-                logits = F.log_softmax(self.gpt2(inp)[0][:, :, :50257], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
+                padding_length = None
+                for _, context_enc, continuation_enc in chunk:
+                    # when too long to fit in context, truncate from the left
+                    inp = torch.tensor((context_enc + continuation_enc)[-self.max_length:], dtype=torch.long).to(self.device)
+                    ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - self.max_length)
+                    inplen, = inp.shape
 
-                greedy_tokens = logits.argmax(dim=-1)
-                max_equal = (greedy_tokens == cont_toks).all()
+                    # since in _collate we make sure length is descending, the longest is always the first one.
+                    padding_length = padding_length if padding_length is not None else inplen
 
-                last_token_slice = logits[:, -1, :].squeeze(0).tolist()
+                    # pad to length
+                    inp = torch.cat([
+                        inp, # [seq]
+                        torch.zeros(padding_length - inplen, dtype=torch.long) # [padding_length - seq]
+                    ], dim=0)
 
-                logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1) # [batch, seq]
+                    inps.append(inp)
+                    ctxlens.append(ctxlen)
+                    inplens.append(inplen)
 
-                answer = (float(logits.sum()), bool(max_equal))
+                multi_logits = F.log_softmax(self.gpt2(torch.stack(inps, dim=0))[0][:, :, :50257], dim=-1)  # [batch, seq, vocab]
 
-                # partial caching
-                if cache_key is not None:
-                    self.cache_hook.add_partial("loglikelihood", cache_key, answer)
+                for (cache_key, _, _), logits, ctxlen, inplens in zip(chunk, multi_logits, ctxlens, inplens):
+                    logits = logits[ctxlen - 1:inplen - 1] # [seq, vocab]
 
-                res.append(answer)
+                    greedy_tokens = logits.argmax(dim=-1)
+                    
+                    cont_toks = inp[:, ctxlen:]  # [batch, seq]
+                    max_equal = (greedy_tokens == cont_toks).all()
+
+                    last_token_slice = logits[:, -1, :].squeeze(0).tolist()
+
+                    logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1) # [batch, seq]
+
+                    answer = (float(logits.sum()), bool(max_equal))
+
+                    # partial caching
+                    if cache_key is not None:
+                        self.cache_hook.add_partial("loglikelihood", cache_key, answer)
+
+                    res.append(answer)
 
         return reord.get_original(res)
     

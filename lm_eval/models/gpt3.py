@@ -91,7 +91,7 @@ class GPT3LM(LM):
             # it's not guaranteed that the 100 or so logprobs we get to see actually contain all the continuations
             # we care about and so we need some kind of backup for when it isn't
             toks = x[1] + x[2]
-            return (len(toks), tuple(toks))
+            return (-len(toks), tuple(toks))
         
         reord = utils.Reorderer(requests, _collate)
         
