@@ -19,7 +19,7 @@ class Math(Task):
             sh(f"""
             mkdir -p {self.DATASET_PATH}
             wget https://people.eecs.berkeley.edu/~hendrycks/MATH.tar.gz -P data/
-            tar -xvf {self.DATASET_PATH}.tar.gz -C data/
+            tar -xf {self.DATASET_PATH}.tar.gz -C data/
             rm {self.DATASET_PATH}.tar.gz
             """)
 
