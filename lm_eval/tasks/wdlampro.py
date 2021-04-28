@@ -81,11 +81,6 @@ class D2W(Task):
             examples.append(example)
         
         return examples
-            
-            
-
-            
-        return examples
     
     def doc_to_text(self, doc):
         return doc['prompt'] + '\n' + 'options: ' + doc['options'] + '\n\n' + 'A: '
