@@ -99,8 +99,8 @@ class D2W(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`. 
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        ll, is_prediction = rf.loglikelihood(ctx, doc['answer'])
+        return is_prediction
     
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a 
@@ -112,23 +112,10 @@ class D2W(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        is_prediction, = results
+        return {
+            "acc": is_prediction
+        }
+        
 
-    def aggregation(self):
-        """
-        :returns: {str: [float] -> float}
-            A dictionary where keys are the names of submetrics and values are 
-            functions that aggregate a list of metrics
-        """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
-
-    def higher_is_better(self):
-        """
-        :returns: {str: bool}
-            A dictionary where keys are the names of submetrics and values are 
-            whether a higher value of the submetric is better
-        """
-        # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        
