@@ -24,7 +24,7 @@ from lm_eval.base import Task
 from ..utils import sh
 
 
-class QuAC(Task):
+class D2W(Task):
     VERSION = 0
 
     def __init__(self):
