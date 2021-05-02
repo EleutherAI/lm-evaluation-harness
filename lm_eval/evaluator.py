@@ -1,6 +1,7 @@
 import collections
 import itertools
 import random
+import lm_eval.metrics
 
 
 def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
@@ -88,5 +89,9 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
     for (task_name, metric), items in vals.items():
         task = task_dict[task_name]
         results[task_name][metric] = task.aggregation()[metric](items)
+
+        stderr = lm_eval.metrics.stderr_for_metric(task.aggregation()[metric])
+        if stderr is not None:
+            results[task_name][metric + "_stderr"] = stderr(items)
     
     return results
