@@ -23,7 +23,7 @@ class WordUnscrambleTask(Task):
 
     def download(self):
         if not self.BASE_PATH.exists():
-            Path.mkdir(self.BASE_PATH)
+            Path.mkdir(self.BASE_PATH, parents=True)
         file = self.BASE_PATH / self.FILENAME
         if not file.exists():
             rawfile = file.parent / (file.name + ".gz")
