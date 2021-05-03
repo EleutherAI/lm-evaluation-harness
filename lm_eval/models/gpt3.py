@@ -92,9 +92,9 @@ class GPT3LM(LM):
             # we care about and so we need some kind of backup for when it isn't
             toks = x[1] + x[2]
             return (len(toks), tuple(toks))
-        
+
         reord = utils.Reorderer(requests, _collate)
-        
+
         for chunk in tqdm(list(utils.chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE))):
             inps = []
             ctxlens = []
@@ -121,7 +121,7 @@ class GPT3LM(LM):
                 # partial caching
                 if cache_key is not None:
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
-            
+
         return reord.get_original(res)
 
     def greedy_until(self, requests):

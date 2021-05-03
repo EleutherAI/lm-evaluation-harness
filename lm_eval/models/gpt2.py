@@ -4,10 +4,13 @@ import torch.nn.functional as F
 from lm_eval.base import LM
 from lm_eval import utils
 from tqdm import tqdm
+import numpy as np
 
 
 class GPT2LM(LM):
     MAX_GEN_TOKS = 256
+    VOCAB_SIZE = 50257
+    EOT_TOKEN_ID = 50256
 
     def __init__(self, device=None, pretrained='gpt2'):
         super().__init__()
@@ -39,7 +42,7 @@ class GPT2LM(LM):
         for context, continuation in requests:
             if context == "":
                 # end of text as context
-                context_enc = [50256]
+                context_enc = [self.EOT_TOKEN_ID]
             else:
                 context_enc = self.tokenizer.encode(context)
 
@@ -48,6 +51,35 @@ class GPT2LM(LM):
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
         return self._loglikelihood_tokens(new_reqs)
+
+    def loglikelihood_perplexity(self, requests):
+        # TODO: Implement caching once we've confirmed the perplexity implementation
+        # TODO: automatic batch size detection for vectorization
+
+        loglikelihoods = []
+        with torch.no_grad():
+            for string, in tqdm(requests):
+                encoded = self.tokenizer.encode_plus(string)["input_ids"]
+                rolling_token_windows = utils.get_rolling_token_windows(
+                    token_list=encoded,
+                    prefix_token=self.EOT_TOKEN_ID,
+                    max_seq_len=self.max_length,
+                    context_len=1,
+                )
+                string_nll = []
+                for input_tokens, pred_tokens in rolling_token_windows:
+                    inp = torch.tensor([input_tokens], dtype=torch.long).to(self.device)
+                    labels = torch.tensor([pred_tokens], dtype=torch.long).to(self.device)
+                    logits = F.log_softmax(self.gpt2(inp)[0][:, :, :self.VOCAB_SIZE], dim=-1)  # [batch, seq, vocab]
+                    # Only score the relevant logits (i.e. the last len(pred_tokens) logits
+                    scoring_logits = logits[:, -len(pred_tokens):].reshape(len(pred_tokens), self.VOCAB_SIZE)
+                    string_nll.append(
+                        F.cross_entropy(scoring_logits, target=labels.view(-1), reduction="none").cpu().numpy()
+                    )
+                string_nll = np.concatenate(string_nll)
+                loglikelihoods.append(-string_nll)
+
+        return loglikelihoods
 
     def _loglikelihood_tokens(self, requests):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
@@ -59,7 +91,7 @@ class GPT2LM(LM):
             def _collate(x):
                 toks = x[1] + x[2]
                 return (len(toks), tuple(toks))
-            
+
             reord = utils.Reorderer(requests, _collate)
             for cache_key, context_enc, continuation_enc in tqdm(reord.get_reordered()):
                 # when too long to fit in context, truncate from the left
@@ -67,7 +99,7 @@ class GPT2LM(LM):
                 ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - self.max_length)
 
                 cont_toks = inp[:, ctxlen:]  # [batch, seq]
-                logits = F.log_softmax(self.gpt2(inp)[0][:, :, :50257], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
+                logits = F.log_softmax(self.gpt2(inp)[0][:, :, :self.VOCAB_SIZE], dim=-1)[:, ctxlen - 1:-1]  # [batch, seq, vocab]
 
                 greedy_tokens = logits.argmax(dim=-1)
                 max_equal = (greedy_tokens == cont_toks).all()
