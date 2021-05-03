@@ -178,10 +178,10 @@ def bootstrap_stddev(f, xs, iters=10000):
     print("bootstrapping for stddev:", f.__name__)
     for i in trange(iters):
         # sample w replacement
-        bootstrap = rnd.choices(xs, k=len(xs))
-        res.append(stddev(bootstrap))
+        bootstrap = f(rnd.choices(xs, k=len(xs)))
+        res.append(bootstrap)
 
-    return mean(res)
+    return stddev(res)
 
 
 def stderr_for_metric(metric):
