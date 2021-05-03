@@ -41,9 +41,93 @@ class PilePerplexityTask(PerplexityTask, abc.ABC):
         return True
 
 
+class PileArxivPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "ArXiv"
+
+
+class PileBooks3PerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "Books3"
+
+
+class PileBookCorpus2PerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "BookCorpus2"
+
+
+class PileCommonCrawlPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "CommonCrawl"
+
+
+class PileDmMathematicsPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "DM Mathematics"
+
+
 class PileEnronPerplexityTask(PilePerplexityTask):
     PILE_SET_NAME = "Enron Emails"
 
 
-class PileUbuntuPerplexityTask(PilePerplexityTask):
+class PileEuroparlPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "EuroParl"
+
+
+class PileFreeLawPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "FreeLaw"
+
+
+class PileGithubPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "Github"
+
+
+class PileGutenbergPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "Gutenberg (PG-19)"
+
+
+class PileHackernewsPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "HackerNews"
+
+
+class PileNIHExporterPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "NIH ExPorter"
+
+
+class PileOpenSubtitlesPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "OpenSubtitles"
+
+
+class PileOpenWebText2PerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "OpenWebText2"
+
+
+class PilePhilPapersPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "PhilPapers"
+
+
+class PilePileCcPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "Pile-CC"
+
+
+class PilePubmedAbstractsPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "PubMed Abstracts"
+
+
+class PilePubmedCentralPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "PubMed Central"
+
+
+class PileStackExchangePerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "StackExchange"
+
+
+class PileUsptoPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "USPTO Backgrounds"
+
+
+class PileUbuntuIrcPerplexityTask(PilePerplexityTask):
     PILE_SET_NAME = "Ubuntu IRC"
+
+
+class PileWikipediaPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "Wikipedia (en)"
+
+
+class PileYoutubeSubtitlesPerplexityTask(PilePerplexityTask):
+    PILE_SET_NAME = "YoutubeSubtitles"

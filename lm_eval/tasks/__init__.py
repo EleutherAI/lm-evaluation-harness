@@ -174,8 +174,29 @@ TASK_REGISTRY = {
     "reversed_words": unscramble.ReversedWords,
 
     # Pile
-    "pile_enron": pile.PileEnronPerplexityTask,
-    "pile_ubuntu": pile.PileUbuntuPerplexityTask,
+    "arxiv": pile.PileArxivPerplexityTask,
+    "books3": pile.PileBooks3PerplexityTask,
+    "bookcorpus2": pile.PileBookCorpus2PerplexityTask,
+    "commoncrawl": pile.PileCommonCrawlPerplexityTask,
+    "dm-mathematics": pile.PileDmMathematicsPerplexityTask,
+    "enron": pile.PileEnronPerplexityTask,
+    "europarl": pile.PileEuroparlPerplexityTask,
+    "freelaw": pile.PileFreeLawPerplexityTask,
+    "github": pile.PileGithubPerplexityTask,
+    "gutenberg": pile.PileGutenbergPerplexityTask,
+    "hackernews": pile.PileHackernewsPerplexityTask,
+    "nih-exporter": pile.PileNIHExporterPerplexityTask,
+    "opensubtitles": pile.PileOpenSubtitlesPerplexityTask,
+    "openwebtext2": pile.PileOpenWebText2PerplexityTask,
+    "philpapers": pile.PilePhilPapersPerplexityTask,
+    "pile-cc": pile.PilePileCcPerplexityTask,
+    "pubmed-abstracts": pile.PilePubmedAbstractsPerplexityTask,
+    "pubmed-central": pile.PilePubmedCentralPerplexityTask,
+    "stackexchange": pile.PileStackExchangePerplexityTask,
+    "uspto": pile.PileUsptoPerplexityTask,
+    "ubuntu-irc": pile.PileUbuntuIrcPerplexityTask,
+    "wikipedia": pile.PileWikipediaPerplexityTask,
+    "youtubesubtitles": pile.PileYoutubeSubtitlesPerplexityTask,
 }
 
 
