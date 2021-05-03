@@ -170,7 +170,7 @@ def _sacreformat(refs, preds):
 ## stderr stuff
 
 
-def bootstrap_stddev(f, xs, iters=10000):
+def bootstrap_stderr(f, xs, iters=10000):
     rnd = random.Random()
     rnd.seed(42)
     res = []
@@ -196,7 +196,7 @@ def stderr_for_metric(metric):
     ]
 
     if metric in bootstrappable:
-        return lambda x: bootstrap_stddev(metric, x) / math.sqrt(len(x))
+        return lambda x: bootstrap_stderr(metric, x)
 
     stderr = {
         mean: mean_stderr,
