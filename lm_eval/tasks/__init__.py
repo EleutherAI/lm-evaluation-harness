@@ -37,6 +37,7 @@ from . import hendrycks_test
 from . import hendrycks_math
 from . import cbt
 from . import lambada_cloze
+from . import pile
 
 ########################################
 # Translation tasks
@@ -171,6 +172,10 @@ TASK_REGISTRY = {
     "cycle_letters": unscramble.CycleLetters,
     "random_insertion": unscramble.RandomInsertion,
     "reversed_words": unscramble.ReversedWords,
+
+    # Pile
+    "pile_enron": pile.PileEnronPerplexityTask,
+    "pile_ubuntu": pile.PileUbuntuPerplexityTask,
 }
 
 
