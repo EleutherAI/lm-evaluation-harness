@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import transformers
 from lm_eval.base import LM
 from lm_eval import utils
@@ -58,6 +59,7 @@ class GPT3LM(LM):
         self.tokenizer.pad_token = "<|endoftext|>"
         assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373]
         self.truncate = truncate
+        self.end_of_text_token_id = self.tokenizer.convert_tokens_to_ids(["<|endoftext|>"])[0]
 
         # Read from environment variable OPENAI_API_SECRET_KEY
         openai.api_key = os.environ["OPENAI_API_SECRET_KEY"]
@@ -81,6 +83,31 @@ class GPT3LM(LM):
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
         return self._loglikelihood_tokens(new_reqs)
+
+    def loglikelihood_perplexity(self, requests):
+        # TODO: Implement caching once we've confirmed the perplexity implementation
+        # TODO: Add chunking
+
+        loglikelihoods = []
+        for string, in tqdm(requests):
+            encoded = self.tokenizer.encode_plus(string)["input_ids"]
+            rolling_token_windows = utils.get_rolling_token_windows(
+                token_list=encoded,
+                prefix_token=self.end_of_text_token_id,
+                max_seq_len=self.MAX_LENGTH,
+                context_len=1,
+            )
+            string_loglikelihoods = []
+            for input_tokens, pred_tokens in rolling_token_windows:
+                block_output = self.get_token_logprobs(
+                    input_tokens=input_tokens,
+                    pred_tokens=pred_tokens,
+                )
+                string_loglikelihoods.append(block_output["logprobs"])
+            string_loglikelihoods = np.concatenate(string_loglikelihoods)
+            loglikelihoods.append(string_loglikelihoods)
+
+        return loglikelihoods
 
     def _loglikelihood_tokens(self, requests):
         import openai
@@ -123,6 +150,27 @@ class GPT3LM(LM):
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
         return reord.get_original(res)
+
+    def get_token_logprobs(self, input_tokens, pred_tokens):
+        pred_start = len(input_tokens) - len(pred_tokens) + 1
+        # We're going to stitch together the input_tokens and pred_tokens
+        # In the longest case, this gets us to length = max_seq_len+1 (which the API works with)
+        assert input_tokens[pred_start:] == pred_tokens[:-1]
+        token_ids = input_tokens + [pred_tokens[-1]]
+        response = oa_completion(
+            engine=self.engine,
+            prompt=token_ids,
+            max_tokens=0,
+            temperature=0.0,
+            logprobs=0,
+            echo=True,
+        )
+        logprobs = np.array(response["choices"][0]["logprobs"]["token_logprobs"][pred_start:])
+        positions = np.arange(pred_start-1, pred_start-1 + len(token_ids[pred_start:]))
+        return {
+            "logprobs": logprobs,
+            "positions": positions,
+        }
 
     def greedy_until(self, requests):
         if not requests: return []

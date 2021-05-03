@@ -34,7 +34,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
         task_docs = list(task_doc_func())
         rnd = random.Random()
         rnd.seed(42)
-        # rnd.shuffle(task_docs)
+        rnd.shuffle(task_docs)
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
             docs[(task_name, doc_id)] = doc
