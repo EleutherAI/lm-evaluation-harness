@@ -35,3 +35,19 @@ def test_gpt2():
 
     for (pred, _), tgt in zip(vals, targets):
         assert pred == pytest.approx(tgt)
+
+
+def test_gpt2_perplexity():
+    gpt2 = models.get_model('gpt2').create_from_arg_string("device=cpu")
+    test_string = "We study empirical scaling laws for language model performance on the cross-entropy loss."
+    perplexity = gpt2.loglikelihood_perplexity([(test_string,)])[0]
+    targets = [-4.9599953, -8.069298, -8.308624, -10.178513, -8.906924, -1.9318912, -7.745445, -7.146077, -5.2072, -3.5882986, -1.9957212, -8.044922, -0.20841774, -5.1096807, -0.099879116, -8.888423, -4.6180487]
+    for pred, tgt in zip(perplexity, targets):
+        assert pred == pytest.approx(tgt)
+
+    # Hack: modify gpt2 to have shorter context length to induce rolling windows
+    gpt2.max_length = 5
+    perplexity = gpt2.loglikelihood_perplexity([(test_string,)])[0]
+    targets = [-4.96001, -8.069275, -8.308612, -10.178482, -8.90691, -4.037338, -8.09261, -11.662385, -10.206891, -4.425003, -2.2563353, -7.909143, -1.9304147, -7.3610134, -2.3120654, -7.3229, -2.1643813]
+    for pred, tgt in zip(perplexity, targets):
+        assert pred == pytest.approx(tgt)
