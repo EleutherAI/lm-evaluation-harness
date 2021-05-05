@@ -351,7 +351,7 @@ class PerplexityTask(Task, abc.ABC):
 req_ret_lens = {
     'loglikelihood': 2,
     'greedy_until': None,
-    'loglikelihood_perplexity': 1,
+    'loglikelihood_perplexity': None,
 }
 
 import os

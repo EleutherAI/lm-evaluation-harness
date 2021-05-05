@@ -35,7 +35,7 @@ def test_evaluator(taskname, Task):
         res = []
         random.seed(42)
         for _ in reqs:
-            res.append((-random.random(),))
+            res.append(-random.random())
 
         return res
 
