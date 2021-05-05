@@ -1,8 +1,9 @@
 import abc
 import random
 import numpy as np
+import re
 
-from lm_eval.metrics import mean
+from lm_eval.metrics import mean, perplexity, weighted_mean
 
 
 class LM(abc.ABC):
@@ -307,14 +308,17 @@ class PerplexityTask(Task, abc.ABC):
         return ""
 
     def higher_is_better(self):
-        return False
+        return {
+            "word_perplexity": False,
+            "byte_perplexity": False,
+            "bits_per_byte": False,
+        }
 
     def doc_to_text(self, doc):
         return doc
 
     def doc_to_target(self, doc):
         raise NotImplementedError()
-        return doc
 
     def construct_requests(self, doc, ctx):
         assert not ctx
@@ -324,20 +328,26 @@ class PerplexityTask(Task, abc.ABC):
     def process_results(self, doc, results):
         loglikelihood, = results
         return {
-            "perplexity": loglikelihood,
+            "word_perplexity": loglikelihood / self.count_words(self.doc_to_text(doc)),
+            "byte_perplexity": loglikelihood / self.count_bytes(self.doc_to_text(doc)),
+            "bits_per_byte": (-loglikelihood, self.count_bytes(self.doc_to_text(doc)))
         }
 
     def aggregation(self):
         return {
-            "perplexity": self.compute_perplexity_from_loglikelihood,
+            "word_perplexity": perplexity,
+            "byte_perplexity": perplexity,
+            "bits_per_byte": weighted_mean
         }
 
-    @classmethod
-    def compute_perplexity_from_loglikelihood(cls, loglikelihoods):
-        aggregate_logprobs = np.concatenate(loglikelihoods)
-        perplexity = np.exp(-aggregate_logprobs.mean())
-        return float(perplexity)
-
+    def count_bytes(self, s):
+        return len(s.encode("utf-8"))
+    
+    def count_words(self, s):
+        """ Downstream tasks with custom word boundaries should override this! """
+        return len(re.split(r"\s+", s))
+    
+    def 
 
 req_ret_lens = {
     'loglikelihood': 2,
