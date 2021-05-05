@@ -97,12 +97,19 @@ def get_rolling_token_windows(token_list, prefix_token, max_seq_len, context_len
     while predicted < len(token_list):
         window_pred_len = min(len(token_list) - predicted, pred_len)
         window_end = predicted + window_pred_len
+
         yield (
             token_list[window_end - max_seq_len - 1:window_end - 1],
             token_list[window_end - window_pred_len:window_end],
         )
         predicted += window_pred_len
 
+def make_disjoint_window(pair):
+    """ Takes output from get_rolling_token_windows and makes the context not overlap with the continuation """
+
+    a, b = pair
+
+    return a[:-(len(b) - 1)], b
 
 class Reorderer:
     def __init__(self, arr, fn):
