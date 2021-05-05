@@ -346,8 +346,7 @@ class PerplexityTask(Task, abc.ABC):
     def count_words(self, s):
         """ Downstream tasks with custom word boundaries should override this! """
         return len(re.split(r"\s+", s))
-    
-    def 
+
 
 req_ret_lens = {
     'loglikelihood': 2,

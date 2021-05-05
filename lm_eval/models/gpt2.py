@@ -71,7 +71,7 @@ class GPT2LM(LM):
                 rolling_token_windows = [(None,) + x for x in rolling_token_windows]
 
                 # TODO: extract out this call so it only gets called once and also somehow figure out partial caching for that
-                string_nll = self._loglikelihood_tokens(rolling_token_windows)
+                string_nll = self._loglikelihood_tokens(rolling_token_windows, disable_tqdm=True)
                 
                 # discard is_greedy
                 string_nll = [x[0] for x in string_nll]
@@ -81,7 +81,7 @@ class GPT2LM(LM):
 
         return loglikelihoods
 
-    def _loglikelihood_tokens(self, requests):
+    def _loglikelihood_tokens(self, requests, disable_tqdm=False):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
         with torch.no_grad():
@@ -93,7 +93,7 @@ class GPT2LM(LM):
                 return (len(toks), tuple(toks))
 
             reord = utils.Reorderer(requests, _collate)
-            for cache_key, context_enc, continuation_enc in tqdm(reord.get_reordered()):
+            for cache_key, context_enc, continuation_enc in tqdm(reord.get_reordered(), disable=disable_tqdm):
                 assert len(context_enc) > 0
                 assert len(continuation_enc) > 0
                 assert len(continuation_enc) <= self.max_length
