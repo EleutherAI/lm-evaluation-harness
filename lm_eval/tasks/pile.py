@@ -16,6 +16,7 @@ class PilePerplexityTask(PerplexityTask, abc.ABC):
     TEST_PATH = 'data/pile/test.jsonl.zst'
 
     def download(self):
+        # TODO: separate pile val/test out by component so we don't have to scan the entire file once per set
         os.makedirs("data/pile/", exist_ok=True)
         if not os.path.exists(self.VAL_PATH):
             download_file("https://the-eye.eu/public/AI/pile/val.jsonl.zst", self.VAL_PATH)
