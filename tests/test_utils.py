@@ -1,4 +1,4 @@
-from lm_eval.utils import get_rolling_token_windows
+from lm_eval.utils import get_rolling_token_windows, make_disjoint_window
 
 
 # noinspection DuplicatedCode
@@ -200,3 +200,8 @@ def test_get_rolling_token_windows_empty():
     for _ in generator:
         n += 1
     assert n == 0
+
+
+def test_make_disjoint_window():
+    assert make_disjoint_window(([1,2,3,4,5], [2,3,4,5,6])) == ([1], [2,3,4,5,6])
+    assert make_disjoint_window(([1,2,3,4,5], [4,5,6])) == ([1,2,3], [4,5,6])

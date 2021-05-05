@@ -15,6 +15,7 @@ def test_evaluator(taskname, Task):
 
     def ll_fn(reqs):
         for ctx, cont in reqs:
+            if len(ctx) == 0: continue
             # space convention
             assert ctx[-1] != ' '
             assert cont[0] == ' ' or ctx[-1] == '\n'
