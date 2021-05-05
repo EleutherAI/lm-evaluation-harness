@@ -85,8 +85,7 @@ class GPT3LM(LM):
         return self._loglikelihood_tokens(new_reqs)
 
     def loglikelihood_perplexity(self, requests):
-        # TODO: Implement caching once we've confirmed the perplexity implementation
-        # TODO: Add chunking
+        # TODO: switch implementation to use _loglikelihood_tokens rather than having it do its own thing
 
         loglikelihoods = []
         for string, in tqdm(requests):
@@ -104,7 +103,7 @@ class GPT3LM(LM):
                     pred_tokens=pred_tokens,
                 )
                 string_loglikelihoods.append(block_output["logprobs"])
-            string_loglikelihoods = np.concatenate(string_loglikelihoods)
+            string_loglikelihoods = np.concatenate(string_loglikelihoods).sum()
             loglikelihoods.append(string_loglikelihoods)
 
         return loglikelihoods
