@@ -27,7 +27,7 @@ class DummyLM(LM):
 
         return res
 
-    def loglikelihood_perplexity(self, requests):
+    def loglikelihood_rolling(self, requests):
         res = []
         
         for _ in requests:

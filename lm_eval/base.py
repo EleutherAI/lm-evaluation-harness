@@ -35,7 +35,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def loglikelihood_perplexity(self, requests):
+    def loglikelihood_rolling(self, requests):
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation
         - We will use the full max context length of the model.
         - For inputs that exceed the max context length, we divide the tokenized string into chunks of up to
@@ -322,7 +322,7 @@ class PerplexityTask(Task, abc.ABC):
 
     def construct_requests(self, doc, ctx):
         assert not ctx
-        req = rf.loglikelihood_perplexity(doc)
+        req = rf.loglikelihood_rolling(doc)
         return req
 
     def process_results(self, doc, results):
@@ -351,7 +351,7 @@ class PerplexityTask(Task, abc.ABC):
 req_ret_lens = {
     'loglikelihood': 2,
     'greedy_until': None,
-    'loglikelihood_perplexity': None,
+    'loglikelihood_rolling': None,
 }
 
 import os
