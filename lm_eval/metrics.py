@@ -5,10 +5,21 @@ from pprint import pprint
 import numpy as np
 import sacrebleu
 import sklearn
+import random
 
 
 def mean(arr):
     return sum(arr) / len(arr)
+
+
+def stddev(arr):
+    mu = mean(arr)
+    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / len(arr))
+
+
+def mean_stderr(arr):
+    print(stddev(arr), len(arr))
+    return stddev(arr) / math.sqrt(len(arr))
 
 
 def median(arr):
@@ -46,6 +57,23 @@ def acc_all(items):
         question_scoring_dict[question_id].append(gold_label == pred)
 
     acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
+    return acc
+
+def acc_all_stderr(items):
+    # Only count as correct if all answers are labeled correctly for each question
+    question_scoring_dict = {}
+    preds = list(zip(*items))[0]
+    docs = list(zip(*items))[1]
+
+    for doc, pred in zip(docs, preds):
+        question_id = doc["idx"]["question"]
+        if question_id not in question_scoring_dict:
+            question_scoring_dict[question_id] = []
+
+        gold_label = doc["label"] == 1
+        question_scoring_dict[question_id].append(gold_label == pred)
+
+    acc = mean_stderr([int(all(x)) for x in question_scoring_dict.values()])
     return acc
 
 
@@ -143,3 +171,42 @@ def _sacreformat(refs, preds):
         preds = [pred[0] for pred in preds]
 
     return refs, preds
+
+## stderr stuff
+
+
+def bootstrap_stderr(f, xs, iters=10000):
+    rnd = random.Random()
+    rnd.seed(42)
+    res = []
+    from tqdm import trange
+    print("bootstrapping for stddev:", f.__name__)
+    for i in trange(iters):
+        # sample w replacement
+        bootstrap = f(rnd.choices(xs, k=len(xs)))
+        res.append(bootstrap)
+
+    return stddev(res)
+
+
+def stderr_for_metric(metric):
+    bootstrappable = [
+        median,
+        matthews_corrcoef,
+        f1_score,
+        perplexity,
+        bleu,
+        chrf,
+        ter,
+    ]
+
+    if metric in bootstrappable:
+        return lambda x: bootstrap_stderr(metric, x)
+
+    stderr = {
+        mean: mean_stderr,
+        acc_all: acc_all_stderr
+        
+    }
+
+    return stderr.get(metric, None)
