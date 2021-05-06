@@ -84,7 +84,7 @@ class GPT3LM(LM):
 
         return self._loglikelihood_tokens(new_reqs)
 
-    def loglikelihood_perplexity(self, requests):
+    def loglikelihood_rolling(self, requests):
         # TODO: switch implementation to use _loglikelihood_tokens rather than having it do its own thing
 
         loglikelihoods = []
