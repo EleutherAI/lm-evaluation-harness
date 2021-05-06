@@ -9,7 +9,7 @@ from ..utils import general_detokenize
 from best_download import download_file
 
 
-class Pile(PerplexityTask, abc.ABC):
+class PilePerplexityTask(PerplexityTask, abc.ABC):
 
     PILE_SET_NAME = None
     VAL_PATH = 'data/pile/val.jsonl.zst'
