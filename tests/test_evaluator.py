@@ -40,5 +40,5 @@ def test_evaluator(taskname, Task):
         return res
 
     lm.loglikelihood = ll_fn
-    lm.loglikelihood_perplexity = ll_perp_fn
+    lm.loglikelihood_rolling = ll_perp_fn
     evaluator.evaluate(lm, task_dict, False, 0, 10)
