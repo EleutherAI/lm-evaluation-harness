@@ -174,7 +174,7 @@ def _sacreformat(refs, preds):
 ## stderr stuff
 
 
-def bootstrap_stderr(f, xs, iters=10000):
+def bootstrap_stderr(f, xs, iters=100000):
     rnd = random.Random()
     rnd.seed(42)
     res = []
