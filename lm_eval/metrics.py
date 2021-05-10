@@ -12,14 +12,18 @@ def mean(arr):
     return sum(arr) / len(arr)
 
 
-def stddev(arr):
+def pop_stddev(arr):
     mu = mean(arr)
     return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / len(arr))
 
 
+def sample_stddev(arr):
+    mu = mean(arr)
+    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
+
+
 def mean_stderr(arr):
-    print(stddev(arr), len(arr))
-    return stddev(arr) / math.sqrt(len(arr))
+    return sample_stddev(arr) / math.sqrt(len(arr))
 
 
 def median(arr):
@@ -186,7 +190,7 @@ def bootstrap_stderr(f, xs, iters=10000):
         bootstrap = f(rnd.choices(xs, k=len(xs)))
         res.append(bootstrap)
 
-    return stddev(res)
+    return sample_stddev(res)
 
 
 def stderr_for_metric(metric):
