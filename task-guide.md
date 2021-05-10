@@ -23,7 +23,23 @@ cd lm_eval/tasks
 touch <task-name>.py
 ```
 
-Now let's walk through this - from data handling to evaluation. 
+Then open the file and create a multiline docstring on the first line with the name of the paper associated with your task/s on one line, the paper’s url on the next line, and its BibTeX Code on another. For example, take the QuAC dataset. You’d write:
+
+```python
+"""
+QuAC: Question Answering in Context
+https://arxiv.org/abs/1808.07036
+
+@article{choi2018quac,
+  title={Quac: Question answering in context},
+  author={Choi, Eunsol and He, He and Iyyer, Mohit and Yatskar, Mark and Yih, Wen-tau and Choi, Yejin and Liang, Percy and Zettlemoyer, Luke},
+  journal={arXiv preprint arXiv:1808.07036},
+  year={2018}
+}
+"""
+```
+
+Now let's walk through the actual implementation - from data handling to evaluation. 
 
 ### Downloading the Data
 
@@ -86,13 +102,22 @@ There are 2 standard approaches we follow for downloading data:
 If your task is multiple-choice just inherit from the `MultipleChoiceTask` class we provide.
 ```python
 from lm_eval.base import MultipleChoiceTask
-# ...
+
 class TaskName(..., MultipleChoiceTask):
 ```
 Multiple-choice tasks require you to format your documents according to a standard.
 after this go <a href="#Registering-Your-Task">register your task</a>.
 
 ⚠️ __END TODO__
+
+### Versioning
+
+Tasks in the harness can always evolve. Metrics get updated, data sources change, etc. It’s important to mark each task with a version attribute so users can specify which version of the implementation was used to obtain their results. Add a `VERSION` attribute to your task class set to 0 (the first version of your task):
+
+```python
+class TaskName(...):
+	VERSION = 0
+```
 
 ### Formatting your Few-Shot Examples
 
