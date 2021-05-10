@@ -175,6 +175,12 @@ def _sacreformat(refs, preds):
 
 
 def bootstrap_stderr(f, xs, iters=100000):
+    # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
+    # equivalent to stderr calculated without Bessel's correction in the stddev. 
+    # Unfortunately, I haven't been able to figure out what the right correction is
+    # to make the bootstrap unbiased - i considered multiplying by sqrt(n/(n-1)) but
+    # that would be ad-hoc and I can't prove that that would actually be an unbiased estimator)
+    # Thankfully, shouldn't matter because our samples are pretty big usually anyways
     rnd = random.Random()
     rnd.seed(42)
     res = []
