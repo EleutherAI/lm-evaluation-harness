@@ -10,7 +10,7 @@ from tqdm import tqdm
 class GPT2LM(LM):
     MAX_GEN_TOKS = 256
 
-    def __init__(self, device=None, pretrained='gpt2'):
+    def __init__(self, device='cuda', pretrained='gpt2', batch_size=1):
         super().__init__()
         if device:
             self.device = torch.device(device)
@@ -32,17 +32,19 @@ class GPT2LM(LM):
 
         # multithreading and batching
         gpus = torch.cuda.device_count()
-        batch_size_per_gpu = 2 # todo: adaptive batch size
+        batch_size_per_gpu = batch_size # todo: adaptive batch size
 
         self.batch_size = batch_size_per_gpu * gpus
 
-        if gpus > 1:
-            self.gpt2 = nn.DataParallel(self.gpt2)
+        # TODO: fix multi-gpu
+        # if gpus > 1:
+        #     self.gpt2 = nn.DataParallel(self.gpt2)
 
     @classmethod
-    def create_from_arg_string(cls, arg_string):
+    def create_from_arg_string(cls, arg_string, **kwargs):
         args = utils.simple_parse_args_string(arg_string)
-        return cls(device=args.get("device", None), pretrained=args.get("pretrained", "gpt2"))
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        return cls(pretrained=args.get("pretrained", "gpt2"), **kwargs)
 
     def loglikelihood(self, requests):
         new_reqs = []
