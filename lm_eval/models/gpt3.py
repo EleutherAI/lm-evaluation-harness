@@ -63,9 +63,10 @@ class GPT3LM(LM):
         openai.api_key = os.environ["OPENAI_API_SECRET_KEY"]
 
     @classmethod
-    def create_from_arg_string(cls, arg_string):
+    def create_from_arg_string(cls, arg_string, **kwargs):
         args = utils.simple_parse_args_string(arg_string)
-        return cls(engine=args.get("engine", "davinci"))
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        return cls(engine=args.get("engine", "davinci"), **kwargs)
 
     def loglikelihood(self, requests):
         new_reqs = []
@@ -91,7 +92,7 @@ class GPT3LM(LM):
             # it's not guaranteed that the 100 or so logprobs we get to see actually contain all the continuations
             # we care about and so we need some kind of backup for when it isn't
             toks = x[1] + x[2]
-            return (len(toks), tuple(toks))
+            return (-len(toks), tuple(toks))
         
         reord = utils.Reorderer(requests, _collate)
         
