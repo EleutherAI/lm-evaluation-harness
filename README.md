@@ -14,105 +14,190 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 
 ### Overview of Tasks
 
-|          Task Name           |Train|Val|Test|    Metrics    |
-|------------------------------|-----|---|----|---------------|
-|cola                          |✓    |✓  |✓   |mcc            |
-|mnli                          |✓    |✓  |✓   |acc            |
-|mnli_mismatched               |✓    |✓  |✓   |acc            |
-|mrpc                          |✓    |✓  |✓   |acc, f1        |
-|rte                           |✓    |✓  |✓   |acc            |
-|qnli                          |✓    |✓  |✓   |acc            |
-|qqp                           |✓    |✓  |✓   |acc, f1        |
-|sst                           |✓    |✓  |✓   |acc            |
-|wnli                          |✓    |✓  |✓   |acc            |
-|boolq                         |✓    |✓  |✓   |acc            |
-|cb                            |✓    |✓  |✓   |acc, f1        |
-|copa                          |✓    |✓  |✓   |acc            |
-|multirc                       |✓    |✓  |✓   |acc            |
-|record                        |✓    |✓  |    |f1, em         |
-|wic                           |✓    |✓  |✓   |acc            |
-|wsc                           |✓    |✓  |✓   |acc            |
-|coqa                          |✓    |✓  |    |f1, em         |
-|drop                          |✓    |✓  |    |em, f1         |
-|lambada                       |     |✓  |    |ppl, acc       |
-|piqa                          |✓    |✓  |    |acc            |
-|pubmedqa                      |     |   |✓   |acc            |
-|sciq                          |✓    |✓  |✓   |acc            |
-|qa4mre_2011                   |     |   |✓   |acc            |
-|qa4mre_2012                   |     |   |✓   |acc            |
-|qa4mre_2013                   |     |   |✓   |acc            |
-|arc_easy                      |✓    |✓  |✓   |acc            |
-|arc_challenge                 |✓    |✓  |✓   |acc            |
-|logiqa                        |✓    |✓  |✓   |acc            |
-|hellaswag                     |✓    |✓  |    |acc            |
-|openbookqa                    |✓    |✓  |✓   |acc            |
-|race                          |✓    |✓  |✓   |acc            |
-|headqa                        |✓    |✓  |✓   |acc            |
-|mathqa                        |✓    |✓  |✓   |acc            |
-|webqs                         |✓    |   |✓   |acc            |
-|wsc273                        |     |   |✓   |acc            |
-|winogrande                    |✓    |✓  |    |acc            |
-|anli_r1                       |✓    |✓  |✓   |acc            |
-|anli_r2                       |✓    |✓  |✓   |acc            |
-|anli_r3                       |✓    |✓  |✓   |acc            |
-|ethics_cm                     |✓    |✓  |✓   |acc            |
-|ethics_deontology             |✓    |✓  |✓   |acc, em        |
-|ethics_justice                |✓    |✓  |✓   |acc, em        |
-|ethics_utilitarianism_original|✓    |✓  |✓   |acc            |
-|ethics_utilitarianism         |✓    |✓  |✓   |acc            |
-|ethics_virtue                 |✓    |✓  |✓   |acc, em        |
-|math_algebra                  |✓    |   |✓   |acc            |
-|math_counting_and_prob        |✓    |   |✓   |acc            |
-|math_geometry                 |✓    |   |✓   |acc            |
-|math_intermediate_algebra     |✓    |   |✓   |acc            |
-|math_num_theory               |✓    |   |✓   |acc            |
-|math_prealgebra               |✓    |   |✓   |acc            |
-|math_precalc                  |✓    |   |✓   |acc            |
-|arithmetic_2da                |     |✓  |    |acc            |
-|arithmetic_2ds                |     |✓  |    |acc            |
-|arithmetic_3da                |     |✓  |    |acc            |
-|arithmetic_3ds                |     |✓  |    |acc            |
-|arithmetic_4da                |     |✓  |    |acc            |
-|arithmetic_4ds                |     |✓  |    |acc            |
-|arithmetic_5da                |     |✓  |    |acc            |
-|arithmetic_5ds                |     |✓  |    |acc            |
-|arithmetic_2dm                |     |✓  |    |acc            |
-|arithmetic_1dc                |     |✓  |    |acc            |
-|wmt14-en-fr                   |     |   |✓   |bleu, chrf, ter|
-|wmt14-fr-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt16-en-ro                   |     |   |✓   |bleu, chrf, ter|
-|wmt16-ro-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt16-de-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt16-en-de                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-cs-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-de-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-de-fr                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-cs                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-de                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-iu                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-ja                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-km                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-pl                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-ps                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-ru                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-ta                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-zh                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-fr-de                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-iu-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-ja-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-km-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-pl-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-ps-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-ru-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-ta-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-zh-en                   |     |   |✓   |bleu, chrf, ter|
-|iwslt17-en-ar                 |     |   |✓   |bleu, chrf, ter|
-|iwslt17-ar-en                 |     |   |✓   |bleu, chrf, ter|
-|anagrams1                     |     |✓  |    |acc            |
-|anagrams2                     |     |✓  |    |acc            |
-|cycle_letters                 |     |✓  |    |acc            |
-|random_insertion              |     |✓  |    |acc            |
-|reversed_words                |     |✓  |    |acc            |
+|                    Task Name                    |Train|Val|Test|                                   Metrics                                    |
+|-------------------------------------------------|-----|---|----|------------------------------------------------------------------------------|
+|cola                                             |✓    |✓  |    |mcc                                                                           |
+|mnli                                             |✓    |✓  |    |acc                                                                           |
+|mnli_mismatched                                  |✓    |✓  |    |acc                                                                           |
+|mrpc                                             |✓    |✓  |    |acc, f1                                                                       |
+|rte                                              |✓    |✓  |    |acc                                                                           |
+|qnli                                             |✓    |✓  |    |acc                                                                           |
+|qqp                                              |✓    |✓  |    |acc, f1                                                                       |
+|sst                                              |✓    |✓  |    |acc                                                                           |
+|wnli                                             |✓    |✓  |    |acc                                                                           |
+|boolq                                            |✓    |✓  |    |acc                                                                           |
+|cb                                               |✓    |✓  |    |acc, f1                                                                       |
+|copa                                             |✓    |✓  |    |acc                                                                           |
+|multirc                                          |✓    |✓  |    |acc                                                                           |
+|record                                           |✓    |✓  |    |f1, em                                                                        |
+|wic                                              |✓    |✓  |    |acc                                                                           |
+|wsc                                              |✓    |✓  |    |acc                                                                           |
+|coqa                                             |✓    |✓  |    |f1, em                                                                        |
+|drop                                             |✓    |✓  |    |em, f1                                                                        |
+|lambada                                          |     |✓  |    |ppl, acc                                                                      |
+|lambada_cloze                                    |     |✓  |    |ppl, acc                                                                      |
+|cbt-cn                                           |✓    |✓  |✓   |acc                                                                           |
+|cbt-ne                                           |✓    |✓  |✓   |acc                                                                           |
+|piqa                                             |✓    |✓  |    |acc, acc_norm                                                                 |
+|pubmedqa                                         |     |   |✓   |acc                                                                           |
+|sciq                                             |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|qa4mre_2011                                      |     |   |✓   |acc, acc_norm                                                                 |
+|qa4mre_2012                                      |     |   |✓   |acc, acc_norm                                                                 |
+|qa4mre_2013                                      |     |   |✓   |acc, acc_norm                                                                 |
+|triviaqa                                         |✓    |✓  |    |acc                                                                           |
+|arc_easy                                         |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|arc_challenge                                    |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|logiqa                                           |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hellaswag                                        |✓    |✓  |    |acc, acc_norm                                                                 |
+|openbookqa                                       |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|squad2                                           |✓    |✓  |    |exact, f1, HasAns_exact, HasAns_f1, NoAns_exact, NoAns_f1, best_exact, best_f1|
+|race                                             |✓    |✓  |✓   |acc                                                                           |
+|headqa                                           |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|mathqa                                           |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|webqs                                            |✓    |   |✓   |acc                                                                           |
+|wsc273                                           |     |   |✓   |acc                                                                           |
+|winogrande                                       |✓    |✓  |    |acc                                                                           |
+|anli_r1                                          |✓    |✓  |✓   |acc                                                                           |
+|anli_r2                                          |✓    |✓  |✓   |acc                                                                           |
+|anli_r3                                          |✓    |✓  |✓   |acc                                                                           |
+|ethics_cm                                        |✓    |   |✓   |acc                                                                           |
+|ethics_deontology                                |✓    |   |✓   |acc, em                                                                       |
+|ethics_justice                                   |✓    |   |✓   |acc, em                                                                       |
+|ethics_utilitarianism_original                   |     |   |✓   |acc                                                                           |
+|ethics_utilitarianism                            |✓    |   |✓   |acc                                                                           |
+|ethics_virtue                                    |✓    |   |✓   |acc, em                                                                       |
+|math_algebra                                     |✓    |   |✓   |acc                                                                           |
+|math_counting_and_prob                           |✓    |   |✓   |acc                                                                           |
+|math_geometry                                    |✓    |   |✓   |acc                                                                           |
+|math_intermediate_algebra                        |✓    |   |✓   |acc                                                                           |
+|math_num_theory                                  |✓    |   |✓   |acc                                                                           |
+|math_prealgebra                                  |✓    |   |✓   |acc                                                                           |
+|math_precalc                                     |✓    |   |✓   |acc                                                                           |
+|arithmetic_2da                                   |     |✓  |    |acc                                                                           |
+|arithmetic_2ds                                   |     |✓  |    |acc                                                                           |
+|arithmetic_3da                                   |     |✓  |    |acc                                                                           |
+|arithmetic_3ds                                   |     |✓  |    |acc                                                                           |
+|arithmetic_4da                                   |     |✓  |    |acc                                                                           |
+|arithmetic_4ds                                   |     |✓  |    |acc                                                                           |
+|arithmetic_5da                                   |     |✓  |    |acc                                                                           |
+|arithmetic_5ds                                   |     |✓  |    |acc                                                                           |
+|arithmetic_2dm                                   |     |✓  |    |acc                                                                           |
+|arithmetic_1dc                                   |     |✓  |    |acc                                                                           |
+|hendrycksTest-abstract_algebra                   |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-anatomy                            |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-astronomy                          |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-business_ethics                    |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-clinical_knowledge                 |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-college_biology                    |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-college_chemistry                  |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-college_computer_science           |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-college_mathematics                |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-college_medicine                   |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-college_physics                    |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-computer_security                  |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-conceptual_physics                 |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-econometrics                       |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-electrical_engineering             |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-elementary_mathematics             |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-formal_logic                       |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-global_facts                       |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_biology                |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_chemistry              |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_computer_science       |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_european_history       |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_geography              |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_government_and_politics|✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_macroeconomics         |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_mathematics            |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_microeconomics         |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_physics                |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_psychology             |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_statistics             |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_us_history             |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-high_school_world_history          |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-human_aging                        |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-human_sexuality                    |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-international_law                  |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-jurisprudence                      |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-logical_fallacies                  |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-machine_learning                   |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-management                         |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-marketing                          |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-medical_genetics                   |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-miscellaneous                      |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-moral_disputes                     |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-moral_scenarios                    |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-nutrition                          |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-philosophy                         |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-prehistory                         |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-professional_accounting            |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-professional_law                   |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-professional_medicine              |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-professional_psychology            |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-public_relations                   |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-security_studies                   |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-sociology                          |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-us_foreign_policy                  |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-virology                           |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|hendrycksTest-world_religions                    |✓    |✓  |✓   |acc, acc_norm                                                                 |
+|wmt14-en-fr                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt14-fr-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt16-en-ro                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt16-ro-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt16-de-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt16-en-de                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-cs-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-de-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-de-fr                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-en-cs                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-en-de                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-en-iu                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-en-ja                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-en-km                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-en-pl                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-en-ps                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-en-ru                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-en-ta                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-en-zh                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-fr-de                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-iu-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-ja-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-km-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-pl-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-ps-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-ru-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-ta-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|wmt20-zh-en                                      |     |   |✓   |bleu, chrf, ter                                                               |
+|iwslt17-en-ar                                    |     |   |✓   |bleu, chrf, ter                                                               |
+|iwslt17-ar-en                                    |     |   |✓   |bleu, chrf, ter                                                               |
+|anagrams1                                        |     |✓  |    |acc                                                                           |
+|anagrams2                                        |     |✓  |    |acc                                                                           |
+|cycle_letters                                    |     |✓  |    |acc                                                                           |
+|random_insertion                                 |     |✓  |    |acc                                                                           |
+|reversed_words                                   |     |✓  |    |acc                                                                           |
+|pile_arxiv                                       |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_books3                                      |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_bookcorpus2                                 |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_commoncrawl                                 |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_dm-mathematics                              |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_enron                                       |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_europarl                                    |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_freelaw                                     |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_github                                      |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_gutenberg                                   |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_hackernews                                  |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_nih-exporter                                |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_opensubtitles                               |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_openwebtext2                                |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_philpapers                                  |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_pile-cc                                     |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_pubmed-abstracts                            |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_pubmed-central                              |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_stackexchange                               |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_uspto                                       |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_ubuntu-irc                                  |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_wikipedia                                   |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_youtubesubtitles                            |     |✓  |✓   |word_perplexity, byte_perplexity, bits_per_byte                               |
 
 
 
