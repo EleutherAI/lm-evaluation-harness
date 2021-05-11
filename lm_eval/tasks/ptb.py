@@ -1,4 +1,4 @@
-from lm_eval.base import Task, rf, mean, perplexity
+from lm_eval.base import PerplexityTask, rf, mean, perplexity
 from lm_eval.utils import sh
 import json
 import math
@@ -15,7 +15,7 @@ def detokenize(string):
     return string
 
 
-class PennTreebank(Task):
+class PennTreebank(PerplexityTask):
     def download(self):
         sh("mkdir -p data/ptb")
         download_file(
@@ -45,48 +45,15 @@ class PennTreebank(Task):
 
     def training_docs(self):
         with open("data/ptb/ptb.train.txt") as fh:
-            for line in fh:
-                yield line.strip()
+            yield fh.read()
 
     def validation_docs(self):
         with open("data/ptb/ptb.valid.txt") as fh:
-            for line in fh:
-                yield line.strip()
+            yield fh.read()
 
     def test_docs(self):
         with open("data/ptb/ptb.test.txt") as fh:
-            for line in fh:
-                yield line.strip()
+            yield fh.read()
 
     def doc_to_text(self, doc):
-        return ""
-
-    def doc_to_target(self, doc):
         return detokenize(doc)
-
-    
-    def fewshot_description(self):
-        # TODO: figure out description
-        return ""
-
-    def construct_requests(self, doc, ctx):
-        ll, _ = rf.loglikelihood(ctx, self.doc_to_target(doc))
-
-        return ll,
-    
-    def process_results(self, doc, results):
-        ll, = results
-        
-        return {
-            'ppl': ll / len(doc.split(' '))
-        }
-        
-    def aggregation(self):
-        return {
-            'ppl': perplexity
-        }
-
-    def higher_is_better(self):
-        return {
-            'ppl': False
-        }
