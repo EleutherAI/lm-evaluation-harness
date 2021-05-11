@@ -315,10 +315,10 @@ class PerplexityTask(Task, abc.ABC):
         }
 
     def doc_to_text(self, doc):
-        return doc
+        return ""
 
     def doc_to_target(self, doc):
-        raise NotImplementedError()
+        return doc
 
     def construct_requests(self, doc, ctx):
         assert not ctx
@@ -327,12 +327,12 @@ class PerplexityTask(Task, abc.ABC):
 
     def process_results(self, doc, results):
         loglikelihood, = results
-        words = self.count_words(self.doc_to_text(doc))
-        bytes = self.count_bytes(self.doc_to_text(doc))
+        words = self.count_words(self.doc_to_target(doc))
+        bytes = self.count_bytes(self.doc_to_target(doc))
         return {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes),
-            "bits_per_byte": (-loglikelihood, self.count_bytes(self.doc_to_text(doc)))
+            "bits_per_byte": (-loglikelihood, self.count_bytes(self.doc_to_target(doc)))
         }
 
     def aggregation(self):
