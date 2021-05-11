@@ -1,5 +1,7 @@
 from . common import HFTask
-from lm_eval.base import mean, rf
+from lm_eval.base import rf
+from ..metrics import mean
+
 
 class WebQs(HFTask):
     DATASET_PATH = "web_questions"
@@ -19,7 +21,7 @@ class WebQs(HFTask):
         return ""
 
     def doc_to_text(self, doc):
-        return "Q: " + doc['question'] + '\nA:'
+        return "Question: " + doc['question'] + '\nAnswer:'
 
     def doc_to_target(self, doc):
         # this picks one answer to be the "correct" one, despite sometimes 

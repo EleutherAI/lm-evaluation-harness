@@ -2,7 +2,6 @@ import argparse
 import numpy as np
 import os
 import random
-
 from lm_eval import tasks
 from lm_eval.utils import join_iters
 
@@ -16,14 +15,13 @@ def parse_args():
     parser.add_argument('--provide_description', action="store_true")
     parser.add_argument('--sets', type=str, default="val") # example: val,test
     parser.add_argument('--num_fewshot', type=int, default=1)
-    parser.add_argument('--seed', type=int, default=1234)
+    parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--num_examples', type=int, default=1)
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    random.seed(args.seed)
     np.random.seed(args.seed)
 
     if args.tasks == "all_tasks":
@@ -33,6 +31,8 @@ def main():
     task_dict = tasks.get_task_dict(task_names)
     os.makedirs(args.output_base_path, exist_ok=True)
     for task_name, task in task_dict.items():
+        rnd = random.Random()
+        rnd.seed(args.seed)
 
         iters = []
 
@@ -54,6 +54,7 @@ def main():
                     doc=doc,
                     provide_description=args.provide_description,
                     num_fewshot=args.num_fewshot,
+                    rnd=rnd
                 )
                 f.write(ctx + "\n")
 

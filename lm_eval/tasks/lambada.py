@@ -1,7 +1,7 @@
-from lm_eval.base import Task, rf, mean, perplexity
-from lm_eval.utils import sh
 import json
-import math
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean, perplexity
+from lm_eval.utils import sh
 from best_download import download_file
 
 
@@ -9,7 +9,7 @@ class LAMBADA(Task):
     def download(self):
         sh("mkdir -p data/lambada")
         download_file(
-            "https://storage.googleapis.com/gpt-2/data/lambada_test.jsonl", 
+            "http://eaidata.bmk.sh/data/lambada_test.jsonl", 
             "data/lambada/lambada_test.jsonl", 
             "4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226"
         )

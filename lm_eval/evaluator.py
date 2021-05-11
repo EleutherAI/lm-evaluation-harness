@@ -1,5 +1,7 @@
 import collections
 import itertools
+import random
+import lm_eval.metrics
 
 
 def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
@@ -22,24 +24,31 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
 
     # get lists of each type of requeste
     for task_name, task in task_dict_items:
-        #default to validation doc, fall back to test doc if validation unavailable
-        # TODO: the val-fallback-to-test system isn't final, we should revisit it at some point
-        if task.has_validation_docs():
-            task_doc_func = task.validation_docs
-        elif task.has_test_docs():
+        #default to test doc, fall back to val doc if validation unavailable
+        # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
+        if task.has_test_docs():
             task_doc_func = task.test_docs
+        elif task.has_validation_docs():
+            task_doc_func = task.validation_docs
 
-        for doc_id, doc in enumerate(itertools.islice(task_doc_func(), 0, limit)):
+        # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
+        task_docs = list(task_doc_func())
+        rnd = random.Random()
+        rnd.seed(42)
+        rnd.shuffle(task_docs)
+
+        for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
             docs[(task_name, doc_id)] = doc
 
             ctx = task.fewshot_context(
                 doc=doc,
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
+                rnd=rnd
             )
 
             reqs = task.construct_requests(doc, ctx)
-
+            if not isinstance(reqs, (list, tuple)): reqs = [reqs]
             for i, req in enumerate(reqs):
                 requests[req.type].append(req)
                 # i: index in requests for a single task instance
@@ -55,6 +64,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
         # only in index. We could implement some kind of caching, but that would be more of a bandaid
         # solution. we could also implement some kind of autogrouping here; they should end up next to each other.
 
+        print("Running", reqtype, "requests")
         resps = getattr(lm, reqtype)([req.args for req in reqs])
 
         resps = [x if req.index is None else x[req.index] for x, req in zip(resps, reqs)]
@@ -80,5 +90,9 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
     for (task_name, metric), items in vals.items():
         task = task_dict[task_name]
         results[task_name][metric] = task.aggregation()[metric](items)
+
+        stderr = lm_eval.metrics.stderr_for_metric(task.aggregation()[metric])
+        if stderr is not None:
+            results[task_name][metric + "_stderr"] = stderr(items)
     
     return results

@@ -1,14 +1,10 @@
 import collections
 import datasets
 import numpy as np
-from lm_eval.base import rf, mean
+from lm_eval.base import rf
+from ..metrics import mean
 from . common import HFTask
 
-import os
-from functools import reduce
-import operator
-from tqdm import tqdm
-import json
 
 class each:
     def __init__(self, f):
@@ -82,10 +78,13 @@ class RACE(HFTask):
     def doc_to_text(self, doc):
         text = 'Article: ' + doc['article'] + '\n\n'
         for problem in doc['problems'][:-1]:
-            question = 'Q: ' + problem['question'] + '\n\n'
-            answer = 'A: ' + self.get_answer_option(problem) + '\n\n'
-            text += question + answer
-        text += 'Q: ' + self.last_problem(doc)['question'] + '\n\n' + 'A:'
+            if problem['question'][-6:] == '  _  .':
+                text += problem['question'][-5:] + self.get_answer_option(problem) + '\n'
+            else:
+                question = 'Question: ' + problem['question'] + '\n'
+                answer = 'Answer: ' + self.get_answer_option(problem) + '\n'
+                text += question + answer
+        text += self.last_problem(doc)['question']
         return text
 
     def doc_to_target(self, doc):

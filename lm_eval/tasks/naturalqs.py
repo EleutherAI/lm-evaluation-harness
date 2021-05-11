@@ -1,6 +1,7 @@
+import random
 from . common import HFTask
 from itertools import islice
-import random
+
 
 class NaturalQs(HFTask):
     # TODO: naturalqs has a *really* large train set that huggingface just
@@ -28,12 +29,12 @@ class NaturalQs(HFTask):
         # Data is too large to fit in memory.
         return self.data["train"]
 
-    def fewshot_examples(self, k):
+    def fewshot_examples(self, k, rnd):
         # Data is too large to fit in memory. We just sample from the first bit.
         if self._training_docs is None:
             self._training_docs = list(islice(self.training_docs(), 0, 100000))
 
-        return random.sample(self._training_docs, k)
+        return rnd.sample(self._training_docs, k)
 
     def doc_to_text(self, doc):
         return 'Q: ' + doc['question']['text'] + '\n\n' + 'A: '

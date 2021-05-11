@@ -19,5 +19,18 @@ class DummyLM(LM):
         return res
     
     def greedy_until(self, requests):
-        # TODO: implement
-        pass
+        res = []
+        
+        for ctx, _ in requests:
+            res.append("lol")
+            assert ctx.strip() != ''
+
+        return res
+
+    def loglikelihood_rolling(self, requests):
+        res = []
+        
+        for _ in requests:
+            res.append(-random.random())
+
+        return res

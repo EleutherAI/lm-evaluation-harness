@@ -4,10 +4,12 @@ To-do:
     - ReCoRD
 """
 import numpy as np
-from . common import HFTask, yesno
-from lm_eval.base import rf, mean, acc_all, metric_max_over_ground_truths
 import sklearn
 import transformers.data.metrics.squad_metrics as squad_metrics
+from . common import HFTask, yesno
+from lm_eval.base import rf
+from ..metrics import mean, acc_all, metric_max_over_ground_truths
+from ..utils import general_detokenize
 
 
 class BoolQ(HFTask):
@@ -21,14 +23,14 @@ class BoolQ(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
         return "Read the following passages and answer each question with a yes or a no."
 
     def doc_to_text(self, doc):
-        return f"{doc['passage']}\nquestion: {doc['question']}\nanswer:"
+        return f"{doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
     
     def doc_to_target(self, doc):
         return " " + yesno(doc['label']) 
@@ -72,7 +74,7 @@ class CommitmentBank(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -80,7 +82,7 @@ class CommitmentBank(HFTask):
             "to the truth of the hypothesis. The three possible labels are true, false or neither."
 
     def doc_to_text(self, doc):
-        return "{}\nquestion: {} true, false or neither?\nanswer:".format(
+        return "{}\nQuestion: {}. True, False or Neither?\nAnswer:".format(
             doc["premise"],
             doc["hypothesis"],
         )
@@ -89,12 +91,12 @@ class CommitmentBank(HFTask):
         # True = entailment
         # False = contradiction
         # Neither = neutral
-        return " {}".format({0: "true", 1: "neither", 2: "false"}[doc["label"]])
+        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, ' true')
-        ll_neither, _ = rf.loglikelihood(ctx, ' neither')
-        ll_false, _ = rf.loglikelihood(ctx, ' false')
+        ll_true, _ = rf.loglikelihood(ctx, ' True')
+        ll_neither, _ = rf.loglikelihood(ctx, ' Neither')
+        ll_false, _ = rf.loglikelihood(ctx, ' False')
 
         return ll_true, ll_neither, ll_false
 
@@ -143,7 +145,7 @@ class Copa(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
@@ -207,22 +209,22 @@ class MultiRC(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
         return "READING COMPREHENSION ANSWER KEY"
 
     def doc_to_text(self, doc):
-        return f"{doc['paragraph']}\n\n{doc['question']}\n"
+        return f"{doc['paragraph']}\nQuestion: {doc['question']}\nAnswer:"
 
     def doc_to_target(self, doc):
-        return self.format_answer(answer=doc["answer"], label=doc["label"])
+        return " " + self.format_answer(answer=doc["answer"], label=doc["label"])
 
     @staticmethod
     def format_answer(answer, label):
-        label_str = "True" if label else "False"
-        return f"[{label_str}] {answer}"
+        label_str = "yes" if label else "no"
+        return f"{label_str}, {answer}"
 
     def construct_requests(self, doc, ctx):
         true_choice = self.format_answer(answer=doc["answer"], label=True)
@@ -270,30 +272,25 @@ class ReCoRD(HFTask):
     def training_docs(self):
         # In ReCoRD, each doc manifests multiple "examples" in the context of few shot example packing.
         # Each doc consists of multiple answer candidates, each of which is scored yes/no.
-        # Hence, we one "doc" for each (context + passage, answer) pair.
-        # Moreover, we only use the correct answers for context packing
-        # (This is not an issue for evaluation, where we can directly score multiple candidates at once).
         if self._training_docs is None:
             self._training_docs = []
             for doc in self.data["train"]:
-                for entity in list(set(doc["entities"])):
-                    self._training_docs.append({
-                        "passage": doc["passage"],
-                        "query": doc["query"],
-                        "entity": entity,
-                        "label": entity in doc["answers"],
-                    })
+                self._training_docs.append(self._process_doc(doc))
         return self._training_docs
 
     def validation_docs(self):
+        # See: training_docs
         for doc in self.data["validation"]:
-            for entity in list(set(doc["entities"])):
-                yield {
-                    "passage": doc["passage"],
-                    "query": doc["query"],
-                    "entity": entity,
-                    "label": entity in doc["answers"],
-                }
+            yield self._process_doc(doc)
+
+    @classmethod
+    def _process_doc(cls, doc):
+        return {
+            "passage": doc["passage"],
+            "query": doc["query"],
+            "entities": sorted(list(set(doc["entities"]))),
+            "answers": sorted(list(set(doc["answers"]))),
+        }
 
     def doc_to_text(self, doc):
         initial_text, *highlights = doc["passage"].strip().split("\n@highlight\n")
@@ -307,12 +304,13 @@ class ReCoRD(HFTask):
         return f'  - {query}'.replace("@placeholder", entity)
 
     def doc_to_target(self, doc):
-        return self.format_answer(query=doc["query"], entity=doc["entity"])
+        # We only output the first correct entity in a doc
+        return self.format_answer(query=doc["query"], entity=doc["answers"][0])
 
     def construct_requests(self, doc, ctx):
         requests = [
             rf.loglikelihood(ctx, self.format_answer(query=doc["query"], entity=entity))
-            for entity in doc["entity"]
+            for entity in doc["entities"]
         ]
         return requests
 
@@ -321,10 +319,10 @@ class ReCoRD(HFTask):
         # - Pick the maximum likelihood prediction entity
         # - Evaluate the accuracy and token F1 PER EXAMPLE
         # - Average over all examples
-        max_idx = np.argmax(np.array(results))
+        max_idx = np.argmax(np.array([result[0] for result in results]))
 
         prediction = doc["entities"][max_idx]
-        gold_label_set = list(set(doc["answers"]))
+        gold_label_set = doc["answers"]
         f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, prediction, gold_label_set)
         em = metric_max_over_ground_truths(squad_metrics.compute_exact, prediction, gold_label_set)
 
@@ -357,15 +355,15 @@ class WordsInContext(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def fewshot_description(self):
         # TODO: figure out actual description
         return ""
 
     def doc_to_text(self, doc):
-        return "{}\n{}\nQuestion: Is the word '{}' used in the same way in the" \
-               " two sentences above?\nanswer:".format(
+        return "Sentence 1: {}\nSentence 2: {}\nQuestion: Is the word '{}' used in the same way in the" \
+               " two sentences above?\nAnswer:".format(
                     doc["sentence1"],
                     doc["sentence2"],
                     doc["sentence1"][doc["start1"]:doc["end1"]],
@@ -414,7 +412,7 @@ class SGWinogradSchemaChallenge(HFTask):
         return True
 
     def has_test_docs(self):
-        return True
+        return False
 
     def training_docs(self):
         if self.has_training_docs():
@@ -438,7 +436,7 @@ class SGWinogradSchemaChallenge(HFTask):
         # NOTE: HuggingFace span indices are word-based not character-based.
         pre = " ".join(raw_passage.split()[:doc["span2_index"]])
         post = raw_passage[len(pre) + len(doc["span2_text"]) + 1:]
-        passage = pre + " *{}*".format(doc['span2_text']) + post
+        passage = general_detokenize(pre + " *{}*".format(doc['span2_text']) + post)
         noun = doc["span1_text"]
         pronoun = doc["span2_text"]
         text = (

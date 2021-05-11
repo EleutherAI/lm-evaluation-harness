@@ -3,6 +3,8 @@
 ![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Python%20application/badge.svg)
 [![codecov](https://codecov.io/gh/EleutherAI/lm-evaluation-harness/branch/master/graph/badge.svg?token=JSG3O2427J)](https://codecov.io/gh/EleutherAI/lm-evaluation-harness)
 
+**WARNING**: This project is currently under active development. Interfaces and task implementations may change rapidly and without warning. 
+
 ## Overview 
 
 The goal of this project is to build a set of tools for evaluating LMs on typical NLU tasks, based on evaluation of GPT-3 as described in https://arxiv.org/pdf/2005.14165.pdf. Following the initial description, this repo should support 3 functions:
@@ -12,45 +14,106 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 
 ### Overview of Tasks
 
-|   Task Name   |Train|Val|Test|      Metrics       |
-|---------------|-----|---|----|--------------------|
-|cola           |✓    |✓  |✓   |mcc                 |
-|mnli           |✓    |✓  |✓   |acc                 |
-|mnli_mismatched|✓    |✓  |✓   |acc                 |
-|mrpc           |✓    |✓  |✓   |acc, f1             |
-|rte            |✓    |✓  |✓   |acc                 |
-|qnli           |✓    |✓  |✓   |acc                 |
-|qqp            |✓    |✓  |✓   |acc, f1             |
-|sst            |✓    |✓  |✓   |acc                 |
-|wnli           |✓    |✓  |✓   |acc                 |
-|boolq          |✓    |✓  |✓   |acc                 |
-|cb             |✓    |✓  |✓   |acc, f1             |
-|copa           |✓    |✓  |✓   |acc                 |
-|multirc        |✓    |✓  |✓   |acc                 |
-|wic            |✓    |✓  |✓   |acc                 |
-|wsc            |✓    |✓  |✓   |acc                 |
-|lambada        |     |✓  |    |perplexity, accuracy|
-|piqa           |✓    |✓  |    |acc                 |
-|arc_easy       |✓    |✓  |✓   |acc                 |
-|arc_challenge  |✓    |✓  |✓   |acc                 |
-|hellaswag      |✓    |✓  |✓   |acc                 |
-|race           |✓    |✓  |✓   |acc                 |
-|webqs          |✓    |   |✓   |acc                 |
-|wsc273         |     |   |✓   |acc                 |
-|winogrande     |✓    |✓  |✓   |acc                 |
-|anli_r1        |✓    |✓  |✓   |acc                 |
-|anli_r2        |✓    |✓  |✓   |acc                 |
-|anli_r3        |✓    |✓  |✓   |acc                 |
-|arithmetic_2da |     |✓  |    |acc                 |
-|arithmetic_2ds |     |✓  |    |acc                 |
-|arithmetic_3da |     |✓  |    |acc                 |
-|arithmetic_3ds |     |✓  |    |acc                 |
-|arithmetic_4da |     |✓  |    |acc                 |
-|arithmetic_4ds |     |✓  |    |acc                 |
-|arithmetic_5da |     |✓  |    |acc                 |
-|arithmetic_5ds |     |✓  |    |acc                 |
-|arithmetic_2dm |     |✓  |    |acc                 |
-|arithmetic_1dc |     |✓  |    |acc                 |
+|          Task Name           |Train|Val|Test|    Metrics    |
+|------------------------------|-----|---|----|---------------|
+|cola                          |✓    |✓  |✓   |mcc            |
+|mnli                          |✓    |✓  |✓   |acc            |
+|mnli_mismatched               |✓    |✓  |✓   |acc            |
+|mrpc                          |✓    |✓  |✓   |acc, f1        |
+|rte                           |✓    |✓  |✓   |acc            |
+|qnli                          |✓    |✓  |✓   |acc            |
+|qqp                           |✓    |✓  |✓   |acc, f1        |
+|sst                           |✓    |✓  |✓   |acc            |
+|wnli                          |✓    |✓  |✓   |acc            |
+|boolq                         |✓    |✓  |✓   |acc            |
+|cb                            |✓    |✓  |✓   |acc, f1        |
+|copa                          |✓    |✓  |✓   |acc            |
+|multirc                       |✓    |✓  |✓   |acc            |
+|record                        |✓    |✓  |    |f1, em         |
+|wic                           |✓    |✓  |✓   |acc            |
+|wsc                           |✓    |✓  |✓   |acc            |
+|coqa                          |✓    |✓  |    |f1, em         |
+|drop                          |✓    |✓  |    |em, f1         |
+|lambada                       |     |✓  |    |ppl, acc       |
+|piqa                          |✓    |✓  |    |acc            |
+|pubmedqa                      |     |   |✓   |acc            |
+|sciq                          |✓    |✓  |✓   |acc            |
+|qa4mre_2011                   |     |   |✓   |acc            |
+|qa4mre_2012                   |     |   |✓   |acc            |
+|qa4mre_2013                   |     |   |✓   |acc            |
+|arc_easy                      |✓    |✓  |✓   |acc            |
+|arc_challenge                 |✓    |✓  |✓   |acc            |
+|logiqa                        |✓    |✓  |✓   |acc            |
+|hellaswag                     |✓    |✓  |    |acc            |
+|openbookqa                    |✓    |✓  |✓   |acc            |
+|race                          |✓    |✓  |✓   |acc            |
+|headqa                        |✓    |✓  |✓   |acc            |
+|mathqa                        |✓    |✓  |✓   |acc            |
+|webqs                         |✓    |   |✓   |acc            |
+|wsc273                        |     |   |✓   |acc            |
+|winogrande                    |✓    |✓  |    |acc            |
+|anli_r1                       |✓    |✓  |✓   |acc            |
+|anli_r2                       |✓    |✓  |✓   |acc            |
+|anli_r3                       |✓    |✓  |✓   |acc            |
+|ethics_cm                     |✓    |✓  |✓   |acc            |
+|ethics_deontology             |✓    |✓  |✓   |acc, em        |
+|ethics_justice                |✓    |✓  |✓   |acc, em        |
+|ethics_utilitarianism_original|✓    |✓  |✓   |acc            |
+|ethics_utilitarianism         |✓    |✓  |✓   |acc            |
+|ethics_virtue                 |✓    |✓  |✓   |acc, em        |
+|math_algebra                  |✓    |   |✓   |acc            |
+|math_counting_and_prob        |✓    |   |✓   |acc            |
+|math_geometry                 |✓    |   |✓   |acc            |
+|math_intermediate_algebra     |✓    |   |✓   |acc            |
+|math_num_theory               |✓    |   |✓   |acc            |
+|math_prealgebra               |✓    |   |✓   |acc            |
+|math_precalc                  |✓    |   |✓   |acc            |
+|arithmetic_2da                |     |✓  |    |acc            |
+|arithmetic_2ds                |     |✓  |    |acc            |
+|arithmetic_3da                |     |✓  |    |acc            |
+|arithmetic_3ds                |     |✓  |    |acc            |
+|arithmetic_4da                |     |✓  |    |acc            |
+|arithmetic_4ds                |     |✓  |    |acc            |
+|arithmetic_5da                |     |✓  |    |acc            |
+|arithmetic_5ds                |     |✓  |    |acc            |
+|arithmetic_2dm                |     |✓  |    |acc            |
+|arithmetic_1dc                |     |✓  |    |acc            |
+|wmt14-en-fr                   |     |   |✓   |bleu, chrf, ter|
+|wmt14-fr-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt16-en-ro                   |     |   |✓   |bleu, chrf, ter|
+|wmt16-ro-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt16-de-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt16-en-de                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-cs-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-de-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-de-fr                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-en-cs                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-en-de                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-en-iu                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-en-ja                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-en-km                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-en-pl                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-en-ps                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-en-ru                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-en-ta                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-en-zh                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-fr-de                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-iu-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-ja-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-km-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-pl-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-ps-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-ru-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-ta-en                   |     |   |✓   |bleu, chrf, ter|
+|wmt20-zh-en                   |     |   |✓   |bleu, chrf, ter|
+|iwslt17-en-ar                 |     |   |✓   |bleu, chrf, ter|
+|iwslt17-ar-en                 |     |   |✓   |bleu, chrf, ter|
+|anagrams1                     |     |✓  |    |acc            |
+|anagrams2                     |     |✓  |    |acc            |
+|cycle_letters                 |     |✓  |    |acc            |
+|random_insertion              |     |✓  |    |acc            |
+|reversed_words                |     |✓  |    |acc            |
+
 
 
 ## Usage

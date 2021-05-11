@@ -15,6 +15,7 @@ def test_evaluator(taskname, Task):
 
     def ll_fn(reqs):
         for ctx, cont in reqs:
+            if len(ctx) == 0: continue
             # space convention
             assert ctx[-1] != ' '
             assert cont[0] == ' ' or ctx[-1] == '\n'
@@ -26,7 +27,18 @@ def test_evaluator(taskname, Task):
             res.append((-random.random(), False))
 
         return res
-        
+
+    def ll_perp_fn(reqs):
+        for string, in reqs:
+            assert isinstance(string, str)
+
+        res = []
+        random.seed(42)
+        for _ in reqs:
+            res.append(-random.random())
+
+        return res
 
     lm.loglikelihood = ll_fn
+    lm.loglikelihood_rolling = ll_perp_fn
     evaluator.evaluate(lm, task_dict, False, 0, 10)

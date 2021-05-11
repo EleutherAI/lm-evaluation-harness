@@ -1,8 +1,7 @@
 import numpy as np
-import json
-import random
-from .common import HFTask 
-from lm_eval.base import rf, mean
+from .common import HFTask
+from lm_eval.base import rf
+from ..metrics import mean
 
 
 class Pubmed_QA(HFTask):
@@ -30,7 +29,7 @@ class Pubmed_QA(HFTask):
 
     def doc_to_text(self, doc):
         ctxs = "\n".join(doc["context"]["contexts"])
-        return "abstract: {}\nquestion: {}\nanswer:".format(
+        return "Abstract: {}\nQuestion: {}\nAnswer:".format(
             ctxs,
             doc["question"],
             doc["final_decision"]
@@ -38,12 +37,6 @@ class Pubmed_QA(HFTask):
 
     def doc_to_target(self, doc):
         return " {}".format(doc["final_decision"])
-
-    def fewshot_examples(self, k):
-        # Since only test docs sample from test docs
-        if self._training_docs is None:
-            self._training_docs = list(self.test_docs())
-        return random.sample(self._training_docs, k)
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns
