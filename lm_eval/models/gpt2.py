@@ -5,10 +5,13 @@ import torch.nn.functional as F
 from lm_eval.base import LM
 from lm_eval import utils
 from tqdm import tqdm
+import numpy as np
 
 
 class GPT2LM(LM):
     MAX_GEN_TOKS = 256
+    VOCAB_SIZE = 50257
+    EOT_TOKEN_ID = 50256
 
     def __init__(self, device='cuda', pretrained='gpt2', batch_size=1):
         super().__init__()
@@ -51,7 +54,7 @@ class GPT2LM(LM):
         for context, continuation in requests:
             if context == "":
                 # end of text as context
-                context_enc = [50256]
+                context_enc = [self.EOT_TOKEN_ID]
             else:
                 context_enc = self.tokenizer.encode(context)
 
@@ -61,7 +64,36 @@ class GPT2LM(LM):
 
         return self._loglikelihood_tokens(new_reqs)
 
-    def _loglikelihood_tokens(self, requests):
+    def loglikelihood_rolling(self, requests):
+        # TODO: Implement caching once we've confirmed the perplexity implementation
+        # TODO: automatic batch size detection for vectorization
+
+        loglikelihoods = []
+        with torch.no_grad():
+            for string, in tqdm(requests):
+                encoded = self.tokenizer.encode_plus(string)["input_ids"]
+
+                rolling_token_windows = list(map(utils.make_disjoint_window, utils.get_rolling_token_windows(
+                    token_list=encoded,
+                    prefix_token=self.EOT_TOKEN_ID,
+                    max_seq_len=self.max_length,
+                    context_len=1,
+                )))
+
+                rolling_token_windows = [(None,) + x for x in rolling_token_windows]
+
+                # TODO: extract out this call so it only gets called once and also somehow figure out partial caching for that
+                string_nll = self._loglikelihood_tokens(rolling_token_windows, disable_tqdm=True)
+                
+                # discard is_greedy
+                string_nll = [x[0] for x in string_nll]
+                
+                string_nll = sum(string_nll)
+                loglikelihoods.append(string_nll)
+
+        return loglikelihoods
+
+    def _loglikelihood_tokens(self, requests, disable_tqdm=False):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
         with torch.no_grad():
@@ -78,17 +110,37 @@ class GPT2LM(LM):
             
             # TODO: automatic (variable) batch size detection for vectorization
             reord = utils.Reorderer(requests, _collate)
-            for chunk in utils.chunks(tqdm(reord.get_reordered()), self.batch_size):
+            for chunk in utils.chunks(tqdm(reord.get_reordered(), disable=disable_tqdm), self.batch_size):
                 inps = []
+                contlens = []
                 inplens = []
-                ctxlens = []
 
                 padding_length = None
+
+                # because vectorizing is annoying, we first convert each (context, continuation) pair to padded
+                # tensors, then we pack them together into a batch, call the model, and then pick it all apart
+                # again because vectorizing is annoying
+
                 for _, context_enc, continuation_enc in chunk:
+                    # sanity check
+                    assert len(context_enc) > 0
+                    assert len(continuation_enc) > 0
+                    assert len(continuation_enc) <= self.max_length
+
+                    # how this all works:
+                    #          CTX      CONT
+                    # inp    0 1 2 3|4 5 6 7 8 9 <- last token is deleted by inp[:, :-1]
+                    # gpt2    \               \
+                    # logits   1 2 3|4 5 6 7 8 9   <- the ctx half gets tossed out by the [:, -len(continuation_enc):, :self.VOCAB_SIZE] slice
+                    # cont_toks      4 5 6 7 8 9
+
                     # when too long to fit in context, truncate from the left
-                    inp = torch.tensor((context_enc + continuation_enc)[-self.max_length:], dtype=torch.long).to(self.device)
-                    ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - self.max_length)
+                    inp = torch.tensor(
+                        (context_enc + continuation_enc)[-(self.max_length+1):][:-1]
+                    , dtype=torch.long).to(self.device)
                     inplen, = inp.shape
+
+                    cont = continuation_enc
 
                     # since in _collate we make sure length is descending, the longest is always the first one.
                     padding_length = padding_length if padding_length is not None else inplen
@@ -100,19 +152,24 @@ class GPT2LM(LM):
                     ], dim=0)
 
                     inps.append(inp.unsqueeze(0))
+                    contlens.append(cont)
                     inplens.append(inplen)
-                    ctxlens.append(ctxlen)
 
-                multi_logits = F.log_softmax(self.gpt2(torch.cat(inps, dim=0))[0][:, :, :50257], dim=-1)  # [batch, seq, vocab]
+                multi_logits = F.log_softmax(self.gpt2(torch.cat(inps, dim=0))[0][:, :, :50257], dim=-1).cpu()  # [batch, seq, vocab]
 
-                for (cache_key, _, _), logits, ctxlen, inp, inplen in zip(chunk, multi_logits, ctxlens, inps, inplens):
-                    logits = logits[ctxlen - 1:inplen - 1].unsqueeze(0) # [1, seq, vocab]
+                for (cache_key, _, _), logits, inp, inplen, cont_toks in zip(chunk, multi_logits, inps, inplens, contlens):
+                    contlen = len(cont_toks)
+
+                    logits = logits[inplen-contlen:inplen].unsqueeze(0) # [1, seq, vocab]
 
                     greedy_tokens = logits.argmax(dim=-1)
-                    cont_toks = inp[:, ctxlen:inplen]  # [1, seq]
+
+                    # cont_toks :: [1, seq]
+                    cont_toks = torch.tensor(cont_toks, dtype=torch.long).unsqueeze(0)
+
                     max_equal = (greedy_tokens == cont_toks).all()
 
-                    last_token_slice = logits[:, -1, :].squeeze(0).tolist()
+                    #last_token_slice = logits[:, -1, :].squeeze(0).tolist()
 
                     logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1) # [1, seq]
 

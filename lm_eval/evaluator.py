@@ -64,6 +64,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
         # only in index. We could implement some kind of caching, but that would be more of a bandaid
         # solution. we could also implement some kind of autogrouping here; they should end up next to each other.
 
+        print("Running", reqtype, "requests")
         resps = getattr(lm, reqtype)([req.args for req in reqs])
 
         resps = [x if req.index is None else x[req.index] for x, req in zip(resps, reqs)]
