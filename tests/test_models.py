@@ -4,9 +4,12 @@ import lm_eval.models as models
 
 def test_gpt2():
     gpt2 = models.get_model('gpt2').create_from_arg_string("device=cpu")
-    (ll_dog, ig_dog), (ll_cat, ig_cat), *vals = gpt2.loglikelihood([
+    (ll_dog, ig_dog), (ll_cat, ig_cat), (_, ll_max_0), (_, ll_max_1), (_, ll_max_2), *vals = gpt2.loglikelihood([
         ('The quick brown fox jumps over the lazy', ' dog'),
         ('The quick brown fox jumps over the lazy', ' cat'),
+        ('The quick brown fox jumps over the lazy', ', lazy dog'),
+        ('The quick brown fox jumps over the lazy', ', lazy fox'),
+        ('The quick brown fox jumps over the lazy', ', lazy fox and they both fall to the ground'),
         
         ("""A mult""", """ilayer perceptron (MLP) is a class of feedforward artificial neural network (ANN)"""), 
         ("""The term MLP is used ambiguously, sometimes loosely to any feedforward ANN, sometimes strictly to refer to networks composed of multiple layers of perceptrons""", """ (with threshold activation); see § Terminology"""), 
@@ -22,6 +25,10 @@ def test_gpt2():
     assert ll_dog > ll_cat
     assert not ig_cat
 
+    assert not ll_max_0
+    assert ll_max_1
+    assert ll_max_2
+
     # test empty context
     gpt2.loglikelihood([('', 'test')])
 
@@ -34,4 +41,4 @@ def test_gpt2():
     targets = [-61.60536193847656, -56.57843780517578, -62.131004333496094, -9.799489974975586, -153.96334838867188, -341.222900390625, -731.1475830078125, -61.60536193847656, -8.682319641113281]
 
     for (pred, _), tgt in zip(vals, targets):
-        assert pred == pytest.approx(tgt)
+        assert pred == pytest.approx(tgt, abs=1e-3)
