@@ -32,5 +32,6 @@ setuptools.setup(
         "sacrebleu==1.5.0",
         "pycountry==20.7.3",
         "numexpr==2.7.2",
+        "lm_dataformat==0.0.19",
     ]
 )
