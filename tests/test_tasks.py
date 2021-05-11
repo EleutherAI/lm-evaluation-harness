@@ -71,8 +71,10 @@ def test_documents_and_requests(taskname, Task):
             assert isinstance(tgt, str)
             
             # space convention
-            assert txt[-1] != ' '
-            assert tgt[0] == ' ' or txt[-1] == '\n'
+            # allow txt to have length 0 for perplexity-like tasks since the model tacks an <|endoftext|> on
+            if len(txt) != 0:
+                assert txt[-1] != ' '
+                assert tgt[0] == ' ' or txt[-1] == '\n'
 
             reqs = task.construct_requests(doc, txt)
             

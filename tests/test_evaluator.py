@@ -41,4 +41,4 @@ def test_evaluator(taskname, Task):
 
     lm.loglikelihood = ll_fn
     lm.loglikelihood_rolling = ll_perp_fn
-    evaluator.evaluate(lm, task_dict, False, 0, 10)
+    evaluator.evaluate(lm, task_dict, False, 0, 10, bootstrap_iters=10)
