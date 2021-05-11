@@ -195,7 +195,7 @@ class _bootstrap_internal:
         return res
 
 
-def bootstrap_stderr(f, xs, iters=100000):
+def bootstrap_stderr(f, xs, iters):
     import multiprocessing as mp
     pool = mp.Pool(mp.cpu_count())
     # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
@@ -205,9 +205,10 @@ def bootstrap_stderr(f, xs, iters=100000):
     # that would be ad-hoc and I can't prove that that would actually be an unbiased estimator)
     # Thankfully, shouldn't matter because our samples are pretty big usually anyways
     res = []
+    chunk_size = min(1000, iters)
     from tqdm import tqdm
     print("bootstrapping for stddev:", f.__name__)
-    for bootstrap in tqdm(pool.imap(_bootstrap_internal(f, 1000), [(i, xs) for i in range(iters // 1000)]), total=iters // 1000):
+    for bootstrap in tqdm(pool.imap(_bootstrap_internal(f, chunk_size), [(i, xs) for i in range(iters // chunk_size)]), total=iters // chunk_size):
         # sample w replacement
         res.extend(bootstrap)
 
@@ -215,7 +216,7 @@ def bootstrap_stderr(f, xs, iters=100000):
     return sample_stddev(res)
 
 
-def stderr_for_metric(metric):
+def stderr_for_metric(metric, bootstrap_iters):
     bootstrappable = [
         median,
         matthews_corrcoef,
@@ -227,7 +228,7 @@ def stderr_for_metric(metric):
     ]
 
     if metric in bootstrappable:
-        return lambda x: bootstrap_stderr(metric, x)
+        return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
 
     stderr = {
         mean: mean_stderr,

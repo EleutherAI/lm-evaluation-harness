@@ -4,7 +4,7 @@ import random
 import lm_eval.metrics
 
 
-def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
+def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_iters=100000):
     # TODO: completely refactor this entire function to not be a huge mess, ideally breaking it down into smaller pieces
 
     task_dict_items = [(name, task) for name, task in task_dict.items() if(task.has_validation_docs() or task.has_test_docs())]
@@ -91,7 +91,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
         task = task_dict[task_name]
         results[task_name][metric] = task.aggregation()[metric](items)
 
-        stderr = lm_eval.metrics.stderr_for_metric(task.aggregation()[metric])
+        stderr = lm_eval.metrics.stderr_for_metric(task.aggregation()[metric], bootstrap_iters=bootstrap_iters)
         if stderr is not None:
             results[task_name][metric + "_stderr"] = stderr(items)
     
