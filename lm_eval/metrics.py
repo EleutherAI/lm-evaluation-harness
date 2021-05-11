@@ -178,24 +178,37 @@ def _sacreformat(refs, preds):
 
 ## stderr stuff
 
+class _bootstrap_internal:
+    def __init__(self, f, n):
+        self.f = f
+        self.n = n
+    def __call__(self, v):
+        i, xs = v
+        rnd = random.Random()
+        rnd.seed(i)
+        res = []
+        for _ in range(self.n):
+            res.append(self.f(rnd.choices(xs, k=len(xs))))
+        return res
+
 
 def bootstrap_stderr(f, xs, iters=100000):
+    import multiprocessing as mp
+    pool = mp.Pool(mp.cpu_count())
     # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
     # equivalent to stderr calculated without Bessel's correction in the stddev. 
     # Unfortunately, I haven't been able to figure out what the right correction is
     # to make the bootstrap unbiased - i considered multiplying by sqrt(n/(n-1)) but
     # that would be ad-hoc and I can't prove that that would actually be an unbiased estimator)
     # Thankfully, shouldn't matter because our samples are pretty big usually anyways
-    rnd = random.Random()
-    rnd.seed(42)
     res = []
-    from tqdm import trange
+    from tqdm import tqdm
     print("bootstrapping for stddev:", f.__name__)
-    for i in trange(iters):
+    for bootstrap in tqdm(pool.imap(_bootstrap_internal(f, 1000), [(i, xs) for i in range(iters // 1000)]), total=iters // 1000):
         # sample w replacement
-        bootstrap = f(rnd.choices(xs, k=len(xs)))
-        res.append(bootstrap)
+        res.extend(bootstrap)
 
+    pool.close()
     return sample_stddev(res)
 
 
