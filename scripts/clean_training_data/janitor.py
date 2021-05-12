@@ -41,6 +41,29 @@ def word_ngrams(s, n):
     ngram_seqs = form_ngrams(iter(tokens), n)
     return (" ".join(ngram) for ngram in ngram_seqs)
 
+# Does character sequences only - combined faster function to play around with later
+# def word_ngrams_indices_combined(sequence, n):
+#     current_word = ""
+#     history = []
+#     gap = False;
+#     start = 0
+#     end = 0
+#     for character in sequence:
+#         if character == " ":
+#             if not gap:
+#                 gap = True
+#                 history.append(current_word)
+#                 end += len(current_word) - 1
+#                 current_word = ""
+#                 if len(history) == n:
+#                     yield (tuple(history), start, end)
+#                     del history[0]
+#                     start = end + 1
+#                     end = start
+#         else:
+#             gap = False
+#             current_word += character
+
 
 # https://stackoverflow.com/questions/13734451/string-split-with-indices-in-python
 def split_indices(s):
@@ -140,8 +163,9 @@ class Janitor:
     def _split_chunks(self, dirty_string, dirty_parts):
         clean_chunks = []
         splice_idx = 0
+        end = -1
         for i, (ngram, start, end) in enumerate(dirty_parts):
-            if i > self.too_dirty_cutoff:
+            if i >= self.too_dirty_cutoff:
                 return []
             start = max(0, start - self.window_to_remove)
             end = min(len(dirty_string), end + self.window_to_remove)
@@ -149,6 +173,9 @@ class Janitor:
             if start - splice_idx > self.minimum_slice_length:
                 clean_chunks.append(dirty_string[splice_idx: start])
             splice_idx = end
+
+        if end < len(dirty_string) - self.minimum_slice_length:
+            clean_chunks.append(dirty_string[end+1:])
 
         return clean_chunks
 
@@ -259,24 +286,24 @@ def benchmark():
     print("\tCpp", timeit.timeit("jan.clean(data)", setup=setup, globals=globals(), number=n))
 
 
-def test():
-    source = """   ,, I'm a very !dirty,, ,,  dirty boy. Clean me daddy. \n\nhe he he hehe heh.  lastword  """ * 2
-    contaminant = "dirty boy. Clean he he"
+# def test_janitor_general():
+#     source = """   ,, I'm a very !dirty,, ,,  dirty boy. Clean me daddy. \n\nhe he he hehe heh.  lastword  """ * 2
+#     contaminant = "dirty boy. Clean he he"
 
-    jan = Janitor(ngram_n=3)
-    jan.register_contaminant(contaminant)
-    cleaned = " ".join(jan.clean(source))
-    for contam in jan.dirt_ngrams:
-        assert contam not in cleaned, contam
+#     jan = Janitor(ngram_n=3)
+#     jan.register_contaminant(contaminant)
+#     cleaned = " ".join(jan.clean(source))
+#     for contam in jan.dirt_ngrams:
+#         assert contam not in cleaned, contam
 
-    filename = "data/saved_contam"
-    jan.save_contamination_ngrams(filename)
+#     filename = "data/saved_contam"
+#     jan.save_contamination_ngrams(filename)
 
-    jan = Janitor(ngram_n=3)
-    jan.load_contamination_ngrams(filename)
-    cleaned = " ".join(jan.clean(source))
-    for contam in jan.dirt_ngrams:
-        assert contam not in cleaned, contam
+#     jan = Janitor(ngram_n=3)
+#     jan.load_contamination_ngrams(filename)
+#     cleaned = " ".join(jan.clean(source))
+#     for contam in jan.dirt_ngrams:
+#         assert contam not in cleaned, contam
 
 
 if __name__ == "__main__":
