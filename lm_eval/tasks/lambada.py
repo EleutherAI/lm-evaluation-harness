@@ -8,11 +8,12 @@ from best_download import download_file
 class LAMBADA(Task):
     def download(self):
         sh("mkdir -p data/lambada")
-        download_file(
-            "http://eaidata.bmk.sh/data/lambada_test.jsonl", 
-            "data/lambada/lambada_test.jsonl", 
-            "4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226"
-        )
+        sh("wget http://eaidata.bmk.sh/data/lambada_test.jsonl -O data/lambada/lambada_test.jsonl")
+#         download_file(
+#             "http://eaidata.bmk.sh/data/lambada_test.jsonl", 
+#             "data/lambada/lambada_test.jsonl", 
+#             "4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226"
+#         )
 
     def has_training_docs(self):
         return False
