@@ -54,10 +54,6 @@ class PileBookCorpus2(PilePerplexityTask):
     PILE_SET_NAME = "BookCorpus2"
 
 
-class PileCommonCrawl(PilePerplexityTask):
-    PILE_SET_NAME = "CommonCrawl"
-
-
 class PileDmMathematics(PilePerplexityTask):
     PILE_SET_NAME = "DM Mathematics"
 
