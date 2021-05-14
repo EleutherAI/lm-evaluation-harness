@@ -41,6 +41,29 @@ def word_ngrams(s, n):
     ngram_seqs = form_ngrams(iter(tokens), n)
     return (" ".join(ngram) for ngram in ngram_seqs)
 
+# Does character sequences only - combined faster function to play around with later
+# def word_ngrams_indices_combined(sequence, n):
+#     current_word = ""
+#     history = []
+#     gap = False;
+#     start = 0
+#     end = 0
+#     for character in sequence:
+#         if character == " ":
+#             if not gap:
+#                 gap = True
+#                 history.append(current_word)
+#                 end += len(current_word) - 1
+#                 current_word = ""
+#                 if len(history) == n:
+#                     yield (tuple(history), start, end)
+#                     del history[0]
+#                     start = end + 1
+#                     end = start
+#         else:
+#             gap = False
+#             current_word += character
+
 
 # https://stackoverflow.com/questions/13734451/string-split-with-indices-in-python
 def split_indices(s):
@@ -140,8 +163,9 @@ class Janitor:
     def _split_chunks(self, dirty_string, dirty_parts):
         clean_chunks = []
         splice_idx = 0
+        end = -1
         for i, (ngram, start, end) in enumerate(dirty_parts):
-            if i > self.too_dirty_cutoff:
+            if i >= self.too_dirty_cutoff:
                 return []
             start = max(0, start - self.window_to_remove)
             end = min(len(dirty_string), end + self.window_to_remove)
@@ -149,6 +173,9 @@ class Janitor:
             if start - splice_idx > self.minimum_slice_length:
                 clean_chunks.append(dirty_string[splice_idx: start])
             splice_idx = end
+
+        if end < len(dirty_string) - self.minimum_slice_length:
+            clean_chunks.append(dirty_string[end+1:])
 
         return clean_chunks
 
@@ -186,101 +213,101 @@ class Janitor:
 # Tests
 #################################################################
 
-def print_cpp():
-    source = """   ,, I'm a very !dirty,, ,,  dirty boy. Clean me daddy. \n\nhe he he hehe heh.  lastword  """ * 2
+# def print_cpp():
+#     source = """   ,, I'm a very !dirty,, ,,  dirty boy. Clean me daddy. \n\nhe he he hehe heh.  lastword  """ * 2
 
-    for i in range(1, 10, 2):
-        pprint(janitor_util.clean_ngram(source, string.punctuation, i))
-        for ngram, start, end in \
-                janitor_util.clean_ngram_with_indices(source, string.punctuation, i):
-            print(ngram, "\t", start, end, source[start:end].replace("\n", "\\n"))
-
-
-def test_cpp():
-    source = """   ,, I'm a very !dirty,, ,,  dirty boy. Clean me daddy. \n\nhe he he hehe heh.  lastword  """ * 2
-    contaminant = "dirty boy. Clean he he"
-
-    jan_python = Janitor()
-    jan_cpp = Janitor()
-
-    jan_python.register_contaminant_python(contaminant)
-    jan_cpp.register_contaminant(contaminant)
-
-    assert jan_python.dirt_ngrams == jan_cpp.dirt_ngrams, (jan_python.dirt_ngrams, jan_cpp.dirt_ngrams)
-
-    assert jan_python.clean_python(source) == jan_cpp.clean(source), \
-        (jan_python.clean_python(source), jan_cpp.clean(source))
-
-    print("Passed test, python==cpp")
+#     for i in range(1, 10, 2):
+#         pprint(janitor_util.clean_ngram(source, string.punctuation, i))
+#         for ngram, start, end in \
+#                 janitor_util.clean_ngram_with_indices(source, string.punctuation, i):
+#             print(ngram, "\t", start, end, source[start:end].replace("\n", "\\n"))
 
 
-def benchmark():
-    # Download and put in data folder: enwik8 (100 MB) from https://cs.fit.edu/~mmahoney/compression/textdata.html
-    setup = \
-        """
-        with open("data/enwik8", "r") as f:
-            data = f.read()
-        jan = Janitor(too_dirty_cutoff=1000)
-        jan.register_contaminant('''
-        theories is that there is a connection between &quot;geekdom&quot; and autism.  
-        This is hinted, for instance, by a ''Wired Magazine'' article in 2001 entitled &quot;
-        The [[Geek]] Syndrome&quot;, which is a point argued by many in the autism rights 
-        movement{{ref|Wired}}.  This article, many professionals assert, is just one example of 
-        the media's application of mental disease labels to what is actually variant normal behavior
-        &amp;mdash;they argue that shyness, lack of athletic ability or social skills, and intellectual
-        interests, even when they seem unusual to others, are not in themselves signs of autism or 
-        Asperger's syndrome. Others assert that it is actually the medical profession which is applying
-        mental disease labels to children who in the past would have simply been accepted as a little
-        different or even labeled 'gifted'. See [[clinomorphism]] for further discussion of this issue.
-        Due to the recent publicity surrounding autism and autis
-        ultan Al Nahyan]] granted [[Petroleum]] concessions, and oil was first found in 1958.  At first,
-        oil money had a marginal impact.  A few lowrise concete buildings were erected, and the first 
-        paved road was completed in 1961, but Sheikh Shakbut, uncertain whether the new oil royalties 
-        would last, took a cautious approach, prefering to save the revenue rather than investing it in 
-        development.  His brother, [[Zayed bin Sultan Al Nahayan]], saw that oil wealth had the potential 
-        to transform Abu Dhabi.  The ruling Al Nahayan family decided that Sheikh Zayed should replace his 
-        brother as Ruler and carry out his vision of developing the country.  On [[August 6]], [[1966]], 
-        with the assistance of the British, Sheikh Zayed became the new ruler.  See generally, Al-Fahim, M, 
-        ''From Rags to Riches: A Story of Abu Dhabi'', Chapter Six (London Centre of Arab Studies, 1995), 
-        ISBN 1 900404 00 1. With the announcement by Britain in 1968 that it would withdraw from the 
-        Gulf area by 1971, Sheikh Zayed became the main driving force behind the formation of the 
-        [[United Arab Emirates]]. After the Emirates gained independence in 1971, 
-        ''')
-        """
+# def test_cpp():
+#     source = """   ,, I'm a very !dirty,, ,,  dirty boy. Clean me daddy. \n\nhe he he hehe heh.  lastword  """ * 2
+#     contaminant = "dirty boy. Clean he he"
 
-    n = 1
-    print(f"Timing {n} run on 100 MB")
-    print("Register contaminant")
-    # print("\tPython", timeit.timeit("jan.register_contaminant_python(data)", setup=setup, globals=globals(), number=n))
-    print("\tCpp", timeit.timeit("jan.register_contaminant(data)", setup=setup, globals=globals(), number=n))
+#     jan_python = Janitor()
+#     jan_cpp = Janitor()
 
-    print("Clean")
-    # print("\tPython", timeit.timeit("jan.clean_python(data)", setup=setup, globals=globals(), number=n))
-    print("\tCpp", timeit.timeit("jan.clean(data)", setup=setup, globals=globals(), number=n))
+#     jan_python.register_contaminant_python(contaminant)
+#     jan_cpp.register_contaminant(contaminant)
+
+#     assert jan_python.dirt_ngrams == jan_cpp.dirt_ngrams, (jan_python.dirt_ngrams, jan_cpp.dirt_ngrams)
+
+#     assert jan_python.clean_python(source) == jan_cpp.clean(source), \
+#         (jan_python.clean_python(source), jan_cpp.clean(source))
+
+#     print("Passed test, python==cpp")
 
 
-def test():
-    source = """   ,, I'm a very !dirty,, ,,  dirty boy. Clean me daddy. \n\nhe he he hehe heh.  lastword  """ * 2
-    contaminant = "dirty boy. Clean he he"
+# def benchmark():
+#     # Download and put in data folder: enwik8 (100 MB) from https://cs.fit.edu/~mmahoney/compression/textdata.html
+#     setup = \
+#         """
+#         with open("data/enwik8", "r") as f:
+#             data = f.read()
+#         jan = Janitor(too_dirty_cutoff=1000)
+#         jan.register_contaminant('''
+#         theories is that there is a connection between &quot;geekdom&quot; and autism.  
+#         This is hinted, for instance, by a ''Wired Magazine'' article in 2001 entitled &quot;
+#         The [[Geek]] Syndrome&quot;, which is a point argued by many in the autism rights 
+#         movement{{ref|Wired}}.  This article, many professionals assert, is just one example of 
+#         the media's application of mental disease labels to what is actually variant normal behavior
+#         &amp;mdash;they argue that shyness, lack of athletic ability or social skills, and intellectual
+#         interests, even when they seem unusual to others, are not in themselves signs of autism or 
+#         Asperger's syndrome. Others assert that it is actually the medical profession which is applying
+#         mental disease labels to children who in the past would have simply been accepted as a little
+#         different or even labeled 'gifted'. See [[clinomorphism]] for further discussion of this issue.
+#         Due to the recent publicity surrounding autism and autis
+#         ultan Al Nahyan]] granted [[Petroleum]] concessions, and oil was first found in 1958.  At first,
+#         oil money had a marginal impact.  A few lowrise concete buildings were erected, and the first 
+#         paved road was completed in 1961, but Sheikh Shakbut, uncertain whether the new oil royalties 
+#         would last, took a cautious approach, prefering to save the revenue rather than investing it in 
+#         development.  His brother, [[Zayed bin Sultan Al Nahayan]], saw that oil wealth had the potential 
+#         to transform Abu Dhabi.  The ruling Al Nahayan family decided that Sheikh Zayed should replace his 
+#         brother as Ruler and carry out his vision of developing the country.  On [[August 6]], [[1966]], 
+#         with the assistance of the British, Sheikh Zayed became the new ruler.  See generally, Al-Fahim, M, 
+#         ''From Rags to Riches: A Story of Abu Dhabi'', Chapter Six (London Centre of Arab Studies, 1995), 
+#         ISBN 1 900404 00 1. With the announcement by Britain in 1968 that it would withdraw from the 
+#         Gulf area by 1971, Sheikh Zayed became the main driving force behind the formation of the 
+#         [[United Arab Emirates]]. After the Emirates gained independence in 1971, 
+#         ''')
+#         """
 
-    jan = Janitor(ngram_n=3)
-    jan.register_contaminant(contaminant)
-    cleaned = " ".join(jan.clean(source))
-    for contam in jan.dirt_ngrams:
-        assert contam not in cleaned, contam
+#     n = 1
+#     print(f"Timing {n} run on 100 MB")
+#     print("Register contaminant")
+#     # print("\tPython", timeit.timeit("jan.register_contaminant_python(data)", setup=setup, globals=globals(), number=n))
+#     print("\tCpp", timeit.timeit("jan.register_contaminant(data)", setup=setup, globals=globals(), number=n))
 
-    filename = "data/saved_contam"
-    jan.save_contamination_ngrams(filename)
-
-    jan = Janitor(ngram_n=3)
-    jan.load_contamination_ngrams(filename)
-    cleaned = " ".join(jan.clean(source))
-    for contam in jan.dirt_ngrams:
-        assert contam not in cleaned, contam
+#     print("Clean")
+#     # print("\tPython", timeit.timeit("jan.clean_python(data)", setup=setup, globals=globals(), number=n))
+#     print("\tCpp", timeit.timeit("jan.clean(data)", setup=setup, globals=globals(), number=n))
 
 
-if __name__ == "__main__":
-    test()
-    # print_cpp()
-    # test_cpp()
-    # benchmark()
+# def test_janitor_general():
+#     source = """   ,, I'm a very !dirty,, ,,  dirty boy. Clean me daddy. \n\nhe he he hehe heh.  lastword  """ * 2
+#     contaminant = "dirty boy. Clean he he"
+
+#     jan = Janitor(ngram_n=3)
+#     jan.register_contaminant(contaminant)
+#     cleaned = " ".join(jan.clean(source))
+#     for contam in jan.dirt_ngrams:
+#         assert contam not in cleaned, contam
+
+#     filename = "data/saved_contam"
+#     jan.save_contamination_ngrams(filename)
+
+#     jan = Janitor(ngram_n=3)
+#     jan.load_contamination_ngrams(filename)
+#     cleaned = " ".join(jan.clean(source))
+#     for contam in jan.dirt_ngrams:
+#         assert contam not in cleaned, contam
+
+
+# if __name__ == "__main__":
+#     test()
+#     # print_cpp()
+#     # test_cpp()
+#     # benchmark()
