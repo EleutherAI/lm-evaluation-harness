@@ -37,7 +37,7 @@ class NaturalQs(HFTask):
         return rnd.sample(self._training_docs, k)
 
     def doc_to_text(self, doc):
-        return 'Q: ' + doc['question']['text'] + '\n\n' + 'A: '
+        return 'Q: ' + doc['question']['text'] + '\n\n' + 'A:'
 
     def doc_to_target(self, doc):
         # There's a short answer and a long answer. Based on the paper, I'm using the long answer.
