@@ -33,5 +33,10 @@ setuptools.setup(
         "pycountry==20.7.3",
         "numexpr==2.7.2",
         "lm_dataformat==0.0.19",
+        "pytest==6.2.3",
+        "pybind11==2.6.2",
+        "tqdm-multiprocess==0.0.11",
+        "zstandard==0.15.2",
+        "jsonlines==2.0.0"
     ]
 )

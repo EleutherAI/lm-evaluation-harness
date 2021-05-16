@@ -71,10 +71,8 @@ class GPT2LM(LM):
         loglikelihoods = []
         with torch.no_grad():
             for string, in tqdm(requests):
-                encoded = self.tokenizer.encode_plus(string)["input_ids"]
-
                 rolling_token_windows = list(map(utils.make_disjoint_window, utils.get_rolling_token_windows(
-                    token_list=encoded,
+                    token_list=self.tokenizer.encode(string),
                     prefix_token=self.EOT_TOKEN_ID,
                     max_seq_len=self.max_length,
                     context_len=1,
