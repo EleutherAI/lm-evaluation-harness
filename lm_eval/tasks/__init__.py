@@ -177,7 +177,6 @@ TASK_REGISTRY = {
     "pile_arxiv": pile.PileArxiv,
     "pile_books3": pile.PileBooks3,
     "pile_bookcorpus2": pile.PileBookCorpus2,
-    "pile_commoncrawl": pile.PileCommonCrawl,
     "pile_dm-mathematics": pile.PileDmMathematics,
     "pile_enron": pile.PileEnron,
     "pile_europarl": pile.PileEuroparl,
