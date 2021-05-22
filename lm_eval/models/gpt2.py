@@ -44,10 +44,10 @@ class GPT2LM(LM):
         #     self.gpt2 = nn.DataParallel(self.gpt2)
 
     @classmethod
-    def create_from_arg_string(cls, arg_string, **kwargs):
+    def create_from_arg_string(cls, arg_string, additional_config={}):
         args = utils.simple_parse_args_string(arg_string)
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-        return cls(pretrained=args.get("pretrained", "gpt2"), **kwargs)
+        args2 = {k: v for k, v in additional_config.items() if v is not None}
+        return cls(**args, **args2)
 
     def loglikelihood(self, requests):
         new_reqs = []

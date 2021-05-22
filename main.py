@@ -29,7 +29,9 @@ def main():
     random.seed(args.seed)
     np.random.seed(args.seed)
 
-    lm = models.get_model(args.model).create_from_arg_string(args.model_args, batch_size=args.batch_size, device=args.device)
+    lm = models.get_model(args.model).create_from_arg_string(args.model_args, {
+        'batch_size': args.batch_size, 'device': args.device
+    })
     
     if args.limit:
         print("WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.")
