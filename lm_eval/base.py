@@ -238,7 +238,7 @@ class Task(abc.ABC):
                 fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
             else:
                 if self._fewshot_docs is None:
-                    self._fewshot_docs = list(self.validation_docs() if self.has_validation_docs else self.test_docs())
+                    self._fewshot_docs = list(self.validation_docs() if self.has_validation_docs() else self.test_docs())
 
                 fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
 
