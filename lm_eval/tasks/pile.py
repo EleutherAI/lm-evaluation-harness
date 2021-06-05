@@ -19,10 +19,8 @@ class PilePerplexityTask(PerplexityTask, abc.ABC):
     def download(self):
         # TODO: separate pile val/test out by component so we don't have to scan the entire file once per set
         os.makedirs("data/pile/", exist_ok=True)
-        if not os.path.exists(self.VAL_PATH):
-            download_file("https://the-eye.eu/public/AI/pile/val.jsonl.zst", self.VAL_PATH)
-        if not os.path.exists(self.TEST_PATH):
-            download_file("https://the-eye.eu/public/AI/pile/test.jsonl.zst", self.TEST_PATH)
+        download_file("https://the-eye.eu/public/AI/pile/val.jsonl.zst", self.VAL_PATH)
+        download_file("https://the-eye.eu/public/AI/pile/test.jsonl.zst", self.TEST_PATH)
 
     def validation_docs(self):
         rdr = lm_dataformat.Reader(self.VAL_PATH)
