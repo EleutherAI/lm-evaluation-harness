@@ -9,12 +9,16 @@ class LAMBADA(Task):
     VERSION = 0
     def download(self):
         sh("mkdir -p data/lambada")
-        sh("wget http://eaidata.bmk.sh/data/lambada_test.jsonl -O data/lambada/lambada_test.jsonl")
-#         download_file(
-#             "http://eaidata.bmk.sh/data/lambada_test.jsonl", 
-#             "data/lambada/lambada_test.jsonl", 
-#             "4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226"
-#         )
+        try:
+            download_file(
+                "http://eaidata.bmk.sh/data/lambada_test.jsonl", 
+                "data/lambada/lambada_test.jsonl", 
+                "4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226"
+            )
+        except:
+            # fallback - for some reason best_download doesnt work all the time here
+            sh("wget http://eaidata.bmk.sh/data/lambada_test.jsonl -O data/lambada/lambada_test.jsonl")
+            sh('echo "4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226  data/lambada/lambada_test.jsonl" | sha256sum --check')
 
     def has_training_docs(self):
         return False

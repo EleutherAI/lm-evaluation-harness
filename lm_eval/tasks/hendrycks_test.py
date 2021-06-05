@@ -3,6 +3,7 @@ import random
 from lm_eval.base import MultipleChoiceTask
 from ..utils import sh
 from pathlib import Path
+from best_download import download_file
 
 SUBJECTS = ['abstract_algebra', 'anatomy', 'astronomy', 'business_ethics', 'clinical_knowledge', 'college_biology',
             'college_chemistry', 'college_computer_science', 'college_mathematics', 'college_medicine', 'college_physics',
@@ -42,14 +43,15 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         super().__init__()
 
     def download(self):
-        if not self.DATASET_PATH.exists():
+        if not (self.DATASET_PATH / 'done').exists():
+            sh("mkdir -p data")
+            download_file("https://people.eecs.berkeley.edu/~hendrycks/data.tar", "data/data.tar", "78a804365a59028188fb19bd1adcadc5e0c260b220a9d8b2e33a5ea7d5fbe3b4")
             sh("""
-                mkdir -p data
-                wget -c https://people.eecs.berkeley.edu/~hendrycks/data.tar -P data/
-                tar -xf data/data.tar -C data/
-                rm data/data.tar
-                mv data/data data/hendrycksTest
-                """)
+            tar -xf data/data.tar -C data/
+            rm data/data.tar
+            mv data/data data/hendrycksTest
+            touch data/hendrycksTest/done
+            """)
 
     def has_training_docs(self):
         return True

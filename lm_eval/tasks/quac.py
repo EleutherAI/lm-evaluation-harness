@@ -24,6 +24,7 @@ class QuAC(Task):
 
     def download(self):
         if not os.path.exists('data/quac'):
+            # TODO: convert to use best_download
             sh("""
                 mkdir -p data/quac 
                 wget https://s3.amazonaws.com/my89public/quac/train_v0.2.json -O data/quac/train_v0.2.json

@@ -4,6 +4,7 @@ import transformers.data.metrics.squad_metrics as squad_metrics
 from lm_eval.base import Task, rf, mean
 from ..utils import sh
 from itertools import zip_longest
+from best_download import download_file
 
 
 class CoQA(Task):
@@ -14,10 +15,9 @@ class CoQA(Task):
         coqa_dev_filepath = 'data/coqa/coqa-dev-v1.0.json'
 
         sh ("""mkdir -p data/coqa""")
-        if not os.path.exists(coqa_train_filepath):
-            sh ("""wget http://downloads.cs.stanford.edu/nlp/data/coqa/coqa-train-v1.0.json -O """ + coqa_train_filepath)
-        if not os.path.exists(coqa_dev_filepath):
-            sh ("""wget http://downloads.cs.stanford.edu/nlp/data/coqa/coqa-dev-v1.0.json -O """ + coqa_dev_filepath)
+
+        download_file("http://downloads.cs.stanford.edu/nlp/data/coqa/coqa-train-v1.0.json", coqa_train_filepath, "b0fdb2bc1bd38dd3ca2ce5fa2ac3e02c6288ac914f241ac409a655ffb6619fa6")
+        download_file("http://downloads.cs.stanford.edu/nlp/data/coqa/coqa-dev-v1.0.json", coqa_dev_filepath, "dfa367a9733ce53222918d0231d9b3bedc2b8ee831a2845f62dfc70701f2540a")
 
     def has_training_docs(self):
         return True

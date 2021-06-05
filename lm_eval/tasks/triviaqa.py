@@ -9,6 +9,7 @@ class TriviaQA(Task):
     VERSION = 0
     def download(self):
         if not os.path.exists('data/triviaqa'):
+            # TODO: convert to best_download
             sh("""
             mkdir -p data/triviaqa
             wget http://nlp.cs.washington.edu/triviaqa/data/triviaqa-unfiltered.tar.gz -O data/triviaqa/trivia_qa-unfiltered.tar.gz
