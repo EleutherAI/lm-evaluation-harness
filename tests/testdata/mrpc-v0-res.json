@@ -1,0 +1,1 @@
+{"results": {"mrpc": {"acc": 0.6, "acc_stderr": 0.16329931618554522, "f1": 0.5, "f1_stderr": 0.19843281497713464}}, "versions": {"mrpc": 0}}

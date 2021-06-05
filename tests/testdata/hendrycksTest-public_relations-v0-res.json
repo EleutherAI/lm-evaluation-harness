@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-public_relations": {"acc": 0.4, "acc_stderr": 0.16329931618554522, "acc_norm": 0.4, "acc_norm_stderr": 0.16329931618554522}}, "versions": {"hendrycksTest-public_relations": 0}}

@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-high_school_us_history": {"acc": 0.5, "acc_stderr": 0.16666666666666666, "acc_norm": 0.4, "acc_norm_stderr": 0.16329931618554522}}, "versions": {"hendrycksTest-high_school_us_history": 0}}

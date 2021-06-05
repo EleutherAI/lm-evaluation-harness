@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-professional_accounting": {"acc": 0.2, "acc_stderr": 0.13333333333333333, "acc_norm": 0.3, "acc_norm_stderr": 0.15275252316519464}}, "versions": {"hendrycksTest-professional_accounting": 0}}

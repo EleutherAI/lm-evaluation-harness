@@ -1,0 +1,1 @@
+{"results": {"wmt16-en-ro": {"bleu": 0.0, "bleu_stderr": 0.0, "chrf": 0.014373306272516557, "chrf_stderr": 0.0013768504129234834, "ter": 1.0, "ter_stderr": 0.0}}, "versions": {"wmt16-en-ro": 0}}

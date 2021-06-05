@@ -81,6 +81,7 @@ def main():
     # todo: make latex table look good
     # print(latex_writer.dumps())
 
+    print(f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}")
     print(md_writer.dumps())
 
 if __name__ == "__main__":
