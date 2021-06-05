@@ -7,6 +7,7 @@ from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 from lm_eval.utils import sh
 from .common import yesno
+from best_download import download_file
 
 """
 NOTE: The reported "group" accuracies for the Deontology, Justice, and Virtue
@@ -17,13 +18,14 @@ of the paper.
 
 class Ethics(Task):
     def download(self):
-        if not os.path.exists('data/ethics'):
+        if not os.path.exists('data/ethics/done'):
+            sh("mkdir -p data")
+            download_file("https://people.eecs.berkeley.edu/~hendrycks/ethics.tar", "data/ethics.tar", "40acbf1ac0da79a2aabef394d58889136b8d38b05be09482006de2453fb06333")
             sh("""
-                mkdir -p data
-                wget https://people.eecs.berkeley.edu/~hendrycks/ethics.tar -P data/
-                tar -xf data/ethics.tar -C data/
-                rm data/ethics.tar
-                """)
+            tar -xf data/ethics.tar -C data/
+            rm data/ethics.tar
+            touch data/ethics/done
+            """)
 
     def has_training_docs(self):
         return True

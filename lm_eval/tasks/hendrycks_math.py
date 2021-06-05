@@ -4,6 +4,7 @@ from lm_eval.utils import sh
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
 from pathlib import Path
+from best_download import download_file
 
 
 class Math(Task):
@@ -15,12 +16,13 @@ class Math(Task):
     DATASET_PATH = Path('data/MATH')
 
     def download(self):
-        if not self.DATASET_PATH.exists():
+        if not (self.DATASET_PATH / 'done').exists():
+            sh(f"mkdir -p {self.DATASET_PATH}")
+            download_file("https://people.eecs.berkeley.edu/~hendrycks/MATH.tar.gz", f"{self.DATASET_PATH}.tar.gz", "e867c0df3e45e5f8219296d12dd4579d91fe313de8dc020ed17382e84f64c2f7")
             sh(f"""
-            mkdir -p {self.DATASET_PATH}
-            wget https://people.eecs.berkeley.edu/~hendrycks/MATH.tar.gz -P data/
             tar -xf {self.DATASET_PATH}.tar.gz -C data/
             rm {self.DATASET_PATH}.tar.gz
+            touch {self.DATASET_PATH / 'done'}
             """)
 
     @abc.abstractmethod
