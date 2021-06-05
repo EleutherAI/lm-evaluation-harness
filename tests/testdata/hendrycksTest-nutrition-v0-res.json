@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-nutrition": {"acc": 0.2, "acc_stderr": 0.13333333333333333, "acc_norm": 0.4, "acc_norm_stderr": 0.1632993161855452}}, "versions": {"hendrycksTest-nutrition": 0}}

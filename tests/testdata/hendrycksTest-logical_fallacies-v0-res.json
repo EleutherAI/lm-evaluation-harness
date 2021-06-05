@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-logical_fallacies": {"acc": 0.3, "acc_stderr": 0.15275252316519466, "acc_norm": 0.3, "acc_norm_stderr": 0.15275252316519466}}, "versions": {"hendrycksTest-logical_fallacies": 0}}

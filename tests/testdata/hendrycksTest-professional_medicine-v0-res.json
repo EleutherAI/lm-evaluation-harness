@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-professional_medicine": {"acc": 0.3, "acc_stderr": 0.15275252316519466, "acc_norm": 0.2, "acc_norm_stderr": 0.13333333333333333}}, "versions": {"hendrycksTest-professional_medicine": 0}}

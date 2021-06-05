@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-elementary_mathematics": {"acc": 0.5, "acc_stderr": 0.16666666666666666, "acc_norm": 0.5, "acc_norm_stderr": 0.16666666666666666}}, "versions": {"hendrycksTest-elementary_mathematics": 0}}

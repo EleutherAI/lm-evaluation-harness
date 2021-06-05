@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-conceptual_physics": {"acc": 0.3, "acc_stderr": 0.15275252316519464, "acc_norm": 0.3, "acc_norm_stderr": 0.15275252316519464}}, "versions": {"hendrycksTest-conceptual_physics": 0}}
