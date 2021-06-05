@@ -7,6 +7,7 @@ from itertools import zip_longest
 
 
 class CoQA(Task):
+    VERSION = 0
 
     def download(self):
         coqa_train_filepath = 'data/coqa/coqa-train-v1.0.json'

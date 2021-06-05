@@ -3,6 +3,7 @@ from . common import HFTask
 
 
 class ARCEasy(HFTask, MultipleChoiceTask):
+    VERSION = 0
     DATASET_PATH = "ai2_arc"
     DATASET_NAME = "ARC-Easy"
 

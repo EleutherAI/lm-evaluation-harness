@@ -13,6 +13,7 @@ from ..utils import general_detokenize
 
 
 class BoolQ(HFTask):
+    VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "boolq"
 
@@ -64,6 +65,7 @@ class BoolQ(HFTask):
 
 
 class CommitmentBank(HFTask):
+    VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "cb"
 
@@ -135,6 +137,7 @@ class CommitmentBank(HFTask):
 
 
 class Copa(HFTask):
+    VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "copa"
 
@@ -199,6 +202,7 @@ class Copa(HFTask):
 
 
 class MultiRC(HFTask):
+    VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "multirc"
 
@@ -253,6 +257,7 @@ class MultiRC(HFTask):
 
 
 class ReCoRD(HFTask):
+    VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "record"
 
@@ -345,6 +350,7 @@ class ReCoRD(HFTask):
 
 
 class WordsInContext(HFTask):
+    VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "wic"
 
@@ -400,6 +406,7 @@ class WordsInContext(HFTask):
 
 
 class SGWinogradSchemaChallenge(HFTask):
+    VERSION = 0
     # Note: This implementation differs from Fig G.32 because this is the SuperGLUE,
     #       binary version of the task.
     DATASET_PATH = "super_glue"

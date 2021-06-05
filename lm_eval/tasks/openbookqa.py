@@ -3,6 +3,7 @@ from .common import HFTask
 
 
 class OpenBookQA(HFTask, MultipleChoiceTask):
+    VERSION = 0
     DATASET_PATH = "openbookqa"
     DATASET_NAME = "main"
 

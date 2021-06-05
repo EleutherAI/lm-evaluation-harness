@@ -5,6 +5,7 @@ from lm_eval.base import MultipleChoiceTask
 
 
 class QA4MRE(MultipleChoiceTask):
+    VERSION = 0
     YEAR = None
     def download(self):
         year = self.YEAR

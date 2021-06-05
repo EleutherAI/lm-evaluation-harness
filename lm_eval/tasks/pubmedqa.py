@@ -5,6 +5,7 @@ from ..metrics import mean
 
 
 class Pubmed_QA(HFTask):
+    VERSION = 0
     DATASET_PATH = "pubmed_qa"
     DATASET_NAME = "pqa_labeled"
 

@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 class LogiQA(MultipleChoiceTask):
+    VERSION = 0
     DATASET_PATH = Path("data/logiqa")
 
     def download(self):

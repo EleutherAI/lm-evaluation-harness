@@ -7,6 +7,7 @@ from best_download import download_file
 
 
 class LAMBADA_cloze(LAMBADA):
+    VERSION = 0
     def doc_to_text(self, doc):
         return doc['text'].rsplit(' ', 1)[0] + " ____. ->"
 

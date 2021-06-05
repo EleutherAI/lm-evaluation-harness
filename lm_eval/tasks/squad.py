@@ -18,6 +18,7 @@ def _squad_agg(key, items):
 
 
 class SQuAD2(HFTask):
+    VERSION = 0
     DATASET_PATH = "squad_v2"
     DATASET_NAME = None
 

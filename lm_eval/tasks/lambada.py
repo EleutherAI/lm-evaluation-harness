@@ -6,6 +6,7 @@ from best_download import download_file
 
 
 class LAMBADA(Task):
+    VERSION = 0
     def download(self):
         sh("mkdir -p data/lambada")
         sh("wget http://eaidata.bmk.sh/data/lambada_test.jsonl -O data/lambada/lambada_test.jsonl")

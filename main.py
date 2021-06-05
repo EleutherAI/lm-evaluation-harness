@@ -53,20 +53,35 @@ def main():
             f.write(dumped)
 
     # MAKE TABLE
-    from pytablewriter import MarkdownTableWriter
+    from pytablewriter import MarkdownTableWriter, LatexTableWriter
 
-    writer = MarkdownTableWriter()
-    writer.headers = ["Task", "Metric", "Value"]
+    md_writer = MarkdownTableWriter()
+    latex_writer = LatexTableWriter()
+    md_writer.headers = ["Task", "Version", "Metric", "Value", "", "Stderr"]
+    latex_writer.headers = ["Task", "Version", "Metric", "Value", "", "Stderr"]
 
     values = []
 
-    for k, dic in results.items():
+    for k, dic in results["results"].items():
+        version = results["versions"][k]
         for m, v in dic.items():
-            values.append([k, m, '%.4f' % v])
-            k = ""
-    writer.value_matrix = values
+            if m.endswith("_stderr"): continue
 
-    print(writer.dumps())
+            if m + "_stderr" in dic:
+                se = dic[m + "_stderr"]
+
+                values.append([k, version, m, '%.4f' % v, '±', '%.4f' % se])
+            else:
+                values.append([k, version, m, '%.4f' % v, '', ''])
+            k = ""
+            version = ""
+    md_writer.value_matrix = values
+    latex_writer.value_matrix = values
+
+    # todo: make latex table look good
+    # print(latex_writer.dumps())
+
+    print(md_writer.dumps())
 
 if __name__ == "__main__":
     main()

@@ -15,6 +15,8 @@ class CBTBase(HFTask):
     DATASET_PATH = "cbt"
     DATASET_NAME = None
 
+    VERSION = 0
+
     def fewshot_description(self):
         # TODO: Figure out description.
         return ""

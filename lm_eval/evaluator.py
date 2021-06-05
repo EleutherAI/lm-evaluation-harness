@@ -10,6 +10,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
     task_dict_items = [(name, task) for name, task in task_dict.items() if(task.has_validation_docs() or task.has_test_docs())]
 
     results = collections.defaultdict(dict)
+    versions = collections.defaultdict(dict)
 
     requests = collections.defaultdict(list)
     requests_origin = collections.defaultdict(list)
@@ -24,6 +25,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
 
     # get lists of each type of requeste
     for task_name, task in task_dict_items:
+        versions[task_name] = task.VERSION
         #default to test doc, fall back to val doc if validation unavailable
         # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
         if task.has_test_docs():
@@ -95,4 +97,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
         if stderr is not None:
             results[task_name][metric + "_stderr"] = stderr(items)
     
-    return results
+    return {
+        "results": results,
+        "versions": versions
+    }

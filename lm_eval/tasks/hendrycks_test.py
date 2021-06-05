@@ -34,6 +34,7 @@ def create_task(subject):
 
 
 class GeneralHendrycksTest(MultipleChoiceTask):
+    VERSION = 0
     DATASET_PATH = Path("data/hendrycksTest/")
 
     def __init__(self, subject):

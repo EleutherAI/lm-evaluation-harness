@@ -22,6 +22,8 @@ def test_basic_interface(taskname, Task):
 
     for v in task.higher_is_better().values(): assert v in [True, False]
 
+    assert isinstance(task.VERSION, int)
+
     # test deterministic docs
     # (don't test train because it's slow)
 

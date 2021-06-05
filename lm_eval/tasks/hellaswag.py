@@ -4,6 +4,7 @@ from . common import HFTask
 
 
 class HellaSwag(HFTask, MultipleChoiceTask):
+    VERSION = 0
     DATASET_PATH = "hellaswag"
     DATASET_NAME = None
 

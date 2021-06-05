@@ -3,6 +3,7 @@ from lm_eval.base import MultipleChoiceTask
 
 
 class SATAnalogies(MultipleChoiceTask):    
+    VERSION = 0
     NEEDS_MANUAL_DL = True
     
     def __init__(self):

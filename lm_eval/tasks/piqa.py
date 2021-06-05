@@ -5,6 +5,7 @@ from . common import HFTask
 
 
 class PiQA(HFTask, MultipleChoiceTask):
+    VERSION = 0
     DATASET_PATH = "piqa"
     DATASET_NAME = None
 
