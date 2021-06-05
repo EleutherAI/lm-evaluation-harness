@@ -2,6 +2,7 @@ from . common import HFTask
 
 
 class WikiText103(HFTask):
+    VERSION = 0
     NLP_PATH = "wikitext"
     NLP_NAME = "wikitext-103-raw-v1"
 
@@ -64,6 +65,7 @@ class WikiText103(HFTask):
 
 
 class WikiText2(HFTask):
+    VERSION = 0
     NLP_PATH = "wikitext"
     NLP_NAME = "wikitext-2-raw-v1"
 

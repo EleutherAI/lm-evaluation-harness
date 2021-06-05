@@ -6,6 +6,7 @@ from ..utils import sh
 
 
 class TriviaQA(Task):
+    VERSION = 0
     def download(self):
         if not os.path.exists('data/triviaqa'):
             sh("""

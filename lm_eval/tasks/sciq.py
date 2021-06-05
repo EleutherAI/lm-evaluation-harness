@@ -6,6 +6,7 @@ from best_download import download_file
 
 
 class SciQ(MultipleChoiceTask):
+    VERSION = 0
     # Multiple languages and multiple years
     def download(self):
         if not os.path.exists('data/sciq'):

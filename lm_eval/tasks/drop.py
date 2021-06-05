@@ -16,6 +16,7 @@ https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_r
 
 
 class DROP(Task):
+    VERSION = 0
     DATASET_PATH = Path("data/drop")
 
     def download(self):

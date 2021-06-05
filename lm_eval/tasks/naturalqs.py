@@ -4,6 +4,7 @@ from itertools import islice
 
 
 class NaturalQs(HFTask):
+    VERSION = 0
     # TODO: naturalqs has a *really* large train set that huggingface just
     # automatically downloads even if you dont use it. we should try and only 
     # download the val set and not even bother with the train set. 

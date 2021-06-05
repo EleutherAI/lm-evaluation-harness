@@ -4,6 +4,7 @@ from . common import HFTask
 
 
 class MathQA(HFTask, MultipleChoiceTask):
+    VERSION = 0
     DATASET_PATH = "math_qa"
     DATASET_NAME = None
 

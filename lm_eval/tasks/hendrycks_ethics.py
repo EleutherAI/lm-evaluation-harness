@@ -85,6 +85,7 @@ class Ethics(Task):
 
 
 class EthicsCM(Ethics):
+    VERSION = 0
     # Ignoring "ambiguous" extra dataset for now
     def get_prefix(self):
         return "commonsense/cm"
@@ -123,6 +124,7 @@ class EthicsCM(Ethics):
 
 
 class EthicsDeontology(Ethics):
+    VERSION = 0
     def get_prefix(self):
         return "deontology/deontology"
 
@@ -172,6 +174,7 @@ class EthicsDeontology(Ethics):
 
 
 class EthicsJustice(Ethics):
+    VERSION = 0
     def get_prefix(self):
         return "justice/justice"
 
@@ -220,6 +223,7 @@ class EthicsJustice(Ethics):
 
 
 class EthicsUtilitarianismOriginal(Ethics):
+    VERSION = 0
     def get_prefix(self):
         return "utilitarianism/util"
 
@@ -287,6 +291,7 @@ class EthicsUtilitarianismOriginal(Ethics):
 
 
 class EthicsUtilitarianism(Ethics):
+    VERSION = 0
     """
     This is a variation of the original Utilitarianism task used in the paper, where the situations are directly compared.
     This allows scaling to >5 shots.
@@ -339,6 +344,7 @@ class EthicsUtilitarianism(Ethics):
 
 
 class EthicsVirtue(Ethics):
+    VERSION = 0
     def get_prefix(self):
         return "virtue/virtue"
 

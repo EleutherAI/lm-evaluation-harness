@@ -5,6 +5,7 @@ from . common import HFTask
 
 
 class ANLIBase(HFTask):
+    VERSION = 0
     DATASET_PATH = "anli"
     DATASET_NAME = None
     SPLIT = None

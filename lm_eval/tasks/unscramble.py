@@ -14,6 +14,7 @@ def extract_gzip(gz, to):
 
 
 class WordUnscrambleTask(Task):
+    VERSION = 0
     BASE_PATH = Path("data/unscramble")
     FILENAME = None
     CHECKSUM = None  # SHA256 Checksum.

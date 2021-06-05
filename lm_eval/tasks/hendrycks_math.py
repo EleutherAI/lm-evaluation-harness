@@ -287,35 +287,42 @@ class Math(Task):
 
 
 class MathAlgebra(Math):
+    VERSION = 0
     def get_file_info(self):
         return 'algebra'
 
 
 class MathCountingAndProbability(Math):
+    VERSION = 0
     def get_file_info(self):
         return 'counting_and_probability'
 
 
 class MathGeometry(Math):
+    VERSION = 0
     def get_file_info(self):
         return 'geometry'
 
 
 class MathIntermediateAlgebra(Math):
+    VERSION = 0
     def get_file_info(self):
         return 'intermediate_algebra'
 
 
 class MathNumberTheory(Math):
+    VERSION = 0
     def get_file_info(self):
         return 'number_theory'
 
 
 class MathPrealgebra(Math):
+    VERSION = 0
     def get_file_info(self):
         return 'prealgebra'
 
 
 class MathPrecalculus(Math):
+    VERSION = 0
     def get_file_info(self):
         return 'precalculus'

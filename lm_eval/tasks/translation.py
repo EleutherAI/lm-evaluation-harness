@@ -36,6 +36,7 @@ def create_translation_task(dataset, language_pair):
     return TranslationTask
 
 class GeneralTranslationTask(Task):
+    VERSION = 0
 
     # e.g. ("wmt14", "fr-en")
     def __init__(self, sacrebleu_dataset, sacrebleu_language_pair=None):

@@ -3,6 +3,7 @@ from lm_eval.base import MultipleChoiceTask
 
 
 class HeadQA(HFTask, MultipleChoiceTask):
+    VERSION = 0
     DATASET_PATH = "head_qa"
     DATASET_NAME = None
 
