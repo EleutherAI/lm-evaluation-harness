@@ -21,7 +21,7 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
         "black==20.8b1",
-        "best_download>=0.0.5",
+        "best_download>=0.0.6",
         "datasets>=1.2.1",
         "click>=7.1",
         "scikit-learn>=0.24.1",
