@@ -1,7 +1,5 @@
 # Evaluation Harness for Large Language Models
 
-![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Python%20application/badge.svg)
-[![codecov](https://codecov.io/gh/EleutherAI/lm-evaluation-harness/branch/master/graph/badge.svg?token=JSG3O2427J)](https://codecov.io/gh/EleutherAI/lm-evaluation-harness)
 
 **WARNING**: This project is currently under active development. Interfaces and task implementations may change rapidly and without warning. 
 
