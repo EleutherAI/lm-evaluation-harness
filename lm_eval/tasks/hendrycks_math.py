@@ -18,10 +18,10 @@ class Math(Task):
     def download(self):
         if not (self.DATASET_PATH / 'done').exists():
             sh(f"mkdir -p {self.DATASET_PATH}")
-            download_file("https://people.eecs.berkeley.edu/~hendrycks/MATH.tar.gz", f"{self.DATASET_PATH}.tar.gz", "e867c0df3e45e5f8219296d12dd4579d91fe313de8dc020ed17382e84f64c2f7")
+            download_file("https://people.eecs.berkeley.edu/~hendrycks/MATH.tar", f"{self.DATASET_PATH}.tar.gz", "01256fd7cd5430596fdf07e6e6a5827111b5235b7ffed679c662a12f898932da")
             sh(f"""
-            tar -xf {self.DATASET_PATH}.tar.gz -C data/
-            rm {self.DATASET_PATH}.tar.gz
+            tar -xf {self.DATASET_PATH}.tar -C data/
+            rm {self.DATASET_PATH}.tar
             touch {self.DATASET_PATH / 'done'}
             """)
 
