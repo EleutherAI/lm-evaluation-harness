@@ -39,7 +39,7 @@ class Math(Task):
         return True
 
     def _load_docs(self, path):
-        for file in path.iterdir():
+        for file in sorted(path.iterdir()):
             with open(file) as f:
                 doc = json.load(f)
                 doc["answer"] = self.remove_boxed(
