@@ -223,4 +223,4 @@ class GPT3LM(LM):
                 
                 res.append(s)
         
-        return reord.get_original(res)()
+        return reord.get_original(res)
