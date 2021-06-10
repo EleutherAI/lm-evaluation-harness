@@ -103,7 +103,7 @@ TASK_REGISTRY = {
     # Science related
     "pubmedqa" : pubmedqa.Pubmed_QA,
     "sciq" : sciq.SciQ,
-    #"qa4mre" : qa4mre.QA4MRE,
+
     "qa4mre_2011" : qa4mre.QA4MRE_2011,
     "qa4mre_2012" : qa4mre.QA4MRE_2012,
     "qa4mre_2013" : qa4mre.QA4MRE_2013,
