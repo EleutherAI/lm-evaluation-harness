@@ -1,0 +1,10 @@
+[run]
+
+# tasks that aren't wired up.
+omit = 
+    lm_eval/tasks/quac.py
+    lm_eval/tasks/storycloze.py
+    lm_eval/tasks/cbt.py
+    lm_eval/tasks/sat.py
+    lm_eval/tasks/triviaqa.py
+    lm_eval/tasks/naturalqs.py
