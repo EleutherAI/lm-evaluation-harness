@@ -37,6 +37,8 @@ setuptools.setup(
         "pybind11==2.6.2",
         "tqdm-multiprocess==0.0.11",
         "zstandard==0.15.2",
-        "jsonlines==2.0.0"
+        "jsonlines==2.0.0",
+        "mock==4.0.3",
+        "openai==0.6.4"
     ]
 )
