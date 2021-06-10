@@ -322,17 +322,17 @@ class PerplexityTask(Task, abc.ABC):
 
     def construct_requests(self, doc, ctx):
         assert not ctx
-        req = rf.loglikelihood_rolling(doc)
+        req = rf.loglikelihood_rolling(self.doc_to_target(doc))
         return req
 
     def process_results(self, doc, results):
         loglikelihood, = results
-        words = self.count_words(self.doc_to_target(doc))
-        bytes = self.count_bytes(self.doc_to_target(doc))
+        words = self.count_words(doc)
+        bytes = self.count_bytes(doc)
         return {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes),
-            "bits_per_byte": (-loglikelihood, self.count_bytes(self.doc_to_target(doc)))
+            "bits_per_byte": (-loglikelihood, self.count_bytes(doc))
         }
 
     def aggregation(self):
@@ -342,12 +342,12 @@ class PerplexityTask(Task, abc.ABC):
             "bits_per_byte": weighted_mean
         }
 
-    def count_bytes(self, s):
-        return len(s.encode("utf-8"))
+    def count_bytes(self, doc):
+        return len(doc.encode("utf-8"))
     
-    def count_words(self, s):
+    def count_words(self, doc):
         """ Downstream tasks with custom word boundaries should override this! """
-        return len(re.split(r"\s+", s))
+        return len(re.split(r"\s+", doc))
 
 
 req_ret_lens = {
