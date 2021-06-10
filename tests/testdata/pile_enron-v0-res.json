@@ -1,1 +1,1 @@
-{"results": {"pile_enron": {"word_perplexity": 1.001047500362545, "byte_perplexity": 1.0002230646075219, "bits_per_byte": 0.00022303973231145731}}, "versions": {"pile_enron": 0}}
+{"results": {"pile_enron": {"bits_per_byte": 0.0003163902828673244, "byte_perplexity": 1.000316440339552, "word_perplexity": 1.00224668051869}}, "versions": {"pile_enron": 0}}

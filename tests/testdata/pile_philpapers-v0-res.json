@@ -1,1 +1,1 @@
-{"results": {"pile_philpapers": {"word_perplexity": 1.000081261631864, "byte_perplexity": 1.000013132498173, "bits_per_byte": 1.3132411942494138e-05}}, "versions": {"pile_philpapers": 0}}
+{"results": {"pile_philpapers": {"bits_per_byte": 6.241575895982095e-06, "byte_perplexity": 1.0000062415953748, "word_perplexity": 1.0000409888564146}}, "versions": {"pile_philpapers": 0}}

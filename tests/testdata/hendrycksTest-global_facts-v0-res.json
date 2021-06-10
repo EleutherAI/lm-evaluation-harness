@@ -1,1 +1,1 @@
-{"results": {"hendrycksTest-global_facts": {"acc": 0.1, "acc_stderr": 0.09999999999999999, "acc_norm": 0.2, "acc_norm_stderr": 0.13333333333333333}}, "versions": {"hendrycksTest-global_facts": 0}}
+{"results": {"hendrycksTest-global_facts": {"acc": 0.23, "acc_norm": 0.23, "acc_norm_stderr": 0.04229525846816507, "acc_stderr": 0.04229525846816507}}, "versions": {"hendrycksTest-global_facts": 0}}

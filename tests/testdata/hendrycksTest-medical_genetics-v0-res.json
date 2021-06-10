@@ -1,1 +1,1 @@
-{"results": {"hendrycksTest-medical_genetics": {"acc": 0.3, "acc_stderr": 0.15275252316519464, "acc_norm": 0.4, "acc_norm_stderr": 0.1632993161855452}}, "versions": {"hendrycksTest-medical_genetics": 0}}
+{"results": {"hendrycksTest-medical_genetics": {"acc": 0.27, "acc_norm": 0.29, "acc_norm_stderr": 0.04560480215720684, "acc_stderr": 0.0446196043338474}}, "versions": {"hendrycksTest-medical_genetics": 0}}

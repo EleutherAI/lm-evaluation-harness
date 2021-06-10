@@ -1,1 +1,1 @@
-{"results": {"hellaswag": {"acc": 0.1, "acc_stderr": 0.09999999999999999, "acc_norm": 0.3, "acc_norm_stderr": 0.15275252316519464}}, "versions": {"hellaswag": 0}}
+{"results": {"hellaswag": {"acc": 0.24965146385182235, "acc_norm": 0.24756024696275641, "acc_norm_stderr": 0.004307128573285236, "acc_stderr": 0.004319267432460666}}, "versions": {"hellaswag": 0}}

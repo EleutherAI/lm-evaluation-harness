@@ -1,1 +1,1 @@
-{"results": {"pile_hackernews": {"word_perplexity": 1.0007891841996295, "byte_perplexity": 1.0001263619959735, "bits_per_byte": 0.00012635401296887477}}, "versions": {"pile_hackernews": 0}}
+{"results": {"pile_hackernews": {"bits_per_byte": 0.00010170276359193358, "byte_perplexity": 1.0001017079354932, "word_perplexity": 1.0006273924348839}}, "versions": {"pile_hackernews": 0}}

@@ -1,1 +1,1 @@
-{"results": {"copa": {"acc": 0.5, "acc_stderr": 0.16666666666666666}}, "versions": {"copa": 0}}
+{"results": {"copa": {"acc": 0.48, "acc_stderr": 0.050211673156867795}}, "versions": {"copa": 0}}

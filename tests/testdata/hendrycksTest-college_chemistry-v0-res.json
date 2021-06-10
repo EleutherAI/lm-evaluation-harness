@@ -1,1 +1,1 @@
-{"results": {"hendrycksTest-college_chemistry": {"acc": 0.5, "acc_stderr": 0.16666666666666666, "acc_norm": 0.5, "acc_norm_stderr": 0.16666666666666666}}, "versions": {"hendrycksTest-college_chemistry": 0}}
+{"results": {"hendrycksTest-college_chemistry": {"acc": 0.28, "acc_norm": 0.26, "acc_norm_stderr": 0.04408440022768078, "acc_stderr": 0.04512608598542127}}, "versions": {"hendrycksTest-college_chemistry": 0}}

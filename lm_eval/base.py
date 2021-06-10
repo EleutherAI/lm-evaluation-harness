@@ -385,7 +385,7 @@ class CachingLM:
     def __init__(self, lm, cache_db):
         self.lm = lm
         self.cache_db = cache_db
-        os.makedirs(os.path.dirname(cache_db), exist_ok=True)
+        if os.path.dirname(cache_db): os.makedirs(os.path.dirname(cache_db), exist_ok=True)
         self.dbdict = SqliteDict(cache_db, autocommit=True)
 
         # add hook to lm

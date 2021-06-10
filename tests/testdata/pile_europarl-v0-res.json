@@ -1,1 +1,1 @@
-{"results": {"pile_europarl": {"word_perplexity": 1.0000576302563544, "byte_perplexity": 1.0000082853120706, "bits_per_byte": 8.285277747607004e-06}}, "versions": {"pile_europarl": 0}}
+{"results": {"pile_europarl": {"bits_per_byte": 8.648858203555344e-06, "byte_perplexity": 1.000008648895605, "word_perplexity": 1.000063506523818}}, "versions": {"pile_europarl": 0}}
