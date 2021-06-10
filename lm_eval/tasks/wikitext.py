@@ -65,7 +65,7 @@ class WikiText(PerplexityTask):
     def docs_for_split(self, split):
         ret = []
         for line in open(f"data/wikitext/wikitext-2-raw/wiki.{split}.raw").read().split('\n'):
-            rline = line.replace("= =", "==").replace("= = =", "===").strip()
+            rline = line.replace("= = =", "===").replace("= =", "==").strip()
             if rline.startswith('= ') and rline.strip().endswith(' ='):
                 s = '\n'.join(ret)
                 if s.strip(): yield s
