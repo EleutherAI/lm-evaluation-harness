@@ -1,1 +1,1 @@
-{"results": {"pile_pubmed-central": {"word_perplexity": 1.0000796225435762, "byte_perplexity": 1.000010410815901, "bits_per_byte": 1.0410761708785061e-05}}, "versions": {"pile_pubmed-central": 0}}
+{"results": {"pile_pubmed-central": {"bits_per_byte": 1.5812411832795375e-05, "byte_perplexity": 1.0000158125368497, "word_perplexity": 1.000123107107861}}, "versions": {"pile_pubmed-central": 0}}

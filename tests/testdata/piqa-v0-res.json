@@ -1,1 +1,1 @@
-{"results": {"piqa": {"acc": 0.6, "acc_stderr": 0.16329931618554522, "acc_norm": 0.5, "acc_norm_stderr": 0.16666666666666666}}, "versions": {"piqa": 0}}
+{"results": {"piqa": {"acc": 0.514145810663765, "acc_norm": 0.5114254624591947, "acc_norm_stderr": 0.01166277802645167, "acc_stderr": 0.011661154475524836}}, "versions": {"piqa": 0}}

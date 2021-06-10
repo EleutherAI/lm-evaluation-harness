@@ -1,1 +1,1 @@
-{"results": {"qnli": {"acc": 0.8, "acc_stderr": 0.13333333333333333}}, "versions": {"qnli": 0}}
+{"results": {"qnli": {"acc": 0.5108914515833791, "acc_stderr": 0.00676380528502966}}, "versions": {"qnli": 0}}

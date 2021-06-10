@@ -1,1 +1,1 @@
-{"results": {"pile_ubuntu-irc": {"word_perplexity": 1.0000087375578288, "byte_perplexity": 1.0000013033648956, "bits_per_byte": 1.3033640461398495e-06}}, "versions": {"pile_ubuntu-irc": 0}}
+{"results": {"pile_ubuntu-irc": {"bits_per_byte": 1.6298315496830533e-06, "byte_perplexity": 1.0000016298328778, "word_perplexity": 1.0000108866656874}}, "versions": {"pile_ubuntu-irc": 0}}

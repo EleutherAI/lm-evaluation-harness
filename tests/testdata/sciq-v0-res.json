@@ -1,1 +1,1 @@
-{"results": {"sciq": {"acc": 0.4, "acc_stderr": 0.16329931618554522, "acc_norm": 0.3, "acc_norm_stderr": 0.15275252316519464}}, "versions": {"sciq": 0}}
+{"results": {"sciq": {"acc": 0.234, "acc_norm": 0.239, "acc_norm_stderr": 0.01349300044693758, "acc_stderr": 0.01339490288966001}}, "versions": {"sciq": 0}}

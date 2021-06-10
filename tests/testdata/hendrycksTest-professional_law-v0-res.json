@@ -1,1 +1,1 @@
-{"results": {"hendrycksTest-professional_law": {"acc": 0.1, "acc_stderr": 0.09999999999999999, "acc_norm": 0.2, "acc_norm_stderr": 0.13333333333333333}}, "versions": {"hendrycksTest-professional_law": 0}}
+{"results": {"hendrycksTest-professional_law": {"acc": 0.2561929595827901, "acc_norm": 0.2470664928292047, "acc_norm_stderr": 0.011015752255279352, "acc_stderr": 0.011149173153110582}}, "versions": {"hendrycksTest-professional_law": 0}}

@@ -1,1 +1,1 @@
-{"results": {"pile_github": {"word_perplexity": 1.0006622624493737, "byte_perplexity": 1.0000635880965316, "bits_per_byte": 6.358607489435376e-05}}, "versions": {"pile_github": 0}}
+{"results": {"pile_github": {"bits_per_byte": 9.540627613754646e-05, "byte_perplexity": 1.0000954108274611, "word_perplexity": 1.0009643183931227}}, "versions": {"pile_github": 0}}

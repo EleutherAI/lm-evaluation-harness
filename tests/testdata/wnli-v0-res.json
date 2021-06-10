@@ -1,1 +1,1 @@
-{"results": {"wnli": {"acc": 0.7, "acc_stderr": 0.15275252316519466}}, "versions": {"wnli": 0}}
+{"results": {"wnli": {"acc": 0.3380281690140845, "acc_stderr": 0.05653887739133514}}, "versions": {"wnli": 0}}
