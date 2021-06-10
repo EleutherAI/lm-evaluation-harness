@@ -38,6 +38,7 @@ from . import hendrycks_math
 from . import cbt
 from . import lambada_cloze
 from . import pile
+from . import wikitext
 
 ########################################
 # Translation tasks
@@ -95,6 +96,7 @@ TASK_REGISTRY = {
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
+    "wikitext": wikitext.WikiText,
     # "cbt-cn": cbt.CBTCN, # disabled pending context length fix
     # "cbt-ne": cbt.CBTNE, # disabled pending context length fix
 
@@ -113,7 +115,7 @@ TASK_REGISTRY = {
     "arc_challenge": arc.ARCChallenge,
     # "quac": quac.QuAC, # not implemented yet
     "logiqa": logiqa.LogiQA,
-    "hellaswag": hellaswag.HellaSwag, # not implemented yet
+    "hellaswag": hellaswag.HellaSwag,
     "openbookqa": openbookqa.OpenBookQA,
     # "sat": sat.SATAnalogies, # not implemented yet
     "squad2": squad.SQuAD2,
