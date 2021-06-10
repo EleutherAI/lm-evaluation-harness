@@ -21,6 +21,7 @@ from . import arithmetic
 from . import lambada
 from . import race
 from . import piqa
+from . import prost
 from . import triviaqa
 from . import pubmedqa
 from . import sciq
@@ -101,6 +102,7 @@ TASK_REGISTRY = {
     # "cbt-ne": cbt.CBTNE, # disabled pending context length fix
 
     "piqa": piqa.PiQA,
+    "prost": prost.PROST,
 
     # Science related
     "pubmedqa" : pubmedqa.Pubmed_QA,
