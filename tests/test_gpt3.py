@@ -10,6 +10,8 @@ import mock
 import pickle
 import hashlib
 
+os.environ['OPENAI_API_SECRET_KEY'] = ""
+
 
 def completion(**kwargs):
     hash = hashlib.sha256(json.dumps(kwargs, sort_keys=True).encode('utf-8')).hexdigest()
