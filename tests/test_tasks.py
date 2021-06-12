@@ -28,6 +28,7 @@ def test_basic_interface(taskname, Task):
     # (don't test train because it's slow)
 
     task2 = Task()
+
     limit = None
     if task.has_validation_docs():
         arr = list(islice(task.validation_docs(), limit))
@@ -43,6 +44,17 @@ def test_basic_interface(taskname, Task):
     if task.has_test_docs():
         arr = list(islice(task.test_docs(), limit))
         arr2 = list(islice(task2.test_docs(), limit))
+
+        assert arr == arr2
+
+        reqs = [task.construct_requests(doc, task.doc_to_text(doc)) for doc in arr]
+        reqs2 = [task2.construct_requests(doc, task2.doc_to_text(doc)) for doc in arr2]
+        
+        assert reqs == reqs2
+
+    if taskname.has_training_docs():
+        arr = list(islice(task.training_docs(), limit))
+        arr2 = list(islice(task2.training_docs(), limit))
 
         assert arr == arr2
 

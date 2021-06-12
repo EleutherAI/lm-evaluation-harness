@@ -21,10 +21,9 @@ jobs:
       with:
         # A list of files, directories, and wildcard patterns to cache and restore
         path: |
-          data
           ~/.cache
         # An explicit key for restoring and saving the cache
-        key: evaldata-cache-2
+        key: evaldata-cache-3
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
