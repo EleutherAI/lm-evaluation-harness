@@ -8,7 +8,7 @@ from best_download import download_file
 
 
 class CoQA(Task):
-    VERSION = 0
+    VERSION = 1
 
     def download(self):
         coqa_train_filepath = 'data/coqa/coqa-train-v1.0.json'
