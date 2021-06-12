@@ -115,7 +115,7 @@ class CoQA(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`. 
         """
-        cont_request = rf.greedy_until(ctx, ['\nQ:'])
+        cont_request = rf.greedy_until(ctx, ['\nQ:']).strip().split('\n')[0]
         return cont_request
 
     def process_results(self, doc, results):
