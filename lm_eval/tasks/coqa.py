@@ -8,7 +8,7 @@ from best_download import download_file
 
 
 class CoQA(Task):
-    VERSION = 0
+    VERSION = 1
 
     def download(self):
         coqa_train_filepath = 'data/coqa/coqa-train-v1.0.json'
@@ -115,7 +115,7 @@ class CoQA(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`. 
         """
-        cont_request = rf.greedy_until(ctx, ['\n'])
+        cont_request = rf.greedy_until(ctx, ['\nQ:'])
         return cont_request
 
     def process_results(self, doc, results):
@@ -130,7 +130,7 @@ class CoQA(Task):
         """
         turn_id = len(doc["questions"])
         gold_list = self.get_answers(doc, turn_id)
-        pred = results[0]
+        pred = results[0].strip().split('\n')[0]
 
         scores = self.compute_scores(gold_list, pred)
 
