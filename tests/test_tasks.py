@@ -28,9 +28,10 @@ def test_basic_interface(taskname, Task):
     # (don't test train because it's slow)
 
     task2 = Task()
+    limit = None
     if task.has_validation_docs():
-        arr = list(islice(task.validation_docs(), 100))
-        arr2 = list(islice(task2.validation_docs(), 100))
+        arr = list(islice(task.validation_docs(), limit))
+        arr2 = list(islice(task2.validation_docs(), limit))
 
         assert arr == arr2
 
@@ -40,8 +41,8 @@ def test_basic_interface(taskname, Task):
         assert reqs == reqs2
 
     if task.has_test_docs():
-        arr = list(islice(task.test_docs(), 100))
-        arr2 = list(islice(task2.test_docs(), 100))
+        arr = list(islice(task.test_docs(), limit))
+        arr2 = list(islice(task2.test_docs(), limit))
 
         assert arr == arr2
 
@@ -51,7 +52,6 @@ def test_basic_interface(taskname, Task):
         assert reqs == reqs2
 
 
-
 @pytest.mark.parametrize("taskname,Task", tasks.TASK_REGISTRY.items())
 def test_documents_and_requests(taskname, Task):
     print('Evaluating task', taskname)
@@ -59,7 +59,7 @@ def test_documents_and_requests(taskname, Task):
     fns = []
     if task.has_training_docs(): fns.append(task.training_docs)
     if task.has_validation_docs(): fns.append(task.validation_docs)
-    # test doce might not have labels
+    # test doc might not have labels
     #if task.has_test_docs(): fns.append(task.test_docs)
 
     for fn in fns:
