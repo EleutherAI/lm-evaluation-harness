@@ -37,12 +37,15 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 |drop                                             |✓    |✓  |    |         9536|em, f1                                                                        |
 |lambada                                          |     |✓  |    |         5153|ppl, acc                                                                      |
 |lambada_cloze                                    |     |✓  |    |         5153|ppl, acc                                                                      |
+|wikitext                                         |     |✓  |✓   |           62|word_perplexity, byte_perplexity, bits_per_byte                               |
 |piqa                                             |✓    |✓  |    |         1838|acc, acc_norm                                                                 |
+|prost                                            |     |   |✓   |        18736|acc, acc_norm                                                                 |
 |pubmedqa                                         |     |   |✓   |         1000|acc                                                                           |
 |sciq                                             |✓    |✓  |✓   |         1000|acc, acc_norm                                                                 |
 |qa4mre_2011                                      |     |   |✓   |          120|acc, acc_norm                                                                 |
 |qa4mre_2012                                      |     |   |✓   |          160|acc, acc_norm                                                                 |
 |qa4mre_2013                                      |     |   |✓   |          284|acc, acc_norm                                                                 |
+|triviaqa                                         |✓    |✓  |    |        11313|acc                                                                           |
 |arc_easy                                         |✓    |✓  |✓   |         2376|acc, acc_norm                                                                 |
 |arc_challenge                                    |✓    |✓  |✓   |         1172|acc, acc_norm                                                                 |
 |logiqa                                           |✓    |✓  |✓   |          651|acc, acc_norm                                                                 |
@@ -198,6 +201,7 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 
 
 
+
 ## Usage
 
 ### Evaluate a task
@@ -249,6 +253,12 @@ Both LMs (`lm_eval.models`) and Tasks (`lm_eval.tasks`) are kept in a registry d
 **If you want to extend either models or tasks, simply add a new LM or Task subclass, and decorate with the registry decorator**.
 
 The [GPT-3 Evaluations Project](https://github.com/EleutherAI/lm_evaluation_harness/projects/1) tracks our progress implementing new tasks. Right now, we are focused on getting all the datasets loaded so that we can dedupe against the training data. Implementing the actual evaluations is nice but not necessary at the current moment.
+
+### Task Versioning 
+
+To help improve reproducibility, all tasks have a VERSION field. When run from the command line, this is reported in a column in the table, or in the "version" field in the evaluator return dict. The purpose of the version is so that if the task definition changes (i.e to fix a bug), then we can know exactly which metrics were computed using the old buggy implementation to avoid unfair comparisons. To enforce this, there are unit tests that make sure the behavior of all tests remains the same as when they were first implemented. Task versions start at 0, and each time a breaking change is made, the version is incremented by one. 
+
+When reporting eval harness results, please also report the version of each task. This can be done either with a separate column in the table, or by reporting the task name with the version appended as such: taskname-v0.
 
 ## Description
 
