@@ -52,7 +52,7 @@ def test_basic_interface(taskname, Task):
         
         assert reqs == reqs2
 
-    if taskname.has_training_docs():
+    if task.has_training_docs():
         arr = list(islice(task.training_docs(), limit))
         arr2 = list(islice(task2.training_docs(), limit))
 
