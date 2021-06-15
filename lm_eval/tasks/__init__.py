@@ -40,6 +40,7 @@ from . import cbt
 from . import lambada_cloze
 from . import pile
 from . import wikitext
+from . import xquad
 
 ########################################
 # Translation tasks
@@ -121,6 +122,21 @@ TASK_REGISTRY = {
     "openbookqa": openbookqa.OpenBookQA,
     # "sat": sat.SATAnalogies, # not implemented yet
     "squad2": squad.SQuAD2,
+
+    # xquad tasks
+    "xquad_ar": xquad.XQuADAr,
+    "xquad_de": xquad.XQuADDe,
+    "xquad_zh": xquad.XQuADZh,
+    "xquad_vi": xquad.XQuADVi,
+    "xquad_en": xquad.XQuADEn,
+    "xquad_es": xquad.XQuADEs,
+    "xquad_hi": xquad.XQuADHi,
+    "xquad_el": xquad.XQuADEl,
+    "xquad_th": xquad.XQuADTh,
+    "xquad_tr": xquad.XQuADTr,
+    "xquad_ru": xquad.XQuADRu,
+    "xquad_ro": xquad.XQuADRo,
+
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
     "headqa": headqa.HeadQA,
