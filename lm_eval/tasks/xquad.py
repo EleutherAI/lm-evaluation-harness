@@ -1,4 +1,4 @@
-from squad import SQuAD2
+from .squad import SQuAD2
 from math import exp
 from functools import partial
 import datasets
@@ -18,9 +18,17 @@ class XQuADBase(SQuAD2):
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = None
+    BACKGROUND = "Background:"
+    QUESTION = "Question:"
+    ANSWER = "Answer:"
 
     def has_training_docs(self):
         return False
+    
+    def doc_to_text(self, doc):
+        text = ""
+        text = text + self.BACKGROUND + '\n\n' + doc['context'] + '\n\n' + self.QUESTION + doc['question'] + '\n\n' + self.ANSWER
+        return text
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
@@ -75,73 +83,106 @@ class XQuADBase(SQuAD2):
         }
 
 
-class XQuADAr(XQuADBase):
+class XQuADAr(XQuADBase): # arabic
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.ar'
+    BACKGROUND = ":معرفتي"
+    QUESTION = ":سؤال"
+    ANSWER = ":إجابه"
 
 
-class XQuADDe(XQuADBase):
+class XQuADDe(XQuADBase): # german
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.de'
+    BACKGROUND = "Hintergrund:"
+    QUESTION = "Frage:"
+    ANSWER = "Antworten:"
 
 
-class XQuADZh(XQuADBase):
+class XQuADZh(XQuADBase): # chinese
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.zh'
+    BACKGROUND = "背景:"
+    QUESTION = "問題:"
+    ANSWER = "回答:"
 
 
-class XQuADVi(XQuADBase):
+class XQuADVi(XQuADBase): # vietnamese
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.vi'
+    BACKGROUND = "lý lịch:"
+    QUESTION = "câu hỏi:"
+    ANSWER = "câu trả lời:"
 
 
-class XQuADEn(XQuADBase):
+class XQuADEn(XQuADBase): # english
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.en'
 
 
-class XQuADEs(XQuADBase):
+class XQuADEs(XQuADBase): # spanish
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.es'
+    BACKGROUND = "antecedentes:"
+    QUESTION = "pregunta:"
+    ANSWER = "respuesta:"
 
 
-class XQuADHi(XQuADBase):
+class XQuADHi(XQuADBase): # hindi
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.hi'
+    BACKGROUND = "पृष्ठभूमि:"
+    QUESTION = "सवाल:"
+    ANSWER = "उत्तर:"
 
 
-class XQuADEl(XQuADBase):
+class XQuADEl(XQuADBase): # greek
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.el'
+    BACKGROUND = "Ιστορικό:"
+    QUESTION = "ερώτηση:"
+    ANSWER = "απάντηση:"
 
 
-class XQuADTh(XQuADBase):
+class XQuADTh(XQuADBase): # thai
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.th'
+    BACKGROUND = "พื้นหลัง:"
+    QUESTION = "คำถาม:"
+    ANSWER = "ตอบ:"
 
 
-class XQuADTr(XQuADBase):
+class XQuADTr(XQuADBase): # turkish
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.tr'
+    BACKGROUND = "arka fon:"
+    QUESTION = "soru:"
+    ANSWER = "Cevap:"
+    
 
-
-class XQuADRu(XQuADBase):
+class XQuADRu(XQuADBase): # russian
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.ru'
+    BACKGROUND = "задний план:"
+    QUESTION = "вопрос:"
+    ANSWER = "отвечать:"
 
 
-class XQuADRo(XQuADBase):
+class XQuADRo(XQuADBase): # romanian
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.ro'
+    BACKGROUND = "fundal:"
+    QUESTION = "întrebare:"
+    ANSWER = "Răspuns:"
