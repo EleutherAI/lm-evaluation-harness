@@ -72,16 +72,32 @@ class MuTualBase(Task):
         return ""
 
     def doc_to_text(self, doc):
-        return doc["article"]
+        return self.detokenize(doc["article"])
 
     def doc_to_target(self, doc):
-        return " " + doc["options"][self.CHOICES.index(doc["answers"])]
+        return " " + self.detokenize(doc["options"][self.CHOICES.index(doc["answers"])])
 
     def construct_requests(self, doc, ctx):
         lls = []
         for option in doc["options"]:
-            lls.append(rf.loglikelihood(ctx, f" {option}"))
+            lls.append(rf.loglikelihood(ctx, f" {self.detokenize(option)}"))
         return lls
+
+    def detokenize(self, text):
+        text = text.replace(" '", "'")
+        text = text.replace(" \n", "\n")
+        text = text.replace("\n ", "\n")
+        text = text.replace(" n't", "n't")
+        text = text.replace("`` ", '"')
+        text = text.replace("''", '"')
+        # punctuation
+        text = text.replace(" :", ":")
+        text = text.replace(" ;", ";")
+        text = text.replace(" !", "!")
+        text = text.replace(" ?", "?")
+        text = text.replace(" ,", ",")
+        text = text.replace(" .", ".")
+        return text
 
     def process_results(self, doc, results):
         gold = self.CHOICES.index(doc["answers"])
