@@ -33,13 +33,14 @@ class MuTualBase(Task):
         if self.BASE_PATH.exists():
             return
         Path.mkdir(self.BASE_PATH, parents=True)
-        sh("wget https://github.com/Nealcly/MuTual/archive/master.zip")
-        with zipfile.ZipFile("./master.zip", 'r') as zip:
-            zip.extractall("./data")
-        Path("./data/Mutual-master/data/").rename("./data/mutual/")
+        master_zip = Path("data/master.zip")
+        sh(f"wget https://github.com/Nealcly/MuTual/archive/master.zip -O {master_zip}")
+        with zipfile.ZipFile(master_zip, 'r') as zip:
+            zip.extractall("data")
+        Path("data/MuTual-master/data").rename(str(self.BASE_PATH))
         # Remove left over files and directories.
-        Path("./master.zip").unlink()
-        shutil.rmtree(Path("./data/MuTual-master"))
+        master_zip.unlink()
+        shutil.rmtree(("data/MuTual-master"))
 
     def has_training_docs(self):
         return True
