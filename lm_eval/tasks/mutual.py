@@ -40,7 +40,7 @@ class MuTualBase(Task):
         Path("data/MuTual-master/data").rename(str(self.BASE_PATH))
         # Remove left over files and directories.
         master_zip.unlink()
-        shutil.rmtree(("data/MuTual-master"))
+        shutil.rmtree("data/MuTual-master")
 
     def has_training_docs(self):
         return True
