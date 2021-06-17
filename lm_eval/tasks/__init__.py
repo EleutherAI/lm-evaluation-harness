@@ -41,6 +41,7 @@ from . import lambada_cloze
 from . import pile
 from . import wikitext
 from . import xquad
+from . import mlqa
 
 ########################################
 # Translation tasks
@@ -136,6 +137,9 @@ TASK_REGISTRY = {
     "xquad_tr": xquad.XQuADTr,
     "xquad_ru": xquad.XQuADRu,
     "xquad_ro": xquad.XQuADRo,
+
+    # MLQA tasks
+    **mlqa.construct_tasks(),
 
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet

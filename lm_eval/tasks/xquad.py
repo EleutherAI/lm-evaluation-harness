@@ -26,8 +26,8 @@ class XQuADBase(SQuAD2):
         return False
     
     def doc_to_text(self, doc):
-        text = ""
-        text = text + self.BACKGROUND + '\n\n' + doc['context'] + '\n\n' + self.QUESTION + doc['question'] + '\n\n' + self.ANSWER
+        text = self.BACKGROUND + '\n\n' + doc['context'] + '\n\n' + self.QUESTION + doc['question'] + '\n\n' + \
+               self.ANSWER
         return text
 
     def process_results(self, doc, results):
