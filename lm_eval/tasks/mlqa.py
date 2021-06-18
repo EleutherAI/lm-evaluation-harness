@@ -231,6 +231,9 @@ class MLQABase(HFTask):
             The results of the requests created in construct_requests.
         """
         continuation = results
+        
+        if isinstance(continuation, list):
+            continuation = continuation[0]
 
         predictions = {
             'id': doc['id'],
