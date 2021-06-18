@@ -230,7 +230,7 @@ class MLQABase(HFTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        continuation, (logprob_unanswerable, _) = results
+        continuation = results
 
         predictions = {
             'id': doc['id'],
