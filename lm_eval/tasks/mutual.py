@@ -17,7 +17,7 @@ import numpy as np
 from pathlib import Path
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-from lm_eval.utils import sh
+from best_download import download_file
 
 
 class MuTualBase(Task):
@@ -34,7 +34,10 @@ class MuTualBase(Task):
             return
         Path.mkdir(self.BASE_PATH, parents=True)
         master_zip = Path("data/master.zip")
-        sh(f"wget https://github.com/Nealcly/MuTual/archive/master.zip -O {master_zip}")
+        download_file(
+            "https://github.com/Nealcly/MuTual/archive/master.zip",
+            str(master_zip),
+            "bb325cf6c672f0f02699993a37138b0fa0af6fcfc77ec81dfbe46add4d7b29f9")
         with zipfile.ZipFile(master_zip, 'r') as zip:
             zip.extractall("data")
         Path("data/MuTual-master/data").rename(str(self.BASE_PATH))
