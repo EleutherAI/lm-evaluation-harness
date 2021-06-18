@@ -22,6 +22,7 @@ from . import lambada
 from . import race
 from . import piqa
 from . import prost
+from . import mc_taco
 from . import triviaqa
 from . import pubmedqa
 from . import sciq
@@ -103,6 +104,7 @@ TASK_REGISTRY = {
 
     "piqa": piqa.PiQA,
     "prost": prost.PROST,
+    "mc_taco": mc_taco.MCTACO,
 
     # Science related
     "pubmedqa" : pubmedqa.Pubmed_QA,
