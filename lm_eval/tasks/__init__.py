@@ -100,9 +100,8 @@ TASK_REGISTRY = {
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
     
     # multlingual lambada
-    **multilingual_lambada.construct_tasks(),
+    **lambada_multilingual.construct_tasks(),
 
-    lambada_multilingual
     "wikitext": wikitext.WikiText,
     # "cbt-cn": cbt.CBTCN, # disabled pending context length fix
     # "cbt-ne": cbt.CBTNE, # disabled pending context length fix
