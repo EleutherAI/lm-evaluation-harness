@@ -40,6 +40,7 @@ from . import cbt
 from . import lambada_cloze
 from . import pile
 from . import wikitext
+from . import lambada_multilingual
 
 ########################################
 # Translation tasks
@@ -97,6 +98,11 @@ TASK_REGISTRY = {
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
+    
+    # multlingual lambada
+    **multilingual_lambada.construct_tasks(),
+
+    lambada_multilingual
     "wikitext": wikitext.WikiText,
     # "cbt-cn": cbt.CBTCN, # disabled pending context length fix
     # "cbt-ne": cbt.CBTNE, # disabled pending context length fix
@@ -200,6 +206,7 @@ TASK_REGISTRY = {
     "pile_ubuntu-irc": pile.PileUbuntuIrc,
     "pile_wikipedia": pile.PileWikipedia,
     "pile_youtubesubtitles": pile.PileYoutubeSubtitles,
+    
 }
 
 
