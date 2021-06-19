@@ -8,8 +8,8 @@ corresponding dataset is structured such that each multiple-choice-question gath
 by the authors is split into question-option pairs, where each such pair gets 
 siloed into an individual document for plausibility testing. Because the harness
 shuffles these documents, setting `--limit` will likely "cut off" certain candidate
-answers. This is a problem because the task metrics require an exhaustive evaluation 
-of a question's options (see section 4 of the for details paper).
+answers. This is a problem because the task's metrics require an exhaustive evaluation 
+of a question's options. See section 4 of the paper for details.
 
 @inproceedings{ZKNR19,
     author = {Ben Zhou, Daniel Khashabi, Qiang Ning and Dan Roth},
