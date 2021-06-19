@@ -36,5 +36,5 @@ class MultilingualLAMBADA(lambada.LAMBADA):
 def construct_tasks():
     tasks = {}
     for lang in LANGS:
-        tasks[lang] = partial(MultilingualLAMBADA, lang=lang)
+        tasks[f"lambada_{lang}"] = partial(MultilingualLAMBADA, lang=lang)
     return tasks
