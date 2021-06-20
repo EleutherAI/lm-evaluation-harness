@@ -162,7 +162,7 @@ class XQuADEl(XQuADBase): # greek
     VERSION = 0
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.el'
-    BACKGROUND = "Ιστορικό:"
+    BACKGROUND = "Πληροφορίες ιστορικού:"
     QUESTION = "Ερώτηση:"
     ANSWER = "Απάντηση:"
 
