@@ -40,6 +40,7 @@ from . import cbt
 from . import lambada_cloze
 from . import pile
 from . import wikitext
+from . import mutual
 
 ########################################
 # Translation tasks
@@ -138,6 +139,10 @@ TASK_REGISTRY = {
     "ethics_utilitarianism_original": hendrycks_ethics.EthicsUtilitarianismOriginal,
     "ethics_utilitarianism": hendrycks_ethics.EthicsUtilitarianism,
     "ethics_virtue": hendrycks_ethics.EthicsVirtue,
+
+    # dialogue
+    "mutual": mutual.MuTual,
+    "mutual_plus": mutual.MuTualPlus,
 
     # math
     "math_algebra": hendrycks_math.MathAlgebra,
