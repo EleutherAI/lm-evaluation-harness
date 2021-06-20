@@ -21,7 +21,7 @@ from best_download import download_file
 
 
 class MuTualBase(Task):
-    VERSION = 0
+    VERSION = 1
     BASE_PATH = Path("data/mutual")
     DATASET_NAME = None
     CHOICES = ['A', 'B', 'C', 'D']
@@ -83,7 +83,7 @@ class MuTualBase(Task):
     def construct_requests(self, doc, ctx):
         lls = []
         for option in doc["options"]:
-            lls.append(rf.loglikelihood(ctx, f" {self.detokenize(option)}"))
+            lls.append(rf.loglikelihood(ctx, f" {self.detokenize(option)}")[0])
         return lls
 
     def detokenize(self, text):
@@ -100,7 +100,7 @@ class MuTualBase(Task):
         text = text.replace(" ?", "?")
         text = text.replace(" ,", ",")
         text = text.replace(" .", ".")
-        return text
+        return text.lower()
 
     def process_results(self, doc, results):
         gold = self.CHOICES.index(doc["answers"])
