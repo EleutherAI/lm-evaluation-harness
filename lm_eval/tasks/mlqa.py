@@ -30,8 +30,8 @@ ALL_MLQA_SETS = ALL_MLQA_SETS_QA + ALL_MLQA_SETS_TRANSLATE
 BG_Q_A_STRINGS = {
     "en": {"bg": "Background:", "q": "Question:", "a": "Answer:"},
     "ar": {"bg": ":معرفتي", "q": ":سؤال", "a": ":إجابه"},
-    "de": {"bg": "Hintergrund:", "q": "Frage:", "a": "Antworten:"},
-    "zh": {"bg": "背景:", "q": "問題:", "a": "回答:"},
+    "de": {"bg": "Hintergrund:", "q": "Frage:", "a": "Antwort:"},
+    "zh": {"bg": "背景:", "q": "問題:", "a": "答案:"},
     "vi": {"bg": "lý lịch:", "q": "câu hỏi:", "a": "câu trả lời:"},
     "es": {"bg": "antecedentes:", "q": "pregunta:", "a": "respuesta:"},
     "hi": {"bg": "Ιστορικό:", "q": "ερώτηση:", "a": "απάντηση:"},
