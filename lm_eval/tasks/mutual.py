@@ -55,7 +55,7 @@ class MuTualBase(Task):
         return False
 
     def _load_docs(self, path):
-        for file in path.iterdir():
+        for file in sorted(path.iterdir()):
             if file.suffix != ".txt":
                 continue
             with open(file, 'r', encoding='utf-8') as f:
@@ -100,7 +100,7 @@ class MuTualBase(Task):
         text = text.replace(" ?", "?")
         text = text.replace(" ,", ",")
         text = text.replace(" .", ".")
-        return text.lower()
+        return text
 
     def process_results(self, doc, results):
         gold = self.CHOICES.index(doc["answers"])
