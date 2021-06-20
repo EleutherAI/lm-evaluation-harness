@@ -113,7 +113,7 @@ class XQuADDe(XQuADBase): # german
     DATASET_NAME = 'xquad.de'
     BACKGROUND = "Hintergrund:"
     QUESTION = "Frage:"
-    ANSWER = "Antworten:"
+    ANSWER = "Antwort:"
 
 
 class XQuADZh(XQuADBase): # chinese
@@ -122,7 +122,7 @@ class XQuADZh(XQuADBase): # chinese
     DATASET_NAME = 'xquad.zh'
     BACKGROUND = "背景:"
     QUESTION = "問題:"
-    ANSWER = "回答:"
+    ANSWER = "答案:"
 
 
 class XQuADVi(XQuADBase): # vietnamese
@@ -163,8 +163,8 @@ class XQuADEl(XQuADBase): # greek
     DATASET_PATH = "xquad"
     DATASET_NAME = 'xquad.el'
     BACKGROUND = "Ιστορικό:"
-    QUESTION = "ερώτηση:"
-    ANSWER = "απάντηση:"
+    QUESTION = "Ερώτηση:"
+    ANSWER = "Απάντηση:"
 
 
 class XQuADTh(XQuADBase): # thai
