@@ -4,6 +4,8 @@ from lm_eval.metrics import mean, perplexity
 from lm_eval.utils import sh
 from best_download import download_file
 
+# This task is lambada but machine-translated to the other languages.
+
 LANGS = ["en", "fr", "de", "it", "es"]
 CHECKSUMS = {"en": "4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226", 
              "fr": "941ec6a73dba7dc91c860bf493eb66a527cd430148827a4753a4535a046bf362", 
@@ -36,5 +38,5 @@ class MultilingualLAMBADA(lambada.LAMBADA):
 def construct_tasks():
     tasks = {}
     for lang in LANGS:
-        tasks[f"lambada_{lang}"] = partial(MultilingualLAMBADA, lang=lang)
+        tasks[f"lambada_mt_{lang}"] = partial(MultilingualLAMBADA, lang=lang)
     return tasks
