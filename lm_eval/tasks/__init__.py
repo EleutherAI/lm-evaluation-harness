@@ -22,6 +22,7 @@ from . import lambada
 from . import race
 from . import piqa
 from . import prost
+from . import mc_taco
 from . import triviaqa
 from . import pubmedqa
 from . import sciq
@@ -41,6 +42,7 @@ from . import lambada_cloze
 from . import pile
 from . import wikitext
 from . import lambada_multilingual
+from . import mutual
 
 ########################################
 # Translation tasks
@@ -99,7 +101,7 @@ TASK_REGISTRY = {
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
     
-    # multlingual lambada
+    # multilingual lambada
     **lambada_multilingual.construct_tasks(),
 
     "wikitext": wikitext.WikiText,
@@ -108,6 +110,7 @@ TASK_REGISTRY = {
 
     "piqa": piqa.PiQA,
     "prost": prost.PROST,
+    "mc_taco": mc_taco.MCTACO,
 
     # Science related
     "pubmedqa" : pubmedqa.Pubmed_QA,
@@ -143,6 +146,10 @@ TASK_REGISTRY = {
     "ethics_utilitarianism_original": hendrycks_ethics.EthicsUtilitarianismOriginal,
     "ethics_utilitarianism": hendrycks_ethics.EthicsUtilitarianism,
     "ethics_virtue": hendrycks_ethics.EthicsVirtue,
+
+    # dialogue
+    "mutual": mutual.MuTual,
+    "mutual_plus": mutual.MuTualPlus,
 
     # math
     "math_algebra": hendrycks_math.MathAlgebra,
