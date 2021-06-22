@@ -21,7 +21,7 @@ from best_download import download_file
 
 
 class MuTualBase(Task):
-    VERSION = 0
+    VERSION = 1
     BASE_PATH = Path("data/mutual")
     DATASET_NAME = None
     CHOICES = ['A', 'B', 'C', 'D']
@@ -55,7 +55,7 @@ class MuTualBase(Task):
         return False
 
     def _load_docs(self, path):
-        for file in path.iterdir():
+        for file in sorted(path.iterdir()):
             if file.suffix != ".txt":
                 continue
             with open(file, 'r', encoding='utf-8') as f:
@@ -83,7 +83,7 @@ class MuTualBase(Task):
     def construct_requests(self, doc, ctx):
         lls = []
         for option in doc["options"]:
-            lls.append(rf.loglikelihood(ctx, f" {self.detokenize(option)}"))
+            lls.append(rf.loglikelihood(ctx, f" {self.detokenize(option)}")[0])
         return lls
 
     def detokenize(self, text):
