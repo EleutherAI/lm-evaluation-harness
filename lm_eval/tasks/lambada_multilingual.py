@@ -3,6 +3,7 @@ from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, perplexity
 from lm_eval.utils import sh
 from best_download import download_file
+import json
 
 # This task is lambada but machine-translated to the other languages.
 
