@@ -13,7 +13,7 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 2. Removing task val/test data from LM training set
 3. Adding task training data to LM training set
 
-### Overview of Tasks
+### Full Task List
 
 |                    Task Name                    |Train|Val|Test|Val/Test Docs|                                   Metrics                                    |
 |-------------------------------------------------|-----|---|----|------------:|------------------------------------------------------------------------------|
@@ -211,9 +211,8 @@ To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. RTE, Winograd Scheme Challe
 ```bash
 python main.py \
 	--model gpt2 \
-	--model_args device=cuda:0 \
+	--device 0 \
 	--tasks rte,wsc \
-	--provide_description \
 	--num_fewshot 2
 ```
 
@@ -225,6 +224,18 @@ python main.py \
 	--model gpt3 \
 	--tasks rte,wsc \
 	--provide_description \
+	--num_fewshot 2
+```
+
+Additional arguments can be provided to the model constructor using the `--model_args` flag. Most importantly, the `gpt2` model can be used to load an arbitrary HuggingFace model as follows:
+
+
+```bash
+python main.py \
+	--model gpt2 \
+	--model_args pretrained=EleutherAI/gpt-neo-1.3B \
+	--device 0 \
+	--tasks rte,wsc \
 	--num_fewshot 2
 ```
 
