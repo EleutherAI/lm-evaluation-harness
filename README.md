@@ -212,7 +212,7 @@ To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. RTE, Winograd Scheme Challe
 python main.py \
 	--model gpt2 \
 	--device cuda:0 \
-	--tasks rte,wsc \
+	--tasks lambada,hellaswag \
 	--num_fewshot 2
 ```
 
@@ -222,7 +222,7 @@ If you have access to an OpenAI API key, you can also evaluate GPT-3 on various 
 export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
 python main.py \
 	--model gpt3 \
-	--tasks rte,wsc \
+	--tasks lambada,hellaswag \
 	--provide_description \
 	--num_fewshot 2
 ```
@@ -235,7 +235,7 @@ python main.py \
 	--model gpt2 \
 	--model_args pretrained=EleutherAI/gpt-neo-1.3B \
 	--device cuda:0 \
-	--tasks rte,wsc \
+	--tasks lambada,hellaswag \
 	--num_fewshot 2
 ```
 
