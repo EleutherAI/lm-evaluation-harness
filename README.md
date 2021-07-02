@@ -211,7 +211,7 @@ To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. RTE, Winograd Scheme Challe
 ```bash
 python main.py \
 	--model gpt2 \
-	--device 0 \
+	--device cuda:0 \
 	--tasks rte,wsc \
 	--num_fewshot 2
 ```
@@ -234,7 +234,7 @@ Additional arguments can be provided to the model constructor using the `--model
 python main.py \
 	--model gpt2 \
 	--model_args pretrained=EleutherAI/gpt-neo-1.3B \
-	--device 0 \
+	--device cuda:0 \
 	--tasks rte,wsc \
 	--num_fewshot 2
 ```
