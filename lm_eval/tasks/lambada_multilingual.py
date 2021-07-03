@@ -40,5 +40,8 @@ class MultilingualLAMBADA(lambada.LAMBADA):
 def construct_tasks():
     tasks = {}
     for lang in LANGS:
-        tasks[f"lambada_mt_{lang}"] = partial(MultilingualLAMBADA, lang=lang)
+        class MultilingualLAMBADAInstance(MultilingualLAMBADA):
+            def __init__(self):
+              super().__init__(lang)
+        tasks[f"lambada_mt_{lang}"] = MultilingualLAMBADAInstance
     return tasks
