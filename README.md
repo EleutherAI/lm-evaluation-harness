@@ -8,10 +8,41 @@
 
 ## Overview 
 
-The goal of this project is to build a set of tools for evaluating LMs on typical NLU tasks, based on evaluation of GPT-3 as described in https://arxiv.org/pdf/2005.14165.pdf. Following the initial description, this repo should support 3 functions:
-1. LM Evaluation
-2. Removing task val/test data from LM training set
-3. Adding task training data to LM training set
+This project provides a unified framework to test autoregressive language models (GPT-2, GPT-3, GPTNeo, etc) on a large number of different evaluation tasks.
+
+
+## Basic Usage
+
+To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you can run the following command.
+
+```bash
+python main.py \
+	--model gpt2 \
+	--device cuda:0 \
+	--tasks lambada,hellaswag
+```
+(This uses gpt2-117M by default as per HF defaults, use --model_args to specify other gpt2 sizes)
+
+Additional arguments can be provided to the model constructor using the `--model_args` flag. Most importantly, the `gpt2` model can be used to load an arbitrary HuggingFace model. For example, to run GPTNeo use the following:
+
+```bash
+python main.py \
+	--model gpt2 \
+	--model_args pretrained=EleutherAI/gpt-neo-2.7B \
+	--device cuda:0 \
+	--tasks lambada,hellaswag
+```
+
+If you have access to the OpenAI API, you can also evaluate GPT-3:
+
+```bash
+export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
+python main.py \
+	--model gpt3 \
+	--model_args engine=davinci \
+	--tasks lambada,hellaswag
+```
+
 
 ### Full Task List
 
@@ -205,27 +236,6 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 ## Usage
 
 ### Evaluate a task
-
-To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. RTE, Winograd Scheme Challenge), you can run the following command.
-
-```bash
-python main.py \
-	--model gpt2 \
-	--device cuda:0 \
-	--tasks lambada,hellaswag \
-	--num_fewshot 2
-```
-
-If you have access to an OpenAI API key, you can also evaluate GPT-3 on various tasks with the following command:
-
-```bash
-export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
-python main.py \
-	--model gpt3 \
-	--tasks lambada,hellaswag \
-	--provide_description \
-	--num_fewshot 2
-```
 
 Additional arguments can be provided to the model constructor using the `--model_args` flag. Most importantly, the `gpt2` model can be used to load an arbitrary HuggingFace model as follows:
 
