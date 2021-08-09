@@ -4,6 +4,7 @@ from lm_eval.base import rf
 from lm_eval.metrics import f1_score, mean
 from . common import HFTask
 from functools import partial
+from packaging import version
 
 
 def _squad_metric(predictions, references):
@@ -18,9 +19,12 @@ def _squad_agg(key, items):
 
 
 class SQuAD2(HFTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "squad_v2"
     DATASET_NAME = None
+
+    # HF changed squad on us so we have to make sure we aren't running the old one
+    assert version.parse(datasets.__version__) >= version.parse("1.11.0"), "datasets v1.11.0 or later required for SQuAD"
 
     def has_training_docs(self):
         return True
