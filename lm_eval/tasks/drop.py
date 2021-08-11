@@ -235,7 +235,7 @@ class DROP(Task):
     def _fix_number(self, text):
         return str(float(text)) if self._is_number(text) else text
 
-    def _tokenize(text):
+    def _tokenize(self, text):
         return re.split(" |-", text)
 
     def _normalize(self, answer):
