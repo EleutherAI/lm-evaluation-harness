@@ -17,7 +17,7 @@ https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_r
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
 
 class DROP(Task):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = Path("data/drop")
 
     def download(self):
