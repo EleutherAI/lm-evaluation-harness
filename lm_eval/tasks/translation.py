@@ -3,6 +3,11 @@ from pprint import pprint
 from sacrebleu import sacrebleu
 from lm_eval import metrics
 from lm_eval.base import Task, rf
+from typing import List
+
+import jieba
+import nagisa
+
 
 """
 This file implements translation tasks using datasets from WMT conferences, provided by sacrebleu.
@@ -24,6 +29,20 @@ def create_tasks_from_benchmarks(benchmark_dict):
         for dataset, language_pairs in benchmark_dict.items()
         for language_pair in language_pairs
     }
+
+########################################
+# Language Specifics
+########################################
+
+def zh_split(zh_text: List[str]) -> List[str]:
+    """Chinese splitting"""
+    return [" ".join(jieba.cut(txt.strip())) for txt in zh_text]
+
+def ja_split(ja_text: List[str]) -> List[str]:
+    """Japanese splitting"""
+    return [" ".join(nagisa.tagging(txt.strip()).words) for txt in ja_text]
+
+NO_SPACE_LANG = {"zh": zh_split, "ja": ja_split}
 
 ########################################
 # Tasks
@@ -102,6 +121,12 @@ class GeneralTranslationTask(Task):
         return rf.greedy_until(ctx, ["\n"])
 
     def process_results(self, doc, results):
+        # Add spaces between words for BLEU score calculation of target languages like Chinese
+        tar_lang_code = self.sacrebleu_language_pair.split("-")[-1]
+        if tar_lang_code in NO_SPACE_LANG:
+            doc["ref"] = NO_SPACE_LANG[tar_lang_code]([doc["ref"]])[0]
+            results = NO_SPACE_LANG[tar_lang_code](results)
+
         # These metrics are corpus-level not sentence level, so we'll hide the
         # results in this dict and compute the corpus score in the aggregate method
         ref_pred = (doc["ref"], results)
