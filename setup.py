@@ -39,6 +39,8 @@ setuptools.setup(
         "zstandard==0.15.2",
         "jsonlines==2.0.0",
         "mock==4.0.3",
-        "openai==0.6.4"
+        "openai==0.6.4",
+        "jieba==0.42.1",
+        "nagisa==0.2.7"
     ]
 )
