@@ -24,8 +24,13 @@ def create_tasks_from_benchmarks(benchmark_dict):
     :return: {task_name: task}
         e.g. {wmt14-fr-en: Task, wmt16-de-en: Task}
     """
+    def version_of(dataset, language_pair):
+        if language_pair[-2:] in ["zh", "ja"]:
+            return 1 # changed to use jieba/nagisa
+        return 0
+
     return {
-        f"{dataset}-{language_pair}": create_translation_task(dataset, language_pair)
+        f"{dataset}-{language_pair}": create_translation_task(dataset, language_pair, version_of(dataset, language_pair))
         for dataset, language_pairs in benchmark_dict.items()
         for language_pair in language_pairs
     }
@@ -48,8 +53,9 @@ NO_SPACE_LANG = {"zh": zh_split, "ja": ja_split}
 # Tasks
 ########################################
 
-def create_translation_task(dataset, language_pair):
+def create_translation_task(dataset, language_pair, version=0):
     class TranslationTask(GeneralTranslationTask):
+        VERSION = version
         def __init__(self):
             super().__init__(dataset, language_pair)
     return TranslationTask
