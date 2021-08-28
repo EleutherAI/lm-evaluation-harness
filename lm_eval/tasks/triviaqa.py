@@ -1,5 +1,6 @@
 import os
 import json
+import jsonlines
 from lm_eval.base import Task, rf
 from ..metrics import mean
 from ..utils import sh
@@ -27,10 +28,10 @@ class TriviaQA(Task):
         return False
 
     def training_docs(self):
-        return map(json.loads, open('data/triviaqa/unfiltered-web-train.jsonl'))
+        return jsonlines.open('data/triviaqa/unfiltered-web-train.jsonl')
 
     def validation_docs(self):
-        return map(json.loads, open('data/triviaqa/unfiltered-web-dev.jsonl'))
+        return jsonlines.open('data/triviaqa/unfiltered-web-dev.jsonl')
 
     def test_docs(self):
         raise NotImplementedError()
