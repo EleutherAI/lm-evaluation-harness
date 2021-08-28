@@ -30,6 +30,8 @@ def test_basic_interface(taskname, Task):
     task2 = Task()
 
     limit = None
+
+    if taskname in ["triviaqa"]: limit = 10000
     if task.has_validation_docs():
         arr = list(islice(task.validation_docs(), limit))
         arr2 = list(islice(task2.validation_docs(), limit))
