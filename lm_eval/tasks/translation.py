@@ -5,8 +5,6 @@ from lm_eval import metrics
 from lm_eval.base import Task, rf
 from typing import List
 
-import jieba
-import nagisa
 
 
 """
@@ -41,10 +39,12 @@ def create_tasks_from_benchmarks(benchmark_dict):
 
 def zh_split(zh_text: List[str]) -> List[str]:
     """Chinese splitting"""
+    import jieba
     return [" ".join(jieba.cut(txt.strip())) for txt in zh_text]
 
 def ja_split(ja_text: List[str]) -> List[str]:
     """Japanese splitting"""
+    import nagisa
     return [" ".join(nagisa.tagging(txt.strip()).words) for txt in ja_text]
 
 NO_SPACE_LANG = {"zh": zh_split, "ja": ja_split}
