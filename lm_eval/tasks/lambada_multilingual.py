@@ -5,6 +5,7 @@ from lm_eval.utils import sh
 from best_download import download_file
 import json
 from functools import partial
+import os 
 
 # This task is lambada but machine-translated to the other languages.
 
@@ -25,23 +26,51 @@ class MultilingualLAMBADA(lambada.LAMBADA):
     
     def download(self):
       sh("mkdir -p data/lambada")
-      download_file(
-          f"http://eaidata.bmk.sh/data/lambada_test_{self.LANG}.jsonl", 
-          f"data/lambada/lambada_test_{self.LANG}.jsonl", 
-          CHECKSUMS[self.LANG]
-      )
+      f = f"data/lambada/lambada_test_{self.LANG}.jsonl"
+      url = f"http://eaidata.bmk.sh/data/lambada_test_{self.LANG}.jsonl"
+      try:
+        if not os.path.exists():
+          download_file(
+              url, 
+              f, 
+              CHECKSUMS[self.LANG]
+          )
+      except:
+        # fallback - for some reason best_download doesnt work all the time here
+        sh(f"wget {url} -O {f}")
+        sh(f'echo "{CHECKSUMS[self.LANG]}  {f}" | sha256sum --check')
+
 
     def validation_docs(self):
       with open(f"data/lambada/lambada_test_{self.LANG}.jsonl") as fh:
         for line in fh:
           yield json.loads(line)
 
-          
+class MultilingualLAMBADAEN(MultilingualLAMBADA):
+  def __init__(self):
+    super().__init__('en')
+
+class MultilingualLAMBADAFR(MultilingualLAMBADA):
+  def __init__(self):
+    super().__init__('fr')
+
+class MultilingualLAMBADADE(MultilingualLAMBADA):
+  def __init__(self):
+    super().__init__('de')
+
+class MultilingualLAMBADAIT(MultilingualLAMBADA):
+  def __init__(self):
+    super().__init__('it')
+
+class MultilingualLAMBADAES(MultilingualLAMBADA):
+  def __init__(self):
+    super().__init__('es')
+
+LANG_CLASSES = [MultilingualLAMBADAEN, MultilingualLAMBADAFR, MultilingualLAMBADADE, MultilingualLAMBADAIT, MultilingualLAMBADAES]
+
 def construct_tasks():
     tasks = {}
-    for lang in LANGS:
-        class MultilingualLAMBADAInstance(MultilingualLAMBADA):
-            def __init__(self):
-              super().__init__(lang)
-        tasks[f"lambada_mt_{lang}"] = MultilingualLAMBADAInstance
+    for lang, lang_class in zip(LANGS, LANG_CLASSES):
+        tasks[f"lambada_mt_{lang}"] = lang_class
     return tasks
+
