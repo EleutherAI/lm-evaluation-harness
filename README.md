@@ -10,6 +10,11 @@
 
 This project provides a unified framework to test autoregressive language models (GPT-2, GPT-3, GPTNeo, etc) on a large number of different evaluation tasks.
 
+## Install
+
+```bash
+pip install lm-eval
+```
 
 ## Basic Usage
 
