@@ -29,7 +29,7 @@ class MultilingualLAMBADA(lambada.LAMBADA):
       f = f"data/lambada/lambada_test_{self.LANG}.jsonl"
       url = f"http://eaidata.bmk.sh/data/lambada_test_{self.LANG}.jsonl"
       try:
-        if not os.path.exists():
+        if not os.path.exists(f):
           download_file(
               url, 
               f, 
