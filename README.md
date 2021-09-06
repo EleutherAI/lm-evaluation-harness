@@ -3,12 +3,15 @@
 ![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Build/badge.svg)
 [![codecov](https://codecov.io/gh/EleutherAI/lm-evaluation-harness/branch/master/graph/badge.svg?token=JSG3O2427J)](https://codecov.io/gh/EleutherAI/lm-evaluation-harness)
 
-
-**WARNING**: This project is currently under active development. Interfaces and task implementations may change rapidly and without warning. 
-
 ## Overview 
 
 This project provides a unified framework to test autoregressive language models (GPT-2, GPT-3, GPTNeo, etc) on a large number of different evaluation tasks.
+
+Features:
+
+- 100+ tasks implemented
+- Support for GPT-2, GPT-3, GPT-Neo, GPT-NeoX, and GPT-J, with flexible tokenization-agnostic interface
+- Task versioning to ensure reproducibility
 
 ## Install
 
@@ -48,6 +51,7 @@ python main.py \
 	--tasks lambada,hellaswag
 ```
 
+To evaluate mesh-transformer-jax models that are not available on HF, please invoke eval harness through [this script](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
 
 ### Full Task List
 
