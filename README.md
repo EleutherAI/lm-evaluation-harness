@@ -53,6 +53,37 @@ python main.py \
 
 To evaluate mesh-transformer-jax models that are not available on HF, please invoke eval harness through [this script](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
 
+## Cite as
+
+```
+@software{eval-harness,
+  author       = {Gao, Leo and
+                  Tow, Jonathan and
+                  Biderman, Stella and
+                  Black, Sid and
+                  DiPofi, Anthony and
+                  Foster, Charles and
+                  Golding, Laurence and
+                  Hsu, Jeffrey and
+                  McDonell, Kyle and
+                  Muennighoff, Niklas and
+                  Phang, Jason and
+                  Reynolds, Laria and
+                  Tang, Eric and
+                  Thite, Anish and
+                  Wang, Ben and
+                  Wang, Kevin and
+                  Zou, Andy},
+  title        = {A framework for few-shot language model evaluation},
+  month        = sep,
+  year         = 2021,
+  publisher    = {Zenodo},
+  version      = {v0.0.1},
+  doi          = {10.5281/zenodo.5371628},
+  url          = {https://doi.org/10.5281/zenodo.5371628}
+}
+```
+
 ### Full Task List
 
 |                    Task Name                    |Train|Val|Test|Val/Test Docs|                                   Metrics                                    |
