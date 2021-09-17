@@ -4,6 +4,7 @@ from ..metrics import mean
 
 
 class WebQs(HFTask):
+    VERSION = 0
     DATASET_PATH = "web_questions"
     DATASET_NAME = None
 

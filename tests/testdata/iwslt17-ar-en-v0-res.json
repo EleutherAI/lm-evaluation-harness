@@ -1,0 +1,1 @@
+{"results": {"iwslt17-ar-en": {"bleu": 0.0, "bleu_stderr": 0.0, "chrf": 0.015049895477752772, "chrf_stderr": 0.0002940315671893584, "ter": 1.0, "ter_stderr": 0.0}}, "versions": {"iwslt17-ar-en": 0}}

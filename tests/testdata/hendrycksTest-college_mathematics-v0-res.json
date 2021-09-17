@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-college_mathematics": {"acc": 0.18, "acc_norm": 0.2, "acc_norm_stderr": 0.04020151261036844, "acc_stderr": 0.038612291966536955}}, "versions": {"hendrycksTest-college_mathematics": 0}}

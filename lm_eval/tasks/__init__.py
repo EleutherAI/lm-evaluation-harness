@@ -21,6 +21,8 @@ from . import arithmetic
 from . import lambada
 from . import race
 from . import piqa
+from . import prost
+from . import mc_taco
 from . import triviaqa
 from . import pubmedqa
 from . import sciq
@@ -29,12 +31,18 @@ from . import qa4mre
 from . import translation
 from . import headqa
 from . import mathqa
-from . import ethics
+from . import hendrycks_ethics
 from . import drop
 from . import unscramble
 from . import logiqa
 from . import hendrycks_test
-from . import math
+from . import hendrycks_math
+from . import cbt
+from . import lambada_cloze
+from . import pile
+from . import wikitext
+from . import lambada_multilingual
+from . import mutual
 
 ########################################
 # Translation tasks
@@ -91,25 +99,36 @@ TASK_REGISTRY = {
     "coqa": coqa.CoQA,
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
+    "lambada_cloze": lambada_cloze.LAMBADA_cloze,
+    
+    # multilingual lambada
+    **lambada_multilingual.construct_tasks(),
+
+    "wikitext": wikitext.WikiText,
+    # "cbt-cn": cbt.CBTCN, # disabled pending context length fix
+    # "cbt-ne": cbt.CBTNE, # disabled pending context length fix
+
     "piqa": piqa.PiQA,
+    "prost": prost.PROST,
+    "mc_taco": mc_taco.MCTACO,
 
     # Science related
     "pubmedqa" : pubmedqa.Pubmed_QA,
     "sciq" : sciq.SciQ,
-    #"qa4mre" : qa4mre.QA4MRE,
+
     "qa4mre_2011" : qa4mre.QA4MRE_2011,
     "qa4mre_2012" : qa4mre.QA4MRE_2012,
     "qa4mre_2013" : qa4mre.QA4MRE_2013,
 
-    #"triviaqa": triviaqa.TriviaQA,
+    "triviaqa": triviaqa.TriviaQA,
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
     # "quac": quac.QuAC, # not implemented yet
     "logiqa": logiqa.LogiQA,
-    "hellaswag": hellaswag.HellaSwag, # not implemented yet
+    "hellaswag": hellaswag.HellaSwag,
     "openbookqa": openbookqa.OpenBookQA,
     # "sat": sat.SATAnalogies, # not implemented yet
-    # "squad": squad.SQuAD, # not implemented yet
+    "squad2": squad.SQuAD2,
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
     "headqa": headqa.HeadQA,
@@ -121,21 +140,25 @@ TASK_REGISTRY = {
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
 
-    "ethics_cm": ethics.EthicsCM,
-    "ethics_deontology": ethics.EthicsDeontology,
-    "ethics_justice": ethics.EthicsJustice,
-    "ethics_utilitarianism_original": ethics.EthicsUtilitarianismOriginal,
-    "ethics_utilitarianism": ethics.EthicsUtilitarianism,
-    "ethics_virtue": ethics.EthicsVirtue,
+    "ethics_cm": hendrycks_ethics.EthicsCM,
+    "ethics_deontology": hendrycks_ethics.EthicsDeontology,
+    "ethics_justice": hendrycks_ethics.EthicsJustice,
+    "ethics_utilitarianism_original": hendrycks_ethics.EthicsUtilitarianismOriginal,
+    "ethics_utilitarianism": hendrycks_ethics.EthicsUtilitarianism,
+    "ethics_virtue": hendrycks_ethics.EthicsVirtue,
+
+    # dialogue
+    "mutual": mutual.MuTual,
+    "mutual_plus": mutual.MuTualPlus,
 
     # math
-    "math_algebra": math.MathAlgebra,
-    "math_counting_and_prob": math.MathCountingAndProbability,
-    "math_geometry": math.MathGeometry,
-    "math_intermediate_algebra": math.MathIntermediateAlgebra,
-    "math_num_theory": math.MathNumberTheory,
-    "math_prealgebra": math.MathPrealgebra,
-    "math_precalc": math.MathPrecalculus,
+    "math_algebra": hendrycks_math.MathAlgebra,
+    "math_counting_and_prob": hendrycks_math.MathCountingAndProbability,
+    "math_geometry": hendrycks_math.MathGeometry,
+    "math_intermediate_algebra": hendrycks_math.MathIntermediateAlgebra,
+    "math_num_theory": hendrycks_math.MathNumberTheory,
+    "math_prealgebra": hendrycks_math.MathPrealgebra,
+    "math_precalc": hendrycks_math.MathPrecalculus,
 
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
@@ -165,6 +188,31 @@ TASK_REGISTRY = {
     "cycle_letters": unscramble.CycleLetters,
     "random_insertion": unscramble.RandomInsertion,
     "reversed_words": unscramble.ReversedWords,
+
+    # Pile
+    "pile_arxiv": pile.PileArxiv,
+    "pile_books3": pile.PileBooks3,
+    "pile_bookcorpus2": pile.PileBookCorpus2,
+    "pile_dm-mathematics": pile.PileDmMathematics,
+    "pile_enron": pile.PileEnron,
+    "pile_europarl": pile.PileEuroparl,
+    "pile_freelaw": pile.PileFreeLaw,
+    "pile_github": pile.PileGithub,
+    "pile_gutenberg": pile.PileGutenberg,
+    "pile_hackernews": pile.PileHackernews,
+    "pile_nih-exporter": pile.PileNIHExporter,
+    "pile_opensubtitles": pile.PileOpenSubtitles,
+    "pile_openwebtext2": pile.PileOpenWebText2,
+    "pile_philpapers": pile.PilePhilPapers,
+    "pile_pile-cc": pile.PilePileCc,
+    "pile_pubmed-abstracts": pile.PilePubmedAbstracts,
+    "pile_pubmed-central": pile.PilePubmedCentral,
+    "pile_stackexchange": pile.PileStackExchange,
+    "pile_uspto": pile.PileUspto,
+    "pile_ubuntu-irc": pile.PileUbuntuIrc,
+    "pile_wikipedia": pile.PileWikipedia,
+    "pile_youtubesubtitles": pile.PileYoutubeSubtitles,
+    
 }
 
 

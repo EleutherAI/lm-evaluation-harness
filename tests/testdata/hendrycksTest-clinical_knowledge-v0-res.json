@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-clinical_knowledge": {"acc": 0.23773584905660378, "acc_norm": 0.27169811320754716, "acc_norm_stderr": 0.027377706624670713, "acc_stderr": 0.02619980880756191}}, "versions": {"hendrycksTest-clinical_knowledge": 0}}

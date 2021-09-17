@@ -10,6 +10,7 @@ ArithmeticDoc = namedtuple('ArithmeticDoc', ['context', 'completion'])
 
 
 class Arithmetic(Task):
+    VERSION = 0
     directory = 'data/arithmetic/'
 
     def __init__(self):

@@ -1,116 +1,275 @@
-# Evaluation Harness for Large Language Models
+# Language Model Evaluation Harness
 
-![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Python%20application/badge.svg)
+![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Build/badge.svg)
 [![codecov](https://codecov.io/gh/EleutherAI/lm-evaluation-harness/branch/master/graph/badge.svg?token=JSG3O2427J)](https://codecov.io/gh/EleutherAI/lm-evaluation-harness)
 
 ## Overview 
 
-The goal of this project is to build a set of tools for evaluating LMs on typical NLU tasks, based on evaluation of GPT-3 as described in https://arxiv.org/pdf/2005.14165.pdf. Following the initial description, this repo should support 3 functions:
-1. LM Evaluation
-2. Removing task val/test data from LM training set
-3. Adding task training data to LM training set
+This project provides a unified framework to test autoregressive language models (GPT-2, GPT-3, GPTNeo, etc) on a large number of different evaluation tasks.
 
-### Overview of Tasks
+Features:
 
-|          Task Name           |Train|Val|Test|    Metrics    |
-|------------------------------|-----|---|----|---------------|
-|cola                          |✓    |✓  |✓   |mcc            |
-|mnli                          |✓    |✓  |✓   |acc            |
-|mnli_mismatched               |✓    |✓  |✓   |acc            |
-|mrpc                          |✓    |✓  |✓   |acc, f1        |
-|rte                           |✓    |✓  |✓   |acc            |
-|qnli                          |✓    |✓  |✓   |acc            |
-|qqp                           |✓    |✓  |✓   |acc, f1        |
-|sst                           |✓    |✓  |✓   |acc            |
-|wnli                          |✓    |✓  |✓   |acc            |
-|boolq                         |✓    |✓  |✓   |acc            |
-|cb                            |✓    |✓  |✓   |acc, f1        |
-|copa                          |✓    |✓  |✓   |acc            |
-|multirc                       |✓    |✓  |✓   |acc            |
-|record                        |✓    |✓  |    |f1, em         |
-|wic                           |✓    |✓  |✓   |acc            |
-|wsc                           |✓    |✓  |✓   |acc            |
-|coqa                          |✓    |✓  |    |f1, em         |
-|drop                          |✓    |✓  |    |em, f1         |
-|lambada                       |     |✓  |    |ppl, acc       |
-|piqa                          |✓    |✓  |    |acc            |
-|pubmedqa                      |     |   |✓   |acc            |
-|sciq                          |✓    |✓  |✓   |acc            |
-|qa4mre_2011                   |     |   |✓   |acc            |
-|qa4mre_2012                   |     |   |✓   |acc            |
-|qa4mre_2013                   |     |   |✓   |acc            |
-|arc_easy                      |✓    |✓  |✓   |acc            |
-|arc_challenge                 |✓    |✓  |✓   |acc            |
-|logiqa                        |✓    |✓  |✓   |acc            |
-|hellaswag                     |✓    |✓  |    |acc            |
-|openbookqa                    |✓    |✓  |✓   |acc            |
-|race                          |✓    |✓  |✓   |acc            |
-|headqa                        |✓    |✓  |✓   |acc            |
-|mathqa                        |✓    |✓  |✓   |acc            |
-|webqs                         |✓    |   |✓   |acc            |
-|wsc273                        |     |   |✓   |acc            |
-|winogrande                    |✓    |✓  |    |acc            |
-|anli_r1                       |✓    |✓  |✓   |acc            |
-|anli_r2                       |✓    |✓  |✓   |acc            |
-|anli_r3                       |✓    |✓  |✓   |acc            |
-|ethics_cm                     |✓    |✓  |✓   |acc            |
-|ethics_deontology             |✓    |✓  |✓   |acc, em        |
-|ethics_justice                |✓    |✓  |✓   |acc, em        |
-|ethics_utilitarianism_original|✓    |✓  |✓   |acc            |
-|ethics_utilitarianism         |✓    |✓  |✓   |acc            |
-|ethics_virtue                 |✓    |✓  |✓   |acc, em        |
-|math_algebra                  |✓    |   |✓   |acc            |
-|math_counting_and_prob        |✓    |   |✓   |acc            |
-|math_geometry                 |✓    |   |✓   |acc            |
-|math_intermediate_algebra     |✓    |   |✓   |acc            |
-|math_num_theory               |✓    |   |✓   |acc            |
-|math_prealgebra               |✓    |   |✓   |acc            |
-|math_precalc                  |✓    |   |✓   |acc            |
-|arithmetic_2da                |     |✓  |    |acc            |
-|arithmetic_2ds                |     |✓  |    |acc            |
-|arithmetic_3da                |     |✓  |    |acc            |
-|arithmetic_3ds                |     |✓  |    |acc            |
-|arithmetic_4da                |     |✓  |    |acc            |
-|arithmetic_4ds                |     |✓  |    |acc            |
-|arithmetic_5da                |     |✓  |    |acc            |
-|arithmetic_5ds                |     |✓  |    |acc            |
-|arithmetic_2dm                |     |✓  |    |acc            |
-|arithmetic_1dc                |     |✓  |    |acc            |
-|wmt14-en-fr                   |     |   |✓   |bleu, chrf, ter|
-|wmt14-fr-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt16-en-ro                   |     |   |✓   |bleu, chrf, ter|
-|wmt16-ro-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt16-de-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt16-en-de                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-cs-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-de-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-de-fr                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-cs                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-de                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-iu                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-ja                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-km                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-pl                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-ps                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-ru                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-ta                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-en-zh                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-fr-de                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-iu-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-ja-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-km-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-pl-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-ps-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-ru-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-ta-en                   |     |   |✓   |bleu, chrf, ter|
-|wmt20-zh-en                   |     |   |✓   |bleu, chrf, ter|
-|iwslt17-en-ar                 |     |   |✓   |bleu, chrf, ter|
-|iwslt17-ar-en                 |     |   |✓   |bleu, chrf, ter|
-|anagrams1                     |     |✓  |    |acc            |
-|anagrams2                     |     |✓  |    |acc            |
-|cycle_letters                 |     |✓  |    |acc            |
-|random_insertion              |     |✓  |    |acc            |
-|reversed_words                |     |✓  |    |acc            |
+- 100+ tasks implemented
+- Support for GPT-2, GPT-3, GPT-Neo, GPT-NeoX, and GPT-J, with flexible tokenization-agnostic interface
+- Task versioning to ensure reproducibility
+
+## Install
+
+```bash
+pip install lm-eval
+```
+
+## Basic Usage
+
+To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you can run the following command.
+
+```bash
+python main.py \
+	--model gpt2 \
+	--device cuda:0 \
+	--tasks lambada,hellaswag
+```
+(This uses gpt2-117M by default as per HF defaults, use --model_args to specify other gpt2 sizes)
+
+Additional arguments can be provided to the model constructor using the `--model_args` flag. Most importantly, the `gpt2` model can be used to load an arbitrary HuggingFace model. For example, to run GPTNeo use the following:
+
+```bash
+python main.py \
+	--model gpt2 \
+	--model_args pretrained=EleutherAI/gpt-neo-2.7B \
+	--device cuda:0 \
+	--tasks lambada,hellaswag
+```
+
+If you have access to the OpenAI API, you can also evaluate GPT-3:
+
+```bash
+export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
+python main.py \
+	--model gpt3 \
+	--model_args engine=davinci \
+	--tasks lambada,hellaswag
+```
+
+To evaluate mesh-transformer-jax models that are not available on HF, please invoke eval harness through [this script](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
+
+## Cite as
+
+```
+@software{eval-harness,
+  author       = {Gao, Leo and
+                  Tow, Jonathan and
+                  Biderman, Stella and
+                  Black, Sid and
+                  DiPofi, Anthony and
+                  Foster, Charles and
+                  Golding, Laurence and
+                  Hsu, Jeffrey and
+                  McDonell, Kyle and
+                  Muennighoff, Niklas and
+                  Phang, Jason and
+                  Reynolds, Laria and
+                  Tang, Eric and
+                  Thite, Anish and
+                  Wang, Ben and
+                  Wang, Kevin and
+                  Zou, Andy},
+  title        = {A framework for few-shot language model evaluation},
+  month        = sep,
+  year         = 2021,
+  publisher    = {Zenodo},
+  version      = {v0.0.1},
+  doi          = {10.5281/zenodo.5371628},
+  url          = {https://doi.org/10.5281/zenodo.5371628}
+}
+```
+
+### Full Task List
+
+|                    Task Name                    |Train|Val|Test|Val/Test Docs|                                   Metrics                                    |
+|-------------------------------------------------|-----|---|----|------------:|------------------------------------------------------------------------------|
+|cola                                             |✓    |✓  |    |         1043|mcc                                                                           |
+|mnli                                             |✓    |✓  |    |         9815|acc                                                                           |
+|mnli_mismatched                                  |✓    |✓  |    |         9832|acc                                                                           |
+|mrpc                                             |✓    |✓  |    |          408|acc, f1                                                                       |
+|rte                                              |✓    |✓  |    |          277|acc                                                                           |
+|qnli                                             |✓    |✓  |    |         5463|acc                                                                           |
+|qqp                                              |✓    |✓  |    |        40430|acc, f1                                                                       |
+|sst                                              |✓    |✓  |    |          872|acc                                                                           |
+|wnli                                             |✓    |✓  |    |           71|acc                                                                           |
+|boolq                                            |✓    |✓  |    |         3270|acc                                                                           |
+|cb                                               |✓    |✓  |    |           56|acc, f1                                                                       |
+|copa                                             |✓    |✓  |    |          100|acc                                                                           |
+|multirc                                          |✓    |✓  |    |         4848|acc                                                                           |
+|record                                           |✓    |✓  |    |        10000|f1, em                                                                        |
+|wic                                              |✓    |✓  |    |          638|acc                                                                           |
+|wsc                                              |✓    |✓  |    |          104|acc                                                                           |
+|coqa                                             |✓    |✓  |    |          500|f1, em                                                                        |
+|drop                                             |✓    |✓  |    |         9536|em, f1                                                                        |
+|lambada                                          |     |✓  |    |         5153|ppl, acc                                                                      |
+|lambada_cloze                                    |     |✓  |    |         5153|ppl, acc                                                                      |
+|wikitext                                         |     |✓  |✓   |           62|word_perplexity, byte_perplexity, bits_per_byte                               |
+|piqa                                             |✓    |✓  |    |         1838|acc, acc_norm                                                                 |
+|prost                                            |     |   |✓   |        18736|acc, acc_norm                                                                 |
+|pubmedqa                                         |     |   |✓   |         1000|acc                                                                           |
+|sciq                                             |✓    |✓  |✓   |         1000|acc, acc_norm                                                                 |
+|qa4mre_2011                                      |     |   |✓   |          120|acc, acc_norm                                                                 |
+|qa4mre_2012                                      |     |   |✓   |          160|acc, acc_norm                                                                 |
+|qa4mre_2013                                      |     |   |✓   |          284|acc, acc_norm                                                                 |
+|triviaqa                                         |✓    |✓  |    |        11313|acc                                                                           |
+|arc_easy                                         |✓    |✓  |✓   |         2376|acc, acc_norm                                                                 |
+|arc_challenge                                    |✓    |✓  |✓   |         1172|acc, acc_norm                                                                 |
+|logiqa                                           |✓    |✓  |✓   |          651|acc, acc_norm                                                                 |
+|hellaswag                                        |✓    |✓  |    |        10042|acc, acc_norm                                                                 |
+|openbookqa                                       |✓    |✓  |✓   |          500|acc, acc_norm                                                                 |
+|squad2                                           |✓    |✓  |    |        11873|exact, f1, HasAns_exact, HasAns_f1, NoAns_exact, NoAns_f1, best_exact, best_f1|
+|race                                             |✓    |✓  |✓   |         1045|acc                                                                           |
+|headqa                                           |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
+|mathqa                                           |✓    |✓  |✓   |         2985|acc, acc_norm                                                                 |
+|webqs                                            |✓    |   |✓   |         2032|acc                                                                           |
+|wsc273                                           |     |   |✓   |          273|acc                                                                           |
+|winogrande                                       |✓    |✓  |    |         1267|acc                                                                           |
+|anli_r1                                          |✓    |✓  |✓   |         1000|acc                                                                           |
+|anli_r2                                          |✓    |✓  |✓   |         1000|acc                                                                           |
+|anli_r3                                          |✓    |✓  |✓   |         1200|acc                                                                           |
+|ethics_cm                                        |✓    |   |✓   |         3885|acc                                                                           |
+|ethics_deontology                                |✓    |   |✓   |         3596|acc, em                                                                       |
+|ethics_justice                                   |✓    |   |✓   |         2704|acc, em                                                                       |
+|ethics_utilitarianism_original                   |     |   |✓   |         4808|acc                                                                           |
+|ethics_utilitarianism                            |✓    |   |✓   |         4808|acc                                                                           |
+|ethics_virtue                                    |✓    |   |✓   |         4975|acc, em                                                                       |
+|math_algebra                                     |✓    |   |✓   |         1187|acc                                                                           |
+|math_counting_and_prob                           |✓    |   |✓   |          474|acc                                                                           |
+|math_geometry                                    |✓    |   |✓   |          479|acc                                                                           |
+|math_intermediate_algebra                        |✓    |   |✓   |          903|acc                                                                           |
+|math_num_theory                                  |✓    |   |✓   |          540|acc                                                                           |
+|math_prealgebra                                  |✓    |   |✓   |          871|acc                                                                           |
+|math_precalc                                     |✓    |   |✓   |          546|acc                                                                           |
+|arithmetic_2da                                   |     |✓  |    |         2000|acc                                                                           |
+|arithmetic_2ds                                   |     |✓  |    |         2000|acc                                                                           |
+|arithmetic_3da                                   |     |✓  |    |         2000|acc                                                                           |
+|arithmetic_3ds                                   |     |✓  |    |         2000|acc                                                                           |
+|arithmetic_4da                                   |     |✓  |    |         2000|acc                                                                           |
+|arithmetic_4ds                                   |     |✓  |    |         2000|acc                                                                           |
+|arithmetic_5da                                   |     |✓  |    |         2000|acc                                                                           |
+|arithmetic_5ds                                   |     |✓  |    |         2000|acc                                                                           |
+|arithmetic_2dm                                   |     |✓  |    |         2000|acc                                                                           |
+|arithmetic_1dc                                   |     |✓  |    |         2000|acc                                                                           |
+|hendrycksTest-abstract_algebra                   |✓    |✓  |✓   |          100|acc, acc_norm                                                                 |
+|hendrycksTest-anatomy                            |✓    |✓  |✓   |          135|acc, acc_norm                                                                 |
+|hendrycksTest-astronomy                          |✓    |✓  |✓   |          152|acc, acc_norm                                                                 |
+|hendrycksTest-business_ethics                    |✓    |✓  |✓   |          100|acc, acc_norm                                                                 |
+|hendrycksTest-clinical_knowledge                 |✓    |✓  |✓   |          265|acc, acc_norm                                                                 |
+|hendrycksTest-college_biology                    |✓    |✓  |✓   |          144|acc, acc_norm                                                                 |
+|hendrycksTest-college_chemistry                  |✓    |✓  |✓   |          100|acc, acc_norm                                                                 |
+|hendrycksTest-college_computer_science           |✓    |✓  |✓   |          100|acc, acc_norm                                                                 |
+|hendrycksTest-college_mathematics                |✓    |✓  |✓   |          100|acc, acc_norm                                                                 |
+|hendrycksTest-college_medicine                   |✓    |✓  |✓   |          173|acc, acc_norm                                                                 |
+|hendrycksTest-college_physics                    |✓    |✓  |✓   |          102|acc, acc_norm                                                                 |
+|hendrycksTest-computer_security                  |✓    |✓  |✓   |          100|acc, acc_norm                                                                 |
+|hendrycksTest-conceptual_physics                 |✓    |✓  |✓   |          235|acc, acc_norm                                                                 |
+|hendrycksTest-econometrics                       |✓    |✓  |✓   |          114|acc, acc_norm                                                                 |
+|hendrycksTest-electrical_engineering             |✓    |✓  |✓   |          145|acc, acc_norm                                                                 |
+|hendrycksTest-elementary_mathematics             |✓    |✓  |✓   |          378|acc, acc_norm                                                                 |
+|hendrycksTest-formal_logic                       |✓    |✓  |✓   |          126|acc, acc_norm                                                                 |
+|hendrycksTest-global_facts                       |✓    |✓  |✓   |          100|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_biology                |✓    |✓  |✓   |          310|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_chemistry              |✓    |✓  |✓   |          203|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_computer_science       |✓    |✓  |✓   |          100|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_european_history       |✓    |✓  |✓   |          165|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_geography              |✓    |✓  |✓   |          198|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_government_and_politics|✓    |✓  |✓   |          193|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_macroeconomics         |✓    |✓  |✓   |          390|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_mathematics            |✓    |✓  |✓   |          270|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_microeconomics         |✓    |✓  |✓   |          238|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_physics                |✓    |✓  |✓   |          151|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_psychology             |✓    |✓  |✓   |          545|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_statistics             |✓    |✓  |✓   |          216|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_us_history             |✓    |✓  |✓   |          204|acc, acc_norm                                                                 |
+|hendrycksTest-high_school_world_history          |✓    |✓  |✓   |          237|acc, acc_norm                                                                 |
+|hendrycksTest-human_aging                        |✓    |✓  |✓   |          223|acc, acc_norm                                                                 |
+|hendrycksTest-human_sexuality                    |✓    |✓  |✓   |          131|acc, acc_norm                                                                 |
+|hendrycksTest-international_law                  |✓    |✓  |✓   |          121|acc, acc_norm                                                                 |
+|hendrycksTest-jurisprudence                      |✓    |✓  |✓   |          108|acc, acc_norm                                                                 |
+|hendrycksTest-logical_fallacies                  |✓    |✓  |✓   |          163|acc, acc_norm                                                                 |
+|hendrycksTest-machine_learning                   |✓    |✓  |✓   |          112|acc, acc_norm                                                                 |
+|hendrycksTest-management                         |✓    |✓  |✓   |          103|acc, acc_norm                                                                 |
+|hendrycksTest-marketing                          |✓    |✓  |✓   |          234|acc, acc_norm                                                                 |
+|hendrycksTest-medical_genetics                   |✓    |✓  |✓   |          100|acc, acc_norm                                                                 |
+|hendrycksTest-miscellaneous                      |✓    |✓  |✓   |          783|acc, acc_norm                                                                 |
+|hendrycksTest-moral_disputes                     |✓    |✓  |✓   |          346|acc, acc_norm                                                                 |
+|hendrycksTest-moral_scenarios                    |✓    |✓  |✓   |          895|acc, acc_norm                                                                 |
+|hendrycksTest-nutrition                          |✓    |✓  |✓   |          306|acc, acc_norm                                                                 |
+|hendrycksTest-philosophy                         |✓    |✓  |✓   |          311|acc, acc_norm                                                                 |
+|hendrycksTest-prehistory                         |✓    |✓  |✓   |          324|acc, acc_norm                                                                 |
+|hendrycksTest-professional_accounting            |✓    |✓  |✓   |          282|acc, acc_norm                                                                 |
+|hendrycksTest-professional_law                   |✓    |✓  |✓   |         1534|acc, acc_norm                                                                 |
+|hendrycksTest-professional_medicine              |✓    |✓  |✓   |          272|acc, acc_norm                                                                 |
+|hendrycksTest-professional_psychology            |✓    |✓  |✓   |          612|acc, acc_norm                                                                 |
+|hendrycksTest-public_relations                   |✓    |✓  |✓   |          110|acc, acc_norm                                                                 |
+|hendrycksTest-security_studies                   |✓    |✓  |✓   |          245|acc, acc_norm                                                                 |
+|hendrycksTest-sociology                          |✓    |✓  |✓   |          201|acc, acc_norm                                                                 |
+|hendrycksTest-us_foreign_policy                  |✓    |✓  |✓   |          100|acc, acc_norm                                                                 |
+|hendrycksTest-virology                           |✓    |✓  |✓   |          166|acc, acc_norm                                                                 |
+|hendrycksTest-world_religions                    |✓    |✓  |✓   |          171|acc, acc_norm                                                                 |
+|wmt14-en-fr                                      |     |   |✓   |         3003|bleu, chrf, ter                                                               |
+|wmt14-fr-en                                      |     |   |✓   |         3003|bleu, chrf, ter                                                               |
+|wmt16-en-ro                                      |     |   |✓   |         1999|bleu, chrf, ter                                                               |
+|wmt16-ro-en                                      |     |   |✓   |         1999|bleu, chrf, ter                                                               |
+|wmt16-de-en                                      |     |   |✓   |         2999|bleu, chrf, ter                                                               |
+|wmt16-en-de                                      |     |   |✓   |         2999|bleu, chrf, ter                                                               |
+|wmt20-cs-en                                      |     |   |✓   |          664|bleu, chrf, ter                                                               |
+|wmt20-de-en                                      |     |   |✓   |          785|bleu, chrf, ter                                                               |
+|wmt20-de-fr                                      |     |   |✓   |         1619|bleu, chrf, ter                                                               |
+|wmt20-en-cs                                      |     |   |✓   |         1418|bleu, chrf, ter                                                               |
+|wmt20-en-de                                      |     |   |✓   |         1418|bleu, chrf, ter                                                               |
+|wmt20-en-iu                                      |     |   |✓   |         2971|bleu, chrf, ter                                                               |
+|wmt20-en-ja                                      |     |   |✓   |         1000|bleu, chrf, ter                                                               |
+|wmt20-en-km                                      |     |   |✓   |         2320|bleu, chrf, ter                                                               |
+|wmt20-en-pl                                      |     |   |✓   |         1000|bleu, chrf, ter                                                               |
+|wmt20-en-ps                                      |     |   |✓   |         2719|bleu, chrf, ter                                                               |
+|wmt20-en-ru                                      |     |   |✓   |         2002|bleu, chrf, ter                                                               |
+|wmt20-en-ta                                      |     |   |✓   |         1000|bleu, chrf, ter                                                               |
+|wmt20-en-zh                                      |     |   |✓   |         1418|bleu, chrf, ter                                                               |
+|wmt20-fr-de                                      |     |   |✓   |         1619|bleu, chrf, ter                                                               |
+|wmt20-iu-en                                      |     |   |✓   |         2971|bleu, chrf, ter                                                               |
+|wmt20-ja-en                                      |     |   |✓   |          993|bleu, chrf, ter                                                               |
+|wmt20-km-en                                      |     |   |✓   |         2320|bleu, chrf, ter                                                               |
+|wmt20-pl-en                                      |     |   |✓   |         1001|bleu, chrf, ter                                                               |
+|wmt20-ps-en                                      |     |   |✓   |         2719|bleu, chrf, ter                                                               |
+|wmt20-ru-en                                      |     |   |✓   |          991|bleu, chrf, ter                                                               |
+|wmt20-ta-en                                      |     |   |✓   |          997|bleu, chrf, ter                                                               |
+|wmt20-zh-en                                      |     |   |✓   |         2000|bleu, chrf, ter                                                               |
+|iwslt17-en-ar                                    |     |   |✓   |         1460|bleu, chrf, ter                                                               |
+|iwslt17-ar-en                                    |     |   |✓   |         1460|bleu, chrf, ter                                                               |
+|anagrams1                                        |     |✓  |    |        10000|acc                                                                           |
+|anagrams2                                        |     |✓  |    |        10000|acc                                                                           |
+|cycle_letters                                    |     |✓  |    |        10000|acc                                                                           |
+|random_insertion                                 |     |✓  |    |        10000|acc                                                                           |
+|reversed_words                                   |     |✓  |    |        10000|acc                                                                           |
+|pile_arxiv                                       |     |✓  |✓   |         2407|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_books3                                      |     |✓  |✓   |          269|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_bookcorpus2                                 |     |✓  |✓   |           28|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_dm-mathematics                              |     |✓  |✓   |         1922|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_enron                                       |     |✓  |✓   |         1010|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_europarl                                    |     |✓  |✓   |          157|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_freelaw                                     |     |✓  |✓   |         5101|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_github                                      |     |✓  |✓   |        18195|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_gutenberg                                   |     |✓  |✓   |           80|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_hackernews                                  |     |✓  |✓   |         1632|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_nih-exporter                                |     |✓  |✓   |         1884|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_opensubtitles                               |     |✓  |✓   |          642|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_openwebtext2                                |     |✓  |✓   |        32925|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_philpapers                                  |     |✓  |✓   |           68|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_pile-cc                                     |     |✓  |✓   |        52790|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_pubmed-abstracts                            |     |✓  |✓   |        29895|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_pubmed-central                              |     |✓  |✓   |         5911|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_stackexchange                               |     |✓  |✓   |        30378|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_uspto                                       |     |✓  |✓   |        11415|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_ubuntu-irc                                  |     |✓  |✓   |           22|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_wikipedia                                   |     |✓  |✓   |        17511|word_perplexity, byte_perplexity, bits_per_byte                               |
+|pile_youtubesubtitles                            |     |✓  |✓   |          342|word_perplexity, byte_perplexity, bits_per_byte                               |
+
 
 
 
@@ -118,25 +277,15 @@ The goal of this project is to build a set of tools for evaluating LMs on typica
 
 ### Evaluate a task
 
-To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. RTE, Winograd Scheme Challenge), you can run the following command.
+Additional arguments can be provided to the model constructor using the `--model_args` flag. Most importantly, the `gpt2` model can be used to load an arbitrary HuggingFace model as follows:
+
 
 ```bash
 python main.py \
 	--model gpt2 \
-	--model_args device=cuda:0 \
-	--tasks rte,wsc \
-	--provide_description \
-	--num_fewshot 2
-```
-
-If you have access to an OpenAI API key, you can also evaluate GPT-3 on various tasks with the following command:
-
-```bash
-export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
-python main.py \
-	--model gpt3 \
-	--tasks rte,wsc \
-	--provide_description \
+	--model_args pretrained=EleutherAI/gpt-neo-1.3B \
+	--device cuda:0 \
+	--tasks lambada,hellaswag \
 	--num_fewshot 2
 ```
 
@@ -165,6 +314,12 @@ Both LMs (`lm_eval.models`) and Tasks (`lm_eval.tasks`) are kept in a registry d
 **If you want to extend either models or tasks, simply add a new LM or Task subclass, and decorate with the registry decorator**.
 
 The [GPT-3 Evaluations Project](https://github.com/EleutherAI/lm_evaluation_harness/projects/1) tracks our progress implementing new tasks. Right now, we are focused on getting all the datasets loaded so that we can dedupe against the training data. Implementing the actual evaluations is nice but not necessary at the current moment.
+
+### Task Versioning 
+
+To help improve reproducibility, all tasks have a VERSION field. When run from the command line, this is reported in a column in the table, or in the "version" field in the evaluator return dict. The purpose of the version is so that if the task definition changes (i.e to fix a bug), then we can know exactly which metrics were computed using the old buggy implementation to avoid unfair comparisons. To enforce this, there are unit tests that make sure the behavior of all tests remains the same as when they were first implemented. Task versions start at 0, and each time a breaking change is made, the version is incremented by one. 
+
+When reporting eval harness results, please also report the version of each task. This can be done either with a separate column in the table, or by reporting the task name with the version appended as such: taskname-v0.
 
 ## Description
 

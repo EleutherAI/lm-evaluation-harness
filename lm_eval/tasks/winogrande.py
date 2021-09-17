@@ -11,6 +11,7 @@ Reference: https://arxiv.org/abs/1806.02847
 
 
 class Winogrande(HFTask):
+    VERSION = 0
     DATASET_PATH = "winogrande"
     DATASET_NAME = "winogrande_xl"
 

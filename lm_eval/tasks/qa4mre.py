@@ -5,6 +5,7 @@ from lm_eval.base import MultipleChoiceTask
 
 
 class QA4MRE(MultipleChoiceTask):
+    VERSION = 0
     YEAR = None
     def download(self):
         year = self.YEAR
@@ -32,7 +33,7 @@ class QA4MRE(MultipleChoiceTask):
             download_file(
                 url_path,
                 f"data/qa4mre/QA4MRE-{year}-{lang}_GS.xml",
-                checksum=sha256sums[year],
+                sha256sums[year],
                 )
 
     def has_training_docs(self):

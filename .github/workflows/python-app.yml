@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python application
+name: Build
 
 on:
   push:
@@ -21,10 +21,9 @@ jobs:
       with:
         # A list of files, directories, and wildcard patterns to cache and restore
         path: |
-          data
           ~/.cache
         # An explicit key for restoring and saving the cache
-        key: evaldata-cache
+        key: evaldata-cache-3
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
@@ -46,4 +45,4 @@ jobs:
         pytest --cov=lm_eval/ tests/
     - name: Upload to codecov
       run: |
-        bash <(curl -s https://codecov.io/bash)
+        bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN

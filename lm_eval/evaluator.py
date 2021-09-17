@@ -1,14 +1,16 @@
 import collections
 import itertools
 import random
+import lm_eval.metrics
 
 
-def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
+def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_iters=100000):
     # TODO: completely refactor this entire function to not be a huge mess, ideally breaking it down into smaller pieces
 
     task_dict_items = [(name, task) for name, task in task_dict.items() if(task.has_validation_docs() or task.has_test_docs())]
 
     results = collections.defaultdict(dict)
+    versions = collections.defaultdict(dict)
 
     requests = collections.defaultdict(list)
     requests_origin = collections.defaultdict(list)
@@ -23,6 +25,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
 
     # get lists of each type of requeste
     for task_name, task in task_dict_items:
+        versions[task_name] = task.VERSION
         #default to test doc, fall back to val doc if validation unavailable
         # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
         if task.has_test_docs():
@@ -48,7 +51,6 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
 
             reqs = task.construct_requests(doc, ctx)
             if not isinstance(reqs, (list, tuple)): reqs = [reqs]
-            
             for i, req in enumerate(reqs):
                 requests[req.type].append(req)
                 # i: index in requests for a single task instance
@@ -64,6 +66,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
         # only in index. We could implement some kind of caching, but that would be more of a bandaid
         # solution. we could also implement some kind of autogrouping here; they should end up next to each other.
 
+        print("Running", reqtype, "requests")
         resps = getattr(lm, reqtype)([req.args for req in reqs])
 
         resps = [x if req.index is None else x[req.index] for x, req in zip(resps, reqs)]
@@ -89,5 +92,14 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit):
     for (task_name, metric), items in vals.items():
         task = task_dict[task_name]
         results[task_name][metric] = task.aggregation()[metric](items)
+
+        # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
+        # so we run them less iterations. still looking for a cleaner way to do this
+        stderr = lm_eval.metrics.stderr_for_metric(task.aggregation()[metric], bootstrap_iters=min(bootstrap_iters, 1000) if metric in ["bleu", "chrf", "ter"] else bootstrap_iters)
+        if stderr is not None:
+            results[task_name][metric + "_stderr"] = stderr(items)
     
-    return results
+    return {
+        "results": results,
+        "versions": versions
+    }

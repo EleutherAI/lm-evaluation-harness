@@ -1,15 +1,30 @@
+"""
+QuAC: Question Answering in Context
+https://arxiv.org/abs/1808.07036 
+
+@article{choi2018quac,
+  title={Quac: Question answering in context},
+  author={Choi, Eunsol and He, He and Iyyer, Mohit and Yatskar, Mark and Yih, Wen-tau and Choi, Yejin and Liang, Percy and Zettlemoyer, Luke},
+  journal={arXiv preprint arXiv:1808.07036},
+  year={2018}
+}
+"""
+
 import json
 import os
 from lm_eval.base import Task
 from ..utils import sh
 
 
-class QuAC(Task):    
+class QuAC(Task):
+    VERSION = 0
+
     def __init__(self):
         super().__init__()
 
     def download(self):
         if not os.path.exists('data/quac'):
+            # TODO: convert to use best_download
             sh("""
                 mkdir -p data/quac 
                 wget https://s3.amazonaws.com/my89public/quac/train_v0.2.json -O data/quac/train_v0.2.json

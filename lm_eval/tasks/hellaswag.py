@@ -4,6 +4,7 @@ from . common import HFTask
 
 
 class HellaSwag(HFTask, MultipleChoiceTask):
+    VERSION = 0
     DATASET_PATH = "hellaswag"
     DATASET_NAME = None
 
@@ -33,18 +34,6 @@ class HellaSwag(HFTask, MultipleChoiceTask):
             "gold": int(doc['label']),
         }
         return out_doc
-
-    def _load_docs(self, docs):
-        for record in docs:
-            yield self._convert_standard(record)
-
-    def training_docs(self):
-        docs = super().training_docs()
-        return self._load_docs(docs)
-
-    def validation_docs(self):
-        docs = super().validation_docs()
-        return self._load_docs(docs)
 
     def fewshot_description(self):
         return "Label for the relevant action: Sentences describing the " \

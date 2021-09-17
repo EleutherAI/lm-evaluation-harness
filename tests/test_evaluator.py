@@ -1,3 +1,5 @@
+import os
+import lm_eval.base as base
 import lm_eval.tasks as tasks
 import lm_eval.models as models
 import lm_eval.evaluator as evaluator
@@ -11,10 +13,13 @@ import pytest
 @pytest.mark.parametrize("taskname,Task", tasks.TASK_REGISTRY.items())
 def test_evaluator(taskname, Task):
     task_dict = tasks.get_task_dict([taskname])
-    lm = models.get_model('dummy')()
+
+    os.system("rm test_cache.db")
+    lm = base.CachingLM(models.get_model('dummy')(), "test_cache.db")
 
     def ll_fn(reqs):
         for ctx, cont in reqs:
+            if len(ctx) == 0: continue
             # space convention
             assert ctx[-1] != ' '
             assert cont[0] == ' ' or ctx[-1] == '\n'
@@ -26,7 +31,24 @@ def test_evaluator(taskname, Task):
             res.append((-random.random(), False))
 
         return res
-        
+
+    def ll_perp_fn(reqs):
+        for string, in reqs:
+            assert isinstance(string, str)
+
+        res = []
+        random.seed(42)
+        for _ in reqs:
+            res.append(-random.random())
+
+        return res
 
     lm.loglikelihood = ll_fn
-    evaluator.evaluate(lm, task_dict, False, 0, 10)
+    lm.loglikelihood_rolling = ll_perp_fn
+
+    limit = 10
+    e1 = evaluator.evaluate(lm, task_dict, False, 0, limit, bootstrap_iters=10)
+    e2 = evaluator.evaluate(lm, task_dict, False, 0, limit, bootstrap_iters=10)
+
+    # check taht caching is working
+    assert e1 == e2

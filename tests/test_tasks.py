@@ -22,13 +22,19 @@ def test_basic_interface(taskname, Task):
 
     for v in task.higher_is_better().values(): assert v in [True, False]
 
+    assert isinstance(task.VERSION, int)
+
     # test deterministic docs
     # (don't test train because it's slow)
 
     task2 = Task()
+
+    limit = None
+
+    if taskname in ["triviaqa"]: limit = 10000
     if task.has_validation_docs():
-        arr = list(islice(task.validation_docs(), 100))
-        arr2 = list(islice(task2.validation_docs(), 100))
+        arr = list(islice(task.validation_docs(), limit))
+        arr2 = list(islice(task2.validation_docs(), limit))
 
         assert arr == arr2
 
@@ -38,8 +44,19 @@ def test_basic_interface(taskname, Task):
         assert reqs == reqs2
 
     if task.has_test_docs():
-        arr = list(islice(task.test_docs(), 100))
-        arr2 = list(islice(task2.test_docs(), 100))
+        arr = list(islice(task.test_docs(), limit))
+        arr2 = list(islice(task2.test_docs(), limit))
+
+        assert arr == arr2
+
+        reqs = [task.construct_requests(doc, task.doc_to_text(doc)) for doc in arr]
+        reqs2 = [task2.construct_requests(doc, task2.doc_to_text(doc)) for doc in arr2]
+        
+        assert reqs == reqs2
+
+    if task.has_training_docs():
+        arr = list(islice(task.training_docs(), limit))
+        arr2 = list(islice(task2.training_docs(), limit))
 
         assert arr == arr2
 
@@ -49,7 +66,6 @@ def test_basic_interface(taskname, Task):
         assert reqs == reqs2
 
 
-
 @pytest.mark.parametrize("taskname,Task", tasks.TASK_REGISTRY.items())
 def test_documents_and_requests(taskname, Task):
     print('Evaluating task', taskname)
@@ -57,7 +73,7 @@ def test_documents_and_requests(taskname, Task):
     fns = []
     if task.has_training_docs(): fns.append(task.training_docs)
     if task.has_validation_docs(): fns.append(task.validation_docs)
-    # test doce might not have labels
+    # test doc might not have labels
     #if task.has_test_docs(): fns.append(task.test_docs)
 
     for fn in fns:
@@ -71,8 +87,10 @@ def test_documents_and_requests(taskname, Task):
             assert isinstance(tgt, str)
             
             # space convention
-            assert txt[-1] != ' '
-            assert tgt[0] == ' ' or txt[-1] == '\n'
+            # allow txt to have length 0 for perplexity-like tasks since the model tacks an <|endoftext|> on
+            if len(txt) != 0:
+                assert txt[-1] != ' '
+                assert tgt[0] == ' ' or txt[-1] == '\n'
 
             reqs = task.construct_requests(doc, txt)
             

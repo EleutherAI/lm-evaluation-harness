@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-moral_disputes": {"acc": 0.24855491329479767, "acc_norm": 0.27167630057803466, "acc_norm_stderr": 0.023948512905468365, "acc_stderr": 0.023267528432100174}}, "versions": {"hendrycksTest-moral_disputes": 0}}

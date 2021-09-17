@@ -1,18 +1,21 @@
 import os
 import json
+import jsonlines
 from lm_eval.base import Task, rf
 from ..metrics import mean
 from ..utils import sh
+from best_download import download_file
 
 
 class TriviaQA(Task):
+    VERSION = 0
     def download(self):
-        if not os.path.exists('data/triviaqa'):
+        if not os.path.exists('data/triviaqa/unfiltered-web-train.jsonl'):
+            os.makedirs("data/triviaqa/", exist_ok=True)
+            download_file("http://eaidata.bmk.sh/data/triviaqa-unfiltered.tar.gz", "data/triviaqa/triviaqa-unfiltered.tar.gz", "adc19b42769062d241a8fbe834c56e58598d9322eb6c614e9f33a68a2cf5523e")
             sh("""
-            mkdir -p data/triviaqa
-            wget http://nlp.cs.washington.edu/triviaqa/data/triviaqa-unfiltered.tar.gz -O data/triviaqa/trivia_qa-unfiltered.tar.gz
-            tar -xf data/triviaqa/trivia_qa-unfiltered.tar.gz
-            mv triviaqa-unfiltered/ data/triviaqa/
+            cd data/triviaqa/
+            tar -xf triviaqa-unfiltered.tar.gz
             """)
 
     def has_training_docs(self):
@@ -25,20 +28,20 @@ class TriviaQA(Task):
         return False
 
     def training_docs(self):
-        return json.load(open('data/triviaqa/triviaqa-unfiltered/unfiltered-web-train.json'))['Data']
+        return jsonlines.open('data/triviaqa/unfiltered-web-train.jsonl')
 
     def validation_docs(self):
-        return  json.load(open('data/triviaqa/triviaqa-unfiltered/unfiltered-web-dev.json'))['Data']
+        return jsonlines.open('data/triviaqa/unfiltered-web-dev.jsonl')
 
     def test_docs(self):
-        return  json.load(open('data/triviaqa/triviaqa-unfiltered/unfiltered-web-test.json'))['Data']     
+        raise NotImplementedError()
     
     def fewshot_description(self):
         # TODO: figure out fewshot description
         return ""
     
     def doc_to_text(self, doc):
-        return ''.join(['Q:', doc['Question'], '\n\n','A:'])
+        return f"Question: {doc['Question']}\nAnswer:"
 
     def doc_to_target(self, doc):
         return " " + doc['Answer']['Value']

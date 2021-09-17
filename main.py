@@ -15,6 +15,8 @@ def parse_args():
     parser.add_argument('--tasks', default="all_tasks")
     parser.add_argument('--provide_description', action="store_true")
     parser.add_argument('--num_fewshot', type=int, default=0)
+    parser.add_argument('--batch_size', type=int, default=None)
+    parser.add_argument('--device', type=str, default=None)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--output_path', default=None)
     parser.add_argument('--limit', type=int, default=None)
@@ -27,7 +29,9 @@ def main():
     random.seed(args.seed)
     np.random.seed(args.seed)
 
-    lm = models.get_model(args.model).create_from_arg_string(args.model_args)
+    lm = models.get_model(args.model).create_from_arg_string(args.model_args, {
+        'batch_size': args.batch_size, 'device': args.device
+    })
     
     if args.limit:
         print("WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.")
@@ -49,20 +53,36 @@ def main():
             f.write(dumped)
 
     # MAKE TABLE
-    from pytablewriter import MarkdownTableWriter
+    from pytablewriter import MarkdownTableWriter, LatexTableWriter
 
-    writer = MarkdownTableWriter()
-    writer.headers = ["Task", "Metric", "Value"]
+    md_writer = MarkdownTableWriter()
+    latex_writer = LatexTableWriter()
+    md_writer.headers = ["Task", "Version", "Metric", "Value", "", "Stderr"]
+    latex_writer.headers = ["Task", "Version", "Metric", "Value", "", "Stderr"]
 
     values = []
 
-    for k, dic in results.items():
+    for k, dic in results["results"].items():
+        version = results["versions"][k]
         for m, v in dic.items():
-            values.append([k, m, '%.4f' % v])
-            k = ""
-    writer.value_matrix = values
+            if m.endswith("_stderr"): continue
 
-    print(writer.dumps())
+            if m + "_stderr" in dic:
+                se = dic[m + "_stderr"]
+
+                values.append([k, version, m, '%.4f' % v, '±', '%.4f' % se])
+            else:
+                values.append([k, version, m, '%.4f' % v, '', ''])
+            k = ""
+            version = ""
+    md_writer.value_matrix = values
+    latex_writer.value_matrix = values
+
+    # todo: make latex table look good
+    # print(latex_writer.dumps())
+
+    print(f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}")
+    print(md_writer.dumps())
 
 if __name__ == "__main__":
     main()

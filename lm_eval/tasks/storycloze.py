@@ -3,6 +3,7 @@ from lm_eval.base import Task
 
 
 class StoryCloze(Task):
+    VERSION = 0
     NEEDS_MANUAL_DL = True
 
     def download(self):

@@ -3,6 +3,9 @@ from pprint import pprint
 from sacrebleu import sacrebleu
 from lm_eval import metrics
 from lm_eval.base import Task, rf
+from typing import List
+
+
 
 """
 This file implements translation tasks using datasets from WMT conferences, provided by sacrebleu.
@@ -19,23 +22,46 @@ def create_tasks_from_benchmarks(benchmark_dict):
     :return: {task_name: task}
         e.g. {wmt14-fr-en: Task, wmt16-de-en: Task}
     """
+    def version_of(dataset, language_pair):
+        if language_pair[-2:] in ["zh", "ja"]:
+            return 1 # changed to use jieba/nagisa
+        return 0
+
     return {
-        f"{dataset}-{language_pair}": create_translation_task(dataset, language_pair)
+        f"{dataset}-{language_pair}": create_translation_task(dataset, language_pair, version_of(dataset, language_pair))
         for dataset, language_pairs in benchmark_dict.items()
         for language_pair in language_pairs
     }
 
 ########################################
+# Language Specifics
+########################################
+
+def zh_split(zh_text: List[str]) -> List[str]:
+    """Chinese splitting"""
+    import jieba
+    return [" ".join(jieba.cut(txt.strip())) for txt in zh_text]
+
+def ja_split(ja_text: List[str]) -> List[str]:
+    """Japanese splitting"""
+    import nagisa
+    return [" ".join(nagisa.tagging(txt.strip()).words) for txt in ja_text]
+
+NO_SPACE_LANG = {"zh": zh_split, "ja": ja_split}
+
+########################################
 # Tasks
 ########################################
 
-def create_translation_task(dataset, language_pair):
+def create_translation_task(dataset, language_pair, version=0):
     class TranslationTask(GeneralTranslationTask):
+        VERSION = version
         def __init__(self):
             super().__init__(dataset, language_pair)
     return TranslationTask
 
 class GeneralTranslationTask(Task):
+    VERSION = 0
 
     # e.g. ("wmt14", "fr-en")
     def __init__(self, sacrebleu_dataset, sacrebleu_language_pair=None):
@@ -101,6 +127,12 @@ class GeneralTranslationTask(Task):
         return rf.greedy_until(ctx, ["\n"])
 
     def process_results(self, doc, results):
+        # Add spaces between words for BLEU score calculation of target languages like Chinese
+        tar_lang_code = self.sacrebleu_language_pair.split("-")[-1]
+        if tar_lang_code in NO_SPACE_LANG:
+            doc["ref"] = NO_SPACE_LANG[tar_lang_code]([doc["ref"]])[0]
+            results = NO_SPACE_LANG[tar_lang_code](results)
+
         # These metrics are corpus-level not sentence level, so we'll hide the
         # results in this dict and compute the corpus score in the aggregate method
         ref_pred = (doc["ref"], results)
@@ -156,283 +188,3 @@ def code_to_language(code):
     # key is alpha_2 or alpha_3 depending on the code length
     language_tuple = pycountry.languages.get(**{f"alpha_{len(code)}": code})
     return language_tuple.name
-
-def print_available_tests():
-    pprint({ts: sacrebleu.get_langpairs_for_testset(ts) for ts in sacrebleu.get_available_testsets()})
-
-
-def print_available_pairs():
-    list_of_pairs = [sacrebleu.get_langpairs_for_testset(ts) for ts in sacrebleu.get_available_testsets()]
-    pairs = set([item for sublist in list_of_pairs for item in sublist])
-    pairs = sorted(["-".join(map(code_to_language, pair.split("-"))) for pair in pairs])
-    pprint(pairs)
-    print(len(pairs))
-
-
-def main():
-    # print(sacrebleu.download_test_set("wmt14", "en-fr"))
-    # print_available_tests()
-    # sacrebleu.print_test_set("wmt14", "fr-en", "src")
-
-    # # Print number of benchmarks
-    # print(sum([
-    #     len(sacrebleu.get_langpairs_for_testset(ts))
-    #     for ts in sacrebleu.get_available_testsets()
-    # ]))
-
-    # Test task dictionary
-    # for task, task_class in create_tasks_from_benchmarks(selected_benchmarks).items():
-    #     print(task, task_class())
-    print_available_pairs()
-    pass
-
-
-if __name__ == "__main__":
-    main()
-
-
-########################################
-# Don't mind me...!
-########################################
-
-# Available tests as of 2020/02/11
-"""
-{'iwslt17': ['en-fr',
-             'fr-en',
-             'en-de',
-             'de-en',
-             'en-zh',
-             'zh-en',
-             'en-ar',
-             'ar-en',
-             'en-ja',
-             'ja-en',
-             'en-ko',
-             'ko-en'],
- 'iwslt17/dev2010': ['en-fr', 'fr-en', 'en-de', 'de-en', 'en-zh', 'zh-en'],
- 'iwslt17/tst2010': ['en-fr', 'fr-en', 'en-de', 'de-en', 'en-zh', 'zh-en'],
- 'iwslt17/tst2011': ['en-fr', 'fr-en', 'en-de', 'de-en', 'en-zh', 'zh-en'],
- 'iwslt17/tst2012': ['en-fr', 'fr-en', 'en-de', 'de-en', 'en-zh', 'zh-en'],
- 'iwslt17/tst2013': ['en-fr', 'fr-en', 'en-de', 'de-en', 'en-zh', 'zh-en'],
- 'iwslt17/tst2014': ['en-fr', 'fr-en', 'en-de', 'de-en', 'en-zh', 'zh-en'],
- 'iwslt17/tst2015': ['en-fr', 'fr-en', 'en-de', 'de-en', 'en-zh', 'zh-en'],
- 'iwslt17/tst2016': ['en-fr', 'fr-en', 'en-de', 'de-en', 'en-zh', 'zh-en'],
- 'mtnt1.1/test': ['en-fr', 'fr-en', 'en-ja', 'ja-en'],
- 'mtnt1.1/train': ['en-fr', 'fr-en', 'en-ja', 'ja-en'],
- 'mtnt1.1/valid': ['en-fr', 'fr-en', 'en-ja', 'ja-en'],
- 'mtnt2019': ['en-fr', 'fr-en', 'en-ja', 'ja-en'],
- 'multi30k/2016': ['en-fr', 'en-de', 'en-cs'],
- 'multi30k/2017': ['en-fr', 'en-de'],
- 'multi30k/2018': ['en-fr', 'en-de'],
- 'wmt08': ['cs-en',
-           'en-cs',
-           'de-en',
-           'en-de',
-           'es-en',
-           'en-es',
-           'fr-en',
-           'en-fr',
-           'hu-en',
-           'en-hu'],
- 'wmt08/europarl': ['de-en', 'en-de', 'es-en', 'en-es', 'fr-en', 'en-fr'],
- 'wmt08/nc': ['cs-en', 'en-cs'],
- 'wmt09': ['cs-en',
-           'en-cs',
-           'de-en',
-           'en-de',
-           'es-en',
-           'en-es',
-           'fr-en',
-           'en-fr',
-           'hu-en',
-           'en-hu',
-           'it-en',
-           'en-it'],
- 'wmt10': ['cs-en',
-           'en-cs',
-           'de-en',
-           'en-de',
-           'es-en',
-           'en-es',
-           'fr-en',
-           'en-fr'],
- 'wmt11': ['cs-en',
-           'en-cs',
-           'de-en',
-           'en-de',
-           'fr-en',
-           'en-fr',
-           'es-en',
-           'en-es'],
- 'wmt12': ['cs-en',
-           'en-cs',
-           'de-en',
-           'en-de',
-           'es-en',
-           'en-es',
-           'fr-en',
-           'en-fr'],
- 'wmt13': ['cs-en',
-           'en-cs',
-           'de-en',
-           'en-de',
-           'es-en',
-           'en-es',
-           'fr-en',
-           'en-fr',
-           'ru-en',
-           'en-ru'],
- 'wmt14': ['cs-en',
-           'en-cs',
-           'de-en',
-           'en-de',
-           'en-fr',
-           'fr-en',
-           'en-hi',
-           'hi-en',
-           'en-ru',
-           'ru-en'],
- 'wmt14/full': ['cs-en',
-                'en-cs',
-                'de-en',
-                'en-de',
-                'en-fr',
-                'fr-en',
-                'en-hi',
-                'hi-en',
-                'en-ru',
-                'ru-en'],
- 'wmt15': ['en-fr',
-           'fr-en',
-           'cs-en',
-           'de-en',
-           'en-cs',
-           'en-de',
-           'en-fi',
-           'en-ru',
-           'fi-en',
-           'ru-en'],
- 'wmt16': ['cs-en',
-           'de-en',
-           'en-cs',
-           'en-de',
-           'en-fi',
-           'en-ro',
-           'en-ru',
-           'en-tr',
-           'fi-en',
-           'ro-en',
-           'ru-en',
-           'tr-en'],
- 'wmt16/B': ['en-fi'],
- 'wmt16/dev': ['en-ro', 'en-tr', 'ro-en', 'tr-en'],
- 'wmt16/tworefs': ['en-fi'],
- 'wmt17': ['cs-en',
-           'de-en',
-           'en-cs',
-           'en-de',
-           'en-fi',
-           'en-lv',
-           'en-ru',
-           'en-tr',
-           'en-zh',
-           'fi-en',
-           'lv-en',
-           'ru-en',
-           'tr-en',
-           'zh-en'],
- 'wmt17/B': ['en-fi'],
- 'wmt17/dev': ['en-lv', 'en-zh', 'lv-en', 'zh-en'],
- 'wmt17/improved': ['en-zh', 'zh-en'],
- 'wmt17/ms': ['zh-en'],
- 'wmt17/tworefs': ['en-fi'],
- 'wmt18': ['cs-en',
-           'de-en',
-           'en-cs',
-           'en-de',
-           'en-et',
-           'en-fi',
-           'en-ru',
-           'et-en',
-           'fi-en',
-           'ru-en',
-           'en-tr',
-           'tr-en',
-           'en-zh',
-           'zh-en'],
- 'wmt18/dev': ['et-en', 'en-et'],
- 'wmt18/test-ts': ['cs-en',
-                   'de-en',
-                   'en-cs',
-                   'en-de',
-                   'en-et',
-                   'en-fi',
-                   'en-ru',
-                   'et-en',
-                   'fi-en',
-                   'ru-en',
-                   'en-tr',
-                   'tr-en',
-                   'en-zh',
-                   'zh-en'],
- 'wmt19': ['cs-de',
-           'de-cs',
-           'de-en',
-           'de-fr',
-           'en-cs',
-           'en-de',
-           'en-fi',
-           'en-gu',
-           'en-kk',
-           'en-lt',
-           'en-ru',
-           'en-zh',
-           'fi-en',
-           'fr-de',
-           'gu-en',
-           'kk-en',
-           'lt-en',
-           'ru-en',
-           'zh-en'],
- 'wmt19/dev': ['lt-en', 'en-lt', 'gu-en', 'en-gu', 'kk-en', 'en-kk'],
- 'wmt19/google/ar': ['en-de'],
- 'wmt19/google/arp': ['en-de'],
- 'wmt19/google/hqall': ['en-de'],
- 'wmt19/google/hqp': ['en-de'],
- 'wmt19/google/hqr': ['en-de'],
- 'wmt19/google/wmtp': ['en-de'],
- 'wmt20': ['cs-en',
-           'de-en',
-           'de-fr',
-           'en-cs',
-           'en-de',
-           'en-iu',
-           'en-ja',
-           'en-km',
-           'en-pl',
-           'en-ps',
-           'en-ru',
-           'en-ta',
-           'en-zh',
-           'fr-de',
-           'iu-en',
-           'ja-en',
-           'km-en',
-           'pl-en',
-           'ps-en',
-           'ru-en',
-           'ta-en',
-           'zh-en'],
- 'wmt20/dev': ['iu-en',
-               'en-iu',
-               'ja-en',
-               'en-ja',
-               'pl-en',
-               'en-pl',
-               'ta-en',
-               'en-ta'],
- 'wmt20/robust/set1': ['en-ja', 'en-de'],
- 'wmt20/robust/set2': ['en-ja', 'ja-en'],
- 'wmt20/robust/set3': ['de-en'],
- 'wmt20/tworefs': ['de-en', 'en-de', 'en-zh', 'ru-en', 'zh-en']}
-"""

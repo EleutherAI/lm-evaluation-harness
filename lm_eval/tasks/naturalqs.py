@@ -4,6 +4,7 @@ from itertools import islice
 
 
 class NaturalQs(HFTask):
+    VERSION = 0
     # TODO: naturalqs has a *really* large train set that huggingface just
     # automatically downloads even if you dont use it. we should try and only 
     # download the val set and not even bother with the train set. 
@@ -37,7 +38,7 @@ class NaturalQs(HFTask):
         return rnd.sample(self._training_docs, k)
 
     def doc_to_text(self, doc):
-        return 'Q: ' + doc['question']['text'] + '\n\n' + 'A: '
+        return 'Q: ' + doc['question']['text'] + '\n\n' + 'A:'
 
     def doc_to_target(self, doc):
         # There's a short answer and a long answer. Based on the paper, I'm using the long answer.

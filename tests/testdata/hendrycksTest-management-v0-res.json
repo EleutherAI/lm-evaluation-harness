@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-management": {"acc": 0.24271844660194175, "acc_norm": 0.2621359223300971, "acc_norm_stderr": 0.043546310772605956, "acc_stderr": 0.04245022486384495}}, "versions": {"hendrycksTest-management": 0}}
