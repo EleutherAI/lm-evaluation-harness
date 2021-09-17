@@ -1,10 +1,11 @@
 import numpy as np
-from lm_eval.base import rf
+from lm_eval.base import MultipleChoiceTask, rf
 from ..metrics import mean
 from . common import HFTask
 
 
-class PiQA(HFTask):
+class PiQA(HFTask, MultipleChoiceTask):
+    VERSION = 0
     DATASET_PATH = "piqa"
     DATASET_NAME = None
 
@@ -21,29 +22,13 @@ class PiQA(HFTask):
         # TODO: figure out fewshot description
         return ""
 
+    def _convert_standard(self, doc):
+        out_doc = {
+            "goal": doc["goal"],
+            "choices": [doc["sol1"], doc["sol2"]],
+            "gold": doc["label"],
+        }
+        return out_doc
+
     def doc_to_text(self, doc):
-        return "Question: "+doc["goal"] + "\nAnswer:"
-
-    def doc_to_target(self, doc):
-        solutions = [doc["sol1"], doc["sol2"]]
-        return " " + solutions[doc["label"]]
-
-    def construct_requests(self, doc, ctx):
-        ll_1, _ = rf.loglikelihood(ctx, " " + doc['sol1'])
-        ll_2, _ = rf.loglikelihood(ctx, " " + doc['sol2'])
-        return ll_1, ll_2
-
-    def process_results(self, doc, results):
-        return {
-            'acc': np.argmax(results) == doc["label"]
-        }
-
-    def aggregation(self):
-        return {
-            'acc': mean
-        }
-
-    def higher_is_better(self):
-        return {
-            'acc': True
-        }
+        return "Question: " + doc["goal"] + "\nAnswer:"

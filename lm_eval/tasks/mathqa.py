@@ -4,6 +4,7 @@ from . common import HFTask
 
 
 class MathQA(HFTask, MultipleChoiceTask):
+    VERSION = 0
     DATASET_PATH = "math_qa"
     DATASET_NAME = None
 
@@ -27,22 +28,6 @@ class MathQA(HFTask, MultipleChoiceTask):
             "gold": answer_idx,
         }
         return out_doc
-
-    def _load_docs(self, docs):
-        for record in docs:
-            yield self._convert_standard(record)
-
-    def training_docs(self):
-        docs = super().training_docs()
-        return self._load_docs(docs)
-
-    def validation_docs(self):
-        docs = super().validation_docs()
-        return self._load_docs(docs)
-
-    def test_docs(self):
-        docs = super().test_docs()
-        return self._load_docs(docs)
 
     def fewshot_description(self):
         # TODO: figure out description

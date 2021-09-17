@@ -14,6 +14,7 @@ def extract_gzip(gz, to):
 
 
 class WordUnscrambleTask(Task):
+    VERSION = 0
     BASE_PATH = Path("data/unscramble")
     FILENAME = None
     CHECKSUM = None  # SHA256 Checksum.
@@ -23,7 +24,7 @@ class WordUnscrambleTask(Task):
 
     def download(self):
         if not self.BASE_PATH.exists():
-            Path.mkdir(self.BASE_PATH)
+            Path.mkdir(self.BASE_PATH, parents=True)
         file = self.BASE_PATH / self.FILENAME
         if not file.exists():
             rawfile = file.parent / (file.name + ".gz")

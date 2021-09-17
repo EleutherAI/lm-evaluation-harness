@@ -8,6 +8,7 @@ from ..utils import general_detokenize
 
 
 class CoLA(HFTask):
+    VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "cola"
 
@@ -55,6 +56,7 @@ class CoLA(HFTask):
 
 
 class SST(HFTask):
+    VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "sst2"
 
@@ -106,6 +108,7 @@ class SST(HFTask):
 
 
 class MNLI(HFTask):
+    VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "mnli"
 
@@ -163,6 +166,7 @@ class MNLI(HFTask):
 
 
 class MNLIMismatched(MNLI):
+    VERSION = 0
 
     def validation_docs(self):
         if self.has_validation_docs():
@@ -174,6 +178,7 @@ class MNLIMismatched(MNLI):
 
 
 class QNLI(HFTask):
+    VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "qnli"
 
@@ -222,6 +227,7 @@ class QNLI(HFTask):
 
 
 class WNLI(HFTask):
+    VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "wnli"
 
@@ -271,6 +277,7 @@ class WNLI(HFTask):
 
 
 class RTE(HFTask):
+    VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "rte"
 
@@ -322,6 +329,7 @@ class RTE(HFTask):
 
 
 class MRPC(HFTask):
+    VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "mrpc"
 
@@ -374,6 +382,7 @@ class MRPC(HFTask):
 
 
 class QQP(HFTask):
+    VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "qqp"
 
@@ -426,6 +435,7 @@ class QQP(HFTask):
 
 
 class STSB(HFTask):
+    VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "stsb"
 

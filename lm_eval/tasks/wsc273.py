@@ -12,6 +12,7 @@ See: https://arxiv.org/abs/1806.02847
 
 
 class WinogradSchemaChallenge273(HFTask):
+    VERSION = 0
     DATASET_PATH = "winograd_wsc"
     DATASET_NAME = "wsc273"
 

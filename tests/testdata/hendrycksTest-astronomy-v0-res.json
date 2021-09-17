@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-astronomy": {"acc": 0.2565789473684211, "acc_norm": 0.29605263157894735, "acc_norm_stderr": 0.03715062154998904, "acc_stderr": 0.0355418036802569}}, "versions": {"hendrycksTest-astronomy": 0}}

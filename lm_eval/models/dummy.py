@@ -26,3 +26,11 @@ class DummyLM(LM):
             assert ctx.strip() != ''
 
         return res
+
+    def loglikelihood_rolling(self, requests):
+        res = []
+        
+        for _ in requests:
+            res.append(-random.random())
+
+        return res

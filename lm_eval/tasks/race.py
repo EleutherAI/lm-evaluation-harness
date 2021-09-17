@@ -15,6 +15,7 @@ class each:
 
 
 class RACE(HFTask):
+    VERSION = 0
     DATASET_PATH = "race"
     DATASET_NAME = "high"
 
