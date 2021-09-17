@@ -39,7 +39,7 @@ https://arxiv.org/abs/1808.07036
 """
 ```
 
-Now let's walk through the actual implementation - from data handling to evaluation. 
+Now let's walk through the actual implementation - from data handling to evaluation.
 
 ### Downloading the Data
 
@@ -54,7 +54,7 @@ There are 2 standard approaches we follow for downloading data:
         DATASET_PATH = "..."
         DATASET_NAME = "..."
     ```
-	where `DATASET_PATH` is the name of the benchmark/task dataset as listed by HF and `DATASET_NAME` is the name of, what HF calls, a “data instance” of the benchmark. If your task is not a benchmark containing any data instances just set `DATASET_NAME = None`. 
+	where `DATASET_PATH` is the name of the benchmark/task dataset as listed by HF and `DATASET_NAME` is the name of, what HF calls, a “data instance” of the benchmark. If your task is not a benchmark containing any data instances just set `DATASET_NAME = None`.
 
 2. Your task's dataset is not in HF's catalog, so you'll have to override a few abstract methods of the `Task` base class. First let's define our benchmark/task and inherit from `Task`.
 
@@ -85,7 +85,7 @@ There are 2 standard approaches we follow for downloading data:
     ```
     These methods return `True`/`False` whether or not your task dataset provides documents for each split type. __Note__: if the test set doesn't have publicly available labels, please do not put it down as having a test set.
 
-	Lastly, we need to load the documents. In our terminology, a document (`doc`) is a single natural language data example stored in a Python `dict`. E.g.: 
+	Lastly, we need to load the documents. In our terminology, a document (`doc`) is a single natural language data example stored in a Python `dict`. E.g.:
 `{“question”: “What is the capital of France?”, “answer”: “Paris”}`. Override the following methods to load your data splits from their storage location in `DATASET_PATH`:
     ```python
     def training_docs(self):
@@ -112,7 +112,9 @@ after this go <a href="#Registering-Your-Task">register your task</a>.
 
 ### Versioning
 
-Tasks in the harness can always evolve. Metrics get updated, data sources change, etc. It’s important to mark each task with a version attribute so users can specify which version of the implementation was used to obtain their results. Add a `VERSION` attribute to your task class set to 0 (the first version of your task):
+Tasks in the harness can always evolve. Metrics get updated, data sources
+change, etc. It’s important to mark each task with a version attribute so users
+can document which implementation version was used to obtain their results. Add a `VERSION` attribute to your task class set to 0 (the first version of your task):
 
 ```python
 class TaskName(...):
@@ -122,23 +124,27 @@ class TaskName(...):
 ### Formatting your Few-Shot Examples
 
 The harness is designed to facilitate task evaluations under the few-shot setting. Here we’ll format such examples. Override the following methods for your task class:
+
+Put the natural language task description as a single line (no `\n`s) string here. E.g. `"Translate English to French:"`
+
 ```python
 def fewshot_description(self):
     return ""
 ```
-Put your natural language task description as a single line (no `\n`s) string here. E.g. `"Translate English to French:"`
+
+Format your document into a single query prompt __without the answer__ here. This method takes a single `doc` example (in dictionary form) . You should concatenate its members into a nicely formatted prompt.
 
 ```python
 def doc_to_text(self, doc):
     return ""
 ```
-Format your document into a single query prompt __without the answer__ here. This method takes a single `doc` example (in dictionary form) . You should concatenate its members into a nicely formatted prompt.
+
+Put the target answer of the prompt here, in the form: `" " + <answer>`.
 
 ```python
 def doc_to_target(self, doc):
     return ""
 ```
-Put the target answer of the prompt here, in the form: `" " + <answer>`.
 
 Understand that the strings from `doc_to_text` and `doc_to_target` will be concatenated together to build up labeled examples in the k-shot setting where k > 0. Design with that in mind 👍.
 
@@ -159,7 +165,8 @@ python -m scripts.write_out \
     --num_examples N
 ```
 
-Open the file specified at the `--output_base_path <path>` and ensure it passes the eye test.
+Open the file specified at the `--output_base_path <path>` and ensure it passes
+a simple eye test.
 
 ### The Evaluation
 
@@ -169,13 +176,13 @@ Now comes evaluation. The methods you'll need to implement are:
 
 ```python
 def construct_requests(self, doc, ctx):
-    """ Uses RequestFactory to construct Requests and returns an iterable of 
+    """ Uses RequestFactory to construct Requests and returns an iterable of
     Requests which will be sent to the LM.
 
     :param doc:
         The document as returned from training_docs, validation_docs, or test_docs.
     :param ctx: str
-        The context string, generated by fewshot_context. This includes the natural 
+        The context string, generated by fewshot_context. This includes the natural
         language description, as well as the few shot examples, and the question
         part of the document for `doc`.
     """
@@ -185,8 +192,8 @@ If your task requires generating text you'll need to return a `rf.greedy_until` 
 
 ```python
 def process_results(self, doc, results):
-    """Take a single document and the LM results and evaluates, returning a 
-    dict where keys are the names of submetrics and values are the values of 
+    """Take a single document and the LM results and evaluates, returning a
+    dict where keys are the names of submetrics and values are the values of
     the metric for that one document
 
     :param doc:
@@ -201,9 +208,9 @@ def process_results(self, doc, results):
 def aggregation(self):
     """
     :returns: {str: [float] -> float}
-        A dictionary where keys are the names of submetrics and values are 
+        A dictionary where keys are the names of submetrics and values are
         functions that aggregate a list of metrics
-    """ 
+    """
     return {}
 ```
 
@@ -213,7 +220,7 @@ See `lm_eval/metrics.py` for a few "built-in" aggregate metrics you can easily i
 def higher_is_better(self):
     """
     :returns: {str: bool}
-        A dictionary where keys are the names of submetrics and values are 
+        A dictionary where keys are the names of submetrics and values are
         whether a higher value of the submetric is better
     """
     return {}
