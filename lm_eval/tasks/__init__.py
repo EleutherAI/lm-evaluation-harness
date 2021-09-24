@@ -43,6 +43,7 @@ from . import pile
 from . import wikitext
 from . import lambada_multilingual
 from . import mutual
+from . import truthfulqa
 
 ########################################
 # Translation tasks
@@ -146,6 +147,9 @@ TASK_REGISTRY = {
     "ethics_utilitarianism_original": hendrycks_ethics.EthicsUtilitarianismOriginal,
     "ethics_utilitarianism": hendrycks_ethics.EthicsUtilitarianism,
     "ethics_virtue": hendrycks_ethics.EthicsVirtue,
+
+    "truthfulqa_mc": truthfulqa.TruthfulQAMultipleChoice,
+    "truthfulqa_gen": truthfulqa.TruthfulQAGeneration,
 
     # dialogue
     "mutual": mutual.MuTual,
