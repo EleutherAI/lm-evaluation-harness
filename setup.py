@@ -41,6 +41,8 @@ setuptools.setup(
         "mock==4.0.3",
         "openai==0.6.4",
         "jieba==0.42.1",
-        "nagisa==0.2.7"
+        "nagisa==0.2.7",
+        "t5==0.7.1",
+        "bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt"
     ]
 )
