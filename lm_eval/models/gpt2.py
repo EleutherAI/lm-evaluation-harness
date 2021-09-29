@@ -15,6 +15,11 @@ class GPT2LM(LM):
 
     def __init__(self, device='cuda', pretrained='gpt2', batch_size=1):
         super().__init__()
+
+        assert isinstance(device, str)
+        assert isinstance(pretrained, str)
+        assert isinstance(batch_size, int)
+
         if device:
             self.device = torch.device(device)
         else:
@@ -37,7 +42,8 @@ class GPT2LM(LM):
         gpus = torch.cuda.device_count()
         batch_size_per_gpu = batch_size # todo: adaptive batch size
 
-        self.batch_size = batch_size_per_gpu * gpus
+        # TODO: fix multi-gpu
+        self.batch_size = batch_size_per_gpu# * gpus
 
         # TODO: fix multi-gpu
         # if gpus > 1:
