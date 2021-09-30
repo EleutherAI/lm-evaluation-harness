@@ -2,9 +2,43 @@ import collections
 import itertools
 import random
 import lm_eval.metrics
+import lm_eval.models
+import lm_eval.tasks
+import lm_eval.base
+import numpy as np
+
+def simple_evaluate(model, model_args, task_names, num_fewshot=0, batch_size=None, device=None, no_cache=False, limit=None, bootstrap_iters=100000):
+    random.seed(1234)
+    np.random.seed(1234)
+
+    lm = lm_eval.models.get_model(model).create_from_arg_string(model_args, {
+        'batch_size': batch_size, 'device': device
+    })
+
+    if not no_cache:
+        lm = lm_eval.base.CachingLM(lm, 'lm_cache/' + model + '_' + model_args.replace('=', '-').replace(',', '_').replace('/', '-') + '.db')
+    
+    task_dict = lm_eval.tasks.get_task_dict(task_names)
+    results = evaluate(lm, task_dict, False, num_fewshot, limit)
+
+    # add info about the model and few shot config
+    results["config"] = {
+        "model": model,
+        "model_args": model_args,
+        "num_fewshot": num_fewshot,
+        "batch_size": batch_size,
+        "device": device,
+        "no_cache": no_cache,
+        "limit": limit,
+        "bootstrap_iters": bootstrap_iters
+    }
+
+    return results
 
 
 def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_iters=100000):
+    assert not provide_description # not implemented. todo: implement proper description-providing system
+
     # TODO: completely refactor this entire function to not be a huge mess, ideally breaking it down into smaller pieces
 
     task_dict_items = [(name, task) for name, task in task_dict.items() if(task.has_validation_docs() or task.has_test_docs())]
@@ -100,6 +134,38 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
             results[task_name][metric + "_stderr"] = stderr(items)
     
     return {
-        "results": results,
-        "versions": versions
+        "results": dict(results),
+        "versions": dict(versions)
     }
+
+
+def make_table(result_dict):
+    from pytablewriter import MarkdownTableWriter, LatexTableWriter
+
+    md_writer = MarkdownTableWriter()
+    latex_writer = LatexTableWriter()
+    md_writer.headers = ["Task", "Version", "Metric", "Value", "", "Stderr"]
+    latex_writer.headers = ["Task", "Version", "Metric", "Value", "", "Stderr"]
+
+    values = []
+
+    for k, dic in result_dict["results"].items():
+        version = result_dict["versions"][k]
+        for m, v in dic.items():
+            if m.endswith("_stderr"): continue
+
+            if m + "_stderr" in dic:
+                se = dic[m + "_stderr"]
+
+                values.append([k, version, m, '%.4f' % v, '±', '%.4f' % se])
+            else:
+                values.append([k, version, m, '%.4f' % v, '', ''])
+            k = ""
+            version = ""
+    md_writer.value_matrix = values
+    latex_writer.value_matrix = values
+
+    # todo: make latex table look good
+    # print(latex_writer.dumps())
+
+    return md_writer.dumps()
