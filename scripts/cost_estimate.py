@@ -33,26 +33,36 @@ class DryrunLM(LM):
             self.tokencost += len(self.tokenizer.tokenize(ctx)) + 256
 
         return res
+    
+    def loglikelihood_rolling(self, requests):
+        res = []
+        
+        for s, in requests:
+            # assume worst case: extra full context
+            self.tokencost += len(self.tokenizer.tokenize(s)) + 2048
+
+        return res
 
 
 def main():
     lm = DryrunLM()
-
+    
+    task_list = "arc_challenge,arc_easy,boolq,cola,copa,headqa,hellaswag,lambada,logiqa,mathqa,mc_taco,mrpc,multirc,openbookqa,piqa,prost,pubmedqa,qnli,qqp,race,record,rte,sciq,sst,triviaqa,webqs,wic,wikitext,winogrande,wnli,wsc"
     values = []
-    for taskname in list(tasks.TASK_REGISTRY.keys()):
+    for taskname in task_list.split(","):
         lm.tokencost = 0
-        evaluator.evaluate(lm, {taskname: tasks.get_task(taskname)()}, False, 0, None)
+        evaluator.evaluate(lm, {taskname: tasks.get_task(taskname)()}, False, 0, None, bootstrap_iters=10)
 
         print(taskname, lm.tokencost)
-        values.append([taskname, lm.tokencost, lm.tokencost / 1000 * 0.06])
+        values.append([taskname, lm.tokencost, lm.tokencost / 1000 * 0.0008, lm.tokencost / 1000 * 0.0012, lm.tokencost / 1000 * 0.006, lm.tokencost / 1000 * 0.06])
     from pytablewriter import MarkdownTableWriter
 
     writer = MarkdownTableWriter()
-    writer.headers = ["Task", "Tokens", "Davinci Cost"]
+    writer.headers = ["Task", "Tokens", "Ada", "Babbage", "Curie", "Davinci"]
 
     values.sort(key=lambda x: -x[1])
     totcost = sum([x[1] for x in values])
-    values.append(["**Total**", totcost, totcost / 1000 * 0.06])
+    values.append(["**Total**", totcost, totcost / 1000 * 0.0008, totcost / 1000 * 0.0012, totcost / 1000 * 0.006, totcost / 1000 * 0.06])
 
     writer.value_matrix = values
 
