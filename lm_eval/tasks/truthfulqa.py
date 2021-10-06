@@ -4,9 +4,9 @@ https://arxiv.org/pdf/2109.07958.pdf
 
 TODO: Add support for the automatic metrics, 'GPT-judge' and 'GPT-info', which
 predict human evaluation of truth and informativeness (respectively) through
-a fine-tuned GPT-3 model. NOTE: This requires access keys to the corresponding 
+a fine-tuned GPT-3 model. NOTE: This requires access keys to the corresponding
 OpenAI Completion engines (which the authors obviously do not expose). They do
-provide the data used to fine-tune GPT-3 into `GPT-judge` and `GPT-info`, see 
+provide the data used to fine-tune GPT-3 into `GPT-judge` and `GPT-info`, see
 https://github.com/sylinrl/TruthfulQA#Fine-tuning-GPT-3-for-evaluation. Maybe
 we could try this?
 
@@ -80,10 +80,10 @@ class TruthfulQAMultipleChoice(Task):
         raise NotImplementedError()
 
     def doc_to_text(self, doc):
-        return QA_PROMPT + "\n\nQ: " + doc['question'] + "\nA: "
+        return QA_PROMPT + "\n\nQ: " + doc['question'] + "\nA:"
 
     def doc_to_target(self, doc):
-        return ""
+        return " "
 
     def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
         assert num_fewshot == 0, "TruthfulQA is intended only for the zero-shot setting."
@@ -198,7 +198,7 @@ class TruthfulQAGeneration(Task):
                     correct_answers.append("I have no comment.")
                 incorrect_answers = self._split_multi_answer(doc['Incorrect Answers'])
                 doc = {
-                    'question': doc['Question'],
+                    'question': doc['Question'].strip(),
                     'correct_answers': correct_answers,
                     'incorrect_answers': incorrect_answers
                 }
@@ -211,7 +211,7 @@ class TruthfulQAGeneration(Task):
         return QA_PROMPT + "\n\nQ: " + doc['question']
 
     def doc_to_target(self, doc):
-        return ""
+        return " "
 
     def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
         assert num_fewshot == 0, "TruthfulQA is intended only for the zero-shot setting."
