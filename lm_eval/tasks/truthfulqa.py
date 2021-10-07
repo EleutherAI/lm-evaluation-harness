@@ -294,69 +294,69 @@ class TruthfulQAGeneration(Task):
         rougeL_acc = int(rougeL_correct > rougeL_incorrect)
 
         return {
-            "bleurt max": bleurt_max,
-            "bleurt acc": bleurt_acc,
-            "bleurt diff": bleurt_diff,
+            "bleurt_max": bleurt_max,
+            "bleurt_acc": bleurt_acc,
+            "bleurt_diff": bleurt_diff,
 
-            "bleu max": bleu_max,
-            "bleu acc": bleu_acc,
-            "bleu diff": bleu_diff,
+            "bleu_max": bleu_max,
+            "bleu_acc": bleu_acc,
+            "bleu_diff": bleu_diff,
 
-            "rouge1 max": rouge1_max,
-            "rouge1 acc": rouge1_acc,
-            "rouge1 diff": rouge1_diff,
+            "rouge1_max": rouge1_max,
+            "rouge1_acc": rouge1_acc,
+            "rouge1_diff": rouge1_diff,
 
-            "rouge2 max": rouge2_max,
-            "rouge2 acc": rouge2_acc,
-            "rouge2 diff": rouge2_diff,
+            "rouge2_max": rouge2_max,
+            "rouge2_acc": rouge2_acc,
+            "rouge2_diff": rouge2_diff,
 
-            "rougeL max": rougeL_max,
-            "rougeL acc": rougeL_acc,
-            "rougeL diff": rougeL_diff,
+            "rougeL_max": rougeL_max,
+            "rougeL_acc": rougeL_acc,
+            "rougeL_diff": rougeL_diff,
         }
 
     def aggregation(self):
         return {
-            "bleurt max": mean,
-            "bleurt acc": mean,
-            "bleurt diff": mean,
+            "bleurt_max": mean,
+            "bleurt_acc": mean,
+            "bleurt_diff": mean,
 
-            "bleu max": mean,
-            "bleu acc": mean,
-            "bleu diff": mean,
+            "bleu_max": mean,
+            "bleu_acc": mean,
+            "bleu_diff": mean,
 
-            "rouge1 max": mean,
-            "rouge1 acc": mean,
-            "rouge1 diff": mean,
+            "rouge1_max": mean,
+            "rouge1_acc": mean,
+            "rouge1_diff": mean,
 
-            "rouge2 max": mean,
-            "rouge2 acc": mean,
-            "rouge2 diff": mean,
+            "rouge2_max": mean,
+            "rouge2_acc": mean,
+            "rouge2_diff": mean,
 
-            "rougeL max": mean,
-            "rougeL acc": mean,
-            "rougeL diff": mean,
+            "rougeL_max": mean,
+            "rougeL_acc": mean,
+            "rougeL_diff": mean,
         }
 
     def higher_is_better(self):
         return {
-            "bleurt max": True,
-            "bleurt acc": True,
-            "bleurt diff": True,
+            "bleurt_max": True,
+            "bleurt_acc": True,
+            "bleurt_diff": True,
 
-            "bleu max": True,
-            "bleu acc": True,
-            "bleu diff": True,
+            "bleu_max": True,
+            "bleu_acc": True,
+            "bleu_diff": True,
 
-            "rouge1 max": True,
-            "rouge1 acc": True,
-            "rouge1 diff": True,
+            "rouge1_max": True,
+            "rouge1_acc": True,
+            "rouge1_diff": True,
 
-            "rouge2 max": True,
-            "rouge2 acc": True,
-            "rouge2 diff": True,
+            "rouge2_max": True,
+            "rouge2_acc": True,
+            "rouge2_diff": True,
 
-            "rougeL max": True,
-            "rougeL acc": True,
-            "rougeL diff": True,
+            "rougeL_max": True,
+            "rougeL_acc": True,
+            "rougeL_diff": True,
         }
