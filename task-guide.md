@@ -14,7 +14,7 @@ git checkout -b <task-name>
 pip install -r requirements.txt
 ```
 
-## Creating Your Task
+## Creating Your Task File
 
 The first step in creating a task is to create a Python file in `lm_eval/tasks/`  with the task's name:
 
@@ -41,7 +41,9 @@ https://arxiv.org/abs/1808.07036
 
 Now let's walk through the actual implementation - from data handling to evaluation.
 
-### Downloading the Data
+## Data Handling
+
+### Downloading your Data
 
 There are 2 standard approaches we follow for downloading data:
 
@@ -61,7 +63,7 @@ There are 2 standard approaches we follow for downloading data:
     ```python
     from lm_eval.base import Task
     from pathlib import Path
-
+	
     class TaskName(Task):
         DATASET_PATH = Path("data/<task-name>")
     ```
@@ -83,10 +85,10 @@ There are 2 standard approaches we follow for downloading data:
     def has_test_docs(self):
         return # True/False
     ```
-    These methods return `True`/`False` whether or not your task dataset provides documents for each split type. __Note__: if the test set doesn't have publicly available labels, please do not put it down as having a test set.
+   These methods return `True`/`False` whether or not your task dataset provides documents for each split type. __Note__: if the test set doesn't have publicly available labels, please do not put it down as having a test set.
 
 	Lastly, we need to load the documents. In our terminology, a document (`doc`) is a single natural language data example stored in a Python `dict`. E.g.:
-`{“question”: “What is the capital of France?”, “answer”: “Paris”}`. Override the following methods to load your data splits from their storage location in `DATASET_PATH`:
+	`{“question”: “What is the capital of France?”, “answer”: “Paris”}`. Override the following methods to load your data splits from their storage location in `DATASET_PATH`:
     ```python
     def training_docs(self):
         return #...
@@ -97,34 +99,31 @@ There are 2 standard approaches we follow for downloading data:
     ```
 	These should return a Python iterable (`list` or `generator`) of `dict`s that can be queried for individual `doc` examples. __NOTE__: If your task doesn't have a train/validation/test set, remember to raise a `NotImplementedError` for that specific split.
 
+### Formatting your Few-Shot Examples
 
-If your task is multiple-choice just inherit from the `MultipleChoiceTask` class we provide.
+The harness is designed to facilitate task evaluations under the few-shot setting. Here we’ll format such examples.
+<br/>
+⚠️  **Multiple-Choice Formatting**
+
+If your task is **multiple-choice**, just inherit from the `MultipleChoiceTask` class we provide.
+
 ```python
 from lm_eval.base import MultipleChoiceTask
 
 class TaskName(..., MultipleChoiceTask):
 ```
-Multiple-choice tasks require you to format your documents such that they contain `gold` and `choices` fields. They can also have other fields, but those will be ignored by MultipleChoiceTask. `choices` should be a list of possible continuations, and `gold` should be an integer specifying the index of the correct completion.
 
-See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/105fa9741ff660f6a62c2eef0d2facfde36dda41/lm_eval/tasks/sat.py#L56) for an example. When used in combination with HFTask, it may be useful to override [`_convert_standard`](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/common.py#L28), which will be applied to every document in the HF dataset. See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/headqa.py) for an example of this.
+This will require you to format your documents such that they contain `gold` and `choices` fields. They can also have other fields, but those will be ignored by `MultipleChoiceTask`. `choices` should be a list of possible continuations, and `gold` should be an integer specifying the index of the correct completion. 
 
-After this go <a href="#Registering-Your-Task">register your task</a>.
+See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/105fa9741ff660f6a62c2eef0d2facfde36dda41/lm_eval/tasks/sat.py#L56) for an example. When used in combination with `HFTask`, it may be useful to override [`_convert_standard`](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/common.py#L28), which will be applied to every document in the HF dataset. See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/headqa.py) for an example of this.
+
+You can now skip ahead to <a href="#Registering-Your-Task">registering your task</a>. 
+
+⚠️ **End Multiple-Choice Formatting**
+<br/>
 
 
-### Versioning
-
-Tasks in the harness can always evolve. Metrics get updated, data sources
-change, etc. It’s important to mark each task with a version attribute so users
-can document which implementation version was used to obtain their results. Add a `VERSION` attribute to your task class set to 0 (the first version of your task):
-
-```python
-class TaskName(...):
-	VERSION = 0
-```
-
-### Formatting your Few-Shot Examples
-
-The harness is designed to facilitate task evaluations under the few-shot setting. Here we’ll format such examples. Override the following methods for your task class:
+In the case your task is not multiple-choice, override the following methods for your task class:
 
 Put the natural language task description as a single line (no `\n`s) string here. E.g. `"Translate English to French:"`
 
@@ -149,11 +148,11 @@ def doc_to_target(self, doc):
 
 Understand that the strings from `doc_to_text` and `doc_to_target` will be concatenated together to build up labeled examples in the k-shot setting where k > 0. Design with that in mind 👍.
 
-#### Registering Your Task
+### Registering Your Task
 
 Now's a good time to register your task to expose it for usage. All you'll need to do is import your task module in `lm_eval/tasks/__init__.py` and provide an entry in the `TASK_REGISTRY`  dictionary with the key as the name of your benchmark task (in the form it'll be referred to in the command line) and the value as the task class. See how it's done for other tasks in the [file](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/__init__.py).
 
-#### Check On the Data
+### Checking the Data
 
 After registering your task, you can now check on your data downloading and verify that the few-shot samples look as intended. Run the following command with your desired args:
 
@@ -169,9 +168,9 @@ python -m scripts.write_out \
 Open the file specified at the `--output_base_path <path>` and ensure it passes
 a simple eye test.
 
-### The Evaluation
+## Evaluation
 
-**🛑** If your task is multiple-choice and you've correctly inherited from `MultipleChoiceTask` then your job is done; <a href=“#Check-On-the-Task-Performance”>go ‘head and check on the task performance!</a>
+**🛑**  If your task is a single-true multiple-choice task and you've correctly inherited from `MultipleChoiceTask` then your job here is done; <a href="#Checking-the-Task-Performance">go ‘head and check on the task performance!</a> 🛑
 
 Now comes evaluation. The methods you'll need to implement are:
 
@@ -230,7 +229,8 @@ def higher_is_better(self):
 Some tasks that are good examples of various ways evaluation can be implemented can be found here: [LAMBADA](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/lambada.py), [TriviaQA](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/triviaqa.py), [SQuAD](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/squad.py).
 
 Tip: Feel free to create your own helper-methods for your task!
-#### Check On the Task Performance
+
+### Checking the Task Performance
 
 ```sh
 python main.py \
@@ -251,7 +251,7 @@ python main.py \
 	--num_fewshot K
 ```
 
-#### Running Unit Tests
+### Running Unit Tests
 
 To run the entire test suite, use:
 
@@ -262,6 +262,15 @@ pytest
 This is usually overkill; to run only the tests for your task, do:
 ```sh
 pytest -k <task name>
+```
+
+## Versioning
+
+Lastly, we need to "version control". Tasks in the harness can always evolve. Metrics get updated, data sources change, etc. It’s important to mark each task with a version attribute so users can document which implementation version was used to obtain their results. Add a `VERSION` attribute to your task right below the class name and set it to `0` (this is the first version/implementation of your task):
+
+```python
+class TaskName(...):
+	VERSION = 0
 ```
 
 ## Submitting your Task
