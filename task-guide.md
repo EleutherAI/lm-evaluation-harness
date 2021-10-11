@@ -63,7 +63,7 @@ There are 2 standard approaches we follow for downloading data:
     ```python
     from lm_eval.base import Task
     from pathlib import Path
-	
+
     class TaskName(Task):
         DATASET_PATH = Path("data/<task-name>")
     ```
@@ -102,7 +102,9 @@ There are 2 standard approaches we follow for downloading data:
 ### Formatting your Few-Shot Examples
 
 The harness is designed to facilitate task evaluations under the few-shot setting. Here we’ll format such examples.
-<br/>
+
+<br>
+
 ⚠️  **Multiple-Choice Formatting**
 
 If your task is **multiple-choice**, just inherit from the `MultipleChoiceTask` class we provide.
@@ -113,14 +115,15 @@ from lm_eval.base import MultipleChoiceTask
 class TaskName(..., MultipleChoiceTask):
 ```
 
-This will require you to format your documents such that they contain `gold` and `choices` fields. They can also have other fields, but those will be ignored by `MultipleChoiceTask`. `choices` should be a list of possible continuations, and `gold` should be an integer specifying the index of the correct completion. 
+This will require you to format your documents such that they contain `gold` and `choices` fields. They can also have other fields, but those will be ignored by `MultipleChoiceTask`. `choices` should be a list of possible continuations, and `gold` should be an integer specifying the index of the correct completion.
 
 See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/105fa9741ff660f6a62c2eef0d2facfde36dda41/lm_eval/tasks/sat.py#L56) for an example. When used in combination with `HFTask`, it may be useful to override [`_convert_standard`](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/common.py#L28), which will be applied to every document in the HF dataset. See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/headqa.py) for an example of this.
 
-You can now skip ahead to <a href="#Registering-Your-Task">registering your task</a>. 
+You can now skip ahead to <a href="#Registering-Your-Task">registering your task</a>.
 
-⚠️ **End Multiple-Choice Formatting**
-<br/>
+⚠️  **End Multiple-Choice Formatting**
+
+<br>
 
 
 In the case your task is not multiple-choice, override the following methods for your task class:
