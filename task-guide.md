@@ -97,7 +97,6 @@ There are 2 standard approaches we follow for downloading data:
     ```
 	These should return a Python iterable (`list` or `generator`) of `dict`s that can be queried for individual `doc` examples. __NOTE__: If your task doesn't have a train/validation/test set, remember to raise a `NotImplementedError` for that specific split.
 
-##### ⚠️ __TODO: Multiple-Choice Tasks__
 
 If your task is multiple-choice just inherit from the `MultipleChoiceTask` class we provide.
 ```python
@@ -105,10 +104,12 @@ from lm_eval.base import MultipleChoiceTask
 
 class TaskName(..., MultipleChoiceTask):
 ```
-Multiple-choice tasks require you to format your documents according to a standard.
-after this go <a href="#Registering-Your-Task">register your task</a>.
+Multiple-choice tasks require you to format your documents such that they contain `gold` and `choices` fields. They can also have other fields, but those will be ignored by MultipleChoiceTask. `choices` should be a list of possible continuations, and `gold` should be an integer specifying the index of the correct completion.
 
-⚠️ __END TODO__
+See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/105fa9741ff660f6a62c2eef0d2facfde36dda41/lm_eval/tasks/sat.py#L56) for an example. When used in combination with HFTask, it may be useful to override [`_convert_standard`](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/common.py#L28), which will be applied to every document in the HF dataset. See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/headqa.py) for an example of this.
+
+After this go <a href="#Registering-Your-Task">register your task</a>.
+
 
 ### Versioning
 
@@ -226,6 +227,7 @@ def higher_is_better(self):
     return {}
 ```
 
+Tip: Feel free to create your own helper-methods for your task!
 #### Check On the Task Performance
 
 ```sh
@@ -247,12 +249,21 @@ python main.py \
 	--num_fewshot K
 ```
 
-- ⚠️ __TODO__: How to run test scripts locally before committing and making a PR ⚠️
+#### Running Unit Tests
 
-Tip: Feel free to create your own helper-methods for your task!
+To run the entire test suite, use:
+
+```sh
+pytest
+```
+
+This is usually overkill; to run only the tests for your task, do:
+```sh
+pytest -k <task name>
+```
 
 ## Submitting your Task
 
 Although we currently do not work behind a specific style guide, we'd appreciate if you tidy up your file/s with the `black` formatter (which should've been install through the `requirements.txt`). Keep things clean…ish 🙂.
 
-Now push your work and make a pull request! Thanks for the contribution 👍. If there are any questions, leave a message in the `lm-thunderdome` channel on the EAI discord.
+Now push your work and make a pull request! Thanks for the contribution 👍. If there are any questions, leave a message in the `#lm-thunderdome` channel on the EAI discord.
