@@ -85,7 +85,7 @@ def test_gpt3_perplexity():
     assert perplexity == pytest.approx(tgt, rel=1e-3)
 
     # Hack: modify gpt3 to have shorter context length to induce rolling windows
-    gpt3.MAX_LENGTH = 5
+    gpt3.max_length = 5
     perplexity = gpt3.loglikelihood_rolling([(test_string,)])[0]
     tgt = -101.93490880000002
     assert perplexity == pytest.approx(tgt, rel=1e-3)

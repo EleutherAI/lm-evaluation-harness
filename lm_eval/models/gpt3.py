@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import transformers
-from lm_eval.base import LM
+from lm_eval.base import LM, TokenizedLM
 from lm_eval import utils
 from tqdm import tqdm
 import time
@@ -35,11 +35,8 @@ def oa_completion(**kwargs):
             backoff_time *= 1.5
 
 
-class GPT3LM(LM):
-
-    MAX_LENGTH = 2048
+class GPT3LM(TokenizedLM):
     REQ_CHUNK_SIZE = 20
-    MAX_GEN_TOKS = 256
 
     def __init__(self, engine, truncate=False):
         """
@@ -50,10 +47,15 @@ class GPT3LM(LM):
             Truncate input if too long (if False and input is too long, throw error)
         """
         super().__init__()
+
         import openai
         self.engine = engine
         self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
 
+        self.vocab_size = self.tokenizer.vocab_size
+        self.eot_token_id = self.tokenizer.eos_token_id
+        self.max_gen_toks = 256
+        self.max_length = 2048
 
         # to make the annoying "Using pad_token, but it is not set yet." error go away
         self.tokenizer.pad_token = "<|endoftext|>"
@@ -63,27 +65,12 @@ class GPT3LM(LM):
 
         # Read from environment variable OPENAI_API_SECRET_KEY
         openai.api_key = os.environ["OPENAI_API_SECRET_KEY"]
-
-    @classmethod
-    def create_from_arg_string(cls, arg_string, additional_config={}):
-        args = utils.simple_parse_args_string(arg_string)
-        args2 = {k: v for k, v in additional_config.items() if v is not None}
-        return cls(**args, **args2)
-
-    def loglikelihood(self, requests):
-        new_reqs = []
-        for context, continuation in requests:
-            if context == "":
-                # end of text as context
-                context_enc = [50256]
-            else:
-                context_enc = self.tokenizer.encode(context)
-
-            continuation_enc = self.tokenizer.encode(continuation)
-
-            new_reqs.append(((context, continuation), context_enc, continuation_enc))
-
-        return self._loglikelihood_tokens(new_reqs)
+    
+    def tok_encode(self, string: str):
+        return self.tokenizer.encode(string, add_special_tokens=False)
+    
+    def tok_decode(self, tokens):
+        return self.tokenizer.decode(tokens)
 
     def loglikelihood_rolling(self, requests):
         # TODO: switch implementation to use _loglikelihood_tokens rather than having it do its own thing
@@ -94,7 +81,7 @@ class GPT3LM(LM):
             rolling_token_windows = utils.get_rolling_token_windows(
                 token_list=encoded,
                 prefix_token=self.end_of_text_token_id,
-                max_seq_len=self.MAX_LENGTH,
+                max_seq_len=self.max_length,
                 context_len=1,
             )
             string_loglikelihoods = []
@@ -109,8 +96,28 @@ class GPT3LM(LM):
 
         return loglikelihoods
 
-    def _loglikelihood_tokens(self, requests):
-        import openai
+    def get_token_logprobs(self, input_tokens, pred_tokens):
+        pred_start = len(input_tokens) - len(pred_tokens) + 1
+        # We're going to stitch together the input_tokens and pred_tokens
+        # In the longest case, this gets us to length = max_seq_len+1 (which the API works with)
+        assert input_tokens[pred_start:] == pred_tokens[:-1]
+        token_ids = input_tokens + [pred_tokens[-1]]
+        response = oa_completion(
+            engine=self.engine,
+            prompt=token_ids,
+            max_tokens=0,
+            temperature=0.0,
+            logprobs=0,
+            echo=True,
+        )
+        logprobs = np.array(response["choices"][0]["logprobs"]["token_logprobs"][pred_start:])
+        positions = np.arange(pred_start-1, pred_start-1 + len(token_ids[pred_start:]))
+        return {
+            "logprobs": logprobs,
+            "positions": positions,
+        }
+
+    def _loglikelihood_tokens(self, requests, disable_tqdm=False):
         res = []
 
         def _collate(x):
@@ -122,12 +129,12 @@ class GPT3LM(LM):
         
         reord = utils.Reorderer(requests, _collate)
 
-        for chunk in tqdm(list(utils.chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE))):
+        for chunk in tqdm(list(utils.chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE)), disable=disable_tqdm):
             inps = []
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
-                inp = (context_enc + continuation_enc)[-self.MAX_LENGTH:]
-                ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - self.MAX_LENGTH)
+                inp = (context_enc + continuation_enc)[-self.max_length:]
+                ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - self.max_length)
 
                 inps.append(inp)
                 ctxlens.append(ctxlen)
@@ -151,34 +158,13 @@ class GPT3LM(LM):
 
         return reord.get_original(res)
 
-    def get_token_logprobs(self, input_tokens, pred_tokens):
-        pred_start = len(input_tokens) - len(pred_tokens) + 1
-        # We're going to stitch together the input_tokens and pred_tokens
-        # In the longest case, this gets us to length = max_seq_len+1 (which the API works with)
-        assert input_tokens[pred_start:] == pred_tokens[:-1]
-        token_ids = input_tokens + [pred_tokens[-1]]
-        response = oa_completion(
-            engine=self.engine,
-            prompt=token_ids,
-            max_tokens=0,
-            temperature=0.0,
-            logprobs=0,
-            echo=True,
-        )
-        logprobs = np.array(response["choices"][0]["logprobs"]["token_logprobs"][pred_start:])
-        positions = np.arange(pred_start-1, pred_start-1 + len(token_ids[pred_start:]))
-        return {
-            "logprobs": logprobs,
-            "positions": positions,
-        }
-
     def greedy_until(self, requests):
         if not requests: return []
         import openai
         res = []
 
         def _collate(x):
-            toks = self.tokenizer.encode(x[0])
+            toks = self.tok_encode(x[0])
             return (len(toks), x[0])
         
         reord = utils.Reorderer(requests, _collate)
@@ -199,14 +185,14 @@ class GPT3LM(LM):
         for chunk, until in tqdm(list(sameuntil_chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE))):
             inps = []
             for context, _ in chunk:
-                context_enc = self.tokenizer.encode(context)
-                inp = context_enc[-(self.MAX_LENGTH - self.MAX_GEN_TOKS):]
+                context_enc = self.tok_encode(context)
+                inp = context_enc[-(self.max_length - self.max_gen_toks):]
                 inps.append(inp)
 
             response = oa_completion(
                 engine=self.engine,
                 prompt=inps,
-                max_tokens=self.MAX_GEN_TOKS, 
+                max_tokens=self.max_gen_toks, 
                 temperature=0.,
                 logprobs=10,
                 stop=until

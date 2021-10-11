@@ -1,9 +1,12 @@
 import abc
 import random
+from typing import Iterable
 import numpy as np
 import re
+from tqdm import tqdm
 
 from lm_eval.metrics import mean, perplexity, weighted_perplexity, weighted_mean
+from lm_eval import utils
 
 
 class LM(abc.ABC):
@@ -96,18 +99,68 @@ class LM(abc.ABC):
         pass
 
     @classmethod
-    def create_from_arg_string(cls, arg_string):
-        """Constructor method, in case models need additional arguments
-        e.g. OpenAI API engine, paths for loading, other params
-
-        :param arg_string: str
-            Left up to individual model class to handle
-
-        """
-        return cls()
+    def create_from_arg_string(cls, arg_string, additional_config={}):
+        args = utils.simple_parse_args_string(arg_string)
+        args2 = {k: v for k, v in additional_config.items() if v is not None}
+        return cls(**args, **args2)
 
     def set_cache_hook(self, cache_hook):
         self.cache_hook = cache_hook
+
+
+class TokenizedLM(LM):
+    @abc.abstractmethod
+    def tok_encode(self, string: str): pass
+    
+    @abc.abstractmethod
+    def tok_decode(self, tokens: Iterable[int]): pass
+
+    @abc.abstractmethod
+    def _loglikelihood_tokens(self, requests, disable_tqdm=False): pass
+
+    # subclass must implement properties vocab_size, eot_token_id, max_gen_toks.
+    # TODO: enforce this somehow
+
+    def loglikelihood(self, requests):
+        new_reqs = []
+        for context, continuation in requests:
+            if context == "":
+                # end of text as context
+                context_enc = [self.eot_token_id]
+            else:
+                context_enc = self.tok_encode(context)
+
+            continuation_enc = self.tok_encode(continuation)
+
+            new_reqs.append(((context, continuation), context_enc, continuation_enc))
+
+        return self._loglikelihood_tokens(new_reqs)
+
+    def loglikelihood_rolling(self, requests):
+        # TODO: Implement caching once we've confirmed the perplexity implementation
+        # TODO: automatic batch size detection for vectorization
+
+        loglikelihoods = []
+        for string, in tqdm(requests):
+            rolling_token_windows = list(map(utils.make_disjoint_window, utils.get_rolling_token_windows(
+                token_list=self.tok_encode(string),
+                prefix_token=self.eot_token_id,
+                max_seq_len=self.max_length,
+                context_len=1,
+            )))
+
+            rolling_token_windows = [(None,) + x for x in rolling_token_windows]
+
+            # TODO: extract out this call so it only gets called once and also somehow figure out partial caching for that
+            string_nll = self._loglikelihood_tokens(rolling_token_windows, disable_tqdm=True)
+            
+            # discard is_greedy
+            string_nll = [x[0] for x in string_nll]
+            
+            string_nll = sum(string_nll)
+            loglikelihoods.append(string_nll)
+
+        return loglikelihoods
 
 
 class Task(abc.ABC):
