@@ -53,6 +53,10 @@ python main.py \
 
 To evaluate mesh-transformer-jax models that are not available on HF, please invoke eval harness through [this script](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
 
+## Implementing new tasks
+
+To implement a new task in eval harness, see [this guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/task-guide.md).
+
 ## Cite as
 
 ```
