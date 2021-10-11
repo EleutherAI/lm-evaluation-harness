@@ -227,6 +227,8 @@ def higher_is_better(self):
     return {}
 ```
 
+Some tasks that are good examples of various ways evaluation can be implemented can be found here: [LAMBADA](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/lambada.py), [TriviaQA](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/triviaqa.py), [SQuAD](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/squad.py).
+
 Tip: Feel free to create your own helper-methods for your task!
 #### Check On the Task Performance
 
