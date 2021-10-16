@@ -44,7 +44,7 @@ from . import wikitext
 from . import lambada_multilingual
 from . import mutual
 from . import truthfulqa
-
+from . import asdiv
 ########################################
 # Translation tasks
 ########################################
@@ -163,6 +163,7 @@ TASK_REGISTRY = {
     "math_num_theory": hendrycks_math.MathNumberTheory,
     "math_prealgebra": hendrycks_math.MathPrealgebra,
     "math_precalc": hendrycks_math.MathPrecalculus,
+    "math_asdiv": asdiv.Asdiv,
 
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
