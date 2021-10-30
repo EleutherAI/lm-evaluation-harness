@@ -36,10 +36,7 @@ class CoQA(Task):
 
     def test_docs(self):
         pass
-    
-    def fewshot_description(self):
-        return "Given a passage and a conversation so far, answer the next question in the conversation."
-    
+
     def doc_to_text(self, doc):
         # Given a passage p, the conversation history {q1, a1, . . . qi−1, ai−1} 
         # and a question qi, the task is to predict the answer ai

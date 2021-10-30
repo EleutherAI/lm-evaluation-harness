@@ -80,9 +80,5 @@ class LogiQA(MultipleChoiceTask):
     def test_docs(self):
         return self._load_docs(self.DATASET_PATH / "Test.txt")
 
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return ""
-
     def doc_to_text(self, doc):
         return doc["query"]

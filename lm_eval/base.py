@@ -2,6 +2,7 @@ import abc
 import random
 import numpy as np
 import re
+from lm_eval import tasks
 
 from lm_eval.metrics import mean, perplexity, weighted_perplexity, weighted_mean
 
@@ -224,11 +225,15 @@ class Task(abc.ABC):
         pass
 
     def fewshot_description(self):
+        import warnings
+        warnings.warn(
+            "`fewshot_description` will be removed in coming versions. Pass " \
+            "any custom descriptions to the `evaluate` function instead.",
+            DeprecationWarning)
         return ""
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
-        raw_description = self.fewshot_description()
-        description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
+    def fewshot_context(self, doc, num_fewshot, rnd, description=None):
+        description = description + "\n\n" if description else ""
 
         if num_fewshot == 0:
             labeled_examples = ""
@@ -295,16 +300,13 @@ class PerplexityTask(Task, abc.ABC):
     def has_training_docs(self):
         return False
 
-    def fewshot_description(self):
-        return ""
-
     def fewshot_examples(self, k, rnd):
         assert k == 0
         return []
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
+    def fewshot_context(self, doc, num_fewshot, rnd, description=None):
         assert num_fewshot == 0
-        assert not provide_description
+        assert description is None 
         return ""
 
     def higher_is_better(self):
