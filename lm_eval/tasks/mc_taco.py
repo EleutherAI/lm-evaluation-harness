@@ -39,9 +39,6 @@ class MCTACO(HFTask):
     def has_test_docs(self):
         return True
 
-    def fewshot_description(self):
-        return "Determine whether the candidate answer is plausible (\"yes\") or not (\"no\")"
-
     def doc_to_text(self, doc):
         return f"{doc['sentence']}\nQuestion: {doc['question']}\n"\
             f"Answer: {doc['answer']}\nPlausible:"

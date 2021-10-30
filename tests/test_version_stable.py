@@ -81,5 +81,5 @@ def test_versions_stable(taskname, Task):
     lm.greedy_until = greedy_until
 
     limit = None
-    res = evaluator.evaluate(lm, task_dict, False, 0, limit, bootstrap_iters=10)
+    res = evaluator.evaluate(lm, task_dict, 0, limit, description_dict=None, bootstrap_iters=10)
     assert_target(f"{taskname}-v{Task.VERSION}-res", res)

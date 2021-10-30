@@ -87,8 +87,7 @@ There are 2 standard approaches we follow for downloading data:
     ```
    These methods return `True`/`False` whether or not your task dataset provides documents for each split type. __Note__: if the test set doesn't have publicly available labels, please do not put it down as having a test set.
 
-	Lastly, we need to load the documents. In our terminology, a document (`doc`) is a single natural language data example stored in a Python `dict`. E.g.:
-	`{“question”: “What is the capital of France?”, “answer”: “Paris”}`. Override the following methods to load your data splits from their storage location in `DATASET_PATH`:
+	Lastly, we need to load the documents. In our terminology, a document (`doc`) is a single natural language data example stored in a Python `dict`. E.g.: `{“question”: “What is the capital of France?”, “answer”: “Paris”}`. Override the following methods to load your data splits from their storage location in `DATASET_PATH`:
     ```python
     def training_docs(self):
         return #...
@@ -117,7 +116,7 @@ class TaskName(..., MultipleChoiceTask):
 
 This will require you to format your documents such that they contain `gold` and `choices` fields. They can also have other fields, but those will be ignored by `MultipleChoiceTask`. `choices` should be a list of possible continuations, and `gold` should be an integer specifying the index of the correct completion.
 
-See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/105fa9741ff660f6a62c2eef0d2facfde36dda41/lm_eval/tasks/sat.py#L56) for an example. When used in combination with `HFTask`, it may be useful to override [`_convert_standard`](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/common.py#L28), which will be applied to every document in the HF dataset. See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/headqa.py) for an example of this.
+See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/105fa9741ff660f6a62c2eef0d2facfde36dda41/lm_eval/tasks/sat.py#L56) for an example. When used in combination with `HFTask`, it may be useful to override [`_convert_standard`](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/common.py#L28), which will be applied to every document in the HF dataset. See task](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/headqa.py) for an example of this.
 
 You can now skip ahead to <a href="#Registering-Your-Task">registering your task</a>.
 
@@ -125,17 +124,9 @@ You can now skip ahead to <a href="#Registering-Your-Task">registering your task
 
 <br>
 
+In the case your task is _not_ multiple-choice, override the following methods for your task class:
 
-In the case your task is not multiple-choice, override the following methods for your task class:
-
-Put the natural language task description as a single line (no `\n`s) string here. E.g. `"Translate English to French:"`
-
-```python
-def fewshot_description(self):
-    return ""
-```
-
-Format your document into a single query prompt __without the answer__ here. This method takes a single `doc` example (in dictionary form) . You should concatenate its members into a nicely formatted prompt.
+Format your document into a single query prompt __without the answer__ here. This method takes a single `doc` example of type `dict` with `str` key-value members. You should concatenate these `doc` item values together into a neatly formatted prompt.
 
 ```python
 def doc_to_text(self, doc):
@@ -151,6 +142,41 @@ def doc_to_target(self, doc):
 
 Understand that the strings from `doc_to_text` and `doc_to_target` will be concatenated together to build up labeled examples in the k-shot setting where k > 0. Design with that in mind 👍.
 
+### Formatting Prompts
+
+If you'd like to prepend your few-shot examples with a natural language description or provide a lone custom prompt under a zero-shot setting, you can do this on a per-task basis via the `description_dict` arg of `evaluator.evaluate` which is accessible through the `evaluator` module. This `description_dict` must adhere to the following key-value structure:
+
+- **key**: the task name as specified in the lm-eval-harness task registry (see the following section on task registry).
+- **value**: the corresponding description/prompt for the task identified by **key**.
+
+E.g.
+
+```python
+description_dict = {
+    "task_name_1": "task_name_1 custom prompt or few-shot task description",
+    "task_name_2": "task_name_2 custom prompt or few-shot task description",
+    ...
+}
+```
+
+At a higher level, one can interface with `evaluator.evaluate` by simply passing a JSON file path to the `description_path` arg of the command-line interface program, `main.py`. The JSON file pointed to should be structured the same way as the aforementioned `description_dict`. E.g. for some file at `/your/path/descriptions.json` you might have:
+
+```json
+{
+    "cycle_letters": "Please unscramble the letters into a word, and write that word:",
+    "copa": "Given a premise and one alternative with a causal relation to the premise and another without, choose the more plausible alternative"
+}
+```
+
+which can then be hooked up to the evaluator through the `main.py` CLI as:
+
+```python
+python main.py  \
+--tasks cycle_letters,copa \
+--description_path /your/path/descriptions.json \
+...
+```
+
 ### Registering Your Task
 
 Now's a good time to register your task to expose it for usage. All you'll need to do is import your task module in `lm_eval/tasks/__init__.py` and provide an entry in the `TASK_REGISTRY`  dictionary with the key as the name of your benchmark task (in the form it'll be referred to in the command line) and the value as the task class. See how it's done for other tasks in the [file](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/__init__.py).
@@ -161,7 +187,7 @@ After registering your task, you can now check on your data downloading and veri
 
 ```bash
 python -m scripts.write_out \
-    --task <your-task> \
+    --tasks <your-task> \
     --output_base_path <path> \
     --sets <train | val | test> \
     --num_fewshot K \

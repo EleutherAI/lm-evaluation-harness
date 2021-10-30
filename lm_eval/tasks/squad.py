@@ -41,10 +41,6 @@ class SQuAD2(HFTask):
     def validation_docs(self):
         return self.data["validation"]
 
-    def fewshot_description(self):
-        # TODO: figure out description
-        return ""
-
     def doc_to_text(self, doc):
         return 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Question: ' + doc['question'] + '\n\n' + 'Answer:'
 

@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+import json
 import os
 import random
 from lm_eval import tasks
@@ -12,7 +13,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output_base_path', required=True)
     parser.add_argument('--tasks', default="all_tasks")
-    parser.add_argument('--provide_description', action="store_true")
+    parser.add_argument('--description_path', default=None)
     parser.add_argument('--sets', type=str, default="val") # example: val,test
     parser.add_argument('--num_fewshot', type=int, default=1)
     parser.add_argument('--seed', type=int, default=42)
@@ -29,6 +30,12 @@ def main():
     else:
         task_names = args.tasks.split(",")
     task_dict = tasks.get_task_dict(task_names)
+
+    description_dict = {}
+    if args.description_path:
+        with open(args.description_path, 'r') as f:
+            description_dict = json.load(f)
+
     os.makedirs(args.output_base_path, exist_ok=True)
     for task_name, task in task_dict.items():
         rnd = random.Random()
@@ -47,14 +54,16 @@ def main():
 
         docs = join_iters(iters)
 
+        description = description_dict[task_name] if description_dict and task_name in description_dict else ""
+
         with open(os.path.join(args.output_base_path, task_name), "w") as f:
             for i, doc in zip(range(args.num_examples), docs) if args.num_examples > 0 else enumerate(docs):
                 f.write(EXAMPLE_DIVIDER.format(i=i))
                 ctx = task.fewshot_context(
                     doc=doc,
-                    provide_description=args.provide_description,
                     num_fewshot=args.num_fewshot,
-                    rnd=rnd
+                    rnd=rnd,
+                    description=description
                 )
                 f.write(ctx + "\n")
 

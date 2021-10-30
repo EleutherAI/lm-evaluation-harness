@@ -1,5 +1,6 @@
 import collections
 import itertools
+import json
 import random
 import lm_eval.metrics
 import lm_eval.models
@@ -7,7 +8,7 @@ import lm_eval.tasks
 import lm_eval.base
 import numpy as np
 
-def simple_evaluate(model, model_args, task_names, num_fewshot=0, batch_size=None, device=None, no_cache=False, limit=None, bootstrap_iters=100000):
+def simple_evaluate(model, model_args, task_names, description_path=None, num_fewshot=0, batch_size=None, device=None, no_cache=False, limit=None, bootstrap_iters=100000):
     random.seed(1234)
     np.random.seed(1234)
 
@@ -19,7 +20,12 @@ def simple_evaluate(model, model_args, task_names, num_fewshot=0, batch_size=Non
         lm = lm_eval.base.CachingLM(lm, 'lm_cache/' + model + '_' + model_args.replace('=', '-').replace(',', '_').replace('/', '-') + '.db')
     
     task_dict = lm_eval.tasks.get_task_dict(task_names)
-    results = evaluate(lm, task_dict, False, num_fewshot, limit)
+    description_dict = {}
+    if description_path:
+        with open(description_path, 'r') as f:
+            description_dict = json.load(f)
+
+    results = evaluate(lm, task_dict, num_fewshot, limit, description_dict)
 
     # add info about the model and few shot config
     results["config"] = {
@@ -28,6 +34,8 @@ def simple_evaluate(model, model_args, task_names, num_fewshot=0, batch_size=Non
         "num_fewshot": num_fewshot,
         "batch_size": batch_size,
         "device": device,
+        # TODO (jon-tow): Should we add the description info to `results["config"]`?
+        # "description_dict": description_dict,
         "no_cache": no_cache,
         "limit": limit,
         "bootstrap_iters": bootstrap_iters
@@ -36,9 +44,7 @@ def simple_evaluate(model, model_args, task_names, num_fewshot=0, batch_size=Non
     return results
 
 
-def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_iters=100000):
-    assert not provide_description # not implemented. todo: implement proper description-providing system
-
+def evaluate(lm, task_dict, num_fewshot, limit, description_dict=None, bootstrap_iters=100000):
     # TODO: completely refactor this entire function to not be a huge mess, ideally breaking it down into smaller pieces
 
     task_dict_items = [(name, task) for name, task in task_dict.items() if(task.has_validation_docs() or task.has_test_docs())]
@@ -73,16 +79,16 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
         rnd.seed(42)
         rnd.shuffle(task_docs)
 
+        description = description_dict[task_name] if description_dict and task_name in description_dict else ""
+
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
             docs[(task_name, doc_id)] = doc
-
             ctx = task.fewshot_context(
                 doc=doc,
-                provide_description=provide_description,
                 num_fewshot=num_fewshot,
-                rnd=rnd
+                rnd=rnd,
+                description=description
             )
-
             reqs = task.construct_requests(doc, ctx)
             if not isinstance(reqs, (list, tuple)): reqs = [reqs]
             for i, req in enumerate(reqs):

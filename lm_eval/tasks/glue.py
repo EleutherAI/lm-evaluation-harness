@@ -21,10 +21,6 @@ class CoLA(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO
-        return ""
-
     def doc_to_text(self, doc):
         return "{}\nQuestion: Does this sentence make sense?\nAnswer:".format(doc["sentence"])
 
@@ -68,9 +64,6 @@ class SST(HFTask):
 
     def has_test_docs(self):
         return False
-
-    def fewshot_description(self):
-        return "Indicate if the sentiment of each sentence is positive or negative."
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: Is this sentence positive or negative?\nAnswer:".format(
@@ -342,9 +335,6 @@ class MRPC(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        return "Indicate if both sentences mean the same thing."
-
     def doc_to_text(self, doc):
         return "Sentence 1: {}\nSentence 2: {}\nQuestion: Do both sentences mean the same thing?\nAnswer:".format(
             general_detokenize(doc["sentence1"]),
@@ -395,9 +385,6 @@ class QQP(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        return "Indicate if both questions ask the same thing."
-
     def doc_to_text(self, doc):
         return "Question 1: {}\nQuestion 2: {}\nQuestion: Do both questions ask the same thing?\nAnswer:".format(
             doc["question1"],
@@ -447,10 +434,6 @@ class STSB(HFTask):
 
     def has_test_docs(self):
         return True
-
-    def fewshot_description(self):
-        return "Indicate if both sentences mean the same thing from a scale of 0-5, " \
-           "where 5 means identical and 0 means unrelated."
 
     def doc_to_text(self, doc):
         return "sentence 1: {}\nsentence 2: {}\nAnswer:".format(
