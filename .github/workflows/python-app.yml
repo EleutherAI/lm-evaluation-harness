@@ -23,7 +23,7 @@ jobs:
         path: |
           ~/.cache
         # An explicit key for restoring and saving the cache
-        key: evaldata-cache-3
+        key: evaldata-cache-4
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
