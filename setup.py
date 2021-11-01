@@ -43,6 +43,7 @@ setuptools.setup(
         "jieba==0.42.1",
         "nagisa==0.2.7",
         "t5==0.7.1",
+        "tensorflow-estimator==2.6.0",
         "bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt"
     ]
 )
