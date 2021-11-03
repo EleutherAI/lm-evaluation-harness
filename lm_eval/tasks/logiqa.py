@@ -10,7 +10,7 @@ class LogiQA(MultipleChoiceTask):
     def download(self):
         if self.DATASET_PATH.exists():
             return
-        Path.mkdir(self.DATASET_PATH)
+        Path.mkdir(self.DATASET_PATH, parents=True)
         base_url = "https://raw.githubusercontent.com/lgw863/LogiQA-dataset/master"
         splits = [
             {"name": "Train", "checksum": "7d5bb1f58278e33b395744cd2ad8d7600faa0b3c4d615c659a44ec1181d759fa"},
