@@ -49,7 +49,7 @@ QA_PROMPT = (
 
 
 class TruthfulQAMultipleChoice(Task):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = Path('data/truthfulqa/mc')
 
     def download(self):
@@ -150,7 +150,7 @@ class TruthfulQAMultipleChoice(Task):
 
 
 class TruthfulQAGeneration(Task):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = Path('data/truthfulqa/generation')
 
     def download(self):
