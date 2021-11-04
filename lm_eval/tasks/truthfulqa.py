@@ -29,7 +29,6 @@ from pathlib import Path
 from best_download import download_file
 from ..metrics import mean
 from datasets import load_metric
-from t5.evaluation import metrics
 
 
 # The default QA preset prompt for all models.
