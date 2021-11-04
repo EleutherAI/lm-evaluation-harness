@@ -30,7 +30,7 @@ setuptools.setup(
         "sqlitedict==1.6.0",
         "pytablewriter==0.58.0",
         "sacrebleu==1.5.0",
-        "rouge-score==0.04",
+        "rouge-score==0.0.4",
         "bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt",
         "pycountry==20.7.3",
         "numexpr==2.7.2",
