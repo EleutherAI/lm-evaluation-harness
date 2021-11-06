@@ -399,9 +399,15 @@ class TruthfulQAGeneration(Task):
         """
         rouge_types = ["rouge1", "rouge2", "rougeLsum"]
         scorer = rouge_scorer.RougeScorer(rouge_types)
+        # Add newlines between sentences to correctly compute `rougeLsum`.
+        def _prepare_summary(summary):
+            summary = summary.replace(" . ", ".\n")
+            return summary
         # Accumulate confidence intervals.
         aggregator = scoring.BootstrapAggregator()
         for ref, pred in zip(refs, preds):
+            ref = _prepare_summary(ref)
+            pred = _prepare_summary(pred)
             aggregator.add_scores(scorer.score(ref, pred))
         result = aggregator.aggregate()
         return {type: result[type].mid.fmeasure*100 for type in rouge_types}
