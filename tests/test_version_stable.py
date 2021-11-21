@@ -15,7 +15,7 @@ def assert_target(name, ob):
     fname = f"tests/testdata/{name}.json"
     if os.path.exists(fname):
         with open(fname) as fh:
-            assert json.load(fh) == json.loads(json.dumps(ob, sort_keys=True))
+            assert json.load(fh) == pytest.approx(json.loads(json.dumps(ob, sort_keys=True)))
     else:
         with open(fname, 'w') as fh:
             json.dump(ob, fh, sort_keys=True)
