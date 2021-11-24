@@ -1,13 +1,6 @@
 import transformers
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from lm_eval.base import LM, BaseLM
-from lm_eval import utils
-from tqdm import tqdm
-import numpy as np
-from abc import ABC, abstractmethod
-from typing import Iterable
+from lm_eval.base import BaseLM
 
 
 class HFLM(BaseLM):
@@ -20,16 +13,19 @@ class HFLM(BaseLM):
         assert isinstance(batch_size, int)
 
         if device:
-            self.device = torch.device(device)
+            self._device = torch.device(device)
         else:
-            self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+            self._device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
-        self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(pretrained, revision=revision +("/" + subfolder if subfolder is not None else "")).to(self.device)
+        self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
+            pretrained, revision=revision + ("/" + subfolder if subfolder is not None else "")
+        ).to(self.device)
         self.gpt2.eval()
 
-        # pretrained tokenizer for neo is broken for now so just hardcoding this to gpt2
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(pretrained if tokenizer is None else tokenizer, revision=revision, subfolder=subfolder)
+        # pretrained tokenizer for neo is broken for now so just hard-coding this to gpt2
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            pretrained if tokenizer is None else tokenizer, revision=revision, subfolder=subfolder)
 
         assert isinstance(self.tokenizer, (
             transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast,
@@ -37,29 +33,46 @@ class HFLM(BaseLM):
         )), "this tokenizer has not been checked for compatibility yet!"
 
         self.vocab_size = self.tokenizer.vocab_size
-        self.eot_token_id = self.tokenizer.eos_token_id # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
-        self.max_gen_toks = 256
-
-        try:
-            self.max_length = self.gpt2.config.n_ctx
-        except AttributeError:
-            # gptneoconfig doesn't have n_ctx apparantly
-            self.max_length = self.gpt2.config.max_position_embeddings
 
         if isinstance(self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)):
-            assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373], self.tokenizer.encode('hello\n\nhello')
+            assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373], \
+                self.tokenizer.encode('hello\n\nhello')
 
         # multithreading and batching
-        gpus = torch.cuda.device_count()
-        batch_size_per_gpu = batch_size # todo: adaptive batch size
+        self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
 
         # TODO: fix multi-gpu
-        self.batch_size = batch_size_per_gpu# * gpus
-
-        # TODO: fix multi-gpu
+        # gpus = torch.cuda.device_count()
         # if gpus > 1:
         #     self.gpt2 = nn.DataParallel(self.gpt2)
-    
+
+    @property
+    def eot_token_id(self):
+        # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
+        return self.tokenizer.eos_token_id
+
+    @property
+    def max_length(self):
+        try:
+            return self.gpt2.config.n_ctx
+        except AttributeError:
+            # gptneoconfig doesn't have n_ctx apparently
+            return self.gpt2.config.max_position_embeddings
+
+    @property
+    def max_gen_toks(self):
+        return 256
+
+    @property
+    def batch_size(self):
+        # TODO: fix multi-gpu
+        return self.batch_size_per_gpu  # * gpus
+
+    @property
+    def device(self):
+        # TODO: fix multi-gpu
+        return self._device
+
     def tok_encode(self, string: str):
         return self.tokenizer.encode(string, add_special_tokens=False)
     
@@ -72,7 +85,7 @@ class HFLM(BaseLM):
         the size of sequence may vary from call to call
 
         returns: a torch tensor of shape [batch, sequence, vocab] with the
-        logits retuned from the model
+        logits returned from the model
         """
         with torch.no_grad():
             return self.gpt2(inps)[0][:, :, :50257]
@@ -86,5 +99,5 @@ class HFLM(BaseLM):
         )
 
 
-# for backwards compability
+# for backwards compatibility
 GPT2LM = HFLM
