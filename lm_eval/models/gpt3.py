@@ -8,6 +8,18 @@ import time
 
 
 def get_result(response, ctxlen):
+    """Process results from OpenAI API response.
+
+    :param response: dict
+        OpenAI API Response
+    :param ctxlen: int
+        Length of context (so we can slice them away and only keep the predictions)
+    :return:
+        continuation_logprobs: np.array
+            Log probabilities of continuation tokens
+        is_greedy: bool
+            whether argmax matches given continuation exactly
+    """
     is_greedy = True
     logprobs = response["logprobs"]["token_logprobs"]
     continuation_logprobs = sum(logprobs[ctxlen:])

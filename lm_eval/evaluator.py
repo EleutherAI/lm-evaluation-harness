@@ -11,7 +11,7 @@ import numpy as np
 def simple_evaluate(model, model_args, task_names,
                     num_fewshot=0, batch_size=None, device=None,
                     no_cache=False, limit=None, bootstrap_iters=100000):
-    """
+    """Instantiate and evaluate a model on a list of tasks.
 
     :param model: str
         Name of model, see lm_eval.models.get_model
@@ -24,7 +24,7 @@ def simple_evaluate(model, model_args, task_names,
     :param batch_size: int, optional
         Batch size for model
     :param device: str, optional
-
+        PyTorch device (e.g. "cpu" or "cuda:0") for running models
     :param no_cache: bool
         Whether or not
     :param limit: int, optional
@@ -32,6 +32,7 @@ def simple_evaluate(model, model_args, task_names,
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
     :return
+        Dictionary of results
     """
     random.seed(1234)
     np.random.seed(1234)
@@ -64,6 +65,23 @@ def simple_evaluate(model, model_args, task_names,
 
 
 def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_iters=100000):
+    """Instantiate and evaluate a model on a list of tasks.
+
+    :param lm: obj
+        Language Model
+    :param task_dict: dict[str, Task]
+        Dictionary of tasks
+    :param provide_description: bool
+        NOT IMPLEMENTED
+    :param num_fewshot: int
+        Number of examples in few-shot context
+    :param limit: int, optional
+        Limit the number of examples per task (only use this for testing)
+    :param bootstrap_iters:
+        Number of iterations for bootstrap statistics
+    :return
+        Dictionary of results
+    """
     # TODO: completely refactor this entire function to not be a huge mess, ideally breaking it down into smaller pieces
 
     # TODO: todo: implement proper description-providing system
