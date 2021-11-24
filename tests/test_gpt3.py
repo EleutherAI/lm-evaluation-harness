@@ -19,6 +19,7 @@ def mock_completion(**kwargs):
         with open(fname, 'rb') as fh:
             return pickle.load(fh)
     ret = openai.Completion.create(**kwargs)
+    ret.api_key = ""
     with open(fname, 'wb') as fh:
         pickle.dump(ret, fh)
     return ret
@@ -65,8 +66,8 @@ def test_gpt3():
     print([x[0] for x in vals])
 
     targets = [
-        -34.85833048, -47.114367866, -45.43520782100001, -5.289627985, -133.96879783896998, -321.30299892039994,
-        -658.0542459504098, -34.85833048, -7.5162964
+        -34.848301606999996, -47.148329679999996, -45.44380149599999, -5.285246016, -133.97821690686004,
+        -321.2616693239001, -658.0299524401041, -34.848301606999996, -7.525115,
     ]
 
     for (pred, _), tgt in zip(vals, targets):
