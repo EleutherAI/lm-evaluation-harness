@@ -1,16 +1,19 @@
 import abc
-import random
 from typing import Iterable
 import numpy as np
 import re
+import os
+import json
+import hashlib
+from sqlitedict import SqliteDict
 from tqdm import tqdm
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 
-from lm_eval.metrics import mean, perplexity, weighted_perplexity, weighted_mean
+from lm_eval.metrics import mean, weighted_perplexity, weighted_mean
 from lm_eval import utils
 from abc import abstractmethod
+
 
 class LM(abc.ABC):
     def __init__(self):
@@ -102,7 +105,8 @@ class LM(abc.ABC):
         pass
 
     @classmethod
-    def create_from_arg_string(cls, arg_string, additional_config={}):
+    def create_from_arg_string(cls, arg_string, additional_config=None):
+        additional_config = {} if additional_config is None else additional_config
         args = utils.simple_parse_args_string(arg_string)
         args2 = {k: v for k, v in additional_config.items() if v is not None}
         return cls(**args, **args2)
@@ -112,6 +116,32 @@ class LM(abc.ABC):
 
 
 class BaseLM(LM):
+
+    @property
+    @abstractmethod
+    def eot_token_id(self):
+        pass
+
+    @property
+    @abstractmethod
+    def max_length(self):
+        pass
+
+    @property
+    @abstractmethod
+    def max_gen_toks(self):
+        pass
+
+    @property
+    @abstractmethod
+    def batch_size(self):
+        pass
+
+    @property
+    @abstractmethod
+    def device(self):
+        pass
+
     @abstractmethod
     def tok_encode(self, string: str): pass
     
@@ -128,7 +158,7 @@ class BaseLM(LM):
         the size of sequence may vary from call to call
 
         returns: a torch tensor of shape [batch, sequence, vocab] with the
-        logits retuned from the model
+        logits returned from the model
         """
         pass
 
@@ -165,7 +195,8 @@ class BaseLM(LM):
 
             rolling_token_windows = [(None,) + x for x in rolling_token_windows]
 
-            # TODO: extract out this call so it only gets called once and also somehow figure out partial caching for that
+            # TODO: extract out this call so it only gets called once and also somehow figure out partial caching for
+            # that
             string_nll = self._loglikelihood_tokens(rolling_token_windows, disable_tqdm=True)
             
             # discard is_greedy
@@ -183,18 +214,19 @@ class BaseLM(LM):
         def _collate(x):
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
-            # - to know the size of a batch when going through the list, you know the first one is always the batch padded context length.
-            #   this is useful to simplify the batching logic and more importantly to make automatic adaptive batches much much easier to implement
+            # - to know the size of a batch when going through the list, you know the first one is always the batch
+            #   padded context length. this is useful to simplify the batching logic and more importantly to make
+            #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
 
             toks = x[1] + x[2]
-            return (-len(toks), tuple(toks))
+            return -len(toks), tuple(toks)
         
         # TODO: automatic (variable) batch size detection for vectorization
         reord = utils.Reorderer(requests, _collate)
         for chunk in utils.chunks(tqdm(reord.get_reordered(), disable=disable_tqdm), self.batch_size):
             inps = []
-            contlens = []
+            cont_toks_list = []
             inplens = []
 
             padding_length = None
@@ -211,15 +243,16 @@ class BaseLM(LM):
 
                 # how this all works:
                 #          CTX      CONT
-                # inp    0 1 2 3|4 5 6 7 8 9 <- last token is deleted by inp[:, :-1]
+                # inp    0 1 2 3|4 5 6 7 8 9   <- last token is deleted by inp[:, :-1]
                 # gpt2    \               \
-                # logits   1 2 3|4 5 6 7 8 9   <- the ctx half gets tossed out by the [:, -len(continuation_enc):, :self.vocab_size] slice
-                # cont_toks      4 5 6 7 8 9
+                # logits   1 2 3|4 5 6 7 8 9   <- the ctx half gets tossed out by the
+                # cont_toks      4 5 6 7 8 9      [:, -len(continuation_enc):, :self.vocab_size] slice
 
                 # when too long to fit in context, truncate from the left
                 inp = torch.tensor(
-                    (context_enc + continuation_enc)[-(self.max_length+1):][:-1]
-                , dtype=torch.long).to(self.device)
+                    (context_enc + continuation_enc)[-(self.max_length+1):][:-1],
+                    dtype=torch.long
+                ).to(self.device)
                 inplen, = inp.shape
 
                 cont = continuation_enc
@@ -227,34 +260,36 @@ class BaseLM(LM):
                 # since in _collate we make sure length is descending, the longest is always the first one.
                 padding_length = padding_length if padding_length is not None else inplen
 
-                # pad to length
+                # pad length from seq to padding_length
                 inp = torch.cat([
-                    inp, # [seq]
-                    torch.zeros(padding_length - inplen, dtype=torch.long).to(inp.device) # [padding_length - seq]
+                    inp,  # [seq]
+                    torch.zeros(padding_length - inplen, dtype=torch.long).to(inp.device)  # [padding_length - seq]
                 ], dim=0)
 
-                inps.append(inp.unsqueeze(0))
-                contlens.append(cont)
+                inps.append(inp.unsqueeze(0))  # [1, padding_length]
+                cont_toks_list.append(cont)
                 inplens.append(inplen)
 
-            multi_logits = F.log_softmax(self._model_call(torch.cat(inps, dim=0)), dim=-1).cpu()  # [batch, seq, vocab]
+            batched_inps = torch.cat(inps, dim=0)  # [batch, padding_length
+            multi_logits = F.log_softmax(self._model_call(batched_inps), dim=-1).cpu()  # [batch, padding_length, vocab]
 
-            for (cache_key, _, _), logits, inp, inplen, cont_toks in zip(chunk, multi_logits, inps, inplens, contlens):
+            for (cache_key, _, _), logits, inp, inplen, cont_toks \
+                    in zip(chunk, multi_logits, inps, inplens, cont_toks_list):
+
+                # Slice to original seq length
                 contlen = len(cont_toks)
+                logits = logits[inplen-contlen:inplen].unsqueeze(0)  # [1, seq, vocab]
 
-                logits = logits[inplen-contlen:inplen].unsqueeze(0) # [1, seq, vocab]
-
+                # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
-
-                # cont_toks :: [1, seq]
-                cont_toks = torch.tensor(cont_toks, dtype=torch.long).unsqueeze(0)
-
+                cont_toks = torch.tensor(cont_toks, dtype=torch.long).unsqueeze(0)  # [1, seq]
                 max_equal = (greedy_tokens == cont_toks).all()
 
-                #last_token_slice = logits[:, -1, :].squeeze(0).tolist()
+                # Obtain log-probs at the corresponding continuation token indices
+                # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
+                logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)  # [1, seq]
 
-                logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1) # [1, seq]
-
+                # Answer: (log prob, is-exact-match)
                 answer = (float(logits.sum()), bool(max_equal))
 
                 # partial caching
@@ -267,19 +302,20 @@ class BaseLM(LM):
     
     def greedy_until(self, requests):
         # TODO: implement fully general `until` that handles untils that are 
-        # multiple tokens or that span multiple tokens correctly
+        #       multiple tokens or that span multiple tokens correctly
 
         # TODO: extract to TokenizedLM?
         res = []
 
         def _collate(x):
             toks = self.tok_encode(x[0])
-            return (len(toks), x[0])
+            return len(toks), x[0]
         
         reord = utils.Reorderer(requests, _collate)
 
         for context, until in tqdm(reord.get_reordered()):
-            if isinstance(until, str): until = [until]
+            if isinstance(until, str):
+                until = [until]
 
             primary_until, = self.tok_encode(until[0])
             
@@ -428,7 +464,9 @@ class Task(abc.ABC):
                 fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
             else:
                 if self._fewshot_docs is None:
-                    self._fewshot_docs = list(self.validation_docs() if self.has_validation_docs() else self.test_docs())
+                    self._fewshot_docs = list(
+                        self.validation_docs() if self.has_validation_docs() else self.test_docs()
+                    )
 
                 fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
 
@@ -443,7 +481,7 @@ class Task(abc.ABC):
         return description + labeled_examples + example
 
 
-class MultipleChoiceTask(Task):
+class MultipleChoiceTask(Task, abc.ABC):
     def doc_to_target(self, doc):
         return " " + doc['choices'][doc['gold']]
 
@@ -518,10 +556,10 @@ class PerplexityTask(Task, abc.ABC):
     def process_results(self, doc, results):
         loglikelihood, = results
         words = self.count_words(doc)
-        bytes = self.count_bytes(doc)
+        bytes_ = self.count_bytes(doc)
         return {
             "word_perplexity": (loglikelihood, words),
-            "byte_perplexity": (loglikelihood, bytes),
+            "byte_perplexity": (loglikelihood, bytes_),
             "bits_per_byte": (-loglikelihood, self.count_bytes(doc))
         }
 
@@ -532,24 +570,15 @@ class PerplexityTask(Task, abc.ABC):
             "bits_per_byte": weighted_mean
         }
 
-    def count_bytes(self, doc):
+    @classmethod
+    def count_bytes(cls, doc):
         return len(doc.encode("utf-8"))
-    
-    def count_words(self, doc):
+
+    @classmethod
+    def count_words(cls, doc):
         """ Downstream tasks with custom word boundaries should override this! """
         return len(re.split(r"\s+", doc))
 
-
-req_ret_lens = {
-    'loglikelihood': 2,
-    'greedy_until': None,
-    'loglikelihood_rolling': None,
-}
-
-import os
-import json
-import hashlib
-from sqlitedict import SqliteDict
 
 def hash_args(attr, args):
     dat = json.dumps([attr] + list(args))
@@ -573,9 +602,17 @@ class CacheHook:
 
 class CachingLM:
     def __init__(self, lm, cache_db):
+        """LM wrapper that returns cached results if they exist, and uses the underlying LM if not.
+
+        :param lm: LM
+            Underlying LM
+        :param cache_db: str
+            Path to cache db
+        """
         self.lm = lm
         self.cache_db = cache_db
-        if os.path.dirname(cache_db): os.makedirs(os.path.dirname(cache_db), exist_ok=True)
+        if os.path.dirname(cache_db):
+            os.makedirs(os.path.dirname(cache_db), exist_ok=True)
         self.dbdict = SqliteDict(cache_db, autocommit=True)
 
         # add hook to lm
@@ -599,13 +636,14 @@ class CachingLM:
                     res.append(None)
                     remaining_reqs.append(req)
             
-            # actually run the LM
+            # actually run the LM on the requests that do not have cached results
             rem_res = getattr(self.lm, attr)(remaining_reqs)
 
             # stick the new ones back into the list and also cache any of the new ones
             resptr = 0
             for req, r in zip(remaining_reqs, rem_res):
-                while res[resptr] is not None: resptr += 1
+                while res[resptr] is not None:
+                    resptr += 1
 
                 res[resptr] = r
 
@@ -621,32 +659,39 @@ class CachingLM:
         return CacheHook(self)
 
 
-class Request:
-    def __init__(self, type, args, index=None):
-        if type not in req_ret_lens.keys():
-            raise NotImplementedError('The request type {} is not implemented!'.format(type))
+REQUEST_RETURN_LENGTHS = {
+    'loglikelihood': 2,
+    'greedy_until': None,
+    'loglikelihood_rolling': None,
+}
 
-        self.type = type
+
+class Request:
+    def __init__(self, req_type, args, index=None):
+        if req_type not in REQUEST_RETURN_LENGTHS.keys():
+            raise NotImplementedError('The request type {} is not implemented!'.format(request_type))
+
+        self.req_type = req_type
         self.args = args
         self.index = index
     
     def __iter__(self):
-        if req_ret_lens[self.type] is None:
+        if REQUEST_RETURN_LENGTHS[self.req_type] is None:
             raise IndexError('This request type does not return multiple arguments!')
-        i = 0
-        for i in range(req_ret_lens[self.type]):
-            yield Request(self.type, self.args, i)
+        for i in range(REQUEST_RETURN_LENGTHS[self.req_type]):
+            yield Request(self.req_type, self.args, i)
     
     def __getitem__(self, i):
-        if req_ret_lens[self.type] is None:
+        if REQUEST_RETURN_LENGTHS[self.req_type] is None:
             raise IndexError('This request type does not return multiple arguments!')
-        return Request(self.type, self.args, i)
+        return Request(self.req_type, self.args, i)
     
     def __eq__(self, other):
-        return self.type == other.type and self.args == other.args and self.index == other.index
+        return self.req_type == other.request_type and self.args == other.args and self.index == other.index
 
     def __repr__(self):
-        return f"Req_{self.type}{self.args}[{self.index}]\n"
+        return f"Req_{self.req_type}{self.args}[{self.index}]\n"
+
 
 class RequestFactory:
     def __getattr__(self, attr):
