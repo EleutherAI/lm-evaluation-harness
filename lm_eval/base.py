@@ -667,30 +667,30 @@ REQUEST_RETURN_LENGTHS = {
 
 
 class Request:
-    def __init__(self, req_type, args, index=None):
-        if req_type not in REQUEST_RETURN_LENGTHS.keys():
-            raise NotImplementedError('The request type {} is not implemented!'.format(req_type))
+    def __init__(self, request_type, args, index=None):
+        if request_type not in REQUEST_RETURN_LENGTHS.keys():
+            raise NotImplementedError('The request type {} is not implemented!'.format(request_type))
 
-        self.req_type = req_type
+        self.request_type = request_type
         self.args = args
         self.index = index
     
     def __iter__(self):
-        if REQUEST_RETURN_LENGTHS[self.req_type] is None:
+        if REQUEST_RETURN_LENGTHS[self.request_type] is None:
             raise IndexError('This request type does not return multiple arguments!')
-        for i in range(REQUEST_RETURN_LENGTHS[self.req_type]):
-            yield Request(self.req_type, self.args, i)
+        for i in range(REQUEST_RETURN_LENGTHS[self.request_type]):
+            yield Request(self.request_type, self.args, i)
     
     def __getitem__(self, i):
-        if REQUEST_RETURN_LENGTHS[self.req_type] is None:
+        if REQUEST_RETURN_LENGTHS[self.request_type] is None:
             raise IndexError('This request type does not return multiple arguments!')
-        return Request(self.req_type, self.args, i)
+        return Request(self.request_type, self.args, i)
     
     def __eq__(self, other):
-        return self.req_type == other.request_type and self.args == other.args and self.index == other.index
+        return self.request_type == other.request_type and self.args == other.args and self.index == other.index
 
     def __repr__(self):
-        return f"Req_{self.req_type}{self.args}[{self.index}]\n"
+        return f"Req_{self.request_type}{self.args}[{self.index}]\n"
 
 
 class RequestFactory:
