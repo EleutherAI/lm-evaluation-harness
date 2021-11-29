@@ -669,7 +669,7 @@ REQUEST_RETURN_LENGTHS = {
 class Request:
     def __init__(self, req_type, args, index=None):
         if req_type not in REQUEST_RETURN_LENGTHS.keys():
-            raise NotImplementedError('The request type {} is not implemented!'.format(request_type))
+            raise NotImplementedError('The request type {} is not implemented!'.format(req_type))
 
         self.req_type = req_type
         self.args = args
