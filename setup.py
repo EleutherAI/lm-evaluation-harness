@@ -22,7 +22,7 @@ setuptools.setup(
     install_requires=[
         "black==20.8b1",
         "best_download>=0.0.6",
-        "datasets==1.16.0",
+        "datasets==1.15.1",
         "click>=7.1",
         "scikit-learn>=0.24.1",
         "torch>=1.7",
