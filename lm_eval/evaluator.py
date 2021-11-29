@@ -121,10 +121,10 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]
             for i, req in enumerate(reqs):
-                requests[req.req_type].append(req)
+                requests[req.request_type].append(req)
                 # i: index in requests for a single task instance
                 # doc_id: unique id that we can get back to a doc using `docs`
-                requests_origin[req.req_type].append((i, task_name, doc, doc_id))
+                requests_origin[req.request_type].append((i, task_name, doc, doc_id))
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)
