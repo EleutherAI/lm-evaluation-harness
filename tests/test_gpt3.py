@@ -76,6 +76,7 @@ def test_gpt3():
 
 @mock.patch("lm_eval.models.gpt3.oa_completion", new=mock_completion)
 def test_gpt3_perplexity():
+    if "OPENAI_API_SECRET_KEY" not in os.environ: os.environ["OPENAI_API_SECRET_KEY"] = ""
     gpt3 = models.get_model('gpt3').create_from_arg_string("engine=ada")
     test_string = "We study empirical scaling laws for language model performance on the cross-entropy loss."
     perplexity = gpt3.loglikelihood_rolling([(test_string,)])[0]
