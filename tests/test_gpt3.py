@@ -27,6 +27,7 @@ def mock_completion(**kwargs):
 
 @mock.patch("lm_eval.models.gpt3.oa_completion", new=mock_completion)
 def test_gpt3():
+    if "OPENAI_API_SECRET_KEY" not in os.environ: os.environ["OPENAI_API_SECRET_KEY"] = ""
     gpt3 = models.get_model('gpt3').create_from_arg_string("engine=ada")
     (ll_dog, ig_dog), (ll_cat, ig_cat), (_, ll_max_0), (_, ll_max_1), (_, ll_max_2), *vals = gpt3.loglikelihood([
         ('The quick brown fox jumps over the lazy', ' dog'),
