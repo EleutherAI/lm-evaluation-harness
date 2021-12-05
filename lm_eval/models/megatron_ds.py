@@ -295,13 +295,16 @@ class MegatronDSLM(LM):
             self.megatron_ds_model.total_loss = None
             self.megatron_ds_model.fwd_outputs = []
             self.megatron_ds_model.pipe_buffers["outputs"] = [None]
-
         return megatron_ds_output[:, :, :self.megatron_tokenizer.vocab_size]
 
     def tokenizer_encode(self, text):
         """Tokenize text *without* adding special tokens."""
         # Splitting this into its own method in case we need to handle special cases for different tokenizers
-        return self.megatron_tokenizer.tokenizer.encode(text, add_special_tokens=False)
+        from megatron.tokenizer.gpt2_tokenization import GPT2Tokenizer
+        if isinstance(self.megatron_tokenizer.tokenizer, GPT2Tokenizer):
+            return self.megatron_tokenizer.tokenizer.encode(text)
+        else:
+            return self.megatron_tokenizer.tokenizer.encode(text, add_special_tokens=False)
 
     def greedy_until(self, requests):
         raise NotImplementedError()
