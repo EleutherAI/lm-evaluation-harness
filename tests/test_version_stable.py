@@ -6,6 +6,7 @@ import pytest
 import os
 import json
 import hashlib
+import collections
 
 
 os.makedirs("tests/testdata", exist_ok=True)
@@ -15,7 +16,11 @@ def assert_target(name, ob):
     fname = f"tests/testdata/{name}.json"
     if os.path.exists(fname):
         with open(fname) as fh:
-            assert json.load(fh) == json.loads(json.dumps(ob, sort_keys=True))
+            # Use relative tolerance of 1e-5 and absolute tolerance of 1e-8 
+            # assuming most metrics work on `float32` values, which is the common 
+            # default floating type across popular libraries (PyTorch, Tensorflow, and JAX).
+            assert flatten(json.load(fh)) == pytest.approx(
+                flatten(json.loads(json.dumps(ob, sort_keys=True))), rel=1e-5, abs=1e-8)
     else:
         with open(fname, 'w') as fh:
             json.dump(ob, fh, sort_keys=True)
@@ -29,6 +34,17 @@ def assert_target_hashed(name, ob):
         with open(fname, 'w') as fh:
             fh.write(hashlib.sha256(json.dumps(ob, sort_keys=True).encode('utf-8')).hexdigest())
 
+            
+# from https://stackoverflow.com/a/6027615
+def flatten(d, parent_key='', sep='.'):
+    items = []
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, collections.MutableMapping):
+            items.extend(flatten(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
 
 # make sure eval results for a task version are stable
 

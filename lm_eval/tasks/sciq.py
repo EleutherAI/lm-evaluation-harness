@@ -10,7 +10,7 @@ class SciQ(MultipleChoiceTask):
     # Multiple languages and multiple years
     def download(self):
         if not os.path.exists('data/sciq'):
-            os.mkdir('data/sciq')
+            os.makedirs('data/sciq', exist_ok=True)
             download_file(
                 'https://ai2-public-datasets.s3.amazonaws.com/sciq/SciQ.zip',
                 'data/sciq/SciQ.zip', 

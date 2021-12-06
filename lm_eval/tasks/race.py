@@ -22,6 +22,8 @@ class RACE(HFTask):
     cache = {}
     letter_to_num = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
 
+    assert datasets.__version__ == "1.15.1", "RACE requires datasets==1.15.1!"
+
     def has_training_docs(self):
         return True
 

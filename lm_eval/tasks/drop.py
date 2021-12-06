@@ -23,7 +23,7 @@ class DROP(Task):
     def download(self):
         if self.DATASET_PATH.exists():
             return
-        Path.mkdir(self.DATASET_PATH)
+        Path.mkdir(self.DATASET_PATH, parents=True)
         url = "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip"
         checksum = "39d2278a29fd729de301b111a45f434c24834f40df8f4ff116d864589e3249d6"
         zip_path = self.DATASET_PATH / "drop_dataset.zip"
