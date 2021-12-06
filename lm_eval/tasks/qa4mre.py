@@ -28,7 +28,7 @@ class QA4MRE(MultipleChoiceTask):
         vpath = variable_year_path[year]
         url_path = f"{base_path}{vpath}QA4MRE-{year}-{lang}_GS.xml"
         if not os.path.exists("data/qa4mre"):
-            os.mkdir("data/qa4mre")
+            os.makedirs("data/qa4mre", exist_ok=True)
         if not os.path.isfile(f"data/qa4mre/QA4MRE-{year}-{lang}"):
             download_file(
                 url_path,

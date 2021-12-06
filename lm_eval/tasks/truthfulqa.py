@@ -22,14 +22,14 @@ we could try this?
 import csv
 import json
 import numpy as np
+import sacrebleu
+from rouge_score import rouge_scorer, scoring
 from lm_eval.base import rf, Task
 from pathlib import Path
 from best_download import download_file
 from ..metrics import mean
 from datasets import load_metric
-from t5.evaluation import metrics
 
-bleurt = load_metric("bleurt", cache_dir="lm_cache")
 
 # The default QA preset prompt for all models.
 QA_PROMPT = (
@@ -49,14 +49,14 @@ QA_PROMPT = (
 
 
 class TruthfulQAMultipleChoice(Task):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = Path('data/truthfulqa/mc')
 
     def download(self):
         if self.DATASET_PATH.exists():
             return
         Path.mkdir(self.DATASET_PATH, parents=True)
-        mc_url = "https://raw.githubusercontent.com/sylinrl/TruthfulQA/main/data/mc_task.json"
+        mc_url = "https://raw.githubusercontent.com/sylinrl/TruthfulQA/013686a06be7a7bde5bf8223943e106c7250123c/data/mc_task.json"
         checksum = "6eb4125d25750c0145c4be2dce00440736684ab6f74ce6bff2139571cc758954"
         download_file(mc_url, str(self.DATASET_PATH / "mc_task.json"), checksum)
 
@@ -150,14 +150,18 @@ class TruthfulQAMultipleChoice(Task):
 
 
 class TruthfulQAGeneration(Task):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = Path('data/truthfulqa/generation')
+
+    def __init__(self):
+        super().__init__()
+        self.bleurt = load_metric("bleurt", cache_dir="lm_cache")
 
     def download(self):
         if self.DATASET_PATH.exists():
             return
         Path.mkdir(self.DATASET_PATH, parents=True)
-        url = "https://raw.githubusercontent.com/sylinrl/TruthfulQA/main/TruthfulQA.csv"
+        url = "https://raw.githubusercontent.com/sylinrl/TruthfulQA/013686a06be7a7bde5bf8223943e106c7250123c/TruthfulQA.csv"
         checksum = "8d7dd15f033196140f032d97d30f037da7a7b1192c3f36f9937c1850925335a2"
         download_file(url, str(self.DATASET_PATH / "TruthfulQA.csv"), checksum)
 
@@ -249,10 +253,10 @@ class TruthfulQAGeneration(Task):
         # Process the sentence-level BLEURT, BLEU, and ROUGE for similarity measures.
 
         # BLEURT
-        bleurt_scores_true = bleurt.compute(
+        bleurt_scores_true = self.bleurt.compute(
             predictions=[completion] * len(true_refs),
             references=true_refs)['scores']
-        bleurt_scores_false = bleurt.compute(
+        bleurt_scores_false = self.bleurt.compute(
             predictions=[completion] * len(false_refs),
             references=false_refs)['scores']
         bleurt_correct = max(bleurt_scores_true)
@@ -262,7 +266,7 @@ class TruthfulQAGeneration(Task):
         bleurt_acc = int(bleurt_correct > bleurt_incorrect)
 
         # BLEU
-        bleu_scores = [metrics.bleu([ref], [completion])['bleu'] for ref in all_refs]
+        bleu_scores = [self.bleu([[ref]], [completion]) for ref in all_refs]
         bleu_correct = np.nanmax(bleu_scores[:len(true_refs)])
         bleu_incorrect = np.nanmax(bleu_scores[len(true_refs):])
         bleu_max = bleu_correct
@@ -270,7 +274,7 @@ class TruthfulQAGeneration(Task):
         bleu_acc = int(bleu_correct > bleu_incorrect)
 
         # ROUGE-N
-        rouge_scores = [metrics.rouge([ref], [completion]) for ref in all_refs]
+        rouge_scores = [self.rouge([ref], [completion]) for ref in all_refs]
         # ROUGE-1
         rouge1_scores = [score['rouge1'] for score in rouge_scores]
         rouge1_correct = np.nanmax(rouge1_scores[:len(true_refs)])
@@ -360,3 +364,50 @@ class TruthfulQAGeneration(Task):
             "rougeL_acc": True,
             "rougeL_diff": True,
         }
+
+    def bleu(self, refs, preds):
+        """
+        Returns `t5` style BLEU scores. See the related implementation:
+        https://github.com/google-research/text-to-text-transfer-transformer/blob/3d10afd51ba97ac29eb66ae701eca274488202f7/t5/evaluation/metrics.py#L41
+
+        :param refs:
+            A `list` of `list` of reference `str`s.
+        :param preds:
+            A `list` of predicted `str`s.
+        """
+        score = sacrebleu.corpus_bleu(
+            preds,
+            refs,
+            smooth_method="exp",
+            smooth_value=0.0,
+            force=False,
+            lowercase=False,
+            tokenize="intl",
+            use_effective_order=False
+        ).score
+        return score
+
+    def rouge(self, refs, preds):
+        """
+        Returns `t5` style ROUGE scores. See the related implementation:
+        https://github.com/google-research/text-to-text-transfer-transformer/blob/3d10afd51ba97ac29eb66ae701eca274488202f7/t5/evaluation/metrics.py#L68
+
+        :param refs:
+            A `list` of reference `strs`.
+        :param preds:
+            A `list` of predicted `strs`.
+        """
+        rouge_types = ["rouge1", "rouge2", "rougeLsum"]
+        scorer = rouge_scorer.RougeScorer(rouge_types)
+        # Add newlines between sentences to correctly compute `rougeLsum`.
+        def _prepare_summary(summary):
+            summary = summary.replace(" . ", ".\n")
+            return summary
+        # Accumulate confidence intervals.
+        aggregator = scoring.BootstrapAggregator()
+        for ref, pred in zip(refs, preds):
+            ref = _prepare_summary(ref)
+            pred = _prepare_summary(pred)
+            aggregator.add_scores(scorer.score(ref, pred))
+        result = aggregator.aggregate()
+        return {type: result[type].mid.fmeasure*100 for type in rouge_types}
