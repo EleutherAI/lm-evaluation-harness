@@ -64,7 +64,7 @@ def simple_evaluate(model, model_args, task_names,
     return results
 
 
-def evaluate(lm, task_dict, provide_description, num_fewshot, limit, seed, bootstrap_iters=100000):
+def evaluate(lm, task_dict, provide_description, num_fewshot, limit, seed=42, bootstrap_iters=100000):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param lm: obj
