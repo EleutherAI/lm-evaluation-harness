@@ -64,7 +64,7 @@ def simple_evaluate(model, model_args, task_names,
     return results
 
 
-def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_iters=100000):
+def evaluate(lm, task_dict, provide_description, num_fewshot, limit, seed, bootstrap_iters=100000):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param lm: obj
@@ -122,7 +122,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
         task_docs = list(task_doc_func())
         rnd = random.Random()
-        rnd.seed(42)
+        rnd.seed(seed)
         rnd.shuffle(task_docs)
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
