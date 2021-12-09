@@ -26,7 +26,7 @@ def simple_evaluate(model, model_args, task_names,
     :param device: str, optional
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
     :param no_cache: bool
-        Whether or not
+        Whether or not to cache
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
@@ -72,7 +72,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
     :param task_dict: dict[str, Task]
         Dictionary of tasks
     :param provide_description: bool
-        NOT IMPLEMENTED
+        Not implemented, and this option is deprecated and will be removed in a future version in favor of a different description providing method
     :param num_fewshot: int
         Number of examples in few-shot context
     :param limit: int, optional
