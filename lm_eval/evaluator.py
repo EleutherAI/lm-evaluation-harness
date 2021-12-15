@@ -64,7 +64,7 @@ def simple_evaluate(model, model_args, task_names,
     return results
 
 
-def evaluate(lm, task_dict, provide_description, num_fewshot, limit, seed=42, bootstrap_iters=100000):
+def evaluate(lm, task_dict, provide_description, num_fewshot, limit, seed, retrieval_method=None, retrieval_path=None, bootstrap_iters=100000):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param lm: obj
@@ -120,7 +120,8 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, seed=42, bo
             raise RuntimeError("Task has neither test_docs nor validation_docs")
 
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
-        task_docs = list(task_doc_func())
+        # task_docs = list(task_doc_func())
+        task_docs = [add_doc_idx(idx, doc) for idx,doc in enumerate(list(task_doc_func()))]        
         rnd = random.Random()
         rnd.seed(seed)
         rnd.shuffle(task_docs)
@@ -132,6 +133,8 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, seed=42, bo
                 doc=doc,
                 provide_description=provide_description,
                 num_fewshot=num_fewshot,
+                retrieval_method=retrieval_method,
+                retrieval_path=retrieval_path,
                 rnd=rnd
             )
 
@@ -226,3 +229,7 @@ def make_table(result_dict):
     # print(latex_writer.dumps())
 
     return md_writer.dumps()
+
+def add_doc_idx(idx, doc):
+    doc['doc_idx'] = idx
+    return doc

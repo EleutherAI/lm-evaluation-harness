@@ -9,6 +9,8 @@ from sqlitedict import SqliteDict
 from tqdm import tqdm
 import torch
 import torch.nn.functional as F
+import pickle
+import math
 
 from lm_eval.metrics import mean, weighted_perplexity, weighted_mean
 from lm_eval import utils
@@ -349,6 +351,7 @@ class Task(abc.ABC):
         self.download()
         self._training_docs = None
         self._fewshot_docs = None
+        self._memory = None
 
     def download(self):
         """Downloads the task dataset if necessary"""
@@ -390,11 +393,13 @@ class Task(abc.ABC):
         """
         return []
 
-    def fewshot_examples(self, k, rnd):
+    def fewshot_examples(self, k, rnd, selected_idx=None):
         if self._training_docs is None:
             self._training_docs = list(self.training_docs())
-
-        return rnd.sample(self._training_docs, k)
+        if selected_idx is None:
+            return rnd.sample(self._training_docs, k)
+        else:
+            return [self._training_docs[idx] for idx in selected_idx]
 
     @abstractmethod
     def doc_to_text(self, doc):
@@ -451,27 +456,49 @@ class Task(abc.ABC):
 
     def fewshot_description(self):
         return ""
-
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
+    
+    def fewshot_context(self, doc, num_fewshot, provide_description, retrieval_method, retrieval_path, rnd):
         raw_description = self.fewshot_description()
         description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
 
         if num_fewshot == 0:
             labeled_examples = ""
         else:
-            # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
-            if self.has_training_docs():
-                fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
-            else:
-                if self._fewshot_docs is None:
-                    self._fewshot_docs = list(
-                        self.validation_docs() if self.has_validation_docs() else self.test_docs()
-                    )
+            if self.has_training_docs():         
+                if retrieval_method != 'random':
+                    # doc_idx = doc['doc_idx']
+                    # memory = self.read_memory(retrieval_path)
+                    # retrieval_idx = memory[doc_idx]['retrieval_idx']
+                    
+                    # ToDo: make an exception for which max_sim = 0.0 -> all nearest instances have 0.0 similarity
+                    try:
+                        selected_idx = self.sample_retreival_idx(doc, num_fewshot, retrieval_method, retrieval_path)
+                        fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd, selected_idx=selected_idx)
+                    except:
+                        fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
+                        
 
-                fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
+                    # print('>>>> doc')
+                    # print(doc)                
+                    # print('>>>> doc_idx: {}'.format(doc_idx))                
+                    # print('>>>> retrieval_idx')
+                    # print(retrieval_idx)
+                    # print('>>>> selected_idx')
+                    # print(selected_idx)
+                else:
+                    # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
+                    if self.has_training_docs():
+                        fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
+                    else:
+                        if self._fewshot_docs is None:
+                            self._fewshot_docs = list(
+                                self.validation_docs() if self.has_validation_docs() else self.test_docs()
+                            )
 
-                # get rid of the doc that's the one we're evaluating, if it's in the fewshot
-                fewshotex = [x for x in fewshotex if x != doc][:num_fewshot]
+                        fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
+
+                        # get rid of the doc that's the one we're evaluating, if it's in the fewshot
+                        fewshotex = [x for x in fewshotex if x != doc][:num_fewshot]
 
             labeled_examples = "\n\n".join(
                 [self.doc_to_text(doc) + self.doc_to_target(doc) for doc in fewshotex]
@@ -479,6 +506,71 @@ class Task(abc.ABC):
 
         example = self.doc_to_text(doc)
         return description + labeled_examples + example
+    
+    def read_memory(self, retrieval_path):
+        # Load pre-computed nearest neighbor index for each valid dataset
+        if self._memory is None:
+            print(f'Build memory from {retrieval_path}')
+            with open(retrieval_path, 'rb') as f:
+                self._memory = pickle.load(f)
+        return self._memory
+                
+    def sample_retreival_idx(self, doc, num_fewshot, retrieval_method, retrieval_path):   
+        
+        def _compute_prob_sum(retrieval_idx, retrieval_method, sim_key, max_sim):
+            sum_sim = 0.0
+            
+            for r in retrieval_idx:
+                if retrieval_method == 'dense':
+                    norm_sim = 1 / (r[sim_key]/max_sim)
+                    sum_sim += norm_sim
+                elif retrieval_method == 'bm25':
+                    # norm_sim = math.sqrt(r[sim_key]/max_sim)
+                    norm_sim = r[sim_key]/max_sim                
+                    sum_sim += norm_sim  
+            return sum_sim
+        
+        memory = self.read_memory(retrieval_path)
+        doc_idx = doc['doc_idx']        
+        retrieval_idx = memory[doc_idx]['retrieval_idx'][:4*num_fewshot]
+        # print(retrieval_idx)
+        # print('@@@ Length of retrieval_idx: {}'.format(len(retrieval_idx)))
+        
+        if retrieval_method == 'dense':
+            sim_key = 'l2_distance'
+        elif retrieval_method == 'bm25':
+            sim_key = 'score'
+        
+        # Normalize prob s.t the sum equals to 1.0
+        max_sim = retrieval_idx[0][sim_key]
+        # print('@@@ max_sim: {}'.format(max_sim))
+        
+        sum_sim = _compute_prob_sum(retrieval_idx, retrieval_method, sim_key, max_sim)
+        for r in retrieval_idx:
+            if retrieval_method == 'dense':
+                norm_sim = 1 / (r[sim_key]/max_sim)
+                r[sim_key] = norm_sim / sum_sim
+            elif retrieval_method == 'bm25':
+                # norm_sim = math.sqrt(r[sim_key]/max_sim)
+                norm_sim = r[sim_key]/max_sim
+                r[sim_key] = norm_sim / sum_sim        
+                
+        list_of_index = [r['index'] for r in retrieval_idx]
+        list_of_prob = [r[sim_key] for r in retrieval_idx]
+        
+        # print('>>> doc_idx: ', doc_idx)
+        # print('>>> list_of_index: ',list_of_index)
+        # print('>>> list_of_prob: ',list_of_prob)        
+        # print(' ')
+        
+        try:
+            top_k_idx = np.random.choice(list_of_index, num_fewshot, replace=False, p=list_of_prob)
+        except:
+            # This arises when there are suffcient 0.0 values
+            # https://stackoverflow.com/questions/57890844/python-numpy-random-choice-valueerror-fewer-non-zero-entries-in-p-than-size
+            top_k_idx = np.random.choice(list_of_index, num_fewshot, replace=True, p=list_of_prob)
+                
+        return top_k_idx.tolist()           
 
 
 class MultipleChoiceTask(Task, abc.ABC):
