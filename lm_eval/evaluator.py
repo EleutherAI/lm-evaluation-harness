@@ -48,12 +48,13 @@ def simple_evaluate(model, model_args, task_names,
         )
     
     task_dict = lm_eval.tasks.get_task_dict(task_names)
+
     description_dict = {}
-    if description_path:
-        with open(description_path, 'r') as f:
+    if description_dict_path:
+        with open(description_dict_path, 'r') as f:
             description_dict = json.load(f)
 
-    results = evaluate(lm, task_dict, num_fewshot, limit, description_dict)
+    results = evaluate(lm, task_dict, False, num_fewshot, limit, description_dict=description_dict)
 
     # add info about the model and few shot config
     results["config"] = {
@@ -62,8 +63,6 @@ def simple_evaluate(model, model_args, task_names,
         "num_fewshot": num_fewshot,
         "batch_size": batch_size,
         "device": device,
-        # TODO (jon-tow): Should we add the description info to `results["config"]`?
-        # "description_dict": description_dict,
         "no_cache": no_cache,
         "limit": limit,
         "bootstrap_iters": bootstrap_iters
@@ -140,6 +139,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
             ctx = task.fewshot_context(
                 doc=doc,
                 num_fewshot=num_fewshot,
+                provide_description=provide_description,
                 rnd=rnd,
                 description=description
             )
