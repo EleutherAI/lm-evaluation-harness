@@ -452,12 +452,17 @@ class Task(abc.ABC):
     def fewshot_description(self):
         import warnings
         warnings.warn(
-            "`fewshot_description` will be removed in coming versions. Pass " \
+            "`fewshot_description` will be removed in futures versions. Pass " \
             "any custom descriptions to the `evaluate` function instead.",
             DeprecationWarning)
         return ""
 
-    def fewshot_context(self, doc, num_fewshot, rnd, description=None):
+    def fewshot_context(self, doc, num_fewshot, provide_description, rnd, description=None):
+        assert not provide_description, (
+            "The `provide_description` arg will be removed in future versions. To provide "
+            "custom descriptions on a per-task basis, supply the `description_dict` "
+            "arg with your task-to-description dictionary."
+        )
         description = description + "\n\n" if description else ""
 
         if num_fewshot == 0:
@@ -531,9 +536,13 @@ class PerplexityTask(Task, abc.ABC):
         assert k == 0
         return []
 
-    def fewshot_context(self, doc, num_fewshot, rnd, description=None):
+    def fewshot_context(self, doc, num_fewshot, provide_description, rnd, description=None):
         assert num_fewshot == 0
-        assert description is None 
+        assert not provide_description, (
+            "The `provide_description` arg will be removed in future versions. To provide "
+            "custom descriptions on a per-task basis, supply the `description_dict` "
+            "arg with your task-to-description dictionary."
+        )
         return ""
 
     def higher_is_better(self):

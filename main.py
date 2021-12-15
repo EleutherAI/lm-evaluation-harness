@@ -12,13 +12,14 @@ def parse_args():
     parser.add_argument('--model', required=True)
     parser.add_argument('--model_args', default="")
     parser.add_argument('--tasks', default="all_tasks")
-    parser.add_argument('--description_path', default=None)
+    parser.add_argument('--provide_description', action="store_true")
     parser.add_argument('--num_fewshot', type=int, default=0)
     parser.add_argument('--batch_size', type=int, default=None)
     parser.add_argument('--device', type=str, default=None)
     parser.add_argument('--output_path', default=None)
     parser.add_argument('--limit', type=int, default=None)
     parser.add_argument('--no_cache', action="store_true")
+    parser.add_argument('--description_dict_path', default=None)
     return parser.parse_args()
 
 
