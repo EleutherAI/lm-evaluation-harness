@@ -144,7 +144,7 @@ Understand that the strings from `doc_to_text` and `doc_to_target` will be conca
 
 ### Formatting Prompts
 
-If you'd like to prepend your few-shot examples with a natural language description or provide a lone custom prompt under a zero-shot setting, you can do this on a per-task basis via the `description_dict` arg of `evaluator.evaluate` which is accessible through the `evaluator` module. This `description_dict` must adhere to the following key-value structure:
+If you'd like to prepend your few-shot examples with a natural language description or provide a lone custom prompt for a zero-shot task, you can do so on a per-task basis via the `description_dict` arg of `evaluator.evaluate` which is accessible from the `evaluator` module. This `description_dict` must adhere to the following key-value structure:
 
 - **key**: the task name as specified in the lm-eval-harness task registry (see the following section on task registry).
 - **value**: the corresponding description/prompt for the task identified by **key**.
@@ -153,13 +153,13 @@ E.g.
 
 ```python
 description_dict = {
-    "task_name_1": "task_name_1 custom prompt or few-shot task description",
-    "task_name_2": "task_name_2 custom prompt or few-shot task description",
+    "task_name_1": "fewshot description",
+    "task_name_2": "fewshot description",
     ...
 }
 ```
 
-At a higher level, one can interface with `evaluator.evaluate` by simply passing a JSON file path to the `description_path` arg of the command-line interface program, `main.py`. The JSON file pointed to should be structured the same way as the aforementioned `description_dict`. E.g. for some file at `/your/path/descriptions.json` you might have:
+One can also interface with `evaluator.evaluate` from a higher level by simply passing a JSON file path to the `description_dict_path` arg of the command-line interface program, `main.py`. The JSON file pointed to should be structured the same way as the aforementioned `description_dict`. E.g. for some file at `/your/path/descriptions.json` you might have:
 
 ```json
 {
@@ -173,7 +173,7 @@ which can then be hooked up to the evaluator through the `main.py` CLI as:
 ```python
 python main.py  \
 --tasks cycle_letters,copa \
---description_path /your/path/descriptions.json \
+--description_dict_path /your/path/descriptions.json \
 ...
 ```
 
@@ -187,11 +187,12 @@ After registering your task, you can now check on your data downloading and veri
 
 ```bash
 python -m scripts.write_out \
-    --tasks <your-task> \
     --output_base_path <path> \
+    --tasks <your-task> \
     --sets <train | val | test> \
     --num_fewshot K \
-    --num_examples N
+    --num_examples N \ 
+    --description_dict_path <path>
 ```
 
 Open the file specified at the `--output_base_path <path>` and ensure it passes

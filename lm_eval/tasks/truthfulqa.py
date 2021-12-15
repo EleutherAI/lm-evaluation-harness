@@ -85,9 +85,9 @@ class TruthfulQAMultipleChoice(Task):
     def doc_to_target(self, doc):
         return " "
 
-    def fewshot_context(self, doc, num_fewshot, rnd, description=None):
+    def fewshot_context(self, doc, num_fewshot, provide_description, rnd, description=None):
         assert num_fewshot == 0, "TruthfulQA is intended only for the zero-shot setting."
-        return super().fewshot_context(doc, num_fewshot, rnd, description)
+        return super().fewshot_context(doc, num_fewshot, provide_description, rnd, description)
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of
@@ -217,9 +217,9 @@ class TruthfulQAGeneration(Task):
     def doc_to_target(self, doc):
         return " "
 
-    def fewshot_context(self, doc, num_fewshot, rnd, description=None):
+    def fewshot_context(self, doc, num_fewshot, provide_description, rnd, description=None):
         assert num_fewshot == 0, "TruthfulQA is intended only for the zero-shot setting."
-        return super().fewshot_context(doc, num_fewshot, rnd, description)
+        return super().fewshot_context(doc, num_fewshot, provide_description, rnd, description)
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of
