@@ -459,9 +459,9 @@ class Task(abc.ABC):
 
     def fewshot_context(self, doc, num_fewshot, provide_description, rnd, description=None):
         assert not provide_description, (
-            "The `provide_description` arg will be removed in future versions. To provide "
-            "custom descriptions on a per-task basis, supply the `description_dict` "
-            "arg with your task-to-description dictionary."
+            "The `provide_description` arg will be removed in future versions. To prepend "
+            "a custom description to the context, supply the corresponding string via the  "
+            "`description` arg."
         )
         description = description + "\n\n" if description else ""
 
