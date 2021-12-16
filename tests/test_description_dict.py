@@ -9,7 +9,7 @@ def test_description_dict():
     task_names = ["hellaswag", "winogrande"]
     description_dict = {
         "hellaswag": "Label for the relevant action:\nSentences describing context, with an incomplete sentence trailing answer that plausibly completes the situation.",
-        "winogrande": "Winograd schema sentence including a either a ___ blank with a missing word, making the pronoun ambiguous, or the same with the word filled in."
+        "winogrande": "Winograd schema sentence including a either a ___ blank with a missing word, making the pronoun ambiguous, or the same with the word filled in.",
     }
 
     task_dict = lm_eval.tasks.get_task_dict(task_names)
@@ -31,9 +31,7 @@ def test_description_dict():
         )
 
         for _, doc in (
-            zip(range(num_examples), docs)
-            if num_examples > 0
-            else enumerate(docs)
+            zip(range(num_examples), docs) if num_examples > 0 else enumerate(docs)
         ):
             ctx = task.fewshot_context(
                 doc=doc,
@@ -43,4 +41,6 @@ def test_description_dict():
                 description=description,
             )
             assert description in ctx
+
+
 test_description_dict()
