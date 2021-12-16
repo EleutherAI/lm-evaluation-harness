@@ -452,7 +452,7 @@ class Task(abc.ABC):
     def fewshot_description(self):
         import warnings
         warnings.warn(
-            "`fewshot_description` will be removed in futures versions. Pass " \
+            "`fewshot_description` will be removed in futures versions. Pass "
             "any custom descriptions to the `evaluate` function instead.",
             DeprecationWarning)
         return ""
@@ -539,9 +539,9 @@ class PerplexityTask(Task, abc.ABC):
     def fewshot_context(self, doc, num_fewshot, provide_description, rnd, description=None):
         assert num_fewshot == 0
         assert not provide_description, (
-            "The `provide_description` arg will be removed in future versions. To provide "
-            "custom descriptions on a per-task basis, supply the `description_dict` "
-            "arg with your task-to-description dictionary."
+            "The `provide_description` arg will be removed in future versions. To prepend "
+            "a custom description to the context, supply the corresponding string via the  "
+            "`description` arg."
         )
         return ""
 
