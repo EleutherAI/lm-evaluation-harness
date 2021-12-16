@@ -32,7 +32,7 @@ def simple_evaluate(model, model_args, task_names,
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
-    :param description_dict:
+    :param description_dict: dict[str, str]
         Dictionary of custom task descriptions of the form: `task_name: description` 
     :return
         Dictionary of results
@@ -83,7 +83,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
-    :param description_dict:
+    :param description_dict: dict[str, str]
         Dictionary of custom task descriptions of the form: `task_name: description` 
     :return
         Dictionary of results
