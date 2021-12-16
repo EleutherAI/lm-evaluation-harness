@@ -42,6 +42,5 @@ def test_description_dict():
                 rnd=rnd,
                 description=description,
             )
-            print(ctx + "\n\n")
             assert description in ctx
 test_description_dict()
