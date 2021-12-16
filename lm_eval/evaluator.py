@@ -1,6 +1,5 @@
 import collections
 import itertools
-import json
 import random
 import lm_eval.metrics
 import lm_eval.models
