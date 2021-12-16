@@ -159,7 +159,7 @@ description_dict = {
 }
 ```
 
-One can also interface with `evaluator.evaluate` from a higher level by simply passing a JSON file path to the `description_dict_path` arg of the command-line interface program, `main.py`. The JSON file pointed to should be structured the same way as the aforementioned `description_dict`. E.g. for some file at `/your/path/descriptions.json` you might have:
+One can also interface with `evaluator.evaluate`/`evaluator.simple_evaluate` from a higher level by simply passing a JSON file path to the `description_dict_path` arg of the command-line interface (CLI) programs, `main.py` and `write_out.py` . The JSON file pointed to should be structured the same way as the aforementioned `description_dict`. E.g. for some file at `/your/path/descriptions.json` you might have:
 
 ```json
 {
@@ -168,7 +168,7 @@ One can also interface with `evaluator.evaluate` from a higher level by simply p
 }
 ```
 
-which can then be hooked up to the evaluator through the `main.py` CLI as:
+which can then be used, for example, in the `main.py` CLI as:
 
 ```python
 python main.py  \

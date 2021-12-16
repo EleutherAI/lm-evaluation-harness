@@ -35,6 +35,11 @@ def main():
     else:
         task_names = args.tasks.split(",")
 
+    description_dict = {}
+    if args.description_dict_path:
+        with open(args.description_dict_path, 'r') as f:
+            description_dict = json.load(f)
+
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
@@ -44,6 +49,7 @@ def main():
         device=args.device,
         no_cache=args.no_cache,
         limit=args.limit,
+        description_dict=description_dict
     )
 
     dumped = json.dumps(results, indent=2)

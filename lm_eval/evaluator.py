@@ -12,7 +12,7 @@ import numpy as np
 def simple_evaluate(model, model_args, task_names,
                     num_fewshot=0, batch_size=None, device=None,
                     no_cache=False, limit=None, bootstrap_iters=100000,
-                    description_dict_path=None):
+                    description_dict=None):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param model: str
@@ -33,8 +33,8 @@ def simple_evaluate(model, model_args, task_names,
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
-    :param description_dict_path:
-        Path to a JSON file containing `task_name: description` key-values for custom prompts
+    :param description_dict:
+        Dictionary of custom task descriptions of the form: `task_name: description` 
     :return
         Dictionary of results
     """
@@ -51,11 +51,6 @@ def simple_evaluate(model, model_args, task_names,
         )
     
     task_dict = lm_eval.tasks.get_task_dict(task_names)
-
-    description_dict = {}
-    if description_dict_path:
-        with open(description_dict_path, 'r') as f:
-            description_dict = json.load(f)
 
     results = evaluate(lm, task_dict, False, num_fewshot, limit, description_dict=description_dict)
 
@@ -90,7 +85,7 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
     :param description_dict:
-        Dictionary of task descriptions of the form: `task_name: description` 
+        Dictionary of custom task descriptions of the form: `task_name: description` 
     :return
         Dictionary of results
     """
