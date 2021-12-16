@@ -41,6 +41,3 @@ def test_description_dict():
                 description=description,
             )
             assert description in ctx
-
-
-test_description_dict()
