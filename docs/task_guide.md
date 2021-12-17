@@ -142,41 +142,6 @@ def doc_to_target(self, doc):
 
 Understand that the strings from `doc_to_text` and `doc_to_target` will be concatenated together to build up labeled examples in the k-shot setting where k > 0. Design with that in mind 👍.
 
-### Formatting Prompts
-
-If you'd like to prepend your few-shot examples with a natural language description or provide a lone custom prompt for a zero-shot task, you can do so on a per-task basis via the `description_dict` arg of `evaluator.evaluate` which is accessible from the `evaluator` module. This `description_dict` must adhere to the following key-value structure:
-
-- **key**: the task name as specified in the lm-eval-harness task registry (see the following section on task registry).
-- **value**: the corresponding description/prompt for the task identified by **key**.
-
-E.g.
-
-```python
-description_dict = {
-    "task_name_1": "fewshot description",
-    "task_name_2": "fewshot description",
-    ...
-}
-```
-
-One can also interface with `evaluator.evaluate`/`evaluator.simple_evaluate` from a higher level by simply passing a JSON file path to the `description_dict_path` arg of the command-line interface (CLI) programs, `main.py` and `write_out.py` . The JSON file pointed to should be structured the same way as the aforementioned `description_dict`. E.g. for some file at `/your/path/descriptions.json` you might have:
-
-```json
-{
-    "cycle_letters": "Please unscramble the letters into a word, and write that word:",
-    "copa": "Given a premise and one alternative with a causal relation to the premise and another without, choose the more plausible alternative"
-}
-```
-
-which can then be used, for example, in the `main.py` CLI as:
-
-```python
-python main.py  \
---tasks cycle_letters,copa \
---description_dict_path /your/path/descriptions.json \
-...
-```
-
 ### Registering Your Task
 
 Now's a good time to register your task to expose it for usage. All you'll need to do is import your task module in `lm_eval/tasks/__init__.py` and provide an entry in the `TASK_REGISTRY`  dictionary with the key as the name of your benchmark task (in the form it'll be referred to in the command line) and the value as the task class. See how it's done for other tasks in the [file](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/__init__.py).

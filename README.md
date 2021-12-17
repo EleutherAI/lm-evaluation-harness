@@ -55,7 +55,7 @@ To evaluate mesh-transformer-jax models that are not available on HF, please inv
 
 ## Implementing new tasks
 
-To implement a new task in eval harness, see [this guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/task-guide.md).
+To implement a new task in eval harness, see [this guide](./docs/task_guide.md).
 
 ## Cite as
 
@@ -298,7 +298,6 @@ To inspect what the LM inputs look like, you can run the following command:
 ```bash
 python write_out.py \
 	--tasks all_tasks \
-	--provide_description \
 	--num_fewshot 5 \
 	--num_examples 10 \
 	--output_base_path /path/to/output/folder
