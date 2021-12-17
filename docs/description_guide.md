@@ -5,7 +5,7 @@
 
 Task descriptions provide in-context task instruction for your language model. If you'd like to prepend a natural language description to your few-shot examples and prompt, you can do so on a per-task basis via the `description_dict` arg of [`evaluator.evaluate`](../lm_eval/evaluator.py). This `description_dict` must adhere to the following key-value structure:
 
-- **key**: the task name (`str`) as specified in the lm-eval-harness task registry (see the following section on task registry).
+- **key**: the task name (`str`) as specified in the lm-eval-harness [task registry](../lm_eval/tasks/__init__.py).
 - **value**: the corresponding (`str`) description/prompt for the task identified by **key**.
 
 ```python
