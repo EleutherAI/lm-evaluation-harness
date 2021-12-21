@@ -1,6 +1,7 @@
 import os
 import re
 import collections
+import functools
 
 
 class ExitCodeError(Exception):
@@ -139,3 +140,17 @@ class Reorderer:
         assert all(cov)
         
         return res
+
+def positional_deprecated(fn):
+    """
+    A decorator to nudge users into passing only keyword args (`kwargs`) to the 
+    wrapped function, `fn`.
+    """
+    @functools.wraps(fn)
+    def _wrapper(*args, **kwargs):
+        if len(args) != 0: 
+            print(f"WARNING: using {fn.__name__} with positional arguments is "
+                "deprecated and will be disallowed in a future version of "
+                "lm-evaluation-harness!")
+        return fn(*args, **kwargs)
+    return _wrapper

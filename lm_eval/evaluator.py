@@ -6,8 +6,10 @@ import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
 import numpy as np
+from lm_eval.utils import positional_deprecated
 
 
+@positional_deprecated
 def simple_evaluate(model, model_args, task_names,
                     num_fewshot=0, batch_size=None, device=None,
                     no_cache=False, limit=None, bootstrap_iters=100000,
@@ -51,7 +53,14 @@ def simple_evaluate(model, model_args, task_names,
     
     task_dict = lm_eval.tasks.get_task_dict(task_names)
 
-    results = evaluate(lm, task_dict, False, num_fewshot, limit, description_dict=description_dict)
+    results = evaluate(
+        lm=lm,
+        task_dict=task_dict,
+        provide_description=False,
+        num_fewshot=num_fewshot,
+        limit=limit,
+        description_dict=description_dict
+    )
 
     # add info about the model and few shot config
     results["config"] = {
@@ -69,6 +78,7 @@ def simple_evaluate(model, model_args, task_names,
     return results
 
 
+@positional_deprecated
 def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_iters=100000, description_dict=None):
     """Instantiate and evaluate a model on a list of tasks.
 
