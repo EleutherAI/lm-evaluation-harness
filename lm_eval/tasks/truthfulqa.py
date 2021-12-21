@@ -230,7 +230,8 @@ class TruthfulQAGeneration(Task):
             num_fewshot=num_fewshot,
             provide_description=provide_description,
             rnd=rnd,
-            description=description)
+            description=description
+        )
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of
