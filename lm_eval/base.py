@@ -457,6 +457,7 @@ class Task(abc.ABC):
             DeprecationWarning)
         return ""
 
+    @utils.positional_deprecated
     def fewshot_context(self, doc, num_fewshot, provide_description, rnd, description=None):
         assert not provide_description, (
             "The `provide_description` arg will be removed in future versions. To prepend "

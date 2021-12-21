@@ -48,8 +48,24 @@ def test_evaluator(taskname, task_class):
     lm.loglikelihood_rolling = ll_perp_fn
 
     limit = 10
-    e1 = evaluator.evaluate(lm, task_dict, False, 0, limit, bootstrap_iters=10, description_dict=None)
-    e2 = evaluator.evaluate(lm, task_dict, False, 0, limit, bootstrap_iters=10, description_dict=None)
+    e1 = evaluator.evaluate(
+            lm=lm,
+            task_dict=task_dict,
+            provide_description=False,
+            num_fewshot=0,
+            limit=limit,
+            bootstrap_iters=10,
+            description_dict=None
+    )
+    e2 = evaluator.evaluate(
+            lm=lm,
+            task_dict=task_dict,
+            provide_description=False,
+            num_fewshot=0,
+            limit=limit,
+            bootstrap_iters=10,
+            description_dict=None
+    )
 
     # check that caching is working
     assert e1 == e2
