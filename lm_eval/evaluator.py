@@ -62,7 +62,8 @@ def simple_evaluate(model, model_args, task_names,
         "device": device,
         "no_cache": no_cache,
         "limit": limit,
-        "bootstrap_iters": bootstrap_iters
+        "bootstrap_iters": bootstrap_iters,
+        "description_dict": description_dict
     }
 
     return results
