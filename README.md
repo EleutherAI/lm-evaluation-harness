@@ -128,7 +128,8 @@ To implement a new task in eval harness, see [this guide](https://github.com/Ele
 |openbookqa                                       |✓    |✓  |✓   |          500|acc, acc_norm                                                                 |
 |squad2                                           |✓    |✓  |    |        11873|exact, f1, HasAns_exact, HasAns_f1, NoAns_exact, NoAns_f1, best_exact, best_f1|
 |race                                             |✓    |✓  |✓   |         1045|acc                                                                           |
-|headqa                                           |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
+|headqa_es                                        |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
+|headqa_en                                        |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
 |mathqa                                           |✓    |✓  |✓   |         2985|acc, acc_norm                                                                 |
 |webqs                                            |✓    |   |✓   |         2032|acc                                                                           |
 |wsc273                                           |     |   |✓   |          273|acc                                                                           |
