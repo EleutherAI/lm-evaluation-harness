@@ -227,7 +227,7 @@ class QNLI(HFTask):
 
 
 class WNLI(HFTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "glue"
     DATASET_NAME = "wnli"
 
