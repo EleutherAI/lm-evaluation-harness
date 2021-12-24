@@ -90,44 +90,44 @@ To implement a new task in eval harness, see [this guide](https://github.com/Ele
 
 ### Full Task List
 
-|                    Task Name                    |Train|Val|Test|Val/Test Docs|                                   Metrics                                    |
-|-------------------------------------------------|-----|---|----|------------:|------------------------------------------------------------------------------|
-|cola                                             |✓    |✓  |    |         1043|mcc                                                                           |
-|mnli                                             |✓    |✓  |    |         9815|acc                                                                           |
-|mnli_mismatched                                  |✓    |✓  |    |         9832|acc                                                                           |
-|mrpc                                             |✓    |✓  |    |          408|acc, f1                                                                       |
-|rte                                              |✓    |✓  |    |          277|acc                                                                           |
-|qnli                                             |✓    |✓  |    |         5463|acc                                                                           |
-|qqp                                              |✓    |✓  |    |        40430|acc, f1                                                                       |
-|sst                                              |✓    |✓  |    |          872|acc                                                                           |
-|wnli                                             |✓    |✓  |    |           71|acc                                                                           |
-|boolq                                            |✓    |✓  |    |         3270|acc                                                                           |
-|cb                                               |✓    |✓  |    |           56|acc, f1                                                                       |
-|copa                                             |✓    |✓  |    |          100|acc                                                                           |
-|multirc                                          |✓    |✓  |    |         4848|acc                                                                           |
-|record                                           |✓    |✓  |    |        10000|f1, em                                                                        |
-|wic                                              |✓    |✓  |    |          638|acc                                                                           |
-|wsc                                              |✓    |✓  |    |          104|acc                                                                           |
-|coqa                                             |✓    |✓  |    |          500|f1, em                                                                        |
-|drop                                             |✓    |✓  |    |         9536|em, f1                                                                        |
-|lambada                                          |     |✓  |    |         5153|ppl, acc                                                                      |
-|lambada_cloze                                    |     |✓  |    |         5153|ppl, acc                                                                      |
-|wikitext                                         |     |✓  |✓   |           62|word_perplexity, byte_perplexity, bits_per_byte                               |
-|piqa                                             |✓    |✓  |    |         1838|acc, acc_norm                                                                 |
-|prost                                            |     |   |✓   |        18736|acc, acc_norm                                                                 |
-|pubmedqa                                         |     |   |✓   |         1000|acc                                                                           |
-|sciq                                             |✓    |✓  |✓   |         1000|acc, acc_norm                                                                 |
-|qa4mre_2011                                      |     |   |✓   |          120|acc, acc_norm                                                                 |
-|qa4mre_2012                                      |     |   |✓   |          160|acc, acc_norm                                                                 |
-|qa4mre_2013                                      |     |   |✓   |          284|acc, acc_norm                                                                 |
-|triviaqa                                         |✓    |✓  |    |        11313|acc                                                                           |
-|arc_easy                                         |✓    |✓  |✓   |         2376|acc, acc_norm                                                                 |
-|arc_challenge                                    |✓    |✓  |✓   |         1172|acc, acc_norm                                                                 |
-|logiqa                                           |✓    |✓  |✓   |          651|acc, acc_norm                                                                 |
-|hellaswag                                        |✓    |✓  |    |        10042|acc, acc_norm                                                                 |
-|openbookqa                                       |✓    |✓  |✓   |          500|acc, acc_norm                                                                 |
-|squad2                                           |✓    |✓  |    |        11873|exact, f1, HasAns_exact, HasAns_f1, NoAns_exact, NoAns_f1, best_exact, best_f1|
-|race                                             |✓    |✓  |✓   |         1045|acc                                                                           |
+|                    Task Name                            |Train|Val|Test|Val/Test Docs|                                   Metrics                                    |
+|---------------------------------------------------------|-----|---|----|------------:|------------------------------------------------------------------------------|
+|cola                                                     |✓    |✓  |    |         1043|mcc                                                                           |
+|mnli                                                     |✓    |✓  |    |         9815|acc                                                                           |
+|mnli_mismatched                                          |✓    |✓  |    |         9832|acc                                                                           |
+|mrpc                                                     |✓    |✓  |    |          408|acc, f1                                                                       |
+|rte                                                      |✓    |✓  |    |          277|acc                                                                           |
+|qnli                                                     |✓    |✓  |    |         5463|acc                                                                           |
+|qqp                                                      |✓    |✓  |    |        40430|acc, f1                                                                       |
+|sst                                                      |✓    |✓  |    |          872|acc                                                                           |
+|wnli                                                     |✓    |✓  |    |           71|acc                                                                           |
+|boolq                                                    |✓    |✓  |    |         3270|acc                                                                           |
+|cb                                                       |✓    |✓  |    |           56|acc, f1                                                                       |
+|copa                                                     |✓    |✓  |    |          100|acc                                                                           |
+|multirc                                                  |✓    |✓  |    |         4848|acc                                                                           |
+|record                                                   |✓    |✓  |    |        10000|f1, em                                                                        |
+|wic                                                      |✓    |✓  |    |          638|acc                                                                           |
+|wsc                                                      |✓    |✓  |    |          104|acc                                                                           |
+|coqa                                                     |✓    |✓  |    |          500|f1, em                                                                        |
+|drop                                                     |✓    |✓  |    |         9536|em, f1                                                                        |
+|lambada                                                  |     |✓  |    |         5153|ppl, acc                                                                      |
+|lambada_cloze                                            |     |✓  |    |         5153|ppl, acc                                                                      |
+|wikitext                                                 |     |✓  |✓   |           62|word_perplexity, byte_perplexity, bits_per_byte                               |
+|piqa                                                     |✓    |✓  |    |         1838|acc, acc_norm                                                                 |
+|prost                                                    |     |   |✓   |        18736|acc, acc_norm                                                                 |
+|pubmedqa                                                 |     |   |✓   |         1000|acc                                                                           |
+|sciq                                                     |✓    |✓  |✓   |         1000|acc, acc_norm                                                                 |
+|qa4mre_2011                                              |     |   |✓   |          120|acc, acc_norm                                                                 |
+|qa4mre_2012                                              |     |   |✓   |          160|acc, acc_norm                                                                 |
+|qa4mre_2013                                              |     |   |✓   |          284|acc, acc_norm                                                                 |
+|triviaqa                                                 |✓    |✓  |    |        11313|acc                                                                           |
+|arc_easy                                                 |✓    |✓  |✓   |         2376|acc, acc_norm                                                                 |
+|arc_challenge                                            |✓    |✓  |✓   |         1172|acc, acc_norm                                                                 |
+|logiqa                                                   |✓    |✓  |✓   |          651|acc, acc_norm                                                                 |
+|hellaswag                                                |✓    |✓  |    |        10042|acc, acc_norm                                                                 |
+|openbookqa                                               |✓    |✓  |✓   |          500|acc, acc_norm                                                                 |
+|squad2                                                   |✓    |✓  |    |        11873|exact, f1, HasAns_exact, HasAns_f1, NoAns_exact, NoAns_f1, best_exact, best_f1|
+|race                                                     |✓    |✓  |✓   |         1045|acc                                                                           |
 |headqa_es                                        |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
 |headqa_en                                        |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
 |mathqa                                           |✓    |✓  |✓   |         2985|acc, acc_norm                                                                 |
@@ -273,9 +273,74 @@ To implement a new task in eval harness, see [this guide](https://github.com/Ele
 |pile_uspto                                       |     |✓  |✓   |        11415|word_perplexity, byte_perplexity, bits_per_byte                               |
 |pile_ubuntu-irc                                  |     |✓  |✓   |           22|word_perplexity, byte_perplexity, bits_per_byte                               |
 |pile_wikipedia                                   |     |✓  |✓   |        17511|word_perplexity, byte_perplexity, bits_per_byte                               |
-|pile_youtubesubtitles                            |     |✓  |✓   |          342|word_perplexity, byte_perplexity, bits_per_byte                               |
-
-
+|pile_youtubesubtitles                            |     |✓  ||         1000|acc
+|blimp_adjunct_island                                     |     |✓  |    |         1000|acc
+|blimp_anaphor_gender_agreement                           |     |✓  |    |         1000|acc
+|blimp_anaphor_number_agreement                           |     |✓  |    |         1000|acc
+|blimp_animate_subject_passive                            |     |✓  |    |         1000|acc
+|blimp_animate_subject_trans                              |     |✓  |    |         1000|acc
+|blimp_causative                                          |     |✓  |    |         1000|acc
+|blimp_complex_NP_island                                  |     |✓  |    |         1000|acc
+|blimp_coordinate_structure_constraint_complex_left_branch|     |✓  |    |         1000|acc
+|blimp_coordinate_structure_constraint_object_extraction  |     |✓  |    |         1000|acc
+|blimp_determiner_noun_agreement_1                        |     |✓  |    |         1000|acc
+|blimp_determiner_noun_agreement_2                        |     |✓  |    |         1000|acc
+|blimp_determiner_noun_agreement_irregular_1              |     |✓  |    |         1000|acc
+|blimp_determiner_noun_agreement_irregular_2              |     |✓  |    |         1000|acc
+|blimp_determiner_noun_agreement_with_adj_2               |     |✓  |    |         1000|acc
+|blimp_determiner_noun_agreement_with_adj_irregular_1     |     |✓  |    |         1000|acc
+|blimp_determiner_noun_agreement_with_adj_irregular_2     |     |✓  |    |         1000|acc
+|blimp_determiner_noun_agreement_with_adjective_1         |     |✓  |    |         1000|acc
+|blimp_distractor_agreement_relational_noun               |     |✓  |    |         1000|acc
+|blimp_distractor_agreement_relative_clause               |     |✓  |    |         1000|acc
+|blimp_drop_argument                                      |     |✓  |    |         1000|acc
+|blimp_ellipsis_n_bar_1                                   |     |✓  |    |         1000|acc
+|blimp_ellipsis_n_bar_2                                   |     |✓  |    |         1000|acc
+|blimp_existential_there_object_raising                   |     |✓  |    |         1000|acc
+|blimp_existential_there_quantifiers_1                    |     |✓  |    |         1000|acc
+|blimp_existential_there_quantifiers_2                    |     |✓  |    |         1000|acc
+|blimp_existential_there_subject_raising                  |     |✓  |    |         1000|acc
+|blimp_expletive_it_object_raising                        |     |✓  |    |         1000|acc
+|blimp_inchoative                                         |     |✓  |    |         1000|acc
+|blimp_intransitive                                       |     |✓  |    |         1000|acc
+|blimp_irregular_past_participle_adjectives               |     |✓  |    |         1000|acc
+|blimp_irregular_past_participle_verbs                    |     |✓  |    |         1000|acc
+|blimp_irregular_plural_subject_verb_agreement_1          |     |✓  |    |         1000|acc
+|blimp_irregular_plural_subject_verb_agreement_2          |     |✓  |    |         1000|acc
+|blimp_left_branch_island_echo_question                   |     |✓  |    |         1000|acc
+|blimp_left_branch_island_simple_question                 |     |✓  |    |         1000|acc
+|blimp_matrix_question_npi_licensor_present               |     |✓  |    |         1000|acc
+|blimp_npi_present_1                                      |     |✓  |    |         1000|acc
+|blimp_npi_present_2                                      |     |✓  |    |         1000|acc
+|blimp_only_npi_licensor_present                          |     |✓  |    |         1000|acc
+|blimp_only_npi_scope                                     |     |✓  |    |         1000|acc
+|blimp_passive_1                                          |     |✓  |    |         1000|acc
+|blimp_passive_2                                          |     |✓  |    |         1000|acc
+|blimp_principle_A_c_command                              |     |✓  |    |         1000|acc
+|blimp_principle_A_case_1                                 |     |✓  |    |         1000|acc
+|blimp_principle_A_case_2                                 |     |✓  |    |         1000|acc
+|blimp_principle_A_domain_1                               |     |✓  |    |         1000|acc
+|blimp_principle_A_domain_2                               |     |✓  |    |         1000|acc
+|blimp_principle_A_domain_3                               |     |✓  |    |         1000|acc
+|blimp_principle_A_reconstruction                         |     |✓  |    |         1000|acc
+|blimp_regular_plural_subject_verb_agreement_1            |     |✓  |    |         1000|acc
+|blimp_regular_plural_subject_verb_agreement_2            |     |✓  |    |         1000|acc
+|blimp_sentential_negation_npi_licensor_present           |     |✓  |    |         1000|acc
+|blimp_sentential_negation_npi_scope                      |     |✓  |    |         1000|acc
+|blimp_sentential_subject_island                          |     |✓  |    |         1000|acc
+|blimp_superlative_quantifiers_1                          |     |✓  |    |         1000|acc
+|blimp_superlative_quantifiers_2                          |     |✓  |    |         1000|acc
+|blimp_tough_vs_raising_1                                 |     |✓  |    |         1000|acc
+|blimp_tough_vs_raising_2                                 |     |✓  |    |         1000|acc
+|blimp_transitive                                         |     |✓  |    |         1000|acc
+|blimp_wh_island                                          |     |✓  |    |         1000|acc
+|blimp_wh_questions_object_gap                            |     |✓  |    |         1000|acc
+|blimp_wh_questions_subject_gap                           |     |✓  |    |         1000|acc
+|blimp_wh_questions_subject_gap_long_distance             |     |✓  |    |         1000|acc
+|blimp_wh_vs_that_no_gap                                  |     |✓  |    |         1000|acc
+|blimp_wh_vs_that_no_gap_long_distance                    |     |✓  |    |         1000|acc
+|blimp_wh_vs_that_with_gap                                |     |✓  |    |         1000|acc
+|blimp_wh_vs_that_with_gap_long_distance                  |     |✓  |    |         1000|acc
 
 
 ## Usage
