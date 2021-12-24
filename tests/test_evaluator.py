@@ -10,8 +10,8 @@ import pytest
 # TODO: more fine grained unit tests rather than this big honking integration
 # test once we break evaluator into smaller, more manageable pieces
 
-@pytest.mark.parametrize("taskname,Task", tasks.TASK_REGISTRY.items())
-def test_evaluator(taskname, Task):
+@pytest.mark.parametrize("taskname,task_class", tasks.TASK_REGISTRY.items())
+def test_evaluator(taskname, task_class):
     task_dict = tasks.get_task_dict([taskname])
 
     os.system("rm test_cache.db")
@@ -19,7 +19,8 @@ def test_evaluator(taskname, Task):
 
     def ll_fn(reqs):
         for ctx, cont in reqs:
-            if len(ctx) == 0: continue
+            if len(ctx) == 0:
+                continue
             # space convention
             assert ctx[-1] != ' '
             assert cont[0] == ' ' or ctx[-1] == '\n'
@@ -50,5 +51,5 @@ def test_evaluator(taskname, Task):
     e1 = evaluator.evaluate(lm, task_dict, False, 0, limit, bootstrap_iters=10)
     e2 = evaluator.evaluate(lm, task_dict, False, 0, limit, bootstrap_iters=10)
 
-    # check taht caching is working
+    # check that caching is working
     assert e1 == e2
