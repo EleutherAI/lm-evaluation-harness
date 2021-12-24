@@ -54,7 +54,6 @@ def main():
         evaluator.evaluate(
             lm=lm,
             task_dict={taskname: tasks.get_task(taskname)()},
-            provide_description=False,
             num_fewshot=0,
             limit=None,
             bootstrap_iters=10,
