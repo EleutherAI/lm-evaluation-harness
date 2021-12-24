@@ -10,18 +10,19 @@ from lm_eval.utils import positional_deprecated
 
 
 @positional_deprecated
-def simple_evaluate(model, model_args, task_names,
+def simple_evaluate(model, model_args=None, tasks=[],
                     num_fewshot=0, batch_size=None, device=None,
                     no_cache=False, limit=None, bootstrap_iters=100000,
                     description_dict=None):
     """Instantiate and evaluate a model on a list of tasks.
 
-    :param model: str
-        Name of model, see lm_eval.models.get_model
-    :param model_args: str
-        String arguments for each model class, see LM.create_from_arg_string
-    :param task_names: list[str]
-        List of task names
+    :param model: Union[str, LM]
+        Name of model or LM object, see lm_eval.models.get_model
+    :param model_args: Optional[str]
+        String arguments for each model class, see LM.create_from_arg_string. 
+        Ignored if `model` argument is a LM object.
+    :param tasks: list[Union[str, Task]]
+        List of task names or Task objects
     :param num_fewshot: int
         Number of examples in few-shot context
     :param batch_size: int, optional
@@ -42,16 +43,23 @@ def simple_evaluate(model, model_args, task_names,
     random.seed(1234)
     np.random.seed(1234)
 
-    lm = lm_eval.models.get_model(model).create_from_arg_string(model_args, {
-        'batch_size': batch_size, 'device': device
-    })
+    assert tasks != [], "No tasks specified"
+
+    if isinstance(model, str):
+        if model_args is None: model_args = ""
+        lm = lm_eval.models.get_model(model).create_from_arg_string(model_args, {
+            'batch_size': batch_size, 'device': device
+        })
+    else:
+        assert isinstance(model, lm_eval.base.LM)
+        lm = model
 
     if not no_cache:
         lm = lm_eval.base.CachingLM(
             lm, 'lm_cache/' + model + '_' + model_args.replace('=', '-').replace(',', '_').replace('/', '-') + '.db'
         )
     
-    task_dict = lm_eval.tasks.get_task_dict(task_names)
+    task_dict = lm_eval.tasks.get_task_dict(tasks)
 
     results = evaluate(
         lm=lm,
