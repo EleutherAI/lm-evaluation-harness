@@ -85,12 +85,11 @@ class TruthfulQAMultipleChoice(Task):
     def doc_to_target(self, doc):
         return " "
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd, description=None):
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0, "TruthfulQA is intended only for the zero-shot setting."
         return super().fewshot_context(
             doc=doc,
             num_fewshot=num_fewshot,
-            provide_description=provide_description,
             rnd=rnd,
             description=description
         )
@@ -223,12 +222,11 @@ class TruthfulQAGeneration(Task):
     def doc_to_target(self, doc):
         return " "
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd, description=None):
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0, "TruthfulQA is intended only for the zero-shot setting."
         return super().fewshot_context(
             doc=doc,
             num_fewshot=num_fewshot,
-            provide_description=provide_description,
             rnd=rnd,
             description=description
         )
