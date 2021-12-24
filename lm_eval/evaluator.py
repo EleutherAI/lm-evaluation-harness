@@ -159,7 +159,6 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
             ctx = task.fewshot_context(
                 doc=doc,
                 num_fewshot=num_fewshot,
-                provide_description=provide_description,
                 rnd=rnd,
                 description=description
             )

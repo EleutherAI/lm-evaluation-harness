@@ -102,7 +102,6 @@ def test_versions_stable(taskname, task_class):
     result = evaluator.evaluate(
             lm=lm,
             task_dict=task_dict,
-            provide_description=False,
             num_fewshot=0,
             limit=limit,
             bootstrap_iters=10,
