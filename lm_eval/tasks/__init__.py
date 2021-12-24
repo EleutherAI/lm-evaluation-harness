@@ -240,7 +240,7 @@ def get_task_name_from_object(task_object):
             return name
     
     # this gives a mechanism for non-registered tasks to have a custom name anyways when reporting
-    return task_object.EVAL_HARNESS_NAME if hasattr(task_object, "EVAL_HARNESS_NAME") else task_object.__name__
+    return task_object.EVAL_HARNESS_NAME if hasattr(task_object, "EVAL_HARNESS_NAME") else type(task_object).__name__
 
 
 def get_task_dict(task_name_list: List[Union[str, lm_eval.base.Task]]):
