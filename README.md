@@ -273,7 +273,7 @@ To implement a new task in eval harness, see [this guide](https://github.com/Ele
 |pile_uspto                                               |     |✓  |✓   |        11415|word_perplexity, byte_perplexity, bits_per_byte                               |
 |pile_ubuntu-irc                                          |     |✓  |✓   |           22|word_perplexity, byte_perplexity, bits_per_byte                               |
 |pile_wikipedia                                           |     |✓  |✓   |        17511|word_perplexity, byte_perplexity, bits_per_byte                               |
-|pile_youtubesubtitles                                    |     |✓  ||         1000|acc
+|pile_youtubesubtitles                                    |     |✓  |    |         1000|acc
 |blimp_adjunct_island                                     |     |✓  |    |         1000|acc
 |blimp_anaphor_gender_agreement                           |     |✓  |    |         1000|acc
 |blimp_anaphor_number_agreement                           |     |✓  |    |         1000|acc
