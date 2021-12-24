@@ -1,6 +1,7 @@
 import abc
 from typing import Iterable
 import numpy as np
+import random
 import re
 import os
 import json
@@ -458,13 +459,40 @@ class Task(abc.ABC):
         return ""
 
     @utils.positional_deprecated
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd, description=None):
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
+        """ Returns a fewshot context string that is made up of a prepended description
+        (if provided), the `num_fewshot` number of examples, and an appended prompt example.
+
+        :param doc: str
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param num_fewshot: int
+            The number of fewshot examples to provide in the returned context string.
+        :param provide_description: bool
+            Not implemented, and this option is deprecated and will be removed in a future version in favor of a different description providing method
+        :param rnd: random.Random
+            The pseudo-random number generator used to randomly sample examples.
+            WARNING: If you do not provide a `rnd` arg, a default `random.Random`
+            object will be created and seeded with this Task's name attribute, `__name__`.
+        :param description: str
+            The task's description that will be prepended to the fewshot examples.
+        :returns: str
+            The fewshot context.
+        """
         assert not provide_description, (
             "The `provide_description` arg will be removed in future versions. To prepend "
-            "a custom description to the context, supply the corresponding string via the  "
+            "a custom description to the context, supply the corresponding string via the "
             "`description` arg."
         )
+        if provide_description is not None:
+            # nudge people to not specify it at all
+            print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
+
         description = description + "\n\n" if description else ""
+
+        # TODO (jon-tow): Remove this default `rand` behaviour after `provide_description` is removed and remove the respective `rand` arg warning in the docs above.
+        if rnd is None:
+            rnd = random.Random()
+            rnd.seed(self.__name__)
 
         if num_fewshot == 0:
             labeled_examples = ""
@@ -537,13 +565,22 @@ class PerplexityTask(Task, abc.ABC):
         assert k == 0
         return []
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd, description=None):
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0
         assert not provide_description, (
             "The `provide_description` arg will be removed in future versions. To prepend "
             "a custom description to the context, supply the corresponding string via the  "
             "`description` arg."
         )
+        if provide_description is not None:
+            # nudge people to not specify it at all
+            print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
+
+        # TODO (jon-tow): Remove this default `rand` behaviour after `provide_description` is removed and remove the respective `rand` arg warning in the docs above.
+        if rnd is None:
+            rnd = random.Random()
+            rnd.seed(self.__name__)
+
         return ""
 
     def higher_is_better(self):

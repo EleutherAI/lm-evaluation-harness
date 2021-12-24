@@ -51,7 +51,6 @@ def test_evaluator(taskname, task_class):
     e1 = evaluator.evaluate(
             lm=lm,
             task_dict=task_dict,
-            provide_description=False,
             num_fewshot=0,
             limit=limit,
             bootstrap_iters=10,
@@ -60,7 +59,6 @@ def test_evaluator(taskname, task_class):
     e2 = evaluator.evaluate(
             lm=lm,
             task_dict=task_dict,
-            provide_description=False,
             num_fewshot=0,
             limit=limit,
             bootstrap_iters=10,

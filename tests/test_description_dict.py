@@ -36,7 +36,6 @@ def test_description_dict():
             ctx = task.fewshot_context(
                 doc=doc,
                 num_fewshot=1,
-                provide_description=False,
                 rnd=rnd,
                 description=description,
             )
