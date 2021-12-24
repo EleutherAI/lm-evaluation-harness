@@ -43,7 +43,7 @@ def main():
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
-        task_names=task_names,
+        tasks=task_names,
         num_fewshot=args.num_fewshot,
         batch_size=args.batch_size,
         device=args.device,

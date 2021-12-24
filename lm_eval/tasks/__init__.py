@@ -244,10 +244,13 @@ def get_task_name_from_object(task_object):
 
 
 def get_task_dict(task_name_list: List[Union[str, lm_eval.base.Task]]):
-    return {
+    task_name_dict = {
         task_name: get_task(task_name)()
         for task_name in task_name_list if isinstance(task_name, str)
-    } + {
+    }
+    task_name_from_object_dict = {
         get_task_name_from_object(task_object): task_object
         for task_object in task_name_list if not isinstance(task_object, str)
     }
+    assert set(task_name_dict.keys()).isdisjoint(set(task_name_from_object_dict.keys()))
+    return {**task_name_dict, **task_name_from_object_dict}
