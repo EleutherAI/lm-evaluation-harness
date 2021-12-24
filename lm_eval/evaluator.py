@@ -22,7 +22,7 @@ def simple_evaluate(model, model_args=None, tasks=[],
         String arguments for each model class, see LM.create_from_arg_string. 
         Ignored if `model` argument is a LM object.
     :param tasks: list[Union[str, Task]]
-        List of task names or Task objects
+        List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param num_fewshot: int
         Number of examples in few-shot context
     :param batch_size: int, optional
@@ -64,7 +64,6 @@ def simple_evaluate(model, model_args=None, tasks=[],
     results = evaluate(
         lm=lm,
         task_dict=task_dict,
-        provide_description=False,
         num_fewshot=num_fewshot,
         limit=limit,
         description_dict=description_dict
@@ -87,13 +86,13 @@ def simple_evaluate(model, model_args=None, tasks=[],
 
 
 @positional_deprecated
-def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_iters=100000, description_dict=None):
+def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None, bootstrap_iters=100000, description_dict=None):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param lm: obj
         Language Model
     :param task_dict: dict[str, Task]
-        Dictionary of tasks
+        Dictionary of tasks. Tasks will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param provide_description: bool
         Not implemented, and this option is deprecated and will be removed in a future version in favor of a different description providing method
     :param num_fewshot: int
@@ -111,6 +110,9 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
 
     # TODO: todo: implement proper description-providing system
     assert not provide_description  # not implemented.
+    if provide_description is not None:
+        # nudge people to not specify it at all
+        print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
 
     task_dict_items = [
         (name, task)
