@@ -18,9 +18,14 @@ class GPT2LM(LM):
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
 
-        if device:
+        if device:            
+            if device not in ["cuda", "cpu"]:
+                device = int(device)
             self.device = torch.device(device)
+            print(f"Using device '{device}'")
         else:
+            print("Device not specificed")
+            print(f"Cuda Available? {torch.cuda.is_available()}")
             self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
