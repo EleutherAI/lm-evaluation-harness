@@ -5,13 +5,16 @@ import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
+from scripts.clean_training_data.contamination import get_train_overlap
 import numpy as np
 
-def simple_evaluate(model, model_args, task_names, num_fewshot=0, batch_size=None, device=None, no_cache=False, limit=None, bootstrap_iters=100000):
+def simple_evaluate(model, model_args, task_names, num_fewshot=0, batch_size=None, device=None, 
+                    no_cache=False, limit=None, bootstrap_iters=100000, decontaminate=False, 
+                    ngrams_path=None, ngrams_n_size=None):
     random.seed(1234)
     np.random.seed(1234)
 
-    lm = lm_eval.models.get_model(model).create_from_arg_string(model_args, {
+    lm = lm_eval.models.MODEL_REGISTRY[model].create_from_arg_string(model_args, {
         'batch_size': batch_size, 'device': device
     })
 
@@ -19,7 +22,8 @@ def simple_evaluate(model, model_args, task_names, num_fewshot=0, batch_size=Non
         lm = lm_eval.base.CachingLM(lm, 'lm_cache/' + model + '_' + model_args.replace('=', '-').replace(',', '_').replace('/', '-') + '.db')
     
     task_dict = lm_eval.tasks.get_task_dict(task_names)
-    results = evaluate(lm, task_dict, False, num_fewshot, limit)
+    results = evaluate(lm, task_dict, False, num_fewshot, limit, bootstrap_iters=bootstrap_iters, 
+                       decontaminate=decontaminate, ngrams_path=ngrams_path, ngrams_n_size=ngrams_n_size)
 
     # add info about the model and few shot config
     results["config"] = {
@@ -35,9 +39,14 @@ def simple_evaluate(model, model_args, task_names, num_fewshot=0, batch_size=Non
 
     return results
 
+decontaminate_suffix = "_decontaminate"
 
-def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_iters=100000):
+def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_iters=100000,
+             decontaminate=False, ngrams_path=None, ngrams_n_size=None):
     assert not provide_description # not implemented. todo: implement proper description-providing system
+
+    if decontaminate:
+        assert ngrams_path and ngrams_n_size
 
     # TODO: completely refactor this entire function to not be a huge mess, ideally breaking it down into smaller pieces
 
@@ -49,6 +58,8 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
     requests = collections.defaultdict(list)
     requests_origin = collections.defaultdict(list)
 
+    overlaps = collections.defaultdict(list) # {task_name: contaminated_docs}
+
     # if we ever run into issues where the eval tasks don't fit in memory and we can't afford a machine with bigger memory,
     # we can always modify this plumbing to support that, but i didn't want to include it just yet because overengineering is bad
     # (or we could make it write the requests to disk and then read them back out again - probably using an sqlite db because of all the moving parts we have
@@ -57,6 +68,8 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
 
     docs = {}
 
+    docs_for_decontamination = collections.defaultdict(list)
+
     # get lists of each type of requeste
     for task_name, task in task_dict_items:
         versions[task_name] = task.VERSION
@@ -64,7 +77,9 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
         # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
         if task.has_test_docs():
             task_doc_func = task.test_docs
+            task_set = "test" # Required for caching in the decontamination
         elif task.has_validation_docs():
+            task_set = "val" # Required for caching in the decontamination
             task_doc_func = task.validation_docs
 
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
@@ -74,6 +89,10 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
         rnd.shuffle(task_docs)
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
+
+            if decontaminate and task.should_decontaminate():
+                docs_for_decontamination[(task_name, task_set)].append(task.doc_to_decontamination_query(doc))
+
             docs[(task_name, doc_id)] = doc
 
             ctx = task.fewshot_context(
@@ -84,12 +103,17 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
             )
 
             reqs = task.construct_requests(doc, ctx)
-            if not isinstance(reqs, (list, tuple)): reqs = [reqs]
+            if not isinstance(reqs, (list, tuple)): reqs = [reqs] 
             for i, req in enumerate(reqs):
                 requests[req.type].append(req)
                 # i: index in requests for a single task instance
                 # doc_id: unique id that we can get back to a doc using `docs`
                 requests_origin[req.type].append((i, task_name, doc, doc_id))
+
+    # Compare all tasks/sets at once to ensure a single training set scan
+    if decontaminate:
+        print("Finding train/test overlap, please wait...")
+        overlaps = get_train_overlap(docs_for_decontamination, ngrams_path, ngrams_n_size, limit)
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)
@@ -121,15 +145,23 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
         metrics = task.process_results(doc, requests)
         for metric, value in metrics.items():
             vals[(task_name, metric)].append(value)
+
+            # Re-use the evaluation for the decontaminated set by just ignoring the overlaps
+            if decontaminate and task_name in overlaps:
+                if doc_id not in overlaps[task_name]:
+                    vals[(task_name, metric + decontaminate_suffix)].append(value)
     
     # aggregate results
     for (task_name, metric), items in vals.items():
         task = task_dict[task_name]
-        results[task_name][metric] = task.aggregation()[metric](items)
+        real_metric = metric # key when looking up the metric with task.aggregation
+        if metric.endswith(decontaminate_suffix):
+            real_metric = metric.replace(decontaminate_suffix, "") # decontaminated still uses the same metric
+        results[task_name][metric] = task.aggregation()[real_metric](items)
 
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
         # so we run them less iterations. still looking for a cleaner way to do this
-        stderr = lm_eval.metrics.stderr_for_metric(task.aggregation()[metric], bootstrap_iters=min(bootstrap_iters, 1000) if metric in ["bleu", "chrf", "ter"] else bootstrap_iters)
+        stderr = lm_eval.metrics.stderr_for_metric(task.aggregation()[real_metric], bootstrap_iters=min(bootstrap_iters, 1000) if metric in ["bleu", "chrf", "ter"] else bootstrap_iters)
         if stderr is not None:
             results[task_name][metric + "_stderr"] = stderr(items)
     

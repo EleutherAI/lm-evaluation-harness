@@ -64,3 +64,9 @@ class SciQ(MultipleChoiceTask):
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {}\nAnswer:".format(doc["source"], doc["query"]).strip()
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["source"] + " " + doc["query"]

@@ -128,6 +128,10 @@ class Task(abc.ABC):
         """Downloads the task dataset if necessary"""
         pass
 
+    def should_decontaminate(self):
+        """Whether this task supports decontamination against model training set."""
+        return False
+
     @abc.abstractmethod
     def has_training_docs(self):
         """Whether the task has a training set"""
@@ -169,6 +173,10 @@ class Task(abc.ABC):
             self._training_docs = list(self.training_docs())
 
         return rnd.sample(self._training_docs, k)
+
+    def doc_to_decontamination_query(self, doc):
+        print("Override doc_to_decontamination_query with document specific decontamination query.")
+        assert(False)
 
     @abc.abstractmethod
     def doc_to_text(self, doc):
@@ -292,6 +300,10 @@ class MultipleChoiceTask(Task):
 
 class PerplexityTask(Task, abc.ABC):
 
+    def should_decontaminate(self):
+        """Whether this task supports decontamination against model training set."""
+        return True
+
     def has_training_docs(self):
         return False
 
@@ -313,6 +325,9 @@ class PerplexityTask(Task, abc.ABC):
             "byte_perplexity": False,
             "bits_per_byte": False,
         }
+
+    def doc_to_decontamination_query(self, doc):
+        return doc
 
     def doc_to_text(self, doc):
         return ""

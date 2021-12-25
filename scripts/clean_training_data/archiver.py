@@ -4,6 +4,8 @@ import json
 import jsonlines
 import io
 import datetime
+import mmap
+import tqdm
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -79,12 +81,63 @@ class TextReader:
     def __init__(self, file_path):
         self.file_path = file_path
 
+    # Optimized mmap read with infrequent tqdm updates to maintain speed
+    # Tested up to 250MB/s. 
+    def read_tqdm(self, update_frequency=10000):
+        current_file_position = 0
+        line_counter = 0
+        with open(self.file_path, 'r') as fh, \
+            tqdm.tqdm(total=os.path.getsize(self.file_path), dynamic_ncols=True, 
+                unit="byte", unit_scale=1) as progress:
+            with mmap.mmap(fh.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
+                for line in iter(mmap_obj.readline, b""):
+                    line = line.decode("utf-8")
+                    line_counter += 1
+                    if line_counter == update_frequency:
+                        new_file_pos = mmap_obj.tell() 
+                        bytes_read = new_file_pos - current_file_position
+                        current_file_position = new_file_pos
+                        progress.update(bytes_read)
+                        line_counter = 0
+                    yield line[:-1]
+
+    def read_and_tell(self):
+        current_file_position = 0
+        with open(self.file_path, 'r', encoding="utf8") as fh:
+            with mmap.mmap(fh.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
+                for line in iter(mmap_obj.readline, b""):
+                    line = line.decode("utf-8")                    
+                    new_file_pos = mmap_obj.tell() 
+                    raw_bytes_read = new_file_pos - current_file_position
+                    current_file_position = new_file_pos
+                    yield line[:-1], raw_bytes_read
+
     def read(self):
         with open(self.file_path, 'r', encoding="utf8") as fh:
-            self.fh = fh
+            with mmap.mmap(fh.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
+                for line in iter(mmap_obj.readline, b""):
+                    line = line.decode("utf-8")                    
+                    yield line[:-1]
+
+    def read_slow(self):
+        with open(self.file_path, 'r', encoding="utf8") as fh:
             while True:
-                line = self.fh.readline()
+                line = fh.readline()
                 if line == -1 or line == "":
                     break
-                else :
+                else:
                     yield line[:-1]
+
+# Optimized for speed. Decompresses the archive in shell before
+# using the mmap'd TextReader.
+class ZStdTextReader:
+    def __init__(self, file):
+        self.file = file        
+
+    def read_tqdm(self):       
+        decompressed_file = self.file[:-4]
+        print("Decompressing file, please wait...")
+        os.system(f"zstd -d {self.file}") # linux decompress is faster        
+        reader = TextReader(decompressed_file)
+        yield from reader.read_tqdm()
+        os.remove(decompressed_file)

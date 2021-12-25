@@ -50,6 +50,7 @@ class LogiQA(MultipleChoiceTask):
             return prompt
         choices = ['a', 'b', 'c', 'd']
         return {
+            "passage": doc["passage"], # Used for decontamination
             "query": format_example(doc, choices),
             "choices": doc["options"],
             "gold": choices.index(doc["answerKey"])
@@ -86,3 +87,9 @@ class LogiQA(MultipleChoiceTask):
 
     def doc_to_text(self, doc):
         return doc["query"]
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["passage"]
