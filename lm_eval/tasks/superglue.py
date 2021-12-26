@@ -227,7 +227,7 @@ class MultiRC(HFTask):
 
     @staticmethod
     def format_answer(answer, label):
-        label_str = "yes" if label else "no"
+        label_str = "Yes" if label else "No"
         return f"{answer}\nIs the answer correct? {label_str}"
 
     def construct_requests(self, doc, ctx):
