@@ -144,12 +144,17 @@ class Apps(Task):
             
             if not os.path.exists(starter_path):
                 starter_path = None
+                answer_type = "\nUse Standard Input format\n"
+            else:
+                answer_type = "\nUse Call-Based format\n"
+
             if not os.path.exists(test_case_path) or not os.path.exists(prompt_path):
                 continue
 
             if os.path.exists(solutions_path):
                 prompt_text, sample_sol = generate_prompt(test_case_path, prompt_path, solutions_path, tokenizer, starter_path)
                 out_doc = {}
+                out_doc["answer_type"] = answer_type
                 out_doc['prompt'] = prompt_text
                 out_doc['sample_sol'] = sample_sol
                 with open(os.path.join(solutions_path), "r") as f:
@@ -180,10 +185,10 @@ class Apps(Task):
         return desc
 
     def doc_to_text(self, doc):
-        return "\nQuestion:\n{}\n{}Answer:".format(doc["prompt"], doc["sample_sol"])
-
+        return "\nQUESTION:\n{}\n{}\nANSWER:\n".format(doc["prompt"], doc["sample_sol"])
+        #return "\nQUESTION:\n{}\n{}\n{}\nANSWER:\n".format(doc["prompt"], doc["sample_sol"],doc["answer_type"])
     def doc_to_target(self, doc):
-        return doc['solutions']
+        return min(doc['solutions'],key=len)
 
     def construct_requests(self, doc, ctx):
         conn_request = rf.greedy_until(ctx, ["<|endoftext|>"])
@@ -191,6 +196,7 @@ class Apps(Task):
 
 
     def process_results(self, doc, results):
+        print(results)
         return {
             'acc': 0
         }
