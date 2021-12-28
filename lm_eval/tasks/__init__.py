@@ -45,6 +45,7 @@ from . import lambada_multilingual
 from . import mutual
 from . import truthfulqa
 from . import blimp
+from . import apps
 
 ########################################
 # Translation tasks
@@ -77,6 +78,9 @@ all_translation_benchmarks = {
 
 
 TASK_REGISTRY = {
+    # Code
+    "hendrycks_apps":apps.Apps,
+
     # GLUE
     "cola": glue.CoLA,
     "mnli": glue.MNLI,
