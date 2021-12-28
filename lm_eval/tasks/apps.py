@@ -17,6 +17,7 @@ from lm_eval.base import rf
 from lm_eval.metrics import mean,perplexity
 from pathlib import Path
 from .reindent import run as run_reindent
+from .testing_util import run_test
 from tqdm import tqdm
 import io
 import json
@@ -135,7 +136,7 @@ class Apps(Task):
             if subset=='validation':
                 problem_ids = sorted(os.listdir(prob_path))[int(total_len*(1-split_percentage)):]
         else:
-            problem_ids = sorted(os.listdir(prob_path))[:10]
+            problem_ids = sorted(os.listdir(prob_path))
         for pid,problem_num in enumerate(problem_ids):
             test_case_path = os.path.join(prob_path,problem_num, "input_output.json")
             prompt_path = os.path.join(prob_path,problem_num, "question.txt")
@@ -157,6 +158,7 @@ class Apps(Task):
                 out_doc["answer_type"] = answer_type
                 out_doc['prompt'] = prompt_text
                 out_doc['sample_sol'] = sample_sol
+                out_doc['prob_path'] = test_case_path
                 with open(os.path.join(solutions_path), "r") as f:
                     sols = json.load(f)
                     out_doc['solutions'] = sols
@@ -186,7 +188,7 @@ class Apps(Task):
 
     def doc_to_text(self, doc):
         return "\nQUESTION:\n{}\n{}\nANSWER:\n".format(doc["prompt"], doc["sample_sol"])
-        #return "\nQUESTION:\n{}\n{}\n{}\nANSWER:\n".format(doc["prompt"], doc["sample_sol"],doc["answer_type"])
+    
     def doc_to_target(self, doc):
         return min(doc['solutions'],key=len)
 
@@ -196,9 +198,11 @@ class Apps(Task):
 
 
     def process_results(self, doc, results):
-        print(results)
+        results = run_test(doc['prob_path'],results[0])
+        results = [False if x<0 else x for x in results] 
+
         return {
-            'acc': 0
+            'acc': 100*np.mean(results)
         }
 
     def aggregation(self):
