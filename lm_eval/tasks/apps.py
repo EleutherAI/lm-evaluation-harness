@@ -62,7 +62,7 @@ def reindent_code(codestr):
     return ret.getvalue()
 
 def generate_prompt(test_case_path, prompt_path, solutions_path, tokenizer, starter_path=None):
-    peeking = 1.0
+    peeking = 0.0
     peek_frac = 0.5
     _input = "\nQUESTION:\n"
     with open(prompt_path, "r") as f:
@@ -96,22 +96,12 @@ def generate_prompt(test_case_path, prompt_path, solutions_path, tokenizer, star
             sols = json.load(f)
 
         # Choose the shortest solution for the model to use.
-        # This is so we can conserve tokens (1024 max)
-        # sample_sol = min(sols, key=len)
+        sample_sol = min(sols, key=len)
+        sample_sol_token_ids = tokenizer.encode(sample_sol, verbose=False)
+        num_to_keep = int(len(sample_sol_token_ids) * peeking)
+        sample_sol_token_ids = sample_sol_token_ids[:num_to_keep]
+        _input += tokenizer.decode(sample_sol_token_ids)
 
-        # # Add args.peeking% of that solution to the prompt
-        # sample_sol_token_ids = tokenizer.encode(sample_sol, verbose=False)
-        # num_to_keep = int(len(sample_sol_token_ids) * args.peeking)
-        # sample_sol_token_ids = sample_sol_token_ids[:num_to_keep]
-        # _input += tokenizer.decode(sample_sol_token_ids)
-
-        # Alternatively take a random solution
-        sample_sol = random.choice(sols)
-        rand_sol = reindent_code(sample_sol)
-        rand_sol = tokenizer.encode(rand_sol, verbose=False)
-        tokens_taken = int(peek_frac * len(rand_sol))
-        rand_sol = rand_sol[:tokens_taken]
-        _input += tokenizer.decode(rand_sol)
     else:
         sample_sol = None
 
@@ -145,7 +135,7 @@ class Apps(Task):
             if subset=='validation':
                 problem_ids = sorted(os.listdir(prob_path))[int(total_len*(1-split_percentage)):]
         else:
-            problem_ids = sorted(os.listdir(prob_path))
+            problem_ids = sorted(os.listdir(prob_path))[:10]
         for pid,problem_num in enumerate(problem_ids):
             test_case_path = os.path.join(prob_path,problem_num, "input_output.json")
             prompt_path = os.path.join(prob_path,problem_num, "question.txt")
@@ -193,11 +183,11 @@ class Apps(Task):
         return "\nQuestion:\n{}\n{}Answer:".format(doc["prompt"], doc["sample_sol"])
 
     def doc_to_target(self, doc):
-        return random.choice(doc['solutions'])
+        return doc['solutions']
 
     def construct_requests(self, doc, ctx):
-        code = rf.greedy_until(ctx, ["\nQuestion:\n"])
-        return code
+        conn_request = rf.greedy_until(ctx, ["<|endoftext|>"])
+        return conn_request
 
 
     def process_results(self, doc, results):
