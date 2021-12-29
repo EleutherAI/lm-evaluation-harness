@@ -21,7 +21,7 @@ pip install lm-eval
 
 ## Basic Usage
 
-To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you can run the following command.
+To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you can run the following command. **When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility.** This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible.
 
 ```bash
 python main.py \
