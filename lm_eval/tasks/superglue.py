@@ -202,7 +202,7 @@ class Copa(HFTask):
 
 
 class MultiRC(HFTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "multirc"
 
