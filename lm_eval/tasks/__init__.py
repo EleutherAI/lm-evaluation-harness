@@ -133,7 +133,9 @@ TASK_REGISTRY = {
     "squad2": squad.SQuAD2,
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
-    "headqa": headqa.HeadQA,
+    "headqa": headqa.HeadQAEsDeprecated, # for backwards compat - headqa used to default to es
+    "headqa_es": headqa.HeadQAEs,
+    "headqa_en": headqa.HeadQAEn,
     "mathqa": mathqa.MathQA,
     "webqs": webqs.WebQs,
     "wsc273": wsc273.WinogradSchemaChallenge273,
