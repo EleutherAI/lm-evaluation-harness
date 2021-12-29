@@ -32,9 +32,9 @@ class Asdiv(Task):
         if self.DATASET_PATH.exists():
             return
         Path.mkdir(self.DATASET_PATH)
-        url = "https://github.com/chaochun/nlu-asdiv-dataset/archive/refs/heads/master.zip"
-        checksum = "2f71f8003929d605369ad924be4b95c15879fc2bfac0d4d01a81f8aabceaad5c"
-        zip_path = self.DATASET_PATH / "master.zip"
+        url = "https://github.com/chaochun/nlu-asdiv-dataset/archive/55790e5270bb91ccfa5053194b25732534696b50.zip"
+        checksum = "8f1fe4f6d5f170ec1e24ab78c244153c14c568b1bb2b1dad0324e71f37939a2d"
+        zip_path = self.DATASET_PATH / "55790e5270bb91ccfa5053194b25732534696b50.zip"
         download_file(url, str(zip_path), checksum)
         with ZipFile(zip_path, "r") as zip:
             zip.extractall(self.DATASET_PATH)
@@ -85,7 +85,7 @@ class Asdiv(Task):
         raise NotImplementedError("This dataset has no test docs")
 
     def validation_docs(self):
-        data_xml_path = self.DATASET_PATH / "nlu-asdiv-dataset-master/dataset/ASDiv.xml"
+        data_xml_path = self.DATASET_PATH / "nlu-asdiv-dataset-55790e5270bb91ccfa5053194b25732534696b50/dataset/ASDiv.xml"
         return self.load_docs(data_xml_path)
 
     def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
@@ -109,11 +109,10 @@ class Asdiv(Task):
         if len(answer)>0: # check if answer is present only in brackets
             return answer
         else:
-            return doc['answer']
+            return " "+doc['answer']
 
     def construct_requests(self, doc, ctx):
         ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
-
         return ll, is_greedy
     
     def process_results(self, doc, results):
