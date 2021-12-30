@@ -41,7 +41,7 @@ def wikitext_detokenizer(string):
 
 
 class WikiText(PerplexityTask):
-    VERSION = 0
+    VERSION = 1
 
     def download(self):
         if not os.path.exists('data/wikitext/wikitext-2-raw/wiki.valid.raw'):
