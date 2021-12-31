@@ -93,11 +93,7 @@ class Asdiv(Task):
         # TODO: add formula
 
         answer = doc['answer'].split(' (')[0]
-        print(answer)
-        if len(answer)>0: # check if answer is present only in brackets
-            return answer
-        else:
-            return doc['answer']
+        return answer
 
     def construct_requests(self, doc, ctx):
         ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
