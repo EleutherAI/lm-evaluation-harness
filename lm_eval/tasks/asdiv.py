@@ -56,19 +56,6 @@ class Asdiv(Task):
             out_doc = self._convert_standard(problem)
             yield out_doc
 
-    def _strip_bracket(self,test_str):
-        ret = ''
-        skip1c = 0
-        skip2c = 0
-        for i in test_str:
-            if i == '(':
-                skip2c += 1
-            elif i == ')'and skip2c > 0:
-                skip2c -= 1
-            elif skip1c == 0 and skip2c == 0:
-                ret += i
-        return ret
-
     def has_training_docs(self):
         return False
     
@@ -105,11 +92,12 @@ class Asdiv(Task):
     def doc_to_target(self, doc):
         # TODO: add formula
 
-        answer = self._strip_bracket(doc['answer'])
+        answer = doc['answer'].split(' (')[0]
+        print(answer)
         if len(answer)>0: # check if answer is present only in brackets
             return answer
         else:
-            return " "+doc['answer']
+            return doc['answer']
 
     def construct_requests(self, doc, ctx):
         ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
