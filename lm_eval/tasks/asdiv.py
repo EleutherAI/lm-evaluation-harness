@@ -93,7 +93,7 @@ class Asdiv(Task):
         # TODO: add formula
 
         answer = doc['answer'].split(' (')[0]
-        return answer
+        return " " + answer
 
     def construct_requests(self, doc, ctx):
         ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
