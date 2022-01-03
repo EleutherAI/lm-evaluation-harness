@@ -32,7 +32,7 @@ def test_basic_interface(taskname, task_class):
 
     limit = None
 
-    if taskname in ["triviaqa"]:
+    if taskname in ["triviaqa"] or taskname.startswith("pile_"):
         limit = 10000
     if task.has_validation_docs():
         arr = list(islice(task.validation_docs(), limit))

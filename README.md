@@ -21,7 +21,7 @@ pip install lm-eval
 
 ## Basic Usage
 
-To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you can run the following command.
+To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you can run the following command. **When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility.** This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](https://github.com/EleutherAI/lm-evaluation-harness#task-versioning) section for more info.
 
 ```bash
 python main.py \
@@ -128,8 +128,9 @@ To implement a new task in eval harness, see [this guide](https://github.com/Ele
 |openbookqa                                               |✓    |✓  |✓   |          500|acc, acc_norm                                                                 |
 |squad2                                                   |✓    |✓  |    |        11873|exact, f1, HasAns_exact, HasAns_f1, NoAns_exact, NoAns_f1, best_exact, best_f1|
 |race                                                     |✓    |✓  |✓   |         1045|acc                                                                           |
-|headqa                                                   |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
 |mathqa                                                   |✓    |✓  |✓   |         2985|acc, acc_norm                                                                 |
+|headqa_es                                                |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
+|headqa_en                                                |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
 |webqs                                                    |✓    |   |✓   |         2032|acc                                                                           |
 |wsc273                                                   |     |   |✓   |          273|acc                                                                           |
 |winogrande                                               |✓    |✓  |    |         1267|acc                                                                           |
