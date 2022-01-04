@@ -10,7 +10,7 @@ from best_download import download_file
 
 
 class PilePerplexityTask(PerplexityTask, abc.ABC):
-    VERSION = 0
+    VERSION = 1
 
     PILE_SET_NAME = None
     VAL_PATH = 'data/pile/val.jsonl.zst'
