@@ -41,7 +41,7 @@ One can also interface with the aforementioned [`evaluator.evaluate`](../lm_eval
 
 which can then be supplied to the CLI as:
 
-```python
+```bash
 python main.py  \
 --tasks cycle_letters,copa \
 --description_dict_path /your/path/descriptions.json \
