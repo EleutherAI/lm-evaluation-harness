@@ -26,10 +26,6 @@ class BoolQ(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return "Read the following passages and answer each question with a yes or a no."
-
     def doc_to_text(self, doc):
         return f"{doc['passage']}\nQuestion: {doc['question']}?\nAnswer:"
     
@@ -77,11 +73,6 @@ class CommitmentBank(HFTask):
 
     def has_test_docs(self):
         return False
-
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return "Given a premise and a hypothesis, classify whether the author of the premise is committed" \
-            "to the truth of the hypothesis. The three possible labels are true, false or neither."
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {}. True, False or Neither?\nAnswer:".format(
@@ -150,11 +141,6 @@ class Copa(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return "Given a premise and one alternative with a causal relation to the premise and another without," \
-            "choose the more plausible alternative"
-
     def doc_to_text(self, doc):
         # Drop the period
         connector = {
@@ -215,10 +201,6 @@ class MultiRC(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return "READING COMPREHENSION ANSWER KEY"
-
     def doc_to_text(self, doc):
         return f"{doc['paragraph']}\nQuestion: {doc['question']}\nAnswer:"
 
@@ -269,10 +251,6 @@ class ReCoRD(HFTask):
 
     def has_test_docs(self):
         return False
-
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return ""
 
     def training_docs(self):
         # In ReCoRD, each doc manifests multiple "examples" in the context of few shot example packing.
@@ -363,10 +341,6 @@ class WordsInContext(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return ""
-
     def doc_to_text(self, doc):
         return "Sentence 1: {}\nSentence 2: {}\nQuestion: Is the word '{}' used in the same way in the" \
                " two sentences above?\nAnswer:".format(
@@ -431,12 +405,6 @@ class SGWinogradSchemaChallenge(HFTask):
                     if doc["label"]
                 ]
             return self._training_docs
-
-    def fewshot_description(self):
-        return "Final Exam with Answer Key\n" \
-           "Instructions: Please carefully read the following passages. " \
-           "For each passage, you must identify which noun the pronoun marked in *bold*" \
-           " refers to.\n====="
 
     def doc_to_text(self, doc):
         raw_passage = doc["text"]

@@ -27,18 +27,12 @@ class StoryCloze(Task):
             filereader = csv.reader(file)
             return list(filereader)
                 
-
     def validation_docs(self):
         return self.load_doc("data/storycloze/cloze_test_val__winter2018-cloze_test_ALL_val - 1 - 1.csv")
 
     def test_docs(self):
         return self.load_doc("data/storycloze/cloze_test_test__winter2018-cloze_test_ALL_test - 1.csv")
 
-    
-    def fewshot_description(self):
-        # TODO: figure out fewshot description
-        return ""
-    
     def doc_to_text(self, doc):
         return ' '.join([*doc[1:5]])
 

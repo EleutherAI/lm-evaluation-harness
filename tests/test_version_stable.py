@@ -99,5 +99,13 @@ def test_versions_stable(taskname, task_class):
     lm.greedy_until = greedy_until
 
     limit = None
-    result = evaluator.evaluate(lm, task_dict, False, 0, limit, bootstrap_iters=10)
+    result = evaluator.evaluate(
+            lm=lm,
+            task_dict=task_dict,
+            num_fewshot=0,
+            limit=limit,
+            bootstrap_iters=10,
+            description_dict=None
+    )
+
     assert_target(f"{taskname}-v{task_class.VERSION}-res", result)
