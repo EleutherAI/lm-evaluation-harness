@@ -21,7 +21,7 @@ class Arithmetic(Task):
         url = 'https://raw.githubusercontent.com/openai/gpt-3/master/data/' + file_name
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)
-        download_file(url, self.directory+file_name, checksum)
+        download_file(url, local_file=self.directory+file_name, expected_checksum=checksum)
         self.set_docs()
 
     @abc.abstractmethod

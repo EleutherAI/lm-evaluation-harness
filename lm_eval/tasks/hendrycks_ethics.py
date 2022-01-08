@@ -20,7 +20,7 @@ class Ethics(Task):
     def download(self):
         if not os.path.exists('data/ethics/done'):
             sh("mkdir -p data")
-            download_file("https://people.eecs.berkeley.edu/~hendrycks/ethics.tar", "data/ethics.tar", "40acbf1ac0da79a2aabef394d58889136b8d38b05be09482006de2453fb06333")
+            download_file("https://people.eecs.berkeley.edu/~hendrycks/ethics.tar", local_file="data/ethics.tar", expected_checksum="40acbf1ac0da79a2aabef394d58889136b8d38b05be09482006de2453fb06333")
             sh("""
             tar -xf data/ethics.tar -C data/
             rm data/ethics.tar
