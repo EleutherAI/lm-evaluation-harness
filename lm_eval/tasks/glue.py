@@ -220,7 +220,7 @@ class QNLI(HFTask):
 
 
 class WNLI(HFTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "glue"
     DATASET_NAME = "wnli"
 
@@ -234,26 +234,25 @@ class WNLI(HFTask):
         return False
 
     def doc_to_text(self, doc):
-        return "{}\nQuestion: {} True, False or Neither?\nAnswer:".format(
+        return "{}\nQuestion: {} True or False?\nAnswer:".format(
             doc["sentence1"],
             doc["sentence2"],
         )
 
     def doc_to_target(self, doc):
         # True = entailment
-        # False = contradiction
-        # Neither = neutral
-        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
+        # False = not_entailment
+        return " {}".format({0: "False", 1: "True"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
         ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
         ll_false, _ = rf.loglikelihood(ctx, " False")
-        return ll_true, ll_neither, ll_false
+        return ll_true, ll_false
 
     def process_results(self, doc, results):
+        ll_true, ll_false = results
+        pred = ll_true > ll_false
         gold = doc["label"]
-        pred = np.argmax(results)
         return {
             "acc": pred == gold
         }
