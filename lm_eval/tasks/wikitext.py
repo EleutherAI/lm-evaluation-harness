@@ -46,7 +46,7 @@ class WikiText(PerplexityTask):
     def download(self):
         if not os.path.exists('data/wikitext/wikitext-2-raw/wiki.valid.raw'):
             os.makedirs("data/wikitext/", exist_ok=True)
-            download_file("https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-2-raw-v1.zip", "data/wikitext/wikitext-2-raw-v1.zip", "ef7edb566e3e2b2d31b29c1fdb0c89a4cc683597484c3dc2517919c615435a11")
+            download_file("https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-2-raw-v1.zip", local_file="data/wikitext/wikitext-2-raw-v1.zip", expected_checksum="ef7edb566e3e2b2d31b29c1fdb0c89a4cc683597484c3dc2517919c615435a11")
             sh("cd data/wikitext/ && unzip wikitext-2-raw-v1.zip")
 
     def has_validation_docs(self):
