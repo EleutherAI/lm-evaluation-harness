@@ -188,7 +188,7 @@ class Copa(HFTask):
 
 
 class MultiRC(HFTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "multirc"
 
@@ -210,7 +210,7 @@ class MultiRC(HFTask):
     @staticmethod
     def format_answer(answer, label):
         label_str = "yes" if label else "no"
-        return f"{label_str}, {answer}"
+        return f"{answer}\nIs the answer correct? {label_str}"
 
     def construct_requests(self, doc, ctx):
         true_choice = self.format_answer(answer=doc["answer"], label=True)
@@ -222,7 +222,8 @@ class MultiRC(HFTask):
         return ll_true_choice, ll_false_choice
 
     def process_results(self, doc, results):
-        pred = np.argmax(results)
+        ll_true_choice, ll_false_choice = results
+        pred = ll_true_choice > ll_false_choice
         return {
             "acc": (pred, doc)
         }
