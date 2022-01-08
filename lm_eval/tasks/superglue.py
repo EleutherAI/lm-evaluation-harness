@@ -13,7 +13,7 @@ from ..utils import general_detokenize
 
 
 class BoolQ(HFTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "boolq"
 
@@ -27,7 +27,7 @@ class BoolQ(HFTask):
         return False
 
     def doc_to_text(self, doc):
-        return f"{doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
+        return f"{doc['passage']}\nQuestion: {doc['question']}?\nAnswer:"
     
     def doc_to_target(self, doc):
         return " " + yesno(doc['label']) 

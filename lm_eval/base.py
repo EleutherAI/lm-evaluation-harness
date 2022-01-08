@@ -11,7 +11,7 @@ from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 
-from lm_eval.metrics import mean, weighted_perplexity, weighted_mean
+from lm_eval.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
 from lm_eval import utils
 from abc import abstractmethod
 
@@ -599,14 +599,14 @@ class PerplexityTask(Task, abc.ABC):
         return {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
-            "bits_per_byte": (-loglikelihood, self.count_bytes(doc))
+            "bits_per_byte": (loglikelihood, bytes_),
         }
 
     def aggregation(self):
         return {
             "word_perplexity": weighted_perplexity,
             "byte_perplexity": weighted_perplexity,
-            "bits_per_byte": weighted_mean
+            "bits_per_byte": bits_per_byte,
         }
 
     @classmethod
