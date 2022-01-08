@@ -29,7 +29,7 @@ class WordUnscrambleTask(Task):
         if not file.exists():
             rawfile = file.parent / (file.name + ".gz")
             base_url = "https://raw.githubusercontent.com/openai/gpt-3/master/data"
-            download_file(f"{base_url}/{self.FILENAME}.gz", str(rawfile), self.CHECKSUM)
+            download_file(f"{base_url}/{self.FILENAME}.gz", local_file=str(rawfile), expected_checksum=self.CHECKSUM)
             extract_gzip(gz=rawfile, to=file)
 
     def has_training_docs(self):

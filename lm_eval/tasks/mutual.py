@@ -36,8 +36,8 @@ class MuTualBase(Task):
         master_zip = Path("data/master.zip")
         download_file(
             "https://github.com/Nealcly/MuTual/archive/master.zip",
-            str(master_zip),
-            "bb325cf6c672f0f02699993a37138b0fa0af6fcfc77ec81dfbe46add4d7b29f9")
+            local_file=str(master_zip),
+            expected_checksum="bb325cf6c672f0f02699993a37138b0fa0af6fcfc77ec81dfbe46add4d7b29f9")
         with zipfile.ZipFile(master_zip, 'r') as zip:
             zip.extractall("data")
         Path("data/MuTual-master/data").rename(str(self.BASE_PATH))

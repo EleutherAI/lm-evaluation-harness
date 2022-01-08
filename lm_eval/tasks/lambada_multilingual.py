@@ -32,8 +32,8 @@ class MultilingualLAMBADA(lambada.LAMBADA):
         if not os.path.exists(f):
           download_file(
               url, 
-              f, 
-              CHECKSUMS[self.LANG]
+              local_file=f,
+              expected_checksum=CHECKSUMS[self.LANG]
           )
       except:
         # fallback - for some reason best_download doesnt work all the time here
