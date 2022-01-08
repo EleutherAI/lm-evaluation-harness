@@ -2,6 +2,7 @@ import os
 import re
 import collections
 import functools
+import inspect
 
 
 class ExitCodeError(Exception):
@@ -148,7 +149,7 @@ def positional_deprecated(fn):
     """
     @functools.wraps(fn)
     def _wrapper(*args, **kwargs):
-        if len(args) != 0: 
+        if len(args) != 1 if inspect.ismethod(fn) else 0: 
             print(f"WARNING: using {fn.__name__} with positional arguments is "
                 "deprecated and will be disallowed in a future version of "
                 "lm-evaluation-harness!")
