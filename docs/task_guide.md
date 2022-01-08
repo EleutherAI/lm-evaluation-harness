@@ -87,8 +87,7 @@ There are 2 standard approaches we follow for downloading data:
     ```
    These methods return `True`/`False` whether or not your task dataset provides documents for each split type. __Note__: if the test set doesn't have publicly available labels, please do not put it down as having a test set.
 
-	Lastly, we need to load the documents. In our terminology, a document (`doc`) is a single natural language data example stored in a Python `dict`. E.g.:
-	`{“question”: “What is the capital of France?”, “answer”: “Paris”}`. Override the following methods to load your data splits from their storage location in `DATASET_PATH`:
+	Lastly, we need to load the documents. In our terminology, a document (`doc`) is a single natural language data example stored in a Python `dict`. E.g.: `{“question”: “What is the capital of France?”, “answer”: “Paris”}`. Override the following methods to load your data splits from their storage location in `DATASET_PATH`:
     ```python
     def training_docs(self):
         return #...
@@ -125,17 +124,9 @@ You can now skip ahead to <a href="#Registering-Your-Task">registering your task
 
 <br>
 
+In the case your task is _not_ multiple-choice, override the following methods for your task class:
 
-In the case your task is not multiple-choice, override the following methods for your task class:
-
-Put the natural language task description as a single line (no `\n`s) string here. E.g. `"Translate English to French:"`
-
-```python
-def fewshot_description(self):
-    return ""
-```
-
-Format your document into a single query prompt __without the answer__ here. This method takes a single `doc` example (in dictionary form) . You should concatenate its members into a nicely formatted prompt.
+Format your document into a single query prompt __without the answer__ here. This method takes a single `doc` example of type `dict` with `str` key-value members. You should concatenate these `doc` item values together into a neatly formatted prompt.
 
 ```python
 def doc_to_text(self, doc):
@@ -161,11 +152,12 @@ After registering your task, you can now check on your data downloading and veri
 
 ```bash
 python -m scripts.write_out \
-    --task <your-task> \
     --output_base_path <path> \
+    --tasks <your-task> \
     --sets <train | val | test> \
     --num_fewshot K \
-    --num_examples N
+    --num_examples N \ 
+    --description_dict_path <path>
 ```
 
 Open the file specified at the `--output_base_path <path>` and ensure it passes

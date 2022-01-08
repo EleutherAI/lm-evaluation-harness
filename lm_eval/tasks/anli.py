@@ -33,10 +33,6 @@ class ANLIBase(HFTask):
         if self.has_test_docs():
             return self.data["test_r" + str(self.SPLIT)]
 
-    def fewshot_description(self):
-        # TODO: figure out description
-        return ""
-
     def doc_to_text(self, doc):
         # OA does this a bit weirdly: they prepend "anli 1:  anli 1:  " to the beginning
         # of the prompt (yes, repeating it!). also, " True, False, or Neither?" is directly 
