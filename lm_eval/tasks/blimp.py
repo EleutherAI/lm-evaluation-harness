@@ -29,9 +29,18 @@ class BlimpTask(HFTask):
         self.data["validation"] = self.data["train"]
         del self.data["train"]
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0
-        assert not provide_description
+        assert rnd is not None, "A `random.Random` generator argument must be provided to `rnd`"
+        assert not provide_description, (
+            "The `provide_description` arg will be removed in future versions. To prepend "
+            "a custom description to the context, supply the corresponding string via the  "
+            "`description` arg."
+        )
+        if provide_description is not None:
+            # nudge people to not specify it at all
+            print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
+
         return ""
 
     def doc_to_text(self, doc):

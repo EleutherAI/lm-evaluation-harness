@@ -55,9 +55,6 @@ class Math(Task):
     def test_docs(self):
         return self._load_docs(self.DATASET_PATH / "test" / self.get_file_info())
 
-    def fewshot_description(self):
-        return "Given a mathematics problem, determine the answer. Simplify your answer as much as possible."
-
     def doc_to_text(self, doc):
         return "Problem: " + doc["problem"] + "\nAnswer:"
 

@@ -65,10 +65,6 @@ class RACE(HFTask):
     def test_docs(self):
         return self._collate_data("test")
 
-    def fewshot_description(self):
-        # TODO: figure out description
-        return ""
-
     @classmethod
     def get_answer_option(cls, problem):
         answer = cls.letter_to_num[problem['answer']]

@@ -36,10 +36,6 @@ class TriviaQA(Task):
     def test_docs(self):
         raise NotImplementedError()
     
-    def fewshot_description(self):
-        # TODO: figure out fewshot description
-        return ""
-    
     def doc_to_text(self, doc):
         return f"Question: {doc['Question']}\nAnswer:"
 
@@ -56,7 +52,6 @@ class TriviaQA(Task):
                 ret.append(alias)
 
         return ret
-        
 
     def construct_requests(self, doc, ctx):
         ret = []

@@ -21,7 +21,7 @@ pip install lm-eval
 
 ## Basic Usage
 
-To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you can run the following command.
+To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you can run the following command. **When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility.** This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](https://github.com/EleutherAI/lm-evaluation-harness#task-versioning) section for more info.
 
 ```bash
 python main.py \
@@ -55,7 +55,7 @@ To evaluate mesh-transformer-jax models that are not available on HF, please inv
 
 ## Implementing new tasks
 
-To implement a new task in eval harness, see [this guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/task-guide.md).
+To implement a new task in eval harness, see [this guide](./docs/task_guide.md).
 
 ## Cite as
 
@@ -128,8 +128,9 @@ To implement a new task in eval harness, see [this guide](https://github.com/Ele
 |openbookqa                                               |✓    |✓  |✓   |          500|acc, acc_norm                                                                 |
 |squad2                                                   |✓    |✓  |    |        11873|exact, f1, HasAns_exact, HasAns_f1, NoAns_exact, NoAns_f1, best_exact, best_f1|
 |race                                                     |✓    |✓  |✓   |         1045|acc                                                                           |
-|headqa                                                   |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
 |mathqa                                                   |✓    |✓  |✓   |         2985|acc, acc_norm                                                                 |
+|headqa_es                                                |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
+|headqa_en                                                |✓    |✓  |✓   |         2742|acc, acc_norm                                                                 |
 |webqs                                                    |✓    |   |✓   |         2032|acc                                                                           |
 |wsc273                                                   |     |   |✓   |          273|acc                                                                           |
 |winogrande                                               |✓    |✓  |    |         1267|acc                                                                           |
@@ -363,7 +364,6 @@ To inspect what the LM inputs look like, you can run the following command:
 ```bash
 python write_out.py \
 	--tasks all_tasks \
-	--provide_description \
 	--num_fewshot 5 \
 	--num_examples 10 \
 	--output_base_path /path/to/output/folder

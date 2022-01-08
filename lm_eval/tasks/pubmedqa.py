@@ -23,11 +23,6 @@ class Pubmed_QA(HFTask):
             # HF is labelled as train but its really just for testing
             return self.data["train"]
 
-    def fewshot_description(self):
-        # Average ctx length in labelled dataset is 238.9
-        # 2 few-shot exmamples pushes it beyond context window
-        return ""
-
     def doc_to_text(self, doc):
         ctxs = "\n".join(doc["context"]["contexts"])
         return "Abstract: {}\nQuestion: {}\nAnswer:".format(

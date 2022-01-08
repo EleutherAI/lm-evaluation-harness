@@ -67,9 +67,6 @@ class QA4MRE(MultipleChoiceTask):
                 out_doc['source'] = src
                 yield out_doc
 
-    def fewshot_description(self):
-        return ""
-
     def test_docs(self):
         return self.load_docs(f"data/qa4mre/QA4MRE-{self.YEAR}-EN_GS.xml")
 

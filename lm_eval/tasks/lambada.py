@@ -47,10 +47,6 @@ class LAMBADA(Task):
 
     def doc_to_target(self, doc):
         return " " + doc['text'].rsplit(' ', 1)[1]
-    
-    def fewshot_description(self):
-        # TODO: figure out description
-        return ""
 
     def construct_requests(self, doc, ctx):
         ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))

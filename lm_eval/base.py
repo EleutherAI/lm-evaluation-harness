@@ -1,6 +1,7 @@
 import abc
 from typing import Iterable
 import numpy as np
+import random
 import re
 import os
 import json
@@ -10,7 +11,7 @@ from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 
-from lm_eval.metrics import mean, weighted_perplexity, weighted_mean
+from lm_eval.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
 from lm_eval import utils
 from abc import abstractmethod
 
@@ -450,11 +451,43 @@ class Task(abc.ABC):
         pass
 
     def fewshot_description(self):
+        import warnings
+        warnings.warn(
+            "`fewshot_description` will be removed in futures versions. Pass "
+            "any custom descriptions to the `evaluate` function instead.",
+            DeprecationWarning)
         return ""
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
-        raw_description = self.fewshot_description()
-        description = (raw_description + "\n===\n\n") if provide_description and raw_description else ""
+    @utils.positional_deprecated
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
+        """ Returns a fewshot context string that is made up of a prepended description
+        (if provided), the `num_fewshot` number of examples, and an appended prompt example.
+
+        :param doc: str
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param num_fewshot: int
+            The number of fewshot examples to provide in the returned context string.
+        :param provide_description: bool
+            Not implemented, and this option is deprecated and will be removed in a future version in favor of a different description providing method
+        :param rnd: random.Random
+            The pseudo-random number generator used to randomly sample examples.
+            WARNING: This is currently a required arg although it's optionalized with a default `None`.
+        :param description: str
+            The task's description that will be prepended to the fewshot examples.
+        :returns: str
+            The fewshot context.
+        """
+        assert rnd is not None, "A `random.Random` generator argument must be provided to `rnd`"
+        assert not provide_description, (
+            "The `provide_description` arg will be removed in future versions. To prepend "
+            "a custom description to the context, supply the corresponding string via the "
+            "`description` arg."
+        )
+        if provide_description is not None:
+            # nudge people to not specify it at all
+            print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
+
+        description = description + "\n\n" if description else ""
 
         if num_fewshot == 0:
             labeled_examples = ""
@@ -523,16 +556,22 @@ class PerplexityTask(Task, abc.ABC):
     def has_training_docs(self):
         return False
 
-    def fewshot_description(self):
-        return ""
-
     def fewshot_examples(self, k, rnd):
         assert k == 0
         return []
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0
-        assert not provide_description
+        assert rnd is not None, "A `random.Random` generator argument must be provided to `rnd`"
+        assert not provide_description, (
+            "The `provide_description` arg will be removed in future versions. To prepend "
+            "a custom description to the context, supply the corresponding string via the  "
+            "`description` arg."
+        )
+        if provide_description is not None:
+            # nudge people to not specify it at all
+            print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
+
         return ""
 
     def higher_is_better(self):
@@ -560,14 +599,14 @@ class PerplexityTask(Task, abc.ABC):
         return {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
-            "bits_per_byte": (-loglikelihood, self.count_bytes(doc))
+            "bits_per_byte": (loglikelihood, bytes_),
         }
 
     def aggregation(self):
         return {
             "word_perplexity": weighted_perplexity,
             "byte_perplexity": weighted_perplexity,
-            "bits_per_byte": weighted_mean
+            "bits_per_byte": bits_per_byte,
         }
 
     @classmethod

@@ -29,9 +29,5 @@ class MathQA(HFTask, MultipleChoiceTask):
         }
         return out_doc
 
-    def fewshot_description(self):
-        # TODO: figure out description
-        return ""
-
     def doc_to_text(self, doc):
         return doc["query"]

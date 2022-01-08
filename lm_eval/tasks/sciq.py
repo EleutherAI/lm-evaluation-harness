@@ -50,9 +50,6 @@ class SciQ(MultipleChoiceTask):
         for record in docs:
             yield self._convert_standard(record)
 
-    def fewshot_description(self):
-        return ""
-
     def training_docs(self):
         return self.load_docs("data/sciq/SciQ dataset-2 3/train.json")
 

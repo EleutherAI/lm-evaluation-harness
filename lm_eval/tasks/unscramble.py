@@ -45,9 +45,6 @@ class WordUnscrambleTask(Task):
         file = self.BASE_PATH / self.FILENAME
         return (json.loads(line) for line in open(file).read().splitlines())
 
-    def fewshot_description(self):
-        return "Please unscramble the letters into a word, and write that word:"
-
     def doc_to_text(self, doc):
         return doc["context"]
 
