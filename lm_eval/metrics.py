@@ -52,13 +52,14 @@ def acc_all(items):
     docs = list(zip(*items))[1]
 
     for doc, pred in zip(docs, preds):
+        paragraph_id = doc["idx"]["paragraph"]
         question_id = doc["idx"]["question"]
-        if question_id not in question_scoring_dict:
-            question_scoring_dict[question_id] = []
+        if (paragraph_id, question_id) not in question_scoring_dict:
+            question_scoring_dict[(paragraph_id, question_id)] = []
 
         gold_label = doc["label"] == 1
-        question_scoring_dict[question_id].append(gold_label == pred)
 
+        question_scoring_dict[(paragraph_id, question_id)].append(gold_label == pred)
     acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
     return acc
 
@@ -101,6 +102,9 @@ def weighted_mean(items):
 
 def weighted_perplexity(items):
     return math.exp(-weighted_mean(items))
+
+def bits_per_byte(items):
+    return -weighted_mean(items) / math.log(2)
 
 
 def bleu(items):

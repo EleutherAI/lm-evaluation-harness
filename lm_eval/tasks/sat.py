@@ -61,10 +61,5 @@ class SATAnalogies(MultipleChoiceTask):
             }
             yield doc
 
-    
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return ""
-
     def doc_to_text(self, doc):
         return "{} is to {} as".format(*doc['query'])

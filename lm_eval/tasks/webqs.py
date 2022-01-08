@@ -17,10 +17,6 @@ class WebQs(HFTask):
     def has_test_docs(self):
         return True
 
-    def fewshot_description(self):
-        # TODO: figure out description
-        return ""
-
     def doc_to_text(self, doc):
         return "Question: " + doc['question'] + '\nAnswer:'
 
@@ -40,7 +36,6 @@ class WebQs(HFTask):
                 ret.append(alias)
 
         return ret
-        
 
     def construct_requests(self, doc, ctx):
         ret = []

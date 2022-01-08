@@ -13,6 +13,3 @@ class LAMBADA_cloze(LAMBADA):
 
     def doc_to_target(self, doc):
         return " " + doc['text'].rsplit(' ', 1)[1]
-    
-    def fewshot_description(self):
-        return "Fill in blank:\n"

@@ -9,7 +9,6 @@ for tname, Task in tasks.TASK_REGISTRY.items():#[('record', tasks.superglue.ReCo
     print('#', tname)
     docs = islice(task.validation_docs() if task.has_validation_docs() else task.test_docs(), ct)
     print()
-    print('**Zero-Shot Prompt**:', "\n```\n" + task.fewshot_description() + "\n```\n")
     for i in range(ct):
         print()
         doc = next(docs)

@@ -19,6 +19,7 @@ def parse_args():
     parser.add_argument('--output_path', default=None)
     parser.add_argument('--limit', type=int, default=None)
     parser.add_argument('--no_cache', action="store_true")
+    parser.add_argument('--description_dict_path', default=None)
     return parser.parse_args()
 
 
@@ -34,15 +35,21 @@ def main():
     else:
         task_names = args.tasks.split(",")
 
+    description_dict = {}
+    if args.description_dict_path:
+        with open(args.description_dict_path, 'r') as f:
+            description_dict = json.load(f)
+
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
-        task_names=task_names,
+        tasks=task_names,
         num_fewshot=args.num_fewshot,
         batch_size=args.batch_size,
         device=args.device,
         no_cache=args.no_cache,
         limit=args.limit,
+        description_dict=description_dict
     )
 
     dumped = json.dumps(results, indent=2)

@@ -114,9 +114,5 @@ class GeneralHendrycksTest(MultipleChoiceTask):
 
         return rnd.sample(list(self._fewshot_docs), k)
 
-    def fewshot_description(self):
-        subject = self.subject.replace("_", " ")
-        return f"The following are multiple choice questions (with answers) about {subject}."
-
     def doc_to_text(self, doc):
         return doc["query"]

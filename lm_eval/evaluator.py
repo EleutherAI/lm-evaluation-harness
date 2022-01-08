@@ -6,19 +6,23 @@ import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
 import numpy as np
+from lm_eval.utils import positional_deprecated
 
 
-def simple_evaluate(model, model_args, task_names,
+@positional_deprecated
+def simple_evaluate(model, model_args=None, tasks=[],
                     num_fewshot=0, batch_size=None, device=None,
-                    no_cache=False, limit=None, bootstrap_iters=100000):
+                    no_cache=False, limit=None, bootstrap_iters=100000,
+                    description_dict=None):
     """Instantiate and evaluate a model on a list of tasks.
 
-    :param model: str
-        Name of model, see lm_eval.models.get_model
-    :param model_args: str
-        String arguments for each model class, see LM.create_from_arg_string
-    :param task_names: list[str]
-        List of task names
+    :param model: Union[str, LM]
+        Name of model or LM object, see lm_eval.models.get_model
+    :param model_args: Optional[str]
+        String arguments for each model class, see LM.create_from_arg_string. 
+        Ignored if `model` argument is a LM object.
+    :param tasks: list[Union[str, Task]]
+        List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param num_fewshot: int
         Number of examples in few-shot context
     :param batch_size: int, optional
@@ -31,23 +35,39 @@ def simple_evaluate(model, model_args, task_names,
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
+    :param description_dict: dict[str, str]
+        Dictionary of custom task descriptions of the form: `task_name: description` 
     :return
         Dictionary of results
     """
     random.seed(1234)
     np.random.seed(1234)
 
-    lm = lm_eval.models.get_model(model).create_from_arg_string(model_args, {
-        'batch_size': batch_size, 'device': device
-    })
+    assert tasks != [], "No tasks specified"
+
+    if isinstance(model, str):
+        if model_args is None: model_args = ""
+        lm = lm_eval.models.get_model(model).create_from_arg_string(model_args, {
+            'batch_size': batch_size, 'device': device
+        })
+    else:
+        assert isinstance(model, lm_eval.base.LM)
+        lm = model
 
     if not no_cache:
         lm = lm_eval.base.CachingLM(
             lm, 'lm_cache/' + model + '_' + model_args.replace('=', '-').replace(',', '_').replace('/', '-') + '.db'
         )
     
-    task_dict = lm_eval.tasks.get_task_dict(task_names)
-    results = evaluate(lm, task_dict, False, num_fewshot, limit)
+    task_dict = lm_eval.tasks.get_task_dict(tasks)
+
+    results = evaluate(
+        lm=lm,
+        task_dict=task_dict,
+        num_fewshot=num_fewshot,
+        limit=limit,
+        description_dict=description_dict
+    )
 
     # add info about the model and few shot config
     results["config"] = {
@@ -58,19 +78,21 @@ def simple_evaluate(model, model_args, task_names,
         "device": device,
         "no_cache": no_cache,
         "limit": limit,
-        "bootstrap_iters": bootstrap_iters
+        "bootstrap_iters": bootstrap_iters,
+        "description_dict": description_dict
     }
 
     return results
 
 
-def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_iters=100000):
+@positional_deprecated
+def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None, bootstrap_iters=100000, description_dict=None):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param lm: obj
         Language Model
     :param task_dict: dict[str, Task]
-        Dictionary of tasks
+        Dictionary of tasks. Tasks will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param provide_description: bool
         Not implemented, and this option is deprecated and will be removed in a future version in favor of a different description providing method
     :param num_fewshot: int
@@ -79,6 +101,8 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
+    :param description_dict: dict[str, str]
+        Dictionary of custom task descriptions of the form: `task_name: description` 
     :return
         Dictionary of results
     """
@@ -86,6 +110,9 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
 
     # TODO: todo: implement proper description-providing system
     assert not provide_description  # not implemented.
+    if provide_description is not None:
+        # nudge people to not specify it at all
+        print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
 
     task_dict_items = [
         (name, task)
@@ -125,16 +152,16 @@ def evaluate(lm, task_dict, provide_description, num_fewshot, limit, bootstrap_i
         rnd.seed(42)
         rnd.shuffle(task_docs)
 
+        description = description_dict[task_name] if description_dict and task_name in description_dict else ""
+
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
             docs[(task_name, doc_id)] = doc
-
             ctx = task.fewshot_context(
                 doc=doc,
-                provide_description=provide_description,
                 num_fewshot=num_fewshot,
-                rnd=rnd
+                rnd=rnd,
+                description=description
             )
-
             reqs = task.construct_requests(doc, ctx)
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]

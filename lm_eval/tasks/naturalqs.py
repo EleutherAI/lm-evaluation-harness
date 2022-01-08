@@ -21,10 +21,6 @@ class NaturalQs(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out description
-        return ""
-
     def training_docs(self):
         # Cache training for faster few-shot.
         # Data is too large to fit in memory.

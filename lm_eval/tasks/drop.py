@@ -40,10 +40,6 @@ class DROP(Task):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out description
-        return ""
-
     def _load_docs(self, docs):
         for doc in docs:
             for qa in doc["qa_pairs"]:
