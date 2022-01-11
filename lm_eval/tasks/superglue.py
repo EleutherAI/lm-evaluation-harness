@@ -65,7 +65,7 @@ class BoolQ(HFTask):
 
 
 class CommitmentBank(HFTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "cb"
 
