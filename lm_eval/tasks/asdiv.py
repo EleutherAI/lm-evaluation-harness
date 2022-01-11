@@ -35,7 +35,7 @@ class Asdiv(Task):
         url = "https://github.com/chaochun/nlu-asdiv-dataset/archive/55790e5270bb91ccfa5053194b25732534696b50.zip"
         checksum = "8f1fe4f6d5f170ec1e24ab78c244153c14c568b1bb2b1dad0324e71f37939a2d"
         zip_path = self.DATASET_PATH / "55790e5270bb91ccfa5053194b25732534696b50.zip"
-        download_file(url, str(zip_path), checksum)
+        download_file(url, local_file=str(zip_path), expected_checksum=checksum)
         with ZipFile(zip_path, "r") as zip:
             zip.extractall(self.DATASET_PATH)
         os.remove(zip_path)
