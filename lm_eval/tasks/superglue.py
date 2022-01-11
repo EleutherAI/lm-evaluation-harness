@@ -93,14 +93,14 @@ class CommitmentBank(HFTask):
         # True = entailment
         # False = contradiction
         # Neither = neutral
-        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
+        return " {}".format({0: "True", 1: "False", 2: "Neither"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
         ll_true, _ = rf.loglikelihood(ctx, ' True')
-        ll_neither, _ = rf.loglikelihood(ctx, ' Neither')
         ll_false, _ = rf.loglikelihood(ctx, ' False')
+        ll_neither, _ = rf.loglikelihood(ctx, ' Neither')
 
-        return ll_true, ll_neither, ll_false
+        return ll_true, ll_false, ll_neither
 
     def process_results(self, doc, results):
         gold = doc["label"]
