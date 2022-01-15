@@ -31,7 +31,7 @@ class Asdiv(Task):
     def download(self):
         if self.DATASET_PATH.exists():
             return
-        Path.mkdir(self.DATASET_PATH)
+        Path.mkdir(self.DATASET_PATH, parents=True)
         url = "https://github.com/chaochun/nlu-asdiv-dataset/archive/55790e5270bb91ccfa5053194b25732534696b50.zip"
         checksum = "8f1fe4f6d5f170ec1e24ab78c244153c14c568b1bb2b1dad0324e71f37939a2d"
         zip_path = self.DATASET_PATH / "55790e5270bb91ccfa5053194b25732534696b50.zip"
@@ -75,10 +75,14 @@ class Asdiv(Task):
         data_xml_path = self.DATASET_PATH / "nlu-asdiv-dataset-55790e5270bb91ccfa5053194b25732534696b50/dataset/ASDiv.xml"
         return self.load_docs(data_xml_path)
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0, "ASDiv is intended only for the zero-shot setting."
-        return super().fewshot_context(doc, num_fewshot, provide_description, rnd)
-
+        return super().fewshot_context(
+            doc=doc,
+            num_fewshot=num_fewshot,
+            rnd=rnd,
+            description=description
+        )
     
     def fewshot_description(self):
         # TODO: add solution-type and formula
@@ -115,4 +119,3 @@ class Asdiv(Task):
         return {
             'acc': True
         }
-
