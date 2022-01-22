@@ -118,12 +118,7 @@ TASK_REGISTRY = {
     "prost": prost.PROST,
     "mc_taco": mc_taco.MCTACO,
     
-    "xnli_all_languages": xnli.XNLI_all,
-    "xnli_ar": xnli.XNLI_ar,
-    "xnli_bg": xnli.XNLI_bg,
-    "xnli_de": xnli.XNLI_de,
-    "xnli_el": xnli.XNLI_el,
-
+    **xnli.construct_tasks(),
 
     # Science related
     "pubmedqa" : pubmedqa.Pubmed_QA,
