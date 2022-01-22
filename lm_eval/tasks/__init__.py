@@ -48,6 +48,7 @@ from . import mutual
 from . import truthfulqa
 from . import blimp
 from . import asdiv
+from . import xnli
 
 ########################################
 # Translation tasks
@@ -116,6 +117,13 @@ TASK_REGISTRY = {
     "piqa": piqa.PiQA,
     "prost": prost.PROST,
     "mc_taco": mc_taco.MCTACO,
+    
+    "xnli_all_languages": xnli.XNLI_all,
+    "xnli_ar": xnli.XNLI_ar,
+    "xnli_bg": xnli.XNLI_bg,
+    "xnli_de": xnli.XNLI_de,
+    "xnli_el": xnli.XNLI_el,
+
 
     # Science related
     "pubmedqa" : pubmedqa.Pubmed_QA,
