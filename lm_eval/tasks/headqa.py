@@ -37,4 +37,6 @@ class HeadQAEs(HeadQABase):
 class HeadQAEsDeprecated(HeadQABase):
     DATASET_NAME = "es"
 
-    print("WARNING: headqa is deprecated. Please use headqa_es or headqa_en instead. See https://github.com/EleutherAI/lm-evaluation-harness/pull/240 for more info.")
+    def __init__(self):
+        super().__init__()
+        print("WARNING: headqa is deprecated. Please use headqa_es or headqa_en instead. See https://github.com/EleutherAI/lm-evaluation-harness/pull/240 for more info.")
