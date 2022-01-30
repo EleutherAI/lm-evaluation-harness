@@ -18,7 +18,7 @@ class Math(Task):
     def download(self):
         if not (self.DATASET_PATH / 'test').exists() or not (self.DATASET_PATH / 'done').exists():
             sh(f"mkdir -p {self.DATASET_PATH}")
-            download_file("https://people.eecs.berkeley.edu/~hendrycks/MATH.tar", f"{self.DATASET_PATH}.tar", "01256fd7cd5430596fdf07e6e6a5827111b5235b7ffed679c662a12f898932da")
+            download_file("https://people.eecs.berkeley.edu/~hendrycks/MATH.tar", local_file=f"{self.DATASET_PATH}.tar", expected_checksum="01256fd7cd5430596fdf07e6e6a5827111b5235b7ffed679c662a12f898932da")
             sh(f"""
             tar -xf {self.DATASET_PATH}.tar -C data/ && touch {self.DATASET_PATH / 'done'}
             rm {self.DATASET_PATH}.tar
@@ -54,9 +54,6 @@ class Math(Task):
 
     def test_docs(self):
         return self._load_docs(self.DATASET_PATH / "test" / self.get_file_info())
-
-    def fewshot_description(self):
-        return "Given a mathematics problem, determine the answer. Simplify your answer as much as possible."
 
     def doc_to_text(self, doc):
         return "Problem: " + doc["problem"] + "\nAnswer:"

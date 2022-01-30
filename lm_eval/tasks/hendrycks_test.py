@@ -45,7 +45,7 @@ class GeneralHendrycksTest(MultipleChoiceTask):
     def download(self):
         if not (self.DATASET_PATH / 'done').exists():
             sh("mkdir -p data")
-            download_file("https://people.eecs.berkeley.edu/~hendrycks/data.tar", "data/data.tar", "78a804365a59028188fb19bd1adcadc5e0c260b220a9d8b2e33a5ea7d5fbe3b4")
+            download_file("https://people.eecs.berkeley.edu/~hendrycks/data.tar", local_file="data/data.tar", expected_checksum="78a804365a59028188fb19bd1adcadc5e0c260b220a9d8b2e33a5ea7d5fbe3b4")
             sh("""
             tar -xf data/data.tar -C data/
             rm data/data.tar
@@ -113,10 +113,6 @@ class GeneralHendrycksTest(MultipleChoiceTask):
             self._fewshot_docs = list(self._load_docs(filename))
 
         return rnd.sample(list(self._fewshot_docs), k)
-
-    def fewshot_description(self):
-        subject = self.subject.replace("_", " ")
-        return f"The following are multiple choice questions (with answers) about {subject}."
 
     def doc_to_text(self, doc):
         return doc["query"]

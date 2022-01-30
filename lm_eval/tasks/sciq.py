@@ -13,8 +13,8 @@ class SciQ(MultipleChoiceTask):
             os.makedirs('data/sciq', exist_ok=True)
             download_file(
                 'https://ai2-public-datasets.s3.amazonaws.com/sciq/SciQ.zip',
-                'data/sciq/SciQ.zip', 
-                '7f3312f6ac6b09970b32942d106a8c44ec0dad46a0369f17d635aff8e348a87c',
+                local_file='data/sciq/SciQ.zip',
+                expected_checksum='7f3312f6ac6b09970b32942d106a8c44ec0dad46a0369f17d635aff8e348a87c',
             )
             with zipfile.ZipFile("data/sciq/SciQ.zip", "r") as zf:
                 zf.extractall("data/sciq/")
@@ -49,9 +49,6 @@ class SciQ(MultipleChoiceTask):
             docs = json.loads(j.read()) 
         for record in docs:
             yield self._convert_standard(record)
-
-    def fewshot_description(self):
-        return ""
 
     def training_docs(self):
         return self.load_docs("data/sciq/SciQ dataset-2 3/train.json")

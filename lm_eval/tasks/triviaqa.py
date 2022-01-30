@@ -12,7 +12,7 @@ class TriviaQA(Task):
     def download(self):
         if not os.path.exists('data/triviaqa/unfiltered-web-train.jsonl'):
             os.makedirs("data/triviaqa/", exist_ok=True)
-            download_file("http://eaidata.bmk.sh/data/triviaqa-unfiltered.tar.gz", "data/triviaqa/triviaqa-unfiltered.tar.gz", "adc19b42769062d241a8fbe834c56e58598d9322eb6c614e9f33a68a2cf5523e")
+            download_file("http://eaidata.bmk.sh/data/triviaqa-unfiltered.tar.gz", local_file="data/triviaqa/triviaqa-unfiltered.tar.gz", expected_checksum="adc19b42769062d241a8fbe834c56e58598d9322eb6c614e9f33a68a2cf5523e")
             sh("""
             cd data/triviaqa/
             tar -xf triviaqa-unfiltered.tar.gz
@@ -36,10 +36,6 @@ class TriviaQA(Task):
     def test_docs(self):
         raise NotImplementedError()
     
-    def fewshot_description(self):
-        # TODO: figure out fewshot description
-        return ""
-    
     def doc_to_text(self, doc):
         return f"Question: {doc['Question']}\nAnswer:"
 
@@ -56,7 +52,6 @@ class TriviaQA(Task):
                 ret.append(alias)
 
         return ret
-        
 
     def construct_requests(self, doc, ctx):
         ret = []

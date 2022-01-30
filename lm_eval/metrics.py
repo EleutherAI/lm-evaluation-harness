@@ -1,6 +1,5 @@
 import math
-from collections import Iterable
-from pprint import pprint
+from collections.abc import Iterable
 
 import numpy as np
 import sacrebleu
@@ -53,15 +52,17 @@ def acc_all(items):
     docs = list(zip(*items))[1]
 
     for doc, pred in zip(docs, preds):
+        paragraph_id = doc["idx"]["paragraph"]
         question_id = doc["idx"]["question"]
-        if question_id not in question_scoring_dict:
-            question_scoring_dict[question_id] = []
+        if (paragraph_id, question_id) not in question_scoring_dict:
+            question_scoring_dict[(paragraph_id, question_id)] = []
 
         gold_label = doc["label"] == 1
-        question_scoring_dict[question_id].append(gold_label == pred)
 
+        question_scoring_dict[(paragraph_id, question_id)].append(gold_label == pred)
     acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
     return acc
+
 
 def acc_all_stderr(items):
     # Only count as correct if all answers are labeled correctly for each question
@@ -98,8 +99,12 @@ def weighted_mean(items):
     a, b = zip(*items)
     return sum(a) / sum(b)
 
+
 def weighted_perplexity(items):
     return math.exp(-weighted_mean(items))
+
+def bits_per_byte(items):
+    return -weighted_mean(items) / math.log(2)
 
 
 def bleu(items):
@@ -179,12 +184,13 @@ def _sacreformat(refs, preds):
 
     return refs, preds
 
-## stderr stuff
+# stderr stuff
 
 class _bootstrap_internal:
     def __init__(self, f, n):
         self.f = f
         self.n = n
+
     def __call__(self, v):
         i, xs = v
         rnd = random.Random()
@@ -208,7 +214,9 @@ def bootstrap_stderr(f, xs, iters):
     chunk_size = min(1000, iters)
     from tqdm import tqdm
     print("bootstrapping for stddev:", f.__name__)
-    for bootstrap in tqdm(pool.imap(_bootstrap_internal(f, chunk_size), [(i, xs) for i in range(iters // chunk_size)]), total=iters // chunk_size):
+    for bootstrap in tqdm(pool.imap(
+            _bootstrap_internal(f, chunk_size),
+            [(i, xs) for i in range(iters // chunk_size)]), total=iters // chunk_size):
         # sample w replacement
         res.extend(bootstrap)
 

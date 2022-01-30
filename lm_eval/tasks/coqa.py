@@ -16,8 +16,8 @@ class CoQA(Task):
 
         sh ("""mkdir -p data/coqa""")
 
-        download_file("http://downloads.cs.stanford.edu/nlp/data/coqa/coqa-train-v1.0.json", coqa_train_filepath, "b0fdb2bc1bd38dd3ca2ce5fa2ac3e02c6288ac914f241ac409a655ffb6619fa6")
-        download_file("http://downloads.cs.stanford.edu/nlp/data/coqa/coqa-dev-v1.0.json", coqa_dev_filepath, "dfa367a9733ce53222918d0231d9b3bedc2b8ee831a2845f62dfc70701f2540a")
+        download_file("http://downloads.cs.stanford.edu/nlp/data/coqa/coqa-train-v1.0.json", local_file=coqa_train_filepath, expected_checksum="b0fdb2bc1bd38dd3ca2ce5fa2ac3e02c6288ac914f241ac409a655ffb6619fa6")
+        download_file("http://downloads.cs.stanford.edu/nlp/data/coqa/coqa-dev-v1.0.json", local_file=coqa_dev_filepath, expected_checksum="dfa367a9733ce53222918d0231d9b3bedc2b8ee831a2845f62dfc70701f2540a")
 
     def has_training_docs(self):
         return True
@@ -36,10 +36,7 @@ class CoQA(Task):
 
     def test_docs(self):
         pass
-    
-    def fewshot_description(self):
-        return "Given a passage and a conversation so far, answer the next question in the conversation."
-    
+
     def doc_to_text(self, doc):
         # Given a passage p, the conversation history {q1, a1, . . . qi−1, ai−1} 
         # and a question qi, the task is to predict the answer ai

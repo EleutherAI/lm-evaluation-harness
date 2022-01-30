@@ -17,10 +17,6 @@ class CBTBase(HFTask):
 
     VERSION = 0
 
-    def fewshot_description(self):
-        # TODO: Figure out description.
-        return ""
-
     def detokenize(self, text):
         text = text.replace(" '", "'")
         text = text.replace(" \n", "\n")

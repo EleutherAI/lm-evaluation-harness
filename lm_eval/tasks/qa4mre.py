@@ -32,8 +32,8 @@ class QA4MRE(MultipleChoiceTask):
         if not os.path.isfile(f"data/qa4mre/QA4MRE-{year}-{lang}"):
             download_file(
                 url_path,
-                f"data/qa4mre/QA4MRE-{year}-{lang}_GS.xml",
-                sha256sums[year],
+                local_file=f"data/qa4mre/QA4MRE-{year}-{lang}_GS.xml",
+                expected_checksum=sha256sums[year],
                 )
 
     def has_training_docs(self):
@@ -66,9 +66,6 @@ class QA4MRE(MultipleChoiceTask):
                 out_doc = self._convert_standard(question)
                 out_doc['source'] = src
                 yield out_doc
-
-    def fewshot_description(self):
-        return ""
 
     def test_docs(self):
         return self.load_docs(f"data/qa4mre/QA4MRE-{self.YEAR}-EN_GS.xml")

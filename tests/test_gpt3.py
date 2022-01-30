@@ -1,7 +1,4 @@
-import lm_eval.tasks as tasks
 import lm_eval.models as models
-import lm_eval.evaluator as evaluator
-import random
 import pytest
 import os
 import json
@@ -10,10 +7,11 @@ import mock
 import pickle
 import hashlib
 
-os.environ['OPENAI_API_SECRET_KEY'] = ""
 
-
-def completion(**kwargs):
+def mock_completion(**kwargs):
+    # Mock completion function
+    # Loads from a cached+pickled response if it exists, otherwise it will actually try to ping
+    os.makedirs("tests/testdata", exist_ok=True)
     hash = hashlib.sha256(json.dumps(kwargs, sort_keys=True).encode('utf-8')).hexdigest()
     fname = f"tests/testdata/gpt3_test_{hash}.pkl"
 
@@ -21,16 +19,15 @@ def completion(**kwargs):
         with open(fname, 'rb') as fh:
             return pickle.load(fh)
     ret = openai.Completion.create(**kwargs)
+    ret.api_key = ""
     with open(fname, 'wb') as fh:
         pickle.dump(ret, fh)
     return ret
 
 
-os.makedirs("tests/testdata", exist_ok=True)
-
-
-@mock.patch("lm_eval.models.gpt3.oa_completion", new=completion)
+@mock.patch("lm_eval.models.gpt3.oa_completion", new=mock_completion)
 def test_gpt3():
+    if "OPENAI_API_SECRET_KEY" not in os.environ: os.environ["OPENAI_API_SECRET_KEY"] = ""
     gpt3 = models.get_model('gpt3').create_from_arg_string("engine=ada")
     (ll_dog, ig_dog), (ll_cat, ig_cat), (_, ll_max_0), (_, ll_max_1), (_, ll_max_2), *vals = gpt3.loglikelihood([
         ('The quick brown fox jumps over the lazy', ' dog'),
@@ -39,8 +36,8 @@ def test_gpt3():
         ('The quick brown fox jumps over the lazy', ', lazy fox'),
         ('The quick brown fox jumps over the lazy', ', lazy fox and they both fall to the ground'),
         
-        ("""A mult""", """ilayer perceptron (MLP) is a class of feedforward artificial neural network (ANN)"""), 
-        ("""The term MLP is used ambiguously, sometimes loosely to any feedforward ANN, sometimes strictly to refer to networks composed of multiple layers of perceptrons""", """ (with threshold activation); see § Terminology"""), 
+        ("""A mult""", """ilayer perceptron (MLP) is a class of feedforward artificial neural network (ANN)"""),
+        ("""The term MLP is used ambiguously, sometimes loosely to any feedforward ANN, sometimes strictly to refer to networks composed of multiple layers of perceptrons""", """ (with threshold activation); see § Terminology"""),
         ("""Multilayer perceptrons are sometimes coll""", """oquially referred to as "vanilla" neural networks, especially when they have a single hidden layer.[1]"""), 
         ("""An MLP consists of at least three layers of nodes: an input layer, a hidden layer and an output layer. Except for the input nodes, each node is a neuron that uses a nonlinear""", """ activation function."""), 
         ("""MLP utilizes a supervised""", """ learning technique called backpropagation for training.[2][3] Its multiple layers and non-linear activation distinguish MLP from a linear perceptron. It can distinguish data that is not linearly separable.[4]"""), 
@@ -69,15 +66,18 @@ def test_gpt3():
 
     print([x[0] for x in vals])
 
-    targets = [-34.85833048, -47.114367866, -45.43520782100001, -5.289627985, -133.96879783896998, -321.30299892039994, -658.0542459504098, -34.85833048, -7.5162964]
+    targets = [
+        -34.848301606999996, -47.148329679999996, -45.44380149599999, -5.285246016, -133.97821690686004,
+        -321.2616693239001, -658.0299524401041, -34.848301606999996, -7.525115,
+    ]
 
     for (pred, _), tgt in zip(vals, targets):
         assert pred == pytest.approx(tgt, rel=1e-3)
 
 
-
-@mock.patch("lm_eval.models.gpt3.oa_completion", new=completion)
+@mock.patch("lm_eval.models.gpt3.oa_completion", new=mock_completion)
 def test_gpt3_perplexity():
+    if "OPENAI_API_SECRET_KEY" not in os.environ: os.environ["OPENAI_API_SECRET_KEY"] = ""
     gpt3 = models.get_model('gpt3').create_from_arg_string("engine=ada")
     test_string = "We study empirical scaling laws for language model performance on the cross-entropy loss."
     perplexity = gpt3.loglikelihood_rolling([(test_string,)])[0]
@@ -85,7 +85,9 @@ def test_gpt3_perplexity():
     assert perplexity == pytest.approx(tgt, rel=1e-3)
 
     # Hack: modify gpt3 to have shorter context length to induce rolling windows
-    gpt3.MAX_LENGTH = 5
-    perplexity = gpt3.loglikelihood_rolling([(test_string,)])[0]
-    tgt = -101.93490880000002
+    with mock.patch.object(models.gpt3.GPT3LM, 'max_length', new_callable=mock.PropertyMock) as mock_max_length:
+        mock_max_length.return_value = 5
+        gpt3 = models.get_model('gpt3').create_from_arg_string("engine=ada")
+        perplexity = gpt3.loglikelihood_rolling([(test_string,)])[0]
+    tgt = -101.81967209999999
     assert perplexity == pytest.approx(tgt, rel=1e-3)

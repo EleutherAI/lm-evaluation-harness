@@ -36,13 +36,14 @@ class PROST(HFTask, MultipleChoiceTask):
     def has_test_docs(self):
         return True
 
-    def fewshot_description(self):
-        # TODO: figure out fewshot description
-        return ""
-
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0, 'PROST is designed to probe models in a zero-shot fashion only.'
-        return super().fewshot_context(doc, num_fewshot, provide_description, rnd)
+        return super().fewshot_context(
+            doc=doc,
+            num_fewshot=num_fewshot,
+            rnd=rnd,
+            description=description
+        )
 
     def _convert_standard(self, doc):
         out_doc = {

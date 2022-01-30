@@ -13,7 +13,7 @@ from ..utils import general_detokenize
 
 
 class BoolQ(HFTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "boolq"
 
@@ -26,12 +26,8 @@ class BoolQ(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return "Read the following passages and answer each question with a yes or a no."
-
     def doc_to_text(self, doc):
-        return f"{doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
+        return f"{doc['passage']}\nQuestion: {doc['question']}?\nAnswer:"
     
     def doc_to_target(self, doc):
         return " " + yesno(doc['label']) 
@@ -65,7 +61,7 @@ class BoolQ(HFTask):
 
 
 class CommitmentBank(HFTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "cb"
 
@@ -78,11 +74,6 @@ class CommitmentBank(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return "Given a premise and a hypothesis, classify whether the author of the premise is committed" \
-            "to the truth of the hypothesis. The three possible labels are true, false or neither."
-
     def doc_to_text(self, doc):
         return "{}\nQuestion: {}. True, False or Neither?\nAnswer:".format(
             doc["premise"],
@@ -93,14 +84,14 @@ class CommitmentBank(HFTask):
         # True = entailment
         # False = contradiction
         # Neither = neutral
-        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
+        return " {}".format({0: "True", 1: "False", 2: "Neither"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
         ll_true, _ = rf.loglikelihood(ctx, ' True')
-        ll_neither, _ = rf.loglikelihood(ctx, ' Neither')
         ll_false, _ = rf.loglikelihood(ctx, ' False')
+        ll_neither, _ = rf.loglikelihood(ctx, ' Neither')
 
-        return ll_true, ll_neither, ll_false
+        return ll_true, ll_false, ll_neither
 
     def process_results(self, doc, results):
         gold = doc["label"]
@@ -150,11 +141,6 @@ class Copa(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return "Given a premise and one alternative with a causal relation to the premise and another without," \
-            "choose the more plausible alternative"
-
     def doc_to_text(self, doc):
         # Drop the period
         connector = {
@@ -202,7 +188,7 @@ class Copa(HFTask):
 
 
 class MultiRC(HFTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "multirc"
 
@@ -215,10 +201,6 @@ class MultiRC(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return "READING COMPREHENSION ANSWER KEY"
-
     def doc_to_text(self, doc):
         return f"{doc['paragraph']}\nQuestion: {doc['question']}\nAnswer:"
 
@@ -228,7 +210,7 @@ class MultiRC(HFTask):
     @staticmethod
     def format_answer(answer, label):
         label_str = "yes" if label else "no"
-        return f"{label_str}, {answer}"
+        return f"{answer}\nIs the answer correct? {label_str}"
 
     def construct_requests(self, doc, ctx):
         true_choice = self.format_answer(answer=doc["answer"], label=True)
@@ -240,7 +222,8 @@ class MultiRC(HFTask):
         return ll_true_choice, ll_false_choice
 
     def process_results(self, doc, results):
-        pred = np.argmax(results)
+        ll_true_choice, ll_false_choice = results
+        pred = ll_true_choice > ll_false_choice
         return {
             "acc": (pred, doc)
         }
@@ -269,10 +252,6 @@ class ReCoRD(HFTask):
 
     def has_test_docs(self):
         return False
-
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return ""
 
     def training_docs(self):
         # In ReCoRD, each doc manifests multiple "examples" in the context of few shot example packing.
@@ -363,10 +342,6 @@ class WordsInContext(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return ""
-
     def doc_to_text(self, doc):
         return "Sentence 1: {}\nSentence 2: {}\nQuestion: Is the word '{}' used in the same way in the" \
                " two sentences above?\nAnswer:".format(
@@ -431,12 +406,6 @@ class SGWinogradSchemaChallenge(HFTask):
                     if doc["label"]
                 ]
             return self._training_docs
-
-    def fewshot_description(self):
-        return "Final Exam with Answer Key\n" \
-           "Instructions: Please carefully read the following passages. " \
-           "For each passage, you must identify which noun the pronoun marked in *bold*" \
-           " refers to.\n====="
 
     def doc_to_text(self, doc):
         raw_passage = doc["text"]

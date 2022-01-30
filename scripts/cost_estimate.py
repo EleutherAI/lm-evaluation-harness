@@ -51,7 +51,14 @@ def main():
     values = []
     for taskname in task_list.split(","):
         lm.tokencost = 0
-        evaluator.evaluate(lm, {taskname: tasks.get_task(taskname)()}, False, 0, None, bootstrap_iters=10)
+        evaluator.evaluate(
+            lm=lm,
+            task_dict={taskname: tasks.get_task(taskname)()},
+            num_fewshot=0,
+            limit=None,
+            bootstrap_iters=10,
+            description_dict=None
+        )
 
         print(taskname, lm.tokencost)
         values.append([taskname, lm.tokencost, lm.tokencost / 1000 * 0.0008, lm.tokencost / 1000 * 0.0012, lm.tokencost / 1000 * 0.006, lm.tokencost / 1000 * 0.06])

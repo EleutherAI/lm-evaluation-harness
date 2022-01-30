@@ -14,8 +14,8 @@ class LAMBADA(Task):
             if not os.path.exists("data/lambada/lambada_test.jsonl"):
                 download_file(
                     "http://eaidata.bmk.sh/data/lambada_test.jsonl", 
-                    "data/lambada/lambada_test.jsonl", 
-                    "4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226"
+                    local_file="data/lambada/lambada_test.jsonl",
+                    expected_checksum="4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226"
                 )
         except:
             # fallback - for some reason best_download doesnt work all the time here
@@ -53,10 +53,6 @@ class LAMBADA(Task):
 
     def doc_to_target(self, doc):
         return " " + doc['text'].rsplit(' ', 1)[1]
-    
-    def fewshot_description(self):
-        # TODO: figure out description
-        return ""
 
     def construct_requests(self, doc, ctx):
         ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
