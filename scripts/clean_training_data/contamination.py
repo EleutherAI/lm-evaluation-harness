@@ -49,6 +49,8 @@ def get_train_overlap(docs_by_task_set, ngrams_path, ngrams_n_size, limit):
     sets_to_decontaminate = len(docs_by_task_set.keys())
 
     for (task_name, task_set), docs in docs_by_task_set.items():
+        if not os.path.exists(f"data/{task_name}"):
+            os.mkdir(f"data/{task_name}")
         # Check if we've decontaminated this set before
         overlaps_dump_path = get_overlaps_dump_path(task_name, task_set, ngrams_n_size, limit)
         if os.path.exists(overlaps_dump_path):

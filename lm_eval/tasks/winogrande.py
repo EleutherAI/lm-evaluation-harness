@@ -29,6 +29,12 @@ class Winogrande(HFTask):
     def doc_to_text(self, doc):
         return self.partial_context(doc, doc["option" + doc["answer"]])
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["sentence"]
+
     def fewshot_description(self):
         # TODO: redo description
         return "Winograd schema sentence including a either a ___ blank with a missing word, making the pronoun ambiguous, or the same with the word filled in."
