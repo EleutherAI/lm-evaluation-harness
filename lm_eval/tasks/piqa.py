@@ -32,3 +32,9 @@ class PiQA(HFTask, MultipleChoiceTask):
 
     def doc_to_text(self, doc):
         return "Question: " + doc["goal"] + "\nAnswer:"
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["goal"]

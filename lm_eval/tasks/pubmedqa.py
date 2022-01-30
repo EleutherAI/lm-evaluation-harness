@@ -36,6 +36,12 @@ class Pubmed_QA(HFTask):
             doc["final_decision"]
         )
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["question"] + " " + "\n".join(doc["context"]["contexts"])
+
     def doc_to_target(self, doc):
         return " {}".format(doc["final_decision"])
 
