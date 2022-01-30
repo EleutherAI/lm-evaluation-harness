@@ -43,6 +43,7 @@ def parse_args():
     parser.add_argument('--decontaminate', action="store_true")
     parser.add_argument('--ngrams_path', default=None)
     parser.add_argument('--ngrams_n_size', type=int, default=None)
+    parser.add_argument('--description_dict_path', default=None)    
 
     return parser.parse_args()
 
@@ -66,11 +67,6 @@ def pattern_match(patterns, source_list):
         for matching in fnmatch.filter(source_list, pattern):
             task_names.add(matching)
     return list(task_names)
-
-def main():
-    parser.add_argument('--description_dict_path', default=None)
-    return parser.parse_args()
-
 
 def main():
     args = parse_args()

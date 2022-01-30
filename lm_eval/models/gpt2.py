@@ -15,12 +15,12 @@ class HFLM(BaseLM):
         if device:            
             if device not in ["cuda", "cpu"]:
                 device = int(device)
-            self.device = torch.device(device)
+            self._device = torch.device(device)
             print(f"Using device '{device}'")
         else:
             print("Device not specificed")
             print(f"Cuda Available? {torch.cuda.is_available()}")
-            self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+            self._device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
