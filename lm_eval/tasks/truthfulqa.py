@@ -58,7 +58,7 @@ class TruthfulQAMultipleChoice(Task):
         Path.mkdir(self.DATASET_PATH, parents=True)
         mc_url = "https://raw.githubusercontent.com/sylinrl/TruthfulQA/013686a06be7a7bde5bf8223943e106c7250123c/data/mc_task.json"
         checksum = "6eb4125d25750c0145c4be2dce00440736684ab6f74ce6bff2139571cc758954"
-        download_file(mc_url, str(self.DATASET_PATH / "mc_task.json"), checksum)
+        download_file(mc_url, local_file=str(self.DATASET_PATH / "mc_task.json"), expected_checksum=checksum)
 
     def has_training_docs(self):
         return False
@@ -85,9 +85,14 @@ class TruthfulQAMultipleChoice(Task):
     def doc_to_target(self, doc):
         return " "
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0, "TruthfulQA is intended only for the zero-shot setting."
-        return super().fewshot_context(doc, num_fewshot, provide_description, rnd)
+        return super().fewshot_context(
+            doc=doc,
+            num_fewshot=num_fewshot,
+            rnd=rnd,
+            description=description
+        )
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of
@@ -163,7 +168,7 @@ class TruthfulQAGeneration(Task):
         Path.mkdir(self.DATASET_PATH, parents=True)
         url = "https://raw.githubusercontent.com/sylinrl/TruthfulQA/013686a06be7a7bde5bf8223943e106c7250123c/TruthfulQA.csv"
         checksum = "8d7dd15f033196140f032d97d30f037da7a7b1192c3f36f9937c1850925335a2"
-        download_file(url, str(self.DATASET_PATH / "TruthfulQA.csv"), checksum)
+        download_file(url, local_file=str(self.DATASET_PATH / "TruthfulQA.csv"), expected_checksum=checksum)
 
     def has_training_docs(self):
         return False
@@ -217,9 +222,14 @@ class TruthfulQAGeneration(Task):
     def doc_to_target(self, doc):
         return " "
 
-    def fewshot_context(self, doc, num_fewshot, provide_description, rnd):
+    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0, "TruthfulQA is intended only for the zero-shot setting."
-        return super().fewshot_context(doc, num_fewshot, provide_description, rnd)
+        return super().fewshot_context(
+            doc=doc,
+            num_fewshot=num_fewshot,
+            rnd=rnd,
+            description=description
+        )
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of

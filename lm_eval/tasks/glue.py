@@ -21,10 +21,6 @@ class CoLA(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO
-        return ""
-
     def doc_to_text(self, doc):
         return "{}\nQuestion: Does this sentence make sense?\nAnswer:".format(doc["sentence"])
 
@@ -68,9 +64,6 @@ class SST(HFTask):
 
     def has_test_docs(self):
         return False
-
-    def fewshot_description(self):
-        return "Indicate if the sentiment of each sentence is positive or negative."
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: Is this sentence positive or negative?\nAnswer:".format(
@@ -227,7 +220,7 @@ class QNLI(HFTask):
 
 
 class WNLI(HFTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "glue"
     DATASET_NAME = "wnli"
 
@@ -241,26 +234,25 @@ class WNLI(HFTask):
         return False
 
     def doc_to_text(self, doc):
-        return "{}\nQuestion: {} True, False or Neither?\nAnswer:".format(
+        return "{}\nQuestion: {} True or False?\nAnswer:".format(
             doc["sentence1"],
             doc["sentence2"],
         )
 
     def doc_to_target(self, doc):
         # True = entailment
-        # False = contradiction
-        # Neither = neutral
-        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
+        # False = not_entailment
+        return " {}".format({0: "False", 1: "True"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
         ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
         ll_false, _ = rf.loglikelihood(ctx, " False")
-        return ll_true, ll_neither, ll_false
+        return ll_true, ll_false
 
     def process_results(self, doc, results):
+        ll_true, ll_false = results
+        pred = ll_true > ll_false
         gold = doc["label"]
-        pred = np.argmax(results)
         return {
             "acc": pred == gold
         }
@@ -342,9 +334,6 @@ class MRPC(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        return "Indicate if both sentences mean the same thing."
-
     def doc_to_text(self, doc):
         return "Sentence 1: {}\nSentence 2: {}\nQuestion: Do both sentences mean the same thing?\nAnswer:".format(
             general_detokenize(doc["sentence1"]),
@@ -395,9 +384,6 @@ class QQP(HFTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        return "Indicate if both questions ask the same thing."
-
     def doc_to_text(self, doc):
         return "Question 1: {}\nQuestion 2: {}\nQuestion: Do both questions ask the same thing?\nAnswer:".format(
             doc["question1"],
@@ -447,10 +433,6 @@ class STSB(HFTask):
 
     def has_test_docs(self):
         return True
-
-    def fewshot_description(self):
-        return "Indicate if both sentences mean the same thing from a scale of 0-5, " \
-           "where 5 means identical and 0 means unrelated."
 
     def doc_to_text(self, doc):
         return "sentence 1: {}\nsentence 2: {}\nAnswer:".format(

@@ -166,12 +166,6 @@ class GeneralTranslationTask(Task):
             "ter": False,
         }
 
-    def fewshot_description(self):
-        language_codes = self.sacrebleu_language_pair.split("-")
-        src_lang = code_to_language(language_codes[0])
-        tar_lang = code_to_language(language_codes[1])
-        return f"Translate these {src_lang} phrases to {tar_lang}."
-
     def __str__(self):
         language_codes = self.sacrebleu_language_pair.split("-")
         src_lang = code_to_language(language_codes[0])

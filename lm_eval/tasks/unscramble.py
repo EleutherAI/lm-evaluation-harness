@@ -29,7 +29,7 @@ class WordUnscrambleTask(Task):
         if not file.exists():
             rawfile = file.parent / (file.name + ".gz")
             base_url = "https://raw.githubusercontent.com/openai/gpt-3/master/data"
-            download_file(f"{base_url}/{self.FILENAME}.gz", str(rawfile), self.CHECKSUM)
+            download_file(f"{base_url}/{self.FILENAME}.gz", local_file=str(rawfile), expected_checksum=self.CHECKSUM)
             extract_gzip(gz=rawfile, to=file)
 
     def has_training_docs(self):
@@ -44,9 +44,6 @@ class WordUnscrambleTask(Task):
     def validation_docs(self):
         file = self.BASE_PATH / self.FILENAME
         return (json.loads(line) for line in open(file).read().splitlines())
-
-    def fewshot_description(self):
-        return "Please unscramble the letters into a word, and write that word:"
 
     def doc_to_text(self, doc):
         return doc["context"]

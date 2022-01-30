@@ -18,10 +18,6 @@ class PiQA(HFTask, MultipleChoiceTask):
     def has_test_docs(self):
         return False
 
-    def fewshot_description(self):
-        # TODO: figure out fewshot description
-        return ""
-
     def _convert_standard(self, doc):
         out_doc = {
             "goal": doc["goal"],

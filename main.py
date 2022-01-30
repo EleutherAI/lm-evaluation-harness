@@ -68,12 +68,16 @@ def pattern_match(patterns, source_list):
     return list(task_names)
 
 def main():
+    parser.add_argument('--description_dict_path', default=None)
+    return parser.parse_args()
 
+
+def main():
     args = parse_args()
     if not ensure_correct_decontamination_params(args):
         return
-
-    # assert not args.provide_description # not implemented
+        
+    assert not args.provide_description  # not implemented
     
     if args.limit:
         print("WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.")
@@ -100,11 +104,25 @@ def main():
 
     print(f"Selected Tasks: {task_names}")
 
-    results = evaluator.simple_evaluate(args.model, args.model_args, task_names, 
-                                        num_fewshot=args.num_fewshot, batch_size=args.batch_size, 
-                                        device=args.device, no_cache=args.no_cache, limit=args.limit,
-                                        decontaminate=args.decontaminate, ngrams_path=args.ngrams_path, 
-                                        ngrams_n_size=args.ngrams_n_size)
+    description_dict = {}
+    if args.description_dict_path:
+        with open(args.description_dict_path, 'r') as f:
+            description_dict = json.load(f)
+
+    results = evaluator.simple_evaluate(
+        model=args.model,
+        model_args=args.model_args,
+        tasks=task_names,
+        num_fewshot=args.num_fewshot,
+        batch_size=args.batch_size,
+        device=args.device,
+        no_cache=args.no_cache,
+        limit=args.limit,
+        description_dict=description_dict,
+        decontaminate=args.decontaminate,
+        ngrams_path=args.ngrams_path,
+        ngrams_n_size=args.ngrams_n_size
+    )
 
     dumped = json.dumps(results, indent=2)    
     print(dumped)
@@ -113,8 +131,12 @@ def main():
         with open(args.output_path, "w") as f:
             f.write(dumped)
 
-    print(f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}")
+    print(
+        f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, "
+        f"num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}"
+    )
     print(evaluator.make_table(results))
+
 
 if __name__ == "__main__":
     main()

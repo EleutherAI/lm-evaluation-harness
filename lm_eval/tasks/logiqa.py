@@ -19,7 +19,7 @@ class LogiQA(MultipleChoiceTask):
         ]
         for split in splits:
             file = self.DATASET_PATH / f"{split['name']}.txt"
-            download_file(f"{base_url}/{split['name']}.txt", str(file), split["checksum"])
+            download_file(f"{base_url}/{split['name']}.txt", local_file=str(file), expected_checksum=split["checksum"])
 
     def has_training_docs(self):
         return True
@@ -80,10 +80,6 @@ class LogiQA(MultipleChoiceTask):
 
     def test_docs(self):
         return self._load_docs(self.DATASET_PATH / "Test.txt")
-
-    def fewshot_description(self):
-        # TODO: figure out actual description
-        return ""
 
     def doc_to_text(self, doc):
         return doc["query"]

@@ -51,11 +51,6 @@ class QuAC(Task):
     def test_docs(self):
         raise NotImplementedError("QuAC has no test docs.")
     
-    def fewshot_description(self):
-        # TODO: figure out fewshot description
-        desc = "TITLE: Title of the context passage - subtitle of the passage\nPARAGRAPH: Passage describing the relevant information for answering questions.\n\nQ: Text of a question.\n\nA: Answer to the question, based on the passage. If it cannot be answered based on the passage, write CANNOTANSWER"
-        return desc
-
     def load_doc(self, myjson):
         docs = []
         for item in myjson:

@@ -1,6 +1,8 @@
 from pprint import pprint
+from typing import List, Union
 
 import sacrebleu
+import lm_eval.base
 
 from . import superglue
 from . import glue
@@ -44,6 +46,8 @@ from . import wikitext
 from . import lambada_multilingual
 from . import mutual
 from . import truthfulqa
+from . import blimp
+from . import asdiv
 
 ########################################
 # Translation tasks
@@ -132,7 +136,9 @@ TASK_REGISTRY = {
     "squad2": squad.SQuAD2,
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
-    "headqa": headqa.HeadQA,
+    "headqa": headqa.HeadQAEsDeprecated, # for backwards compat - headqa used to default to es
+    "headqa_es": headqa.HeadQAEs,
+    "headqa_en": headqa.HeadQAEn,
     "mathqa": mathqa.MathQA,
     "webqs": webqs.WebQs,
     "wsc273": wsc273.WinogradSchemaChallenge273,
@@ -163,6 +169,7 @@ TASK_REGISTRY = {
     "math_num_theory": hendrycks_math.MathNumberTheory,
     "math_prealgebra": hendrycks_math.MathPrealgebra,
     "math_precalc": hendrycks_math.MathPrecalculus,
+    "math_asdiv": asdiv.Asdiv,
 
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
@@ -217,6 +224,74 @@ TASK_REGISTRY = {
     "pile_wikipedia": pile.PileWikipedia,
     "pile_youtubesubtitles": pile.PileYoutubeSubtitles,
     
+    # BLiMP
+    "blimp_adjunct_island": blimp.BlimpAdjunctIsland,
+    "blimp_anaphor_gender_agreement": blimp.BlimpAnaphorGenderAgreement,
+    "blimp_anaphor_number_agreement": blimp.BlimpAnaphorNumberAgreement,
+    "blimp_animate_subject_passive": blimp.BlimpAnimateSubjectPassive,
+    "blimp_animate_subject_trans": blimp.BlimpAnimateSubjectTrans,
+    "blimp_causative": blimp.BlimpCausative,
+    "blimp_complex_NP_island": blimp.BlimpComplex_NPIsland,
+    "blimp_coordinate_structure_constraint_complex_left_branch": blimp.BlimpCoordinateStructureConstraintComplexLeftBranch,
+    "blimp_coordinate_structure_constraint_object_extraction": blimp.BlimpCoordinateStructureConstraintObjectExtraction,
+    "blimp_determiner_noun_agreement_1": blimp.BlimpDeterminerNounAgreement_1,
+    "blimp_determiner_noun_agreement_2": blimp.BlimpDeterminerNounAgreement_2,
+    "blimp_determiner_noun_agreement_irregular_1": blimp.BlimpDeterminerNounAgreementIrregular_1,
+    "blimp_determiner_noun_agreement_irregular_2": blimp.BlimpDeterminerNounAgreementIrregular_2,
+    "blimp_determiner_noun_agreement_with_adj_2": blimp.BlimpDeterminerNounAgreementWithAdj_2,
+    "blimp_determiner_noun_agreement_with_adj_irregular_1": blimp.BlimpDeterminerNounAgreementWithAdjIrregular_1,
+    "blimp_determiner_noun_agreement_with_adj_irregular_2": blimp.BlimpDeterminerNounAgreementWithAdjIrregular_2,
+    "blimp_determiner_noun_agreement_with_adjective_1": blimp.BlimpDeterminerNounAgreementWithAdjective_1,
+    "blimp_distractor_agreement_relational_noun": blimp.BlimpDistractorAgreementRelationalNoun,
+    "blimp_distractor_agreement_relative_clause": blimp.BlimpDistractorAgreementRelativeClause,
+    "blimp_drop_argument": blimp.BlimpDropArgument,
+    "blimp_ellipsis_n_bar_1": blimp.BlimpEllipsisNBar_1,
+    "blimp_ellipsis_n_bar_2": blimp.BlimpEllipsisNBar_2,
+    "blimp_existential_there_object_raising": blimp.BlimpExistentialThereObjectRaising,
+    "blimp_existential_there_quantifiers_1": blimp.BlimpExistentialThereQuantifiers_1,
+    "blimp_existential_there_quantifiers_2": blimp.BlimpExistentialThereQuantifiers_2,
+    "blimp_existential_there_subject_raising": blimp.BlimpExistentialThereSubjectRaising,
+    "blimp_expletive_it_object_raising": blimp.BlimpExpletiveItObjectRaising,
+    "blimp_inchoative": blimp.BlimpInchoative,
+    "blimp_intransitive": blimp.BlimpIntransitive,
+    "blimp_irregular_past_participle_adjectives": blimp.BlimpIrregularPastParticipleAdjectives,
+    "blimp_irregular_past_participle_verbs": blimp.BlimpIrregularPastParticipleVerbs,
+    "blimp_irregular_plural_subject_verb_agreement_1": blimp.BlimpIrregularPluralSubjectVerbAgreement_1,
+    "blimp_irregular_plural_subject_verb_agreement_2": blimp.BlimpIrregularPluralSubjectVerbAgreement_2,
+    "blimp_left_branch_island_echo_question": blimp.BlimpLeftBranchIslandEchoQuestion,
+    "blimp_left_branch_island_simple_question": blimp.BlimpLeftBranchIslandSimpleQuestion,
+    "blimp_matrix_question_npi_licensor_present": blimp.BlimpMatrixQuestionNpiLicensorPresent,
+    "blimp_npi_present_1": blimp.BlimpNpiPresent_1,
+    "blimp_npi_present_2": blimp.BlimpNpiPresent_2,
+    "blimp_only_npi_licensor_present": blimp.BlimpOnlyNpiLicensorPresent,
+    "blimp_only_npi_scope": blimp.BlimpOnlyNpiScope,
+    "blimp_passive_1": blimp.BlimpPassive_1,
+    "blimp_passive_2": blimp.BlimpPassive_2,
+    "blimp_principle_A_c_command": blimp.BlimpPrinciple_ACCommand,
+    "blimp_principle_A_case_1": blimp.BlimpPrinciple_ACase_1,
+    "blimp_principle_A_case_2": blimp.BlimpPrinciple_ACase_2,
+    "blimp_principle_A_domain_1": blimp.BlimpPrinciple_ADomain_1,
+    "blimp_principle_A_domain_2": blimp.BlimpPrinciple_ADomain_2,
+    "blimp_principle_A_domain_3": blimp.BlimpPrinciple_ADomain_3,
+    "blimp_principle_A_reconstruction": blimp.BlimpPrinciple_AReconstruction,
+    "blimp_regular_plural_subject_verb_agreement_1": blimp.BlimpRegularPluralSubjectVerbAgreement_1,
+    "blimp_regular_plural_subject_verb_agreement_2": blimp.BlimpRegularPluralSubjectVerbAgreement_2,
+    "blimp_sentential_negation_npi_licensor_present": blimp.BlimpSententialNegationNpiLicensorPresent,
+    "blimp_sentential_negation_npi_scope": blimp.BlimpSententialNegationNpiScope,
+    "blimp_sentential_subject_island": blimp.BlimpSententialSubjectIsland,
+    "blimp_superlative_quantifiers_1": blimp.BlimpSuperlativeQuantifiers_1,
+    "blimp_superlative_quantifiers_2": blimp.BlimpSuperlativeQuantifiers_2,
+    "blimp_tough_vs_raising_1": blimp.BlimpToughVsRaising_1,
+    "blimp_tough_vs_raising_2": blimp.BlimpToughVsRaising_2,
+    "blimp_transitive": blimp.BlimpTransitive,
+    "blimp_wh_island": blimp.BlimpWhIsland,
+    "blimp_wh_questions_object_gap": blimp.BlimpWhQuestionsObjectGap,
+    "blimp_wh_questions_subject_gap": blimp.BlimpWhQuestionsSubjectGap,
+    "blimp_wh_questions_subject_gap_long_distance": blimp.BlimpWhQuestionsSubjectGapLongDistance,
+    "blimp_wh_vs_that_no_gap": blimp.BlimpWhVsThatNoGap,
+    "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
+    "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
+    "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
 }
 
 
@@ -232,8 +307,23 @@ def get_task(task_name):
         raise KeyError(f"Missing task {task_name}")
 
 
-def get_task_dict(task_name_list):
-    return {
+def get_task_name_from_object(task_object):
+    for name, class_ in TASK_REGISTRY.items():
+        if class_ is task_object:
+            return name
+    
+    # this gives a mechanism for non-registered tasks to have a custom name anyways when reporting
+    return task_object.EVAL_HARNESS_NAME if hasattr(task_object, "EVAL_HARNESS_NAME") else type(task_object).__name__
+
+
+def get_task_dict(task_name_list: List[Union[str, lm_eval.base.Task]]):
+    task_name_dict = {
         task_name: get_task(task_name)()
-        for task_name in task_name_list
+        for task_name in task_name_list if isinstance(task_name, str)
     }
+    task_name_from_object_dict = {
+        get_task_name_from_object(task_object): task_object
+        for task_object in task_name_list if not isinstance(task_object, str)
+    }
+    assert set(task_name_dict.keys()).isdisjoint(set(task_name_from_object_dict.keys()))
+    return {**task_name_dict, **task_name_from_object_dict}

@@ -27,7 +27,7 @@ class DROP(Task):
         url = "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip"
         checksum = "39d2278a29fd729de301b111a45f434c24834f40df8f4ff116d864589e3249d6"
         zip_path = self.DATASET_PATH / "drop_dataset.zip"
-        download_file(url, str(zip_path), checksum)
+        download_file(url, local_file=str(zip_path), expected_checksum=checksum)
         with ZipFile(zip_path, "r") as zip:
             zip.extractall(self.DATASET_PATH)
 
@@ -39,10 +39,6 @@ class DROP(Task):
 
     def has_test_docs(self):
         return False
-
-    def fewshot_description(self):
-        # TODO: figure out description
-        return ""
 
     def _load_docs(self, docs):
         for doc in docs:
