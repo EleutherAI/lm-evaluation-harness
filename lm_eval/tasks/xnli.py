@@ -41,7 +41,7 @@ class XNLIBase(HFTask):
     TRUE = ""
     FALSE = ""
     NEITHER = ""
-    RESPONSE = ""
+    OPTIONS = ""
 
     def has_training_docs(self):
         return True
@@ -53,7 +53,7 @@ class XNLIBase(HFTask):
         return True
 
     def doc_to_text(self, doc):
-        return doc['premise'] + f'\n{self.QUESTION} ' + doc['hypothesis'] + f'\n{self.RESPONSE}\n' + f'\n{self.ANSWER}'
+        return doc['premise'] + f'\n{self.QUESTION} ' + doc['hypothesis'] + f'\n{self.OPTIONS}' + f'\n{self.ANSWER}'
 
     def doc_to_target(self, doc):
         # True = entailment
@@ -122,7 +122,7 @@ class XNLI_ar(XNLIBase):  # Arabic
     TRUE = "صحيح"
     FALSE = "كاذب"
     NEITHER = "حيادي"
-    RESPONSE = "صحيح أو كاذب أو حيادي؟"
+    OPTIONS = "صحيح أو كاذب أو حيادي؟"
 
 class XNLI_bg(XNLIBase):  # Bulgarian
     DATASET_NAME = "bg"
@@ -132,7 +132,7 @@ class XNLI_bg(XNLIBase):  # Bulgarian
     TRUE = "Правда"
     FALSE = "Ложный"
     NEITHER = "Нейтральный"
-    RESPONSE = "Правда, Ложный или Нейтральный?"
+    OPTIONS = "Правда, Ложный или Нейтральный?"
 
 class XNLI_de(XNLIBase):  # German
     DATASET_NAME = "de"
@@ -142,7 +142,7 @@ class XNLI_de(XNLIBase):  # German
     TRUE = "Stimmt"
     FALSE = "Falsch"
     NEITHER = "Neutral"
-    RESPONSE = "Stimmt, Falsch oder Neutral?"
+    OPTIONS = "Stimmt, Falsch oder Neutral?"
 
 class XNLI_el(XNLIBase):  # Greek
     DATASET_NAME = "el"
@@ -152,7 +152,7 @@ class XNLI_el(XNLIBase):  # Greek
     TRUE = "Σωστό"
     FALSE = "Λάθος"
     NEITHER = "Ουδέτερο"
-    RESPONSE = "Σωστό, Λάθος ή Ουδέτερο?"
+    OPTIONS = "Σωστό, Λάθος ή Ουδέτερο?"
 
 class XNLI_en(XNLIBase):  # English
     DATASET_NAME = "en"
@@ -162,7 +162,7 @@ class XNLI_en(XNLIBase):  # English
     TRUE = "True"
     FALSE = "False"
     NEITHER = "Neither"
-    RESPONSE = "True, False or Neither?"
+    OPTIONS = "True, False or Neither?"
 
 class XNLI_es(XNLIBase):  # Spanish
     DATASET_NAME = "es"
@@ -172,7 +172,7 @@ class XNLI_es(XNLIBase):  # Spanish
     TRUE = "Verdad"
     FALSE = "Falsa"
     NEITHER = "Ninguno"
-    RESPONSE = "Verdad, Falsa o Ninguno?"
+    OPTIONS = "Verdad, Falsa o Ninguno?"
 
 class XNLI_fr(XNLIBase):  # French
     DATASET_NAME = "fr"
@@ -182,7 +182,7 @@ class XNLI_fr(XNLIBase):  # French
     TRUE = "Vrai"
     FALSE = "Faux"
     NEITHER = "Neutre"
-    RESPONSE = "Vrai, Faux ou Neutre?"
+    OPTIONS = "Vrai, Faux ou Neutre?"
 
 class XNLI_hi(XNLIBase):  # Hindi
     DATASET_NAME = "hi"
@@ -192,7 +192,7 @@ class XNLI_hi(XNLIBase):  # Hindi
     TRUE = "सत्य"
     FALSE = "असत्य"
     NEITHER = "तटस्थ"
-    RESPONSE = "सत्य या असत्य या तटस्थ?"
+    OPTIONS = "सत्य या असत्य या तटस्थ?"
 
 class XNLI_ru(XNLIBase):  # Russian
     DATASET_NAME = "ru"
@@ -202,7 +202,7 @@ class XNLI_ru(XNLIBase):  # Russian
     TRUE = "Правда"
     FALSE = "Ложный"
     NEITHER = "Нейтральный"
-    RESPONSE = "Правда, Ложный или Нейтральный?"
+    OPTIONS = "Правда, Ложный или Нейтральный?"
 
 class XNLI_sw(XNLIBase):  # Swahili
     DATASET_NAME = "sw"
@@ -212,7 +212,7 @@ class XNLI_sw(XNLIBase):  # Swahili
     TRUE = "Kweli"
     FALSE = "Uongo"
     NEITHER = "Wala"
-    RESPONSE = "Kweli, Uongo au Wala?"
+    OPTIONS = "Kweli, Uongo au Wala?"
 
 class XNLI_th(XNLIBase):  # Thai
     DATASET_NAME = "th"
@@ -222,7 +222,7 @@ class XNLI_th(XNLIBase):  # Thai
     TRUE = "จริง"
     FALSE = "เท็จ"
     NEITHER = "เป็นกลาง"
-    RESPONSE = "จริงหรือเท็จหรือเป็นกลาง?"
+    OPTIONS = "จริงหรือเท็จหรือเป็นกลาง?"
 
 class XNLI_tr(XNLIBase):  # Turkish
     DATASET_NAME = "tr"
@@ -232,7 +232,7 @@ class XNLI_tr(XNLIBase):  # Turkish
     TRUE = "Doğru"
     FALSE = "Yanlış"
     NEITHER = "Nötr"
-    RESPONSE = "Doğru, Yanlış or Nötr?"
+    OPTIONS = "Doğru, Yanlış or Nötr?"
 
 class XNLI_ur(XNLIBase):  # Urdu
     DATASET_NAME = "ur"
@@ -242,7 +242,7 @@ class XNLI_ur(XNLIBase):  # Urdu
     TRUE = "صحیح"
     FALSE = "غلط"
     NEITHER = "غیر جانبدار"
-    RESPONSE = "صحیح یا غلط یا غیر جانبدار؟"
+    OPTIONS = "صحیح یا غلط یا غیر جانبدار؟"
 
 class XNLI_vi(XNLIBase):  # Vietnamese
     DATASET_NAME = "vi"
@@ -252,7 +252,7 @@ class XNLI_vi(XNLIBase):  # Vietnamese
     TRUE = "Đúng"
     FALSE = "Sai"
     NEITHER = "Trung lập"
-    RESPONSE = "Đúng, Sai hay Trung lập?"
+    OPTIONS = "Đúng, Sai hay Trung lập?"
 
 class XNLI_zh(XNLIBase):  # Chinese
     DATASET_NAME = "zh"
@@ -262,7 +262,7 @@ class XNLI_zh(XNLIBase):  # Chinese
     TRUE = "对"
     FALSE = "错"
     NEITHER = "中立"
-    RESPONSE = "对、错、还是中立?"
+    OPTIONS = "对、错、还是中立?"
 
 LANG_CLASSES = [
     XNLI_ar, XNLI_bg, XNLI_de, XNLI_el, XNLI_en, XNLI_es, XNLI_fr, XNLI_hi,
