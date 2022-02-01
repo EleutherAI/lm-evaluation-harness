@@ -36,6 +36,13 @@ class XNLIBase(HFTask):
     DATASET_PATH = "xnli"
     DATASET_NAME = None
 
+    QUESTION = ""
+    ANSWER = ""
+    TRUE = ""
+    FALSE = ""
+    NEITHER = ""
+    RESPONSE = ""
+
     def has_training_docs(self):
         return True
 
@@ -46,13 +53,13 @@ class XNLIBase(HFTask):
         return True
 
     def doc_to_text(self, doc):
-        return doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + ' True, False, or Neither?\nAnswer:'
+        return doc['premise'] + f'\n{self.QUESTION} ' + doc['hypothesis'] + f'\n{self.RESPONSE}\n' + f'\n{self.ANSWER}'
 
     def doc_to_target(self, doc):
         # True = entailment
         # False = contradiction
         # Neither = neutral
-        return " " + ["True", "Neither", "False"][doc['label']]
+        return " " + [self.TRUE, self.NEITHER, self.FALSE][doc['label']]
 
     def construct_requests(self, doc, ctx):
         """ Uses RequestFactory to construct Requests and returns an iterable of 
@@ -65,9 +72,9 @@ class XNLIBase(HFTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`. 
         """
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
+        ll_true, _ = rf.loglikelihood(ctx, " " + self.TRUE)
+        ll_neither, _ = rf.loglikelihood(ctx, " " + self.NEITHER)
+        ll_false, _ = rf.loglikelihood(ctx, " " + self.FALSE)
         return ll_true, ll_neither, ll_false
 
     def process_results(self, doc, results):
@@ -107,51 +114,155 @@ class XNLIBase(HFTask):
         }
 
 
-class XNLI_ar(XNLIBase):
+class XNLI_ar(XNLIBase):  # Arabic
     DATASET_NAME = "ar"
 
-class XNLI_bg(XNLIBase):
+    QUESTION = ":سؤال"
+    ANSWER = ":إِجابة"
+    TRUE = "صحيح"
+    FALSE = "كاذب"
+    NEITHER = "حيادي"
+    RESPONSE = "صحيح أو كاذب أو حيادي؟"
+
+class XNLI_bg(XNLIBase):  # Bulgarian
     DATASET_NAME = "bg"
 
-class XNLI_de(XNLIBase):
+    QUESTION = "Въпрос:"
+    ANSWER = "Отговор:"
+    TRUE = "Правда"
+    FALSE = "Ложный"
+    NEITHER = "Нейтральный"
+    RESPONSE = "Правда, Ложный или Нейтральный?"
+
+class XNLI_de(XNLIBase):  # German
     DATASET_NAME = "de"
 
-class XNLI_el(XNLIBase):
+    QUESTION = "Frage:"
+    ANSWER = "Antwort:"
+    TRUE = "Stimmt"
+    FALSE = "Falsch"
+    NEITHER = "Neutral"
+    RESPONSE = "Stimmt, Falsch oder Neutral?"
+
+class XNLI_el(XNLIBase):  # Greek
     DATASET_NAME = "el"
 
-class XNLI_en(XNLIBase):
+    QUESTION = "Ερώτηση:"
+    ANSWER = "Απάντηση:"
+    TRUE = "Σωστό"
+    FALSE = "Λάθος"
+    NEITHER = "Ουδέτερο"
+    RESPONSE = "Σωστό, Λάθος ή Ουδέτερο?"
+
+class XNLI_en(XNLIBase):  # English
     DATASET_NAME = "en"
 
-class XNLI_es(XNLIBase):
+    QUESTION = "Question:"
+    ANSWER = "Answer:"
+    TRUE = "True"
+    FALSE = "False"
+    NEITHER = "Neither"
+    RESPONSE = "True, False or Neither?"
+
+class XNLI_es(XNLIBase):  # Spanish
     DATASET_NAME = "es"
 
-class XNLI_fr(XNLIBase):
+    QUESTION = "Pregunta:"
+    ANSWER = "Respuesta:"
+    TRUE = "Verdad"
+    FALSE = "Falsa"
+    NEITHER = "Ninguno"
+    RESPONSE = "Verdad, Falsa o Ninguno?"
+
+class XNLI_fr(XNLIBase):  # French
     DATASET_NAME = "fr"
 
-class XNLI_hi(XNLIBase):
+    QUESTION = "Question:"
+    ANSWER = "Réponse:"
+    TRUE = "Vrai"
+    FALSE = "Faux"
+    NEITHER = "Neutre"
+    RESPONSE = "Vrai, Faux ou Neutre?"
+
+class XNLI_hi(XNLIBase):  # Hindi
     DATASET_NAME = "hi"
 
-class XNLI_ru(XNLIBase):
+    QUESTION = "प्रश्न:"
+    ANSWER = "उत्तर:"
+    TRUE = "सत्य"
+    FALSE = "असत्य"
+    NEITHER = "तटस्थ"
+    RESPONSE = "सत्य या असत्य या तटस्थ?"
+
+class XNLI_ru(XNLIBase):  # Russian
     DATASET_NAME = "ru"
 
-class XNLI_sw(XNLIBase):
+    QUESTION = "Вопрос:"
+    ANSWER = "Ответ:"
+    TRUE = "Правда"
+    FALSE = "Ложный"
+    NEITHER = "Нейтральный"
+    RESPONSE = "Правда, Ложный или Нейтральный?"
+
+class XNLI_sw(XNLIBase):  # Swahili
     DATASET_NAME = "sw"
 
-class XNLI_th(XNLIBase):
+    QUESTION = "Swali:"
+    ANSWER = "Jibu:"
+    TRUE = "Kweli"
+    FALSE = "Uongo"
+    NEITHER = "Wala"
+    RESPONSE = "Kweli, Uongo au Wala?"
+
+class XNLI_th(XNLIBase):  # Thai
     DATASET_NAME = "th"
 
-class XNLI_tr(XNLIBase):
+    QUESTION = "คำถาม:"
+    ANSWER = "คำตอบ:"
+    TRUE = "จริง"
+    FALSE = "เท็จ"
+    NEITHER = "เป็นกลาง"
+    RESPONSE = "จริงหรือเท็จหรือเป็นกลาง?"
+
+class XNLI_tr(XNLIBase):  # Turkish
     DATASET_NAME = "tr"
 
-class XNLI_ur(XNLIBase):
+    QUESTION = "Soru:"
+    ANSWER = "Cevap:"
+    TRUE = "Doğru"
+    FALSE = "Yanlış"
+    NEITHER = "Nötr"
+    RESPONSE = "Doğru, Yanlış or Nötr?"
+
+class XNLI_ur(XNLIBase):  # Urdu
     DATASET_NAME = "ur"
 
-class XNLI_vi(XNLIBase):
+    QUESTION = ":سوال"
+    ANSWER = ":جواب"
+    TRUE = "صحیح"
+    FALSE = "غلط"
+    NEITHER = "غیر جانبدار"
+    RESPONSE = "صحیح یا غلط یا غیر جانبدار؟"
+
+class XNLI_vi(XNLIBase):  # Vietnamese
     DATASET_NAME = "vi"
 
-class XNLI_zh(XNLIBase):
+    QUESTION = "Câu hỏi:"
+    ANSWER = "Câu trả lời:"
+    TRUE = "Đúng"
+    FALSE = "Sai"
+    NEITHER = "Trung lập"
+    RESPONSE = "Đúng, Sai hay Trung lập?"
+
+class XNLI_zh(XNLIBase):  # Chinese
     DATASET_NAME = "zh"
 
+    QUESTION = "问题:"
+    ANSWER = "回答:"
+    TRUE = "对"
+    FALSE = "错"
+    NEITHER = "中立"
+    RESPONSE = "对、错、还是中立?"
 
 LANG_CLASSES = [
     XNLI_ar, XNLI_bg, XNLI_de, XNLI_el, XNLI_en, XNLI_es, XNLI_fr, XNLI_hi,
