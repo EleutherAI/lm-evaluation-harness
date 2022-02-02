@@ -232,7 +232,7 @@ class XNLI_tr(XNLIBase):  # Turkish
     TRUE = "Doğru"
     FALSE = "Yanlış"
     NEITHER = "Nötr"
-    OPTIONS = "Doğru, Yanlış or Nötr?"
+    OPTIONS = "Doğru, Yanlış veya Nötr?"
 
 class XNLI_ur(XNLIBase):  # Urdu
     DATASET_NAME = "ur"
