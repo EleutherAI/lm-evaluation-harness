@@ -53,12 +53,7 @@ class XNLIBase(HFTask):
         return True
 
     def doc_to_text(self, doc):
-<<<<<<< HEAD
-        # return doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + ' True, False, or Neither?\nAnswer:'
         return doc['premise'] + ', right? [MASK], ' + doc['hypothesis']
-=======
-        return doc['premise'] + f'\n{self.QUESTION} ' + doc['hypothesis'] + f'\n{self.OPTIONS}' + f'\n{self.ANSWER}'
->>>>>>> 927e3e3fbbd2be46dbc0a67781308e66fb29846f
 
     def doc_to_target(self, doc):
         # True = entailment
@@ -152,41 +147,6 @@ class XNLI_de(XNLIBase):  # German
 class XNLI_el(XNLIBase):  # Greek
     DATASET_NAME = "el"
 
-<<<<<<< HEAD
-class XNLI_en(XNLIBase):
-    DATASET_NAME = "en"
-
-class XNLI_es(XNLIBase):
-    DATASET_NAME = "es"
-
-class XNLI_fr(XNLIBase):
-    DATASET_NAME = "fr"
-
-class XNLI_hi(XNLIBase):
-    DATASET_NAME = "hi"
-
-class XNLI_ru(XNLIBase):
-    DATASET_NAME = "ru"
-
-class XNLI_sw(XNLIBase):
-    DATASET_NAME = "sw"
-
-class XNLI_th(XNLIBase):
-    DATASET_NAME = "th"
-
-class XNLI_tr(XNLIBase):
-    DATASET_NAME = "tr"
-
-class XNLI_ur(XNLIBase):
-    DATASET_NAME = "ur"
-
-class XNLI_vi(XNLIBase):
-    DATASET_NAME = "vi"
-
-class XNLI_zh(XNLIBase):
-    DATASET_NAME = "zh"
-
-=======
     QUESTION = "Ερώτηση:"
     ANSWER = "Απάντηση:"
     TRUE = "Σωστό"
@@ -303,7 +263,6 @@ class XNLI_zh(XNLIBase):  # Chinese
     FALSE = "错"
     NEITHER = "中立"
     OPTIONS = "对、错、还是中立?"
->>>>>>> 927e3e3fbbd2be46dbc0a67781308e66fb29846f
 
 LANG_CLASSES = [
     XNLI_ar, XNLI_bg, XNLI_de, XNLI_el, XNLI_en, XNLI_es, XNLI_fr, XNLI_hi,
