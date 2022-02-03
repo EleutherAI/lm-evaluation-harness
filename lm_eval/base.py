@@ -178,7 +178,6 @@ class BaseLM(LM):
             continuation_enc = self.tok_encode(continuation)
 
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
-
         return self._loglikelihood_tokens(new_reqs)
 
     def loglikelihood_rolling(self, requests):
@@ -224,6 +223,7 @@ class BaseLM(LM):
             return -len(toks), tuple(toks)
         
         # TODO: automatic (variable) batch size detection for vectorization
+
         reord = utils.Reorderer(requests, _collate)
         for chunk in utils.chunks(tqdm(reord.get_reordered(), disable=disable_tqdm), self.batch_size):
             inps = []
@@ -235,7 +235,7 @@ class BaseLM(LM):
             # because vectorizing is annoying, we first convert each (context, continuation) pair to padded
             # tensors, then we pack them together into a batch, call the model, and then pick it all apart
             # again because vectorizing is annoying
-
+            
             for _, context_enc, continuation_enc in chunk:
                 # sanity check
                 assert len(context_enc) > 0
@@ -273,7 +273,7 @@ class BaseLM(LM):
 
             batched_inps = torch.cat(inps, dim=0)  # [batch, padding_length
             multi_logits = F.log_softmax(self._model_call(batched_inps), dim=-1).cpu()  # [batch, padding_length, vocab]
-
+            
             for (cache_key, _, _), logits, inp, inplen, cont_toks \
                     in zip(chunk, multi_logits, inps, inplens, cont_toks_list):
 
@@ -284,6 +284,8 @@ class BaseLM(LM):
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
                 cont_toks = torch.tensor(cont_toks, dtype=torch.long).unsqueeze(0)  # [1, seq]
+                # print(self.tok_decode(greedy_tokens[0]))
+                # print(self.tok_decode(cont_toks[0]))
                 max_equal = (greedy_tokens == cont_toks).all()
 
                 # Obtain log-probs at the corresponding continuation token indices
@@ -298,7 +300,7 @@ class BaseLM(LM):
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
                 res.append(answer)
-
+                
         return reord.get_original(res)
     
     def greedy_until(self, requests):
@@ -318,7 +320,7 @@ class BaseLM(LM):
             if isinstance(until, str):
                 until = [until]
 
-            primary_until, = self.tok_encode(until[0])
+            primary_until = self.tok_encode(until[0])
             
             context_enc = torch.tensor([self.tok_encode(context)[self.max_gen_toks - self.max_length:]]).to(self.device)
 
@@ -674,7 +676,7 @@ class CachingLM:
                 else:
                     res.append(None)
                     remaining_reqs.append(req)
-            
+
             # actually run the LM on the requests that do not have cached results
             rem_res = getattr(self.lm, attr)(remaining_reqs)
 
@@ -701,7 +703,7 @@ class CachingLM:
 REQUEST_RETURN_LENGTHS = {
     'loglikelihood': 2,
     'greedy_until': None,
-    'loglikelihood_rolling': None,
+    'loglikelihood_rolling': 1,
 }
 
 
