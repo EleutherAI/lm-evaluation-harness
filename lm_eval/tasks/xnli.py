@@ -46,7 +46,8 @@ class XNLIBase(HFTask):
         return True
 
     def doc_to_text(self, doc):
-        return doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + ' True, False, or Neither?\nAnswer:'
+        # return doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + ' True, False, or Neither?\nAnswer:'
+        return doc['premise'] + ', right? [MASK], ' + doc['hypothesis']
 
     def doc_to_target(self, doc):
         # True = entailment
@@ -65,9 +66,9 @@ class XNLIBase(HFTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`. 
         """
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
+        ll_true = rf.loglikelihood_rolling(ctx.replace("[MASK]", "Yes"))[0]
+        ll_neither = rf.loglikelihood_rolling(ctx.replace("[MASK]", "Also"))[0]
+        ll_false = rf.loglikelihood_rolling(ctx.replace("[MASK]", "No"))[0]
         return ll_true, ll_neither, ll_false
 
     def process_results(self, doc, results):
