@@ -11,5 +11,11 @@ class LAMBADA_cloze(LAMBADA):
     def doc_to_text(self, doc):
         return doc['text'].rsplit(' ', 1)[0] + " ____. ->"
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['text']
+
     def doc_to_target(self, doc):
         return " " + doc['text'].rsplit(' ', 1)[1]

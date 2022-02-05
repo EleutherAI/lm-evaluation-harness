@@ -80,6 +80,12 @@ class WikiText(PerplexityTask):
 
     def doc_to_target(self, doc):
         return wikitext_detokenizer(doc)
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["text"]
     
     def count_words(self, doc):
         # count number of words in *original doc before detokenization*

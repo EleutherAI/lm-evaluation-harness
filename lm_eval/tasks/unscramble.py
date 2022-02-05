@@ -48,6 +48,12 @@ class WordUnscrambleTask(Task):
     def doc_to_text(self, doc):
         return doc["context"]
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["context"]
+
     def doc_to_target(self, doc):
         return doc["completion"]
 
