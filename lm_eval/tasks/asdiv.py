@@ -93,6 +93,12 @@ class Asdiv(Task):
         # TODO: add solution-type
         return doc['body'] + '\n' + 'Question:' + doc['question'] + '\n' + 'Answer:'
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['body'] + " " + doc['question']
+
     def doc_to_target(self, doc):
         # TODO: add formula
 

@@ -28,6 +28,12 @@ class BoolQ(HFTask):
 
     def doc_to_text(self, doc):
         return f"{doc['passage']}\nQuestion: {doc['question']}?\nAnswer:"
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['passage']
     
     def doc_to_target(self, doc):
         return " " + yesno(doc['label']) 

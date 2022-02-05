@@ -38,6 +38,13 @@ class CBTBase(HFTask):
         text = "Passage: " + passage + "\nQuestion: " + doc["question"]
         return self.detokenize(text)
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+	passage = " ".join(doc["sentences"])
+        return passage
+
     def doc_to_target(self, doc):
         return ""
 

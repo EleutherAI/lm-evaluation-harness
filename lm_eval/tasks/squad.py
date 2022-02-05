@@ -44,6 +44,12 @@ class SQuAD2(HFTask):
     def doc_to_text(self, doc):
         return 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Question: ' + doc['question'] + '\n\n' + 'Answer:'
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['context']
+
     def doc_to_target(self, doc):
         answer_list = doc['answers']['text']
         if len(answer_list) > 0:

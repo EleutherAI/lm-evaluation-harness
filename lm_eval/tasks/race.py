@@ -86,6 +86,12 @@ class RACE(HFTask):
         text += self.last_problem(doc)['question']
         return text
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['article']
+
     def doc_to_target(self, doc):
         return " " + self.get_answer_option(self.last_problem(doc))
 
