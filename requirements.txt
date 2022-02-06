@@ -1,1 +1,2 @@
 -e .
+best-download==0.0.7
