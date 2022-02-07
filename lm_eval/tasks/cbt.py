@@ -42,7 +42,7 @@ class CBTBase(HFTask):
         return True
 
     def doc_to_decontamination_query(self, doc):
-	passage = " ".join(doc["sentences"])
+        passage = " ".join(doc["sentences"])
         return passage
 
     def doc_to_target(self, doc):
