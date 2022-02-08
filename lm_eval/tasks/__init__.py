@@ -29,6 +29,7 @@ from . import triviaqa
 from . import pubmedqa
 from . import sciq
 from . import webqs
+from . import qasper
 from . import qa4mre
 from . import translation
 from . import headqa
@@ -120,6 +121,8 @@ TASK_REGISTRY = {
     # Science related
     "pubmedqa" : pubmedqa.Pubmed_QA,
     "sciq" : sciq.SciQ,
+
+    "qasper": qasper.QASPER,
 
     "qa4mre_2011" : qa4mre.QA4MRE_2011,
     "qa4mre_2012" : qa4mre.QA4MRE_2012,
