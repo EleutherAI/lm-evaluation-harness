@@ -1,1 +1,0 @@
-{"results": {"wmt20-cs-en": {"bleu": 0.0, "bleu_stderr": 0.0, "chrf": 0.006212086270964023, "chrf_stderr": 0.0001119165191795531, "ter": 1.0, "ter_stderr": 0.0}}, "versions": {"wmt20-cs-en": 0}}
