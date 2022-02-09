@@ -22,6 +22,7 @@ https://arxiv.org/abs/2105.03011
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 """
+from math import exp
 from lm_eval.base import rf
 from lm_eval.metrics import f1_score
 from .common import HFTask
@@ -101,7 +102,7 @@ class QASPER(HFTask):
 
         # Handle unanswerability first
         unanswerable_gold = doc["answer_type"] == "unanswerable"
-        unanswerable_pred = unanswerable > 1 - unanswerable
+        unanswerable_pred = exp(unanswerable) > 1 - exp(unanswerable)
         res_dict["f1_un"] = (unanswerable_gold, unanswerable_pred)
 
         # Handle yes/no questions
@@ -113,14 +114,14 @@ class QASPER(HFTask):
 
         # Handle completions
         if doc["answer_type"] == "free form answer":
-            pass
+            res_dict["f1_ab"] = None
         return res_dict
 
     def aggregation(self):
         return {
             "f1_un": f1_score,
             "f1_yn": f1_score,
-            "f1_fr": f1_score,
+            "f1_ab": f1_score,
             "f1_ex": f1_score,
         }
 
