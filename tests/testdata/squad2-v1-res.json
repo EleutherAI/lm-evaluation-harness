@@ -1,1 +1,0 @@
-{"results": {"squad2": {"HasAns_exact": 0.0, "HasAns_f1": 0.0, "NoAns_exact": 0.0, "NoAns_f1": 0.0, "best_exact": 50.07159100480081, "best_f1": 50.07159100480081, "exact": 0.0, "f1": 0.0}}, "versions": {"squad2": 1}}

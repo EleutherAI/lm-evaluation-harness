@@ -1,1 +1,0 @@
-{"results": {"hendrycksTest-formal_logic": {"acc": 0.25396825396825395, "acc_norm": 0.2698412698412698, "acc_norm_stderr": 0.03970158273235172, "acc_stderr": 0.03893259610604674}}, "versions": {"hendrycksTest-formal_logic": 0}}

@@ -1,1 +1,0 @@
-{"results": {"hendrycksTest-anatomy": {"acc": 0.2222222222222222, "acc_norm": 0.23703703703703705, "acc_norm_stderr": 0.03673731683969506, "acc_stderr": 0.0359144408419697}}, "versions": {"hendrycksTest-anatomy": 0}}
