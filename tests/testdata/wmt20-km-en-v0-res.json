@@ -1,1 +1,0 @@
-{"results": {"wmt20-km-en": {"bleu": 0.0, "bleu_stderr": 0.0, "chrf": 0.015142474534585969, "chrf_stderr": 0.0001518735048829897, "ter": 1.0, "ter_stderr": 0.0}}, "versions": {"wmt20-km-en": 0}}

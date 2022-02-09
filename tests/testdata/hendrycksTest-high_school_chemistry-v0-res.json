@@ -1,1 +1,0 @@
-{"results": {"hendrycksTest-high_school_chemistry": {"acc": 0.2857142857142857, "acc_norm": 0.2660098522167488, "acc_norm_stderr": 0.031089826002937523, "acc_stderr": 0.031785297106427496}}, "versions": {"hendrycksTest-high_school_chemistry": 0}}

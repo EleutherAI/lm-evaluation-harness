@@ -1,1 +1,0 @@
-{"results": {"hendrycksTest-college_physics": {"acc": 0.23529411764705882, "acc_norm": 0.23529411764705882, "acc_norm_stderr": 0.04220773659171453, "acc_stderr": 0.04220773659171452}}, "versions": {"hendrycksTest-college_physics": 0}}

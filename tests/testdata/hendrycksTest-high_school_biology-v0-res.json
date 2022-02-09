@@ -1,1 +1,0 @@
-{"results": {"hendrycksTest-high_school_biology": {"acc": 0.23870967741935484, "acc_norm": 0.2709677419354839, "acc_norm_stderr": 0.025284416114900152, "acc_stderr": 0.024251071262208834}}, "versions": {"hendrycksTest-high_school_biology": 0}}
