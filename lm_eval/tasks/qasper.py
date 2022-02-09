@@ -1,4 +1,29 @@
+""" 
+A Dataset of Information-Seeking Questions and Answers Anchored in Research Papers
+https://arxiv.org/abs/2105.03011
+
+@article{DBLP:journals/corr/abs-2105-03011,
+  author    = {Pradeep Dasigi and
+               Kyle Lo and
+               Iz Beltagy and
+               Arman Cohan and
+               Noah A. Smith and
+               Matt Gardner},
+  title     = {A Dataset of Information-Seeking Questions and Answers Anchored in
+               Research Papers},
+  journal   = {CoRR},
+  volume    = {abs/2105.03011},
+  year      = {2021},
+  url       = {https://arxiv.org/abs/2105.03011},
+  eprinttype = {arXiv},
+  eprint    = {2105.03011},
+  timestamp = {Fri, 14 May 2021 12:13:30 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-2105-03011.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+"""
 from lm_eval.base import rf
+from lm_eval.metrics import f1_score
 from .common import HFTask
 
 
@@ -71,7 +96,33 @@ class QASPER(HFTask):
         return obs_list
 
     def process_results(self, doc, results):
-        return super().process_results(doc, results)
+        res, unanswerable = results
+        res_dict = {}
+
+        # Handle unanswerability first
+        unanswerable_gold = doc["answer_type"] == "unanswerable"
+        unanswerable_pred = unanswerable > 1 - unanswerable
+        res_dict["f1_un"] = (unanswerable_gold, unanswerable_pred)
+
+        # Handle yes/no questions
+        if doc["answer_type"] == "bool":
+            ll_yes, ll_no = res
+            gold = 1 if doc["answer"] == "yes" else 0
+            pred = ll_yes > ll_no
+            res_dict["f1_yn"] = (gold, pred)
+
+        # Handle completions
+        if doc["answer_type"] == "free form answer":
+            pass
+        return res_dict
+
+    def aggregation(self):
+        return {
+            "f1_un": f1_score,
+            "f1_yn": f1_score,
+            "f1_fr": f1_score,
+            "f1_ex": f1_score,
+        }
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
@@ -84,6 +135,11 @@ class QASPER(HFTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        continuation = rf.greedy_until(ctx, ["\n"])
-        is_unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
-        return continuation, is_unanswerable
+        unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
+        if doc["answer_type"] in ("free form answer", "extractive spans"):
+            res = rf.greedy_until(ctx, ["\n"])
+        elif doc["answer_type"] in ("bool"):
+            ll_yes, _ = rf.loglikelihood(ctx, " yes")
+            ll_no, _ = rf.loglikelihood(ctx, " no")
+            res = (ll_yes, ll_no)
+        return res, unanswerable
