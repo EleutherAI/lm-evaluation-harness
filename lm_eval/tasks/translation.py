@@ -107,7 +107,7 @@ class GeneralTranslationTask(Task):
         language_codes = self.sacrebleu_language_pair.split("-")
         src_lang = code_to_language(language_codes[0])
         tar_lang = code_to_language(language_codes[1])
-        return f"{src_lang} phrase: " + doc["src"] + f"\n{tar_lang} phrase:"
+        return f"\nTranslate {src_lang} to {tar_lang}:\n [{src_lang}] " + doc["src"] + f"\n[{tar_lang}]"
 
     def doc_to_target(self, doc):
         # This shows a single target, though there may be multiple targets in a lang test
@@ -132,7 +132,6 @@ class GeneralTranslationTask(Task):
         if tar_lang_code in NO_SPACE_LANG:
             doc["ref"] = NO_SPACE_LANG[tar_lang_code]([doc["ref"]])[0]
             results = NO_SPACE_LANG[tar_lang_code](results)
-
         # These metrics are corpus-level not sentence level, so we'll hide the
         # results in this dict and compute the corpus score in the aggregate method
         ref_pred = (doc["ref"], results)

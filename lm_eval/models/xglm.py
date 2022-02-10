@@ -1,6 +1,8 @@
 import transformers
 import torch
+from lm_eval import utils
 from lm_eval.base import BaseLM
+from tqdm import tqdm
 
 
 class XGLM(BaseLM):
@@ -23,6 +25,7 @@ class XGLM(BaseLM):
         # pretrained tokenizer for neo is broken for now so just hard-coding this to gpt2
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer, revision=revision, subfolder=subfolder)
+
         # assert isinstance(self.tokenizer, (
         #     transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast,
         #     transformers.T5Tokenizer, transformers.T5TokenizerFast,
@@ -60,10 +63,21 @@ class XGLM(BaseLM):
         # TODO: fix multi-gpu
         return self._device
     def tok_encode(self, string: str):
+        # HACK: to overcome problem of  XGLM tokenizer removing new lines
+        # we replace newline with SEP token
+        # WARNING: Since typical SEP token == EOS token
+        # Generation will stop after the first appearance of SEP token prevnting XGLM from 
+        # outputting Multi line generations
+        string = string.replace("\n", self.tokenizer.sep_token)
         return self.tokenizer.encode(string, add_special_tokens=False)
-    
+
     def tok_decode(self, tokens):
-        return self.tokenizer.decode(tokens)
+        # HACK: to overcome problem of  XGLM tokenizer removing new lines
+        # replace back the generated sep_tokens with newlines
+        output =  self.tokenizer.decode(tokens)
+        output = output.replace(self.tokenizer.sep_token, "\n")
+        print(output)
+        return output
     def _model_call(self, inps):
         """
         inps: a torch tensor of shape [batch, sequence]
