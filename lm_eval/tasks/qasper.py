@@ -172,25 +172,30 @@ class QASPER(HFTask):
         # Handle unanswerability first
         unanswerable_gold = doc["answer_type"] == "unanswerable"
         unanswerable_pred = exp(logprob_unanswerable) > 1 - exp(logprob_unanswerable)
-        res_dict["f1_un"] = (unanswerable_gold, unanswerable_pred)
+        res_dict["f1_unanswerable"] = (unanswerable_gold, unanswerable_pred)
 
         # Handle yes/no questions
         if doc["answer_type"] == "bool":
             gold = 1 if doc["answer"] == "yes" else 0
             pred = ll_yes > ll_no
-            res_dict["f1_yn"] = (gold, pred)
+            res_dict["f1_yesno"] = (gold, pred)
 
         # Handle completions
         if doc["answer_type"] == "free form answer":
-            res_dict["f1_ab"] = token_f1_score(res, doc["answer"])
+            res_dict["f1_abstractive"] = token_f1_score(res, doc["answer"])
 
         # Handle extraction
         if doc["answer_type"] == "extractive_spans":
-            res_dict["f1_ex"] = 0
+            res_dict["f1_extractive"] = 0
         return res_dict
 
     def aggregation(self):
-        return {"f1_un": f1_score, "f1_yn": f1_score, "f1_ab": mean, "f1_ex": mean}
+        return {
+            "f1_unanswerable": f1_score,
+            "f1_yesno": f1_score,
+            "f1_abstractive": mean,
+            "f1_extractive": mean,
+        }
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
@@ -219,4 +224,9 @@ class QASPER(HFTask):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {"f1_un": True, "f1_yn": True, "f1_ab": True, "f1_ex": True}
+        return {
+            "f1_unanswerable": True,
+            "f1_yesno": True,
+            "f1_abstractive": True,
+            "f1_extractive": True,
+        }
