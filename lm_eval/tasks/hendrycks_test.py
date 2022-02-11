@@ -1,5 +1,4 @@
 import csv
-import random
 from lm_eval.base import MultipleChoiceTask
 from ..utils import sh
 from pathlib import Path
@@ -74,16 +73,16 @@ class GeneralHendrycksTest(MultipleChoiceTask):
                 Answer:
             """
             prompt = "Question: " + doc[0] + "\nChoices:\n"
-            prompt += "".join([f"{choices[j]}. {doc[j+1]}\n" for j in range(4)])
+            prompt += "".join([f"{choices[j]}. {doc[j+1]}\n" for j in range(len(choices))])
             prompt += "Answer:"
             return prompt
         choices = ['A', 'B', 'C', 'D']
         return {
             "query": format_example(doc, choices),
-            "choices": doc[1:5],
+            "choices": choices,
             "gold": choices.index(doc[5])
         }
-
+    
     def _load_docs(self, filename):
         reader = csv.reader(open(filename, 'r'), quotechar='"', delimiter=',')
         return (self._convert_standard(doc) for doc in reader)
