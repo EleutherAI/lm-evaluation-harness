@@ -108,7 +108,6 @@ class QASPER(HFTask):
     DATASET_NAME = None
 
     def doc_to_text(self, doc):
-        # this method is invoked by tests only
         return (
             "TITLE: "
             + doc["title"]
@@ -123,7 +122,6 @@ class QASPER(HFTask):
         )
 
     def doc_to_target(self, doc):
-        # this method is invoked by tests only
         answer = doc["answer"]
         if isinstance(answer, list):
             answer = ", ".join(answer)
