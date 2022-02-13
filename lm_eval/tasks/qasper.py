@@ -92,16 +92,6 @@ def token_f1_score(prediction, ground_truth):
     return f1
 
 
-def paragraph_f1_score(prediction, ground_truth):
-    num_same = len(set(ground_truth).intersection(set(prediction)))
-    if num_same == 0:
-        return 0.0
-    precision = num_same / len(prediction)
-    recall = num_same / len(ground_truth)
-    f1 = (2 * precision * recall) / (precision + recall)
-    return f1
-
-
 class QASPER(HFTask):
     VERSION = 0
     DATASET_PATH = "qasper"
@@ -182,9 +172,9 @@ class QASPER(HFTask):
         if doc["answer_type"] == "free form answer":
             res_dict["f1_abstractive"] = token_f1_score(res, doc["answer"])
 
-        # Handle extraction
-        if doc["answer_type"] == "extractive_spans":
-            res_dict["f1_extractive"] = 0
+        # TODO: Handle extraction
+        # if doc["answer_type"] == "extractive_spans":
+        #     res_dict["f1_extractive"] = 0
         return res_dict
 
     def aggregation(self):
@@ -192,7 +182,6 @@ class QASPER(HFTask):
             "f1_unanswerable": f1_score,
             "f1_yesno": f1_score,
             "f1_abstractive": mean,
-            "f1_extractive": mean,
         }
 
     def construct_requests(self, doc, ctx):
@@ -226,5 +215,4 @@ class QASPER(HFTask):
             "f1_unanswerable": True,
             "f1_yesno": True,
             "f1_abstractive": True,
-            "f1_extractive": True,
         }
