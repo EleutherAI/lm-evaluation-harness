@@ -9,7 +9,7 @@ This project provides a unified framework to test autoregressive language models
 
 Features:
 
-- 100+ tasks implemented
+- 200+ tasks implemented
 - Support for GPT-2, GPT-3, GPT-Neo, GPT-NeoX, and GPT-J, with flexible tokenization-agnostic interface
 - Task versioning to ensure reproducibility
 
