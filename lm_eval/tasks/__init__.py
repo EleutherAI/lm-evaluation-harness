@@ -48,6 +48,7 @@ from . import mutual
 from . import truthfulqa
 from . import blimp
 from . import asdiv
+from . import gsm8k
 
 ########################################
 # Translation tasks
@@ -170,6 +171,7 @@ TASK_REGISTRY = {
     "math_prealgebra": hendrycks_math.MathPrealgebra,
     "math_precalc": hendrycks_math.MathPrecalculus,
     "math_asdiv": asdiv.Asdiv,
+    "gsm8k": gsm8k.GradeSchoolMath8K,
 
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
