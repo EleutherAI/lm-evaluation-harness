@@ -59,7 +59,7 @@ def categorise_answer(answer_blob):
         answer_type = "unanswerable"
         return answer, answer_type
     elif answer_blob["yes_no"]:
-        answer = "Yes"
+        answer = "yes"
         answer_type = "bool"
         return answer, answer_type
     elif answer_blob["free_form_answer"]:
@@ -71,7 +71,7 @@ def categorise_answer(answer_blob):
         answer_type = "extractive_spans"
         return answer, answer_type
     elif answer_blob["yes_no"] is False:
-        answer = "No"
+        answer = "no"
         answer_type = "bool"
         return answer, answer_type
 
