@@ -23,7 +23,7 @@ def get_result(response, ctxlen):
     is_greedy = True
     logprobs = response["logprobs"]["token_logprobs"][:-1]
     continuation_logprobs = sum(logprobs[ctxlen:])
-    print(logprobs[ctxlen:])
+    # print(logprobs[ctxlen:])
 
     for i in range(ctxlen, len(response["logprobs"]["tokens"][:-1])):
         token = response["logprobs"]["tokens"][:-1][i]
@@ -82,6 +82,8 @@ class GPT3LM(BaseLM):
             Truncate input if too long (if False and input is too long, throw error)
         """
         super().__init__()
+
+        assert pass_strings, "so far, this branch only supports GooseAI, and won't work with the regular OpenAI api. this is mostly because there are still some remaining differences between the two apis that make this more complicated than just a drop in replacement. there's no fundamental reason why I couldn't support both on the same branch right now, but it would be a lot of work, and once gooseai finally makes their api conform to the openai api then we won't need this branch anymore and I'll implement something more simple once that does actually happen."
 
         import openai
         self.engine = engine
@@ -149,7 +151,7 @@ class GPT3LM(BaseLM):
                 # TODO: the logic is much simpler if we just look at the length of continuation tokens
                 ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - (self.max_length+1))
 
-                print(inp)
+                # print(inp)
                 if self.pass_strings:
                     inp = self.tok_decode(inp)
                 inps.append(inp)
