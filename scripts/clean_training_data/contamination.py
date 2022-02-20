@@ -107,18 +107,18 @@ def get_train_overlap(docs_by_task_set, ngrams_path, ngrams_n_size, limit):
             non_matching_unique = 0
 
             current_ngram = ""
-            for line in reader.read_tqdm():
+            for line in reader.read_tqdm(): # Scan training set ngrams file
                 total_ngrams += 1
                 [ngram, document_id] = line.rsplit(" ", 1)
-                if ngram != current_ngram:
+                if ngram != current_ngram: # Only need to match the ngram once in training set
                     unique_ngrams += 1
                     current_ngram = ngram
                     if ngram in merged_lookup:
-                        matched_ngrams.append(ngram)
+                        matched_ngrams.append(ngram) # For logging
                         matching_unique += 1
                         for task_name, task_set, doc_ids in merged_lookup[ngram]:
                             task_doc_set = duplicates[(task_name, task_set)]
-                            for doc_id in doc_ids:
+                            for doc_id in doc_ids: # Record contamination across all relevant task/set combos
                                 task_doc_set.add(doc_id)
                         del merged_lookup[ngram] # No point matching again
                     else:

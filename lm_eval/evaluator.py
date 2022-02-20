@@ -14,7 +14,7 @@ def simple_evaluate(model, model_args=None, tasks=[],
                     num_fewshot=0, batch_size=None, device=None,
                     no_cache=False, limit=None, bootstrap_iters=100000,
                     description_dict=None, decontaminate=False, 
-                    ngrams_path=None, ngrams_n_size=None):
+                    decontaminate_ngrams_path=None, decontaminate_ngrams_n_size=None):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param model: Union[str, LM]
@@ -69,8 +69,8 @@ def simple_evaluate(model, model_args=None, tasks=[],
         limit=limit,
         description_dict=description_dict,
         decontaminate=decontaminate, 
-        ngrams_path=ngrams_path, 
-        ngrams_n_size=ngrams_n_size
+        decontaminate_ngrams_path=decontaminate_ngrams_path, 
+        decontaminate_ngrams_n_size=decontaminate_ngrams_n_size
     )
 
     # add info about the model and few shot config
@@ -92,7 +92,7 @@ decontaminate_suffix = "_decontaminate"
 
 @positional_deprecated
 def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None, bootstrap_iters=100000, description_dict=None,
-             decontaminate=False, ngrams_path=None, ngrams_n_size=None):
+             decontaminate=False, decontaminate_ngrams_path=None, decontaminate_ngrams_n_size=None):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param lm: obj
@@ -121,7 +121,7 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
         print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
 
     if decontaminate:
-        assert ngrams_path and ngrams_n_size
+        assert decontaminate_ngrams_path and decontaminate_ngrams_n_size
 
     task_dict_items = [
         (name, task)
@@ -193,7 +193,7 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
     # Compare all tasks/sets at once to ensure a single training set scan
     if decontaminate:
         print("Finding train/test overlap, please wait...")
-        overlaps = get_train_overlap(docs_for_decontamination, ngrams_path, ngrams_n_size, limit)
+        overlaps = get_train_overlap(docs_for_decontamination, decontaminate_ngrams_path, decontaminate_ngrams_n_size, limit)
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)
