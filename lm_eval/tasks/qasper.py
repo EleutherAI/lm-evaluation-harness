@@ -24,6 +24,7 @@ https://arxiv.org/abs/2105.03011
 """
 from collections import Counter
 from math import exp
+import random
 import re
 import string
 from lm_eval.base import rf
@@ -157,10 +158,10 @@ class QASPER(HFTask):
             ll_yes, ll_no, (logprob_unanswerable, _) = results
         res_dict = {}
 
-        # Handle unanswerability first
-        unanswerable_gold = doc["answer_type"] == "unanswerable"
-        unanswerable_pred = exp(logprob_unanswerable) > 1 - exp(logprob_unanswerable)
-        res_dict["f1_unanswerable"] = (unanswerable_gold, unanswerable_pred)
+        # TODO: Handle unanswerability first
+        # unanswerable_gold = doc["answer_type"] == "unanswerable"
+        # unanswerable_pred = exp(logprob_unanswerable)
+        # res_dict["f1_unanswerable"] = (unanswerable_gold, unanswerable_pred)
 
         # Handle yes/no questions
         if doc["answer_type"] == "bool":
@@ -179,7 +180,6 @@ class QASPER(HFTask):
 
     def aggregation(self):
         return {
-            "f1_unanswerable": f1_score,
             "f1_yesno": f1_score,
             "f1_abstractive": mean,
         }
@@ -212,7 +212,6 @@ class QASPER(HFTask):
             whether a higher value of the submetric is better
         """
         return {
-            "f1_unanswerable": True,
             "f1_yesno": True,
             "f1_abstractive": True,
         }
