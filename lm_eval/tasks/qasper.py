@@ -150,19 +150,19 @@ class QASPER(HFTask):
     def process_results(self, doc, results):
         # TODO: Calculate a score for extractive spans once a request type for generating
         # extractive spans is available
-        if len(results) == 1:
-            [(logprob_unanswerable, _)] = results
+        if not results:
+            return {}
+        elif len(results) == 1:
+            [res] = results
         elif len(results) == 2:
-            res, (logprob_unanswerable, _) = results
-        else:
-            ll_yes, ll_no, (logprob_unanswerable, _) = results
-        res_dict = {}
+            [ll_yes, ll_no] = results
 
         # TODO: Handle unanswerability first
         # unanswerable_gold = doc["answer_type"] == "unanswerable"
         # unanswerable_pred = exp(logprob_unanswerable)
         # res_dict["f1_unanswerable"] = (unanswerable_gold, unanswerable_pred)
 
+        res_dict = {}
         # Handle yes/no questions
         if doc["answer_type"] == "bool":
             gold = 1 if doc["answer"] == "yes" else 0
@@ -195,15 +195,15 @@ class QASPER(HFTask):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
-        if doc["answer_type"] in ("free form answer", "extractive_spans"):
-            return [rf.greedy_until(ctx, ["\n"]), unanswerable]
+        # unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
+        if doc["answer_type"] in ("free form answer"):
+            return [rf.greedy_until(ctx, ["\n"])]
         elif doc["answer_type"] in ("bool"):
             ll_yes, _ = rf.loglikelihood(ctx, " yes")
             ll_no, _ = rf.loglikelihood(ctx, " no")
-            return [ll_yes, ll_no, unanswerable]
+            return [ll_yes, ll_no]
         else:
-            return [unanswerable]
+            return []
 
     def higher_is_better(self):
         """
