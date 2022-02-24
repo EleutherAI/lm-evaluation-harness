@@ -1,5 +1,6 @@
 import collections
 import itertools
+import os
 import random
 import lm_eval.metrics
 import lm_eval.models
@@ -107,6 +108,9 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
         Dictionary of results
     """
     # TODO: completely refactor this entire function to not be a huge mess, ideally breaking it down into smaller pieces
+    print(f"{'='*20}")
+    print(f"Task Module: {lm_eval.base.MultipleChoiceTask.__name__}")
+    print(f"{'='*20}")
 
     # TODO: todo: implement proper description-providing system
     assert not provide_description  # not implemented.

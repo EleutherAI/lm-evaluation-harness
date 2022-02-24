@@ -1,6 +1,7 @@
 import csv
 import random
 from lm_eval.base import MultipleChoiceTask
+from lm_eval.mctask_experimental import MultipleChoiceDoc
 from ..utils import sh
 from pathlib import Path
 from best_download import download_file
@@ -63,26 +64,13 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         return True
 
     def _convert_standard(self, doc):
-        def format_example(doc, choices):
-            """
-                Question: <prompt>
-                Choices:
-                A. <choice1>
-                B. <choice2>
-                C. <choice3>
-                D. <choice4>
-                Answer:
-            """
-            prompt = "Question: " + doc[0] + "\nChoices:\n"
-            prompt += "".join([f"{choices[j]}. {doc[j+1]}\n" for j in range(4)])
-            prompt += "Answer:"
-            return prompt
-        choices = ['A', 'B', 'C', 'D']
-        return {
-            "query": format_example(doc, choices),
-            "choices": doc[1:5],
-            "gold": choices.index(doc[5])
-        }
+        keys = ['A', 'B', 'C', 'D']
+        return MultipleChoiceDoc(
+            question=doc[0],
+            keys=keys,
+            options=doc[1:5],
+            gold=keys.index(doc[5])
+        )
 
     def _load_docs(self, filename):
         reader = csv.reader(open(filename, 'r'), quotechar='"', delimiter=',')
@@ -113,6 +101,3 @@ class GeneralHendrycksTest(MultipleChoiceTask):
             self._fewshot_docs = list(self._load_docs(filename))
 
         return rnd.sample(list(self._fewshot_docs), k)
-
-    def doc_to_text(self, doc):
-        return doc["query"]

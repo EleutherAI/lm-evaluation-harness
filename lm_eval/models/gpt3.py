@@ -66,12 +66,13 @@ def oa_completion(**kwargs):
         except openai.error.OpenAIError:
             import traceback
             traceback.print_exc()
+            traceback.print_exc(file=os.path.join(os.environ["QUESTION_RESULT_PATH"], "traceback.txt"))
             time.sleep(backoff_time)
             backoff_time *= 1.5
 
 
 class GPT3LM(BaseLM):
-    REQ_CHUNK_SIZE = 20
+    REQ_CHUNK_SIZE = 40
 
     def __init__(self, engine, truncate=False, api_key=None, pass_strings=False):
         """
@@ -87,6 +88,7 @@ class GPT3LM(BaseLM):
 
         import openai
         self.engine = engine
+        print(self.max_length)
         self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
         self.pass_strings = pass_strings
 
@@ -156,14 +158,22 @@ class GPT3LM(BaseLM):
                     inp = self.tok_decode(inp)
                 inps.append(inp)
                 ctxlens.append(ctxlen)
-
-            response = oa_completion(
-                engine=self.engine,
-                prompt=inps,
-                echo=True,
-                max_tokens=1,
-                logprobs=10,
-            )
+            response = None
+            while True:
+                try:
+                    response = oa_completion(
+                        engine=self.engine,
+                        prompt=inps,
+                        echo=True,
+                        max_tokens=1,
+                        logprobs=10,
+                    )
+                    break
+                except Exception as e:
+                    print(e)
+                    print("pausing")
+                    time.sleep(1)
+                    continue
 
             for resp, ctxlen, (cache_key, context_enc, continuation_enc) in zip(response.choices, ctxlens, chunk):
                 answer = get_result(resp, ctxlen)
@@ -204,18 +214,29 @@ class GPT3LM(BaseLM):
         for chunk, until in tqdm(list(sameuntil_chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE))):
             inps = []
             for context, _ in chunk:
-                context_enc = self.tok_encode(context)
+                context_enc = self.tok_encode(context, max_length=self.max_length, truncation=False)
                 inp = context_enc[-(self.max_length - self.max_gen_toks):]
                 inps.append(self.tok_decode(inp))
 
-            response = oa_completion(
-                engine=self.engine,
-                prompt=inps,
-                max_tokens=self.max_gen_toks, 
-                temperature=0.,
-                # logprobs=10,
-                stop=until,
-            )
+            response = None
+            while True:
+                try:
+
+                    response = oa_completion(
+                        engine=self.engine,
+                        prompt=inps,
+                        max_tokens=self.max_gen_toks, 
+                        temperature=0.,
+                        # logprobs=10,
+                        stop=until,
+                    )
+
+                    break
+                except Exception as e:
+                    print(e)
+                    print("pausing")
+                    time.sleep(1)
+                    continue
 
             for resp, (context, until_) in zip(response.choices, chunk):
                 s = resp['text']
@@ -242,7 +263,6 @@ class GPT3LM(BaseLM):
 class GooseAILM(GPT3LM):
     def __init__(self, engine, truncate=False, api_key=None, force_pile_tokenizer=False):
         super().__init__(engine, truncate=truncate, api_key=api_key or os.environ["GOOSEAI_API_SECRET_KEY"], pass_strings=True)
-        self.REQ_CHUNK_SIZE = 1 
         import openai
         openai.api_base = "https://api.goose.ai/v1"
 
