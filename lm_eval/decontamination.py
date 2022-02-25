@@ -14,7 +14,7 @@ try:
     import janitor_util
     JANITOR_CPP = True
 except Exception as e:
-    print("WARNING: C++ module could not be loaded. Janitor running in python mode")
+    # print("WARNING: C++ module could not be loaded. Janitor running in python mode")
     JANITOR_CPP = False
 
 # Was used for testing the evaluator decoupled from the full logic below
@@ -41,8 +41,10 @@ def get_train_overlap_stub(docs, ngrams_path, ngrams_n_size):
 # We cache the task+set lookups as well as the overlaps.
 #
 # Currently calculating some per file ngram stats for interest, might remove before merging into main
-def get_train_overlap(docs_by_task_set, ngrams_path, ngrams_n_size, limit):
+def get_train_overlap(docs_by_task_set, ngrams_path, limit):
     # return get_train_overlap_stub(docs, ngrams_path, ngrams_n_size)
+
+    # TODO: infer ngrams_n_size from ngrams_path
 
     janitor = Janitor()
 

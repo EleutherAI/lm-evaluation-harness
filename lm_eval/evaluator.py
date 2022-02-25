@@ -13,8 +13,7 @@ from lm_eval.utils import positional_deprecated
 def simple_evaluate(model, model_args=None, tasks=[],
                     num_fewshot=0, batch_size=None, device=None,
                     no_cache=False, limit=None, bootstrap_iters=100000,
-                    description_dict=None, decontaminate=False, 
-                    decontaminate_ngrams_path=None, decontaminate_ngrams_n_size=None):
+                    description_dict=None, decontamination_ngrams_path=None):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param model: Union[str, LM]
@@ -68,9 +67,7 @@ def simple_evaluate(model, model_args=None, tasks=[],
         num_fewshot=num_fewshot,
         limit=limit,
         description_dict=description_dict,
-        decontaminate=decontaminate, 
-        decontaminate_ngrams_path=decontaminate_ngrams_path, 
-        decontaminate_ngrams_n_size=decontaminate_ngrams_n_size
+        decontamination_ngrams_path=decontamination_ngrams_path, 
     )
 
     # add info about the model and few shot config
@@ -92,7 +89,7 @@ decontaminate_suffix = "_decontaminate"
 
 @positional_deprecated
 def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None, bootstrap_iters=100000, description_dict=None,
-             decontaminate=False, decontaminate_ngrams_path=None, decontaminate_ngrams_n_size=None):
+             decontamination_ngrams_path=None):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param lm: obj
@@ -120,8 +117,7 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
         # nudge people to not specify it at all
         print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
 
-    if decontaminate:
-        assert decontaminate_ngrams_path and decontaminate_ngrams_n_size
+    decontaminate = decontamination_ngrams_path is not None
 
     task_dict_items = [
         (name, task)
@@ -193,7 +189,7 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
     # Compare all tasks/sets at once to ensure a single training set scan
     if decontaminate:
         print("Finding train/test overlap, please wait...")
-        overlaps = lm_eval.decontamination.get_train_overlap(docs_for_decontamination, decontaminate_ngrams_path, decontaminate_ngrams_n_size, limit)
+        overlaps = lm_eval.decontamination.get_train_overlap(docs_for_decontamination, decontamination_ngrams_path, limit)
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)
