@@ -1,19 +1,20 @@
 import collections
 import itertools
+import pathlib
 import random
 import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
 import numpy as np
-from lm_eval.utils import positional_deprecated
+from lm_eval.utils import positional_deprecated, run_task_tests
 
 
 @positional_deprecated
 def simple_evaluate(model, model_args=None, tasks=[],
                     num_fewshot=0, batch_size=None, device=None,
                     no_cache=False, limit=None, bootstrap_iters=100000,
-                    description_dict=None):
+                    description_dict=None, check_integrity=False):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param model: Union[str, LM]
@@ -37,6 +38,8 @@ def simple_evaluate(model, model_args=None, tasks=[],
         Number of iterations for bootstrap statistics
     :param description_dict: dict[str, str]
         Dictionary of custom task descriptions of the form: `task_name: description` 
+    :param check_integrity: bool
+        Whether to run the relevant part of the test suite for the tasks
     :return
         Dictionary of results
     """
@@ -60,6 +63,9 @@ def simple_evaluate(model, model_args=None, tasks=[],
         )
     
     task_dict = lm_eval.tasks.get_task_dict(tasks)
+
+    if check_integrity:
+        run_task_tests(task_list=tasks)
 
     results = evaluate(
         lm=lm,
