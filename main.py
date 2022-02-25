@@ -20,6 +20,7 @@ def parse_args():
     parser.add_argument('--limit', type=int, default=None)
     parser.add_argument('--no_cache', action="store_true")
     parser.add_argument('--description_dict_path', default=None)
+    parser.add_argument('--check_integrity', action="store_true")
     return parser.parse_args()
 
 
@@ -49,7 +50,8 @@ def main():
         device=args.device,
         no_cache=args.no_cache,
         limit=args.limit,
-        description_dict=description_dict
+        description_dict=description_dict,
+        check_integrity=args.check_integrity
     )
 
     dumped = json.dumps(results, indent=2)
