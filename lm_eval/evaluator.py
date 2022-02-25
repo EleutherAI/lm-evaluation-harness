@@ -65,7 +65,7 @@ def simple_evaluate(model, model_args=None, tasks=[],
     task_dict = lm_eval.tasks.get_task_dict(tasks)
 
     if check_integrity:
-        run_task_tests(start_path=pathlib.Path(__file__), task_list=tasks)
+        run_task_tests(task_list=tasks)
 
     results = evaluate(
         lm=lm,

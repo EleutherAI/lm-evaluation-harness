@@ -177,11 +177,11 @@ def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
         f"of {start_path}")
 
 @positional_deprecated
-def run_task_tests(start_path: pathlib.Path, task_list: List[str]):
+def run_task_tests(task_list: List[str]):
     """
     Find the package root and run the tests for the given tasks
     """
-    package_root = find_test_root(start_path=start_path)
+    package_root = find_test_root(start_path=pathlib.Path(__file__))
     task_string = ' or '.join(task_list)
     args = [f'{package_root}/tests/test_version_stable.py', f'--rootdir={package_root}', '-k', f'{task_string}']
     sys.path.append(str(package_root))
