@@ -51,6 +51,16 @@ python main.py \
 	--tasks lambada,hellaswag
 ```
 
+And if you want to verify the data integrity of the tasks you're performing in addition to running the tasks themselves:
+
+```bash
+export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
+python main.py \
+	--model gpt3 \
+	--model_args engine=davinci \
+	--tasks lambada,hellaswag \
+	--check_integrity
+```
 To evaluate mesh-transformer-jax models that are not available on HF, please invoke eval harness through [this script](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
 
 ## Implementing new tasks
