@@ -51,10 +51,9 @@ python main.py \
 	--tasks lambada,hellaswag
 ```
 
-And if you want to verify the data integrity of the tasks you're performing in addition to running the tasks themselves:
+And if you want to verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
 
 ```bash
-export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
 python main.py \
 	--model gpt3 \
 	--model_args engine=davinci \
