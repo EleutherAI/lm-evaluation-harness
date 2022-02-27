@@ -35,25 +35,12 @@ def parse_args():
     parser.add_argument('--output_path', default=None)
     parser.add_argument('--limit', type=int, default=None)
     parser.add_argument('--no_cache', action="store_true")
-    parser.add_argument('--decontaminate', action="store_true")
     parser.add_argument('--decontaminate_ngrams_path', default=None)
-    parser.add_argument('--decontaminate_ngrams_n_size', type=int, default=None)
     parser.add_argument('--description_dict_path', default=None)
     parser.add_argument('--check_integrity', action="store_true")
 
     return parser.parse_args()
 
-def ensure_correct_decontamination_params(args):
-    valid = True
-    if args.decontaminate:
-        if not args.decontaminate_ngrams_n_size:
-            print("Please specify n size of training set n-grams. (--ngrams_n_size)")
-            valid = False
-        if not args.decontaminate_ngrams_path:
-            print("Please specify path containing training set n-grams. (--ngrams_path)")
-            valid = False
-
-    return valid
 
 # Returns a list containing all values of the source_list that
 # match at least one of the patterns
@@ -66,8 +53,6 @@ def pattern_match(patterns, source_list):
 
 def main():
     args = parse_args()
-    if not ensure_correct_decontamination_params(args):
-        return
         
     assert not args.provide_description  # not implemented
     
@@ -96,9 +81,7 @@ def main():
         no_cache=args.no_cache,
         limit=args.limit,
         description_dict=description_dict,
-        decontaminate=args.decontaminate,
         decontaminate_ngrams_path=args.decontaminate_ngrams_path,
-        decontaminate_ngrams_n_size=args.decontaminate_ngrams_n_size
         check_integrity=args.check_integrity
     )
 
