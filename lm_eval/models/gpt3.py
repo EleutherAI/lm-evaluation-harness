@@ -46,6 +46,8 @@ def oa_completion(**kwargs):
         try:
             return openai.Completion.create(**kwargs)
         except openai.error.OpenAIError:
+            import traceback
+            traceback.print_exc()
             time.sleep(backoff_time)
             backoff_time *= 1.5
 

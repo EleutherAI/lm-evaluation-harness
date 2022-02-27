@@ -18,7 +18,7 @@ class Math(Task):
     def download(self):
         if not (self.DATASET_PATH / 'test').exists() or not (self.DATASET_PATH / 'done').exists():
             sh(f"mkdir -p {self.DATASET_PATH}")
-            download_file("https://people.eecs.berkeley.edu/~hendrycks/MATH.tar", local_file=f"{self.DATASET_PATH}.tar", expected_checksum="01256fd7cd5430596fdf07e6e6a5827111b5235b7ffed679c662a12f898932da")
+            download_file("https://people.eecs.berkeley.edu/~hendrycks/MATH.tar", local_file=f"{self.DATASET_PATH}.tar", expected_checksum="0fbe4fad0df66942db6c221cdcc95b298cc7f4595a2f0f518360cce84e90d9ac")
             sh(f"""
             tar -xf {self.DATASET_PATH}.tar -C data/ && touch {self.DATASET_PATH / 'done'}
             rm {self.DATASET_PATH}.tar
@@ -291,42 +291,42 @@ class Math(Task):
 
 
 class MathAlgebra(Math):
-    VERSION = 0
+    VERSION = 1
     def get_file_info(self):
         return 'algebra'
 
 
 class MathCountingAndProbability(Math):
-    VERSION = 0
+    VERSION = 1
     def get_file_info(self):
         return 'counting_and_probability'
 
 
 class MathGeometry(Math):
-    VERSION = 0
+    VERSION = 1
     def get_file_info(self):
         return 'geometry'
 
 
 class MathIntermediateAlgebra(Math):
-    VERSION = 0
+    VERSION = 1
     def get_file_info(self):
         return 'intermediate_algebra'
 
 
 class MathNumberTheory(Math):
-    VERSION = 0
+    VERSION = 1
     def get_file_info(self):
         return 'number_theory'
 
 
 class MathPrealgebra(Math):
-    VERSION = 0
+    VERSION = 1
     def get_file_info(self):
         return 'prealgebra'
 
 
 class MathPrecalculus(Math):
-    VERSION = 0
+    VERSION = 1
     def get_file_info(self):
         return 'precalculus'

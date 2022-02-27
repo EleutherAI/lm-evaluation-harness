@@ -29,6 +29,7 @@ from . import triviaqa
 from . import pubmedqa
 from . import sciq
 from . import webqs
+from . import qasper
 from . import qa4mre
 from . import translation
 from . import headqa
@@ -48,6 +49,7 @@ from . import mutual
 from . import truthfulqa
 from . import blimp
 from . import asdiv
+from . import gsm8k
 
 ########################################
 # Translation tasks
@@ -121,6 +123,8 @@ TASK_REGISTRY = {
     "pubmedqa" : pubmedqa.Pubmed_QA,
     "sciq" : sciq.SciQ,
 
+    "qasper": qasper.QASPER,
+
     "qa4mre_2011" : qa4mre.QA4MRE_2011,
     "qa4mre_2012" : qa4mre.QA4MRE_2012,
     "qa4mre_2013" : qa4mre.QA4MRE_2013,
@@ -170,6 +174,7 @@ TASK_REGISTRY = {
     "math_prealgebra": hendrycks_math.MathPrealgebra,
     "math_precalc": hendrycks_math.MathPrecalculus,
     "math_asdiv": asdiv.Asdiv,
+    "gsm8k": gsm8k.GradeSchoolMath8K,
 
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,

@@ -38,7 +38,8 @@ def parse_args():
     parser.add_argument('--decontaminate', action="store_true")
     parser.add_argument('--decontaminate_ngrams_path', default=None)
     parser.add_argument('--decontaminate_ngrams_n_size', type=int, default=None)
-    parser.add_argument('--description_dict_path', default=None)    
+    parser.add_argument('--description_dict_path', default=None)
+    parser.add_argument('--check_integrity', action="store_true")
 
     return parser.parse_args()
 
@@ -98,6 +99,7 @@ def main():
         decontaminate=args.decontaminate,
         decontaminate_ngrams_path=args.decontaminate_ngrams_path,
         decontaminate_ngrams_n_size=args.decontaminate_ngrams_n_size
+        check_integrity=args.check_integrity
     )
 
     dumped = json.dumps(results, indent=2)    
