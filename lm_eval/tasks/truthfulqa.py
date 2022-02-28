@@ -2,6 +2,13 @@
 TruthfulQA: Measuring How Models Mimic Human Falsehoods
 https://arxiv.org/pdf/2109.07958.pdf
 
+TruthfulQA is a benchmark to measure whether a language model is truthful in
+generating answers to questions. The benchmark comprises 817 questions that
+span 38 categories, including health, law, finance and politics. Questions are
+crafted so that some humans would answer falsely due to a false belief or
+misconception. To perform well, models must avoid generating false answers
+learned from imitating human texts.
+
 TODO: Add support for the automatic metrics, 'GPT-judge' and 'GPT-info', which
 predict human evaluation of truth and informativeness (respectively) through
 a fine-tuned GPT-3 model. NOTE: This requires access keys to the corresponding
@@ -9,6 +16,8 @@ OpenAI Completion engines (which the authors obviously do not expose). They do
 provide the data used to fine-tune GPT-3 into `GPT-judge` and `GPT-info`, see
 https://github.com/sylinrl/TruthfulQA#Fine-tuning-GPT-3-for-evaluation. Maybe
 we could try this?
+
+Homepage: https://github.com/sylinrl/TruthfulQA
 
 @misc{lin2021truthfulqa,
       title={TruthfulQA: Measuring How Models Mimic Human Falsehoods},

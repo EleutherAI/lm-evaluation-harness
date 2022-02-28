@@ -1,3 +1,27 @@
+"""
+Aligning AI With Shared Human Values
+https://arxiv.org/pdf/2008.02275.pdf
+
+The ETHICS dataset is a benchmark that spans concepts in justice, well-being,
+duties, virtues, and commonsense morality. Models predict widespread moral
+judgments about diverse text scenarios. This requires connecting physical and
+social world knowledge to value judgements, a capability that may enable us
+to steer chatbot outputs or eventually regularize open-ended reinforcement
+learning agents.
+
+NOTE: The reported "group" accuracies for the Deontology, Justice, and Virtue
+tasks are refered to in this work as the `em` sub-metric. See Section 3. Metrics.
+of the paper.
+
+Homepage: https://github.com/hendrycks/ethics
+
+@article{hendrycks2021ethics,
+  title={Aligning AI With Shared Human Values},
+  author={Dan Hendrycks and Collin Burns and Steven Basart and Andrew Critch and Jerry Li and Dawn Song and Jacob Steinhardt},
+  journal={Proceedings of the International Conference on Learning Representations (ICLR)},
+  year={2021}
+}
+""" 
 import abc
 import csv
 import os
@@ -8,12 +32,6 @@ from lm_eval.metrics import mean
 from lm_eval.utils import sh
 from .common import yesno
 from best_download import download_file
-
-"""
-NOTE: The reported "group" accuracies for the Deontology, Justice, and Virtue
-tasks are refered to in this work as the `em` sub-metric. See Section 3. Metrics.
-of the paper.
-"""
 
 
 class Ethics(Task):

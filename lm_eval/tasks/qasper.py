@@ -2,6 +2,14 @@
 A Dataset of Information-Seeking Questions and Answers Anchored in Research Papers
 https://arxiv.org/abs/2105.03011
 
+QASPER is a dataset of 5,049 questions over 1,585 Natural Language Processing papers.
+Each question is written by an NLP practitioner who read only the title and abstract
+of the corresponding paper, and the question seeks information present in the full
+text. The questions are then answered by a separate set of NLP practitioners who also
+provide supporting evidence to answers.
+
+Homepage: https://allenai.org/data/qasper
+
 @article{DBLP:journals/corr/abs-2105-03011,
   author    = {Pradeep Dasigi and
                Kyle Lo and

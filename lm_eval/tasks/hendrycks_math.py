@@ -1,3 +1,20 @@
+"""
+Measuring Mathematical Problem Solving With the MATH Dataset
+https://arxiv.org/pdf/2103.03874.pdf
+
+Math is a dataset of 12,500 challenging competition mathematics problems. Each
+problem in Math has a full step-by-step solution which can be used to teach
+models to generate answer derivations and explanations.
+
+Homepage: https://github.com/hendrycks/math
+
+@article{hendrycksmath2021,
+  title={Measuring Mathematical Problem Solving With the Math Dataset},
+  author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
+  journal={NeurIPS},
+  year={2021}
+}
+"""
 import abc
 import json
 from lm_eval.utils import sh
@@ -8,11 +25,6 @@ from best_download import download_file
 
 
 class Math(Task):
-    """
-    This dataset is based on the following paper:
-    https://arxiv.org/abs/2103.03874 
-    """
-
     DATASET_PATH = Path('data/MATH')
 
     def download(self):

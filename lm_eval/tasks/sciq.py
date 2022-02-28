@@ -1,3 +1,21 @@
+"""
+Crowdsourcing Multiple Choice Science Questions
+https://aclanthology.org/W17-4413.pdf
+
+The SciQ dataset contains 13,679 crowdsourced science exam questions about Physics,
+Chemistry and Biology, among others. The questions are in multiple-choice format
+with 4 answer options each. For the majority of the questions, an additional paragraph
+with supporting evidence for the correct answer is provided.
+
+Homepage: https://allenai.org/data/sciq
+
+@inproceedings{Welbl2017CrowdsourcingMC,
+  title={Crowdsourcing Multiple Choice Science Questions},
+  author={Johannes Welbl and Nelson F. Liu and Matt Gardner},
+  booktitle={NUT@EMNLP},
+  year={2017}
+}
+"""
 import os
 import json
 import zipfile
