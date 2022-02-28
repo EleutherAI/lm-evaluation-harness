@@ -1,3 +1,27 @@
+"""
+The LAMBADA dataset: Word prediction requiring a broad discourse context∗
+https://arxiv.org/pdf/1606.06031.pdf
+
+The LAMBADA dataset machine-translated to other languages.
+LAMBADA is a dataset to evaluate the capabilities of computational models for text
+understanding by means of a word prediction task. LAMBADA is a collection of narrative
+passages sharing the characteristic that human subjects are able to guess their last
+word if they are exposed to the whole passage, but not if they only see the last
+sentence preceding the target word. To succeed on LAMBADA, computational models
+cannot simply rely on local context, but must be able to keep track of information
+in the broader discourse.
+
+Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
+
+@misc{
+  author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel}, 
+  title={The LAMBADA dataset},
+  DOI={10.5281/zenodo.2630551},
+  publisher={Zenodo},
+  year={2016},
+  month={Aug}
+}
+"""
 from . import lambada
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, perplexity
@@ -7,7 +31,6 @@ import json
 from functools import partial
 import os 
 
-# This task is lambada but machine-translated to the other languages.
 
 LANGS = ["en", "fr", "de", "it", "es"]
 CHECKSUMS = {"en": "4aa8d02cd17c719165fc8a7887fddd641f43fcafa4b1c806ca8abc31fabdb226", 

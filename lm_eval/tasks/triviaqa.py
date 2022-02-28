@@ -1,3 +1,24 @@
+"""
+TriviaQA: A Large Scale Distantly Supervised Challenge Dataset for Reading Comprehension
+https://arxiv.org/pdf/1705.03551.pdf
+
+TriviaQA is a reading comprehension dataset containing over 650K question-answer-evidence
+triples. TriviaQA includes 95K question-answer pairs authored by trivia enthusiasts
+and independently gathered evidence documents, six per question on average, that provide
+high quality distant supervision for answering the questions.
+
+Homepage: https://nlp.cs.washington.edu/triviaqa/
+
+@InProceedings{JoshiTriviaQA2017,
+     author = {Joshi, Mandar and Choi, Eunsol and Weld, Daniel S. and Zettlemoyer, Luke},
+     title = {TriviaQA: A Large Scale Distantly Supervised Challenge Dataset for Reading Comprehension},
+     booktitle = {Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics},
+     month = {July},
+     year = {2017},
+     address = {Vancouver, Canada},
+     publisher = {Association for Computational Linguistics},
+}
+"""
 import os
 import json
 import jsonlines

@@ -1,3 +1,26 @@
+"""
+DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs
+https://aclanthology.org/attachments/N19-1246.Supplementary.pdf
+
+DROP is a QA dataset which tests comprehensive understanding of paragraphs. In 
+this crowdsourced, adversarially-created, 96k question-answering benchmark, a 
+system must resolve multiple references in a question, map them onto a paragraph,
+and perform discrete operations over them (such as addition, counting, or sorting).
+
+Homepage: https://allenai.org/data/drop
+
+Acknowledgement: This implementation is based on the official evaluation for `DROP`:
+https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_rc/eval/drop_eval.py
+
+@misc{dua2019drop,
+      title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs}, 
+      author={Dheeru Dua and Yizhong Wang and Pradeep Dasigi and Gabriel Stanovsky and Sameer Singh and Matt Gardner},
+      year={2019},
+      eprint={1903.00161},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+"""
 import json
 import numpy as np
 import re
@@ -9,12 +32,8 @@ from lm_eval.metrics import mean
 from pathlib import Path
 from zipfile import ZipFile
 
-"""
-Acknowledgement: This implementation is based on the official evaluation for `DROP`:
-https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_rc/eval/drop_eval.py
-"""
-
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
+
 
 class DROP(Task):
     VERSION = 1

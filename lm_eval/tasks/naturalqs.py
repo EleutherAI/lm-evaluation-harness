@@ -1,3 +1,27 @@
+"""
+Natural Questions: a Benchmark for Question Answering Research
+https://storage.googleapis.com/pub-tools-public-publication-data/pdf/1f7b46b5378d757553d3e92ead36bda2e4254244.pdf
+
+The Natural Questions (NQ) corpus is a question-answering dataset that contains
+questions from real users and requires QA systems to read and comprehend an entire
+Wikipedia article that may or may not contain the answer to the question. The
+inclusion of real user questions, and the requirement that solutions should read
+an entire page to find the answer, cause NQ to be a more realistic and challenging
+task than prior QA datasets.
+
+TODO: NaturalQS has a *really* large train set that huggingface just automatically
+downloads even if you dont use it. we should try and only download the val set and
+not even bother with the train set. 
+
+Homepage: https://ai.google.com/research/NaturalQuestions
+
+@article{47761,
+title	= {Natural Questions: a Benchmark for Question Answering Research},
+author	= {Tom Kwiatkowski and Jennimaria Palomaki and Olivia Redfield and Michael Collins and Ankur Parikh and Chris Alberti and Danielle Epstein and Illia Polosukhin and Matthew Kelcey and Jacob Devlin and Kenton Lee and Kristina N. Toutanova and Llion Jones and Ming-Wei Chang and Andrew Dai and Jakob Uszkoreit and Quoc Le and Slav Petrov},
+year	= {2019},
+journal	= {Transactions of the Association of Computational Linguistics}
+}
+"""
 import random
 from . common import HFTask
 from itertools import islice
@@ -5,10 +29,6 @@ from itertools import islice
 
 class NaturalQs(HFTask):
     VERSION = 0
-    # TODO: naturalqs has a *really* large train set that huggingface just
-    # automatically downloads even if you dont use it. we should try and only 
-    # download the val set and not even bother with the train set. 
-
     DATASET_PATH = "natural_questions"
     DATASET_NAME = None
 

@@ -1,7 +1,25 @@
 """
-To-do:
-    - WSC requires free-form generation
-    - ReCoRD
+SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems
+https://w4ngatang.github.io/static/papers/superglue.pdf
+
+SuperGLUE is a benchmark styled after GLUE with a new set of more difficult language
+understanding tasks.
+
+Homepage: https://super.gluebenchmark.com/
+
+TODO: WSC requires free-form generation.
+
+@inproceedings{NEURIPS2019_4496bf24,
+ author = {Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel},
+ booktitle = {Advances in Neural Information Processing Systems},
+ editor = {H. Wallach and H. Larochelle and A. Beygelzimer and F. d\textquotesingle Alch\'{e}-Buc and E. Fox and R. Garnett},
+ pages = {},
+ publisher = {Curran Associates, Inc.},
+ title = {SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},
+ url = {https://proceedings.neurips.cc/paper/2019/file/4496bf24afe7fab6f046bf4923da8de6-Paper.pdf},
+ volume = {32},
+ year = {2019}
+}
 """
 import numpy as np
 import sklearn

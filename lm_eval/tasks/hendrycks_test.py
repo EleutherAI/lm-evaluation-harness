@@ -1,3 +1,24 @@
+"""
+Measuring Massive Multitask Language Understanding
+https://arxiv.org/pdf/2009.03300.pdf
+
+The Hendryck's Test is a benchmark that measured a text model’s multitask accuracy.
+The test covers 57 tasks including elementary mathematics, US history, computer 
+science, law, and more. To attain high accuracy on this test, models must possess
+extensive world knowledge and problem solving ability. By comprehensively evaluating
+the breadth and depth of a model’s academic and professional understanding, 
+Hendryck's Test can be used to analyze models across many tasks and to identify 
+important shortcomings.
+
+Homepage: https://github.com/hendrycks/test
+
+@article{hendryckstest2021,
+  title={Measuring Massive Multitask Language Understanding},
+  author={Dan Hendrycks and Collin Burns and Steven Basart and Andy Zou and Mantas Mazeika and Dawn Song and Jacob Steinhardt},
+  journal={Proceedings of the International Conference on Learning Representations (ICLR)},
+  year={2021}
+}
+"""
 import csv
 import random
 from lm_eval.base import MultipleChoiceTask
