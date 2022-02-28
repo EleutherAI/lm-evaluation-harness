@@ -33,8 +33,6 @@ Then open the file and create a multiline docstring on the first line with the f
 <Short description of task>
 
 Homepage: <URL to task's homepage>
-
-<Citation>
 """
 ```
 
@@ -52,15 +50,11 @@ questions to learn as much as possible about a hidden Wikipedia text, and (2)
 a teacher who answers the questions by providing short excerpts (spans) from the text.
 
 Homepage: https://quac.ai/
-
-@article{choi2018quac,
-  title={Quac: Question answering in context},
-  author={Choi, Eunsol and He, He and Iyyer, Mohit and Yatskar, Mark and Yih, Wen-tau and Choi, Yejin and Liang, Percy and Zettlemoyer, Luke},
-  journal={arXiv preprint arXiv:1808.07036},
-  year={2018}
-}
 """
 ```
+
+Next, at the module-level, create a constant variable named
+`_CITATION` that contains the citation information for your task in BibTeX format.
 
 Now let's walk through the actual implementation - from data handling to evaluation.
 
