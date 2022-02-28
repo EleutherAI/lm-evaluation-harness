@@ -8,19 +8,22 @@ with 4 answer options each. For the majority of the questions, an additional par
 with supporting evidence for the correct answer is provided.
 
 Homepage: https://allenai.org/data/sciq
-
-@inproceedings{Welbl2017CrowdsourcingMC,
-  title={Crowdsourcing Multiple Choice Science Questions},
-  author={Johannes Welbl and Nelson F. Liu and Matt Gardner},
-  booktitle={NUT@EMNLP},
-  year={2017}
-}
 """
 import os
 import json
 import zipfile
 from lm_eval.base import MultipleChoiceTask
 from best_download import download_file
+
+
+_CITATION = """
+@inproceedings{Welbl2017CrowdsourcingMC,
+    title={Crowdsourcing Multiple Choice Science Questions},
+    author={Johannes Welbl and Nelson F. Liu and Matt Gardner},
+    booktitle={NUT@EMNLP},
+    year={2017}
+}
+"""
 
 
 class SciQ(MultipleChoiceTask):

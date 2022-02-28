@@ -12,7 +12,15 @@ as described by Trinh & Le in Simple Method for Commonsense Reasoning (2018).
 See: https://arxiv.org/abs/1806.0
 
 Homepage: https://cs.nyu.edu/~davise/papers/WinogradSchemas/WS.html
+"""
+import numpy as np
+import random
+from lm_eval.base import rf
+from ..metrics import mean
+from . common import HFTask
 
+
+_CITATION = """
 @inproceedings{ea01b9c0db064caca6986b925d75f2bb,
     title = "The winograd schema challenge",
     abstract = "In this paper, we present an alternative to the Turing Test that has some conceptual and practical advantages. A Wino-grad schema is a pair of sentences that differ only in one or two words and that contain a referential ambiguity that is resolved in opposite directions in the two sentences. We have compiled a collection of Winograd schemas, designed so that the correct answer is obvious to the human reader, but cannot easily be found using selectional restrictions or statistical techniques over text corpora. A contestant in the Winograd Schema Challenge is presented with a collection of one sentence from each pair, and required to achieve human-level accuracy in choosing the correct disambiguation.",
@@ -27,11 +35,6 @@ Homepage: https://cs.nyu.edu/~davise/papers/WinogradSchemas/WS.html
     note = "13th International Conference on the Principles of Knowledge Representation and Reasoning, KR 2012 ; Conference date: 10-06-2012 Through 14-06-2012",
 }
 """
-import numpy as np
-import random
-from lm_eval.base import rf
-from ..metrics import mean
-from . common import HFTask
 
 
 class WinogradSchemaChallenge273(HFTask):

@@ -8,7 +8,17 @@ understand a text passage and answer a series of interconnected questions that
 appear in a conversation.
 
 Homepage: https://stanfordnlp.github.io/coqa/
+"""
+import os
+import json
+import transformers.data.metrics.squad_metrics as squad_metrics
+from lm_eval.base import Task, rf, mean
+from ..utils import sh
+from itertools import zip_longest
+from best_download import download_file
 
+
+_CITATION = """
 @misc{reddy2018coqa,
     title={CoQA: A Conversational Question Answering Challenge},
     author={Siva Reddy and Danqi Chen and Christopher D. Manning},
@@ -18,13 +28,6 @@ Homepage: https://stanfordnlp.github.io/coqa/
     primaryClass={cs.CL}
 }
 """
-import os
-import json
-import transformers.data.metrics.squad_metrics as squad_metrics
-from lm_eval.base import Task, rf, mean
-from ..utils import sh
-from itertools import zip_longest
-from best_download import download_file
 
 
 class CoQA(Task):

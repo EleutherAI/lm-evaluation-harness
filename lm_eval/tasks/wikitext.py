@@ -8,22 +8,24 @@ extracted from the set of verified Good and Featured articles on Wikipedia.
 NOTE: This `Task` is based on WikiText-2.
 
 Homepage: https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/
-
-@misc{merity2016pointer,
-      title={Pointer Sentinel Mixture Models}, 
-      author={Stephen Merity and Caiming Xiong and James Bradbury and Richard Socher},
-      year={2016},
-      eprint={1609.07843},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
-}
 """
 import os
 import re
 from lm_eval.base import rf, PerplexityTask
 from lm_eval.utils import sh
-
 from best_download import download_file
+
+
+_CITATION = """
+@misc{merity2016pointer,
+    title={Pointer Sentinel Mixture Models}, 
+    author={Stephen Merity and Caiming Xiong and James Bradbury and Richard Socher},
+    year={2016},
+    eprint={1609.07843},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
 
 
 def wikitext_detokenizer(string):

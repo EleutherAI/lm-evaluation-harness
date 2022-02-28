@@ -9,13 +9,6 @@ including books, github repositories, webpages, chat logs, and medical, physics,
 math, computer science, and philosophy papers.
 
 Homepage: https://pile.eleuther.ai/
-
-@article{pile,
-  title={The {P}ile: An 800GB Dataset of Diverse Text for Language Modeling},
-  author={Gao, Leo and Biderman, Stella and Black, Sid and Golding, Laurence and Hoppe, Travis and Foster, Charles and Phang, Jason and He, Horace and Thite, Anish and Nabeshima, Noa and Presser, Shawn and Leahy, Connor},
-  journal={arXiv preprint arXiv:2101.00027},
-  year={2020}
-}
 """
 import os
 
@@ -26,6 +19,16 @@ from lm_eval.base import rf, PerplexityTask
 from ..metrics import mean, matthews_corrcoef, f1_score
 from ..utils import general_detokenize
 from best_download import download_file
+
+
+_CITATION = """
+@article{pile,
+  title={The {P}ile: An 800GB Dataset of Diverse Text for Language Modeling},
+  author={Gao, Leo and Biderman, Stella and Black, Sid and Golding, Laurence and Hoppe, Travis and Foster, Charles and Phang, Jason and He, Horace and Thite, Anish and Nabeshima, Noa and Presser, Shawn and Leahy, Connor},
+  journal={arXiv preprint arXiv:2101.00027},
+  year={2020}
+}
+"""
 
 
 class PilePerplexityTask(PerplexityTask, abc.ABC):

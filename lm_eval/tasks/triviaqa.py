@@ -8,16 +8,6 @@ and independently gathered evidence documents, six per question on average, that
 high quality distant supervision for answering the questions.
 
 Homepage: https://nlp.cs.washington.edu/triviaqa/
-
-@InProceedings{JoshiTriviaQA2017,
-     author = {Joshi, Mandar and Choi, Eunsol and Weld, Daniel S. and Zettlemoyer, Luke},
-     title = {TriviaQA: A Large Scale Distantly Supervised Challenge Dataset for Reading Comprehension},
-     booktitle = {Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics},
-     month = {July},
-     year = {2017},
-     address = {Vancouver, Canada},
-     publisher = {Association for Computational Linguistics},
-}
 """
 import os
 import json
@@ -26,6 +16,19 @@ from lm_eval.base import Task, rf
 from ..metrics import mean
 from ..utils import sh
 from best_download import download_file
+
+
+_CITATION = """
+@InProceedings{JoshiTriviaQA2017,
+    author = {Joshi, Mandar and Choi, Eunsol and Weld, Daniel S. and Zettlemoyer, Luke},
+    title = {TriviaQA: A Large Scale Distantly Supervised Challenge Dataset for Reading Comprehension},
+    booktitle = {Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics},
+    month = {July},
+    year = {2017},
+    address = {Vancouver, Canada},
+    publisher = {Association for Computational Linguistics},
+}
+"""
 
 
 class TriviaQA(Task):

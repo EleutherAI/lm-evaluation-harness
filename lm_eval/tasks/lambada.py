@@ -11,15 +11,6 @@ cannot simply rely on local context, but must be able to keep track of informati
 in the broader discourse.
 
 Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
-
-@misc{
-  author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel}, 
-  title={The LAMBADA dataset},
-  DOI={10.5281/zenodo.2630551},
-  publisher={Zenodo},
-  year={2016},
-  month={Aug}
-}
 """
 import json
 from lm_eval.base import Task, rf
@@ -27,6 +18,18 @@ from lm_eval.metrics import mean, perplexity
 from lm_eval.utils import sh
 from best_download import download_file
 import os
+
+
+_CITATION = """
+@misc{
+    author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel}, 
+    title={The LAMBADA dataset},
+    DOI={10.5281/zenodo.2630551},
+    publisher={Zenodo},
+    year={2016},
+    month={Aug}
+}
+"""
 
 
 class LAMBADA(Task):

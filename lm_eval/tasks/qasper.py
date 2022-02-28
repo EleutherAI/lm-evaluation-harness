@@ -9,26 +9,6 @@ text. The questions are then answered by a separate set of NLP practitioners who
 provide supporting evidence to answers.
 
 Homepage: https://allenai.org/data/qasper
-
-@article{DBLP:journals/corr/abs-2105-03011,
-  author    = {Pradeep Dasigi and
-               Kyle Lo and
-               Iz Beltagy and
-               Arman Cohan and
-               Noah A. Smith and
-               Matt Gardner},
-  title     = {A Dataset of Information-Seeking Questions and Answers Anchored in
-               Research Papers},
-  journal   = {CoRR},
-  volume    = {abs/2105.03011},
-  year      = {2021},
-  url       = {https://arxiv.org/abs/2105.03011},
-  eprinttype = {arXiv},
-  eprint    = {2105.03011},
-  timestamp = {Fri, 14 May 2021 12:13:30 +0200},
-  biburl    = {https://dblp.org/rec/journals/corr/abs-2105-03011.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
-}
 """
 from collections import Counter
 from math import exp
@@ -38,6 +18,29 @@ import string
 from lm_eval.base import rf
 from lm_eval.metrics import f1_score, mean
 from .common import HFTask
+
+
+_CITATION = """
+@article{DBLP:journals/corr/abs-2105-03011,
+    author    = {Pradeep Dasigi and
+               Kyle Lo and
+               Iz Beltagy and
+               Arman Cohan and
+               Noah A. Smith and
+               Matt Gardner},
+    title     = {A Dataset of Information-Seeking Questions and Answers Anchored in
+               Research Papers},
+    journal   = {CoRR},
+    volume    = {abs/2105.03011},
+    year      = {2021},
+    url       = {https://arxiv.org/abs/2105.03011},
+    eprinttype = {arXiv},
+    eprint    = {2105.03011},
+    timestamp = {Fri, 14 May 2021 12:13:30 +0200},
+    biburl    = {https://dblp.org/rec/journals/corr/abs-2105-03011.bib},
+    bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+"""
 
 
 def normalize_answer(s):

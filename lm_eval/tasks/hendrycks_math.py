@@ -7,13 +7,6 @@ problem in Math has a full step-by-step solution which can be used to teach
 models to generate answer derivations and explanations.
 
 Homepage: https://github.com/hendrycks/math
-
-@article{hendrycksmath2021,
-  title={Measuring Mathematical Problem Solving With the Math Dataset},
-  author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
-  journal={NeurIPS},
-  year={2021}
-}
 """
 import abc
 import json
@@ -22,6 +15,16 @@ from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
 from pathlib import Path
 from best_download import download_file
+
+
+_CITATION = """
+@article{hendrycksmath2021,
+  title={Measuring Mathematical Problem Solving With the Math Dataset},
+  author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
+  journal={NeurIPS},
+  year={2021}
+}
+"""
 
 
 class Math(Task):

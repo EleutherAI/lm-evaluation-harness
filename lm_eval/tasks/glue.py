@@ -12,7 +12,16 @@ sizes, text genres, and degrees of difficulty, and
 respect to a wide range of linguistic phenomena found in natural language.
 
 Homepage: https://gluebenchmark.com/
+"""
+import numpy as np
+from lm_eval.base import rf
+from ..metrics import mean, matthews_corrcoef, f1_score
+from . common import HFTask, yesno
+from ..utils import general_detokenize
 
+
+# TODO(jon-tow): Add citations for the individual datasets/tasks that make up GLUE.
+_CITATION = """
 @inproceedings{wang-etal-2018-glue,
     title = "{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding",
     author = "Wang, Alex  and
@@ -32,11 +41,7 @@ Homepage: https://gluebenchmark.com/
     abstract = "Human ability to understand language is \textit{general, flexible, and robust}. In contrast, most NLU models above the word level are designed for a specific task and struggle with out-of-domain data. If we aspire to develop models with understanding beyond the detection of superficial correspondences between inputs and outputs, then it is critical to develop a unified model that can execute a range of linguistic tasks across different domains. To facilitate research in this direction, we present the General Language Understanding Evaluation (GLUE, gluebenchmark.com): a benchmark of nine diverse NLU tasks, an auxiliary dataset for probing models for understanding of specific linguistic phenomena, and an online platform for evaluating and comparing models. For some benchmark tasks, training data is plentiful, but for others it is limited or does not match the genre of the test set. GLUE thus favors models that can represent linguistic knowledge in a way that facilitates sample-efficient learning and effective knowledge-transfer across tasks. While none of the datasets in GLUE were created from scratch for the benchmark, four of them feature privately-held test data, which is used to ensure that the benchmark is used fairly. We evaluate baselines that use ELMo (Peters et al., 2018), a powerful transfer learning technique, as well as state-of-the-art sentence representation models. The best models still achieve fairly low absolute scores. Analysis with our diagnostic dataset yields similarly weak performance over all phenomena tested, with some exceptions.",
 }
 """
-import numpy as np
-from lm_eval.base import rf
-from ..metrics import mean, matthews_corrcoef, f1_score
-from . common import HFTask, yesno
-from ..utils import general_detokenize
+
 
 # Single-Sentence Tasks
 

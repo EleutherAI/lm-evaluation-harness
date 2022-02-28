@@ -11,15 +11,6 @@ Homepage: https://allenai.org/data/drop
 
 Acknowledgement: This implementation is based on the official evaluation for `DROP`:
 https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_rc/eval/drop_eval.py
-
-@misc{dua2019drop,
-      title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs}, 
-      author={Dheeru Dua and Yizhong Wang and Pradeep Dasigi and Gabriel Stanovsky and Sameer Singh and Matt Gardner},
-      year={2019},
-      eprint={1903.00161},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
-}
 """
 import json
 import numpy as np
@@ -31,6 +22,19 @@ from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 from pathlib import Path
 from zipfile import ZipFile
+
+
+_CITATIONS = """
+@misc{dua2019drop,
+    title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs}, 
+    author={Dheeru Dua and Yizhong Wang and Pradeep Dasigi and Gabriel Stanovsky and Sameer Singh and Matt Gardner},
+    year={2019},
+    eprint={1903.00161},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
+
 
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
 

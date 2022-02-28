@@ -9,7 +9,13 @@ or semantics. The data is automatically generated according to expert-crafted
 grammars.
 
 Homepage: https://github.com/alexwarstadt/blimp
+"""
+from lm_eval.base import rf
+from lm_eval.metrics import mean
+from .common import HFTask
 
+
+_CITATION = """
 @article{warstadt2019blimp,
     author = {Warstadt, Alex and Parrish, Alicia and Liu, Haokun and Mohananey, Anhad and Peng, Wei and Wang, Sheng-Fu and Bowman, Samuel R.},
     title = {BLiMP: The Benchmark of Linguistic Minimal Pairs for English},
@@ -24,10 +30,6 @@ Homepage: https://github.com/alexwarstadt/blimp
     abstract = { We introduce The Benchmark of Linguistic Minimal Pairs (BLiMP),1 a challenge set for evaluating the linguistic knowledge of language models (LMs) on major grammatical phenomena in English. BLiMP consists of 67 individual datasets, each containing 1,000 minimal pairs—that is, pairs of minimally different sentences that contrast in grammatical acceptability and isolate specific phenomenon in syntax, morphology, or semantics. We generate the data according to linguist-crafted grammar templates, and human aggregate agreement with the labels is 96.4\%. We evaluate n-gram, LSTM, and Transformer (GPT-2 and Transformer-XL) LMs by observing whether they assign a higher probability to the acceptable sentence in each minimal pair. We find that state-of-the-art models identify morphological contrasts related to agreement reliably, but they struggle with some subtle semantic and syntactic phenomena, such as negative polarity items and extraction islands. }
 }
 """
-
-from lm_eval.base import rf
-from lm_eval.metrics import mean
-from .common import HFTask
 
 
 class BlimpTask(HFTask):
