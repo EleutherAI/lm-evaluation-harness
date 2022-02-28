@@ -12,18 +12,21 @@ Machine Reading, Machine Reading of Biomedical Texts about Alzheimer's disease,
 and Entrance Exam.
 
 Homepage: http://nlp.uned.es/clef-qa/repository/qa4mre.php
-
-@inproceedings{Peas2013QA4MRE2O,
-  title={QA4MRE 2011-2013: Overview of Question Answering for Machine Reading Evaluation},
-  author={Anselmo Pe{\~n}as and Eduard H. Hovy and Pamela Forner and {\'A}lvaro Rodrigo and Richard F. E. Sutcliffe and Roser Morante},
-  booktitle={CLEF},
-  year={2013}
-}
 """
 import os
 import xml.etree.ElementTree as ET
 from best_download import download_file
 from lm_eval.base import MultipleChoiceTask
+
+
+_CITATION = """
+@inproceedings{Peas2013QA4MRE2O,
+    title={QA4MRE 2011-2013: Overview of Question Answering for Machine Reading Evaluation},
+    author={Anselmo Pe{\~n}as and Eduard H. Hovy and Pamela Forner and {\'A}lvaro Rodrigo and Richard F. E. Sutcliffe and Roser Morante},
+    booktitle={CLEF},
+    year={2013}
+}
+"""
 
 
 class QA4MRE(MultipleChoiceTask):

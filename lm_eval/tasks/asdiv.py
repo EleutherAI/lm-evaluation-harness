@@ -13,15 +13,6 @@ level (for indicating the level of difficulty).
 NOTE: We currently ignore formulas for answer generation.
 
 Homepage: https://github.com/chaochun/nlu-asdiv-dataset
-
-@misc{miao2021diverse,
-      title={A Diverse Corpus for Evaluating and Developing English Math Word Problem Solvers},
-      author={Shen-Yun Miao and Chao-Chun Liang and Keh-Yih Su},
-      year={2021},
-      eprint={2106.15772},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI}
-}
 """
 from lm_eval.base import Task
 from pathlib import Path
@@ -32,6 +23,18 @@ from lm_eval.metrics import mean,perplexity
 import numpy as np
 from zipfile import ZipFile
 import os 
+
+
+_CITATION = """
+@misc{miao2021diverse,
+    title={A Diverse Corpus for Evaluating and Developing English Math Word Problem Solvers},
+    author={Shen-Yun Miao and Chao-Chun Liang and Keh-Yih Su},
+    year={2021},
+    eprint={2106.15772},
+    archivePrefix={arXiv},
+    primaryClass={cs.AI}
+}
+"""
 
 
 class Asdiv(Task):

@@ -11,7 +11,12 @@ into a Challenge Set of 2,590 “hard” questions (those that both a retrieval 
 a co-occurrence method fail to answer correctly) and an Easy Set of 5,197 questions.
 
 Homepage: https://allenai.org/data/arc
+"""
+from lm_eval.base import MultipleChoiceTask
+from . common import HFTask
 
+
+_CITATION = """
 @article{Clark2018ThinkYH,
   title={Think you have Solved Question Answering? Try ARC, the AI2 Reasoning Challenge},
   author={Peter Clark and Isaac Cowhey and Oren Etzioni and Tushar Khot and Ashish Sabharwal and Carissa Schoenick and Oyvind Tafjord},
@@ -20,8 +25,6 @@ Homepage: https://allenai.org/data/arc
   volume={abs/1803.05457}
 }
 """
-from lm_eval.base import MultipleChoiceTask
-from . common import HFTask
 
 
 class ARCEasy(HFTask, MultipleChoiceTask):

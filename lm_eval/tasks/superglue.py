@@ -8,18 +8,6 @@ understanding tasks.
 Homepage: https://super.gluebenchmark.com/
 
 TODO: WSC requires free-form generation.
-
-@inproceedings{NEURIPS2019_4496bf24,
- author = {Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel},
- booktitle = {Advances in Neural Information Processing Systems},
- editor = {H. Wallach and H. Larochelle and A. Beygelzimer and F. d\textquotesingle Alch\'{e}-Buc and E. Fox and R. Garnett},
- pages = {},
- publisher = {Curran Associates, Inc.},
- title = {SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},
- url = {https://proceedings.neurips.cc/paper/2019/file/4496bf24afe7fab6f046bf4923da8de6-Paper.pdf},
- volume = {32},
- year = {2019}
-}
 """
 import numpy as np
 import sklearn
@@ -28,6 +16,21 @@ from . common import HFTask, yesno
 from lm_eval.base import rf
 from ..metrics import mean, acc_all, metric_max_over_ground_truths
 from ..utils import general_detokenize
+
+
+_CITATION = """
+@inproceedings{NEURIPS2019_4496bf24,
+    author = {Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel},
+    booktitle = {Advances in Neural Information Processing Systems},
+    editor = {H. Wallach and H. Larochelle and A. Beygelzimer and F. d\textquotesingle Alch\'{e}-Buc and E. Fox and R. Garnett},
+    pages = {},
+    publisher = {Curran Associates, Inc.},
+    title = {SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},
+    url = {https://proceedings.neurips.cc/paper/2019/file/4496bf24afe7fab6f046bf4923da8de6-Paper.pdf},
+    volume = {32},
+    year = {2019}
+}
+"""
 
 
 class BoolQ(HFTask):

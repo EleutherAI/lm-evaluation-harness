@@ -18,15 +18,6 @@ https://github.com/sylinrl/TruthfulQA#Fine-tuning-GPT-3-for-evaluation. Maybe
 we could try this?
 
 Homepage: https://github.com/sylinrl/TruthfulQA
-
-@misc{lin2021truthfulqa,
-      title={TruthfulQA: Measuring How Models Mimic Human Falsehoods},
-      author={Stephanie Lin and Jacob Hilton and Owain Evans},
-      year={2021},
-      eprint={2109.07958},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
-}
 """
 import csv
 import json
@@ -38,6 +29,18 @@ from pathlib import Path
 from best_download import download_file
 from ..metrics import mean
 from datasets import load_metric
+
+
+_CITATION = """
+@misc{lin2021truthfulqa,
+    title={TruthfulQA: Measuring How Models Mimic Human Falsehoods},
+    author={Stephanie Lin and Jacob Hilton and Owain Evans},
+    year={2021},
+    eprint={2109.07958},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
 
 
 # The default QA preset prompt for all models.

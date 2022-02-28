@@ -11,20 +11,23 @@ NOTE: This evaluation is based on the (context + query) question-answering varia
 used by the Recurrent Language Models described in the paper. See section 4.4.
 
 Homepage: https://github.com/facebookresearch/ParlAI/tree/main/parlai/tasks/cbt
-    
-@misc{hill2016goldilocks,
-      title={The Goldilocks Principle: Reading Children's Books with Explicit Memory Representations}, 
-      author={Felix Hill and Antoine Bordes and Sumit Chopra and Jason Weston},
-      year={2016},
-      eprint={1511.02301},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
-}
 """
 import numpy as np
 from lm_eval.base import rf
 from lm_eval.metrics import mean
 from .common import HFTask
+
+
+_CITATION = """
+@misc{hill2016goldilocks,
+    title={The Goldilocks Principle: Reading Children's Books with Explicit Memory Representations}, 
+    author={Felix Hill and Antoine Bordes and Sumit Chopra and Jason Weston},
+    year={2016},
+    eprint={1511.02301},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
 
 
 class CBTBase(HFTask):

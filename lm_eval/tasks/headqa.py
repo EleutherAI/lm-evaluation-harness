@@ -7,18 +7,21 @@ access a specialized position in the Spanish healthcare system, and are challeng
 even for highly specialized humans.
 
 Homepage: https://aghie.github.io/head-qa/
-
-@misc{liu2020interpretable,
-      title={Interpretable Multi-Step Reasoning with Knowledge Extraction on Complex Healthcare Question Answering}, 
-      author={Ye Liu and Shaika Chowdhury and Chenwei Zhang and Cornelia Caragea and Philip S. Yu},
-      year={2020},
-      eprint={2008.02434},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI}
-}
 """
 from . common import HFTask
 from lm_eval.base import MultipleChoiceTask
+
+
+_CITATION = """
+@misc{liu2020interpretable,
+    title={Interpretable Multi-Step Reasoning with Knowledge Extraction on Complex Healthcare Question Answering}, 
+    author={Ye Liu and Shaika Chowdhury and Chenwei Zhang and Cornelia Caragea and Philip S. Yu},
+    year={2020},
+    eprint={2008.02434},
+    archivePrefix={arXiv},
+    primaryClass={cs.AI}
+}
+"""
 
 
 class HeadQABase(HFTask, MultipleChoiceTask):

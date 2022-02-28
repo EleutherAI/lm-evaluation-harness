@@ -13,7 +13,14 @@ Trinh & Le in Simple Method for Commonsense Reasoning (2018).
 See: https://arxiv.org/abs/1806.02847
 
 Homepage: https://leaderboard.allenai.org/winogrande/submissions/public
+"""
+import numpy as np
+from . common import HFTask
+from lm_eval.base import rf
+from ..metrics import mean
 
+
+_CITATION = """
 @article{sakaguchi2019winogrande,
     title={WinoGrande: An Adversarial Winograd Schema Challenge at Scale},
     author={Sakaguchi, Keisuke and Bras, Ronan Le and Bhagavatula, Chandra and Choi, Yejin},
@@ -21,10 +28,6 @@ Homepage: https://leaderboard.allenai.org/winogrande/submissions/public
     year={2019}
 }
 """
-import numpy as np
-from . common import HFTask
-from lm_eval.base import rf
-from ..metrics import mean
 
 
 class Winogrande(HFTask):

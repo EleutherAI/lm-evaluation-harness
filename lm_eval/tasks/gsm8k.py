@@ -15,7 +15,17 @@ for how to make use of the dataset's calculator annotations in your language
 model's sample/generation function.
 
 Homepage: https://github.com/openai/grade-school-math
+"""
 
+import json
+import re
+from best_download import download_file
+from pathlib import Path
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean
+
+
+_CITATION = """
 @misc{cobbe2021training,
       title={Training Verifiers to Solve Math Word Problems},
       author={Karl Cobbe and Vineet Kosaraju and Mohammad Bavarian and Jacob Hilton and Reiichiro Nakano and Christopher Hesse and John Schulman},
@@ -26,12 +36,6 @@ Homepage: https://github.com/openai/grade-school-math
 }
 """
 
-import json
-import re
-from best_download import download_file
-from pathlib import Path
-from lm_eval.base import Task, rf
-from lm_eval.metrics import mean
 
 ANS_RE = re.compile(r"#### (\-?[0-9\.\,]+)")
 INVALID_ANS = "[invalid]"

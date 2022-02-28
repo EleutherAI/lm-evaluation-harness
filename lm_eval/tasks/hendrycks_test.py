@@ -11,13 +11,6 @@ Hendryck's Test can be used to analyze models across many tasks and to identify
 important shortcomings.
 
 Homepage: https://github.com/hendrycks/test
-
-@article{hendryckstest2021,
-  title={Measuring Massive Multitask Language Understanding},
-  author={Dan Hendrycks and Collin Burns and Steven Basart and Andy Zou and Mantas Mazeika and Dawn Song and Jacob Steinhardt},
-  journal={Proceedings of the International Conference on Learning Representations (ICLR)},
-  year={2021}
-}
 """
 import csv
 import random
@@ -25,6 +18,17 @@ from lm_eval.base import MultipleChoiceTask
 from ..utils import sh
 from pathlib import Path
 from best_download import download_file
+
+
+_CITATION = """
+@article{hendryckstest2021,
+    title={Measuring Massive Multitask Language Understanding},
+    author={Dan Hendrycks and Collin Burns and Steven Basart and Andy Zou and Mantas Mazeika and Dawn Song and Jacob Steinhardt},
+    journal={Proceedings of the International Conference on Learning Representations (ICLR)},
+    year={2021}
+}
+"""
+
 
 SUBJECTS = ['abstract_algebra', 'anatomy', 'astronomy', 'business_ethics', 'clinical_knowledge', 'college_biology',
             'college_chemistry', 'college_computer_science', 'college_mathematics', 'college_medicine', 'college_physics',

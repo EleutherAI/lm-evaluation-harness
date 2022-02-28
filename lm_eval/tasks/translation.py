@@ -8,18 +8,6 @@ here to the SacreBLEU repo from which we've obtained the datasets:
 https://github.com/mjpost/sacrebleu/blob/master/sacrebleu/dataset.py
 
 Homepage: https://github.com/mjpost/sacrebleu/blob/master/sacrebleu/dataset.py
-
-@inproceedings{post-2018-call,
-  title = "A Call for Clarity in Reporting {BLEU} Scores",
-  author = "Post, Matt",
-  booktitle = "Proceedings of the Third Conference on Machine Translation: Research Papers",
-  month = oct,
-  year = "2018",
-  address = "Belgium, Brussels",
-  publisher = "Association for Computational Linguistics",
-  url = "https://www.aclweb.org/anthology/W18-6319",
-  pages = "186--191",
-}
 """
 import pycountry
 from pprint import pprint
@@ -27,6 +15,21 @@ from sacrebleu import sacrebleu
 from lm_eval import metrics
 from lm_eval.base import Task, rf
 from typing import List
+
+
+_CITATION = """
+@inproceedings{post-2018-call,
+    title = "A Call for Clarity in Reporting {BLEU} Scores",
+    author = "Post, Matt",
+    booktitle = "Proceedings of the Third Conference on Machine Translation: Research Papers",
+    month = oct,
+    year = "2018",
+    address = "Belgium, Brussels",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/W18-6319",
+    pages = "186--191",
+}
+"""
 
 
 sacrebleu_datasets = sacrebleu.DATASETS

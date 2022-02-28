@@ -12,15 +12,6 @@ To do well on SQuAD2.0, systems must not only answer questions when possible, bu
 also determine when no answer is supported by the paragraph and abstain from answering.
 
 Homepage: https://rajpurkar.github.io/SQuAD-explorer/
-
-@misc{rajpurkar2018know,
-      title={Know What You Don't Know: Unanswerable Questions for SQuAD}, 
-      author={Pranav Rajpurkar and Robin Jia and Percy Liang},
-      year={2018},
-      eprint={1806.03822},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
-}
 """
 import datasets
 from math import exp
@@ -29,6 +20,18 @@ from lm_eval.metrics import f1_score, mean
 from . common import HFTask
 from functools import partial
 from packaging import version
+
+
+_CITATION = """
+@misc{rajpurkar2018know,
+    title={Know What You Don't Know: Unanswerable Questions for SQuAD}, 
+    author={Pranav Rajpurkar and Robin Jia and Percy Liang},
+    year={2018},
+    eprint={1806.03822},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
 
 
 def _squad_metric(predictions, references):

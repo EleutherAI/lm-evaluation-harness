@@ -18,7 +18,14 @@ answers. This is a problem because the task's metrics require an exhaustive eval
 of a question's options. See section 4 of the paper for details.
 
 Homepage: https://leaderboard.allenai.org/mctaco/submissions/public
+"""
+import numpy as np
+from lm_eval.base import rf
+from collections import defaultdict
+from . common import HFTask
 
+
+_CITATION = """
 @inproceedings{ZKNR19,
     author = {Ben Zhou, Daniel Khashabi, Qiang Ning and Dan Roth},
     title = {“Going on a vacation” takes longer than “Going for a walk”: A Study of Temporal Commonsense Understanding },
@@ -26,11 +33,6 @@ Homepage: https://leaderboard.allenai.org/mctaco/submissions/public
     year = {2019},
 }
 """
-
-import numpy as np
-from lm_eval.base import rf
-from collections import defaultdict
-from . common import HFTask
 
 
 class MCTACO(HFTask):

@@ -14,17 +14,20 @@ downloads even if you dont use it. we should try and only download the val set a
 not even bother with the train set. 
 
 Homepage: https://ai.google.com/research/NaturalQuestions
-
-@article{47761,
-title	= {Natural Questions: a Benchmark for Question Answering Research},
-author	= {Tom Kwiatkowski and Jennimaria Palomaki and Olivia Redfield and Michael Collins and Ankur Parikh and Chris Alberti and Danielle Epstein and Illia Polosukhin and Matthew Kelcey and Jacob Devlin and Kenton Lee and Kristina N. Toutanova and Llion Jones and Ming-Wei Chang and Andrew Dai and Jakob Uszkoreit and Quoc Le and Slav Petrov},
-year	= {2019},
-journal	= {Transactions of the Association of Computational Linguistics}
-}
 """
 import random
 from . common import HFTask
 from itertools import islice
+
+
+_CITATION = """
+@article{47761,
+    title={Natural Questions: a Benchmark for Question Answering Research},
+    author={Tom Kwiatkowski and Jennimaria Palomaki and Olivia Redfield and Michael Collins and Ankur Parikh and Chris Alberti and Danielle Epstein and Illia Polosukhin and Matthew Kelcey and Jacob Devlin and Kenton Lee and Kristina N. Toutanova and Llion Jones and Ming-Wei Chang and Andrew Dai and Jakob Uszkoreit and Quoc Le and Slav Petrov},
+    year={2019},
+    journal={Transactions of the Association of Computational Linguistics}
+}
+"""
 
 
 class NaturalQs(HFTask):

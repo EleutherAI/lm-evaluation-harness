@@ -6,14 +6,6 @@ MuTual is a retrieval-based dataset for multi-turn dialogue reasoning, which is
 modified from Chinese high school English listening comprehension test data.
 
 Homepage: https://github.com/Nealcly/MuTual
-
-@inproceedings{mutual,
-    title = "MuTual: A Dataset for Multi-Turn Dialogue Reasoning",
-    author = "Cui, Leyang  and Wu, Yu and Liu, Shujie and Zhang, Yue and Zhou, Ming" ,
-    booktitle = "Proceedings of the 58th Conference of the Association for Computational Linguistics",
-    year = "2020",
-    publisher = "Association for Computational Linguistics",
-}
 """
 import json
 import zipfile
@@ -23,6 +15,17 @@ from pathlib import Path
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 from best_download import download_file
+
+
+_CITATION = """
+@inproceedings{mutual,
+    title = "MuTual: A Dataset for Multi-Turn Dialogue Reasoning",
+    author = "Cui, Leyang  and Wu, Yu and Liu, Shujie and Zhang, Yue and Zhou, Ming" ,
+    booktitle = "Proceedings of the 58th Conference of the Association for Computational Linguistics",
+    year = "2020",
+    publisher = "Association for Computational Linguistics",
+}
+"""
 
 
 class MuTualBase(Task):

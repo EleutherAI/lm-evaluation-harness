@@ -8,7 +8,14 @@ increase in difficulty and complexity, and each question-answer includes annotat
 provided explanations.
 
 Homepage: "https://github.com/facebookresearch/anli"
+"""
+import numpy as np
+from lm_eval.base import rf
+from ..metrics import mean
+from . common import HFTask
 
+
+_CITATION = """
 @inproceedings{nie-etal-2020-adversarial,
     title = "Adversarial {NLI}: A New Benchmark for Natural Language Understanding",
     author = "Nie, Yixin  and
@@ -22,10 +29,6 @@ Homepage: "https://github.com/facebookresearch/anli"
     publisher = "Association for Computational Linguistics",
 }
 """
-import numpy as np
-from lm_eval.base import rf
-from ..metrics import mean
-from . common import HFTask
 
 
 class ANLIBase(HFTask):

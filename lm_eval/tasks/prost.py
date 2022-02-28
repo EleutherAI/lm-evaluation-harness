@@ -13,7 +13,12 @@ this dataset in the intended way: in a zero-shot setting to probe models which
 have been trained on data not specifically collected to succeed on PROST."
 
 Homepage: https://github.com/nala-cub/prost
+"""
+from lm_eval.base import MultipleChoiceTask
+from . common import HFTask
 
+
+_CITATON = """
 @inproceedings{aroca-ouellette-etal-2021-prost,
     title = "{PROST}: {P}hysical Reasoning about Objects through Space and Time",
     author = "Aroca-Ouellette, St{\'e}phane  and
@@ -29,9 +34,6 @@ Homepage: https://github.com/nala-cub/prost
     pages = "4597--4608",
 }
 """
-
-from lm_eval.base import MultipleChoiceTask
-from . common import HFTask
 
 
 class PROST(HFTask, MultipleChoiceTask):

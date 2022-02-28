@@ -9,18 +9,22 @@ also serve as a benchmark for reinvestigating logical AI under the deep learning
 NLP setting.
 
 Homepage: https://github.com/lgw863/LogiQA-dataset
-
-@misc{liu2020logiqa,
-      title={LogiQA: A Challenge Dataset for Machine Reading Comprehension with Logical Reasoning}, 
-      author={Jian Liu and Leyang Cui and Hanmeng Liu and Dandan Huang and Yile Wang and Yue Zhang},
-      year={2020},
-      eprint={2007.08124},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
-}"""
+"""
 from lm_eval.base import MultipleChoiceTask
 from best_download import download_file
 from pathlib import Path
+
+
+_CITATION = """
+@misc{liu2020logiqa,
+    title={LogiQA: A Challenge Dataset for Machine Reading Comprehension with Logical Reasoning}, 
+    author={Jian Liu and Leyang Cui and Hanmeng Liu and Dandan Huang and Yile Wang and Yue Zhang},
+    year={2020},
+    eprint={2007.08124},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
 
 
 class LogiQA(MultipleChoiceTask):

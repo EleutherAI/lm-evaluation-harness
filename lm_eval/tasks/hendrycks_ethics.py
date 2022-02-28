@@ -14,13 +14,6 @@ tasks are refered to in this work as the `em` sub-metric. See Section 3. Metrics
 of the paper.
 
 Homepage: https://github.com/hendrycks/ethics
-
-@article{hendrycks2021ethics,
-  title={Aligning AI With Shared Human Values},
-  author={Dan Hendrycks and Collin Burns and Steven Basart and Andrew Critch and Jerry Li and Dawn Song and Jacob Steinhardt},
-  journal={Proceedings of the International Conference on Learning Representations (ICLR)},
-  year={2021}
-}
 """ 
 import abc
 import csv
@@ -32,6 +25,16 @@ from lm_eval.metrics import mean
 from lm_eval.utils import sh
 from .common import yesno
 from best_download import download_file
+
+
+_CITATION = """
+@article{hendrycks2021ethics,
+    title={Aligning AI With Shared Human Values},
+    author={Dan Hendrycks and Collin Burns and Steven Basart and Andrew Critch and Jerry Li and Dawn Song and Jacob Steinhardt},
+    journal={Proceedings of the International Conference on Learning Representations (ICLR)},
+    year={2021}
+}
+"""
 
 
 class Ethics(Task):

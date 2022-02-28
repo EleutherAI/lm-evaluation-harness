@@ -12,7 +12,13 @@ zone wherein generated text is ridiculous to humans, yet often misclassified by
 state-of-the-art models.
 
 Homepage: https://rowanzellers.com/hellaswag/
+"""
+import re
+from lm_eval.base import MultipleChoiceTask
+from . common import HFTask
 
+
+_CITATION = """
 @inproceedings{zellers2019hellaswag,
     title={HellaSwag: Can a Machine Really Finish Your Sentence?},
     author={Zellers, Rowan and Holtzman, Ari and Bisk, Yonatan and Farhadi, Ali and Choi, Yejin},
@@ -20,9 +26,6 @@ Homepage: https://rowanzellers.com/hellaswag/
     year={2019}
 }
 """
-import re
-from lm_eval.base import MultipleChoiceTask
-from . common import HFTask
 
 
 class HellaSwag(HFTask, MultipleChoiceTask):

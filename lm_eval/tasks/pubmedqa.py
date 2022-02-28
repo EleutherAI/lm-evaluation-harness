@@ -14,19 +14,22 @@ the conclusion of the abstract and, presumably, answers the research question,
 and (4) a yes/no/maybe answer which summarizes the conclusion.
 
 Homepage: https://pubmedqa.github.io/
-
-@inproceedings{jin2019pubmedqa,
-  title={PubMedQA: A Dataset for Biomedical Research Question Answering},
-  author={Jin, Qiao and Dhingra, Bhuwan and Liu, Zhengping and Cohen, William and Lu, Xinghua},
-  booktitle={Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)},
-  pages={2567--2577},
-  year={2019}
-}
 """
 import numpy as np
 from .common import HFTask
 from lm_eval.base import rf
 from ..metrics import mean
+
+
+_CITATION = """
+@inproceedings{jin2019pubmedqa,
+    title={PubMedQA: A Dataset for Biomedical Research Question Answering},
+    author={Jin, Qiao and Dhingra, Bhuwan and Liu, Zhengping and Cohen, William and Lu, Xinghua},
+    booktitle={Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)},
+    pages={2567--2577},
+    year={2019}
+}
+"""
 
 
 class Pubmed_QA(HFTask):

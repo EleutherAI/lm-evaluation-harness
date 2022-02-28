@@ -8,22 +8,25 @@ the physical knowledge of existing models. To what extent are current approaches
 actually learning about the world? 
 
 Homepage: https://yonatanbisk.com/piqa/
-
-@inproceedings{Bisk2020,
-  author = {Yonatan Bisk and Rowan Zellers and
-            Ronan Le Bras and Jianfeng Gao
-            and Yejin Choi},
-  title = {PIQA: Reasoning about Physical Commonsense in
-           Natural Language},
-  booktitle = {Thirty-Fourth AAAI Conference on
-               Artificial Intelligence},
-  year = {2020},
-}
 """
 import numpy as np
 from lm_eval.base import MultipleChoiceTask, rf
 from ..metrics import mean
 from . common import HFTask
+
+
+_CITATION = """
+@inproceedings{Bisk2020,
+    author = {Yonatan Bisk and Rowan Zellers and
+            Ronan Le Bras and Jianfeng Gao
+            and Yejin Choi},
+    title = {PIQA: Reasoning about Physical Commonsense in
+           Natural Language},
+    booktitle = {Thirty-Fourth AAAI Conference on
+               Artificial Intelligence},
+    year = {2020},
+}
+"""
 
 
 class PiQA(HFTask, MultipleChoiceTask):

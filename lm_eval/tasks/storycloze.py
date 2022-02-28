@@ -7,7 +7,12 @@ understanding, story generation, and script learning. This test requires a syste
 to choose the correct ending to a four-sentence story.
 
 Homepage: https://cs.rochester.edu/nlp/rocstories/
+"""
+import csv
+from lm_eval.base import Task
 
+
+_CITATION = """
 @inproceedings{sharma-etal-2018-tackling,
     title = "Tackling the Story Ending Biases in The Story Cloze Test",
     author = "Sharma, Rishi  and
@@ -25,8 +30,6 @@ Homepage: https://cs.rochester.edu/nlp/rocstories/
     abstract = "The Story Cloze Test (SCT) is a recent framework for evaluating story comprehension and script learning. There have been a variety of models tackling the SCT so far. Although the original goal behind the SCT was to require systems to perform deep language understanding and commonsense reasoning for successful narrative understanding, some recent models could perform significantly better than the initial baselines by leveraging human-authorship biases discovered in the SCT dataset. In order to shed some light on this issue, we have performed various data analysis and analyzed a variety of top performing models presented for this task. Given the statistics we have aggregated, we have designed a new crowdsourcing scheme that creates a new SCT dataset, which overcomes some of the biases. We benchmark a few models on the new dataset and show that the top-performing model on the original SCT dataset fails to keep up its performance. Our findings further signify the importance of benchmarking NLP systems on various evolving test sets.",
 }
 """
-import csv
-from lm_eval.base import Task
 
 
 class StoryCloze(Task):

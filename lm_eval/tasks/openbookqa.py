@@ -13,16 +13,19 @@ in the book. The questions, by design, are answered incorrectly by both a retrie
 based algorithm and a word co-occurrence algorithm.
 
 Homepage: https://allenai.org/data/open-book-qa
-
-@inproceedings{OpenBookQA2018,
- title={Can a Suit of Armor Conduct Electricity? A New Dataset for Open Book Question Answering},
- author={Todor Mihaylov and Peter Clark and Tushar Khot and Ashish Sabharwal},
- booktitle={EMNLP},
- year={2018}
-}
 """
 from lm_eval.base import MultipleChoiceTask
 from .common import HFTask
+
+
+_CITATION = """
+@inproceedings{OpenBookQA2018,
+    title={Can a Suit of Armor Conduct Electricity? A New Dataset for Open Book Question Answering},
+    author={Todor Mihaylov and Peter Clark and Tushar Khot and Ashish Sabharwal},
+    booktitle={EMNLP},
+    year={2018}
+}
+"""
 
 
 class OpenBookQA(HFTask, MultipleChoiceTask):
