@@ -24,7 +24,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 
-_CITATIONS = """
+_CITATION = """
 @misc{dua2019drop,
     title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs}, 
     author={Dheeru Dua and Yizhong Wang and Pradeep Dasigi and Gabriel Stanovsky and Sameer Singh and Matt Gardner},

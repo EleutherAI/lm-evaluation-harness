@@ -18,7 +18,7 @@ from lm_eval.base import MultipleChoiceTask
 from . common import HFTask
 
 
-_CITATON = """
+_CITATION = """
 @inproceedings{aroca-ouellette-etal-2021-prost,
     title = "{PROST}: {P}hysical Reasoning about Objects through Space and Time",
     author = "Aroca-Ouellette, St{\'e}phane  and
