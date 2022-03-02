@@ -1,5 +1,28 @@
+"""
+Similarity of Semantic Relations
+https://arxiv.org/pdf/cs/0608100.pdf
+
+SAT (Scholastic Aptitude Test) Analogy Questions is a dataset comprising 374
+multiple-choice analogy questions; 5 choices per question.
+
+Homepage: https://aclweb.org/aclwiki/SAT_Analogy_Questions_(State_of_the_art)
+"""
 import os
 from lm_eval.base import MultipleChoiceTask
+
+
+_CITATION = """
+@article{article,
+    author = {Turney, Peter},
+    year = {2006},
+    month = {09},
+    pages = {379-416},
+    title = {Similarity of Semantic Relations},
+    volume = {32},
+    journal = {Computational Linguistics},
+    doi = {10.1162/coli.2006.32.3.379}
+}
+"""
 
 
 class SATAnalogies(MultipleChoiceTask):    

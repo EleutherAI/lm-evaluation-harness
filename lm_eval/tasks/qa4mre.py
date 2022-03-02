@@ -1,7 +1,32 @@
+"""
+QA4MRE 2011-2013: Overview of Question Answering for Machine Reading Evaluation
+https://www.cs.cmu.edu/~./hovy/papers/13CLEF-QA4MRE.pdf
+
+The (English only) QA4MRE challenge which was run as a Lab at CLEF 2011-2013.
+The main objective of this exercise is to develop a methodology for evaluating 
+Machine Reading systems through Question Answering and Reading Comprehension 
+Tests. Systems should be able to extract knowledge from large volumes of text 
+and use this knowledge to answer questions. Four different tasks have been
+organized during these years: Main Task, Processing Modality and Negation for
+Machine Reading, Machine Reading of Biomedical Texts about Alzheimer's disease,
+and Entrance Exam.
+
+Homepage: http://nlp.uned.es/clef-qa/repository/qa4mre.php
+"""
 import os
 import xml.etree.ElementTree as ET
 from best_download import download_file
 from lm_eval.base import MultipleChoiceTask
+
+
+_CITATION = """
+@inproceedings{Peas2013QA4MRE2O,
+    title={QA4MRE 2011-2013: Overview of Question Answering for Machine Reading Evaluation},
+    author={Anselmo Pe{\~n}as and Eduard H. Hovy and Pamela Forner and {\'A}lvaro Rodrigo and Richard F. E. Sutcliffe and Roser Morante},
+    booktitle={CLEF},
+    year={2013}
+}
+"""
 
 
 class QA4MRE(MultipleChoiceTask):
