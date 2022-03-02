@@ -1,3 +1,14 @@
+"""
+NOTE: This file implements translation tasks using datasets from WMT conferences,
+provided by sacrebleu. Traditionally they are evaluated with BLEU scores. TER
+and CHRF are other options.
+
+We defer citations and descriptions of the many translations tasks used
+here to the SacreBLEU repo from which we've obtained the datasets:
+https://github.com/mjpost/sacrebleu/blob/master/sacrebleu/dataset.py
+
+Homepage: https://github.com/mjpost/sacrebleu/blob/master/sacrebleu/dataset.py
+"""
 import pycountry
 from pprint import pprint
 from sacrebleu import sacrebleu
@@ -6,13 +17,21 @@ from lm_eval.base import Task, rf
 from typing import List
 
 
-
+_CITATION = """
+@inproceedings{post-2018-call,
+    title = "A Call for Clarity in Reporting {BLEU} Scores",
+    author = "Post, Matt",
+    booktitle = "Proceedings of the Third Conference on Machine Translation: Research Papers",
+    month = oct,
+    year = "2018",
+    address = "Belgium, Brussels",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/W18-6319",
+    pages = "186--191",
+}
 """
-This file implements translation tasks using datasets from WMT conferences, provided by sacrebleu.
-Traditionally they are evaluated with BLEU scores. TER and CHRF are other options.
 
-See sacrebleu.DATASETS for all available datasets. There are a lot!
-"""
+
 sacrebleu_datasets = sacrebleu.DATASETS
 
 

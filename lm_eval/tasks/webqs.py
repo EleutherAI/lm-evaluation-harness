@@ -1,6 +1,35 @@
+"""
+Semantic Parsing on Freebase from Question-Answer Pairs
+https://cs.stanford.edu/~pliang/papers/freebase-emnlp2013.pdf
+
+WebQuestions is a benchmark for question answering. The dataset consists of 6,642
+question/answer pairs. The questions are supposed to be answerable by Freebase, a
+large knowledge graph. The questions are mostly centered around a single named entity.
+The questions are popular ones asked on the web (at least in 2013).
+
+Homepage: https://worksheets.codalab.org/worksheets/0xba659fe363cb46e7a505c5b6a774dc8a
+"""
 from . common import HFTask
 from lm_eval.base import rf
 from ..metrics import mean
+
+
+_CITATION = """
+@inproceedings{berant-etal-2013-semantic,
+    title = "Semantic Parsing on {F}reebase from Question-Answer Pairs",
+    author = "Berant, Jonathan  and
+      Chou, Andrew  and
+      Frostig, Roy  and
+      Liang, Percy",
+    booktitle = "Proceedings of the 2013 Conference on Empirical Methods in Natural Language Processing",
+    month = oct,
+    year = "2013",
+    address = "Seattle, Washington, USA",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/D13-1160",
+    pages = "1533--1544",
+}
+"""
 
 
 class WebQs(HFTask):

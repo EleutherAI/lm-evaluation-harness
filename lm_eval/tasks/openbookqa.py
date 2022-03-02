@@ -1,5 +1,31 @@
+"""
+Can a Suit of Armor Conduct Electricity? A New Dataset for Open Book Question Answering
+https://arxiv.org/pdf/1809.02789.pdf
+
+OpenBookQA is a question-answering dataset modeled after open book exams for
+assessing human understanding of a subject. It consists of 5,957 multiple-choice
+elementary-level science questions (4,957 train, 500 dev, 500 test), which probe
+the understanding of a small “book” of 1,326 core science facts and the application
+of these facts to novel situations. For training, the dataset includes a mapping
+from each question to the core science fact it was designed to probe. Answering
+OpenBookQA questions requires additional broad common knowledge, not contained
+in the book. The questions, by design, are answered incorrectly by both a retrieval-
+based algorithm and a word co-occurrence algorithm.
+
+Homepage: https://allenai.org/data/open-book-qa
+"""
 from lm_eval.base import MultipleChoiceTask
 from .common import HFTask
+
+
+_CITATION = """
+@inproceedings{OpenBookQA2018,
+    title={Can a Suit of Armor Conduct Electricity? A New Dataset for Open Book Question Answering},
+    author={Todor Mihaylov and Peter Clark and Tushar Khot and Ashish Sabharwal},
+    booktitle={EMNLP},
+    year={2018}
+}
+"""
 
 
 class OpenBookQA(HFTask, MultipleChoiceTask):

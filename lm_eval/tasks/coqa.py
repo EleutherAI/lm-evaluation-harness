@@ -1,3 +1,14 @@
+"""
+CoQA: A Conversational Question Answering Challenge
+https://arxiv.org/pdf/1808.07042.pdf
+
+CoQA is a large-scale dataset for building Conversational Question Answering 
+systems. The goal of the CoQA challenge is to measure the ability of machines to 
+understand a text passage and answer a series of interconnected questions that 
+appear in a conversation.
+
+Homepage: https://stanfordnlp.github.io/coqa/
+"""
 import os
 import json
 import transformers.data.metrics.squad_metrics as squad_metrics
@@ -5,6 +16,18 @@ from lm_eval.base import Task, rf, mean
 from ..utils import sh
 from itertools import zip_longest
 from best_download import download_file
+
+
+_CITATION = """
+@misc{reddy2018coqa,
+    title={CoQA: A Conversational Question Answering Challenge},
+    author={Siva Reddy and Danqi Chen and Christopher D. Manning},
+    year={2018},
+    eprint={1808.07042},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
 
 
 class CoQA(Task):

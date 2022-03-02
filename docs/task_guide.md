@@ -23,21 +23,38 @@ cd lm_eval/tasks
 touch <task-name>.py
 ```
 
-Then open the file and create a multiline docstring on the first line with the name of the paper associated with your task/s on one line, the paper’s url on the next line, and its BibTeX Code on another. For example, take the QuAC dataset. You’d write:
+Then open the file and create a multiline docstring on the first line with the following contents:
+
+```python
+"""
+<Paper title>
+<Paper PDF URL>
+
+<Short description of task>
+
+Homepage: <URL to task's homepage>
+"""
+```
+
+For example, take the QuAC dataset. We have:
 
 ```python
 """
 QuAC: Question Answering in Context
 https://arxiv.org/abs/1808.07036
 
-@article{choi2018quac,
-  title={Quac: Question answering in context},
-  author={Choi, Eunsol and He, He and Iyyer, Mohit and Yatskar, Mark and Yih, Wen-tau and Choi, Yejin and Liang, Percy and Zettlemoyer, Luke},
-  journal={arXiv preprint arXiv:1808.07036},
-  year={2018}
-}
+Question Answering in Context (QuAC) is a dataset for modeling, understanding, and 
+participating in information seeking dialog. Data instances consist of an interactive
+dialog between two crowd workers: (1) a student who poses a sequence of freeform
+questions to learn as much as possible about a hidden Wikipedia text, and (2)
+a teacher who answers the questions by providing short excerpts (spans) from the text.
+
+Homepage: https://quac.ai/
 """
 ```
+
+Next, at the module-level, create a constant variable named
+`_CITATION` that contains the citation information for your task in BibTeX format.
 
 Now let's walk through the actual implementation - from data handling to evaluation.
 

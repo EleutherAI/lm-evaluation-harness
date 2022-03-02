@@ -2,14 +2,17 @@
 ASDiv: A Diverse Corpus for Evaluating and Developing English Math Word Problem Solvers
 https://arxiv.org/abs/2106.15772
 
-@misc{miao2021diverse,
-      title={A Diverse Corpus for Evaluating and Developing English Math Word Problem Solvers},
-      author={Shen-Yun Miao and Chao-Chun Liang and Keh-Yih Su},
-      year={2021},
-      eprint={2106.15772},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI}
-}
+ASDiv (Academia Sinica Diverse MWP Dataset) is a diverse (in terms of both language
+patterns and problem types) English math word problem (MWP) corpus for evaluating
+the capability of various MWP solvers. Existing MWP corpora for studying AI progress
+remain limited either in language usage patterns or in problem types. We thus present
+a new English MWP corpus with 2,305 MWPs that cover more text patterns and most problem
+types taught in elementary school. Each MWP is annotated with its problem type and grade
+level (for indicating the level of difficulty).
+
+NOTE: We currently ignore formulas for answer generation.
+
+Homepage: https://github.com/chaochun/nlu-asdiv-dataset
 """
 from lm_eval.base import Task
 from pathlib import Path
@@ -21,9 +24,19 @@ import numpy as np
 from zipfile import ZipFile
 import os 
 
-#currently ignoring formula for answer generation
 
-# given a subset, splits return the docs 
+_CITATION = """
+@misc{miao2021diverse,
+    title={A Diverse Corpus for Evaluating and Developing English Math Word Problem Solvers},
+    author={Shen-Yun Miao and Chao-Chun Liang and Keh-Yih Su},
+    year={2021},
+    eprint={2106.15772},
+    archivePrefix={arXiv},
+    primaryClass={cs.AI}
+}
+"""
+
+
 class Asdiv(Task):
     VERSION = 0
     DATASET_PATH = Path("data/asdiv")
