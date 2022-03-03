@@ -3,12 +3,14 @@ from collections import Counter
 import shutil
 import glob
 
-from scripts.clean_training_data.janitor import *
+from lm_eval.decontamination.janitor import *
 from scripts.clean_training_data.generate_13_grams import do_ngrams_in_buckets
-from scripts.clean_training_data.archiver import Archive, TextReader
+from lm_eval.decontamination.archiver import Archive, TextReader
 
+import logging
+logger = logging.getLogger(__name__)
 
-def test_generate_13_grams_1():
+def test_generate_13_grams_1(caplog):
     data = """A goose (plural geese) is a bird of any of several waterfowl species in the family Anatidae. 
     This group comprises the genera Anser (the grey geese and white geese) and Branta (the black geese). 
     Some other birds, mostly related to the shelducks, have "goose" as part of their names. 
@@ -22,6 +24,7 @@ def test_generate_13_grams_1():
     data = data + data
 
     # Simple Generation
+    print("simple generation")
     n = 13
     janitor = Janitor()    
     ngrams = word_ngrams(janitor.normalize_string(data), n)
@@ -31,22 +34,26 @@ def test_generate_13_grams_1():
     # print(comparison)
 
     # Generating into buckets
+    print("bucket generation")
     test_working_directory = "test_generate_13_grams"
-    output_directory = os.path.join(test_working_directory, "output")        
     try:
-        shutil.rmtree(output_directory)
+        shutil.rmtree(test_working_directory)
     except FileNotFoundError:
         pass
-    os.makedirs(test_working_directory, exist_ok=True)
-    archive = Archive(os.path.join(test_working_directory, "test.jsonl.zst"))
+    os.makedirs(test_working_directory)
+
+    assert(not os.path.exists("pile"))
+    os.makedirs("pile")
+    archive = Archive(os.path.join("pile", "test.jsonl.zst"))
     archive.add_data(data)
     archive.commit()
+
     bucket_count = 4
     do_ngrams_in_buckets(n, test_working_directory, bucket_count)
 
     # Rebuild from buckets
+    print("rebuild")
     rebuilt_ngrams = []
-
     bucket_file_paths = glob.glob(os.path.join(test_working_directory, "output", f"*.bkt.txt")) 
     for bucket_file_path in bucket_file_paths:
         reader = TextReader(bucket_file_path)
@@ -56,6 +63,7 @@ def test_generate_13_grams_1():
             rebuilt_ngrams.append(ngram)
 
     # Compare
+    print("compare")    
     result_counter = Counter(rebuilt_ngrams)
     # print(len(result_counter))
     # print(len(comparison_counter))
