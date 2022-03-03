@@ -8,6 +8,7 @@ import lm_eval.base
 import lm_eval.decontamination
 import numpy as np
 from lm_eval.utils import positional_deprecated
+from lm_eval.decontamination.decontaminate import get_train_overlap
 
 @positional_deprecated
 def simple_evaluate(model, model_args=None, tasks=[],
@@ -189,7 +190,7 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
     # Compare all tasks/sets at once to ensure a single training set scan
     if decontaminate:
         print("Finding train/test overlap, please wait...")
-        overlaps = lm_eval.decontamination.get_train_overlap(docs_for_decontamination, decontamination_ngrams_path, limit)
+        overlaps = get_train_overlap(docs_for_decontamination, decontamination_ngrams_path, limit)
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)

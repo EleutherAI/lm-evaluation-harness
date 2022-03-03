@@ -4,7 +4,6 @@ import timeit
 import pickle
 import traceback
 from pprint import pprint
-from lm_eval.decontamination import word_ngrams
 
 # This is a cpp module. Compile janitor_util.cpp with:
 # c++ -O3 -Wall -shared -std=c++11 -fPIC $(python3 -m pybind11 --includes) janitor_util.cpp -o janitor_util$(python3-config --extension-suffix) -undefined dynamic_lookup

@@ -6,6 +6,7 @@ import io
 import datetime
 import mmap
 import tqdm
+from pathlib import Path
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -61,16 +62,19 @@ class Reader:
                 else:
                     yield text
 
-# Simple text reader and writer with same interface as above
 class TextArchive:
-    def __init__(self, file_path, mode="ab"):
+    def __init__(self, file_path, mode="rb+"):
         self.file_path = file_path
         dir_name = os.path.dirname(file_path)
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)    
-        self.fh = open(self.file_path, mode)      
+
+        if not os.path.exists(file_path):
+            Path(file_path).touch()
+                        
+        self.fh = open(self.file_path, mode)    
     
-    def add_data(self, data, meta={}):
+    def add_data(self, data):
         self.fh.write(data.encode('UTF-8') + b'\n')
     
     def commit(self):
