@@ -96,11 +96,6 @@ class Asdiv(Task):
             rnd=rnd,
             description=description
         )
-    
-    def fewshot_description(self):
-        # TODO: add solution-type and formula
-        desc = "information containing the context of the question\nQuestion: Text of a question.\nAnswer: Answer to the question, based on the passage.\n"
-        return desc
 
     def doc_to_text(self, doc):
         # TODO: add solution-type
