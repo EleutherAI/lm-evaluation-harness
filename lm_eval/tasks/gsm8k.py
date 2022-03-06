@@ -56,7 +56,8 @@ class GradeSchoolMath8K(Task):
         ]
         for split in splits:
             file = self.DATASET_PATH / f"{split['name']}.jsonl"
-            download_file(f"{base_url}/{split['name']}.jsonl", str(file), split["checksum"])
+            url = f"{base_url}/{split['name']}.jsonl"
+            download_file(url, local_file=str(file), expected_checksum=split["checksum"])
 
     def has_training_docs(self):
         return True
