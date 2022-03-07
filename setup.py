@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="lm_eval",
-    version="0.1.0",
+    version="0.2.0",
     author="Leo Gao",
     author_email="lg@eleuther.ai",
     description="A framework for evaluating autoregressive language models",
@@ -31,7 +31,6 @@ setuptools.setup(
         "pytablewriter==0.58.0",
         "sacrebleu==1.5.0",
         "rouge-score==0.0.4",
-        "bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt",
         "pycountry==20.7.3",
         "numexpr==2.7.2",
         "lm_dataformat==0.0.20",
@@ -44,5 +43,8 @@ setuptools.setup(
         "openai==0.6.4",
         "jieba==0.42.1",
         "nagisa==0.2.7",
+    ],
+    dependency_links=[
+        "https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt",
     ]
 )
