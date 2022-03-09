@@ -153,7 +153,7 @@ class MaskedLM(BaseLM):
                 "input_ids": pad_sequence(
                     [a.kwargs.pop('input_ids') for a in batch],
                     batch_first=True,
-                    padding_value=self.tokenizer.pad_token_id)
+                    padding_value=self.tokenizer.pad_token_id).to(self.device)
             }
             names = list(batch[0].kwargs.keys())
             for name in names:
