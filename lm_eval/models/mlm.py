@@ -160,7 +160,7 @@ class MaskedLM(BaseLM):
                 inputs[name] = pad_sequence(
                     [a.kwargs.pop(name) for a in batch],
                     batch_first=True,
-                    padding_value=0)
+                    padding_value=0).to(self.device)
 
             logits = self._model_call(inputs)
 
