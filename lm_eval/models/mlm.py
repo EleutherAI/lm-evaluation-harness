@@ -105,7 +105,8 @@ class MaskedLM(BaseLM):
                     continuation,
                     return_tensors="pt",
                     return_offsets_mapping=True,
-                    return_special_tokens_mask=True
+                    return_special_tokens_mask=True,
+                    truncation="only_first"
                 ).items()
             }
 
