@@ -11,13 +11,10 @@ provide supporting evidence to answers.
 Homepage: https://allenai.org/data/qasper
 """
 from collections import Counter
-from math import exp
-import random
 import re
 import string
-from lm_eval.base import rf
+from lm_eval.base import rf, Task
 from lm_eval.metrics import f1_score, mean
-from .common import HFTask
 
 
 _CITATION = """
@@ -104,10 +101,19 @@ def token_f1_score(prediction, ground_truth):
     return f1
 
 
-class QASPER(HFTask):
+class QASPER(Task):
     VERSION = 0
     DATASET_PATH = "qasper"
     DATASET_NAME = None
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return False
 
     def doc_to_text(self, doc):
         return (
@@ -130,11 +136,11 @@ class QASPER(HFTask):
         return " " + answer
 
     def training_docs(self):
-        for doc in self.data["train"]:
+        for doc in self.dataset["train"]:
             yield from self.process_doc(doc)
 
     def validation_docs(self):
-        for doc in self.data["train"]:
+        for doc in self.dataset["validation"]:
             yield from self.process_doc(doc)
 
     def process_doc(self, doc):

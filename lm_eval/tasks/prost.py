@@ -15,7 +15,6 @@ have been trained on data not specifically collected to succeed on PROST."
 Homepage: https://github.com/nala-cub/prost
 """
 from lm_eval.base import MultipleChoiceTask
-from . common import HFTask
 
 
 _CITATION = """
@@ -36,7 +35,7 @@ _CITATION = """
 """
 
 
-class PROST(HFTask, MultipleChoiceTask):
+class PROST(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "corypaik/prost"
     DATASET_NAME = None
@@ -49,6 +48,9 @@ class PROST(HFTask, MultipleChoiceTask):
 
     def has_test_docs(self):
         return True
+
+    def test_docs(self):
+        return map(self._convert_standard, self.dataset["test"])
 
     def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0, 'PROST is designed to probe models in a zero-shot fashion only.'

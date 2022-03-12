@@ -15,7 +15,6 @@ Homepage: https://rowanzellers.com/hellaswag/
 """
 import re
 from lm_eval.base import MultipleChoiceTask
-from . common import HFTask
 
 
 _CITATION = """
@@ -28,7 +27,7 @@ _CITATION = """
 """
 
 
-class HellaSwag(HFTask, MultipleChoiceTask):
+class HellaSwag(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "hellaswag"
     DATASET_NAME = None
@@ -42,14 +41,13 @@ class HellaSwag(HFTask, MultipleChoiceTask):
     def has_test_docs(self):
         return False
 
-    @classmethod
-    def preprocess(cls, text):
-        text = text.strip()
-        # NOTE: Brackets are artifacts of the WikiHow dataset portion of HellaSwag.
-        text = text.replace(" [title]", ". ")
-        text = re.sub('\\[.*?\\]', '', text)
-        text = text.replace("  ", " ")
-        return text
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return map(self._convert_standard, self._training_docs)
+
+    def validation_docs(self):
+        return map(self._convert_standard, self.dataset["validation"])
 
     def _convert_standard(self, doc):
         ctx = doc["ctx_a"] + " " + doc["ctx_b"].capitalize()
@@ -59,6 +57,15 @@ class HellaSwag(HFTask, MultipleChoiceTask):
             "gold": int(doc['label']),
         }
         return out_doc
+
+    @classmethod
+    def preprocess(cls, text):
+        text = text.strip()
+        # NOTE: Brackets are artifacts of the WikiHow dataset portion of HellaSwag.
+        text = text.replace(" [title]", ". ")
+        text = re.sub('\\[.*?\\]', '', text)
+        text = text.replace("  ", " ")
+        return text
 
     def doc_to_text(self, doc):
         return doc["query"]

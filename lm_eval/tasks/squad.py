@@ -15,9 +15,7 @@ Homepage: https://rajpurkar.github.io/SQuAD-explorer/
 """
 import datasets
 from math import exp
-from lm_eval.base import rf
-from lm_eval.metrics import f1_score, mean
-from . common import HFTask
+from lm_eval.base import rf, Task
 from functools import partial
 from packaging import version
 
@@ -45,7 +43,7 @@ def _squad_agg(key, items):
     return _squad_metric(predictions=predictions, references=references)[key]
 
 
-class SQuAD2(HFTask):
+class SQuAD2(Task):
     VERSION = 1
     DATASET_PATH = "squad_v2"
     DATASET_NAME = None
@@ -63,10 +61,10 @@ class SQuAD2(HFTask):
         return False
 
     def training_docs(self):
-        return self.data["train"]
+        return self.dataset["train"]
 
     def validation_docs(self):
-        return self.data["validation"]
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Question: ' + doc['question'] + '\n\n' + 'Answer:'

@@ -10,7 +10,6 @@ Homepage: https://math-qa.github.io/math-QA/
 """
 import re
 from lm_eval.base import MultipleChoiceTask
-from . common import HFTask
 
 
 _CITATION = """
@@ -25,7 +24,7 @@ _CITATION = """
 """
 
 
-class MathQA(HFTask, MultipleChoiceTask):
+class MathQA(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "math_qa"
     DATASET_NAME = None
@@ -39,13 +38,23 @@ class MathQA(HFTask, MultipleChoiceTask):
     def has_test_docs(self):
         return True
 
-    def _convert_standard(self, doc):
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return map(self._convert_standard, self._training_docs)
 
+    def validation_docs(self):
+        return map(self._convert_standard, self.dataset["validation"])
+
+    def test_docs(self):
+        return map(self._convert_standard, self.dataset["test"])
+
+    def _convert_standard(self, doc):
         answer_idx = ['a', 'b', 'c', 'd', 'e'].index(doc['correct'])
         choices = [c[4:].rstrip(" ,") for c in re.findall(r"[abcd] \) .*?, |e \) .*?$", doc['options'])]
 
         out_doc = {
-            "query": "Question: " + doc['Problem'] +"\nAnswer:",
+            "query": "Question: " + doc['Problem'] + "\nAnswer:",
             "choices": choices,
             "gold": answer_idx,
         }

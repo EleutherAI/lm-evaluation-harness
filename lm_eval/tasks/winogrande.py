@@ -15,9 +15,8 @@ See: https://arxiv.org/abs/1806.02847
 Homepage: https://leaderboard.allenai.org/winogrande/submissions/public
 """
 import numpy as np
-from . common import HFTask
-from lm_eval.base import rf
-from ..metrics import mean
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean
 
 
 _CITATION = """
@@ -30,7 +29,7 @@ _CITATION = """
 """
 
 
-class Winogrande(HFTask):
+class Winogrande(Task):
     VERSION = 0
     DATASET_PATH = "winogrande"
     DATASET_NAME = "winogrande_xl"
@@ -45,6 +44,14 @@ class Winogrande(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return self.partial_context(doc, doc["option" + doc["answer"]])

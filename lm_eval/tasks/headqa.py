@@ -8,7 +8,6 @@ even for highly specialized humans.
 
 Homepage: https://aghie.github.io/head-qa/
 """
-from . common import HFTask
 from lm_eval.base import MultipleChoiceTask
 
 
@@ -24,7 +23,7 @@ _CITATION = """
 """
 
 
-class HeadQABase(HFTask, MultipleChoiceTask):
+class HeadQABase(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "head_qa"
 
@@ -36,6 +35,17 @@ class HeadQABase(HFTask, MultipleChoiceTask):
 
     def has_test_docs(self):
         return True
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return map(self._convert_standard, self._training_docs)
+
+    def validation_docs(self):
+        return map(self._convert_standard, self.dataset["validation"])
+
+    def test_docs(self):
+        return map(self._convert_standard, self.dataset["test"])
 
     def _convert_standard(self, doc):
         out_doc = {
@@ -49,11 +59,14 @@ class HeadQABase(HFTask, MultipleChoiceTask):
     def doc_to_text(self, doc):
         return doc["query"]
 
+
 class HeadQAEn(HeadQABase):
     DATASET_NAME = "en"
 
+
 class HeadQAEs(HeadQABase):
     DATASET_NAME = "es"
+
 
 # for backwards compatibility
 class HeadQAEsDeprecated(HeadQABase):

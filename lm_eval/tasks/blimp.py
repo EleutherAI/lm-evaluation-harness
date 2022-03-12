@@ -10,9 +10,8 @@ grammars.
 
 Homepage: https://github.com/alexwarstadt/blimp
 """
-from lm_eval.base import rf
+from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
-from .common import HFTask
 
 
 _CITATION = """
@@ -32,19 +31,24 @@ _CITATION = """
 """
 
 
-class BlimpTask(HFTask):
+class BlimpTask(Task):
     VERSION = 0
     DATASET_PATH = "blimp"
 
-    def download(self):
-        super().download()
+    def has_training_docs(self):
+        return False
+    
+    def has_validation_docs(self):
+        return True
 
+    def has_test_docs(self):
+        return False
+
+    def validation_docs(self):
         # The HF dataset only contains a "train" dataset, but the harness expects a "validation"
         # dataset. Let's use the training dataset, on the assumption that the model wasn't actually
         # trained on this data.
-
-        self.data["validation"] = self.data["train"]
-        del self.data["train"]
+        return self.dataset["train"]
 
     def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0
