@@ -13,9 +13,8 @@ used by the Recurrent Language Models described in the paper. See section 4.4.
 Homepage: https://github.com/facebookresearch/ParlAI/tree/main/parlai/tasks/cbt
 """
 import numpy as np
-from lm_eval.base import rf
+from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
-from .common import HFTask
 
 
 _CITATION = """
@@ -30,11 +29,30 @@ _CITATION = """
 """
 
 
-class CBTBase(HFTask):
+class CBTBase(Task):
     VERSION = 0
     DATASET_PATH = "cbt"
     DATASET_NAME = None
 
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
+    def test_docs(self):
+        return self.dataset["test"]
 
     def detokenize(self, text):
         text = text.replace(" '", "'")

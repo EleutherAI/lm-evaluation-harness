@@ -16,10 +16,9 @@ model's sample/generation function.
 
 Homepage: https://github.com/openai/grade-school-math
 """
-
-import json
+import inspect
 import re
-from best_download import download_file
+import lm_eval.datasets.gsm8k.gsm8k
 from pathlib import Path
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
@@ -43,21 +42,8 @@ INVALID_ANS = "[invalid]"
 
 class GradeSchoolMath8K(Task):
     VERSION = 0
-    DATASET_PATH = Path('data/gsm8k')
-
-    def download(self):
-        if self.DATASET_PATH.exists():
-            return
-        Path.mkdir(self.DATASET_PATH, parents=True)
-        base_url = "https://raw.githubusercontent.com/openai/grade-school-math/master/grade_school_math/data"
-        splits = [
-            {"name": "train", "checksum": "17f347dc51477c50d4efb83959dbb7c56297aba886e5544ee2aaed3024813465"},
-            {"name": "test", "checksum": "3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14"},
-        ]
-        for split in splits:
-            file = self.DATASET_PATH / f"{split['name']}.jsonl"
-            url = f"{base_url}/{split['name']}.jsonl"
-            download_file(url, local_file=str(file), expected_checksum=split["checksum"])
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.gsm8k.gsm8k)
+    DATASET_NAME = None
 
     def has_training_docs(self):
         return True
@@ -68,17 +54,14 @@ class GradeSchoolMath8K(Task):
     def has_test_docs(self):
         return True
 
-    def _load_docs(self, file):
-        return (json.loads(line) for line in open(file).read().splitlines())
-
     def training_docs(self):
-        return self._load_docs(self.DATASET_PATH / "train.jsonl")
+        return self.dataset["train"]
 
     def validation_docs(self):
         raise NotImplementedError
 
     def test_docs(self):
-        return self._load_docs(self.DATASET_PATH / "test.jsonl")
+        return self.dataset["test"]
 
     def doc_to_text(self, doc):
         return "Question: " + doc['question'] + '\nAnswer:'

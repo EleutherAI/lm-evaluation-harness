@@ -9,10 +9,7 @@ actually learning about the world?
 
 Homepage: https://yonatanbisk.com/piqa/
 """
-import numpy as np
-from lm_eval.base import MultipleChoiceTask, rf
-from ..metrics import mean
-from . common import HFTask
+from lm_eval.base import MultipleChoiceTask
 
 
 _CITATION = """
@@ -29,7 +26,7 @@ _CITATION = """
 """
 
 
-class PiQA(HFTask, MultipleChoiceTask):
+class PiQA(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "piqa"
     DATASET_NAME = None
@@ -42,6 +39,14 @@ class PiQA(HFTask, MultipleChoiceTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return map(self._convert_standard, self._training_docs)
+
+    def validation_docs(self):
+        return map(self._convert_standard, self.dataset["validation"])
 
     def _convert_standard(self, doc):
         out_doc = {

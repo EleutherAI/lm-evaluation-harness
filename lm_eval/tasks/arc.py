@@ -13,7 +13,6 @@ a co-occurrence method fail to answer correctly) and an Easy Set of 5,197 questi
 Homepage: https://allenai.org/data/arc
 """
 from lm_eval.base import MultipleChoiceTask
-from . common import HFTask
 
 
 _CITATION = """
@@ -27,7 +26,7 @@ _CITATION = """
 """
 
 
-class ARCEasy(HFTask, MultipleChoiceTask):
+class ARCEasy(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "ai2_arc"
     DATASET_NAME = "ARC-Easy"
@@ -40,6 +39,17 @@ class ARCEasy(HFTask, MultipleChoiceTask):
 
     def has_test_docs(self):
         return True
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return map(self._convert_standard, self._training_docs)
+
+    def validation_docs(self):
+        return map(self._convert_standard, self.dataset["validation"])
+
+    def test_docs(self):
+        return map(self._convert_standard, self.dataset["test"])
 
     def _convert_standard(self, doc):
         # NOTE: Some `doc["answerKey"]`s are in numeric string format being one

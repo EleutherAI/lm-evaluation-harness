@@ -3,7 +3,7 @@ from collections.abc import Iterable
 
 import numpy as np
 import sacrebleu
-import sklearn
+import sklearn.metrics
 import random
 
 
@@ -245,3 +245,10 @@ def stderr_for_metric(metric, bootstrap_iters):
     }
 
     return stderr.get(metric, None)
+
+
+def yesno(x):
+    if x:
+        return 'yes'
+    else:
+        return 'no'

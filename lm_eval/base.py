@@ -6,6 +6,7 @@ import re
 import os
 import json
 import hashlib
+import datasets
 from sqlitedict import SqliteDict
 from tqdm import tqdm
 import torch
@@ -346,14 +347,31 @@ class Task(abc.ABC):
         {"question": ..., "answer": ...} or
         {"question": ..., question, answer)
     """
-    def __init__(self):
-        self.download()
+
+    # The name of the `Task` benchmark as denoted in the HuggingFace `datasets`
+    # API or a path to a custom `datasets` loading script.
+    DATASET_PATH: str = None
+
+    # The name of a subset within `DATASET_PATH`.
+    DATASET_NAME: str = None
+
+    def __init__(self, **kwargs):
+        self.download(**kwargs)
         self._training_docs = None
         self._fewshot_docs = None
 
-    def download(self):
-        """Downloads the task dataset if necessary"""
-        pass
+    def download(self, **load_dataset_kwargs):
+        """ Downloads and returns the task dataset.
+        Override this method to download the dataset from a custom API.
+
+        :param load_dataset_kwargs: Extra kwargs to pass to `datasets.load_dataset`
+            if needed.
+        """
+        self.dataset = datasets.load_dataset(
+            path=self.DATASET_PATH,
+            name=self.DATASET_NAME,
+            **load_dataset_kwargs
+        )
 
     @abstractmethod
     def has_training_docs(self):
@@ -561,11 +579,11 @@ class PerplexityTask(Task, abc.ABC):
         return []
 
     def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
-        assert num_fewshot == 0
-        assert rnd is not None, "A `random.Random` generator argument must be provided to `rnd`"
+        assert num_fewshot == 0, "The number of fewshot examples must be 0 for perplexity tasks."
+        assert rnd is not None, "A `random.Random` generator argument must be provided to `rnd`."
         assert not provide_description, (
             "The `provide_description` arg will be removed in future versions. To prepend "
-            "a custom description to the context, supply the corresponding string via the  "
+            "a custom description to the context, supply the corresponding string via the "
             "`description` arg."
         )
         if provide_description is not None:
