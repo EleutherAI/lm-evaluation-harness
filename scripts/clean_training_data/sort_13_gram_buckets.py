@@ -1,5 +1,5 @@
 """
-Iteratively runs gnu sort on each bucket, which does automatic the multiprocessing up to 8.
+Iteratively runs gnu sort on each bucket, uses up to 8 cores.
 
 Arguments
 ---------
