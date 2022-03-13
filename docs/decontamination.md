@@ -2,7 +2,7 @@
 
 ## Usage
 
-Simply add a decontamination_ngrams_path when running main.py. The provided directory should contain
+Simply add a "--decontamination_ngrams_path" when running main.py. The provided directory should contain
 the ngram files and info.json produced in "Pile Ngram Generation" further down.
 
 ```bash
@@ -16,7 +16,7 @@ python main.py \
 ## Background
 Downstream evaluations test model generalization, and are less useful when test set data also exists in the training set (leakage/contamination).
 
-As a first step this is resolved through training set filtering, however often benchmarks don't exist or weren't considered prior to model training. In this case it is useful to measure the impact of test set leakage by detecting the uncontaminated test examples and producing a clean version of the benchmark.
+As a first step this is resolved through training set filtering, however often benchmarks don't exist or weren't considered prior to model training. In this case it is useful to measure the impact of test set leakage by detecting the contaminated test examples and producing a clean version of the benchmark.
 
 The basis for our decontamination procedure can be found in Appendix C of "Language Models are Few-Shot Learners". OpenAI defined a test document as contaminated if any N-gram overlap existed with any training document. They used a range of N values between 8 and 13 depending on dataset, while we just used 13 for simplicity.
 
@@ -48,7 +48,7 @@ export PYTHONHASHSEED=0
 python -m scripts/clean_training_data/generate_13_grams \
     -dir path/to/working/directory \
     -n 13 \
-    -buckets 500 \
+    -buckets 500
 ```
 
 Took approximately 4 days for us. We had the time to wait, but this could be scaled out by doing partial pile scans on multiple instances of this script and merging the relevant buckets. We fixed PYTHONHASHSEED to ensure reproducibility of bucket hashing.
