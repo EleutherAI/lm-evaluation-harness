@@ -15,6 +15,7 @@ from lm_eval.metrics import mean
 
 @dataclass
 class MultipleChoiceDoc:
+    """ Structure for storing documents. """
     question: str
     keys: typing.List[str]  # Should these be the same type as gold?
     options: typing.List[str]
@@ -27,6 +28,7 @@ class MultipleChoiceDoc:
 
 
 class BaseMultipleChoiceTask(base.Task, abc.ABC):
+    """ Base Multiple Choice Task """
 
     def doc_to_text(self, doc: MultipleChoiceDoc):
         ctx = f"{doc.context}\n" if doc.context else ""
@@ -66,7 +68,7 @@ class BaseMultipleChoiceTask(base.Task, abc.ABC):
             # Bundle answers: (model_answer, model_answer_index, is_correct, question_id).
             "answer_bundle": (doc.keys[ans], ans, is_correct, doc.id),
             # Bundle questions: (question_id, question, option_0, option_1, option_2, option_3)
-            #"question_bundle": (doc.id, doc.question, len(doc.options)),
+            #"question_bundle": (doc.id, doc.question, doc.options),
         }
 
     def higher_is_better(self):
@@ -93,7 +95,7 @@ def answer_bundle(items):
     cols = ["model_answer", "model_answer_index", "is_correct", "question_id"]
     rows = [*items]
     path = os.environ["QUESTION_RESULT_PATH"]
-    with open(f'{path}/question-by-question-results.csv', 'a') as f:
+    with open(f'{path}/question-by-question-results.csv', 'a', encoding="utf-8") as f:
         write = csv.writer(f)
         write.writerow(cols)
         write.writerows(rows)
@@ -104,26 +106,33 @@ def question_bundle(items):
     """ Bundles questions into a csv file. """
     from pathlib import Path
     import csv
-    num_options = items[0][2]
-    options = [f"option_{i}" for i in range(num_options)]
-    cols = ["question_id","question", *options]
-    rows = [*items]
+    options = items[0][2]
+    options_name = [f"option_{i}" for i in range(len(options))]
+    cols = ["question_id","question", *options_name]
+
     path = os.environ["QUESTION_RESULT_PATH"]
-    with open(f'{path}/question-table.csv', 'a') as f:
-        write = csv.writer(f)
-        write.writerow(cols)
-        write.writerows(rows)
+    f = open(f'{path}/question-table.csv', 'a', encoding="utf-8")
+    writer = csv.writer(f)
+    writer.writerow(cols)
+    for item in items:
+        writer.writerow([item[0],item[1],*item[2]])
+
+    f.close()
     return 0
 
 
 def key2num(doc: MultipleChoiceDoc, key: str) -> int:
+    """ Maps document keys to numeric 1-based indices. """
     return str(doc.keys.index(key) + 1)  # `+ 1` for 1-based indexing.
 
+
 def key2letter(doc: MultipleChoiceDoc, key: str) -> str:
+    """ Maps keys to capital alphabet letters. """
     A_ascii = 65
     ascii_offset = doc.keys.index(key)
     letter = chr(A_ascii + ascii_offset)
     return letter
+
 
 def format_key(key: str, type: str):
     """ Formats a multiple choice key. E.g.
@@ -152,6 +161,7 @@ class MC_NoOptionList_OptionLL_Task(BaseMultipleChoiceTask):
     Continuation:
         loglikelihood_continuation = <option_i>
     """
+
     def format_prompt(cls, doc: MultipleChoiceDoc) -> str:
         prompt = "Question: " + doc.question + "\n"
         prompt += "Answer:"
@@ -212,7 +222,6 @@ class MC_WithOptionList_LetterLL_Task(BaseMultipleChoiceTask):
         ])
         prompt += "\nAnswer:"
         return prompt
-
     def doc_to_target(self, doc: MultipleChoiceDoc) -> str:
         return " " + doc.keys[doc.gold]
 
