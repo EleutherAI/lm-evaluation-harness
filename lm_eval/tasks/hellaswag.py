@@ -1,6 +1,8 @@
+from ast import Mult
 import re
 from lm_eval.base import MultipleChoiceTask
 from . common import HFTask
+from lm_eval.mctask_experimental import MultipleChoiceDoc
 
 
 class HellaSwag(HFTask, MultipleChoiceTask):
@@ -27,13 +29,15 @@ class HellaSwag(HFTask, MultipleChoiceTask):
         return text
 
     def _convert_standard(self, doc):
-        ctx = doc["ctx_a"] + " " + doc["ctx_b"].capitalize()
-        out_doc = {
-            "query": self.preprocess(doc['activity_label'] + ': ' + ctx),
-            "choices": [self.preprocess(ending) for ending in doc['endings']],
-            "gold": int(doc['label']),
-        }
-        return out_doc
-
-    def doc_to_text(self, doc):
-        return doc["query"]
+        question = self.preprocess(doc["ctx_a"] + " " + doc["ctx_b"].capitalize())
+        options = [self.preprocess(ending) for ending in doc['endings']]
+        gold = int(doc["label"])
+        keys = ["A", "B", "C", "D"]
+        context = self.preprocess(doc['activity_label'])
+        return MultipleChoiceDoc(
+            question=question,
+            options=options,
+            gold=gold,
+            keys=keys,
+            context=context
+        )

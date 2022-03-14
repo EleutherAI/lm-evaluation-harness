@@ -20,6 +20,7 @@ have been trained on data not specifically collected to succeed on PROST."
 
 from lm_eval.base import MultipleChoiceTask
 from . common import HFTask
+from lm_eval.mctask_experimental import MultipleChoiceDoc
 
 
 class PROST(HFTask, MultipleChoiceTask):
@@ -46,12 +47,15 @@ class PROST(HFTask, MultipleChoiceTask):
         )
 
     def _convert_standard(self, doc):
-        out_doc = {
-            "query": f"{doc['context']}\nQuestion: {doc['ex_question']}\nAnswer:",
-            "choices": [doc['A'], doc['B'], doc['C'], doc['D']],
-            "gold": doc['label'],
-        }
-        return out_doc
-
-    def doc_to_text(self, doc):
-        return doc["query"]
+        question = doc['ex_question']
+        options = [doc['A'], doc['B'], doc['C'], doc['D']]
+        gold = doc["label"]
+        keys = ["A","B","C","D"]
+        context = doc['context']
+        return MultipleChoiceDoc(
+            question=question,
+            options=options,
+            gold=gold,
+            keys=keys,
+            context=context
+        )

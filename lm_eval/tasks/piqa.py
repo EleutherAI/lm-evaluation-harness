@@ -2,6 +2,7 @@ import numpy as np
 from lm_eval.base import MultipleChoiceTask, rf
 from ..metrics import mean
 from . common import HFTask
+from lm_eval.mctask_experimental import MultipleChoiceDoc
 
 
 class PiQA(HFTask, MultipleChoiceTask):
@@ -19,12 +20,15 @@ class PiQA(HFTask, MultipleChoiceTask):
         return False
 
     def _convert_standard(self, doc):
-        out_doc = {
-            "goal": doc["goal"],
-            "choices": [doc["sol1"], doc["sol2"]],
-            "gold": doc["label"],
-        }
-        return out_doc
+        keys = ['0', '1']
+        question = doc["goal"]
+        options = [doc["sol1"], doc["sol2"]]
+        gold = doc["label"]
+        return MultipleChoiceDoc(
+            question=question,
+            keys=keys,
+            options=options,
+            gold=gold
+        )
 
-    def doc_to_text(self, doc):
-        return "Question: " + doc["goal"] + "\nAnswer:"
+

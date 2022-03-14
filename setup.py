@@ -21,6 +21,7 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
         "black",
+        "dask",
         "best_download==0.0.9",
         "datasets==1.15.1",
         "click>=7.1",

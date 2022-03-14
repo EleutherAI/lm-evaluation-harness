@@ -12,23 +12,25 @@ import numpy as np
 import lm_eval.base as base
 from lm_eval.metrics import mean
 
+
 @dataclass
 class MultipleChoiceDoc:
     question: str
-    # The possible answer keys, e.g. `["A", "B", "C", "D"]`.
-    # These should be the type as gold?
-    keys: typing.List[str]
+    keys: typing.List[str]  # Should these be the same type as gold?
     options: typing.List[str]
     gold: int
     id: int = field(init=False)
+    context: str = None  # Any extra context prior to the question.
 
     def __post_init__(self):
         self.id = hashlib.sha224(self.question.encode('utf-8')).hexdigest()
 
+
 class BaseMultipleChoiceTask(base.Task, abc.ABC):
 
     def doc_to_text(self, doc: MultipleChoiceDoc):
-        return self.format_prompt(doc)
+        ctx = f"{doc.context}\n" if doc.context else ""
+        return ctx + self.format_prompt(doc)
 
     @abc.abstractclassmethod
     def format_prompt(cls, doc: MultipleChoiceDoc) -> str:
@@ -45,6 +47,7 @@ class BaseMultipleChoiceTask(base.Task, abc.ABC):
     def construct_requests(self, doc: MultipleChoiceDoc, ctx: str):
         lls = []
         conts = self.loglikelihood_continuation(doc)
+        #print(f"\n\n{conts}\n\n")
         for cont in conts:
             lls.append(base.rf.loglikelihood(ctx, f" {cont}")[0])
         return lls
@@ -60,8 +63,10 @@ class BaseMultipleChoiceTask(base.Task, abc.ABC):
         return {
             "acc": is_correct,
             "acc_norm": acc_norm,
-            # Bundle answers: (id, answer key, answer index, is correct).
-            "answer_bundle": (doc.id, doc.keys[ans], ans, is_correct),
+            # Bundle answers: (model_answer, model_answer_index, is_correct, question_id).
+            "answer_bundle": (doc.keys[ans], ans, is_correct, doc.id),
+            # Bundle questions: (question_id, question, option_0, option_1, option_2, option_3)
+            #"question_bundle": (doc.id, doc.question, len(doc.options)),
         }
 
     def higher_is_better(self):
@@ -69,6 +74,7 @@ class BaseMultipleChoiceTask(base.Task, abc.ABC):
             "acc": True,
             "acc_norm": True,
             "answer_bundle": True,
+            #"question_bundle": True,
         }
 
     def aggregation(self):
@@ -76,16 +82,34 @@ class BaseMultipleChoiceTask(base.Task, abc.ABC):
             "acc": mean,
             "acc_norm": mean,
             "answer_bundle": answer_bundle
+            #"question_bundle": question_bundle,
         }
+
 
 def answer_bundle(items):
     """ Bundles answers into a csv file. """
     from pathlib import Path
     import csv
-    cols = ["question_id", "model_answer", "model_answer_index", "is_correct"]
+    cols = ["model_answer", "model_answer_index", "is_correct", "question_id"]
     rows = [*items]
     path = os.environ["QUESTION_RESULT_PATH"]
-    with open(f'{path}/question-by-question-results.csv', 'w') as f:
+    with open(f'{path}/question-by-question-results.csv', 'a') as f:
+        write = csv.writer(f)
+        write.writerow(cols)
+        write.writerows(rows)
+    return 0
+
+
+def question_bundle(items):
+    """ Bundles questions into a csv file. """
+    from pathlib import Path
+    import csv
+    num_options = items[0][2]
+    options = [f"option_{i}" for i in range(num_options)]
+    cols = ["question_id","question", *options]
+    rows = [*items]
+    path = os.environ["QUESTION_RESULT_PATH"]
+    with open(f'{path}/question-table.csv', 'a') as f:
         write = csv.writer(f)
         write.writerow(cols)
         write.writerows(rows)
@@ -95,6 +119,11 @@ def answer_bundle(items):
 def key2num(doc: MultipleChoiceDoc, key: str) -> int:
     return str(doc.keys.index(key) + 1)  # `+ 1` for 1-based indexing.
 
+def key2letter(doc: MultipleChoiceDoc, key: str) -> str:
+    A_ascii = 65
+    ascii_offset = doc.keys.index(key)
+    letter = chr(A_ascii + ascii_offset)
+    return letter
 
 def format_key(key: str, type: str):
     """ Formats a multiple choice key. E.g.
@@ -115,8 +144,9 @@ def format_key(key: str, type: str):
 
 
 class MC_NoOptionList_OptionLL_Task(BaseMultipleChoiceTask):
-    """
+    """ "freeform"
     Format:
+        <Context>
         Question: <question>
         Answer: 
     Continuation:
@@ -126,7 +156,6 @@ class MC_NoOptionList_OptionLL_Task(BaseMultipleChoiceTask):
         prompt = "Question: " + doc.question + "\n"
         prompt += "Answer:"
         return prompt
-       # return _format_prompt(doc, list_options=False)
 
     def doc_to_target(self, doc: MultipleChoiceDoc) -> str:
         return " " + doc.options[doc.gold]
@@ -136,8 +165,9 @@ class MC_NoOptionList_OptionLL_Task(BaseMultipleChoiceTask):
 
 
 class MC_WithOptionList_OptionLL_Task(BaseMultipleChoiceTask):
-    """
+    """ "option"
     Format:
+        <Context>
         Question: <question>
         <key1>: <option1>
         <key2>: <option2>
@@ -163,11 +193,12 @@ class MC_WithOptionList_OptionLL_Task(BaseMultipleChoiceTask):
 
 
 class MC_WithOptionList_LetterLL_Task(BaseMultipleChoiceTask):
-    """
+    """ "letter"
     Format:
+        <Context>
         Question: <question>
-        <key1>: <option1>
-        <key2>: <option2>
+        A: <option1>
+        B: <option2>
         ...
         Answer: 
     Continuation:
@@ -176,7 +207,7 @@ class MC_WithOptionList_LetterLL_Task(BaseMultipleChoiceTask):
     def format_prompt(cls, doc: MultipleChoiceDoc) -> str:
         prompt = "Question: " + doc.question + "\n"
         prompt += "\n".join([
-            f"{format_key(doc.keys[i], 'colon')} {option}"
+            f"{format_key(key2letter(doc, doc.keys[i]), 'colon')} {option}"
             for i, option in enumerate(doc.options)
         ])
         prompt += "\nAnswer:"
@@ -190,8 +221,9 @@ class MC_WithOptionList_LetterLL_Task(BaseMultipleChoiceTask):
 
 
 class MC_WithOptionList_NumLL_Task(BaseMultipleChoiceTask):
-    """
+    """ "number"
     Format:
+        <Context>
         Question: <question>
         1: <option1>
         2: <option2>

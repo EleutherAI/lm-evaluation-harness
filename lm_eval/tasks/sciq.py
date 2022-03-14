@@ -3,6 +3,7 @@ import json
 import zipfile
 from lm_eval.base import MultipleChoiceTask
 from best_download import download_file
+from lm_eval.mctask_experimental import MultipleChoiceDoc
 
 
 class SciQ(MultipleChoiceTask):
@@ -29,20 +30,23 @@ class SciQ(MultipleChoiceTask):
         return True
 
     def _convert_standard(self, doc):
-        choices = [
+        question = doc["question"]
+        keys = ["A", "B", "C", "D"]
+        options = [
             doc["distractor1"], 
             doc["distractor2"], 
             doc["distractor3"],
             doc["correct_answer"],
         ]
-        src = doc['support']
-        out_doc = {
-            "source" : src,
-            "query" : doc['question'],
-            "choices" : choices,
-            "gold" : 3,
-        }
-        return out_doc
+        context = doc['support']
+        gold = 3
+        return MultipleChoiceDoc(
+            question=question,
+            options=options,
+            gold=gold,
+            keys=keys,
+            context=context
+        )
     
     def load_docs(self, textfilename):
         with open(textfilename, 'r') as j:
@@ -58,6 +62,3 @@ class SciQ(MultipleChoiceTask):
 
     def test_docs(self):
         return self.load_docs("data/sciq/SciQ dataset-2 3/test.json")
-
-    def doc_to_text(self, doc):
-        return "{}\nQuestion: {}\nAnswer:".format(doc["source"], doc["query"]).strip()
