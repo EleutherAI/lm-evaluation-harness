@@ -8,6 +8,8 @@ even for highly specialized humans.
 
 Homepage: https://aghie.github.io/head-qa/
 """
+import inspect
+import lm_eval.datasets.headqa.headqa
 from lm_eval.base import MultipleChoiceTask
 
 
@@ -25,7 +27,7 @@ _CITATION = """
 
 class HeadQABase(MultipleChoiceTask):
     VERSION = 0
-    DATASET_PATH = "head_qa"
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.headqa.headqa)
 
     def has_training_docs(self):
         return True
