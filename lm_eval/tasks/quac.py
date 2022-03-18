@@ -40,7 +40,9 @@ class QuAC(Task):
         return False
 
     def training_docs(self):
-        return map(self._convert_standard, self.dataset["train"])
+        if self._training_docs is None:
+            self._training_docs = list(map(self._convert_standard, self.dataset["train"]))
+        return self._training_docs
 
     def validation_docs(self):
         return map(self._convert_standard, self.dataset["validation"])
