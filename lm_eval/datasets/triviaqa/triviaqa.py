@@ -67,7 +67,7 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
                     "aliases":  datasets.features.Sequence(
                         datasets.Value("string"),
                     ),
-                    "values": datasets.Value("string")
+                    "value": datasets.Value("string")
                 }
             }
         )
@@ -110,6 +110,6 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
                     "question": data["Question"],
                     "answer": {
                         "aliases": data["Answer"]["Aliases"],
-                        "values": data["Answer"]["Value"],
+                        "value": data["Answer"]["Value"],
                     }
                 }
