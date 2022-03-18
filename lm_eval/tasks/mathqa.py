@@ -40,8 +40,8 @@ class MathQA(MultipleChoiceTask):
 
     def training_docs(self):
         if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return map(self._convert_standard, self._training_docs)
+            self._training_docs = list(map(self._convert_standard, self.dataset["train"]))
+        return self._training_docs
 
     def validation_docs(self):
         return map(self._convert_standard, self.dataset["validation"])
