@@ -8,7 +8,6 @@ omit =
     lm_eval/tasks/sat.py
     lm_eval/tasks/triviaqa.py
     lm_eval/tasks/naturalqs.py
-    lm_eval/tasks/pile.py
     lm_eval/models/dummy.py
 
 [report]
