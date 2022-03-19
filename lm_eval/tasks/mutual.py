@@ -14,7 +14,6 @@ from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 
 
-
 _CITATION = """
 @inproceedings{mutual,
     title = "MuTual: A Dataset for Multi-Turn Dialogue Reasoning",

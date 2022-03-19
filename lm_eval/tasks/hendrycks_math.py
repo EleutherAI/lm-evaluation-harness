@@ -14,7 +14,6 @@ from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
 
 
-
 _CITATION = """
 @article{hendrycksmath2021,
   title={Measuring Mathematical Problem Solving With the Math Dataset},

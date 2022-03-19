@@ -17,7 +17,6 @@ from lm_eval.base import Task, rf, mean
 from itertools import zip_longest
 
 
-
 _CITATION = """
 @misc{reddy2018coqa,
     title={CoQA: A Conversational Question Answering Challenge},
