@@ -17,8 +17,7 @@
 # https://github.com/huggingface/datasets/blob/3804442bb7cfcb9d52044d92688115cfdc69c2da/datasets/head_qa/head_qa.py 
 # with the exception of the `image` feature. This is to avoid adding `Pillow`
 # as a dependency.
-
-"""HEAD-QA: A Healthcare Dataset for Complex Reasoning"""
+"""HEAD-QA: A Healthcare Dataset for Complex Reasoning."""
 
 
 import json

@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 # Custom TriviaQA because HF version sanitizes the dataset differently.
-""" TriviaQA (Unfiltered Raw) dataset. """
+"""TriviaQA (Unfiltered Raw) dataset."""
 
 
 import json
