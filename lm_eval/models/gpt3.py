@@ -72,7 +72,7 @@ def oa_completion(**kwargs):
 
 
 class GPT3LM(BaseLM):
-    REQ_CHUNK_SIZE = 40
+    REQ_CHUNK_SIZE = 20
 
     def __init__(self, engine, truncate=False, api_key=None, pass_strings=False):
         """
@@ -276,7 +276,7 @@ class GooseAILM(GPT3LM):
     @property
     def max_length(self):
         # Note: this is temporary, will be raised to 2048 in the future
-        return 1023
+        return 2022
 
     @property
     def eot_token_id(self):
