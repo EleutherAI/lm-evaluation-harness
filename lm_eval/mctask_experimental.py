@@ -67,8 +67,6 @@ class BaseMultipleChoiceTask(base.Task, abc.ABC):
             "acc_norm": acc_norm,
             # Bundle answers: (model_answer, model_answer_index, is_correct, question_id).
             "answer_bundle": (doc.keys[ans], ans, is_correct, doc.id),
-            # Bundle questions: (question_id, question, option_0, option_1, option_2, option_3)
-            #"question_bundle": (doc.id, doc.question, doc.options),
         }
 
     def higher_is_better(self):
@@ -76,7 +74,6 @@ class BaseMultipleChoiceTask(base.Task, abc.ABC):
             "acc": True,
             "acc_norm": True,
             "answer_bundle": True,
-            #"question_bundle": True,
         }
 
     def aggregation(self):
@@ -84,8 +81,39 @@ class BaseMultipleChoiceTask(base.Task, abc.ABC):
             "acc": mean,
             "acc_norm": mean,
             "answer_bundle": answer_bundle
-            #"question_bundle": question_bundle,
         }
+
+    # UNCOMMENT TO WRITE OUT THE QUESTION TABLE
+    # TODO: Write a function for this.
+    #
+    # def process_results(self, doc: MultipleChoiceDoc, results: typing.List):
+    #     gold = doc.gold
+    #     ans = np.argmax(results)
+    #     is_correct = 1. if ans == gold else 0.
+    #     # Normalize by completion length.
+    #     conts = self.loglikelihood_continuation(doc)
+    #     completion_len = np.array([float(len(i)) for i in conts])
+    #     acc_norm = 1. if np.argmax(results / completion_len) == gold else 0.
+    #     return {
+    #         "acc": is_correct,
+    #         "acc_norm": acc_norm,
+    #         # Bundle questions: (question_id, question, option_0, option_1, option_2, option_3)
+    #         "question_bundle": (doc.id, doc.question, doc.options),
+    #     }
+
+    # def higher_is_better(self):
+    #     return {
+    #         "acc": True,
+    #         "acc_norm": True,
+    #         "question_bundle": True,
+    #     }
+
+    # def aggregation(self):
+    #     return {
+    #         "acc": mean,
+    #         "acc_norm": mean,
+    #         "question_bundle": question_bundle,
+    #     }
 
 
 def answer_bundle(items):
@@ -222,6 +250,7 @@ class MC_WithOptionList_LetterLL_Task(BaseMultipleChoiceTask):
         ])
         prompt += "\nAnswer:"
         return prompt
+
     def doc_to_target(self, doc: MultipleChoiceDoc) -> str:
         return " " + doc.keys[doc.gold]
 
