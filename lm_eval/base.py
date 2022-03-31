@@ -348,19 +348,41 @@ class Task(abc.ABC):
         {"question": ..., question, answer)
     """
 
-    # The name of the `Task` benchmark as denoted in the HuggingFace `datasets`
-    # API or a path to a custom `datasets` loading script.
+    # The name of the `Task` benchmark as denoted in the HuggingFace datasets Hub
+    # or a path to a custom `datasets` loading script.
     DATASET_PATH: str = None
 
     # The name of a subset within `DATASET_PATH`.
     DATASET_NAME: str = None
 
-    def __init__(self, **kwargs):
-        self.download(**kwargs)
+    def __init__(self, data_dir=None, cache_dir=None, download_mode=None):
+        """
+        :param data_dir: str
+            Stores the path to a local folder containing the `Task`'s data files.
+            Use this to specify the path to manually downloaded data (usually when
+            the dataset is not publicly accessible).
+        :param cache_dir: str
+            The directory to read/write the `Task` dataset. This follows the
+            HuggingFace `datasets` API with the default cache directory located at:
+                `~/.cache/huggingface/datasets`
+            NOTE: You can change the cache location globally for a given process
+            by setting the shell environment variable, `HF_DATASETS_CACHE`,
+            to another directory:
+                `export HF_DATASETS_CACHE="/path/to/another/directory"`
+        :param download_mode: datasets.DownloadMode
+            How to treat pre-existing `Task` downloads and data.
+            - `datasets.DownloadMode.REUSE_DATASET_IF_EXISTS`
+                Reuse download and reuse dataset.
+            - `datasets.DownloadMode.REUSE_CACHE_IF_EXISTS`
+                Reuse download with fresh dataset.
+            - `datasets.DownloadMode.FORCE_REDOWNLOAD`
+                Fresh download and fresh dataset.
+        """
+        self.download(data_dir, cache_dir, download_mode)
         self._training_docs = None
         self._fewshot_docs = None
 
-    def download(self, **load_dataset_kwargs):
+    def download(self, data_dir=None, cache_dir=None, download_mode=None):
         """ Downloads and returns the task dataset.
         Override this method to download the dataset from a custom API.
 
@@ -370,7 +392,9 @@ class Task(abc.ABC):
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
-            **load_dataset_kwargs
+            data_dir=data_dir,
+            cache_dir=cache_dir,
+            download_mode=download_mode
         )
 
     @abstractmethod
@@ -532,7 +556,8 @@ class Task(abc.ABC):
         return description + labeled_examples + example
 
 
-class MultipleChoiceTask(Task, abc.ABC):
+class MultipleChoiceTask(Task):
+
     def doc_to_target(self, doc):
         return " " + doc['choices'][doc['gold']]
 
