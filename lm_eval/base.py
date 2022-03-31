@@ -455,7 +455,7 @@ class Task(abc.ABC):
         """
         Override this to process (detokenize, strip, replace, etc.) individual
         documents. This can be used in a map over documents of a data split.
-        E.g. `map(self._process_doc, self.validation_docs)`
+        E.g. `map(self._process_doc, self.dataset["validation"])`
 
         :return: dict
             The processed version of the specified `doc`.
