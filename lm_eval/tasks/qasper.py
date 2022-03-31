@@ -137,13 +137,13 @@ class QASPER(Task):
 
     def training_docs(self):
         for doc in self.dataset["train"]:
-            yield from self.process_doc(doc)
+            yield from self._process_doc(doc)
 
     def validation_docs(self):
         for doc in self.dataset["validation"]:
-            yield from self.process_doc(doc)
+            yield from self._process_doc(doc)
 
-    def process_doc(self, doc):
+    def _process_doc(self, doc):
         """Given a `doc`, flatten it out so that each JSON blob
         contains exactly one question and one answer. Logic taken from
         the reference implementation available at

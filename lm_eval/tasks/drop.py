@@ -53,13 +53,13 @@ class DROP(Task):
 
     def training_docs(self):
         if self._training_docs is None:
-            self._training_docs = list(map(self._convert_standard, self.dataset["train"]))
+            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
         return self._training_docs
 
     def validation_docs(self):
-        return map(self._convert_standard, self.dataset["validation"])
+        return map(self._process_doc, self.dataset["validation"])
 
-    def _convert_standard(self, doc):
+    def _process_doc(self, doc):
         return {
             "id": doc["query_id"],
             "passage": doc["passage"],

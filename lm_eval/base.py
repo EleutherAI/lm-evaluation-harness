@@ -386,8 +386,26 @@ class Task(abc.ABC):
         """ Downloads and returns the task dataset.
         Override this method to download the dataset from a custom API.
 
-        :param load_dataset_kwargs: Extra kwargs to pass to `datasets.load_dataset`
-            if needed.
+        :param data_dir: str
+            Stores the path to a local folder containing the `Task`'s data files.
+            Use this to specify the path to manually downloaded data (usually when
+            the dataset is not publicly accessible).
+        :param cache_dir: str
+            The directory to read/write the `Task` dataset. This follows the
+            HuggingFace `datasets` API with the default cache directory located at:
+                `~/.cache/huggingface/datasets`
+            NOTE: You can change the cache location globally for a given process
+            by setting the shell environment variable, `HF_DATASETS_CACHE`,
+            to another directory:
+                `export HF_DATASETS_CACHE="/path/to/another/directory"`
+        :param download_mode: datasets.DownloadMode
+            How to treat pre-existing `Task` downloads and data.
+            - `datasets.DownloadMode.REUSE_DATASET_IF_EXISTS`
+                Reuse download and reuse dataset.
+            - `datasets.DownloadMode.REUSE_CACHE_IF_EXISTS`
+                Reuse download with fresh dataset.
+            - `datasets.DownloadMode.FORCE_REDOWNLOAD`
+                Fresh download and fresh dataset.
         """
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
@@ -432,6 +450,17 @@ class Task(abc.ABC):
             A iterable of any object, that doc_to_text can handle
         """
         return []
+
+    def _process_doc(self, doc):
+        """
+        Override this to process (detokenize, strip, replace, etc.) individual
+        documents. This can be used in a map over documents of a data split.
+        E.g. `map(self._process_doc, self.validation_docs)`
+
+        :return: dict
+            The processed version of the specified `doc`.
+        """
+        return doc
 
     def fewshot_examples(self, k, rnd):
         if self._training_docs is None:

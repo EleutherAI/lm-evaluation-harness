@@ -9,7 +9,6 @@ appear in a conversation.
 
 Homepage: https://stanfordnlp.github.io/coqa/
 """
-import json
 import inspect
 import transformers.data.metrics.squad_metrics as squad_metrics
 import lm_eval.datasets.coqa.coqa

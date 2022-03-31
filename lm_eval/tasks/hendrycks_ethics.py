@@ -279,7 +279,7 @@ class EthicsUtilitarianism(Ethics):
     def training_docs(self):
         rnd = random.Random()
         for doc in self.dataset["train"]:
-            yield self.process_doc(doc, rnd)
+            yield self._process_doc(doc, rnd)
 
     def validation_docs(self):
         raise NotImplementedError
@@ -287,9 +287,9 @@ class EthicsUtilitarianism(Ethics):
     def test_docs(self):
         rnd = random.Random()
         for doc in self.dataset["test"]:
-            yield self.process_doc(doc, rnd)
+            yield self._process_doc(doc, rnd)
 
-    def process_doc(self, doc, rnd):
+    def _process_doc(self, doc, rnd):
         rnd.seed(doc["activity"])
         scenarios = [doc["activity"], doc["baseline"]]
         ordering = [0, 1]
@@ -336,7 +336,7 @@ class EthicsVirtue(Ethics):
     VERSION = 0
     DATASET_NAME = "virtue"
 
-    def process_doc(self, doc):
+    def _process_doc(self, doc):
         return doc
 
     def doc_to_text(self, doc):
