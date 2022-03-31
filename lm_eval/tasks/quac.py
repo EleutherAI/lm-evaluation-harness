@@ -41,16 +41,16 @@ class QuAC(Task):
 
     def training_docs(self):
         if self._training_docs is None:
-            self._training_docs = list(map(self._convert_standard, self.dataset["train"]))
+            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
         return self._training_docs
 
     def validation_docs(self):
-        return map(self._convert_standard, self.dataset["validation"])
+        return map(self._process_doc, self.dataset["validation"])
 
     def test_docs(self):
         raise NotImplementedError("QuAC has no test docs.")
 
-    def _convert_standard(self, doc):
+    def _process_doc(self, doc):
         doc["title"] = doc['title'] + ' - ' + doc['section_title']
         return doc
 

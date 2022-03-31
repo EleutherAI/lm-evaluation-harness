@@ -50,7 +50,7 @@ class PROST(MultipleChoiceTask):
         return True
 
     def test_docs(self):
-        return map(self._convert_standard, self.dataset["test"])
+        return map(self._process_doc, self.dataset["test"])
 
     def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0, 'PROST is designed to probe models in a zero-shot fashion only.'
@@ -61,7 +61,7 @@ class PROST(MultipleChoiceTask):
             description=description
         )
 
-    def _convert_standard(self, doc):
+    def _process_doc(self, doc):
         out_doc = {
             "query": f"{doc['context']}\nQuestion: {doc['ex_question']}\nAnswer:",
             "choices": [doc['A'], doc['B'], doc['C'], doc['D']],

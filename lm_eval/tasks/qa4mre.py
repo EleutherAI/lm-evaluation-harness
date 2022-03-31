@@ -42,9 +42,9 @@ class QA4MRE(MultipleChoiceTask):
 
     def test_docs(self):
         # `qa4mre` only has train data so we use it for the test docs.
-        return map(self._convert_standard, self.dataset["train"])
+        return map(self._process_doc, self.dataset["train"])
 
-    def _convert_standard(self, doc):
+    def _process_doc(self, doc):
         choices = doc["answer_options"]["answer_str"]
         out_doc = {
             "source": doc["document_str"].strip().replace("\'", "'"),

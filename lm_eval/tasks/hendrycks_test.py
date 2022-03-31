@@ -73,12 +73,12 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         return True
 
     def validation_docs(self):
-        return map(self._convert_standard, self.dataset["validation"])
+        return map(self._process_doc, self.dataset["validation"])
 
     def test_docs(self):
-        return map(self._convert_standard, self.dataset["test"])
+        return map(self._process_doc, self.dataset["test"])
 
-    def _convert_standard(self, doc):
+    def _process_doc(self, doc):
         def format_example(doc, keys):
             """
                 Question: <prompt>
@@ -105,7 +105,7 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         # in the same distribution as val/test but auxiliary_train isn't
 
         if self._fewshot_docs is None:
-            self._fewshot_docs = list(map(self._convert_standard, self.dataset["dev"]))
+            self._fewshot_docs = list(map(self._process_doc, self.dataset["dev"]))
 
         return rnd.sample(list(self._fewshot_docs), k)
 

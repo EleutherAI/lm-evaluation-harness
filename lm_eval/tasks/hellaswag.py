@@ -43,13 +43,13 @@ class HellaSwag(MultipleChoiceTask):
 
     def training_docs(self):
         if self._training_docs is None:
-            self._training_docs = list(map(self._convert_standard, self.dataset["train"]))
+            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
         return self._training_docs
 
     def validation_docs(self):
-        return map(self._convert_standard, self.dataset["validation"])
+        return map(self._process_doc, self.dataset["validation"])
 
-    def _convert_standard(self, doc):
+    def _process_doc(self, doc):
         ctx = doc["ctx_a"] + " " + doc["ctx_b"].capitalize()
         out_doc = {
             "query": self.preprocess(doc['activity_label'] + ': ' + ctx),
