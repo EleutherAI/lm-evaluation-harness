@@ -15,7 +15,6 @@ based algorithm and a word co-occurrence algorithm.
 Homepage: https://allenai.org/data/open-book-qa
 """
 from lm_eval.base import MultipleChoiceTask
-from .common import HFTask
 
 
 _CITATION = """
@@ -28,7 +27,7 @@ _CITATION = """
 """
 
 
-class OpenBookQA(HFTask, MultipleChoiceTask):
+class OpenBookQA(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "openbookqa"
     DATASET_NAME = "main"
@@ -42,7 +41,18 @@ class OpenBookQA(HFTask, MultipleChoiceTask):
     def has_test_docs(self):
         return True
 
-    def _convert_standard(self, doc):
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
+        return self._training_docs
+
+    def validation_docs(self):
+        return map(self._process_doc, self.dataset["validation"])
+
+    def test_docs(self):
+        return map(self._process_doc, self.dataset["test"])
+
+    def _process_doc(self, doc):
         out_doc = {
             "id": doc["id"],
             "query": doc["question_stem"],

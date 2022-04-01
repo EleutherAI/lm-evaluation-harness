@@ -15,8 +15,7 @@ not even bother with the train set.
 
 Homepage: https://ai.google.com/research/NaturalQuestions
 """
-import random
-from . common import HFTask
+from lm_eval.base import Task
 from itertools import islice
 
 
@@ -30,7 +29,7 @@ _CITATION = """
 """
 
 
-class NaturalQs(HFTask):
+class NaturalQs(Task):
     VERSION = 0
     DATASET_PATH = "natural_questions"
     DATASET_NAME = None
@@ -47,7 +46,12 @@ class NaturalQs(HFTask):
     def training_docs(self):
         # Cache training for faster few-shot.
         # Data is too large to fit in memory.
-        return self.data["train"]
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def fewshot_examples(self, k, rnd):
         # Data is too large to fit in memory. We just sample from the first bit.

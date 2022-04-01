@@ -8,7 +8,8 @@ even for highly specialized humans.
 
 Homepage: https://aghie.github.io/head-qa/
 """
-from . common import HFTask
+import inspect
+import lm_eval.datasets.headqa.headqa
 from lm_eval.base import MultipleChoiceTask
 
 
@@ -24,9 +25,9 @@ _CITATION = """
 """
 
 
-class HeadQABase(HFTask, MultipleChoiceTask):
+class HeadQABase(MultipleChoiceTask):
     VERSION = 0
-    DATASET_PATH = "head_qa"
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.headqa.headqa)
 
     def has_training_docs(self):
         return True
@@ -37,7 +38,18 @@ class HeadQABase(HFTask, MultipleChoiceTask):
     def has_test_docs(self):
         return True
 
-    def _convert_standard(self, doc):
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
+        return self._training_docs
+
+    def validation_docs(self):
+        return map(self._process_doc, self.dataset["validation"])
+
+    def test_docs(self):
+        return map(self._process_doc, self.dataset["test"])
+
+    def _process_doc(self, doc):
         out_doc = {
             "id": doc["qid"],
             "query": "Question: " + doc["qtext"] + "\nAnswer:",
@@ -49,11 +61,14 @@ class HeadQABase(HFTask, MultipleChoiceTask):
     def doc_to_text(self, doc):
         return doc["query"]
 
+
 class HeadQAEn(HeadQABase):
     DATASET_NAME = "en"
 
+
 class HeadQAEs(HeadQABase):
     DATASET_NAME = "es"
+
 
 # for backwards compatibility
 class HeadQAEsDeprecated(HeadQABase):

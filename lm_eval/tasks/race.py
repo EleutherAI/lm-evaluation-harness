@@ -12,9 +12,8 @@ Homepage: https://www.cs.cmu.edu/~glai1/data/race/
 import collections
 import datasets
 import numpy as np
-from lm_eval.base import rf
-from ..metrics import mean
-from . common import HFTask
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean
 
 
 _CITATION = """
@@ -35,15 +34,13 @@ class each:
         return list(map(self.f, other))
 
 
-class RACE(HFTask):
-    VERSION = 0
+class RACE(Task):
+    VERSION = 1
     DATASET_PATH = "race"
     DATASET_NAME = "high"
 
     cache = {}
     letter_to_num = {'A': 0, 'B': 1, 'C': 2, 'D': 3}
-
-    assert datasets.__version__ == "1.15.1", "RACE requires datasets==1.15.1!"
 
     def has_training_docs(self):
         return True
