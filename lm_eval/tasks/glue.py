@@ -14,10 +14,9 @@ respect to a wide range of linguistic phenomena found in natural language.
 Homepage: https://gluebenchmark.com/
 """
 import numpy as np
-from lm_eval.base import rf
-from ..metrics import mean, matthews_corrcoef, f1_score
-from . common import HFTask, yesno
-from ..utils import general_detokenize
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean, matthews_corrcoef, f1_score, yesno
+from lm_eval.utils import general_detokenize
 
 
 # TODO(jon-tow): Add citations for the individual datasets/tasks that make up GLUE.
@@ -46,7 +45,7 @@ _CITATION = """
 # Single-Sentence Tasks
 
 
-class CoLA(HFTask):
+class CoLA(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "cola"
@@ -59,6 +58,14 @@ class CoLA(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: Does this sentence make sense?\nAnswer:".format(doc["sentence"])
@@ -90,7 +97,7 @@ class CoLA(HFTask):
         }
 
 
-class SST(HFTask):
+class SST(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "sst2"
@@ -103,6 +110,14 @@ class SST(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: Is this sentence positive or negative?\nAnswer:".format(
@@ -139,7 +154,7 @@ class SST(HFTask):
 # Inference Tasks
 
 
-class MNLI(HFTask):
+class MNLI(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "mnli"
@@ -153,13 +168,18 @@ class MNLI(HFTask):
     def has_test_docs(self):
         return False
 
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
     def validation_docs(self):
         if self.has_validation_docs():
-            return self.data["validation_matched"]
+            return self.dataset["validation_matched"]
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.data["test_matched"]
+            return self.dataset["test_matched"]
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {} True, False or Neither?\nAnswer:".format(
@@ -202,14 +222,14 @@ class MNLIMismatched(MNLI):
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return self.data["validation_mismatched"]
+            return self.dataset["validation_mismatched"]
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.data["test_mismatched"]
+            return self.dataset["test_mismatched"]
 
 
-class QNLI(HFTask):
+class QNLI(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "qnli"
@@ -222,6 +242,14 @@ class QNLI(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "{}\n{}\nQuestion: Does this response answer the question?\nAnswer:".format(
@@ -258,7 +286,7 @@ class QNLI(HFTask):
         }
 
 
-class WNLI(HFTask):
+class WNLI(Task):
     VERSION = 1
     DATASET_PATH = "glue"
     DATASET_NAME = "wnli"
@@ -271,6 +299,14 @@ class WNLI(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {} True or False?\nAnswer:".format(
@@ -307,7 +343,7 @@ class WNLI(HFTask):
         }
 
 
-class RTE(HFTask):
+class RTE(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "rte"
@@ -320,6 +356,14 @@ class RTE(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {} True or False?\nAnswer:".format(
@@ -359,7 +403,7 @@ class RTE(HFTask):
 # Similarity and Paraphrase Tasks
 
 
-class MRPC(HFTask):
+class MRPC(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "mrpc"
@@ -372,6 +416,14 @@ class MRPC(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "Sentence 1: {}\nSentence 2: {}\nQuestion: Do both sentences mean the same thing?\nAnswer:".format(
@@ -409,7 +461,7 @@ class MRPC(HFTask):
         }
 
 
-class QQP(HFTask):
+class QQP(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "qqp"
@@ -422,6 +474,14 @@ class QQP(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "Question 1: {}\nQuestion 2: {}\nQuestion: Do both questions ask the same thing?\nAnswer:".format(
@@ -459,7 +519,7 @@ class QQP(HFTask):
         }
 
 
-class STSB(HFTask):
+class STSB(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "stsb"
@@ -472,6 +532,17 @@ class STSB(HFTask):
 
     def has_test_docs(self):
         return True
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
+    def test_docs(self):
+        return self.dataset["test"]
 
     def doc_to_text(self, doc):
         return "sentence 1: {}\nsentence 2: {}\nAnswer:".format(
