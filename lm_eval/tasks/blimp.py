@@ -2,32 +2,53 @@
 BLiMP: A Benchmark of Linguistic Minimal Pairs for English
 https://arxiv.org/abs/1912.00582
 
+BLiMP is a challenge set for evaluating what language models (LMs) know about
+major grammatical phenomena in English. BLiMP consists of 67 sub-datasets, each
+containing 1000 minimal pairs isolating specific contrasts in syntax, morphology,
+or semantics. The data is automatically generated according to expert-crafted
+grammars.
+
+Homepage: https://github.com/alexwarstadt/blimp
+"""
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean
+
+
+_CITATION = """
 @article{warstadt2019blimp,
-  title={BLiMP: A Benchmark of Linguistic Minimal Pairs for English},
-  author={Warstadt, Alex and Parrish, Alicia and Liu, Haokun and Mohananey, Anhad and Peng, Wei, and Wang, Sheng-Fu and Bowman, Samuel R},
-  journal={arXiv preprint arXiv:1912.00582},
-  year={2019}
+    author = {Warstadt, Alex and Parrish, Alicia and Liu, Haokun and Mohananey, Anhad and Peng, Wei and Wang, Sheng-Fu and Bowman, Samuel R.},
+    title = {BLiMP: The Benchmark of Linguistic Minimal Pairs for English},
+    journal = {Transactions of the Association for Computational Linguistics},
+    volume = {8},
+    number = {},
+    pages = {377-392},
+    year = {2020},
+    doi = {10.1162/tacl\_a\_00321},
+    URL = {https://doi.org/10.1162/tacl_a_00321},
+    eprint = {https://doi.org/10.1162/tacl_a_00321},
+    abstract = { We introduce The Benchmark of Linguistic Minimal Pairs (BLiMP),1 a challenge set for evaluating the linguistic knowledge of language models (LMs) on major grammatical phenomena in English. BLiMP consists of 67 individual datasets, each containing 1,000 minimal pairs—that is, pairs of minimally different sentences that contrast in grammatical acceptability and isolate specific phenomenon in syntax, morphology, or semantics. We generate the data according to linguist-crafted grammar templates, and human aggregate agreement with the labels is 96.4\%. We evaluate n-gram, LSTM, and Transformer (GPT-2 and Transformer-XL) LMs by observing whether they assign a higher probability to the acceptable sentence in each minimal pair. We find that state-of-the-art models identify morphological contrasts related to agreement reliably, but they struggle with some subtle semantic and syntactic phenomena, such as negative polarity items and extraction islands. }
 }
 """
 
-from lm_eval.base import rf
-from lm_eval.metrics import mean
-from .common import HFTask
 
-
-class BlimpTask(HFTask):
+class BlimpTask(Task):
     VERSION = 0
     DATASET_PATH = "blimp"
 
-    def download(self):
-        super().download()
+    def has_training_docs(self):
+        return False
+    
+    def has_validation_docs(self):
+        return True
 
+    def has_test_docs(self):
+        return False
+
+    def validation_docs(self):
         # The HF dataset only contains a "train" dataset, but the harness expects a "validation"
         # dataset. Let's use the training dataset, on the assumption that the model wasn't actually
         # trained on this data.
-
-        self.data["validation"] = self.data["train"]
-        del self.data["train"]
+        return self.dataset["train"]
 
     def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
         assert num_fewshot == 0

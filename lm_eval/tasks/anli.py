@@ -1,10 +1,36 @@
+"""
+Adversarial NLI: A New Benchmark for Natural Language Understanding
+https://arxiv.org/pdf/1910.14599.pdf
+
+Adversarial NLI (ANLI) is a dataset collected via an iterative, adversarial
+human-and-model-in-the-loop procedure. It consists of three rounds that progressively
+increase in difficulty and complexity, and each question-answer includes annotator-
+provided explanations.
+
+Homepage: "https://github.com/facebookresearch/anli"
+"""
 import numpy as np
-from lm_eval.base import rf
-from ..metrics import mean
-from . common import HFTask
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean
 
 
-class ANLIBase(HFTask):
+_CITATION = """
+@inproceedings{nie-etal-2020-adversarial,
+    title = "Adversarial {NLI}: A New Benchmark for Natural Language Understanding",
+    author = "Nie, Yixin  and
+      Williams, Adina  and
+      Dinan, Emily  and
+      Bansal, Mohit  and
+      Weston, Jason  and
+      Kiela, Douwe",
+    booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
+    year = "2020",
+    publisher = "Association for Computational Linguistics",
+}
+"""
+
+
+class ANLIBase(Task):
     VERSION = 0
     DATASET_PATH = "anli"
     DATASET_NAME = None
@@ -22,16 +48,16 @@ class ANLIBase(HFTask):
     def training_docs(self):
         if self.has_training_docs():
             if self._training_docs is None:
-                self._training_docs = list(self.data["train_r" + str(self.SPLIT)])
+                self._training_docs = list(self.dataset["train_r" + str(self.SPLIT)])
             return self._training_docs
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return self.data["dev_r" + str(self.SPLIT)]
+            return self.dataset["dev_r" + str(self.SPLIT)]
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.data["test_r" + str(self.SPLIT)]
+            return self.dataset["test_r" + str(self.SPLIT)]
 
     def doc_to_text(self, doc):
         # OA does this a bit weirdly: they prepend "anli 1:  anli 1:  " to the beginning
@@ -104,11 +130,14 @@ class ANLIBase(HFTask):
             "acc": True
         }
 
+
 class ANLIRound1(ANLIBase):
     SPLIT = 1
 
+
 class ANLIRound2(ANLIBase):
     SPLIT = 2
+
 
 class ANLIRound3(ANLIBase):
     SPLIT = 3

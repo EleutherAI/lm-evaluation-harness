@@ -1,17 +1,41 @@
-import numpy as np
-import random
-from lm_eval.base import rf
-from ..metrics import mean
-from . common import HFTask
-
 """
+The Winograd Schema Challenge
+http://commonsensereasoning.org/2011/papers/Levesque.pdf
+
+A Winograd schema is a pair of sentences that differ in only one or two words
+and that contain an ambiguity that is resolved in opposite ways in the two
+sentences and requires the use of world knowledge and reasoning for its resolution.
+The Winograd Schema Challenge 273 is a collection of 273 such Winograd schemas.
+
 NOTE: This evaluation of Winograd Schema Challenge is based on `partial evaluation`
 as described by Trinh & Le in Simple Method for Commonsense Reasoning (2018).
-See: https://arxiv.org/abs/1806.02847
+See: https://arxiv.org/abs/1806.0
+
+Homepage: https://cs.nyu.edu/~davise/papers/WinogradSchemas/WS.html
+"""
+import numpy as np
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean
+
+
+_CITATION = """
+@inproceedings{ea01b9c0db064caca6986b925d75f2bb,
+    title = "The winograd schema challenge",
+    abstract = "In this paper, we present an alternative to the Turing Test that has some conceptual and practical advantages. A Wino-grad schema is a pair of sentences that differ only in one or two words and that contain a referential ambiguity that is resolved in opposite directions in the two sentences. We have compiled a collection of Winograd schemas, designed so that the correct answer is obvious to the human reader, but cannot easily be found using selectional restrictions or statistical techniques over text corpora. A contestant in the Winograd Schema Challenge is presented with a collection of one sentence from each pair, and required to achieve human-level accuracy in choosing the correct disambiguation.",
+    author = "Levesque, {Hector J.} and Ernest Davis and Leora Morgenstern",
+    year = "2012",
+    language = "English (US)",
+    isbn = "9781577355601",
+    series = "Proceedings of the International Conference on Knowledge Representation and Reasoning",
+    publisher = "Institute of Electrical and Electronics Engineers Inc.",
+    pages = "552--561",
+    booktitle = "13th International Conference on the Principles of Knowledge Representation and Reasoning, KR 2012",
+    note = "13th International Conference on the Principles of Knowledge Representation and Reasoning, KR 2012 ; Conference date: 10-06-2012 Through 14-06-2012",
+}
 """
 
 
-class WinogradSchemaChallenge273(HFTask):
+class WinogradSchemaChallenge273(Task):
     VERSION = 0
     DATASET_PATH = "winograd_wsc"
     DATASET_NAME = "wsc273"
@@ -19,19 +43,24 @@ class WinogradSchemaChallenge273(HFTask):
     upper_pronouns = ["A", "An", "The", "She", "He",
                       "It", "They", "My", "His", "Her", "Their"]
 
-    def __init__(self):
-        super().__init__()
-        self.data = self.__clean_data()
+    def has_training_docs(self):
+        return False
 
-    def __clean_data(self):
+    def has_validation_docs(self):
+        return False
+
+    def has_test_docs(self):
+        return True
+
+    def test_docs(self):
+        return map(self._load_doc, self.dataset["test"])
+
+    def _load_doc(self, doc):
         # The HF implementation of `wsc273` is not `partial evaluation` friendly.
-        data = []
-        for doc in self.data["test"]:
-            doc["text"] = doc["text"].replace("  ", " ")
-            doc["options"][0] = self.__normalize_option(doc, doc["options"][0])
-            doc["options"][1] = self.__normalize_option(doc, doc["options"][1])
-            data.append(doc)
-        return {"test": data}
+        doc["text"] = doc["text"].replace("  ", " ")
+        doc["options"][0] = self.__normalize_option(doc, doc["options"][0])
+        doc["options"][1] = self.__normalize_option(doc, doc["options"][1])
+        return doc
 
     def __normalize_option(self, doc, option):
         # Append `'s` to possessive determiner based options.
@@ -43,15 +72,6 @@ class WinogradSchemaChallenge273(HFTask):
         if not start_of_sentence and pronoun in self.upper_pronouns:
             return option.replace(pronoun, pronoun.lower())
         return option
-
-    def has_training_docs(self):
-        return False
-
-    def has_validation_docs(self):
-        return False
-
-    def has_test_docs(self):
-        return True
 
     def fewshot_examples(self, k, rnd):
         # NOTE: `super().fewshot_examples` samples from training docs which are

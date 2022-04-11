@@ -2,34 +2,42 @@
 A Dataset of Information-Seeking Questions and Answers Anchored in Research Papers
 https://arxiv.org/abs/2105.03011
 
+QASPER is a dataset of 5,049 questions over 1,585 Natural Language Processing papers.
+Each question is written by an NLP practitioner who read only the title and abstract
+of the corresponding paper, and the question seeks information present in the full
+text. The questions are then answered by a separate set of NLP practitioners who also
+provide supporting evidence to answers.
+
+Homepage: https://allenai.org/data/qasper
+"""
+from collections import Counter
+import re
+import string
+from lm_eval.base import rf, Task
+from lm_eval.metrics import f1_score, mean
+
+
+_CITATION = """
 @article{DBLP:journals/corr/abs-2105-03011,
-  author    = {Pradeep Dasigi and
+    author    = {Pradeep Dasigi and
                Kyle Lo and
                Iz Beltagy and
                Arman Cohan and
                Noah A. Smith and
                Matt Gardner},
-  title     = {A Dataset of Information-Seeking Questions and Answers Anchored in
+    title     = {A Dataset of Information-Seeking Questions and Answers Anchored in
                Research Papers},
-  journal   = {CoRR},
-  volume    = {abs/2105.03011},
-  year      = {2021},
-  url       = {https://arxiv.org/abs/2105.03011},
-  eprinttype = {arXiv},
-  eprint    = {2105.03011},
-  timestamp = {Fri, 14 May 2021 12:13:30 +0200},
-  biburl    = {https://dblp.org/rec/journals/corr/abs-2105-03011.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+    journal   = {CoRR},
+    volume    = {abs/2105.03011},
+    year      = {2021},
+    url       = {https://arxiv.org/abs/2105.03011},
+    eprinttype = {arXiv},
+    eprint    = {2105.03011},
+    timestamp = {Fri, 14 May 2021 12:13:30 +0200},
+    biburl    = {https://dblp.org/rec/journals/corr/abs-2105-03011.bib},
+    bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 """
-from collections import Counter
-from math import exp
-import random
-import re
-import string
-from lm_eval.base import rf
-from lm_eval.metrics import f1_score, mean
-from .common import HFTask
 
 
 def normalize_answer(s):
@@ -93,10 +101,19 @@ def token_f1_score(prediction, ground_truth):
     return f1
 
 
-class QASPER(HFTask):
+class QASPER(Task):
     VERSION = 0
     DATASET_PATH = "qasper"
     DATASET_NAME = None
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return False
 
     def doc_to_text(self, doc):
         return (
@@ -119,14 +136,14 @@ class QASPER(HFTask):
         return " " + answer
 
     def training_docs(self):
-        for doc in self.data["train"]:
-            yield from self.process_doc(doc)
+        for doc in self.dataset["train"]:
+            yield from self._process_doc(doc)
 
     def validation_docs(self):
-        for doc in self.data["train"]:
-            yield from self.process_doc(doc)
+        for doc in self.dataset["validation"]:
+            yield from self._process_doc(doc)
 
-    def process_doc(self, doc):
+    def _process_doc(self, doc):
         """Given a `doc`, flatten it out so that each JSON blob
         contains exactly one question and one answer. Logic taken from
         the reference implementation available at

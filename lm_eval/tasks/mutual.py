@@ -2,6 +2,19 @@
 MuTual: A Dataset for Multi-Turn Dialogue Reasoning
 https://www.aclweb.org/anthology/2020.acl-main.130/
 
+MuTual is a retrieval-based dataset for multi-turn dialogue reasoning, which is
+modified from Chinese high school English listening comprehension test data.
+
+Homepage: https://github.com/Nealcly/MuTual
+"""
+import numpy as np
+import inspect
+import lm_eval.datasets.mutual.mutual
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean
+
+
+_CITATION = """
 @inproceedings{mutual,
     title = "MuTual: A Dataset for Multi-Turn Dialogue Reasoning",
     author = "Cui, Leyang  and Wu, Yu and Liu, Shujie and Zhang, Yue and Zhou, Ming" ,
@@ -10,40 +23,13 @@ https://www.aclweb.org/anthology/2020.acl-main.130/
     publisher = "Association for Computational Linguistics",
 }
 """
-import json
-import zipfile
-import shutil
-import numpy as np
-from pathlib import Path
-from lm_eval.base import Task, rf
-from lm_eval.metrics import mean
-from best_download import download_file
 
 
 class MuTualBase(Task):
     VERSION = 1
-    BASE_PATH = Path("data/mutual")
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.mutual.mutual)
     DATASET_NAME = None
     CHOICES = ['A', 'B', 'C', 'D']
-
-    def __init__(self):
-        super().__init__()
-
-    def download(self):
-        if self.BASE_PATH.exists():
-            return
-        Path.mkdir(self.BASE_PATH, parents=True)
-        master_zip = Path("data/master.zip")
-        download_file(
-            "https://github.com/Nealcly/MuTual/archive/master.zip",
-            local_file=str(master_zip),
-            expected_checksum="bb325cf6c672f0f02699993a37138b0fa0af6fcfc77ec81dfbe46add4d7b29f9")
-        with zipfile.ZipFile(master_zip, 'r') as zip:
-            zip.extractall("data")
-        Path("data/MuTual-master/data").rename(str(self.BASE_PATH))
-        # Remove left over files and directories.
-        master_zip.unlink()
-        shutil.rmtree("data/MuTual-master")
 
     def has_training_docs(self):
         return True
@@ -54,18 +40,11 @@ class MuTualBase(Task):
     def has_test_docs(self):
         return False
 
-    def _load_docs(self, path):
-        for file in sorted(path.iterdir()):
-            if file.suffix != ".txt":
-                continue
-            with open(file, 'r', encoding='utf-8') as f:
-                yield json.load(f)
-
     def training_docs(self):
-        return self._load_docs(self.BASE_PATH / self.DATASET_NAME / "train")
+        return self.dataset["train"]
 
     def validation_docs(self):
-        return self._load_docs(self.BASE_PATH / self.DATASET_NAME / "dev")
+        return self.dataset["validation"]
 
     def test_docs(self):
         return NotImplemented
@@ -132,8 +111,8 @@ class MuTualBase(Task):
 
 
 class MuTual(MuTualBase):
-    DATASET_NAME = Path("mutual")
+    DATASET_NAME = "mutual"
 
 
 class MuTualPlus(MuTualBase):
-    DATASET_NAME = Path("mutual_plus")
+    DATASET_NAME = "mutual_plus"

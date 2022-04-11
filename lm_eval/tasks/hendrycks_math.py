@@ -1,33 +1,32 @@
-import abc
-import json
-from lm_eval.utils import sh
+"""
+Measuring Mathematical Problem Solving With the MATH Dataset
+https://arxiv.org/pdf/2103.03874.pdf
+
+Math is a dataset of 12,500 challenging competition mathematics problems. Each
+problem in Math has a full step-by-step solution which can be used to teach
+models to generate answer derivations and explanations.
+
+Homepage: https://github.com/hendrycks/math
+"""
+import inspect
+import lm_eval.datasets.hendrycks_math.hendrycks_math
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
-from pathlib import Path
-from best_download import download_file
+
+
+_CITATION = """
+@article{hendrycksmath2021,
+  title={Measuring Mathematical Problem Solving With the Math Dataset},
+  author={Dan Hendrycks and Collin Burns and Saurav Kadavath and Akul Arora and Steven Basart and Eric Tang and Dawn Song and Jacob Steinhardt},
+  journal={NeurIPS},
+  year={2021}
+}
+"""
 
 
 class Math(Task):
-    """
-    This dataset is based on the following paper:
-    https://arxiv.org/abs/2103.03874 
-    """
-
-    DATASET_PATH = Path('data/MATH')
-
-    def download(self):
-        if not (self.DATASET_PATH / 'test').exists() or not (self.DATASET_PATH / 'done').exists():
-            sh(f"mkdir -p {self.DATASET_PATH}")
-            download_file("https://people.eecs.berkeley.edu/~hendrycks/MATH.tar", local_file=f"{self.DATASET_PATH}.tar", expected_checksum="0fbe4fad0df66942db6c221cdcc95b298cc7f4595a2f0f518360cce84e90d9ac")
-            sh(f"""
-            tar -xf {self.DATASET_PATH}.tar -C data/ && touch {self.DATASET_PATH / 'done'}
-            rm {self.DATASET_PATH}.tar
-            """)
-
-    @abc.abstractmethod
-    def get_file_info(self):
-        """returns directory name"""
-        pass
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
+    DATASET_NAME = None
 
     def has_training_docs(self):
         return True
@@ -38,22 +37,19 @@ class Math(Task):
     def has_test_docs(self):
         return True
 
-    def _load_docs(self, path):
-        for file in sorted(path.iterdir()):
-            with open(file) as f:
-                doc = json.load(f)
-                doc["answer"] = self.remove_boxed(
-                    self.last_boxed_only_string(doc["solution"]))
-                yield doc
-
     def training_docs(self):
-        return self._load_docs(self.DATASET_PATH / "train" / self.get_file_info())
+        return map(self._load_doc, self.dataset["train"])
 
     def validation_docs(self):
         return NotImplemented
 
     def test_docs(self):
-        return self._load_docs(self.DATASET_PATH / "test" / self.get_file_info())
+        return map(self._load_doc, self.dataset["test"])
+
+    def _load_doc(self, doc):
+        doc["answer"] = self.remove_boxed(
+            self.last_boxed_only_string(doc["solution"]))
+        return doc
 
     def doc_to_text(self, doc):
         return "Problem: " + doc["problem"] + "\nAnswer:"
@@ -65,7 +61,7 @@ class Math(Task):
         return doc["problem"]
 
     def doc_to_target(self, doc):
-        return " " + doc["answer"]
+        return " " + doc["solution"]
 
     def construct_requests(self, doc, ctx):
         return rf.greedy_until(ctx, ["\n"])
@@ -292,41 +288,34 @@ class Math(Task):
 
 class MathAlgebra(Math):
     VERSION = 1
-    def get_file_info(self):
-        return 'algebra'
+    DATASET_NAME = 'algebra'
 
 
 class MathCountingAndProbability(Math):
     VERSION = 1
-    def get_file_info(self):
-        return 'counting_and_probability'
+    DATASET_NAME = 'counting_and_probability'
 
 
 class MathGeometry(Math):
     VERSION = 1
-    def get_file_info(self):
-        return 'geometry'
+    DATASET_NAME = 'geometry'
 
 
 class MathIntermediateAlgebra(Math):
     VERSION = 1
-    def get_file_info(self):
-        return 'intermediate_algebra'
+    DATASET_NAME = 'intermediate_algebra'
 
 
 class MathNumberTheory(Math):
     VERSION = 1
-    def get_file_info(self):
-        return 'number_theory'
+    DATASET_NAME = 'number_theory'
 
 
 class MathPrealgebra(Math):
     VERSION = 1
-    def get_file_info(self):
-        return 'prealgebra'
+    DATASET_NAME = 'prealgebra'
 
 
 class MathPrecalculus(Math):
     VERSION = 1
-    def get_file_info(self):
-        return 'precalculus'
+    DATASET_NAME = 'precalculus'

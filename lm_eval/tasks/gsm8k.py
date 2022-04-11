@@ -2,6 +2,29 @@
 "Training Verifiers to Solve Math Word Problems"
 https://arxiv.org/abs/2110.14168
 
+State-of-the-art language models can match human performance on many tasks, but 
+they still struggle to robustly perform multi-step mathematical reasoning. To 
+diagnose the failures of current models and support research, we introduce GSM8K,
+a dataset of 8.5K high quality linguistically diverse grade school math word problems.
+We find that even the largest transformer models fail to achieve high test performance, 
+despite the conceptual simplicity of this problem distribution.
+
+NOTE: See the official implementation of the task: 
+    https://github.com/openai/grade-school-math/blob/master/grade_school_math/calculator.py
+for how to make use of the dataset's calculator annotations in your language
+model's sample/generation function.
+
+Homepage: https://github.com/openai/grade-school-math
+"""
+import inspect
+import re
+import lm_eval.datasets.gsm8k.gsm8k
+from pathlib import Path
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean
+
+
+_CITATION = """
 @misc{cobbe2021training,
       title={Training Verifiers to Solve Math Word Problems},
       author={Karl Cobbe and Vineet Kosaraju and Mohammad Bavarian and Jacob Hilton and Reiichiro Nakano and Christopher Hesse and John Schulman},
@@ -10,19 +33,8 @@ https://arxiv.org/abs/2110.14168
       archivePrefix={arXiv},
       primaryClass={cs.LG}
 }
-
-NOTE: See the official implementation of the task: 
-    https://github.com/openai/grade-school-math/blob/master/grade_school_math/calculator.py
-for how to make use of the dataset's calculator annotations in your language
-model's sample/generation function.
 """
 
-import json
-import re
-from best_download import download_file
-from pathlib import Path
-from lm_eval.base import Task, rf
-from lm_eval.metrics import mean
 
 ANS_RE = re.compile(r"#### (\-?[0-9\.\,]+)")
 INVALID_ANS = "[invalid]"
@@ -30,20 +42,8 @@ INVALID_ANS = "[invalid]"
 
 class GradeSchoolMath8K(Task):
     VERSION = 0
-    DATASET_PATH = Path('data/gsm8k')
-
-    def download(self):
-        if self.DATASET_PATH.exists():
-            return
-        Path.mkdir(self.DATASET_PATH, parents=True)
-        base_url = "https://raw.githubusercontent.com/openai/grade-school-math/master/grade_school_math/data"
-        splits = [
-            {"name": "train", "checksum": "17f347dc51477c50d4efb83959dbb7c56297aba886e5544ee2aaed3024813465"},
-            {"name": "test", "checksum": "3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14"},
-        ]
-        for split in splits:
-            file = self.DATASET_PATH / f"{split['name']}.jsonl"
-            download_file(f"{base_url}/{split['name']}.jsonl", str(file), split["checksum"])
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.gsm8k.gsm8k)
+    DATASET_NAME = None
 
     def has_training_docs(self):
         return True
@@ -54,17 +54,14 @@ class GradeSchoolMath8K(Task):
     def has_test_docs(self):
         return True
 
-    def _load_docs(self, file):
-        return (json.loads(line) for line in open(file).read().splitlines())
-
     def training_docs(self):
-        return self._load_docs(self.DATASET_PATH / "train.jsonl")
+        return self.dataset["train"]
 
     def validation_docs(self):
         raise NotImplementedError
 
     def test_docs(self):
-        return self._load_docs(self.DATASET_PATH / "test.jsonl")
+        return self.dataset["test"]
 
     def doc_to_text(self, doc):
         return "Question: " + doc['question'] + '\nAnswer:'

@@ -1,10 +1,35 @@
+"""
+Know What You Don’t Know: Unanswerable Questions for SQuAD
+https://arxiv.org/pdf/1806.03822.pdf
+
+Stanford Question Answering Dataset (SQuAD) is a reading comprehension dataset,
+consisting of questions posed by crowdworkers on a set of Wikipedia articles,
+where the answer to every question is a segment of text, or span, from the
+corresponding reading passage, or the question might be unanswerable.
+SQuAD2.0 combines the 100,000 questions in SQuAD1.1 with over 50,000 unanswerable
+questions written adversarially by crowdworkers to look similar to answerable ones.
+To do well on SQuAD2.0, systems must not only answer questions when possible, but
+also determine when no answer is supported by the paragraph and abstain from answering.
+
+Homepage: https://rajpurkar.github.io/SQuAD-explorer/
+"""
 import datasets
 from math import exp
-from lm_eval.base import rf
-from lm_eval.metrics import f1_score, mean
-from . common import HFTask
+from lm_eval.base import rf, Task
 from functools import partial
 from packaging import version
+
+
+_CITATION = """
+@misc{rajpurkar2018know,
+    title={Know What You Don't Know: Unanswerable Questions for SQuAD}, 
+    author={Pranav Rajpurkar and Robin Jia and Percy Liang},
+    year={2018},
+    eprint={1806.03822},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
 
 
 def _squad_metric(predictions, references):
@@ -18,7 +43,7 @@ def _squad_agg(key, items):
     return _squad_metric(predictions=predictions, references=references)[key]
 
 
-class SQuAD2(HFTask):
+class SQuAD2(Task):
     VERSION = 1
     DATASET_PATH = "squad_v2"
     DATASET_NAME = None
@@ -36,10 +61,10 @@ class SQuAD2(HFTask):
         return False
 
     def training_docs(self):
-        return self.data["train"]
+        return self.dataset["train"]
 
     def validation_docs(self):
-        return self.data["validation"]
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return 'Title: ' + doc['title'] + '\n\n' + 'Background: ' + doc['context'] + '\n\n' + 'Question: ' + doc['question'] + '\n\n' + 'Answer:'

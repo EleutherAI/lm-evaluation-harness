@@ -1,21 +1,58 @@
+"""
+The Children’s Book Test (CBT) from the paper:
+https://research.fb.com/wp-content/uploads/2016/11/the_goldilocks_principle_reading_children_s_books_with_explicit_memory_representations.pdf
+
+The Children's Book Test (CBT) is test of how well language models capture 
+meaning in children's books. Unlike standard language modelling benchmarks,
+it distinguishes the task of predicting syntactic function words from that
+of predicting lower-frequency words, which carry greater semantic content.
+
+NOTE: This evaluation is based on the (context + query) question-answering variant
+used by the Recurrent Language Models described in the paper. See section 4.4.
+
+Homepage: https://github.com/facebookresearch/ParlAI/tree/main/parlai/tasks/cbt
+"""
 import numpy as np
-from lm_eval.base import rf
+from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
-from .common import HFTask
 
 
-class CBTBase(HFTask):
-    """The Children’s Book Test (CBT) from the paper:
-    https://research.fb.com/wp-content/uploads/2016/11/the_goldilocks_principle_reading_children_s_books_with_explicit_memory_representations.pdf
-    NOTE: This evaluation is based on the (context + query) question-answering variant
-    used by the Recurrent Language Models described in the aforementioned paper.
-    See section 4.4.
-    """
+_CITATION = """
+@misc{hill2016goldilocks,
+    title={The Goldilocks Principle: Reading Children's Books with Explicit Memory Representations}, 
+    author={Felix Hill and Antoine Bordes and Sumit Chopra and Jason Weston},
+    year={2016},
+    eprint={1511.02301},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
 
+
+class CBTBase(Task):
+    VERSION = 0
     DATASET_PATH = "cbt"
     DATASET_NAME = None
 
-    VERSION = 0
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
+    def test_docs(self):
+        return self.dataset["test"]
 
     def detokenize(self, text):
         text = text.replace(" '", "'")
