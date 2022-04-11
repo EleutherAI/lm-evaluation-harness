@@ -77,4 +77,3 @@ class PROST(MultipleChoiceTask):
 
     def doc_to_decontamination_query(self, doc):
         return doc["query"]
-
