@@ -65,7 +65,7 @@ class CoQA(Task):
         return True
 
     def doc_to_decontamination_query(self, doc):
-        return doc["story"] + " " + doc["questions"]
+        return doc["story"] + " " + "\n".join(doc["questions"]["input_text"])
 
     @classmethod
     def get_answers(cls, doc, turn_id):

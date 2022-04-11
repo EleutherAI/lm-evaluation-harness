@@ -76,7 +76,12 @@ class StoryCloze(Task):
         return True
 
     def doc_to_decontamination_query(self, doc):
-        return doc["context"]
+        return ' '.join([
+            doc["input_sentence_1"],
+            doc["input_sentence_2"],
+            doc["input_sentence_3"],
+            doc["input_sentence_4"],
+        ])
 
     def doc_to_target(self, doc):
         clozes = [doc["sentence_quiz1"], doc["sentence_quiz2"]]

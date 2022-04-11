@@ -94,7 +94,7 @@ class EthicsCM(Ethics):
         return True
 
     def doc_to_decontamination_query(self, doc):
-        return doc[1]
+        return doc["input"]
 
     def doc_to_target(self, doc):
         return " {}".format(yesno(int(doc["label"])))
@@ -135,7 +135,7 @@ class EthicsDeontology(Ethics):
         return True
 
     def doc_to_decontamination_query(self, doc):
-        return " ".join([doc[1], doc[2]])
+        return " ".join([doc["scenario"], doc["excuse"]])
 
     def doc_to_target(self, doc):
         target = ["unreasonable", "reasonable"][int(doc["label"])]
@@ -186,7 +186,7 @@ class EthicsJustice(Ethics):
         return True
 
     def doc_to_decontamination_query(self, doc):
-        return doc[1]
+        return doc["scenario"]
 
     def doc_to_target(self, doc):
         target = ["unreasonable", "reasonable"][int(doc["label"])]

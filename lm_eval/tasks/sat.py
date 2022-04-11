@@ -72,5 +72,4 @@ class SATAnalogies(MultipleChoiceTask):
         return True
 
     def doc_to_decontamination_query(self, doc):
-        return doc["source"] + " " + doc["query"]
-
+        return doc["source"] + "\n" + " ".join(doc["query"])

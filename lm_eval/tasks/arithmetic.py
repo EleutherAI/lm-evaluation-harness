@@ -57,7 +57,7 @@ class Arithmetic(Task):
         return True
 
     def doc_to_decontamination_query(self, doc):
-        return doc.context
+        return doc["context"]
 
     def doc_to_target(self, doc):
         return doc["completion"]
