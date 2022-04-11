@@ -132,7 +132,7 @@ class GeneralTranslationTask(Task):
         return True
 
     def doc_to_decontamination_query(self, doc):
-        return doc["ref"] + " " + doc["ref"]
+        return doc["src"]
 
     def doc_to_target(self, doc):
         # This shows a single target, though there may be multiple targets in a lang test
