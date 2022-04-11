@@ -1,9 +1,29 @@
-import csv
-import random
+"""
+Measuring Massive Multitask Language Understanding
+https://arxiv.org/pdf/2009.03300.pdf
+
+The Hendryck's Test is a benchmark that measured a text model’s multitask accuracy.
+The test covers 57 tasks including elementary mathematics, US history, computer 
+science, law, and more. To attain high accuracy on this test, models must possess
+extensive world knowledge and problem solving ability. By comprehensively evaluating
+the breadth and depth of a model’s academic and professional understanding, 
+Hendryck's Test can be used to analyze models across many tasks and to identify 
+important shortcomings.
+
+Homepage: https://github.com/hendrycks/test
+"""
 from lm_eval.base import MultipleChoiceTask
-from ..utils import sh
-from pathlib import Path
-from best_download import download_file
+
+
+_CITATION = """
+@article{hendryckstest2021,
+    title={Measuring Massive Multitask Language Understanding},
+    author={Dan Hendrycks and Collin Burns and Steven Basart and Andy Zou and Mantas Mazeika and Dawn Song and Jacob Steinhardt},
+    journal={Proceedings of the International Conference on Learning Representations (ICLR)},
+    year={2021}
+}
+"""
+
 
 SUBJECTS = ['abstract_algebra', 'anatomy', 'astronomy', 'business_ethics', 'clinical_knowledge', 'college_biology',
             'college_chemistry', 'college_computer_science', 'college_mathematics', 'college_medicine', 'college_physics',
@@ -36,25 +56,15 @@ def create_task(subject):
 
 class GeneralHendrycksTest(MultipleChoiceTask):
     VERSION = 0
-    DATASET_PATH = Path("data/hendrycksTest/")
+    DATASET_PATH = "hendrycks_test"
+    DATASET_NAME = None
 
     def __init__(self, subject):
-        self.subject = subject
+        self.DATASET_NAME = subject
         super().__init__()
 
-    def download(self):
-        if not (self.DATASET_PATH / 'done').exists():
-            sh("mkdir -p data")
-            download_file("https://people.eecs.berkeley.edu/~hendrycks/data.tar", local_file="data/data.tar", expected_checksum="78a804365a59028188fb19bd1adcadc5e0c260b220a9d8b2e33a5ea7d5fbe3b4")
-            sh("""
-            tar -xf data/data.tar -C data/
-            rm data/data.tar
-            mv data/data data/hendrycksTest
-            touch data/hendrycksTest/done
-            """)
-
     def has_training_docs(self):
-        return True
+        return False
 
     def has_validation_docs(self):
         return True
@@ -62,8 +72,14 @@ class GeneralHendrycksTest(MultipleChoiceTask):
     def has_test_docs(self):
         return True
 
-    def _convert_standard(self, doc):
-        def format_example(doc, choices):
+    def validation_docs(self):
+        return map(self._process_doc, self.dataset["validation"])
+
+    def test_docs(self):
+        return map(self._process_doc, self.dataset["test"])
+
+    def _process_doc(self, doc):
+        def format_example(doc, keys):
             """
                 Question: <prompt>
                 Choices:
@@ -73,44 +89,23 @@ class GeneralHendrycksTest(MultipleChoiceTask):
                 D. <choice4>
                 Answer:
             """
-            prompt = "Question: " + doc[0] + "\nChoices:\n"
-            prompt += "".join([f"{choices[j]}. {doc[j+1]}\n" for j in range(4)])
+            prompt = "Question: " + doc["question"] + "\nChoices:\n"
+            prompt += "".join([f"{key}. {choice}\n" for key, choice in zip(keys, doc["choices"])])
             prompt += "Answer:"
             return prompt
-        choices = ['A', 'B', 'C', 'D']
+        keys = ['A', 'B', 'C', 'D']
         return {
-            "query": format_example(doc, choices),
-            "choices": doc[1:5],
-            "gold": choices.index(doc[5])
+            "query": format_example(doc, keys),
+            "choices": doc["choices"],
+            "gold": keys.index(doc["answer"]) if isinstance(doc["answer"], str) else doc["answer"]
         }
-
-    def _load_docs(self, filename):
-        reader = csv.reader(open(filename, 'r'), quotechar='"', delimiter=',')
-        return (self._convert_standard(doc) for doc in reader)
-
-    def training_docs(self):
-        docs = []
-        for train_dir in ["auxiliary_train", "dev"]:
-            for f in (self.DATASET_PATH / train_dir).iterdir():
-                docs.extend(self._load_docs(f))
-        return docs
-
-    def validation_docs(self):
-        filename = self.DATASET_PATH / "val" / f"{self.subject}_val.csv"
-        return self._load_docs(filename)
-
-    def test_docs(self):
-        filename = self.DATASET_PATH / "test" / f"{self.subject}_test.csv"
-        return self._load_docs(filename)
 
     def fewshot_examples(self, k, rnd):
         # fewshot_examples is not just sampling from train_docs because dev is 
         # in the same distribution as val/test but auxiliary_train isn't
 
-        filename = self.DATASET_PATH / "dev" / f"{self.subject}_dev.csv"
-
         if self._fewshot_docs is None:
-            self._fewshot_docs = list(self._load_docs(filename))
+            self._fewshot_docs = list(map(self._process_doc, self.dataset["dev"]))
 
         return rnd.sample(list(self._fewshot_docs), k)
 

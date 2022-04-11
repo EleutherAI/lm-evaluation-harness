@@ -1,16 +1,35 @@
+"""
+WinoGrande: An Adversarial Winograd Schema Challenge at Scale
+https://arxiv.org/pdf/1907.10641.pdf
+
+WinoGrande is a collection of 44k problems, inspired by Winograd Schema Challenge
+(Levesque, Davis, and Morgenstern 2011), but adjusted to improve the scale and
+robustness against the dataset-specific bias. Formulated as a fill-in-a-blank
+task with binary options, the goal is to choose the right option for a given
+sentence which requires commonsense reasoning.
+
+NOTE: This evaluation of Winogrande uses partial evaluation as described by
+Trinh & Le in Simple Method for Commonsense Reasoning (2018). 
+See: https://arxiv.org/abs/1806.02847
+
+Homepage: https://leaderboard.allenai.org/winogrande/submissions/public
+"""
 import numpy as np
-from . common import HFTask
-from lm_eval.base import rf
-from ..metrics import mean
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean
 
+
+_CITATION = """
+@article{sakaguchi2019winogrande,
+    title={WinoGrande: An Adversarial Winograd Schema Challenge at Scale},
+    author={Sakaguchi, Keisuke and Bras, Ronan Le and Bhagavatula, Chandra and Choi, Yejin},
+    journal={arXiv preprint arXiv:1907.10641},
+    year={2019}
+}
 """
-This evaluation of Winogrande uses partial evaluation as described by
-Trinh & Le in Simple Method for Commonsense Reasoning (2018).
-Reference: https://arxiv.org/abs/1806.02847
-"""
 
 
-class Winogrande(HFTask):
+class Winogrande(Task):
     VERSION = 0
     DATASET_PATH = "winogrande"
     DATASET_NAME = "winogrande_xl"
@@ -25,6 +44,14 @@ class Winogrande(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return self.partial_context(doc, doc["option" + doc["answer"]])

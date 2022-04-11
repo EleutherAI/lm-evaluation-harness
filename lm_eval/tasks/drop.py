@@ -1,35 +1,46 @@
-import json
-import numpy as np
-import re
-import string
-from best_download import download_file
-from scipy.optimize import linear_sum_assignment
-from lm_eval.base import Task, rf
-from lm_eval.metrics import mean
-from pathlib import Path
-from zipfile import ZipFile
-
 """
+DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs
+https://aclanthology.org/attachments/N19-1246.Supplementary.pdf
+
+DROP is a QA dataset which tests comprehensive understanding of paragraphs. In 
+this crowdsourced, adversarially-created, 96k question-answering benchmark, a 
+system must resolve multiple references in a question, map them onto a paragraph,
+and perform discrete operations over them (such as addition, counting, or sorting).
+
+Homepage: https://allenai.org/data/drop
+
 Acknowledgement: This implementation is based on the official evaluation for `DROP`:
 https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_rc/eval/drop_eval.py
 """
+import inspect
+import numpy as np
+import re
+import string
+import lm_eval.datasets.drop.drop
+from scipy.optimize import linear_sum_assignment
+from lm_eval.base import Task, rf
+from lm_eval.metrics import mean
+
+
+_CITATION = """
+@misc{dua2019drop,
+    title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs}, 
+    author={Dheeru Dua and Yizhong Wang and Pradeep Dasigi and Gabriel Stanovsky and Sameer Singh and Matt Gardner},
+    year={2019},
+    eprint={1903.00161},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
+
 
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
 
+
 class DROP(Task):
     VERSION = 1
-    DATASET_PATH = Path("data/drop")
-
-    def download(self):
-        if self.DATASET_PATH.exists():
-            return
-        Path.mkdir(self.DATASET_PATH, parents=True)
-        url = "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip"
-        checksum = "39d2278a29fd729de301b111a45f434c24834f40df8f4ff116d864589e3249d6"
-        zip_path = self.DATASET_PATH / "drop_dataset.zip"
-        download_file(url, local_file=str(zip_path), expected_checksum=checksum)
-        with ZipFile(zip_path, "r") as zip:
-            zip.extractall(self.DATASET_PATH)
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.drop.drop)
+    DATASET_NAME = None
 
     def has_training_docs(self):
         return True
@@ -40,29 +51,46 @@ class DROP(Task):
     def has_test_docs(self):
         return False
 
-    def _load_docs(self, docs):
-        for doc in docs:
-            for qa in doc["qa_pairs"]:
-                yield {
-                    "id": qa["query_id"],
-                    "passage": doc["passage"],
-                    "question": qa["question"],
-                    "answers": self.get_answers(qa),
-                }
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
+        return self._training_docs
+
+    def validation_docs(self):
+        return map(self._process_doc, self.dataset["validation"])
+
+    def _process_doc(self, doc):
+        return {
+            "id": doc["query_id"],
+            "passage": doc["passage"],
+            "question": doc["question"],
+            "answers": self.get_answers(doc),
+        }
 
     @classmethod
     def get_answers(cls, qa):
+        def _flatten_validated_answers(validated_answers):
+            """ Flattens a dict of lists of validated answers.
+            {"number": ['1', '8'], ...}
+            -> [{"number": ['1'], ...}, {"number": ['8'], ...}]
+            """
+            vas = []
+            for i in range(len(validated_answers["number"])):
+                vas.append({
+                    "number": validated_answers["number"][i],
+                    "date": validated_answers["date"][i],
+                    "spans": validated_answers["spans"][i],
+                })
+            return vas
         answers = []
         answers_set = set()
-
-        candidates = [qa["answer"]] + qa.get("validated_answers", [])
+        candidates = [qa["answer"]] + _flatten_validated_answers(qa["validated_answers"])
         for candidate in candidates:
             answer = cls.parse_answer(candidate)
             if answer in answers_set:
                 continue
             answers_set.add(answer)
             answers.append(answer)
-
         return answers
 
     @classmethod
@@ -75,14 +103,6 @@ class DROP(Task):
         return (" ".join([answer["date"]["day"],
                           answer["date"]["month"],
                           answer["date"]["year"]]).strip(),)
-
-    def training_docs(self):
-        docs = json.load(open(self.DATASET_PATH / "drop_dataset" / "drop_dataset_train.json"))
-        return self._load_docs([docs[k] for k in docs.keys()])
-
-    def validation_docs(self):
-        docs = json.load(open(self.DATASET_PATH / "drop_dataset" / "drop_dataset_dev.json"))
-        return self._load_docs([docs[k] for k in docs.keys()])
 
     def doc_to_text(self, doc):
         return f"Passage: {doc['passage']}\nQuestion: {doc['question']}\nAnswer:"

@@ -1,9 +1,30 @@
-import os
-import re
-from lm_eval.base import rf, PerplexityTask
-from lm_eval.utils import sh
+"""
+Pointer Sentinel Mixture Models
+https://arxiv.org/pdf/1609.07843.pdf
 
-from best_download import download_file
+The WikiText language modeling dataset is a collection of over 100 million tokens 
+extracted from the set of verified Good and Featured articles on Wikipedia.
+
+NOTE: This `Task` is based on WikiText-2.
+
+Homepage: https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/
+"""
+import re
+import inspect
+import lm_eval.datasets.wikitext.wikitext
+from lm_eval.base import PerplexityTask
+
+
+_CITATION = """
+@misc{merity2016pointer,
+    title={Pointer Sentinel Mixture Models}, 
+    author={Stephen Merity and Caiming Xiong and James Bradbury and Richard Socher},
+    year={2016},
+    eprint={1609.07843},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
 
 
 def wikitext_detokenizer(string):
@@ -42,41 +63,29 @@ def wikitext_detokenizer(string):
 
 class WikiText(PerplexityTask):
     VERSION = 1
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.wikitext.wikitext)
+    DATASET_NAME = "wikitext-2-raw-v1"
 
-    def download(self):
-        if not os.path.exists('data/wikitext/wikitext-2-raw/wiki.valid.raw'):
-            os.makedirs("data/wikitext/", exist_ok=True)
-            download_file("https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-2-raw-v1.zip", local_file="data/wikitext/wikitext-2-raw-v1.zip", expected_checksum="ef7edb566e3e2b2d31b29c1fdb0c89a4cc683597484c3dc2517919c615435a11")
-            sh("cd data/wikitext/ && unzip wikitext-2-raw-v1.zip")
+    def has_training_docs(self):
+        return True
 
     def has_validation_docs(self):
         return True
 
-    def has_train_docs(self):
-        return True
-
     def has_test_docs(self):
         return True
-    
-    def docs_for_split(self, split):
-        ret = []
-        for line in open(f"data/wikitext/wikitext-2-raw/wiki.{split}.raw").read().split('\n'):
-            rline = line.replace("= = =", "===").replace("= =", "==").strip()
-            if rline.startswith('= ') and rline.strip().endswith(' ='):
-                s = '\n'.join(ret)
-                if s.strip(): yield s
-                ret = []
-            ret.append(line)
-        yield '\n'.join(ret)
+
+    def training_docs(self):
+        return map(self._load_doc, self.dataset["train"])
 
     def validation_docs(self):
-        return self.docs_for_split('valid')
-
-    def train_docs(self):
-        return self.docs_for_split('train')
+        return map(self._load_doc, self.dataset["validation"])
 
     def test_docs(self):
-        return self.docs_for_split('test')
+        return map(self._load_doc, self.dataset["test"])
+
+    def _load_doc(self, doc):
+        return doc["page"]
 
     def doc_to_target(self, doc):
         return wikitext_detokenizer(doc)
@@ -86,7 +95,7 @@ class WikiText(PerplexityTask):
 
     def doc_to_decontamination_query(self, doc):
         return doc["text"]
-    
+
     def count_words(self, doc):
         # count number of words in *original doc before detokenization*
         return len(re.split(r"\s+", doc))
