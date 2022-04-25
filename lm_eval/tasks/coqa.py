@@ -30,7 +30,7 @@ _CITATION = """
 
 class CoQA(PromptSourceTask):
     VERSION = 1
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.coqa.coqa)
+    DATASET_PATH = "coqa"
     DATASET_NAME = None
 
     def has_training_docs(self):
@@ -57,7 +57,6 @@ class CoQA(PromptSourceTask):
     #     answers = []
     #     answer_forturn = doc["answers"]["input_text"][turn_id - 1]
     #     answers.append(answer_forturn)
-
     #     additional_answers = doc.get("additional_answers")
     #     if additional_answers:
     #         for key in additional_answers:

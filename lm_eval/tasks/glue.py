@@ -14,7 +14,7 @@ respect to a wide range of linguistic phenomena found in natural language.
 Homepage: https://gluebenchmark.com/
 """
 import numpy as np
-from lm_eval.base import rf, Task
+from lm_eval.base import PromptSourceTask, rf, Task
 from lm_eval.metrics import mean, matthews_corrcoef, f1_score, yesno
 from lm_eval.utils import general_detokenize
 
@@ -286,7 +286,7 @@ class QNLI(Task):
         }
 
 
-class WNLI(Task):
+class WNLI(PromptSourceTask):
     VERSION = 1
     DATASET_PATH = "glue"
     DATASET_NAME = "wnli"
@@ -301,36 +301,13 @@ class WNLI(Task):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        # if self._training_docs is None:
+        #     self._training_docs = list()
+        # return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
-
-    def doc_to_text(self, doc):
-        return "{}\nQuestion: {} True or False?\nAnswer:".format(
-            doc["sentence1"],
-            doc["sentence2"],
-        )
-
-    def doc_to_target(self, doc):
-        # True = entailment
-        # False = not_entailment
-        return " {}".format({0: "False", 1: "True"}[doc["label"]])
-
-    def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
-        return ll_true, ll_false
-
-    def process_results(self, doc, results):
-        ll_true, ll_false = results
-        pred = ll_true > ll_false
-        gold = doc["label"]
-        return {
-            "acc": pred == gold
-        }
 
     def higher_is_better(self):
         return {
@@ -343,7 +320,7 @@ class WNLI(Task):
         }
 
 
-class RTE(Task):
+class RTE(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "rte"
@@ -365,29 +342,13 @@ class RTE(Task):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
-        return "{}\nQuestion: {} True or False?\nAnswer:".format(
-            doc["sentence1"],
-            doc["sentence2"],
-        )
-
-    def doc_to_target(self, doc):
-        # 0 = entailment
-        # 1 = not_entailment
-        return " {}".format({0: "True", 1: "False"}[doc["label"]])
-
-    def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
-        return ll_true, ll_false
-
-    def process_results(self, doc, results):
-        ll_true, ll_false = results
-        pred = ll_false > ll_true
-        gold = doc["label"]
-        return {
-            "acc": pred == gold
-        }
+    # def process_results(self, doc, results):
+    #     ll_true, ll_false = results
+    #     pred = ll_false > ll_true
+    #     gold = doc["label"]
+    #     return {
+    #         "acc": pred == gold
+    #     }
 
     def higher_is_better(self):
         return {

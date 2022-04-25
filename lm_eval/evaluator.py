@@ -241,15 +241,12 @@ def evaluate(
         for metric, value in metrics.items():
             vals[(task_prompt_name, metric)].append(value)
 
-
-
     # aggregate results
     for (task_prompt_name, metric), items in vals.items():
         task_name, prompt_name = task_prompt_name.split("+")
         results[task_prompt_name]["task_name"] = task_name
         results[task_prompt_name]["prompt_name"] = prompt_name
-        task = task_dict[task_name]
-
+        task = task_dict[task_prompt_name]
         results[task_prompt_name][metric] = task.aggregation()[metric](items)
 
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
@@ -276,13 +273,13 @@ def make_table(result_dict):
     latex_writer.headers = ["Task", "Version", "Metric", "Value", "", "Stderr"]
 
     values = []
-
     for k, dic in result_dict["results"].items():
         version = result_dict["versions"][k]
         for m, v in dic.items():
             if m.endswith("_stderr"):
                 continue
-
+            if "_name" in m:
+                continue
             if m + "_stderr" in dic:
                 se = dic[m + "_stderr"]
                 values.append([k, version, m, "%.4f" % v, "±", "%.4f" % se])

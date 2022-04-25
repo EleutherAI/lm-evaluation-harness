@@ -51,47 +51,47 @@ class RACE(PromptSourceTask):
     def has_test_docs(self):
         return True
 
-    def _collate_data(self, set):
-        if set in self.cache:
-            return self.cache[set]
-        # One big issue with HF's implementation of this dataset: it makes a
-        # separate document for each question; meanwhile, in the GPT3 paper it
-        # is shown that one document is made per passage.
+    # def _collate_data(self, set):
+    #     if set in self.cache:
+    #         return self.cache[set]
+    #     # One big issue with HF's implementation of this dataset: it makes a
+    #     # separate document for each question; meanwhile, in the GPT3 paper it
+    #     # is shown that one document is made per passage.
 
-        r = collections.defaultdict(list)
-        for item in datasets.load_dataset(
-            path=self.DATASET_PATH, name=self.DATASET_NAME
-        )[set]:
-            r[item["article"]].append(item)
+    #     r = collections.defaultdict(list)
+    #     for item in datasets.load_dataset(
+    #         path=self.DATASET_PATH, name=self.DATASET_NAME
+    #     )[set]:
+    #         r[item["article"]].append(item)
 
-        res = list(
-            r.values()
-            >> each(
-                lambda x: {
-                    "article": x[0]["article"],
-                    "problems": x
-                    >> each(
-                        lambda y: {
-                            "question": y["question"],
-                            "answer": y["answer"],
-                            "options": y["options"],
-                        }
-                    ),
-                }
-            )
-        )
+    #     res = list(
+    #         r.values()
+    #         >> each(
+    #             lambda x: {
+    #                 "article": x[0]["article"],
+    #                 "problems": x
+    #                 >> each(
+    #                     lambda y: {
+    #                         "question": y["question"],
+    #                         "answer": y["answer"],
+    #                         "options": y["options"],
+    #                     }
+    #                 ),
+    #             }
+    #         )
+    #     )
 
-        self.cache[set] = res
-        return res
+    #     self.cache[set] = res
+    #     return res
 
     def training_docs(self):
-        return self._collate_data("train")
+        return self.dataset["train"]
 
     def validation_docs(self):
-        return self._collate_data("validation")
+        return self.dataset["validation"]
 
     def test_docs(self):
-        return self._collate_data("test")
+        return self.dataset["test"]
 
     @classmethod
     def get_answer_option(cls, problem):
