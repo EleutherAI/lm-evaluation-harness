@@ -12,7 +12,7 @@ Homepage: https://stanfordnlp.github.io/coqa/
 import inspect
 import transformers.data.metrics.squad_metrics as squad_metrics
 import lm_eval.datasets.coqa.coqa
-from lm_eval.base import Task, rf, mean
+from lm_eval.base import PromptSourceTask, rf, mean
 from itertools import zip_longest
 
 
@@ -28,7 +28,7 @@ _CITATION = """
 """
 
 
-class CoQA(Task):
+class CoQA(PromptSourceTask):
     VERSION = 1
     DATASET_PATH = inspect.getfile(lm_eval.datasets.coqa.coqa)
     DATASET_NAME = None

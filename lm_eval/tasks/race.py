@@ -12,7 +12,7 @@ Homepage: https://www.cs.cmu.edu/~glai1/data/race/
 import collections
 import datasets
 import numpy as np
-from lm_eval.base import rf, Task
+from lm_eval.base import PromptSourceTask, rf
 from lm_eval.metrics import mean
 
 
@@ -34,7 +34,7 @@ class each:
         return list(map(self.f, other))
 
 
-class RACE(Task):
+class RACE(PromptSourceTask):
     VERSION = 1
     DATASET_PATH = "race"
     DATASET_NAME = "high"
