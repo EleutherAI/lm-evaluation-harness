@@ -644,7 +644,6 @@ class PromptSourceTask(Task):
         return f" {target}"
 
     def doc_to_text(self, doc):
-        print(doc)
         text, _ = self.prompt.apply(doc)
         return text
 
@@ -661,13 +660,14 @@ class PromptSourceTask(Task):
         """
         _requests = []
 
-        if self.prompt.metadata.choices_in_prompt:
-            for answer_choice in self.prompt.get_fixed_answer_choices_list():
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        if answer_choices_list:
+            for answer_choice in answer_choices_list:
                 ll_answer_choice, _ = rf.loglikelihood(ctx, f" {answer_choice}")
                 _requests.append(ll_answer_choice)
         else:
             # TODO(Albert): What is the stop symbol? Is it model specific?
-            ll_greedy, _ = rf.greedy_until(ctx, ["\nQ:"])
+            ll_greedy = rf.greedy_until(ctx, ["\nQ:"])
             _requests.append(ll_greedy)
 
         return _requests
@@ -682,20 +682,22 @@ class PromptSourceTask(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        raise NotImplementedError(
-            "Implement process results using the `prompt.metadata.metrics`. See below."
-        )
-        if self.prompt.metadata.choices_in_prompt:
-            for result, answer_choice in zip(
-                prompt.get_fixed_answer_choices_list(), results
-            ):
-                pass
+        # raise NotImplementedError(
+        #     "Implement process results using the `prompt.metadata.metrics`. See below."
+        # )
+        target = self.doc_to_target(doc).strip()
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        if answer_choices_list:
+            pred = answer_choices_list[np.argmax(results)]
+            return {
+                "acc": pred == target
+            }
         else:
             continuation = results
 
         # Map metric name to HF metric.
         # TODO(Albert): What is Other?
-        metric_names = prompt.metadata.metrics
+        #metric_names = prompt.metadata.metrics
 
 
 class MultipleChoiceTask(Task):
