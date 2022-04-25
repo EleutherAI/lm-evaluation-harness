@@ -18,7 +18,7 @@ import re
 import string
 import lm_eval.datasets.drop.drop
 from scipy.optimize import linear_sum_assignment
-from lm_eval.base import Task, rf
+from lm_eval.base import PromptSourceTask, rf
 from lm_eval.metrics import mean
 
 
@@ -37,7 +37,7 @@ _CITATION = """
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
 
 
-class DROP(Task):
+class DROP(PromptSourceTask):
     VERSION = 1
     DATASET_PATH = inspect.getfile(lm_eval.datasets.drop.drop)
     DATASET_NAME = None
