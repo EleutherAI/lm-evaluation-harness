@@ -76,15 +76,15 @@ class WikiText(PerplexityTask):
         return True
 
     def training_docs(self):
-        return map(self._load_doc, self.dataset["train"])
+        return map(self._process_doc, self.dataset["train"])
 
     def validation_docs(self):
-        return map(self._load_doc, self.dataset["validation"])
+        return map(self._process_doc, self.dataset["validation"])
 
     def test_docs(self):
-        return map(self._load_doc, self.dataset["test"])
+        return map(self._process_doc, self.dataset["test"])
 
-    def _load_doc(self, doc):
+    def _process_doc(self, doc):
         return doc["page"]
 
     def doc_to_target(self, doc):
