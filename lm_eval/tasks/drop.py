@@ -70,21 +70,26 @@ class DROP(Task):
     @classmethod
     def get_answers(cls, qa):
         def _flatten_validated_answers(validated_answers):
-            """ Flattens a dict of lists of validated answers.
+            """Flattens a dict of lists of validated answers.
             {"number": ['1', '8'], ...}
             -> [{"number": ['1'], ...}, {"number": ['8'], ...}]
             """
             vas = []
             for i in range(len(validated_answers["number"])):
-                vas.append({
-                    "number": validated_answers["number"][i],
-                    "date": validated_answers["date"][i],
-                    "spans": validated_answers["spans"][i],
-                })
+                vas.append(
+                    {
+                        "number": validated_answers["number"][i],
+                        "date": validated_answers["date"][i],
+                        "spans": validated_answers["spans"][i],
+                    }
+                )
             return vas
+
         answers = []
         answers_set = set()
-        candidates = [qa["answer"]] + _flatten_validated_answers(qa["validated_answers"])
+        candidates = [qa["answer"]] + _flatten_validated_answers(
+            qa["validated_answers"]
+        )
         for candidate in candidates:
             answer = cls.parse_answer(candidate)
             if answer in answers_set:
@@ -100,15 +105,17 @@ class DROP(Task):
             return (str(answer["number"]),)
         if answer["spans"] != []:
             return tuple(answer["spans"])
-        return (" ".join([answer["date"]["day"],
-                          answer["date"]["month"],
-                          answer["date"]["year"]]).strip(),)
+        return (
+            " ".join(
+                [answer["date"]["day"], answer["date"]["month"], answer["date"]["year"]]
+            ).strip(),
+        )
 
-    def doc_to_text(self, doc):
-        return f"Passage: {doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
+    # def doc_to_text(self, doc):
+    #     return f"Passage: {doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
 
-    def doc_to_target(self, doc):
-        return " " + ", ".join(doc["answers"][0])
+    # def doc_to_target(self, doc):
+    #     return " " + ", ".join(doc["answers"][0])
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
@@ -134,7 +141,13 @@ class DROP(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        preds, golds = results, doc["answers"]
+
+        pred = results[0].strip()
+        target = self.doc_to_target(doc).strip()
+
+        preds = [pred]
+        golds = [target]
+
         max_em = 0
         max_f1 = 0
         for gold_answer in golds:
@@ -142,10 +155,7 @@ class DROP(Task):
             if gold_answer[0].strip():
                 max_em = max(max_em, exact_match)
                 max_f1 = max(max_f1, f1_score)
-        return {
-            "em": max_em,
-            "f1": max_f1
-        }
+        return {"em": max_em, "f1": max_f1}
 
     def get_metrics(self, predicted, gold):
         """
@@ -158,7 +168,9 @@ class DROP(Task):
         predicted_bags = self._answer_to_bags(predicted)
         gold_bags = self._answer_to_bags(gold)
 
-        if set(predicted_bags[0]) == set(gold_bags[0]) and len(predicted_bags[0]) == len(gold_bags[0]):
+        if set(predicted_bags[0]) == set(gold_bags[0]) and len(
+            predicted_bags[0]
+        ) == len(gold_bags[0]):
             exact_match = 1.0
         else:
             exact_match = 0.0
@@ -190,7 +202,9 @@ class DROP(Task):
         for gold_index, gold_item in enumerate(gold):
             for pred_index, pred_item in enumerate(predicted):
                 if self._match_numbers_if_present(gold_item, pred_item):
-                    scores[gold_index, pred_index] = self._compute_f1(pred_item, gold_item)
+                    scores[gold_index, pred_index] = self._compute_f1(
+                        pred_item, gold_item
+                    )
         row_ind, col_ind = linear_sum_assignment(-scores)
 
         max_scores = np.zeros([max(len(gold), len(predicted))])
@@ -256,7 +270,11 @@ class DROP(Task):
 
     def _normalize(self, answer):
         tokens = [
-            self._white_space_fix(self._remove_articles(self._fix_number(self._remove_punc(token.lower()))))
+            self._white_space_fix(
+                self._remove_articles(
+                    self._fix_number(self._remove_punc(token.lower()))
+                )
+            )
             for token in self._tokenize(answer)
         ]
         tokens = [token for token in tokens if token.strip()]
@@ -269,10 +287,7 @@ class DROP(Task):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {
-            "em": mean,
-            "f1": mean
-        }
+        return {"em": mean, "f1": mean}
 
     def higher_is_better(self):
         """
@@ -280,7 +295,4 @@ class DROP(Task):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {
-            "em": True,
-            "f1": True
-        }
+        return {"em": True, "f1": True}
