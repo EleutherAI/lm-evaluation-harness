@@ -52,6 +52,7 @@ from . import blimp
 from . import asdiv
 from . import gsm8k
 from . import storycloze
+from . import e2e_nlg_cleaned
 
 ########################################
 # Translation tasks
@@ -124,6 +125,7 @@ TASK_REGISTRY = {
     # Science related
     "pubmedqa" : pubmedqa.Pubmed_QA,
     "sciq" : sciq.SciQ,
+    "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
 
     "qasper": qasper.QASPER,
 

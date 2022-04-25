@@ -45,7 +45,7 @@ _CITATION = """
 # Single-Sentence Tasks
 
 
-class CoLA(Task):
+class CoLA(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "cola"
@@ -67,23 +67,20 @@ class CoLA(Task):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
-        return "{}\nQuestion: Does this sentence make sense?\nAnswer:".format(doc["sentence"])
+    def process_results(self, doc, results): 
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        pred = np.argmax(results)
+        target = answer_choices_list.index(self.doc_to_target(doc).strip())
+        print("*" * 80)
+        print(f"DOC: {doc}")
+        print(f"TEXT: {self.doc_to_text(doc)}")
+        print(f"STRING TARGET: {self.doc_to_target(doc)} END TARGET")
+        print(f"TARGET: {target} END TARGET")
+        print(f"PRED: {pred}")
+        print("*" * 80)
 
-    def doc_to_target(self, doc):
-        return " {}".format({1: "yes", 0: "no"}[doc["label"]])
-
-    def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " yes")
-        ll_false, _ = rf.loglikelihood(ctx, " no")
-        return ll_true, ll_false
-
-    def process_results(self, doc, results):
-        ll_true, ll_false = results
-        pred = ll_true > ll_false
-        gold = doc["label"]
         return {
-            "mcc": (gold, pred)
+            "mcc": (target, pred)
         }
 
     def higher_is_better(self):
@@ -97,7 +94,7 @@ class CoLA(Task):
         }
 
 
-class SST(Task):
+class SST(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "sst2"
@@ -119,27 +116,6 @@ class SST(Task):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
-        return "{}\nQuestion: Is this sentence positive or negative?\nAnswer:".format(
-            general_detokenize(doc["sentence"]),
-        )
-
-    def doc_to_target(self, doc):
-        return " {}".format({1: "positive", 0: "negative"}[doc["label"]])
-
-    def construct_requests(self, doc, ctx):
-        ll_positive, _ = rf.loglikelihood(ctx, " positive")
-        ll_negative, _ = rf.loglikelihood(ctx, " negative")
-        return ll_positive, ll_negative
-
-    def process_results(self, doc, results):
-        ll_positive, ll_negative = results
-        pred = ll_positive > ll_negative
-        gold = doc["label"]
-        return {
-            "acc": pred == gold
-        }
-
     def higher_is_better(self):
         return {
             "acc": True
@@ -154,7 +130,7 @@ class SST(Task):
 # Inference Tasks
 
 
-class MNLI(Task):
+class MNLI(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "mnli"
@@ -180,24 +156,6 @@ class MNLI(Task):
     def test_docs(self):
         if self.has_test_docs():
             return self.dataset["test_matched"]
-
-    def doc_to_text(self, doc):
-        return "{}\nQuestion: {} True, False or Neither?\nAnswer:".format(
-            doc["premise"],
-            doc["hypothesis"].strip() + ('' if doc["hypothesis"].strip().endswith('.') else '.'),
-        )
-
-    def doc_to_target(self, doc):
-        # True = entailment
-        # False = contradiction
-        # Neither = neutral
-        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
-
-    def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
-        return ll_true, ll_neither, ll_false
 
     def process_results(self, doc, results):
         gold = doc["label"]
@@ -250,22 +208,6 @@ class QNLI(Task):
 
     def validation_docs(self):
         return self.dataset["validation"]
-
-    def doc_to_text(self, doc):
-        return "{}\n{}\nQuestion: Does this response answer the question?\nAnswer:".format(
-            doc["question"],
-            doc["sentence"],
-        )
-
-    def doc_to_target(self, doc):
-        # True = entailment
-        # False = not entailment
-        return " {}".format({0: "yes", 1: "no"}[doc["label"]])
-
-    def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
-        return ll_yes, ll_no
 
     def process_results(self, doc, results):
         ll_yes, ll_no = results
@@ -342,14 +284,6 @@ class RTE(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    # def process_results(self, doc, results):
-    #     ll_true, ll_false = results
-    #     pred = ll_false > ll_true
-    #     gold = doc["label"]
-    #     return {
-    #         "acc": pred == gold
-    #     }
-
     def higher_is_better(self):
         return {
             "acc": True
@@ -385,20 +319,6 @@ class MRPC(Task):
 
     def validation_docs(self):
         return self.dataset["validation"]
-
-    def doc_to_text(self, doc):
-        return "Sentence 1: {}\nSentence 2: {}\nQuestion: Do both sentences mean the same thing?\nAnswer:".format(
-            general_detokenize(doc["sentence1"]),
-            general_detokenize(doc["sentence2"]),
-        )
-
-    def doc_to_target(self, doc):
-        return " {}".format(yesno(doc["label"]))
-
-    def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
-        return ll_yes, ll_no
 
     def process_results(self, doc, results):
         ll_yes, ll_no = results
