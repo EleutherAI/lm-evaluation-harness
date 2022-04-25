@@ -97,7 +97,7 @@ class GEMXSUMChallgeTestBacktranslation(GEMXSUMBase):
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.dataset[SPLIT]
+            return self.dataset[self.SPLIT]
 
 class GEMXSUMChallgeTestBFP02(GEMXSUMBase):
     '''this is for challenge_test_bfp_02'''
@@ -111,7 +111,7 @@ class GEMXSUMChallgeTestBFP02(GEMXSUMBase):
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.dataset[SPLIT]
+            return self.dataset[self.SPLIT]
 
 class GEMXSUMChallgeTestBFP05(GEMXSUMBase):
     '''this is for challenge_test_bfp_05'''
@@ -124,7 +124,7 @@ class GEMXSUMChallgeTestBFP05(GEMXSUMBase):
         return False
     def test_docs(self):
         if self.has_test_docs():
-            return self.dataset[SPLIT]
+            return self.dataset[self.SPLIT]
 
 class GEMXSUMChallgeTestNopunc(GEMXSUMBase):
     '''this is for challenge_test_nopunc'''
@@ -137,7 +137,7 @@ class GEMXSUMChallgeTestNopunc(GEMXSUMBase):
         return False
     def test_docs(self):
         if self.has_test_docs():
-            return self.dataset[SPLIT]
+            return self.dataset[self.SPLIT]
 
 class GEMXSUMChallgeTestCovid(GEMXSUMBase):
     '''this is for challenge_test_covid'''
@@ -150,4 +150,4 @@ class GEMXSUMChallgeTestCovid(GEMXSUMBase):
         return False
     def test_docs(self):
         if self.has_test_docs():
-            return self.dataset[SPLIT]
+            return self.dataset[self.SPLIT]
