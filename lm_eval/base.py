@@ -1,6 +1,7 @@
 import abc
 from typing import Iterable
 
+import promptsource 
 import numpy as np
 import random
 import re
@@ -639,11 +640,12 @@ class PromptSourceTask(Task):
         self.prompt = prompt
 
     def doc_to_target(self, doc):
-        _, target = prompt.apply(doc)
+        _, target = self.prompt.apply(doc)
         return f" {target}"
 
     def doc_to_text(self, doc):
-        text, _ = prompt.apply(doc)
+        print(doc)
+        text, _ = self.prompt.apply(doc)
         return text
 
     def construct_requests(self, doc, ctx):
@@ -660,7 +662,7 @@ class PromptSourceTask(Task):
         _requests = []
 
         if self.prompt.metadata.choices_in_prompt:
-            for answer_choice in prompt.get_fixed_answer_choices_list():
+            for answer_choice in self.prompt.get_fixed_answer_choices_list():
                 ll_answer_choice, _ = rf.loglikelihood(ctx, f" {answer_choice}")
                 _requests.append(ll_answer_choice)
         else:
