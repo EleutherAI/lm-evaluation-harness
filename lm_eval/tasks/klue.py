@@ -33,15 +33,17 @@ class YNAT(MultipleChoiceTask):
 
     def training_docs(self):
         if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
+            self._training_docs = list(map(self._process_doc,self.dataset["train"]))
         return self._training_docs
 
     def validation_docs(self):
-        return self.dataset["validation"]
+        return map(self._process_doc,self.dataset["validation"])
 
     def _process_doc(self, doc):
         out_doc = {
+            "title": doc["title"],
             "choices": ["과학", "경제", "사회", "생활", "세계", "스포츠", "정치"],
+			"gold": doc["label"]
         }
         return out_doc
 
@@ -49,11 +51,11 @@ class YNAT(MultipleChoiceTask):
         return "다음 문장의 카테고리는?\n{}\n답변:".format(doc["title"])
 
     def doc_to_target(self, doc):
-        return " {}".format({0: "과학", 1: "경제", 2: "사회", 3: "생활", 4: "세계", 5: "스포츠", 6: "정치"}[doc["label"]])
+        return " {}".format({0: "과학", 1: "경제", 2: "사회", 3: "생활", 4: "세계", 5: "스포츠", 6: "정치"}[doc["gold"]])
 
     def process_results(self, doc, results):
         pred = np.argmax(results)
-        gold = doc["label"]
+        gold = doc["gold"]
         return {
             "f1": (gold, pred)
         }
