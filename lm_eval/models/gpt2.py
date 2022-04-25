@@ -34,9 +34,9 @@ class HFLM(BaseLM):
 
         self.vocab_size = self.tokenizer.vocab_size
 
-        if isinstance(self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)):
-            assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373], \
-                self.tokenizer.encode('hello\n\nhello')
+        # if isinstance(self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)):
+        #     assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373], \
+        #         self.tokenizer.encode('hello\n\nhello')
 
         # multithreading and batching
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
