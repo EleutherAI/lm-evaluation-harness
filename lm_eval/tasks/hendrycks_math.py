@@ -38,15 +38,15 @@ class Math(Task):
         return True
 
     def training_docs(self):
-        return map(self._load_doc, self.dataset["train"])
+        return map(self._process_doc, self.dataset["train"])
 
     def validation_docs(self):
         return NotImplemented
 
     def test_docs(self):
-        return map(self._load_doc, self.dataset["test"])
+        return map(self._process_doc, self.dataset["test"])
 
-    def _load_doc(self, doc):
+    def _process_doc(self, doc):
         doc["answer"] = self.remove_boxed(
             self.last_boxed_only_string(doc["solution"]))
         return doc
