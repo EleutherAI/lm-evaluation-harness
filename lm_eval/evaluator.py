@@ -170,9 +170,9 @@ def evaluate(
 
     # get lists of each type of request
     for task_prompt_name, task in task_dict_items:
-        if task.is_generation_task():
-            print(f"WARNING: Skipping generation prompt {task.prompt.name}.")
-            continue
+        # if task.is_generation_task():
+        #     print(f"WARNING: Skipping generation prompt {task.prompt.name}.")
+        #     continue
 
         versions[task_prompt_name] = task.VERSION
         # default to test doc, fall back to val doc if validation unavailable
