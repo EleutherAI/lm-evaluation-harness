@@ -701,6 +701,16 @@ class PromptSourceTask(Task):
         # Map metric name to HF metric.
         # TODO(Albert): What is Other?
         #metric_names = prompt.metadata.metrics
+    
+    def higher_is_better(self):
+        return {
+            "acc": True
+        }
+
+    def aggregation(self):
+        return {
+            "acc": mean,
+        }
 
 
 class MultipleChoiceTask(Task):
