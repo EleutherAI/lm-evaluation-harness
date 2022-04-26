@@ -199,22 +199,13 @@ class ReCoRD(PromptSourceTask):
         if self._training_docs is None:
             self._training_docs = []
             for doc in self.dataset["train"]:
-                self._training_docs.append(self._process_doc(doc))
+                self._training_docs.append(doc)
         return self._training_docs
 
     def validation_docs(self):
         # See: training_docs
         for doc in self.dataset["validation"]:
-            yield self._process_doc(doc)
-
-    @classmethod
-    def _process_doc(cls, doc):
-        return {
-            "passage": doc["passage"],
-            "query": doc["query"],
-            "entities": sorted(list(set(doc["entities"]))),
-            "answers": sorted(list(set(doc["answers"]))),
-        }
+            yield doc
 
     def process_results(self, doc, results):
         # ReCoRD's evaluation is actually deceptively simple:
@@ -286,7 +277,7 @@ class SGWinogradSchemaChallenge(PromptSourceTask):
     # Note: This implementation differs from Fig G.32 because this is the SuperGLUE,
     #       binary version of the task.
     DATASET_PATH = "super_glue"
-    DATASET_NAME = "wsc"
+    DATASET_NAME = "wsc.fixed"
 
     def has_training_docs(self):
         return True
