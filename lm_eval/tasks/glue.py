@@ -222,7 +222,7 @@ class RTE(PromptSourceTask):
 # Similarity and Paraphrase Tasks
 
 
-class MRPC(Task):
+class MRPC(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "mrpc"
@@ -243,21 +243,6 @@ class MRPC(Task):
 
     def validation_docs(self):
         return self.dataset["validation"]
-
-    def process_results(self, doc, results):
-        ll_yes, ll_no = results
-        gold = doc["label"]
-        pred = ll_yes > ll_no
-        return {
-            "acc": pred == gold,
-            "f1": (gold, pred),
-        }
-
-    def higher_is_better(self):
-        return {"acc": True, "f1": True}
-
-    def aggregation(self):
-        return {"acc": mean, "f1": f1_score}
 
 
 class QQP(Task):
