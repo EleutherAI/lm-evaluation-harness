@@ -70,6 +70,8 @@ def simple_evaluate(
         assert isinstance(model, lm_eval.base.LM)
         lm = model
 
+    # TODO: Hard-code turning off cache while testing. Remove once testing is completed.
+    no_cache = True
     if not no_cache:
         lm = lm_eval.base.CachingLM(
             lm,
