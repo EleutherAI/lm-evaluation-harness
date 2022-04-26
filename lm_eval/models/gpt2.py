@@ -139,7 +139,7 @@ class HFLM(BaseLM):
          
         return transformers.StoppingCriteriaList([
             MultitokenEOSCriteria(stopping_criteria_ids, self.tokenizer),
-            EOSCriteria(stopping_criteria_ids)
+            EOSCriteria(self.tokenizer.eos_token)
         ])
 
     def _model_generate(self, context, max_length, stopping_criteria_ids):
