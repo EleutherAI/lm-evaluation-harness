@@ -91,7 +91,7 @@ class CoQA(PromptSourceTask):
         }
 
     def stopping_criteria(self):
-        return "\nQ:"
+        return "\n\n"
 
     # def construct_requests(self, doc, ctx):
     #     """Uses RequestFactory to construct Requests and returns an iterable of
