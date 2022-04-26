@@ -54,16 +54,6 @@ class BoolQ(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def higher_is_better(self):
-        return {
-            "acc": True
-        }
-    
-    def aggregation(self):
-        return {
-            "acc": mean
-        }
-
 
 class CommitmentBank(PromptSourceTask):
     VERSION = 1
@@ -90,18 +80,12 @@ class CommitmentBank(PromptSourceTask):
     def process_results(self, doc, results):
         gold = doc["label"]
         pred = np.argmax(results)
-        acc = 1. if pred == gold else 0.
+        acc = 1.0 if pred == gold else 0.0
 
-        return {
-            "acc": acc,
-            "f1": (pred, gold)
-        }
-    
+        return {"acc": acc, "f1": (pred, gold)}
+
     def higher_is_better(self):
-        return {
-            "acc": True,
-            "f1": True
-        }
+        return {"acc": True, "f1": True}
 
     @classmethod
     def cb_multi_fi(cls, items):
@@ -113,7 +97,7 @@ class CommitmentBank(PromptSourceTask):
         f13 = sklearn.metrics.f1_score(y_true=golds == 2, y_pred=preds == 2)
         avg_f1 = mean([f11, f12, f13])
         return avg_f1
-    
+
     def aggregation(self):
         return {
             "acc": mean,
@@ -146,21 +130,15 @@ class Copa(PromptSourceTask):
     def process_results(self, doc, results):
         gold = doc["label"]
         pred = np.argmax(results)
-        acc = 1. if pred == gold else 0.
+        acc = 1.0 if pred == gold else 0.0
 
-        return {
-            "acc": acc
-        }
-    
+        return {"acc": acc}
+
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
-    
+        return {"acc": True}
+
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
     @staticmethod
     def convert_choice(choice):
@@ -192,19 +170,13 @@ class MultiRC(PromptSourceTask):
     def process_results(self, doc, results):
         ll_true_choice, ll_false_choice = results
         pred = ll_true_choice > ll_false_choice
-        return {
-            "acc": (pred, doc)
-        }
-    
+        return {"acc": (pred, doc)}
+
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
-    
+        return {"acc": True}
+
     def aggregation(self):
-        return {
-            "acc": acc_all
-        }
+        return {"acc": acc_all}
 
 
 class ReCoRD(PromptSourceTask):
@@ -255,8 +227,12 @@ class ReCoRD(PromptSourceTask):
 
         prediction = doc["entities"][max_idx]
         gold_label_set = doc["answers"]
-        f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, prediction, gold_label_set)
-        em = metric_max_over_ground_truths(squad_metrics.compute_exact, prediction, gold_label_set)
+        f1 = metric_max_over_ground_truths(
+            squad_metrics.compute_f1, prediction, gold_label_set
+        )
+        em = metric_max_over_ground_truths(
+            squad_metrics.compute_exact, prediction, gold_label_set
+        )
 
         return {
             "f1": f1,
@@ -299,14 +275,10 @@ class WordsInContext(PromptSourceTask):
         return self.dataset["validation"]
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
 
 class SGWinogradSchemaChallenge(PromptSourceTask):
@@ -330,9 +302,7 @@ class SGWinogradSchemaChallenge(PromptSourceTask):
             if self._training_docs is None:
                 # GPT-3 Paper's format only uses positive examples for fewshot "training"
                 self._training_docs = [
-                    doc for doc in
-                    self.dataset["train"]
-                    if doc["label"]
+                    doc for doc in self.dataset["train"] if doc["label"]
                 ]
             return self._training_docs
 
@@ -340,11 +310,7 @@ class SGWinogradSchemaChallenge(PromptSourceTask):
         return self.dataset["validation"]
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
