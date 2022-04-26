@@ -90,7 +90,7 @@ class CoQA(PromptSourceTask):
             "f1": f1_sum / max(1, len(gold_list)),
         }
 
-    def eos_token(self):
+    def stopping_criteria(self):
         return "\nQ:"
 
     # def construct_requests(self, doc, ctx):

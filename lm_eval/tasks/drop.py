@@ -92,7 +92,7 @@ class DROP(PromptSourceTask):
     #     """
     #     conts = [rf.greedy_until(ctx, ["."])]
     #     return conts
-    def eos_token(self):
+    def stopping_criteria(self):
         return "."
 
     def process_results(self, doc, results):

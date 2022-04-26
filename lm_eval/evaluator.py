@@ -2,6 +2,7 @@ import collections
 import itertools
 import pathlib
 import random
+
 import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
@@ -199,6 +200,9 @@ def evaluate(
         )
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
+            if task.invalid_doc_for_prompt(doc):
+                continue
+
             docs[(task_prompt_name, doc_id)] = doc
             ctx = task.fewshot_context(
                 doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
