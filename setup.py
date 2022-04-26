@@ -21,6 +21,7 @@ setuptools.setup(
     python_requires=">=3.6",
     install_requires=[
         "promptsource",
+        "jinja2",
         "black",
         "datasets==2.0.0",
         "click>=7.1",
