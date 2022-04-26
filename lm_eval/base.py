@@ -641,14 +641,41 @@ class PromptSourceTask(Task):
         super().__init__(data_dir, cache_dir, download_mode)
         self.prompt = prompt
 
-    def eos_token(self):
-        raise NotImplementedError()
+    def end_of_generation_sequence(self):
+        """Denote where the generation should be split.
+
+        For example, for coqa, this is '\nQ:' and for drop '.'.
+        """
+        return None
 
     def is_generation_task(self):
         return (
             "BLEU" in self.prompt.metadata.metrics
             or "ROUGE" in self.prompt.metadata.metrics
         )
+
+    def invalid_doc_for_prompt(self, doc):
+        """Some prompts may not work for some documents.
+
+        As of now, we skip particular prompts, s.t. we don't
+        overskip. If this turns out to be a problem for many prompts
+        we can instead make sure that apply returns 2 things.
+
+
+        """
+        if (
+            # generate_paraphrase for mrpc
+            (
+                self.prompt.id == "3b88d2c4-0aeb-4c6d-9ccc-653a388250a5"
+                or self.prompt.id == "d830d7a5-abc0-4275-ac62-974e0088876f"
+            )
+            and doc["label"] == 0
+        ):
+            # This generation prompt assumes a positive example. We filter out the negative examples.
+            # https://github.com/bigscience-workshop/promptsource/blob/ba8c9eccbe82f2409208c655896f1dd131171ece/promptsource/templates/glue/mrpc/templates.yaml#L7
+            # https://github.com/bigscience-workshop/promptsource/blob/ba8c9eccbe82f2409208c655896f1dd131171ece/promptsource/templates/glue/mrpc/templates.yaml#L88
+            return True
+        return False
 
     def doc_to_target(self, doc):
         _, target = self.prompt.apply(doc)
@@ -684,7 +711,7 @@ class PromptSourceTask(Task):
                 _requests.append(ll_answer_choice)
         else:
             # TODO(Albert): What is the stop symbol? Is it model specific?
-            cont_request = rf.greedy_until(ctx, [self.eos_token()])
+            cont_request = rf.greedy_until(ctx, [self.end_of_generation_sequence()])
             _requests.append(cont_request)
 
         return _requests
