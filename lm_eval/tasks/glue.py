@@ -236,6 +236,9 @@ class MRPC(PromptSourceTask):
     def has_test_docs(self):
         return False
 
+    def end_of_generation_sequence(self):
+        return "\n"
+
     def training_docs(self):
         if self._training_docs is None:
             self._training_docs = list(self.dataset["train"])
