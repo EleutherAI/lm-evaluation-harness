@@ -652,10 +652,12 @@ class PromptSourceTask(Task):
         super().__init__(data_dir, cache_dir, download_mode)
         self.prompt = prompt
 
-    def end_of_generation_sequence(self):
-        """Denote where the generation should be split.
+    def stopping_criteria(self):
+        """Denote where the generation should end.
 
         For example, for coqa, this is '\nQ:' and for drop '.'.
+
+        By default, its None, meaning to generate up to max or EOT, whichever comes first.
         """
         return None
 
@@ -716,7 +718,7 @@ class PromptSourceTask(Task):
                 _requests.append(ll_answer_choice)
         else:
             # TODO(Albert): What is the stop symbol? Is it model specific?
-            cont_request = rf.greedy_until(ctx, [self.end_of_generation_sequence()])
+            cont_request = rf.greedy_until(ctx, [self.stopping_criteria()])
             _requests.append(cont_request)
 
         return _requests

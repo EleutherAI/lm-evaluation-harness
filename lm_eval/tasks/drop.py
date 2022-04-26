@@ -92,7 +92,7 @@ class DROP(PromptSourceTask):
     #     """
     #     conts = [rf.greedy_until(ctx, ["."])]
     #     return conts
-    def end_of_generation_sequence(self):
+    def stopping_criteria(self):
         return "."
 
     def process_results(self, doc, results):
