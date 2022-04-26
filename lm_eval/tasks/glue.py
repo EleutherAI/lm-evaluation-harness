@@ -71,14 +71,6 @@ class CoLA(PromptSourceTask):
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
         pred = np.argmax(results)
         target = answer_choices_list.index(self.doc_to_target(doc).strip())
-        print("*" * 80)
-        print(f"DOC: {doc}")
-        print(f"TEXT: {self.doc_to_text(doc)}")
-        print(f"STRING TARGET: {self.doc_to_target(doc)} END TARGET")
-        print(f"TARGET: {target} END TARGET")
-        print(f"PRED: {pred}")
-        print("*" * 80)
-
         return {"mcc": (target, pred)}
 
     def higher_is_better(self):
@@ -140,17 +132,6 @@ class MNLI(PromptSourceTask):
     def test_docs(self):
         if self.has_test_docs():
             return self.dataset["test_matched"]
-
-    def process_results(self, doc, results):
-        gold = doc["label"]
-        pred = np.argmax(results)
-        return {"acc": pred == gold}
-
-    def higher_is_better(self):
-        return {"acc": True}
-
-    def aggregation(self):
-        return {"acc": mean}
 
 
 class MNLIMismatched(MNLI):
