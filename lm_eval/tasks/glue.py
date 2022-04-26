@@ -236,7 +236,7 @@ class MRPC(PromptSourceTask):
     def has_test_docs(self):
         return False
 
-    def end_of_generation_sequence(self):
+    def stopping_criteria(self):
         return "\n"
 
     def training_docs(self):
