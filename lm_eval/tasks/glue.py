@@ -245,7 +245,7 @@ class MRPC(PromptSourceTask):
         return self.dataset["validation"]
 
 
-class QQP(Task):
+class QQP(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "qqp"
@@ -266,35 +266,6 @@ class QQP(Task):
 
     def validation_docs(self):
         return self.dataset["validation"]
-
-    def doc_to_text(self, doc):
-        return "Question 1: {}\nQuestion 2: {}\nQuestion: Do both questions ask the same thing?\nAnswer:".format(
-            doc["question1"],
-            doc["question2"],
-        )
-
-    def doc_to_target(self, doc):
-        return " {}".format(yesno(doc["label"]))
-
-    def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
-        return ll_yes, ll_no
-
-    def process_results(self, doc, results):
-        ll_yes, ll_no = results
-        gold = doc["label"]
-        pred = ll_yes > ll_no
-        return {
-            "acc": pred == gold,
-            "f1": (gold, pred),
-        }
-
-    def higher_is_better(self):
-        return {"acc": True, "f1": True}
-
-    def aggregation(self):
-        return {"acc": mean, "f1": f1_score}
 
 
 class STSB(Task):
