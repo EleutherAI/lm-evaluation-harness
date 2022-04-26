@@ -146,7 +146,7 @@ class MNLIMismatched(MNLI):
             return self.dataset["test_mismatched"]
 
 
-class QNLI(Task):
+class QNLI(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "qnli"
@@ -168,18 +168,6 @@ class QNLI(Task):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def process_results(self, doc, results):
-        ll_yes, ll_no = results
-        pred = ll_no > ll_yes
-        gold = doc["label"]
-        return {"acc": pred == gold}
-
-    def higher_is_better(self):
-        return {"acc": True}
-
-    def aggregation(self):
-        return {"acc": mean}
-
 
 class WNLI(PromptSourceTask):
     VERSION = 1
@@ -196,19 +184,10 @@ class WNLI(PromptSourceTask):
         return False
 
     def training_docs(self):
-        # if self._training_docs is None:
-        #     self._training_docs = list()
-        # return self._training_docs
         return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
-
-    def higher_is_better(self):
-        return {"acc": True}
-
-    def aggregation(self):
-        return {"acc": mean}
 
 
 class RTE(PromptSourceTask):
