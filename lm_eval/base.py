@@ -1,7 +1,7 @@
 import abc
 from typing import Iterable
 
-import promptsource 
+import promptsource
 import numpy as np
 import random
 import re
@@ -642,6 +642,12 @@ class PromptSourceTask(Task):
     def eos_token(self):
         raise NotImplementedError()
 
+    def is_generation_task(self):
+        return (
+            "BLEU" in self.prompt.metadata.metrics
+            or "ROUGE" in self.prompt.metadata.metrics
+        )
+
     def doc_to_target(self, doc):
         _, target = self.prompt.apply(doc)
         return f" {target}"
@@ -663,11 +669,19 @@ class PromptSourceTask(Task):
         """
         _requests = []
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
+
+        # We take a present answer_choices list to mean that we should apply the supplied
+        # metrics (hardcoded or accuracy atm) to the ranked choices. Otherwise, assume generation.
+        # Above we do something similar, but rely on the metrics requested (BLEU, ROUGE indicating generation).
         if answer_choices_list:
+            assert (
+                not self.is_generation_task()
+            ), f"We expect this to be a ranked choice task; double check please."
             for answer_choice in answer_choices_list:
                 ll_answer_choice, _ = rf.loglikelihood(ctx, f" {answer_choice}")
                 _requests.append(ll_answer_choice)
         else:
+            assert False
             # TODO(Albert): What is the stop symbol? Is it model specific?
             cont_request = rf.greedy_until(ctx, [self.eos_token()])
             _requests.append(cont_request)
@@ -690,27 +704,35 @@ class PromptSourceTask(Task):
         target = self.doc_to_target(doc).strip()
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
         if answer_choices_list:
+            assert (
+                not self.is_generation_task()
+            ), f"We expect this to be a ranked choice task; double check please."
             pred = answer_choices_list[np.argmax(results)]
-            return {
-                "acc": pred == target
-            }
+            out = {}
+            if "Accuracy" in self.prompt.metadata.metrics:
+                out["acc"] = pred == target
+            # TODO: Add metrics here.
+            return out
         else:
-            continuation = results
-            raise NotImplementedError()
+            raise NotImplementedError("Generation is not implemented yet.")
 
         # Map metric name to HF metric.
         # TODO(Albert): What is Other?
-        #metric_names = prompt.metadata.metrics
-    
+        # metric_names = prompt.metadata.metrics
+
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        out = {}
+        if "Accuracy" in self.prompt.metadata.metrics:
+            out["acc"] = True
+
+        return out
 
     def aggregation(self):
-        return {
-            "acc": mean,
-        }
+        out = {}
+        if "Accuracy" in self.prompt.metadata.metrics:
+            out["acc"] = mean
+
+        return out
 
 
 class MultipleChoiceTask(Task):

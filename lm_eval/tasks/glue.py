@@ -67,17 +67,17 @@ class CoLA(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def process_results(self, doc, results):
-        answer_choices_list = self.prompt.get_answer_choices_list(doc)
-        pred = np.argmax(results)
-        target = answer_choices_list.index(self.doc_to_target(doc).strip())
-        return {"mcc": (target, pred)}
+    # def process_results(self, doc, results):
+    #     answer_choices_list = self.prompt.get_answer_choices_list(doc)
+    #     pred = np.argmax(results)
+    #     target = answer_choices_list.index(self.doc_to_target(doc).strip())
+    #     return {"mcc": (target, pred)}
 
-    def higher_is_better(self):
-        return {"mcc": True}
+    # def higher_is_better(self):
+    #     return {"mcc": True}
 
-    def aggregation(self):
-        return {"mcc": matthews_corrcoef}
+    # def aggregation(self):
+    #     return {"mcc": matthews_corrcoef}
 
 
 class SST(PromptSourceTask):
