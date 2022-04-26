@@ -21,6 +21,8 @@ setuptools.setup(
     python_requires=">=3.6",
     install_requires=[
         "promptsource",
+        "wrapt",
+        "nltk",
         "jinja2",
         "black",
         "datasets==2.0.0",
