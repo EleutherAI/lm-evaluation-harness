@@ -349,14 +349,16 @@ class BaseLM(LM):
                 until = [until]
 
             # TODO: Come back to for generation `eos`.
-            primary_until = self.tok_encode(until[0])[0]
+            primary_until = self.tok_encode(until[0])
 
             context_enc = torch.tensor(
                 [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
             ).to(self.device)
 
             cont = self._model_generate(
-                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until
+                context_enc,
+                context_enc.shape[1] + self.max_gen_toks,
+                torch.tensor(primary_until),
             )
 
             s = self.tok_decode(cont[0].tolist()[context_enc.shape[1] :])
@@ -681,7 +683,6 @@ class PromptSourceTask(Task):
                 ll_answer_choice, _ = rf.loglikelihood(ctx, f" {answer_choice}")
                 _requests.append(ll_answer_choice)
         else:
-            assert False
             # TODO(Albert): What is the stop symbol? Is it model specific?
             cont_request = rf.greedy_until(ctx, [self.eos_token()])
             _requests.append(cont_request)

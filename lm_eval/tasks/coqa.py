@@ -67,7 +67,6 @@ class CoQA(PromptSourceTask):
     #                 answers.append(additional_answer_for_turn)
     #     return answers
 
-
     @staticmethod
     def compute_scores(gold_list, pred):
         # tests for exact match and on the normalised answer (compute_exact)
@@ -92,7 +91,7 @@ class CoQA(PromptSourceTask):
         }
 
     def eos_token(self):
-        return "\n"
+        return "\nQ:"
 
     # def construct_requests(self, doc, ctx):
     #     """Uses RequestFactory to construct Requests and returns an iterable of
@@ -121,10 +120,10 @@ class CoQA(PromptSourceTask):
         pred = results[0].strip().split("\n")[0]
         print("*" * 80)
         print(f"DOC: {doc}")
-#        print(f"PS: {self.prompt.apply(doc)}")
+        #        print(f"PS: {self.prompt.apply(doc)}")
         print(f"TEXT: {self.doc_to_text(doc)}")
         print(f"TARGET: {target} END TARGET")
-        print(pred)
+        print(f"PRED: {pred} END PRED")
         print("*" * 80)
 
         # turn_id = len(doc["questions"]["input_text"])

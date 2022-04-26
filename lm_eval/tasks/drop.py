@@ -39,7 +39,7 @@ _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
 
 class DROP(PromptSourceTask):
     VERSION = 1
-    DATASET_PATH = "drop" # inspect.getfile(lm_eval.datasets.drop.drop)
+    DATASET_PATH = "drop"  # inspect.getfile(lm_eval.datasets.drop.drop)
     DATASET_NAME = None
 
     def has_training_docs(self):
@@ -114,9 +114,8 @@ class DROP(PromptSourceTask):
         print(f"PS: {self.prompt.apply(doc)}")
         print(f"TEXT: {self.doc_to_text(doc)}")
         print(f"TARGET: {target} END TARGET")
-        print(pred)
+        print(f"PRED: {pred} END PRED")
         print("*" * 80)
-
 
         preds = [pred]
         golds = [target]
