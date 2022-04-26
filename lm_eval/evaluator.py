@@ -170,8 +170,10 @@ def evaluate(
 
     # get lists of each type of request
     for task_prompt_name, task in task_dict_items:
-        print(f"TASK PROMPT NAME: {task_prompt_name}")
-    
+        if task.is_generation_task():
+            print(f"WARNING: Skipping generation prompt {task.prompt.name}.")
+            continue
+
         versions[task_prompt_name] = task.VERSION
         # default to test doc, fall back to val doc if validation unavailable
         # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
@@ -206,7 +208,9 @@ def evaluate(
                 requests[req.request_type].append(req)
                 # i: index in requests for a single task instance
                 # doc_id: unique id that we can get back to a doc using `docs`
-                requests_origin[req.request_type].append((i, task_prompt_name, doc, doc_id))
+                requests_origin[req.request_type].append(
+                    (i, task_prompt_name, doc, doc_id)
+                )
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)
@@ -224,7 +228,9 @@ def evaluate(
             x if req.index is None else x[req.index] for x, req in zip(resps, reqs)
         ]
 
-        for resp, (i, task_prompt_name, doc, doc_id) in zip(resps, requests_origin[reqtype]):
+        for resp, (i, task_prompt_name, doc, doc_id) in zip(
+            resps, requests_origin[reqtype]
+        ):
             process_res_queue[(task_prompt_name, doc_id)].append((i, resp))
 
     vals = collections.defaultdict(list)

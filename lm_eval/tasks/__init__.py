@@ -52,6 +52,7 @@ from . import blimp
 from . import asdiv
 from . import gsm8k
 from . import storycloze
+from . import hans
 
 # from . import e2e_nlg_cleaned
 
@@ -146,6 +147,7 @@ TASK_REGISTRY = {
     "anli_r1": anli.ANLIRound1,
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
+    "hans": hans.HANS,
     "ethics_cm": hendrycks_ethics.EthicsCM,
     "ethics_deontology": hendrycks_ethics.EthicsDeontology,
     "ethics_justice": hendrycks_ethics.EthicsJustice,
