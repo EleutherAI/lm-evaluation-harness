@@ -53,6 +53,7 @@ from . import asdiv
 from . import gsm8k
 from . import storycloze
 from . import hans
+from . import mlsum
 
 # from . import e2e_nlg_cleaned
 
@@ -285,6 +286,8 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
+    "mlsum_es":mlsum.MLSUMEs,
+    "mlsum_de":mlsum.MLSUMDe,
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
