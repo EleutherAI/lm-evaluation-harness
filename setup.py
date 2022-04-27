@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     python_requires=">=3.6",
     install_requires=[
-        "promptsource",
+        "promptsource @ git+https://github.com/bigscience-workshop/promptsource@eval-hackathon",
         "wrapt",
         "nltk",
         "jinja2",
