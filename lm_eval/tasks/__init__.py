@@ -53,6 +53,7 @@ from . import asdiv
 from . import gsm8k
 from . import storycloze
 from . import hans
+from . import gem_webnlg
 
 # from . import e2e_nlg_cleaned
 
@@ -108,6 +109,7 @@ TASK_REGISTRY = {
     "wsc": superglue.SGWinogradSchemaChallenge,
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
+    "GEM/web_nlg": gem_webnlg.WebNLG,
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
