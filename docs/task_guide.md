@@ -11,7 +11,7 @@ If you haven't already, go ahead and fork the main repo, clone it, create a bran
 git clone https://github.com/<YOUR-USERNAME>/lm-evaluation-harness.git
 cd lm-evaluation-harness
 git checkout -b <task-name>
-pip install -r requirements.txt
+pip install -e ".[dev]"
 ```
 
 ## Creating Your Task File
