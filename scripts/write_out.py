@@ -56,7 +56,7 @@ def main():
         docs = join_iters(iters)
 
         description = description_dict[task_name] if description_dict and task_name in description_dict else ""
-
+        task_name = task_name.replace('/','_')
         with open(os.path.join(args.output_base_path, task_name), "w") as f:
             for i, doc in zip(range(args.num_examples), docs) if args.num_examples > 0 else enumerate(docs):
                 f.write(EXAMPLE_DIVIDER.format(i=i))
