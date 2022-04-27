@@ -2,7 +2,8 @@
 Semantic Noise Matters for Neural Natural Language Generation
 http://arxiv.org/abs/1911.03905
 
-A cleaned version of the dataset from the E2E NLG Challenge. The dataset contains MR with restaurant attributes and corresponding descriptions.
+A cleaned version of the dataset from the E2E NLG Challenge.
+The dataset contains MR with restaurant attributes and corresponding descriptions.
 
 Homepage: https://github.com/tuetschek/e2e-cleaning
 """
@@ -58,6 +59,14 @@ class E2E_NLG_Cleaned(PromptSourceTask):
 
     def stopping_criteria(self):
         return '\n'
+
+    def max_generation_length(self):
+        # TODO check
+        return 512
+
+    def invalid_doc_for_prompt(self, doc) -> bool:
+        """The QA prompts are not applicable to all the examples, we want to filter these out."""
+        return self.prompt.name.endswith("_qa")
 
     def doc_to_text(self, doc) -> str:
         # if the response is not defined in PS, the text will be an empty string
