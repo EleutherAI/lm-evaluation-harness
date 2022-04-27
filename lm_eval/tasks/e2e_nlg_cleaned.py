@@ -99,25 +99,3 @@ class E2E_NLG_Cleaned(PromptSourceTask):
             _requests.append(cont_request)
 
         return _requests
-
-    def aggregation(self):
-        """
-        :returns: {str: [metric_score] -> float}
-            A dictionary where keys are the names of submetrics and values are
-            functions that aggregate a list of metric scores
-        """
-        return {
-            "bleu": metrics.bleu,
-            "rouge": metrics.rouge,
-        }
-
-    def higher_is_better(self):
-        """
-        :returns: {str: bool}
-            A dictionary where keys are the names of submetrics and values are
-            whether a higher value of the submetric is better
-        """
-        return {
-            "bleu": True,
-            "rouge": True,
-        }
