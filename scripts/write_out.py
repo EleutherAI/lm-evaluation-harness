@@ -30,7 +30,7 @@ def main():
         task_names = tasks.ALL_TASKS
     else:
         task_names = args.tasks.split(",")
-    task_dict = tasks.get_task_dict(task_names)
+    task_dict = tasks.get_task_dict_promptsource(task_names)
 
     description_dict = {}
     if args.description_dict_path:
