@@ -963,6 +963,8 @@ class PromptSourceTask(Task):
             "prompt_id": self.prompt.get_id(),
             "prompt_jinja": self.prompt.jinja,
             "prompt_original_task": self.prompt.metadata.original_task,
+            # Placeholder for comment in post-processing.
+            "comment": "",
         }
 
 
