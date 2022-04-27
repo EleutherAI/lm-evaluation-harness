@@ -645,14 +645,18 @@ class Task(abc.ABC):
                 # get rid of the doc that's the one we're evaluating, if it's in the fewshot
                 fewshotex = [x for x in fewshotex if x != doc][:num_fewshot]
 
+            # See Webson & Pavlick (2022) https://arxiv.org/pdf/2109.01247.pdf
+            # for justification of this separator.
+            example_separator = "\n###\n"
+
             labeled_examples = (
-                "\n\n".join(
+                example_separator.join(
                     [
                         self.doc_to_text(doc) + self.doc_to_target(doc)
                         for doc in fewshotex
                     ]
                 )
-                + "\n\n"
+                + example_separator
             )
 
         example = self.doc_to_text(doc)
@@ -942,15 +946,18 @@ class PromptSourceTask(Task):
                     fewshotex[:num_fewshot],
                     fewshotidx[:num_fewshot],
                 )
+            # See Webson & Pavlick (2022) https://arxiv.org/pdf/2109.01247.pdf
+            # for justification of this separator.
+            example_separator = "\n###\n"
 
             labeled_examples = (
-                "\n\n".join(
+                example_separator.join(
                     [
                         self.doc_to_text(doc) + self.doc_to_target(doc)
                         for doc in fewshotex
                     ]
                 )
-                + "\n\n"
+                + example_separator
             )
 
         example = self.doc_to_text(doc)
