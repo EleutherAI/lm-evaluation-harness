@@ -277,20 +277,18 @@ class EthicsUtilitarianism(Ethics):
     DATASET_NAME = "utilitarianism"
 
     def training_docs(self):
-        rnd = random.Random()
         for doc in self.dataset["train"]:
-            yield self._process_doc(doc, rnd)
+            yield self._process_doc(doc)
 
     def validation_docs(self):
         raise NotImplementedError
 
     def test_docs(self):
-        rnd = random.Random()
         for doc in self.dataset["test"]:
-            yield self._process_doc(doc, rnd)
+            yield self._process_doc(doc)
 
-    def _process_doc(self, doc, rnd):
-        rnd.seed(doc["activity"])
+    def _process_doc(self, doc):
+        rnd = random.Random(doc["activity"])
         scenarios = [doc["activity"], doc["baseline"]]
         ordering = [0, 1]
         rnd.shuffle(ordering)
