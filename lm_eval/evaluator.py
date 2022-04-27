@@ -173,10 +173,6 @@ def evaluate(
 
     # get lists of each type of request
     for task_prompt_name, task in task_dict_items:
-        # if task.is_generation_task():
-        #     print(f"WARNING: Skipping generation prompt {task.prompt.name}.")
-        #     continue
-
         versions[task_prompt_name] = task.VERSION
         # default to test doc, fall back to val doc if validation unavailable
         # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
@@ -188,7 +184,7 @@ def evaluate(
             raise RuntimeError("Task has neither test_docs nor validation_docs")
 
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
-        task_docs = list(task_doc_func())
+        task_docs = list(enumerate(list(task_doc_func())))
         rnd = random.Random()
         rnd.seed(42)
         rnd.shuffle(task_docs)
@@ -199,14 +195,17 @@ def evaluate(
             else ""
         )
 
-        for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
+        for doc_id, (original_doc_id, doc) in enumerate(
+            itertools.islice(task_docs, 0, limit)
+        ):
             if task.invalid_doc_for_prompt(doc):
                 continue
 
             docs[(task_prompt_name, doc_id)] = doc
-            ctx = task.fewshot_context(
+            ctx, fewshotex_logging_info = task.fewshot_context(
                 doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
             )
+            fewshotex_logging_info["doc_id"] = original_doc_id
             reqs = task.construct_requests(doc, ctx)
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]
@@ -215,7 +214,7 @@ def evaluate(
                 # i: index in requests for a single task instance
                 # doc_id: unique id that we can get back to a doc using `docs`
                 requests_origin[req.request_type].append(
-                    (i, task_prompt_name, doc, doc_id)
+                    (i, task_prompt_name, doc, doc_id, fewshotex_logging_info)
                 )
 
     # all responses for each (task, doc)
@@ -234,32 +233,56 @@ def evaluate(
             x if req.index is None else x[req.index] for x, req in zip(resps, reqs)
         ]
 
-        for resp, (i, task_prompt_name, doc, doc_id) in zip(
+        for resp, (i, task_prompt_name, doc, doc_id, fewshotex_logging_info) in zip(
             resps, requests_origin[reqtype]
         ):
-            process_res_queue[(task_prompt_name, doc_id)].append((i, resp))
+            process_res_queue[(task_prompt_name, doc_id)].append(
+                (i, resp, fewshotex_logging_info)
+            )
 
     vals = collections.defaultdict(list)
 
     # unpack results and sort back in order and return control to Task
-    for (task_prompt_name, doc_id), requests in process_res_queue.items():
-        requests.sort(key=lambda x: x[0])
-        requests = [x[1] for x in requests]
+    examples = []
+    for (task_prompt_name, doc_id), per_doc_requests in process_res_queue.items():
+        per_doc_requests.sort(key=lambda x: x[0])
+        per_doc_results = [x[1] for x in per_doc_requests]
+        fewshot_logging_info = [x[2] for x in per_doc_requests][0]
 
         task = task_dict[task_prompt_name]
         doc = docs[(task_prompt_name, doc_id)]
 
-        metrics = task.process_results(doc, requests)
+        output = task.process_results(doc, per_doc_results)
+        if task.save_examples:
+            metrics, example = output
+            example.update(fewshot_logging_info)
+            example.update(task.get_logging_info())
+            examples.append(example)
+        else:
+            metrics = output
+            example = fewshot_logging_info
+            example.update(task.get_logging_info())
+            examples.append(example)
+
         for metric, value in metrics.items():
             vals[(task_prompt_name, metric)].append(value)
 
     # aggregate results
+    metric_results = []
     for (task_prompt_name, metric), items in vals.items():
         task_name, prompt_name = task_prompt_name.split("+")
+
         results[task_prompt_name]["task_name"] = task_name
         results[task_prompt_name]["prompt_name"] = prompt_name
         task = task_dict[task_prompt_name]
         results[task_prompt_name][metric] = task.aggregation()[metric](items)
+
+        _metric_results = {
+            "task_name": task_name,
+            "prompt_name": prompt_name,
+            metric: task.aggregation()[metric](items),
+            **task.get_logging_info(),
+        }
 
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
         # so we run them less iterations. still looking for a cleaner way to do this
@@ -271,8 +294,18 @@ def evaluate(
         )
         if stderr is not None:
             results[task_prompt_name][metric + "_stderr"] = stderr(items)
+            _metric_results[metric + "_stderr"] = stderr(items)
+        metric_results.append(_metric_results)
 
-    return {"results": dict(results), "versions": dict(versions)}
+    return {
+        # List of results that tracks the averages per model and prompt.
+        "results": metric_results,
+        "versions": dict(versions),
+        # List of all prompt x doc examples with additional information in it.
+        "examples": examples,
+        # Original results used for generating the table when running this file.
+        "table_results": dict(results),
+    }
 
 
 def make_table(result_dict):
@@ -293,7 +326,7 @@ def make_table(result_dict):
     ]
 
     values = []
-    for k, dic in result_dict["results"].items():
+    for k, dic in result_dict["table_results"].items():
         version = result_dict["versions"][k]
         for m, v in dic.items():
             if m.endswith("_stderr"):
