@@ -345,25 +345,27 @@ class BaseLM(LM):
 
         reord = utils.Reorderer(requests, _collate)
 
-        for context, until in tqdm(reord.get_reordered()):
-            if isinstance(until, str):
-                until = [until]
-                max_length = None
-            elif isinstance(until, list) and len(until) == 2:
-                until, max_length = [until[0]], until[1]
-            elif isinstance(until, list):
-                max_length = None
+        for context, request_args in tqdm(reord.get_reordered()):
+            stopping_criteria = request_args["stopping_criteria"]
+            max_generation_length = request_args["max_generation_length"]
 
+            assert isinstance(stopping_criteria, str) or stopping_criteria is None
+            assert (
+                isinstance(max_generation_length, int) or max_generation_length is None
+            )
+
+            until = [stopping_criteria]
             primary_until = self.tok_encode(until[0])
             context_enc = torch.tensor(
                 [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
             ).to(self.device)
 
-            if max_length is not None:
-                max_length = min(max_length, context_enc.shape[1] + self.max_gen_toks)
-            else:
+            if max_generation_length is None:
                 max_length = context_enc.shape[1] + self.max_gen_toks
-
+            else:
+                max_length = min(
+                    max_generation_length, context_enc.shape[1] + self.max_gen_toks
+                )
             cont = self._model_generate(
                 context_enc,
                 max_length,
@@ -673,12 +675,6 @@ class PromptSourceTask(Task):
         """Denote where the max length of the generation if it is obvious from the task."""
         return None
 
-    def is_generation_task(self):
-        return (
-            "BLEU" in self.prompt.metadata.metrics
-            or "ROUGE" in self.prompt.metadata.metrics
-        )
-
     def invalid_doc_for_prompt(self, doc) -> bool:
         """Some prompts may not work for some documents."""
         if (
@@ -718,21 +714,19 @@ class PromptSourceTask(Task):
         _requests = []
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
 
-        # We take a present answer_choices list to mean that we should apply the supplied
-        # metrics (hardcoded or accuracy atm) to the ranked choices. Otherwise, assume generation.
-        # Above we do something similar, but rely on the metrics requested (BLEU, ROUGE indicating generation).
         if answer_choices_list:
-            assert (
-                not self.is_generation_task()
-            ), f"We expect this to be a ranked choice task; double check please."
+            # If answer_choices_list, then this is a ranked choice prompt.
             for answer_choice in answer_choices_list:
                 ll_answer_choice, _ = rf.loglikelihood(ctx, f" {answer_choice}")
                 _requests.append(ll_answer_choice)
         else:
-            # TODO(Albert): What is the stop symbol? Is it model specific?
-            cont_request = rf.greedy_until(
-                ctx, [self.stopping_criteria(), self.max_generation_length()]
-            )
+            # If not, then this is a generation prompt.
+            # NOTE: In the future, target will be a list of strings.
+            request_args = {
+                "stopping_criteria": self.stopping_criteria(),
+                "max_generation_length": self.max_generation_length(),
+            }
+            cont_request = rf.greedy_until(ctx, request_args)
             _requests.append(cont_request)
 
         return _requests
@@ -750,9 +744,11 @@ class PromptSourceTask(Task):
         target = self.doc_to_target(doc).strip()
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
         if answer_choices_list:
-            assert (
-                not self.is_generation_task()
-            ), f"We expect this to be a ranked choice task; double check please."
+            # If answer_choices_list, then this is a ranked choice prompt.
+            # NOTE: In the future, target will be a list of strings.
+            # For now, we can assume there will be only 1 target, but its possible
+            # that this not the case so we should check for that.
+
             pred = answer_choices_list[np.argmax(results)]
             out = {}
 
@@ -765,7 +761,8 @@ class PromptSourceTask(Task):
             # TODO: Add metrics here.
             return out
         else:
-            # NOTE: In the future, target may be a list, not a string.
+            # If not, then this is a generation prompt.
+            # NOTE: In the future, target will be a list of strings.
             pred = results[0].strip()
             out = {}
 
