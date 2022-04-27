@@ -28,13 +28,13 @@ class MLSUMEs(PromptSourceTask):
     DATASET_NAME = "es"
 
     def has_training_docs(self):
-        return False
+        return True
 
     def has_validation_docs(self):
-        return False
+        return True
 
     def has_test_docs(self):
-        return False
+        return True
 
     def training_docs(self):
         if self.has_training_docs():           
@@ -64,13 +64,13 @@ class MLSUMDe(PromptSourceTask):
     DATASET_NAME = "de"
 
     def has_training_docs(self):
-        return False
+        return True
 
     def has_validation_docs(self):
-        return False
+        return True
 
     def has_test_docs(self):
-        return False
+        return True
 
     def training_docs(self):
         if self.has_training_docs():           
