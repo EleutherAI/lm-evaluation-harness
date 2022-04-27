@@ -123,6 +123,11 @@ class LM(abc.ABC):
 class BaseLM(LM):
     @property
     @abstractmethod
+    def eot_token(self):
+        pass
+
+    @property
+    @abstractmethod
     def eot_token_id(self):
         pass
 
@@ -354,8 +359,15 @@ class BaseLM(LM):
                 isinstance(max_generation_length, int) or max_generation_length is None
             )
 
-            until = [stopping_criteria]
+            if stopping_criteria is None:
+                until = [self.eot_token] 
+            else:
+                until = [stopping_criteria]
             primary_until = self.tok_encode(until[0])
+
+            if len(primary_until) == 0:
+                primary_until = torch.tensor([self.eot_token_id])
+
             context_enc = torch.tensor(
                 [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
             ).to(self.device)
