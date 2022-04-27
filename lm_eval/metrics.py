@@ -202,6 +202,15 @@ def rouge(
     :param pred:
         A single prediction `str`s.
     """
+
+    # Add newlines between sentences to correctly compute `rougeLsum`.
+    if "rougeLsum" in rouge_types:
+        # TODO: Adapt this to handle languages that do not support sentence endings by `.`.
+        # See GEM-metrics implementation with lang specific `nltk` tokenizers to
+        # split sentences.
+        pred = pred.replace(".", ".\n")
+        refs = [ref.replace(".", ".\n") for ref in refs]
+
     scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=True)
     # ROUGE multi-ref jackknifing
     if len(refs) > 1:
