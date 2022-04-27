@@ -650,8 +650,6 @@ class PromptSourceTask(Task):
     added default behavior for. If you want to add default behavior for a new metric,
     update the functions below. If you want to use one of the following metrics,
     *and* add additional custom processing, override `process_results`, `higher_is_better`, and `aggregation`.
-
-    WARNING: ROUGE is WIP.
     """
 
     CONFIGURED_PS_METRICS = set(["Accuracy", "BLEU", "ROUGE"])
@@ -768,7 +766,6 @@ class PromptSourceTask(Task):
             # NOTE: In the future, target may be a list, not a string.
             pred = results[0].strip()
             out = {}
-
             for metric in self.prompt.metadata.metrics:
                 assert (
                     metric in self.CONFIGURED_PS_METRICS
@@ -776,8 +773,15 @@ class PromptSourceTask(Task):
                 if metric == "BLEU":
                     out["bleu"] = (target, pred)
                 if metric == "ROUGE":
-                    print("WARNING: Skipping Rouge.")
-
+                    # TODO: This computes all rouge sub-metrics. Find a generic
+                    # way to handle user specified rouge sub-metrics to avoid extra
+                    # compute.
+                    rouge_scores = metrics.rouge(target, pred)
+                    # Flatten rouge score dict.
+                    rouge_scores = utils.flatten(rouge_scores)
+                    # Merge all the rouge-type scores into the `out` dict.
+                    out = {**out, **rouge_scores}
+                    print(out)
             return out
 
     def higher_is_better(self):
@@ -791,7 +795,22 @@ class PromptSourceTask(Task):
             if metric == "BLEU":
                 out["bleu"] = True
             if metric == "ROUGE":
-                print("WARNING: Skipping Rouge.")
+                # TODO: Find a generic way to handle user specified rouge metrics.
+                out["rouge1_precision"] = True
+                out["rouge1_recall"] = True
+                out["rouge1_fmeasure"] = True
+
+                out["rouge2_precision"] = True
+                out["rouge2_recall"] = True
+                out["rouge2_fmeasure"] = True
+
+                out["rougeL_precision"] = True
+                out["rougeL_recall"] = True
+                out["rougeL_fmeasure"] = True
+
+                out["rougeLsum_precision"] = True
+                out["rougeLsum_recall"] = True
+                out["rougeLsum_fmeasure"] = True
         return out
 
     def aggregation(self):
@@ -805,7 +824,22 @@ class PromptSourceTask(Task):
             if metric == "BLEU":
                 out["bleu"] = metrics.bleu
             if metric == "ROUGE":
-                print("WARNING: Skipping Rouge.")
+                # TODO: Find a generic way to handle user specified rouge metrics.
+                out["rouge1_precision"] = mean
+                out["rouge1_recall"] = mean
+                out["rouge1_fmeasure"] = mean
+
+                out["rouge2_precision"] = mean
+                out["rouge2_recall"] = mean
+                out["rouge2_fmeasure"] = mean
+
+                out["rougeL_precision"] = mean
+                out["rougeL_recall"] = mean
+                out["rougeL_fmeasure"] = mean
+
+                out["rougeLsum_precision"] = mean
+                out["rougeLsum_recall"] = mean
+                out["rougeLsum_fmeasure"] = mean
         return out
 
 
