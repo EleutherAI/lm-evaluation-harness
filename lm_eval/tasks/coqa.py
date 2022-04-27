@@ -126,10 +126,7 @@ class CoQA(PromptSourceTask):
         }
 
         if self.save_examples:
-            example = {
-                "f1": scores["f1"],
-                "em": scores["em"],
-            }
+            example = {"target": target, "pred": pred}
             return out, example
         return out
 

@@ -247,7 +247,7 @@ def evaluate(
     for (task_prompt_name, doc_id), per_doc_requests in process_res_queue.items():
         per_doc_requests.sort(key=lambda x: x[0])
         per_doc_results = [x[1] for x in per_doc_requests]
-        logging_info = [x[2] for x in per_doc_requests][0]
+        fewshot_logging_info = [x[2] for x in per_doc_requests][0]
 
         task = task_dict[task_prompt_name]
         doc = docs[(task_prompt_name, doc_id)]
@@ -255,15 +255,15 @@ def evaluate(
         output = task.process_results(doc, per_doc_results)
         if task.save_examples:
             metrics, example = output
-
-            if logging_info:
-                # This has the fewshot information like fewshot_idx.
-                example.update(logging_info)
-                example.update(task.get_logging_info())
-
+            example.update(fewshot_logging_info)
+            example.update(task.get_logging_info())
             examples.append(example)
         else:
             metrics = output
+            example = fewshot_logging_info
+            example.update(task.get_logging_info())
+            examples.append(example)
+
         for metric, value in metrics.items():
             vals[(task_prompt_name, metric)].append(value)
 
@@ -296,6 +296,7 @@ def evaluate(
             results[task_prompt_name][metric + "_stderr"] = stderr(items)
             _metric_results[metric + "_stderr"] = stderr(items)
         metric_results.append(_metric_results)
+
     return {
         # List of results that tracks the averages per model and prompt.
         "results": metric_results,

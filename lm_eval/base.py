@@ -778,7 +778,7 @@ class PromptSourceTask(Task):
                 ), "Unexpected metric. Add it, or use a task-specific solution."
                 if metric == "BLEU":
                     out["bleu"] = (target, pred)
-                if metric == "ROUGE":
+                elif metric == "ROUGE":
                     # TODO: This computes all rouge sub-metrics. Find a generic
                     # way to handle user specified rouge sub-metrics to avoid extra
                     # compute.
