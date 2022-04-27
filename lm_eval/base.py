@@ -768,7 +768,7 @@ class PromptSourceTask(Task):
                     metric in self.CONFIGURED_PS_METRICS
                 ), "Unexpected metric. Add it, or use a task-specific solution."
                 if metric == "BLEU":
-                    out["bleu"] = (target, pred)
+                    out["bleu"] = metrics.bleu([(target, pred)])
                 if metric == "ROUGE":
                     # TODO: This computes all rouge sub-metrics. Find a generic
                     # way to handle user specified rouge sub-metrics to avoid extra
@@ -819,7 +819,7 @@ class PromptSourceTask(Task):
             if metric == "Accuracy":
                 out["acc"] = mean
             if metric == "BLEU":
-                out["bleu"] = metrics.bleu
+                out["bleu"] = mean
             if metric == "ROUGE":
                 # TODO: Find a generic way to handle user specified rouge metrics.
                 out["rouge1_precision"] = mean
