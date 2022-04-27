@@ -29,7 +29,7 @@ setuptools.setup(
         "click>=7.1",
         "scikit-learn>=0.24.1",
         "torch>=1.7",
-        "transformers>=4.1",
+        "transformers>=4.16",
         "sqlitedict==1.6.0",
         "pytablewriter==0.58.0",
         "sacrebleu==1.5.0",
