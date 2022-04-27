@@ -118,24 +118,20 @@ class CoQA(PromptSourceTask):
         """
         target = self.doc_to_target(doc).strip()
         pred = results[0].strip().split("\n")[0]
-        print("*" * 80)
-        print(f"DOC: {doc}")
-        #        print(f"PS: {self.prompt.apply(doc)}")
-        print(f"TEXT: {self.doc_to_text(doc)}")
-        print(f"TARGET: {target} END TARGET")
-        print(f"PRED: {pred} END PRED")
-        print("*" * 80)
-
-        # turn_id = len(doc["questions"]["input_text"])
-        # gold_list = self.get_answers(doc, turn_id)
-
-        # TODO: Add HF metrics mapped from promptsource metadata.
         scores = self.compute_scores([target], pred)
 
-        return {
+        out = {
             "f1": scores["f1"],
             "em": scores["em"],
         }
+
+        if self.save_examples:
+            example = {
+                "f1": scores["f1"],
+                "em": scores["em"],
+            }
+            return out, example
+        return out
 
     def higher_is_better(self):
         return {
