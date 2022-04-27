@@ -100,6 +100,14 @@ class T5LM(BaseLM):
 
             inputs, targets = zip(*chunk)
 
+            # Fill in empty encoder inputs with eos_token
+            inputs = (
+                f"{self.eot_token}" 
+                if len(input_) == 0
+                else input_
+                for input_ in inputs
+            )
+
             inputs_tok = self.tokenizer(
                 list(inputs),
                 max_length=self.max_length,
@@ -123,7 +131,7 @@ class T5LM(BaseLM):
 
             for key in targets_tok:
                 targets_tok[key] = targets_tok[key][:, -(self.max_length - 1) :]
-
+            
             outputs = self._model_call(inputs_tok, targets_tok)
 
             log_softmaxes = F.log_softmax(outputs.logits, dim=-1)
