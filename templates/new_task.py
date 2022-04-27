@@ -37,6 +37,41 @@ class NewTask(PromptSourceTask):
         # TODO: Fill in the return with `True` if the Task has test data; else `False`.
         return False
 
+    def training_docs(self):
+        if self.has_training_docs():
+            # We cache training documents in `self._training_docs` for faster
+            # few-shot processing. If the data is too large to fit in memory,
+            # return the training data as a generator instead of a list.
+            if self._training_docs is None:
+                # TODO: Return the training document generator from `self.dataset`.
+                # If you need to process the data, `map` over the documents with
+                # the custom procesing function, `self._process_doc`. E.g.
+                # `map(self._process_doc, self.dataset["validation"])`
+                # In most case you can leave this as is unless the dataset split is
+                # named differently than the default `"train"`.
+                self._training_docs = list(self.dataset["train"])
+            return self._training_docs
+
+    def validation_docs(self):
+        if self.has_validation_docs():
+            # TODO: Return the validation document generator from `self.dataset`.
+            # If you need to process the data, `map` over the documents with the
+            # custom procesing function, `self._process_doc`. E.g.
+            # `map(self._process_doc, self.dataset["validation"])`
+            # In most case you can leave this as is unless the dataset split is
+            # named differently than the default `"validation"`.
+            return self.dataset["validation"]
+
+    def test_docs(self):
+        if self.has_test_docs():
+            # TODO: Return the test document generator from `self.dataset`.
+            # If you need to process the data, `map` over the documents with the
+            # custom processing function, `self._process_doc`. E.g.
+            # `map(self._process_doc, self.dataset["test"])`
+            # In most case you can leave this as is unless the dataset split is
+            # named differently than the default `"test"`.
+            return self.dataset["test"]
+
     def stopping_criteria(self):
         # TODO: Denote the string where the generation should be split.
         # For example, for `coqa`, this is '\nQ:' and for `drop` '.'.
