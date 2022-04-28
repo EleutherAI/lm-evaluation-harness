@@ -73,6 +73,10 @@ class HFLM(BaseLM):
         #     self.gpt2 = nn.DataParallel(self.gpt2)
 
     @property
+    def eot_token(self):
+        return self.tokenizer.eos_token
+
+    @property
     def eot_token_id(self):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
         return self.tokenizer.eos_token_id
