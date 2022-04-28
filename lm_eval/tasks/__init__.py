@@ -110,10 +110,10 @@ TASK_REGISTRY = {
     "wsc": superglue.SGWinogradSchemaChallenge,
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
-    "GEM/web_nlg": gem_webnlg.WebNLG,
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
+    **gem_webnlg.construct_tasks(),
     # multilingual lambada
     **lambada_multilingual.construct_tasks(),
     "wikitext": wikitext.WikiText,
