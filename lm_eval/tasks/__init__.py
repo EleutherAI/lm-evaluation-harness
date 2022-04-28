@@ -57,6 +57,7 @@ from . import gem_webnlg
 from . import gem_xsum
 from . import gem_mlsum
 from . import e2e_nlg_cleaned
+from . import schema_guided_dstc8
 
 ########################################
 # Translation tasks
@@ -126,6 +127,7 @@ TASK_REGISTRY = {
     "pubmedqa": pubmedqa.Pubmed_QA,
     "sciq": sciq.SciQ,
     "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
+    "schema_guided_dstc8": schema_guided_dstc8.Schema_Guided_DSTC8,
     "qasper": qasper.QASPER,
     "qa4mre_2011": qa4mre.QA4MRE_2011,
     "qa4mre_2012": qa4mre.QA4MRE_2012,
