@@ -56,7 +56,7 @@ class T0LM(BaseLM):
 
     @property
     def max_gen_toks(self):
-        return self.tokenizer.model_max_length
+        return 256
 
     @property
     def batch_size(self):
@@ -93,6 +93,14 @@ class T0LM(BaseLM):
         for chunk in tqdm(utils.chunks(requests, self.batch_size), total=math.ceil(len(requests)/self.batch_size)):
 
             inputs, targets = zip(*chunk)
+
+            # Fill in empty encoder inputs with eos_token
+            inputs = (
+                f"{self.eot_token}" 
+                if len(input_) == 0
+                else input_
+                for input_ in inputs
+            )
 
             inputs_tok = self.tokenizer(
                 list(inputs),
@@ -172,11 +180,21 @@ class T0LM(BaseLM):
             EOSCriteria(self.tokenizer.eos_token)
         ])
 
-    def _model_generate(self, context, max_length, stopping_criteria_ids):
+    def _model_generate(self, context, max_length, stopping_criteria_ids, num_fewshot):
         stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
-        return self.t0.generate(
-            context, 
-            max_length=max_length, 
-            stopping_criteria=stopping_criteria,
-            do_sample=False,
-        )
+        
+        if num_fewshot == 0:
+            generations = self.t0.generate(
+                context, 
+                max_length=max_length, 
+                eos_token_id=self.eot_token_id,
+                do_sample=False,
+            )
+        else:
+            generations = self.t0.generate(
+                context, 
+                max_length=max_length, 
+                stopping_criteria=stopping_criteria,
+                do_sample=False,
+            )
+        return generations[0]
