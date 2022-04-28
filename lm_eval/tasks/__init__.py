@@ -59,7 +59,9 @@ from . import hans
 from . import gem_webnlg
 from . import gem_xsum
 from . import gem_mlsum
-# from . import e2e_nlg_cleaned
+from . import wino_bias
+from . import e2e_nlg_cleaned
+from . import gem_asset_turk
 
 ########################################
 # Translation tasks
@@ -113,11 +115,12 @@ TASK_REGISTRY = {
     "wsc": superglue.SGWinogradSchemaChallenge,
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
-    "GEM/web_nlg": gem_webnlg.WebNLG,
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
+    **gem_webnlg.construct_tasks(),
     # multilingual lambada
+    **gem_asset_turk.construct_tasks(),
     **lambada_multilingual.construct_tasks(),
     "wikitext": wikitext.WikiText,
     # "cbt-cn": cbt.CBTCN, # disabled pending context length fix
@@ -128,7 +131,7 @@ TASK_REGISTRY = {
     # Science related
     "pubmedqa": pubmedqa.Pubmed_QA,
     "sciq": sciq.SciQ,
-    # "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
+    "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
     "qasper": qasper.QASPER,
     "qa4mre_2011": qa4mre.QA4MRE_2011,
     "qa4mre_2012": qa4mre.QA4MRE_2012,
@@ -312,10 +315,14 @@ TASK_REGISTRY = {
     "gem_xsum_challenge_test_nopunc": gem_xsum.GEMXSUMChallgeTestNopunc,
     "gem_xsum_challenge_test_covid": gem_xsum.GEMXSUMChallgeTestCovid,
 
-
    #LAMA
     "lama-trex":lama.Trex,
     "bigscience-lama":bigsciencelama.BigScienceLAMA,
+    # WinoBias
+    "wino_bias_type1_pro": wino_bias.WinoBiasType1Pro,
+    "wino_bias_type1_anti": wino_bias.WinoBiasType1Anti,
+    "wino_bias_type2_pro": wino_bias.WinoBiasType2Pro,
+    "wino_bias_type2_anti": wino_bias.WinoBiasType2Anti,
 }
 
 
