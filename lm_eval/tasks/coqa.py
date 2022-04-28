@@ -90,8 +90,8 @@ class CoQA(PromptSourceTask):
             "f1": f1_sum / max(1, len(gold_list)),
         }
 
-    def stopping_criteria(self):
-        return "\n\n"
+    # def stopping_criteria(self):
+    #     return "\n\n"
 
     # def construct_requests(self, doc, ctx):
     #     """Uses RequestFactory to construct Requests and returns an iterable of
