@@ -70,8 +70,8 @@ class WebNLG(PromptSourceTask):
             else:
                 return self.dataset["test"]
 
-    def stopping_criteria(self):
-        return None
+    # def stopping_criteria(self):
+    #     return None
 
     def max_generation_length(self):
         return 250

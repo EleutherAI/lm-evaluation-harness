@@ -73,10 +73,10 @@ class NewTask(PromptSourceTask):
             return self.dataset["test"]
 
     def stopping_criteria(self):
-        # TODO: Denote the string where the generation should be split.
-        # For example, for `coqa`, this is '\nQ:' and for `drop` '.'.
+        # Only define this method when you want to control few-shot generations on specific tokens.
+        # The default is set to '\n###\n'.
         # NOTE: You may delete this function if the task does not required generation.
-        return None
+        return "\n###\n"
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
