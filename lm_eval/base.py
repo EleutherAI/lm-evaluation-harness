@@ -384,7 +384,7 @@ class BaseLM(LM):
                 torch.tensor(primary_until),
             )
 
-            s = self.tok_decode(cont[0].tolist()[context_enc.shape[1] :])
+            s = self.tok_decode(cont.tolist())
 
             for term in until:
                 s = s.split(term)[0]

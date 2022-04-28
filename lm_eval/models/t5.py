@@ -62,7 +62,7 @@ class T5LM(BaseLM):
 
     @property
     def max_gen_toks(self):
-        return self.tokenizer.model_max_length
+        return 256
 
     @property
     def batch_size(self):
@@ -187,10 +187,10 @@ class T5LM(BaseLM):
         ])
 
     def _model_generate(self, context, max_length, stopping_criteria_ids):
-        stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
+        # stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
         return self.t5.generate(
             context, 
             max_length=max_length, 
-            stopping_criteria=stopping_criteria,
+            # stopping_criteria=stopping_criteria,
             do_sample=False,
-        )
+        )[0]
