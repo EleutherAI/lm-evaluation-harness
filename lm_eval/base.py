@@ -694,11 +694,9 @@ class PromptSourceTask(Task):
     def stopping_criteria(self) -> Optional[str]:
         """Denote where the generation should end.
 
-        For example, for coqa, this is '\nQ:' and for drop '.'.
-
-        By default, its None, meaning to generate up to max or EOT, whichever comes first.
+        By default, its "\n###\n".
         """
-        return None
+        return "\n###\n"
 
     def max_generation_length(self) -> Optional[int]:
         """Denote where the max length of the generation if it is obvious from the task."""
