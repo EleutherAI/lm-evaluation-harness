@@ -57,6 +57,7 @@ from . import gem_webnlg
 from . import gem_xsum
 from . import gem_mlsum
 from . import e2e_nlg_cleaned
+from . import gem_asset_turk
 
 ########################################
 # Translation tasks
@@ -110,11 +111,12 @@ TASK_REGISTRY = {
     "wsc": superglue.SGWinogradSchemaChallenge,
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
-    "GEM/web_nlg": gem_webnlg.WebNLG,
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
+    **gem_webnlg.construct_tasks(),
     # multilingual lambada
+    **gem_asset_turk.construct_tasks(),
     **lambada_multilingual.construct_tasks(),
     "wikitext": wikitext.WikiText,
     # "cbt-cn": cbt.CBTCN, # disabled pending context length fix
