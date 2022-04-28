@@ -59,11 +59,11 @@ class E2E_NLG_Cleaned(PromptSourceTask):
             return self.dataset["test"]
 
     def stopping_criteria(self):
-        return '\n'
+        return '\n\n'
 
     def invalid_doc_for_prompt(self, doc) -> bool:
         """The QA prompts are not applicable to all the examples, we want to filter these out."""
-        return self.prompt.name.endswith("_qa")
+        return self.prompt.name.endswith("_qa") or self.prompt.name == "family_friendly_yes_no"
 
     def doc_to_text(self, doc) -> str:
         # if the response is not defined in PS, the text will be a single-element list containing an empty string
