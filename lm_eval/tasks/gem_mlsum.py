@@ -22,7 +22,7 @@ _CITATION = """
 """
 
 
-class MLSUMEs(PromptSourceTask):
+class GEMMLSUMEsBase(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "GEM/mlsum"
     DATASET_NAME = "es"
@@ -53,12 +53,24 @@ class MLSUMEs(PromptSourceTask):
     def stopping_criteria(self):
         return "."
 
-    def max_generation_length(self):
-        return 120
+class GEMMLSUMEs(GEMMLSUMEsBase):
+    '''this is for train/validation/test'''
+    SPLIT = ''
 
+class GEMMLSUMEsChallgeTestCovid(GEMMLSUMEsBase):
+     '''this is for challenge_test_covid'''
+     SPLIT = 'challenge_test_covid'
 
+     def has_training_docs(self):
+         return False
 
-class MLSUMDe(PromptSourceTask):
+     def has_validation_docs(self):
+         return False
+     def test_docs(self):
+         if self.has_test_docs():
+             return self.dataset[self.SPLIT] 
+
+class GEMMLSUMDeBase(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "GEM/mlsum"
     DATASET_NAME = "de"
@@ -89,5 +101,19 @@ class MLSUMDe(PromptSourceTask):
     def stopping_criteria(self):
         return "."
 
-    def max_generation_length(self):
-        return 120
+class GEMMLSUMDe(GEMMLSUMDeBase):
+    '''this is for train/validation/test'''
+    SPLIT = ''
+
+class GEMMLSUMDeChallgeTestCovid(GEMMLSUMDeBase):
+     '''this is for challenge_test_covid'''
+     SPLIT = 'challenge_test_covid'
+
+     def has_training_docs(self):
+         return False
+
+     def has_validation_docs(self):
+         return False
+     def test_docs(self):
+         if self.has_test_docs():
+             return self.dataset[self.SPLIT] 
