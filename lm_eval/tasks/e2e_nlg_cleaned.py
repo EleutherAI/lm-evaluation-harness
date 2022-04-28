@@ -61,10 +61,6 @@ class E2E_NLG_Cleaned(PromptSourceTask):
     def stopping_criteria(self):
         return '\n'
 
-    def max_generation_length(self):
-        # TODO check
-        return 512
-
     def invalid_doc_for_prompt(self, doc) -> bool:
         """The QA prompts are not applicable to all the examples, we want to filter these out."""
         return self.prompt.name.endswith("_qa")
