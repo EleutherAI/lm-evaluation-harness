@@ -54,7 +54,6 @@ from . import gsm8k
 from . import storycloze
 from . import hans
 from . import gem_webnlg
-from . import TyDiQA
 from . import lama
 # from . import e2e_nlg_cleaned
 
@@ -161,8 +160,8 @@ TASK_REGISTRY = {
     "ethics_utilitarianism_original": hendrycks_ethics.EthicsUtilitarianismOriginal,
     "ethics_utilitarianism": hendrycks_ethics.EthicsUtilitarianism,
     "ethics_virtue": hendrycks_ethics.EthicsVirtue,
-    "tydiqa_primary" : TyDiQA.Primary,
-    "tydiqa_secondary" : TyDiQA.Secondary,
+    #"tydiqa_primary" : TyDiQA.Primary, not implemented yet
+    #"tydiqa_secondary" : TyDiQA.Secondary, not implemented yet
     "truthfulqa_mc": truthfulqa.TruthfulQAMultipleChoice,
     "truthfulqa_gen": truthfulqa.TruthfulQAGeneration,
     # dialogue
