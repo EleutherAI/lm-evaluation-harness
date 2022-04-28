@@ -54,7 +54,8 @@ from . import gsm8k
 from . import storycloze
 from . import hans
 from . import gem_webnlg
-
+from . import TyDiQA
+from . import lama
 # from . import e2e_nlg_cleaned
 
 ########################################
@@ -133,6 +134,10 @@ TASK_REGISTRY = {
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
     # "quac": quac.QuAC, # not implemented yet
+    "lama_trex": lama.Trex,
+    "lama_squad": lama.Squad,
+    "lama_google_re": lama.google_re,
+    "lama_concptnet": lama.Conceptnet,
     "logiqa": logiqa.LogiQA,
     "hellaswag": hellaswag.HellaSwag,
     "openbookqa": openbookqa.OpenBookQA,
@@ -156,6 +161,8 @@ TASK_REGISTRY = {
     "ethics_utilitarianism_original": hendrycks_ethics.EthicsUtilitarianismOriginal,
     "ethics_utilitarianism": hendrycks_ethics.EthicsUtilitarianism,
     "ethics_virtue": hendrycks_ethics.EthicsVirtue,
+    "tydiqa_primary" : TyDiQA.Primary,
+    "tydiqa_secondary" : TyDiQA.Secondary,
     "truthfulqa_mc": truthfulqa.TruthfulQAMultipleChoice,
     "truthfulqa_gen": truthfulqa.TruthfulQAGeneration,
     # dialogue
