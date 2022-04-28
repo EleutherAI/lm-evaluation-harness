@@ -54,8 +54,11 @@ from . import gsm8k
 from . import storycloze
 from . import hans
 from . import gem_webnlg
-
-# from . import e2e_nlg_cleaned
+from . import gem_xsum
+from . import gem_mlsum
+from . import wino_bias
+from . import e2e_nlg_cleaned
+from . import gem_asset_turk
 
 ########################################
 # Translation tasks
@@ -109,11 +112,12 @@ TASK_REGISTRY = {
     "wsc": superglue.SGWinogradSchemaChallenge,
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
-    "GEM/web_nlg": gem_webnlg.WebNLG,
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
+    **gem_webnlg.construct_tasks(),
     # multilingual lambada
+    **gem_asset_turk.construct_tasks(),
     **lambada_multilingual.construct_tasks(),
     "wikitext": wikitext.WikiText,
     # "cbt-cn": cbt.CBTCN, # disabled pending context length fix
@@ -124,7 +128,7 @@ TASK_REGISTRY = {
     # Science related
     "pubmedqa": pubmedqa.Pubmed_QA,
     "sciq": sciq.SciQ,
-    # "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
+    "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
     "qasper": qasper.QASPER,
     "qa4mre_2011": qa4mre.QA4MRE_2011,
     "qa4mre_2012": qa4mre.QA4MRE_2012,
@@ -287,10 +291,32 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
+    
+    #GEM/mlsum
+    "mlsum_es":gem_mlsum.GEMMLSUMEs,
+    "mlsum_de":gem_mlsum.GEMMLSUMDe,
+    "mlsum_es_covid_challenge_set":gem_mlsum.GEMMLSUMEsChallgeTestCovid,
+    "mlsum_de_covid_challenge_set":gem_mlsum.GEMMLSUMDeChallgeTestCovid,
+
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
+
+    #GEM/xum
+    "gem_xsum": gem_xsum.GEMXSUM,
+    "gem_xsum_challenge_sample": gem_xsum.GEMXSUMChallgeSample,
+    "gem_xsum_challenge_test_backtranslation": gem_xsum.GEMXSUMChallgeTestBacktranslation,
+    "gem_xsum_challenge_test_bfp_02": gem_xsum.GEMXSUMChallgeTestBFP02,
+    "gem_xsum_challenge_test_bfp_05": gem_xsum.GEMXSUMChallgeTestBFP05,
+    "gem_xsum_challenge_test_nopunc": gem_xsum.GEMXSUMChallgeTestNopunc,
+    "gem_xsum_challenge_test_covid": gem_xsum.GEMXSUMChallgeTestCovid,
+
+    # WinoBias
+    "wino_bias_type1_pro": wino_bias.WinoBiasType1Pro,
+    "wino_bias_type1_anti": wino_bias.WinoBiasType1Anti,
+    "wino_bias_type2_pro": wino_bias.WinoBiasType2Pro,
+    "wino_bias_type2_anti": wino_bias.WinoBiasType2Anti,
 }
 
 
