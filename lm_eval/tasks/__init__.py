@@ -324,8 +324,11 @@ TASK_REGISTRY = {
     "gem_xsum_challenge_test_covid": gem_xsum.GEMXSUMChallgeTestCovid,
 
    #LAMA
-    "lama-trex":lama.Trex,
-    "bigscience-lama":bigsciencelama.BigScienceLAMA,
+    "lama-trex": lama.Trex,
+    "lama-squad": lama.Squad,
+    "lama-google_re": lama.google_re,
+    "lama-concptnet": lama.Conceptnet,
+    "bigscience-lama":lama.BigScienceLAMA,
     # WinoBias
     "wino_bias_type1_pro": wino_bias.WinoBiasType1Pro,
     "wino_bias_type1_anti": wino_bias.WinoBiasType1Anti,
