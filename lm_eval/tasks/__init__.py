@@ -56,6 +56,7 @@ from . import hans
 from . import gem_webnlg
 from . import gem_xsum
 from . import gem_mlsum
+from . import gem_asset_turk
 # from . import e2e_nlg_cleaned
 
 ########################################
@@ -115,6 +116,7 @@ TASK_REGISTRY = {
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
     # multilingual lambada
+    **gem_asset_turk.construct_tasks(),
     **lambada_multilingual.construct_tasks(),
     "wikitext": wikitext.WikiText,
     # "cbt-cn": cbt.CBTCN, # disabled pending context length fix
