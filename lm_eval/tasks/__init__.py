@@ -15,6 +15,7 @@ from . import wsc273
 from . import winogrande
 from . import quac
 from . import hellaswag
+from . import swag
 from . import openbookqa
 from . import squad
 from . import naturalqs
@@ -136,6 +137,7 @@ TASK_REGISTRY = {
     # "quac": quac.QuAC, # not implemented yet
     "logiqa": logiqa.LogiQA,
     "hellaswag": hellaswag.HellaSwag,
+    "swag": swag.SWAG,
     "openbookqa": openbookqa.OpenBookQA,
     "squad2": squad.SQuAD2,
     "race": race.RACE,
