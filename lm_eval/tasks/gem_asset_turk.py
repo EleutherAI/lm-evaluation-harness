@@ -1,4 +1,53 @@
+"""
+ASSET: ASSET (Alva-Manchego et al., 2020) is multi-reference dataset
+for the evaluation of sentence simplification in English. The dataset
+uses the same 2,359 sentences from TurkCorpus (Xu et al., 2016)
+and each sentence is associated with 10 crowdsourced simplifications.
+Unlike previous simplification datasets, which contain a single
+transformation (e.g., lexical paraphrasing in TurkCorpus or sentence
+splitting in HSplit), the simplifications in ASSET encompass a variety
+of rewriting transformations.
+https://aclanthology.org/2020.acl-main.424.pdf
+
+TurkCorpus: TURKCorpus is a multi-reference dataset for the evaluation of
+sentence simplification in English. The dataset consists of 2,359 sentences
+from the Parallel Wikipedia Simplification (PWKP) corpus. Each sentence is
+associated with 8 crowdsourced simplifications that focus on only lexical
+paraphrasing (no sentence splitting or deletion).
+https://cocoxu.github.io/publications/tacl2016-smt-simplification.pdf
+"""
 from lm_eval.base import PromptSourceTask
+
+_CITATION = """
+@article{DBLP:journals/corr/abs-2005-00481,
+  author    = {Fernando Alva{-}Manchego and
+               Louis Martin and
+               Antoine Bordes and
+               Carolina Scarton and
+               Beno{\^{\i}}t Sagot and
+               Lucia Specia},
+  title     = {{ASSET:} {A} Dataset for Tuning and Evaluation of Sentence Simplification
+               Models with Multiple Rewriting Transformations},
+  journal   = {CoRR},
+  volume    = {abs/2005.00481},
+  year      = {2020},
+  url       = {https://arxiv.org/abs/2005.00481},
+  eprinttype = {arXiv},
+  eprint    = {2005.00481},
+  timestamp = {Thu, 14 Oct 2021 16:38:25 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/abs-2005-00481.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}"""
+
+""""@article{Xu-EtAl:2016:TACL,
+ author = {Wei Xu and Courtney Napoles and Ellie Pavlick and Quanze Chen and Chris Callison-Burch},
+ title = {Optimizing Statistical Machine Translation for Text Simplification},
+ journal = {Transactions of the Association for Computational Linguistics},
+ volume = {4},
+ year = {2016},
+ url = {https://cocoxu.github.io/publications/tacl2016-smt-simplification.pdf},
+ pages = {401--415}
+ }"""
 
 
 class AssetTurk(PromptSourceTask):
