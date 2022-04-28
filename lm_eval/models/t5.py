@@ -62,7 +62,7 @@ class T5LM(BaseLM):
 
     @property
     def max_gen_toks(self):
-        return self.tokenizer.model_max_length
+        return 256
 
     @property
     def batch_size(self):
@@ -100,6 +100,14 @@ class T5LM(BaseLM):
 
             inputs, targets = zip(*chunk)
 
+            # Fill in empty encoder inputs with eos_token
+            inputs = (
+                f"{self.eot_token}" 
+                if len(input_) == 0
+                else input_
+                for input_ in inputs
+            )
+
             inputs_tok = self.tokenizer(
                 list(inputs),
                 max_length=self.max_length,
@@ -123,7 +131,7 @@ class T5LM(BaseLM):
 
             for key in targets_tok:
                 targets_tok[key] = targets_tok[key][:, -(self.max_length - 1) :]
-
+            
             outputs = self._model_call(inputs_tok, targets_tok)
 
             log_softmaxes = F.log_softmax(outputs.logits, dim=-1)
@@ -178,11 +186,21 @@ class T5LM(BaseLM):
             EOSCriteria(self.tokenizer.eos_token)
         ])
 
-    def _model_generate(self, context, max_length, stopping_criteria_ids):
+    def _model_generate(self, context, max_length, stopping_criteria_ids, num_fewshot):
         stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
-        return self.t5.generate(
-            context, 
-            max_length=max_length, 
-            stopping_criteria=stopping_criteria,
-            do_sample=False,
-        )
+
+        if num_fewshot == 0:
+            generations = self.t5.generate(
+                context, 
+                max_length=max_length, 
+                eos_token_id=self.eot_token_id,
+                do_sample=False,
+            )
+        else:
+            generations = self.t5.generate(
+                context, 
+                max_length=max_length, 
+                stopping_criteria=stopping_criteria,
+                do_sample=False,
+            )
+        return generations[0]
