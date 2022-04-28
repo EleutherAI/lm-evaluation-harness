@@ -6,8 +6,6 @@ import sacrebleu
 import lm_eval.base
 
 
-from . import bigsciencelama
-from . import lama
 from . import superglue
 from . import glue
 from . import arc
@@ -64,6 +62,7 @@ from . import gem_mlsum
 from . import wino_bias
 from . import e2e_nlg_cleaned
 from . import gem_asset_turk
+from . import lama
 
 ########################################
 # Translation tasks
