@@ -54,6 +54,7 @@ from . import gsm8k
 from . import storycloze
 from . import hans
 from . import gem_webnlg
+from . import gem_xsum
 
 
 from . import gem_mlsum
@@ -303,6 +304,15 @@ TASK_REGISTRY = {
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
+
+    #GEM/xum
+    "gem_xsum": gem_xsum.GEMXSUM,
+    "gem_xsum_challenge_sample": gem_xsum.GEMXSUMChallgeSample,
+    "gem_xsum_challenge_test_backtranslation": gem_xsum.GEMXSUMChallgeTestBacktranslation,
+    "gem_xsum_challenge_test_bfp_02": gem_xsum.GEMXSUMChallgeTestBFP02,
+    "gem_xsum_challenge_test_bfp_05": gem_xsum.GEMXSUMChallgeTestBFP05,
+    "gem_xsum_challenge_test_nopunc": gem_xsum.GEMXSUMChallgeTestNopunc,
+    "gem_xsum_challenge_test_covid": gem_xsum.GEMXSUMChallgeTestCovid,
 }
 
 
