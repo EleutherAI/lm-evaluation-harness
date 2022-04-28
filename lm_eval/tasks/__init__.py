@@ -5,6 +5,9 @@ from typing import List, Union
 import sacrebleu
 import lm_eval.base
 
+
+from . import bigsciencelama
+from . import lama
 from . import superglue
 from . import glue
 from . import arc
@@ -308,6 +311,11 @@ TASK_REGISTRY = {
     "gem_xsum_challenge_test_bfp_05": gem_xsum.GEMXSUMChallgeTestBFP05,
     "gem_xsum_challenge_test_nopunc": gem_xsum.GEMXSUMChallgeTestNopunc,
     "gem_xsum_challenge_test_covid": gem_xsum.GEMXSUMChallgeTestCovid,
+
+
+   #LAMA
+    "lama-trex":lama.Trex,
+    "bigscience-lama":bigsciencelama.BigScienceLAMA,
 }
 
 
