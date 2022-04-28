@@ -22,7 +22,6 @@ _CITATION = """
 }
 """
 
-# Work in progress
 class Schema_Guided_DSTC8(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "schema_guided_dstc8"
