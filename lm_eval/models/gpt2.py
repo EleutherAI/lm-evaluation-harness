@@ -12,6 +12,7 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
+        parallelize=False
     ):
         super().__init__()
 
@@ -32,7 +33,7 @@ class HFLM(BaseLM):
         self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
             pretrained,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
-        ).to(self.device)
+        )
         self.gpt2.eval()
 
         # pretrained tokenizer for neo is broken for now so just hard-coding this to gpt2
@@ -68,9 +69,11 @@ class HFLM(BaseLM):
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
 
         # TODO: fix multi-gpu
-        # gpus = torch.cuda.device_count()
-        # if gpus > 1:
-        #     self.gpt2 = nn.DataParallel(self.gpt2)
+        if parallelize:
+            self.gpt2.parallelize()
+            self._device = torch.device('cuda:0')
+        else:
+            self.gpt2.to(self._device)
 
     @property
     def eot_token(self):
@@ -146,16 +149,26 @@ class HFLM(BaseLM):
             EOSCriteria(self.tokenizer.eos_token)
         ])
 
-    def _model_generate(self, context, max_length, stopping_criteria_ids):
+    def _model_generate(self, context, max_length, stopping_criteria_ids, num_fewshot):
         stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
-        return self.gpt2.generate(
-            context, 
-            max_length=max_length, 
-            stopping_criteria=stopping_criteria,
-            do_sample=False,
-        )
         
+        if num_fewshot == 0:
+            generations = self.gpt2.generate(
+                context, 
+                max_length=max_length, 
+                eos_token_id=self.eot_token_id,
+                do_sample=False,
+            )
+        else:
+            generations = self.gpt2.generate(
+                context, 
+                max_length=max_length, 
+                stopping_criteria=stopping_criteria,
+                do_sample=False,
+            )
 
+        # Remove the context from the generations
+        return generations[0, context.shape[1] :]
 
 # for backwards compatibility
 GPT2LM = HFLM
