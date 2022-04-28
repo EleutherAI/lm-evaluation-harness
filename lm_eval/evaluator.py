@@ -206,7 +206,8 @@ def evaluate(
                 doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
             )
             fewshotex_logging_info["doc_id"] = original_doc_id
-            reqs = task.construct_requests(doc, ctx)
+            args = {"num_fewshot": num_fewshot}
+            reqs = task.construct_requests(doc, ctx, args)
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]
             for i, req in enumerate(reqs):

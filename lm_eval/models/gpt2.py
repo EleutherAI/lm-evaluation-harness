@@ -149,14 +149,23 @@ class HFLM(BaseLM):
             EOSCriteria(self.tokenizer.eos_token)
         ])
 
-    def _model_generate(self, context, max_length, stopping_criteria_ids):
-        # stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
-        generations = self.gpt2.generate(
-            context, 
-            max_length=max_length, 
-            # stopping_criteria=stopping_criteria,
-            do_sample=False,
-        )
+    def _model_generate(self, context, max_length, stopping_criteria_ids, num_fewshot):
+        stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
+        
+        if num_fewshot == 0:
+            generations = self.gpt2.generate(
+                context, 
+                max_length=max_length, 
+                eos_token_id=self.eot_token_id,
+                do_sample=False,
+            )
+        else:
+            generations = self.gpt2.generate(
+                context, 
+                max_length=max_length, 
+                stopping_criteria=stopping_criteria,
+                do_sample=False,
+            )
 
         # Remove the context from the generations
         return generations[0, context.shape[1] :]
