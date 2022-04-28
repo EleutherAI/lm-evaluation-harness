@@ -8,6 +8,7 @@ class GPTJLM(BaseLM):
         self,
         device="cuda",
         batch_size=1,
+        parallelize=False,
     ):
         super().__init__()
 
@@ -35,9 +36,11 @@ class GPTJLM(BaseLM):
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
 
         # TODO: fix multi-gpu
-        # gpus = torch.cuda.device_count()
-        # if gpus > 1:
-        #     self.gptj = nn.DataParallel(self.gptj)
+        if parallelize:
+            self.gptj.parallelize()
+            self._device = torch.device('cuda:0')
+        else:
+            self.gptj.to(self._device)
 
     @property
     def eot_token(self):
@@ -113,11 +116,23 @@ class GPTJLM(BaseLM):
             EOSCriteria(self.tokenizer.eos_token)
         ])
 
-    def _model_generate(self, context, max_length, stopping_criteria_ids):
+    def _model_generate(self, context, max_length, stopping_criteria_ids, num_fewshot):
         stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
-        return self.gptj.generate(
-            context, 
-            max_length=max_length, 
-            stopping_criteria=stopping_criteria,
-            do_sample=False,
-        )
+        
+        if num_fewshot == 0:
+            generations = self.gptj.generate(
+                context, 
+                max_length=max_length, 
+                eos_token_id=self.eot_token_id,
+                do_sample=False,
+            )
+        else:
+            generations = self.gptj.generate(
+                context, 
+                max_length=max_length, 
+                stopping_criteria=stopping_criteria,
+                do_sample=False,
+            )
+
+        # Remove the context from the generations
+        return generations[0, context.shape[1] :]

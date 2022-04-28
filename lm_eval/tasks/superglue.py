@@ -305,3 +305,39 @@ class SGWinogradSchemaChallenge(PromptSourceTask):
 
     def aggregation(self):
         return {"acc": mean}
+
+
+class WinogenderSchemaDiagnostics(PromptSourceTask):
+    VERSION = 0
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "axg"
+
+    def has_training_docs(self):
+        return False
+
+    def has_validation_docs(self):
+        return False 
+
+    def has_test_docs(self):
+        return True 
+
+    def test_docs(self):
+        return self.dataset["test"]
+
+
+class BroadcoverageDiagnostics(PromptSourceTask):
+    VERSION = 0
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "axb"
+
+    def has_training_docs(self):
+        return False
+
+    def has_validation_docs(self):
+        return False 
+
+    def has_test_docs(self):
+        return True 
+
+    def test_docs(self):
+        return self.dataset["test"]
