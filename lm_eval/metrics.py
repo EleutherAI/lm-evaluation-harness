@@ -1,3 +1,4 @@
+import imp
 import typing
 import math
 from collections.abc import Iterable
@@ -7,6 +8,7 @@ import sacrebleu
 from rouge_score import rouge_scorer
 import sklearn.metrics
 import random
+from metrics import sari
 
 
 def mean(arr):
@@ -105,8 +107,14 @@ def weighted_mean(items):
 def weighted_perplexity(items):
     return math.exp(-weighted_mean(items))
 
+
 def bits_per_byte(items):
     return -weighted_mean(items) / math.log(2)
+
+
+def sari(sentence_to_simplifiy, generated_sentence, references):
+    """Implementation of SARI from the authors'."""
+    return sari.SARIsent(sentence_to_simplifiy, generated_sentence, references)
 
 
 def bleu(items):
@@ -190,9 +198,9 @@ def _sacreformat(refs, preds):
 def rouge(
     refs: typing.List[str],
     pred: str,
-    rouge_types: typing.List[str] = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
+    rouge_types: typing.List[str] = ["rouge1", "rouge2", "rougeL", "rougeLsum"],
 ):
-    """ ROUGE with multi-reference support
+    """ROUGE with multi-reference support
 
     Implementation based on GEM-metrics:
     https://github.com/GEM-benchmark/GEM-metrics/blob/431a8174bd6b3637e8d6118bfad2983e39e99733/gem_metrics/rouge.py
@@ -256,6 +264,7 @@ def rouge(
 
 # stderr stuff
 
+
 class _bootstrap_internal:
     def __init__(self, f, n):
         self.f = f
@@ -273,9 +282,10 @@ class _bootstrap_internal:
 
 def bootstrap_stderr(f, xs, iters):
     import multiprocessing as mp
+
     pool = mp.Pool(mp.cpu_count())
     # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
-    # equivalent to stderr calculated without Bessel's correction in the stddev. 
+    # equivalent to stderr calculated without Bessel's correction in the stddev.
     # Unfortunately, I haven't been able to figure out what the right correction is
     # to make the bootstrap unbiased - i considered multiplying by sqrt(n/(n-1)) but
     # that would be ad-hoc and I can't prove that that would actually be an unbiased estimator)
@@ -283,10 +293,15 @@ def bootstrap_stderr(f, xs, iters):
     res = []
     chunk_size = min(1000, iters)
     from tqdm import tqdm
+
     print("bootstrapping for stddev:", f.__name__)
-    for bootstrap in tqdm(pool.imap(
+    for bootstrap in tqdm(
+        pool.imap(
             _bootstrap_internal(f, chunk_size),
-            [(i, xs) for i in range(iters // chunk_size)]), total=iters // chunk_size):
+            [(i, xs) for i in range(iters // chunk_size)],
+        ),
+        total=iters // chunk_size,
+    ):
         # sample w replacement
         res.extend(bootstrap)
 
@@ -308,17 +323,13 @@ def stderr_for_metric(metric, bootstrap_iters):
     if metric in bootstrappable:
         return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
 
-    stderr = {
-        mean: mean_stderr,
-        acc_all: acc_all_stderr
-        
-    }
+    stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
     return stderr.get(metric, None)
 
 
 def yesno(x):
     if x:
-        return 'yes'
+        return "yes"
     else:
-        return 'no'
+        return "no"

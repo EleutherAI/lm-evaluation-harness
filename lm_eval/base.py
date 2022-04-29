@@ -362,7 +362,7 @@ class BaseLM(LM):
             assert isinstance(num_fewshot, int) or num_fewshot is None
 
             if stopping_criteria is None:
-                until = [self.eot_token] 
+                until = [self.eot_token]
             else:
                 until = [stopping_criteria]
             primary_until = self.tok_encode(until[0])
@@ -378,7 +378,7 @@ class BaseLM(LM):
                 max_length = self.max_gen_toks
             else:
                 max_length = max_generation_length
-    
+
             cont = self._model_generate(
                 context_enc,
                 max_length,
@@ -618,11 +618,10 @@ class PromptSourceTask(Task):
         self.prompt = prompt
         self.save_examples = save_examples
 
-
     def stopping_criteria(self) -> Optional[str]:
-        """ 
+        """
         Denote where the generation should end based on the few-shot example
-        separator: "\n###\n". 
+        separator: "\n###\n".
         TODO: Handle other separators in the future.
         """
         return "\n###\n"
@@ -738,6 +737,9 @@ class PromptSourceTask(Task):
                     rouge_scores = utils.flatten(rouge_scores)
                     # Merge all the rouge-type scores into the `out` dict.
                     out = {**out, **rouge_scores}
+                elif metric == "SARI":
+                    text = self.doc_to_text(doc)
+                    out = {"sari": metrics.sari(text, pred, target)}
 
         # TODO: Wrap process results s.t. override impl do not
         # override the save examples.
@@ -774,6 +776,8 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = True
                 out["rougeLsum_recall"] = True
                 out["rougeLsum_fmeasure"] = True
+            if metric == "SARI":
+                out["sari"] = True
         return out
 
     def aggregation(self):
@@ -800,6 +804,8 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = mean
                 out["rougeLsum_recall"] = mean
                 out["rougeLsum_fmeasure"] = mean
+            if metric == "SARI":
+                out["sari"] = mean
         return out
 
     def fewshot_examples(self, k, rnd):
@@ -871,11 +877,13 @@ class PromptSourceTask(Task):
                 fewshotex, fewshotidx = self._get_fewshot_examples(
                     self._fewshot_docs, k=num_fewshot + 1, rnd=rnd
                 )
-                fewshotex, fewshotidx = zip(*[
-                    (shot, idx)
-                    for shot, idx in zip(fewshotex, fewshotidx)
-                    if shot != doc
-                ])
+                fewshotex, fewshotidx = zip(
+                    *[
+                        (shot, idx)
+                        for shot, idx in zip(fewshotex, fewshotidx)
+                        if shot != doc
+                    ]
+                )
                 # get rid of the doc that's the one we're evaluating, if it's in the fewshot
                 fewshotex, fewshotidx = (
                     fewshotex[:num_fewshot],
