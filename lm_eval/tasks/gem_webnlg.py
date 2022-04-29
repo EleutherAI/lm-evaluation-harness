@@ -70,14 +70,8 @@ class WebNLG(PromptSourceTask):
             else:
                 return self.dataset["test"]
 
-    # def stopping_criteria(self):
-    #     return None
-
     def max_generation_length(self):
         return 250
-
-    # def higher_is_better(self):
-    #     return {"bleu": True, "rouge": True}
 
 
 class WebNLGRu(WebNLG):

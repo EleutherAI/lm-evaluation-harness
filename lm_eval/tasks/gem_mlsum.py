@@ -50,9 +50,6 @@ class GEMMLSUMEsBase(PromptSourceTask):
         if self.has_test_docs():
             return self.dataset["test"]
 
-    def stopping_criteria(self):
-        return "."
-
 class GEMMLSUMEs(GEMMLSUMEsBase):
     '''this is for train/validation/test'''
     SPLIT = ''
@@ -97,9 +94,6 @@ class GEMMLSUMDeBase(PromptSourceTask):
     def test_docs(self):
         if self.has_test_docs():
             return self.dataset["test"]
-
-    def stopping_criteria(self):
-        return "."
 
 class GEMMLSUMDe(GEMMLSUMDeBase):
     '''this is for train/validation/test'''
