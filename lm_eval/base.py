@@ -1,4 +1,5 @@
 import abc
+import ast
 from typing import Iterable, Optional
 
 import promptsource
@@ -650,7 +651,10 @@ class PromptSourceTask(Task):
     def doc_to_target(self, doc) -> str:
         """NOTE: In the future, this may return Union[str, List[str]]."""
         _, target = self.prompt.apply(doc)
-        return f" {target}"
+        if len(target) == 1:
+            return f" {target[0]}"
+        else:
+            return f" {target}"
 
     def doc_to_text(self, doc) -> str:
         text, _ = self.prompt.apply(doc)
@@ -701,6 +705,8 @@ class PromptSourceTask(Task):
             The results of the requests created in construct_requests.
         """
         target = self.doc_to_target(doc).strip()
+        if target[0] == '[' and target[-1] == ']':
+            target = [i.strip() for i in ast.literal_eval(target)]
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
         if answer_choices_list:
             # If answer_choices_list, then this is a ranked choice prompt.
