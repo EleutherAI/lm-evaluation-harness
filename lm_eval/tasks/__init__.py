@@ -5,6 +5,7 @@ from typing import List, Union
 import sacrebleu
 import lm_eval.base
 
+
 from . import superglue
 from . import glue
 from . import arc
@@ -54,12 +55,15 @@ from . import gsm8k
 from . import storycloze
 from . import hans
 from . import gem_webnlg
+from . import lama
+# from . import e2e_nlg_cleaned
 from . import gem_xsum
 from . import gem_mlsum
 from . import wino_bias
 from . import e2e_nlg_cleaned
 from . import gem_asset_turk
 from . import crows_pairs_multilingual
+from . import lama
 
 from . import HuffPost
 ########################################
@@ -139,6 +143,10 @@ TASK_REGISTRY = {
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
     # "quac": quac.QuAC, # not implemented yet
+    "lama_trex": lama.Trex,
+    "lama_squad": lama.Squad,
+    "lama_google_re": lama.google_re,
+    "lama_concptnet": lama.Conceptnet,
     "logiqa": logiqa.LogiQA,
     "hellaswag": hellaswag.HellaSwag,
     "openbookqa": openbookqa.OpenBookQA,
@@ -162,6 +170,8 @@ TASK_REGISTRY = {
     "ethics_utilitarianism_original": hendrycks_ethics.EthicsUtilitarianismOriginal,
     "ethics_utilitarianism": hendrycks_ethics.EthicsUtilitarianism,
     "ethics_virtue": hendrycks_ethics.EthicsVirtue,
+    #"tydiqa_primary" : TyDiQA.Primary, not implemented yet
+    #"tydiqa_secondary" : TyDiQA.Secondary, not implemented yet
     "truthfulqa_mc": truthfulqa.TruthfulQAMultipleChoice,
     "truthfulqa_gen": truthfulqa.TruthfulQAGeneration,
     # dialogue
@@ -314,6 +324,12 @@ TASK_REGISTRY = {
     "gem_xsum_challenge_test_nopunc": gem_xsum.GEMXSUMChallgeTestNopunc,
     "gem_xsum_challenge_test_covid": gem_xsum.GEMXSUMChallgeTestCovid,
 
+   #LAMA
+    "lama-trex": lama.Trex,
+    "lama-squad": lama.Squad,
+    "lama-google_re": lama.google_re,
+    "lama-concptnet": lama.Conceptnet,
+    "bigscience-lama":lama.BigScienceLAMA,
     # WinoBias
     "wino_bias_type1_pro": wino_bias.WinoBiasType1Pro,
     "wino_bias_type1_anti": wino_bias.WinoBiasType1Anti,
