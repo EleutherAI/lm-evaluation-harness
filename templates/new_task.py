@@ -7,7 +7,7 @@ TODO: Write a Short Description of the task.
 
 Homepage: TODO: Add the URL to the task's Homepage here.
 """
-from lm_eval.base import PromptSourceTask
+from lm_eval.base import Task
 
 
 # TODO: Add the BibTeX citation for the task.
@@ -16,6 +16,7 @@ _CITATION = """
 
 
 # TODO: Replace `NewTask` with the name of your Task.
+
 class NewTask(PromptSourceTask):
     VERSION = 0
     # TODO: Add the `DATASET_PATH` string. This will be the name of the `Task`
@@ -72,7 +73,26 @@ class NewTask(PromptSourceTask):
             # named differently than the default `"test"`.
             return self.dataset["test"]
 
-    def max_generation_length(self):
+    def _process_doc(self, doc):
+        # TODO: Process (detokenize, strip, replace etc.) each individual `doc`
+        # with this function. You can map this across the docs in each available
+        # dataset split. See the TODOs in `train_docs`, `validation_docs`, and
+        # `test_docs` for snippets.
+        # NOTE: DELETE THIS FUNCTION IF UNUSED.
+        return doc
+
+    def doc_to_text(self, doc):
+        # TODO: Format the query prompt portion of the document example.
+        return ""
+
+    def doc_to_target(self, doc):
+        # TODO: Fill in the `target` ("gold answer") variable.
+        # The prepended `" "` is required to space out the `doc_to_text` and
+        # `doc_to_target` strings.
+        target = ""
+        return " " + target
+
+      def max_generation_length(self):
         # Define this method when you want to control the length of few-shot
         # generations on specific tokens. The default is `None` which gets mapped
         # to a model's default max generation token length. E.g. see `lm_eval/models/gpt2.py:max_gen_toks()`
