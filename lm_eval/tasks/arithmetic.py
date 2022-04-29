@@ -58,11 +58,10 @@ class Arithmetic(Task):
 
     def construct_requests(self, doc, ctx):
         ll, is_prediction = rf.loglikelihood(ctx, doc["completion"])
-        return ll, is_prediction
+        return is_prediction
 
     def process_results(self, doc, results):
-        print(results)
-        results = results
+        is_prediction, = results
         return {
             "acc": is_prediction
         }

@@ -1,10 +1,8 @@
-from promptsource.templates import DatasetTemplates
 from pprint import pprint
 from typing import List, Union
 
 import sacrebleu
 import lm_eval.base
-
 
 from . import superglue
 from . import glue
@@ -54,27 +52,15 @@ from . import blimp
 from . import asdiv
 from . import gsm8k
 from . import storycloze
-from . import hans
-from . import gem_webnlg
-from . import lama
-# from . import e2e_nlg_cleaned
-from . import gem_xsum
-from . import gem_mlsum
-from . import wino_bias
-from . import e2e_nlg_cleaned
-from . import gem_asset_turk
-from . import crows_pairs_multilingual
-from . import lama
 
-from . import HuffPost
 ########################################
 # Translation tasks
 ########################################
 
 # 6 total
 gpt3_translation_benchmarks = {
-    "wmt14": ["en-fr", "fr-en"],  # French
-    "wmt16": ["en-ro", "ro-en", "de-en", "en-de"],  # German, Romanian
+    "wmt14": ['en-fr', 'fr-en'],  # French
+    "wmt16": ['en-ro', 'ro-en', 'de-en', 'en-de'],  # German, Romanian
 }
 
 
@@ -82,7 +68,7 @@ gpt3_translation_benchmarks = {
 selected_translation_benchmarks = {
     **gpt3_translation_benchmarks,
     "wmt20": sacrebleu.get_langpairs_for_testset("wmt20"),
-    "iwslt17": ["en-ar", "ar-en"],  # Arabic
+    "iwslt17": ['en-ar', 'ar-en']  # Arabic
 }
 
 # 319 total
@@ -106,7 +92,7 @@ TASK_REGISTRY = {
     "rte": glue.RTE,
     "qnli": glue.QNLI,
     "qqp": glue.QQP,
-    # "stsb": glue.STSB, # not implemented yet
+    #"stsb": glue.STSB, # not implemented yet
     "sst": glue.SST,
     "wnli": glue.WNLI,
     # SuperGLUE
@@ -117,37 +103,38 @@ TASK_REGISTRY = {
     "record": superglue.ReCoRD,
     "wic": superglue.WordsInContext,
     "wsc": superglue.SGWinogradSchemaChallenge,
+    
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
-    **gem_webnlg.construct_tasks(),
+    
     # multilingual lambada
-    **gem_asset_turk.construct_tasks(),
     **lambada_multilingual.construct_tasks(),
+
     "wikitext": wikitext.WikiText,
     # "cbt-cn": cbt.CBTCN, # disabled pending context length fix
     # "cbt-ne": cbt.CBTNE, # disabled pending context length fix
+
     "piqa": piqa.PiQA,
     "prost": prost.PROST,
     "mc_taco": mc_taco.MCTACO,
+
     # Science related
-    "pubmedqa": pubmedqa.Pubmed_QA,
-    "sciq": sciq.SciQ,
-    "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
+    "pubmedqa" : pubmedqa.Pubmed_QA,
+    "sciq" : sciq.SciQ,
+
     "qasper": qasper.QASPER,
-    "qa4mre_2011": qa4mre.QA4MRE_2011,
-    "qa4mre_2012": qa4mre.QA4MRE_2012,
-    "qa4mre_2013": qa4mre.QA4MRE_2013,
+
+    "qa4mre_2011" : qa4mre.QA4MRE_2011,
+    "qa4mre_2012" : qa4mre.QA4MRE_2012,
+    "qa4mre_2013" : qa4mre.QA4MRE_2013,
+
     "triviaqa": triviaqa.TriviaQA,
     "arc_easy": arc.ARCEasy,
     "arc_challenge": arc.ARCChallenge,
     # "quac": quac.QuAC, # not implemented yet
-    "lama_trex": lama.Trex,
-    "lama_squad": lama.Squad,
-    "lama_google_re": lama.google_re,
-    "lama_concptnet": lama.Conceptnet,
     "logiqa": logiqa.LogiQA,
     "hellaswag": hellaswag.HellaSwag,
     "swag": swag.SWAG,
@@ -155,7 +142,7 @@ TASK_REGISTRY = {
     "squad2": squad.SQuAD2,
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
-    "headqa": headqa.HeadQAEsDeprecated,  # for backwards compat - headqa used to default to es
+    "headqa": headqa.HeadQAEsDeprecated, # for backwards compat - headqa used to default to es
     "headqa_es": headqa.HeadQAEs,
     "headqa_en": headqa.HeadQAEn,
     "mathqa": mathqa.MathQA,
@@ -165,20 +152,21 @@ TASK_REGISTRY = {
     "anli_r1": anli.ANLIRound1,
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
-    "hans": hans.HANS,
+
     "ethics_cm": hendrycks_ethics.EthicsCM,
     "ethics_deontology": hendrycks_ethics.EthicsDeontology,
     "ethics_justice": hendrycks_ethics.EthicsJustice,
     "ethics_utilitarianism_original": hendrycks_ethics.EthicsUtilitarianismOriginal,
     "ethics_utilitarianism": hendrycks_ethics.EthicsUtilitarianism,
     "ethics_virtue": hendrycks_ethics.EthicsVirtue,
-    #"tydiqa_primary" : TyDiQA.Primary, not implemented yet
-    #"tydiqa_secondary" : TyDiQA.Secondary, not implemented yet
-    "truthfulqa_mc": truthfulqa.TruthfulQAMultipleChoice,
-    "truthfulqa_gen": truthfulqa.TruthfulQAGeneration,
+
+     "truthfulqa_mc": truthfulqa.TruthfulQAMultipleChoice,
+     "truthfulqa_gen": truthfulqa.TruthfulQAGeneration,
+
     # dialogue
     "mutual": mutual.MuTual,
     "mutual_plus": mutual.MuTualPlus,
+
     # math
     "math_algebra": hendrycks_math.MathAlgebra,
     "math_counting_and_prob": hendrycks_math.MathCountingAndProbability,
@@ -189,6 +177,7 @@ TASK_REGISTRY = {
     "math_precalc": hendrycks_math.MathPrecalculus,
     "math_asdiv": asdiv.Asdiv,
     "gsm8k": gsm8k.GradeSchoolMath8K,
+
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
     "arithmetic_2ds": arithmetic.Arithmetic2DMinus,
@@ -202,18 +191,22 @@ TASK_REGISTRY = {
     "arithmetic_1dc": arithmetic.Arithmetic1DComposite,
     # TODO Perhaps make these groups of tasks
     #   e.g. anli, arithmetic, openai_translations, harness_translations
+
     # hendrycksTest (57 tasks)
     **hendrycks_test.create_all_tasks(),
+
     # e.g. wmt14-fr-en
     **translation.create_tasks_from_benchmarks(gpt3_translation_benchmarks),
     # chef's selection, mostly wmt20
     **translation.create_tasks_from_benchmarks(selected_translation_benchmarks),
+
     # Word Scrambling and Manipulation Tasks
     "anagrams1": unscramble.Anagrams1,
     "anagrams2": unscramble.Anagrams2,
     "cycle_letters": unscramble.CycleLetters,
     "random_insertion": unscramble.RandomInsertion,
     "reversed_words": unscramble.ReversedWords,
+
     # Pile
     "pile_arxiv": pile.PileArxiv,
     "pile_books3": pile.PileBooks3,
@@ -237,6 +230,7 @@ TASK_REGISTRY = {
     "pile_ubuntu-irc": pile.PileUbuntuIrc,
     "pile_wikipedia": pile.PileWikipedia,
     "pile_youtubesubtitles": pile.PileYoutubeSubtitles,
+    
     # BLiMP
     "blimp_adjunct_island": blimp.BlimpAdjunctIsland,
     "blimp_anaphor_gender_agreement": blimp.BlimpAnaphorGenderAgreement,
@@ -305,45 +299,11 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
-    
-    #GEM/mlsum
-    "mlsum_es":gem_mlsum.GEMMLSUMEs,
-    "mlsum_de":gem_mlsum.GEMMLSUMDe,
-    "mlsum_es_covid_challenge_set":gem_mlsum.GEMMLSUMEsChallgeTestCovid,
-    "mlsum_de_covid_challenge_set":gem_mlsum.GEMMLSUMDeChallgeTestCovid,
 
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
-
-    #GEM/xum
-    "gem_xsum": gem_xsum.GEMXSUM,
-    "gem_xsum_challenge_sample": gem_xsum.GEMXSUMChallgeSample,
-    "gem_xsum_challenge_test_backtranslation": gem_xsum.GEMXSUMChallgeTestBacktranslation,
-    "gem_xsum_challenge_test_bfp_02": gem_xsum.GEMXSUMChallgeTestBFP02,
-    "gem_xsum_challenge_test_bfp_05": gem_xsum.GEMXSUMChallgeTestBFP05,
-    "gem_xsum_challenge_test_nopunc": gem_xsum.GEMXSUMChallgeTestNopunc,
-    "gem_xsum_challenge_test_covid": gem_xsum.GEMXSUMChallgeTestCovid,
-
-   #LAMA
-    "lama-trex": lama.Trex,
-    "lama-squad": lama.Squad,
-    "lama-google_re": lama.google_re,
-    "lama-concptnet": lama.Conceptnet,
-    "bigscience-lama":lama.BigScienceLAMA,
-    # WinoBias
-    "wino_bias_type1_pro": wino_bias.WinoBiasType1Pro,
-    "wino_bias_type1_anti": wino_bias.WinoBiasType1Anti,
-    "wino_bias_type2_pro": wino_bias.WinoBiasType2Pro,
-    "wino_bias_type2_anti": wino_bias.WinoBiasType2Anti,
-
-    # Crows-Pairs
-    "crows_pairs_english": crows_pairs_multilingual.CrowsPairsEnglish,
-    "crows_pairs_french": crows_pairs_multilingual.CrowsPairsFrench,
-
-    # News
-    "huffpost": HuffPost.HuffPost,
 }
 
 
@@ -363,51 +323,19 @@ def get_task_name_from_object(task_object):
     for name, class_ in TASK_REGISTRY.items():
         if class_ is task_object:
             return name
-
+    
     # this gives a mechanism for non-registered tasks to have a custom name anyways when reporting
-    return (
-        task_object.EVAL_HARNESS_NAME
-        if hasattr(task_object, "EVAL_HARNESS_NAME")
-        else type(task_object).__name__
-    )
+    return task_object.EVAL_HARNESS_NAME if hasattr(task_object, "EVAL_HARNESS_NAME") else type(task_object).__name__
 
 
 def get_task_dict(task_name_list: List[Union[str, lm_eval.base.Task]]):
     task_name_dict = {
         task_name: get_task(task_name)()
-        for task_name in task_name_list
-        if isinstance(task_name, str)
+        for task_name in task_name_list if isinstance(task_name, str)
     }
     task_name_from_object_dict = {
         get_task_name_from_object(task_object): task_object
-        for task_object in task_name_list
-        if not isinstance(task_object, str)
+        for task_object in task_name_list if not isinstance(task_object, str)
     }
     assert set(task_name_dict.keys()).isdisjoint(set(task_name_from_object_dict.keys()))
     return {**task_name_dict, **task_name_from_object_dict}
-
-
-def get_task_dict_promptsource(task_name_list: List[str]):
-    """Loads a task instance for each prompt written for that task."""
-    task_name_dict = {}
-
-    for task_name in task_name_list:
-        assert isinstance(task_name, str)
-
-        # Static version of the Task Use this to get HF dataset path / name.
-        static_task_obj = get_task(task_name)
-        # Create the proper task name arg for DatasetTemplates.
-        sub_task = (
-            f"/{static_task_obj.DATASET_NAME}" if static_task_obj.DATASET_NAME else ""
-        )
-        ps_task_name = f"{static_task_obj.DATASET_PATH}{sub_task}"
-
-        task_prompts = DatasetTemplates(ps_task_name)
-        for prompt_name in task_prompts.all_template_names:
-            prompt = task_prompts[prompt_name]
-            # NOTE: We choose a sep that can be easily split.
-            task_name_dict[f"{task_name}+{prompt_name}"] = get_task(task_name)(
-                prompt=prompt
-            )
-
-    return task_name_dict
