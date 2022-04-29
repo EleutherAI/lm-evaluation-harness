@@ -78,14 +78,8 @@ class AssetTurk(PromptSourceTask):
     def test_docs(self):
         return self.dataset[str(self.SPLIT)]
 
-    # def stopping_criteria(self):
-    #     return None
-
     def max_generation_length(self):
         return 200
-
-    # def higher_is_better(self):
-    #     return {"bleu": True, "rouge": True}
 
 
 class AssetTest(AssetTurk):
