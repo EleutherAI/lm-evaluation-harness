@@ -896,9 +896,9 @@ class PromptSourceTask(Task):
 
             labeled_examples_list = []
             fewshottargetidx = []
-            for doc in fewshotex:
-                text = self.doc_to_text(doc)
-                targets = self.doc_to_target(doc)
+            for fewshot_doc in fewshotex:
+                text = self.doc_to_text(fewshot_doc)
+                targets = self.doc_to_target(fewshot_doc)
                 target_idx = random.randint(0, len(targets) - 1)
                 target = targets[target_idx].strip()
                 # TODO(Jon): Given that target is now a list, should we add a space here? Anywhere else?
