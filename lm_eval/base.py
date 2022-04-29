@@ -375,7 +375,7 @@ class BaseLM(LM):
             ).to(self.device)
 
             if max_generation_length is None:
-                max_length = self.max_gen_tok
+                max_length = self.max_gen_toks
             else:
                 max_length = max_generation_length
     
