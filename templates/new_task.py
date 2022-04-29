@@ -16,8 +16,7 @@ _CITATION = """
 
 
 # TODO: Replace `NewTask` with the name of your Task.
-
-class NewTask(PromptSourceTask):
+class NewTask(Task):
     VERSION = 0
     # TODO: Add the `DATASET_PATH` string. This will be the name of the `Task`
     # dataset as denoted in HuggingFace `datasets`.
@@ -91,13 +90,6 @@ class NewTask(PromptSourceTask):
         # `doc_to_target` strings.
         target = ""
         return " " + target
-
-      def max_generation_length(self):
-        # Define this method when you want to control the length of few-shot
-        # generations on specific tokens. The default is `None` which gets mapped
-        # to a model's default max generation token length. E.g. see `lm_eval/models/gpt2.py:max_gen_toks()`
-        # NOTE: You may delete this function if the task does not required generation.
-        return None
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
