@@ -1,7 +1,7 @@
 """
 https://arxiv.org/abs/1909.01066
 https://arxiv.org/abs/2005.04611
-LAMA is a prob dataset to test the factual and commonsense knowledge in language models The dataset include a subset of 
+LAMA is a prob dataset to test the factual and commonsense knowledge in language models. The dataset includes a subset of 
 Google_RE (https://code.google.com/archive/p/relation-extraction-corpus/), TRex (subset of wikidata triples), 
 Conceptnet (https://github.com/commonsense/conceptnet5/wiki) and Squad. 
 
