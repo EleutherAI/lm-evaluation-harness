@@ -52,15 +52,15 @@ class Trex(PromptSourceTask):
 
     def has_training_docs(self):
         # TODO: Fill in the return with `True` if the Task has training data; else `False`.
-        return True
+        return False
 
     def has_validation_docs(self):
         # TODO: Fill in the return with `True` if the Task has validation data; else `False`.
-        return True
+        return False
 
     def has_test_docs(self):
         # TODO: Fill in the return with `True` if the Task has test data; else `False`.
-        return False
+        return True
 
     def training_docs(self):
         if self.has_training_docs():
@@ -70,11 +70,11 @@ class Trex(PromptSourceTask):
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return self.dataset["train"]
+            return self.dataset["validation"]
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.dataset["test"]
+            return self.dataset["train"]
 
     def process_results(self, doc, results):
         out = {}
@@ -111,15 +111,15 @@ class google_re(PromptSourceTask):
 
     def has_training_docs(self):
         # TODO: Fill in the return with `True` if the Task has training data; else `False`.
-        return True
+        return False
 
     def has_validation_docs(self):
         # TODO: Fill in the return with `True` if the Task has validation data; else `False`.
-        return True
+        return False
 
     def has_test_docs(self):
         # TODO: Fill in the return with `True` if the Task has test data; else `False`.
-        return False
+        return True
 
     def training_docs(self):
         if self.has_training_docs():
@@ -129,11 +129,11 @@ class google_re(PromptSourceTask):
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return self.dataset["train"]
+            return self.dataset["validation"]
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.dataset["test"]
+            return self.dataset["train"]
 
     def process_results(self, doc, results):
         out = {}
@@ -168,15 +168,16 @@ class Conceptnet(PromptSourceTask):
 
     def has_training_docs(self):
         # TODO: Fill in the return with `True` if the Task has training data; else `False`.
-        return True
+        return False
 
     def has_validation_docs(self):
         # TODO: Fill in the return with `True` if the Task has validation data; else `False`.
-        return True
+        return False
 
     def has_test_docs(self):
         # TODO: Fill in the return with `True` if the Task has test data; else `False`.
-        return False
+        return True
+
 
     def training_docs(self):
         if self.has_training_docs():
@@ -186,11 +187,11 @@ class Conceptnet(PromptSourceTask):
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return self.dataset["train"]
+            return self.dataset["validation"]
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.dataset["test"]
+            return self.dataset["train"]
 
     def process_results(self, doc, results):
         out = {}
@@ -226,15 +227,16 @@ class Squad(PromptSourceTask):
 
     def has_training_docs(self):
         # TODO: Fill in the return with `True` if the Task has training data; else `False`.
-        return True
+        return False
 
     def has_validation_docs(self):
         # TODO: Fill in the return with `True` if the Task has validation data; else `False`.
-        return True
+        return False
 
     def has_test_docs(self):
         # TODO: Fill in the return with `True` if the Task has test data; else `False`.
-        return False
+        return True
+
 
     def training_docs(self):
         if self.has_training_docs():
@@ -244,12 +246,12 @@ class Squad(PromptSourceTask):
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return self.dataset["train"]
+            return self.dataset["validation"]
 
     def test_docs(self):
         if self.has_test_docs():
 
-            self._test_docs = list(self.dataset["test"])
+            self._test_docs = list(self.dataset["train"])
             return self._test_docs
 
     def process_results(self, doc, results):
