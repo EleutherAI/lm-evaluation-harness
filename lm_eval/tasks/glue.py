@@ -14,7 +14,7 @@ respect to a wide range of linguistic phenomena found in natural language.
 Homepage: https://gluebenchmark.com/
 """
 import numpy as np
-from lm_eval.base import rf, Task
+from lm_eval.base import PromptSourceTask, rf, Task
 from lm_eval.metrics import mean, matthews_corrcoef, f1_score, yesno
 from lm_eval.utils import general_detokenize
 
@@ -45,7 +45,7 @@ _CITATION = """
 # Single-Sentence Tasks
 
 
-class CoLA(Task):
+class CoLA(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "cola"
@@ -67,37 +67,20 @@ class CoLA(Task):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
-        return "{}\nQuestion: Does this sentence make sense?\nAnswer:".format(doc["sentence"])
+    # def process_results(self, doc, results):
+    #     answer_choices_list = self.prompt.get_answer_choices_list(doc)
+    #     pred = np.argmax(results)
+    #     target = answer_choices_list.index(self.doc_to_target(doc).strip())
+    #     return {"mcc": (target, pred)}
 
-    def doc_to_target(self, doc):
-        return " {}".format({1: "yes", 0: "no"}[doc["label"]])
+    # def higher_is_better(self):
+    #     return {"mcc": True}
 
-    def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " yes")
-        ll_false, _ = rf.loglikelihood(ctx, " no")
-        return ll_true, ll_false
-
-    def process_results(self, doc, results):
-        ll_true, ll_false = results
-        pred = ll_true > ll_false
-        gold = doc["label"]
-        return {
-            "mcc": (gold, pred)
-        }
-
-    def higher_is_better(self):
-        return {
-            "mcc": True
-        }
-
-    def aggregation(self):
-        return {
-            "mcc": matthews_corrcoef
-        }
+    # def aggregation(self):
+    #     return {"mcc": matthews_corrcoef}
 
 
-class SST(Task):
+class SST(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "sst2"
@@ -119,42 +102,11 @@ class SST(Task):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
-        return "{}\nQuestion: Is this sentence positive or negative?\nAnswer:".format(
-            general_detokenize(doc["sentence"]),
-        )
-
-    def doc_to_target(self, doc):
-        return " {}".format({1: "positive", 0: "negative"}[doc["label"]])
-
-    def construct_requests(self, doc, ctx):
-        ll_positive, _ = rf.loglikelihood(ctx, " positive")
-        ll_negative, _ = rf.loglikelihood(ctx, " negative")
-        return ll_positive, ll_negative
-
-    def process_results(self, doc, results):
-        ll_positive, ll_negative = results
-        pred = ll_positive > ll_negative
-        gold = doc["label"]
-        return {
-            "acc": pred == gold
-        }
-
-    def higher_is_better(self):
-        return {
-            "acc": True
-        }
-
-    def aggregation(self):
-        return {
-            "acc": mean
-        }
-
 
 # Inference Tasks
 
 
-class MNLI(Task):
+class MNLI(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "mnli"
@@ -181,41 +133,6 @@ class MNLI(Task):
         if self.has_test_docs():
             return self.dataset["test_matched"]
 
-    def doc_to_text(self, doc):
-        return "{}\nQuestion: {} True, False or Neither?\nAnswer:".format(
-            doc["premise"],
-            doc["hypothesis"].strip() + ('' if doc["hypothesis"].strip().endswith('.') else '.'),
-        )
-
-    def doc_to_target(self, doc):
-        # True = entailment
-        # False = contradiction
-        # Neither = neutral
-        return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
-
-    def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
-        return ll_true, ll_neither, ll_false
-
-    def process_results(self, doc, results):
-        gold = doc["label"]
-        pred = np.argmax(results)
-        return {
-            "acc": pred == gold
-        }
-
-    def higher_is_better(self):
-        return {
-            "acc": True
-        }
-
-    def aggregation(self):
-        return {
-            "acc": mean
-        }
-
 
 class MNLIMismatched(MNLI):
     VERSION = 0
@@ -229,7 +146,7 @@ class MNLIMismatched(MNLI):
             return self.dataset["test_mismatched"]
 
 
-class QNLI(Task):
+class QNLI(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "qnli"
@@ -251,42 +168,8 @@ class QNLI(Task):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
-        return "{}\n{}\nQuestion: Does this response answer the question?\nAnswer:".format(
-            doc["question"],
-            doc["sentence"],
-        )
 
-    def doc_to_target(self, doc):
-        # True = entailment
-        # False = not entailment
-        return " {}".format({0: "yes", 1: "no"}[doc["label"]])
-
-    def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
-        return ll_yes, ll_no
-
-    def process_results(self, doc, results):
-        ll_yes, ll_no = results
-        pred = ll_no > ll_yes
-        gold = doc["label"]
-        return {
-            "acc": pred == gold
-        }
-
-    def higher_is_better(self):
-        return {
-            "acc": True
-        }
-
-    def aggregation(self):
-        return {
-            "acc": mean
-        }
-
-
-class WNLI(Task):
+class WNLI(PromptSourceTask):
     VERSION = 1
     DATASET_PATH = "glue"
     DATASET_NAME = "wnli"
@@ -301,49 +184,13 @@ class WNLI(Task):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
-        return "{}\nQuestion: {} True or False?\nAnswer:".format(
-            doc["sentence1"],
-            doc["sentence2"],
-        )
 
-    def doc_to_target(self, doc):
-        # True = entailment
-        # False = not_entailment
-        return " {}".format({0: "False", 1: "True"}[doc["label"]])
-
-    def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
-        return ll_true, ll_false
-
-    def process_results(self, doc, results):
-        ll_true, ll_false = results
-        pred = ll_true > ll_false
-        gold = doc["label"]
-        return {
-            "acc": pred == gold
-        }
-
-    def higher_is_better(self):
-        return {
-            "acc": True
-        }
-
-    def aggregation(self):
-        return {
-            "acc": mean
-        }
-
-
-class RTE(Task):
+class RTE(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "rte"
@@ -365,45 +212,17 @@ class RTE(Task):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
-        return "{}\nQuestion: {} True or False?\nAnswer:".format(
-            doc["sentence1"],
-            doc["sentence2"],
-        )
-
-    def doc_to_target(self, doc):
-        # 0 = entailment
-        # 1 = not_entailment
-        return " {}".format({0: "True", 1: "False"}[doc["label"]])
-
-    def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
-        return ll_true, ll_false
-
-    def process_results(self, doc, results):
-        ll_true, ll_false = results
-        pred = ll_false > ll_true
-        gold = doc["label"]
-        return {
-            "acc": pred == gold
-        }
-
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
 
 # Similarity and Paraphrase Tasks
 
 
-class MRPC(Task):
+class MRPC(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "mrpc"
@@ -425,43 +244,8 @@ class MRPC(Task):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def doc_to_text(self, doc):
-        return "Sentence 1: {}\nSentence 2: {}\nQuestion: Do both sentences mean the same thing?\nAnswer:".format(
-            general_detokenize(doc["sentence1"]),
-            general_detokenize(doc["sentence2"]),
-        )
 
-    def doc_to_target(self, doc):
-        return " {}".format(yesno(doc["label"]))
-
-    def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
-        return ll_yes, ll_no
-
-    def process_results(self, doc, results):
-        ll_yes, ll_no = results
-        gold = doc["label"]
-        pred = ll_yes > ll_no
-        return {
-            "acc": pred == gold,
-            "f1": (gold, pred),
-        }
-
-    def higher_is_better(self):
-        return {
-            "acc": True,
-            "f1": True
-        }
-
-    def aggregation(self):
-        return {
-            "acc": mean,
-            "f1": f1_score
-        }
-
-
-class QQP(Task):
+class QQP(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "qqp"
@@ -482,41 +266,6 @@ class QQP(Task):
 
     def validation_docs(self):
         return self.dataset["validation"]
-
-    def doc_to_text(self, doc):
-        return "Question 1: {}\nQuestion 2: {}\nQuestion: Do both questions ask the same thing?\nAnswer:".format(
-            doc["question1"],
-            doc["question2"],
-        )
-
-    def doc_to_target(self, doc):
-        return " {}".format(yesno(doc["label"]))
-
-    def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
-        return ll_yes, ll_no
-
-    def process_results(self, doc, results):
-        ll_yes, ll_no = results
-        gold = doc["label"]
-        pred = ll_yes > ll_no
-        return {
-            "acc": pred == gold,
-            "f1": (gold, pred),
-        }
-
-    def higher_is_better(self):
-        return {
-            "acc": True,
-            "f1": True
-        }
-
-    def aggregation(self):
-        return {
-            "acc": mean,
-            "f1": f1_score
-        }
 
 
 class STSB(Task):
@@ -554,22 +303,22 @@ class STSB(Task):
         return " {}".format(doc["label"])
 
     def construct_requests(self, doc, ctx):
-        """ Uses RequestFactory to construct Requests and returns an iterable of 
+        """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
         :param doc:
             The document as returned from training_docs, validation_docs, or test_docs.
         :param ctx: str
-            The context string, generated by fewshot_context. This includes the natural 
+            The context string, generated by fewshot_context. This includes the natural
             language description, as well as the few shot examples, and the question
-            part of the document for `doc`. 
+            part of the document for `doc`.
         """
         # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
-    
+        raise NotImplementedError("Evaluation not implemented")
+
     def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a 
-        dict where keys are the names of submetrics and values are the values of 
+        """Take a single document and the LM results and evaluates, returning a
+        dict where keys are the names of submetrics and values are the values of
         the metric for that one document
 
         :param doc:
@@ -578,22 +327,22 @@ class STSB(Task):
             The results of the requests created in construct_requests.
         """
         # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        raise NotImplementedError("Evaluation not implemented")
 
     def aggregation(self):
         """
         :returns: {str: [float] -> float}
-            A dictionary where keys are the names of submetrics and values are 
+            A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
         # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        raise NotImplementedError("Evaluation not implemented")
 
     def higher_is_better(self):
         """
         :returns: {str: bool}
-            A dictionary where keys are the names of submetrics and values are 
+            A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
         # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        raise NotImplementedError("Evaluation not implemented")
