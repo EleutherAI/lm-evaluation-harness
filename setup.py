@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        "datasets==2.0.0",
+        "datasets>=2.0.0",
         "click>=7.1",
         "scikit-learn>=0.24.1",
         "torch>=1.7",
