@@ -3,21 +3,16 @@ import torch
 from lm_eval.base import BaseLM
 
 
-class HFLM(BaseLM):
+class GPTJLM(BaseLM):
     def __init__(
         self,
         device="cuda",
-        pretrained="gpt2",
-        revision="main",
-        subfolder=None,
-        tokenizer=None,
         batch_size=1,
-        parallelize=False
+        parallelize=False,
     ):
         super().__init__()
 
         assert isinstance(device, str)
-        assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
 
         if device:
@@ -29,51 +24,23 @@ class HFLM(BaseLM):
                 else torch.device("cpu")
             )
 
-        # TODO: update this to be less of a hack once subfolder is fixed in HF
-        self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
-            pretrained,
-            revision=revision + ("/" + subfolder if subfolder is not None else ""),
-        )
-        self.gpt2.eval()
+        pretrained = "EleutherAI/gpt-j-6B"
+        self.gptj = transformers.AutoModelForCausalLM.from_pretrained(pretrained).to(self.device)
+        self.gptj.eval()
 
-        # pretrained tokenizer for neo is broken for now so just hard-coding this to gpt2
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-            pretrained if tokenizer is None else tokenizer,
-            revision=revision,
-            subfolder=subfolder,
-        )
-
-        assert isinstance(
-            self.tokenizer,
-            (
-                transformers.GPT2Tokenizer,
-                transformers.GPT2TokenizerFast,
-                transformers.T5Tokenizer,
-                transformers.T5TokenizerFast,
-            ),
-        ), "this tokenizer has not been checked for compatibility yet!"
-
+        # pretrained tokenizer for neo is broken for now so just hard-coding this to gptj
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(pretrained)
         self.vocab_size = self.tokenizer.vocab_size
-
-        if isinstance(
-            self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
-        ):
-            assert self.tokenizer.encode("hello\n\nhello") == [
-                31373,
-                198,
-                198,
-                31373,
-            ], self.tokenizer.encode("hello\n\nhello")
 
         # multithreading and batching
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
 
         # TODO: fix multi-gpu
         if parallelize:
-            self.gpt2.parallelize()
+            self.gptj.parallelize()
             self._device = torch.device('cuda:0')
         else:
-            self.gpt2.to(self._device)
+            self.gptj.to(self._device)
 
     @property
     def eot_token(self):
@@ -87,10 +54,10 @@ class HFLM(BaseLM):
     @property
     def max_length(self):
         try:
-            return self.gpt2.config.n_ctx
+            return self.gptj.config.n_ctx
         except AttributeError:
             # gptneoconfig doesn't have n_ctx apparently
-            return self.gpt2.config.max_position_embeddings
+            return self.gptj.config.max_position_embeddings
 
     @property
     def max_gen_toks(self):
@@ -121,7 +88,7 @@ class HFLM(BaseLM):
         logits returned from the model
         """
         with torch.no_grad():
-            return self.gpt2(inps)[0][:, :, :50257]
+            return self.gptj(inps)[0][:, :, :50257]
 
     def _get_stopping_criteria(self, stopping_criteria_ids):
         class MultitokenEOSCriteria(transformers.StoppingCriteria):
@@ -153,14 +120,14 @@ class HFLM(BaseLM):
         stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
         max_length = max_length + context.size(1)
         if num_fewshot == 0:
-            generations = self.gpt2.generate(
+            generations = self.gptj.generate(
                 context, 
                 max_length=max_length, 
                 eos_token_id=self.eot_token_id,
                 do_sample=False,
             )
         else:
-            generations = self.gpt2.generate(
+            generations = self.gptj.generate(
                 context, 
                 max_length=max_length, 
                 stopping_criteria=stopping_criteria,
@@ -169,6 +136,3 @@ class HFLM(BaseLM):
 
         # Remove the context from the generations
         return generations[0, context.shape[1] :]
-
-# for backwards compatibility
-GPT2LM = HFLM
