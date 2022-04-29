@@ -61,6 +61,7 @@ from . import e2e_nlg_cleaned
 from . import gem_asset_turk
 from . import crows_pairs_multilingual
 
+from . import HuffPost
 ########################################
 # Translation tasks
 ########################################
@@ -322,6 +323,9 @@ TASK_REGISTRY = {
     # Crows-Pairs
     "crows_pairs_english": crows_pairs_multilingual.CrowsPairsEnglish,
     "crows_pairs_french": crows_pairs_multilingual.CrowsPairsFrench,
+
+    # News
+    "huffpost": HuffPost.HuffPost,
 }
 
 
