@@ -145,7 +145,7 @@ class RACE(PromptSourceTask):
             The results of the requests created in construct_requests.
         """
         #
-        gold = self.letter_to_num[self.doc_to_target(doc)]
+        gold = self.letter_to_num[self.doc_to_target(doc)[0]]
         # gold = self.letter_to_num[self.last_problem(doc)["answer"]]
         pred = np.argmax(results)
         return {"acc": int(pred == gold)}

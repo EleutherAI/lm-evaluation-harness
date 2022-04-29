@@ -59,26 +59,6 @@ class ANLIBase(PromptSourceTask):
         if self.has_test_docs():
             return self.dataset["test_r" + str(self.SPLIT)]
 
-    def aggregation(self):
-        """
-        :returns: {str: [float] -> float}
-            A dictionary where keys are the names of submetrics and values are 
-            functions that aggregate a list of metrics
-        """
-        return {
-            "acc": mean
-        }
-
-    def higher_is_better(self):
-        """
-        :returns: {str: bool}
-            A dictionary where keys are the names of submetrics and values are 
-            whether a higher value of the submetric is better
-        """
-        return {
-            "acc": True
-        }
-
 
 class ANLIRound1(ANLIBase):
     SPLIT = 1
