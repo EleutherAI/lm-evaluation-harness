@@ -146,19 +146,6 @@ class Reorderer:
         
         return res
 
-
-def flatten(d, parent_key='', sep='_'):
-    # From: https://stackoverflow.com/a/6027615
-    items = []
-    for k, v in d.items():
-        new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, collections.MutableMapping):
-            items.extend(flatten(v, new_key, sep=sep).items())
-        else:
-            items.append((new_key, v))
-    return dict(items)
-
-
 def positional_deprecated(fn):
     """
     A decorator to nudge users into passing only keyword args (`kwargs`) to the 

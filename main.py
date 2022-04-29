@@ -9,29 +9,27 @@ logging.getLogger("openai").setLevel(logging.WARNING)
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", required=True)
-    parser.add_argument("--model_args", default="")
-    parser.add_argument("--tasks", default="all_tasks")
-    parser.add_argument("--provide_description", action="store_true")
-    parser.add_argument("--num_fewshot", type=int, default=0)
-    parser.add_argument("--batch_size", type=int, default=None)
-    parser.add_argument("--device", type=str, default=None)
-    parser.add_argument("--output_path", default=None)
-    parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument("--no_cache", action="store_true")
-    parser.add_argument("--description_dict_path", default=None)
-    parser.add_argument("--check_integrity", action="store_true")
+    parser.add_argument('--model', required=True)
+    parser.add_argument('--model_args', default="")
+    parser.add_argument('--tasks', default="all_tasks")
+    parser.add_argument('--provide_description', action="store_true")
+    parser.add_argument('--num_fewshot', type=int, default=0)
+    parser.add_argument('--batch_size', type=int, default=None)
+    parser.add_argument('--device', type=str, default=None)
+    parser.add_argument('--output_path', default=None)
+    parser.add_argument('--limit', type=int, default=None)
+    parser.add_argument('--no_cache', action="store_true")
+    parser.add_argument('--description_dict_path', default=None)
+    parser.add_argument('--check_integrity', action="store_true")
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
     assert not args.provide_description  # not implemented
-
+    
     if args.limit:
-        print(
-            "WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
-        )
+        print("WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.")
 
     if args.tasks == "all_tasks":
         task_names = tasks.ALL_TASKS
@@ -40,7 +38,7 @@ def main():
 
     description_dict = {}
     if args.description_dict_path:
-        with open(args.description_dict_path, "r") as f:
+        with open(args.description_dict_path, 'r') as f:
             description_dict = json.load(f)
 
     results = evaluator.simple_evaluate(
@@ -53,12 +51,11 @@ def main():
         no_cache=args.no_cache,
         limit=args.limit,
         description_dict=description_dict,
-        check_integrity=args.check_integrity,
+        check_integrity=args.check_integrity
     )
 
-    print(results)
     dumped = json.dumps(results, indent=2)
-
+    
     print(dumped)
 
     if args.output_path:
