@@ -72,11 +72,12 @@ class NewTask(PromptSourceTask):
             # named differently than the default `"test"`.
             return self.dataset["test"]
 
-    def stopping_criteria(self):
-        # Only define this method when you want to control few-shot generations on specific tokens.
-        # The default is set to '\n###\n'.
+    def max_generation_length(self):
+        # Define this method when you want to control the length of few-shot
+        # generations on specific tokens. The default is `None` which gets mapped
+        # to a model's default max generation token length. E.g. see `lm_eval/models/gpt2.py:max_gen_toks()`
         # NOTE: You may delete this function if the task does not required generation.
-        return "\n###\n"
+        return None
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
