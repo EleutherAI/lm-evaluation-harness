@@ -116,6 +116,9 @@ TASK_REGISTRY = {
     "record": superglue.ReCoRD,
     "wic": superglue.WordsInContext,
     "wsc": superglue.SGWinogradSchemaChallenge,
+    "axg": superglue.WinogenderSchemaDiagnostics,
+    "axb": superglue.BroadcoverageDiagnostics,
+
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
     "drop": drop.DROP,
