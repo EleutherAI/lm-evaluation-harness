@@ -54,9 +54,6 @@ class WinoBias(PromptSourceTask):
     def test_docs(self):
         return self.dataset["test"]
 
-    # def stopping_criteria(self):
-    #     return "\n"
-
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of submetrics and values are the values of

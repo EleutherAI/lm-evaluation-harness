@@ -61,9 +61,6 @@ class E2E_NLG_Cleaned(PromptSourceTask):
     def max_generation_length(self):
         return 64
 
-    # def stopping_criteria(self):
-    #     return '\n\n'
-
     def invalid_doc_for_prompt(self, doc) -> bool:
         """The QA prompts are not applicable to all the examples, we want to filter these out."""
         return self.prompt.name.endswith("_qa") or self.prompt.name == "family_friendly_yes_no"
@@ -73,7 +70,7 @@ class E2E_NLG_Cleaned(PromptSourceTask):
         text = self.prompt.apply(doc)[0]
         return text
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, args):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
@@ -90,6 +87,7 @@ class E2E_NLG_Cleaned(PromptSourceTask):
         request_args = {
             "stopping_criteria": self.stopping_criteria(),
             "max_generation_length": self.max_generation_length(),
+            "num_fewshot": args["num_fewshot"],
         }
 
         # Skip examples for which the templates are not applicable
