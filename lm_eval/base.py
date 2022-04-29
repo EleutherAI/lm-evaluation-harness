@@ -649,7 +649,7 @@ class PromptSourceTask(Task):
 
     def doc_to_target(self, doc) -> List[str]:
         _, target = self.prompt.apply(doc)
-        return [target]
+        return target
 
     def doc_to_text(self, doc) -> str:
         text, _ = self.prompt.apply(doc)
