@@ -151,7 +151,7 @@ class HFLM(BaseLM):
 
     def _model_generate(self, context, max_length, stopping_criteria_ids, num_fewshot):
         stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
-        
+        max_length = max_length + context.size(1)
         if num_fewshot == 0:
             generations = self.gpt2.generate(
                 context, 

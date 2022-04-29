@@ -92,8 +92,6 @@ class DROP(PromptSourceTask):
     #     """
     #     conts = [rf.greedy_until(ctx, ["."])]
     #     return conts
-    # def stopping_criteria(self):
-    #     return "."
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a

@@ -236,9 +236,6 @@ class MRPC(PromptSourceTask):
     def has_test_docs(self):
         return False
 
-    # def stopping_criteria(self):
-    #     return "\n###\n"
-
     def training_docs(self):
         if self._training_docs is None:
             self._training_docs = list(self.dataset["train"])
