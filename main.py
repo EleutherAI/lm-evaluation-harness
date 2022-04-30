@@ -3,6 +3,7 @@ import json
 import logging
 
 from lm_eval import tasks, evaluator
+from codecarbon import track_emissions
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 
@@ -23,7 +24,7 @@ def parse_args():
     parser.add_argument("--check_integrity", action="store_true")
     return parser.parse_args()
 
-
+@track_emissions
 def main():
     args = parse_args()
     assert not args.provide_description  # not implemented
