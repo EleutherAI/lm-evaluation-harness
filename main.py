@@ -56,11 +56,7 @@ def main():
         check_integrity=args.check_integrity,
     )
 
-    print(results)
     dumped = json.dumps(results, indent=2)
-
-    print(dumped)
-
     if args.output_path:
         with open(args.output_path, "w") as f:
             f.write(dumped)

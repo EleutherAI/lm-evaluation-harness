@@ -14,8 +14,12 @@ from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 
-from lm_eval import metrics
-from lm_eval.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
+from lm_eval.metrics import (
+    mean,
+    weighted_perplexity,
+    weighted_mean,
+    bits_per_byte,
+)
 from lm_eval import utils
 from abc import abstractmethod
 

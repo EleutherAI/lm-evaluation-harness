@@ -219,7 +219,3 @@ def SARIsent(ssent, csent, rsents):
     finalscore = (avgkeepscore + avgdelscore + avgaddscore) / 3
 
     return finalscore
-
-
-def SARI(sentence_to_simplifiy, generated_sentence, references):
-    return SARIsent(sentence_to_simplifiy, generated_sentence, references)

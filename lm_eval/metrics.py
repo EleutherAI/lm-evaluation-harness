@@ -8,7 +8,7 @@ import sacrebleu
 from rouge_score import rouge_scorer
 import sklearn.metrics
 import random
-from metrics import sari
+from lm_eval.metric_impls import sari
 
 
 def mean(arr):
