@@ -84,6 +84,12 @@ class TruthfulQAMultipleChoice(Task):
     def doc_to_text(self, doc):
         return QA_PROMPT + "\n\nQ: " + doc['question'] + "\nA:"
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['question']
+
     def doc_to_target(self, doc):
         return " "
 

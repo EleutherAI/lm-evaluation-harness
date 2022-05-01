@@ -70,6 +70,12 @@ class CoLA(Task):
     def doc_to_text(self, doc):
         return "{}\nQuestion: Does this sentence make sense?\nAnswer:".format(doc["sentence"])
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["sentence"]
+
     def doc_to_target(self, doc):
         return " {}".format({1: "yes", 0: "no"}[doc["label"]])
 

@@ -54,6 +54,12 @@ class Math(Task):
     def doc_to_text(self, doc):
         return "Problem: " + doc["problem"] + "\nAnswer:"
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["problem"]
+
     def doc_to_target(self, doc):
         return " " + doc["solution"]
 

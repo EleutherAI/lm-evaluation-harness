@@ -67,3 +67,9 @@ class SATAnalogies(MultipleChoiceTask):
 
     def doc_to_text(self, doc):
         return "{} is to {} as".format(*doc['query'])
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["source"] + "\n" + " ".join(doc["query"])

@@ -66,6 +66,12 @@ class ANLIBase(Task):
         # want to do it exactly as OA did?
         return doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + ' True, False, or Neither?\nAnswer:'
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["premise"]
+
     def doc_to_target(self, doc):
         # True = entailment
         # False = contradiction

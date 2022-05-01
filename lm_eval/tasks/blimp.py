@@ -68,6 +68,12 @@ class BlimpTask(Task):
         # this method is invoked by tests only
         return ""
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["sentence_good"] + " " + doc["sentence_bad"]
+
     def doc_to_target(self, doc):
         # this method is invoked by tests only
         return ""

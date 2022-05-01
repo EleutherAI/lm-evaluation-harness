@@ -58,6 +58,12 @@ class MCTACO(Task):
         return f"{doc['sentence']}\nQuestion: {doc['question']}\n"\
             f"Answer: {doc['answer']}\nPlausible:"
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['question'] + " " + doc['sentence']
+
     def doc_to_target(self, doc):
         return " " + ["no", "yes"][doc['label']]
 

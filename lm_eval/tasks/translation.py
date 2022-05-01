@@ -128,6 +128,12 @@ class GeneralTranslationTask(Task):
         tar_lang = code_to_language(language_codes[1])
         return f"{src_lang} phrase: " + doc["src"] + f"\n{tar_lang} phrase:"
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["src"]
+
     def doc_to_target(self, doc):
         # This shows a single target, though there may be multiple targets in a lang test
         return " " + doc["ref"] if isinstance(doc["ref"], str) else doc["ref"][0]

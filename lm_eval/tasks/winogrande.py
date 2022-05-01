@@ -56,6 +56,12 @@ class Winogrande(Task):
     def doc_to_text(self, doc):
         return self.partial_context(doc, doc["option" + doc["answer"]])
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["sentence"]
+        
     @classmethod
     def partial_context(cls, doc, option):
         # Substitute the pronoun in the sentence with the specified option

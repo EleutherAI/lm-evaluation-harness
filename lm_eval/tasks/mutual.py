@@ -52,6 +52,12 @@ class MuTualBase(Task):
     def doc_to_text(self, doc):
         return self.detokenize(doc["article"])
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["article"]
+
     def doc_to_target(self, doc):
         return " " + self.detokenize(doc["options"][self.CHOICES.index(doc["answers"])])
 

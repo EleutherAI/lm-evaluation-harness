@@ -57,6 +57,12 @@ class QuAC(Task):
     def doc_to_text(self, doc):
         return 'TITLE: ' + doc['title'] + '\n' + 'PARAGRAPH: ' + doc['paragraph'] + '\n\n' + 'Q: ' + doc['question'] + '\n\n' + 'A: '
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['paragraph']
+
     def doc_to_target(self, doc):
         return doc['answer']
 
