@@ -57,6 +57,12 @@ class QA4MRE(MultipleChoiceTask):
     def doc_to_text(self, doc):
         return "{}\nQuestion: {}\nAnswer:".format(doc["source"], doc["query"])
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["source"] + " " + doc["query"]
+
 
 class QA4MRE_2011(QA4MRE):
     DATASET_NAME = "2011.main.EN"

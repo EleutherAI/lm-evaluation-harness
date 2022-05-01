@@ -54,6 +54,12 @@ class TriviaQA(Task):
     def doc_to_text(self, doc):
         return f"Question: {doc['question']}\nAnswer:"
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['question']
+
     def doc_to_target(self, doc):
         return " " + doc['answer']['value']
 

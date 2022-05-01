@@ -61,6 +61,12 @@ class CoQA(Task):
             doc_text += question + answer
         return doc_text
         
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["story"] + " " + "\n".join(doc["questions"]["input_text"])
+
     @classmethod
     def get_answers(cls, doc, turn_id):
         # Returns unique answers and valid alternatives (Some questions in CoQA have multiple valid answers).

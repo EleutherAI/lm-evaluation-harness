@@ -62,3 +62,9 @@ class MathQA(MultipleChoiceTask):
 
     def doc_to_text(self, doc):
         return doc["query"]
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["query"]

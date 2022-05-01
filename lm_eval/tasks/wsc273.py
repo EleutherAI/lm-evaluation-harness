@@ -85,6 +85,12 @@ class WinogradSchemaChallenge273(Task):
     def doc_to_text(self, doc):
         return self.partial_context(doc, doc["options"][doc["label"]])
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["text"]
+
     @classmethod
     def partial_context(cls, doc, option):
         # Substitute the pronoun in the original text with the specified

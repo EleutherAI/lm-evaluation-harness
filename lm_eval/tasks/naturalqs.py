@@ -63,6 +63,12 @@ class NaturalQs(Task):
     def doc_to_text(self, doc):
         return 'Q: ' + doc['question']['text'] + '\n\n' + 'A:'
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['question']['text']
+
     def doc_to_target(self, doc):
         # There's a short answer and a long answer. Based on the paper, I'm using the long answer.
         short_answer = doc['annotations']['short_answers'][0]['text']

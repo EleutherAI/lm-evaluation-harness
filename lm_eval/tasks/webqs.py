@@ -56,6 +56,12 @@ class WebQs(Task):
     def doc_to_text(self, doc):
         return "Question: " + doc['question'] + '\nAnswer:'
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['question']
+
     def doc_to_target(self, doc):
         # this picks one answer to be the "correct" one, despite sometimes 
         # multiple correct answers being possible.

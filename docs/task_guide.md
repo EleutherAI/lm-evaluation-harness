@@ -151,6 +151,13 @@ def doc_to_target(self, doc):
 
 Finally, be aware that the strings from `doc_to_text` and `doc_to_target` will be concatenated together to build up labeled examples in the k-shot setting where k > 0. Design with that in mind 👍.
 
+### Decontamination
+For background on decontamination please see [this](./decontamination.md).
+
+If you wish to support decontamination studies for your task simply override the "should_decontaminate" method and return true. 
+
+You also need to override "doc_to_decontamination_query" and return the data you wish to compare against the training set. This doesn't necessarily need to be the full document or request, and we leave this up to the implementor. For a multi-choice evaluation you could for example just return the question.
+
 ### Registering Your Task
 
 Now's a good time to register your task to expose it for usage. All you'll need to do is import your task module in `lm_eval/tasks/__init__.py` and provide an entry in the `TASK_REGISTRY`  dictionary with the key as the name of your benchmark task (in the form it'll be referred to in the command line) and the value as the task class. See how it's done for other tasks in the [file](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/__init__.py).

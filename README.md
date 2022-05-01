@@ -26,7 +26,7 @@ To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you ca
 ```bash
 python main.py \
 	--model gpt2 \
-	--device cuda:0 \
+	--device 0 \
 	--tasks lambada,hellaswag
 ```
 (This uses gpt2-117M by default as per HF defaults, use --model_args to specify other gpt2 sizes)
@@ -37,7 +37,7 @@ Additional arguments can be provided to the model constructor using the `--model
 python main.py \
 	--model gpt2 \
 	--model_args pretrained=EleutherAI/gpt-neo-2.7B \
-	--device cuda:0 \
+	--device 0 \
 	--tasks lambada,hellaswag
 ```
 
@@ -375,7 +375,7 @@ Additional arguments can be provided to the model constructor using the `--model
 python main.py \
 	--model gpt2 \
 	--model_args pretrained=EleutherAI/gpt-neo-1.3B \
-	--device cuda:0 \
+	--device 0 \
 	--tasks lambada,hellaswag \
 	--num_fewshot 2
 ```
@@ -391,6 +391,21 @@ python write_out.py \
 ```
 
 This will write out one text file for each task.
+
+### Test Set Decontamination
+
+For more details see the [decontamination guide](./docs/decontamination.md).
+
+The directory provided with the "--decontamination_ngrams_path" argument should contain
+the ngram files and info.json. See the above guide for ngram generation for the pile, this could be adapted for other training sets.
+
+```bash
+python main.py \
+    --model gpt2 \
+    --device 0 \
+    --tasks sciq \ 
+    --decontamination_ngrams_path path/containing/training/set/ngrams
+```
 
 ### Code Structure
 
