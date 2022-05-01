@@ -90,7 +90,7 @@ class GeneralTranslationTask(Task):
 
         super().__init__()
 
-    def download(self):
+    def download(self, data_dir=None, cache_dir=None, download_mode=None):
         # This caches in the users home dir automatically
         self.src_file, self.ref_file = \
             sacrebleu.download_test_set(self.sacrebleu_dataset, self.sacrebleu_language_pair)

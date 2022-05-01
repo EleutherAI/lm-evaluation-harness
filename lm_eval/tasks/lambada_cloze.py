@@ -13,12 +13,7 @@ in the broader discourse.
 
 Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
 """
-import json
-from lm_eval.base import Task, rf
-from lm_eval.metrics import mean, perplexity
-from lm_eval.utils import sh
 from lm_eval.tasks.lambada import LAMBADA
-from best_download import download_file
 
 
 _CITATION = """
@@ -35,6 +30,7 @@ _CITATION = """
 
 class LAMBADA_cloze(LAMBADA):
     VERSION = 0
+
     def doc_to_text(self, doc):
         return doc['text'].rsplit(' ', 1)[0] + " ____. ->"
 

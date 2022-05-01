@@ -10,15 +10,9 @@ math, computer science, and philosophy papers.
 
 Homepage: https://pile.eleuther.ai/
 """
-import os
-
-import lm_dataformat
-import abc
-import numpy as np
-from lm_eval.base import rf, PerplexityTask
-from ..metrics import mean, matthews_corrcoef, f1_score
-from ..utils import general_detokenize
-from best_download import download_file
+import inspect
+import lm_eval.datasets.pile.pile
+from lm_eval.base import PerplexityTask
 
 
 _CITATION = """
@@ -31,32 +25,10 @@ _CITATION = """
 """
 
 
-class PilePerplexityTask(PerplexityTask, abc.ABC):
+class PilePerplexityTask(PerplexityTask):
     VERSION = 1
-
-    PILE_SET_NAME = None
-    VAL_PATH = 'data/pile/val.jsonl.zst'
-    TEST_PATH = 'data/pile/test.jsonl.zst'
-
-    def download(self):
-        # TODO: separate pile val/test out by component so we don't have to scan the entire file once per set
-        if not os.path.exists("data/pile/test.jsonl.zst"):
-            # todo use new best_download fallback api
-            os.makedirs("data/pile/", exist_ok=True)
-            download_file("http://eaidata.bmk.sh/data/pile/val.jsonl.zst", local_file=self.VAL_PATH, expected_checksum="264c875d8bbd355d8daa9d032b75fd8fb91606218bb84dd1155b203fcd5fab92")
-            download_file("http://eaidata.bmk.sh/data/pile/test.jsonl.zst", local_file=self.TEST_PATH, expected_checksum="0bb28c52d0b5596d389bf179ce2d43bf7f7ffae76b0d2d20b180c97f62e0975e")
-
-    def validation_docs(self):
-        rdr = lm_dataformat.Reader(self.VAL_PATH)
-        for doc, metadata in rdr.stream_data(get_meta=True):
-            if metadata["pile_set_name"] == self.PILE_SET_NAME:
-                yield doc
-
-    def test_docs(self):
-        rdr = lm_dataformat.Reader(self.TEST_PATH)
-        for doc, metadata in rdr.stream_data(get_meta=True):
-            if metadata["pile_set_name"] == self.PILE_SET_NAME:
-                yield doc
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.pile.pile)
+    DATASET_NAME = None
 
     def has_validation_docs(self):
         return True
@@ -64,90 +36,98 @@ class PilePerplexityTask(PerplexityTask, abc.ABC):
     def has_test_docs(self):
         return True
 
+    def validation_docs(self):
+        for doc in self.dataset["validation"]:
+            yield doc["text"]
+
+    def test_docs(self):
+        for doc in self.dataset["test"]:
+            yield doc["text"]
+
 
 class PileArxiv(PilePerplexityTask):
-    PILE_SET_NAME = "ArXiv"
+    DATASET_NAME = "pile_arxiv"
 
 
 class PileBooks3(PilePerplexityTask):
-    PILE_SET_NAME = "Books3"
+    DATASET_NAME = "pile_books3"
 
 
 class PileBookCorpus2(PilePerplexityTask):
-    PILE_SET_NAME = "BookCorpus2"
+    DATASET_NAME = "pile_bookcorpus2"
 
 
 class PileDmMathematics(PilePerplexityTask):
-    PILE_SET_NAME = "DM Mathematics"
+    DATASET_NAME = "pile_dm-mathematics"
 
 
 class PileEnron(PilePerplexityTask):
-    PILE_SET_NAME = "Enron Emails"
+    DATASET_NAME = "pile_enron"
 
 
 class PileEuroparl(PilePerplexityTask):
-    PILE_SET_NAME = "EuroParl"
+    DATASET_NAME = "pile_europarl"
 
 
 class PileFreeLaw(PilePerplexityTask):
-    PILE_SET_NAME = "FreeLaw"
+    DATASET_NAME = "pile_freelaw"
 
 
 class PileGithub(PilePerplexityTask):
-    PILE_SET_NAME = "Github"
+    DATASET_NAME = "pile_github"
 
 
 class PileGutenberg(PilePerplexityTask):
-    PILE_SET_NAME = "Gutenberg (PG-19)"
+    DATASET_NAME = "pile_gutenberg"
 
 
 class PileHackernews(PilePerplexityTask):
-    PILE_SET_NAME = "HackerNews"
+    DATASET_NAME = "pile_hackernews"
 
 
 class PileNIHExporter(PilePerplexityTask):
-    PILE_SET_NAME = "NIH ExPorter"
+    DATASET_NAME = "pile_nih-exporter"
 
 
 class PileOpenSubtitles(PilePerplexityTask):
-    PILE_SET_NAME = "OpenSubtitles"
+    DATASET_NAME = "pile_opensubtitles"
 
 
 class PileOpenWebText2(PilePerplexityTask):
-    PILE_SET_NAME = "OpenWebText2"
+    DATASET_NAME = "pile_openwebtext2"
 
 
 class PilePhilPapers(PilePerplexityTask):
-    PILE_SET_NAME = "PhilPapers"
+    DATASET_NAME = "pile_philpapers"
 
 
 class PilePileCc(PilePerplexityTask):
-    PILE_SET_NAME = "Pile-CC"
+    DATASET_NAME = "pile_pile-cc"
 
 
 class PilePubmedAbstracts(PilePerplexityTask):
-    PILE_SET_NAME = "PubMed Abstracts"
+    DATASET_NAME = "pile_pubmed-abstracts"
 
 
 class PilePubmedCentral(PilePerplexityTask):
-    PILE_SET_NAME = "PubMed Central"
+    DATASET_NAME = "pile_pubmed-central"
 
 
 class PileStackExchange(PilePerplexityTask):
-    PILE_SET_NAME = "StackExchange"
+    DATASET_NAME = "pile_stackexchange"
 
 
 class PileUspto(PilePerplexityTask):
-    PILE_SET_NAME = "USPTO Backgrounds"
+    DATASET_NAME = "pile_upsto"
 
 
 class PileUbuntuIrc(PilePerplexityTask):
-    PILE_SET_NAME = "Ubuntu IRC"
+    DATASET_NAME = "pile_ubuntu-irc"
 
 
 class PileWikipedia(PilePerplexityTask):
-    PILE_SET_NAME = "Wikipedia (en)"
+    DATASET_NAME = "pile_wikipedia"
 
 
 class PileYoutubeSubtitles(PilePerplexityTask):
-    PILE_SET_NAME = "YoutubeSubtitles"
+    DATASET_NAME = "pile_youtubesubtitles"

@@ -9,13 +9,11 @@ appear in a conversation.
 
 Homepage: https://stanfordnlp.github.io/coqa/
 """
-import os
-import json
+import inspect
 import transformers.data.metrics.squad_metrics as squad_metrics
+import lm_eval.datasets.coqa.coqa
 from lm_eval.base import Task, rf, mean
-from ..utils import sh
 from itertools import zip_longest
-from best_download import download_file
 
 
 _CITATION = """
@@ -32,15 +30,8 @@ _CITATION = """
 
 class CoQA(Task):
     VERSION = 1
-
-    def download(self):
-        coqa_train_filepath = 'data/coqa/coqa-train-v1.0.json'
-        coqa_dev_filepath = 'data/coqa/coqa-dev-v1.0.json'
-
-        sh ("""mkdir -p data/coqa""")
-
-        download_file("http://downloads.cs.stanford.edu/nlp/data/coqa/coqa-train-v1.0.json", local_file=coqa_train_filepath, expected_checksum="b0fdb2bc1bd38dd3ca2ce5fa2ac3e02c6288ac914f241ac409a655ffb6619fa6")
-        download_file("http://downloads.cs.stanford.edu/nlp/data/coqa/coqa-dev-v1.0.json", local_file=coqa_dev_filepath, expected_checksum="dfa367a9733ce53222918d0231d9b3bedc2b8ee831a2845f62dfc70701f2540a")
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.coqa.coqa)
+    DATASET_NAME = None
 
     def has_training_docs(self):
         return True
@@ -52,10 +43,10 @@ class CoQA(Task):
         return False
 
     def training_docs(self):
-        return json.load(open('data/coqa/coqa-train-v1.0.json'))['data']
+        return self.dataset["train"]
 
     def validation_docs(self):
-        return json.load(open('data/coqa/coqa-dev-v1.0.json'))['data']
+        return self.dataset["validation"]
 
     def test_docs(self):
         pass
@@ -64,9 +55,9 @@ class CoQA(Task):
         # Given a passage p, the conversation history {q1, a1, . . . qi−1, ai−1} 
         # and a question qi, the task is to predict the answer ai
         doc_text = doc["story"] + '\n\n'
-        for (q, a) in zip_longest(doc["questions"], doc["answers"][:-1]):   # omit target answer ai
-            question = f"Q: {q['input_text']}" + '\n\n'
-            answer = f"A: {a['input_text']}" + '\n\n' if a is not None else "A:"
+        for (q, a) in zip_longest(doc["questions"]["input_text"], doc["answers"]["input_text"][:-1]):   # omit target answer ai
+            question = f"Q: {q}\n\n"
+            answer = f"A: {a}\n\n" if a is not None else "A:"
             doc_text += question + answer
         return doc_text
         
@@ -74,13 +65,13 @@ class CoQA(Task):
     def get_answers(cls, doc, turn_id):
         # Returns unique answers and valid alternatives (Some questions in CoQA have multiple valid answers).
         answers = []
-        answer_forturn = doc["answers"][turn_id - 1]["input_text"]
+        answer_forturn = doc["answers"]["input_text"][turn_id - 1]
         answers.append(answer_forturn)
         
         additional_answers = doc.get("additional_answers")
         if additional_answers:
             for key in additional_answers:
-                additional_answer_for_turn = additional_answers[key][turn_id - 1]["input_text"]
+                additional_answer_for_turn = additional_answers[key]["input_text"][turn_id - 1]
                 if additional_answer_for_turn.lower() not in map(str.lower, answers):
                     answers.append(additional_answer_for_turn)
         return answers
@@ -120,8 +111,8 @@ class CoQA(Task):
     def doc_to_target(self, doc, turnid=None):
         # Default to prediction of last turn.
         if turnid is None:
-            turnid = len(doc["questions"])
-        raw_text = doc['answers'][turnid - 1]["input_text"]
+            turnid = len(doc["questions"]["input_text"])
+        raw_text = doc['answers']["input_text"][turnid - 1]
         return " " + raw_text
 
     def construct_requests(self, doc, ctx):
@@ -148,7 +139,7 @@ class CoQA(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        turn_id = len(doc["questions"])
+        turn_id = len(doc["questions"]["input_text"])
         gold_list = self.get_answers(doc, turn_id)
         pred = results[0].strip().split('\n')[0]
 
