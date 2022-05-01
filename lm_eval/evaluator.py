@@ -6,15 +6,18 @@ import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
+import lm_eval.decontamination
 import numpy as np
 from lm_eval.utils import positional_deprecated, run_task_tests
-
+from lm_eval.decontamination.decontaminate import get_train_overlap
 
 @positional_deprecated
 def simple_evaluate(model, model_args=None, tasks=[],
                     num_fewshot=0, batch_size=None, device=None,
                     no_cache=False, limit=None, bootstrap_iters=100000,
-                    description_dict=None, check_integrity=False):
+                    description_dict=None, check_integrity=False, 
+                    decontamination_ngrams_path=None):
+
     """Instantiate and evaluate a model on a list of tasks.
 
     :param model: Union[str, LM]
@@ -72,7 +75,8 @@ def simple_evaluate(model, model_args=None, tasks=[],
         task_dict=task_dict,
         num_fewshot=num_fewshot,
         limit=limit,
-        description_dict=description_dict
+        description_dict=description_dict,
+        decontamination_ngrams_path=decontamination_ngrams_path, 
     )
 
     # add info about the model and few shot config
@@ -90,9 +94,11 @@ def simple_evaluate(model, model_args=None, tasks=[],
 
     return results
 
+decontaminate_suffix = "_decontaminate"
 
 @positional_deprecated
-def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None, bootstrap_iters=100000, description_dict=None):
+def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None, bootstrap_iters=100000, description_dict=None,
+             decontamination_ngrams_path=None):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param lm: obj
@@ -120,6 +126,8 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
         # nudge people to not specify it at all
         print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
 
+    decontaminate = decontamination_ngrams_path is not None
+
     task_dict_items = [
         (name, task)
         for name, task in task_dict.items()
@@ -132,6 +140,8 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
     requests = collections.defaultdict(list)
     requests_origin = collections.defaultdict(list)
 
+    overlaps = collections.defaultdict(list) # {task_name: contaminated_docs}
+
     # If we ever run into issues where the eval tasks don't fit in memory and we can't afford a machine with bigger
     # memory, we can always modify this plumbing to support that, but I didn't want to include it just yet because
     # over-engineering is bad (or we could make it write the requests to disk and then read them back out again
@@ -140,6 +150,8 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
     # TODO: we need unit tests & sanity checks or something to ensure that the return of `validation_docs` is stable
     docs = {}
 
+    docs_for_decontamination = collections.defaultdict(list)
+
     # get lists of each type of request
     for task_name, task in task_dict_items:
         versions[task_name] = task.VERSION
@@ -147,7 +159,9 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
         # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
         if task.has_test_docs():
             task_doc_func = task.test_docs
+            task_set = "test" # Required for caching in the decontamination
         elif task.has_validation_docs():
+            task_set = "val" # Required for caching in the decontamination
             task_doc_func = task.validation_docs
         else:
             raise RuntimeError("Task has neither test_docs nor validation_docs")
@@ -161,6 +175,10 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
         description = description_dict[task_name] if description_dict and task_name in description_dict else ""
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
+
+            if decontaminate and task.should_decontaminate():
+                docs_for_decontamination[(task_name, task_set)].append(task.doc_to_decontamination_query(doc))
+
             docs[(task_name, doc_id)] = doc
             ctx = task.fewshot_context(
                 doc=doc,
@@ -176,6 +194,11 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
                 # i: index in requests for a single task instance
                 # doc_id: unique id that we can get back to a doc using `docs`
                 requests_origin[req.request_type].append((i, task_name, doc, doc_id))
+
+    # Compare all tasks/sets at once to ensure a single training set scan
+    if decontaminate:
+        print("Finding train/test overlap, please wait...")
+        overlaps = get_train_overlap(docs_for_decontamination, decontamination_ngrams_path, limit)
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)
@@ -207,18 +230,28 @@ def evaluate(lm, task_dict, provide_description=None, num_fewshot=0, limit=None,
         metrics = task.process_results(doc, requests)
         for metric, value in metrics.items():
             vals[(task_name, metric)].append(value)
+
+            # Re-use the evaluation for the decontaminated set by just ignoring the overlaps
+            if decontaminate and task_name in overlaps:
+                if doc_id not in overlaps[task_name]:
+                    vals[(task_name, metric + decontaminate_suffix)].append(value)
     
     # aggregate results
     for (task_name, metric), items in vals.items():
         task = task_dict[task_name]
-        results[task_name][metric] = task.aggregation()[metric](items)
+        real_metric = metric # key when looking up the metric with task.aggregation
+        if metric.endswith(decontaminate_suffix):
+            real_metric = metric.replace(decontaminate_suffix, "") # decontaminated still uses the same metric
+        results[task_name][metric] = task.aggregation()[real_metric](items)
 
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
         # so we run them less iterations. still looking for a cleaner way to do this
+
         stderr = lm_eval.metrics.stderr_for_metric(
-            metric=task.aggregation()[metric],
+            metric=task.aggregation()[real_metric],
             bootstrap_iters=min(bootstrap_iters, 1000) if metric in ["bleu", "chrf", "ter"] else bootstrap_iters,
         )
+        
         if stderr is not None:
             results[task_name][metric + "_stderr"] = stderr(items)
     

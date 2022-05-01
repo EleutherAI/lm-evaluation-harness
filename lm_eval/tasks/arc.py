@@ -13,7 +13,6 @@ a co-occurrence method fail to answer correctly) and an Easy Set of 5,197 questi
 Homepage: https://allenai.org/data/arc
 """
 from lm_eval.base import MultipleChoiceTask
-from . common import HFTask
 
 
 _CITATION = """
@@ -27,7 +26,7 @@ _CITATION = """
 """
 
 
-class ARCEasy(HFTask, MultipleChoiceTask):
+class ARCEasy(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "ai2_arc"
     DATASET_NAME = "ARC-Easy"
@@ -41,7 +40,18 @@ class ARCEasy(HFTask, MultipleChoiceTask):
     def has_test_docs(self):
         return True
 
-    def _convert_standard(self, doc):
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
+        return self._training_docs
+
+    def validation_docs(self):
+        return map(self._process_doc, self.dataset["validation"])
+
+    def test_docs(self):
+        return map(self._process_doc, self.dataset["test"])
+
+    def _process_doc(self, doc):
         # NOTE: Some `doc["answerKey"]`s are in numeric string format being one
         # of {'1', '2', '3', '4', '5'}. We map them back to letters.
         num_to_letter = {"1": "A", "2": "B", "3": "C", "4": "D", "5": "E"}
@@ -55,6 +65,12 @@ class ARCEasy(HFTask, MultipleChoiceTask):
         return out_doc
 
     def doc_to_text(self, doc):
+        return doc["query"]
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
         return doc["query"]
 
 

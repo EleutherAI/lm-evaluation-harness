@@ -90,7 +90,7 @@ class GeneralTranslationTask(Task):
 
         super().__init__()
 
-    def download(self):
+    def download(self, data_dir=None, cache_dir=None, download_mode=None):
         # This caches in the users home dir automatically
         self.src_file, self.ref_file = \
             sacrebleu.download_test_set(self.sacrebleu_dataset, self.sacrebleu_language_pair)
@@ -127,6 +127,12 @@ class GeneralTranslationTask(Task):
         src_lang = code_to_language(language_codes[0])
         tar_lang = code_to_language(language_codes[1])
         return f"{src_lang} phrase: " + doc["src"] + f"\n{tar_lang} phrase:"
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["src"]
 
     def doc_to_target(self, doc):
         # This shows a single target, though there may be multiple targets in a lang test

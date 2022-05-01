@@ -14,10 +14,8 @@ See: https://arxiv.org/abs/1806.0
 Homepage: https://cs.nyu.edu/~davise/papers/WinogradSchemas/WS.html
 """
 import numpy as np
-import random
-from lm_eval.base import rf
-from ..metrics import mean
-from . common import HFTask
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean
 
 
 _CITATION = """
@@ -37,7 +35,7 @@ _CITATION = """
 """
 
 
-class WinogradSchemaChallenge273(HFTask):
+class WinogradSchemaChallenge273(Task):
     VERSION = 0
     DATASET_PATH = "winograd_wsc"
     DATASET_NAME = "wsc273"
@@ -45,19 +43,24 @@ class WinogradSchemaChallenge273(HFTask):
     upper_pronouns = ["A", "An", "The", "She", "He",
                       "It", "They", "My", "His", "Her", "Their"]
 
-    def __init__(self):
-        super().__init__()
-        self.data = self.__clean_data()
+    def has_training_docs(self):
+        return False
 
-    def __clean_data(self):
+    def has_validation_docs(self):
+        return False
+
+    def has_test_docs(self):
+        return True
+
+    def test_docs(self):
+        return map(self._process_doc, self.dataset["test"])
+
+    def _process_doc(self, doc):
         # The HF implementation of `wsc273` is not `partial evaluation` friendly.
-        data = []
-        for doc in self.data["test"]:
-            doc["text"] = doc["text"].replace("  ", " ")
-            doc["options"][0] = self.__normalize_option(doc, doc["options"][0])
-            doc["options"][1] = self.__normalize_option(doc, doc["options"][1])
-            data.append(doc)
-        return {"test": data}
+        doc["text"] = doc["text"].replace("  ", " ")
+        doc["options"][0] = self.__normalize_option(doc, doc["options"][0])
+        doc["options"][1] = self.__normalize_option(doc, doc["options"][1])
+        return doc
 
     def __normalize_option(self, doc, option):
         # Append `'s` to possessive determiner based options.
@@ -70,15 +73,6 @@ class WinogradSchemaChallenge273(HFTask):
             return option.replace(pronoun, pronoun.lower())
         return option
 
-    def has_training_docs(self):
-        return False
-
-    def has_validation_docs(self):
-        return False
-
-    def has_test_docs(self):
-        return True
-
     def fewshot_examples(self, k, rnd):
         # NOTE: `super().fewshot_examples` samples from training docs which are
         # not available for this test-set-only dataset.
@@ -90,6 +84,12 @@ class WinogradSchemaChallenge273(HFTask):
 
     def doc_to_text(self, doc):
         return self.partial_context(doc, doc["options"][doc["label"]])
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["text"]
 
     @classmethod
     def partial_context(cls, doc, option):

@@ -16,9 +16,8 @@ and (4) a yes/no/maybe answer which summarizes the conclusion.
 Homepage: https://pubmedqa.github.io/
 """
 import numpy as np
-from .common import HFTask
-from lm_eval.base import rf
-from ..metrics import mean
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean
 
 
 _CITATION = """
@@ -32,7 +31,7 @@ _CITATION = """
 """
 
 
-class Pubmed_QA(HFTask):
+class Pubmed_QA(Task):
     VERSION = 0
     DATASET_PATH = "pubmed_qa"
     DATASET_NAME = "pqa_labeled"
@@ -49,7 +48,7 @@ class Pubmed_QA(HFTask):
     def test_docs(self):
         if self.has_test_docs():
             # HF is labelled as train but its really just for testing
-            return self.data["train"]
+            return self.dataset["train"]
 
     def doc_to_text(self, doc):
         ctxs = "\n".join(doc["context"]["contexts"])
@@ -58,6 +57,12 @@ class Pubmed_QA(HFTask):
             doc["question"],
             doc["final_decision"]
         )
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["question"] + " " + "\n".join(doc["context"]["contexts"])
 
     def doc_to_target(self, doc):
         return " {}".format(doc["final_decision"])

@@ -12,9 +12,14 @@ class HFLM(BaseLM):
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
 
-        if device:
+        if device:            
+            if device not in ["cuda", "cpu"]:
+                device = int(device)
             self._device = torch.device(device)
+            print(f"Using device '{device}'")
         else:
+            print("Device not specificed")
+            print(f"Cuda Available? {torch.cuda.is_available()}")
             self._device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF

@@ -10,9 +10,8 @@ provided explanations.
 Homepage: "https://github.com/facebookresearch/anli"
 """
 import numpy as np
-from lm_eval.base import rf
-from ..metrics import mean
-from . common import HFTask
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean
 
 
 _CITATION = """
@@ -31,7 +30,7 @@ _CITATION = """
 """
 
 
-class ANLIBase(HFTask):
+class ANLIBase(Task):
     VERSION = 0
     DATASET_PATH = "anli"
     DATASET_NAME = None
@@ -49,16 +48,16 @@ class ANLIBase(HFTask):
     def training_docs(self):
         if self.has_training_docs():
             if self._training_docs is None:
-                self._training_docs = list(self.data["train_r" + str(self.SPLIT)])
+                self._training_docs = list(self.dataset["train_r" + str(self.SPLIT)])
             return self._training_docs
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return self.data["dev_r" + str(self.SPLIT)]
+            return self.dataset["dev_r" + str(self.SPLIT)]
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.data["test_r" + str(self.SPLIT)]
+            return self.dataset["test_r" + str(self.SPLIT)]
 
     def doc_to_text(self, doc):
         # OA does this a bit weirdly: they prepend "anli 1:  anli 1:  " to the beginning
@@ -66,6 +65,12 @@ class ANLIBase(HFTask):
         # appended onto the question, with no "Answer:" or even a newline. Do we *really* 
         # want to do it exactly as OA did?
         return doc['premise'] + '\nQuestion: ' + doc['hypothesis'] + ' True, False, or Neither?\nAnswer:'
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["premise"]
 
     def doc_to_target(self, doc):
         # True = entailment
@@ -125,11 +130,14 @@ class ANLIBase(HFTask):
             "acc": True
         }
 
+
 class ANLIRound1(ANLIBase):
     SPLIT = 1
 
+
 class ANLIRound2(ANLIBase):
     SPLIT = 2
+
 
 class ANLIRound3(ANLIBase):
     SPLIT = 3
