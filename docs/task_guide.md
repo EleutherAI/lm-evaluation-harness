@@ -11,19 +11,28 @@ If you haven't already, go ahead and fork the main repo, clone it, create a bran
 git clone https://github.com/<YOUR-USERNAME>/lm-evaluation-harness.git
 cd lm-evaluation-harness
 git checkout -b <task-name>
-pip install -r requirements.txt
+pip install -e ".[dev]"
 ```
 
 ## Creating Your Task File
 
-The first step in creating a task is to create a Python file in `lm_eval/tasks/`  with the task's name:
+From the `lm-evaluation-harness` project root, copy over the `new_task.py` template to `lm_eval/datasets`. 
 
 ```sh
-cd lm_eval/tasks
-touch <task-name>.py
+cp templates/new_task.py lm_eval/tasks/<task-name>.py
 ```
 
-Then open the file and create a multiline docstring on the first line with the following contents:
+or if your task is **multiple-choice**, the `new_multiple_choice_task.py`:
+
+```sh
+cp templates/new_multiple_choice_task.py lm_eval/tasks/<task-name>.py
+```
+
+This will set you up with a few `TODO`s to fill-in which we'll now go over in detail.
+
+## Task Heading
+
+Open the file you've just created and add a multiline docstring on the first line with the following contents:
 
 ```python
 """
@@ -62,86 +71,58 @@ Now let's walk through the actual implementation - from data handling to evaluat
 
 ### Downloading your Data
 
-There are 2 standard approaches we follow for downloading data:
+All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md)
+. 
+Now, that you have your HF dataset, you need to assign its path and name to your `Task` in the following fields:
 
-1. Firstly, you should always check to see if your task's dataset is already provided by HuggingFace (__HF__); check their `datasets` catalog [here](https://huggingface.co/datasets). Is it in there? If yes, continue reading here, else go to 2. In the case that it’s there, things are a bit easier.  You can inherit from the `HFTask` class as so:
+```python
+class TaskName(...):
+    DATASET_PATH = "..."
+    DATASET_NAME = "..."
+```
 
-    ```python
-    from . common import HFTask
+where `DATASET_PATH` is the name of the dataset as listed by HF in the `datasets` Hub and `DATASET_NAME` is the name of, what HF calls, a “data instance” or sub-task of the benchmark. If your task does not contain any data instances, just set `DATASET_NAME = None`.
+(If you're familiar with the HF `datasets.load_dataset` function, these are just the first 2 arguments to it.)
 
-    class TaskName(HFTask):
-        DATASET_PATH = "..."
-        DATASET_NAME = "..."
-    ```
-	where `DATASET_PATH` is the name of the benchmark/task dataset as listed by HF and `DATASET_NAME` is the name of, what HF calls, a “data instance” of the benchmark. If your task is not a benchmark containing any data instances just set `DATASET_NAME = None`.
+Next up, we have to set some “flags”:
 
-2. Your task's dataset is not in HF's catalog, so you'll have to override a few abstract methods of the `Task` base class. First let's define our benchmark/task and inherit from `Task`.
-
-    ```python
-    from lm_eval.base import Task
-    from pathlib import Path
-
-    class TaskName(Task):
-        DATASET_PATH = Path("data/<task-name>")
-    ```
-    where `DATASET_PATH` is the local directory we'll download into.
-    Now we need to override the following methods:
-
-    ```python
-    def download(self):
-    ```
-    This should download the dataset into the relative path specified by `DATASET_PATH`. The preferred approach is to use EleutherAI's [best-download](https://github.com/EleutherAI/best-download) package which provides a `download_file` function that lets you validate complete data transmission through a checksum argument.  The overall logic should be something like: If the `DATASET_PATH` already exists then don’t download anything and exit the method, otherwise create the `DATASET_PATH` directory and actually download into it.  See this [task](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/logiqa.py#L9-L21) for an example.
-
-   Next up, we have to set some “flags”:
-
-    ```python
+```python
     def has_training_docs(self):
         return # True/False
+
     def has_validation_docs(self):
         return # True/False
+
     def has_test_docs(self):
         return # True/False
-    ```
-   These methods return `True`/`False` whether or not your task dataset provides documents for each split type. __Note__: if the test set doesn't have publicly available labels, please do not put it down as having a test set.
+```
 
-	Lastly, we need to load the documents. In our terminology, a document (`doc`) is a single natural language data example stored in a Python `dict`. E.g.: `{“question”: “What is the capital of France?”, “answer”: “Paris”}`. Override the following methods to load your data splits from their storage location in `DATASET_PATH`:
-    ```python
+These methods return `True`/`False` whether or not your task dataset provides documents for each split type. __Note__: if the test set does not have publicly available answer labels, please do not put it down as having a test set - return False.
+
+Lastly, we need to load the documents. In our terminology, a document (`doc`) is a single natural language data example stored in a Python `dict`. E.g.: `{“question”: “What is the capital of France?”, “answer”: “Paris”}`. Override the following methods to load your data splits from their storage location in `DATASET_PATH`:
+
+```python
     def training_docs(self):
         return #...
+
     def validation_docs(self):
         return #...
+
     def test_docs(self):
         return #...
-    ```
-	These should return a Python iterable (`list` or `generator`) of `dict`s that can be queried for individual `doc` examples. Note that this will get used in a few places down the track, including for both creating examples to be processed by a model and also for assessing the results. There's nothing stopping you getting these functions be generators, which can be handy if each source document in your dataset contains a number of questions/prompts to handle. The overarching idea is that what comes out of this function should definitively contain an input to be presented to the model, the associated ground truth and anything else you think is needed to judge the quality of the output the model provides. __NOTE__: If your task doesn't have a train/validation/test set, remember to raise a `NotImplementedError` for that specific split.
+```
+
+These should return a Python iterable (`list` or `generator`) of `dict`s that can be queried for individual `doc` examples.
+
+#### Processing Documents
+
+At this point, you can also process each individual document to, for example, strip whitespace or "detokenize" its fields. Put the processing logic into `_process_doc` and map the functions across training/validation/test docs inside of the respective functions. 
+🔠 If your task is **multiple-choice**, we require you to format your documents such that they contain `gold` and `choices` fields. They can also have other fields, but those will be ignored by `MultipleChoiceTask`. `choices` should be a list of possible continuations, and `gold` should be an integer specifying the index of the correct completion.
+See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/6caa0afd96a7a7efb2ec4c1f24ad1756e48f3aa7/lm_eval/tasks/sat.py#L60) for an example. 🔠
 
 ### Formatting your Few-Shot Examples
 
 The harness is designed to facilitate task evaluations under the few-shot setting. Here we’ll format such examples.
-
-<br>
-
-⚠️  **Multiple-Choice Formatting**
-
-If your task is **multiple-choice**, just inherit from the `MultipleChoiceTask` class we provide.
-
-```python
-from lm_eval.base import MultipleChoiceTask
-
-class TaskName(..., MultipleChoiceTask):
-```
-
-This will require you to format your documents such that they contain `gold` and `choices` fields. They can also have other fields, but those will be ignored by `MultipleChoiceTask`. `choices` should be a list of possible continuations, and `gold` should be an integer specifying the index of the correct completion.
-
-See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/105fa9741ff660f6a62c2eef0d2facfde36dda41/lm_eval/tasks/sat.py#L56) for an example. When used in combination with `HFTask`, it may be useful to override [`_convert_standard`](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/common.py#L28), which will be applied to every document in the HF dataset. See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/headqa.py) for an example of this.
-
-You can now skip ahead to <a href="#Registering-Your-Task">registering your task</a>.
-
-⚠️  **End Multiple-Choice Formatting**
-
-<br>
-
-In the case your task is _not_ multiple-choice, override the following methods for your task class:
 
 Format your document into a single query prompt __without the answer__ here. This method takes a single `doc` example of type `dict` with `str` key-value members. You should concatenate these `doc` item values together into a neatly formatted prompt.
 
@@ -150,14 +131,32 @@ def doc_to_text(self, doc):
     return ""
 ```
 
-Put the target answer of the prompt here, in the form: `" " + <answer>`.
+<br>
+
+️🔠 **Multiple-Choice Formatting**
+
+If your task is multiple-choice, you can now skip ahead to <a href="#Registering-Your-Task">registering your task</a>.
+
+️️🔠 **End Multiple-Choice Formatting**
+
+<br>
+
+Format the target answer from the contents of `doc`. Note that the prepended `" "` is required to space out the `doc_to_text` and `doc_to_target` strings.
 
 ```python
 def doc_to_target(self, doc):
-    return ""
+    target = ""
+    return " " + target
 ```
 
-Understand that the strings from `doc_to_text` and `doc_to_target` will be concatenated together to build up labeled examples in the k-shot setting where k > 0. Design with that in mind 👍.
+Finally, be aware that the strings from `doc_to_text` and `doc_to_target` will be concatenated together to build up labeled examples in the k-shot setting where k > 0. Design with that in mind 👍.
+
+### Decontamination
+For background on decontamination please see [this](./decontamination.md).
+
+If you wish to support decontamination studies for your task simply override the "should_decontaminate" method and return true. 
+
+You also need to override "doc_to_decontamination_query" and return the data you wish to compare against the training set. This doesn't necessarily need to be the full document or request, and we leave this up to the implementor. For a multi-choice evaluation you could for example just return the question.
 
 ### Registering Your Task
 

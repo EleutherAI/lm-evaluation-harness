@@ -20,9 +20,8 @@ of a question's options. See section 4 of the paper for details.
 Homepage: https://leaderboard.allenai.org/mctaco/submissions/public
 """
 import numpy as np
-from lm_eval.base import rf
 from collections import defaultdict
-from . common import HFTask
+from lm_eval.base import rf, Task
 
 
 _CITATION = """
@@ -35,7 +34,7 @@ _CITATION = """
 """
 
 
-class MCTACO(HFTask):
+class MCTACO(Task):
     VERSION = 0
     DATASET_PATH = "mc_taco"
     DATASET_NAME = None
@@ -49,9 +48,21 @@ class MCTACO(HFTask):
     def has_test_docs(self):
         return True
 
+    def validation_docs(self):
+        return self.dataset["validation"]
+
+    def test_docs(self):
+        return self.dataset["test"]
+
     def doc_to_text(self, doc):
         return f"{doc['sentence']}\nQuestion: {doc['question']}\n"\
             f"Answer: {doc['answer']}\nPlausible:"
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['question'] + " " + doc['sentence']
 
     def doc_to_target(self, doc):
         return " " + ["no", "yes"][doc['label']]

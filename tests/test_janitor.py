@@ -1,7 +1,7 @@
 import re
 from collections import defaultdict
 
-from scripts.clean_training_data.janitor import *
+from lm_eval.decontamination.janitor import *
 
 def simple_ngram(sequence, n):
     ngrams = list()

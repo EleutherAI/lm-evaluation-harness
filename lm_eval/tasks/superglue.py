@@ -12,10 +12,9 @@ TODO: WSC requires free-form generation.
 import numpy as np
 import sklearn
 import transformers.data.metrics.squad_metrics as squad_metrics
-from . common import HFTask, yesno
-from lm_eval.base import rf
-from ..metrics import mean, acc_all, metric_max_over_ground_truths
-from ..utils import general_detokenize
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean, acc_all, metric_max_over_ground_truths, yesno
+from lm_eval.utils import general_detokenize
 
 
 _CITATION = """
@@ -33,7 +32,7 @@ _CITATION = """
 """
 
 
-class BoolQ(HFTask):
+class BoolQ(Task):
     VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "boolq"
@@ -47,8 +46,22 @@ class BoolQ(HFTask):
     def has_test_docs(self):
         return False
 
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
     def doc_to_text(self, doc):
         return f"{doc['passage']}\nQuestion: {doc['question']}?\nAnswer:"
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc['passage']
     
     def doc_to_target(self, doc):
         return " " + yesno(doc['label']) 
@@ -81,7 +94,7 @@ class BoolQ(HFTask):
         }
 
 
-class CommitmentBank(HFTask):
+class CommitmentBank(Task):
     VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "cb"
@@ -94,6 +107,14 @@ class CommitmentBank(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {}. True, False or Neither?\nAnswer:".format(
@@ -148,7 +169,7 @@ class CommitmentBank(HFTask):
         }
 
 
-class Copa(HFTask):
+class Copa(Task):
     VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "copa"
@@ -161,6 +182,14 @@ class Copa(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         # Drop the period
@@ -208,7 +237,7 @@ class Copa(HFTask):
         return choice[0].lower() + choice[1:]
 
 
-class MultiRC(HFTask):
+class MultiRC(Task):
     VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "multirc"
@@ -221,6 +250,14 @@ class MultiRC(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return f"{doc['paragraph']}\nQuestion: {doc['question']}\nAnswer:"
@@ -260,7 +297,7 @@ class MultiRC(HFTask):
         }
 
 
-class ReCoRD(HFTask):
+class ReCoRD(Task):
     VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "record"
@@ -279,13 +316,13 @@ class ReCoRD(HFTask):
         # Each doc consists of multiple answer candidates, each of which is scored yes/no.
         if self._training_docs is None:
             self._training_docs = []
-            for doc in self.data["train"]:
+            for doc in self.dataset["train"]:
                 self._training_docs.append(self._process_doc(doc))
         return self._training_docs
 
     def validation_docs(self):
         # See: training_docs
-        for doc in self.data["validation"]:
+        for doc in self.dataset["validation"]:
             yield self._process_doc(doc)
 
     @classmethod
@@ -349,7 +386,7 @@ class ReCoRD(HFTask):
         }
 
 
-class WordsInContext(HFTask):
+class WordsInContext(Task):
     VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "wic"
@@ -362,6 +399,14 @@ class WordsInContext(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "Sentence 1: {}\nSentence 2: {}\nQuestion: Is the word '{}' used in the same way in the" \
@@ -401,7 +446,7 @@ class WordsInContext(HFTask):
         }
 
 
-class SGWinogradSchemaChallenge(HFTask):
+class SGWinogradSchemaChallenge(Task):
     VERSION = 0
     # Note: This implementation differs from Fig G.32 because this is the SuperGLUE,
     #       binary version of the task.
@@ -423,10 +468,13 @@ class SGWinogradSchemaChallenge(HFTask):
                 # GPT-3 Paper's format only uses positive examples for fewshot "training"
                 self._training_docs = [
                     doc for doc in
-                    self.data["train"]
+                    self.dataset["train"]
                     if doc["label"]
                 ]
             return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         raw_passage = doc["text"]
