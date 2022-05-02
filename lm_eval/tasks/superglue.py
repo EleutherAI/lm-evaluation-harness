@@ -87,7 +87,7 @@ class CommitmentBank(PromptSourceTask):
         answer2idx = {answer: i for i, answer in enumerate(answer_choices_list)}
         target_idx = answer2idx[target]
 
-        acc = 1.0 if pred == target_idx else 0.0
+        acc = 1.0 if pred_idx == target_idx else 0.0
         if self.save_examples:
             return {"acc": acc, "f1": (pred_idx, target_idx)}, {
                 "pred": pred,
@@ -141,23 +141,6 @@ class Copa(PromptSourceTask):
 
     def validation_docs(self):
         return self.dataset["validation"]
-
-    # def process_results(self, doc, results):
-    #     gold = doc["label"]
-    #     pred = np.argmax(results)
-    #     acc = 1.0 if pred == gold else 0.0
-
-    #     return {"acc": acc}
-
-    # def higher_is_better(self):
-    #     return {"acc": True}
-
-    # def aggregation(self):
-    #     return {"acc": mean}
-
-    @staticmethod
-    def convert_choice(choice):
-        return choice[0].lower() + choice[1:]
 
 
 # TODO: Check this works with all prompts.
