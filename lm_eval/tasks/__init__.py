@@ -34,7 +34,6 @@ from . import sciq
 from . import webqs
 from . import qasper
 from . import qa4mre
-from . import translation
 from . import headqa
 from . import mathqa
 from . import hendrycks_ethics
@@ -65,31 +64,8 @@ from . import e2e_nlg_cleaned
 from . import gem_asset_turk
 from . import crows_pairs_multilingual
 from . import lama
-
 from . import HuffPost
-########################################
-# Translation tasks
-########################################
-
-# 6 total
-gpt3_translation_benchmarks = {
-    "wmt14": ["en-fr", "fr-en"],  # French
-    "wmt16": ["en-ro", "ro-en", "de-en", "en-de"],  # German, Romanian
-}
-
-
-# 28 total
-selected_translation_benchmarks = {
-    **gpt3_translation_benchmarks,
-    "wmt20": sacrebleu.get_langpairs_for_testset("wmt20"),
-    "iwslt17": ["en-ar", "ar-en"],  # Arabic
-}
-
-# 319 total
-all_translation_benchmarks = {
-    ts: sacrebleu.get_langpairs_for_testset(ts)
-    for ts in sacrebleu.get_available_testsets()
-}
+from . import wmt
 
 
 ########################################
@@ -204,10 +180,6 @@ TASK_REGISTRY = {
     #   e.g. anli, arithmetic, openai_translations, harness_translations
     # hendrycksTest (57 tasks)
     **hendrycks_test.create_all_tasks(),
-    # e.g. wmt14-fr-en
-    **translation.create_tasks_from_benchmarks(gpt3_translation_benchmarks),
-    # chef's selection, mostly wmt20
-    **translation.create_tasks_from_benchmarks(selected_translation_benchmarks),
     # Word Scrambling and Manipulation Tasks
     "anagrams1": unscramble.Anagrams1,
     "anagrams2": unscramble.Anagrams2,
@@ -344,6 +316,9 @@ TASK_REGISTRY = {
 
     # News
     "huffpost": HuffPost.HuffPost,
+
+    # WMT
+    **wmt.create_year_tasks(wmt.WMT14_TASKS),
 }
 
 
