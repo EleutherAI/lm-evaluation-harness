@@ -33,7 +33,7 @@ class T0LM(BaseLM):
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(pretrained)
         # self.max_length = self.MAX_INP_LENGTH
 
-        self.batch_size = int(batch_size)
+        self._batch_size = int(batch_size)
 
     @classmethod
     def create_from_arg_string(cls, arg_string, additional_config={}):
