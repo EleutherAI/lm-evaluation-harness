@@ -57,6 +57,7 @@ from . import storycloze
 from . import hans
 from . import gem_webnlg
 from . import lama
+
 # from . import e2e_nlg_cleaned
 from . import gem_xsum
 from . import gem_mlsum
@@ -65,8 +66,10 @@ from . import e2e_nlg_cleaned
 from . import gem_asset_turk
 from . import crows_pairs_multilingual
 from . import lama
+from . import bias_shades
 
 from . import HuffPost
+
 ########################################
 # Translation tasks
 ########################################
@@ -172,8 +175,8 @@ TASK_REGISTRY = {
     "ethics_utilitarianism_original": hendrycks_ethics.EthicsUtilitarianismOriginal,
     "ethics_utilitarianism": hendrycks_ethics.EthicsUtilitarianism,
     "ethics_virtue": hendrycks_ethics.EthicsVirtue,
-    #"tydiqa_primary" : TyDiQA.Primary, not implemented yet
-    #"tydiqa_secondary" : TyDiQA.Secondary, not implemented yet
+    # "tydiqa_primary" : TyDiQA.Primary, not implemented yet
+    # "tydiqa_secondary" : TyDiQA.Secondary, not implemented yet
     "truthfulqa_mc": truthfulqa.TruthfulQAMultipleChoice,
     "truthfulqa_gen": truthfulqa.TruthfulQAGeneration,
     # dialogue
@@ -305,19 +308,16 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
-    
-    #GEM/mlsum
-    "mlsum_es":gem_mlsum.GEMMLSUMEs,
-    "mlsum_de":gem_mlsum.GEMMLSUMDe,
-    "mlsum_es_covid_challenge_set":gem_mlsum.GEMMLSUMEsChallgeTestCovid,
-    "mlsum_de_covid_challenge_set":gem_mlsum.GEMMLSUMDeChallgeTestCovid,
-
+    # GEM/mlsum
+    "mlsum_es": gem_mlsum.GEMMLSUMEs,
+    "mlsum_de": gem_mlsum.GEMMLSUMDe,
+    "mlsum_es_covid_challenge_set": gem_mlsum.GEMMLSUMEsChallgeTestCovid,
+    "mlsum_de_covid_challenge_set": gem_mlsum.GEMMLSUMDeChallgeTestCovid,
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
-
-    #GEM/xum
+    # GEM/xum
     "gem_xsum": gem_xsum.GEMXSUM,
     "gem_xsum_challenge_sample": gem_xsum.GEMXSUMChallgeSample,
     "gem_xsum_challenge_test_backtranslation": gem_xsum.GEMXSUMChallgeTestBacktranslation,
@@ -325,23 +325,26 @@ TASK_REGISTRY = {
     "gem_xsum_challenge_test_bfp_05": gem_xsum.GEMXSUMChallgeTestBFP05,
     "gem_xsum_challenge_test_nopunc": gem_xsum.GEMXSUMChallgeTestNopunc,
     "gem_xsum_challenge_test_covid": gem_xsum.GEMXSUMChallgeTestCovid,
-
-   #LAMA
+    # LAMA
     "lama-trex": lama.Trex,
     "lama-squad": lama.Squad,
     "lama-google_re": lama.google_re,
     "lama-concptnet": lama.Conceptnet,
-    "bigscience-lama":lama.BigScienceLAMA,
+    "bigscience-lama": lama.BigScienceLAMA,
     # WinoBias
     "wino_bias_type1_pro": wino_bias.WinoBiasType1Pro,
     "wino_bias_type1_anti": wino_bias.WinoBiasType1Anti,
     "wino_bias_type2_pro": wino_bias.WinoBiasType2Pro,
     "wino_bias_type2_anti": wino_bias.WinoBiasType2Anti,
-
     # Crows-Pairs
     "crows_pairs_english": crows_pairs_multilingual.CrowsPairsEnglish,
     "crows_pairs_french": crows_pairs_multilingual.CrowsPairsFrench,
-
+    # Bias SHADES
+    "shades_english": bias_shades.ShadesEnglish,
+    "shades_french": bias_shades.ShadesFrench,
+    "shades_hindi": bias_shades.ShadesHindi,
+    "shades_arabic": bias_shades.ShadesArabic,
+    "shades_spanish": bias_shades.ShadesSpanish,
     # News
     "huffpost": HuffPost.HuffPost,
 }
