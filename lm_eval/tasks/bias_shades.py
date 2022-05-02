@@ -1,6 +1,6 @@
 """
 Multilingual dataset for measuring social biases in language models.
-French CrowS-Pairs: Extending a challenge dataset for measuring social bias in masked language models to a language other than English
+https://huggingface.co/datasets/BigScienceBiasEval/bias-shades/viewer/spanish/test
 """
 from lm_eval.base import PromptSourceTask
 
