@@ -63,7 +63,7 @@ def process_bucket(
     for line in bucket.read():
         [ngram, document_id] = line.rsplit(" ", 1)
 
-        # Write ngram if more then 10 unique document occurences
+        # Write ngram if more then 10 unique document occurrences
         if ngram != current_ngram:
             if len(current_ngram_document_ids) > 10:
                 output_archive.add_data(

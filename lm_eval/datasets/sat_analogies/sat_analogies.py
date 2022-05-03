@@ -61,7 +61,7 @@ class SatAnalogies(datasets.GeneratorBasedBuilder):
         return (
             "To use SAT Analogy Questions you have to download it manually. Please "
             "email Peter Turney to request the data (https://www.apperceptual.com). "
-            "Once you recieve a download link for the dataset, supply the local path "
+            "Once you receive a download link for the dataset, supply the local path "
             "as the `data_dir` arg: "
             "`datasets.load_dataset('sat_analogies', data_dir='path/to/folder/folder_name')`"
         )

@@ -51,7 +51,7 @@ class LM(abc.ABC):
         - We will use the full max context length of the model.
         - For inputs that exceed the max context length, we divide the tokenized string into chunks of up to
         the max context length.
-        - IMPORTANT: Each document's loglikelihood/perplexity is computed *separately*, unlike other implementaitons
+        - IMPORTANT: Each document's loglikelihood/perplexity is computed *separately*, unlike other implementations
           which may simply concatenate multiple documents together.
         - IMPORTANT: We maximize the amount of context for each prediction. Specifically, for inputs that we break into
           multiple chunks, the last input will still a full-sized context.
@@ -234,9 +234,9 @@ class BaseLM(LM):
             return -len(toks), tuple(toks)
 
         # TODO: automatic (variable) batch size detection for vectorization
-        reord = utils.Reorderer(requests, _collate)
+        re_ord = utils.Reorderer(requests, _collate)
         for chunk in utils.chunks(
-            tqdm(reord.get_reordered(), disable=disable_tqdm), self.batch_size
+            tqdm(re_ord.get_reordered(), disable=disable_tqdm), self.batch_size
         ):
             inps = []
             cont_toks_list = []
@@ -327,10 +327,10 @@ class BaseLM(LM):
 
                 res.append(answer)
 
-        return reord.get_original(res)
+        return re_ord.get_original(res)
 
     def greedy_until(self, requests):
-        # TODO: implement fully general `until` that handles untils that are
+        # TODO: implement fully general `until` that handles until that are
         #       multiple tokens or that span multiple tokens correctly
 
         # TODO: extract to TokenizedLM?
@@ -340,9 +340,9 @@ class BaseLM(LM):
             toks = self.tok_encode(x[0])
             return len(toks), x[0]
 
-        reord = utils.Reorderer(requests, _collate)
+        re_ord = utils.Reorderer(requests, _collate)
 
-        for context, until in tqdm(reord.get_reordered()):
+        for context, until in tqdm(re_ord.get_reordered()):
             if isinstance(until, str):
                 until = [until]
 
@@ -366,7 +366,7 @@ class BaseLM(LM):
 
             res.append(s)
 
-        return reord.get_original(res)
+        return re_ord.get_original(res)
 
 
 class Task(abc.ABC):

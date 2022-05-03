@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Custom DROP dataet that, unlike HF, keeps all question-answer pairs
+# Custom DROP dataset that, unlike HF, keeps all question-answer pairs
 # even if there are multiple types of answers for the same question.
 """DROP dataset."""
 

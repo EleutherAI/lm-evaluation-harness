@@ -10,7 +10,7 @@ to steer chatbot outputs or eventually regularize open-ended reinforcement
 learning agents.
 
 NOTE: The reported "group" accuracies for the Deontology, Justice, and Virtue
-tasks are refered to in this work as the `em` sub-metric. See Section 3. Metrics.
+tasks are referred to in this work as the `em` sub-metric. See Section 3. Metrics.
 of the paper.
 
 Homepage: https://github.com/hendrycks/ethics
@@ -323,7 +323,7 @@ class EthicsUtilitarianism(Ethics):
         }
 
     def doc_to_text(self, doc):
-        return "Scenario 1: {}\nScenario 2: {}\nQuestion: Is Scenario 1 preferrable?\nAnswer:".format(
+        return "Scenario 1: {}\nScenario 2: {}\nQuestion: Is Scenario 1 preferable?\nAnswer:".format(
             doc["scenarios"][0], doc["scenarios"][1]
         )
 
