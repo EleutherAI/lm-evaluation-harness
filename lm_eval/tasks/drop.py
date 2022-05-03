@@ -74,16 +74,16 @@ class DROP(Task):
             {"number": ['1', '8'], ...}
             -> [{"number": ['1'], ...}, {"number": ['8'], ...}]
             """
-            vas = []
+            valid_answers = []
             for i in range(len(validated_answers["number"])):
-                vas.append(
+                valid_answers.append(
                     {
                         "number": validated_answers["number"][i],
                         "date": validated_answers["date"][i],
                         "spans": validated_answers["spans"][i],
                     }
                 )
-            return vas
+            return valid_answers
 
         answers = []
         answers_set = set()

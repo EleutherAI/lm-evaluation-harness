@@ -124,10 +124,10 @@ class GPT3LM(BaseLM):
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
-        reord = utils.Reorderer(requests, _collate)
+        re_ord = utils.Reorderer(requests, _collate)
 
         for chunk in tqdm(
-            list(utils.chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE)),
+            list(utils.chunks(re_ord.get_reordered(), self.REQ_CHUNK_SIZE)),
             disable=disable_tqdm,
         ):
             inps = []
@@ -163,7 +163,7 @@ class GPT3LM(BaseLM):
                 if cache_key is not None:
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
-        return reord.get_original(res)
+        return re_ord.get_original(res)
 
     def greedy_until(self, requests):
         if not requests:
@@ -174,7 +174,7 @@ class GPT3LM(BaseLM):
             toks = self.tok_encode(x[0])
             return len(toks), x[0]
 
-        reord = utils.Reorderer(requests, _collate)
+        re_ord = utils.Reorderer(requests, _collate)
 
         def sameuntil_chunks(xs, size):
             ret = []
@@ -191,7 +191,7 @@ class GPT3LM(BaseLM):
 
         # todo: more intelligent batching for heterogeneous `until`
         for chunk, until in tqdm(
-            list(sameuntil_chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE))
+            list(sameuntil_chunks(re_ord.get_reordered(), self.REQ_CHUNK_SIZE))
         ):
             inps = []
             for context, _ in chunk:
@@ -219,7 +219,7 @@ class GPT3LM(BaseLM):
 
                 res.append(s)
 
-        return reord.get_original(res)
+        return re_ord.get_original(res)
 
     def _model_call(self, inps):
         # Isn't used because we override _loglikelihood_tokens

@@ -1,7 +1,7 @@
 # TODO: Remove all TODO comments once the implementation is complete.
 """
 TODO: Add the Paper Title on this line.
-TODO: Add the paper's PDF URL (preferrably from arXiv) on this line.
+TODO: Add the paper's PDF URL (preferably from arXiv) on this line.
 
 TODO: Write a Short Description of the task.
 
@@ -45,7 +45,7 @@ class NewTask(Task):
             if self._training_docs is None:
                 # TODO: Return the training document generator from `self.dataset`.
                 # If you need to process the data, `map` over the documents with
-                # the custom procesing function, `self._process_doc`. E.g.
+                # the custom processing function, `self._process_doc`. E.g.
                 # `map(self._process_doc, self.dataset["validation"])`
                 # In most case you can leave this as is unless the dataset split is
                 # named differently than the default `"train"`.
@@ -56,7 +56,7 @@ class NewTask(Task):
         if self.has_validation_docs():
             # TODO: Return the validation document generator from `self.dataset`.
             # If you need to process the data, `map` over the documents with the
-            # custom procesing function, `self._process_doc`. E.g.
+            # custom processing function, `self._process_doc`. E.g.
             # `map(self._process_doc, self.dataset["validation"])`
             # In most case you can leave this as is unless the dataset split is
             # named differently than the default `"validation"`.

@@ -5,7 +5,7 @@ It uses the approach described in the [GPT-3 paper](https://arxiv.org/abs/2005.1
 1) Collects all contamination text files that are to be removed from training data
 2) Filters training data by finding `N`gram matches between the training data
    and any contamination
-   1) `N`grams ignore case and punctation and are split on whitespace.
+   1) `N`grams ignore case and punctuation and are split on whitespace.
    2) Matching `N`gram substrings are removed, as is a `window_to_remove` character window around
     the match, splitting the training data into chunks
    3) Any chunks less than `minimum_slice_length` are removed
@@ -20,7 +20,7 @@ minimum_slice_length = 200
 too_dirty_cutoff = 10
 ```
 
-## Compling
+## Compiling
 
 Janitor can be used as a pure python program, but it is much faster if the ngram
 code is run in C++. To compile the C++ code, run

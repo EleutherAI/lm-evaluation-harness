@@ -25,7 +25,7 @@ class HFLM(BaseLM):
             self._device = torch.device(device)
             print(f"Using device '{device}'")
         else:
-            print("Device not specificed")
+            print("Device not specified")
             print(f"Cuda Available? {torch.cuda.is_available()}")
             self._device = (
                 torch.device("cuda")

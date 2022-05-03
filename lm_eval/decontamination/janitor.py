@@ -158,7 +158,7 @@ class Janitor:
 
     def clean(self, dirty_string):
         """Clean a string (e.g. a training set) by removing all ngrams previously
-        reigstered as contaminants. Returns a list of clean chunks, or empty if
+        registered as contaminants. Returns a list of clean chunks, or empty if
         the string was too dirty"""
         if JANITOR_CPP:
             return self.clean_cpp(dirty_string)
@@ -275,7 +275,7 @@ class Janitor:
 #         ultan Al Nahyan]] granted [[Petroleum]] concessions, and oil was first found in 1958.  At first,
 #         oil money had a marginal impact.  A few lowrise concete buildings were erected, and the first
 #         paved road was completed in 1961, but Sheikh Shakbut, uncertain whether the new oil royalties
-#         would last, took a cautious approach, prefering to save the revenue rather than investing it in
+#         would last, took a cautious approach, preferring to save the revenue rather than investing it in
 #         development.  His brother, [[Zayed bin Sultan Al Nahayan]], saw that oil wealth had the potential
 #         to transform Abu Dhabi.  The ruling Al Nahayan family decided that Sheikh Zayed should replace his
 #         brother as Ruler and carry out his vision of developing the country.  On [[August 6]], [[1966]],
