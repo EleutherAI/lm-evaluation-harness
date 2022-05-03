@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import os
 
 from lm_eval import tasks, evaluator
 
@@ -23,6 +24,35 @@ def parse_args():
     parser.add_argument("--description_dict_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
     return parser.parse_args()
+
+
+def args_to_name(args):
+    """Map `args` to file name. If output_path is set, we use that instead."""
+    if args.output_path is not None:
+        return args.output_path
+
+    def _fix_model_name(model, model_args):
+        if model_args == "":
+            return model
+        elif "pretrained" in model_args:
+            # pretrained=google/t5-base-lm-adapt --> google-t5-base-lm-adapt
+            return model_args.split("=")[-1].replace("/", "-")
+        else:
+            print("WARNING: Unprepared for these model args.")
+            return f"{model}_{model_args}"
+
+    fields = [
+        _fix_model_name(args.model, args.model_args),
+        args.tasks,
+        str(args.num_fewshot),
+        str(args.seed),
+    ]
+    fields = [f for f in fields if f is not None]
+
+    if args.limit is not None:
+        # Do not use limited files for final analysis.
+        return f"limited_{args.limit}_" + "_".join(fields)
+    return "_".join(fields)
 
 
 def main():
@@ -56,21 +86,19 @@ def main():
         limit=args.limit,
         description_dict=description_dict,
         check_integrity=args.check_integrity,
+        seed=args.seed,
     )
 
-    print(results)
-    dumped = json.dumps(results, indent=2)
-
-    print(dumped)
-
-    if args.output_path:
-        with open(args.output_path, "w") as f:
-            f.write(dumped)
-
-    print(
-        f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, "
-        f"num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}"
-    )
+    output_path = args_to_name(args)
+    os.makedirs("./outputs", exist_ok=True)
+    with open(f"./outputs/examples-{output_path}.json", "w") as f:
+        json.dump(
+            {"examples": results["examples"], "config": results["examples"]},
+            f,
+        )
+    with open(f"./outputs/agg-{output_path}.json", "w") as f:
+        json.dump({"results": results["results"], "config": results["examples"]}, f)
+    # TODO: Rename codecarbon.csv.
     print(evaluator.make_table(results))
 
 
