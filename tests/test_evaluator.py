@@ -12,11 +12,11 @@ import pytest
 # test once we break evaluator into smaller, more manageable pieces
 
 
-@pytest.mark.parametrize("taskname,task_class", tasks.TASK_REGISTRY.keys())
+@pytest.mark.parametrize("taskname", tasks.TASK_REGISTRY.keys())
 def test_evaluator(taskname):
     task_dict = tasks.get_task_dict([taskname])
 
-    with tempfile.TemporaryFile() as tfile:
+    with tempfile.NamedTemporaryFile() as tfile:
         lm = base.CachingLM(models.get_model("dummy")(), tfile.name)
 
         def ll_fn(reqs):
