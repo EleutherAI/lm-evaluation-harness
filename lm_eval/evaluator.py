@@ -9,6 +9,7 @@ import lm_eval.tasks
 import lm_eval.base
 import promptsource
 import numpy as np
+from tqdm import tqdm
 
 from promptsource.templates import DatasetTemplates
 from lm_eval.utils import positional_deprecated, run_task_tests, set_seed
@@ -194,8 +195,10 @@ def evaluate(
             else ""
         )
 
+        print(f"Constructing '{task_prompt_name}' contexts and requests")
+        pbar_limit = len(task_docs) if not limit else limit
         for doc_id, (original_doc_id, doc) in enumerate(
-            itertools.islice(task_docs, 0, limit)
+            tqdm(itertools.islice(task_docs, 0, limit), total=pbar_limit)
         ):
             if task.invalid_doc_for_prompt(doc):
                 continue
