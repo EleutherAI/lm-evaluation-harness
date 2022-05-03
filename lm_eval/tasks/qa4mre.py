@@ -3,9 +3,9 @@ QA4MRE 2011-2013: Overview of Question Answering for Machine Reading Evaluation
 https://www.cs.cmu.edu/~./hovy/papers/13CLEF-QA4MRE.pdf
 
 The (English only) QA4MRE challenge which was run as a Lab at CLEF 2011-2013.
-The main objective of this exercise is to develop a methodology for evaluating 
-Machine Reading systems through Question Answering and Reading Comprehension 
-Tests. Systems should be able to extract knowledge from large volumes of text 
+The main objective of this exercise is to develop a methodology for evaluating
+Machine Reading systems through Question Answering and Reading Comprehension
+Tests. Systems should be able to extract knowledge from large volumes of text
 and use this knowledge to answer questions. Four different tasks have been
 organized during these years: Main Task, Processing Modality and Negation for
 Machine Reading, Machine Reading of Biomedical Texts about Alzheimer's disease,
@@ -47,7 +47,7 @@ class QA4MRE(MultipleChoiceTask):
     def _process_doc(self, doc):
         choices = doc["answer_options"]["answer_str"]
         out_doc = {
-            "source": doc["document_str"].strip().replace("\'", "'"),
+            "source": doc["document_str"].strip().replace("'", "'"),
             "query": doc["question_str"],
             "choices": choices,
             "gold": int(doc["correct_answer_id"]) - 1,

@@ -30,7 +30,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Question Answering in Context (QuAC) is a dataset for modeling, understanding, and 
+Question Answering in Context (QuAC) is a dataset for modeling, understanding, and
 participating in information seeking dialog. Data instances consist of an interactive
 dialog between two crowd workers: (1) a student who poses a sequence of freeform
 questions to learn as much as possible about a hidden Wikipedia text, and (2)
@@ -54,7 +54,9 @@ class Quac(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="quac", version=VERSION, description="The QuAC dataset"),
+        datasets.BuilderConfig(
+            name="quac", version=VERSION, description="The QuAC dataset"
+        ),
     ]
 
     def _info(self):
@@ -90,10 +92,7 @@ class Quac(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": data_dir["validation"],
-                    "split": "validation"
-                },
+                gen_kwargs={"filepath": data_dir["validation"], "split": "validation"},
             ),
         ]
 
@@ -105,7 +104,7 @@ class Quac(datasets.GeneratorBasedBuilder):
             for row in data:
                 paragraph = row["paragraphs"][0]["context"].replace("CANNOTANSWER", "")
                 qas = row["paragraphs"][0]["qas"]
-                qa_pairs = [(qa['question'], qa['answers'][0]['text']) for qa in qas]
+                qa_pairs = [(qa["question"], qa["answers"][0]["text"]) for qa in qas]
                 for (question, answer) in qa_pairs:
                     # Yields examples as (key, example) tuples
                     yield key, {

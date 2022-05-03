@@ -37,7 +37,7 @@ class BlimpTask(Task):
 
     def has_training_docs(self):
         return False
-    
+
     def has_validation_docs(self):
         return True
 
@@ -50,9 +50,13 @@ class BlimpTask(Task):
         # trained on this data.
         return self.dataset["train"]
 
-    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
+    def fewshot_context(
+        self, doc, num_fewshot, provide_description=None, rnd=None, description=None
+    ):
         assert num_fewshot == 0
-        assert rnd is not None, "A `random.Random` generator argument must be provided to `rnd`"
+        assert (
+            rnd is not None
+        ), "A `random.Random` generator argument must be provided to `rnd`"
         assert not provide_description, (
             "The `provide_description` arg will be removed in future versions. To prepend "
             "a custom description to the context, supply the corresponding string via the  "
@@ -60,7 +64,9 @@ class BlimpTask(Task):
         )
         if provide_description is not None:
             # nudge people to not specify it at all
-            print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
+            print(
+                "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
+            )
 
         return ""
 

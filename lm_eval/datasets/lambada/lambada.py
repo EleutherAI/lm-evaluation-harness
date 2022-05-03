@@ -22,7 +22,7 @@ import datasets
 
 _CITATION = """\
 @misc{
-    author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel}, 
+    author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel},
     title={The LAMBADA dataset},
     DOI={10.5281/zenodo.2630551},
     publisher={Zenodo},
@@ -62,12 +62,34 @@ class Lambada(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.0.1")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="original", version=VERSION, description="The LAMBADA dataset"),
-        datasets.BuilderConfig(name="en", version=VERSION, description="The English translated LAMBADA dataset"),
-        datasets.BuilderConfig(name="fr", version=VERSION, description="The French translated LAMBADA dataset"),
-        datasets.BuilderConfig(name="de", version=VERSION, description="The German translated LAMBADA dataset"),
-        datasets.BuilderConfig(name="it", version=VERSION, description="The Italian translated LAMBADA dataset"),
-        datasets.BuilderConfig(name="es", version=VERSION, description="The Spanish translated LAMBADA dataset"),
+        datasets.BuilderConfig(
+            name="original", version=VERSION, description="The LAMBADA dataset"
+        ),
+        datasets.BuilderConfig(
+            name="en",
+            version=VERSION,
+            description="The English translated LAMBADA dataset",
+        ),
+        datasets.BuilderConfig(
+            name="fr",
+            version=VERSION,
+            description="The French translated LAMBADA dataset",
+        ),
+        datasets.BuilderConfig(
+            name="de",
+            version=VERSION,
+            description="The German translated LAMBADA dataset",
+        ),
+        datasets.BuilderConfig(
+            name="it",
+            version=VERSION,
+            description="The Italian translated LAMBADA dataset",
+        ),
+        datasets.BuilderConfig(
+            name="es",
+            version=VERSION,
+            description="The Spanish translated LAMBADA dataset",
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "original"
@@ -105,6 +127,4 @@ class Lambada(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for key, row in enumerate(f):
                 data = json.loads(row)
-                yield key, {
-                    "text": data["text"]
-                }
+                yield key, {"text": data["text"]}

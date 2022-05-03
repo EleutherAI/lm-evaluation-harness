@@ -9,7 +9,7 @@ task with binary options, the goal is to choose the right option for a given
 sentence which requires commonsense reasoning.
 
 NOTE: This evaluation of Winogrande uses partial evaluation as described by
-Trinh & Le in Simple Method for Commonsense Reasoning (2018). 
+Trinh & Le in Simple Method for Commonsense Reasoning (2018).
 See: https://arxiv.org/abs/1806.02847
 
 Homepage: https://leaderboard.allenai.org/winogrande/submissions/public
@@ -34,7 +34,7 @@ class Winogrande(Task):
     DATASET_PATH = "winogrande"
     DATASET_NAME = "winogrande_xl"
 
-    answer_to_num = {'1': 0, '2': 1}
+    answer_to_num = {"1": 0, "2": 1}
 
     def has_training_docs(self):
         return True
@@ -61,7 +61,7 @@ class Winogrande(Task):
 
     def doc_to_decontamination_query(self, doc):
         return doc["sentence"]
-        
+
     @classmethod
     def partial_context(cls, doc, option):
         # Substitute the pronoun in the sentence with the specified option
@@ -113,9 +113,7 @@ class Winogrande(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        return {
-            "acc": np.argmax(results) == self.answer_to_num[doc["answer"]]
-        }
+        return {"acc": np.argmax(results) == self.answer_to_num[doc["answer"]]}
 
     def aggregation(self):
         """
@@ -123,9 +121,7 @@ class Winogrande(Task):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
     def higher_is_better(self):
         """
@@ -133,6 +129,4 @@ class Winogrande(Task):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {
-            "acc": True
-        }
+        return {"acc": True}

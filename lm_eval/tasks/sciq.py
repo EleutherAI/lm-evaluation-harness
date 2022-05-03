@@ -54,10 +54,10 @@ class SciQ(MultipleChoiceTask):
             doc["distractor3"],
             doc["correct_answer"],
         ]
-        src = doc['support']
+        src = doc["support"]
         out_doc = {
             "source": src,
-            "query": doc['question'],
+            "query": doc["question"],
             "choices": choices,
             "gold": 3,
         }
