@@ -47,8 +47,7 @@ class Math(Task):
         return map(self._process_doc, self.dataset["test"])
 
     def _process_doc(self, doc):
-        doc["answer"] = self.remove_boxed(
-            self.last_boxed_only_string(doc["solution"]))
+        doc["answer"] = self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
         return doc
 
     def doc_to_text(self, doc):
@@ -72,23 +71,19 @@ class Math(Task):
         if len(indices) <= 1:
             answer = results[0]
         else:
-            answer = results[0][indices[0]+1:indices[-1]]
+            answer = results[0][indices[0] + 1 : indices[-1]]
 
-        if self.is_equiv(answer, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))):
+        if self.is_equiv(
+            answer, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
+        ):
             retval = 1
-        return {
-            "acc": retval
-        }
+        return {"acc": retval}
 
     def aggregation(self):
-        return {
-            'acc': mean
-        }
+        return {"acc": mean}
 
     def higher_is_better(self):
-        return {
-            'acc': True
-        }
+        return {"acc": True}
 
     def is_equiv(self, str1, str2, verbose=False):
         if str1 is None and str2 is None:
@@ -103,24 +98,24 @@ class Math(Task):
             if verbose:
                 print(ss1, ss2)
             return ss1 == ss2
-        except:
+        except Exception:
             return str1 == str2
 
     def remove_boxed(self, s):
         if "\\boxed " in s:
             left = "\\boxed "
-            assert s[:len(left)] == left
-            return s[len(left):]
+            assert s[: len(left)] == left
+            return s[len(left) :]
 
         left = "\\boxed{"
 
-        assert s[:len(left)] == left
+        assert s[: len(left)] == left
         assert s[-1] == "}"
 
-        return s[len(left):-1]
+        return s[len(left) : -1]
 
     def last_boxed_only_string(self, string):
-            
+
         idx = string.rfind("\\boxed")
         if "\\boxed " in string:
             return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
@@ -145,7 +140,7 @@ class Math(Task):
         if right_brace_idx is None:
             retval = None
         else:
-            retval = string[idx:right_brace_idx + 1]
+            retval = string[idx : right_brace_idx + 1]
 
         return retval
 
@@ -251,7 +246,7 @@ class Math(Task):
 
         # remove percentage
         string = string.replace("\\%", "")
-        string = string.replace("\%", "")
+        string = string.replace("\%", "")  # noqa: W605
 
         # " 0." equivalent to " ." and "{0." equivalent to "{." Alternatively, add "0" if "." is the start of the string
         string = string.replace(" .", " 0.")
@@ -288,34 +283,34 @@ class Math(Task):
 
 class MathAlgebra(Math):
     VERSION = 1
-    DATASET_NAME = 'algebra'
+    DATASET_NAME = "algebra"
 
 
 class MathCountingAndProbability(Math):
     VERSION = 1
-    DATASET_NAME = 'counting_and_probability'
+    DATASET_NAME = "counting_and_probability"
 
 
 class MathGeometry(Math):
     VERSION = 1
-    DATASET_NAME = 'geometry'
+    DATASET_NAME = "geometry"
 
 
 class MathIntermediateAlgebra(Math):
     VERSION = 1
-    DATASET_NAME = 'intermediate_algebra'
+    DATASET_NAME = "intermediate_algebra"
 
 
 class MathNumberTheory(Math):
     VERSION = 1
-    DATASET_NAME = 'number_theory'
+    DATASET_NAME = "number_theory"
 
 
 class MathPrealgebra(Math):
     VERSION = 1
-    DATASET_NAME = 'prealgebra'
+    DATASET_NAME = "prealgebra"
 
 
 class MathPrecalculus(Math):
     VERSION = 1
-    DATASET_NAME = 'precalculus'
+    DATASET_NAME = "precalculus"

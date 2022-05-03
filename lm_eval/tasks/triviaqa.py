@@ -43,10 +43,10 @@ class TriviaQA(Task):
         return False
 
     def training_docs(self):
-        return self.dataset['train']
+        return self.dataset["train"]
 
     def validation_docs(self):
-        return self.dataset['validation']
+        return self.dataset["validation"]
 
     def test_docs(self):
         raise NotImplementedError()
@@ -58,10 +58,10 @@ class TriviaQA(Task):
         return True
 
     def doc_to_decontamination_query(self, doc):
-        return doc['question']
+        return doc["question"]
 
     def doc_to_target(self, doc):
-        return " " + doc['answer']['value']
+        return " " + doc["answer"]["value"]
 
     def _remove_prefixes(self, aliases):
         # Optimization: Remove any alias that has a strict prefix elsewhere in the list
@@ -75,15 +75,13 @@ class TriviaQA(Task):
 
     def construct_requests(self, doc, ctx):
         ret = []
-        for alias in self._remove_prefixes(doc['answer']['aliases']):
+        for alias in self._remove_prefixes(doc["answer"]["aliases"]):
             _, is_prediction = rf.loglikelihood(ctx, " " + alias)
             ret.append(is_prediction)
         return ret
 
     def process_results(self, doc, results):
-        return {
-            "acc": float(any(results))
-        }
+        return {"acc": float(any(results))}
 
     def aggregation(self):
         return {
@@ -91,6 +89,4 @@ class TriviaQA(Task):
         }
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}

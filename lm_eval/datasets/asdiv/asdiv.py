@@ -50,13 +50,16 @@ _URLS = "https://github.com/chaochun/nlu-asdiv-dataset/archive/55790e5270bb91ccf
 
 
 class ASDiv(datasets.GeneratorBasedBuilder):
-    """ ASDiv: A Diverse Corpus for Evaluating and Developing English Math Word Problem Solvers """
+    """ASDiv: A Diverse Corpus for Evaluating and Developing English Math Word Problem Solvers"""
 
     VERSION = datasets.Version("0.0.1")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="asdiv", version=VERSION,
-                               description="A diverse corpus for evaluating and developing english math word problem solvers")
+        datasets.BuilderConfig(
+            name="asdiv",
+            version=VERSION,
+            description="A diverse corpus for evaluating and developing english math word problem solvers",
+        )
     ]
 
     def _info(self):
@@ -86,7 +89,9 @@ class ASDiv(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, base_filepath, "dataset", "ASDiv.xml"),
+                    "filepath": os.path.join(
+                        data_dir, base_filepath, "dataset", "ASDiv.xml"
+                    ),
                     "split": datasets.Split.VALIDATION,
                 },
             ),

@@ -14,7 +14,7 @@ from lm_eval.base import MultipleChoiceTask
 
 _CITATION = """
 @misc{amini2019mathqa,
-    title={MathQA: Towards Interpretable Math Word Problem Solving with Operation-Based Formalisms}, 
+    title={MathQA: Towards Interpretable Math Word Problem Solving with Operation-Based Formalisms},
     author={Aida Amini and Saadia Gabriel and Peter Lin and Rik Koncel-Kedziorski and Yejin Choi and Hannaneh Hajishirzi},
     year={2019},
     eprint={1905.13319},
@@ -50,11 +50,14 @@ class MathQA(MultipleChoiceTask):
         return map(self._process_doc, self.dataset["test"])
 
     def _process_doc(self, doc):
-        answer_idx = ['a', 'b', 'c', 'd', 'e'].index(doc['correct'])
-        choices = [c[4:].rstrip(" ,") for c in re.findall(r"[abcd] \) .*?, |e \) .*?$", doc['options'])]
+        answer_idx = ["a", "b", "c", "d", "e"].index(doc["correct"])
+        choices = [
+            c[4:].rstrip(" ,")
+            for c in re.findall(r"[abcd] \) .*?, |e \) .*?$", doc["options"])
+        ]
 
         out_doc = {
-            "query": "Question: " + doc['Problem'] + "\nAnswer:",
+            "query": "Question: " + doc["Problem"] + "\nAnswer:",
             "choices": choices,
             "gold": answer_idx,
         }

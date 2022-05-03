@@ -52,9 +52,9 @@ class HellaSwag(MultipleChoiceTask):
     def _process_doc(self, doc):
         ctx = doc["ctx_a"] + " " + doc["ctx_b"].capitalize()
         out_doc = {
-            "query": self.preprocess(doc['activity_label'] + ': ' + ctx),
-            "choices": [self.preprocess(ending) for ending in doc['endings']],
-            "gold": int(doc['label']),
+            "query": self.preprocess(doc["activity_label"] + ": " + ctx),
+            "choices": [self.preprocess(ending) for ending in doc["endings"]],
+            "gold": int(doc["label"]),
         }
         return out_doc
 
@@ -63,7 +63,7 @@ class HellaSwag(MultipleChoiceTask):
         text = text.strip()
         # NOTE: Brackets are artifacts of the WikiHow dataset portion of HellaSwag.
         text = text.replace(" [title]", ". ")
-        text = re.sub('\\[.*?\\]', '', text)
+        text = re.sub("\\[.*?\\]", "", text)
         text = text.replace("  ", " ")
         return text
 

@@ -2,14 +2,14 @@
 "Training Verifiers to Solve Math Word Problems"
 https://arxiv.org/abs/2110.14168
 
-State-of-the-art language models can match human performance on many tasks, but 
-they still struggle to robustly perform multi-step mathematical reasoning. To 
+State-of-the-art language models can match human performance on many tasks, but
+they still struggle to robustly perform multi-step mathematical reasoning. To
 diagnose the failures of current models and support research, we introduce GSM8K,
 a dataset of 8.5K high quality linguistically diverse grade school math word problems.
-We find that even the largest transformer models fail to achieve high test performance, 
+We find that even the largest transformer models fail to achieve high test performance,
 despite the conceptual simplicity of this problem distribution.
 
-NOTE: See the official implementation of the task: 
+NOTE: See the official implementation of the task:
     https://github.com/openai/grade-school-math/blob/master/grade_school_math/calculator.py
 for how to make use of the dataset's calculator annotations in your language
 model's sample/generation function.
@@ -64,13 +64,13 @@ class GradeSchoolMath8K(Task):
         return self.dataset["test"]
 
     def doc_to_text(self, doc):
-        return "Question: " + doc['question'] + '\nAnswer:'
+        return "Question: " + doc["question"] + "\nAnswer:"
 
     def doc_to_target(self, doc):
-        return " " + doc['answer']
+        return " " + doc["answer"]
 
     def construct_requests(self, doc, ctx):
-        """ Uses RequestFactory to construct Requests and returns an iterable of
+        """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
         :param doc:
@@ -80,10 +80,10 @@ class GradeSchoolMath8K(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        # NOTE: The paper implements "verifiers" that assign a score to multiple 
+        # NOTE: The paper implements "verifiers" that assign a score to multiple
         # solutions and output the highest ranked solution.
-        completion = rf.greedy_until(ctx, ['\n'])
-        return completion 
+        completion = rf.greedy_until(ctx, ["\n"])
+        return completion
 
     def _extract_answer(self, completion):
         match = ANS_RE.search(completion)
@@ -97,7 +97,7 @@ class GradeSchoolMath8K(Task):
     def _is_correct(self, completion, answer):
         gold = self._extract_answer(answer)
         assert gold != INVALID_ANS, "No ground truth answer found in the document."
-        return self._extract_answer(completion) == gold 
+        return self._extract_answer(completion) == gold
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
@@ -111,9 +111,7 @@ class GradeSchoolMath8K(Task):
         """
         completion = results[0]
         answer = doc["answer"]
-        return {
-            "acc": self._is_correct(completion, answer)
-        }
+        return {"acc": self._is_correct(completion, answer)}
 
     def aggregation(self):
         """
@@ -121,9 +119,7 @@ class GradeSchoolMath8K(Task):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
     def higher_is_better(self):
         """
@@ -131,6 +127,4 @@ class GradeSchoolMath8K(Task):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {
-            "acc": True
-        }
+        return {"acc": True}

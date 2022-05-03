@@ -22,14 +22,14 @@ The basis for our decontamination procedure can be found in Appendix C of "Langu
 
 ## Implementation
 
-Contamination detection can be found in "lm_eval/decontaminate.py" with supporting code in "lm_eval/decontamination/". 
+Contamination detection can be found in "lm_eval/decontaminate.py" with supporting code in "lm_eval/decontamination/".
 
 decontaminate.py does the following:
 1. Build dictionaries of all ngrams and their corresponding evaluation/document ids.
 2. Scan through sorted files containing training set n-grams.
 3. If a match is found, the corresponding evaluation/document combinations are marked as contaminated.
 
-"lm_eval/evaluator.py" can then produce a clean version of the benchmark by excluding the results of contaminated documents. For each metric, a clean version will be shown in the results with a "decontaminate" suffix. 
+"lm_eval/evaluator.py" can then produce a clean version of the benchmark by excluding the results of contaminated documents. For each metric, a clean version will be shown in the results with a "decontaminate" suffix.
 
 This is disabled by default for new tasks, to support decontamination on a task override the "should_decontaminate" and "doc_to_decontamination_query" methods. For more details see the [task guide](task_guide.md).
 
@@ -73,4 +73,3 @@ python -m scripts/clean_training_data/compress_and_package \
 ```
 
 Congratulations, the final directory can now be passed to lm-evaulation-harness with the "--decontamination_ngrams_path" argument.
-

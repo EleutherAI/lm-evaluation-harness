@@ -123,86 +123,111 @@ class Wikitext(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={"data_file": os.path.join(
-                        data_dir, "wiki.test.tokens"), "split": "test"},
+                    gen_kwargs={
+                        "data_file": os.path.join(data_dir, "wiki.test.tokens"),
+                        "split": "test",
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"data_file": os.path.join(
-                        data_dir, "wiki.train.tokens"), "split": "train"},
+                    gen_kwargs={
+                        "data_file": os.path.join(data_dir, "wiki.train.tokens"),
+                        "split": "train",
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={"data_file": os.path.join(
-                        data_dir, "wiki.valid.tokens"), "split": "valid"},
+                    gen_kwargs={
+                        "data_file": os.path.join(data_dir, "wiki.valid.tokens"),
+                        "split": "valid",
+                    },
                 ),
             ]
         else:
             if self.config.name == "wikitext-103-raw-v1":
-                data_file = dl_manager.download_and_extract(
-                    self.config.data_url)
+                data_file = dl_manager.download_and_extract(self.config.data_url)
                 data_dir = os.path.join(data_file, "wikitext-103-raw")
                 return [
                     datasets.SplitGenerator(
                         name=datasets.Split.TEST,
-                        gen_kwargs={"data_file": os.path.join(
-                            data_dir, "wiki.test.raw"), "split": "test"},
+                        gen_kwargs={
+                            "data_file": os.path.join(data_dir, "wiki.test.raw"),
+                            "split": "test",
+                        },
                     ),
                     datasets.SplitGenerator(
                         name=datasets.Split.TRAIN,
-                        gen_kwargs={"data_file": os.path.join(
-                            data_dir, "wiki.train.raw"), "split": "train"},
+                        gen_kwargs={
+                            "data_file": os.path.join(data_dir, "wiki.train.raw"),
+                            "split": "train",
+                        },
                     ),
                     datasets.SplitGenerator(
                         name=datasets.Split.VALIDATION,
-                        gen_kwargs={"data_file": os.path.join(
-                            data_dir, "wiki.valid.raw"), "split": "valid"},
+                        gen_kwargs={
+                            "data_file": os.path.join(data_dir, "wiki.valid.raw"),
+                            "split": "valid",
+                        },
                     ),
                 ]
             else:
                 if self.config.name == "wikitext-2-raw-v1":
-                    data_file = dl_manager.download_and_extract(
-                        self.config.data_url)
+                    data_file = dl_manager.download_and_extract(self.config.data_url)
                     data_dir = os.path.join(data_file, "wikitext-2-raw")
                     return [
                         datasets.SplitGenerator(
                             name=datasets.Split.TEST,
-                            gen_kwargs={"data_file": os.path.join(
-                                data_dir, "wiki.test.raw"), "split": "test"},
+                            gen_kwargs={
+                                "data_file": os.path.join(data_dir, "wiki.test.raw"),
+                                "split": "test",
+                            },
                         ),
                         datasets.SplitGenerator(
                             name=datasets.Split.TRAIN,
-                            gen_kwargs={"data_file": os.path.join(
-                                data_dir, "wiki.train.raw"), "split": "train"},
+                            gen_kwargs={
+                                "data_file": os.path.join(data_dir, "wiki.train.raw"),
+                                "split": "train",
+                            },
                         ),
                         datasets.SplitGenerator(
                             name=datasets.Split.VALIDATION,
-                            gen_kwargs={"data_file": os.path.join(
-                                data_dir, "wiki.valid.raw"), "split": "valid"},
+                            gen_kwargs={
+                                "data_file": os.path.join(data_dir, "wiki.valid.raw"),
+                                "split": "valid",
+                            },
                         ),
                     ]
                 else:
                     if self.config.name == "wikitext-2-v1":
                         data_file = dl_manager.download_and_extract(
-                            self.config.data_url)
+                            self.config.data_url
+                        )
                         data_dir = os.path.join(data_file, "wikitext-2")
                         return [
                             datasets.SplitGenerator(
                                 name=datasets.Split.TEST,
-                                gen_kwargs={"data_file": os.path.join(
-                                    data_dir, "wiki.test.tokens"), "split": "test"},
+                                gen_kwargs={
+                                    "data_file": os.path.join(
+                                        data_dir, "wiki.test.tokens"
+                                    ),
+                                    "split": "test",
+                                },
                             ),
                             datasets.SplitGenerator(
                                 name=datasets.Split.TRAIN,
                                 gen_kwargs={
-                                    "data_file": os.path.join(data_dir, "wiki.train.tokens"),
+                                    "data_file": os.path.join(
+                                        data_dir, "wiki.train.tokens"
+                                    ),
                                     "split": "train",
                                 },
                             ),
                             datasets.SplitGenerator(
                                 name=datasets.Split.VALIDATION,
                                 gen_kwargs={
-                                    "data_file": os.path.join(data_dir, "wiki.valid.tokens"),
+                                    "data_file": os.path.join(
+                                        data_dir, "wiki.valid.tokens"
+                                    ),
                                     "split": "valid",
                                 },
                             ),
@@ -216,12 +241,12 @@ class Wikitext(datasets.GeneratorBasedBuilder):
             data = f.read().split("\n")
             for line in data:
                 rline = line.replace("= = =", "===").replace("= =", "==").strip()
-                if rline.startswith('= ') and rline.strip().endswith(' ='):
-                    page = '\n'.join(ret)
+                if rline.startswith("= ") and rline.strip().endswith(" ="):
+                    page = "\n".join(ret)
                     if page.strip():
                         yield key, {"page": page}
                         key += 1
                     ret = []
                 ret.append(line)
-            page = '\n'.join(ret)
+            page = "\n".join(ret)
             yield key, {"page": page}

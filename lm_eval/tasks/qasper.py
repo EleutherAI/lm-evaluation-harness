@@ -1,4 +1,4 @@
-""" 
+"""
 A Dataset of Information-Seeking Questions and Answers Anchored in Research Papers
 https://arxiv.org/abs/2105.03011
 
