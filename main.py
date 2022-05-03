@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import json
 import logging
 import os
@@ -46,6 +47,7 @@ def args_to_name(args):
         args.tasks,
         str(args.num_fewshot),
         str(args.seed),
+        datetime.datetime.now().isoformat(),
     ]
     fields = [f for f in fields if f is not None]
 
@@ -79,7 +81,6 @@ def main():
         model_args=args.model_args,
         tasks=task_names,
         num_fewshot=args.num_fewshot,
-        seed=args.seed,
         batch_size=args.batch_size,
         device=args.device,
         no_cache=args.no_cache,
