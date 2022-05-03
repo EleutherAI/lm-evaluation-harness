@@ -3,7 +3,7 @@ from collections import Counter
 import shutil
 import glob
 
-from lm_eval.decontamination.janitor import *
+from lm_eval.decontamination.janitor import Janitor, word_ngrams
 from scripts.clean_training_data.generate_13_grams import do_ngrams_in_buckets
 from lm_eval.decontamination.archiver import Archive, TextReader
 

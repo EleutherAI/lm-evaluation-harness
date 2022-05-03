@@ -51,8 +51,12 @@ def get_stats():
     # Generate minhashes with pool
     tasks = [(get_file_stats, (file,)) for file in files]
 
-    on_done = lambda _: None
-    on_error = lambda _: None
+    def on_done(_):
+        return None
+
+    def on_error(_):
+        return None
+
     results = pool.map(global_tqdm, tasks, on_error, on_done)
 
     total_documents, total_size = reduce(

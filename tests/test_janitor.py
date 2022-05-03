@@ -1,7 +1,13 @@
 import re
 from collections import defaultdict
 
-from lm_eval.decontamination.janitor import *
+from lm_eval.decontamination.janitor import (
+    Janitor,
+    form_ngrams,
+    word_ngrams,
+    split_indices,
+    word_ngrams_indices,
+)
 
 
 def simple_ngram(sequence, n):

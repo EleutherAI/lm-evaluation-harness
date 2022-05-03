@@ -22,14 +22,12 @@ from . import naturalqs
 from . import sat
 from . import arithmetic
 from . import lambada
-from . import race
 from . import piqa
 from . import prost
 from . import mc_taco
 from . import triviaqa
 from . import pubmedqa
 from . import sciq
-from . import webqs
 from . import qasper
 from . import qa4mre
 from . import translation
@@ -294,7 +292,7 @@ ALL_TASKS = sorted(list(TASK_REGISTRY))
 def get_task(task_name):
     try:
         return TASK_REGISTRY[task_name]
-    except KeyError as e:
+    except KeyError:
         print("Available tasks:")
         pprint(TASK_REGISTRY)
         raise KeyError(f"Missing task {task_name}")

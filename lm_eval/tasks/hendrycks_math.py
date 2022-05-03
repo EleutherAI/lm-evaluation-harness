@@ -98,7 +98,7 @@ class Math(Task):
             if verbose:
                 print(ss1, ss2)
             return ss1 == ss2
-        except:
+        except Exception:
             return str1 == str2
 
     def remove_boxed(self, s):
@@ -246,7 +246,7 @@ class Math(Task):
 
         # remove percentage
         string = string.replace("\\%", "")
-        string = string.replace("\%", "")
+        string = string.replace("\%", "")  # noqa: W605
 
         # " 0." equivalent to " ." and "{0." equivalent to "{." Alternatively, add "0" if "." is the start of the string
         string = string.replace(" .", " 0.")

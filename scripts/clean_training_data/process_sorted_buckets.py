@@ -30,12 +30,13 @@ from tqdm_multiprocess.logger import setup_logger_tqdm
 
 logger = logging.getLogger(__name__)
 
+
 # Multiprocessed
 def process_bucket(
     bucket_file_path, processed_directory, move_dir, tqdm_func, global_tqdm
 ):
 
-    bucket_id = re.sub("\D", "", os.path.basename(bucket_file_path))
+    bucket_id = re.sub("\D", "", os.path.basename(bucket_file_path))  # noqa: W605
     done_file = os.path.join(
         processed_directory, f"ngram_bucket_processing_{bucket_id}.done"
     )
@@ -106,8 +107,13 @@ def process_sorted_buckets(working_directory, move_dir, process_count):
     ]
 
     global_tqdm = tqdm(total=len(bucket_file_paths), dynamic_ncols=True, unit="bucket")
-    on_done = lambda _: None
-    on_error = lambda _: None
+
+    def on_done(_):
+        return None
+
+    def on_error(_):
+        return None
+
     _ = pool.map(global_tqdm, tasks, on_error, on_done)
 
 

@@ -71,7 +71,7 @@ class NaturalQs(Task):
 
     def doc_to_target(self, doc):
         # There's a short answer and a long answer. Based on the paper, I'm using the long answer.
-        short_answer = doc["annotations"]["short_answers"][0]["text"]
+        # short_answer = doc["annotations"]["short_answers"][0]["text"]
         long_answer_start = doc["annotations"]["long_answer"][0]["start_token"]
         long_answer_end = doc["annotations"]["long_answer"][0]["end_token"]
         long_answer_span = doc["document"]["tokens"]["token"][

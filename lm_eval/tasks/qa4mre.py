@@ -23,7 +23,7 @@ _CITATION = """
     booktitle={CLEF},
     year={2013}
 }
-"""
+"""  # noqa: W605
 
 
 class QA4MRE(MultipleChoiceTask):
