@@ -27,6 +27,7 @@ def simple_evaluate(
     bootstrap_iters=100000,
     description_dict=None,
     check_integrity=False,
+    seed=1234,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -56,8 +57,8 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
-    random.seed(1234)
-    np.random.seed(1234)
+    random.seed(seed)
+    np.random.seed(seed)
 
     assert tasks != [], "No tasks specified"
 
