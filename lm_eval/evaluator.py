@@ -11,7 +11,7 @@ import promptsource
 import numpy as np
 
 from promptsource.templates import DatasetTemplates
-from lm_eval.utils import positional_deprecated, run_task_tests
+from lm_eval.utils import positional_deprecated, run_task_tests, set_seed
 
 
 @positional_deprecated
@@ -57,9 +57,7 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
-    random.seed(seed)
-    np.random.seed(seed)
-
+    set_seed(1234)
     assert tasks != [], "No tasks specified"
 
     if isinstance(model, str):

@@ -88,7 +88,7 @@ class MGPTLM(BaseLM):
         logits returned from the model
         """
         with torch.no_grad():
-            return self.mgpt(inps)[0][:, :, :50257]
+            return self.mgpt(inps)[0]
 
     def _get_stopping_criteria(self, stopping_criteria_ids):
         class MultitokenEOSCriteria(transformers.StoppingCriteria):

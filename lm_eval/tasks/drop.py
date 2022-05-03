@@ -105,18 +105,9 @@ class DROP(PromptSourceTask):
         """
 
         pred = results[0].strip()
-        target = self.doc_to_target(doc).strip()
-
-        print("*" * 80)
-        print(f"DOC: {doc}")
-        print(f"PS: {self.prompt.apply(doc)}")
-        print(f"TEXT: {self.doc_to_text(doc)}")
-        print(f"TARGET: {target} END TARGET")
-        print(f"PRED: {pred} END PRED")
-        print("*" * 80)
+        golds = self.doc_to_target(doc)
 
         preds = [pred]
-        golds = [target]
 
         max_em = 0
         max_f1 = 0
@@ -125,6 +116,9 @@ class DROP(PromptSourceTask):
             if gold_answer[0].strip():
                 max_em = max(max_em, exact_match)
                 max_f1 = max(max_f1, f1_score)
+
+        if self.save_examples:
+            return {"em": max_em, "f1": max_f1}, {"pred": pred, "target": golds}
         return {"em": max_em, "f1": max_f1}
 
     def get_metrics(self, predicted, gold):
