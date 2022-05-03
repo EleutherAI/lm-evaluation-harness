@@ -390,6 +390,7 @@ class TruthfulQAGeneration(Task):
         rouge_types = ["rouge1", "rouge2", "rougeLsum"]
         scorer = rouge_scorer.RougeScorer(rouge_types)
         # Add newlines between sentences to correctly compute `rougeLsum`.
+
         def _prepare_summary(summary):
             summary = summary.replace(" . ", ".\n")
             return summary

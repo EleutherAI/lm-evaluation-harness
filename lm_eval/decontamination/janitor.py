@@ -11,7 +11,7 @@ try:
     import janitor_util
 
     JANITOR_CPP = True
-except Exception as e:
+except Exception:
     print("WARNING: C++ module could not be loaded. Janitor running in python mode")
     traceback.print_exc()
     JANITOR_CPP = False

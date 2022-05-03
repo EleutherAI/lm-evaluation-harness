@@ -42,8 +42,12 @@ def compress_and_move(working_directory, output_directory, process_count):
         tasks.append(task)
 
     pool = TqdmMultiProcessPool(process_count)
-    on_done = lambda _: None
-    on_error = lambda _: None
+
+    def on_done(_):
+        return None
+
+    def on_error(_):
+        return None
 
     global_progress = tqdm(
         total=len(bucket_file_paths), dynamic_ncols=True, unit="file"
