@@ -31,11 +31,11 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-State-of-the-art language models can match human performance on many tasks, but 
-they still struggle to robustly perform multi-step mathematical reasoning. To 
+State-of-the-art language models can match human performance on many tasks, but
+they still struggle to robustly perform multi-step mathematical reasoning. To
 diagnose the failures of current models and support research, we introduce GSM8K,
 a dataset of 8.5K high quality linguistically diverse grade school math word problems.
-We find that even the largest transformer models fail to achieve high test performance, 
+We find that even the largest transformer models fail to achieve high test performance,
 despite the conceptual simplicity of this problem distribution.
 """
 
@@ -56,8 +56,11 @@ class GSM8K(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.0.1")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="gsm8k", version=VERSION,
-                               description="The Grade School Math 8k dataset."),
+        datasets.BuilderConfig(
+            name="gsm8k",
+            version=VERSION,
+            description="The Grade School Math 8k dataset.",
+        ),
     ]
 
     def _info(self):
@@ -90,10 +93,7 @@ class GSM8K(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": data_dir["test"],
-                    "split": "test"
-                },
+                gen_kwargs={"filepath": data_dir["test"], "split": "test"},
             ),
         ]
 

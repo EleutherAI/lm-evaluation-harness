@@ -1,7 +1,7 @@
 # TODO: Remove all TODO comments once the implementation is complete.
 """
 TODO: Add the Paper Title on this line.
-TODO: Add the paper's PDF URL (preferrably from arXiv) on this line.
+TODO: Add the paper's PDF URL (preferably from arXiv) on this line.
 
 TODO: Write a Short Description of the task.
 

@@ -1,9 +1,9 @@
 """
 Outputs all 13-grams found in The Pile.
 
-Loops through all documents and uses the logic found in janitor.py to extract 13-grams. 
-We bucket each 13-gram by hash into separate file buckets to allow easy parallel processing in the 
-next stage. We also include the current pile document_id with each ngram instance to allow the 
+Loops through all documents and uses the logic found in janitor.py to extract 13-grams.
+We bucket each 13-gram by hash into separate file buckets to allow easy parallel processing in the
+next stage. We also include the current pile document_id with each ngram instance to allow the
 filtering to exclude 13-grams that match more then 10 unique documents (done further down the pipeline).
 
 We didn't use lm_dataformat to output as it increases time 4x (slow jsonify) and makes
@@ -37,18 +37,24 @@ from lm_eval.decontamination.archiver import TextArchive, Reader
 
 import logging
 from tqdm_multiprocess.logger import setup_logger_tqdm
+
 logger = logging.getLogger(__name__)
 
 terminate = False
+
+
 def handler(signal_received, frame):
     global terminate
     terminate = True
+
 
 def yield_pile(start_offsets=None, checkpoint_offset=None):
     directory = "pile"
 
     if not os.path.exists(directory):
-        print("We expect the pile archives to be in the 'pile' directory, but this was not found.")
+        print(
+            "We expect the pile archives to be in the 'pile' directory, but this was not found."
+        )
         raise Exception("Pile directory not found.")
 
     files = list(sorted(glob.glob(os.path.join(directory, "*.jsonl.zst*"))))
@@ -63,10 +69,9 @@ def yield_pile(start_offsets=None, checkpoint_offset=None):
             start_file = file_i
             pile_global_offset = start_offset
 
-    
     for file_i, file in enumerate(files):
         if file_i < start_file:
-            logger.info(f"Skipping file {file}")            
+            logger.info(f"Skipping file {file}")
             continue
         logger.info(f"Reading from pile file: {file}")
         reader = Reader()
@@ -74,12 +79,15 @@ def yield_pile(start_offsets=None, checkpoint_offset=None):
             yield (pile_global_offset, document)
             pile_global_offset += 1
 
+
 # Hash buckets > disk backed files. Supports file position checkpointing and resuming
 # Allows you to write continuously and checkpoint intermittently. If a failure occurs
 # the buckets are simply truncated at your last checkpoint.
 class Buckets:
     def __init__(self, directory, num_buckets):
-        self.bucket_files = [os.path.join(directory, f"ngrams_{i}.bkt.txt") for i in range(num_buckets)]
+        self.bucket_files = [
+            os.path.join(directory, f"ngrams_{i}.bkt.txt") for i in range(num_buckets)
+        ]
         self.buckets = list(map(TextArchive, self.bucket_files))
         self.checkpoint_file = os.path.join(directory, f"bucket_offsets.ckpt")
 
@@ -109,6 +117,7 @@ class Buckets:
         for bucket in self.buckets:
             bucket.commit()
 
+
 def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
 
     pile_statistics = json.load(open("pile_statistics.json", "r"))
@@ -129,7 +138,7 @@ def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
     # Checkpoint
     checkpoint_file = os.path.join(working_directory, f"pile_offset.ckpt")
     if os.path.exists(checkpoint_file):
-        checkpoint_offset = pickle.load(open(checkpoint_file,"rb"))
+        checkpoint_offset = pickle.load(open(checkpoint_file, "rb"))
         iterate = True
     else:
         checkpoint_offset = 0
@@ -145,7 +154,7 @@ def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
     with tqdm(total=checkpoint_offset, dynamic_ncols=True, unit="docs") as progress:
         for offset, document in yield_pile(start_offsets, checkpoint_offset):
             if iterate:
-                logger.info(f"Iterating to offset {checkpoint_offset} from {offset}")                
+                logger.info(f"Iterating to offset {checkpoint_offset} from {offset}")
                 progress.update(offset)
                 iterate = False
 
@@ -165,7 +174,7 @@ def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
                 progress.update(batch_size)
                 batch_counter = 0
                 buckets.save_checkpoint()
-                pickle.dump(offset, open(checkpoint_file,"wb"))
+                pickle.dump(offset, open(checkpoint_file, "wb"))
                 if terminate:
                     buckets.close_buckets()
                     return
@@ -175,17 +184,17 @@ def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
                 buckets.add_data(ngram, f"{ngram} {offset}")
 
             batch_counter += 1
-    
+
     buckets.close_buckets()
     Path(done_file).touch()
 
 
-parser = argparse.ArgumentParser(description='Generate 13 grams from Pile.')
+parser = argparse.ArgumentParser(description="Generate 13 grams from Pile.")
 parser.add_argument("-dir", "--working_directory", default="")
 parser.add_argument("-n", "--n_value", type=int, default=13)
 parser.add_argument("-buckets", "--bucket_count", type=int, default=500)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     version = 1.00
     print(f"Running version {version}")
 

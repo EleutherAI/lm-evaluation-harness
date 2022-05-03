@@ -2,7 +2,7 @@
 Interpretable Multi-Step Reasoning with Knowledge Extraction on Complex Healthcare Question Answering
 https://aclanthology.org/P19-1092.pdf
 
-HEAD-QA is a multi-choice HEAlthcare Dataset. The questions come from exams to 
+HEAD-QA is a multi-choice HEAlthcare Dataset. The questions come from exams to
 access a specialized position in the Spanish healthcare system, and are challenging
 even for highly specialized humans.
 
@@ -15,7 +15,7 @@ from lm_eval.base import MultipleChoiceTask
 
 _CITATION = """
 @misc{liu2020interpretable,
-    title={Interpretable Multi-Step Reasoning with Knowledge Extraction on Complex Healthcare Question Answering}, 
+    title={Interpretable Multi-Step Reasoning with Knowledge Extraction on Complex Healthcare Question Answering},
     author={Ye Liu and Shaika Chowdhury and Chenwei Zhang and Cornelia Caragea and Philip S. Yu},
     year={2020},
     eprint={2008.02434},
@@ -82,4 +82,6 @@ class HeadQAEsDeprecated(HeadQABase):
 
     def __init__(self):
         super().__init__()
-        print("WARNING: headqa is deprecated. Please use headqa_es or headqa_en instead. See https://github.com/EleutherAI/lm-evaluation-harness/pull/240 for more info.")
+        print(
+            "WARNING: headqa is deprecated. Please use headqa_es or headqa_en instead. See https://github.com/EleutherAI/lm-evaluation-harness/pull/240 for more info."
+        )
