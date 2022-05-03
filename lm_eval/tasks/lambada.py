@@ -20,7 +20,7 @@ from lm_eval.metrics import mean, perplexity
 
 _CITATION = """
 @misc{
-    author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel}, 
+    author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel},
     title={The LAMBADA dataset},
     DOI={10.5281/zenodo.2630551},
     publisher={Zenodo},
@@ -53,38 +53,29 @@ class LAMBADA(Task):
         pass
 
     def doc_to_text(self, doc):
-        return doc['text'].rsplit(' ', 1)[0]
+        return doc["text"].rsplit(" ", 1)[0]
 
     def should_decontaminate(self):
         return True
 
     def doc_to_decontamination_query(self, doc):
-        return doc['text']
+        return doc["text"]
 
     def doc_to_target(self, doc):
-        return " " + doc['text'].rsplit(' ', 1)[1]
+        return " " + doc["text"].rsplit(" ", 1)[1]
 
     def construct_requests(self, doc, ctx):
         ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
 
         return ll, is_greedy
-    
+
     def process_results(self, doc, results):
         ll, is_greedy = results
 
-        return {
-            'ppl': ll,
-            'acc': int(is_greedy)
-        }
-        
+        return {"ppl": ll, "acc": int(is_greedy)}
+
     def aggregation(self):
-        return {
-            'ppl': perplexity,
-            'acc': mean
-        }
+        return {"ppl": perplexity, "acc": mean}
 
     def higher_is_better(self):
-        return {
-            'ppl': False,
-            'acc': True
-        }
+        return {"ppl": False, "acc": True}

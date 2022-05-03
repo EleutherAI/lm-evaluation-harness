@@ -16,7 +16,7 @@ pip install -e ".[dev]"
 
 ## Creating Your Task File
 
-From the `lm-evaluation-harness` project root, copy over the `new_task.py` template to `lm_eval/datasets`. 
+From the `lm-evaluation-harness` project root, copy over the `new_task.py` template to `lm_eval/datasets`.
 
 ```sh
 cp templates/new_task.py lm_eval/tasks/<task-name>.py
@@ -52,7 +52,7 @@ For example, take the QuAC dataset. We have:
 QuAC: Question Answering in Context
 https://arxiv.org/abs/1808.07036
 
-Question Answering in Context (QuAC) is a dataset for modeling, understanding, and 
+Question Answering in Context (QuAC) is a dataset for modeling, understanding, and
 participating in information seeking dialog. Data instances consist of an interactive
 dialog between two crowd workers: (1) a student who poses a sequence of freeform
 questions to learn as much as possible about a hidden Wikipedia text, and (2)
@@ -72,7 +72,7 @@ Now let's walk through the actual implementation - from data handling to evaluat
 ### Downloading your Data
 
 All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md)
-. 
+.
 Now, that you have your HF dataset, you need to assign its path and name to your `Task` in the following fields:
 
 ```python
@@ -116,7 +116,7 @@ These should return a Python iterable (`list` or `generator`) of `dict`s that ca
 
 #### Processing Documents
 
-At this point, you can also process each individual document to, for example, strip whitespace or "detokenize" its fields. Put the processing logic into `_process_doc` and map the functions across training/validation/test docs inside of the respective functions. 
+At this point, you can also process each individual document to, for example, strip whitespace or "detokenize" its fields. Put the processing logic into `_process_doc` and map the functions across training/validation/test docs inside of the respective functions.
 🔠 If your task is **multiple-choice**, we require you to format your documents such that they contain `gold` and `choices` fields. They can also have other fields, but those will be ignored by `MultipleChoiceTask`. `choices` should be a list of possible continuations, and `gold` should be an integer specifying the index of the correct completion.
 See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/6caa0afd96a7a7efb2ec4c1f24ad1756e48f3aa7/lm_eval/tasks/sat.py#L60) for an example. 🔠
 
@@ -154,7 +154,7 @@ Finally, be aware that the strings from `doc_to_text` and `doc_to_target` will b
 ### Decontamination
 For background on decontamination please see [this](./decontamination.md).
 
-If you wish to support decontamination studies for your task simply override the "should_decontaminate" method and return true. 
+If you wish to support decontamination studies for your task simply override the "should_decontaminate" method and return true.
 
 You also need to override "doc_to_decontamination_query" and return the data you wish to compare against the training set. This doesn't necessarily need to be the full document or request, and we leave this up to the implementor. For a multi-choice evaluation you could for example just return the question.
 
@@ -172,7 +172,7 @@ python -m scripts.write_out \
     --tasks <your-task> \
     --sets <train | val | test> \
     --num_fewshot K \
-    --num_examples N \ 
+    --num_examples N \
     --description_dict_path <path>
 ```
 
@@ -199,9 +199,9 @@ def construct_requests(self, doc, ctx):
     """
     return ...
 ```
-#### What's a `Request`? What's a `doc`? 
+#### What's a `Request`? What's a `doc`?
 To reiterate, a `doc` is just a `Dict` object that contains information about a document from your corpus. It can contain things like a prompt, question type information, answers and anything else you think will be needed in order to assess your model for a given task. Keep in mind that the fields of this can be basically whatever you want (you can sort this out in `training_docs` \ `validation_docs` \ `test_docs` if you need to customise things - see above), just remember to be consistent with them throughout the rest of the `Task` you write up.
-A `Request` is an object that takes the text prompt you want to present to a model and computes one of a few different types of response. These are evaluated lazily (meaning, only when the result is actually needed). If your task requires generating text you'll need to return a `rf.greedy_until` request otherwise an `rf.loglikelihood` across all labels in a classification tasks will do. 
+A `Request` is an object that takes the text prompt you want to present to a model and computes one of a few different types of response. These are evaluated lazily (meaning, only when the result is actually needed). If your task requires generating text you'll need to return a `rf.greedy_until` request otherwise an `rf.loglikelihood` across all labels in a classification tasks will do.
 The function `construct_requests` can return a list of `Request`s or an iterable; it's perfectly fine to `yield` them from something or other. This is particularly handy if you are creating more than one request per `doc` (usually because you're up to something like multi-task learning). The objects this function returns then get consumed one by one and turned into result objects.
 
 
@@ -232,7 +232,7 @@ def aggregation(self):
 ```
 In `process_results`, model outputs are converted into metrics. These metrics are per document metrics, however; the `aggregation` function is used to work out what to do with them to create a corpus-level metric. Imagine you have a bunch of documents, for each of which you have calculated an F1 score. What should that mean overall? Should they be summed, averaged, the min/max found? This function handles that problem.
 
-The contents of the function itself are pretty straightforward; it should simply return a dict that maps from each metric label that could be returned by `process_results` to a function that can be used to aggregate that metric. That is to say, if the metrics that `process_results` could return are given by `{'a', 'b', 'c'}`, then all of these keys should be present in the dict returned by `aggregation`. 
+The contents of the function itself are pretty straightforward; it should simply return a dict that maps from each metric label that could be returned by `process_results` to a function that can be used to aggregate that metric. That is to say, if the metrics that `process_results` could return are given by `{'a', 'b', 'c'}`, then all of these keys should be present in the dict returned by `aggregation`.
 __NOTE__: See `lm_eval/metrics.py` for a few "built-in" aggregate metrics you can easily import. The standard metrics available in this package are generally based on `sklearn` functions, so if you are in any doubt for how to set things up the documentation over there can be of assistance. If you need to write a custom metric for some reason, start by looking at the existing ones in `lm_eval/metrics.py` for an idea about what the function signature needs to be.
 
 ```python

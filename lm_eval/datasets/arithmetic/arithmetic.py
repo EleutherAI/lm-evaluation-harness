@@ -68,61 +68,111 @@ class Arithmetic(datasets.GeneratorBasedBuilder):
         ArithmeticConfig(
             name="arithmetic_2da",
             url="https://raw.githubusercontent.com/openai/gpt-3/master/data/two_digit_addition.jsonl",
-            features=datasets.Features({"context": datasets.Value("string"), "completion": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "context": datasets.Value("string"),
+                    "completion": datasets.Value("string"),
+                }
+            ),
             description="2-digit addition",
         ),
         ArithmeticConfig(
             name="arithmetic_2ds",
             url="https://raw.githubusercontent.com/openai/gpt-3/master/data/two_digit_subtraction.jsonl",
-            features=datasets.Features({"context": datasets.Value("string"), "completion": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "context": datasets.Value("string"),
+                    "completion": datasets.Value("string"),
+                }
+            ),
             description="2-digit subtraction",
         ),
         ArithmeticConfig(
             name="arithmetic_3da",
             url="https://raw.githubusercontent.com/openai/gpt-3/master/data/three_digit_addition.jsonl",
-            features=datasets.Features({"context": datasets.Value("string"), "completion": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "context": datasets.Value("string"),
+                    "completion": datasets.Value("string"),
+                }
+            ),
             description="3-digit addition",
         ),
         ArithmeticConfig(
             name="arithmetic_3ds",
             url="https://raw.githubusercontent.com/openai/gpt-3/master/data/three_digit_subtraction.jsonl",
-            features=datasets.Features({"context": datasets.Value("string"), "completion": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "context": datasets.Value("string"),
+                    "completion": datasets.Value("string"),
+                }
+            ),
             description="3-digit subtraction",
         ),
         ArithmeticConfig(
             name="arithmetic_4da",
             url="https://raw.githubusercontent.com/openai/gpt-3/master/data/four_digit_addition.jsonl",
-            features=datasets.Features({"context": datasets.Value("string"), "completion": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "context": datasets.Value("string"),
+                    "completion": datasets.Value("string"),
+                }
+            ),
             description="4-digit addition",
         ),
         ArithmeticConfig(
             name="arithmetic_4ds",
             url="https://raw.githubusercontent.com/openai/gpt-3/master/data/four_digit_subtraction.jsonl",
-            features=datasets.Features({"context": datasets.Value("string"), "completion": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "context": datasets.Value("string"),
+                    "completion": datasets.Value("string"),
+                }
+            ),
             description="4-digit subtraction",
         ),
         ArithmeticConfig(
             name="arithmetic_5da",
             url="https://raw.githubusercontent.com/openai/gpt-3/master/data/five_digit_addition.jsonl",
-            features=datasets.Features({"context": datasets.Value("string"), "completion": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "context": datasets.Value("string"),
+                    "completion": datasets.Value("string"),
+                }
+            ),
             description="5-digit addition",
         ),
         ArithmeticConfig(
             name="arithmetic_5ds",
             url="https://raw.githubusercontent.com/openai/gpt-3/master/data/five_digit_subtraction.jsonl",
-            features=datasets.Features({"context": datasets.Value("string"), "completion": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "context": datasets.Value("string"),
+                    "completion": datasets.Value("string"),
+                }
+            ),
             description="5-digit subtraction",
         ),
         ArithmeticConfig(
             name="arithmetic_2dm",
             url="https://raw.githubusercontent.com/openai/gpt-3/master/data/two_digit_multiplication.jsonl",
-            features=datasets.Features({"context": datasets.Value("string"), "completion": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "context": datasets.Value("string"),
+                    "completion": datasets.Value("string"),
+                }
+            ),
             description="2-digit multiplication",
         ),
         ArithmeticConfig(
             name="arithmetic_1dc",
             url="https://raw.githubusercontent.com/openai/gpt-3/master/data/single_digit_three_ops.jsonl",
-            features=datasets.Features({"context": datasets.Value("string"), "completion": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "context": datasets.Value("string"),
+                    "completion": datasets.Value("string"),
+                }
+            ),
             description="Single digit 3 operations",
         ),
     ]
@@ -155,9 +205,12 @@ class Arithmetic(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for key, row in enumerate(f):
                 data = json.loads(row)
-                context = data['context'].strip() \
-                    .replace('\n\n', '\n') \
-                    .replace('Q:', 'Question:') \
-                    .replace('A:', 'Answer:')
-                completion = data['completion']
-                yield key, {'context': context, 'completion': completion}
+                context = (
+                    data["context"]
+                    .strip()
+                    .replace("\n\n", "\n")
+                    .replace("Q:", "Question:")
+                    .replace("A:", "Answer:")
+                )
+                completion = data["completion"]
+                yield key, {"context": context, "completion": completion}

@@ -44,13 +44,16 @@ _LICENSE = ""
 
 
 class SatAnalogies(datasets.GeneratorBasedBuilder):
-    """ SAT (Scholastic Aptitude Test) Analogy Questions is a dataset comprising 374 multiple-choice analogy questions. """
+    """SAT (Scholastic Aptitude Test) Analogy Questions is a dataset comprising 374 multiple-choice analogy questions."""
 
     VERSION = datasets.Version("0.0.1")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="sat_analogies", version=VERSION,
-                               description="The SAT Analogy Questions dataset"),
+        datasets.BuilderConfig(
+            name="sat_analogies",
+            version=VERSION,
+            description="The SAT Analogy Questions dataset",
+        ),
     ]
 
     @property
@@ -68,9 +71,7 @@ class SatAnalogies(datasets.GeneratorBasedBuilder):
             {
                 "source": datasets.Value("string"),
                 "stem": datasets.Value("string"),
-                "choices": datasets.features.Sequence(
-                    datasets.Value("string")
-                ),
+                "choices": datasets.features.Sequence(datasets.Value("string")),
                 "solution": datasets.Value("string"),
             }
         )
@@ -108,7 +109,7 @@ class SatAnalogies(datasets.GeneratorBasedBuilder):
                 if len(line) == 0 and record:
                     data.append(record)
                     record = []
-                elif len(line) > 0 and line[0] == '#':
+                elif len(line) > 0 and line[0] == "#":
                     # Skip comments.
                     continue
                 else:
@@ -120,8 +121,8 @@ class SatAnalogies(datasets.GeneratorBasedBuilder):
             choices = record[-6:-1]
             solution = record[-1]
             yield key, {
-                'source': source,
-                'stem': stem,
-                'choices': choices,
-                'solution': solution,
+                "source": source,
+                "stem": stem,
+                "choices": choices,
+                "solution": solution,
             }

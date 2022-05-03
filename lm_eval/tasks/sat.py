@@ -59,14 +59,16 @@ class SATAnalogies(MultipleChoiceTask):
 
     def _process_doc(self, doc):
         return {
-            'source': doc['source'],
-            'query': doc['stem'].split(' ')[:2],
-            'choices': ["{} is to {}".format(*c.split(' ')[:2]) for c in doc["choices"]],
-            'gold': ['a', 'b', 'c', 'd', 'e'].index(doc['solution'].strip()),
+            "source": doc["source"],
+            "query": doc["stem"].split(" ")[:2],
+            "choices": [
+                "{} is to {}".format(*c.split(" ")[:2]) for c in doc["choices"]
+            ],
+            "gold": ["a", "b", "c", "d", "e"].index(doc["solution"].strip()),
         }
 
     def doc_to_text(self, doc):
-        return "{} is to {} as".format(*doc['query'])
+        return "{} is to {} as".format(*doc["query"])
 
     def should_decontaminate(self):
         return True

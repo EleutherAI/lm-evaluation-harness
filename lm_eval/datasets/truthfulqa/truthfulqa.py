@@ -65,38 +65,46 @@ class TruthfulqaConfig(datasets.BuilderConfig):
 
 class Truthfulqa(datasets.GeneratorBasedBuilder):
     """TruthfulQA is a benchmark to measure whether a language model is truthful in
-generating answers to questions."""
+    generating answers to questions."""
 
     BUILDER_CONFIGS = [
         TruthfulqaConfig(
             name="multiple_choice",
             url="https://raw.githubusercontent.com/sylinrl/TruthfulQA/013686a06be7a7bde5bf8223943e106c7250123c/data/mc_task.json",
-            features=datasets.Features({
-                "question": datasets.Value("string"),
-                "mc1_targets": {
-                    "choices": datasets.features.Sequence(datasets.Value("string")),
-                    "labels": datasets.features.Sequence(datasets.Value("int32")),
-                },
-                "mc2_targets": {
-                    "choices": datasets.features.Sequence(datasets.Value("string")),
-                    "labels": datasets.features.Sequence(datasets.Value("int32")),
+            features=datasets.Features(
+                {
+                    "question": datasets.Value("string"),
+                    "mc1_targets": {
+                        "choices": datasets.features.Sequence(datasets.Value("string")),
+                        "labels": datasets.features.Sequence(datasets.Value("int32")),
+                    },
+                    "mc2_targets": {
+                        "choices": datasets.features.Sequence(datasets.Value("string")),
+                        "labels": datasets.features.Sequence(datasets.Value("int32")),
+                    },
                 }
-            }),
-            description="The multiple choice TruthfulQA task"
+            ),
+            description="The multiple choice TruthfulQA task",
         ),
         TruthfulqaConfig(
             name="generation",
             url="https://raw.githubusercontent.com/sylinrl/TruthfulQA/013686a06be7a7bde5bf8223943e106c7250123c/TruthfulQA.csv",
-            features=datasets.Features({
-                "category": datasets.Value("string"),
-                "question": datasets.Value("string"),
-                "best_answer": datasets.Value("string"),
-                "correct_answers": datasets.features.Sequence(datasets.Value("string")),
-                "incorrect_answers": datasets.features.Sequence(datasets.Value("string")),
-                "source": datasets.Value("string"),
-            }),
-            description="The generative TruthfulQA task"
-        )
+            features=datasets.Features(
+                {
+                    "category": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "best_answer": datasets.Value("string"),
+                    "correct_answers": datasets.features.Sequence(
+                        datasets.Value("string")
+                    ),
+                    "incorrect_answers": datasets.features.Sequence(
+                        datasets.Value("string")
+                    ),
+                    "source": datasets.Value("string"),
+                }
+            ),
+            description="The generative TruthfulQA task",
+        ),
     ]
 
     def _info(self):
@@ -138,15 +146,15 @@ generating answers to questions."""
                         "mc2_targets": {
                             "choices": row["mc2_targets"].keys(),
                             "labels": row["mc2_targets"].values(),
-                        }
+                        },
                     }
         else:
             # Generation data is in a `CSV` file.
-            with open(filepath, newline='') as f:
+            with open(filepath, newline="") as f:
                 contents = csv.DictReader(f)
                 for key, row in enumerate(contents):
                     # Ensure that references exist.
-                    if not row['Correct Answers'] or not row['Incorrect Answers']:
+                    if not row["Correct Answers"] or not row["Incorrect Answers"]:
                         continue
                     yield key, {
                         "category": row["Category"],
@@ -154,6 +162,8 @@ generating answers to questions."""
                         "best_answer": row["Best Answer"],
                         # split on ";"
                         "correct_answers": row["Correct Answers"].strip().split(";"),
-                        "incorrect_answers": row["Incorrect Answers"].strip().split(";"),
+                        "incorrect_answers": row["Incorrect Answers"]
+                        .strip()
+                        .split(";"),
                         "source": row["Source"],
                     }

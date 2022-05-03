@@ -29,7 +29,7 @@ class MuTualBase(Task):
     VERSION = 1
     DATASET_PATH = inspect.getfile(lm_eval.datasets.mutual.mutual)
     DATASET_NAME = None
-    CHOICES = ['A', 'B', 'C', 'D']
+    CHOICES = ["A", "B", "C", "D"]
 
     def has_training_docs(self):
         return True
@@ -88,26 +88,14 @@ class MuTualBase(Task):
         r4_1 = np.argmax(results) == gold  # r4_1 = accuracy
         ranks = sorted(results, reverse=True)
         r4_2 = (ranks.index(results[gold]) == 1) + r4_1
-        mrr = 1. / (ranks.index(results[gold]) + 1)  # `+ 1` for index offset
-        return {
-            "r@1": r4_1,
-            "r@2": r4_2,
-            "mrr": mrr
-        }
+        mrr = 1.0 / (ranks.index(results[gold]) + 1)  # `+ 1` for index offset
+        return {"r@1": r4_1, "r@2": r4_2, "mrr": mrr}
 
     def aggregation(self):
-        return {
-            "r@1": mean,
-            "r@2": mean,
-            "mrr": mean
-        }
+        return {"r@1": mean, "r@2": mean, "mrr": mean}
 
     def higher_is_better(self):
-        return {
-            "r@1": True,
-            "r@2": True,
-            "mrr": True
-        }
+        return {"r@1": True, "r@2": True, "mrr": True}
 
 
 class MuTual(MuTualBase):

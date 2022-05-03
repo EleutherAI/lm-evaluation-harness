@@ -25,7 +25,7 @@ import datasets
 
 _CITATION = """\
 @misc{dua2019drop,
-    title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs}, 
+    title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs},
     author={Dheeru Dua and Yizhong Wang and Pradeep Dasigi and Gabriel Stanovsky and Sameer Singh and Matt Gardner},
     year={2019},
     eprint={1903.00161},
@@ -35,8 +35,8 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-DROP is a QA dataset which tests comprehensive understanding of paragraphs. In 
-this crowdsourced, adversarially-created, 96k question-answering benchmark, a 
+DROP is a QA dataset which tests comprehensive understanding of paragraphs. In
+this crowdsourced, adversarially-created, 96k question-answering benchmark, a
 system must resolve multiple references in a question, map them onto a paragraph,
 and perform discrete operations over them (such as addition, counting, or sorting).
 """
@@ -50,17 +50,19 @@ _URLS = {
     "drop": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip",
 }
 
-_EMPTY_VALIDATED_ANSWER = [{
-    "number": "",
-    "date": {
-        "day": "",
-        "month": "",
-        "year": "",
-    },
-    "spans": [],
-    "worker_id": "",
-    "hit_id": ""
-}]
+_EMPTY_VALIDATED_ANSWER = [
+    {
+        "number": "",
+        "date": {
+            "day": "",
+            "month": "",
+            "year": "",
+        },
+        "spans": [],
+        "worker_id": "",
+        "hit_id": "",
+    }
+]
 
 
 class Drop(datasets.GeneratorBasedBuilder):
@@ -69,39 +71,44 @@ class Drop(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.0.1")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="drop", version=VERSION,
-                               description="The DROP dataset."),
+        datasets.BuilderConfig(
+            name="drop", version=VERSION, description="The DROP dataset."
+        ),
     ]
 
     def _info(self):
-        features = datasets.Features({
-            "section_id": datasets.Value("string"),
-            "passage": datasets.Value("string"),
-            "question": datasets.Value("string"),
-            "query_id": datasets.Value("string"),
-            "answer": {
-                "number": datasets.Value("string"),
-                "date": {
-                    "day": datasets.Value("string"),
-                    "month": datasets.Value("string"),
-                    "year": datasets.Value("string"),
+        features = datasets.Features(
+            {
+                "section_id": datasets.Value("string"),
+                "passage": datasets.Value("string"),
+                "question": datasets.Value("string"),
+                "query_id": datasets.Value("string"),
+                "answer": {
+                    "number": datasets.Value("string"),
+                    "date": {
+                        "day": datasets.Value("string"),
+                        "month": datasets.Value("string"),
+                        "year": datasets.Value("string"),
+                    },
+                    "spans": datasets.features.Sequence(datasets.Value("string")),
+                    "worker_id": datasets.Value("string"),
+                    "hit_id": datasets.Value("string"),
                 },
-                "spans": datasets.features.Sequence(datasets.Value("string")),
-                "worker_id": datasets.Value("string"),
-                "hit_id": datasets.Value("string"),
-            },
-            "validated_answers": datasets.features.Sequence({
-                "number": datasets.Value("string"),
-                "date": {
-                    "day": datasets.Value("string"),
-                    "month": datasets.Value("string"),
-                    "year": datasets.Value("string"),
-                },
-                "spans": datasets.features.Sequence(datasets.Value("string")),
-                "worker_id": datasets.Value("string"),
-                "hit_id": datasets.Value("string"),
-            }),
-        })
+                "validated_answers": datasets.features.Sequence(
+                    {
+                        "number": datasets.Value("string"),
+                        "date": {
+                            "day": datasets.Value("string"),
+                            "month": datasets.Value("string"),
+                            "year": datasets.Value("string"),
+                        },
+                        "spans": datasets.features.Sequence(datasets.Value("string")),
+                        "worker_id": datasets.Value("string"),
+                        "hit_id": datasets.Value("string"),
+                    }
+                ),
+            }
+        )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
@@ -118,7 +125,9 @@ class Drop(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "drop_dataset", "drop_dataset_train.json"),
+                    "filepath": os.path.join(
+                        data_dir, "drop_dataset", "drop_dataset_train.json"
+                    ),
                     "split": "train",
                 },
             ),
@@ -126,7 +135,9 @@ class Drop(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "drop_dataset", "drop_dataset_dev.json"),
+                    "filepath": os.path.join(
+                        data_dir, "drop_dataset", "drop_dataset_dev.json"
+                    ),
                     "split": "validation",
                 },
             ),

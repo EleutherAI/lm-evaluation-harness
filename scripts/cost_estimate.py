@@ -7,7 +7,7 @@ from lm_eval.base import LM
 class DryrunLM(LM):
     def __init__(self):
         self.tokencost = 0
-        self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
+        self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained("gpt2")
         self.tokenizer.pad_token = "<|endoftext|>"
 
     @classmethod
@@ -16,16 +16,16 @@ class DryrunLM(LM):
 
     def loglikelihood(self, requests):
         res = []
-        
+
         for ctx, cont in requests:
             res.append((-random.random(), False))
             self.tokencost += len(self.tokenizer.tokenize(ctx + cont))
 
         return res
-    
+
     def greedy_until(self, requests):
         res = []
-        
+
         for ctx, until in requests:
             res.append("lol")
 
@@ -33,11 +33,11 @@ class DryrunLM(LM):
             self.tokencost += len(self.tokenizer.tokenize(ctx)) + 256
 
         return res
-    
+
     def loglikelihood_rolling(self, requests):
         res = []
-        
-        for s, in requests:
+
+        for (s,) in requests:
             # assume worst case: extra full context
             self.tokencost += len(self.tokenizer.tokenize(s)) + 2048
 
@@ -46,7 +46,7 @@ class DryrunLM(LM):
 
 def main():
     lm = DryrunLM()
-    
+
     task_list = "arc_challenge,arc_easy,boolq,cola,copa,headqa,hellaswag,lambada,logiqa,mathqa,mc_taco,mrpc,multirc,openbookqa,piqa,prost,pubmedqa,qnli,qqp,race,record,rte,sciq,sst,triviaqa,webqs,wic,wikitext,winogrande,wnli,wsc"
     values = []
     for taskname in task_list.split(","):
@@ -57,11 +57,20 @@ def main():
             num_fewshot=0,
             limit=None,
             bootstrap_iters=10,
-            description_dict=None
+            description_dict=None,
         )
 
         print(taskname, lm.tokencost)
-        values.append([taskname, lm.tokencost, lm.tokencost / 1000 * 0.0008, lm.tokencost / 1000 * 0.0012, lm.tokencost / 1000 * 0.006, lm.tokencost / 1000 * 0.06])
+        values.append(
+            [
+                taskname,
+                lm.tokencost,
+                lm.tokencost / 1000 * 0.0008,
+                lm.tokencost / 1000 * 0.0012,
+                lm.tokencost / 1000 * 0.006,
+                lm.tokencost / 1000 * 0.06,
+            ]
+        )
     from pytablewriter import MarkdownTableWriter
 
     writer = MarkdownTableWriter()
@@ -69,10 +78,21 @@ def main():
 
     values.sort(key=lambda x: -x[1])
     totcost = sum([x[1] for x in values])
-    values.append(["**Total**", totcost, totcost / 1000 * 0.0008, totcost / 1000 * 0.0012, totcost / 1000 * 0.006, totcost / 1000 * 0.06])
+    values.append(
+        [
+            "**Total**",
+            totcost,
+            totcost / 1000 * 0.0008,
+            totcost / 1000 * 0.0012,
+            totcost / 1000 * 0.006,
+            totcost / 1000 * 0.06,
+        ]
+    )
 
     writer.value_matrix = values
 
     print(writer.dumps())
+
+
 if __name__ == "__main__":
     main()
