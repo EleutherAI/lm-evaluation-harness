@@ -194,7 +194,7 @@ def evaluate(
             if description_dict and task_prompt_name in description_dict
             else ""
         )
-        # Building fewshot contexts for task_name and constructing request.t
+
         print(f"Constructing '{task_prompt_name}' contexts and requests")
         pbar_limit = len(task_docs) if not limit else limit
         for doc_id, (original_doc_id, doc) in enumerate(
