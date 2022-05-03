@@ -295,6 +295,11 @@ class TaskName(...):
 
 ## Submitting your Task
 
-Although we currently do not work behind a specific style guide, we'd appreciate if you tidy up your file/s with the `black` formatter (which should've been install through the `requirements.txt`). Keep things clean…ish 🙂.
+You can format your changes and perform flake8 standard checks by running the following commands:
+
+```sh
+pre-commit install
+pre-commit run --all-files
+```
 
 Now push your work and make a pull request! Thanks for the contribution 👍. If there are any questions, leave a message in the `#lm-thunderdome` channel on the EAI discord.
