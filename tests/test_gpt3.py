@@ -6,24 +6,25 @@ import openai
 import mock
 import pickle
 import hashlib
+import tempfile
 
 
 def mock_completion(**kwargs):
     # Mock completion function
     # Loads from a cached+pickled response if it exists, otherwise it will actually try to ping
-    os.makedirs("tests/testdata", exist_ok=True)
-    hash = hashlib.sha256(
-        json.dumps(kwargs, sort_keys=True).encode("utf-8")
-    ).hexdigest()
-    fname = f"tests/testdata/gpt3_test_{hash}.pkl"
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        hash = hashlib.sha256(
+            json.dumps(kwargs, sort_keys=True).encode("utf-8")
+        ).hexdigest()
+        fname = os.path.join(tmpdirname, f"gpt3_test_{hash}.pkl")
 
-    if os.path.exists(fname):
-        with open(fname, "rb") as fh:
-            return pickle.load(fh)
-    ret = openai.Completion.create(**kwargs)
-    ret.api_key = ""
-    with open(fname, "wb") as fh:
-        pickle.dump(ret, fh)
+        if os.path.exists(fname):
+            with open(fname, "rb") as fh:
+                return pickle.load(fh)
+        ret = openai.Completion.create(**kwargs)
+        ret.api_key = ""
+        with open(fname, "wb") as fh:
+            pickle.dump(ret, fh)
     return ret
 
 
