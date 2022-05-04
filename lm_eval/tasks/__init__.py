@@ -23,30 +23,7 @@ from . import lince
 from . import race
 from . import superglue
 from . import wino_bias
-
-########################################
-# Translation tasks
-########################################
-
-# 6 total
-gpt3_translation_benchmarks = {
-    "wmt14": ["en-fr", "fr-en"],  # French
-    "wmt16": ["en-ro", "ro-en", "de-en", "en-de"],  # German, Romanian
-}
-
-
-# 28 total
-selected_translation_benchmarks = {
-    **gpt3_translation_benchmarks,
-    "wmt20": sacrebleu.get_langpairs_for_testset("wmt20"),
-    "iwslt17": ["en-ar", "ar-en"],  # Arabic
-}
-
-# 319 total
-all_translation_benchmarks = {
-    ts: sacrebleu.get_langpairs_for_testset(ts)
-    for ts in sacrebleu.get_available_testsets()
-}
+from . import wmt
 
 
 ########################################
@@ -196,6 +173,8 @@ TASK_REGISTRY = {
     "huffpost": huff_post.HuffPost,
     # Code-switching
     "lince_sa": lince.LinCESentimentAnalysis,
+    # WMT
+    **wmt.create_year_tasks(wmt.WMT14_TASKS),
 }
 
 
