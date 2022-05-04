@@ -273,7 +273,7 @@ def evaluate(
     # aggregate results
     metric_results = []
     for (task_prompt_name, metric), items in vals.items():
-        task_name, prompt_name = task_prompt_name.split("+")
+        task_name, prompt_name = task_prompt_name.split("+", 1)
 
         results[task_prompt_name]["task_name"] = task_name
         results[task_prompt_name]["prompt_name"] = prompt_name

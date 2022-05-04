@@ -937,6 +937,93 @@ class PromptSourceTask(Task):
         }
 
 
+class TranslationTask(PromptSourceTask):
+
+    # Language specific functions.
+    @classmethod
+    def zh_split(cls, zh_text):
+        """Chinese splitting"""
+        import jieba
+        return [" ".join(jieba.cut(txt.strip())) for txt in zh_text]
+
+    @classmethod
+    def ja_split(cls, ja_text):
+        """Japanese splitting"""
+        import nagisa
+        return [" ".join(nagisa.tagging(txt.strip()).words) for txt in ja_text]
+
+    NO_SPACE_LANG = {"zh": zh_split, "ja": ja_split}
+
+    def invalid_doc_for_prompt(self, doc) -> bool:
+        # Skip docs with empty references.
+        if self.doc_to_target(doc) == ['']:
+            return True
+        return False
+
+    def _get_src_ref_codes(self, template_name: str):
+        """ Returns a 2-tuple of (src_lang, ref_lang) codes from the prompt template name. """
+        # Get the lang codes from the dataset name.
+        lang_pairs = self.DATASET_NAME.split("-")
+        # Template name ordering defines the src and ref lang codes.
+        if self.DATASET_NAME in template_name:
+            return lang_pairs[0], lang_pairs[1]
+        # Flip the lang pairs following the prompt source.
+        return lang_pairs[1], lang_pairs[0]
+
+    def process_results(self, doc, results):
+        """Take a single document and the LM results and evaluates, returning a
+        dict where keys are the names of submetrics and values are the values of
+        the metric for that one document
+
+        :param doc:
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param results:
+            The results of the requests created in construct_requests.
+        """
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        target = self.doc_to_target(doc)
+
+        # Add spaces between words for BLEU score calculation of target languages like Chinese
+        _, tar_lang_code = self._get_src_ref_codes(self.prompt.name)
+        if tar_lang_code in self.NO_SPACE_LANG:
+            target = [
+                self.NO_SPACE_LANG[tar_lang_code]([t])[0] for t in target
+            ] 
+            results = self.NO_SPACE_LANG[tar_lang_code](results)
+        pred = results[0].strip()
+
+        # If not, then this is a generation prompt.
+        # NOTE: In the future, target will be a list of strings.
+        assert isinstance(target, list)
+        out = {}
+        for metric in self.prompt.metadata.metrics:
+            assert (
+                metric in self.CONFIGURED_GENERATION_PS_METRICS
+            ), "Unexpected metric. Add it, or use a task-specific solution."
+            if metric == "BLEU":
+                out["bleu"] = (target, pred)
+            elif metric == "ROUGE":
+                # TODO: This computes all rouge sub-metrics. Find a generic
+                # way to handle user specified rouge sub-metrics to avoid extra
+                # compute.
+                rouge_scores = metrics.rouge(target, pred)
+                # Flatten rouge score dict.
+                rouge_scores = utils.flatten(rouge_scores)
+                # Merge all the rouge-type scores into the `out` dict.
+                out = {**out, **rouge_scores}
+
+        # TODO: Wrap process results s.t. override impl do not
+        # override the save examples.
+        if self.save_examples:
+            example = {
+                "pred": pred,
+                "target": target,
+                "answer_choices_list": answer_choices_list,
+            }
+            return out, example
+        return out
+
+
 class MultipleChoiceTask(Task):
     def doc_to_target(self, doc):
         return " " + doc["choices"][doc["gold"]]
@@ -971,83 +1058,6 @@ class MultipleChoiceTask(Task):
             "acc": mean,
             "acc_norm": mean,
         }
-
-
-class TranslationTask(PromptSourceTask):
-
-    # Language specific functions.
-    @classmethod
-    def zh_split(cls, zh_text):
-        """Chinese splitting"""
-        import jieba
-        return [" ".join(jieba.cut(txt.strip())) for txt in zh_text]
-
-    @classmethod
-    def ja_split(cls, ja_text):
-        """Japanese splitting"""
-        import nagisa
-        return [" ".join(nagisa.tagging(txt.strip()).words) for txt in ja_text]
-
-    NO_SPACE_LANG = {"zh": zh_split, "ja": ja_split}
-
-    def _get_src_ref_codes(self, template_name: str):
-        """ Returns a 2-tuple of (src_lang, ref_lang) codes from the prompt template name. """
-        # Get the lang codes from the dataset name.
-        lang_pairs = self.DATASET_NAME.split("-")
-        # Template name ordering defines the src and ref lang codes.
-        if self.DATASET_NAME in template_name:
-            return lang_pairs[0], lang_pairs[1]
-        # Flip the lang pairs following the prompt source.
-        return lang_pairs[1], lang_pairs[0]
-
-    def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of submetrics and values are the values of
-        the metric for that one document
-
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
-        """
-        # TODO(jon-tow): Update this when multi-ref support arrives.
-        target = self.doc_to_target(doc).strip()
-        # Add spaces between words for BLEU score calculation of target languages like Chinese
-        _, tar_lang_code = self._get_src_ref_codes(self.prompt.name)
-        if tar_lang_code in self.NO_SPACE_LANG:
-            target = self.NO_SPACE_LANG[tar_lang_code]([doc[tar_lang_code]])[0]
-            results = self.NO_SPACE_LANG[tar_lang_code](results)
-        pred = results[0].strip()
-
-        out = {}
-        for metric in self.prompt.metadata.metrics:
-            assert (
-                metric in self.CONFIGURED_GENERATION_PS_METRICS
-            ), "Unexpected metric. Add it, or use a task-specific solution."
-            if metric == "BLEU":
-                out["bleu"] = (target, pred)
-            elif metric == "ROUGE":
-                # TODO: This computes all rouge sub-metrics. Find a generic
-                # way to handle user specified rouge sub-metrics to avoid extra
-                # compute.
-                # TODO(jon-tow): Remove this when multi-ref support arrives.
-                target = [target] if not isinstance(target, list) else target
-                rouge_scores = metrics.rouge(target, pred)
-                # Flatten rouge score dict.
-                rouge_scores = utils.flatten(rouge_scores)
-                # Merge all the rouge-type scores into the `out` dict.
-                out = {**out, **rouge_scores}
-
-        # TODO: Wrap process results s.t. override impl do not
-        # override the save examples.
-        if self.save_examples:
-            example = {
-                "pred": pred,
-                "target": target,
-                "answer_choices_list": self.prompt.get_answer_choices_list(doc)
-            }
-            return out, example
-        return out
 
 
 class PerplexityTask(Task, abc.ABC):
