@@ -9,9 +9,10 @@ import lm_eval.tasks
 import lm_eval.base
 import promptsource
 import numpy as np
+from tqdm import tqdm
 
 from promptsource.templates import DatasetTemplates
-from lm_eval.utils import positional_deprecated, run_task_tests
+from lm_eval.utils import positional_deprecated, run_task_tests, set_seed
 
 
 @positional_deprecated
@@ -27,6 +28,7 @@ def simple_evaluate(
     bootstrap_iters=100000,
     description_dict=None,
     check_integrity=False,
+    seed=1234,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -56,9 +58,7 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
-    random.seed(1234)
-    np.random.seed(1234)
-
+    set_seed(1234)
     assert tasks != [], "No tasks specified"
 
     if isinstance(model, str):
@@ -195,8 +195,10 @@ def evaluate(
             else ""
         )
 
+        print(f"Constructing '{task_prompt_name}' contexts and requests")
+        pbar_limit = len(task_docs) if not limit else limit
         for doc_id, (original_doc_id, doc) in enumerate(
-            itertools.islice(task_docs, 0, limit)
+            tqdm(itertools.islice(task_docs, 0, limit), total=pbar_limit)
         ):
             if task.invalid_doc_for_prompt(doc):
                 continue
@@ -206,7 +208,8 @@ def evaluate(
                 doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
             )
             fewshotex_logging_info["doc_id"] = original_doc_id
-            reqs = task.construct_requests(doc, ctx)
+            args = {"num_fewshot": num_fewshot}
+            reqs = task.construct_requests(doc, ctx, args)
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]
             for i, req in enumerate(reqs):

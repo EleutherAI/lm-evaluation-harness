@@ -3,7 +3,7 @@ import torch
 from lm_eval.base import BaseLM
 
 
-class GPTJLM(BaseLM):
+class MGPTLM(BaseLM):
     def __init__(
         self,
         device="cuda",
@@ -24,11 +24,11 @@ class GPTJLM(BaseLM):
                 else torch.device("cpu")
             )
 
-        pretrained = "EleutherAI/gpt-j-6B"
-        self.gptj = transformers.AutoModelForCausalLM.from_pretrained(pretrained).to(self.device)
-        self.gptj.eval()
+        pretrained = "sberbank-ai/mGPT"
+        self.mgpt = transformers.AutoModelForCausalLM.from_pretrained(pretrained).to(self.device)
+        self.mgpt.eval()
 
-        # pretrained tokenizer for neo is broken for now so just hard-coding this to gptj
+        # pretrained tokenizer for neo is broken for now so just hard-coding this to mgpt
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(pretrained)
         self.vocab_size = self.tokenizer.vocab_size
 
@@ -37,10 +37,10 @@ class GPTJLM(BaseLM):
 
         # TODO: fix multi-gpu
         if parallelize:
-            self.gptj.parallelize()
+            self.mgpt.parallelize()
             self._device = torch.device('cuda:0')
         else:
-            self.gptj.to(self._device)
+            self.mgpt.to(self._device)
 
     @property
     def eot_token(self):
@@ -54,10 +54,10 @@ class GPTJLM(BaseLM):
     @property
     def max_length(self):
         try:
-            return self.gptj.config.n_ctx
+            return self.mgpt.config.n_ctx
         except AttributeError:
             # gptneoconfig doesn't have n_ctx apparently
-            return self.gptj.config.max_position_embeddings
+            return self.mgpt.config.max_position_embeddings
 
     @property
     def max_gen_toks(self):
@@ -88,7 +88,7 @@ class GPTJLM(BaseLM):
         logits returned from the model
         """
         with torch.no_grad():
-            return self.gptj(inps)[0][:, :, :50257]
+            return self.mgpt(inps)[0]
 
     def _get_stopping_criteria(self, stopping_criteria_ids):
         class MultitokenEOSCriteria(transformers.StoppingCriteria):
@@ -120,14 +120,14 @@ class GPTJLM(BaseLM):
         stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
         max_length = max_length + context.size(1)
         if num_fewshot == 0:
-            generations = self.gptj.generate(
+            generations = self.mgpt.generate(
                 context, 
                 max_length=max_length, 
                 eos_token_id=self.eot_token_id,
                 do_sample=False,
             )
         else:
-            generations = self.gptj.generate(
+            generations = self.mgpt.generate(
                 context, 
                 max_length=max_length, 
                 stopping_criteria=stopping_criteria,

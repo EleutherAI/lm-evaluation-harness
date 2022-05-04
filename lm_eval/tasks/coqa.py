@@ -90,8 +90,8 @@ class CoQA(PromptSourceTask):
             "f1": f1_sum / max(1, len(gold_list)),
         }
 
-    def stopping_criteria(self):
-        return "\n\n"
+    # def stopping_criteria(self):
+    #     return "\n\n"
 
     # def construct_requests(self, doc, ctx):
     #     """Uses RequestFactory to construct Requests and returns an iterable of
@@ -116,9 +116,9 @@ class CoQA(PromptSourceTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        target = self.doc_to_target(doc).strip()
+        targets = self.doc_to_target(doc)
         pred = results[0].strip().split("\n")[0]
-        scores = self.compute_scores([target], pred)
+        scores = self.compute_scores(targets, pred)
 
         out = {
             "f1": scores["f1"],
@@ -126,7 +126,7 @@ class CoQA(PromptSourceTask):
         }
 
         if self.save_examples:
-            example = {"target": target, "pred": pred}
+            example = {"target": targets, "pred": pred}
             return out, example
         return out
 
