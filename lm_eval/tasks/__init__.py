@@ -23,6 +23,7 @@ from . import lince
 from . import race
 from . import superglue
 from . import wino_bias
+from . import wmt
 
 
 ########################################
@@ -172,6 +173,8 @@ TASK_REGISTRY = {
     "huffpost": huff_post.HuffPost,
     # Code-switching
     "lince_sa": lince.LinCESentimentAnalysis,
+    # WMT
+    **wmt.create_year_tasks(wmt.WMT14_TASKS),
 }
 
 
