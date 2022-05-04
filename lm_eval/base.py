@@ -1,5 +1,6 @@
 import abc
-from typing import Iterable, Optional
+import ast
+from typing import Iterable, List, Optional
 
 import promptsource
 import numpy as np
@@ -362,7 +363,7 @@ class BaseLM(LM):
             assert isinstance(num_fewshot, int) or num_fewshot is None
 
             if stopping_criteria is None:
-                until = [self.eot_token] 
+                until = [self.eot_token]
             else:
                 until = [stopping_criteria]
             primary_until = self.tok_encode(until[0])
@@ -378,7 +379,7 @@ class BaseLM(LM):
                 max_length = self.max_gen_toks
             else:
                 max_length = max_generation_length
-    
+
             cont = self._model_generate(
                 context_enc,
                 max_length,
@@ -618,11 +619,10 @@ class PromptSourceTask(Task):
         self.prompt = prompt
         self.save_examples = save_examples
 
-
     def stopping_criteria(self) -> Optional[str]:
-        """ 
+        """
         Denote where the generation should end based on the few-shot example
-        separator: "\n###\n". 
+        separator: "\n###\n".
         TODO: Handle other separators in the future.
         """
         return "\n###\n"
@@ -647,10 +647,9 @@ class PromptSourceTask(Task):
             return True
         return False
 
-    def doc_to_target(self, doc) -> str:
-        """NOTE: In the future, this may return Union[str, List[str]]."""
+    def doc_to_target(self, doc) -> List[str]:
         _, target = self.prompt.apply(doc)
-        return f" {target}"
+        return target
 
     def doc_to_text(self, doc) -> str:
         text, _ = self.prompt.apply(doc)
@@ -700,13 +699,15 @@ class PromptSourceTask(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        target = self.doc_to_target(doc).strip()
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        target = self.doc_to_target(doc)
         if answer_choices_list:
             # If answer_choices_list, then this is a ranked choice prompt.
             # NOTE: In the future, target will be a list of strings.
             # For now, we can assume there will be only 1 target, but its possible
             # that this not the case so we should check for that.
+            assert isinstance(target, list) and len(target) == 1
+            target = target[0].strip()
 
             pred = answer_choices_list[np.argmax(results)]
             out = {}
@@ -721,6 +722,7 @@ class PromptSourceTask(Task):
         else:
             # If not, then this is a generation prompt.
             # NOTE: In the future, target will be a list of strings.
+            assert isinstance(target, list)
             pred = results[0].strip()
             out = {}
             for metric in self.prompt.metadata.metrics:
@@ -850,7 +852,12 @@ class PromptSourceTask(Task):
 
         if num_fewshot == 0:
             labeled_examples = ""
-            fewshotex, fewshotidx, self.fewshotsource = [], [], None
+            fewshotex, fewshotidx, fewshottargetidx, self.fewshotsource = (
+                [],
+                [],
+                [],
+                None,
+            )
         else:
             # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
             if self.has_training_docs():
@@ -871,11 +878,13 @@ class PromptSourceTask(Task):
                 fewshotex, fewshotidx = self._get_fewshot_examples(
                     self._fewshot_docs, k=num_fewshot + 1, rnd=rnd
                 )
-                fewshotex, fewshotidx = zip(*[
-                    (shot, idx)
-                    for shot, idx in zip(fewshotex, fewshotidx)
-                    if shot != doc
-                ])
+                fewshotex, fewshotidx = zip(
+                    *[
+                        (shot, idx)
+                        for shot, idx in zip(fewshotex, fewshotidx)
+                        if shot != doc
+                    ]
+                )
                 # get rid of the doc that's the one we're evaluating, if it's in the fewshot
                 fewshotex, fewshotidx = (
                     fewshotex[:num_fewshot],
@@ -885,14 +894,19 @@ class PromptSourceTask(Task):
             # for justification of this separator.
             example_separator = "\n###\n"
 
+            labeled_examples_list = []
+            fewshottargetidx = []
+            for fewshot_doc in fewshotex:
+                text = self.doc_to_text(fewshot_doc)
+                targets = self.doc_to_target(fewshot_doc)
+                target_idx = random.randint(0, len(targets) - 1)
+                target = targets[target_idx].strip()
+                # TODO(Jon): Given that target is now a list, should we add a space here? Anywhere else?
+                labeled_examples_list.append(f"{text} {target}")
+                fewshottargetidx.append(target_idx)
+
             labeled_examples = (
-                example_separator.join(
-                    [
-                        self.doc_to_text(doc) + self.doc_to_target(doc)
-                        for doc in fewshotex
-                    ]
-                )
-                + example_separator
+                example_separator.join(labeled_examples_list) + example_separator
             )
 
         example = self.doc_to_text(doc)
@@ -901,6 +915,7 @@ class PromptSourceTask(Task):
             ctx,
             {
                 "fewshot_idx": fewshotidx,
+                "fewshot_target_idx": fewshottargetidx,
                 "fewshot_source": self.fewshotsource,
                 "fewshot_num": num_fewshot,
                 "ctx": ctx,

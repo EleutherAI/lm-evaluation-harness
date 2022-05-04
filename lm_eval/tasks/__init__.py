@@ -64,6 +64,7 @@ from . import e2e_nlg_cleaned
 from . import gem_asset_turk
 from . import crows_pairs_multilingual
 from . import lama
+from . import lince
 from . import HuffPost
 from . import wmt
 
@@ -277,7 +278,7 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
-    
+
     #GEM/mlsum
     "mlsum_es":gem_mlsum.GEMMLSUMEs,
     "mlsum_de":gem_mlsum.GEMMLSUMDe,
@@ -317,8 +318,8 @@ TASK_REGISTRY = {
     # News
     "huffpost": HuffPost.HuffPost,
 
-    # WMT
-    **wmt.create_year_tasks(wmt.WMT14_TASKS),
+    # Code-switching
+    "lince_sa": lince.LinCESentimentAnalysis,
 }
 
 
