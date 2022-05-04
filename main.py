@@ -105,7 +105,7 @@ def main():
     # TODO: Rename codecarbon.csv.
     print(evaluator.make_table(results))
     tracker.stop()
-    emissions_output_path = output_path + "_emissions.csv"
+    emissions_output_path = f"./outputs/emissions-{output_path}.csv"
     os.rename("emissions.csv", emissions_output_path)
 
 
