@@ -1,17 +1,13 @@
 import collections
 import itertools
-import pathlib
 import random
 
 import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
-import promptsource
-import numpy as np
 from tqdm import tqdm
 
-from promptsource.templates import DatasetTemplates
 from lm_eval.utils import positional_deprecated, run_task_tests, set_seed
 
 
@@ -29,6 +25,7 @@ def simple_evaluate(
     description_dict=None,
     check_integrity=False,
     seed=1234,
+    parallelize=False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -55,17 +52,22 @@ def simple_evaluate(
         Dictionary of custom task descriptions of the form: `task_name: description`
     :param check_integrity: bool
         Whether to run the relevant part of the test suite for the tasks
+    :param seed: int
+        Random seed.
+    :param parallelize: bool
+        Whether to parallelize the model across gpus.
     :return
         Dictionary of results
     """
-    set_seed(1234)
+    set_seed(seed)
     assert tasks != [], "No tasks specified"
 
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
         lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device}
+            model_args,
+            {"batch_size": batch_size, "device": device, "parallelize": parallelize},
         )
     else:
         assert isinstance(model, lm_eval.base.LM)
