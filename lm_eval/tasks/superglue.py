@@ -345,7 +345,9 @@ class WinogenderSchemaDiagnostics(PromptSourceTask):
         }
 
         if self.save_examples:
-            example = {"doc": doc, "pred": pred}
+            example = {"target": target,
+                       "answer_choices_list": answer_choices_list,
+                       "pred": pred}
             return out, example
         return out
 
