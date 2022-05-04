@@ -13,7 +13,7 @@ import numpy as np
 import sklearn
 import transformers.data.metrics.squad_metrics as squad_metrics
 from lm_eval.base import rf, PromptSourceTask
-from lm_eval.metrics import mean, acc_all, metric_max_over_ground_truths, yesno
+from lm_eval.metrics import mean, acc_all, metric_max_over_ground_truths, yesno, parity
 from lm_eval.utils import general_detokenize
 
 
@@ -166,17 +166,6 @@ class MultiRC(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def process_results(self, doc, results):
-        ll_true_choice, ll_false_choice = results
-        pred = ll_true_choice > ll_false_choice
-        return {"acc": (pred, doc)}
-
-    def higher_is_better(self):
-        return {"acc": True}
-
-    def aggregation(self):
-        return {"acc": acc_all}
-
 
 class ReCoRD(PromptSourceTask):
     VERSION = 0
@@ -316,6 +305,42 @@ class WinogenderSchemaDiagnostics(PromptSourceTask):
 
     def test_docs(self):
         return self.dataset["test"]
+
+    def process_results(self, doc, results):
+        """Take a single document and the LM results and evaluates, returning a
+        dict where keys are the names of submetrics and values are the values of
+        the metric for that one document
+
+        :param doc:
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param results:
+            The results of the requests created in construct_requests.
+        """
+        target = self.doc_to_target(doc)[0].strip()
+
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        pred = answer_choices_list[np.argmax(results)]
+
+        out = {
+            "parity": (doc["idx"], pred),
+            "acc": pred == target
+        }
+
+        if self.save_examples:
+            example = {"target": target,
+                       "answer_choices_list": answer_choices_list,
+                       "pred": pred}
+            return out, example
+        return out
+
+    def aggregation(self):
+        """
+        :returns: {str: [metric_score] -> float}
+            A dictionary where keys are the names of submetrics and values are
+            functions that aggregate a list of metric scores
+        """
+        return {"parity": parity,
+                "acc": mean}
 
 
 class BroadcoverageDiagnostics(PromptSourceTask):

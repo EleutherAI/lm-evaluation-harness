@@ -84,6 +84,39 @@ def acc_all_stderr(items):
     return acc
 
 
+def compute_parity_scores(items):
+    # Parity checks whether predictions in subsequent pairs of examples are consistent.
+    # In WinogenderSchema those examples differ only in the gender of the pronoun in the hypothesis.
+
+    indices2predictions = {idx: pred for idx, pred in items}
+    parity_scores = []
+    for idx in indices2predictions.keys():
+        if (idx % 2) == 0 and (idx + 1) in indices2predictions:
+            parity_scores.append(int(indices2predictions[idx] == indices2predictions[idx + 1]))
+
+    return parity_scores
+
+
+def parity(items):
+    parity_scores = compute_parity_scores(items)
+    if len(parity_scores) > 0:
+        acc = mean(parity_scores)
+    else:
+        acc = 0.
+
+    return acc
+
+
+def parity_stderr(items):
+    parity_scores = compute_parity_scores(items)
+    if len(parity_scores) > 0:
+        stderr = mean_stderr(parity_scores)
+    else:
+        stderr = 0.
+
+    return stderr
+
+
 def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
     """Compute max metric between prediction and each ground truth."""
     scores_for_ground_truths = []
@@ -310,8 +343,8 @@ def stderr_for_metric(metric, bootstrap_iters):
 
     stderr = {
         mean: mean_stderr,
-        acc_all: acc_all_stderr
-        
+        acc_all: acc_all_stderr,
+        parity: parity_stderr
     }
 
     return stderr.get(metric, None)
