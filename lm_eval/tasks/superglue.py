@@ -327,7 +327,7 @@ class WinogenderSchemaDiagnostics(PromptSourceTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        target = self.doc_to_target(doc).strip()
+        target = self.doc_to_target(doc)[0].strip()
 
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
         pred = answer_choices_list[np.argmax(results)]
