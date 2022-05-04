@@ -64,6 +64,7 @@ class WinoBias(PromptSourceTask):
         :param results:
             The results of the requests created in construct_requests.
         """
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)[0].strip()
         pred = " ".join(results[0].strip().split(" ")[: len(target.split(" "))])
 
@@ -72,8 +73,14 @@ class WinoBias(PromptSourceTask):
         em = squad_metrics.compute_exact(target, pred)
         out = {"em": em}
 
+        # TODO: Wrap process results s.t. override impl do not
+        # override the save examples.
         if self.save_examples:
-            example = {"target": target, "pred": pred}
+            example = {
+                "pred": pred,
+                "target": target,
+                "answer_choices_list": answer_choices_list,
+            }
             return out, example
         return out
 
