@@ -166,17 +166,6 @@ class MultiRC(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def process_results(self, doc, results):
-        ll_true_choice, ll_false_choice = results
-        pred = ll_true_choice > ll_false_choice
-        return {"acc": (pred, doc)}
-
-    def higher_is_better(self):
-        return {"acc": True}
-
-    def aggregation(self):
-        return {"acc": acc_all}
-
 
 class ReCoRD(PromptSourceTask):
     VERSION = 0
