@@ -55,7 +55,7 @@ def oa_completion(**kwargs):
 class GPT3LM(BaseLM):
     REQ_CHUNK_SIZE = 20
 
-    def __init__(self, engine, truncate=False):
+    def __init__(self, engine, device=None, truncate=False, parallelize=False):
         """
 
         :param engine: str
@@ -64,6 +64,9 @@ class GPT3LM(BaseLM):
             Truncate input if too long (if False and input is too long, throw error)
         """
         super().__init__()
+
+        assert device is None, "Cannot specify `device` - GPT-3 is only accessible through the OpenAI API."
+        assert parallelize == False, "Cannot specify `parallelize` - GPT-3 is only accessible through the OpenAI API."
 
         import openai
         self.engine = engine
@@ -81,7 +84,12 @@ class GPT3LM(BaseLM):
         openai.api_key = os.environ["OPENAI_API_SECRET_KEY"]
 
     @property
+    def eot_token(self):
+        return self.tokenizer.eos_token
+
+    @property
     def eot_token_id(self):
+        # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
         return self.tokenizer.eos_token_id
 
     @property
@@ -105,7 +113,7 @@ class GPT3LM(BaseLM):
 
     def tok_encode(self, string: str):
         return self.tokenizer.encode(string, add_special_tokens=False)
-    
+
     def tok_decode(self, tokens):
         return self.tokenizer.decode(tokens)
 
@@ -133,13 +141,7 @@ class GPT3LM(BaseLM):
                 inps.append(inp)
                 ctxlens.append(ctxlen)
 
-            response = oa_completion(
-                engine=self.engine,
-                prompt=inps,
-                echo=True,
-                max_tokens=0, temperature=0.,
-                logprobs=10,
-            )
+            response = self._model_call(inps)
 
             for resp, ctxlen, (cache_key, context_enc, continuation_enc) in zip(response.choices, ctxlens, chunk):
                 answer = get_result(resp, ctxlen)
@@ -177,39 +179,101 @@ class GPT3LM(BaseLM):
                 yield ret, lastuntil
 
         # todo: more intelligent batching for heterogeneous `until`
-        for chunk, until in tqdm(list(sameuntil_chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE))):
+        for chunk, request_args in tqdm(list(sameuntil_chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE))):
+            stopping_criteria = request_args["stopping_criteria"]
+            max_generation_length = request_args["max_generation_length"]
+            num_fewshot = request_args["num_fewshot"]
+
+            assert isinstance(stopping_criteria, str) or stopping_criteria is None
+            assert (
+                isinstance(max_generation_length, int) or max_generation_length is None
+            )
+            assert isinstance(num_fewshot, int) or num_fewshot is None
+
+            # TODO(jon-tow): This is most likely useless b/c `stopping_criteria` is
+            # never `None`; see `base.py` `PromptSourceTask.construct_requests`.
+            if stopping_criteria is None:
+                until = [self.eot_token]
+            else:
+                until = [stopping_criteria]
+
             inps = []
             for context, _ in chunk:
                 context_enc = self.tok_encode(context)
                 inp = context_enc[-(self.max_length - self.max_gen_toks):]
                 inps.append(inp)
 
-            response = oa_completion(
-                engine=self.engine,
-                prompt=inps,
-                max_tokens=self.max_gen_toks, 
-                temperature=0.,
-                logprobs=10,
-                stop=until,
+            if max_generation_length is None:
+                max_length = self.max_gen_toks
+            else:
+                max_length = max_generation_length
+
+            response = self._model_generate(
+                context=inps,
+                max_length=max_length,
+                # NOTE: We do not need to tokenize the stopping criteria with the OpenAI API
+                # so just pass in the list of stopping tokens.
+                stopping_criteria_ids=until,
+                num_fewshot=num_fewshot,
             )
 
-            for resp, (context, until_) in zip(response.choices, chunk):
+            # Iterate thru the per-request responses.
+            for resp, (context, _request_args) in zip(response.choices, chunk):
                 s = resp['text']
 
-                for term in until_:
+                _stopping_criteria = _request_args["stopping_criteria"]
+                _until =  [self.eot_token] if _stopping_criteria is None else [_stopping_criteria]
+
+                for term in _until:
                     s = s.split(term)[0]
 
                 # partial caching
-                self.cache_hook.add_partial("greedy_until", (context, until_), s)
-                
+                self.cache_hook.add_partial("greedy_until", (context, _until), s)
+
                 res.append(s)
-        
+
         return reord.get_original(res)
 
     def _model_call(self, inps):
-        # Isn't used because we override _loglikelihood_tokens
-        raise NotImplementedError()
+        return oa_completion(
+            engine=self.engine,
+            prompt=inps,
+            echo=True,
+            max_tokens=0,
+            temperature=0.,
+            logprobs=10,
+        )
 
-    def _model_generate(self, context, max_length, eos_token_id):
-        # Isn't used because we override greedy_until
-        raise NotImplementedError()
+    def _model_generate(self, context, max_length, stopping_criteria_ids, num_fewshot):
+        """ 
+        NOTE: Rename `stopping_criteria_ids` to `stopping_criteria`b/c We do not 
+        need to tokenize the stopping sequences in the OpenAI API
+        """
+
+        # NOTE: We don't need to tokenize the stopping sequences into ids when
+        # using the OpenAI API.
+        stopping_criteria = stopping_criteria_ids
+
+        # NOTE: We don't need to add context size b/c OpenAI completion only
+        # expects the max generation count portion.
+        # max_length = max_length + context.size(1)
+
+        if num_fewshot == 0:
+            generations = oa_completion(
+                engine=self.engine,
+                prompt=context,
+                max_tokens=max_length,
+                temperature=0.,
+                logprobs=10,
+                stop=[self.eot_token],
+            )
+        else:
+            generations = oa_completion(
+                engine=self.engine,
+                prompt=context,
+                max_tokens=max_length,
+                temperature=0.,
+                logprobs=10,
+                stop=stopping_criteria,
+            )
+        return generations
