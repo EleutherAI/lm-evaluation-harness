@@ -60,6 +60,7 @@ from . import wino_bias
 from . import e2e_nlg_cleaned
 from . import gem_asset_turk
 from . import crows_pairs_multilingual
+from . import diabla
 
 ########################################
 # Translation tasks
@@ -195,6 +196,7 @@ TASK_REGISTRY = {
     **translation.create_tasks_from_benchmarks(gpt3_translation_benchmarks),
     # chef's selection, mostly wmt20
     **translation.create_tasks_from_benchmarks(selected_translation_benchmarks),
+    "diabla": diabla.DiaBLa,
     # Word Scrambling and Manipulation Tasks
     "anagrams1": unscramble.Anagrams1,
     "anagrams2": unscramble.Anagrams2,
