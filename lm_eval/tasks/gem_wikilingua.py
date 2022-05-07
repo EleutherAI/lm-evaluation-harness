@@ -1,18 +1,26 @@
-# TODO: Remove all TODO comments once the implementation is complete.
 """
-TODO: Add the Paper Title on this line.
-TODO: Add the paper's PDF URL (preferrably from arXiv) on this line.
+WikiLingua: A New Benchmark Dataset for Cross-Lingual Abstractive Summarization
+https://arxiv.org/pdf/2010.03093.pdf
 
-TODO: Write a Short Description of the task.
+Wikilingua is a large-scale (~770k article-summary pairs), multilingual dataset for the evaluation of cross-lingual abstractive systems. 
+It consists of parallel articles and summaries (article-summary pairs) from WikiHow across 18 languages (i.e. all the languages available on WikiHow). 
+It contains 141,457 unique English articles and each of the other 17 languages has on average, 42,783 articles that align with an article in English.
+This dataset is part of the GEM Benchmark. (Description from https://gem-benchmark.com/data_cards/WikiLingua)
 
-Homepage: TODO: Add the URL to the task's Homepage here.
+
+Homepage: None, Repo: https://github.com/esdurmus/Wikilingua
 """
 
 from lm_eval.base import PromptSourceTask
-from lm_eval.base import Task, rf
 
+_CITATION = """
+@inproceedings{ladhak-wiki-2020,
+    title={WikiLingua: A New Benchmark Dataset for Multilingual Abstractive Summarization},
+    author={Faisal Ladhak, Esin Durmus, Claire Cardie and Kathleen McKeown},
+    booktitle={Findings of EMNLP, 2020},
+    year={2020}
+}"""
 
-_CITATION = """ """
 
 class GEMWikiLinguaBase(PromptSourceTask):
     VERSION = 0
@@ -24,7 +32,7 @@ class GEMWikiLinguaBase(PromptSourceTask):
 
     def has_validation_docs(self):
         return True
-    
+
     def has_test_docs(self):
         return True
 
@@ -33,7 +41,7 @@ class GEMWikiLinguaBase(PromptSourceTask):
             if self._training_docs is None:
                 self._training_docs = list(self.dataset["train"])
             return self._training_docs
-    
+
     def validation_docs(self):
         if self.has_validation_docs():
             return self.dataset["validation"]
@@ -41,60 +49,78 @@ class GEMWikiLinguaBase(PromptSourceTask):
     def test_docs(self):
         if self.has_test_docs():
             return self.dataset["test"]
-    
+
     def max_generation_length(self):
         return 64
+
 
 class GEMWikiLinguaAr(GEMWikiLinguaBase):
     DATASET_NAME = "ar"
 
+
 class GEMWikiLinguaCs(GEMWikiLinguaBase):
     DATASET_NAME = "cs"
+
 
 class GEMWikiLinguaDe(GEMWikiLinguaBase):
     DATASET_NAME = "de"
 
+
 class GEMWikiLinguaEn(GEMWikiLinguaBase):
     DATASET_NAME = "en"
+
 
 class GEMWikiLinguaEs(GEMWikiLinguaBase):
     DATASET_NAME = "es"
 
+
 class GEMWikiLinguaFr(GEMWikiLinguaBase):
     DATASET_NAME = "fr"
+
 
 class GEMWikiLinguaHi(GEMWikiLinguaBase):
     DATASET_NAME = "hi"
 
+
 class GEMWikiLinguaId(GEMWikiLinguaBase):
     DATASET_NAME = "id"
+
 
 class GEMWikiLinguaIt(GEMWikiLinguaBase):
     DATASET_NAME = "it"
 
+
 class GEMWikiLinguaJa(GEMWikiLinguaBase):
     DATASET_NAME = "ja"
+
 
 class GEMWikiLinguaKo(GEMWikiLinguaBase):
     DATASET_NAME = "ko"
 
+
 class GEMWikiLinguaNl(GEMWikiLinguaBase):
     DATASET_NAME = "nl"
+
 
 class GEMWikiLinguaPt(GEMWikiLinguaBase):
     DATASET_NAME = "pt"
 
+
 class GEMWikiLinguaRu(GEMWikiLinguaBase):
     DATASET_NAME = "ru"
+
 
 class GEMWikiLinguaTh(GEMWikiLinguaBase):
     DATASET_NAME = "th"
 
+
 class GEMWikiLinguaTr(GEMWikiLinguaBase):
     DATASET_NAME = "tr"
 
+
 class GEMWikiLinguaVi(GEMWikiLinguaBase):
     DATASET_NAME = "vi"
+
 
 class GEMWikiLinguaZh(GEMWikiLinguaBase):
     DATASET_NAME = "zh"
