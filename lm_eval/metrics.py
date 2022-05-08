@@ -1,12 +1,13 @@
 import typing
 import math
 from collections.abc import Iterable
-
+import imp
 import numpy as np
 import sacrebleu
 from rouge_score import rouge_scorer
 import sklearn.metrics
 import random
+from lm_eval.metric_impls import sari
 
 
 def mean(arr):
@@ -20,7 +21,10 @@ def pop_stddev(arr):
 
 def sample_stddev(arr):
     mu = mean(arr)
-    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
+    if len(arr) == 1:
+        return 0
+    else:
+        return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
 
 
 def mean_stderr(arr):
@@ -140,6 +144,10 @@ def weighted_perplexity(items):
 
 def bits_per_byte(items):
     return -weighted_mean(items) / math.log(2)
+
+def compute_sari(sentence_to_simplifiy, generated_sentence, references):
+    """Implementation of SARI from the authors'."""
+    return sari.SARIsent(sentence_to_simplifiy, generated_sentence, references)
 
 
 def bleu(items):

@@ -740,6 +740,9 @@ class PromptSourceTask(Task):
                     rouge_scores = utils.flatten(rouge_scores)
                     # Merge all the rouge-type scores into the `out` dict.
                     out = {**out, **rouge_scores}
+                elif metric == "SARI":
+                    text = self.doc_to_text(doc)
+                    out = {"sari": metrics.compute_sari(text, pred, target)}
 
         # TODO: Wrap process results s.t. override impl do not
         # override the save examples.
@@ -776,6 +779,8 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = True
                 out["rougeLsum_recall"] = True
                 out["rougeLsum_fmeasure"] = True
+            if metric == "SARI":
+                out["sari"] = True
         return out
 
     def aggregation(self):
@@ -802,6 +807,8 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = mean
                 out["rougeLsum_recall"] = mean
                 out["rougeLsum_fmeasure"] = mean
+            if metric == "SARI":
+                out["sari"] = mean
         return out
 
     def fewshot_examples(self, k, rnd):
