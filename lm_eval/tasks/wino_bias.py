@@ -64,16 +64,23 @@ class WinoBias(PromptSourceTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        target = self.doc_to_target(doc).strip()
-        pred = " ".join(results[0].strip().split(" ")[:len(target.split(" "))])
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        target = self.doc_to_target(doc)[0].strip()
+        pred = " ".join(results[0].strip().split(" ")[: len(target.split(" "))])
 
         # The original paper uses F1. In the case of exactly one predicted and one gold mention,
         # F1 and exact match are equivalent.
         em = squad_metrics.compute_exact(target, pred)
         out = {"em": em}
 
+        # TODO: Wrap process results s.t. override impl do not
+        # override the save examples.
         if self.save_examples:
-            example = {"target": target, "pred": pred}
+            example = {
+                "pred": pred,
+                "target": target,
+                "answer_choices_list": answer_choices_list,
+            }
             return out, example
         return out
 
@@ -83,10 +90,10 @@ class WinoBias(PromptSourceTask):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metric scores
         """
-        return {'em': mean}
+        return {"em": mean}
 
     def higher_is_better(self):
-        return {'em': True}
+        return {"em": True}
 
 
 class WinoBiasType1Pro(WinoBias):

@@ -1,14 +1,12 @@
-import imp
 import typing
 import math
 from collections.abc import Iterable
-
 import numpy as np
 import sacrebleu
 from rouge_score import rouge_scorer
 import sklearn.metrics
 import random
-from lm_eval.metric_impls import sari
+from lm_eval.metric_impls import sari as sari_impl
 
 
 def mean(arr):
@@ -22,7 +20,10 @@ def pop_stddev(arr):
 
 def sample_stddev(arr):
     mu = mean(arr)
-    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
+    if len(arr) == 1:
+        return 0
+    else:
+        return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
 
 
 def mean_stderr(arr):
@@ -86,6 +87,41 @@ def acc_all_stderr(items):
     return acc
 
 
+def compute_parity_scores(items):
+    # Parity checks whether predictions in subsequent pairs of examples are consistent.
+    # In WinogenderSchema those examples differ only in the gender of the pronoun in the hypothesis.
+
+    indices2predictions = {idx: pred for idx, pred in items}
+    parity_scores = []
+    for idx in indices2predictions.keys():
+        if (idx % 2) == 0 and (idx + 1) in indices2predictions:
+            parity_scores.append(
+                int(indices2predictions[idx] == indices2predictions[idx + 1])
+            )
+
+    return parity_scores
+
+
+def parity(items):
+    parity_scores = compute_parity_scores(items)
+    if len(parity_scores) > 0:
+        acc = mean(parity_scores)
+    else:
+        acc = 0.0
+
+    return acc
+
+
+def parity_stderr(items):
+    parity_scores = compute_parity_scores(items)
+    if len(parity_scores) > 0:
+        stderr = mean_stderr(parity_scores)
+    else:
+        stderr = 0.0
+
+    return stderr
+
+
 def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
     """Compute max metric between prediction and each ground truth."""
     scores_for_ground_truths = []
@@ -114,7 +150,7 @@ def bits_per_byte(items):
 
 def sari(sentence_to_simplifiy, generated_sentence, references):
     """Implementation of SARI from the authors'."""
-    return sari.SARIsent(sentence_to_simplifiy, generated_sentence, references)
+    return sari_impl.SARIsent(sentence_to_simplifiy, generated_sentence, references)
 
 
 def bleu(items):
@@ -323,7 +359,7 @@ def stderr_for_metric(metric, bootstrap_iters):
     if metric in bootstrappable:
         return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
 
-    stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
+    stderr = {mean: mean_stderr, acc_all: acc_all_stderr, parity: parity_stderr}
 
     return stderr.get(metric, None)
 

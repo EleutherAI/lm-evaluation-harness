@@ -1,7 +1,6 @@
 import abc
-from typing import Iterable, Optional
+from typing import Iterable, List, Optional
 
-import promptsource
 import numpy as np
 import random
 import re
@@ -17,7 +16,6 @@ import torch.nn.functional as F
 from lm_eval.metrics import (
     mean,
     weighted_perplexity,
-    weighted_mean,
     bits_per_byte,
 )
 from lm_eval import utils
@@ -650,10 +648,9 @@ class PromptSourceTask(Task):
             return True
         return False
 
-    def doc_to_target(self, doc) -> str:
-        """NOTE: In the future, this may return Union[str, List[str]]."""
+    def doc_to_target(self, doc) -> List[str]:
         _, target = self.prompt.apply(doc)
-        return f" {target}"
+        return target
 
     def doc_to_text(self, doc) -> str:
         text, _ = self.prompt.apply(doc)
@@ -703,13 +700,15 @@ class PromptSourceTask(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        target = self.doc_to_target(doc).strip()
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        target = self.doc_to_target(doc)
         if answer_choices_list:
             # If answer_choices_list, then this is a ranked choice prompt.
             # NOTE: In the future, target will be a list of strings.
             # For now, we can assume there will be only 1 target, but its possible
             # that this not the case so we should check for that.
+            assert isinstance(target, list) and len(target) == 1
+            target = target[0].strip()
 
             pred = answer_choices_list[np.argmax(results)]
             out = {}
@@ -724,6 +723,7 @@ class PromptSourceTask(Task):
         else:
             # If not, then this is a generation prompt.
             # NOTE: In the future, target will be a list of strings.
+            assert isinstance(target, list)
             pred = results[0].strip()
             out = {}
             for metric in self.prompt.metadata.metrics:
@@ -860,7 +860,12 @@ class PromptSourceTask(Task):
 
         if num_fewshot == 0:
             labeled_examples = ""
-            fewshotex, fewshotidx, self.fewshotsource = [], [], None
+            fewshotex, fewshotidx, fewshottargetidx, self.fewshotsource = (
+                [],
+                [],
+                [],
+                None,
+            )
         else:
             # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
             if self.has_training_docs():
@@ -897,14 +902,19 @@ class PromptSourceTask(Task):
             # for justification of this separator.
             example_separator = "\n###\n"
 
+            labeled_examples_list = []
+            fewshottargetidx = []
+            for fewshot_doc in fewshotex:
+                text = self.doc_to_text(fewshot_doc)
+                targets = self.doc_to_target(fewshot_doc)
+                target_idx = random.randint(0, len(targets) - 1)
+                target = targets[target_idx].strip()
+                # TODO(Jon): Given that target is now a list, should we add a space here? Anywhere else?
+                labeled_examples_list.append(f"{text} {target}")
+                fewshottargetidx.append(target_idx)
+
             labeled_examples = (
-                example_separator.join(
-                    [
-                        self.doc_to_text(doc) + self.doc_to_target(doc)
-                        for doc in fewshotex
-                    ]
-                )
-                + example_separator
+                example_separator.join(labeled_examples_list) + example_separator
             )
 
         example = self.doc_to_text(doc)
@@ -913,6 +923,7 @@ class PromptSourceTask(Task):
             ctx,
             {
                 "fewshot_idx": fewshotidx,
+                "fewshot_target_idx": fewshottargetidx,
                 "fewshot_source": self.fewshotsource,
                 "fewshot_num": num_fewshot,
                 "ctx": ctx,
@@ -932,6 +943,93 @@ class PromptSourceTask(Task):
             # Placeholder for comment in post-processing.
             "comment": "",
         }
+
+
+class TranslationTask(PromptSourceTask):
+
+    # Language specific functions.
+    @classmethod
+    def zh_split(cls, zh_text):
+        """Chinese splitting"""
+        import jieba
+
+        return [" ".join(jieba.cut(txt.strip())) for txt in zh_text]
+
+    @classmethod
+    def ja_split(cls, ja_text):
+        """Japanese splitting"""
+        import nagisa
+
+        return [" ".join(nagisa.tagging(txt.strip()).words) for txt in ja_text]
+
+    NO_SPACE_LANG = {"zh": zh_split, "ja": ja_split}
+
+    def invalid_doc_for_prompt(self, doc) -> bool:
+        # Skip docs with empty references.
+        if self.doc_to_target(doc) == [""]:
+            return True
+        return False
+
+    def _get_src_ref_codes(self, template_name: str):
+        """Returns a 2-tuple of (src_lang, ref_lang) codes from the prompt template name."""
+        # Get the lang codes from the dataset name.
+        lang_pairs = self.DATASET_NAME.split("-")
+        # Template name ordering defines the src and ref lang codes.
+        if self.DATASET_NAME in template_name:
+            return lang_pairs[0], lang_pairs[1]
+        # Flip the lang pairs following the prompt source.
+        return lang_pairs[1], lang_pairs[0]
+
+    def process_results(self, doc, results):
+        """Take a single document and the LM results and evaluates, returning a
+        dict where keys are the names of submetrics and values are the values of
+        the metric for that one document
+
+        :param doc:
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param results:
+            The results of the requests created in construct_requests.
+        """
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        target = self.doc_to_target(doc)
+
+        # Add spaces between words for BLEU score calculation of target languages like Chinese
+        _, tar_lang_code = self._get_src_ref_codes(self.prompt.name)
+        if tar_lang_code in self.NO_SPACE_LANG:
+            target = [self.NO_SPACE_LANG[tar_lang_code]([t])[0] for t in target]
+            results = self.NO_SPACE_LANG[tar_lang_code](results)
+        pred = results[0].strip()
+
+        # If not, then this is a generation prompt.
+        # NOTE: In the future, target will be a list of strings.
+        assert isinstance(target, list)
+        out = {}
+        for metric in self.prompt.metadata.metrics:
+            assert (
+                metric in self.CONFIGURED_GENERATION_PS_METRICS
+            ), "Unexpected metric. Add it, or use a task-specific solution."
+            if metric == "BLEU":
+                out["bleu"] = (target, pred)
+            elif metric == "ROUGE":
+                # TODO: This computes all rouge sub-metrics. Find a generic
+                # way to handle user specified rouge sub-metrics to avoid extra
+                # compute.
+                rouge_scores = metrics.rouge(target, pred)
+                # Flatten rouge score dict.
+                rouge_scores = utils.flatten(rouge_scores)
+                # Merge all the rouge-type scores into the `out` dict.
+                out = {**out, **rouge_scores}
+
+        # TODO: Wrap process results s.t. override impl do not
+        # override the save examples.
+        if self.save_examples:
+            example = {
+                "pred": pred,
+                "target": target,
+                "answer_choices_list": answer_choices_list,
+            }
+            return out, example
+        return out
 
 
 class MultipleChoiceTask(Task):
