@@ -16,8 +16,6 @@ associated with 8 crowdsourced simplifications that focus on only lexical
 paraphrasing (no sentence splitting or deletion).
 https://cocoxu.github.io/publications/tacl2016-smt-simplification.pdf
 """
-import numpy as np
-from lm_eval import metrics, utils
 from lm_eval.base import PromptSourceTask
 
 _CITATION = """
@@ -58,6 +56,23 @@ class AssetTurk(PromptSourceTask):
     DATASET_NAME = None
     SPLIT = None
 
+    def __init__(
+        self,
+        data_dir=None,
+        cache_dir=None,
+        download_mode=None,
+        prompt=None,
+        save_examples=True,
+    ):
+        super().__init__(data_dir, cache_dir, download_mode)
+        self.prompt = prompt
+        self.save_examples = save_examples
+
+        # Adding SARI to metrics to list because `promptsource`
+        # does not currently support this option.
+        if "SARI" not in self.prompt.metadata.metrics:
+            self.prompt.metadata.metrics.append("SARI")
+
     def has_training_docs(self):
         return False
 
@@ -82,72 +97,6 @@ class AssetTurk(PromptSourceTask):
 
     def max_generation_length(self):
         return 200
-
-    def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of submetrics and values are the values of
-        the metric for that one document
-
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
-        """
-        answer_choices_list = self.prompt.get_answer_choices_list(doc)
-        target = self.doc_to_target(doc)
-        if answer_choices_list:
-            # If answer_choices_list, then this is a ranked choice prompt.
-            # NOTE: In the future, target will be a list of strings.
-            # For now, we can assume there will be only 1 target, but its possible
-            # that this not the case so we should check for that.
-            assert isinstance(target, list) and len(target) == 1
-            target = target[0].strip()
-
-            pred = answer_choices_list[np.argmax(results)]
-            out = {}
-
-            for metric in self.prompt.metadata.metrics:
-                assert (
-                    metric in self.CONFIGURED_RANKED_CHOICE_PS_METRICS
-                ), "Unexpected metric. Add it, or use a task-specific solution."
-                if metric == "Accuracy":
-                    out["acc"] = pred == target
-            # TODO: Add metrics here.
-        else:
-            # If not, then this is a generation prompt.
-            # NOTE: In the future, target will be a list of strings.
-            assert isinstance(target, list)
-            pred = results[0].strip()
-            out = {}
-            self.prompt.metadata.metrics.append("SARI")
-            for metric in self.prompt.metadata.metrics:
-                if metric == "BLEU":
-                    out["bleu"] = (target, pred)
-                elif metric == "ROUGE":
-                    # TODO: This computes all rouge sub-metrics. Find a generic
-                    # way to handle user specified rouge sub-metrics to avoid extra
-                    # compute.
-                    rouge_scores = metrics.rouge(target, pred)
-                    # Flatten rouge score dict.
-                    rouge_scores = utils.flatten(rouge_scores)
-                    # Merge all the rouge-type scores into the `out` dict.
-                    out = {**out, **rouge_scores}
-                elif metric == "SARI":
-                    out["sari"] = metrics.compute_sari(
-                        sentence_to_simplifiy=doc["source"],
-                        generated_sentence=pred,
-                        references=target,
-                    ):
-        # TODO: Wrap process results s.t. override impl do not
-        # override the save examples.
-        if self.save_examples:
-            example = {
-                "pred": pred,
-                "target": target,
-                "answer_choices_list": answer_choices_list,
-            }
-            return out, example
-        return out
 
 
 class AssetTest(AssetTurk):
