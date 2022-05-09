@@ -605,7 +605,7 @@ class PromptSourceTask(Task):
     """
 
     CONFIGURED_RANKED_CHOICE_PS_METRICS = set(["Accuracy"])
-    CONFIGURED_GENERATION_PS_METRICS = set(["BLEU", "ROUGE"])
+    CONFIGURED_GENERATION_PS_METRICS = set(["BLEU", "ROUGE", "SARI"])
     SPLIT = None
 
     def __init__(
@@ -655,6 +655,15 @@ class PromptSourceTask(Task):
     def doc_to_text(self, doc) -> str:
         text, _ = self.prompt.apply(doc)
         return text
+
+    def doc_to_rawtext(self, doc):
+        """This should be used for selecting the raw text of the document.
+
+        The current use case is for computing SARI which requires the text
+        without the prompt. The `text` field is not standarized across tasks
+        so this is task specific.
+        """
+        raise NotImplementedError("This is task specific.")
 
     def construct_requests(self, doc, ctx, args):
         """Uses RequestFactory to construct Requests and returns an iterable of
@@ -742,8 +751,7 @@ class PromptSourceTask(Task):
                     # Merge all the rouge-type scores into the `out` dict.
                     out = {**out, **rouge_scores}
                 elif metric == "SARI":
-                    text = self.doc_to_text(doc)
-                    out = {"sari": metrics.sari(text, pred, target)}
+                    out["sari"] = metrics.sari(self.doc_to_rawtext(doc), pred, target)
 
         # TODO: Wrap process results s.t. override impl do not
         # override the save examples.
