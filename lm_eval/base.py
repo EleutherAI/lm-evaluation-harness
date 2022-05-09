@@ -18,7 +18,7 @@ from lm_eval.metrics import (
     weighted_perplexity,
     bits_per_byte,
 )
-from lm_eval import utils
+from lm_eval import utils, metrics
 from abc import abstractmethod
 
 
