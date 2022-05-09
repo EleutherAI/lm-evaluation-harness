@@ -21,6 +21,7 @@ setuptools.setup(
     python_requires=">=3.6",
     install_requires=[
         "promptsource @ git+https://github.com/bigscience-workshop/promptsource@eval-hackathon",
+        "codecarbon",
         "wrapt",
         "nltk",
         "jinja2",

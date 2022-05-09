@@ -5,6 +5,7 @@ import logging
 import os
 
 from lm_eval import tasks, evaluator
+from codecarbon import OfflineEmissionsTracker
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 
@@ -69,6 +70,8 @@ def args_to_name(args):
 
 
 def main():
+    tracker = OfflineEmissionsTracker(country_iso_code="FRA")
+    tracker.start()
     args = parse_args()
     assert not args.provide_description  # not implemented
 
@@ -113,6 +116,9 @@ def main():
         json.dump({"results": results["results"], "config": results["examples"]}, f)
     # TODO: Rename codecarbon.csv.
     print(evaluator.make_table(results))
+    tracker.stop()
+    emissions_output_path = f"./outputs/emissions-{output_path}.csv"
+    os.rename("emissions.csv", emissions_output_path)
 
 
 if __name__ == "__main__":
