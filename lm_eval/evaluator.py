@@ -289,16 +289,18 @@ def evaluate(
 
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
         # so we run them less iterations. still looking for a cleaner way to do this
-        stderr = lm_eval.metrics.stderr_for_metric(
-            metric=task.aggregation()[metric],
-            bootstrap_iters=min(bootstrap_iters, 1000)
-            if metric in ["bleu", "chrf", "ter"]
-            else bootstrap_iters,
-        )
-        if stderr is not None:
-            results[task_prompt_name][metric + "_stderr"] = stderr(items)
-            _metric_results[metric + "_stderr"] = stderr(items)
-        metric_results.append(_metric_results)
+        if False:
+            stderr = lm_eval.metrics.stderr_for_metric(
+                metric=task.aggregation()[metric],
+                bootstrap_iters=min(bootstrap_iters, 1000)
+                if metric in ["bleu", "chrf", "ter"]
+                else bootstrap_iters,
+            )
+            if stderr is not None:
+                results[task_prompt_name][metric + "_stderr"] = stderr(items)
+                _metric_results[metric + "_stderr"] = stderr(items)
+            metric_results.append(_metric_results)
+        print("WARNING: TURNED OFF STD DEV")
 
     return {
         # List of results that tracks the averages per model and prompt.

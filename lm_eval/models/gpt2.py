@@ -12,7 +12,7 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
-        parallelize=False
+        parallelize=False,
     ):
         super().__init__()
 
@@ -72,7 +72,7 @@ class HFLM(BaseLM):
         # TODO: fix multi-gpu
         if parallelize:
             self.gpt2.parallelize()
-            self._device = torch.device('cuda:0')
+            self._device = torch.device("cuda:0")
         else:
             self.gpt2.to(self._device)
 
@@ -111,10 +111,12 @@ class HFLM(BaseLM):
         return self.tokenizer.encode(strings, add_special_tokens=False)
 
     def tok_encode_batch(self, strings: str):
-        return self.tokenizer(strings, padding=True, add_special_tokens=False, return_tensors='pt')
+        return self.tokenizer(
+            strings, padding=True, add_special_tokens=False, return_tensors="pt"
+        )
 
     def tok_decode(self, tokens):
-        return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
+        return self.tokenizer.batch_decode(tokens, skip_special_tokens=False)
 
     def _model_call(self, inps):
         """
@@ -135,47 +137,77 @@ class HFLM(BaseLM):
                 self.eos_seq_len = len(eos_seq_id) + 1
                 self.tokenizer = tokenizer
 
-            def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
-                last_token_id = input_ids[0, -self.eos_seq_len:]
+            def __call__(
+                self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+            ) -> bool:
+                last_token_id = input_ids[0, -self.eos_seq_len :]
                 last_tokens = self.tokenizer.decode(last_token_id)
                 is_stopped = self.eos_seq in last_tokens
                 return is_stopped
-        
+
         class EOSCriteria(transformers.StoppingCriteria):
             def __init__(self, eos_token_id: torch.LongTensor):
                 self.eos_token_id = eos_token_id
 
-            def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
-                return input_ids[0,-1] == self.eos_token_id
-         
-        return transformers.StoppingCriteriaList([
-            MultitokenEOSCriteria(stopping_criteria_ids, self.tokenizer),
-            EOSCriteria(self.tokenizer.eos_token)
-        ])
+            def __call__(
+                self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+            ) -> bool:
+                return input_ids[0, -1] == self.eos_token_id
 
-    def _model_generate(self, context, attention_mask, max_length, stopping_criteria_ids, num_fewshot):
+        return transformers.StoppingCriteriaList(
+            [
+                MultitokenEOSCriteria(stopping_criteria_ids, self.tokenizer),
+                EOSCriteria(self.tokenizer.eos_token),
+            ]
+        )
+
+    def _model_generate(
+        self, context, attention_mask, max_length, stopping_criteria_ids, num_fewshot
+    ):
         stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
+        generation_length = max_length
         max_length = max_length + context.size(1)
         if num_fewshot == 0:
             generations = self.gpt2.generate(
-                context, 
+                context,
                 attention_mask=attention_mask,
-                max_length=max_length, 
+                max_length=max_length,
                 eos_token_id=self.eot_token_id,
                 do_sample=False,
             )
         else:
             generations = self.gpt2.generate(
-                context, 
+                context,
                 attention_mask=attention_mask,
-                max_length=max_length, 
+                max_length=max_length,
                 stopping_criteria=stopping_criteria,
                 do_sample=False,
             )
-        print(f'{generations.shape}')
-        # TODO: Fix remove padding.
-        # Remove the context from the generations
-        return generations[:, context.shape[1] :]
+        torch.set_printoptions(profile="full")
+        # print("GENERATIONS", f"{generations.shape}")
+        # print("GENERATIONS", generations)        # print(out.shape)
+        # print("FIXED GENERATIONS", out)
+
+        # We need to (1) exclude the context from the generation
+        # and (2) not permit additional tokens beyond the max length
+        # for sentences that had shorter contexts.
+
+        # The attention mask tracks the length of each sentence.
+        mask = attention_mask.sum(1)
+        fixed_generations = []
+        for idx in range(generations.shape[0]):
+            fixed_generations.append(
+                generations[
+                    # For each idx in the batch
+                    idx,
+                    # Index from the end of the continuation until the max length
+                    mask[idx] : mask[idx] + generation_length,
+                ]
+            )
+        out = torch.stack(fixed_generations)
+        print(out)
+        return out
+
 
 # for backwards compatibility
 GPT2LM = HFLM
