@@ -42,6 +42,7 @@ class HFLM(BaseLM):
             revision=revision,
             subfolder=subfolder,
         )
+        self.tokenizer.pad_token = self.tokenizer.eos_token
 
         assert isinstance(
             self.tokenizer,
@@ -106,11 +107,14 @@ class HFLM(BaseLM):
         # TODO: fix multi-gpu
         return self._device
 
-    def tok_encode(self, string: str):
-        return self.tokenizer.encode(string, add_special_tokens=False)
+    def tok_encode(self, strings: str):
+        return self.tokenizer.encode(strings, add_special_tokens=False)
+
+    def tok_encode_batch(self, strings: str):
+        return self.tokenizer(strings, padding=True, add_special_tokens=False, return_tensors='pt')
 
     def tok_decode(self, tokens):
-        return self.tokenizer.decode(tokens)
+        return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
 
     def _model_call(self, inps):
         """
@@ -121,7 +125,7 @@ class HFLM(BaseLM):
         logits returned from the model
         """
         with torch.no_grad():
-            return self.gpt2(inps)[0]
+            return self.gpt2(inps)
 
     def _get_stopping_criteria(self, stopping_criteria_ids):
         class MultitokenEOSCriteria(transformers.StoppingCriteria):
@@ -149,12 +153,13 @@ class HFLM(BaseLM):
             EOSCriteria(self.tokenizer.eos_token)
         ])
 
-    def _model_generate(self, context, max_length, stopping_criteria_ids, num_fewshot):
+    def _model_generate(self, context, attention_mask, max_length, stopping_criteria_ids, num_fewshot):
         stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
         max_length = max_length + context.size(1)
         if num_fewshot == 0:
             generations = self.gpt2.generate(
                 context, 
+                attention_mask=attention_mask,
                 max_length=max_length, 
                 eos_token_id=self.eot_token_id,
                 do_sample=False,
@@ -162,13 +167,15 @@ class HFLM(BaseLM):
         else:
             generations = self.gpt2.generate(
                 context, 
+                attention_mask=attention_mask,
                 max_length=max_length, 
                 stopping_criteria=stopping_criteria,
                 do_sample=False,
             )
-
+        print(f'{generations.shape}')
+        # TODO: Fix remove padding.
         # Remove the context from the generations
-        return generations[0, context.shape[1] :]
+        return generations[:, context.shape[1] :]
 
 # for backwards compatibility
 GPT2LM = HFLM

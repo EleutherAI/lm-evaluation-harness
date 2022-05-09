@@ -108,9 +108,10 @@ def main():
         json.dump(
             {"examples": results["examples"], "config": results["examples"]},
             f,
+            indent=0
         )
     with open(f"./outputs/agg-{output_path}.json", "w") as f:
-        json.dump({"results": results["results"], "config": results["examples"]}, f)
+        json.dump({"results": results["results"], "config": results["examples"]}, f, indent=0)
     # TODO: Rename codecarbon.csv.
     print(evaluator.make_table(results))
 

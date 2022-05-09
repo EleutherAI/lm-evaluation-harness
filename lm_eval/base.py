@@ -350,8 +350,13 @@ class BaseLM(LM):
             return len(toks), x[0]
 
         reord = utils.Reorderer(requests, _collate)
+        for chunk in utils.chunks(
+            tqdm(reord.get_reordered(), disable=False), self.batch_size
+        ):
+            context = [c[0] for c in chunk]
+            print(f'CONTEXT: {context}')
 
-        for context, request_args in tqdm(reord.get_reordered()):
+            request_args = chunk[0][1]
             stopping_criteria = request_args["stopping_criteria"]
             max_generation_length = request_args["max_generation_length"]
             num_fewshot = request_args["num_fewshot"]
@@ -371,9 +376,18 @@ class BaseLM(LM):
             if len(primary_until) == 0:
                 primary_until = torch.tensor([self.eot_token_id])
 
-            context_enc = torch.tensor(
-                [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
-            ).to(self.device)
+            # for context, _ in chunk:
+            tok_context = self.tok_encode_batch(context)
+            print(f'TOK CONTEXT={tok_context}')
+            input_ids = tok_context['input_ids'][:, self.max_gen_toks - self.max_length :].to(self.device)
+            attention_mask = tok_context['attention_mask'][:, self.max_gen_toks - self.max_length :].to(self.device)
+
+            print(f'PRIMARY {primary_until}')
+
+            # context_enc = torch.tensor(
+            #     tok_context[:, self.max_gen_toks - self.max_length :]
+            # ).to(self.device)
+            
 
             if max_generation_length is None:
                 max_length = self.max_gen_toks
@@ -381,21 +395,23 @@ class BaseLM(LM):
                 max_length = max_generation_length
 
             cont = self._model_generate(
-                context_enc,
+                input_ids,
+                attention_mask,
                 max_length,
                 torch.tensor(primary_until),
                 num_fewshot,
             )
 
-            s = self.tok_decode(cont.tolist())
+            output_tokens = self.tok_decode(cont.tolist())
 
-            for term in until:
-                s = s.split(term)[0]
+            for s in output_tokens:
+                for term in until:
+                    s = s.split(term)[0]
+                print(f'S = {s}')
+                # partial caching
+                self.cache_hook.add_partial("greedy_until", (context, until), s)
 
-            # partial caching
-            self.cache_hook.add_partial("greedy_until", (context, until), s)
-
-            res.append(s)
+                res.append(s)
 
         return reord.get_original(res)
 
