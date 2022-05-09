@@ -713,9 +713,7 @@ class PromptSourceTask(Task):
         target = self.doc_to_target(doc)
         if answer_choices_list:
             # If answer_choices_list, then this is a ranked choice prompt.
-            # NOTE: In the future, target will be a list of strings.
-            # For now, we can assume there will be only 1 target, but its possible
-            # that this not the case so we should check for that.
+            # NOTE: In the future, target could be a list of strings.
             assert isinstance(target, list) and len(target) == 1
             target = target[0].strip()
 
@@ -769,9 +767,9 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = True
-            if metric == "BLEU":
+            elif metric == "BLEU":
                 out["bleu"] = True
-            if metric == "ROUGE":
+            elif metric == "ROUGE":
                 # TODO: Find a generic way to handle user specified rouge metrics.
                 out["rouge1_precision"] = True
                 out["rouge1_recall"] = True
@@ -788,7 +786,7 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = True
                 out["rougeLsum_recall"] = True
                 out["rougeLsum_fmeasure"] = True
-            if metric == "SARI":
+            elif metric == "SARI":
                 out["sari"] = True
         return out
 
@@ -797,9 +795,9 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = mean
-            if metric == "BLEU":
+            elif metric == "BLEU":
                 out["bleu"] = metrics.bleu
-            if metric == "ROUGE":
+            elif metric == "ROUGE":
                 # TODO: Find a generic way to handle user specified rouge metrics.
                 out["rouge1_precision"] = mean
                 out["rouge1_recall"] = mean
@@ -816,7 +814,7 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = mean
                 out["rougeLsum_recall"] = mean
                 out["rougeLsum_fmeasure"] = mean
-            if metric == "SARI":
+            elif metric == "SARI":
                 out["sari"] = mean
         return out
 
