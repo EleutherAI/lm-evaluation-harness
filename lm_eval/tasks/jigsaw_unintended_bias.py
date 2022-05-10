@@ -11,7 +11,7 @@ Homepage: TODO: Add the URL to the task's Homepage here.
 import inspect
 import os
 from lm_eval.base import PromptSourceTask
-import lm_eval.datasets.jigsaw_unintended_bias.jigsaw_unintented_bias
+import lm_eval.datasets.jigsaw_unintended_bias.jigsaw_unintended_bias
 
 
 # TODO: Add the BibTeX citation for the task.
