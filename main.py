@@ -4,8 +4,6 @@ import json
 import logging
 import os
 
-import pandas as pd
-
 from lm_eval import tasks, evaluator
 from codecarbon import OfflineEmissionsTracker
 
