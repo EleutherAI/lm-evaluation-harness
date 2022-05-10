@@ -8,7 +8,7 @@ that are less biased have smaller differences in False Positive Rate (FPR). Intu
 unjustly mislabel text with mentions of particular demographics as toxic. 
 Homepage: TODO: Add the URL to the task's Homepage here.
 """
-from lm_eval.base import Task
+from lm_eval.base import PromptSourceTask
 
 
 # TODO: Add the BibTeX citation for the task.
@@ -17,7 +17,7 @@ _CITATION = """
 
 
 # TODO: Replace `NewTask` with the name of your Task.
-class JigsawUnintendedBias(Task):
+class JigsawUnintendedBias(PromptSourceTask):
     VERSION = 1
     DATASET_PATH = "jigsaw_unintended_bias"
     DATASET_NAME = None
