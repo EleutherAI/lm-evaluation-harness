@@ -59,3 +59,9 @@ class HANS(PromptSourceTask):
     def test_docs(self):
         if self.has_test_docs():
             return self.dataset["test"]
+
+    def process_results(self, doc, results):
+        out, log = super().process_results(doc, results)
+        log["subcase"] = doc["subcase"]
+        log["heuristic"] = doc["heuristic"]
+        return out, log
