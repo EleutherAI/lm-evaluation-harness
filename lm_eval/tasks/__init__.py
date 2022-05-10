@@ -347,7 +347,7 @@ TASK_REGISTRY = {
     "shades_arabic": bias_shades.ShadesArabic,
     "shades_spanish": bias_shades.ShadesSpanish,
     # JigSaw
-    "jigsaw_unintended_bias": jigsaw_unintended_bias.JigsawUnintendedBias
+    "jigsaw_unintended_bias": jigsaw_unintended_bias.JigsawUnintendedBias,
     # News
     "huffpost": HuffPost.HuffPost,
 }
