@@ -100,6 +100,8 @@ class JigsawUnintendedBias(PromptSourceTask):
         :param results:
             The results of the requests created in construct_requests.
         """
+        # TODO: this does not yet handle the situation of a prompt with `answer_choices: null``
+
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)
         assert isinstance(target, list) and len(target) == 1
