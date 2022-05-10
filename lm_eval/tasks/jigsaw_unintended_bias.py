@@ -17,7 +17,7 @@ _CITATION = """
 
 
 # TODO: Replace `NewTask` with the name of your Task.
-class JigsawToxicity(Task):
+class JigsawUnintendedBias(Task):
     VERSION = 1
     DATASET_PATH = "jigsaw_unintended_bias"
     DATASET_NAME = None
