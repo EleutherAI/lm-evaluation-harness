@@ -110,7 +110,7 @@ class JigsawUnintendedBias(Task):
         results = {}
         for dimension, identity_set in dimension_to_identity_set.items():
             identity_to_fpr = {x: 0 for x in identity_set}
-             for identity in identity_set:
+            for identity in identity_set:
                 test_subset = test_pd[test_pd[identity] > 0.5]
                 test_subset["label"] = test_subset["toxicity"].apply(lambda x: x > toxicity_threshold)
                 fpr = self.false_positive_rate(test_subset["label"].tolist(), test_subset["preds"].tolist())
