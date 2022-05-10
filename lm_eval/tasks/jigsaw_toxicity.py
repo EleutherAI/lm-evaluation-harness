@@ -19,15 +19,15 @@ _CITATION = """
 # TODO: Replace `NewTask` with the name of your Task.
 class JigsawToxicity(Task):
     VERSION = 1
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.jigsaw_unintended_bias.jigsaw_unintended_bias) #"jigsaw_unintended_bias"
+    DATASET_PATH = "jigsaw_unintended_bias"
     DATASET_NAME = None
 
-#     def __init__(self, data_dir: str):
-#         """
-#         Jigsaw Toxicity must be downloaded from Kaggle from this url: 
-#         https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/data
-#         """
-#         super().__init__(data_dir=data_dir)
+    def __init__(self):
+        """
+        Jigsaw Toxicity must be downloaded from Kaggle from this url: 
+        https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/data
+        """
+        super().__init__(data_dir="../../jigsaw_unintended_bias")
 
     def has_training_docs(self):
         return True
