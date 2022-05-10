@@ -8,7 +8,10 @@ that are less biased have smaller differences in False Positive Rate (FPR). Intu
 unjustly mislabel text with mentions of particular demographics as toxic. 
 Homepage: TODO: Add the URL to the task's Homepage here.
 """
+import inspect
+import os
 from lm_eval.base import PromptSourceTask
+import lm_eval.datasets.jigsaw_unintended_bias.jigsaw_unintented_bias
 
 
 # TODO: Add the BibTeX citation for the task.
@@ -27,7 +30,8 @@ class JigsawUnintendedBias(PromptSourceTask):
         Jigsaw Toxicity must be downloaded from Kaggle from this url: 
         https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/data
         """
-        super().__init__(data_dir="../../../jigsaw_unintended_bias", **kwargs)
+        data_dir = os.path.dirname(os.path.abspath(inspect.getfile(lm_eval.datasets.jigsaw_unintended_bias.jigsaw_unintended_bias)))
+        super().__init__(data_dir=data_dir, **kwargs)
 
     def has_training_docs(self):
         return True
