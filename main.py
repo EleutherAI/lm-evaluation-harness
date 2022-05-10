@@ -62,12 +62,12 @@ def args_to_name(args):
         datetime.datetime.now().isoformat(),
     ]
     fields = [f for f in fields if f is not None]
+    # Some prompts also have "/" in them!
     filename = "_".join(fields).replace("/", "-")
     if args.limit is not None:
         # Do not use limited files for final analysis.
         return f"limited_{args.limit}_" + filename
 
-    # Some prompts also have "/" in them!
     return filename
 
 
