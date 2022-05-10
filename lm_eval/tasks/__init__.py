@@ -67,6 +67,7 @@ from . import gem_asset_turk
 from . import crows_pairs_multilingual
 from . import lama
 from . import bias_shades
+from . import jigsaw_unintended_bias
 
 from . import HuffPost
 
@@ -345,6 +346,8 @@ TASK_REGISTRY = {
     "shades_hindi": bias_shades.ShadesHindi,
     "shades_arabic": bias_shades.ShadesArabic,
     "shades_spanish": bias_shades.ShadesSpanish,
+    # JigSaw
+    "jigsaw_unintended_bias": jigsaw_unintended_bias.JigsawUnintendedBias
     # News
     "huffpost": HuffPost.HuffPost,
 }
