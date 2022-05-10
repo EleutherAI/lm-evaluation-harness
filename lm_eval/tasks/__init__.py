@@ -5,95 +5,25 @@ from typing import List, Union
 import sacrebleu
 import lm_eval.base
 
-
-from . import superglue
-from . import glue
-from . import arc
-from . import coqa
-from . import race
-from . import webqs
 from . import anli
-from . import wsc273
-from . import winogrande
-from . import quac
-from . import hellaswag
-from . import swag
-from . import openbookqa
-from . import squad
-from . import naturalqs
-from . import sat
-from . import arithmetic
-from . import lambada
-from . import race
-from . import piqa
-from . import prost
-from . import mc_taco
-from . import triviaqa
-from . import pubmedqa
-from . import sciq
-from . import webqs
-from . import qasper
-from . import qa4mre
-from . import translation
-from . import headqa
-from . import mathqa
-from . import hendrycks_ethics
-from . import drop
-from . import unscramble
-from . import logiqa
-from . import hendrycks_test
-from . import hendrycks_math
-from . import cbt
-from . import lambada_cloze
-from . import pile
-from . import wikitext
-from . import lambada_multilingual
-from . import mutual
-from . import truthfulqa
 from . import blimp
-from . import asdiv
-from . import gsm8k
-from . import storycloze
-from . import hans
-from . import gem_webnlg
-from . import lama
-
-# from . import e2e_nlg_cleaned
-from . import gem_xsum
-from . import gem_mlsum
-from . import wino_bias
+from . import coqa
+from . import crows_pairs_multilingual
+from . import drop
 from . import e2e_nlg_cleaned
 from . import gem_asset_turk
-from . import crows_pairs_multilingual
+from . import gem_mlsum
+from . import gem_webnlg
+from . import gem_xsum
+from . import glue
+from . import hans
+from . import huff_post
 from . import lama
-from . import bias_shades
-from . import jigsaw_unintended_bias
-
-from . import HuffPost
-
-########################################
-# Translation tasks
-########################################
-
-# 6 total
-gpt3_translation_benchmarks = {
-    "wmt14": ["en-fr", "fr-en"],  # French
-    "wmt16": ["en-ro", "ro-en", "de-en", "en-de"],  # German, Romanian
-}
-
-
-# 28 total
-selected_translation_benchmarks = {
-    **gpt3_translation_benchmarks,
-    "wmt20": sacrebleu.get_langpairs_for_testset("wmt20"),
-    "iwslt17": ["en-ar", "ar-en"],  # Arabic
-}
-
-# 319 total
-all_translation_benchmarks = {
-    ts: sacrebleu.get_langpairs_for_testset(ts)
-    for ts in sacrebleu.get_available_testsets()
-}
+from . import lince
+from . import race
+from . import superglue
+from . import wino_bias
+from . import wmt
 
 
 ########################################
@@ -121,126 +51,25 @@ TASK_REGISTRY = {
     "record": superglue.ReCoRD,
     "wic": superglue.WordsInContext,
     "wsc": superglue.SGWinogradSchemaChallenge,
+    "axg": superglue.WinogenderSchemaDiagnostics,
+    "axb": superglue.BroadcoverageDiagnostics,
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
     "drop": drop.DROP,
-    "lambada": lambada.LAMBADA,
-    "lambada_cloze": lambada_cloze.LAMBADA_cloze,
     **gem_webnlg.construct_tasks(),
     # multilingual lambada
     **gem_asset_turk.construct_tasks(),
-    **lambada_multilingual.construct_tasks(),
-    "wikitext": wikitext.WikiText,
-    # "cbt-cn": cbt.CBTCN, # disabled pending context length fix
-    # "cbt-ne": cbt.CBTNE, # disabled pending context length fix
-    "piqa": piqa.PiQA,
-    "prost": prost.PROST,
-    "mc_taco": mc_taco.MCTACO,
-    # Science related
-    "pubmedqa": pubmedqa.Pubmed_QA,
-    "sciq": sciq.SciQ,
     "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
-    "qasper": qasper.QASPER,
-    "qa4mre_2011": qa4mre.QA4MRE_2011,
-    "qa4mre_2012": qa4mre.QA4MRE_2012,
-    "qa4mre_2013": qa4mre.QA4MRE_2013,
-    "triviaqa": triviaqa.TriviaQA,
-    "arc_easy": arc.ARCEasy,
-    "arc_challenge": arc.ARCChallenge,
-    # "quac": quac.QuAC, # not implemented yet
     "lama_trex": lama.Trex,
     "lama_squad": lama.Squad,
     "lama_google_re": lama.google_re,
     "lama_concptnet": lama.Conceptnet,
-    "logiqa": logiqa.LogiQA,
-    "hellaswag": hellaswag.HellaSwag,
-    "swag": swag.SWAG,
-    "openbookqa": openbookqa.OpenBookQA,
-    "squad2": squad.SQuAD2,
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
-    "headqa": headqa.HeadQAEsDeprecated,  # for backwards compat - headqa used to default to es
-    "headqa_es": headqa.HeadQAEs,
-    "headqa_en": headqa.HeadQAEn,
-    "mathqa": mathqa.MathQA,
-    "webqs": webqs.WebQs,
-    "wsc273": wsc273.WinogradSchemaChallenge273,
-    "winogrande": winogrande.Winogrande,
     "anli_r1": anli.ANLIRound1,
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
     "hans": hans.HANS,
-    "ethics_cm": hendrycks_ethics.EthicsCM,
-    "ethics_deontology": hendrycks_ethics.EthicsDeontology,
-    "ethics_justice": hendrycks_ethics.EthicsJustice,
-    "ethics_utilitarianism_original": hendrycks_ethics.EthicsUtilitarianismOriginal,
-    "ethics_utilitarianism": hendrycks_ethics.EthicsUtilitarianism,
-    "ethics_virtue": hendrycks_ethics.EthicsVirtue,
-    # "tydiqa_primary" : TyDiQA.Primary, not implemented yet
-    # "tydiqa_secondary" : TyDiQA.Secondary, not implemented yet
-    "truthfulqa_mc": truthfulqa.TruthfulQAMultipleChoice,
-    "truthfulqa_gen": truthfulqa.TruthfulQAGeneration,
-    # dialogue
-    "mutual": mutual.MuTual,
-    "mutual_plus": mutual.MuTualPlus,
-    # math
-    "math_algebra": hendrycks_math.MathAlgebra,
-    "math_counting_and_prob": hendrycks_math.MathCountingAndProbability,
-    "math_geometry": hendrycks_math.MathGeometry,
-    "math_intermediate_algebra": hendrycks_math.MathIntermediateAlgebra,
-    "math_num_theory": hendrycks_math.MathNumberTheory,
-    "math_prealgebra": hendrycks_math.MathPrealgebra,
-    "math_precalc": hendrycks_math.MathPrecalculus,
-    "math_asdiv": asdiv.Asdiv,
-    "gsm8k": gsm8k.GradeSchoolMath8K,
-    # arithmetic
-    "arithmetic_2da": arithmetic.Arithmetic2DPlus,
-    "arithmetic_2ds": arithmetic.Arithmetic2DMinus,
-    "arithmetic_3da": arithmetic.Arithmetic3DPlus,
-    "arithmetic_3ds": arithmetic.Arithmetic3DMinus,
-    "arithmetic_4da": arithmetic.Arithmetic4DPlus,
-    "arithmetic_4ds": arithmetic.Arithmetic4DMinus,
-    "arithmetic_5da": arithmetic.Arithmetic5DPlus,
-    "arithmetic_5ds": arithmetic.Arithmetic5DMinus,
-    "arithmetic_2dm": arithmetic.Arithmetic2DMultiplication,
-    "arithmetic_1dc": arithmetic.Arithmetic1DComposite,
-    # TODO Perhaps make these groups of tasks
-    #   e.g. anli, arithmetic, openai_translations, harness_translations
-    # hendrycksTest (57 tasks)
-    **hendrycks_test.create_all_tasks(),
-    # e.g. wmt14-fr-en
-    **translation.create_tasks_from_benchmarks(gpt3_translation_benchmarks),
-    # chef's selection, mostly wmt20
-    **translation.create_tasks_from_benchmarks(selected_translation_benchmarks),
-    # Word Scrambling and Manipulation Tasks
-    "anagrams1": unscramble.Anagrams1,
-    "anagrams2": unscramble.Anagrams2,
-    "cycle_letters": unscramble.CycleLetters,
-    "random_insertion": unscramble.RandomInsertion,
-    "reversed_words": unscramble.ReversedWords,
-    # Pile
-    "pile_arxiv": pile.PileArxiv,
-    "pile_books3": pile.PileBooks3,
-    "pile_bookcorpus2": pile.PileBookCorpus2,
-    "pile_dm-mathematics": pile.PileDmMathematics,
-    "pile_enron": pile.PileEnron,
-    "pile_europarl": pile.PileEuroparl,
-    "pile_freelaw": pile.PileFreeLaw,
-    "pile_github": pile.PileGithub,
-    "pile_gutenberg": pile.PileGutenberg,
-    "pile_hackernews": pile.PileHackernews,
-    "pile_nih-exporter": pile.PileNIHExporter,
-    "pile_opensubtitles": pile.PileOpenSubtitles,
-    "pile_openwebtext2": pile.PileOpenWebText2,
-    "pile_philpapers": pile.PilePhilPapers,
-    "pile_pile-cc": pile.PilePileCc,
-    "pile_pubmed-abstracts": pile.PilePubmedAbstracts,
-    "pile_pubmed-central": pile.PilePubmedCentral,
-    "pile_stackexchange": pile.PileStackExchange,
-    "pile_uspto": pile.PileUspto,
-    "pile_ubuntu-irc": pile.PileUbuntuIrc,
-    "pile_wikipedia": pile.PileWikipedia,
-    "pile_youtubesubtitles": pile.PileYoutubeSubtitles,
     # BLiMP
     "blimp_adjunct_island": blimp.BlimpAdjunctIsland,
     "blimp_anaphor_gender_agreement": blimp.BlimpAnaphorGenderAgreement,
@@ -340,16 +169,12 @@ TASK_REGISTRY = {
     # Crows-Pairs
     "crows_pairs_english": crows_pairs_multilingual.CrowsPairsEnglish,
     "crows_pairs_french": crows_pairs_multilingual.CrowsPairsFrench,
-    # Bias SHADES
-    "shades_english": bias_shades.ShadesEnglish,
-    "shades_french": bias_shades.ShadesFrench,
-    "shades_hindi": bias_shades.ShadesHindi,
-    "shades_arabic": bias_shades.ShadesArabic,
-    "shades_spanish": bias_shades.ShadesSpanish,
-    # JigSaw
-    "jigsaw_unintended_bias": jigsaw_unintended_bias.JigsawUnintendedBias,
     # News
-    "huffpost": HuffPost.HuffPost,
+    "huffpost": huff_post.HuffPost,
+    # Code-switching
+    "lince_sa": lince.LinCESentimentAnalysis,
+    # WMT
+    **wmt.create_year_tasks(wmt.WMT14_TASKS),
 }
 
 
