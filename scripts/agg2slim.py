@@ -43,10 +43,10 @@ def main():
     for agg_json_filename in glob.glob("./outputs/agg*.json"):
         with open(agg_json_filename, "r") as jf:
             data = json.load(jf)
+        slim_json_filename = agg_json_filename.replace("agg", "slim")
+        if os.path.exists(slim_json_filename):
+            print("Skipping file as it already exists.")
         slim = agg2slim(data)
-        # I'm adding the tag `deagg_` so that it won't overwrite future slim
-        # outputs.
-        slim_json_filename = agg_json_filename.replace("agg", "slim_deagg")
         with open(slim_json_filename, "w") as jf:
             json.dump(slim, jf, indent=2)
 
