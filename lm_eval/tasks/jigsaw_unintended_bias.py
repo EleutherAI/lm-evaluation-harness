@@ -108,10 +108,15 @@ class JigsawUnintendedBias(PromptSourceTask):
         assert isinstance(target, list) and len(target) == 1
         target = target[0].strip()
 
-        pred = answer_choices_list[np.argmax(results)]
         out = {}
-
-        out["acc"] = pred == target
+        if answer_choices_list:
+            pred = answer_choices_list[np.argmax(results)]
+            out["acc"] = pred == target
+        else:
+            pred = np.argmax(results)
+            scale = target / doc["target"]
+            out["acc"] = (pred/scale > 0.5) == (doc["target"] > 0.5)
+        
         for x in ["tp", "tn", "fn", "fp"]:
             out[x] = False
 
