@@ -49,7 +49,7 @@ class Flores101(PerplexityTask):
         return doc["sentence"]
 
 
-LANG_SPLITS = [
+LANGS = [
     "afr",
     "amh",
     "ara",
@@ -155,12 +155,16 @@ LANG_SPLITS = [
 ]
 
 
-class Flores101Afr(Flores101):
-    VERSION = 0
-    DATASET_NAME = "afr"
+def make_class(lang):
+    class Flores101Lang(Flores101):
+        DATASET_NAME = lang
+
+    return Flores101Lang
 
 
 def construct_tasks():
     tasks = {}
-    tasks[f"gsarti/flores_101_afr"] = Flores101Afr
+    for lang in LANGS:
+        # Dynamically create a class for each language with a different `DATASET_NAME`
+        tasks[f"gsarti/flores_101_{lang}"] = make_class(lang)
     return tasks
