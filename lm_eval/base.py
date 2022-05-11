@@ -1,8 +1,6 @@
 import abc
-import ast
 from typing import Iterable, List, Optional
 
-import promptsource
 import numpy as np
 import random
 import re
@@ -15,9 +13,12 @@ from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 
-from lm_eval import metrics
-from lm_eval.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
-from lm_eval import utils
+from lm_eval.metrics import (
+    mean,
+    weighted_perplexity,
+    bits_per_byte,
+)
+from lm_eval import utils, metrics
 from abc import abstractmethod
 
 
@@ -612,7 +613,7 @@ class PromptSourceTask(Task):
     """
 
     CONFIGURED_RANKED_CHOICE_PS_METRICS = set(["Accuracy"])
-    CONFIGURED_GENERATION_PS_METRICS = set(["BLEU", "ROUGE"])
+    CONFIGURED_GENERATION_PS_METRICS = set(["BLEU", "ROUGE", "SARI"])
     SPLIT = None
 
     def __init__(
@@ -663,6 +664,15 @@ class PromptSourceTask(Task):
         text, _ = self.prompt.apply(doc)
         return text
 
+    def doc_to_rawtext(self, doc):
+        """This should be used for selecting the raw text of the document.
+
+        The current use case is for computing SARI which requires the text
+        without the prompt. The `text` field is not standarized across tasks
+        so this is task specific.
+        """
+        raise NotImplementedError("This is task specific.")
+
     def construct_requests(self, doc, ctx, args):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
@@ -711,9 +721,7 @@ class PromptSourceTask(Task):
         target = self.doc_to_target(doc)
         if answer_choices_list:
             # If answer_choices_list, then this is a ranked choice prompt.
-            # NOTE: In the future, target will be a list of strings.
-            # For now, we can assume there will be only 1 target, but its possible
-            # that this not the case so we should check for that.
+            # NOTE: In the future, target could be a list of strings.
             assert isinstance(target, list) and len(target) == 1
             target = target[0].strip()
 
@@ -748,6 +756,8 @@ class PromptSourceTask(Task):
                     rouge_scores = utils.flatten(rouge_scores)
                     # Merge all the rouge-type scores into the `out` dict.
                     out = {**out, **rouge_scores}
+                elif metric == "SARI":
+                    out["sari"] = metrics.sari(self.doc_to_rawtext(doc), pred, target)
 
         # TODO: Wrap process results s.t. override impl do not
         # override the save examples.
@@ -765,9 +775,9 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = True
-            if metric == "BLEU":
+            elif metric == "BLEU":
                 out["bleu"] = True
-            if metric == "ROUGE":
+            elif metric == "ROUGE":
                 # TODO: Find a generic way to handle user specified rouge metrics.
                 out["rouge1_precision"] = True
                 out["rouge1_recall"] = True
@@ -784,6 +794,8 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = True
                 out["rougeLsum_recall"] = True
                 out["rougeLsum_fmeasure"] = True
+            elif metric == "SARI":
+                out["sari"] = True
         return out
 
     def aggregation(self):
@@ -791,9 +803,9 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = mean
-            if metric == "BLEU":
+            elif metric == "BLEU":
                 out["bleu"] = metrics.bleu
-            if metric == "ROUGE":
+            elif metric == "ROUGE":
                 # TODO: Find a generic way to handle user specified rouge metrics.
                 out["rouge1_precision"] = mean
                 out["rouge1_recall"] = mean
@@ -810,6 +822,8 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = mean
                 out["rougeLsum_recall"] = mean
                 out["rougeLsum_fmeasure"] = mean
+            elif metric == "SARI":
+                out["sari"] = mean
         return out
 
     def fewshot_examples(self, k, rnd):
