@@ -230,7 +230,7 @@ def get_task_dict_promptsource(task_name_list: List[str]):
         # Static version of the Task Use this to get HF dataset path / name.
         static_task_obj = get_task(task_name)
 
-        if isinstance(static_task_obj, lm_eval.base.PromptSourceTask):
+        if issubclass(static_task_obj, lm_eval.base.PromptSourceTask):
             # Create the proper task name arg for DatasetTemplates.
             sub_task = (
                 f"/{static_task_obj.DATASET_NAME}"
