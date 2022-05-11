@@ -1075,7 +1075,7 @@ class MultipleChoiceTask(Task):
 
 
 class PerplexityTask(Task, abc.ABC):
-    def has_training_docs(self):
+    def invalid_doc_for_prompt(self, _):
         return False
 
     def fewshot_examples(self, k, rnd):
@@ -1102,7 +1102,13 @@ class PerplexityTask(Task, abc.ABC):
                 "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
             )
 
-        return ""
+        return (
+            "",
+            {
+                "fewshot_num": 0,
+                "ctx": "",
+            },
+        )
 
     def higher_is_better(self):
         return {
@@ -1115,22 +1121,27 @@ class PerplexityTask(Task, abc.ABC):
         return ""
 
     def doc_to_target(self, doc):
+        """NOTE: This won't work for most HF datasets.
+
+        Over-ride this function per task.
+        """
         return doc
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, _):
         assert not ctx
         req = rf.loglikelihood_rolling(self.doc_to_target(doc))
         return req
 
     def process_results(self, doc, results):
         (loglikelihood,) = results
-        words = self.count_words(doc)
-        bytes_ = self.count_bytes(doc)
+        target = self.doc_to_target(doc)
+        words = self.count_words(target)
+        bytes_ = self.count_bytes(target)
         return {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
             "bits_per_byte": (loglikelihood, bytes_),
-        }
+        }, {"domain": doc["domain"], "topic": doc["topic"]}
 
     def aggregation(self):
         return {
@@ -1147,6 +1158,13 @@ class PerplexityTask(Task, abc.ABC):
     def count_words(cls, doc):
         """Downstream tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
+
+    def get_logging_info(self):
+        return {
+            "dataset_path": self.DATASET_PATH,
+            "dataset_name": self.DATASET_NAME,
+            "prompt_name": None,
+        }
 
 
 def hash_args(attr, args):
