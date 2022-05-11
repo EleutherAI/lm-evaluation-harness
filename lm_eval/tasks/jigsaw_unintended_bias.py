@@ -31,7 +31,7 @@ class JigsawUnintendedBias(PromptSourceTask):
         Jigsaw Toxicity must be downloaded from Kaggle from this url: 
         https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/data
         """
-        data_dir = os.path.dirname(os.path.abspath(inspect.getfile(lm_eval.datasets.jigsaw_unintended_bias.jigsaw_unintended_bias)))
+        data_dir = os.path.dirname(os.path.abspath(inspect.getfile(lm_eval.datasets.jigsaw_unintended_bias.__init__)))
         super().__init__(data_dir=data_dir, **kwargs)
 
     def has_training_docs(self):
@@ -124,18 +124,18 @@ class JigsawUnintendedBias(PromptSourceTask):
                 out["acc"] = False
         
         for x in ["tp", "tn", "fn", "fp"]:
-            out[x] = False
+            out[x] = 0
 
         if out["acc"]:
             if doc["target"] > 0.5:
-                doc["tp"] = True
+                doc["tp"] = 1
             else:
-                doc["tn"] = True
+                doc["tn"] = 1
         else:
             if doc["target"] > 0.5:
-                doc["fn"] = True
+                doc["fn"] = 1
             else:
-                doc["fp"] = True
+                doc["fp"] = 1
 
         dimension_to_identity_set = {"race": ["black", "white", "asian", "latino", "other_race_or_ethnicity"], 
                                      "gender_nonbinary": ["male", "female", "transgender", "other_gender"]}
