@@ -31,7 +31,7 @@ class JigsawUnintendedBias(PromptSourceTask):
         Jigsaw Toxicity must be downloaded from Kaggle from this url: 
         https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/data
         """
-        data_dir = os.path.dirname(os.path.abspath(inspect.getfile(lm_eval.datasets.jigsaw_unintended_bias.__init__)))
+        data_dir = os.path.dirname(os.path.abspath(inspect.getfile(lm_eval.datasets.jigsaw_unintended_bias.jigsaw_unintended_bias)))
         super().__init__(data_dir=data_dir, **kwargs)
 
     def has_training_docs(self):
