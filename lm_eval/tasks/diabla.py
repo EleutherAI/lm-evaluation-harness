@@ -20,6 +20,7 @@ versions and reference translations produced a posteriori
 Homepage: http://almanach.inria.fr/software_and_resources/custom/DiaBLa-en.html
 """
 from lm_eval.base import PromptSourceTask
+from typing import List
 
 _CITATION = """@article{bawden_DiaBLa:-A-Corpus-of_2021,
   author = {Bawden, Rachel and Bilinski, Eric and Lavergne, Thomas and Rosset, Sophie},
@@ -75,3 +76,10 @@ class DiaBLa(PromptSourceTask):
         if self.doc_to_target(doc) in ([""], ""):
             return True
         return False
+
+    def doc_to_target(self, doc) -> List[str]:
+        _, target = self.prompt.apply(doc)
+        if isinstance(target, list):
+            return target
+        else:
+            return [target]
