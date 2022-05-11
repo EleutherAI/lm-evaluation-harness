@@ -1,15 +1,12 @@
 import collections
 import itertools
-import pathlib
+import numpy as np
 import random
 import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
-import lm_eval.decontamination
-import numpy as np
 from lm_eval.utils import positional_deprecated, run_task_tests
-from lm_eval.decontamination.decontaminate import get_train_overlap
 
 
 @positional_deprecated
@@ -228,6 +225,7 @@ def evaluate(
 
     # Compare all tasks/sets at once to ensure a single training set scan
     if decontaminate:
+        from lm_eval.decontamination.decontaminate import get_train_overlap
         print("Finding train/test overlap, please wait...")
         overlaps = get_train_overlap(
             docs_for_decontamination, decontamination_ngrams_path, limit
