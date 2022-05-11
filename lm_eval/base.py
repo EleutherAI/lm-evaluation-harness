@@ -1131,7 +1131,7 @@ class PerplexityTask(Task, abc.ABC):
     def doc_to_target(self, doc):
         """NOTE: This won't work for most HF datasets.
 
-        Over-ride this function per t
+        Over-ride this function per task.
         """
         return doc
 
