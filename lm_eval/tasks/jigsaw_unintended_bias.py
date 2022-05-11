@@ -115,8 +115,11 @@ class JigsawUnintendedBias(PromptSourceTask):
         else:
             pred = np.argmax(results)
             try:
-                scale = float(target) / doc["target"]
-                out["acc"] = (float(pred)/scale > 0.5) == (doc["target"] > 0.5)
+                if doc["target"] != 0:
+                    scale = float(target) / doc["target"]
+                    out["acc"] = (float(pred)/scale > 0.5) == (doc["target"] > 0.5)
+                else:
+                    out["acc"] = pred == doc["target"]
             except ValueError:
                 out["acc"] = False
         
