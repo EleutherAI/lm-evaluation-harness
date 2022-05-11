@@ -1123,7 +1123,7 @@ class PerplexityTask(Task, abc.ABC):
     def doc_to_target(self, doc):
         """NOTE: This won't work for most HF datasets.
 
-        Over-ride this function per task.
+        Over-ride this function per t
         """
         return doc
 
@@ -1161,8 +1161,6 @@ class PerplexityTask(Task, abc.ABC):
 
     def get_logging_info(self):
         return {
-            "dataset_path": self.DATASET_PATH,
-            "dataset_name": self.DATASET_NAME,
             "prompt_name": None,
         }
 
