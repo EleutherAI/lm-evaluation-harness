@@ -52,7 +52,7 @@ def oa_completion(**kwargs):
             backoff_time *= 1.5
 
 
-class CompletionLM(BaseLM):
+class GPT3LM(BaseLM):
     REQ_CHUNK_SIZE = 20
 
     def __init__(self, engine, device=None, truncate=False, parallelize=False):
