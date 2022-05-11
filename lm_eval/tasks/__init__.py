@@ -3,6 +3,7 @@ from pprint import pprint
 from typing import List, Union
 
 import sacrebleu
+from promptsource.templates import DatasetTemplates
 import lm_eval.base
 
 from . import anli
@@ -24,6 +25,7 @@ from . import race
 from . import superglue
 from . import wino_bias
 from . import wmt
+from . import crd3
 
 
 ########################################
@@ -173,6 +175,8 @@ TASK_REGISTRY = {
     "huffpost": huff_post.HuffPost,
     # Code-switching
     "lince_sa": lince.LinCESentimentAnalysis,
+    # CRD3
+    "crd3": crd3.CRD3
     # WMT
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
 }
