@@ -1,12 +1,12 @@
 import typing
 import math
 from collections.abc import Iterable
-
 import numpy as np
 import sacrebleu
 from rouge_score import rouge_scorer
 import sklearn.metrics
 import random
+from lm_eval.metric_impls import sari as sari_impl
 
 
 def mean(arr):
@@ -20,7 +20,10 @@ def pop_stddev(arr):
 
 def sample_stddev(arr):
     mu = mean(arr)
-    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
+    if len(arr) == 1:
+        return 0
+    else:
+        return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
 
 
 def mean_stderr(arr):
@@ -92,7 +95,9 @@ def compute_parity_scores(items):
     parity_scores = []
     for idx in indices2predictions.keys():
         if (idx % 2) == 0 and (idx + 1) in indices2predictions:
-            parity_scores.append(int(indices2predictions[idx] == indices2predictions[idx + 1]))
+            parity_scores.append(
+                int(indices2predictions[idx] == indices2predictions[idx + 1])
+            )
 
     return parity_scores
 
@@ -102,7 +107,7 @@ def parity(items):
     if len(parity_scores) > 0:
         acc = mean(parity_scores)
     else:
-        acc = 0.
+        acc = 0.0
 
     return acc
 
@@ -112,7 +117,7 @@ def parity_stderr(items):
     if len(parity_scores) > 0:
         stderr = mean_stderr(parity_scores)
     else:
-        stderr = 0.
+        stderr = 0.0
 
     return stderr
 
@@ -138,8 +143,14 @@ def weighted_mean(items):
 def weighted_perplexity(items):
     return math.exp(-weighted_mean(items))
 
+
 def bits_per_byte(items):
     return -weighted_mean(items) / math.log(2)
+
+
+def sari(sentence_to_simplifiy, generated_sentence, references):
+    """Implementation of SARI from the authors'."""
+    return sari_impl.SARIsent(sentence_to_simplifiy, generated_sentence, references)
 
 
 def bleu(items):
@@ -223,9 +234,9 @@ def _sacreformat(refs, preds):
 def rouge(
     refs: typing.List[str],
     pred: str,
-    rouge_types: typing.List[str] = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
+    rouge_types: typing.List[str] = ["rouge1", "rouge2", "rougeL", "rougeLsum"],
 ):
-    """ ROUGE with multi-reference support
+    """ROUGE with multi-reference support
 
     Implementation based on GEM-metrics:
     https://github.com/GEM-benchmark/GEM-metrics/blob/431a8174bd6b3637e8d6118bfad2983e39e99733/gem_metrics/rouge.py
@@ -289,6 +300,7 @@ def rouge(
 
 # stderr stuff
 
+
 class _bootstrap_internal:
     def __init__(self, f, n):
         self.f = f
@@ -306,9 +318,10 @@ class _bootstrap_internal:
 
 def bootstrap_stderr(f, xs, iters):
     import multiprocessing as mp
+
     pool = mp.Pool(mp.cpu_count())
     # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
-    # equivalent to stderr calculated without Bessel's correction in the stddev. 
+    # equivalent to stderr calculated without Bessel's correction in the stddev.
     # Unfortunately, I haven't been able to figure out what the right correction is
     # to make the bootstrap unbiased - i considered multiplying by sqrt(n/(n-1)) but
     # that would be ad-hoc and I can't prove that that would actually be an unbiased estimator)
@@ -316,10 +329,15 @@ def bootstrap_stderr(f, xs, iters):
     res = []
     chunk_size = min(1000, iters)
     from tqdm import tqdm
+
     print("bootstrapping for stddev:", f.__name__)
-    for bootstrap in tqdm(pool.imap(
+    for bootstrap in tqdm(
+        pool.imap(
             _bootstrap_internal(f, chunk_size),
-            [(i, xs) for i in range(iters // chunk_size)]), total=iters // chunk_size):
+            [(i, xs) for i in range(iters // chunk_size)],
+        ),
+        total=iters // chunk_size,
+    ):
         # sample w replacement
         res.extend(bootstrap)
 
@@ -341,17 +359,13 @@ def stderr_for_metric(metric, bootstrap_iters):
     if metric in bootstrappable:
         return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
 
-    stderr = {
-        mean: mean_stderr,
-        acc_all: acc_all_stderr,
-        parity: parity_stderr
-    }
+    stderr = {mean: mean_stderr, acc_all: acc_all_stderr, parity: parity_stderr}
 
     return stderr.get(metric, None)
 
 
 def yesno(x):
     if x:
-        return 'yes'
+        return "yes"
     else:
-        return 'no'
+        return "no"
