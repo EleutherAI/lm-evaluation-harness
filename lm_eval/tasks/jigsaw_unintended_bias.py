@@ -154,6 +154,15 @@ class JigsawUnintendedBias(PromptSourceTask):
                     out[f"{dimension}_tn"] = np.nan
                     out[f"{dimension}_fp"] = np.nan
                     out[f"{dimension}_fn"] = np.nan
+                # TODO: Wrap process results s.t. override impl do not
+        # override the save examples.
+        if self.save_examples:
+            example = {
+                "pred": pred,
+                "target": target,
+                "answer_choices_list": answer_choices_list,
+            }
+            return out, example
         return out
 
     # def false_positive_rate(self, y_true, y_fpred):
