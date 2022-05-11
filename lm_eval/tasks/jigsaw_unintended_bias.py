@@ -146,17 +146,17 @@ class JigsawUnintendedBias(PromptSourceTask):
             identity_to_fpr = {x: np.nan for x in identity_set}
             for identity in identity_set:
                 if doc[identity]:
-                    out[f"{dimension}_acc"] = out["acc"]
-                    out[f"{dimension}_tp"] = out["tp"]
-                    out[f"{dimension}_tn"] = out["tn"]
-                    out[f"{dimension}_fp"] = out["fp"]
-                    out[f"{dimension}_fn"] = out["fn"]
+                    out[f"{identity}_acc"] = out["acc"]
+                    out[f"{identity}_tp"] = out["tp"]
+                    out[f"{identity}_tn"] = out["tn"]
+                    out[f"{identity}_fp"] = out["fp"]
+                    out[f"{identity}_fn"] = out["fn"]
                 else:
-                    out[f"{dimension}_acc"] = np.nan
-                    out[f"{dimension}_tp"] = np.nan
-                    out[f"{dimension}_tn"] = np.nan
-                    out[f"{dimension}_fp"] = np.nan
-                    out[f"{dimension}_fn"] = np.nan
+                    out[f"{identity}_acc"] = np.nan
+                    out[f"{identity}_tp"] = np.nan
+                    out[f"{identity}_tn"] = np.nan
+                    out[f"{identity}_fp"] = np.nan
+                    out[f"{identity}_fn"] = np.nan
         # TODO: Wrap process results s.t. override impl do not
         # override the save examples.
         if self.save_examples:
@@ -223,11 +223,11 @@ class JigsawUnintendedBias(PromptSourceTask):
 
         for dimension, identity_set in dimension_to_identity_set.items():
             for identity in identity_set:
-                out[f"{dimension}_acc"] = np.nanmean
-                out[f"{dimension}_tp"] = np.nansum
-                out[f"{dimension}_tn"] = np.nansum
-                out[f"{dimension}_fp"] = np.nansum
-                out[f"{dimension}_fn"] = np.nansum
+                out[f"{identity}_acc"] = np.nanmean
+                out[f"{identity}_tp"] = np.nansum
+                out[f"{identity}_tn"] = np.nansum
+                out[f"{identity}_fp"] = np.nansum
+                out[f"{identity}_fn"] = np.nansum
         return out
 
 
