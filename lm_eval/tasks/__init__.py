@@ -2,7 +2,6 @@ from promptsource.templates import DatasetTemplates
 from pprint import pprint
 from typing import List, Union
 
-import sacrebleu
 from promptsource.templates import DatasetTemplates
 import lm_eval.base
 
@@ -179,7 +178,7 @@ TASK_REGISTRY = {
     # Code-switching
     "lince_sa": lince.LinCESentimentAnalysis,
     # CRD3
-    "crd3": crd3.CRD3
+    "crd3": crd3.CRD3,
     # WMT
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
 }
