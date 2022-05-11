@@ -1075,6 +1075,14 @@ class MultipleChoiceTask(Task):
 
 
 class PerplexityTask(Task, abc.ABC):
+    def __init__(
+        self, data_dir=None, cache_dir=None, download_mode=None, save_examples=False
+    ):
+        super().__init__(data_dir, cache_dir, download_mode)
+        # It isn't clear what we should log per example given that the perplexity is aggregated.
+        # For `Flores101`, I set this to be true so we can get statistics on the domains/topics.
+        self.save_examples = save_examples
+
     def invalid_doc_for_prompt(self, _):
         return False
 
@@ -1137,11 +1145,23 @@ class PerplexityTask(Task, abc.ABC):
         target = self.doc_to_target(doc)
         words = self.count_words(target)
         bytes_ = self.count_bytes(target)
-        return {
+
+        out = {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
             "bits_per_byte": (loglikelihood, bytes_),
-        }, {"domain": doc["domain"], "topic": doc["topic"]}
+        }
+        if self.save_examples:
+            return out, {
+                "word_perplexity_instance": weighted_perplexity(
+                    [(loglikelihood, words)]
+                ),
+                "byte_perplexity_instance": weighted_perplexity(
+                    [(loglikelihood, bytes_)]
+                ),
+                "bits_per_byte_instance": bits_per_byte([(loglikelihood, bytes_)]),
+            }
+        return out
 
     def aggregation(self):
         return {

@@ -29,7 +29,13 @@ class Flores101(PerplexityTask):
         prompt=None,
         save_examples=True,
     ):
-        super().__init__(data_dir, cache_dir, download_mode)
+        super().__init__(
+            data_dir,
+            cache_dir,
+            download_mode,
+            # True! We want to track the performance across different topics/domains
+            save_examples=save_examples,
+        )
         self.save_examples = save_examples
 
     def has_training_docs(self):
@@ -47,6 +53,15 @@ class Flores101(PerplexityTask):
     def doc_to_target(self, doc):
         """This is a null prompt task. We need to get the target from the doc."""
         return doc["sentence"]
+
+    def process_results(self, doc, results):
+        if self.save_examples:
+            out, log = super().process_results(doc, results)
+            log["topic"] = doc["topic"]
+            log["domain"] = doc["domain"]
+            return out, log
+        else:
+            return super().process_results(doc, results)
 
 
 LANGS = [
