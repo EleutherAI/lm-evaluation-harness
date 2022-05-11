@@ -1,8 +1,6 @@
 import abc
-import ast
 from typing import Iterable, List, Optional
 
-import promptsource
 import numpy as np
 import random
 import re
@@ -15,9 +13,12 @@ from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 
-from lm_eval import metrics
-from lm_eval.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
-from lm_eval import utils
+from lm_eval.metrics import (
+    mean,
+    weighted_perplexity,
+    bits_per_byte,
+)
+from lm_eval import utils, metrics
 from abc import abstractmethod
 
 
@@ -604,7 +605,7 @@ class PromptSourceTask(Task):
     """
 
     CONFIGURED_RANKED_CHOICE_PS_METRICS = set(["Accuracy"])
-    CONFIGURED_GENERATION_PS_METRICS = set(["BLEU", "ROUGE"])
+    CONFIGURED_GENERATION_PS_METRICS = set(["BLEU", "ROUGE", "SARI"])
     SPLIT = None
 
     def __init__(
@@ -655,6 +656,15 @@ class PromptSourceTask(Task):
         text, _ = self.prompt.apply(doc)
         return text
 
+    def doc_to_rawtext(self, doc):
+        """This should be used for selecting the raw text of the document.
+
+        The current use case is for computing SARI which requires the text
+        without the prompt. The `text` field is not standarized across tasks
+        so this is task specific.
+        """
+        raise NotImplementedError("This is task specific.")
+
     def construct_requests(self, doc, ctx, args):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
@@ -703,9 +713,7 @@ class PromptSourceTask(Task):
         target = self.doc_to_target(doc)
         if answer_choices_list:
             # If answer_choices_list, then this is a ranked choice prompt.
-            # NOTE: In the future, target will be a list of strings.
-            # For now, we can assume there will be only 1 target, but its possible
-            # that this not the case so we should check for that.
+            # NOTE: In the future, target could be a list of strings.
             assert isinstance(target, list) and len(target) == 1
             target = target[0].strip()
 
@@ -740,6 +748,8 @@ class PromptSourceTask(Task):
                     rouge_scores = utils.flatten(rouge_scores)
                     # Merge all the rouge-type scores into the `out` dict.
                     out = {**out, **rouge_scores}
+                elif metric == "SARI":
+                    out["sari"] = metrics.sari(self.doc_to_rawtext(doc), pred, target)
 
         # TODO: Wrap process results s.t. override impl do not
         # override the save examples.
@@ -757,9 +767,9 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = True
-            if metric == "BLEU":
+            elif metric == "BLEU":
                 out["bleu"] = True
-            if metric == "ROUGE":
+            elif metric == "ROUGE":
                 # TODO: Find a generic way to handle user specified rouge metrics.
                 out["rouge1_precision"] = True
                 out["rouge1_recall"] = True
@@ -776,6 +786,8 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = True
                 out["rougeLsum_recall"] = True
                 out["rougeLsum_fmeasure"] = True
+            elif metric == "SARI":
+                out["sari"] = True
         return out
 
     def aggregation(self):
@@ -783,9 +795,9 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = mean
-            if metric == "BLEU":
+            elif metric == "BLEU":
                 out["bleu"] = metrics.bleu
-            if metric == "ROUGE":
+            elif metric == "ROUGE":
                 # TODO: Find a generic way to handle user specified rouge metrics.
                 out["rouge1_precision"] = mean
                 out["rouge1_recall"] = mean
@@ -802,6 +814,8 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = mean
                 out["rougeLsum_recall"] = mean
                 out["rougeLsum_fmeasure"] = mean
+            elif metric == "SARI":
+                out["sari"] = mean
         return out
 
     def fewshot_examples(self, k, rnd):
@@ -944,24 +958,26 @@ class TranslationTask(PromptSourceTask):
     def zh_split(cls, zh_text):
         """Chinese splitting"""
         import jieba
+
         return [" ".join(jieba.cut(txt.strip())) for txt in zh_text]
 
     @classmethod
     def ja_split(cls, ja_text):
         """Japanese splitting"""
         import nagisa
+
         return [" ".join(nagisa.tagging(txt.strip()).words) for txt in ja_text]
 
     NO_SPACE_LANG = {"zh": zh_split, "ja": ja_split}
 
     def invalid_doc_for_prompt(self, doc) -> bool:
         # Skip docs with empty references.
-        if self.doc_to_target(doc) == ['']:
+        if self.doc_to_target(doc) == [""]:
             return True
         return False
 
     def _get_src_ref_codes(self, template_name: str):
-        """ Returns a 2-tuple of (src_lang, ref_lang) codes from the prompt template name. """
+        """Returns a 2-tuple of (src_lang, ref_lang) codes from the prompt template name."""
         # Get the lang codes from the dataset name.
         lang_pairs = self.DATASET_NAME.split("-")
         # Template name ordering defines the src and ref lang codes.
@@ -986,9 +1002,7 @@ class TranslationTask(PromptSourceTask):
         # Add spaces between words for BLEU score calculation of target languages like Chinese
         _, tar_lang_code = self._get_src_ref_codes(self.prompt.name)
         if tar_lang_code in self.NO_SPACE_LANG:
-            target = [
-                self.NO_SPACE_LANG[tar_lang_code]([t])[0] for t in target
-            ] 
+            target = [self.NO_SPACE_LANG[tar_lang_code]([t])[0] for t in target]
             results = self.NO_SPACE_LANG[tar_lang_code](results)
         pred = results[0].strip()
 
@@ -1061,7 +1075,15 @@ class MultipleChoiceTask(Task):
 
 
 class PerplexityTask(Task, abc.ABC):
-    def has_training_docs(self):
+    def __init__(
+        self, data_dir=None, cache_dir=None, download_mode=None, save_examples=False
+    ):
+        super().__init__(data_dir, cache_dir, download_mode)
+        # It isn't clear what we should log per example given that the perplexity is aggregated.
+        # For `Flores101`, I set this to be true so we can get statistics on the domains/topics.
+        self.save_examples = save_examples
+
+    def invalid_doc_for_prompt(self, _):
         return False
 
     def fewshot_examples(self, k, rnd):
@@ -1088,7 +1110,13 @@ class PerplexityTask(Task, abc.ABC):
                 "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
             )
 
-        return ""
+        return (
+            "",
+            {
+                "fewshot_num": 0,
+                "ctx": "",
+            },
+        )
 
     def higher_is_better(self):
         return {
@@ -1101,22 +1129,39 @@ class PerplexityTask(Task, abc.ABC):
         return ""
 
     def doc_to_target(self, doc):
+        """NOTE: This won't work for most HF datasets.
+
+        Over-ride this function per task.
+        """
         return doc
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, _):
         assert not ctx
         req = rf.loglikelihood_rolling(self.doc_to_target(doc))
         return req
 
     def process_results(self, doc, results):
         (loglikelihood,) = results
-        words = self.count_words(doc)
-        bytes_ = self.count_bytes(doc)
-        return {
+        target = self.doc_to_target(doc)
+        words = self.count_words(target)
+        bytes_ = self.count_bytes(target)
+
+        out = {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
             "bits_per_byte": (loglikelihood, bytes_),
         }
+        if self.save_examples:
+            return out, {
+                "word_perplexity_instance": weighted_perplexity(
+                    [(loglikelihood, words)]
+                ),
+                "byte_perplexity_instance": weighted_perplexity(
+                    [(loglikelihood, bytes_)]
+                ),
+                "bits_per_byte_instance": bits_per_byte([(loglikelihood, bytes_)]),
+            }
+        return out
 
     def aggregation(self):
         return {
@@ -1133,6 +1178,11 @@ class PerplexityTask(Task, abc.ABC):
     def count_words(cls, doc):
         """Downstream tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
+
+    def get_logging_info(self):
+        return {
+            "prompt_name": None,
+        }
 
 
 def hash_args(attr, args):

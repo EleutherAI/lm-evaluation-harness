@@ -62,16 +62,16 @@ def args_to_name(args):
         datetime.datetime.now().isoformat(),
     ]
     fields = [f for f in fields if f is not None]
-
+    # Some prompts also have "/" in them!
+    filename = "_".join(fields).replace("/", "-")
     if args.limit is not None:
         # Do not use limited files for final analysis.
-        return f"limited_{args.limit}_" + "_".join(fields)
-    return "_".join(fields)
+        return f"limited_{args.limit}_" + filename
+
+    return filename
 
 
 def main():
-    tracker = OfflineEmissionsTracker(country_iso_code="FRA")
-    tracker.start()
     args = parse_args()
     assert not args.provide_description  # not implemented
 
@@ -90,33 +90,39 @@ def main():
         with open(args.description_dict_path, "r") as f:
             description_dict = json.load(f)
 
-    results = evaluator.simple_evaluate(
-        model=args.model,
-        model_args=args.model_args,
-        tasks=task_names,
-        num_fewshot=args.num_fewshot,
-        batch_size=args.batch_size,
-        device=args.device,
-        no_cache=args.no_cache,
-        limit=args.limit,
-        description_dict=description_dict,
-        check_integrity=args.check_integrity,
-        seed=args.seed,
-        parallelize=args.parallelize,
-    )
+    with OfflineEmissionsTracker(country_iso_code="FRA"):
+        results = evaluator.simple_evaluate(
+            model=args.model,
+            model_args=args.model_args,
+            tasks=task_names,
+            num_fewshot=args.num_fewshot,
+            batch_size=args.batch_size,
+            device=args.device,
+            no_cache=args.no_cache,
+            limit=args.limit,
+            description_dict=description_dict,
+            check_integrity=args.check_integrity,
+            seed=args.seed,
+            parallelize=args.parallelize,
+        )
 
     output_path = args_to_name(args)
     os.makedirs("./outputs", exist_ok=True)
     with open(f"./outputs/examples-{output_path}.json", "w") as f:
-        json.dump(
-            {"examples": results["examples"], "config": results["examples"]},
-            f,
-        )
+        json.dump({"examples": results["examples"], "config": results["config"]}, f)
     with open(f"./outputs/agg-{output_path}.json", "w") as f:
-        json.dump({"results": results["results"], "config": results["examples"]}, f)
-    # TODO: Rename codecarbon.csv.
+        json.dump({"results": results["results"], "config": results["config"]}, f)
+
+    from scripts.agg2slim import agg2slim
+
+    with open(f"./outputs/slim-{output_path}.json", "w") as f:
+        # We add `indent = 2` to help with quick readability.
+        json.dump(
+            agg2slim(results),
+            f,
+            indent=2,
+        )
     print(evaluator.make_table(results))
-    tracker.stop()
     emissions_output_path = f"./outputs/emissions-{output_path}.csv"
     os.rename("emissions.csv", emissions_output_path)
 
