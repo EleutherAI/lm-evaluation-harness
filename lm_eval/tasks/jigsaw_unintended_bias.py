@@ -131,14 +131,14 @@ class JigsawUnintendedBias(PromptSourceTask):
 
         if out["acc"]:
             if doc["target"] > 0.5:
-                doc["tp"] = True
+                out["tp"] = True
             else:
-                doc["tn"] = True
+                out["tn"] = True
         else:
             if doc["target"] > 0.5:
-                doc["fn"] = True
+                out["fn"] = True
             else:
-                doc["fp"] = True
+                out["fp"] = True
 
         dimension_to_identity_set = {"race": ["black", "white", "asian", "latino", "other_race_or_ethnicity"], 
                                      "gender_nonbinary": ["male", "female", "transgender", "other_gender"]}
