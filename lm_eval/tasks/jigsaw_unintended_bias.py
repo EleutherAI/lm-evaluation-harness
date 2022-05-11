@@ -101,7 +101,6 @@ class JigsawUnintendedBias(PromptSourceTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        # TODO: this does not yet handle the situation of a prompt with `answer_choices: null``
 
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)
@@ -110,16 +109,20 @@ class JigsawUnintendedBias(PromptSourceTask):
 
         out = {}
         if answer_choices_list:
+            # Handles situation where the model is asked for a categorical answer
+            # E.g. yes/no.
             pred = answer_choices_list[np.argmax(results)]
             out["acc"] = pred == target
         else:
+            # Handles situation where the model is asked for a numerical answer
+            # TODO: current solution is not ideal
             pred = np.argmax(results)
             try:
                 try:
                     scale = float(target) / doc["target"]
                     out["acc"] = (float(pred)/scale > 0.5) == (doc["target"] > 0.5)
                 except ZeroDivisionError:
-                    out["acc"] = pred == doc["target"]
+                    out["acc"] = float(pred) == doc["target"]
             except ValueError:
                 out["acc"] = False
         
@@ -210,10 +213,10 @@ class JigsawUnintendedBias(PromptSourceTask):
     def aggregation(self):
         out = {}
         out["acc"] = mean
-        out["tp"] = sum
-        out["fp"] = sum
-        out["tn"] = sum
-        out["fn"] = sum
+        out["tp"] = np.nansum
+        out["fp"] = np.nansum
+        out["tn"] = np.nansum
+        out["fn"] = np.nansum
 
         dimension_to_identity_set = {"race": ["black", "white", "asian", "latino", "other_race_or_ethnicity"], 
                                      "gender_nonbinary": ["male", "female", "transgender", "other_gender"]}
