@@ -226,6 +226,7 @@ def evaluate(
     # Compare all tasks/sets at once to ensure a single training set scan
     if decontaminate:
         from lm_eval.decontamination.decontaminate import get_train_overlap
+
         print("Finding train/test overlap, please wait...")
         overlaps = get_train_overlap(
             docs_for_decontamination, decontamination_ngrams_path, limit
