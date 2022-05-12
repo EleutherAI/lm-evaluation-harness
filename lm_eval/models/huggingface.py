@@ -55,11 +55,10 @@ class HuggingFaceAutoLM(BaseLM):
     def create_auto_model(
         self, pretrained: str, revision: str, subfolder: str
     ) -> transformers.AutoModel:
-        """ Returns a pretrained pytorch model from a pre-trained model configuration. """
+        """Returns a pretrained pytorch model from a pre-trained model configuration."""
         return self.AUTO_MODEL_CLASS.from_pretrained(
             pretrained,
-            revision=revision +
-            ("/" + subfolder if subfolder is not None else "")
+            revision=revision + ("/" + subfolder if subfolder is not None else ""),
         )
 
     @property
@@ -76,7 +75,7 @@ class HuggingFaceAutoLM(BaseLM):
 
     @property
     def max_length(self) -> int:
-        """ Return the sequence length of the model. 
+        """Return the sequence length of the model.
         NOTE: Different model configurations have different max sequence length
         attribute names.
             - n_positions: (CTRLConfig)
@@ -85,8 +84,7 @@ class HuggingFaceAutoLM(BaseLM):
         TODO: Handle models without sequence lengths, e.g. XLNet (https://huggingface.co/docs/transformers/main/en/model_doc/xlnet#transformers.XLNetConfig).
             - tokenizer.model_max_length
         """
-        seqlen_config_attrs = (
-            "n_positions", "max_position_embeddings", "n_ctx")
+        seqlen_config_attrs = ("n_positions", "max_position_embeddings", "n_ctx")
         for attr in seqlen_config_attrs:
             if hasattr(self.model.config, attr):
                 return getattr(self.model.config, attr)
@@ -132,7 +130,8 @@ class AutoCausalLM(HuggingFaceAutoLM):
         self, context, attention_mask, max_length, stopping_criteria_ids, num_fewshot
     ):
         stopping_criteria = _get_stopping_criteria(
-            self.tokenizer, stopping_criteria_ids)
+            self.tokenizer, stopping_criteria_ids
+        )
         generation_length = max_length
         # GPT style models require the generate `max_length` arg to include the
         # context length.
@@ -153,29 +152,13 @@ class AutoCausalLM(HuggingFaceAutoLM):
                 stopping_criteria=stopping_criteria,
                 do_sample=False,
             )
-        torch.set_printoptions(profile="full")
-        # print("GENERATIONS", f"{generations.shape}")
-        # print("GENERATIONS", generations)        # print(out.shape)
-        # print("FIXED GENERATIONS", out)
-
-        # We need to (1) exclude the context from the generation
-        # and (2) not permit additional tokens beyond the max length
-        # for sentences that had shorter contexts.
-
-        # The attention mask tracks the length of each sentence.
-        mask = attention_mask.sum(1)
-        fixed_generations = []
-        for idx in range(generations.shape[0]):
-            fixed_generations.append(
-                generations[
-                    # For each idx in the batch
-                    idx,
-                    # Index from the end of the continuation until the max length
-                    mask[idx]: mask[idx] + generation_length,
-                ]
-            )
-        out = torch.stack(fixed_generations)
-        return out
+        return utils.select_continuation_from_batch(
+            generations,
+            # TODO: replace `attention_mask.sum(1)` with proper lengths.
+            lengths=attention_mask.sum(1),
+            continuation_length=generation_length,
+            padding_value=self.eot_token_id,
+        )
 
 
 class AutoSeq2SeqLM(HuggingFaceAutoLM):
@@ -210,7 +193,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             ).to(self.device)
 
             for key in inputs_tok:
-                inputs_tok[key] = inputs_tok[key][:, -(self.max_length - 1):]
+                inputs_tok[key] = inputs_tok[key][:, -(self.max_length - 1) :]
 
             targets_tok = self.tokenizer(
                 list(targets),
@@ -222,7 +205,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             ).to(self.device)
 
             for key in targets_tok:
-                targets_tok[key] = targets_tok[key][:, -(self.max_length - 1):]
+                targets_tok[key] = targets_tok[key][:, -(self.max_length - 1) :]
 
             outputs = self._model_call(inputs_tok, targets_tok)
 
@@ -246,8 +229,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
                 answer = (float(target_logits.sum()), bool(max_equal))
 
                 if cache_key is not None:
-                    self.cache_hook.add_partial(
-                        "loglikelihood", cache_key, answer)
+                    self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
                 res.append(answer)
 
@@ -264,9 +246,12 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         with torch.no_grad():
             return self.model(**inputs_tok, labels=targets_tok["input_ids"])
 
-    def _model_generate(self, context, attention_mask, max_length, stopping_criteria_ids, num_fewshot):
+    def _model_generate(
+        self, context, attention_mask, max_length, stopping_criteria_ids, num_fewshot
+    ):
         stopping_criteria = _get_stopping_criteria(
-            self.tokenizer, stopping_criteria_ids)
+            self.tokenizer, stopping_criteria_ids
+        )
         if num_fewshot == 0:
             generations = self.model.generate(
                 context,
@@ -288,6 +273,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
 
 # Stopping Criteria Helpers
 
+
 class MultitokenEOSCriteria(transformers.StoppingCriteria):
     def __init__(self, eos_seq_id: torch.LongTensor, tokenizer):
         self.eos_seq = tokenizer.decode(eos_seq_id)
@@ -298,7 +284,7 @@ class MultitokenEOSCriteria(transformers.StoppingCriteria):
     def __call__(
         self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
     ) -> bool:
-        last_token_id = input_ids[0, -self.eos_seq_len:]
+        last_token_id = input_ids[0, -self.eos_seq_len :]
         last_tokens = self.tokenizer.decode(last_token_id)
         is_stopped = self.eos_seq in last_tokens
         return is_stopped
