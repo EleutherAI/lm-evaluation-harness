@@ -122,6 +122,7 @@ def main():
             f,
             indent=2,
         )
+    print(evaluator.make_table(results))
     emissions_output_path = f"./outputs/emissions-{output_path}.csv"
     os.rename("emissions.csv", emissions_output_path)
 

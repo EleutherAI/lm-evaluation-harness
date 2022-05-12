@@ -12,7 +12,7 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
-        parallelize=False
+        parallelize=False,
     ):
         super().__init__()
 
@@ -71,7 +71,7 @@ class HFLM(BaseLM):
         # TODO: fix multi-gpu
         if parallelize:
             self.gpt2.parallelize()
-            self._device = torch.device('cuda:0')
+            self._device = torch.device("cuda:0")
         else:
             self.gpt2.to(self._device)
 
@@ -131,44 +131,51 @@ class HFLM(BaseLM):
                 self.eos_seq_len = len(eos_seq_id) + 1
                 self.tokenizer = tokenizer
 
-            def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
-                last_token_id = input_ids[0, -self.eos_seq_len:]
+            def __call__(
+                self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+            ) -> bool:
+                last_token_id = input_ids[0, -self.eos_seq_len :]
                 last_tokens = self.tokenizer.decode(last_token_id)
                 is_stopped = self.eos_seq in last_tokens
                 return is_stopped
-        
+
         class EOSCriteria(transformers.StoppingCriteria):
             def __init__(self, eos_token_id: torch.LongTensor):
                 self.eos_token_id = eos_token_id
 
-            def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
-                return input_ids[0,-1] == self.eos_token_id
-         
-        return transformers.StoppingCriteriaList([
-            MultitokenEOSCriteria(stopping_criteria_ids, self.tokenizer),
-            EOSCriteria(self.tokenizer.eos_token)
-        ])
+            def __call__(
+                self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+            ) -> bool:
+                return input_ids[0, -1] == self.eos_token_id
+
+        return transformers.StoppingCriteriaList(
+            [
+                MultitokenEOSCriteria(stopping_criteria_ids, self.tokenizer),
+                EOSCriteria(self.tokenizer.eos_token),
+            ]
+        )
 
     def _model_generate(self, context, max_length, stopping_criteria_ids, num_fewshot):
         stopping_criteria = self._get_stopping_criteria(stopping_criteria_ids)
         max_length = max_length + context.size(1)
         if num_fewshot == 0:
             generations = self.gpt2.generate(
-                context, 
-                max_length=max_length, 
+                context,
+                max_length=max_length,
                 eos_token_id=self.eot_token_id,
                 do_sample=False,
             )
         else:
             generations = self.gpt2.generate(
-                context, 
-                max_length=max_length, 
+                context,
+                max_length=max_length,
                 stopping_criteria=stopping_criteria,
                 do_sample=False,
             )
 
         # Remove the context from the generations
         return generations[0, context.shape[1] :]
+
 
 # for backwards compatibility
 GPT2LM = HFLM
