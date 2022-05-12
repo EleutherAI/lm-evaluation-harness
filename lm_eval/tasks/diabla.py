@@ -1,4 +1,3 @@
-# TODO: Remove all TODO comments once the implementation is complete.
 """
 DiaBLa: English-French Bilingual dialogue dataset for Machine Translation
 https://link.springer.com/article/10.1007/s10579-020-09514-4
@@ -20,7 +19,6 @@ versions and reference translations produced a posteriori
 Homepage: http://almanach.inria.fr/software_and_resources/custom/DiaBLa-en.html
 """
 from lm_eval.base import PromptSourceTask
-from typing import List
 
 _CITATION = """@article{bawden_DiaBLa:-A-Corpus-of_2021,
   author = {Bawden, Rachel and Bilinski, Eric and Lavergne, Thomas and Rosset, Sophie},
@@ -68,11 +66,8 @@ class DiaBLa(PromptSourceTask):
     def max_generation_length(self):
         return 512
 
-    # def stopping_criteria(self):
-    #     return "\n"
-
     def invalid_doc_for_prompt(self, doc) -> bool:
-        # Skip docs with empty references
-        if self.doc_to_target(doc) in ([""], ""):
+        if len(self.doc_to_target(doc)) == 0 or self.doc_to_target(doc)[0] == '':
             return True
         return False
+
