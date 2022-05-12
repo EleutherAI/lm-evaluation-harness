@@ -176,7 +176,7 @@ clean_ngram_with_indices(std::string const &input, std::string const &ignore,
       }
 
       // Skip ignored characters
-    } else if (ignore.find(*iter) != std::string::npos) {
+    } else if (ignore.find(ch) != std::string::npos) {
       continue;
 
       // If it is a non-ignored character, add it to the ngram and update the
