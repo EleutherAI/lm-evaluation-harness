@@ -88,6 +88,7 @@ def simple_evaluate(
         task_dict=task_dict,
         num_fewshot=num_fewshot,
         limit=limit,
+        bootstrap_iters=bootstrap_iters,
         description_dict=description_dict,
         decontamination_ngrams_path=decontamination_ngrams_path,
     )
