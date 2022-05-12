@@ -1,6 +1,7 @@
 import transformers
 import torch
 from lm_eval.base import BaseLM
+from lm_eval.utils import select_continuation_from_batch
 
 
 class HFLM(BaseLM):
@@ -183,30 +184,13 @@ class HFLM(BaseLM):
                 stopping_criteria=stopping_criteria,
                 do_sample=False,
             )
-        torch.set_printoptions(profile="full")
-        # print("GENERATIONS", f"{generations.shape}")
-        # print("GENERATIONS", generations)        # print(out.shape)
-        # print("FIXED GENERATIONS", out)
-
-        # We need to (1) exclude the context from the generation
-        # and (2) not permit additional tokens beyond the max length
-        # for sentences that had shorter contexts.
-
-        # The attention mask tracks the length of each sentence.
-        mask = attention_mask.sum(1)
-        fixed_generations = []
-        for idx in range(generations.shape[0]):
-            fixed_generations.append(
-                generations[
-                    # For each idx in the batch
-                    idx,
-                    # Index from the end of the continuation until the max length
-                    mask[idx] : mask[idx] + generation_length,
-                ]
-            )
-        out = torch.stack(fixed_generations)
-        print(out)
-        return out
+        return select_continuation_from_batch(
+            generations,
+            # TODO: replace `attention_mask.sum(1)` with proper lengths.
+            lengths=attention_mask.sum(1),
+            continuation_length=generation_length,
+            padding_value=self.eot_token_id,
+        )
 
 
 # for backwards compatibility
