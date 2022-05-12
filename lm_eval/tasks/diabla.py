@@ -68,18 +68,11 @@ class DiaBLa(PromptSourceTask):
     def max_generation_length(self):
         return 512
 
-    def stopping_criteria(self):
-        return "\n"
+    # def stopping_criteria(self):
+    #     return "\n"
 
     def invalid_doc_for_prompt(self, doc) -> bool:
         # Skip docs with empty references
         if self.doc_to_target(doc) in ([""], ""):
             return True
         return False
-
-    def doc_to_target(self, doc) -> List[str]:
-        _, target = self.prompt.apply(doc)
-        if isinstance(target, list):
-            return target
-        else:
-            return [target]
