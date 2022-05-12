@@ -2,7 +2,6 @@ from promptsource.templates import DatasetTemplates
 from pprint import pprint
 from typing import List, Union
 
-from promptsource.templates import DatasetTemplates
 import lm_eval.base
 
 from . import anli
