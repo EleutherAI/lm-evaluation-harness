@@ -83,6 +83,7 @@ def setup_example_logger(output_path):
 
 
 def main():
+    os.makedirs("./outputs", exist_ok=True)
     args = parse_args()
     assert not args.provide_description  # not implemented
 
@@ -120,7 +121,6 @@ def main():
             parallelize=args.parallelize,
         )
 
-    os.makedirs("./outputs", exist_ok=True)
     with open(f"./outputs/agg-{output_path}.json", "w") as f:
         json.dump({"results": results["results"], "config": results["config"]}, f)
 
