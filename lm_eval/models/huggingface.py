@@ -16,7 +16,7 @@ class HuggingFaceAutoLM(BaseLM):
     def __init__(
         self,
         pretrained: str,
-        tokenizer: str = None,
+        tokenizer: transformers.PreTrainedTokenizer = None,
         subfolder: str = None,
         revision: str = "main",
         device: str = "cuda",
@@ -30,20 +30,14 @@ class HuggingFaceAutoLM(BaseLM):
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
 
+        self.tokenizer = self.create_auto_tokenizer(pretrained, revision, subfolder, tokenizer)
         self.model = self.create_auto_model(pretrained, revision, subfolder)
         self.model.eval()
+        torch.set_grad_enabled(False)  # Turn off gradients; we're only running inference.
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-            pretrained if tokenizer is None else tokenizer,
-            revision=revision,
-            subfolder=subfolder,
-        )
-        self.tokenizer.pad_token = self.tokenizer.eos_token
-        self.vocab_size = self.tokenizer.vocab_size
         self._max_gen_toks = max_gen_toks
-
-        # Multithreading and batching
         self._batch_size = batch_size  # todo: adaptive batch size
+
         # TODO: Fix multi-gpu support.
         self._device = torch.device(device)
         if parallelize:
@@ -55,11 +49,23 @@ class HuggingFaceAutoLM(BaseLM):
     def create_auto_model(
         self, pretrained: str, revision: str, subfolder: str
     ) -> transformers.AutoModel:
-        """Returns a pretrained pytorch model from a pre-trained model configuration."""
+        """ Returns a pre-trained pytorch model from a pre-trained model configuration. """
         return self.AUTO_MODEL_CLASS.from_pretrained(
             pretrained,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
         )
+
+    def create_auto_tokenizer(
+        self, pretrained: str, revision: str, subfolder: str, tokenizer: transformers.PreTrainedTokenizer = None 
+    ) -> transformers.PreTrainedTokenizer:
+        """ Returns a pre-trained tokenizer from a pre-trained tokenizer configuration. """
+        tokenizer = transformers.AutoTokenizer.from_pretrained(
+            pretrained if tokenizer is None else tokenizer,
+            revision=revision,
+            subfolder=subfolder,
+        )
+        tokenizer.pad_token = tokenizer.eos_token
+        return tokenizer
 
     @property
     def eot_token(self) -> str:
@@ -122,9 +128,15 @@ class AutoCausalLM(HuggingFaceAutoLM):
 
     AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
 
+    def create_auto_tokenizer(
+        self, pretrained: str, revision: str, subfolder: str, tokenizer: transformers.PreTrainedTokenizer = None 
+    ) -> transformers.PreTrainedTokenizer:
+        tokenizer = super().create_auto_tokenizer(pretrained, revision, subfolder, tokenizer)
+        tokenizer.padding_side = "left"
+        return tokenizer
+    
     def _model_call(self, inps):
-        with torch.no_grad():
-            return self.model(inps)["logits"]
+        return self.model(inps)["logits"]
 
     def _model_generate(
         self, context, attention_mask, max_length, stopping_criteria_ids, num_fewshot
@@ -239,12 +251,10 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         """
         inps: a torch tensor of shape [batch, sequence]
         the size of sequence may vary from call to call
-
         returns: a torch tensor of shape [batch, sequence, vocab] with the
         logits returned from the model
         """
-        with torch.no_grad():
-            return self.model(**inputs_tok, labels=targets_tok["input_ids"])
+        return self.model(**inputs_tok, labels=targets_tok["input_ids"])
 
     def _model_generate(
         self, context, attention_mask, max_length, stopping_criteria_ids, num_fewshot
