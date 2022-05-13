@@ -10,6 +10,8 @@ from tqdm import tqdm
 
 from lm_eval.utils import positional_deprecated, run_task_tests, set_seed
 
+import logging, json
+
 
 @positional_deprecated
 def simple_evaluate(
@@ -260,12 +262,16 @@ def evaluate(
             metrics, example = output
             example.update(fewshot_logging_info)
             example.update(task.get_logging_info())
+            logger = logging.getLogger("examples")
+            logger.info(json.dumps(example))
             examples.append(example)
         else:
             metrics = output
             example = fewshot_logging_info
             example.update(task.get_logging_info())
             examples.append(example)
+            logger = logging.getLogger("examples")
+            logger.info(json.dumps(example))
 
         for metric, value in metrics.items():
             vals[(task_prompt_name, metric)].append(value)
