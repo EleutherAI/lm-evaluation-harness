@@ -24,6 +24,7 @@ from . import race
 from . import superglue
 from . import wino_bias
 from . import wmt
+from . import diabla
 
 
 ########################################
@@ -177,6 +178,8 @@ TASK_REGISTRY = {
     "lince_sa": lince.LinCESentimentAnalysis,
     # WMT
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
+    # DiaBLa
+    "diabla": diabla.DiaBLa,
 }
 
 
