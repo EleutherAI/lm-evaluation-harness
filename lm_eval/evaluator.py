@@ -248,6 +248,7 @@ def evaluate(
     vals = collections.defaultdict(list)
 
     # unpack results and sort back in order and return control to Task
+    logger = logging.getLogger("examples")
     for (task_prompt_name, doc_id), per_doc_requests in process_res_queue.items():
         per_doc_requests.sort(key=lambda x: x[0])
         per_doc_results = [x[1] for x in per_doc_requests]
@@ -257,7 +258,7 @@ def evaluate(
         doc = docs[(task_prompt_name, doc_id)]
 
         output = task.process_results(doc, per_doc_results)
-        logger = logging.getLogger("examples")
+
         if task.save_examples:
             metrics, example = output
             example.update(fewshot_logging_info)

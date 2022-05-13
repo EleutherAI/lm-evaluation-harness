@@ -72,6 +72,7 @@ def args_to_name(args):
 
 
 def setup_example_logger(output_path):
+    """Sets up a logger that will save each example and prediction."""
     logger = logging.getLogger("examples")
     filename = f"./outputs/examples-{output_path}.jsonl"
     formatter = logging.Formatter("%(message)s")
