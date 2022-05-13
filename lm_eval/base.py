@@ -1083,7 +1083,15 @@ class MultipleChoiceTask(Task):
 
 
 class PerplexityTask(Task, abc.ABC):
-    def has_training_docs(self):
+    def __init__(
+        self, data_dir=None, cache_dir=None, download_mode=None, save_examples=False
+    ):
+        super().__init__(data_dir, cache_dir, download_mode)
+        # It isn't clear what we should log per example given that the perplexity is aggregated.
+        # For `Flores101`, I set this to be true so we can get statistics on the domains/topics.
+        self.save_examples = save_examples
+
+    def invalid_doc_for_prompt(self, _):
         return False
 
     def fewshot_examples(self, k, rnd):
@@ -1110,7 +1118,13 @@ class PerplexityTask(Task, abc.ABC):
                 "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
             )
 
-        return ""
+        return (
+            "",
+            {
+                "fewshot_num": 0,
+                "ctx": "",
+            },
+        )
 
     def higher_is_better(self):
         return {
@@ -1123,22 +1137,39 @@ class PerplexityTask(Task, abc.ABC):
         return ""
 
     def doc_to_target(self, doc):
+        """NOTE: This won't work for most HF datasets.
+
+        Over-ride this function per task.
+        """
         return doc
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, _):
         assert not ctx
         req = rf.loglikelihood_rolling(self.doc_to_target(doc))
         return req
 
     def process_results(self, doc, results):
         (loglikelihood,) = results
-        words = self.count_words(doc)
-        bytes_ = self.count_bytes(doc)
-        return {
+        target = self.doc_to_target(doc)
+        words = self.count_words(target)
+        bytes_ = self.count_bytes(target)
+
+        out = {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
             "bits_per_byte": (loglikelihood, bytes_),
         }
+        if self.save_examples:
+            return out, {
+                "word_perplexity_instance": weighted_perplexity(
+                    [(loglikelihood, words)]
+                ),
+                "byte_perplexity_instance": weighted_perplexity(
+                    [(loglikelihood, bytes_)]
+                ),
+                "bits_per_byte_instance": bits_per_byte([(loglikelihood, bytes_)]),
+            }
+        return out
 
     def aggregation(self):
         return {
@@ -1155,6 +1186,11 @@ class PerplexityTask(Task, abc.ABC):
     def count_words(cls, doc):
         """Downstream tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
+
+    def get_logging_info(self):
+        return {
+            "prompt_name": None,
+        }
 
 
 def hash_args(attr, args):

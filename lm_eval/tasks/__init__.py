@@ -2,7 +2,6 @@ from promptsource.templates import DatasetTemplates
 from pprint import pprint
 from typing import List, Union
 
-import sacrebleu
 import lm_eval.base
 
 from . import anli
@@ -11,6 +10,7 @@ from . import coqa
 from . import crows_pairs_multilingual
 from . import drop
 from . import e2e_nlg_cleaned
+from . import flores_101
 from . import gem_asset_turk
 from . import gem_mlsum
 from . import gem_webnlg
@@ -24,6 +24,8 @@ from . import race
 from . import superglue
 from . import wino_bias
 from . import wmt
+from . import cnn_dailymail
+from . import diabla
 
 
 ########################################
@@ -60,6 +62,8 @@ TASK_REGISTRY = {
     # multilingual lambada
     **gem_asset_turk.construct_tasks(),
     "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
+    # formatted as gsarti/flores_101_[LANG]
+    **flores_101.construct_tasks(),
     "lama_trex": lama.Trex,
     "lama_squad": lama.Squad,
     "lama_google_re": lama.google_re,
@@ -138,6 +142,7 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
+    "cnn_dailymail": cnn_dailymail.CnnDailyMail,
     # GEM/mlsum
     "mlsum_es": gem_mlsum.GEMMLSUMEs,
     "mlsum_de": gem_mlsum.GEMMLSUMDe,
@@ -175,6 +180,8 @@ TASK_REGISTRY = {
     "lince_sa": lince.LinCESentimentAnalysis,
     # WMT
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
+    # DiaBLa
+    "diabla": diabla.DiaBLa,
 }
 
 
@@ -227,19 +234,24 @@ def get_task_dict_promptsource(task_name_list: List[str]):
 
         # Static version of the Task Use this to get HF dataset path / name.
         static_task_obj = get_task(task_name)
-        # Create the proper task name arg for DatasetTemplates.
-        sub_task = (
-            f"/{static_task_obj.DATASET_NAME}" if static_task_obj.DATASET_NAME else ""
-        )
-        ps_task_name = f"{static_task_obj.DATASET_PATH}{sub_task}"
-
-        task_prompts = DatasetTemplates(ps_task_name)
-        for prompt_name in task_prompts.all_template_names:
-            prompt = task_prompts[prompt_name]
-
-            # NOTE: We choose a sep that can be easily split.
-            task_name_dict[f"{task_name}+{prompt_name}"] = get_task(task_name)(
-                prompt=prompt
+        if issubclass(static_task_obj, lm_eval.base.PromptSourceTask):
+            # Create the proper task name arg for DatasetTemplates.
+            sub_task = (
+                f"/{static_task_obj.DATASET_NAME}"
+                if static_task_obj.DATASET_NAME
+                else ""
             )
+            ps_task_name = f"{static_task_obj.DATASET_PATH}{sub_task}"
 
+            task_prompts = DatasetTemplates(ps_task_name)
+            for prompt_name in task_prompts.all_template_names:
+                prompt = task_prompts[prompt_name]
+                # NOTE: We choose a sep that can be easily split.
+                task_name_dict[f"{task_name}+{prompt_name}"] = get_task(task_name)(
+                    prompt=prompt
+                )
+        else:
+            # This is a task with a null prompt.
+            # Right now, the only use case are `PerplexityTask`s.
+            task_name_dict[f"{task_name}+null"] = static_task_obj()
     return task_name_dict
