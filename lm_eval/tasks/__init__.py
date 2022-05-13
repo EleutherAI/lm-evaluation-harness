@@ -24,6 +24,7 @@ from . import race
 from . import superglue
 from . import wino_bias
 from . import wmt
+from . import cnn_dailymail
 from . import diabla
 
 
@@ -141,6 +142,7 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
+    "cnn_dailymail": cnn_dailymail.CnnDailyMail,
     # GEM/mlsum
     "mlsum_es": gem_mlsum.GEMMLSUMEs,
     "mlsum_de": gem_mlsum.GEMMLSUMDe,
