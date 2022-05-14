@@ -47,6 +47,7 @@ class HFLM(BaseLM):
             subfolder=subfolder,
         )
 
+<<<<<<< HEAD
         assert isinstance(
             self.tokenizer,
             (
@@ -68,6 +69,18 @@ class HFLM(BaseLM):
                 198,
                 31373,
             ], self.tokenizer.encode("hello\n\nhello")
+=======
+        # assert isinstance(self.tokenizer, (
+        #     transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast,
+        #     transformers.T5Tokenizer, transformers.T5TokenizerFast,
+        # )), "this tokenizer has not been checked for compatibility yet!"
+
+        self.vocab_size = self.tokenizer.vocab_size
+
+        # if isinstance(self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)):
+        #     assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373], \
+        #         self.tokenizer.encode('hello\n\nhello')
+>>>>>>> 4887d9d35949461ce742194df179f01937225fb8
 
         # multithreading and batching
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
