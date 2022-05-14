@@ -5,9 +5,11 @@
 
 ## Overview 
 
-This project provides a unified framework to test language models (GPT-2, GPT-3, GPTNeo, etc) and seq2seq (T5, T0) models via prompt evaluation. The prompts are provided via `promptsource`; all datasets are in huggingface `datasets`.
+This project provides a unified framework to test language models (GPT-2, GPT-3, GPTNeo, etc) and seq2seq (T5, T0) models via prompt evaluation.
 
-This fork is not backwards compatible with the original evaluation harness.
+As of now, all the prompts are provided via `promptsource`; all datasets are in huggingface `datasets`. Both of these are not necessary for new tasks.
+
+This fork is not (currently) backwards compatible with the original evaluation harness.
 
 ## Installation
 
@@ -26,9 +28,14 @@ To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you ca
 python main.py \
 	--model hf-causal \
   --model_args pretrained=gpt2 \
-	--tasks mrpc
+	--tasks mrpc,gsarti/flores_101_afr
 ```
 
+Features:
+
+- Growing number of tasks integrated with `promptsource` (20+).
+- Support for hugging face causal language models, huggingface seq2seq models, and the openai completion api (gpt3), with flexible tokenization-agnostic interface
+- Task versioning to ensure reproducibility
 
 # Original Notes from Eval Harness
 
