@@ -289,6 +289,7 @@ def evaluate(
             metric: task.aggregation()[metric](items),
             **task.get_logging_info(),
         }
+        metric_results.append(_metric_results)
 
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
         # so we run them less iterations. still looking for a cleaner way to do this
@@ -302,7 +303,6 @@ def evaluate(
             if stderr is not None:
                 results[task_prompt_name][metric + "_stderr"] = stderr(items)
                 _metric_results[metric + "_stderr"] = stderr(items)
-            metric_results.append(_metric_results)
         print("WARNING: TURNED OFF STD DEV")
 
     return {

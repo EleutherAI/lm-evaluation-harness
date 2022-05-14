@@ -1,7 +1,7 @@
 from lm_eval.utils import (
     get_rolling_token_windows,
     make_disjoint_window,
-    select_continuation_from_batch,
+    select_continuation_from_batch_left_padding,
 )
 
 import lm_eval.models as models
@@ -233,80 +233,21 @@ def test_select_continuation_from_batch_1():
     generations = torch.tensor(
         [
             # sentence 1
-            [1, 2, 3, 4, 5, 11, 22, 33],
+            [0, 0, 1, 2, 3, 11, 22, 33, 44, 55],
             # sentence 2
-            [1, 2, 3, 11, 22, 33, 44, 55],
+            [1, 2, 3, 4, 5, 11, 22, 33, 0, 0],
         ]
     )
-    lengths = torch.tensor([5, 3])
-    continuaton_length = 6
-    padding_value = 0
+    max_context_size = 5
     expected = torch.tensor(
         [
             # sentence 1
-            [11, 22, 33, 0, 0],
+            [11, 22, 33, 44, 55],
             # sentence 2
-            [11, 22, 33, 44, 55],
-        ]
-    )
-    assert torch.equal(
-        select_continuation_from_batch(
-            generations, lengths, continuaton_length, padding_value
-        ),
-        expected,
-    )
-
-
-def test_select_continuation_from_batch_2():
-    generations = torch.tensor(
-        [
-            [1, 2, 3, 11, 22, 33, 44, 55],
-            [1, 2, 3, 4, 5, 11, 22, 33],
-        ]
-    )
-    lengths = torch.tensor([3, 5])
-    continuaton_length = 6
-    padding_value = 0
-    expected = torch.tensor(
-        [
-            [11, 22, 33, 44, 55],
             [11, 22, 33, 0, 0],
         ]
     )
     assert torch.equal(
-        select_continuation_from_batch(
-            generations, lengths, continuaton_length, padding_value
-        ),
-        expected,
-    )
-
-
-def test_select_continuation_from_batch_3():
-    generations = torch.tensor(
-        [
-            [1, 2, 3, 11, 22, 33, 44, 55],
-            [1, 2, 3, 4, 5, 11, 22, 33],
-        ]
-    )
-    lengths = torch.tensor([3, 5])
-    # This wouldn't come up in practice.
-    continuaton_length = 2
-    padding_value = 0
-    expected = torch.tensor(
-        [
-            [
-                11,
-                22,
-            ],
-            [
-                11,
-                22,
-            ],
-        ]
-    )
-    assert torch.equal(
-        select_continuation_from_batch(
-            generations, lengths, continuaton_length, padding_value
-        ),
+        select_continuation_from_batch_left_padding(generations, max_context_size),
         expected,
     )

@@ -231,42 +231,20 @@ def set_seed(seed: int) -> None:
     numpy.random.seed(seed)
 
 
-def select_continuation_from_batch(
-    generations, lengths, continuation_length, padding_value
-):
+def select_continuation_from_batch_left_padding(generations, max_context_size):
     """Select the continuation from the batch, removing prompts of different lengths.
 
-    generations : tensor of shape B x S x V
+    generations : tensor of shape B x S
         batch x sequence x vocab.
-    lengths : tensor of shape B
-        Length of each prompt and input.
-    continuation_length : int
-        the max length of the continuation
+    max_context_size : int
+        the size of the biggest context. generations will proceed from that index.
 
     Example:
-    Continue: The dog chased the cat [every day of the week]
-    Riddle me this: The dog chased the cat [yesterday]
+    PAD     PAD Continue : The dog chased the cat  [every       day of the week]
+    Riddle  me    this   : The  dog chased the  cat [yesterday] PAD PAD PAD PAD
 
     Output:
     [every day of the week]
-    [yesterday] PAD PAD PAD PAD
+    [yesterday]  PAD PAD PAD PAD
     """
-    # We need to (1) exclude the context from the generation
-    # and (2) not permit additional tokens beyond the max length
-    # for sentences that had shorter contexts.
-
-    # The attention mask tracks the length of each sentence.
-    fixed_generations = []
-    for idx in range(generations.shape[0]):
-        fixed_generations.append(
-            generations[
-                # For each idx in the batch
-                idx,
-                # Index from the end of the continuation until the max length
-                lengths[idx] : lengths[idx] + continuation_length,
-            ]
-        )
-    out = torch.nn.utils.rnn.pad_sequence(
-        fixed_generations, batch_first=True, padding_value=padding_value
-    )
-    return out
+    return generations[:, max_context_size:]

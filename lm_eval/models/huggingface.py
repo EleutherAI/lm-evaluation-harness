@@ -30,10 +30,14 @@ class HuggingFaceAutoLM(BaseLM):
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
 
-        self.tokenizer = self.create_auto_tokenizer(pretrained, revision, subfolder, tokenizer)
+        self.tokenizer = self.create_auto_tokenizer(
+            pretrained, revision, subfolder, tokenizer
+        )
         self.model = self.create_auto_model(pretrained, revision, subfolder)
         self.model.eval()
-        torch.set_grad_enabled(False)  # Turn off gradients; we're only running inference.
+        torch.set_grad_enabled(
+            False
+        )  # Turn off gradients; we're only running inference.
 
         self._max_gen_toks = max_gen_toks
         self._batch_size = batch_size  # todo: adaptive batch size
@@ -49,16 +53,20 @@ class HuggingFaceAutoLM(BaseLM):
     def create_auto_model(
         self, pretrained: str, revision: str, subfolder: str
     ) -> transformers.AutoModel:
-        """ Returns a pre-trained pytorch model from a pre-trained model configuration. """
+        """Returns a pre-trained pytorch model from a pre-trained model configuration."""
         return self.AUTO_MODEL_CLASS.from_pretrained(
             pretrained,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
         )
 
     def create_auto_tokenizer(
-        self, pretrained: str, revision: str, subfolder: str, tokenizer: transformers.PreTrainedTokenizer = None 
+        self,
+        pretrained: str,
+        revision: str,
+        subfolder: str,
+        tokenizer: transformers.PreTrainedTokenizer = None,
     ) -> transformers.PreTrainedTokenizer:
-        """ Returns a pre-trained tokenizer from a pre-trained tokenizer configuration. """
+        """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
         tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision,
@@ -129,12 +137,18 @@ class AutoCausalLM(HuggingFaceAutoLM):
     AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
 
     def create_auto_tokenizer(
-        self, pretrained: str, revision: str, subfolder: str, tokenizer: transformers.PreTrainedTokenizer = None 
+        self,
+        pretrained: str,
+        revision: str,
+        subfolder: str,
+        tokenizer: transformers.PreTrainedTokenizer = None,
     ) -> transformers.PreTrainedTokenizer:
-        tokenizer = super().create_auto_tokenizer(pretrained, revision, subfolder, tokenizer)
+        tokenizer = super().create_auto_tokenizer(
+            pretrained, revision, subfolder, tokenizer
+        )
         tokenizer.padding_side = "left"
         return tokenizer
-    
+
     def _model_call(self, inps):
         return self.model(inps)["logits"]
 
@@ -144,15 +158,14 @@ class AutoCausalLM(HuggingFaceAutoLM):
         stopping_criteria = _get_stopping_criteria(
             self.tokenizer, stopping_criteria_ids
         )
-        generation_length = max_length
-        # GPT style models require the generate `max_length` arg to include the
-        # context length.
-        max_length = max_length + context.size(1)
         if num_fewshot == 0:
             generations = self.model.generate(
                 context,
                 attention_mask=attention_mask,
-                max_length=max_length,
+                # GPT style models require the generate `max_length` arg to include the
+                # the context length, so we instead set `max_new_tokens` which is the
+                # number of new tokens to generate, excluding the current number of tokens.
+                max_new_tokens=max_length,
                 eos_token_id=self.eot_token_id,
                 do_sample=False,
             )
@@ -160,16 +173,13 @@ class AutoCausalLM(HuggingFaceAutoLM):
             generations = self.model.generate(
                 context,
                 attention_mask=attention_mask,
-                max_length=max_length,
+                max_new_tokens=max_length,
                 stopping_criteria=stopping_criteria,
                 do_sample=False,
             )
-        return utils.select_continuation_from_batch(
-            generations,
-            # TODO: replace `attention_mask.sum(1)` with proper lengths.
-            lengths=attention_mask.sum(1),
-            continuation_length=generation_length,
-            padding_value=self.eot_token_id,
+        print(generations)
+        return utils.select_continuation_from_batch_left_padding(
+            generations, max_context_size=context.size(1)
         )
 
 

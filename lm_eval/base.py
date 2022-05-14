@@ -354,7 +354,6 @@ class BaseLM(LM):
             tqdm(reord.get_reordered(), disable=False), self.batch_size
         ):
             context = [c[0] for c in chunk]
-            # print(f"CONTEXT: {context}")
             request_args = chunk[0][1]
             stopping_criteria = request_args["stopping_criteria"]
             max_generation_length = request_args["max_generation_length"]
