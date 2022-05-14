@@ -105,7 +105,7 @@ def main():
     output_path = args_to_name(args)
     setup_example_logger(output_path)
 
-    with OfflineEmissionsTracker(country_iso_code="FRA"):
+    with OfflineEmissionsTracker(country_iso_code="FRA", log_level="error"):
         results = evaluator.simple_evaluate(
             model=args.model,
             model_args=args.model_args,
