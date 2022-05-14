@@ -293,16 +293,15 @@ def evaluate(
 
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
         # so we run them less iterations. still looking for a cleaner way to do this
-        if False:
-            stderr = lm_eval.metrics.stderr_for_metric(
-                metric=task.aggregation()[metric],
-                bootstrap_iters=min(bootstrap_iters, 1000)
-                if metric in ["bleu", "chrf", "ter"]
-                else bootstrap_iters,
-            )
-            if stderr is not None:
-                results[task_prompt_name][metric + "_stderr"] = stderr(items)
-                _metric_results[metric + "_stderr"] = stderr(items)
+        stderr = lm_eval.metrics.stderr_for_metric(
+            metric=task.aggregation()[metric],
+            bootstrap_iters=min(bootstrap_iters, 1000)
+            if metric in ["bleu", "chrf", "ter"]
+            else bootstrap_iters,
+        )
+        if stderr is not None:
+            results[task_prompt_name][metric + "_stderr"] = stderr(items)
+            _metric_results[metric + "_stderr"] = stderr(items)
         print("WARNING: TURNED OFF STD DEV")
 
     return {
