@@ -52,6 +52,7 @@ from . import asdiv
 from . import gsm8k
 from . import storycloze
 from . import klue
+from . import korquad
 
 ########################################
 # Translation tasks
@@ -305,7 +306,8 @@ TASK_REGISTRY = {
     # "sat": sat.SATAnalogies,
     
     # KLUE
-    "klue_sts": klue.STS
+    "klue_sts": klue.STS,
+    "korquad": korquad.Korquad
 }
 
 
