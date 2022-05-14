@@ -1,22 +1,21 @@
-# Language Model Evaluation Harness
+# Promptsource $\times$ Language Model Evaluation Harness
 
 ![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Build/badge.svg)
 [![codecov](https://codecov.io/gh/EleutherAI/lm-evaluation-harness/branch/master/graph/badge.svg?token=JSG3O2427J)](https://codecov.io/gh/EleutherAI/lm-evaluation-harness)
 
 ## Overview 
 
-This project provides a unified framework to test autoregressive language models (GPT-2, GPT-3, GPTNeo, etc) on a large number of different evaluation tasks.
+This project provides a unified framework to test language models (GPT-2, GPT-3, GPTNeo, etc) and seq2seq (T5, T0) models via prompt evaluation. The prompts are provided via `promptsource`; all datasets are in huggingface `datasets`.
 
-Features:
+This fork is not backwards compatible with the original evaluation harness.
 
-- 200+ tasks implemented
-- Support for GPT-2, GPT-3, GPT-Neo, GPT-NeoX, and GPT-J, with flexible tokenization-agnostic interface
-- Task versioning to ensure reproducibility
-
-## Install
+## Installation
 
 ```bash
-pip install lm-eval
+git clone https://github.com/bigscience-workshop/lm-evaluation-harness
+cd lm-evaluation-harness
+pip install   "promptsource @ git+https://github.com/bigscience-workshop/promptsource@eval-hackathon"
+pip install -e ".[dev]"
 ```
 
 ## Basic Usage
@@ -25,11 +24,13 @@ To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you ca
 
 ```bash
 python main.py \
-	--model gpt2 \
-	--device cuda:0 \
-	--tasks lambada,hellaswag
+	--model hf-causal \
+  --model_args pretrained=gpt2 \
+	--tasks mrpc
 ```
-(This uses gpt2-117M by default as per HF defaults, use --model_args to specify other gpt2 sizes)
+
+
+# Original Notes from Eval Harness
 
 Additional arguments can be provided to the model constructor using the `--model_args` flag. Most importantly, the `gpt2` model can be used to load an arbitrary HuggingFace model. For example, to run GPTNeo use the following:
 
