@@ -27,10 +27,10 @@ class HFLM(BaseLM):
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer, revision=revision, subfolder=subfolder)
 
-        assert isinstance(self.tokenizer, (
-            transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast,
-            transformers.T5Tokenizer, transformers.T5TokenizerFast,
-        )), "this tokenizer has not been checked for compatibility yet!"
+        # assert isinstance(self.tokenizer, (
+        #     transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast,
+        #     transformers.T5Tokenizer, transformers.T5TokenizerFast,
+        # )), "this tokenizer has not been checked for compatibility yet!"
 
         self.vocab_size = self.tokenizer.vocab_size
 

@@ -303,9 +303,10 @@ TASK_REGISTRY = {
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
-
+  
     # KLUE benchmark
-    'ynat': klue.YNAT
+    "klue_ynat": klue.YNAT
+    "klue_sts": klue.STS
 }
 
 
