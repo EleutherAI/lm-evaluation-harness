@@ -45,7 +45,7 @@ class STS(Task):
 
     def training_docs(self):
         if self._training_docs is None:
-                     self._training_docs = list(self.dataset["train"])
+            self._training_docs = list(self.dataset["train"])
         return self._training_docs
 
     def validation_docs(self):
