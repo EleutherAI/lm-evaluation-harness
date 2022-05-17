@@ -177,7 +177,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
                 stopping_criteria=stopping_criteria,
                 do_sample=False,
             )
-        print(generations)
+
         return utils.select_continuation_from_batch_left_padding(
             generations, max_context_size=context.size(1)
         )
