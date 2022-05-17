@@ -52,10 +52,15 @@ from . import asdiv
 from . import gsm8k
 from . import storycloze
 from . import klue
+from . import ko_translation
 
 ########################################
 # Translation tasks
 ########################################
+ko_translation_benchmarks = {
+    "ko_en": ['ko-en']
+}
+
 
 # 6 total
 gpt3_translation_benchmarks = {
@@ -305,7 +310,10 @@ TASK_REGISTRY = {
     # "sat": sat.SATAnalogies,
     
     # KLUE
-    "klue_sts": klue.STS
+    "klue_sts": klue.STS,
+    
+    # Korean to English
+    "ko_en_translation": ko_translation.GeneralTranslationTask,
 }
 
 
