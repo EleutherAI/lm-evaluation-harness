@@ -27,7 +27,7 @@ To evaluate a model, (e.g. GPT-2) on NLU tasks (e.g. LAMBADA, HellaSwag), you ca
 ```bash
 python main.py \
 	--model hf-causal \
-  --model_args pretrained=gpt2 \
+  	--model_args pretrained=gpt2 \
 	--tasks mrpc,gsarti/flores_101_afr
 ```
 
