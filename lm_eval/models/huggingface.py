@@ -191,6 +191,29 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
 
     AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
 
+    @property
+    def max_length(self) -> int:
+        """Return the sequence length of the model.
+        TODO: Currently only work for T5-based models.
+        """
+        return 2048
+
+    def create_auto_tokenizer(
+        self,
+        pretrained: str,
+        revision: str,
+        subfolder: str,
+        tokenizer: transformers.PreTrainedTokenizer = None,
+    ) -> transformers.PreTrainedTokenizer:
+        """
+        TODO: Current only work for T5-based models.
+        """
+        tokenizer = super().create_auto_tokenizer(
+            pretrained, revision, subfolder, tokenizer
+        )
+        tokenizer.model_max_length = self.max_length
+        return tokenizer
+
     def loglikelihood(self, requests):
         res = []
         for chunk in tqdm(
