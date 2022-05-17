@@ -31,7 +31,7 @@ def get_result(response, ctxlen):
         if top_token != token:
             is_greedy = False
             break
-    
+
     return continuation_logprobs, is_greedy
 
 
@@ -52,10 +52,20 @@ def oa_completion(**kwargs):
             backoff_time *= 1.5
 
 
-class CompletionLM(BaseLM):
-    REQ_CHUNK_SIZE = 20
+class OpenAICompletionsLM(BaseLM):
+    """
+    Implements the BaseLM interface for OpenAI's Completions API.
+    See: https://beta.openai.com/docs/api-reference/completions
+    """
 
-    def __init__(self, engine, device=None, truncate=False, parallelize=False):
+    def __init__(
+        self,
+        engine: str,
+        device=None,
+        batch_size: int = 20,
+        max_gen_toks: int = 256,
+        parallelize=False
+    ):
         """
 
         :param engine: str
@@ -69,16 +79,15 @@ class CompletionLM(BaseLM):
         assert parallelize == False, "Cannot specify `parallelize` - GPT-3 is only accessible through the OpenAI API."
 
         import openai
+
         self.engine = engine
         self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained('gpt2')
-
+        # To make the annoying "Using pad_token, but it is not set yet." error go away
+        self.tokenizer.pad_token = "<|endoftext|>"
         self.vocab_size = self.tokenizer.vocab_size
 
-        # to make the annoying "Using pad_token, but it is not set yet." error go away
-        self.tokenizer.pad_token = "<|endoftext|>"
-        assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373]
-        self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.convert_tokens_to_ids(["<|endoftext|>"])[0]
+        self._max_gen_toks = max_gen_toks
+        self._batch_size = batch_size  # todo: adaptive batch size
 
         # Read from environment variable OPENAI_API_SECRET_KEY
         openai.api_key = os.environ["OPENAI_API_SECRET_KEY"]
@@ -99,12 +108,11 @@ class CompletionLM(BaseLM):
 
     @property
     def max_gen_toks(self):
-        return 256
+        return self._max_gen_toks
 
     @property
     def batch_size(self):
-        # Isn't used because we override _loglikelihood_tokens
-        raise NotImplementedError()
+        return self._batch_size
 
     @property
     def device(self):
@@ -126,17 +134,18 @@ class CompletionLM(BaseLM):
             # we care about and so we need some kind of backup for when it isn't
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
-        
+
         reord = utils.Reorderer(requests, _collate)
 
-        for chunk in tqdm(list(utils.chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE)), disable=disable_tqdm):
+        for chunk in tqdm(list(utils.chunks(reord.get_reordered(), self.batch_size)), disable=disable_tqdm):
             inps = []
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
                 # max_length+1 because the API takes up to 2049 tokens, including the first context token
                 inp = (context_enc + continuation_enc)[-(self.max_length+1):]
                 # TODO: the logic is much simpler if we just look at the length of continuation tokens
-                ctxlen = len(context_enc) - max(0, len(context_enc) + len(continuation_enc) - (self.max_length+1))
+                ctxlen = len(context_enc) - max(0, len(context_enc) +
+                                                len(continuation_enc) - (self.max_length+1))
 
                 inps.append(inp)
                 ctxlens.append(ctxlen)
@@ -150,7 +159,8 @@ class CompletionLM(BaseLM):
 
                 # partial caching
                 if cache_key is not None:
-                    self.cache_hook.add_partial("loglikelihood", cache_key, answer)
+                    self.cache_hook.add_partial(
+                        "loglikelihood", cache_key, answer)
 
         return reord.get_original(res)
 
@@ -162,7 +172,7 @@ class CompletionLM(BaseLM):
         def _collate(x):
             toks = self.tok_encode(x[0])
             return len(toks), x[0]
-        
+
         reord = utils.Reorderer(requests, _collate)
 
         def sameuntil_chunks(xs, size):
@@ -174,19 +184,21 @@ class CompletionLM(BaseLM):
                     ret = []
                     lastuntil = x[1]
                 ret.append(x)
-            
+
             if ret:
                 yield ret, lastuntil
 
         # todo: more intelligent batching for heterogeneous `until`
-        for chunk, request_args in tqdm(list(sameuntil_chunks(reord.get_reordered(), self.REQ_CHUNK_SIZE))):
+        for chunk, request_args in tqdm(list(sameuntil_chunks(reord.get_reordered(), self.batch_size))):
             stopping_criteria = request_args["stopping_criteria"]
             max_generation_length = request_args["max_generation_length"]
             num_fewshot = request_args["num_fewshot"]
 
-            assert isinstance(stopping_criteria, str) or stopping_criteria is None
+            assert isinstance(stopping_criteria,
+                              str) or stopping_criteria is None
             assert (
-                isinstance(max_generation_length, int) or max_generation_length is None
+                isinstance(max_generation_length,
+                           int) or max_generation_length is None
             )
             assert isinstance(num_fewshot, int) or num_fewshot is None
 
@@ -219,18 +231,20 @@ class CompletionLM(BaseLM):
 
             # Iterate thru the per-request responses.
             for resp, (context, _request_args) in zip(response.choices, chunk):
-                s = resp['text']
+                sentence = resp['text']
 
                 _stopping_criteria = _request_args["stopping_criteria"]
-                _until =  [self.eot_token] if _stopping_criteria is None else [_stopping_criteria]
+                _until = [self.eot_token] if _stopping_criteria is None else [
+                    _stopping_criteria]
 
                 for term in _until:
-                    s = s.split(term)[0]
+                    sentence = sentence.split(term)[0]
 
                 # partial caching
-                self.cache_hook.add_partial("greedy_until", (context, _until), s)
+                self.cache_hook.add_partial(
+                    "greedy_until", (context, _until), sentence)
 
-                res.append(s)
+                res.append(sentence)
 
         return reord.get_original(res)
 
@@ -241,7 +255,7 @@ class CompletionLM(BaseLM):
             echo=True,
             max_tokens=0,
             temperature=0.,
-            logprobs=10,
+            logprobs=5,
         )
 
     def _model_generate(self, context, max_length, stopping_criteria_ids, num_fewshot):
@@ -256,7 +270,6 @@ class CompletionLM(BaseLM):
 
         # NOTE: We don't need to add context size b/c OpenAI completion only
         # expects the max generation count portion.
-        # max_length = max_length + context.size(1)
 
         if num_fewshot == 0:
             generations = oa_completion(
@@ -264,7 +277,7 @@ class CompletionLM(BaseLM):
                 prompt=context,
                 max_tokens=max_length,
                 temperature=0.,
-                logprobs=10,
+                logprobs=5,
                 stop=[self.eot_token],
             )
         else:
@@ -273,7 +286,7 @@ class CompletionLM(BaseLM):
                 prompt=context,
                 max_tokens=max_length,
                 temperature=0.,
-                logprobs=10,
+                logprobs=5,
                 stop=stopping_criteria,
             )
         return generations
