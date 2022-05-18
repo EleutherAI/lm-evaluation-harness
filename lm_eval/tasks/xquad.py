@@ -128,8 +128,8 @@ class xquad_en(PromptSourceTask):
             'f1': (predictions, references), #  The F-score of predicted tokens versus the gold answer
             'HasAns_exact': (predictions, references), # Exact match (the normalized answer exactly match the gold answer)
             'HasAns_f1': (predictions, references), # The F-score of predicted tokens versus the gold answer
-            'NoAns_exact': (predictions, references), # Exact match (the normalized answer exactly match the gold answer)
-            'NoAns_f1': (predictions, references), # The F-score of predicted tokens versus the gold answer
+            'best_exact_thresh': (predictions, references), # No-answer probability threshold associated to the best exact match
+            'best_f1_thresh': (predictions, references), # No-answer probability threshold associated to the best F1
             'best_exact': (predictions, references), # Best exact match (with varying threshold)
             'best_f1': (predictions, references), # Best F1 (with varying threshold)
         }, example
@@ -145,8 +145,8 @@ class xquad_en(PromptSourceTask):
             'f1': partial(_squad_agg, 'f1'), #  The F-score of predicted tokens versus the gold answer
             'HasAns_exact': partial(_squad_agg, 'HasAns_exact'), # Exact match (the normalized answer exactly match the gold answer)
             'HasAns_f1': partial(_squad_agg, 'HasAns_f1'), # The F-score of predicted tokens versus the gold answer
-            'NoAns_exact': partial(_squad_agg, 'NoAns_exact'), # Exact match (the normalized answer exactly match the gold answer)
-            'NoAns_f1': partial(_squad_agg, 'NoAns_f1'), # The F-score of predicted tokens versus the gold answer
+            'best_exact_thresh': partial(_squad_agg, 'best_exact_thresh'), # No-answer probability threshold associated to the best exact match
+            'best_f1_thresh': partial(_squad_agg, 'best_f1_thresh'), # No-answer probability threshold associated to the best F1
             'best_exact': partial(_squad_agg, 'best_exact'), # Best exact match (with varying threshold)
             'best_f1': partial(_squad_agg, 'best_f1'), # Best F1 (with varying threshold)
         }
@@ -162,11 +162,12 @@ class xquad_en(PromptSourceTask):
             'f1': True, #  The F-score of predicted tokens versus the gold answer
             'HasAns_exact': True, # Exact match (the normalized answer exactly match the gold answer)
             'HasAns_f1': True, # The F-score of predicted tokens versus the gold answer
-            'NoAns_exact': True, # Exact match (the normalized answer exactly match the gold answer)
-            'NoAns_f1': True, # The F-score of predicted tokens versus the gold answer
+            'best_exact_thresh': True, # No-answer probability threshold associated to the best exact match
+            'best_f1_thresh': True, # No-answer probability threshold associated to the best F1
             'best_exact': True, # Best exact match (with varying threshold)
             'best_f1': True, # Best F1 (with varying threshold)
         }
+
 
 
 
@@ -255,8 +256,8 @@ class xquad_ar(PromptSourceTask):
             'f1': (predictions, references), #  The F-score of predicted tokens versus the gold answer
             'HasAns_exact': (predictions, references), # Exact match (the normalized answer exactly match the gold answer)
             'HasAns_f1': (predictions, references), # The F-score of predicted tokens versus the gold answer
-            'best_exact_thresh': (predictions, references), # Exact match (the normalized answer exactly match the gold answer)
-            'best_f1_thresh': (predictions, references), # The F-score of predicted tokens versus the gold answer
+            'best_exact_thresh': (predictions, references), # No-answer probability threshold associated to the best exact match
+            'best_f1_thresh': (predictions, references), # No-answer probability threshold associated to the best F1
             'best_exact': (predictions, references), # Best exact match (with varying threshold)
             'best_f1': (predictions, references), # Best F1 (with varying threshold)
         }, example
@@ -272,8 +273,8 @@ class xquad_ar(PromptSourceTask):
             'f1': partial(_squad_agg, 'f1'), #  The F-score of predicted tokens versus the gold answer
             'HasAns_exact': partial(_squad_agg, 'HasAns_exact'), # Exact match (the normalized answer exactly match the gold answer)
             'HasAns_f1': partial(_squad_agg, 'HasAns_f1'), # The F-score of predicted tokens versus the gold answer
-            'best_exact_thresh': partial(_squad_agg, 'best_exact_thresh'), # Exact match (the normalized answer exactly match the gold answer)
-            'best_f1_thresh': partial(_squad_agg, 'best_f1_thresh'), # The F-score of predicted tokens versus the gold answer
+            'best_exact_thresh': partial(_squad_agg, 'best_exact_thresh'), # No-answer probability threshold associated to the best exact match
+            'best_f1_thresh': partial(_squad_agg, 'best_f1_thresh'), # No-answer probability threshold associated to the best F1
             'best_exact': partial(_squad_agg, 'best_exact'), # Best exact match (with varying threshold)
             'best_f1': partial(_squad_agg, 'best_f1'), # Best F1 (with varying threshold)
         }
@@ -289,8 +290,10 @@ class xquad_ar(PromptSourceTask):
             'f1': True, #  The F-score of predicted tokens versus the gold answer
             'HasAns_exact': True, # Exact match (the normalized answer exactly match the gold answer)
             'HasAns_f1': True, # The F-score of predicted tokens versus the gold answer
-            'best_exact_thresh': True, # Exact match (the normalized answer exactly match the gold answer)
-            'best_f1_thresh': True, # The F-score of predicted tokens versus the gold answer
+            'best_exact_thresh': True, # No-answer probability threshold associated to the best exact match
+            'best_f1_thresh': True, # No-answer probability threshold associated to the best F1
             'best_exact': True, # Best exact match (with varying threshold)
             'best_f1': True, # Best F1 (with varying threshold)
         }
+
+
