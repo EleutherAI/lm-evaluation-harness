@@ -55,7 +55,3 @@ class Schema_Guided_DSTC8(PromptSourceTask):
     
     def max_generation_length(self):
         return 64
-
-    def stopping_criteria(self):
-        # The model is incentivized by the prompts to use two newlines as the "end-of-turn" sequence
-        return '\n\n'
