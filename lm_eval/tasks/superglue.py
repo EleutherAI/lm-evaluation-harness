@@ -142,6 +142,17 @@ class Copa(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
+    def invalid_doc_for_prompt(self, doc) -> bool:
+        # HACK: Some copa templates have conditionals that ignore documents 
+        # when the condition is not met, like `{if doc['question'] != \"cause\"}`.
+        # This means the prompt will never produce an input and target.
+        # TODO: Remove this when fixed in `promptsource`
+        try:
+            self.prompt.apply(doc)
+            return False 
+        except:
+            return True
+
 
 # TODO: Check this works with all prompts.
 class MultiRC(PromptSourceTask):
