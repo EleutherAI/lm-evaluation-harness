@@ -1,5 +1,6 @@
 import abc
-from typing import Iterable
+from typing import Iterable, List, Optional
+
 import numpy as np
 import random
 import re
@@ -12,8 +13,12 @@ from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 
-from lm_eval.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
-from lm_eval import utils
+from lm_eval.metrics import (
+    mean,
+    weighted_perplexity,
+    bits_per_byte,
+)
+from lm_eval import utils, metrics
 from abc import abstractmethod
 
 
@@ -24,17 +29,17 @@ class LM(abc.ABC):
     @abstractmethod
     def loglikelihood(self, requests):
         """Compute log-likelihood of generating a continuation from a context.
-        Downstream tasks should attempt to use loglikelihood instead of other 
+        Downstream tasks should attempt to use loglikelihood instead of other
         LM calls whenever possible.
 
         :param requests: list
             A list of pairs (context, continuation)
             context: str
-                Context string. Implementations of LM must be able to handle an 
+                Context string. Implementations of LM must be able to handle an
                 empty context string.
             continuation: str
-                The continuation over which log likelihood will be calculated. If 
-                there is a word boundary, the space should be in the continuation. 
+                The continuation over which log likelihood will be calculated. If
+                there is a word boundary, the space should be in the continuation.
                 For example, context="hello" continuation=" world" is correct.
         :return: list
             A list of pairs (logprob, isgreedy)
@@ -97,7 +102,7 @@ class LM(abc.ABC):
             context: str
                 Context string
             until: [str]
-                The string sequences to generate until. These string sequences 
+                The string sequences to generate until. These string sequences
                 may each span across multiple tokens, or may be part of one token.
         :return: list
             A list of strings continuation
@@ -118,6 +123,10 @@ class LM(abc.ABC):
 
 
 class BaseLM(LM):
+    @property
+    @abstractmethod
+    def eot_token(self):
+        pass
 
     @property
     @abstractmethod
@@ -145,13 +154,16 @@ class BaseLM(LM):
         pass
 
     @abstractmethod
-    def tok_encode(self, string: str): pass
-    
-    @abstractmethod
-    def tok_decode(self, tokens: Iterable[int]): pass
+    def tok_encode(self, string: str):
+        pass
 
     @abstractmethod
-    def _model_generate(self, context, max_length, eos_token_id): pass
+    def tok_decode(self, tokens: Iterable[int]):
+        pass
+
+    @abstractmethod
+    def _model_generate(self, context, max_length, eos_token_id):
+        pass
 
     @abstractmethod
     def _model_call(self, inps):
@@ -187,23 +199,30 @@ class BaseLM(LM):
         # TODO: automatic batch size detection for vectorization
 
         loglikelihoods = []
-        for string, in tqdm(requests):
-            rolling_token_windows = list(map(utils.make_disjoint_window, utils.get_rolling_token_windows(
-                token_list=self.tok_encode(string),
-                prefix_token=self.eot_token_id,
-                max_seq_len=self.max_length,
-                context_len=1,
-            )))
+        for (string,) in tqdm(requests):
+            rolling_token_windows = list(
+                map(
+                    utils.make_disjoint_window,
+                    utils.get_rolling_token_windows(
+                        token_list=self.tok_encode(string),
+                        prefix_token=self.eot_token_id,
+                        max_seq_len=self.max_length,
+                        context_len=1,
+                    ),
+                )
+            )
 
             rolling_token_windows = [(None,) + x for x in rolling_token_windows]
 
             # TODO: extract out this call so it only gets called once and also somehow figure out partial caching for
             # that
-            string_nll = self._loglikelihood_tokens(rolling_token_windows, disable_tqdm=True)
-            
+            string_nll = self._loglikelihood_tokens(
+                rolling_token_windows, disable_tqdm=True
+            )
+
             # discard is_greedy
             string_nll = [x[0] for x in string_nll]
-            
+
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
 
@@ -223,10 +242,12 @@ class BaseLM(LM):
 
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
-        
+
         # TODO: automatic (variable) batch size detection for vectorization
         reord = utils.Reorderer(requests, _collate)
-        for chunk in utils.chunks(tqdm(reord.get_reordered(), disable=disable_tqdm), self.batch_size):
+        for chunk in utils.chunks(
+            tqdm(reord.get_reordered(), disable=disable_tqdm), self.batch_size
+        ):
             inps = []
             cont_toks_list = []
             inplens = []
@@ -252,44 +273,60 @@ class BaseLM(LM):
 
                 # when too long to fit in context, truncate from the left
                 inp = torch.tensor(
-                    (context_enc + continuation_enc)[-(self.max_length+1):][:-1],
-                    dtype=torch.long
+                    (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1],
+                    dtype=torch.long,
                 ).to(self.device)
-                inplen, = inp.shape
+                (inplen,) = inp.shape
 
                 cont = continuation_enc
 
                 # since in _collate we make sure length is descending, the longest is always the first one.
-                padding_length = padding_length if padding_length is not None else inplen
+                padding_length = (
+                    padding_length if padding_length is not None else inplen
+                )
 
                 # pad length from seq to padding_length
-                inp = torch.cat([
-                    inp,  # [seq]
-                    torch.zeros(padding_length - inplen, dtype=torch.long).to(inp.device)  # [padding_length - seq]
-                ], dim=0)
+                inp = torch.cat(
+                    [
+                        inp,  # [seq]
+                        torch.zeros(padding_length - inplen, dtype=torch.long).to(
+                            inp.device
+                        ),  # [padding_length - seq]
+                    ],
+                    dim=0,
+                )
 
                 inps.append(inp.unsqueeze(0))  # [1, padding_length]
                 cont_toks_list.append(cont)
                 inplens.append(inplen)
 
             batched_inps = torch.cat(inps, dim=0)  # [batch, padding_length
-            multi_logits = F.log_softmax(self._model_call(batched_inps), dim=-1).cpu()  # [batch, padding_length, vocab]
+            multi_logits = F.log_softmax(
+                self._model_call(batched_inps), dim=-1
+            ).cpu()  # [batch, padding_length, vocab]
 
-            for (cache_key, _, _), logits, inp, inplen, cont_toks \
-                    in zip(chunk, multi_logits, inps, inplens, cont_toks_list):
+            for (cache_key, _, _), logits, inp, inplen, cont_toks in zip(
+                chunk, multi_logits, inps, inplens, cont_toks_list
+            ):
 
                 # Slice to original seq length
                 contlen = len(cont_toks)
-                logits = logits[inplen-contlen:inplen].unsqueeze(0)  # [1, seq, vocab]
+                logits = logits[inplen - contlen : inplen].unsqueeze(
+                    0
+                )  # [1, seq, vocab]
 
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
-                cont_toks = torch.tensor(cont_toks, dtype=torch.long).unsqueeze(0)  # [1, seq]
+                cont_toks = torch.tensor(cont_toks, dtype=torch.long).unsqueeze(
+                    0
+                )  # [1, seq]
                 max_equal = (greedy_tokens == cont_toks).all()
 
                 # Obtain log-probs at the corresponding continuation token indices
                 # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
-                logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(-1)  # [1, seq]
+                logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
+                    -1
+                )  # [1, seq]
 
                 # Answer: (log prob, is-exact-match)
                 answer = (float(logits.sum()), bool(max_equal))
@@ -301,40 +338,73 @@ class BaseLM(LM):
                 res.append(answer)
 
         return reord.get_original(res)
-    
-    def greedy_until(self, requests):
-        # TODO: implement fully general `until` that handles untils that are 
-        #       multiple tokens or that span multiple tokens correctly
 
+    def greedy_until(self, requests):
+        # TODO: implement fully general `until` that handles untils that are
+        #       multiple tokens or that span multiple tokens correctly
         # TODO: extract to TokenizedLM?
         res = []
 
         def _collate(x):
             toks = self.tok_encode(x[0])
             return len(toks), x[0]
-        
+
         reord = utils.Reorderer(requests, _collate)
+        for chunk in utils.chunks(
+            tqdm(reord.get_reordered(), disable=False), self.batch_size
+        ):
+            context = [c[0] for c in chunk]
+            request_args = chunk[0][1]
+            stopping_criteria = request_args["stopping_criteria"]
+            max_generation_length = request_args["max_generation_length"]
+            num_fewshot = request_args["num_fewshot"]
 
-        for context, until in tqdm(reord.get_reordered()):
-            if isinstance(until, str):
-                until = [until]
+            assert isinstance(stopping_criteria, str) or stopping_criteria is None
+            assert (
+                isinstance(max_generation_length, int) or max_generation_length is None
+            )
+            assert isinstance(num_fewshot, int) or num_fewshot is None
 
-            primary_until, = self.tok_encode(until[0])
-            
-            context_enc = torch.tensor([self.tok_encode(context)[self.max_gen_toks - self.max_length:]]).to(self.device)
+            if stopping_criteria is None:
+                until = [self.eot_token]
+            else:
+                until = [stopping_criteria, self.eot_token]
+            primary_until = self.tok_encode(until[0])
 
-            cont = self._model_generate(context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until)
+            if len(primary_until) == 0:
+                primary_until = torch.tensor([self.eot_token_id])
 
-            s = self.tok_decode(cont[0].tolist()[context_enc.shape[1]:])
+            # Ensure that the context does encroach into the `space`
+            # for the generation.
+            tok_context = self.tok_encode_batch(context)
+            input_ids = tok_context["input_ids"][
+                :, self.max_gen_toks - self.max_length :
+            ].to(self.device)
+            attention_mask = tok_context["attention_mask"][
+                :, self.max_gen_toks - self.max_length :
+            ].to(self.device)
 
-            for term in until:
-                s = s.split(term)[0]
-            
-            # partial caching
-            self.cache_hook.add_partial("greedy_until", (context, until), s)
-            
-            res.append(s)
-        
+            if max_generation_length is None:
+                max_length = self.max_gen_toks
+            else:
+                max_length = max_generation_length
+
+            cont = self._model_generate(
+                input_ids,
+                attention_mask,
+                max_length,
+                torch.tensor(primary_until),
+                num_fewshot,
+            )
+
+            sentences = self.tok_decode(cont.tolist())
+
+            for sentence in sentences:
+                for term in until:
+                    sentence = sentence.split(term)[0]
+                # partial caching
+                self.cache_hook.add_partial("greedy_until", (context, until), sentence)
+                res.append(sentence)
         return reord.get_original(res)
 
 
@@ -383,7 +453,7 @@ class Task(abc.ABC):
         self._fewshot_docs = None
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None):
-        """ Downloads and returns the task dataset.
+        """Downloads and returns the task dataset.
         Override this method to download the dataset from a custom API.
 
         :param data_dir: str
@@ -412,7 +482,7 @@ class Task(abc.ABC):
             name=self.DATASET_NAME,
             data_dir=data_dir,
             cache_dir=cache_dir,
-            download_mode=download_mode
+            download_mode=download_mode,
         )
 
     @abstractmethod
@@ -477,23 +547,25 @@ class Task(abc.ABC):
         pass
 
     @abstractmethod
-    def construct_requests(self, doc, ctx):
-        """ Uses RequestFactory to construct Requests and returns an iterable of 
+    def construct_requests(self, doc, ctx, args):
+        """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
         :param doc:
             The document as returned from training_docs, validation_docs, or test_docs.
         :param ctx: str
-            The context string, generated by fewshot_context. This includes the natural 
+            The context string, generated by fewshot_context. This includes the natural
             language description, as well as the few shot examples, and the question
-            part of the document for `doc`. 
+            part of the document for `doc`.
+        :param args: dict
+            The specifics of the context, including number of few shots.
         """
         pass
 
     @abstractmethod
     def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a 
-        dict where keys are the names of submetrics and values are the values of 
+        """Take a single document and the LM results and evaluates, returning a
+        dict where keys are the names of submetrics and values are the values of
         the metric for that one document
 
         :param doc:
@@ -507,7 +579,7 @@ class Task(abc.ABC):
     def aggregation(self):
         """
         :returns: {str: [metric_score] -> float}
-            A dictionary where keys are the names of submetrics and values are 
+            A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metric scores
         """
         pass
@@ -516,22 +588,257 @@ class Task(abc.ABC):
     def higher_is_better(self):
         """
         :returns: {str: bool}
-            A dictionary where keys are the names of submetrics and values are 
+            A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
         pass
 
     def fewshot_description(self):
         import warnings
+
         warnings.warn(
             "`fewshot_description` will be removed in futures versions. Pass "
             "any custom descriptions to the `evaluate` function instead.",
-            DeprecationWarning)
+            DeprecationWarning,
+        )
         return ""
 
+
+class PromptSourceTask(Task):
+    """These are the metrics from promptsource that we have
+    added default behavior for. If you want to add default behavior for a new metric,
+    update the functions below. If you want to use one of the following metrics,
+    *and* add additional custom processing, override `process_results`, `higher_is_better`, and `aggregation`.
+    """
+
+    CONFIGURED_RANKED_CHOICE_PS_METRICS = set(["Accuracy"])
+    CONFIGURED_GENERATION_PS_METRICS = set(["BLEU", "ROUGE", "SARI"])
+    SPLIT = None
+
+    def __init__(
+        self,
+        data_dir=None,
+        cache_dir=None,
+        download_mode=None,
+        prompt=None,
+        save_examples=True,
+    ):
+        super().__init__(data_dir, cache_dir, download_mode)
+        self.prompt = prompt
+        self.save_examples = save_examples
+
+    def stopping_criteria(self) -> Optional[str]:
+        """
+        Denote where the generation should end based on the few-shot example
+        separator: "\n###\n".
+        TODO: Handle other separators in the future.
+        """
+        return "\n###\n"
+
+    def max_generation_length(self) -> Optional[int]:
+        """Denote where the max length of the generation if it is obvious from the task."""
+        return None
+
+    def invalid_doc_for_prompt(self, doc) -> bool:
+        """Some prompts may not work for some documents."""
+        if (
+            # generate_paraphrase for mrpc
+            # This generation prompt assumes a positive example. We filter out the negative examples.
+            # https://github.com/bigscience-workshop/promptsource/blob/ba8c9eccbe82f2409208c655896f1dd131171ece/promptsource/templates/glue/mrpc/templates.yaml#L7
+            # https://github.com/bigscience-workshop/promptsource/blob/ba8c9eccbe82f2409208c655896f1dd131171ece/promptsource/templates/glue/mrpc/templates.yaml#L88
+            (
+                self.prompt.id == "3b88d2c4-0aeb-4c6d-9ccc-653a388250a5"
+                or self.prompt.id == "d830d7a5-abc0-4275-ac62-974e0088876f"
+            )
+            and doc["label"] == 0
+        ):
+            return True
+        return False
+
+    def doc_to_target(self, doc) -> List[str]:
+        _, target = self.prompt.apply(doc)
+        return target
+
+    def doc_to_text(self, doc) -> str:
+        text, _ = self.prompt.apply(doc)
+        return text
+
+    def doc_to_rawtext(self, doc):
+        """This should be used for selecting the raw text of the document.
+
+        The current use case is for computing SARI which requires the text
+        without the prompt. The `text` field is not standarized across tasks
+        so this is task specific.
+        """
+        raise NotImplementedError("This is task specific.")
+
+    def construct_requests(self, doc, ctx, args):
+        """Uses RequestFactory to construct Requests and returns an iterable of
+        Requests which will be sent to the LM.
+
+        :param doc:
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param ctx: str
+            The context string, generated by fewshot_context. This includes the natural
+            language description, as well as the few shot examples, and the question
+            part of the document for `doc`.
+        :param args: dict
+            The specifics of the context, including number of few shots.
+        """
+        _requests = []
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+
+        if answer_choices_list:
+            # If answer_choices_list, then this is a ranked choice prompt.
+            for answer_choice in answer_choices_list:
+                ll_answer_choice, _ = rf.loglikelihood(ctx, f" {answer_choice}")
+                _requests.append(ll_answer_choice)
+        else:
+            # If not, then this is a generation prompt.
+            # NOTE: In the future, target will be a list of strings.
+            request_args = {
+                "stopping_criteria": self.stopping_criteria(),
+                "max_generation_length": self.max_generation_length(),
+                "num_fewshot": args["num_fewshot"],
+            }
+            cont_request = rf.greedy_until(ctx, request_args)
+            _requests.append(cont_request)
+
+        return _requests
+
+    def process_results(self, doc, results):
+        """Take a single document and the LM results and evaluates, returning a
+        dict where keys are the names of submetrics and values are the values of
+        the metric for that one document
+
+        :param doc:
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param results:
+            The results of the requests created in construct_requests.
+        """
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        target = self.doc_to_target(doc)
+        if answer_choices_list:
+            # If answer_choices_list, then this is a ranked choice prompt.
+            # NOTE: In the future, target could be a list of strings.
+            assert isinstance(target, list) and len(target) == 1
+            target = target[0].strip()
+
+            pred = answer_choices_list[np.argmax(results)]
+            out = {}
+
+            for metric in self.prompt.metadata.metrics:
+                assert (
+                    metric in self.CONFIGURED_RANKED_CHOICE_PS_METRICS
+                ), "Unexpected metric. Add it, or use a task-specific solution."
+                if metric == "Accuracy":
+                    out["acc"] = pred == target
+            # TODO: Add metrics here.
+        else:
+            # If not, then this is a generation prompt.
+            # NOTE: In the future, target will be a list of strings.
+            assert isinstance(target, list)
+            pred = results[0].strip()
+            out = {}
+            for metric in self.prompt.metadata.metrics:
+                assert (
+                    metric in self.CONFIGURED_GENERATION_PS_METRICS
+                ), "Unexpected metric. Add it, or use a task-specific solution."
+                if metric == "BLEU":
+                    out["bleu"] = (target, pred)
+                elif metric == "ROUGE":
+                    # TODO: This computes all rouge sub-metrics. Find a generic
+                    # way to handle user specified rouge sub-metrics to avoid extra
+                    # compute.
+                    rouge_scores = metrics.rouge(target, pred)
+                    # Flatten rouge score dict.
+                    rouge_scores = utils.flatten(rouge_scores)
+                    # Merge all the rouge-type scores into the `out` dict.
+                    out = {**out, **rouge_scores}
+                elif metric == "SARI":
+                    out["sari"] = metrics.sari(self.doc_to_rawtext(doc), pred, target)
+
+        # TODO: Wrap process results s.t. override impl do not
+        # override the save examples.
+        if self.save_examples:
+            example = {
+                "pred": pred,
+                "target": target,
+                "answer_choices_list": answer_choices_list,
+            }
+            return out, example
+        return out
+
+    def higher_is_better(self):
+        out = {}
+        for metric in self.prompt.metadata.metrics:
+            if metric == "Accuracy":
+                out["acc"] = True
+            elif metric == "BLEU":
+                out["bleu"] = True
+            elif metric == "ROUGE":
+                # TODO: Find a generic way to handle user specified rouge metrics.
+                out["rouge1_precision"] = True
+                out["rouge1_recall"] = True
+                out["rouge1_fmeasure"] = True
+
+                out["rouge2_precision"] = True
+                out["rouge2_recall"] = True
+                out["rouge2_fmeasure"] = True
+
+                out["rougeL_precision"] = True
+                out["rougeL_recall"] = True
+                out["rougeL_fmeasure"] = True
+
+                out["rougeLsum_precision"] = True
+                out["rougeLsum_recall"] = True
+                out["rougeLsum_fmeasure"] = True
+            elif metric == "SARI":
+                out["sari"] = True
+        return out
+
+    def aggregation(self):
+        out = {}
+        for metric in self.prompt.metadata.metrics:
+            if metric == "Accuracy":
+                out["acc"] = mean
+            elif metric == "BLEU":
+                out["bleu"] = metrics.bleu
+            elif metric == "ROUGE":
+                # TODO: Find a generic way to handle user specified rouge metrics.
+                out["rouge1_precision"] = mean
+                out["rouge1_recall"] = mean
+                out["rouge1_fmeasure"] = mean
+
+                out["rouge2_precision"] = mean
+                out["rouge2_recall"] = mean
+                out["rouge2_fmeasure"] = mean
+
+                out["rougeL_precision"] = mean
+                out["rougeL_recall"] = mean
+                out["rougeL_fmeasure"] = mean
+
+                out["rougeLsum_precision"] = mean
+                out["rougeLsum_recall"] = mean
+                out["rougeLsum_fmeasure"] = mean
+            elif metric == "SARI":
+                out["sari"] = mean
+        return out
+
+    def fewshot_examples(self, k, rnd):
+        if self._training_docs is None:
+            self._training_docs = list(self.training_docs())
+        return self._get_fewshot_examples(self._training_docs, k, rnd)
+
+    def _get_fewshot_examples(self, docs, k, rnd):
+        fewshot_idx = rnd.sample(list(np.arange(len(docs))), k)
+        return [docs[idx] for idx in fewshot_idx], [int(idx) for idx in fewshot_idx]
+
     @utils.positional_deprecated
-    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
-        """ Returns a fewshot context string that is made up of a prepended description
+    def fewshot_context(
+        self, doc, num_fewshot, provide_description=None, rnd=None, description=None
+    ):
+        """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
         :param doc: str
@@ -548,7 +855,9 @@ class Task(abc.ABC):
         :returns: str
             The fewshot context.
         """
-        assert rnd is not None, "A `random.Random` generator argument must be provided to `rnd`"
+        assert (
+            rnd is not None
+        ), "A `random.Random` generator argument must be provided to `rnd`"
         assert not provide_description, (
             "The `provide_description` arg will be removed in future versions. To prepend "
             "a custom description to the context, supply the corresponding string via the "
@@ -556,44 +865,193 @@ class Task(abc.ABC):
         )
         if provide_description is not None:
             # nudge people to not specify it at all
-            print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
+            print(
+                "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
+            )
 
         description = description + "\n\n" if description else ""
 
         if num_fewshot == 0:
             labeled_examples = ""
+            fewshotex, fewshotidx, fewshottargetidx, self.fewshotsource = (
+                [],
+                [],
+                [],
+                None,
+            )
         else:
             # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
             if self.has_training_docs():
-                fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
+                fewshotex, fewshotidx = self.fewshot_examples(k=num_fewshot, rnd=rnd)
+                self.fewshotsource = "train"
             else:
                 if self._fewshot_docs is None:
                     self._fewshot_docs = list(
-                        self.validation_docs() if self.has_validation_docs() else self.test_docs()
+                        self.validation_docs()
+                        if self.has_validation_docs()
+                        else self.test_docs()
                     )
+                    if self.has_validation_docs():
+                        self.fewshotsource = "val"
+                    elif self.test_docs():
+                        self.fewshotsource = "test"
 
-                fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
-
+                fewshotex, fewshotidx = self._get_fewshot_examples(
+                    self._fewshot_docs, k=num_fewshot + 1, rnd=rnd
+                )
+                fewshotex, fewshotidx = zip(
+                    *[
+                        (shot, idx)
+                        for shot, idx in zip(fewshotex, fewshotidx)
+                        if shot != doc
+                    ]
+                )
                 # get rid of the doc that's the one we're evaluating, if it's in the fewshot
-                fewshotex = [x for x in fewshotex if x != doc][:num_fewshot]
+                fewshotex, fewshotidx = (
+                    fewshotex[:num_fewshot],
+                    fewshotidx[:num_fewshot],
+                )
+            # See Webson & Pavlick (2022) https://arxiv.org/pdf/2109.01247.pdf
+            # for justification of this separator.
+            example_separator = "\n###\n"
 
-            labeled_examples = "\n\n".join(
-                [self.doc_to_text(doc) + self.doc_to_target(doc) for doc in fewshotex]
-            ) + "\n\n"
+            labeled_examples_list = []
+            fewshottargetidx = []
+            for fewshot_doc in fewshotex:
+                text = self.doc_to_text(fewshot_doc)
+                targets = self.doc_to_target(fewshot_doc)
+                target_idx = random.randint(0, len(targets) - 1)
+                target = targets[target_idx].strip()
+                # TODO(Jon): Given that target is now a list, should we add a space here? Anywhere else?
+                labeled_examples_list.append(f"{text} {target}")
+                fewshottargetidx.append(target_idx)
+
+            labeled_examples = (
+                example_separator.join(labeled_examples_list) + example_separator
+            )
 
         example = self.doc_to_text(doc)
-        return description + labeled_examples + example
+        ctx = description + labeled_examples + example
+        return (
+            ctx,
+            {
+                "fewshot_idx": fewshotidx,
+                "fewshot_target_idx": fewshottargetidx,
+                "fewshot_source": self.fewshotsource,
+                "fewshot_num": num_fewshot,
+                "ctx": ctx,
+            },
+        )
+
+    def get_logging_info(self):
+        return {
+            "fixed_answer_choice_list": self.prompt.get_fixed_answer_choices_list(),
+            "dataset_path": self.DATASET_PATH,
+            "dataset_name": self.DATASET_NAME,
+            "subset": self.SPLIT,
+            "prompt_name": self.prompt.get_name(),
+            "prompt_id": self.prompt.get_id(),
+            "prompt_jinja": self.prompt.jinja,
+            "prompt_original_task": self.prompt.metadata.original_task,
+            # Placeholder for comment in post-processing.
+            "comment": "",
+        }
+
+
+class TranslationTask(PromptSourceTask):
+
+    # Language specific functions.
+    @classmethod
+    def zh_split(cls, zh_text):
+        """Chinese splitting"""
+        import jieba
+
+        return [" ".join(jieba.cut(txt.strip())) for txt in zh_text]
+
+    @classmethod
+    def ja_split(cls, ja_text):
+        """Japanese splitting"""
+        import nagisa
+
+        return [" ".join(nagisa.tagging(txt.strip()).words) for txt in ja_text]
+
+    NO_SPACE_LANG = {"zh": zh_split, "ja": ja_split}
+
+    def invalid_doc_for_prompt(self, doc) -> bool:
+        # Skip docs with empty references.
+        if self.doc_to_target(doc) == [""]:
+            return True
+        return False
+
+    def _get_src_ref_codes(self, template_name: str):
+        """Returns a 2-tuple of (src_lang, ref_lang) codes from the prompt template name."""
+        # Get the lang codes from the dataset name.
+        lang_pairs = self.DATASET_NAME.split("-")
+        # Template name ordering defines the src and ref lang codes.
+        if self.DATASET_NAME in template_name:
+            return lang_pairs[0], lang_pairs[1]
+        # Flip the lang pairs following the prompt source.
+        return lang_pairs[1], lang_pairs[0]
+
+    def process_results(self, doc, results):
+        """Take a single document and the LM results and evaluates, returning a
+        dict where keys are the names of submetrics and values are the values of
+        the metric for that one document
+
+        :param doc:
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param results:
+            The results of the requests created in construct_requests.
+        """
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        target = self.doc_to_target(doc)
+
+        # Add spaces between words for BLEU score calculation of target languages like Chinese
+        _, tar_lang_code = self._get_src_ref_codes(self.prompt.name)
+        if tar_lang_code in self.NO_SPACE_LANG:
+            target = [self.NO_SPACE_LANG[tar_lang_code]([t])[0] for t in target]
+            results = self.NO_SPACE_LANG[tar_lang_code](results)
+        pred = results[0].strip()
+
+        # If not, then this is a generation prompt.
+        # NOTE: In the future, target will be a list of strings.
+        assert isinstance(target, list)
+        out = {}
+        for metric in self.prompt.metadata.metrics:
+            assert (
+                metric in self.CONFIGURED_GENERATION_PS_METRICS
+            ), "Unexpected metric. Add it, or use a task-specific solution."
+            if metric == "BLEU":
+                out["bleu"] = (target, pred)
+            elif metric == "ROUGE":
+                # TODO: This computes all rouge sub-metrics. Find a generic
+                # way to handle user specified rouge sub-metrics to avoid extra
+                # compute.
+                rouge_scores = metrics.rouge(target, pred)
+                # Flatten rouge score dict.
+                rouge_scores = utils.flatten(rouge_scores)
+                # Merge all the rouge-type scores into the `out` dict.
+                out = {**out, **rouge_scores}
+
+        # TODO: Wrap process results s.t. override impl do not
+        # override the save examples.
+        if self.save_examples:
+            example = {
+                "pred": pred,
+                "target": target,
+                "answer_choices_list": answer_choices_list,
+            }
+            return out, example
+        return out
 
 
 class MultipleChoiceTask(Task):
-
     def doc_to_target(self, doc):
-        return " " + doc['choices'][doc['gold']]
+        return " " + doc["choices"][doc["gold"]]
 
     def construct_requests(self, doc, ctx):
         lls = [
-            rf.loglikelihood(ctx, " {}".format(choice))[0]
-            for choice in doc['choices']
+            rf.loglikelihood(ctx, " {}".format(choice))[0] for choice in doc["choices"]
         ]
 
         return lls
@@ -601,21 +1059,21 @@ class MultipleChoiceTask(Task):
     def process_results(self, doc, results):
         gold = doc["gold"]
 
-        acc = 1. if np.argmax(results) == gold else 0.
+        acc = 1.0 if np.argmax(results) == gold else 0.0
         completion_len = np.array([float(len(i)) for i in doc["choices"]])
-        acc_norm = 1. if np.argmax(results / completion_len) == gold else 0.
+        acc_norm = 1.0 if np.argmax(results / completion_len) == gold else 0.0
 
         return {
             "acc": acc,
             "acc_norm": acc_norm,
         }
-    
+
     def higher_is_better(self):
         return {
             "acc": True,
             "acc_norm": True,
         }
-    
+
     def aggregation(self):
         return {
             "acc": mean,
@@ -624,17 +1082,30 @@ class MultipleChoiceTask(Task):
 
 
 class PerplexityTask(Task, abc.ABC):
+    def __init__(
+        self, data_dir=None, cache_dir=None, download_mode=None, save_examples=False
+    ):
+        super().__init__(data_dir, cache_dir, download_mode)
+        # It isn't clear what we should log per example given that the perplexity is aggregated.
+        # For `Flores101`, I set this to be true so we can get statistics on the domains/topics.
+        self.save_examples = save_examples
 
-    def has_training_docs(self):
+    def invalid_doc_for_prompt(self, _):
         return False
 
     def fewshot_examples(self, k, rnd):
         assert k == 0
         return []
 
-    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
-        assert num_fewshot == 0, "The number of fewshot examples must be 0 for perplexity tasks."
-        assert rnd is not None, "A `random.Random` generator argument must be provided to `rnd`."
+    def fewshot_context(
+        self, doc, num_fewshot, provide_description=None, rnd=None, description=None
+    ):
+        assert (
+            num_fewshot == 0
+        ), "The number of fewshot examples must be 0 for perplexity tasks."
+        assert (
+            rnd is not None
+        ), "A `random.Random` generator argument must be provided to `rnd`."
         assert not provide_description, (
             "The `provide_description` arg will be removed in future versions. To prepend "
             "a custom description to the context, supply the corresponding string via the "
@@ -642,9 +1113,17 @@ class PerplexityTask(Task, abc.ABC):
         )
         if provide_description is not None:
             # nudge people to not specify it at all
-            print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
+            print(
+                "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
+            )
 
-        return ""
+        return (
+            "",
+            {
+                "fewshot_num": 0,
+                "ctx": "",
+            },
+        )
 
     def higher_is_better(self):
         return {
@@ -657,22 +1136,39 @@ class PerplexityTask(Task, abc.ABC):
         return ""
 
     def doc_to_target(self, doc):
+        """NOTE: This won't work for most HF datasets.
+
+        Over-ride this function per task.
+        """
         return doc
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, _):
         assert not ctx
         req = rf.loglikelihood_rolling(self.doc_to_target(doc))
         return req
 
     def process_results(self, doc, results):
-        loglikelihood, = results
-        words = self.count_words(doc)
-        bytes_ = self.count_bytes(doc)
-        return {
+        (loglikelihood,) = results
+        target = self.doc_to_target(doc)
+        words = self.count_words(target)
+        bytes_ = self.count_bytes(target)
+
+        out = {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
             "bits_per_byte": (loglikelihood, bytes_),
         }
+        if self.save_examples:
+            return out, {
+                "word_perplexity_instance": weighted_perplexity(
+                    [(loglikelihood, words)]
+                ),
+                "byte_perplexity_instance": weighted_perplexity(
+                    [(loglikelihood, bytes_)]
+                ),
+                "bits_per_byte_instance": bits_per_byte([(loglikelihood, bytes_)]),
+            }
+        return out
 
     def aggregation(self):
         return {
@@ -687,23 +1183,28 @@ class PerplexityTask(Task, abc.ABC):
 
     @classmethod
     def count_words(cls, doc):
-        """ Downstream tasks with custom word boundaries should override this! """
+        """Downstream tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
+
+    def get_logging_info(self):
+        return {
+            "prompt_name": None,
+        }
 
 
 def hash_args(attr, args):
     dat = json.dumps([attr] + list(args))
-    return hashlib.sha256(dat.encode('utf-8')).hexdigest()
+    return hashlib.sha256(dat.encode("utf-8")).hexdigest()
 
 
 class CacheHook:
     def __init__(self, cachinglm):
-        if cachinglm is None: 
+        if cachinglm is None:
             self.dbdict = None
             return
 
         self.dbdict = cachinglm.dbdict
-    
+
     def add_partial(self, attr, req, res):
         if self.dbdict is None:
             return
@@ -733,7 +1234,7 @@ class CachingLM:
         def fn(requests):
             res = []
             remaining_reqs = []
-            
+
             # figure out which ones are cached and which ones are new
             for req in requests:
                 hsh = hash_args(attr, req)
@@ -746,7 +1247,7 @@ class CachingLM:
                 else:
                     res.append(None)
                     remaining_reqs.append(req)
-            
+
             # actually run the LM on the requests that do not have cached results
             rem_res = getattr(self.lm, attr)(remaining_reqs)
 
@@ -764,41 +1265,48 @@ class CachingLM:
             self.dbdict.commit()
 
             return res
+
         return fn
-    
+
     def get_cache_hook(self):
         return CacheHook(self)
 
 
 REQUEST_RETURN_LENGTHS = {
-    'loglikelihood': 2,
-    'greedy_until': None,
-    'loglikelihood_rolling': None,
+    "loglikelihood": 2,
+    "greedy_until": None,
+    "loglikelihood_rolling": None,
 }
 
 
 class Request:
     def __init__(self, request_type, args, index=None):
         if request_type not in REQUEST_RETURN_LENGTHS.keys():
-            raise NotImplementedError('The request type {} is not implemented!'.format(request_type))
+            raise NotImplementedError(
+                "The request type {} is not implemented!".format(request_type)
+            )
 
         self.request_type = request_type
         self.args = args
         self.index = index
-    
+
     def __iter__(self):
         if REQUEST_RETURN_LENGTHS[self.request_type] is None:
-            raise IndexError('This request type does not return multiple arguments!')
+            raise IndexError("This request type does not return multiple arguments!")
         for i in range(REQUEST_RETURN_LENGTHS[self.request_type]):
             yield Request(self.request_type, self.args, i)
-    
+
     def __getitem__(self, i):
         if REQUEST_RETURN_LENGTHS[self.request_type] is None:
-            raise IndexError('This request type does not return multiple arguments!')
+            raise IndexError("This request type does not return multiple arguments!")
         return Request(self.request_type, self.args, i)
-    
+
     def __eq__(self, other):
-        return self.request_type == other.request_type and self.args == other.args and self.index == other.index
+        return (
+            self.request_type == other.request_type
+            and self.args == other.args
+            and self.index == other.index
+        )
 
     def __repr__(self):
         return f"Req_{self.request_type}{self.args}[{self.index}]\n"
@@ -808,6 +1316,7 @@ class RequestFactory:
     def __getattr__(self, attr):
         def fn(*args):
             return Request(attr, args)
+
         return fn
 
 

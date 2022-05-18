@@ -53,9 +53,9 @@ class WinogradSchemaChallenge273(Task):
         return True
 
     def test_docs(self):
-        return map(self._load_doc, self.dataset["test"])
+        return map(self._process_doc, self.dataset["test"])
 
-    def _load_doc(self, doc):
+    def _process_doc(self, doc):
         # The HF implementation of `wsc273` is not `partial evaluation` friendly.
         doc["text"] = doc["text"].replace("  ", " ")
         doc["options"][0] = self.__normalize_option(doc, doc["options"][0])

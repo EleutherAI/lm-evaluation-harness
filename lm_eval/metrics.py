@@ -1,10 +1,12 @@
+import typing
 import math
 from collections.abc import Iterable
-
 import numpy as np
 import sacrebleu
+from rouge_score import rouge_scorer
 import sklearn.metrics
 import random
+from lm_eval.metric_impls import sari as sari_impl
 
 
 def mean(arr):
@@ -18,7 +20,10 @@ def pop_stddev(arr):
 
 def sample_stddev(arr):
     mu = mean(arr)
-    return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
+    if len(arr) == 1:
+        return 0
+    else:
+        return math.sqrt(sum([(x - mu) ** 2 for x in arr]) / (len(arr) - 1))
 
 
 def mean_stderr(arr):
@@ -82,6 +87,41 @@ def acc_all_stderr(items):
     return acc
 
 
+def compute_parity_scores(items):
+    # Parity checks whether predictions in subsequent pairs of examples are consistent.
+    # In WinogenderSchema those examples differ only in the gender of the pronoun in the hypothesis.
+
+    indices2predictions = {idx: pred for idx, pred in items}
+    parity_scores = []
+    for idx in indices2predictions.keys():
+        if (idx % 2) == 0 and (idx + 1) in indices2predictions:
+            parity_scores.append(
+                int(indices2predictions[idx] == indices2predictions[idx + 1])
+            )
+
+    return parity_scores
+
+
+def parity(items):
+    parity_scores = compute_parity_scores(items)
+    if len(parity_scores) > 0:
+        acc = mean(parity_scores)
+    else:
+        acc = 0.0
+
+    return acc
+
+
+def parity_stderr(items):
+    parity_scores = compute_parity_scores(items)
+    if len(parity_scores) > 0:
+        stderr = mean_stderr(parity_scores)
+    else:
+        stderr = 0.0
+
+    return stderr
+
+
 def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
     """Compute max metric between prediction and each ground truth."""
     scores_for_ground_truths = []
@@ -103,8 +143,14 @@ def weighted_mean(items):
 def weighted_perplexity(items):
     return math.exp(-weighted_mean(items))
 
+
 def bits_per_byte(items):
     return -weighted_mean(items) / math.log(2)
+
+
+def sari(sentence_to_simplifiy, generated_sentence, references):
+    """Implementation of SARI from the authors'."""
+    return sari_impl.SARIsent(sentence_to_simplifiy, generated_sentence, references)
 
 
 def bleu(items):
@@ -184,7 +230,76 @@ def _sacreformat(refs, preds):
 
     return refs, preds
 
+
+def rouge(
+    refs: typing.List[str],
+    pred: str,
+    rouge_types: typing.List[str] = ["rouge1", "rouge2", "rougeL", "rougeLsum"],
+):
+    """ROUGE with multi-reference support
+
+    Implementation based on GEM-metrics:
+    https://github.com/GEM-benchmark/GEM-metrics/blob/431a8174bd6b3637e8d6118bfad2983e39e99733/gem_metrics/rouge.py
+
+    :param refs:
+        A `list` of reference `str`s.
+    :param pred:
+        A single prediction `str`s.
+    """
+
+    # Add newlines between sentences to correctly compute `rougeLsum`.
+    if "rougeLsum" in rouge_types:
+        # TODO: Adapt this to handle languages that do not support sentence endings by `.`.
+        # See GEM-metrics implementation with lang specific `nltk` tokenizers to
+        # split sentences.
+        pred = pred.replace(".", ".\n")
+        refs = [ref.replace(".", ".\n") for ref in refs]
+
+    scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=True)
+    # ROUGE multi-ref jackknifing
+    if len(refs) > 1:
+        cur_scores = [scorer.score(ref, pred) for ref in refs]
+
+        # get best score for all leave-one-out sets
+        best_scores = []
+        for leave in range(len(refs)):
+            cur_scores_leave_one = [
+                cur_scores[s] for s in range(len(refs)) if s != leave
+            ]
+            best_scores.append(
+                {
+                    rouge_type: max(
+                        [s[rouge_type] for s in cur_scores_leave_one],
+                        key=lambda s: s.fmeasure,
+                    )
+                    for rouge_type in rouge_types
+                }
+            )
+        # average the leave-one-out bests to produce the final score
+        score = {
+            rouge_type: rouge_scorer.scoring.Score(
+                np.mean([b[rouge_type].precision for b in best_scores]),
+                np.mean([b[rouge_type].recall for b in best_scores]),
+                np.mean([b[rouge_type].fmeasure for b in best_scores]),
+            )
+            for rouge_type in rouge_types
+        }
+    else:
+        score = scorer.score(refs[0], pred)
+    # convert the named tuples to plain nested dicts
+    score = {
+        rouge_type: {
+            "precision": score[rouge_type].precision,
+            "recall": score[rouge_type].recall,
+            "fmeasure": score[rouge_type].fmeasure,
+        }
+        for rouge_type in rouge_types
+    }
+    return score
+
+
 # stderr stuff
+
 
 class _bootstrap_internal:
     def __init__(self, f, n):
@@ -203,9 +318,10 @@ class _bootstrap_internal:
 
 def bootstrap_stderr(f, xs, iters):
     import multiprocessing as mp
+
     pool = mp.Pool(mp.cpu_count())
     # this gives a biased estimate of the stderr (i.e w/ the mean, it gives something
-    # equivalent to stderr calculated without Bessel's correction in the stddev. 
+    # equivalent to stderr calculated without Bessel's correction in the stddev.
     # Unfortunately, I haven't been able to figure out what the right correction is
     # to make the bootstrap unbiased - i considered multiplying by sqrt(n/(n-1)) but
     # that would be ad-hoc and I can't prove that that would actually be an unbiased estimator)
@@ -213,10 +329,15 @@ def bootstrap_stderr(f, xs, iters):
     res = []
     chunk_size = min(1000, iters)
     from tqdm import tqdm
+
     print("bootstrapping for stddev:", f.__name__)
-    for bootstrap in tqdm(pool.imap(
+    for bootstrap in tqdm(
+        pool.imap(
             _bootstrap_internal(f, chunk_size),
-            [(i, xs) for i in range(iters // chunk_size)]), total=iters // chunk_size):
+            [(i, xs) for i in range(iters // chunk_size)],
+        ),
+        total=iters // chunk_size,
+    ):
         # sample w replacement
         res.extend(bootstrap)
 
@@ -238,17 +359,13 @@ def stderr_for_metric(metric, bootstrap_iters):
     if metric in bootstrappable:
         return lambda x: bootstrap_stderr(metric, x, iters=bootstrap_iters)
 
-    stderr = {
-        mean: mean_stderr,
-        acc_all: acc_all_stderr
-        
-    }
+    stderr = {mean: mean_stderr, acc_all: acc_all_stderr, parity: parity_stderr}
 
     return stderr.get(metric, None)
 
 
 def yesno(x):
     if x:
-        return 'yes'
+        return "yes"
     else:
-        return 'no'
+        return "no"
