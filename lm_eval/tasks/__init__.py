@@ -26,7 +26,7 @@ from . import wino_bias
 from . import wmt
 from . import cnn_dailymail
 from . import diabla
-
+from . import xquad
 
 ########################################
 # All tasks
@@ -182,6 +182,9 @@ TASK_REGISTRY = {
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
     # DiaBLa
     "diabla": diabla.DiaBLa,
+    
+    "xquad.en": xquad.xquad_en,
+    "xquad.ar": xquad.xquad_ar,
 }
 
 
