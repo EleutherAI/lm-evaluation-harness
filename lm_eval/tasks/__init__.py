@@ -53,14 +53,10 @@ from . import asdiv
 from . import gsm8k
 from . import storycloze
 from . import hans
+from . import e2e_nlg_cleaned
 from . import gem_webnlg
 from . import gem_xsum
 from . import gem_mlsum
-from . import wino_bias
-from . import e2e_nlg_cleaned
-from . import schema_guided_dstc8
-from . import gem_asset_turk
-from . import crows_pairs_multilingual
 
 ########################################
 # Translation tasks
