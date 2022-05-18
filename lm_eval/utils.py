@@ -229,3 +229,22 @@ def set_seed(seed: int) -> None:
     random.seed(seed)
     transformers_set_seed(seed)
     numpy.random.seed(seed)
+
+
+def select_continuation_from_batch_left_padding(generations, max_context_size):
+    """Select the continuation from the batch, removing prompts of different lengths.
+
+    generations : tensor of shape B x S
+        batch x sequence x vocab.
+    max_context_size : int
+        the size of the biggest context. generations will proceed from that index.
+
+    Example:
+    PAD     PAD Continue : The dog chased the cat  [every       day of the week]
+    Riddle  me    this   : The  dog chased the  cat [yesterday] PAD PAD PAD PAD
+
+    Output:
+    [every day of the week]
+    [yesterday]  PAD PAD PAD PAD
+    """
+    return generations[:, max_context_size:]
