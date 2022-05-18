@@ -1,4 +1,3 @@
-import abc
 import math
 import transformers
 import torch
@@ -215,49 +214,71 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         return tokenizer
 
     def loglikelihood(self, requests):
-        res = []
-        for chunk in tqdm(
-            utils.chunks(requests, self.batch_size),
-            total=math.ceil(len(requests) / self.batch_size),
-        ):
+        new_reqs = []
+        for chunk in utils.chunks(requests, self.batch_size):
+            context, continuation = zip(*chunk)
 
-            inputs, targets = zip(*chunk)
+            # Fill empty contexts with the EOT token.
+            context = [f"{self.eot_token}" if len(input_) == 0 else input_ for input_ in context]
+            context_enc = self.tok_encode_batch(context)
+            for key in context_enc:
+                context_enc[key] = context_enc[key][:, -(self.max_length - 1) :]
 
-            # Fill in empty encoder inputs with eos_token
-            inputs = (
-                f"{self.eot_token}" if len(input_) == 0 else input_ for input_ in inputs
+            continuation_enc = self.tok_encode_batch(list(continuation))
+            for key in continuation_enc:
+                continuation_enc[key] = continuation_enc[key][:, -(self.max_length - 1) :]
+
+            new_reqs.append(((context, continuation), context_enc, continuation_enc))
+        return self._loglikelihood_tokens(new_reqs)
+
+    def loglikelihood_rolling(self, requests):
+        loglikelihoods = []
+        for (string,) in tqdm(requests):
+            rolling_token_windows = list(
+                map(
+                    utils.make_disjoint_window,
+                    utils.get_rolling_token_windows(
+                        token_list=self.tok_encode(string),
+                        prefix_token=self.eot_token_id,
+                        max_seq_len=self.max_length,
+                        context_len=1
+                    )))
+            contexts, conts = utils.split_and_pad_windows(
+                rolling_token_windows,
+                pad_token=self.eot_token_id,
+                max_seq_len=self.max_length
             )
 
-            inputs_tok = self.tokenizer(
-                list(inputs),
-                max_length=self.max_length,
-                padding=True,
-                # truncation=True,
-                add_special_tokens=False,
-                return_tensors="pt",
-            ).to(self.device)
+            # Manually create BatchEncoding tensors with attention masks as 
+            # expected by `self._model_call` in `self._loglikelihood_tokens`.
+            contexts_enc = torch.Tensor(contexts).long()
+            context_enc = transformers.tokenization_utils_base.BatchEncoding({
+                "input_ids": contexts_enc,
+                "attention_mask": (contexts_enc != self.eot_token_id).long()
+            })
+            conts_enc = torch.Tensor(conts).long()
+            conts_enc = transformers.tokenization_utils_base.BatchEncoding({
+                "input_ids": conts_enc,
+                "attention_mask": (conts_enc != self.eot_token_id).long()
+            })
 
-            for key in inputs_tok:
-                inputs_tok[key] = inputs_tok[key][:, -(self.max_length - 1) :]
+            # TODO: extract out this call so it only gets called once and also somehow figure out partial caching for
+            rolling_token_windows_request = [((contexts, conts), context_enc, conts_enc)]
+            string_nll = self._loglikelihood_tokens(rolling_token_windows_request, disable_tqdm=True)
+            string_nll = [x[0] for x in string_nll]  # discard is_greedy
+            string_nll = sum(string_nll)
+            loglikelihoods.append(string_nll)
+        return loglikelihoods
 
-            targets_tok = self.tokenizer(
-                list(targets),
-                max_length=self.max_gen_toks,
-                padding=True,
-                # truncation=True,
-                add_special_tokens=False,
-                return_tensors="pt",
-            ).to(self.device)
-
-            for key in targets_tok:
-                targets_tok[key] = targets_tok[key][:, -(self.max_length - 1) :]
-
+    def _loglikelihood_tokens(self, requests, disable_tqdm=False):
+        res = []
+        for chunk in tqdm(requests, total=math.ceil(len(requests)), disable=disable_tqdm):
+            cache_keys, inputs_tok, targets_tok = chunk
             outputs = self._model_call(inputs_tok, targets_tok)
-
             log_softmaxes = F.log_softmax(outputs.logits, dim=-1)
 
             output_iterator = zip(
-                chunk,
+                zip(cache_keys[0], cache_keys[1]),
                 log_softmaxes,
                 targets_tok["input_ids"],
                 targets_tok["attention_mask"],
