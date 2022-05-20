@@ -20,7 +20,8 @@ setuptools.setup(
     ],
     python_requires=">=3.6",
     install_requires=[
-        "promptsource @ git+https://github.com/bigscience-workshop/promptsource@eval-hackathon",
+        "promptsource@git+https://github.com/bigscience-workshop/promptsource@eval-hackathon",
+        "transformers@git+https://github.com/huggingface/transformers@main",
         "codecarbon",
         "wrapt",
         "nltk",
@@ -30,7 +31,6 @@ setuptools.setup(
         "click>=7.1",
         "scikit-learn>=0.24.1",
         "torch>=1.7",
-        "transformers>=4.16",
         "sqlitedict==1.6.0",
         "pytablewriter==0.58.0",
         "sacrebleu==1.5.0",
