@@ -51,6 +51,7 @@ from . import blimp
 from . import asdiv
 from . import gsm8k
 from . import storycloze
+from . import klue
 from . import nsmc
 
 ########################################
@@ -298,14 +299,12 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
-
+    "klue_sts": klue.STS,
+    "nsmc": nsmc.NSMC,
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
-
-    # Korean
-    "nsmc": nsmc.NSMC,
 }
 
 
