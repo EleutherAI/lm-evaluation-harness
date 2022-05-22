@@ -51,8 +51,12 @@ from . import blimp
 from . import asdiv
 from . import gsm8k
 from . import storycloze
-from . import klue
 from . import nsmc
+from . import klue
+from . import korquad
+
+
+
 
 ########################################
 # Translation tasks
@@ -300,7 +304,8 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
     "klue_sts": klue.STS,
-    "nsmc": nsmc.NSMC,
+    "nsmc": nsmc.NSMC,    
+    "korquad": korquad.Korquad
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
