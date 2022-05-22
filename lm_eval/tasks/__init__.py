@@ -304,6 +304,7 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
     "klue_sts": klue.STS,
+    "klue_ynat": klue.YNAT
     "nsmc": nsmc.NSMC,    
     "korquad": korquad.Korquad
     # Requires manual download of data.
