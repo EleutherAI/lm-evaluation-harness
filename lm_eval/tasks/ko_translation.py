@@ -9,13 +9,11 @@ https://github.com/mjpost/sacrebleu/blob/master/sacrebleu/dataset.py
 
 Homepage: https://github.com/mjpost/sacrebleu/blob/master/sacrebleu/dataset.py
 """
-import pycountry
-from pprint import pprint
+
 from datasets import load_dataset
 from lm_eval import metrics
 from lm_eval.base import Task, rf
-from typing import List
-from Korpora import Korpora
+
 
 _CITATION = """
 @inproceedings{post-2018-call,
@@ -64,6 +62,8 @@ class GeneralTranslationTask(Task):
         self.valid_tgt = list(self.dataset['validation']['en'])
         self.tst_src = list(self.dataset['test']['ko'])
         self.tst_tgt = list(self.dataset['test']['en'])
+        self._training_docs = None
+        self._fewshot_docs = None
 
     def has_training_docs(self):
         """Whether the task has a training set"""
@@ -83,9 +83,12 @@ class GeneralTranslationTask(Task):
         :return: Iterable[obj]
             A iterable of any object, that doc_to_text can handle
         """
-        return [
-            {"src": src, "tgt": tgt} for src, tgt in zip(self.train_src, self.train_tgt)
-            ]
+        if self._training_docs is None:
+            self._training_docs = [
+                {"src": src, "tgt": tgt} for src, tgt in zip(self.train_src, self.train_tgt)
+                ]
+
+        return self._training_docs
 
     def validation_docs(self):
         """
@@ -106,10 +109,9 @@ class GeneralTranslationTask(Task):
             ]
   
     def doc_to_text(self, doc):
-        src_lang = "ko"
-        tar_lang = "en"
-        # import pdb; pdb.set_trace()
-        return f"{src_lang} phrase: " + doc["src"] + f"\n{tar_lang} phrase:"
+        src_lang = "한글"
+        tar_lang = "영어"
+        return f"{src_lang}을 {tar_lang}으로 번역해주는 모델입니다.\n\n###\n{src_lang}:" + doc["src"] + f"\n{tar_lang}:"
         
     def should_decontaminate(self):
         return True
