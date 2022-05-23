@@ -21,6 +21,7 @@ from . import huff_post
 from . import lama
 from . import lince
 from . import race
+from . import scitail
 from . import superglue
 from . import wino_bias
 from . import wmt
@@ -74,6 +75,7 @@ TASK_REGISTRY = {
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
     "hans": hans.HANS,
+    
     # BLiMP
     "blimp_adjunct_island": blimp.BlimpAdjunctIsland,
     "blimp_anaphor_gender_agreement": blimp.BlimpAnaphorGenderAgreement,
@@ -142,16 +144,21 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
+    
+    # CNN Daily Mail
     "cnn_dailymail": cnn_dailymail.CnnDailyMail,
+    
     # GEM/mlsum
     "mlsum_es": gem_mlsum.GEMMLSUMEs,
     "mlsum_de": gem_mlsum.GEMMLSUMDe,
     "mlsum_es_covid_challenge_set": gem_mlsum.GEMMLSUMEsChallgeTestCovid,
     "mlsum_de_covid_challenge_set": gem_mlsum.GEMMLSUMDeChallgeTestCovid,
+    
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
+    
     # GEM/xum
     "gem_xsum": gem_xsum.GEMXSUM,
     "gem_xsum_challenge_sample": gem_xsum.GEMXSUMChallgeSample,
@@ -160,28 +167,41 @@ TASK_REGISTRY = {
     "gem_xsum_challenge_test_bfp_05": gem_xsum.GEMXSUMChallgeTestBFP05,
     "gem_xsum_challenge_test_nopunc": gem_xsum.GEMXSUMChallgeTestNopunc,
     "gem_xsum_challenge_test_covid": gem_xsum.GEMXSUMChallgeTestCovid,
+    
     # LAMA
     "lama-trex": lama.Trex,
     "lama-squad": lama.Squad,
     "lama-google_re": lama.google_re,
     "lama-concptnet": lama.Conceptnet,
     "bigscience-lama": lama.BigScienceLAMA,
+    
     # WinoBias
     "wino_bias_type1_pro": wino_bias.WinoBiasType1Pro,
     "wino_bias_type1_anti": wino_bias.WinoBiasType1Anti,
     "wino_bias_type2_pro": wino_bias.WinoBiasType2Pro,
     "wino_bias_type2_anti": wino_bias.WinoBiasType2Anti,
+    
     # Crows-Pairs
     "crows_pairs_english": crows_pairs_multilingual.CrowsPairsEnglish,
     "crows_pairs_french": crows_pairs_multilingual.CrowsPairsFrench,
+    
     # News
     "huffpost": huff_post.HuffPost,
+    
     # Code-switching
     "lince_sa": lince.LinCESentimentAnalysis,
+    
     # WMT
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
+    
     # DiaBLa
     "diabla": diabla.DiaBLa,
+    
+    # SciTail
+    "scitail_snli": scitail.SciTailSNLI,
+    "scitail_tsv": scitail.SciTailTSV
+    "scitail_dgem": scitail.SciTailDGEM
+    "scitail_pred": scitail.SciTailPredictor
 }
 
 
