@@ -27,7 +27,7 @@ from . import wmt
 from . import cnn_dailymail
 from . import diabla
 
-
+from . import piaf
 ########################################
 # All tasks
 ########################################
@@ -182,6 +182,8 @@ TASK_REGISTRY = {
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
     # DiaBLa
     "diabla": diabla.DiaBLa,
+    # piaf
+    "piaf": piaf.PIAF,
 }
 
 
