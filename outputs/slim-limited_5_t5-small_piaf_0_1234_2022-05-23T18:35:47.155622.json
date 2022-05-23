@@ -1,0 +1,105 @@
+{
+  "results": [
+    {
+      "task_name": "piaf",
+      "prompt_name": "Given_above_context",
+      "f1": 0.039198088316680466,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "f1_stderr": 0.018726914655966372
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "Given_above_context",
+      "em": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "em_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "after_reading",
+      "f1": 0.04279635258358662,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "f1_stderr": 0.033197055769810205
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "after_reading",
+      "em": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "em_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "context_follow_q",
+      "f1": 0.056027777777777774,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "f1_stderr": 0.030644932414936883
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "context_follow_q",
+      "em": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "em_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "extract_the_answer",
+      "f1": 0.03308270676691729,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "f1_stderr": 0.0206428674506005
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "extract_the_answer",
+      "em": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "em_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "given_passage_answer",
+      "f1": 0.04016806722689075,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "f1_stderr": 0.03330573440222788
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "given_passage_answer",
+      "em": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "em_stderr": 0.0
+    }
+  ],
+  "config": {
+    "model": "hf-seq2seq",
+    "model_args": "pretrained=t5-small",
+    "num_fewshot": 0,
+    "batch_size": null,
+    "device": "cpu",
+    "no_cache": false,
+    "limit": 5,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

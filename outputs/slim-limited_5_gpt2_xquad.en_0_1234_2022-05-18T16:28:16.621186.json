@@ -1,0 +1,463 @@
+{
+  "results": [
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_given_context_and_question",
+      "exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_given_context_and_question",
+      "f1": 3.966747989518389,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_given_context_and_question",
+      "HasAns_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_given_context_and_question",
+      "HasAns_f1": 3.966747989518389,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_given_context_and_question",
+      "best_exact_thresh": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_given_context_and_question",
+      "best_f1_thresh": 2.0292702174629085e-05,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_given_context_and_question",
+      "best_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_given_context_and_question",
+      "best_f1": 3.966747989518389,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_question_given_context",
+      "exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_question_given_context",
+      "f1": 0.9317758591501608,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_question_given_context",
+      "HasAns_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_question_given_context",
+      "HasAns_f1": 0.9317758591501608,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_question_given_context",
+      "best_exact_thresh": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_question_given_context",
+      "best_f1_thresh": 1.33527286449997e-10,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_question_given_context",
+      "best_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_question_given_context",
+      "best_f1": 0.9317758591501608,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_the_question",
+      "exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_the_question",
+      "f1": 1.078942636216508,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_the_question",
+      "HasAns_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_the_question",
+      "HasAns_f1": 1.078942636216508,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_the_question",
+      "best_exact_thresh": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_the_question",
+      "best_f1_thresh": 7.46188977274187e-09,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_the_question",
+      "best_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "answer_the_question",
+      "best_f1": 1.078942636216508,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_answer_question_variation",
+      "exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_answer_question_variation",
+      "f1": 0.9339051119733173,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_answer_question_variation",
+      "HasAns_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_answer_question_variation",
+      "HasAns_f1": 0.9339051119733173,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_answer_question_variation",
+      "best_exact_thresh": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_answer_question_variation",
+      "best_f1_thresh": 4.113365030533611e-12,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_answer_question_variation",
+      "best_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_answer_question_variation",
+      "best_f1": 0.9339051119733173,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_generate_question",
+      "exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_generate_question",
+      "f1": 1.1811130587204208,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_generate_question",
+      "HasAns_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_generate_question",
+      "HasAns_f1": 1.1811130587204208,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_generate_question",
+      "best_exact_thresh": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_generate_question",
+      "best_f1_thresh": 6.261949181407545e-08,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_generate_question",
+      "best_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "given_context_generate_question",
+      "best_f1": 1.1811130587204208,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "jeopardy",
+      "exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "jeopardy",
+      "f1": 4.40930429271254,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "jeopardy",
+      "HasAns_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "jeopardy",
+      "HasAns_f1": 4.40930429271254,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "jeopardy",
+      "best_exact_thresh": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "jeopardy",
+      "best_f1_thresh": 5.1945643342321546e-09,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "jeopardy",
+      "best_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "jeopardy",
+      "best_f1": 4.40930429271254,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "read_passage",
+      "exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "read_passage",
+      "f1": 1.995085995085995,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "read_passage",
+      "HasAns_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "read_passage",
+      "HasAns_f1": 1.995085995085995,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "read_passage",
+      "best_exact_thresh": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "read_passage",
+      "best_f1_thresh": 8.486753522163326e-10,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "read_passage",
+      "best_exact": 0.0,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    },
+    {
+      "task_name": "xquad.en",
+      "prompt_name": "read_passage",
+      "best_f1": 1.995085995085995,
+      "dataset_path": "xquad",
+      "dataset_name": "xquad.en",
+      "subset": null
+    }
+  ],
+  "config": {
+    "model": "hf-causal",
+    "model_args": "pretrained=gpt2",
+    "num_fewshot": 0,
+    "batch_size": null,
+    "device": "cpu",
+    "no_cache": false,
+    "limit": 5,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

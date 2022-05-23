@@ -1,0 +1,105 @@
+{
+  "results": [
+    {
+      "task_name": "piaf",
+      "prompt_name": "Given_above_context",
+      "f1": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "f1_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "Given_above_context",
+      "em": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "em_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "after_reading",
+      "f1": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "f1_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "after_reading",
+      "em": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "em_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "context_follow_q",
+      "f1": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "f1_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "context_follow_q",
+      "em": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "em_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "extract_the_answer",
+      "f1": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "f1_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "extract_the_answer",
+      "em": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "em_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "given_passage_answer",
+      "f1": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "f1_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "given_passage_answer",
+      "em": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "em_stderr": 0.0
+    }
+  ],
+  "config": {
+    "model": "hf-causal",
+    "model_args": "pretrained=gpt2",
+    "num_fewshot": 0,
+    "batch_size": null,
+    "device": "cpu",
+    "no_cache": false,
+    "limit": 1,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

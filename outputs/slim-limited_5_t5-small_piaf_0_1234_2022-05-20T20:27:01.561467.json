@@ -1,0 +1,60 @@
+{
+  "results": [
+    {
+      "task_name": "piaf",
+      "prompt_name": "Given_above_context",
+      "acc": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "acc_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "after_reading",
+      "acc": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "acc_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "context_follow_q",
+      "acc": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "acc_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "extract_the_answer",
+      "acc": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "acc_stderr": 0.0
+    },
+    {
+      "task_name": "piaf",
+      "prompt_name": "given_passage_answer",
+      "acc": 0.0,
+      "dataset_path": "piaf",
+      "dataset_name": null,
+      "subset": null,
+      "acc_stderr": 0.0
+    }
+  ],
+  "config": {
+    "model": "hf-seq2seq",
+    "model_args": "pretrained=t5-small",
+    "num_fewshot": 0,
+    "batch_size": null,
+    "device": "cpu",
+    "no_cache": false,
+    "limit": 5,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}
