@@ -49,16 +49,16 @@ class SciTailBase(PromptSourceTask):
             return self.dataset[self.SPLIT]["test"]
 
 
-class SciTailSNLI(ANLIBase):
+class SciTailSNLI(SciTailBase):
     SPLIT = "snli_format"
 
 
-class SciTailTSV(ANLIBase):
+class SciTailTSV(SciTailBase):
     SPLIT = "tsv_format"
 
 
-class SciTailDGEM(ANLIBase):
+class SciTailDGEM(SciTailBase):
     SPLIT = "dgem_format"
 
-class SciTailPredictor(ANLIBase):
+class SciTailPredictor(SciTailBase):
     SPLIT = "predictor_format"
