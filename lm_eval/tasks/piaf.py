@@ -85,8 +85,7 @@ class PIAF(PromptSourceTask):
             example = {"target": targets, "pred": pred}
             return out, example
         return out
-    #def doc_to_target(self, doc):
-    #    return doc
+
     def higher_is_better(self):
         return {
             "f1": True,
