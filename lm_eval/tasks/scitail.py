@@ -52,13 +52,5 @@ class SciTailBase(PromptSourceTask):
 class SciTailSNLI(SciTailBase):
     SPLIT = "snli_format"
 
-
-class SciTailTSV(SciTailBase):
-    SPLIT = "tsv_format"
-
-
-class SciTailDGEM(SciTailBase):
-    SPLIT = "dgem_format"
-
 class SciTailPredictor(SciTailBase):
     SPLIT = "predictor_format"
