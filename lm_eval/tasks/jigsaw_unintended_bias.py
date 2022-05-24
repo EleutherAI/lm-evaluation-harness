@@ -104,10 +104,7 @@ class JigsawUnintendedBias(PromptSourceTask):
 
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)
-        try:
-            assert isinstance(target, list) and len(target) == 1
-        except:
-            breakpoint()
+        assert isinstance(target, list) and len(target) == 1
         target = target[0].strip()
 
         out = {}
@@ -163,7 +160,7 @@ class JigsawUnintendedBias(PromptSourceTask):
         # TODO: Wrap process results s.t. override impl do not
         # override the save examples.
         if self.save_examples:
-            pred = pred if answer_choices_list else int(pred)
+            pred = pred if answer_choices_list else int(pred) 
             example = {
                 "pred": pred,
                 "target": target,
