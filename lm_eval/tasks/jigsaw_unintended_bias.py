@@ -104,7 +104,10 @@ class JigsawUnintendedBias(PromptSourceTask):
 
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)
-        assert isinstance(target, list) and len(target) == 1
+        try:
+            assert isinstance(target, list) and len(target) == 1
+        except:
+            breakpoint()
         target = target[0].strip()
 
         out = {}
@@ -160,6 +163,7 @@ class JigsawUnintendedBias(PromptSourceTask):
         # TODO: Wrap process results s.t. override impl do not
         # override the save examples.
         if self.save_examples:
+            pred = pred if answer_choices_list else int(pred)
             example = {
                 "pred": pred,
                 "target": target,
@@ -212,22 +216,22 @@ class JigsawUnintendedBias(PromptSourceTask):
 
     def aggregation(self):
         out = {}
-        out["acc"] = mean
-        out["tp"] = np.nansum
-        out["fp"] = np.nansum
-        out["tn"] = np.nansum
-        out["fn"] = np.nansum
+        out["acc"] = lambda x: float(mean(x))
+        out["tp"] = lambda x: float(np.nansum(x))
+        out["fp"] = lambda x: float(np.nansum(x))
+        out["tn"] = lambda x: float(np.nansum(x))
+        out["fn"] = lambda x: float(np.nansum(x))
 
         dimension_to_identity_set = {"race": ["black", "white", "asian", "latino", "other_race_or_ethnicity"], 
                                      "gender_nonbinary": ["male", "female", "transgender", "other_gender"]}
 
         for dimension, identity_set in dimension_to_identity_set.items():
             for identity in identity_set:
-                out[f"{identity}_acc"] = np.nanmean
-                out[f"{identity}_tp"] = np.nansum
-                out[f"{identity}_tn"] = np.nansum
-                out[f"{identity}_fp"] = np.nansum
-                out[f"{identity}_fn"] = np.nansum
+                out[f"{identity}_acc"] = lambda x: float(np.nanmean(x))
+                out[f"{identity}_tp"] = lambda x: float(np.nansum(x))
+                out[f"{identity}_tn"] = lambda x: float(np.nansum(x))
+                out[f"{identity}_fp"] = lambda x: float(np.nansum(x))
+                out[f"{identity}_fn"] = lambda x: float(np.nansum(x))
         return out
 
 
