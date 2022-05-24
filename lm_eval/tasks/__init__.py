@@ -199,7 +199,6 @@ TASK_REGISTRY = {
     
     # SciTail
     "scitail_snli": scitail.SciTailSNLI,
-    "scitail_pred": scitail.SciTailPredictor,
 }
 
 
