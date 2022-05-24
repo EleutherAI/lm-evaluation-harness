@@ -51,6 +51,3 @@ class SciTailBase(PromptSourceTask):
 
 class SciTailSNLI(SciTailBase):
     SPLIT = "snli_format"
-
-class SciTailPredictor(SciTailBase):
-    SPLIT = "predictor_format"
