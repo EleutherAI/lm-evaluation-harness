@@ -24,11 +24,13 @@ from . import race
 from . import superglue
 from . import wino_bias
 from . import wmt
+from . import crd3
 from . import cnn_dailymail
 from . import diabla
 from . import schema_guided_dstc8
-
 from . import piaf
+
+
 ########################################
 # All tasks
 ########################################
@@ -180,6 +182,8 @@ TASK_REGISTRY = {
     "huffpost": huff_post.HuffPost,
     # Code-switching
     "lince_sa": lince.LinCESentimentAnalysis,
+    # CRD3
+    "crd3": crd3.CRD3,
     # WMT
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
     # DiaBLa
