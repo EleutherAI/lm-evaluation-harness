@@ -13,7 +13,7 @@ import numpy as np
 import sklearn
 import transformers.data.metrics.squad_metrics as squad_metrics
 from lm_eval.base import rf, PromptSourceTask
-from lm_eval.metrics import mean, acc_all, metric_max_over_ground_truths, yesno
+from lm_eval.metrics import mean, acc_all, metric_max_over_ground_truths, yesno, parity
 from lm_eval.utils import general_detokenize
 
 
@@ -55,6 +55,7 @@ class BoolQ(PromptSourceTask):
         return self.dataset["validation"]
 
 
+# TODO: Check this works with all prompts.
 class CommitmentBank(PromptSourceTask):
     VERSION = 1
     DATASET_PATH = "super_glue"
@@ -78,11 +79,25 @@ class CommitmentBank(PromptSourceTask):
         return self.dataset["validation"]
 
     def process_results(self, doc, results):
-        gold = doc["label"]
-        pred = np.argmax(results)
-        acc = 1.0 if pred == gold else 0.0
+        # gold = doc["label"]
+        pred_idx = np.argmax(results)
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        pred = answer_choices_list[pred_idx]
+        target = self.doc_to_target(doc)[0]
+        answer2idx = {answer: i for i, answer in enumerate(answer_choices_list)}
+        target_idx = answer2idx[target]
 
-        return {"acc": acc, "f1": (pred, gold)}
+        acc = 1.0 if pred_idx == target_idx else 0.0
+        if self.save_examples:
+            return {"acc": acc, "f1": (pred_idx, target_idx)}, {
+                "pred": pred,
+                "target": target,
+                # json cannot handle int64
+                "pred_idx": int(pred_idx),
+                "target_idx": int(target_idx),
+            }
+
+        return {"acc": acc, "f1": (pred_idx, target_idx)}
 
     def higher_is_better(self):
         return {"acc": True, "f1": True}
@@ -127,24 +142,8 @@ class Copa(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def process_results(self, doc, results):
-        gold = doc["label"]
-        pred = np.argmax(results)
-        acc = 1.0 if pred == gold else 0.0
 
-        return {"acc": acc}
-
-    def higher_is_better(self):
-        return {"acc": True}
-
-    def aggregation(self):
-        return {"acc": mean}
-
-    @staticmethod
-    def convert_choice(choice):
-        return choice[0].lower() + choice[1:]
-
-
+# TODO: Check this works with all prompts.
 class MultiRC(PromptSourceTask):
     VERSION = 1
     DATASET_PATH = "super_glue"
@@ -166,17 +165,6 @@ class MultiRC(PromptSourceTask):
 
     def validation_docs(self):
         return self.dataset["validation"]
-
-    def process_results(self, doc, results):
-        ll_true_choice, ll_false_choice = results
-        pred = ll_true_choice > ll_false_choice
-        return {"acc": (pred, doc)}
-
-    def higher_is_better(self):
-        return {"acc": True}
-
-    def aggregation(self):
-        return {"acc": acc_all}
 
 
 class ReCoRD(PromptSourceTask):
@@ -300,12 +288,6 @@ class SGWinogradSchemaChallenge(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def higher_is_better(self):
-        return {"acc": True}
-
-    def aggregation(self):
-        return {"acc": mean}
-
 
 class WinogenderSchemaDiagnostics(PromptSourceTask):
     VERSION = 0
@@ -316,13 +298,49 @@ class WinogenderSchemaDiagnostics(PromptSourceTask):
         return False
 
     def has_validation_docs(self):
-        return False 
+        return False
 
     def has_test_docs(self):
-        return True 
+        return True
 
     def test_docs(self):
         return self.dataset["test"]
+
+    def process_results(self, doc, results):
+        """Take a single document and the LM results and evaluates, returning a
+        dict where keys are the names of submetrics and values are the values of
+        the metric for that one document
+
+        :param doc:
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param results:
+            The results of the requests created in construct_requests.
+        """
+        target = self.doc_to_target(doc)[0].strip()
+
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        pred = answer_choices_list[np.argmax(results)]
+
+        out = {
+            "parity": (doc["idx"], pred),
+            "acc": pred == target
+        }
+
+        if self.save_examples:
+            example = {"target": target,
+                       "answer_choices_list": answer_choices_list,
+                       "pred": pred}
+            return out, example
+        return out
+
+    def aggregation(self):
+        """
+        :returns: {str: [metric_score] -> float}
+            A dictionary where keys are the names of submetrics and values are
+            functions that aggregate a list of metric scores
+        """
+        return {"parity": parity,
+                "acc": mean}
 
 
 class BroadcoverageDiagnostics(PromptSourceTask):
@@ -334,10 +352,10 @@ class BroadcoverageDiagnostics(PromptSourceTask):
         return False
 
     def has_validation_docs(self):
-        return False 
+        return False
 
     def has_test_docs(self):
-        return True 
+        return True
 
     def test_docs(self):
         return self.dataset["test"]

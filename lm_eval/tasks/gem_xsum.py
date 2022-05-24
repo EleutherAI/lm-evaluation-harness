@@ -1,5 +1,6 @@
+
 """
-Don’t Give Me the Details, Just the Summary! Topic-Aware Convolutional Neural Networks for Extreme Summarization
+Don't Give Me the Details, Just the Summary! Topic-Aware Convolutional Neural Networks for Extreme Summarization
 https://arxiv.org/pdf/1808.08745.pdf
 
 The dataset is for the task of abstractive summarization in its extreme form, its about summarizing a document in a single sentence. It introduces extreme summarization, a new single-document summarization task which does not favor extractive strategies and calls for an abstractive modeling approach. The idea is to create a short, one-sentence news summary answering the question "What is the article about?". 
@@ -58,6 +59,9 @@ class GEMXSUMBase(PromptSourceTask):
     def test_docs(self):
         if self.has_test_docs():
             return self.dataset["test"]
+
+    def max_generation_length(self):
+            return 64
 
 class GEMXSUM(GEMXSUMBase):
     '''this is for train/validation/test'''

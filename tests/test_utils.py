@@ -1,12 +1,26 @@
-from lm_eval.utils import get_rolling_token_windows, make_disjoint_window
+from lm_eval.utils import (
+    get_rolling_token_windows,
+    make_disjoint_window,
+    select_continuation_from_batch_left_padding,
+)
+
+import lm_eval.models as models
+import pytest
+import torch
 
 
 # noinspection DuplicatedCode
 def test_get_rolling_token_windows_v1():
     gold = [
         ([-100, 0, 1, 2, 3, 4, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-        ([9, 10, 11, 12, 13, 14, 15, 16, 17, 18], [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]),
-        ([19, 20, 21, 22, 23, 24, 25, 26, 27, 28], [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]),
+        (
+            [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+            [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+        ),
+        (
+            [19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
+            [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+        ),
         ([23, 24, 25, 26, 27, 28, 29, 30, 31, 32], [30, 31, 32, 33]),
     ]
     x = list(range(34))
@@ -123,7 +137,6 @@ def test_get_rolling_token_windows_v4():
         ([17, 18, 19, 20, 21, 22, 23, 24, 25, 26], [27]),
         ([18, 19, 20, 21, 22, 23, 24, 25, 26, 27], [28]),
         ([19, 20, 21, 22, 23, 24, 25, 26, 27, 28], [29]),
-
     ]
     x = list(range(30))
     generator = get_rolling_token_windows(
@@ -145,8 +158,14 @@ def test_get_rolling_token_windows_v4():
 def test_get_rolling_token_windows_v5():
     gold = [
         ([-100, 0, 1, 2, 3, 4, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
-        ([9, 10, 11, 12, 13, 14, 15, 16, 17, 18], [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]),
-        ([19, 20, 21, 22, 23, 24, 25, 26, 27, 28], [20, 21, 22, 23, 24, 25, 26, 27, 28, 29]),
+        (
+            [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+            [10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+        ),
+        (
+            [19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
+            [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+        ),
     ]
     x = list(range(30))
     generator = get_rolling_token_windows(
@@ -203,5 +222,32 @@ def test_get_rolling_token_windows_empty():
 
 
 def test_make_disjoint_window():
-    assert make_disjoint_window(([1,2,3,4,5], [2,3,4,5,6])) == ([1], [2,3,4,5,6])
-    assert make_disjoint_window(([1,2,3,4,5], [4,5,6])) == ([1,2,3], [4,5,6])
+    assert make_disjoint_window(([1, 2, 3, 4, 5], [2, 3, 4, 5, 6])) == (
+        [1],
+        [2, 3, 4, 5, 6],
+    )
+    assert make_disjoint_window(([1, 2, 3, 4, 5], [4, 5, 6])) == ([1, 2, 3], [4, 5, 6])
+
+
+def test_select_continuation_from_batch_1():
+    generations = torch.tensor(
+        [
+            # sentence 1
+            [0, 0, 1, 2, 3, 11, 22, 33, 44, 55],
+            # sentence 2
+            [1, 2, 3, 4, 5, 11, 22, 33, 0, 0],
+        ]
+    )
+    max_context_size = 5
+    expected = torch.tensor(
+        [
+            # sentence 1
+            [11, 22, 33, 44, 55],
+            # sentence 2
+            [11, 22, 33, 0, 0],
+        ]
+    )
+    assert torch.equal(
+        select_continuation_from_batch_left_padding(generations, max_context_size),
+        expected,
+    )

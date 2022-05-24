@@ -1,7 +1,6 @@
 import abc
-from typing import Iterable, Optional
+from typing import Iterable, List, Optional
 
-import promptsource
 import numpy as np
 import random
 import re
@@ -14,9 +13,12 @@ from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 
-from lm_eval import metrics
-from lm_eval.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
-from lm_eval import utils
+from lm_eval.metrics import (
+    mean,
+    weighted_perplexity,
+    bits_per_byte,
+)
+from lm_eval import utils, metrics
 from abc import abstractmethod
 
 
@@ -340,7 +342,6 @@ class BaseLM(LM):
     def greedy_until(self, requests):
         # TODO: implement fully general `until` that handles untils that are
         #       multiple tokens or that span multiple tokens correctly
-
         # TODO: extract to TokenizedLM?
         res = []
 
@@ -349,8 +350,11 @@ class BaseLM(LM):
             return len(toks), x[0]
 
         reord = utils.Reorderer(requests, _collate)
-
-        for context, request_args in tqdm(reord.get_reordered()):
+        for chunk in utils.chunks(
+            tqdm(reord.get_reordered(), disable=False), self.batch_size
+        ):
+            context = [c[0] for c in chunk]
+            request_args = chunk[0][1]
             stopping_criteria = request_args["stopping_criteria"]
             max_generation_length = request_args["max_generation_length"]
             num_fewshot = request_args["num_fewshot"]
@@ -362,40 +366,45 @@ class BaseLM(LM):
             assert isinstance(num_fewshot, int) or num_fewshot is None
 
             if stopping_criteria is None:
-                until = [self.eot_token] 
+                until = [self.eot_token]
             else:
-                until = [stopping_criteria]
+                until = [stopping_criteria, self.eot_token]
             primary_until = self.tok_encode(until[0])
 
             if len(primary_until) == 0:
                 primary_until = torch.tensor([self.eot_token_id])
 
-            context_enc = torch.tensor(
-                [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
-            ).to(self.device)
+            # Ensure that the context does encroach into the `space`
+            # for the generation.
+            tok_context = self.tok_encode_batch(context)
+            input_ids = tok_context["input_ids"][
+                :, self.max_gen_toks - self.max_length :
+            ].to(self.device)
+            attention_mask = tok_context["attention_mask"][
+                :, self.max_gen_toks - self.max_length :
+            ].to(self.device)
 
             if max_generation_length is None:
                 max_length = self.max_gen_toks
             else:
                 max_length = max_generation_length
-    
+
             cont = self._model_generate(
-                context_enc,
+                input_ids,
+                attention_mask,
                 max_length,
                 torch.tensor(primary_until),
                 num_fewshot,
             )
 
-            s = self.tok_decode(cont.tolist())
+            sentences = self.tok_decode(cont.tolist())
 
-            for term in until:
-                s = s.split(term)[0]
-
-            # partial caching
-            self.cache_hook.add_partial("greedy_until", (context, until), s)
-
-            res.append(s)
-
+            for sentence in sentences:
+                for term in until:
+                    sentence = sentence.split(term)[0]
+                # partial caching
+                self.cache_hook.add_partial("greedy_until", (context, until), sentence)
+                res.append(sentence)
         return reord.get_original(res)
 
 
@@ -603,7 +612,7 @@ class PromptSourceTask(Task):
     """
 
     CONFIGURED_RANKED_CHOICE_PS_METRICS = set(["Accuracy"])
-    CONFIGURED_GENERATION_PS_METRICS = set(["BLEU", "ROUGE"])
+    CONFIGURED_GENERATION_PS_METRICS = set(["BLEU", "ROUGE", "SARI"])
     SPLIT = None
 
     def __init__(
@@ -618,11 +627,10 @@ class PromptSourceTask(Task):
         self.prompt = prompt
         self.save_examples = save_examples
 
-
     def stopping_criteria(self) -> Optional[str]:
-        """ 
+        """
         Denote where the generation should end based on the few-shot example
-        separator: "\n###\n". 
+        separator: "\n###\n".
         TODO: Handle other separators in the future.
         """
         return "\n###\n"
@@ -647,14 +655,22 @@ class PromptSourceTask(Task):
             return True
         return False
 
-    def doc_to_target(self, doc) -> str:
-        """NOTE: In the future, this may return Union[str, List[str]]."""
+    def doc_to_target(self, doc) -> List[str]:
         _, target = self.prompt.apply(doc)
-        return f" {target}"
+        return target
 
     def doc_to_text(self, doc) -> str:
         text, _ = self.prompt.apply(doc)
         return text
+
+    def doc_to_rawtext(self, doc):
+        """This should be used for selecting the raw text of the document.
+
+        The current use case is for computing SARI which requires the text
+        without the prompt. The `text` field is not standarized across tasks
+        so this is task specific.
+        """
+        raise NotImplementedError("This is task specific.")
 
     def construct_requests(self, doc, ctx, args):
         """Uses RequestFactory to construct Requests and returns an iterable of
@@ -700,13 +716,13 @@ class PromptSourceTask(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        target = self.doc_to_target(doc).strip()
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        target = self.doc_to_target(doc)
         if answer_choices_list:
             # If answer_choices_list, then this is a ranked choice prompt.
-            # NOTE: In the future, target will be a list of strings.
-            # For now, we can assume there will be only 1 target, but its possible
-            # that this not the case so we should check for that.
+            # NOTE: In the future, target could be a list of strings.
+            assert isinstance(target, list) and len(target) == 1
+            target = target[0].strip()
 
             pred = answer_choices_list[np.argmax(results)]
             out = {}
@@ -721,6 +737,7 @@ class PromptSourceTask(Task):
         else:
             # If not, then this is a generation prompt.
             # NOTE: In the future, target will be a list of strings.
+            assert isinstance(target, list)
             pred = results[0].strip()
             out = {}
             for metric in self.prompt.metadata.metrics:
@@ -738,6 +755,8 @@ class PromptSourceTask(Task):
                     rouge_scores = utils.flatten(rouge_scores)
                     # Merge all the rouge-type scores into the `out` dict.
                     out = {**out, **rouge_scores}
+                elif metric == "SARI":
+                    out["sari"] = metrics.sari(self.doc_to_rawtext(doc), pred, target)
 
         # TODO: Wrap process results s.t. override impl do not
         # override the save examples.
@@ -755,9 +774,9 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = True
-            if metric == "BLEU":
+            elif metric == "BLEU":
                 out["bleu"] = True
-            if metric == "ROUGE":
+            elif metric == "ROUGE":
                 # TODO: Find a generic way to handle user specified rouge metrics.
                 out["rouge1_precision"] = True
                 out["rouge1_recall"] = True
@@ -774,6 +793,8 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = True
                 out["rougeLsum_recall"] = True
                 out["rougeLsum_fmeasure"] = True
+            elif metric == "SARI":
+                out["sari"] = True
         return out
 
     def aggregation(self):
@@ -781,9 +802,9 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = mean
-            if metric == "BLEU":
+            elif metric == "BLEU":
                 out["bleu"] = metrics.bleu
-            if metric == "ROUGE":
+            elif metric == "ROUGE":
                 # TODO: Find a generic way to handle user specified rouge metrics.
                 out["rouge1_precision"] = mean
                 out["rouge1_recall"] = mean
@@ -800,6 +821,8 @@ class PromptSourceTask(Task):
                 out["rougeLsum_precision"] = mean
                 out["rougeLsum_recall"] = mean
                 out["rougeLsum_fmeasure"] = mean
+            elif metric == "SARI":
+                out["sari"] = mean
         return out
 
     def fewshot_examples(self, k, rnd):
@@ -850,7 +873,12 @@ class PromptSourceTask(Task):
 
         if num_fewshot == 0:
             labeled_examples = ""
-            fewshotex, fewshotidx, self.fewshotsource = [], [], None
+            fewshotex, fewshotidx, fewshottargetidx, self.fewshotsource = (
+                [],
+                [],
+                [],
+                None,
+            )
         else:
             # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
             if self.has_training_docs():
@@ -871,11 +899,13 @@ class PromptSourceTask(Task):
                 fewshotex, fewshotidx = self._get_fewshot_examples(
                     self._fewshot_docs, k=num_fewshot + 1, rnd=rnd
                 )
-                fewshotex, fewshotidx = zip(*[
-                    (shot, idx)
-                    for shot, idx in zip(fewshotex, fewshotidx)
-                    if shot != doc
-                ])
+                fewshotex, fewshotidx = zip(
+                    *[
+                        (shot, idx)
+                        for shot, idx in zip(fewshotex, fewshotidx)
+                        if shot != doc
+                    ]
+                )
                 # get rid of the doc that's the one we're evaluating, if it's in the fewshot
                 fewshotex, fewshotidx = (
                     fewshotex[:num_fewshot],
@@ -885,14 +915,19 @@ class PromptSourceTask(Task):
             # for justification of this separator.
             example_separator = "\n###\n"
 
+            labeled_examples_list = []
+            fewshottargetidx = []
+            for fewshot_doc in fewshotex:
+                text = self.doc_to_text(fewshot_doc)
+                targets = self.doc_to_target(fewshot_doc)
+                target_idx = random.randint(0, len(targets) - 1)
+                target = targets[target_idx].strip()
+                # TODO(Jon): Given that target is now a list, should we add a space here? Anywhere else?
+                labeled_examples_list.append(f"{text} {target}")
+                fewshottargetidx.append(target_idx)
+
             labeled_examples = (
-                example_separator.join(
-                    [
-                        self.doc_to_text(doc) + self.doc_to_target(doc)
-                        for doc in fewshotex
-                    ]
-                )
-                + example_separator
+                example_separator.join(labeled_examples_list) + example_separator
             )
 
         example = self.doc_to_text(doc)
@@ -901,6 +936,7 @@ class PromptSourceTask(Task):
             ctx,
             {
                 "fewshot_idx": fewshotidx,
+                "fewshot_target_idx": fewshottargetidx,
                 "fewshot_source": self.fewshotsource,
                 "fewshot_num": num_fewshot,
                 "ctx": ctx,
@@ -920,6 +956,93 @@ class PromptSourceTask(Task):
             # Placeholder for comment in post-processing.
             "comment": "",
         }
+
+
+class TranslationTask(PromptSourceTask):
+
+    # Language specific functions.
+    @classmethod
+    def zh_split(cls, zh_text):
+        """Chinese splitting"""
+        import jieba
+
+        return [" ".join(jieba.cut(txt.strip())) for txt in zh_text]
+
+    @classmethod
+    def ja_split(cls, ja_text):
+        """Japanese splitting"""
+        import nagisa
+
+        return [" ".join(nagisa.tagging(txt.strip()).words) for txt in ja_text]
+
+    NO_SPACE_LANG = {"zh": zh_split, "ja": ja_split}
+
+    def invalid_doc_for_prompt(self, doc) -> bool:
+        # Skip docs with empty references.
+        if self.doc_to_target(doc) == [""]:
+            return True
+        return False
+
+    def _get_src_ref_codes(self, template_name: str):
+        """Returns a 2-tuple of (src_lang, ref_lang) codes from the prompt template name."""
+        # Get the lang codes from the dataset name.
+        lang_pairs = self.DATASET_NAME.split("-")
+        # Template name ordering defines the src and ref lang codes.
+        if self.DATASET_NAME in template_name:
+            return lang_pairs[0], lang_pairs[1]
+        # Flip the lang pairs following the prompt source.
+        return lang_pairs[1], lang_pairs[0]
+
+    def process_results(self, doc, results):
+        """Take a single document and the LM results and evaluates, returning a
+        dict where keys are the names of submetrics and values are the values of
+        the metric for that one document
+
+        :param doc:
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param results:
+            The results of the requests created in construct_requests.
+        """
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        target = self.doc_to_target(doc)
+
+        # Add spaces between words for BLEU score calculation of target languages like Chinese
+        _, tar_lang_code = self._get_src_ref_codes(self.prompt.name)
+        if tar_lang_code in self.NO_SPACE_LANG:
+            target = [self.NO_SPACE_LANG[tar_lang_code]([t])[0] for t in target]
+            results = self.NO_SPACE_LANG[tar_lang_code](results)
+        pred = results[0].strip()
+
+        # If not, then this is a generation prompt.
+        # NOTE: In the future, target will be a list of strings.
+        assert isinstance(target, list)
+        out = {}
+        for metric in self.prompt.metadata.metrics:
+            assert (
+                metric in self.CONFIGURED_GENERATION_PS_METRICS
+            ), "Unexpected metric. Add it, or use a task-specific solution."
+            if metric == "BLEU":
+                out["bleu"] = (target, pred)
+            elif metric == "ROUGE":
+                # TODO: This computes all rouge sub-metrics. Find a generic
+                # way to handle user specified rouge sub-metrics to avoid extra
+                # compute.
+                rouge_scores = metrics.rouge(target, pred)
+                # Flatten rouge score dict.
+                rouge_scores = utils.flatten(rouge_scores)
+                # Merge all the rouge-type scores into the `out` dict.
+                out = {**out, **rouge_scores}
+
+        # TODO: Wrap process results s.t. override impl do not
+        # override the save examples.
+        if self.save_examples:
+            example = {
+                "pred": pred,
+                "target": target,
+                "answer_choices_list": answer_choices_list,
+            }
+            return out, example
+        return out
 
 
 class MultipleChoiceTask(Task):
@@ -959,7 +1082,15 @@ class MultipleChoiceTask(Task):
 
 
 class PerplexityTask(Task, abc.ABC):
-    def has_training_docs(self):
+    def __init__(
+        self, data_dir=None, cache_dir=None, download_mode=None, save_examples=False
+    ):
+        super().__init__(data_dir, cache_dir, download_mode)
+        # It isn't clear what we should log per example given that the perplexity is aggregated.
+        # For `Flores101`, I set this to be true so we can get statistics on the domains/topics.
+        self.save_examples = save_examples
+
+    def invalid_doc_for_prompt(self, _):
         return False
 
     def fewshot_examples(self, k, rnd):
@@ -986,7 +1117,13 @@ class PerplexityTask(Task, abc.ABC):
                 "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
             )
 
-        return ""
+        return (
+            "",
+            {
+                "fewshot_num": 0,
+                "ctx": "",
+            },
+        )
 
     def higher_is_better(self):
         return {
@@ -999,22 +1136,39 @@ class PerplexityTask(Task, abc.ABC):
         return ""
 
     def doc_to_target(self, doc):
+        """NOTE: This won't work for most HF datasets.
+
+        Over-ride this function per task.
+        """
         return doc
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, _):
         assert not ctx
         req = rf.loglikelihood_rolling(self.doc_to_target(doc))
         return req
 
     def process_results(self, doc, results):
         (loglikelihood,) = results
-        words = self.count_words(doc)
-        bytes_ = self.count_bytes(doc)
-        return {
+        target = self.doc_to_target(doc)
+        words = self.count_words(target)
+        bytes_ = self.count_bytes(target)
+
+        out = {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
             "bits_per_byte": (loglikelihood, bytes_),
         }
+        if self.save_examples:
+            return out, {
+                "word_perplexity_instance": weighted_perplexity(
+                    [(loglikelihood, words)]
+                ),
+                "byte_perplexity_instance": weighted_perplexity(
+                    [(loglikelihood, bytes_)]
+                ),
+                "bits_per_byte_instance": bits_per_byte([(loglikelihood, bytes_)]),
+            }
+        return out
 
     def aggregation(self):
         return {
@@ -1031,6 +1185,11 @@ class PerplexityTask(Task, abc.ABC):
     def count_words(cls, doc):
         """Downstream tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
+
+    def get_logging_info(self):
+        return {
+            "prompt_name": None,
+        }
 
 
 def hash_args(attr, args):

@@ -1,17 +1,16 @@
 import collections
 import itertools
-import pathlib
 import random
 
 import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
-import promptsource
-import numpy as np
+from tqdm import tqdm
 
-from promptsource.templates import DatasetTemplates
-from lm_eval.utils import positional_deprecated, run_task_tests
+from lm_eval.utils import positional_deprecated, run_task_tests, set_seed
+
+import logging, json
 
 
 @positional_deprecated
@@ -27,6 +26,8 @@ def simple_evaluate(
     bootstrap_iters=100000,
     description_dict=None,
     check_integrity=False,
+    seed=1234,
+    parallelize=False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -53,26 +54,27 @@ def simple_evaluate(
         Dictionary of custom task descriptions of the form: `task_name: description`
     :param check_integrity: bool
         Whether to run the relevant part of the test suite for the tasks
+    :param seed: int
+        Random seed.
+    :param parallelize: bool
+        Whether to parallelize the model across gpus.
     :return
         Dictionary of results
     """
-    random.seed(1234)
-    np.random.seed(1234)
-
+    set_seed(seed)
     assert tasks != [], "No tasks specified"
 
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
         lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device}
+            model_args,
+            {"batch_size": batch_size, "device": device, "parallelize": parallelize},
         )
     else:
         assert isinstance(model, lm_eval.base.LM)
         lm = model
 
-    # TODO: Hard-code turning off cache while testing. Remove once testing is completed.
-    no_cache = True
     if not no_cache:
         lm = lm_eval.base.CachingLM(
             lm,
@@ -195,8 +197,10 @@ def evaluate(
             else ""
         )
 
+        print(f"Constructing '{task_prompt_name}' contexts and requests")
+        pbar_limit = len(task_docs) if not limit else limit
         for doc_id, (original_doc_id, doc) in enumerate(
-            itertools.islice(task_docs, 0, limit)
+            tqdm(itertools.islice(task_docs, 0, limit), total=pbar_limit)
         ):
             if task.invalid_doc_for_prompt(doc):
                 continue
@@ -244,7 +248,7 @@ def evaluate(
     vals = collections.defaultdict(list)
 
     # unpack results and sort back in order and return control to Task
-    examples = []
+    logger = logging.getLogger("examples")
     for (task_prompt_name, doc_id), per_doc_requests in process_res_queue.items():
         per_doc_requests.sort(key=lambda x: x[0])
         per_doc_results = [x[1] for x in per_doc_requests]
@@ -254,16 +258,17 @@ def evaluate(
         doc = docs[(task_prompt_name, doc_id)]
 
         output = task.process_results(doc, per_doc_results)
+
         if task.save_examples:
             metrics, example = output
             example.update(fewshot_logging_info)
             example.update(task.get_logging_info())
-            examples.append(example)
+            logger.info(json.dumps(example))
         else:
             metrics = output
             example = fewshot_logging_info
             example.update(task.get_logging_info())
-            examples.append(example)
+            logger.info(json.dumps(example))
 
         for metric, value in metrics.items():
             vals[(task_prompt_name, metric)].append(value)
@@ -271,7 +276,7 @@ def evaluate(
     # aggregate results
     metric_results = []
     for (task_prompt_name, metric), items in vals.items():
-        task_name, prompt_name = task_prompt_name.split("+")
+        task_name, prompt_name = task_prompt_name.split("+", 1)
 
         results[task_prompt_name]["task_name"] = task_name
         results[task_prompt_name]["prompt_name"] = prompt_name
@@ -303,7 +308,6 @@ def evaluate(
         "results": metric_results,
         "versions": dict(versions),
         # List of all prompt x doc examples with additional information in it.
-        "examples": examples,
         # Original results used for generating the table when running this file.
         "table_results": dict(results),
     }

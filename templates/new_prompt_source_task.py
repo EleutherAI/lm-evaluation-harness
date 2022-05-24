@@ -2,10 +2,12 @@
 """
 TODO: Add the Paper Title on this line.
 TODO: Add the paper's PDF URL (preferrably from arXiv) on this line.
+
 TODO: Write a Short Description of the task.
+
 Homepage: TODO: Add the URL to the task's Homepage here.
 """
-from lm_eval.base import Task
+from lm_eval.base import PromptSourceTask
 
 
 # TODO: Add the BibTeX citation for the task.
@@ -14,7 +16,7 @@ _CITATION = """
 
 
 # TODO: Replace `NewTask` with the name of your Task.
-class NewTask(Task):
+class NewTask(PromptSourceTask):
     VERSION = 0
     # TODO: Add the `DATASET_PATH` string. This will be the name of the `Task`
     # dataset as denoted in HuggingFace `datasets`.
@@ -70,28 +72,17 @@ class NewTask(Task):
             # named differently than the default `"test"`.
             return self.dataset["test"]
 
-    def _process_doc(self, doc):
-        # TODO: Process (detokenize, strip, replace etc.) each individual `doc`
-        # with this function. You can map this across the docs in each available
-        # dataset split. See the TODOs in `train_docs`, `validation_docs`, and
-        # `test_docs` for snippets.
-        # NOTE: DELETE THIS FUNCTION IF UNUSED.
-        return doc
-
-    def doc_to_text(self, doc):
-        # TODO: Format the query prompt portion of the document example.
-        return ""
-
-    def doc_to_target(self, doc):
-        # TODO: Fill in the `target` ("gold answer") variable.
-        # The prepended `" "` is required to space out the `doc_to_text` and
-        # `doc_to_target` strings.
-        target = ""
-        return " " + target
+    def max_generation_length(self):
+        # Define this method when you want to control the length of few-shot
+        # generations on specific tokens. The default is `None` which gets mapped
+        # to a model's default max generation token length. E.g. see `lm_eval/models/gpt2.py:max_gen_toks()`
+        # NOTE: You may delete this function if the task does not required generation.
+        return None
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
+
         :param doc:
             The document as returned from training_docs, validation_docs, or
             test_docs.
@@ -108,6 +99,7 @@ class NewTask(Task):
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of submetrics and values are the values of
         the metric for that one document
+
         :param doc:
             The document as returned from training_docs, validation_docs, or test_docs.
         :param results:

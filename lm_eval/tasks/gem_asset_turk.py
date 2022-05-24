@@ -39,22 +39,32 @@ _CITATION = """
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }"""
 
-""""@article{Xu-EtAl:2016:TACL,
- author = {Wei Xu and Courtney Napoles and Ellie Pavlick and Quanze Chen and Chris Callison-Burch},
- title = {Optimizing Statistical Machine Translation for Text Simplification},
- journal = {Transactions of the Association for Computational Linguistics},
- volume = {4},
- year = {2016},
- url = {https://cocoxu.github.io/publications/tacl2016-smt-simplification.pdf},
- pages = {401--415}
- }"""
-
 
 class AssetTurk(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "GEM/wiki_auto_asset_turk"
     DATASET_NAME = None
     SPLIT = None
+
+    def __init__(
+        self,
+        data_dir=None,
+        cache_dir=None,
+        download_mode=None,
+        prompt=None,
+        save_examples=True,
+    ):
+        super().__init__(data_dir, cache_dir, download_mode)
+        self.prompt = prompt
+        self.save_examples = save_examples
+
+        # Adding SARI to metrics to list because `promptsource`
+        # does not currently support this option.
+        if "SARI" not in self.prompt.metadata.metrics:
+            self.prompt.metadata.metrics.append("SARI")
+
+    def doc_to_rawtext(self, doc):
+        return doc["source"]
 
     def has_training_docs(self):
         return False
