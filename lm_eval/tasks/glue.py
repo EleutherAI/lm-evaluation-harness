@@ -200,12 +200,6 @@ class RTE(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def higher_is_better(self):
-        return {"acc": True}
-
-    def aggregation(self):
-        return {"acc": mean}
-
 
 # Similarity and Paraphrase Tasks
 

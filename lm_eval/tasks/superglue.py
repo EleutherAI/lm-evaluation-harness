@@ -266,12 +266,6 @@ class WordsInContext(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
-    def higher_is_better(self):
-        return {"acc": True}
-
-    def aggregation(self):
-        return {"acc": mean}
-
 
 class SGWinogradSchemaChallenge(PromptSourceTask):
     VERSION = 0
@@ -329,14 +323,17 @@ class WinogenderSchemaDiagnostics(PromptSourceTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        target = self.doc_to_target(doc)[0].strip()
-
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        completion_len = np.array([float(len(i)) for i in answer_choices_list])
+
+        target = self.doc_to_target(doc)[0].strip()
+        target_idx = answer_choices_list.index(target)
         pred = answer_choices_list[np.argmax(results)]
 
         out = {
             "parity": (doc["idx"], pred),
-            "acc": pred == target
+            "acc": pred == target,
+            "acc_norm": 1.0 if np.argmax(results / completion_len) == target_idx else 0.0
         }
 
         if self.save_examples:
@@ -352,8 +349,11 @@ class WinogenderSchemaDiagnostics(PromptSourceTask):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metric scores
         """
-        return {"parity": parity,
-                "acc": mean}
+        return {
+            "parity": parity,
+            "acc": mean,
+            "acc_norm": mean
+        }
 
 
 class BroadcoverageDiagnostics(PromptSourceTask):
