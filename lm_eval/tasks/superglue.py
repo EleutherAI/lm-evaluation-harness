@@ -142,6 +142,17 @@ class Copa(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
+    def invalid_doc_for_prompt(self, doc) -> bool:
+        # HACK: Some copa templates have conditionals that ignore documents 
+        # when the condition is not met, like `{if doc['question'] != \"cause\"}`.
+        # This means the prompt will never produce an input and target.
+        # TODO: Remove this when fixed in `promptsource`
+        try:
+            self.prompt.apply(doc)
+            return False 
+        except:
+            return True
+
 
 # TODO: Check this works with all prompts.
 class MultiRC(PromptSourceTask):
@@ -200,23 +211,25 @@ class ReCoRD(PromptSourceTask):
         # - Pick the maximum likelihood prediction entity
         # - Evaluate the accuracy and token F1 PER EXAMPLE
         # - Average over all examples
+        pred_idx = np.argmax(results)
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        pred = answer_choices_list[pred_idx]
+        targets = self.doc_to_target(doc)
 
-        # TODO (jon-tow): Look at result
-        max_idx = np.argmax(np.array([result[0] for result in results]))
-
-        prediction = doc["entities"][max_idx]
-        gold_label_set = doc["answers"]
         f1 = metric_max_over_ground_truths(
-            squad_metrics.compute_f1, prediction, gold_label_set
+            squad_metrics.compute_f1, pred, targets
         )
         em = metric_max_over_ground_truths(
-            squad_metrics.compute_exact, prediction, gold_label_set
+            squad_metrics.compute_exact, pred, targets
         )
-
-        return {
+        out = {
             "f1": f1,
-            "em": em,
+            "em": em
         }
+        if self.save_examples:
+            example = {"target": targets, "pred": pred}
+            return out, example
+        return out
 
     def higher_is_better(self):
         return {

@@ -25,6 +25,11 @@ from . import race
 from . import superglue
 from . import wino_bias
 from . import wmt
+from . import crd3
+from . import cnn_dailymail
+from . import diabla
+from . import schema_guided_dstc8
+from . import piaf
 
 
 ########################################
@@ -61,6 +66,7 @@ TASK_REGISTRY = {
     # multilingual lambada
     **gem_asset_turk.construct_tasks(),
     "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
+    "schema_guided_dstc8": schema_guided_dstc8.Schema_Guided_DSTC8,
     # formatted as gsarti/flores_101_[LANG]
     **flores_101.construct_tasks(),
     "lama_trex": lama.Trex,
@@ -141,6 +147,7 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
+    "cnn_dailymail": cnn_dailymail.CnnDailyMail,
     # GEM/mlsum
     "mlsum_es": gem_mlsum.GEMMLSUMEs,
     "mlsum_de": gem_mlsum.GEMMLSUMDe,
@@ -178,8 +185,14 @@ TASK_REGISTRY = {
     "huffpost": huff_post.HuffPost,
     # Code-switching
     "lince_sa": lince.LinCESentimentAnalysis,
+    # CRD3
+    "crd3": crd3.CRD3,
     # WMT
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
+    # DiaBLa
+    "diabla": diabla.DiaBLa,
+    # piaf
+    "piaf": piaf.PIAF,
 }
 
 
@@ -232,7 +245,6 @@ def get_task_dict_promptsource(task_name_list: List[str]):
 
         # Static version of the Task Use this to get HF dataset path / name.
         static_task_obj = get_task(task_name)
-
         if issubclass(static_task_obj, lm_eval.base.PromptSourceTask):
             # Create the proper task name arg for DatasetTemplates.
             sub_task = (

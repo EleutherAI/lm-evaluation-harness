@@ -71,7 +71,19 @@ def args_to_name(args):
     return filename
 
 
+def setup_example_logger(output_path):
+    """Sets up a logger that will save each example and prediction."""
+    logger = logging.getLogger("examples")
+    filename = f"./outputs/examples-{output_path}.jsonl"
+    formatter = logging.Formatter("%(message)s")
+    handler = logging.FileHandler(filename)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+
+
 def main():
+    os.makedirs("./outputs", exist_ok=True)
     args = parse_args()
     assert not args.provide_description  # not implemented
 
@@ -90,7 +102,10 @@ def main():
         with open(args.description_dict_path, "r") as f:
             description_dict = json.load(f)
 
-    with OfflineEmissionsTracker(country_iso_code="FRA"):
+    output_path = args_to_name(args)
+    setup_example_logger(output_path)
+
+    with OfflineEmissionsTracker(country_iso_code="FRA", log_level="error"):
         results = evaluator.simple_evaluate(
             model=args.model,
             model_args=args.model_args,
@@ -106,10 +121,6 @@ def main():
             parallelize=args.parallelize,
         )
 
-    output_path = args_to_name(args)
-    os.makedirs("./outputs", exist_ok=True)
-    with open(f"./outputs/examples-{output_path}.json", "w") as f:
-        json.dump({"examples": results["examples"], "config": results["config"]}, f)
     with open(f"./outputs/agg-{output_path}.json", "w") as f:
         json.dump({"results": results["results"], "config": results["config"]}, f)
 

@@ -342,7 +342,6 @@ class BaseLM(LM):
     def greedy_until(self, requests):
         # TODO: implement fully general `until` that handles untils that are
         #       multiple tokens or that span multiple tokens correctly
-
         # TODO: extract to TokenizedLM?
         res = []
 
@@ -351,8 +350,11 @@ class BaseLM(LM):
             return len(toks), x[0]
 
         reord = utils.Reorderer(requests, _collate)
-
-        for context, request_args in tqdm(reord.get_reordered()):
+        for chunk in utils.chunks(
+            tqdm(reord.get_reordered(), disable=False), self.batch_size
+        ):
+            context = [c[0] for c in chunk]
+            request_args = chunk[0][1]
             stopping_criteria = request_args["stopping_criteria"]
             max_generation_length = request_args["max_generation_length"]
             num_fewshot = request_args["num_fewshot"]
@@ -366,15 +368,21 @@ class BaseLM(LM):
             if stopping_criteria is None:
                 until = [self.eot_token]
             else:
-                until = [stopping_criteria]
+                until = [stopping_criteria, self.eot_token]
             primary_until = self.tok_encode(until[0])
 
             if len(primary_until) == 0:
                 primary_until = torch.tensor([self.eot_token_id])
 
-            context_enc = torch.tensor(
-                [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
-            ).to(self.device)
+            # Ensure that the context does encroach into the `space`
+            # for the generation.
+            tok_context = self.tok_encode_batch(context)
+            input_ids = tok_context["input_ids"][
+                :, self.max_gen_toks - self.max_length :
+            ].to(self.device)
+            attention_mask = tok_context["attention_mask"][
+                :, self.max_gen_toks - self.max_length :
+            ].to(self.device)
 
             if max_generation_length is None:
                 max_length = self.max_gen_toks
@@ -382,22 +390,21 @@ class BaseLM(LM):
                 max_length = max_generation_length
 
             cont = self._model_generate(
-                context_enc,
+                input_ids,
+                attention_mask,
                 max_length,
                 torch.tensor(primary_until),
                 num_fewshot,
             )
 
-            s = self.tok_decode(cont.tolist())
+            sentences = self.tok_decode(cont.tolist())
 
-            for term in until:
-                s = s.split(term)[0]
-
-            # partial caching
-            self.cache_hook.add_partial("greedy_until", (context, until), s)
-
-            res.append(s)
-
+            for sentence in sentences:
+                for term in until:
+                    sentence = sentence.split(term)[0]
+                # partial caching
+                self.cache_hook.add_partial("greedy_until", (context, until), sentence)
+                res.append(sentence)
         return reord.get_original(res)
 
 
