@@ -15,12 +15,12 @@ from lm_eval.base import PromptSourceTask
 import lm_eval.datasets.jigsaw_unintended_bias.jigsaw_unintended_bias
 from lm_eval.metrics import mean
 
-# TODO: Add the BibTeX citation for the task.
+
 _CITATION = """
+https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification
 """
 
 
-# TODO: Replace `NewTask` with the name of your Task.
 class JigsawUnintendedBias(PromptSourceTask):
     VERSION = 1
     DATASET_PATH = "jigsaw_unintended_bias"
@@ -49,13 +49,6 @@ class JigsawUnintendedBias(PromptSourceTask):
             # few-shot processing. If the data is too large to fit in memory,
             # return the training data as a generator instead of a list.
             if self._training_docs is None:
-                # TODO: Return the training document generator from `self.dataset`.
-                # If you need to process the data, `map` over the documents with
-                # the custom processing function, `self._process_doc`. E.g.
-                # `map(self._process_doc, self.dataset["validation"])`
-                # In most case you can leave this as is unless the dataset split is
-                # named differently than the default `"train"`.
-                #self._training_docs = list(self.dataset["train"])
                 self._training_docs = self.dataset["train"]
             return self._training_docs
 
@@ -78,10 +71,7 @@ class JigsawUnintendedBias(PromptSourceTask):
 
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)
-        try:
-            assert isinstance(target, list) and len(target) == 1
-        except:
-            breakpoint()
+        assert isinstance(target, list) and len(target) == 1
         target = target[0].strip()
 
         out = {}
