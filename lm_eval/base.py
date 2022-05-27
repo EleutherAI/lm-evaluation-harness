@@ -181,6 +181,7 @@ class BaseLM(LM):
             continuation_enc = self.tok_encode(continuation)
 
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
+
         return self._loglikelihood_tokens(new_reqs)
 
     def loglikelihood_rolling(self, requests):

@@ -261,6 +261,7 @@ def evaluate(
 
         task = task_dict[task_name]
         doc = docs[(task_name, doc_id)]
+
         metrics = task.process_results(doc, requests)
         for metric, value in metrics.items():
             vals[(task_name, metric)].append(value)

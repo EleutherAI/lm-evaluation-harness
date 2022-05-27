@@ -151,7 +151,7 @@ class XNLI_de(XNLIBase):  # German
     TRUE = "Stimmt"
     FALSE = "Falsch"
     NEITHER = "Neutral"
-    OPTIONS = "Stimmt, Falsch oder Neutral?"  #
+    OPTIONS = "Stimmt, Falsch oder Neutral?"
 
 
 class XNLI_el(XNLIBase):  # Greek
