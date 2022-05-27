@@ -23,7 +23,7 @@ _CITATION = """
 
 class SciTail(BioPromptSourceTask):
     VERSION = 0
-    DATASET_PATH = "bigbio/biodatasets/scitail/scitail"
+    DATASET_PATH = "bigbio/biodatasets/scitail"
     DATASET_NAME = "scitail_bigbio_te"
     SPLIT = None
 
