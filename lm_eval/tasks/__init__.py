@@ -198,7 +198,7 @@ TASK_REGISTRY = {
     "diabla": diabla.DiaBLa,
     
     # SciTail
-    "scitail_snli": scitail.SciTailSNLI,
+    "scitail": scitail.SciTail,
 }
 
 
