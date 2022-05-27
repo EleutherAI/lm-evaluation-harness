@@ -1045,6 +1045,28 @@ class TranslationTask(PromptSourceTask):
         return out
 
 
+class BioPromptSourceTask(PromptSourceTask):
+    """These are the metrics from promptsource that we have
+    added default behavior for. If you want to add default behavior for a new metric,
+    update the functions below. If you want to use one of the following metrics,
+    *and* add additional custom processing, override `process_results`, `higher_is_better`, and `aggregation`.
+    """
+
+    CONFIGURED_RANKED_CHOICE_PS_METRICS = set(["Accuracy"])
+    CONFIGURED_GENERATION_PS_METRICS = set(["BLEU", "ROUGE", "SARI"])
+    SPLIT = None
+
+    def __init__(
+        self,
+        data_dir=None,
+        cache_dir=None,
+        download_mode=None,
+        prompt=None,
+        save_examples=True,
+    ):
+        super().__init__(data_dir, cache_dir, download_mode, prompt, save_examples)
+
+    
 class MultipleChoiceTask(Task):
     def doc_to_target(self, doc):
         return " " + doc["choices"][doc["gold"]]
