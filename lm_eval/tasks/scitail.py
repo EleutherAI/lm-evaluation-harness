@@ -21,9 +21,9 @@ _CITATION = """
 }
 """
 
-class SciTail(BioPromptSourceTask):
+class SciTail(PromptSourceTask):
     VERSION = 0
-    DATASET_PATH = "bigbio/biodatasets/scitail"
+    DATASET_PATH = "scitail"
     DATASET_NAME = "scitail_bigbio_te"
     SPLIT = None
 
@@ -47,4 +47,3 @@ class SciTail(BioPromptSourceTask):
     def test_docs(self):
         if self.has_test_docs():
             return self.dataset["test"]
-
