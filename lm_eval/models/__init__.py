@@ -10,7 +10,7 @@ MODEL_REGISTRY = {
     "gpt3": gpt3.GPT3LM,
     "dummy": dummy.DummyLM,
     "xglm": xglm.XGLM,
-    "bigscience": bigscience.BigScience
+    "bigscience": bigscience.BigScience,
 }
 
 
