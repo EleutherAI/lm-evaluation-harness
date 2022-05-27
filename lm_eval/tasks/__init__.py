@@ -1,5 +1,4 @@
 from promptsource.templates import DatasetTemplates
-from biopromptsource.templates import DatasetTemplates as BioDatasetTemplates
 from pprint import pprint
 from typing import List, Union
 
@@ -261,7 +260,7 @@ def get_task_dict_promptsource(task_name_list: List[str]):
             )
             ps_task_name = f"{static_task_obj.DATASET_PATH}{sub_task}"
 
-            task_prompts = BioDatasetTemplates(ps_task_name)
+            task_prompts = DatasetTemplates(ps_task_name)
             for prompt_name in task_prompts.all_template_names:
                 prompt = task_prompts[prompt_name]
                 # NOTE: We choose a sep that can be easily split.
