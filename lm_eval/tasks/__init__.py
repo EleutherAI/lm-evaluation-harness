@@ -1,5 +1,5 @@
 from promptsource.templates import DatasetTemplates
-from bio_promptsource.templates import DatasetTemplates as BioDatasetTemplates
+from biopromptsource.templates import DatasetTemplates as BioDatasetTemplates
 from pprint import pprint
 from typing import List, Union
 
