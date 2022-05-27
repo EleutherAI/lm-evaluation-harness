@@ -1,4 +1,5 @@
 from promptsource.templates import DatasetTemplates
+from bio_promptsource.templates import DatasetTemplates as BioDatasetTemplates
 from pprint import pprint
 from typing import List, Union
 
@@ -251,7 +252,23 @@ def get_task_dict_promptsource(task_name_list: List[str]):
 
         # Static version of the Task Use this to get HF dataset path / name.
         static_task_obj = get_task(task_name)
-        if issubclass(static_task_obj, lm_eval.base.PromptSourceTask):
+        if issubclass(static_task_obj, lm_eval.base.BioPromptSourceTask):
+            # Create the proper task name arg for DatasetTemplates.
+            sub_task = (
+                f"/{static_task_obj.DATASET_NAME}"
+                if static_task_obj.DATASET_NAME
+                else ""
+            )
+            ps_task_name = f"{static_task_obj.DATASET_PATH}{sub_task}"
+
+            task_prompts = BioDatasetTemplates(ps_task_name)
+            for prompt_name in task_prompts.all_template_names:
+                prompt = task_prompts[prompt_name]
+                # NOTE: We choose a sep that can be easily split.
+                task_name_dict[f"{task_name}+{prompt_name}"] = get_task(task_name)(
+                    prompt=prompt
+                )
+        elif issubclass(static_task_obj, lm_eval.base.PromptSourceTask):
             # Create the proper task name arg for DatasetTemplates.
             sub_task = (
                 f"/{static_task_obj.DATASET_NAME}"
@@ -267,6 +284,7 @@ def get_task_dict_promptsource(task_name_list: List[str]):
                 task_name_dict[f"{task_name}+{prompt_name}"] = get_task(task_name)(
                     prompt=prompt
                 )
+        
         else:
             # This is a task with a null prompt.
             # Right now, the only use case are `PerplexityTask`s.
