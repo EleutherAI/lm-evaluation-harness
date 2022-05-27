@@ -21,7 +21,7 @@ _CITATION = """
 }
 """
 
-class SciTailBase(BioPromptSourceTask):
+class SciTail(BioPromptSourceTask):
     VERSION = 0
     DATASET_PATH = "bigbio/biodatasets/scitail/scitail.py"
     DATASET_NAME = "scitail_bigbio_te"
