@@ -57,9 +57,6 @@ from . import ko_translation
 ########################################
 # Translation tasks
 ########################################
-ko_translation_benchmarks = {
-    "ko_en": ['ko-en']
-}
 
 
 # 6 total
@@ -312,8 +309,8 @@ TASK_REGISTRY = {
     # KLUE
     "klue_sts": klue.STS,
     
-    # Korean to English
-    "ko_en_translation": ko_translation.GeneralTranslationTask,
+    # Korean translation
+    "ko_en_translation": ko_translation.KoreanTranslationTask(lang_pairs='ko-en'),
 }
 
 
