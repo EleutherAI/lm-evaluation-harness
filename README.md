@@ -7,6 +7,7 @@ The following steps should allow you to evaluate any transformers model using th
 pip install git+https://github.com/bigscience-workshop/biomedical.git
 git clone https://github.com/bigscience-workshop/lm-evaluation-harness
 cd lm-evaluation-harness
+git checkout bigbio
 git submodule update --init
 pip install -e .
 ```
