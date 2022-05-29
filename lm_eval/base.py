@@ -1045,7 +1045,7 @@ class TranslationTask(PromptSourceTask):
         return out
 
 
-class BioPromptSourceTask(PromptSourceTask):
+class BioTask(PromptSourceTask):
     """These are the metrics from promptsource that we have
     added default behavior for. If you want to add default behavior for a new metric,
     update the functions below. If you want to use one of the following metrics,
