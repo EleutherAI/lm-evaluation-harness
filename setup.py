@@ -22,6 +22,7 @@ setuptools.setup(
     install_requires=[
         "promptsource@git+https://github.com/bigscience-workshop/promptsource@eval-hackathon",
         "transformers@git+https://github.com/huggingface/transformers@main",
+        "bigbio@git+https://github.com/bigscience-workshop/biomedical.git@main",
         "codecarbon",
         "wrapt",
         "nltk",
