@@ -23,7 +23,7 @@ _CITATION = """
 
 class SciTailBase(BioTask):
     VERSION = 0
-    DATASET_PATH = "scitail"
+    DATASET_PATH = "lm_eval/datasets/biomedical/bigbio/biodatasets/scitail"
     DATASET_NAME = None
     SPLIT = None
 
