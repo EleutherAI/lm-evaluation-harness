@@ -117,6 +117,53 @@ def get_rolling_token_windows(token_list, prefix_token, max_seq_len, context_len
         predicted += window_pred_len
 
 
+def split_and_pad_windows(windows, pad_token, max_seq_len):
+    """ Splits and pads a sequence of rolling context and continuation windows
+    from `get_rolling_token_windows`.
+
+    E.g. `[
+            ([1] , [23, 19, 3]),  # (context, continuation)
+            ([43], [2, 4]])
+          ] 
+        =>[
+            [[1],[43]],  # Split & padded contexts.
+            [[23, 19, 3], [2, 4, 1]]`  # Split & padded continuations.
+           ]
+        where `1` = `pad_token` id.
+
+    :param windows: 
+        A generator of rolling `(context, continuation)` token windows (tuples).
+    :param pad_token_id: int
+        The token (id) to pad with.
+    :param max_seq_len: int
+        max_seq_len of model (or max_seq_len we want to use)
+    Returns: A tuple of (context, continuation) padding windows.
+    """
+    contexts, continuations = zip(*windows)
+    contexts, continuations = list(contexts), list(continuations)
+
+    # Pad contexts:
+    rollover_context = contexts[-1]
+    rollover_context_size = len(rollover_context)
+    # Handle empty final context token list - just add 1 token.
+    if rollover_context_size == 0:
+        contexts[-1] += [pad_token]
+    elif rollover_context_size > 1:
+        for i in range(len(contexts[:-1])):
+            contexts[i] = contexts[i] + [pad_token] * \
+                (rollover_context_size - len(contexts[i]))
+
+    # Pad continuations:
+    rollover_continuation = continuations[-1]
+    rollover_continuation_size = len(rollover_continuation)
+    is_multiple_windows = len(continuations) > 1
+    if rollover_continuation_size < max_seq_len and is_multiple_windows:
+        continuations[-1] = rollover_continuation + [pad_token] * \
+            (max_seq_len - rollover_continuation_size)
+
+    return contexts, continuations
+
+
 def make_disjoint_window(pair):
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
 

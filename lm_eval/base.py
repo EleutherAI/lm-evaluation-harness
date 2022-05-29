@@ -723,6 +723,7 @@ class PromptSourceTask(Task):
             # NOTE: In the future, target could be a list of strings.
             assert isinstance(target, list) and len(target) == 1
             target = target[0].strip()
+            target_idx = answer_choices_list.index(target)
 
             pred = answer_choices_list[np.argmax(results)]
             out = {}
@@ -733,6 +734,10 @@ class PromptSourceTask(Task):
                 ), "Unexpected metric. Add it, or use a task-specific solution."
                 if metric == "Accuracy":
                     out["acc"] = pred == target
+                    # Byte-length normalization.
+                    completion_len = np.array([float(len(i)) for i in answer_choices_list])
+                    out["acc_norm"] = 1.0 if np.argmax(results / completion_len) == target_idx else 0.0
+
             # TODO: Add metrics here.
         else:
             # If not, then this is a generation prompt.
@@ -774,6 +779,7 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = True
+                out["acc_norm"] = True
             elif metric == "BLEU":
                 out["bleu"] = True
             elif metric == "ROUGE":
@@ -802,6 +808,7 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = mean
+                out["acc_norm"] = mean
             elif metric == "BLEU":
                 out["bleu"] = metrics.bleu
             elif metric == "ROUGE":

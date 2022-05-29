@@ -24,9 +24,12 @@ from . import race
 from . import superglue
 from . import wino_bias
 from . import wmt
+from . import crd3
 from . import cnn_dailymail
 from . import diabla
 from . import xquad
+from . import schema_guided_dstc8
+from . import piaf
 
 ########################################
 # All tasks
@@ -62,6 +65,7 @@ TASK_REGISTRY = {
     # multilingual lambada
     **gem_asset_turk.construct_tasks(),
     "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
+    "schema_guided_dstc8": schema_guided_dstc8.Schema_Guided_DSTC8,
     # formatted as gsarti/flores_101_[LANG]
     **flores_101.construct_tasks(),
     "lama_trex": lama.Trex,
@@ -178,13 +182,18 @@ TASK_REGISTRY = {
     "huffpost": huff_post.HuffPost,
     # Code-switching
     "lince_sa": lince.LinCESentimentAnalysis,
+    # CRD3
+    "crd3": crd3.CRD3,
     # WMT
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
     # DiaBLa
     "diabla": diabla.DiaBLa,
-    
+   # add_xquad 
     "xquad.en": xquad.xquad_en,
     "xquad.ar": xquad.xquad_ar,
+
+  # piaf
+    "piaf": piaf.PIAF,
 }
 
 
