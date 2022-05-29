@@ -7,7 +7,7 @@ The SciTail dataset is an entailment dataset created from multiple-choice scienc
 Homepage: "https://allenai.org/data/scitail"
 """
 import numpy as np
-from lm_eval.base import rf, BioPromptSourceTask
+from lm_eval.base import rf, BioTask
 from lm_eval.metrics import mean
 
 
@@ -21,10 +21,10 @@ _CITATION = """
 }
 """
 
-class SciTail(BioPromptSourceTask):
+class SciTailBase(BioTask):
     VERSION = 0
-    DATASET_PATH = "../datasets/datasets/scitail"
-    DATASET_NAME = "scitail_bigbio_te"
+    DATASET_PATH = "scitail"
+    DATASET_NAME = None
     SPLIT = None
 
     def has_training_docs(self):
@@ -47,3 +47,6 @@ class SciTail(BioPromptSourceTask):
     def test_docs(self):
         if self.has_test_docs():
             return self.dataset["test"]
+          
+class SciTailTE(SciTailBase):
+    DATASET_NAME = "scitail_bigbio_te"
