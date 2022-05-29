@@ -250,7 +250,7 @@ def get_task_dict_promptsource(task_name_list: List[str]):
         assert isinstance(task_name, str)
 
         # Static version of the Task Use this to get HF dataset path / name.
-        static_task_obj = get_task(task_name)
+        static_task_obj = get_task("lm_eval/datasets/biomedical/bigbio/biodatasets/" + task_name)
         if issubclass(static_task_obj, lm_eval.base.BioTask):
             # Create the proper task name arg for DatasetTemplates.
             sub_task = (
