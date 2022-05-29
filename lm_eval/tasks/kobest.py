@@ -78,6 +78,72 @@ class BoolQ(Task):
             "f1": f1_score
         }
 
+
+class COPA(Task):
+    VERSION = 0
+    DATASET_PATH = "skt/kobest_v1"
+    DATASET_NAME = "copa"
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
+    def test_docs(self):
+        return self.dataset["test"]
+
+    def doc_to_text(self, doc):
+        '''
+        Connector: “왜냐하면” if Question is “원인” else “그래서”
+        Format: “{Premise} {Connector} {Answer Alternative}”
+        '''
+        connector = {
+            "원인": "왜냐하면",
+            "결과": "그래서",
+        }[doc["question"].strip()]
+
+        return doc["premise"] + f" {connector}"
+
+    def doc_to_target(self, doc):
+        correct_choice = doc["alternative_1"] if doc["label"] == 0 else doc["alternative_2"]
+
+        return " " + correct_choice
+        
+    def construct_requests(self, doc, ctx):
+        ll_choice1, _ = rf.loglikelihood(ctx, " "+doc["alternative_1"])
+        ll_choice2, _ = rf.loglikelihood(ctx, " "+doc["alternative_2"])
+
+        return ll_choice1, ll_choice2
+
+    def process_results(self, doc, results):
+        pred = np.argmax(results)
+        gold = doc["label"]
+        return {
+            "f1": (gold, pred)
+        }
+
+    def higher_is_better(self):
+        return {
+            "f1": True
+        }
+
+    def aggregation(self):
+        return {
+            "f1": f1_score
+        }
+
 class WiC(Task):
     VERSION = 0
     DATASET_PATH = "skt/kobest_v1"
@@ -130,6 +196,60 @@ class WiC(Task):
     def aggregation(self):
         return {
             "f1": f1_score
+        }
+
+
+class HellaSwag(MultipleChoiceTask):
+    VERSION = 0
+    DATASET_PATH = "skt/kobest_v1"
+    DATASET_NAME = "hellaswag"
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
+        return self._training_docs
+
+    def validation_docs(self):
+        return map(self._process_doc, self.dataset["validation"])
+
+    def test_docs(self):
+        return map(self._process_doc, self.dataset["test"])
+
+    def _process_doc(self, doc):
+        out_doc = {
+            "query": "문장: {}".format(doc["context"]),
+            "choices": [doc["ending_1"], doc["ending_2"], doc["ending_3"], doc["ending_4"]],
+            "gold": int(doc['label']),
+        }
+        return out_doc
+
+    def doc_to_text(self, doc):
+        return doc["query"]
+
+    def process_results(self, doc, results):
+        pred = np.argmax(results)
+        gold = doc["gold"]
+        return {
+            "f1": (gold, pred)
+        }
+
+    def higher_is_better(self):
+        return {
+            "f1": True
+        }
+
+    def aggregation(self):
+        return {
+            "f1": macro_f1_score
         }
 
 
