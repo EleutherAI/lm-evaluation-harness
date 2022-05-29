@@ -274,6 +274,8 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         res = []
         for chunk in tqdm(requests, total=math.ceil(len(requests)), disable=disable_tqdm):
             cache_keys, inputs_tok, targets_tok = chunk
+            inputs_tok = inputs_tok.to(self.device)
+            targets_tok = targets_tok.to(self.device)
             outputs = self._model_call(inputs_tok, targets_tok)
             log_softmaxes = F.log_softmax(outputs.logits, dim=-1)
 
