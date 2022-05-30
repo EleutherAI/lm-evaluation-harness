@@ -31,6 +31,8 @@ python main.py \
 	--tasks mrpc,gsarti/flores_101_afr
 ```
 
+For larger models, you may wish to use parallelism or half precision. These can be activated using the `--parallelize` and `--half` flags respectively.
+
 Features:
 
 - Growing number of tasks integrated with `promptsource` (20+).
