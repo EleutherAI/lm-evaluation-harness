@@ -10,8 +10,9 @@ This dataset is part of the GEM Benchmark. (Description from https://gem-benchma
 
 Homepage: None, Repo: https://github.com/esdurmus/Wikilingua
 """
-
+import typing
 from lm_eval.base import PromptSourceTask
+
 
 _CITATION = """
 @inproceedings{ladhak-wiki-2020,
@@ -124,3 +125,39 @@ class GEMWikiLinguaVi(GEMWikiLinguaBase):
 
 class GEMWikiLinguaZh(GEMWikiLinguaBase):
     DATASET_NAME = "zh"
+
+
+WIKILINGUA_TASKS = [
+    GEMWikiLinguaAr,
+    GEMWikiLinguaCs,
+    GEMWikiLinguaDe,
+    GEMWikiLinguaEn,
+    GEMWikiLinguaEs,
+    GEMWikiLinguaFr,
+    GEMWikiLinguaHi,
+    GEMWikiLinguaId,
+    GEMWikiLinguaIt,
+    GEMWikiLinguaJa,
+    GEMWikiLinguaKo,
+    GEMWikiLinguaNl,
+    GEMWikiLinguaPt,
+    GEMWikiLinguaRu,
+    GEMWikiLinguaTh,
+    GEMWikiLinguaTr,
+    GEMWikiLinguaVi,
+    GEMWikiLinguaZh,
+]
+
+
+def construct_tasks() -> typing.Dict[str, GEMWikiLinguaBase]:
+    """
+    Returns a dictionary of tasks keyed by task name, for example: 
+        "GEM/wiki_lingua_ar"
+    will dispatch to the GEM WikiLingua Arabic class.
+    """
+    tasks = {}
+    for task_class in WIKILINGUA_TASKS:
+        benchmark = task_class.DATASET_PATH
+        lang = task_class.DATASET_NAME
+        tasks[f'{benchmark}_{lang}'] = task_class
+    return tasks

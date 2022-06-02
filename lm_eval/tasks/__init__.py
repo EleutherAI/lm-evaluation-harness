@@ -14,6 +14,7 @@ from . import flores_101
 from . import gem_asset_turk
 from . import gem_mlsum
 from . import gem_webnlg
+from . import gem_wikilingua
 from . import gem_xsum
 from . import glue
 from . import hans
@@ -65,6 +66,8 @@ TASK_REGISTRY = {
     **gem_webnlg.construct_tasks(),
     # multilingual lambada
     **gem_asset_turk.construct_tasks(),
+    # GEM WikiLingua
+    **gem_wikilingua.construct_tasks(),
     "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
     "schema_guided_dstc8": schema_guided_dstc8.Schema_Guided_DSTC8,
     # formatted as gsarti/flores_101_[LANG]
