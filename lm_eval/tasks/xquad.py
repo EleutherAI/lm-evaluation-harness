@@ -192,7 +192,8 @@ class XQuADArabic(PromptSourceTask):
     DATASET_NAME = "xquad.ar"
 
     # HF changed squad on us so we have to make sure we aren't running the old one
-    assert version.parse(datasets.__version__) >= version.parse("1.11.0"), "datasets v1.11.0 or later required for SQuAD"
+    assert version.parse(datasets.__version__) >= version.parse(
+        "1.11.0"), "datasets v1.11.0 or later required for SQuAD"
 
     def has_training_docs(self):
         return False
