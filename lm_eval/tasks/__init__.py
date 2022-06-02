@@ -27,6 +27,7 @@ from . import wmt
 from . import crd3
 from . import cnn_dailymail
 from . import diabla
+from . import xquad
 from . import schema_guided_dstc8
 from . import piaf
 
@@ -188,6 +189,10 @@ TASK_REGISTRY = {
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
     # DiaBLa
     "diabla": diabla.DiaBLa,
+    # XQuAD
+    "xquad_en": xquad.XQuADEnglish,
+    "xquad_ar": xquad.XQuADArabic,
+
     # piaf
     "piaf": piaf.PIAF,
 }
