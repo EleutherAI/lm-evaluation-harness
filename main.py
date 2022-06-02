@@ -5,6 +5,7 @@ import logging
 import os
 
 from lm_eval import tasks, evaluator
+from codecarbon import OfflineEmissionsTracker
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 
@@ -19,7 +20,8 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--batch_size", type=int, default=None)
     parser.add_argument("--device", type=str, default=None)
-    parser.add_argument("--parallelize", type=bool, default=False, required=False)
+    parser.add_argument("--half", action="store_true")
+    parser.add_argument("--parallelize", action="store_true")
 
     parser.add_argument(
         "--output_path",
@@ -61,14 +63,28 @@ def args_to_name(args):
         datetime.datetime.now().isoformat(),
     ]
     fields = [f for f in fields if f is not None]
-
+    # Some prompts also have "/" in them!
+    filename = "_".join(fields).replace("/", "-")
     if args.limit is not None:
         # Do not use limited files for final analysis.
-        return f"limited_{args.limit}_" + "_".join(fields)
-    return "_".join(fields)
+        return f"limited_{args.limit}_" + filename
+
+    return filename
+
+
+def setup_example_logger(output_path):
+    """Sets up a logger that will save each example and prediction."""
+    logger = logging.getLogger("examples")
+    filename = f"./outputs/examples-{output_path}.jsonl"
+    formatter = logging.Formatter("%(message)s")
+    handler = logging.FileHandler(filename)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
 
 
 def main():
+    os.makedirs("./outputs", exist_ok=True)
     args = parse_args()
     assert not args.provide_description  # not implemented
 
@@ -87,32 +103,40 @@ def main():
         with open(args.description_dict_path, "r") as f:
             description_dict = json.load(f)
 
-    results = evaluator.simple_evaluate(
-        model=args.model,
-        model_args=args.model_args,
-        tasks=task_names,
-        num_fewshot=args.num_fewshot,
-        batch_size=args.batch_size,
-        device=args.device,
-        no_cache=args.no_cache,
-        limit=args.limit,
-        description_dict=description_dict,
-        check_integrity=args.check_integrity,
-        seed=args.seed,
-        parallelize=args.parallelize,
-    )
-
     output_path = args_to_name(args)
-    os.makedirs("./outputs", exist_ok=True)
-    with open(f"./outputs/examples-{output_path}.json", "w") as f:
-        json.dump(
-            {"examples": results["examples"], "config": results["examples"]},
-            f,
+    setup_example_logger(output_path)
+
+    with OfflineEmissionsTracker(country_iso_code="FRA", log_level="error"):
+        results = evaluator.simple_evaluate(
+            model=args.model,
+            model_args=args.model_args,
+            tasks=task_names,
+            num_fewshot=args.num_fewshot,
+            batch_size=args.batch_size,
+            device=args.device,
+            no_cache=args.no_cache,
+            limit=args.limit,
+            description_dict=description_dict,
+            check_integrity=args.check_integrity,
+            seed=args.seed,
+            parallelize=args.parallelize,
         )
+
     with open(f"./outputs/agg-{output_path}.json", "w") as f:
-        json.dump({"results": results["results"], "config": results["examples"]}, f)
-    # TODO: Rename codecarbon.csv.
+        json.dump({"results": results["results"], "config": results["config"]}, f)
+
+    from scripts.agg2slim import agg2slim
+
+    with open(f"./outputs/slim-{output_path}.json", "w") as f:
+        # We add `indent = 2` to help with quick readability.
+        json.dump(
+            agg2slim(results),
+            f,
+            indent=2,
+        )
     print(evaluator.make_table(results))
+    emissions_output_path = f"./outputs/emissions-{output_path}.csv"
+    os.rename("emissions.csv", emissions_output_path)
 
 
 if __name__ == "__main__":

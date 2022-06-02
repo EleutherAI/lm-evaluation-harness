@@ -10,6 +10,8 @@ from tqdm import tqdm
 
 from lm_eval.utils import positional_deprecated, run_task_tests, set_seed
 
+import logging, json
+
 
 @positional_deprecated
 def simple_evaluate(
@@ -246,7 +248,7 @@ def evaluate(
     vals = collections.defaultdict(list)
 
     # unpack results and sort back in order and return control to Task
-    examples = []
+    logger = logging.getLogger("examples")
     for (task_prompt_name, doc_id), per_doc_requests in process_res_queue.items():
         per_doc_requests.sort(key=lambda x: x[0])
         per_doc_results = [x[1] for x in per_doc_requests]
@@ -256,16 +258,17 @@ def evaluate(
         doc = docs[(task_prompt_name, doc_id)]
 
         output = task.process_results(doc, per_doc_results)
+
         if task.save_examples:
             metrics, example = output
             example.update(fewshot_logging_info)
             example.update(task.get_logging_info())
-            examples.append(example)
+            logger.info(json.dumps(example))
         else:
             metrics = output
             example = fewshot_logging_info
             example.update(task.get_logging_info())
-            examples.append(example)
+            logger.info(json.dumps(example))
 
         for metric, value in metrics.items():
             vals[(task_prompt_name, metric)].append(value)
@@ -305,7 +308,6 @@ def evaluate(
         "results": metric_results,
         "versions": dict(versions),
         # List of all prompt x doc examples with additional information in it.
-        "examples": examples,
         # Original results used for generating the table when running this file.
         "table_results": dict(results),
     }

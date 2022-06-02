@@ -142,6 +142,17 @@ class Copa(PromptSourceTask):
     def validation_docs(self):
         return self.dataset["validation"]
 
+    def invalid_doc_for_prompt(self, doc) -> bool:
+        # HACK: Some copa templates have conditionals that ignore documents 
+        # when the condition is not met, like `{if doc['question'] != \"cause\"}`.
+        # This means the prompt will never produce an input and target.
+        # TODO: Remove this when fixed in `promptsource`
+        try:
+            self.prompt.apply(doc)
+            return False 
+        except:
+            return True
+
 
 # TODO: Check this works with all prompts.
 class MultiRC(PromptSourceTask):
@@ -200,23 +211,25 @@ class ReCoRD(PromptSourceTask):
         # - Pick the maximum likelihood prediction entity
         # - Evaluate the accuracy and token F1 PER EXAMPLE
         # - Average over all examples
+        pred_idx = np.argmax(results)
+        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        pred = answer_choices_list[pred_idx]
+        targets = self.doc_to_target(doc)
 
-        # TODO (jon-tow): Look at result
-        max_idx = np.argmax(np.array([result[0] for result in results]))
-
-        prediction = doc["entities"][max_idx]
-        gold_label_set = doc["answers"]
         f1 = metric_max_over_ground_truths(
-            squad_metrics.compute_f1, prediction, gold_label_set
+            squad_metrics.compute_f1, pred, targets
         )
         em = metric_max_over_ground_truths(
-            squad_metrics.compute_exact, prediction, gold_label_set
+            squad_metrics.compute_exact, pred, targets
         )
-
-        return {
+        out = {
             "f1": f1,
-            "em": em,
+            "em": em
         }
+        if self.save_examples:
+            example = {"target": targets, "pred": pred}
+            return out, example
+        return out
 
     def higher_is_better(self):
         return {
@@ -252,12 +265,6 @@ class WordsInContext(PromptSourceTask):
 
     def validation_docs(self):
         return self.dataset["validation"]
-
-    def higher_is_better(self):
-        return {"acc": True}
-
-    def aggregation(self):
-        return {"acc": mean}
 
 
 class SGWinogradSchemaChallenge(PromptSourceTask):
@@ -316,14 +323,17 @@ class WinogenderSchemaDiagnostics(PromptSourceTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        target = self.doc_to_target(doc)[0].strip()
-
         answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        completion_len = np.array([float(len(i)) for i in answer_choices_list])
+
+        target = self.doc_to_target(doc)[0].strip()
+        target_idx = answer_choices_list.index(target)
         pred = answer_choices_list[np.argmax(results)]
 
         out = {
             "parity": (doc["idx"], pred),
-            "acc": pred == target
+            "acc": pred == target,
+            "acc_norm": 1.0 if np.argmax(results / completion_len) == target_idx else 0.0
         }
 
         if self.save_examples:
@@ -339,8 +349,11 @@ class WinogenderSchemaDiagnostics(PromptSourceTask):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metric scores
         """
-        return {"parity": parity,
-                "acc": mean}
+        return {
+            "parity": parity,
+            "acc": mean,
+            "acc_norm": mean
+        }
 
 
 class BroadcoverageDiagnostics(PromptSourceTask):
