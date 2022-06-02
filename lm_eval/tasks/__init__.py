@@ -188,11 +188,11 @@ TASK_REGISTRY = {
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
     # DiaBLa
     "diabla": diabla.DiaBLa,
-   # add_xquad 
-    "xquad.en": xquad.xquad_en,
-    "xquad.ar": xquad.xquad_ar,
+    # XQuAD
+    "xquad_en": xquad.XQuADEnglish,
+    "xquad_ar": xquad.XQuADArabic,
 
-  # piaf
+    # piaf
     "piaf": piaf.PIAF,
 }
 

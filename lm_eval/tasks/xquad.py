@@ -14,10 +14,9 @@ Homepage: https://github.com/deepmind/xquad
 """
 import datasets
 from math import exp
-from lm_eval.base import rf, Task
 from functools import partial
 from packaging import version
-from lm_eval.base import PromptSourceTask
+from lm_eval.base import rf, PromptSourceTask
 
 
 _CITATION = """
@@ -43,13 +42,14 @@ def _squad_agg(key, items):
     return _squad_metric(predictions=predictions, references=references)[key]
 
 
-class xquad_en(PromptSourceTask):
+class XQuADEnglish(PromptSourceTask):
     VERSION = 1
     DATASET_PATH = "xquad"
     DATASET_NAME = "xquad.en"
 
     # HF changed squad on us so we have to make sure we aren't running the old one
-    assert version.parse(datasets.__version__) >= version.parse("1.11.0"), "datasets v1.11.0 or later required for SQuAD"
+    assert version.parse(datasets.__version__) >= version.parse(
+        "1.11.0"), "datasets v1.11.0 or later required for SQuAD"
 
     def has_training_docs(self):
         return False
@@ -88,10 +88,8 @@ class xquad_en(PromptSourceTask):
 
         cont_request = rf.greedy_until(ctx, request_args)
         is_unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
-        
-        return cont_request,is_unanswerable
 
-
+        return cont_request, is_unanswerable
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a 
@@ -106,7 +104,7 @@ class xquad_en(PromptSourceTask):
 
         pred, (logprob_unanswerable, _) = results
         no_answer_probability = exp(logprob_unanswerable)
-        
+
         predictions = {
             'id': doc['id'],
             'prediction_text': pred,
@@ -123,15 +121,23 @@ class xquad_en(PromptSourceTask):
                 "pred": pred,
                 "target": doc['answers'],
             }
-        return { 
-            'exact': (predictions, references), # Exact match (the normalized answer exactly match the gold answer)
-            'f1': (predictions, references), #  The F-score of predicted tokens versus the gold answer
-            'HasAns_exact': (predictions, references), # Exact match (the normalized answer exactly match the gold answer)
-            'HasAns_f1': (predictions, references), # The F-score of predicted tokens versus the gold answer
-            'best_exact_thresh': (predictions, references), # No-answer probability threshold associated to the best exact match
-            'best_f1_thresh': (predictions, references), # No-answer probability threshold associated to the best F1
-            'best_exact': (predictions, references), # Best exact match (with varying threshold)
-            'best_f1': (predictions, references), # Best F1 (with varying threshold)
+        return {
+            # Exact match (the normalized answer exactly match the gold answer)
+            'exact': (predictions, references),
+            # The F-score of predicted tokens versus the gold answer
+            'f1': (predictions, references),
+            # Exact match (the normalized answer exactly match the gold answer)
+            'HasAns_exact': (predictions, references),
+            # The F-score of predicted tokens versus the gold answer
+            'HasAns_f1': (predictions, references),
+            # No-answer probability threshold associated to the best exact match
+            'best_exact_thresh': (predictions, references),
+            # No-answer probability threshold associated to the best F1
+            'best_f1_thresh': (predictions, references),
+            # Best exact match (with varying threshold)
+            'best_exact': (predictions, references),
+            # Best F1 (with varying threshold)
+            'best_f1': (predictions, references),
         }, example
 
     def aggregation(self):
@@ -140,15 +146,23 @@ class xquad_en(PromptSourceTask):
             A dictionary where keys are the names of submetrics and values are 
             functions that aggregate a list of metrics
         """
-        return { 
-            'exact': partial(_squad_agg, 'exact'), # Exact match (the normalized answer exactly match the gold answer)
-            'f1': partial(_squad_agg, 'f1'), #  The F-score of predicted tokens versus the gold answer
-            'HasAns_exact': partial(_squad_agg, 'HasAns_exact'), # Exact match (the normalized answer exactly match the gold answer)
-            'HasAns_f1': partial(_squad_agg, 'HasAns_f1'), # The F-score of predicted tokens versus the gold answer
-            'best_exact_thresh': partial(_squad_agg, 'best_exact_thresh'), # No-answer probability threshold associated to the best exact match
-            'best_f1_thresh': partial(_squad_agg, 'best_f1_thresh'), # No-answer probability threshold associated to the best F1
-            'best_exact': partial(_squad_agg, 'best_exact'), # Best exact match (with varying threshold)
-            'best_f1': partial(_squad_agg, 'best_f1'), # Best F1 (with varying threshold)
+        return {
+            # Exact match (the normalized answer exactly match the gold answer)
+            'exact': partial(_squad_agg, 'exact'),
+            # The F-score of predicted tokens versus the gold answer
+            'f1': partial(_squad_agg, 'f1'),
+            # Exact match (the normalized answer exactly match the gold answer)
+            'HasAns_exact': partial(_squad_agg, 'HasAns_exact'),
+            # The F-score of predicted tokens versus the gold answer
+            'HasAns_f1': partial(_squad_agg, 'HasAns_f1'),
+            # No-answer probability threshold associated to the best exact match
+            'best_exact_thresh': partial(_squad_agg, 'best_exact_thresh'),
+            # No-answer probability threshold associated to the best F1
+            'best_f1_thresh': partial(_squad_agg, 'best_f1_thresh'),
+            # Best exact match (with varying threshold)
+            'best_exact': partial(_squad_agg, 'best_exact'),
+            # Best F1 (with varying threshold)
+            'best_f1': partial(_squad_agg, 'best_f1'),
         }
 
     def higher_is_better(self):
@@ -157,21 +171,22 @@ class xquad_en(PromptSourceTask):
             A dictionary where keys are the names of submetrics and values are 
             whether a higher value of the submetric is better
         """
-        return { 
-            'exact': True, # Exact match (the normalized answer exactly match the gold answer)
-            'f1': True, #  The F-score of predicted tokens versus the gold answer
-            'HasAns_exact': True, # Exact match (the normalized answer exactly match the gold answer)
-            'HasAns_f1': True, # The F-score of predicted tokens versus the gold answer
-            'best_exact_thresh': True, # No-answer probability threshold associated to the best exact match
-            'best_f1_thresh': True, # No-answer probability threshold associated to the best F1
-            'best_exact': True, # Best exact match (with varying threshold)
-            'best_f1': True, # Best F1 (with varying threshold)
+        return {
+            # Exact match (the normalized answer exactly match the gold answer)
+            'exact': True,
+            'f1': True,  # The F-score of predicted tokens versus the gold answer
+            # Exact match (the normalized answer exactly match the gold answer)
+            'HasAns_exact': True,
+            'HasAns_f1': True,  # The F-score of predicted tokens versus the gold answer
+            # No-answer probability threshold associated to the best exact match
+            'best_exact_thresh': True,
+            'best_f1_thresh': True,  # No-answer probability threshold associated to the best F1
+            'best_exact': True,  # Best exact match (with varying threshold)
+            'best_f1': True,  # Best F1 (with varying threshold)
         }
 
 
-
-
-class xquad_ar(PromptSourceTask):
+class XQuADArabic(PromptSourceTask):
     VERSION = 1
     DATASET_PATH = "xquad"
     DATASET_NAME = "xquad.ar"
@@ -216,10 +231,8 @@ class xquad_ar(PromptSourceTask):
 
         cont_request = rf.greedy_until(ctx, request_args)
         is_unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
-        
-        return cont_request,is_unanswerable
 
-
+        return cont_request, is_unanswerable
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a 
@@ -234,7 +247,7 @@ class xquad_ar(PromptSourceTask):
 
         pred, (logprob_unanswerable, _) = results
         no_answer_probability = exp(logprob_unanswerable)
-        
+
         predictions = {
             'id': doc['id'],
             'prediction_text': pred,
@@ -251,15 +264,23 @@ class xquad_ar(PromptSourceTask):
                 "pred": pred,
                 "target": doc['answers'],
             }
-        return { 
-            'exact': (predictions, references), # Exact match (the normalized answer exactly match the gold answer)
-            'f1': (predictions, references), #  The F-score of predicted tokens versus the gold answer
-            'HasAns_exact': (predictions, references), # Exact match (the normalized answer exactly match the gold answer)
-            'HasAns_f1': (predictions, references), # The F-score of predicted tokens versus the gold answer
-            'best_exact_thresh': (predictions, references), # No-answer probability threshold associated to the best exact match
-            'best_f1_thresh': (predictions, references), # No-answer probability threshold associated to the best F1
-            'best_exact': (predictions, references), # Best exact match (with varying threshold)
-            'best_f1': (predictions, references), # Best F1 (with varying threshold)
+        return {
+            # Exact match (the normalized answer exactly match the gold answer)
+            'exact': (predictions, references),
+            # The F-score of predicted tokens versus the gold answer
+            'f1': (predictions, references),
+            # Exact match (the normalized answer exactly match the gold answer)
+            'HasAns_exact': (predictions, references),
+            # The F-score of predicted tokens versus the gold answer
+            'HasAns_f1': (predictions, references),
+            # No-answer probability threshold associated to the best exact match
+            'best_exact_thresh': (predictions, references),
+            # No-answer probability threshold associated to the best F1
+            'best_f1_thresh': (predictions, references),
+            # Best exact match (with varying threshold)
+            'best_exact': (predictions, references),
+            # Best F1 (with varying threshold)
+            'best_f1': (predictions, references),
         }, example
 
     def aggregation(self):
@@ -268,15 +289,23 @@ class xquad_ar(PromptSourceTask):
             A dictionary where keys are the names of submetrics and values are 
             functions that aggregate a list of metrics
         """
-        return { 
-            'exact': partial(_squad_agg, 'exact'), # Exact match (the normalized answer exactly match the gold answer)
-            'f1': partial(_squad_agg, 'f1'), #  The F-score of predicted tokens versus the gold answer
-            'HasAns_exact': partial(_squad_agg, 'HasAns_exact'), # Exact match (the normalized answer exactly match the gold answer)
-            'HasAns_f1': partial(_squad_agg, 'HasAns_f1'), # The F-score of predicted tokens versus the gold answer
-            'best_exact_thresh': partial(_squad_agg, 'best_exact_thresh'), # No-answer probability threshold associated to the best exact match
-            'best_f1_thresh': partial(_squad_agg, 'best_f1_thresh'), # No-answer probability threshold associated to the best F1
-            'best_exact': partial(_squad_agg, 'best_exact'), # Best exact match (with varying threshold)
-            'best_f1': partial(_squad_agg, 'best_f1'), # Best F1 (with varying threshold)
+        return {
+            # Exact match (the normalized answer exactly match the gold answer)
+            'exact': partial(_squad_agg, 'exact'),
+            # The F-score of predicted tokens versus the gold answer
+            'f1': partial(_squad_agg, 'f1'),
+            # Exact match (the normalized answer exactly match the gold answer)
+            'HasAns_exact': partial(_squad_agg, 'HasAns_exact'),
+            # The F-score of predicted tokens versus the gold answer
+            'HasAns_f1': partial(_squad_agg, 'HasAns_f1'),
+            # No-answer probability threshold associated to the best exact match
+            'best_exact_thresh': partial(_squad_agg, 'best_exact_thresh'),
+            # No-answer probability threshold associated to the best F1
+            'best_f1_thresh': partial(_squad_agg, 'best_f1_thresh'),
+            # Best exact match (with varying threshold)
+            'best_exact': partial(_squad_agg, 'best_exact'),
+            # Best F1 (with varying threshold)
+            'best_f1': partial(_squad_agg, 'best_f1'),
         }
 
     def higher_is_better(self):
@@ -285,15 +314,16 @@ class xquad_ar(PromptSourceTask):
             A dictionary where keys are the names of submetrics and values are 
             whether a higher value of the submetric is better
         """
-        return { 
-            'exact': True, # Exact match (the normalized answer exactly match the gold answer)
-            'f1': True, #  The F-score of predicted tokens versus the gold answer
-            'HasAns_exact': True, # Exact match (the normalized answer exactly match the gold answer)
-            'HasAns_f1': True, # The F-score of predicted tokens versus the gold answer
-            'best_exact_thresh': True, # No-answer probability threshold associated to the best exact match
-            'best_f1_thresh': True, # No-answer probability threshold associated to the best F1
-            'best_exact': True, # Best exact match (with varying threshold)
-            'best_f1': True, # Best F1 (with varying threshold)
+        return {
+            # Exact match (the normalized answer exactly match the gold answer)
+            'exact': True,
+            'f1': True,  # The F-score of predicted tokens versus the gold answer
+            # Exact match (the normalized answer exactly match the gold answer)
+            'HasAns_exact': True,
+            'HasAns_f1': True,  # The F-score of predicted tokens versus the gold answer
+            # No-answer probability threshold associated to the best exact match
+            'best_exact_thresh': True,
+            'best_f1_thresh': True,  # No-answer probability threshold associated to the best F1
+            'best_exact': True,  # Best exact match (with varying threshold)
+            'best_f1': True,  # Best F1 (with varying threshold)
         }
-
-
