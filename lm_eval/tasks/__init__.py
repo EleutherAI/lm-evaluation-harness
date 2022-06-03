@@ -258,7 +258,8 @@ def get_task_dict_promptsource(task_name_list: List[str]):
                 if static_task_obj.DATASET_NAME
                 else ""
             )
-            ps_task_name = "scitail/scitail_bigbio_te"
+            ps_task_name = static_task_obj.DATASET_PATH.split("/")[-1] + "/"
+            ps_task_name += static_task_obj.DATASET_NAME
 
             task_prompts = DatasetTemplates(ps_task_name)
             for prompt_name in task_prompts.all_template_names:
