@@ -3,8 +3,6 @@ NOTE: This file implements translation tasks using datasets from https://hugging
 
 """
 
-from ast import Pass
-from pickle import NONE
 from datasets import load_dataset
 from lm_eval import metrics
 from lm_eval.base import Task, rf
@@ -24,7 +22,6 @@ class KoreanTranslationTask(Task):
 
     def has_training_docs(self):
         """Whether the task has a training set"""
-        # TODO In the future we could be more discerning. Some more recent tests have train and dev sets
         return True
 
     def has_validation_docs(self):
