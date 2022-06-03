@@ -310,7 +310,9 @@ TASK_REGISTRY = {
     "klue_sts": klue.STS,
     
     # Korean translation
-    "ko_en_translation": ko_translation.KoreanTranslationTask(lang_pairs='ko-en'),
+    "ko_en_translation": ko_translation.KoToEnTranslation,
+    "en_ko_translation": ko_translation.EnToKoTranslation
+
 }
 
 

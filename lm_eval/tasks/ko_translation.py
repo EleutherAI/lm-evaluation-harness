@@ -3,6 +3,8 @@ NOTE: This file implements translation tasks using datasets from https://hugging
 
 """
 
+from ast import Pass
+from pickle import NONE
 from datasets import load_dataset
 from lm_eval import metrics
 from lm_eval.base import Task, rf
@@ -17,26 +19,8 @@ DATASET_PATH: str = "Moo/korean-parallel-corpora"
 class KoreanTranslationTask(Task):
     VERSION = 0
 
-    # e.g. ("wmt14", "fr-en")
-    def __init__(self, lang_pairs: str='ko-en'):
-        self.dataset = load_dataset(DATASET_PATH)
-        assert lang_pairs in ['ko-en', 'en-ko'], f"lang pairs should be selected 'ko-en' or 'en-ko' expected, got: {lang_pairs}"
-        self.lang_pairs = lang_pairs
-        if self.lang_pairs == 'ko-en':
-            src_lang = 'ko'
-            tgt_lang = 'en'
-        elif self.lang_pairs == 'en-ko':
-            src_lang = 'en'
-            tgt_lang = 'ko'
-        
-        self.train_src = list(self.dataset['train'][src_lang])
-        self.train_tgt = list(self.dataset['train'][tgt_lang])
-        self.valid_src = list(self.dataset['validation'][src_lang])
-        self.valid_tgt = list(self.dataset['validation'][tgt_lang])
-        self.tst_src = list(self.dataset['test'][src_lang])
-        self.tst_tgt = list(self.dataset['test'][tgt_lang])
-        self._training_docs = None
-        self._fewshot_docs = None
+    def __init__(self):
+        pass
 
     def has_training_docs(self):
         """Whether the task has a training set"""
@@ -82,13 +66,8 @@ class KoreanTranslationTask(Task):
             ]
   
     def doc_to_text(self, doc):
-        if self.lang_pairs == 'ko-en':
-            src_lang = '한글'
-            tar_lang = '영어'
-        elif self.lang_pairs == 'en-ko':
-            src_lang = '영어'
-            tar_lang = '한글'
-                
+        src_lang = self.src_lang
+        tar_lang = self.tar_lang
         return f"{src_lang}을 {tar_lang}으로 번역해주는 모델입니다.\n\n###\n{src_lang}:" + doc["src"] + f"\n{tar_lang}:"
         
     def should_decontaminate(self):
@@ -147,10 +126,41 @@ class KoreanTranslationTask(Task):
         }
 
     def __str__(self):
-        if self.lang_pairs == 'ko-en':
-            src_lang = 'ko'
-            tar_lang = 'en'
-        elif self.lang_pairs == 'en-ko':
-            src_lang = 'en'
-            tar_lang = 'ko'
-        return f"{src_lang} to {tar_lang} Task"
+        return f"{self.src_lang} to {self.tar_lang} Task"
+
+
+class KoToEnTranslation(KoreanTranslationTask):
+    def __init__(self):
+        super().__init__()
+        self.dataset = load_dataset(DATASET_PATH)
+
+        self.src_lang = 'ko'
+        self.tar_lang = 'en'
+        
+        self.train_src = list(self.dataset['train'][self.src_lang])
+        self.train_tgt = list(self.dataset['train'][self.tar_lang])
+        self.valid_src = list(self.dataset['validation'][self.src_lang])
+        self.valid_tgt = list(self.dataset['validation'][self.tar_lang])
+        self.tst_src = list(self.dataset['test'][self.src_lang])
+        self.tst_tgt = list(self.dataset['test'][self.tar_lang])
+        self._training_docs = None
+        self._fewshot_docs = None
+
+
+
+class EnToKoTranslation(KoreanTranslationTask):
+    def __init__(self):
+        super().__init__()
+        self.dataset = load_dataset(DATASET_PATH)
+
+        self.src_lang = 'en'
+        self.tar_lang = 'ko'
+        
+        self.train_src = list(self.dataset['train'][self.src_lang])
+        self.train_tgt = list(self.dataset['train'][self.tar_lang])
+        self.valid_src = list(self.dataset['validation'][self.src_lang])
+        self.valid_tgt = list(self.dataset['validation'][self.tar_lang])
+        self.tst_src = list(self.dataset['test'][self.src_lang])
+        self.tst_tgt = list(self.dataset['test'][self.tar_lang])
+        self._training_docs = None
+        self._fewshot_docs = None
