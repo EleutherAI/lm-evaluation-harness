@@ -1,3 +1,51 @@
+# Biomedical Working Group
+
+This branch exists to facilitate experiments in the Biomedical Working group. 
+
+The following steps should allow you to evaluate any transformers model using the BigBio prompts + datasets:
+```bash
+pip install git+https://github.com/bigscience-workshop/biomedical.git
+git clone https://github.com/bigscience-workshop/lm-evaluation-harness
+cd lm-evaluation-harness
+git checkout bigbio
+git submodule update --init
+pip install -e .
+```
+Once you have run done these things, you can now use the BigBio datasets... in theory. The problem is that at the present moment we do not have any of the BigBio prompts in PromptSource. For now, the patch is to run
+`cd ..; git clone -b eval-hackathon https://github.com/bigscience-workshop/promptsource; cd promptsource`
+and then copy over whatever prompts you want to be using from the [OpenBioLink fork](https://github.com/OpenBioLink/promptsource) to your local files. Unfortunately we cannot use the OpenBioLink fork directly, as the eval-hackathon branch of PromptSource has some necessary modifications that don't exist on that fork. Once things are more settled in terms of long-term plans, we can set something up to address this but for now we need to hack it a bit.
+
+At the current moment, the only dataset implemented is `scitail`, which requires [this prompt](https://github.com/OpenBioLink/promptsource/blob/main/promptsource/templates/scitail/scitail_bigbio_te/templates.yaml) be copied into the local version of PromptSource. Once you have added all the prompts you want to use locally, you can run `pip install -e .` so that your libraries notice the new prompts. Now you can actually run the eval harness by navigating to its directory and running `python main.py --model hf-causal --model_args pretrained=EleutherAI/gpt-neo-2.7B --tasks scitail`. This should report a table that looks like this if done correctly.
+```
+| Task  |         Prompt          |Version|Metric|Value |   |Stderr|
+|-------|-------------------------|------:|------|-----:|---|-----:|
+|scitail|Yes/No Entailment Framing|      0|acc   |0.6021|±  |0.0106|
+```
+If this errors, multiple prompts are reported, or GPT-Neo-2.7B is not getting 60.2% accuracy you have something set up wrong.
+
+## Running Models
+The Eval Harness supports a lot of models and settings. In particular, any model that is implemented in transformers, is accessible through the OpenAI API, or was trained using GPT-NeoX or Mesh-Transformer-Jax can be run out of the box. I'll start by breaking down the command from above:
+1. `python main.py`: this is how you launch the eval harness
+2. `--model hf-causal`: this is how you specify that you are using a model from HuggingFace's transformer library that is implemented as a causal decoder model. If you wish to use a sequence to sequence model like T5, instead use hf-seq2seq. You can also specify other model types like openaihere.
+3. `--model_args pretrained=EleutherAI/gpt-neo-2.7B`: this is how you provide arguments to the model loading function. For most HuggingFace models, the only argument you need to provide is the name of the model you wish to load. For OpenAI models, you would use engine=davinci (or whatever engine you are specifying).
+4. `--tasks scitail`: this is how you specify the task to run. Multiple tasks can be specified as a comma-separated list such as lambada,hellaswag.
+
+There are a couple auxillery flags that may also be useful:
+1. If you have access to a GPU cluster, you can distribute a model across your GPUs by adding --parallelize. You can also specify which GPUs to use with `--device cuda:0,1,2`. By default a parallelized run will use all GPUs, while a non-parallelized run will use GPU 0. You can also run on CPU with --device cpu.
+2. If your model doesn't fill your avaliable GPU memory, you can set the batch size to N by adding `--batch_size N`. By default the batch size is 1.
+3. If you would like to do few-shot evaluations, you can set the number of examples provided to N by adding `--num_fewshot N`. By default all evaluations are zero-shot.
+
+## Implementing Datasets
+If you want to use a dataset other than SciTail, you'll need to implement it in the Eval Harness. Fortunately, this is quite easy for most datasets. I will use `biosses` as an example, since I know it has prompts implemented.
+1. Make a file called `lm_eval/tasks/biosses.py` and copy the contents of `lm_eval/tasks/scitail.py` into it.
+2. Change `SciTailBase(BioTask)` to `BiossesBase(BioTask)` and `DATASET_PATH = "lm_eval/datasets/biomedical/bigbio/biodatasets/scitail"` to `DATASET_PATH = "lm_eval/datasets/biomedical/bigbio/biodatasets/biosses"`.  This defines the basic framework for the codebase, most notably how to load and access the dataset. If your dataset has a non-standard structure you may need to edit the contents of this class as well.
+Change `SciTailTE(SciTailBase)` to `BiossesPairs(BiossesBase)` and `DATASET_NAME = "scitail_bigbio_te"` to `DATASET_NAME = "biosses_bigbio_pairs"`. This defines the particular schema you are using. If your dataset supports multiple schema, each one gets its own class.
+**Note:** The file names and class names can be whatever you want, but the `DATASET_PATH` and `DATASET_NAME` values must match the directory and name of the BigBio version of the dataset from biomedical exactly.
+4. Once you have done 1-3, all you need to do is tell the rest of the code that it exists. You'll need to make two changes to `lm_eval/tasks/__init__.py`: at the top you'll need to write `from . import biosses` and then in the `TASK_REGESTRY` you'll need to add the specific classes to make accessible to the user. In our case, this would be `"bioss": bioss.BiossPairs`. The string defines how the user calls the evaluation task, so please be descriptive if there are multiple prompts.
+5. Congrats! You can now run your new task by running `python main.py --model hf-causal --model_args pretrained=EleutherAI/gpt-neo-2.7B --tasks bioss`
+
+**Please push new datasets you add to the eval harness so others don't have to duplicate your work.**
+
 # Promptsource X Language Model Evaluation Harness
 
 ![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Build/badge.svg)
