@@ -93,11 +93,11 @@ class JigsawUnintendedBias(PromptSourceTask):
             # TODO: current solution is not ideal for scaling
             try:
                 scale = float(target) / doc["target"]
-                pred = float(pred/scale > 0.5)
-                target = float(doc["target"] > 0.5)
+                pred = float((pred/scale) >= 0.5)
+                target = float(doc["target"] >= 0.5)
             except ZeroDivisionError:
                 target = doc["target"]
-        
+
         for dimension, identity_set in self.dimension_to_identity_set.items():
             identities = {identity: 1  if doc[identity] > 0 else 0 for identity in identity_set }
             out[f"{dimension}_var"] = {**identities, 'pred': pred,  'target': target, 'pred': pred}
