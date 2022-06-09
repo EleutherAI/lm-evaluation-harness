@@ -19,6 +19,7 @@ class HuggingFaceAutoLM(BaseLM):
         subfolder: str = None,
         revision: str = "main",
         device: str = "cuda",
+        half: bool = True,
         batch_size: int = 1,
         max_gen_toks: int = 256,
         parallelize: bool = False,
@@ -26,6 +27,7 @@ class HuggingFaceAutoLM(BaseLM):
         super().__init__()
 
         assert isinstance(device, str)
+        assert isinstance(half, bool)
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
 
@@ -42,6 +44,8 @@ class HuggingFaceAutoLM(BaseLM):
         self._batch_size = batch_size  # todo: adaptive batch size
 
         # TODO: Fix multi-gpu support.
+        if half:
+            self.model.half()
         self._device = torch.device(device)
         if parallelize:
             self.model.parallelize()

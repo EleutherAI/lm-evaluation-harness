@@ -14,6 +14,7 @@ from . import flores_101
 from . import gem_asset_turk
 from . import gem_mlsum
 from . import gem_webnlg
+from . import gem_wikilingua
 from . import gem_xsum
 from . import glue
 from . import hans
@@ -22,12 +23,14 @@ from . import jigsaw_unintended_bias
 from . import lama
 from . import lince
 from . import race
+from . import scitail
 from . import superglue
 from . import wino_bias
 from . import wmt
 from . import crd3
 from . import cnn_dailymail
 from . import diabla
+from . import xquad
 from . import schema_guided_dstc8
 from . import piaf
 
@@ -65,6 +68,8 @@ TASK_REGISTRY = {
     **gem_webnlg.construct_tasks(),
     # multilingual lambada
     **gem_asset_turk.construct_tasks(),
+    # GEM WikiLingua
+    **gem_wikilingua.construct_tasks(),
     "e2e_nlg_cleaned": e2e_nlg_cleaned.E2E_NLG_Cleaned,
     "schema_guided_dstc8": schema_guided_dstc8.Schema_Guided_DSTC8,
     # formatted as gsarti/flores_101_[LANG]
@@ -79,6 +84,7 @@ TASK_REGISTRY = {
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
     "hans": hans.HANS,
+    
     # BLiMP
     "blimp_adjunct_island": blimp.BlimpAdjunctIsland,
     "blimp_anaphor_gender_agreement": blimp.BlimpAnaphorGenderAgreement,
@@ -147,16 +153,21 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
+    
+    # CNN Daily Mail
     "cnn_dailymail": cnn_dailymail.CnnDailyMail,
+    
     # GEM/mlsum
     "mlsum_es": gem_mlsum.GEMMLSUMEs,
     "mlsum_de": gem_mlsum.GEMMLSUMDe,
     "mlsum_es_covid_challenge_set": gem_mlsum.GEMMLSUMEsChallgeTestCovid,
     "mlsum_de_covid_challenge_set": gem_mlsum.GEMMLSUMDeChallgeTestCovid,
+    
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
+    
     # GEM/xum
     "gem_xsum": gem_xsum.GEMXSUM,
     "gem_xsum_challenge_sample": gem_xsum.GEMXSUMChallgeSample,
@@ -165,34 +176,48 @@ TASK_REGISTRY = {
     "gem_xsum_challenge_test_bfp_05": gem_xsum.GEMXSUMChallgeTestBFP05,
     "gem_xsum_challenge_test_nopunc": gem_xsum.GEMXSUMChallgeTestNopunc,
     "gem_xsum_challenge_test_covid": gem_xsum.GEMXSUMChallgeTestCovid,
+    
     # LAMA
     "lama-trex": lama.Trex,
     "lama-squad": lama.Squad,
     "lama-google_re": lama.google_re,
     "lama-concptnet": lama.Conceptnet,
     "bigscience-lama": lama.BigScienceLAMA,
+    
     # WinoBias
     "wino_bias_type1_pro": wino_bias.WinoBiasType1Pro,
     "wino_bias_type1_anti": wino_bias.WinoBiasType1Anti,
     "wino_bias_type2_pro": wino_bias.WinoBiasType2Pro,
     "wino_bias_type2_anti": wino_bias.WinoBiasType2Anti,
+    
     # Crows-Pairs
     "crows_pairs_english": crows_pairs_multilingual.CrowsPairsEnglish,
     "crows_pairs_french": crows_pairs_multilingual.CrowsPairsFrench,
+  
     # JigSaw
     "jigsaw_unintended_bias": jigsaw_unintended_bias.JigsawUnintendedBias,
+
     # News
     "huffpost": huff_post.HuffPost,
+    
     # Code-switching
     "lince_sa": lince.LinCESentimentAnalysis,
     # CRD3
     "crd3": crd3.CRD3,
     # WMT
     **wmt.create_year_tasks(wmt.WMT14_TASKS),
+    
     # DiaBLa
     "diabla": diabla.DiaBLa,
+    # XQuAD
+    "xquad_en": xquad.XQuADEnglish,
+    "xquad_ar": xquad.XQuADArabic,
+
     # piaf
     "piaf": piaf.PIAF,
+    
+    # SciTail
+    "scitail": scitail.SciTailTE,
 }
 
 
@@ -245,7 +270,24 @@ def get_task_dict_promptsource(task_name_list: List[str]):
 
         # Static version of the Task Use this to get HF dataset path / name.
         static_task_obj = get_task(task_name)
-        if issubclass(static_task_obj, lm_eval.base.PromptSourceTask):
+        if issubclass(static_task_obj, lm_eval.base.BioTask):
+            # Create the proper task name arg for DatasetTemplates.
+            sub_task = (
+                f"/{static_task_obj.DATASET_NAME}"
+                if static_task_obj.DATASET_NAME
+                else ""
+            )
+            ps_task_name = static_task_obj.DATASET_PATH.split("/")[-1] + "/"
+            ps_task_name += static_task_obj.DATASET_NAME
+
+            task_prompts = DatasetTemplates(ps_task_name)
+            for prompt_name in task_prompts.all_template_names:
+                prompt = task_prompts[prompt_name]
+                # NOTE: We choose a sep that can be easily split.
+                task_name_dict[f"{task_name}+{prompt_name}"] = get_task(task_name)(
+                    prompt=prompt
+                )
+        elif issubclass(static_task_obj, lm_eval.base.PromptSourceTask):
             # Create the proper task name arg for DatasetTemplates.
             sub_task = (
                 f"/{static_task_obj.DATASET_NAME}"
@@ -261,6 +303,7 @@ def get_task_dict_promptsource(task_name_list: List[str]):
                 task_name_dict[f"{task_name}+{prompt_name}"] = get_task(task_name)(
                     prompt=prompt
                 )
+        
         else:
             # This is a task with a null prompt.
             # Right now, the only use case are `PerplexityTask`s.

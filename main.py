@@ -20,7 +20,8 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--batch_size", type=int, default=None)
     parser.add_argument("--device", type=str, default=None)
-    parser.add_argument("--parallelize", type=bool, default=False, required=False)
+    parser.add_argument("--half", action="store_true")
+    parser.add_argument("--parallelize", action="store_true")
 
     parser.add_argument(
         "--output_path",
