@@ -49,6 +49,12 @@ class WordUnscrambleTask(Task):
     def doc_to_text(self, doc):
         return doc["context"]
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["context"]
+
     def doc_to_target(self, doc):
         return doc["completion"]
 
@@ -59,19 +65,13 @@ class WordUnscrambleTask(Task):
     def process_results(self, doc, results):
         pred = results[0]
         gold = doc["completion"]
-        return {
-            "acc": int(pred == gold)
-        }
+        return {"acc": int(pred == gold)}
 
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
 
 class Anagrams1(WordUnscrambleTask):

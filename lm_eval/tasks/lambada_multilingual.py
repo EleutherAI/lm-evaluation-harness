@@ -18,7 +18,7 @@ from . import lambada
 
 _CITATION = """
 @misc{
-    author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel}, 
+    author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel},
     title={The LAMBADA dataset},
     DOI={10.5281/zenodo.2630551},
     publisher={Zenodo},
@@ -33,28 +33,32 @@ class MultilingualLAMBADA(lambada.LAMBADA):
 
 
 class MultilingualLAMBADAEN(MultilingualLAMBADA):
-    DATASET_NAME = 'en'
+    DATASET_NAME = "en"
 
 
 class MultilingualLAMBADAFR(MultilingualLAMBADA):
-    DATASET_NAME = 'fr'
+    DATASET_NAME = "fr"
 
 
 class MultilingualLAMBADADE(MultilingualLAMBADA):
-    DATASET_NAME = 'de'
+    DATASET_NAME = "de"
 
 
 class MultilingualLAMBADAIT(MultilingualLAMBADA):
-    DATASET_NAME = 'it'
+    DATASET_NAME = "it"
 
 
 class MultilingualLAMBADAES(MultilingualLAMBADA):
-    DATASET_NAME = 'es'
+    DATASET_NAME = "es"
 
 
-LANG_CLASSES = [MultilingualLAMBADAEN, MultilingualLAMBADAFR,
-                MultilingualLAMBADADE, MultilingualLAMBADAIT,
-                MultilingualLAMBADAES]
+LANG_CLASSES = [
+    MultilingualLAMBADAEN,
+    MultilingualLAMBADAFR,
+    MultilingualLAMBADADE,
+    MultilingualLAMBADAIT,
+    MultilingualLAMBADAES,
+]
 
 
 def construct_tasks():

@@ -65,12 +65,27 @@ class StoryCloze(Task):
         return self.dataset["test"]
 
     def doc_to_text(self, doc):
-        return ' '.join([
-            doc["input_sentence_1"],
-            doc["input_sentence_2"],
-            doc["input_sentence_3"],
-            doc["input_sentence_4"],
-        ])
+        return " ".join(
+            [
+                doc["input_sentence_1"],
+                doc["input_sentence_2"],
+                doc["input_sentence_3"],
+                doc["input_sentence_4"],
+            ]
+        )
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return " ".join(
+            [
+                doc["input_sentence_1"],
+                doc["input_sentence_2"],
+                doc["input_sentence_3"],
+                doc["input_sentence_4"],
+            ]
+        )
 
     def doc_to_target(self, doc):
         clozes = [doc["sentence_quiz1"], doc["sentence_quiz2"]]
@@ -78,7 +93,7 @@ class StoryCloze(Task):
         return " " + clozes[doc["answer_right_ending"] - 1]
 
     def construct_requests(self, doc, ctx):
-        """ Uses RequestFactory to construct Requests and returns an iterable of
+        """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
         :param doc:
@@ -89,10 +104,7 @@ class StoryCloze(Task):
             part of the document for `doc`.
         """
         clozes = [doc["sentence_quiz1"], doc["sentence_quiz2"]]
-        lls = [
-            rf.loglikelihood(ctx, " {}".format(choice))[0]
-            for choice in clozes
-        ]
+        lls = [rf.loglikelihood(ctx, " {}".format(choice))[0] for choice in clozes]
         return lls
 
     def process_results(self, doc, results):
@@ -106,10 +118,8 @@ class StoryCloze(Task):
             The results of the requests created in construct_requests.
         """
         gold = doc["answer_right_ending"] - 1
-        acc = 1. if np.argmax(results) == gold else 0.
-        return {
-            "acc": acc
-        }
+        acc = 1.0 if np.argmax(results) == gold else 0.0
+        return {"acc": acc}
 
     def aggregation(self):
         """
@@ -117,9 +127,7 @@ class StoryCloze(Task):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
     def higher_is_better(self):
         """
@@ -127,9 +135,7 @@ class StoryCloze(Task):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
 
 class StoryCloze2016(StoryCloze):

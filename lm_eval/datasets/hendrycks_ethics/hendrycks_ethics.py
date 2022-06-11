@@ -71,54 +71,64 @@ class HendrycksEthics(datasets.GeneratorBasedBuilder):
         EthicsConfig(
             name="commonsense",
             prefix="cm",
-            features=datasets.Features({
-                "label": datasets.Value("int32"),
-                "input": datasets.Value("string"),
-                "is_short": datasets.Value("bool"),
-                "edited": datasets.Value("bool"),
-            }),
-            description="The Commonsense subset contains examples focusing on moral standards and principles that most people intuitively accept."
+            features=datasets.Features(
+                {
+                    "label": datasets.Value("int32"),
+                    "input": datasets.Value("string"),
+                    "is_short": datasets.Value("bool"),
+                    "edited": datasets.Value("bool"),
+                }
+            ),
+            description="The Commonsense subset contains examples focusing on moral standards and principles that most people intuitively accept.",
         ),
         EthicsConfig(
             name="deontology",
             prefix="deontology",
-            features=datasets.Features({
-                "group_id": datasets.Value("int32"),
-                "label": datasets.Value("int32"),
-                "scenario": datasets.Value("string"),
-                "excuse": datasets.Value("string"),
-            }),
+            features=datasets.Features(
+                {
+                    "group_id": datasets.Value("int32"),
+                    "label": datasets.Value("int32"),
+                    "scenario": datasets.Value("string"),
+                    "excuse": datasets.Value("string"),
+                }
+            ),
             description="The Deontology subset contains examples focusing on whether an act is required, permitted, or forbidden according to a set of rules or constraints",
         ),
         EthicsConfig(
             name="justice",
             prefix="justice",
-            features=datasets.Features({
-                "group_id": datasets.Value("int32"),
-                "label": datasets.Value("int32"),
-                "scenario": datasets.Value("string"),
-            }),
+            features=datasets.Features(
+                {
+                    "group_id": datasets.Value("int32"),
+                    "label": datasets.Value("int32"),
+                    "scenario": datasets.Value("string"),
+                }
+            ),
             description="The Justice subset contains examples focusing on how a character treats another person",
         ),
         EthicsConfig(
             name="utilitarianism",
             prefix="util",
-            features=datasets.Features({
-                "activity": datasets.Value("string"),
-                "baseline": datasets.Value("string"),
-                "rating": datasets.Value("string"),  # Empty rating.
-            }),
+            features=datasets.Features(
+                {
+                    "activity": datasets.Value("string"),
+                    "baseline": datasets.Value("string"),
+                    "rating": datasets.Value("string"),  # Empty rating.
+                }
+            ),
             description="The Utilitarianism subset contains scenarios that should be ranked from most pleasant to least pleasant for the person in the scenario",
         ),
         EthicsConfig(
             name="virtue",
             prefix="virtue",
-            features=datasets.Features({
-                "group_id": datasets.Value("int32"),
-                "label": datasets.Value("int32"),
-                "scenario": datasets.Value("string"),
-                "trait": datasets.Value("string"),
-            }),
+            features=datasets.Features(
+                {
+                    "group_id": datasets.Value("int32"),
+                    "label": datasets.Value("int32"),
+                    "scenario": datasets.Value("string"),
+                    "trait": datasets.Value("string"),
+                }
+            ),
             description="The Virtue subset contains scenarios focusing on whether virtues or vices are being exemplified",
         ),
     ]
@@ -140,7 +150,12 @@ class HendrycksEthics(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "ethics", self.config.name, f"{self.config.prefix}_train.csv"),
+                    "filepath": os.path.join(
+                        data_dir,
+                        "ethics",
+                        self.config.name,
+                        f"{self.config.prefix}_train.csv",
+                    ),
                     "split": "train",
                 },
             ),
@@ -148,18 +163,22 @@ class HendrycksEthics(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "ethics", self.config.name, f"{self.config.prefix}_test.csv"),
-                    "split": "test"
+                    "filepath": os.path.join(
+                        data_dir,
+                        "ethics",
+                        self.config.name,
+                        f"{self.config.prefix}_test.csv",
+                    ),
+                    "split": "test",
                 },
-            )
+            ),
         ]
 
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     def _generate_examples(self, filepath, split):
-        with open(filepath, newline='') as f:
+        with open(filepath, newline="") as f:
             if self.config.name == "utilitarianism":
-                contents = csv.DictReader(
-                    f, fieldnames=['activity', "baseline"])
+                contents = csv.DictReader(f, fieldnames=["activity", "baseline"])
             else:
                 contents = csv.DictReader(f)
             # For subsets with grouped scenarios, tag them with an id.

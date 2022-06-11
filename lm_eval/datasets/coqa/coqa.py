@@ -61,7 +61,7 @@ _EMPTY_ADDITIONAL_ANSWER = {
             "span_end": -1,
             "span_text": "",
             "input_text": "",
-            "turn_id": -1
+            "turn_id": -1,
         }
     ],
     "1": [
@@ -70,7 +70,7 @@ _EMPTY_ADDITIONAL_ANSWER = {
             "span_end": -1,
             "span_text": "",
             "input_text": "",
-            "turn_id": -1
+            "turn_id": -1,
         }
     ],
     "2": [
@@ -79,7 +79,7 @@ _EMPTY_ADDITIONAL_ANSWER = {
             "span_end": -1,
             "span_text": "",
             "input_text": "",
-            "turn_id": -1
+            "turn_id": -1,
         }
     ],
 }
@@ -91,8 +91,9 @@ class Coqa(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.0.1")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="coqa", version=VERSION,
-                               description="The CoQA dataset."),
+        datasets.BuilderConfig(
+            name="coqa", version=VERSION, description="The CoQA dataset."
+        ),
     ]
 
     def _info(self):
@@ -101,41 +102,52 @@ class Coqa(datasets.GeneratorBasedBuilder):
                 "id": datasets.Value("string"),
                 "source": datasets.Value("string"),
                 "story": datasets.Value("string"),
-                "questions": datasets.features.Sequence({
-                    "input_text": datasets.Value("string"),
-                    "turn_id": datasets.Value("int32"),
-                }),
-                "answers": datasets.features.Sequence({
-                    "span_start": datasets.Value("int32"),
-                    "span_end": datasets.Value("int32"),
-                    "span_text": datasets.Value("string"),
-                    "input_text": datasets.Value("string"),
-                    "turn_id": datasets.Value("int32"),
-                }),
+                "questions": datasets.features.Sequence(
+                    {
+                        "input_text": datasets.Value("string"),
+                        "turn_id": datasets.Value("int32"),
+                    }
+                ),
+                "answers": datasets.features.Sequence(
+                    {
+                        "span_start": datasets.Value("int32"),
+                        "span_end": datasets.Value("int32"),
+                        "span_text": datasets.Value("string"),
+                        "input_text": datasets.Value("string"),
+                        "turn_id": datasets.Value("int32"),
+                    }
+                ),
                 "additional_answers": {
-                    "0": datasets.features.Sequence({
-                        "span_start": datasets.Value("int32"),
-                        "span_end": datasets.Value("int32"),
-                        "span_text": datasets.Value("string"),
-                        "input_text": datasets.Value("string"),
-                        "turn_id": datasets.Value("int32"),
-                    }),
-                    "1": datasets.features.Sequence({
-                        "span_start": datasets.Value("int32"),
-                        "span_end": datasets.Value("int32"),
-                        "span_text": datasets.Value("string"),
-                        "input_text": datasets.Value("string"),
-                        "turn_id": datasets.Value("int32"),
-                    }),
-                    "2": datasets.features.Sequence({
-                        "span_start": datasets.Value("int32"),
-                        "span_end": datasets.Value("int32"),
-                        "span_text": datasets.Value("string"),
-                        "input_text": datasets.Value("string"),
-                        "turn_id": datasets.Value("int32"),
-                    }),
-                }
-            })
+                    "0": datasets.features.Sequence(
+                        {
+                            "span_start": datasets.Value("int32"),
+                            "span_end": datasets.Value("int32"),
+                            "span_text": datasets.Value("string"),
+                            "input_text": datasets.Value("string"),
+                            "turn_id": datasets.Value("int32"),
+                        }
+                    ),
+                    "1": datasets.features.Sequence(
+                        {
+                            "span_start": datasets.Value("int32"),
+                            "span_end": datasets.Value("int32"),
+                            "span_text": datasets.Value("string"),
+                            "input_text": datasets.Value("string"),
+                            "turn_id": datasets.Value("int32"),
+                        }
+                    ),
+                    "2": datasets.features.Sequence(
+                        {
+                            "span_start": datasets.Value("int32"),
+                            "span_end": datasets.Value("int32"),
+                            "span_text": datasets.Value("string"),
+                            "input_text": datasets.Value("string"),
+                            "turn_id": datasets.Value("int32"),
+                        }
+                    ),
+                },
+            }
+        )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
@@ -175,10 +187,7 @@ class Coqa(datasets.GeneratorBasedBuilder):
                 source = row["source"]
                 story = row["story"]
                 questions = [
-                    {
-                        "input_text": q["input_text"],
-                        "turn_id": q["turn_id"]
-                    }
+                    {"input_text": q["input_text"], "turn_id": q["turn_id"]}
                     for q in row["questions"]
                 ]
                 answers = [
@@ -187,7 +196,7 @@ class Coqa(datasets.GeneratorBasedBuilder):
                         "span_end": a["span_end"],
                         "span_text": a["span_text"],
                         "input_text": a["input_text"],
-                        "turn_id": a["turn_id"]
+                        "turn_id": a["turn_id"],
                     }
                     for a in row["answers"]
                 ]
@@ -201,7 +210,7 @@ class Coqa(datasets.GeneratorBasedBuilder):
                                 "span_end": a0["span_end"],
                                 "span_text": a0["span_text"],
                                 "input_text": a0["input_text"],
-                                "turn_id": a0["turn_id"]
+                                "turn_id": a0["turn_id"],
                             }
                             for a0 in row["additional_answers"]["0"]
                         ],
@@ -211,7 +220,7 @@ class Coqa(datasets.GeneratorBasedBuilder):
                                 "span_end": a1["span_end"],
                                 "span_text": a1["span_text"],
                                 "input_text": a1["input_text"],
-                                "turn_id": a1["turn_id"]
+                                "turn_id": a1["turn_id"],
                             }
                             for a1 in row["additional_answers"]["1"]
                         ],
@@ -221,7 +230,7 @@ class Coqa(datasets.GeneratorBasedBuilder):
                                 "span_end": a2["span_end"],
                                 "span_text": a2["span_text"],
                                 "input_text": a2["input_text"],
-                                "turn_id": a2["turn_id"]
+                                "turn_id": a2["turn_id"],
                             }
                             for a2 in row["additional_answers"]["2"]
                         ],
@@ -232,5 +241,5 @@ class Coqa(datasets.GeneratorBasedBuilder):
                     "source": source,
                     "questions": questions,
                     "answers": answers,
-                    "additional_answers": additional_answers
+                    "additional_answers": additional_answers,
                 }
