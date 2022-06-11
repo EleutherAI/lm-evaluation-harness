@@ -16,10 +16,7 @@ model's sample/generation function.
 
 Homepage: https://github.com/openai/grade-school-math
 """
-import inspect
 import re
-import lm_eval.datasets.gsm8k.gsm8k
-from pathlib import Path
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 
@@ -42,8 +39,8 @@ INVALID_ANS = "[invalid]"
 
 class GradeSchoolMath8K(Task):
     VERSION = 0
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.gsm8k.gsm8k)
-    DATASET_NAME = None
+    DATASET_PATH = "gsm8k"
+    DATASET_NAME = "main"
 
     def has_training_docs(self):
         return True
