@@ -50,13 +50,14 @@ _URLS = "http://eaidata.bmk.sh/data/triviaqa-unfiltered.tar.gz"
 
 
 class Triviaqa(datasets.GeneratorBasedBuilder):
-    """ TriviaQA is a reading comprehension dataset containing over 650K question-answer-evidence triples """
+    """TriviaQA is a reading comprehension dataset containing over 650K question-answer-evidence triples"""
 
     VERSION = datasets.Version("0.0.1")
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="triviaqa", version=VERSION, description="The TriviaQA dataset"),
+            name="triviaqa", version=VERSION, description="The TriviaQA dataset"
+        ),
     ]
 
     def _info(self):
@@ -66,10 +67,10 @@ class Triviaqa(datasets.GeneratorBasedBuilder):
                 "question_source": datasets.Value("string"),
                 "question": datasets.Value("string"),
                 "answer": {
-                    "aliases":  datasets.features.Sequence(
+                    "aliases": datasets.features.Sequence(
                         datasets.Value("string"),
                     ),
-                    "value": datasets.Value("string")
+                    "value": datasets.Value("string"),
                 },
                 "search_results": datasets.features.Sequence(
                     {
@@ -120,12 +121,24 @@ class Triviaqa(datasets.GeneratorBasedBuilder):
                 for search_result in data["SearchResults"]:
                     search_results.append(
                         {
-                            "description": search_result["Description"] if "Description" in search_result else "",
-                            "filename": search_result["Filename"] if "Filename" in search_result else "",
-                            "rank": search_result["Rank"] if "Rank" in search_result else -1,
-                            "title": search_result["Title"] if "Title" in search_result else "",
-                            "url": search_result["Url"] if "Url" in search_result else "",
-                            "search_context": search_result["SearchContext"] if "SearchContext" in search_result else "",
+                            "description": search_result["Description"]
+                            if "Description" in search_result
+                            else "",
+                            "filename": search_result["Filename"]
+                            if "Filename" in search_result
+                            else "",
+                            "rank": search_result["Rank"]
+                            if "Rank" in search_result
+                            else -1,
+                            "title": search_result["Title"]
+                            if "Title" in search_result
+                            else "",
+                            "url": search_result["Url"]
+                            if "Url" in search_result
+                            else "",
+                            "search_context": search_result["SearchContext"]
+                            if "SearchContext" in search_result
+                            else "",
                         }
                     )
                 yield key, {

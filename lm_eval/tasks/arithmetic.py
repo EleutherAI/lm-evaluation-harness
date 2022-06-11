@@ -49,8 +49,14 @@ class Arithmetic(Task):
 
     def test_docs(self):
         return NotImplemented
-    
+
     def doc_to_text(self, doc):
+        return doc["context"]
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
         return doc["context"]
 
     def doc_to_target(self, doc):
@@ -61,10 +67,8 @@ class Arithmetic(Task):
         return is_prediction
 
     def process_results(self, doc, results):
-        is_prediction, = results
-        return {
-            "acc": is_prediction
-        }
+        (is_prediction,) = results
+        return {"acc": is_prediction}
 
     def aggregation(self):
         return {
@@ -72,9 +76,7 @@ class Arithmetic(Task):
         }
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
 
 class Arithmetic2DPlus(Arithmetic):

@@ -1,7 +1,7 @@
 [run]
 
 # tasks that aren't wired up.
-omit = 
+omit =
     lm_eval/tasks/quac.py
     lm_eval/tasks/storycloze.py
     lm_eval/tasks/cbt.py

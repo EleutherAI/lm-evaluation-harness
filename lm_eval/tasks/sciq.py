@@ -54,10 +54,10 @@ class SciQ(MultipleChoiceTask):
             doc["distractor3"],
             doc["correct_answer"],
         ]
-        src = doc['support']
+        src = doc["support"]
         out_doc = {
             "source": src,
-            "query": doc['question'],
+            "query": doc["question"],
             "choices": choices,
             "gold": 3,
         }
@@ -65,3 +65,9 @@ class SciQ(MultipleChoiceTask):
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {}\nAnswer:".format(doc["source"], doc["query"]).strip()
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["source"] + " " + doc["query"]

@@ -16,7 +16,7 @@ pip install -e ".[dev]"
 
 ## Creating Your Task File
 
-From the `lm-evaluation-harness` project root, copy over the `new_task.py` template to `lm_eval/datasets`. 
+From the `lm-evaluation-harness` project root, copy over the `new_task.py` template to `lm_eval/datasets`.
 
 ```sh
 cp templates/new_task.py lm_eval/tasks/<task-name>.py
@@ -52,7 +52,7 @@ For example, take the QuAC dataset. We have:
 QuAC: Question Answering in Context
 https://arxiv.org/abs/1808.07036
 
-Question Answering in Context (QuAC) is a dataset for modeling, understanding, and 
+Question Answering in Context (QuAC) is a dataset for modeling, understanding, and
 participating in information seeking dialog. Data instances consist of an interactive
 dialog between two crowd workers: (1) a student who poses a sequence of freeform
 questions to learn as much as possible about a hidden Wikipedia text, and (2)
@@ -72,7 +72,7 @@ Now let's walk through the actual implementation - from data handling to evaluat
 ### Downloading your Data
 
 All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md)
-. 
+.
 Now, that you have your HF dataset, you need to assign its path and name to your `Task` in the following fields:
 
 ```python
@@ -116,7 +116,7 @@ These should return a Python iterable (`list` or `generator`) of `dict`s that ca
 
 #### Processing Documents
 
-At this point, you can also process each individual document to, for example, strip whitespace or "detokenize" its fields. Put the processing logic into `_process_doc` and map the functions across training/validation/test docs inside of the respective functions. 
+At this point, you can also process each individual document to, for example, strip whitespace or "detokenize" its fields. Put the processing logic into `_process_doc` and map the functions across training/validation/test docs inside of the respective functions.
 🔠 If your task is **multiple-choice**, we require you to format your documents such that they contain `gold` and `choices` fields. They can also have other fields, but those will be ignored by `MultipleChoiceTask`. `choices` should be a list of possible continuations, and `gold` should be an integer specifying the index of the correct completion.
 See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/6caa0afd96a7a7efb2ec4c1f24ad1756e48f3aa7/lm_eval/tasks/sat.py#L60) for an example. 🔠
 
@@ -151,6 +151,13 @@ def doc_to_target(self, doc):
 
 Finally, be aware that the strings from `doc_to_text` and `doc_to_target` will be concatenated together to build up labeled examples in the k-shot setting where k > 0. Design with that in mind 👍.
 
+### Decontamination
+For background on decontamination please see [this](./decontamination.md).
+
+If you wish to support decontamination studies for your task simply override the "should_decontaminate" method and return true.
+
+You also need to override "doc_to_decontamination_query" and return the data you wish to compare against the training set. This doesn't necessarily need to be the full document or request, and we leave this up to the implementor. For a multi-choice evaluation you could for example just return the question.
+
 ### Registering Your Task
 
 Now's a good time to register your task to expose it for usage. All you'll need to do is import your task module in `lm_eval/tasks/__init__.py` and provide an entry in the `TASK_REGISTRY`  dictionary with the key as the name of your benchmark task (in the form it'll be referred to in the command line) and the value as the task class. See how it's done for other tasks in the [file](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/__init__.py).
@@ -165,7 +172,7 @@ python -m scripts.write_out \
     --tasks <your-task> \
     --sets <train | val | test> \
     --num_fewshot K \
-    --num_examples N \ 
+    --num_examples N \
     --description_dict_path <path>
 ```
 
@@ -192,7 +199,11 @@ def construct_requests(self, doc, ctx):
     """
     return ...
 ```
-If your task requires generating text you'll need to return a `rf.greedy_until` request otherwise an `rf.loglikelihood` across all labels in a classification tasks will do.
+#### What's a `Request`? What's a `doc`?
+To reiterate, a `doc` is just a `Dict` object that contains information about a document from your corpus. It can contain things like a prompt, question type information, answers and anything else you think will be needed in order to assess your model for a given task. Keep in mind that the fields of this can be basically whatever you want (you can sort this out in `training_docs` \ `validation_docs` \ `test_docs` if you need to customise things - see above), just remember to be consistent with them throughout the rest of the `Task` you write up.
+A `Request` is an object that takes the text prompt you want to present to a model and computes one of a few different types of response. These are evaluated lazily (meaning, only when the result is actually needed). If your task requires generating text you'll need to return a `rf.greedy_until` request otherwise an `rf.loglikelihood` across all labels in a classification tasks will do.
+The function `construct_requests` can return a list of `Request`s or an iterable; it's perfectly fine to `yield` them from something or other. This is particularly handy if you are creating more than one request per `doc` (usually because you're up to something like multi-task learning). The objects this function returns then get consumed one by one and turned into result objects.
+
 
 ```python
 def process_results(self, doc, results):
@@ -207,6 +218,8 @@ def process_results(self, doc, results):
     """
     return {}
 ```
+This is the next step in the chain after `construct_requests`. In between this function and the one above, the request is evaluated. The results of that request are returned in the `results` arg to this function. By processing results, what is meant is calculating the metric or metrics of interest for your dataset using the result and associated ground truth given to this function. It's possible to calculate and return multiple metrics in this function and the logic for it can be whatever you want - as long as you've made sure the ground truth was included in the `doc` object. The dict returned from this function should be of the format `{'metric_name': value}`. It is not necessary to have the same keys for every doc processed using `process_results`; this sort of thing can be handled in the next function, `aggregation`.
+
 
 ```python
 def aggregation(self):
@@ -217,8 +230,10 @@ def aggregation(self):
     """
     return {}
 ```
+In `process_results`, model outputs are converted into metrics. These metrics are per document metrics, however; the `aggregation` function is used to work out what to do with them to create a corpus-level metric. Imagine you have a bunch of documents, for each of which you have calculated an F1 score. What should that mean overall? Should they be summed, averaged, the min/max found? This function handles that problem.
 
-See `lm_eval/metrics.py` for a few "built-in" aggregate metrics you can easily import.
+The contents of the function itself are pretty straightforward; it should simply return a dict that maps from each metric label that could be returned by `process_results` to a function that can be used to aggregate that metric. That is to say, if the metrics that `process_results` could return are given by `{'a', 'b', 'c'}`, then all of these keys should be present in the dict returned by `aggregation`.
+__NOTE__: See `lm_eval/metrics.py` for a few "built-in" aggregate metrics you can easily import. The standard metrics available in this package are generally based on `sklearn` functions, so if you are in any doubt for how to set things up the documentation over there can be of assistance. If you need to write a custom metric for some reason, start by looking at the existing ones in `lm_eval/metrics.py` for an idea about what the function signature needs to be.
 
 ```python
 def higher_is_better(self):
@@ -229,6 +244,7 @@ def higher_is_better(self):
     """
     return {}
 ```
+Finally, this function returns a dict with the same keys as `aggregation` and as it says in the description, simply tells us whether higher scores are better.
 
 Some tasks that are good examples of various ways evaluation can be implemented can be found here: [LAMBADA](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/lambada.py), [TriviaQA](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/triviaqa.py), [SQuAD](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/squad.py).
 
@@ -279,6 +295,11 @@ class TaskName(...):
 
 ## Submitting your Task
 
-Although we currently do not work behind a specific style guide, we'd appreciate if you tidy up your file/s with the `black` formatter (which should've been install through the `requirements.txt`). Keep things clean…ish 🙂.
+You can format your changes and perform flake8 standard checks by running the following commands:
+
+```sh
+pre-commit install
+pre-commit run --all-files
+```
 
 Now push your work and make a pull request! Thanks for the contribution 👍. If there are any questions, leave a message in the `#lm-thunderdome` channel on the EAI discord.

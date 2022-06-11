@@ -40,8 +40,19 @@ class WinogradSchemaChallenge273(Task):
     DATASET_PATH = "winograd_wsc"
     DATASET_NAME = "wsc273"
 
-    upper_pronouns = ["A", "An", "The", "She", "He",
-                      "It", "They", "My", "His", "Her", "Their"]
+    upper_pronouns = [
+        "A",
+        "An",
+        "The",
+        "She",
+        "He",
+        "It",
+        "They",
+        "My",
+        "His",
+        "Her",
+        "Their",
+    ]
 
     def has_training_docs(self):
         return False
@@ -68,7 +79,7 @@ class WinogradSchemaChallenge273(Task):
             option += "'s"
         # Appropriately lowercase the pronoun in the option.
         pronoun = option.split()[0]
-        start_of_sentence = doc["text"][doc['pronoun_loc'] - 2] == '.'
+        start_of_sentence = doc["text"][doc["pronoun_loc"] - 2] == "."
         if not start_of_sentence and pronoun in self.upper_pronouns:
             return option.replace(pronoun, pronoun.lower())
         return option
@@ -85,11 +96,17 @@ class WinogradSchemaChallenge273(Task):
     def doc_to_text(self, doc):
         return self.partial_context(doc, doc["options"][doc["label"]])
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["text"]
+
     @classmethod
     def partial_context(cls, doc, option):
         # Substitute the pronoun in the original text with the specified
         # option and ignore everything after.
-        return doc["text"][:doc["pronoun_loc"]] + option
+        return doc["text"][: doc["pronoun_loc"]] + option
 
     def doc_to_target(self, doc):
         return self.partial_target(doc)
@@ -135,9 +152,7 @@ class WinogradSchemaChallenge273(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        return {
-            "acc": np.argmax(results) == doc["label"]
-        }
+        return {"acc": np.argmax(results) == doc["label"]}
 
     def aggregation(self):
         """
@@ -145,9 +160,7 @@ class WinogradSchemaChallenge273(Task):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
     def higher_is_better(self):
         """
@@ -155,6 +168,4 @@ class WinogradSchemaChallenge273(Task):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {
-            "acc": True
-        }
+        return {"acc": True}
