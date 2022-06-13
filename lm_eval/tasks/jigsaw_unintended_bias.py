@@ -122,11 +122,13 @@ class JigsawUnintendedBias(PromptSourceTask):
             out[f"{dimension}_std"] = {**identities, 'pred': pred,  'target': target}
             for identity in identity_set:
                 if doc[identity]:
+                    out[f"{identity}_acc"] = acc
                     out[f"{identity}_tp"] = tp
                     out[f"{identity}_tn"] = tn
                     out[f"{identity}_fp"] = fp
                     out[f"{identity}_fn"] = fn
                 else:
+                    out[f"{identity}_acc"] = np.nan 
                     out[f"{identity}_tp"] = np.nan
                     out[f"{identity}_tn"] = np.nan
                     out[f"{identity}_fp"] = np.nan
