@@ -19,6 +19,7 @@ from . import gem_xsum
 from . import glue
 from . import hans
 from . import huff_post
+from . import jigsaw_unintended_bias
 from . import lama
 from . import lince
 from . import race
@@ -192,7 +193,10 @@ TASK_REGISTRY = {
     # Crows-Pairs
     "crows_pairs_english": crows_pairs_multilingual.CrowsPairsEnglish,
     "crows_pairs_french": crows_pairs_multilingual.CrowsPairsFrench,
-    
+  
+    # JigSaw
+    "jigsaw_unintended_bias": jigsaw_unintended_bias.JigsawUnintendedBias,
+
     # News
     "huffpost": huff_post.HuffPost,
     
