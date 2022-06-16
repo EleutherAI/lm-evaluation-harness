@@ -18,7 +18,7 @@ _CITATION = """\
 
 class CrowsPairsEnglish(PromptSourceTask):
     VERSION = 0
-    DATASET_PATH = "oskarvanderwal/crows_pairs_multilingual"
+    DATASET_PATH = "BigScienceBiasEval/crows_pairs_multilingual"
     DATASET_NAME = "english"
 
     def has_training_docs(self):
@@ -39,10 +39,10 @@ class CrowsPairsEnglish(PromptSourceTask):
     def test_docs(self):
         if self.has_test_docs():
             return self.dataset["test"]
-          
+
 class CrowsPairsFrench(PromptSourceTask):
     VERSION = 0
-    DATASET_PATH = "oskarvanderwal/crows_pairs_multilingual"
+    DATASET_PATH = "BigScienceBiasEval/crows_pairs_multilingual"
     DATASET_NAME = "french"
 
     def has_training_docs(self):

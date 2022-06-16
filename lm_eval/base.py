@@ -723,6 +723,7 @@ class PromptSourceTask(Task):
             # NOTE: In the future, target could be a list of strings.
             assert isinstance(target, list) and len(target) == 1
             target = target[0].strip()
+            target_idx = answer_choices_list.index(target)
 
             pred = answer_choices_list[np.argmax(results)]
             out = {}
@@ -733,6 +734,10 @@ class PromptSourceTask(Task):
                 ), "Unexpected metric. Add it, or use a task-specific solution."
                 if metric == "Accuracy":
                     out["acc"] = pred == target
+                    # Byte-length normalization.
+                    completion_len = np.array([float(len(i)) for i in answer_choices_list])
+                    out["acc_norm"] = 1.0 if np.argmax(results / completion_len) == target_idx else 0.0
+
             # TODO: Add metrics here.
         else:
             # If not, then this is a generation prompt.
@@ -774,6 +779,7 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = True
+                out["acc_norm"] = True
             elif metric == "BLEU":
                 out["bleu"] = True
             elif metric == "ROUGE":
@@ -802,6 +808,7 @@ class PromptSourceTask(Task):
         for metric in self.prompt.metadata.metrics:
             if metric == "Accuracy":
                 out["acc"] = mean
+                out["acc_norm"] = mean
             elif metric == "BLEU":
                 out["bleu"] = metrics.bleu
             elif metric == "ROUGE":
@@ -1045,6 +1052,28 @@ class TranslationTask(PromptSourceTask):
         return out
 
 
+class BioTask(PromptSourceTask):
+    """These are the metrics from promptsource that we have
+    added default behavior for. If you want to add default behavior for a new metric,
+    update the functions below. If you want to use one of the following metrics,
+    *and* add additional custom processing, override `process_results`, `higher_is_better`, and `aggregation`.
+    """
+
+    CONFIGURED_RANKED_CHOICE_PS_METRICS = set(["Accuracy"])
+    CONFIGURED_GENERATION_PS_METRICS = set(["BLEU", "ROUGE", "SARI"])
+    SPLIT = None
+
+    def __init__(
+        self,
+        data_dir=None,
+        cache_dir=None,
+        download_mode=None,
+        prompt=None,
+        save_examples=True,
+    ):
+        super().__init__(data_dir, cache_dir, download_mode, prompt, save_examples)
+
+    
 class MultipleChoiceTask(Task):
     def doc_to_target(self, doc):
         return " " + doc["choices"][doc["gold"]]
