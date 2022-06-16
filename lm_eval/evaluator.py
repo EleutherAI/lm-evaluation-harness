@@ -27,7 +27,6 @@ def simple_evaluate(
     description_dict=None,
     check_integrity=False,
     seed=1234,
-    parallelize=False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -56,8 +55,6 @@ def simple_evaluate(
         Whether to run the relevant part of the test suite for the tasks
     :param seed: int
         Random seed.
-    :param parallelize: bool
-        Whether to parallelize the model across gpus.
     :return
         Dictionary of results
     """
@@ -69,7 +66,7 @@ def simple_evaluate(
             model_args = ""
         lm = lm_eval.models.get_model(model).create_from_arg_string(
             model_args,
-            {"batch_size": batch_size, "device": device, "parallelize": parallelize},
+            {"batch_size": batch_size, "device": device},
         )
     else:
         assert isinstance(model, lm_eval.base.LM)

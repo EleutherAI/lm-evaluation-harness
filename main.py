@@ -20,9 +20,6 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--batch_size", type=int, default=None)
     parser.add_argument("--device", type=str, default=None)
-    parser.add_argument("--half", type=bool, default=False, required=False)
-    parser.add_argument("--parallelize", type=bool, default=False, required=False)
-
     parser.add_argument(
         "--output_path",
         default=None,
@@ -119,7 +116,6 @@ def main():
             description_dict=description_dict,
             check_integrity=args.check_integrity,
             seed=args.seed,
-            parallelize=args.parallelize,
         )
 
     with open(f"./outputs/agg-{output_path}.json", "w") as f:

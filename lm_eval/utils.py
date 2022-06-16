@@ -22,7 +22,20 @@ def sh(x):
     if os.system(x):
         raise ExitCodeError()
 
-
+# https://stackoverflow.com/questions/7019283/automatically-type-cast-parameters-in-python
+def to_bool(s: str):
+    if s == 'True' or s == 'true':
+        return True
+    if s == 'False' or s == 'false':
+        return False
+    raise ValueError(f"The input `{s}` is not of boolean form.")
+def str_to_builtin_type(s: str):
+    for fn in (to_bool, int, float):
+        try:
+            return fn(s)
+        except ValueError:
+            pass
+    return s
 def simple_parse_args_string(args_string):
     """
     Parses something like
@@ -36,7 +49,7 @@ def simple_parse_args_string(args_string):
     args_dict = {}
     for arg in arg_list:
         k, v = arg.split("=")
-        args_dict[k] = v
+        args_dict[k] = str_to_builtin_type(v)
     return args_dict
 
 
