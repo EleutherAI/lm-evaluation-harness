@@ -45,12 +45,14 @@ def args_to_name(args):
     def _fix_model_name(model, model_args):
         if model_args == "":
             return model
-        elif "pretrained" in model_args:
-            # pretrained=google/t5-base-lm-adapt --> google-t5-base-lm-adapt
-            return model_args.split("=")[-1].replace("/", "-")
-        else:
+        elif "pretrained" not in model_args:
             print("WARNING: Unprepared for these model args.")
             return f"{model}_{model_args}"
+
+        #pretrained=google/t5-base-lm-adapt --> google-t5-base-lm-adapt
+        for arg in model_args.split(","):
+            if "pretrained" in arg:
+                return arg.split("=")[-1].replace("/", "-")
 
     fields = [
         _fix_model_name(args.model, args.model_args),
