@@ -51,8 +51,11 @@ from . import blimp
 from . import asdiv
 from . import gsm8k
 from . import storycloze
+from . import kobest
+from . import nsmc
 from . import klue
 from . import ko_translation
+from . import korquad
 
 ########################################
 # Translation tasks
@@ -105,13 +108,13 @@ TASK_REGISTRY = {
     "record": superglue.ReCoRD,
     "wic": superglue.WordsInContext,
     "wsc": superglue.SGWinogradSchemaChallenge,
-    
+
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
     "drop": drop.DROP,
     "lambada": lambada.LAMBADA,
     "lambada_cloze": lambada_cloze.LAMBADA_cloze,
-    
+
     # multilingual lambada
     **lambada_multilingual.construct_tasks(),
 
@@ -231,7 +234,7 @@ TASK_REGISTRY = {
     "pile_ubuntu-irc": pile.PileUbuntuIrc,
     "pile_wikipedia": pile.PileWikipedia,
     "pile_youtubesubtitles": pile.PileYoutubeSubtitles,
-    
+
     # BLiMP
     "blimp_adjunct_island": blimp.BlimpAdjunctIsland,
     "blimp_anaphor_gender_agreement": blimp.BlimpAnaphorGenderAgreement,
@@ -300,19 +303,22 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
-
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
-    
-    # KLUE
+  
     "klue_sts": klue.STS,
-    
-    # Korean translation
+    "klue_ynat": klue.YNAT
+    "nsmc": nsmc.NSMC,    
+    "korquad": korquad.Korquad
+    "kobest_boolq": kobest.BoolQ,
+    "kobest_copa": kobest.COPA,
+    "kobest_wic": kobest.WiC,
+    "kobest_hellaswag": kobest.HellaSwag,
+    "kobest_sentineg": kobest.SentiNeg
     "ko_en_translation": ko_translation.KoToEnTranslation,
     "en_ko_translation": ko_translation.EnToKoTranslation
-
 }
 
 
@@ -332,7 +338,7 @@ def get_task_name_from_object(task_object):
     for name, class_ in TASK_REGISTRY.items():
         if class_ is task_object:
             return name
-    
+
     # this gives a mechanism for non-registered tasks to have a custom name anyways when reporting
     return task_object.EVAL_HARNESS_NAME if hasattr(task_object, "EVAL_HARNESS_NAME") else type(task_object).__name__
 
