@@ -65,8 +65,11 @@ class KoreanTranslationTask(Task):
     def doc_to_text(self, doc):
         src_lang = self.src_lang
         tar_lang = self.tar_lang
-        return f"{src_lang}을 {tar_lang}으로 번역해주는 모델입니다.\n\n###\n{src_lang}:" + doc["src"] + f"\n{tar_lang}:"
-        
+        if src_lang == 'ko':
+            return f"{src_lang}을 {tar_lang}으로 번역해주는 모델입니다.\n\n###\n{src_lang}:" + doc["src"] + f"\n{tar_lang}:"
+        elif src_lang == 'en':
+            return f"Translate {src_lang} to {tar_lang}.\n\n###\n{src_lang}:" + doc["src"] + f"\n{tar_lang}:"
+            
     def should_decontaminate(self):
         return True
 
@@ -126,7 +129,7 @@ class KoreanTranslationTask(Task):
         return f"{self.src_lang} to {self.tar_lang} Task"
 
 
-class KoToEnTranslation(KoreanTranslationTask):
+class KoEnTranslation(KoreanTranslationTask):
     def __init__(self):
         super().__init__()
         self.dataset = load_dataset(DATASET_PATH)
@@ -144,12 +147,10 @@ class KoToEnTranslation(KoreanTranslationTask):
         self._fewshot_docs = None
 
 
-
-class EnToKoTranslation(KoreanTranslationTask):
+class EnKoTranslation(KoreanTranslationTask):
     def __init__(self):
         super().__init__()
         self.dataset = load_dataset(DATASET_PATH)
-
         self.src_lang = 'en'
         self.tar_lang = 'ko'
         
@@ -159,5 +160,6 @@ class EnToKoTranslation(KoreanTranslationTask):
         self.valid_tgt = list(self.dataset['validation'][self.tar_lang])
         self.tst_src = list(self.dataset['test'][self.src_lang])
         self.tst_tgt = list(self.dataset['test'][self.tar_lang])
+        
         self._training_docs = None
         self._fewshot_docs = None
