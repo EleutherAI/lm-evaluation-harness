@@ -33,6 +33,7 @@ from . import diabla
 from . import xquad
 from . import schema_guided_dstc8
 from . import piaf
+from . import tydiqa
 
 
 ########################################
@@ -218,6 +219,10 @@ TASK_REGISTRY = {
     
     # SciTail
     "scitail": scitail.SciTailTE,
+    
+    # TyDi QA
+    "tydiqa_primary": tydiqa.TyDiQAPrimaryClassification,
+    "tydiqa_secondary": tydiqa.TyDiQAGoldPGeneration
 }
 
 
