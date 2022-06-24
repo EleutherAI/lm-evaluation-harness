@@ -40,7 +40,7 @@ def _squad_metric(predictions, references):
 def _squad_agg(key, items):
     predictions, references = zip(*items)
 
-    return _squad_metric(predictions=predictions, references=references)[key]
+    return _squad_metric(predictions=predictions, references=references).get(key, 0)
 
 
 class SQuAD2(Task):
