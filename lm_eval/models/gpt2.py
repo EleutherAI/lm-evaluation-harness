@@ -128,6 +128,7 @@ class HFLM(BaseLM):
         logits returned from the model
         """
         with torch.no_grad():
+            print(inps.shape)
             return self.gpt2(inps)[0][:, :, :50257]
 
     def _model_generate(self, context, max_length, eos_token_id):
