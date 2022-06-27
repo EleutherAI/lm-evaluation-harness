@@ -12,6 +12,7 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
+        offloading=False,
     ):
         super().__init__()
 
@@ -34,10 +35,18 @@ class HFLM(BaseLM):
             )
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
-        self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
-            pretrained,
-            revision=revision + ("/" + subfolder if subfolder is not None else ""),
-        ).to(self.device)
+        if not offloading:
+            self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
+                pretrained,
+                revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            ).to(self.device)
+        else:
+            self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
+                pretrained,
+                revision=revision + ("/" + subfolder if subfolder is not None else ""),
+                device_map="auto",
+                torch_dtype="auto",
+            )
         self.gpt2.eval()
 
         # pretrained tokenizer for neo is broken for now so just hard-coding this to gpt2

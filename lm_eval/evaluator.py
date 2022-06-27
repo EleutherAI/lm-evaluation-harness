@@ -23,6 +23,7 @@ def simple_evaluate(
     description_dict=None,
     check_integrity=False,
     decontamination_ngrams_path=None,
+    offloading=False,
 ):
 
     """Instantiate and evaluate a model on a list of tasks.
@@ -50,6 +51,8 @@ def simple_evaluate(
         Dictionary of custom task descriptions of the form: `task_name: description`
     :param check_integrity: bool
         Whether to run the relevant part of the test suite for the tasks
+    :offloading: bool
+        Whether to use offloading
     :return
         Dictionary of results
     """
@@ -62,7 +65,7 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
         lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device}
+            model_args, {"batch_size": batch_size, "device": device, "offloading": offloading}
         )
     else:
         assert isinstance(model, lm_eval.base.LM)
