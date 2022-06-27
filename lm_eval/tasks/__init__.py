@@ -54,11 +54,13 @@ from . import storycloze
 from . import kobest
 from . import nsmc
 from . import klue
+from . import ko_translation
 from . import korquad
 
 ########################################
 # Translation tasks
 ########################################
+
 
 # 6 total
 gpt3_translation_benchmarks = {
@@ -307,14 +309,16 @@ TASK_REGISTRY = {
     # "sat": sat.SATAnalogies,
   
     "klue_sts": klue.STS,
-    "klue_ynat": klue.YNAT
+    "klue_ynat": klue.YNAT,
     "nsmc": nsmc.NSMC,    
-    "korquad": korquad.Korquad
+    "korquad": korquad.Korquad,
     "kobest_boolq": kobest.BoolQ,
     "kobest_copa": kobest.COPA,
     "kobest_wic": kobest.WiC,
     "kobest_hellaswag": kobest.HellaSwag,
-    "kobest_sentineg": kobest.SentiNeg
+    "kobest_sentineg": kobest.SentiNeg,
+    "ko_en_translation": ko_translation.KoEnTranslation,
+    "en_ko_translation": ko_translation.EnKoTranslation
 }
 
 
