@@ -41,12 +41,11 @@ class HFLM(BaseLM):
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
             ).to(self.device)
         else:
-            print(pretrained)
             self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
                 device_map="auto",
-                torch_dtype="auto",
+                torch_dtype=torch.float16,
             )
         self.gpt2.eval()
 
