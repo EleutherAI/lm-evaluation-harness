@@ -1,14 +1,7 @@
 [run]
-
-# tasks that aren't wired up.
-omit = 
-    lm_eval/tasks/quac.py
-    lm_eval/tasks/storycloze.py
-    lm_eval/tasks/cbt.py
-    lm_eval/tasks/sat.py
-    lm_eval/tasks/triviaqa.py
-    lm_eval/tasks/naturalqs.py
-    lm_eval/models/dummy.py
+omit =
+   # Requires manual data download
+   lm_eval/tasks/jigsaw_unintended_bias.py
 
 [report]
 exclude_lines =

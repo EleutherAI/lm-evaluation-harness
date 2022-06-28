@@ -3,11 +3,12 @@ import datetime
 import json
 import logging
 import os
-
-from lm_eval import tasks, evaluator
 from codecarbon import OfflineEmissionsTracker
 
-logging.getLogger("openai").setLevel(logging.WARNING)
+from lm_eval import tasks, evaluator
+
+
+logger = logging.getLogger("main")
 
 
 def parse_args():
@@ -15,7 +16,6 @@ def parse_args():
     parser.add_argument("--model", required=True)
     parser.add_argument("--model_args", default="")
     parser.add_argument("--tasks", default="all_tasks")
-    parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--num_fewshot", type=int, default=0)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--batch_size", type=int, default=None)
@@ -33,7 +33,6 @@ def parse_args():
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--no_cache", action="store_true")
     parser.add_argument("--description_dict_path", default=None)
-    parser.add_argument("--check_integrity", action="store_true")
     return parser.parse_args()
 
 
@@ -46,11 +45,12 @@ def args_to_name(args):
         if model_args == "":
             return model
         elif "pretrained" not in model_args:
-            print("WARNING: Unprepared for these model args.")
+            logger.warning("WARNING: Unprepared for these model args.")
             return f"{model}_{model_args}"
 
-        #pretrained=google/t5-base-lm-adapt --> google-t5-base-lm-adapt
         for arg in model_args.split(","):
+            # Example:
+            #   pretrained=google/t5-base-lm-adapt --> google-t5-base-lm-adapt
             if "pretrained" in arg:
                 return arg.split("=")[-1].replace("/", "-")
 
@@ -73,23 +73,23 @@ def args_to_name(args):
 
 def setup_example_logger(output_path):
     """Sets up a logger that will save each example and prediction."""
-    logger = logging.getLogger("examples")
+    example_logger = logging.getLogger("examples")
     filename = f"./outputs/examples-{output_path}.jsonl"
     formatter = logging.Formatter("%(message)s")
     handler = logging.FileHandler(filename)
     handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
+    example_logger.addHandler(handler)
+    example_logger.setLevel(logging.INFO)
 
 
 def main():
     os.makedirs("./outputs", exist_ok=True)
     args = parse_args()
-    assert not args.provide_description  # not implemented
 
     if args.limit:
-        print(
-            "WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
+        logger.warning(
+            "\n» WARNING: `--limit` SHOULD ONLY BE USED FOR TESTING. REAL METRICS "
+            "SHOULD NOT BE COMPUTED USING LIMIT."
         )
 
     if args.tasks == "all_tasks":
@@ -105,7 +105,9 @@ def main():
     output_path = args_to_name(args)
     setup_example_logger(output_path)
 
+    print()  # Ensure a newline after `main` command.
     with OfflineEmissionsTracker(country_iso_code="FRA", log_level="error"):
+        print()  # Add newline between emissions tracker and evaluation logging.
         results = evaluator.simple_evaluate(
             model=args.model,
             model_args=args.model_args,
@@ -116,7 +118,6 @@ def main():
             no_cache=args.no_cache,
             limit=args.limit,
             description_dict=description_dict,
-            check_integrity=args.check_integrity,
             seed=args.seed,
         )
 
@@ -126,13 +127,9 @@ def main():
     from scripts.agg2slim import agg2slim
 
     with open(f"./outputs/slim-{output_path}.json", "w") as f:
-        # We add `indent = 2` to help with quick readability.
-        json.dump(
-            agg2slim(results),
-            f,
-            indent=2,
-        )
-    print(evaluator.make_table(results))
+        json.dump(agg2slim(results), f, indent=2)
+
+    print(f"\n{evaluator.make_table(results)}")
     emissions_output_path = f"./outputs/emissions-{output_path}.csv"
     os.rename("emissions.csv", emissions_output_path)
 

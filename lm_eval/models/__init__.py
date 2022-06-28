@@ -2,6 +2,7 @@ from . import dummy
 from . import openai_completions
 from . import huggingface
 
+
 MODEL_REGISTRY = {
     "hf-causal": huggingface.AutoCausalLM,
     "hf-seq2seq": huggingface.AutoSeq2SeqLM,

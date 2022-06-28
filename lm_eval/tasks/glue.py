@@ -13,10 +13,7 @@ respect to a wide range of linguistic phenomena found in natural language.
 
 Homepage: https://gluebenchmark.com/
 """
-import numpy as np
-from lm_eval.base import PromptSourceTask, rf, Task
-from lm_eval.metrics import mean, matthews_corrcoef, f1_score, yesno
-from lm_eval.utils import general_detokenize
+from lm_eval.api.task import PromptSourceTask
 
 
 # TODO(jon-tow): Add citations for the individual datasets/tasks that make up GLUE.
@@ -60,9 +57,7 @@ class CoLA(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
@@ -83,9 +78,7 @@ class SST(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
@@ -109,9 +102,7 @@ class MNLI(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():
@@ -149,9 +140,7 @@ class QNLI(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
@@ -193,9 +182,7 @@ class RTE(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
@@ -219,12 +206,25 @@ class MRPC(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
+
+    def invalid_doc_for_prompt(self, doc) -> bool:
+        if (
+            # generate_paraphrase for mrpc
+            # This generation prompt assumes a positive example. We filter out the negative examples.
+            # https://github.com/bigscience-workshop/promptsource/blob/ba8c9eccbe82f2409208c655896f1dd131171ece/promptsource/templates/glue/mrpc/templates.yaml#L7
+            # https://github.com/bigscience-workshop/promptsource/blob/ba8c9eccbe82f2409208c655896f1dd131171ece/promptsource/templates/glue/mrpc/templates.yaml#L88
+            (
+                self.prompt_template.id == "3b88d2c4-0aeb-4c6d-9ccc-653a388250a5"
+                or self.prompt_template.id == "d830d7a5-abc0-4275-ac62-974e0088876f"
+            )
+            and doc["label"] == 0
+        ):
+            return True
+        return False
 
 
 class QQP(PromptSourceTask):
@@ -242,15 +242,13 @@ class QQP(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
 
 
-class STSB(Task):
+class STSB(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "stsb"
@@ -265,9 +263,7 @@ class STSB(Task):
         return True
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
@@ -300,7 +296,7 @@ class STSB(Task):
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of submetrics and values are the values of
+        dict where keys are the names of sub-metrics and values are the values of
         the metric for that one document
 
         :param doc:
@@ -314,7 +310,7 @@ class STSB(Task):
     def aggregation(self):
         """
         :returns: {str: [float] -> float}
-            A dictionary where keys are the names of submetrics and values are
+            A dictionary where keys are the names of sub-metrics and values are
             functions that aggregate a list of metrics
         """
         # TODO: implement evaluation.
@@ -323,8 +319,8 @@ class STSB(Task):
     def higher_is_better(self):
         """
         :returns: {str: bool}
-            A dictionary where keys are the names of submetrics and values are
-            whether a higher value of the submetric is better
+            A dictionary where keys are the names of sub-metrics and values are
+            whether a higher value of the sub-metric is better
         """
         # TODO: implement evaluation.
         raise NotImplementedError("Evaluation not implemented")

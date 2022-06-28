@@ -1,6 +1,7 @@
 import pytest
-import lm_eval.metrics as metrics
 import random
+
+import lm_eval.api.metric as metrics
 
 
 def test_bootstrapping():

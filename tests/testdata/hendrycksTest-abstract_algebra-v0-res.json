@@ -1,1 +1,0 @@
-{"results": {"hendrycksTest-abstract_algebra": {"acc": 0.32, "acc_norm": 0.34, "acc_norm_stderr": 0.04760952285695235, "acc_stderr": 0.04688261722621504}}, "versions": {"hendrycksTest-abstract_algebra": 0}}

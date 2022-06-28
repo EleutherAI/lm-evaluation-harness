@@ -24,16 +24,15 @@ jobs:
           ~/.cache
         # An explicit key for restoring and saving the cache
         key: evaldata-cache-4
-    - name: Set up Python 3.9
+    - name: Set up Python 3.7
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9.7
+        python-version: "3.7"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest pytest-cov
-        pip install -e .[dev]
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install --use-deprecated=legacy-resolver -e .[dev]
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -42,7 +41,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest -vv --cov=lm_eval/ tests/
+        pytest -vv --disable-warnings --cov=lm_eval/ tests/
     - name: Upload to codecov
       run: |
         bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN

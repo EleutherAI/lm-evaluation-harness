@@ -5,7 +5,8 @@ https://arxiv.org/pdf/2106.03193.pdf
 
 HuggingFace Dataset: https://huggingface.co/datasets/gsarti/flores_101
 """
-from lm_eval.base import PerplexityTask
+from lm_eval.api.task import PerplexityTask
+
 
 _CITATION = """
 @inproceedings{flores101,
@@ -21,23 +22,6 @@ class Flores101(PerplexityTask):
     VERSION = 0
     DATASET_PATH = "gsarti/flores_101"
 
-    def __init__(
-        self,
-        data_dir=None,
-        cache_dir=None,
-        download_mode=None,
-        prompt=None,
-        save_examples=True,
-    ):
-        super().__init__(
-            data_dir,
-            cache_dir,
-            download_mode,
-            # True! We want to track the performance across different topics/domains
-            save_examples=save_examples,
-        )
-        self.save_examples = save_examples
-
     def has_training_docs(self):
         return False
 
@@ -52,7 +36,7 @@ class Flores101(PerplexityTask):
 
     def doc_to_target(self, doc):
         """This is a null prompt task. We need to get the target from the doc."""
-        return doc["sentence"]
+        return [doc["sentence"]]
 
     def process_results(self, doc, results):
         if self.save_examples:

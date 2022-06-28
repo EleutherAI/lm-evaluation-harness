@@ -2,10 +2,10 @@
 Jigsaw unintended bias in toxicity classification
 https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification
 
-Jigsaw Toxicity is a dataset curated by Alphabet from the now-defunct Civil Comments platform. It is used 
+Jigsaw Toxicity is a dataset curated by Alphabet from the now-defunct Civil Comments platform. It is used
 to measure bias in toxicity classification models, specifically with equalized odds. In the equalized odds fairness notion, models
-that are less biased have smaller differences in False Positive Rate (FPR). Intuitively, this means that models do not 
-unjustly mislabel text with mentions of particular demographics as toxic. 
+that are less biased have smaller differences in False Positive Rate (FPR). Intuitively, this means that models do not
+unjustly mislabel text with mentions of particular demographics as toxic.
 
 Homepage: https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification
 """
@@ -13,8 +13,9 @@ import inspect
 import os
 import numpy as np
 import pandas as pd
-from lm_eval.base import PromptSourceTask
+
 import lm_eval.datasets.jigsaw_unintended_bias.jigsaw_unintended_bias
+from lm_eval.api.task import PromptSourceTask
 
 
 _CITATION = """
@@ -30,6 +31,7 @@ class JigsawUnintendedBias(PromptSourceTask):
     need to further process false positive and true negatives for instances with non-binary categorical
     outputs.
     """
+
     VERSION = 0
     DATASET_PATH = "jigsaw_unintended_bias"
     DATASET_NAME = None
@@ -40,8 +42,13 @@ class JigsawUnintendedBias(PromptSourceTask):
 
     def __init__(
         self,
-        data_dir=os.path.dirname(os.path.abspath(inspect.getfile(
-            lm_eval.datasets.jigsaw_unintended_bias.jigsaw_unintended_bias))),
+        data_dir=os.path.dirname(
+            os.path.abspath(
+                inspect.getfile(
+                    lm_eval.datasets.jigsaw_unintended_bias.jigsaw_unintended_bias
+                )
+            )
+        ),
         **kwargs,
     ):
         """
@@ -61,12 +68,7 @@ class JigsawUnintendedBias(PromptSourceTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            # We cache training documents in `self._training_docs` for faster
-            # few-shot processing. If the data is too large to fit in memory,
-            # return the training data as a generator instead of a list.
-            if self._training_docs is None:
-                self._training_docs = self.dataset["train"]
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         pass
@@ -77,7 +79,7 @@ class JigsawUnintendedBias(PromptSourceTask):
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of submetrics and values are the values of
+        dict where keys are the names of sub-metrics and values are the values of
         the metric for that one document
 
         :param doc:
@@ -86,7 +88,7 @@ class JigsawUnintendedBias(PromptSourceTask):
             The results of the requests created in construct_requests.
         """
 
-        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        answer_choices_list = self.prompt_template.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)
         assert isinstance(target, list) and len(target) == 1
         target = target[0].strip()
@@ -100,7 +102,7 @@ class JigsawUnintendedBias(PromptSourceTask):
             # TODO: current solution is not ideal for scaling
             try:
                 scale = float(target) / doc["target"]
-                pred = float((pred/scale) >= 0.5)
+                pred = float((pred / scale) >= 0.5)
                 target = float(doc["target"] >= 0.5)
             except ZeroDivisionError:
                 target = doc["target"]
@@ -113,13 +115,15 @@ class JigsawUnintendedBias(PromptSourceTask):
                 tn = True
         else:
             if target:
-                fn  = True
+                fn = True
             else:
                 fp = True
         for dimension, identity_set in self.dimension_to_identity_set.items():
-            identities = {identity: 1  if doc[identity] > 0 else 0 for identity in identity_set }
-            out[f"{dimension}_var"] = {**identities, 'pred': pred,  'target': target}
-            out[f"{dimension}_std"] = {**identities, 'pred': pred,  'target': target}
+            identities = {
+                identity: 1 if doc[identity] > 0 else 0 for identity in identity_set
+            }
+            out[f"{dimension}_var"] = {**identities, "pred": pred, "target": target}
+            out[f"{dimension}_std"] = {**identities, "pred": pred, "target": target}
             for identity in identity_set:
                 if doc[identity]:
                     out[f"{identity}_acc"] = acc
@@ -128,7 +132,7 @@ class JigsawUnintendedBias(PromptSourceTask):
                     out[f"{identity}_fp"] = fp
                     out[f"{identity}_fn"] = fn
                 else:
-                    out[f"{identity}_acc"] = np.nan 
+                    out[f"{identity}_acc"] = np.nan
                     out[f"{identity}_tp"] = np.nan
                     out[f"{identity}_tn"] = np.nan
                     out[f"{identity}_fp"] = np.nan
@@ -167,12 +171,20 @@ class JigsawUnintendedBias(PromptSourceTask):
 
     def aggregation(self):
         out = {}
-        race_identities = self.dimension_to_identity_set['race']
-        gender_nonbinary_identities = self.dimension_to_identity_set['gender_nonbinary']
-        out["race_var"] = lambda x: self.calculate_discrepencies(x, race_identities, 'var')
-        out["race_std"] = lambda x: self.calculate_discrepencies(x, race_identities, 'std')
-        out['gender_nonbinary_var'] = lambda x: self.calculate_discrepencies(x, gender_nonbinary_identities, 'var')
-        out['gender_nonbinary_std'] = lambda x: self.calculate_discrepencies(x, gender_nonbinary_identities, 'std')
+        race_identities = self.dimension_to_identity_set["race"]
+        gender_nonbinary_identities = self.dimension_to_identity_set["gender_nonbinary"]
+        out["race_var"] = lambda x: self.calculate_discrepencies(
+            x, race_identities, "var"
+        )
+        out["race_std"] = lambda x: self.calculate_discrepencies(
+            x, race_identities, "std"
+        )
+        out["gender_nonbinary_var"] = lambda x: self.calculate_discrepencies(
+            x, gender_nonbinary_identities, "var"
+        )
+        out["gender_nonbinary_std"] = lambda x: self.calculate_discrepencies(
+            x, gender_nonbinary_identities, "std"
+        )
         for dimension, identity_set in self.dimension_to_identity_set.items():
             for identity in identity_set:
                 out[f"{identity}_acc"] = lambda x: float(np.nanmean(x))

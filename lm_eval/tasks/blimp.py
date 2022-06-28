@@ -10,8 +10,7 @@ grammars.
 
 Homepage: https://github.com/alexwarstadt/blimp
 """
-from lm_eval.base import rf, PromptSourceTask
-from lm_eval.metrics import mean
+from lm_eval.api.task import PromptSourceTask
 
 
 _CITATION = """
@@ -23,21 +22,21 @@ _CITATION = """
     number = {},
     pages = {377-392},
     year = {2020},
-    doi = {10.1162/tacl\_a\_00321},
+    doi = {10.1162/tacla00321},
     URL = {https://doi.org/10.1162/tacl_a_00321},
     eprint = {https://doi.org/10.1162/tacl_a_00321},
-    abstract = { We introduce The Benchmark of Linguistic Minimal Pairs (BLiMP),1 a challenge set for evaluating the linguistic knowledge of language models (LMs) on major grammatical phenomena in English. BLiMP consists of 67 individual datasets, each containing 1,000 minimal pairs—that is, pairs of minimally different sentences that contrast in grammatical acceptability and isolate specific phenomenon in syntax, morphology, or semantics. We generate the data according to linguist-crafted grammar templates, and human aggregate agreement with the labels is 96.4\%. We evaluate n-gram, LSTM, and Transformer (GPT-2 and Transformer-XL) LMs by observing whether they assign a higher probability to the acceptable sentence in each minimal pair. We find that state-of-the-art models identify morphological contrasts related to agreement reliably, but they struggle with some subtle semantic and syntactic phenomena, such as negative polarity items and extraction islands. }
+    abstract = { We introduce The Benchmark of Linguistic Minimal Pairs (BLiMP),1 a challenge set for evaluating the linguistic knowledge of language models (LMs) on major grammatical phenomena in English. BLiMP consists of 67 individual datasets, each containing 1,000 minimal pairs—that is, pairs of minimally different sentences that contrast in grammatical acceptability and isolate specific phenomenon in syntax, morphology, or semantics. We generate the data according to linguist-crafted grammar templates, and human aggregate agreement with the labels is 96.4. We evaluate n-gram, LSTM, and Transformer (GPT-2 and Transformer-XL) LMs by observing whether they assign a higher probability to the acceptable sentence in each minimal pair. We find that state-of-the-art models identify morphological contrasts related to agreement reliably, but they struggle with some subtle semantic and syntactic phenomena, such as negative polarity items and extraction islands. }
 }
 """
 
 
 class BlimpTask(PromptSourceTask):
-    VERSION = 0
+
     DATASET_PATH = "blimp"
 
     def has_training_docs(self):
         return False
-    
+
     def has_validation_docs(self):
         return True
 

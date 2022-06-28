@@ -8,8 +8,11 @@ quatnifies bias.
 
 Homepage: https://uclanlp.github.io/corefBias/overview
 """
-from lm_eval.base import PromptSourceTask, mean
 import transformers.data.metrics.squad_metrics as squad_metrics
+
+from lm_eval.api.metric import mean
+from lm_eval.api.task import PromptSourceTask
+
 
 _CITATION = """
 @inproceedings{zhao-etal-2018-gender,
@@ -56,7 +59,7 @@ class WinoBias(PromptSourceTask):
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of submetrics and values are the values of
+        dict where keys are the names of sub-metrics and values are the values of
         the metric for that one document
 
         :param doc:
@@ -64,7 +67,7 @@ class WinoBias(PromptSourceTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        answer_choices_list = self.prompt_template.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)[0].strip()
         pred = " ".join(results[0].strip().split(" ")[: len(target.split(" "))])
 
@@ -87,7 +90,7 @@ class WinoBias(PromptSourceTask):
     def aggregation(self):
         """
         :returns: {str: [metric_score] -> float}
-            A dictionary where keys are the names of submetrics and values are
+            A dictionary where keys are the names of sub-metrics and values are
             functions that aggregate a list of metric scores
         """
         return {"em": mean}

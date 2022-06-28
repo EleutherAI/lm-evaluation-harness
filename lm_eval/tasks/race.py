@@ -9,20 +9,21 @@ can be served as the training and test sets for machine comprehension.
 
 Homepage: https://www.cs.cmu.edu/~glai1/data/race/
 """
-from lm_eval.base import PromptSourceTask
+from lm_eval.api.task import PromptSourceTask
+
 
 _CITATION = """
 @article{lai2017large,
     title={RACE: Large-scale ReAding Comprehension Dataset From Examinations},
     author={Lai, Guokun and Xie, Qizhe and Liu, Hanxiao and Yang, Yiming and Hovy, Eduard},
-    journal={arXiv preprint arXiv:1704.04683},  
+    journal={arXiv preprint arXiv:1704.04683},
     year={2017}
 }
 """
 
 
 class RACE(PromptSourceTask):
-    VERSION = 1
+    VERSION = 0
     DATASET_PATH = "race"
     DATASET_NAME = "high"
 

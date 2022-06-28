@@ -1,12 +1,11 @@
-from lm_eval.utils import (
+import torch
+
+from lm_eval.api.utils import (
     get_rolling_token_windows,
     make_disjoint_window,
     select_continuation_from_batch_left_padding,
+    split_and_pad_windows,
 )
-
-import lm_eval.models as models
-import pytest
-import torch
 
 
 # noinspection DuplicatedCode
@@ -228,11 +227,12 @@ def test_make_disjoint_window():
     )
     assert make_disjoint_window(([1, 2, 3, 4, 5], [4, 5, 6])) == ([1, 2, 3], [4, 5, 6])
 
+
 def test_pad_windows():
     token_list = [100, 19, 3, 9, 794, 7142, 81, 1327, 5]
     # Representation: [([context], [continuation]), ...]
     # [
-    #   ([1], [100, 19, 3, 9]), 
+    #   ([1], [100, 19, 3, 9]),
     #   ([9], [794, 7142, 81, 1327]),
     #   ([ ], [5])
     # ]
@@ -245,17 +245,21 @@ def test_pad_windows():
                 max_seq_len=4,
                 context_len=1,
             ),
-        ))
+        )
+    )
     expected = (
         [[1], [9], [1]],  # Split & padded contexts.
-        [[100, 19, 3, 9], [794, 7142, 81, 1327], [5, 1, 1, 1]], # Split & padded continuations.
+        [
+            [100, 19, 3, 9],
+            [794, 7142, 81, 1327],
+            [5, 1, 1, 1],
+        ],  # Split & padded continuations.
     )
     padded_windows = split_and_pad_windows(
-        rolling_token_windows,
-        pad_token=1,
-        max_seq_len=4,
+        rolling_token_windows, pad_token_id=1, max_seq_len=4
     )
     assert padded_windows == expected
+
 
 def test_select_continuation_from_batch_1():
     generations = torch.tensor(

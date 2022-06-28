@@ -2,8 +2,8 @@
 WikiLingua: A New Benchmark Dataset for Cross-Lingual Abstractive Summarization
 https://arxiv.org/pdf/2010.03093.pdf
 
-Wikilingua is a large-scale (~770k article-summary pairs), multilingual dataset for the evaluation of cross-lingual abstractive systems. 
-It consists of parallel articles and summaries (article-summary pairs) from WikiHow across 18 languages (i.e. all the languages available on WikiHow). 
+Wikilingua is a large-scale (~770k article-summary pairs), multilingual dataset for the evaluation of cross-lingual abstractive systems.
+It consists of parallel articles and summaries (article-summary pairs) from WikiHow across 18 languages (i.e. all the languages available on WikiHow).
 It contains 141,457 unique English articles and each of the other 17 languages has on average, 42,783 articles that align with an article in English.
 This dataset is part of the GEM Benchmark. (Description from https://gem-benchmark.com/data_cards/WikiLingua)
 
@@ -11,7 +11,8 @@ This dataset is part of the GEM Benchmark. (Description from https://gem-benchma
 Homepage: None, Repo: https://github.com/esdurmus/Wikilingua
 """
 import typing
-from lm_eval.base import PromptSourceTask
+
+from lm_eval.api.task import PromptSourceTask
 
 
 _CITATION = """
@@ -39,9 +40,7 @@ class GEMWikiLinguaBase(PromptSourceTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():
@@ -151,7 +150,7 @@ WIKILINGUA_TASKS = [
 
 def construct_tasks() -> typing.Dict[str, GEMWikiLinguaBase]:
     """
-    Returns a dictionary of tasks keyed by task name, for example: 
+    Returns a dictionary of tasks keyed by task name, for example:
         "GEM/wiki_lingua_ar"
     will dispatch to the GEM WikiLingua Arabic class.
     """
@@ -159,5 +158,5 @@ def construct_tasks() -> typing.Dict[str, GEMWikiLinguaBase]:
     for task_class in WIKILINGUA_TASKS:
         benchmark = task_class.DATASET_PATH
         lang = task_class.DATASET_NAME
-        tasks[f'{benchmark}_{lang}'] = task_class
+        tasks[f"{benchmark}_{lang}"] = task_class
     return tasks

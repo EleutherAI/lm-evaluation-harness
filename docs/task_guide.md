@@ -16,7 +16,7 @@ pip install -e ".[dev]"
 
 ## Creating Your Task File
 
-From the `lm-evaluation-harness` project root, copy over the `new_task.py` template to `lm_eval/datasets`. 
+From the `lm-evaluation-harness` project root, copy over the `new_task.py` template to `lm_eval/datasets`.
 
 ```sh
 cp templates/new_task.py lm_eval/tasks/<task-name>.py
@@ -52,7 +52,7 @@ For example, take the QuAC dataset. We have:
 QuAC: Question Answering in Context
 https://arxiv.org/abs/1808.07036
 
-Question Answering in Context (QuAC) is a dataset for modeling, understanding, and 
+Question Answering in Context (QuAC) is a dataset for modeling, understanding, and
 participating in information seeking dialog. Data instances consist of an interactive
 dialog between two crowd workers: (1) a student who poses a sequence of freeform
 questions to learn as much as possible about a hidden Wikipedia text, and (2)
@@ -72,7 +72,7 @@ Now let's walk through the actual implementation - from data handling to evaluat
 ### Downloading your Data
 
 All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md)
-. 
+.
 Now, that you have your HF dataset, you need to assign its path and name to your `Task` in the following fields:
 
 ```python
@@ -116,7 +116,7 @@ These should return a Python iterable (`list` or `generator`) of `dict`s that ca
 
 #### Processing Documents
 
-At this point, you can also process each individual document to, for example, strip whitespace or "detokenize" its fields. Put the processing logic into `_process_doc` and map the functions across training/validation/test docs inside of the respective functions. 
+At this point, you can also process each individual document to, for example, strip whitespace or "detokenize" its fields. Put the processing logic into `_process_doc` and map the functions across training/validation/test docs inside of the respective functions.
 🔠 If your task is **multiple-choice**, we require you to format your documents such that they contain `gold` and `choices` fields. They can also have other fields, but those will be ignored by `MultipleChoiceTask`. `choices` should be a list of possible continuations, and `gold` should be an integer specifying the index of the correct completion.
 See [this task](https://github.com/EleutherAI/lm-evaluation-harness/blob/6caa0afd96a7a7efb2ec4c1f24ad1756e48f3aa7/lm_eval/tasks/sat.py#L60) for an example. 🔠
 
@@ -165,7 +165,7 @@ python -m scripts.write_out \
     --tasks <your-task> \
     --sets <train | val | test> \
     --num_fewshot K \
-    --num_examples N \ 
+    --num_examples N \
     --description_dict_path <path>
 ```
 

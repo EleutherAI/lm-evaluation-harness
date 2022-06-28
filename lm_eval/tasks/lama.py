@@ -1,16 +1,17 @@
 """
 https://arxiv.org/abs/1909.01066
 https://arxiv.org/abs/2005.04611
-LAMA is a prob dataset to test the factual and commonsense knowledge in language models. The dataset includes a subset of 
-Google_RE (https://code.google.com/archive/p/relation-extraction-corpus/), TRex (subset of wikidata triples), 
-Conceptnet (https://github.com/commonsense/conceptnet5/wiki) and Squad. 
+LAMA is a prob dataset to test the factual and commonsense knowledge in language models. The dataset includes a subset of
+Google_RE (https://code.google.com/archive/p/relation-extraction-corpus/), TRex (subset of wikidata triples),
+Conceptnet (https://github.com/commonsense/conceptnet5/wiki) and Squad.
 
 Homepage: https://github.com/facebookresearch/LAMA
 """
-from lm_eval.base import PromptSourceTask
-import numpy as np 
-from lm_eval.metrics import mean
 from typing import Optional
+
+from lm_eval.api.task import PromptSourceTask
+from lm_eval.api.metric import mean
+
 
 _CITATION = """
 @inproceedings{petroni2019language, title={Language Models as Knowledge Bases?},
@@ -24,22 +25,20 @@ _CITATION = """
 """
 
 
-
 class BigScienceLAMA(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "janck/bigscience-lama"
     DATASET_NAME = None
 
-
     def has_training_docs(self):
-        # TODO: Fill in the return with `True` if the Task has training data; else `False`.
         return False
+
     def has_validation_docs(self):
-        # TODO: Fill in the return with `True` if the Task has validation data; else `False`.
         return False
+
     def has_test_docs(self):
-        # TODO: Fill in the return with `True` if the Task has test data; else `False`.
         return True
+
     def training_docs(self):
         if self.has_training_docs():
             return self.dataset["train"]
@@ -51,11 +50,9 @@ class Trex(PromptSourceTask):
     DATASET_NAME = "trex"
 
     def has_training_docs(self):
-        # TODO: Fill in the return with `True` if the Task has training data; else `False`.
         return False
 
     def has_validation_docs(self):
-        # TODO: Fill in the return with `True` if the Task has validation data; else `False`.
         return False
 
     def has_test_docs(self):
@@ -64,9 +61,7 @@ class Trex(PromptSourceTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():
@@ -78,12 +73,10 @@ class Trex(PromptSourceTask):
 
     def process_results(self, doc, results):
         out = {}
-        #gold = doc
+        # gold = doc
         pred = results[0].strip()
-        target = self.doc_to_target(doc)['obj_label']
-        #pred = np.argmax(results)
+        target = self.doc_to_target(doc)["obj_label"]
         out["acc"] = pred == target
-
 
         if self.save_examples:
             example = {
@@ -110,22 +103,17 @@ class google_re(PromptSourceTask):
     DATASET_NAME = "google_re"
 
     def has_training_docs(self):
-        # TODO: Fill in the return with `True` if the Task has training data; else `False`.
         return False
 
     def has_validation_docs(self):
-        # TODO: Fill in the return with `True` if the Task has validation data; else `False`.
         return False
 
     def has_test_docs(self):
-        # TODO: Fill in the return with `True` if the Task has test data; else `False`.
         return True
 
     def training_docs(self):
         if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():
@@ -139,9 +127,8 @@ class google_re(PromptSourceTask):
         out = {}
         pred = results[0].strip()
 
-        target = self.doc_to_target(doc)['obj_label']
+        target = self.doc_to_target(doc)["obj_label"]
         out["acc"] = pred == target
-
 
         if self.save_examples:
             example = {
@@ -161,6 +148,7 @@ class google_re(PromptSourceTask):
     def doc_to_target(self, doc):
         return doc
 
+
 class Conceptnet(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "lama"
@@ -178,12 +166,9 @@ class Conceptnet(PromptSourceTask):
         # TODO: Fill in the return with `True` if the Task has test data; else `False`.
         return True
 
-
     def training_docs(self):
         if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():
@@ -197,9 +182,8 @@ class Conceptnet(PromptSourceTask):
         out = {}
         pred = results[0].strip()
 
-        target = self.doc_to_target(doc)['obj_label']
+        target = self.doc_to_target(doc)["obj_label"]
         out["acc"] = pred == target
-
 
         if self.save_examples:
             example = {
@@ -226,23 +210,17 @@ class Squad(PromptSourceTask):
     DATASET_NAME = "squad"
 
     def has_training_docs(self):
-        # TODO: Fill in the return with `True` if the Task has training data; else `False`.
         return False
 
     def has_validation_docs(self):
-        # TODO: Fill in the return with `True` if the Task has validation data; else `False`.
         return False
 
     def has_test_docs(self):
-        # TODO: Fill in the return with `True` if the Task has test data; else `False`.
         return True
-
 
     def training_docs(self):
         if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():
@@ -250,19 +228,14 @@ class Squad(PromptSourceTask):
 
     def test_docs(self):
         if self.has_test_docs():
-
-            self._test_docs = list(self.dataset["train"])
-            return self._test_docs
+            return self.dataset["train"]
 
     def process_results(self, doc, results):
         out = {}
         pred = results[0].strip()
-        target = self.doc_to_target(doc)['obj_label']
-        #pred = np.argmax(results)
+        target = self.doc_to_target(doc)["obj_label"]
         out["acc"] = pred == target
 
-
-        
         if self.save_examples:
             example = {
                 "pred": pred,
@@ -284,5 +257,3 @@ class Squad(PromptSourceTask):
     def max_generation_length(self) -> Optional[int]:
         """Denote where the max length of the generation if it is obvious from the task."""
         return 5
-
-

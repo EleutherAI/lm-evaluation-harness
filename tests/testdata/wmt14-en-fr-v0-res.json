@@ -1,1 +1,0 @@
-{"results": {"wmt14-en-fr": {"bleu": 0.0, "bleu_stderr": 0.0, "chrf": 0.011284118461117099, "chrf_stderr": 7.340651275964445e-05, "ter": 1.0, "ter_stderr": 0.0}}, "versions": {"wmt14-en-fr": 0}}

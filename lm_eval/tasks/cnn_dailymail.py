@@ -10,8 +10,8 @@ In all, the corpus has 286,817 training pairs, 13,368 validation pairs and 11,48
 test pairs, as defined by their scripts. The source documents in the training set
 have 766 words spanning 29.74 sentences on an average while the summaries consist
 of 53 words and 3.72 sentences. """
+from lm_eval.api.task import PromptSourceTask
 
-from lm_eval.base import PromptSourceTask
 
 _CITATION = """@article{DBLP:journals/corr/NallapatiXZ16,
   author    = {Ramesh Nallapati and
@@ -31,21 +31,9 @@ _CITATION = """@article{DBLP:journals/corr/NallapatiXZ16,
 
 
 class CnnDailyMail(PromptSourceTask):
-    VERSION = 0
+
     DATASET_PATH = "cnn_dailymail"
     DATASET_NAME = "3.0.0"
-
-    def __init__(
-        self,
-        data_dir=None,
-        cache_dir=None,
-        download_mode=None,
-        prompt=None,
-        save_examples=True,
-    ):
-        super().__init__(data_dir, cache_dir, download_mode)
-        self.prompt = prompt
-        self.save_examples = save_examples
 
     def doc_to_rawtext(self, doc):
         return doc["article"]
@@ -61,9 +49,7 @@ class CnnDailyMail(PromptSourceTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():

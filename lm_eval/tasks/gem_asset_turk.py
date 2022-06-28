@@ -16,7 +16,8 @@ associated with 8 crowdsourced simplifications that focus on only lexical
 paraphrasing (no sentence splitting or deletion).
 https://cocoxu.github.io/publications/tacl2016-smt-simplification.pdf
 """
-from lm_eval.base import PromptSourceTask
+from lm_eval.api.task import PromptSourceTask
+
 
 _CITATION = """
 @article{DBLP:journals/corr/abs-2005-00481,
@@ -24,7 +25,7 @@ _CITATION = """
                Louis Martin and
                Antoine Bordes and
                Carolina Scarton and
-               Beno{\^{\i}}t Sagot and
+               Benoit Sagot and
                Lucia Specia},
   title     = {{ASSET:} {A} Dataset for Tuning and Evaluation of Sentence Simplification
                Models with Multiple Rewriting Transformations},
@@ -41,7 +42,7 @@ _CITATION = """
 
 
 class AssetTurk(PromptSourceTask):
-    VERSION = 0
+
     DATASET_PATH = "GEM/wiki_auto_asset_turk"
     DATASET_NAME = None
     SPLIT = None
@@ -51,17 +52,16 @@ class AssetTurk(PromptSourceTask):
         data_dir=None,
         cache_dir=None,
         download_mode=None,
-        prompt=None,
+        prompt_template=None,
         save_examples=True,
     ):
-        super().__init__(data_dir, cache_dir, download_mode)
-        self.prompt = prompt
-        self.save_examples = save_examples
-
+        super().__init__(
+            data_dir, cache_dir, download_mode, prompt_template, save_examples
+        )
         # Adding SARI to metrics to list because `promptsource`
         # does not currently support this option.
-        if "SARI" not in self.prompt.metadata.metrics:
-            self.prompt.metadata.metrics.append("SARI")
+        if "SARI" not in self.prompt_template.metadata.metrics:
+            self.prompt_template.metadata.metrics.append("SARI")
 
     def doc_to_rawtext(self, doc):
         return doc["source"]
@@ -77,9 +77,7 @@ class AssetTurk(PromptSourceTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():

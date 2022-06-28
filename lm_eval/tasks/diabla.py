@@ -18,7 +18,8 @@ versions and reference translations produced a posteriori
 
 Homepage: http://almanach.inria.fr/software_and_resources/custom/DiaBLa-en.html
 """
-from lm_eval.base import PromptSourceTask
+from lm_eval.api.task import PromptSourceTask
+
 
 _CITATION = """@article{bawden_DiaBLa:-A-Corpus-of_2021,
   author = {Bawden, Rachel and Bilinski, Eric and Lavergne, Thomas and Rosset, Sophie},
@@ -36,7 +37,7 @@ _CITATION = """@article{bawden_DiaBLa:-A-Corpus-of_2021,
 
 
 class DiaBLa(PromptSourceTask):
-    VERSION = 0
+
     DATASET_PATH = "rbawden/DiaBLa"
     DATASET_NAME = None
 
@@ -51,9 +52,7 @@ class DiaBLa(PromptSourceTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():
@@ -67,7 +66,6 @@ class DiaBLa(PromptSourceTask):
         return 512
 
     def invalid_doc_for_prompt(self, doc) -> bool:
-        if len(self.doc_to_target(doc)) == 0 or self.doc_to_target(doc)[0] == '':
+        if len(self.doc_to_target(doc)) == 0 or self.doc_to_target(doc)[0] == "":
             return True
         return False
-

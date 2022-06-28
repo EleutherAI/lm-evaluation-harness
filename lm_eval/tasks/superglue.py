@@ -12,9 +12,9 @@ TODO: WSC requires free-form generation.
 import numpy as np
 import sklearn
 import transformers.data.metrics.squad_metrics as squad_metrics
-from lm_eval.base import rf, PromptSourceTask
-from lm_eval.metrics import mean, acc_all, metric_max_over_ground_truths, yesno, parity
-from lm_eval.utils import general_detokenize
+
+from lm_eval.api.metric import mean, metric_max_over_ground_truths, parity
+from lm_eval.api.task import PromptSourceTask
 
 
 _CITATION = """
@@ -33,7 +33,7 @@ _CITATION = """
 
 
 class BoolQ(PromptSourceTask):
-    VERSION = 1
+    VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "boolq"
 
@@ -47,9 +47,7 @@ class BoolQ(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
@@ -57,7 +55,7 @@ class BoolQ(PromptSourceTask):
 
 # TODO: Check this works with all prompts.
 class CommitmentBank(PromptSourceTask):
-    VERSION = 1
+    VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "cb"
 
@@ -71,9 +69,7 @@ class CommitmentBank(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
@@ -81,7 +77,7 @@ class CommitmentBank(PromptSourceTask):
     def process_results(self, doc, results):
         # gold = doc["label"]
         pred_idx = np.argmax(results)
-        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        answer_choices_list = self.prompt_template.get_answer_choices_list(doc)
         pred = answer_choices_list[pred_idx]
         target = self.doc_to_target(doc)[0]
         answer2idx = {answer: i for i, answer in enumerate(answer_choices_list)}
@@ -135,28 +131,26 @@ class Copa(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
 
     def invalid_doc_for_prompt(self, doc) -> bool:
-        # HACK: Some copa templates have conditionals that ignore documents 
+        # HACK: Some copa templates have conditionals that ignore documents
         # when the condition is not met, like `{if doc['question'] != \"cause\"}`.
         # This means the prompt will never produce an input and target.
         # TODO: Remove this when fixed in `promptsource`
         try:
-            self.prompt.apply(doc)
-            return False 
-        except:
+            self.prompt_template.apply(doc)
+            return False
+        except Exception:
             return True
 
 
 # TODO: Check this works with all prompts.
 class MultiRC(PromptSourceTask):
-    VERSION = 1
+    VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "multirc"
 
@@ -170,9 +164,7 @@ class MultiRC(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
@@ -195,16 +187,11 @@ class ReCoRD(PromptSourceTask):
     def training_docs(self):
         # In ReCoRD, each doc manifests multiple "examples" in the context of few shot example packing.
         # Each doc consists of multiple answer candidates, each of which is scored yes/no.
-        if self._training_docs is None:
-            self._training_docs = []
-            for doc in self.dataset["train"]:
-                self._training_docs.append(doc)
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         # See: training_docs
-        for doc in self.dataset["validation"]:
-            yield doc
+        return self.dataset["validation"]
 
     def process_results(self, doc, results):
         # ReCoRD's evaluation is actually deceptively simple:
@@ -212,20 +199,13 @@ class ReCoRD(PromptSourceTask):
         # - Evaluate the accuracy and token F1 PER EXAMPLE
         # - Average over all examples
         pred_idx = np.argmax(results)
-        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        answer_choices_list = self.prompt_template.get_answer_choices_list(doc)
         pred = answer_choices_list[pred_idx]
         targets = self.doc_to_target(doc)
 
-        f1 = metric_max_over_ground_truths(
-            squad_metrics.compute_f1, pred, targets
-        )
-        em = metric_max_over_ground_truths(
-            squad_metrics.compute_exact, pred, targets
-        )
-        out = {
-            "f1": f1,
-            "em": em
-        }
+        f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, pred, targets)
+        em = metric_max_over_ground_truths(squad_metrics.compute_exact, pred, targets)
+        out = {"f1": f1, "em": em}
         if self.save_examples:
             example = {"target": targets, "pred": pred}
             return out, example
@@ -259,9 +239,7 @@ class WordsInContext(PromptSourceTask):
         return False
 
     def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
         return self.dataset["validation"]
@@ -285,12 +263,7 @@ class SGWinogradSchemaChallenge(PromptSourceTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            if self._training_docs is None:
-                # GPT-3 Paper's format only uses positive examples for fewshot "training"
-                self._training_docs = [
-                    doc for doc in self.dataset["train"] if doc["label"]
-                ]
-            return self._training_docs
+            return self.dataset["train"].filter(lambda d: d["label"])
 
     def validation_docs(self):
         return self.dataset["validation"]
@@ -315,7 +288,7 @@ class WinogenderSchemaDiagnostics(PromptSourceTask):
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of submetrics and values are the values of
+        dict where keys are the names of sub-metrics and values are the values of
         the metric for that one document
 
         :param doc:
@@ -323,7 +296,7 @@ class WinogenderSchemaDiagnostics(PromptSourceTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        answer_choices_list = self.prompt.get_answer_choices_list(doc)
+        answer_choices_list = self.prompt_template.get_answer_choices_list(doc)
         completion_len = np.array([float(len(i)) for i in answer_choices_list])
 
         target = self.doc_to_target(doc)[0].strip()
@@ -333,26 +306,33 @@ class WinogenderSchemaDiagnostics(PromptSourceTask):
         out = {
             "parity": (doc["idx"], pred),
             "acc": pred == target,
-            "acc_norm": 1.0 if np.argmax(results / completion_len) == target_idx else 0.0
+            "acc_norm": 1.0
+            if np.argmax(results / completion_len) == target_idx
+            else 0.0,
         }
 
         if self.save_examples:
-            example = {"target": target,
-                       "answer_choices_list": answer_choices_list,
-                       "pred": pred}
+            example = {
+                "target": target,
+                "answer_choices_list": answer_choices_list,
+                "pred": pred,
+            }
             return out, example
         return out
 
     def aggregation(self):
         """
         :returns: {str: [metric_score] -> float}
-            A dictionary where keys are the names of submetrics and values are
+            A dictionary where keys are the names of sub-metrics and values are
             functions that aggregate a list of metric scores
         """
+        return {"parity": parity, "acc": mean, "acc_norm": mean}
+
+    def higher_is_better(self):
         return {
-            "parity": parity,
-            "acc": mean,
-            "acc_norm": mean
+            "parity": True,
+            "acc": True,
+            "acc_norm": True,
         }
 
 

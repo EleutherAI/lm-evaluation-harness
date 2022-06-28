@@ -3,7 +3,7 @@ A dataset of approximately 200K news headlines from the year 2012 to 2018 collec
 
 Homepage: https://www.kaggle.com/datasets/rmisra/news-category-dataset
 """
-from lm_eval.base import PromptSourceTask
+from lm_eval.api.task import PromptSourceTask
 
 
 _CITATION = """\
@@ -25,6 +25,7 @@ _CITATION = """\
 }
 """
 
+
 class HuffPost(PromptSourceTask):
     VERSION = 0
     DATASET_PATH = "khalidalt/HuffPost"
@@ -41,9 +42,7 @@ class HuffPost(PromptSourceTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():

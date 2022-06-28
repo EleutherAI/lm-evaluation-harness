@@ -1,13 +1,13 @@
 # TODO: Remove all TODO comments once the implementation is complete.
 """
 TODO: Add the Paper Title on this line.
-TODO: Add the paper's PDF URL (preferrably from arXiv) on this line.
+TODO: Add the paper's PDF URL (preferably from arXiv) on this line.
 
 TODO: Write a Short Description of the task.
 
 Homepage: TODO: Add the URL to the task's Homepage here.
 """
-from lm_eval.base import PromptSourceTask
+from lm_eval.api.task import PromptSourceTask
 
 
 # TODO: Add the BibTeX citation for the task.
@@ -17,7 +17,7 @@ _CITATION = """
 
 # TODO: Replace `NewTask` with the name of your Task.
 class NewTask(PromptSourceTask):
-    VERSION = 0
+
     # TODO: Add the `DATASET_PATH` string. This will be the name of the `Task`
     # dataset as denoted in HuggingFace `datasets`.
     DATASET_PATH = ""
@@ -39,25 +39,20 @@ class NewTask(PromptSourceTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            # We cache training documents in `self._training_docs` for faster
-            # few-shot processing. If the data is too large to fit in memory,
-            # return the training data as a generator instead of a list.
-            if self._training_docs is None:
-                # TODO: Return the training document generator from `self.dataset`.
-                # If you need to process the data, `map` over the documents with
-                # the custom procesing function, `self._process_doc`. E.g.
-                # `map(self._process_doc, self.dataset["validation"])`
-                # In most case you can leave this as is unless the dataset split is
-                # named differently than the default `"train"`.
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            # TODO: Return the training document generator from `self.dataset`.
+            # If you need to process the data, `map` over the documents with
+            # the custom processing function, `self._process_doc`. E.g.
+            # `self.dataset["train"].map(self._process_doc)`
+            # In most case you can leave this as is unless the dataset split is
+            # named differently than the default `"train"`.
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():
             # TODO: Return the validation document generator from `self.dataset`.
             # If you need to process the data, `map` over the documents with the
-            # custom procesing function, `self._process_doc`. E.g.
-            # `map(self._process_doc, self.dataset["validation"])`
+            # custom processing function, `self._process_doc`. E.g.
+            # `self.dataset["validation"].map(self._process_doc)`
             # In most case you can leave this as is unless the dataset split is
             # named differently than the default `"validation"`.
             return self.dataset["validation"]
@@ -67,7 +62,7 @@ class NewTask(PromptSourceTask):
             # TODO: Return the test document generator from `self.dataset`.
             # If you need to process the data, `map` over the documents with the
             # custom processing function, `self._process_doc`. E.g.
-            # `map(self._process_doc, self.dataset["test"])`
+            # `self.dataset["test"].map(self._process_doc)`
             # In most case you can leave this as is unless the dataset split is
             # named differently than the default `"test"`.
             return self.dataset["test"]
@@ -75,7 +70,7 @@ class NewTask(PromptSourceTask):
     def max_generation_length(self):
         # Define this method when you want to control the length of few-shot
         # generations on specific tokens. The default is `None` which gets mapped
-        # to a model's default max generation token length. E.g. see `lm_eval/models/gpt2.py:max_gen_toks()`
+        # to a model's default max generation token length. E.g. see `lm_eval/models/gpt2.py:max_tokens()`
         # NOTE: You may delete this function if the task does not required generation.
         return None
 
@@ -97,7 +92,7 @@ class NewTask(PromptSourceTask):
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of submetrics and values are the values of
+        dict where keys are the names of sub-metrics and values are the values of
         the metric for that one document
 
         :param doc:
@@ -113,13 +108,13 @@ class NewTask(PromptSourceTask):
     def aggregation(self):
         """
         :returns: {str: [metric_score] -> float}
-            A dictionary where keys are the names of submetrics and values are
+            A dictionary where keys are the names of sub-metrics and values are
             functions that aggregate a list of metric scores
         """
         # TODO: For each (sub)metric in the task evaluation, add a key-value pair
         # with the metric name as key and an aggregation function as value which
         # determines how to combine results from each document in the dataset.
-        # Check `lm_eval.metrics` to find built-in aggregation functions.
+        # Check `lm_eval.metric` to find built-in aggregation functions.
         return {}
 
     def higher_is_better(self):

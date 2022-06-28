@@ -1,1 +1,0 @@
-{"results": {"hendrycksTest-security_studies": {"acc": 0.2979591836734694, "acc_norm": 0.2693877551020408, "acc_norm_stderr": 0.02840125202902294, "acc_stderr": 0.029279567411065674}}, "versions": {"hendrycksTest-security_studies": 0}}

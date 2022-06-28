@@ -1,1 +1,0 @@
-{"results": {"wmt20-de-fr": {"bleu": 0.0, "bleu_stderr": 0.0, "chrf": 0.011897164096796364, "chrf_stderr": 0.00010158164726118333, "ter": 1.0, "ter_stderr": 0.0}}, "versions": {"wmt20-de-fr": 0}}

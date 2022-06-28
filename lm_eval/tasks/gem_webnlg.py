@@ -13,7 +13,7 @@ we present the results of the generation and semantic parsing
 task for both English and Russian and provide a brief
 description of the participating systems.
 """
-from lm_eval.base import PromptSourceTask
+from lm_eval.api.task import PromptSourceTask
 
 
 _CITATION = """
@@ -55,9 +55,7 @@ class WebNLG(PromptSourceTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():

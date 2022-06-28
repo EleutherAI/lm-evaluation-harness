@@ -7,8 +7,8 @@ Here, the dataset is be used for evaluating response generation.
 
 Homepage: https://github.com/google-research-datasets/dstc8-schema-guided-dialogue
 """
-from lm_eval.base import PromptSourceTask, rf
-from lm_eval import metrics
+from lm_eval.api.task import PromptSourceTask
+
 
 _CITATION = """
 @inproceedings{rastogi2020towards,
@@ -21,6 +21,7 @@ _CITATION = """
   year={2020}
 }
 """
+
 
 class Schema_Guided_DSTC8(PromptSourceTask):
     VERSION = 0
@@ -38,12 +39,7 @@ class Schema_Guided_DSTC8(PromptSourceTask):
 
     def training_docs(self):
         if self.has_training_docs():
-            # We cache training documents in `self._training_docs` for faster
-            # few-shot processing. If the data is too large to fit in memory,
-            # return the training data as a generator instead of a list.
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-            return self._training_docs
+            return self.dataset["train"]
 
     def validation_docs(self):
         if self.has_validation_docs():
@@ -52,6 +48,6 @@ class Schema_Guided_DSTC8(PromptSourceTask):
     def test_docs(self):
         if self.has_test_docs():
             return self.dataset["test"]
-    
+
     def max_generation_length(self):
         return 64
