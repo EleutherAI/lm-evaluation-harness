@@ -21,7 +21,6 @@ class HFLM(BaseLM):
         tokenizer=None,
         batch_size=1,
         accelerate=False,
-        device_map=None,
         max_memory=None,
         skip_tokenizer=False,
         offload_folder="./offload"
@@ -53,7 +52,7 @@ class HFLM(BaseLM):
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
             ).to(self.device)
         else:
-            device_map, max_memory, torch_dtype = get_args_for_accelerate(pretrained, device_map, max_memory)
+            max_memory, torch_dtype = get_args_for_accelerate(pretrained, max_memory)
             self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
