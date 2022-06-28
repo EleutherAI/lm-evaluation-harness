@@ -23,7 +23,7 @@ def get_args_for_accelerate(pretrained, device_map, maximum_memory):
     config = transformers.AutoConfig.from_pretrained(pretrained)
     maximum_memory = {i:maximum_memory for i in range(torch.cuda.device_count())}
     
-    layers =config.n_layers
+    layers =config.num_hidden_layers
     torch_dtype = config.torch_dtype
 
     if device_map is None:
