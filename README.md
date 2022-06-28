@@ -62,6 +62,19 @@ python main.py \
 ```
 To evaluate mesh-transformer-jax models that are not available on HF, please invoke eval harness through [this script](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
 
+### Large Language Models support
+
+Using HuggingFace `accelerate` library you can now run very large language models on `lm-eval-harness`. We suggest to use the following args:
+```bash
+python main.py \
+  --model gpt2 \
+  --model_args pretrained=bigscience/bloom,device_map=auto,max_memory=50GB \
+  --accelerate \
+  --tasks hellaswag \
+  --batch_size 32 \
+  --skip_tokenier
+```
+
 ## Implementing new tasks
 
 To implement a new task in eval harness, see [this guide](./docs/task_guide.md).
