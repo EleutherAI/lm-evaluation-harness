@@ -44,6 +44,7 @@ class HFLM(BaseLM):
         device_map=None,
         max_memory=None,
         skip_tokenizer=False,
+        offload_folder="./offload"
     ):
         super().__init__()
 
@@ -79,6 +80,7 @@ class HFLM(BaseLM):
                 device_map=device_map,
                 max_memory=max_memory,
                 torch_dtype=torch_dtype,
+                offload_folder=offload_folder,
             )
         self.gpt2.eval()
 
