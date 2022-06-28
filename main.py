@@ -40,7 +40,8 @@ def parse_args():
     parser.add_argument("--decontamination_ngrams_path", default=None)
     parser.add_argument("--description_dict_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
-    parser.add_argument("--offloading", action="store_true")
+    parser.add_argument("--accelerate", action="store_true")
+    parser.add_argument("--skip_tokenizer", action="store_true")
 
     return parser.parse_args()
 
@@ -89,7 +90,8 @@ def main():
         description_dict=description_dict,
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
-        offloading=args.offloading,
+        accelerate=args.accelerate,
+        skip_tokenizer=args.skip_tokenizer,
     )
 
     dumped = json.dumps(results, indent=2)

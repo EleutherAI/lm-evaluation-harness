@@ -2,6 +2,34 @@ import transformers
 import torch
 from lm_eval.base import BaseLM
 
+def compute_device_map(layers):
+    gpus = torch.cuda.device_count()
+
+    min_block_per_gpu = layers // gpus
+    # TODO @thomasw21 handle rest
+    return {
+	"model.decoder.embed_positions": 0,
+        "model.decoder.embed_tokens": 0,
+        **{
+            f"model.decoder.layers.{i}": i // min_block_per_gpu
+            for i in range(layers)
+        },
+	"model.decoder.final_layer_norm": gpus-1,
+        "lm_head.weight": gpus-1,
+        "lm_head.bias": gpus-1,
+    }
+
+def get_args_for_accelerate(pretrained, device_map, maximum_memory):
+    config = transformers.AutoConfig.from_pretrained(pretrained)
+    maximum_memory = {i:maximum_memory for i in range(torch.cuda.device_count())}
+    
+    layers =config.n_layers
+    torch_dtype = config.torch_dtype
+
+    if device_map is None:
+        device_map = compute_device_map(layers)
+    else:
+        return device_map, maximum_memory, torch_dtype
 
 class HFLM(BaseLM):
     def __init__(
@@ -12,7 +40,10 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
-        offloading=False,
+        accelerate=False,
+        device_map=None,
+        maximum_memory=None,
+        skip_tokenizer=False,
     ):
         super().__init__()
 
@@ -35,17 +66,19 @@ class HFLM(BaseLM):
             )
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
-        if not offloading:
+        if not accelerate:
             self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
             ).to(self.device)
         else:
+            device_map, maximum_memory, torch_dtype = get_args_for_accelerate(pretrained, device_map, maximum_memory)
             self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
-                device_map="auto",
-                torch_dtype=torch.float16,
+                device_map=device_map,
+                maximum_memory=maximum_memory,
+                torch_dtype=torch_dtype,
             )
         self.gpt2.eval()
 
@@ -68,15 +101,15 @@ class HFLM(BaseLM):
 
         self.vocab_size = self.tokenizer.vocab_size
 
-        # if isinstance(
-        #     self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
-        # ):
-        #     assert self.tokenizer.encode("hello\n\nhello") == [
-        #         31373,
-        #         198,
-        #         198,
-        #         31373,
-        #     ], self.tokenizer.encode("hello\n\nhello")
+        if isinstance(
+            self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
+        ) and not skip_tokenizer:
+            assert self.tokenizer.encode("hello\n\nhello") == [
+                31373,
+                198,
+                198,
+                31373,
+            ], self.tokenizer.encode("hello\n\nhello")
 
         # multithreading and batching
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
