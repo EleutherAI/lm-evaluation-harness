@@ -19,17 +19,14 @@ def compute_device_map(layers):
         "lm_head.bias": gpus-1,
     }
 
-def get_args_for_accelerate(pretrained, device_map, max_memory):
+def get_args_for_accelerate(pretrained, max_memory):
     config = transformers.AutoConfig.from_pretrained(pretrained)
     max_memory = {i:max_memory for i in range(torch.cuda.device_count())}
     
     layers =config.num_hidden_layers
     torch_dtype = config.torch_dtype
 
-    if device_map is None:
-        device_map = compute_device_map(layers)
-    else:
-        return device_map, max_memory, torch_dtype
+    return max_memory, torch_dtype
 
 class HFLM(BaseLM):
     def __init__(
@@ -77,7 +74,7 @@ class HFLM(BaseLM):
             self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
-                device_map=device_map,
+                device_map="auto",
                 max_memory=max_memory,
                 torch_dtype=torch_dtype,
                 offload_folder=offload_folder,
