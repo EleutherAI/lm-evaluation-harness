@@ -2,28 +2,11 @@ import transformers
 import torch
 from lm_eval.base import BaseLM
 
-def compute_device_map(layers):
-    gpus = torch.cuda.device_count()
-
-    min_block_per_gpu = layers // gpus
-    # TODO @thomasw21 handle rest
-    return {
-	"model.decoder.embed_positions": 0,
-        "model.decoder.embed_tokens": 0,
-        **{
-            f"model.decoder.layers.{i}": i // min_block_per_gpu
-            for i in range(layers)
-        },
-	"model.decoder.final_layer_norm": gpus-1,
-        "lm_head.weight": gpus-1,
-        "lm_head.bias": gpus-1,
-    }
 
 def get_args_for_accelerate(pretrained, max_memory):
     config = transformers.AutoConfig.from_pretrained(pretrained)
     max_memory = {i:max_memory for i in range(torch.cuda.device_count())}
-    
-    layers =config.num_hidden_layers
+
     torch_dtype = config.torch_dtype
 
     return max_memory, torch_dtype
