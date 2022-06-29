@@ -10,8 +10,6 @@ dev_requires = (["black<=21.12b0", "coverage<=6.2", "mock>=4.0.3", "pytest"],)
 install_requires = [
     "datasets>=2.0.0",
     "codecarbon",
-    "jsonlines==2.0.0",
-    "lm_dataformat==0.0.20",
     "nltk==3.6",
     "openai==0.13.0",
     "pycountry==20.7.3",
