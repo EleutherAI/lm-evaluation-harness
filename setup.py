@@ -6,16 +6,13 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 
-dev_requires = (["black", "coverage", "mock>=4.0.3", "pytest"],)
+dev_requires = (["black<=21.12b0", "coverage<=6.2", "mock>=4.0.3", "pytest"],)
 install_requires = [
-    "datasets",
+    "datasets>=2.0.0",
     "codecarbon",
-    "jsonlines==2.0.0",
-    "lm_dataformat==0.0.20",
-    "nltk",
-    "openai",
+    "nltk==3.6",
+    "openai==0.13.0",
     "pycountry==20.7.3",
-    "pybind11==2.6.2",
     "pytablewriter==0.58.0",
     "rouge-score==0.0.4",
     "sacrebleu==1.5.0",
