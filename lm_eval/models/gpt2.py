@@ -62,7 +62,7 @@ class HFLM(BaseLM):
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
                 device_map="auto",
-                max_memory_per_gpu=max_memory_per_gpu,
+                max_memory=max_memory_per_gpu,
                 torch_dtype=torch_dtype,
                 offload_folder=offload_folder,
             )
