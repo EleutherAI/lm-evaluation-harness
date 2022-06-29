@@ -23,7 +23,7 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
-        accelerate=False,
+        use_accelerate=False,
         max_memory_per_gpu=None,
         skip_tokenizer=False,
         offload_folder="./offload",
@@ -51,7 +51,7 @@ class HFLM(BaseLM):
             )
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
-        if not accelerate:
+        if not use_accelerate:
             self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
