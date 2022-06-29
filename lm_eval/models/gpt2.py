@@ -3,11 +3,14 @@ import torch
 from lm_eval.base import BaseLM
 
 
-def get_args_for_accelerate(pretrained, max_memory_per_gpu):
+def get_args_for_accelerate(pretrained, max_memory_per_gpu, max_cpu_memory, dtype=None):
     config = transformers.AutoConfig.from_pretrained(pretrained)
     max_memory_per_gpu = {i:max_memory_per_gpu for i in range(torch.cuda.device_count())}
-
-    torch_dtype = config.torch_dtype
+    max_memory_per_gpu["cpu"] = max_cpu_memory
+    if dtype is not None:
+        torch_dtype = config.torch_dtype
+    else:
+        torch_dtype = getattr(torch, dtype)
 
     return max_memory_per_gpu, torch_dtype
 
@@ -23,7 +26,9 @@ class HFLM(BaseLM):
         accelerate=False,
         max_memory_per_gpu=None,
         skip_tokenizer=False,
-        offload_folder="./offload"
+        offload_folder="./offload",
+        max_cpu_memory=None,
+        dtype=None,
     ):
         super().__init__()
 
@@ -52,7 +57,7 @@ class HFLM(BaseLM):
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
             ).to(self.device)
         else:
-            max_memory_per_gpu, torch_dtype = get_args_for_accelerate(pretrained, max_memory_per_gpu)
+            max_memory_per_gpu, torch_dtype = get_args_for_accelerate(pretrained, max_memory_per_gpu, max_cpu_memory, dtype)
             self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),

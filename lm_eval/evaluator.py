@@ -23,8 +23,12 @@ def simple_evaluate(
     description_dict=None,
     check_integrity=False,
     decontamination_ngrams_path=None,
-    accelerate=False,
+    use_accelerate=False,
     skip_tokenizer=False,
+    offload_folder=None,
+    max_memory_per_gpu=None,
+    max_cpu_memory=None,
+    dtype=None,
 ):
 
     """Instantiate and evaluate a model on a list of tasks.
@@ -52,8 +56,18 @@ def simple_evaluate(
         Dictionary of custom task descriptions of the form: `task_name: description`
     :param check_integrity: bool
         Whether to run the relevant part of the test suite for the tasks
-    :accelerate: bool
+    :use_accelerate: bool
         Whether to use accelerate as backend for large models inference
+    :skip_tokenizer: bool
+        Whether to skip tokenization test
+    :offload_folder: str
+        Folder to store offloaded data - used only in accelerate
+    :max_memory_per_gpu: str
+        Maximum memory per GPU for accelerate in the format of "NGB"
+    :max_cpu_memory: str
+        Maximum memory for accelerate in the format of "NGB"
+    :dtype: str
+        Model dtype
     :return
         Dictionary of results
     """
@@ -66,7 +80,7 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
         lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device, "accelerate": accelerate, "skip_tokenizer": skip_tokenizer}
+            model_args, {"batch_size": batch_size, "device": device, "use_accelerate": use_accelerate, "skip_tokenizer": skip_tokenizer, "offload_folder":offload_folder, "max_memory_per_gpu": max_memory_per_gpu, "max_cpu_memory": max_cpu_memory, "dtype": dtype}
         )
     else:
         assert isinstance(model, lm_eval.base.LM)
