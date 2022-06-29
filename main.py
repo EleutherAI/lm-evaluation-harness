@@ -44,9 +44,9 @@ def parse_args():
     parser.add_argument("--use_accelerate", action="store_true")
     parser.add_argument("--skip_tokenizer", action="store_true")
     parser.add_argument("--offload_folder", type=str, default="./offload")
-    parser.add_argument("--max_memory_per_gpu", type=int, default=None)
-    parser.add_argument("--max_cpu_memory", type=int, default=None)
-    parser.add_argument("--dtype", type=int, default=None)
+    parser.add_argument("--max_memory_per_gpu", type=str, default=None)
+    parser.add_argument("--max_cpu_memory", type=str, default=None)
+    parser.add_argument("--dtype", type=str, default=None)
 
     return parser.parse_args()
 
