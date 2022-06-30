@@ -42,7 +42,7 @@ _CITATION = """
 class Flores_101_mt(PromptSourceTask):
 
     DATASET_PATH = "gsarti/flores_101"
-    DATASET_NAME = 'all'
+    DATASET_NAME = "all"
 
     def has_training_docs(self):
         return False
@@ -67,4 +67,3 @@ class Flores_101_mt(PromptSourceTask):
 
     def max_generation_length(self):
         return 512
-
