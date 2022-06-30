@@ -108,6 +108,7 @@ TASK_REGISTRY = {
     "crd3": crd3.CRD3,
     # DiaBLa
     "diabla": diabla.DiaBLa,
+    # Flores 101 (MT)
     "flores_101_mt": flores_101_mt.Flores_101_mt,
     # XQuAD
     "xquad_en": xquad.XQuADEnglish,

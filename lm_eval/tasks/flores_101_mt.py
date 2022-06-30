@@ -2,9 +2,9 @@
 The Flores-101 Evaluation Benchmark for Low-Resource and Multilingual Machine Translation
 https://aclanthology.org/2022.tacl-1.30/
 
-Naman Goyal, Cynthia Gao, Vishrav Chaudhary, Peng-Jen Chen, Guillaume Wenzek, Da Ju, Sanjana Krishnan, 
-Marc’Aurelio Ranzato, Francisco Guzmán, and Angela Fan. 2022. The Flores-101 Evaluation Benchmark for 
-Low-Resource and Multilingual Machine Translation. Transactions of the Association for Computational Linguistics, 
+Naman Goyal, Cynthia Gao, Vishrav Chaudhary, Peng-Jen Chen, Guillaume Wenzek, Da Ju, Sanjana Krishnan,
+Marc’Aurelio Ranzato, Francisco Guzmán, and Angela Fan. 2022. The Flores-101 Evaluation Benchmark for
+Low-Resource and Multilingual Machine Translation. Transactions of the Association for Computational Linguistics,
 10:522–538.
 
 FLORES-101 is a Many-to-Many multilingual translation benchmark dataset for 101 languages.
