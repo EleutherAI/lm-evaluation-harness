@@ -68,7 +68,3 @@ class Flores_101_mt(PromptSourceTask):
     def max_generation_length(self):
         return 512
 
-    def invalid_doc_for_prompt(self, doc) -> bool:
-        if len(self.doc_to_target(doc)) == 0 or self.doc_to_target(doc)[0] == "":
-            return True
-        return False
