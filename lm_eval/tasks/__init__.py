@@ -7,6 +7,7 @@ import lm_eval.api.task
 from . import anli
 from . import blimp
 from . import diabla
+from . import flores_101_mt
 from . import cnn_dailymail
 from . import coqa
 from . import crd3
@@ -107,6 +108,7 @@ TASK_REGISTRY = {
     "crd3": crd3.CRD3,
     # DiaBLa
     "diabla": diabla.DiaBLa,
+    "flores_101_mt": flores_101_mt.Flores_101_mt,
     # XQuAD
     "xquad_en": xquad.XQuADEnglish,
     "xquad_ar": xquad.XQuADArabic,
