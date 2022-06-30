@@ -1,22 +1,15 @@
 """
-DiaBLa: English-French Bilingual dialogue dataset for Machine Translation
-https://link.springer.com/article/10.1007/s10579-020-09514-4
+The Flores-101 Evaluation Benchmark for Low-Resource and Multilingual Machine Translation
+https://aclanthology.org/2022.tacl-1.30/
 
-Rachel Bawden, Eric Bilinski, Thomas Lavergne and Sophie Rosset
-(2021). DiaBLa: A Corpus of Bilingual Spontaneous Written Dialogues
-for Machine Translation. Language Resources and Evaluation(55). Pages
-635–660. Springer Verlag. 10.1007/s10579-020-09514-4.
+Naman Goyal, Cynthia Gao, Vishrav Chaudhary, Peng-Jen Chen, Guillaume Wenzek, Da Ju, Sanjana Krishnan, 
+Marc’Aurelio Ranzato, Francisco Guzmán, and Angela Fan. 2022. The Flores-101 Evaluation Benchmark for 
+Low-Resource and Multilingual Machine Translation. Transactions of the Association for Computational Linguistics, 
+10:522–538.
 
-DiaBLa is an English-French dataset for the evaluation of Machine
-Translation (MT) for informal, written bilingual dialogue.  It
-contains 144 spontaneous dialogues (5,700+ sentences) between native
-English and French speakers, mediated by one of two neural MT systems
-in a range of role-play settings. The dialogues are accompanied by
-fine-grained sentence-level judgments of MT quality, produced by the
-dialogue participants themselves, as well as by manually normalised
-versions and reference translations produced a posteriori
+FLORES-101 is a Many-to-Many multilingual translation benchmark dataset for 101 languages.
 
-Homepage: http://almanach.inria.fr/software_and_resources/custom/DiaBLa-en.html
+Github: https://github.com/facebookresearch/flores
 """
 from lm_eval.api.task import PromptSourceTask
 
