@@ -326,7 +326,7 @@ class PromptSourceTask(Task):
             if self.invalid_doc_for_prompt(docs[idx]) or docs[idx] == prompt:
                 continue
             fewshot_examples.append(docs[idx])
-            fewshot_idx.append(idx)
+            fewshot_idx.append(int(idx))
             i += 1
         return fewshot_examples, fewshot_idx
 
@@ -382,8 +382,8 @@ class PromptSourceTask(Task):
                 text = self.doc_to_text(fewshot_example)
                 targets = self.doc_to_target(fewshot_example)
                 # Choose 1 random target from multi-reference targets.
-                target_idx = rng.integers(0, len(targets))
-                target = targets[int(target_idx)].strip()
+                target_idx = int(rng.integers(0, len(targets)))
+                target = targets[target_idx].strip()
                 labeled_examples_list.append(f"{text} {target}")
                 fewshot_target_idx.append(target_idx)
 
