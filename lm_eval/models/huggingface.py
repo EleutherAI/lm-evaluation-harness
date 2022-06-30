@@ -2,11 +2,52 @@ import math
 import torch
 import torch.nn.functional as F
 import transformers
-from typing import List, Optional, Tuple, Union
+from typing import List, Mapping, NewType, Optional, Tuple, Union
 from tqdm import tqdm
 
 from lm_eval.api import utils
 from lm_eval.api.model import TokenLM, TokenSequence
+
+
+_DeviceMapping = NewType("DeviceMapping", Mapping[str, Union[int, str, torch.device]])
+
+
+def _get_accelerate_args(
+    pretrained: str,
+    max_memory_per_gpu: int,
+    max_cpu_memory: Optional[int],
+    offload_folder: Optional[str],
+    dtype: Optional[Union[str, torch.dtype]] = None,
+) -> dict:
+    """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
+    args = {}
+
+    if dtype is None:
+        config = transformers.AutoConfig.from_pretrained(pretrained)
+        _torch_dtype = config.torch_dtype
+    elif isinstance(dtype, str) and dtype != "auto":
+        # Handle `str`` args for dtype: `float16` -> `torch.float16`
+        _torch_dtype = getattr(torch, dtype)
+    else:
+        _torch_dtype = dtype
+    args["torch_dtype"] = _torch_dtype
+
+    max_memory = {}
+    if max_memory_per_gpu is not None:
+        _max_memory_per_gpu = {
+            device_idx: max_memory_per_gpu
+            for device_idx in range(torch.cuda.device_count())
+        }
+        max_memory = {**_max_memory_per_gpu}
+    if max_cpu_memory is not None:
+        max_memory["cpu"] = max_cpu_memory
+    # Ignore `max_memory` if `max_memory_per_gpu` and `max_cpu_memory` are both None
+    if max_memory:
+        args["max_memory"] = max_memory
+
+    args["device_map"] = "auto"
+    args["offload_folder"] = offload_folder
+    return args
 
 
 class HuggingFaceAutoLM(TokenLM):
@@ -23,54 +64,97 @@ class HuggingFaceAutoLM(TokenLM):
         tokenizer: Optional[str] = None,
         subfolder: Optional[str] = None,
         revision: Optional[str] = "main",
-        device: Optional[str] = "cuda",
-        half: Optional[bool] = True,
         batch_size: Optional[int] = 1,
         max_gen_toks: Optional[int] = 256,
         max_length: Optional[int] = None,
-        parallelize: Optional[bool] = False,
+        use_accelerate: Optional[bool] = False,
+        max_memory_per_gpu: Optional[int] = None,
+        max_cpu_memory: Optional[int] = None,
+        offload_folder: Optional[str] = "./offload",
+        dtype: Optional[Union[str, torch.dtype]] = "auto",
+        device: Optional[str] = "cuda",
     ):
+        """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
+
+        - To force half-precision weights in your model, set `use_accelerate=True` and
+          specify `dtype="half"`.
+
+        :param use_accelerate:
+            If True, uses the `accelerate` library to load a large model.
+        :param max_memory_per_gpu: Optional[int]
+            The maximum memory available for each GPU in bytes. Refer to the
+            `max_memory` arg in the "Parameters for big model inference" docs:
+            https://huggingface.co/docs/transformers/v4.20.1/en/main_classes/model#large-model-loading
+        :param max_cpu_memory: Optional[int]
+            The maximum available CPU RAM in bytes. Refer to the `max_memory`
+            arg in the "Parameters for big model inference" docs:
+            https://huggingface.co/docs/transformers/v4.20.1/en/main_classes/model#large-model-loading
+        :param offload_folder: Optional[str]
+            The folder to offload weights into if `device_map` contains any "disk" value.
+        :param dtype: Optional[Union[str, torch.dtype]]
+            Converts the model weights to `dtype`, if specified. Strings get
+            converted to `torch.dtype` objects (e.g. `float16` -> `torch.float16`).
+            Default: "auto" - `dtype` will be derived from the model’s weights.
+        """
         super().__init__()
 
         assert isinstance(device, str)
-        assert isinstance(half, bool)
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
-
-        self.model = self.create_auto_model(pretrained, revision, subfolder)
-        self.tokenizer = self.create_auto_tokenizer(
-            pretrained, revision, subfolder, tokenizer
-        )
 
         self._batch_size = batch_size  # TODO: adaptive batch size
         self._device = torch.device(device)
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
-        self.tokenizer.model_max_length = self.max_length
 
+        accelerate_kwargs = {}
+        if use_accelerate:
+            accelerate_kwargs = _get_accelerate_args(
+                pretrained, max_memory_per_gpu, max_cpu_memory, offload_folder, dtype
+            )
+        self.model = self._create_auto_model(
+            pretrained=pretrained,
+            revision=revision,
+            subfolder=subfolder,
+            **accelerate_kwargs,
+        )
+        if not use_accelerate:
+            self.model.to(device)
         self.model.eval()
         torch.set_grad_enabled(False)
 
-        # TODO: Fix multi-gpu support.
-        if half:
-            self.model.half()
-        if parallelize:
-            self.model.parallelize()
-            self._device = torch.device("cuda:0")
-        else:
-            self.model.to(self._device)
+        self.tokenizer = self._create_auto_tokenizer(
+            pretrained=pretrained,
+            revision=revision,
+            subfolder=subfolder,
+            tokenizer=tokenizer,
+        )
+        self.tokenizer.model_max_length = self.max_length
 
-    def create_auto_model(
-        self, pretrained: str, revision: str, subfolder: str
+    def _create_auto_model(
+        self,
+        *,
+        pretrained: str,
+        revision: str,
+        subfolder: str,
+        device_map: Optional[Union[str, _DeviceMapping]] = None,
+        max_memory: Optional[dict] = None,
+        offload_folder: Optional[str] = None,
+        torch_dtype: Optional[Union[str, torch.dtype]] = None,
     ) -> transformers.AutoModel:
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
         return self.AUTO_MODEL_CLASS.from_pretrained(
             pretrained,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            device_map=device_map,
+            max_memory=max_memory,
+            offload_folder=offload_folder,
+            torch_dtype=torch_dtype,
         )
 
-    def create_auto_tokenizer(
+    def _create_auto_tokenizer(
         self,
+        *,
         pretrained: str,
         revision: str,
         subfolder: str,
@@ -209,15 +293,19 @@ class AutoCausalLM(HuggingFaceAutoLM):
 
     AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
 
-    def create_auto_tokenizer(
+    def _create_auto_tokenizer(
         self,
+        *,
         pretrained: str,
         revision: str,
         subfolder: str,
         tokenizer: Optional[str] = None,
     ) -> transformers.PreTrainedTokenizer:
-        tokenizer = super().create_auto_tokenizer(
-            pretrained, revision, subfolder, tokenizer
+        tokenizer = super()._create_auto_tokenizer(
+            pretrained=pretrained,
+            revision=revision,
+            subfolder=subfolder,
+            tokenizer=tokenizer,
         )
         tokenizer.padding_side = "left"
         return tokenizer
@@ -320,7 +408,8 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
                     "attention_mask": (conts_enc != self.eot_token_id).long(),
                 }
             )
-            # TODO: Extract out this call so it only gets called once and also somehow figure out partial caching for
+            # TODO: Extract out this call so it only gets called once and also
+            # somehow figure out partial caching for.
             rolling_token_windows_request = [
                 ((contexts, conts), contexts_enc, conts_enc)
             ]

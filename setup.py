@@ -8,6 +8,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 dev_requires = (["black", "coverage", "mock>=4.0.3", "pytest"],)
 install_requires = [
+    "accelerate",
     "datasets",
     "codecarbon",
     "jsonlines==2.0.0",
