@@ -28,7 +28,7 @@ _SEED = 42
 def test_stop_sequences(stop_sequences, test_input, expected):
     set_seed(_SEED)
     causal_model = lm_eval.models.get_model("hf-causal")(
-        pretrained="gpt2", half=False, device=_DEVICE
+        pretrained="gpt2", device=_DEVICE
     )
     inputs = causal_model.tok_encode_batch([test_input])
     input_ids = inputs["input_ids"][
@@ -51,7 +51,6 @@ def test_causal_model():
     causal_model = lm_eval.models.get_model("hf-causal")(
         pretrained="gpt2",
         device=_DEVICE,
-        half=False,
     )
     (
         (ll_dog, ig_dog),
@@ -142,7 +141,7 @@ def test_causal_model():
 
 def test_causal_model_perplexity():
     causal_model = lm_eval.models.get_model("hf-causal").create_from_arg_string(
-        f"device={_DEVICE},pretrained=gpt2,half=False"
+        f"device={_DEVICE},pretrained=gpt2"
     )
     test_string = "We study empirical scaling laws for language model performance on the cross-entropy loss."
     perplexity = causal_model.loglikelihood_rolling([(test_string,)])[0]
@@ -176,7 +175,7 @@ def test_causal_model_perplexity():
     ) as mock_max_length:
         mock_max_length.return_value = 5
         causal_model = lm_eval.models.get_model("hf-causal").create_from_arg_string(
-            f"device={_DEVICE},pretrained=gpt2,half=False"
+            f"device={_DEVICE},pretrained=gpt2"
         )
         perplexity = causal_model.loglikelihood_rolling([(test_string,)])[0]
         print(perplexity)
@@ -202,13 +201,3 @@ def test_causal_model_perplexity():
         ]
     )
     assert perplexity == pytest.approx(tgt, rel=1e-3)
-
-
-# @pytest.mark.skip(reason="CI does not have the compute to test `accelerate`")
-def test_accelerate():
-    set_seed(_SEED)
-    # causal_model = lm_eval.models.get_model("hf-seq2seq").create_from_arg_string(
-    #     f"device={_DEVICE},pretrained=google/t5-xxl-lm-adapt"
-    # )
-    # test_string = "We study empirical scaling laws for language model performance on the cross-entropy loss."
-    assert True
