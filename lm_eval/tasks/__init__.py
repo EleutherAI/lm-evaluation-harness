@@ -121,6 +121,9 @@ TASK_REGISTRY = {
     # GEM/WikiAssetTurk
     # Format: `GEM/wiki_auto_asset_turk_{split}`
     **gem_asset_turk.construct_tasks(),
+    # GEM WikiLingua
+    # Format: `GEM/wiki_lingua_{lang}`
+    **gem_wikilingua.construct_tasks(),
     # Flores101
     # Format: `gsarti/flores_101_{lang}`
     **flores_101.construct_tasks(),
@@ -208,13 +211,6 @@ TASK_REGISTRY = {
     # "mlsum_de_covid_challenge_set": gem_mlsum.GEMMLSUMDeChallgeTestCovid,
     # LAMA
     # "bigscience-lama": lama.BigScienceLAMA,
-    ########################################################
-    # TODO: Erroring Tasks
-    ########################################################
-    # GEM WikiLingua
-    # Format: `GEM/wiki_lingua_{lang}`
-    # NOTE: Fix `UnpicklingError: pickle data was truncated`
-    # **gem_wikilingua.construct_tasks(),
     ########################################################
     # TODO: Tasks That Require Manual Download:
     ########################################################
