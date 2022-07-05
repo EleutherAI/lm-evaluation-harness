@@ -297,10 +297,9 @@ class PromptSourceTask(Task):
         return False
 
     def format_example(self, text: str, target: str, separator: str) -> str:
-        """Decouple how the text and target are combined from the context generation.
-        """
+        """Decouple how the text and target are combined from the context generation."""
         return text + separator + target
-    
+
     def fewshot_examples(
         self,
         docs: datasets.Dataset,
@@ -390,7 +389,9 @@ class PromptSourceTask(Task):
                 # Choose 1 random target from multi-reference targets.
                 target_idx = int(rng.integers(0, len(targets)))
                 target = targets[target_idx].strip()
-                labeled_examples_list.append(self.format_example(text, target, text_target_separator))
+                labeled_examples_list.append(
+                    self.format_example(text, target, text_target_separator)
+                )
                 fewshot_target_idx.append(target_idx)
 
             labeled_examples = (
