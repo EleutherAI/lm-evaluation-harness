@@ -161,7 +161,7 @@ class TokenLM(LM):
 
     @property
     @abc.abstractmethod
-    def device(self):
+    def device(self) -> Union[int, str, torch.device]:
         pass
 
     def loglikelihood(
