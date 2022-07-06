@@ -352,3 +352,24 @@ class BroadcoverageDiagnostics(PromptSourceTask):
 
     def test_docs(self):
         return self.dataset["test"]
+
+
+class RTE(PromptSourceTask):
+    VERSION = 0
+    DATASET_PATH = "super_glue"
+    DATASET_NAME = "rte"
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return False
+
+    def training_docs(self):
+        return self.dataset["train"]
+
+    def validation_docs(self):
+        return self.dataset["validation"]
