@@ -296,10 +296,6 @@ class PromptSourceTask(Task):
         """
         return False
 
-    def format_example(self, text: str, target: str, separator: str) -> str:
-        """Decouple how the text and target are combined from the context generation."""
-        return text + separator + target
-
     def fewshot_examples(
         self,
         docs: datasets.Dataset,
@@ -340,7 +336,6 @@ class PromptSourceTask(Task):
         num_fewshot: int,
         description: Optional[str] = None,
         example_separator: Optional[str] = "\n###\n",
-        text_target_separator: Optional[str] = " ",
         rng: Optional[np.random.Generator] = None,
     ) -> Tuple[str, dict]:
         """Returns a fewshot context string that is made up of a prepended description
@@ -389,9 +384,7 @@ class PromptSourceTask(Task):
                 # Choose 1 random target from multi-reference targets.
                 target_idx = int(rng.integers(0, len(targets)))
                 target = targets[target_idx].strip()
-                labeled_examples_list.append(
-                    self.format_example(text, target, text_target_separator)
-                )
+                labeled_examples_list.append(f"{text} {target}")
                 fewshot_target_idx.append(target_idx)
 
             labeled_examples = (
@@ -400,7 +393,7 @@ class PromptSourceTask(Task):
 
         description = description + "\n\n" if description else ""
         prompt = self.doc_to_text(doc)
-        ctx = description + labeled_examples + prompt + text_target_separator
+        ctx = description + labeled_examples + prompt
         logging_info = {
             "fewshot_idx": fewshot_idx,
             "fewshot_target_idx": fewshot_target_idx,
