@@ -133,7 +133,7 @@ class HuggingFaceAutoLM(TokenLM):
         torch.set_grad_enabled(False)
 
         self._device = device
-        if use_accelerate and hasattr(self.model.hf_device_map, "lm_head"):
+        if use_accelerate and "lm_head" in self.model.hf_device_map:
             # `accelerate` can place `lm_head` weights on a different device than
             # the user specified one so we force `self._device` to be the same as
             # `lm_head`'s.
