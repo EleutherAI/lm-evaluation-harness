@@ -59,6 +59,7 @@ TASK_REGISTRY = {
     "copa": superglue.Copa,
     "multirc": superglue.MultiRC,
     "record": superglue.ReCoRD,
+    "superglue_rte": superglue.RTE,
     "wic": superglue.WordsInContext,
     "wsc": superglue.SGWinogradSchemaChallenge,
     # CoQA
