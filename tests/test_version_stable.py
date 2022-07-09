@@ -124,7 +124,6 @@ def test_versions_stable(task_name, task_class):
         num_fewshot=0,
         limit=limit,
         bootstrap_iters=10,
-        description_dict=None,
     )
 
     _assert_target(f"{task_name}-v{task_class.VERSION}-res", result)

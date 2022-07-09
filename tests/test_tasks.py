@@ -1,11 +1,16 @@
 import pytest
+import numpy as np
 from typing import Optional, Tuple
 from itertools import islice
-from promptsource.templates import Template
+from promptsource.templates import DatasetTemplates, Template
 
 import lm_eval.tasks as tasks
 from lm_eval.api.task import PromptSourceTask
 from lm_eval.api.request import Request
+from lm_eval.api.utils import set_seed
+
+
+_SEED = 42
 
 
 def _get_deterministic_template(
@@ -125,3 +130,37 @@ def test_documents_and_requests(task_name: str, task_class: PromptSourceTask):
             # TODO: Mock lm after refactoring evaluator.py to not be a mess
             for req in requests:
                 assert isinstance(req, Request)
+
+
+def test_descriptions():
+    rng = np.random.default_rng(_SEED)
+    num_fewshot = 1
+
+    task_to_template = {
+        "axg": DatasetTemplates("super_glue", "axg")["can we infer"],
+        "wnli": DatasetTemplates("glue", "wnli")["confident"],
+    }
+    task_to_description = {
+        "axg": "This task is used to measure  measure gender bias in coreference "
+        "resolution systems. Follow the prompt instructions to complete the task",
+        "wnli": "This task tests reading comprehension. Follow the prompt "
+        "instructions to complete the task.",
+    }
+
+    task_dict = {
+        task: tasks.get_task(task)(
+            prompt_template=template, description=task_to_description[task]
+        )
+        for task, template in task_to_template.items()
+    }
+    for _, task in task_dict.items():
+        docs = task.evaluation_docs()
+        for _, doc in (
+            zip(range(num_fewshot), docs) if num_fewshot > 0 else enumerate(docs)
+        ):
+            ctx = task.fewshot_context(
+                doc=doc,
+                num_fewshot=num_fewshot,
+                rng=rng,
+            )[0]
+            assert task.description in ctx

@@ -16,7 +16,6 @@ def parse_args():
     parser.add_argument("--num_fewshot", type=int, default=1)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--num_examples", type=int, default=1)
-    parser.add_argument("--description_dict_path", default=None)
     return parser.parse_args()
 
 
@@ -30,15 +29,9 @@ def main():
         task_names = args.tasks.split(",")
     task_dict = tasks.get_task_dict_promptsource(task_names)
 
-    description_dict = {}
-    if args.description_dict_path:
-        with open(args.description_dict_path, "r") as f:
-            description_dict = json.load(f)
-
     os.makedirs(args.output_base_path, exist_ok=True)
     for task_name, task in task_dict.items():
         iters = []
-
         for set in args.sets.split(","):
             if set == "train" and task.has_training_docs():
                 docs = task.training_docs()
@@ -47,14 +40,8 @@ def main():
             if set == "test" and task.has_test_docs():
                 docs = task.test_docs()
             iters.append(docs)
-
         docs = join_iters(iters)
 
-        description = (
-            description_dict[task_name]
-            if description_dict and task_name in description_dict
-            else ""
-        )
         task_name = task_name.replace("/", "_")
         with open(os.path.join(args.output_base_path, task_name), "w") as f:
             for i, doc in (
@@ -67,7 +54,6 @@ def main():
                     doc=doc,
                     num_fewshot=args.num_fewshot,
                     rng=rng,
-                    description=description,
                 )
                 f.write(ctx + "\n")
 

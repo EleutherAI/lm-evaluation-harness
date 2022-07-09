@@ -26,7 +26,6 @@ def simple_evaluate(
     batch_size: Optional[int] = None,
     device: Optional[str] = None,
     no_cache: Optional[bool] = False,
-    description_dict: Optional[Mapping[str, str]] = None,
     bootstrap_iters: Optional[int] = 100000,
     limit: Optional[int] = None,
     seed: Optional[int] = 1234,
@@ -49,8 +48,6 @@ def simple_evaluate(
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
     :param no_cache: bool
         Whether or not to cache
-    :param description_dict: dict[str, str]
-        Dictionary of custom task descriptions of the form: `task_name: description`
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
     :param limit: int, optional
@@ -86,7 +83,6 @@ def simple_evaluate(
         lm=lm,
         task_dict=task_dict,
         num_fewshot=num_fewshot,
-        description_dict=description_dict,
         limit=limit,
         bootstrap_iters=bootstrap_iters,
         rng=np.random.default_rng(seed),
@@ -102,7 +98,6 @@ def simple_evaluate(
         "no_cache": no_cache,
         "limit": limit,
         "bootstrap_iters": bootstrap_iters,
-        "description_dict": description_dict,
     }
     return results
 
@@ -112,7 +107,6 @@ def evaluate(
     lm: lm_eval.api.model.LM,
     task_dict: Mapping[str, lm_eval.api.task.PromptSourceTask],
     num_fewshot: Optional[int] = 0,
-    description_dict: Optional[dict] = None,
     bootstrap_iters: Optional[int] = 100000,
     limit: Optional[int] = None,
     rng: Optional[np.random.Generator] = np.random.default_rng(),
@@ -126,8 +120,6 @@ def evaluate(
         if defined and type(task).__name__ otherwise.
     :param num_fewshot: int
         Number of examples in few-shot context
-    :param description_dict: dict[str, str]
-        Dictionary of custom task descriptions of the form: `task_name: description`
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
     :param limit: int, optional
@@ -164,13 +156,6 @@ def evaluate(
         logger.warning(f"» Filtering invalid docs from '{task_prompt_name}'")
         task_docs = task_docs.filter(lambda d: not task.invalid_doc_for_prompt(d))
         task_docs = task_docs.shuffle(generator=rng)
-
-        description = (
-            description_dict[task_prompt_name]
-            if description_dict and task_prompt_name in description_dict
-            else ""
-        )
-
         logger.warning(f"» Constructing '{task_prompt_name}' contexts and requests")
         pbar_limit = len(task_docs) if not limit else np.minimum(limit, len(task_docs))
         for doc_id, doc in enumerate(
@@ -180,7 +165,6 @@ def evaluate(
             ctx, fewshotex_logging_info = task.fewshot_context(
                 doc=doc,
                 num_fewshot=num_fewshot,
-                description=description,
                 rng=rng,
             )
             fewshotex_logging_info["doc_id"] = doc["doc_id"]

@@ -166,7 +166,6 @@ python -m scripts.write_out \
     --sets <train | val | test> \
     --num_fewshot K \
     --num_examples N \
-    --description_dict_path <path>
 ```
 
 Open the file specified at the `--output_base_path <path>` and ensure it passes

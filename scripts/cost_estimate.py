@@ -52,7 +52,6 @@ def main():
             num_fewshot=0,
             limit=None,
             bootstrap_iters=10,
-            description_dict=None,
         )
 
         print(task_name, lm.tokencost)

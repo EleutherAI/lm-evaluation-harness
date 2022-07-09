@@ -32,7 +32,6 @@ def parse_args():
     )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--no_cache", action="store_true")
-    parser.add_argument("--description_dict_path", default=None)
     return parser.parse_args()
 
 
@@ -97,11 +96,6 @@ def main():
     else:
         task_names = args.tasks.split(",")
 
-    description_dict = {}
-    if args.description_dict_path:
-        with open(args.description_dict_path, "r") as f:
-            description_dict = json.load(f)
-
     output_path = args_to_name(args)
     setup_example_logger(output_path)
 
@@ -117,7 +111,6 @@ def main():
             device=args.device,
             no_cache=args.no_cache,
             limit=args.limit,
-            description_dict=description_dict,
             seed=args.seed,
         )
 

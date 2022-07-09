@@ -179,6 +179,7 @@ class Task(abc.ABC):
             part of the document for `doc`.
         :param args: dict
             The specifics of the context, including number of few shots.
+        :returns: iterable of `Request` objects.
         """
         pass
 
@@ -234,18 +235,44 @@ class PromptSourceTask(Task):
         download_mode: Optional[str] = None,
         prompt_template: Optional[promptsource.templates.Template] = None,
         save_examples: Optional[bool] = True,
+        description: Optional[str] = None,
+        example_separator: Optional[str] = "\n###\n",
+        text_target_separator: Optional[str] = " ",
     ):
+        """
+        :param save_examples: Optional[bool]
+            Whether to save each example and corresponding model predictions to
+            an output `dict`.
+
+        Few-shot Prompting Args:
+        :param description: Optional[str]
+            The task's description that will be prepended to the few-shot examples.
+        :param example_separator: Optional[str]
+            The string that will be used to separate the few-shot examples from
+            the prompt example.
+            Default: "\n###\n"
+                See Webson & Pavlick (2022) https://arxiv.org/pdf/2109.01247.pdf
+                for justification of this separator.
+        :param text_target_separator: Optional[str]
+            The string that will be used to separate the prompt example from the
+            target text. Example:
+            `Q: Where is the Eiffel Tower located? A:{text_target_separator}Paris`
+        """
         super().__init__(data_dir, cache_dir, download_mode)
         self.prompt_template = prompt_template
         self.save_examples = save_examples
+        self.description = description + "\n\n" if description else ""
+        self.example_separator = example_separator
+        self.text_target_separator = text_target_separator
 
     def stop_sequences(self) -> List[str]:
         """Denote where the generation should end based on the few-shot example
         separator.
 
-        NOTE: Override this if you want to use a different separator for a task.
+        NOTE: Override this if you want to use a sequence other than just the
+        task's few-shot example separator.
         """
-        return ["\n###\n"]
+        return [self.example_separator]
 
     def max_generation_length(self) -> Optional[int]:
         """Denote where the max length of the generation if it is obvious from the task."""
@@ -296,6 +323,10 @@ class PromptSourceTask(Task):
         """
         return False
 
+    def format_example(self, text: str, target: str, separator: str) -> str:
+        """Returns the text and target combined by the specified `separator`"""
+        return text + separator + target
+
     def fewshot_examples(
         self,
         docs: datasets.Dataset,
@@ -311,7 +342,7 @@ class PromptSourceTask(Task):
             The number of few-shot examples.
         :param rng: np.random.Generator
             The pseudo-random number generator used to randomly sample examples.
-        :param prompt: dict
+        :param prompt: Optional[dict]
             The prompt document. Specify this to ensure the prompt is not in
             the set of few-shot examples.
         """
@@ -331,36 +362,23 @@ class PromptSourceTask(Task):
         return fewshot_examples, fewshot_idx
 
     def fewshot_context(
-        self,
-        doc: dict,
-        num_fewshot: int,
-        description: Optional[str] = None,
-        example_separator: Optional[str] = "\n###\n",
-        rng: Optional[np.random.Generator] = None,
+        self, doc: dict, num_fewshot: int, rng: Optional[np.random.Generator]
     ) -> Tuple[str, dict]:
-        """Returns a fewshot context string that is made up of a prepended description
-        (if provided), the `num_fewshot` number of examples, and an appended prompt example.
+        """Returns a few-shot context string made up of a prepended task
+        description (if available), `num_fewshot` number of labeled examples,
+        and an appended prompt example without labeling.
 
         :param doc: dict
             The document as returned from training_docs, validation_docs, or test_docs.
         :param num_fewshot: int
             The number of fewshot examples to provide in the returned context string.
-        :param description: str
-            The task's description that will be prepended to the fewshot examples.
-        :param example_separator: str
-            The string that will be used to separate the fewshot examples from the prompt example.
-            Default: "\n###\n"
-                See Webson & Pavlick (2022) https://arxiv.org/pdf/2109.01247.pdf
-                for justification of this separator.
         :param rng: numpy.random.Generator
-            The pseudo-random number generator used to randomly sample examples.
-            WARNING: This is currently a required arg although it's optionalized with a default `None`.
+            The pseudo-random number generator used to randomly sample few-shot examples.
         :returns: Tuple[str, dict]
             ctx: str
                 The fewshot context.
             logging_info: dict
-                A `dict` of logging info that can be used to identify few-shot
-                sources.
+                A `dict` of logging info that can be used to identify few-shot sources.
         """
         assert (
             rng is not None
@@ -384,15 +402,15 @@ class PromptSourceTask(Task):
                 # Choose 1 random target from multi-reference targets.
                 target_idx = int(rng.integers(0, len(targets)))
                 target = targets[target_idx].strip()
-                labeled_examples_list.append(f"{text} {target}")
+                labeled_examples_list.append(
+                    self.format_example(text, target, self.text_target_separator)
+                )
                 fewshot_target_idx.append(target_idx)
+            labeled_examples = self.example_separator.join(labeled_examples_list)
+            # Leave an extra `example_separator` right before the prompt.
+            labeled_examples += self.example_separator
 
-            labeled_examples = (
-                example_separator.join(labeled_examples_list) + example_separator
-            )
-
-        description = description + "\n\n" if description else ""
-        prompt = self.doc_to_text(doc)
+        description, prompt = self.description, self.doc_to_text(doc)
         ctx = description + labeled_examples + prompt
         logging_info = {
             "fewshot_idx": fewshot_idx,
@@ -415,13 +433,16 @@ class PromptSourceTask(Task):
             part of the document for `doc`.
         :param args: dict
             The specifics of the context, including number of few shots.
+        :returns: iterable of `Request` objects.
         """
         requests = []
         answer_choices_list = self.prompt_template.get_answer_choices_list(doc)
         if answer_choices_list:
             # If answer_choices_list, then this is a ranked choice prompt.
             for answer_choice in answer_choices_list:
-                ll_answer_choice, _ = rf.loglikelihood(ctx, f" {answer_choice}")
+                ll_answer_choice, _ = rf.loglikelihood(
+                    ctx, self.text_target_separator + answer_choice
+                )
                 requests.append(ll_answer_choice)
         else:
             # If not, then this is a generation prompt.
@@ -699,9 +720,7 @@ class PerplexityTask(PromptSourceTask):
         self,
         doc: dict,
         num_fewshot: int,
-        description: Optional[str] = None,
-        example_separator: Optional[str] = "\n###\n",
-        rng: Optional[np.random.Generator] = None,
+        rng: Optional[np.random.Generator],
     ) -> Tuple[str, dict]:
         assert (
             num_fewshot == 0
