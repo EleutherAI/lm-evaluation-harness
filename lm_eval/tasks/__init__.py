@@ -116,9 +116,21 @@ TASK_REGISTRY = {
     "xquad_ar": xquad.XQuADArabic,
     # PIAF
     "piaf": piaf.PIAF,
-    # TyDi QA
-    "tydiqa_primary": tydiqa.TyDiQAPrimaryClassification,
-    "tydiqa_secondary": tydiqa.TyDiQAGoldPGeneration,
+    # GEM/WebNLG
+    # Format: `GEM/web_nlg_{webnlg.subset_name}_{split}`
+    **gem_webnlg.construct_tasks(),
+    # GEM/WikiAssetTurk
+    # Format: `GEM/wiki_auto_asset_turk_{split}`
+    **gem_asset_turk.construct_tasks(),
+    # GEM WikiLingua
+    # Format: `GEM/wiki_lingua_{lang}`
+    **gem_wikilingua.construct_tasks(),
+    # Flores101
+    # Format: `gsarti/flores_101_{lang}`
+    **flores_101.construct_tasks(),
+    # WMT
+    # Format: `wmt{year}_{lang1}_{lang2}`
+    **wmt.construct_tasks(),
     # BLiMP
     "blimp_adjunct_island": blimp.BlimpAdjunctIsland,
     "blimp_anaphor_gender_agreement": blimp.BlimpAnaphorGenderAgreement,
@@ -187,21 +199,9 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
-    # GEM/WebNLG
-    # Format: `GEM/web_nlg_{webnlg.subset_name}_{split}`
-    **gem_webnlg.construct_tasks(),
-    # GEM/WikiAssetTurk
-    # Format: `GEM/wiki_auto_asset_turk_{split}`
-    **gem_asset_turk.construct_tasks(),
-    # GEM WikiLingua
-    # Format: `GEM/wiki_lingua_{lang}`
-    **gem_wikilingua.construct_tasks(),
-    # Flores101
-    # Format: `gsarti/flores_101_{lang}`
-    **flores_101.construct_tasks(),
-    # WMT
-    # Format: `wmt{year}_{lang1}_{lang2}`
-    **wmt.construct_tasks(),
+    # TyDi QA
+    "tydiqa_primary": tydiqa.TyDiQAPrimaryClassification,
+    "tydiqa_secondary": tydiqa.TyDiQAGoldPGeneration,
     #######################################################
     # TODO: Not Yet Available in `promptsource/eval-hackathon`
     ########################################################
