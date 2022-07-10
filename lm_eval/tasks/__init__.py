@@ -200,7 +200,7 @@ TASK_REGISTRY = {
     # Format: `gsarti/flores_101_{lang}`
     **flores_101.construct_tasks(),
     # WMT
-    # Format: `wmt{year}_{lang1}-{lang2}`
+    # Format: `wmt{year}_{lang1}_{lang2}`
     **wmt.construct_tasks(),
     #######################################################
     # TODO: Not Yet Available in `promptsource/eval-hackathon`
