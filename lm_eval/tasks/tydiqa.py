@@ -53,7 +53,7 @@ class TyDiQAPrimaryClassification(PromptSourceTask):
         # This means the prompt will never produce an input and target.
         # TODO: Remove this when fixed in `promptsource`
         try:
-            text, _ = self.prompt_template.apply(doc)
+            text, target = self.prompt_template.apply(doc)
             return False
         except Exception:
             return True
@@ -156,7 +156,7 @@ class TyDiQAGoldPGeneration(PromptSourceTask):
         # TODO: Remove this when fixed in `promptsource`
         try:
             # Ensure the `apply` returns 2 values.
-            text, _ = self.prompt_template.apply(doc)
+            text, target = self.prompt_template.apply(doc)
             return False
         except Exception:
             return True

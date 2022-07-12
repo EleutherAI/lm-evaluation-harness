@@ -65,7 +65,7 @@ class E2E_NLG_Cleaned(PromptSourceTask):
         # This means the prompt will never produce an input and target.
         # TODO: Remove this when fixed in `promptsource`
         try:
-            self.prompt_template.apply(doc)
+            text, target = self.prompt_template.apply(doc)
             return (
                 self.prompt_template.name.endswith("_qa")
                 or self.prompt_template.name == "family_friendly_yes_no"

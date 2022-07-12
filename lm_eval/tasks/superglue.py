@@ -142,7 +142,7 @@ class Copa(PromptSourceTask):
         # This means the prompt will never produce an input and target.
         # TODO: Remove this when fixed in `promptsource`
         try:
-            self.prompt_template.apply(doc)
+            text, target = self.prompt_template.apply(doc)
             return False
         except Exception:
             return True
