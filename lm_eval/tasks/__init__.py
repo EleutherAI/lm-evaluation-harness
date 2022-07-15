@@ -261,9 +261,6 @@ def get_task_dict(task_name_list: List[Union[str, lm_eval.api.task.Task]]):
     return {**task_name_dict, **task_name_from_object_dict}
 
 
-def check_prompt():
-    return
-
 def get_task_dict_promptsource(task_name_list: List[str], prompts=None):
     """Loads a task instance for each prompt written for that task."""
     task_name_dict = {}
