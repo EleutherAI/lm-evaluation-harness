@@ -1,4 +1,3 @@
-from ast import Not
 import logging
 from typing import List, Union
 from promptsource.templates import DatasetTemplates
