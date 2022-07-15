@@ -16,6 +16,7 @@ def parse_args():
     parser.add_argument("--model", required=True)
     parser.add_argument("--model_args", default="")
     parser.add_argument("--tasks", default="all_tasks")
+    parser.add_argument("--prompts", default=None)
     parser.add_argument("--num_fewshot", type=int, default=0)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--batch_size", type=int, default=None)
@@ -32,6 +33,7 @@ def parse_args():
     )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--no_cache", action="store_true")
+    parser.add_argument("--no_tracking", action="store_true")
     return parser.parse_args()
 
 
@@ -96,12 +98,12 @@ def main():
     else:
         task_names = args.tasks.split(",")
 
-    output_path = args_to_name(args)
-    setup_example_logger(output_path)
+    if args.prompts is not None:
+        prompts = args.prompts.split(",")
 
+    output_path = args_to_name(args)
     print()  # Ensure a newline after `main` command.
-    with OfflineEmissionsTracker(country_iso_code="FRA", log_level="error"):
-        print()  # Add newline between emissions tracker and evaluation logging.
+    if args.no_tracking:
         results = evaluator.simple_evaluate(
             model=args.model,
             model_args=args.model_args,
@@ -112,7 +114,24 @@ def main():
             no_cache=args.no_cache,
             limit=args.limit,
             seed=args.seed,
+            prompts=prompts,
         )
+    else:
+        setup_example_logger(output_path)
+        with OfflineEmissionsTracker(country_iso_code="FRA", log_level="error"):
+            print()  # Add newline between emissions tracker and evaluation logging.
+            results = evaluator.simple_evaluate(
+                model=args.model,
+                model_args=args.model_args,
+                tasks=task_names,
+                num_fewshot=args.num_fewshot,
+                batch_size=args.batch_size,
+                device=args.device,
+                no_cache=args.no_cache,
+                limit=args.limit,
+                seed=args.seed,
+                prompts=prompts,
+            )
 
     with open(f"./outputs/agg-{output_path}.json", "w") as f:
         json.dump({"results": results["results"], "config": results["config"]}, f)
@@ -123,8 +142,10 @@ def main():
         json.dump(agg2slim(results), f, indent=2)
 
     print(f"\n{evaluator.make_table(results)}")
-    emissions_output_path = f"./outputs/emissions-{output_path}.csv"
-    os.rename("emissions.csv", emissions_output_path)
+
+    if not args.no_tracking:
+        emissions_output_path = f"./outputs/emissions-{output_path}.csv"
+        os.rename("emissions.csv", emissions_output_path)
 
 
 if __name__ == "__main__":

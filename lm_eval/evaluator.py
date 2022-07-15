@@ -29,6 +29,7 @@ def simple_evaluate(
     bootstrap_iters: Optional[int] = 100000,
     limit: Optional[int] = None,
     seed: Optional[int] = 1234,
+    prompts: Optional[List[Union[str, int]]] = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -54,6 +55,8 @@ def simple_evaluate(
         Limit the number of examples per task (only use this for testing)
     :param seed: int
         Random seed.
+    :param prompts: List
+        Subselect prompts
     :return
         Dictionary of results
     """
@@ -77,7 +80,7 @@ def simple_evaluate(
         cache_location = f"lm_cache/{model}_{cache_args}.db"
         lm = lm_eval.api.model.CachingLM(lm, cache_location)
 
-    task_dict = lm_eval.tasks.get_task_dict_promptsource(tasks)
+    task_dict = lm_eval.tasks.get_task_dict_promptsource(tasks, prompts=prompts)
 
     results = evaluate(
         lm=lm,

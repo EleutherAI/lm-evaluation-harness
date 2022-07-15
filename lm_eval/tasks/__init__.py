@@ -1,3 +1,4 @@
+from ast import Not
 import logging
 from typing import List, Union
 from promptsource.templates import DatasetTemplates
@@ -260,7 +261,10 @@ def get_task_dict(task_name_list: List[Union[str, lm_eval.api.task.Task]]):
     return {**task_name_dict, **task_name_from_object_dict}
 
 
-def get_task_dict_promptsource(task_name_list: List[str]):
+def check_prompt():
+    return
+
+def get_task_dict_promptsource(task_name_list: List[str], prompts=None):
     """Loads a task instance for each prompt written for that task."""
     task_name_dict = {}
 
@@ -280,7 +284,13 @@ def get_task_dict_promptsource(task_name_list: List[str]):
             ps_task_name += static_task_obj.DATASET_NAME
 
             task_prompts = DatasetTemplates(ps_task_name)
-            for template_name in task_prompts.all_template_names:
+            for i, template_name in enumerate(task_prompts.all_template_names):
+                if isinstance(prompts, list):
+                    if not(isinstance(prompts[0], int) and i in prompts) and \
+                    not(isinstance(prompts[0], str) and template_name in prompts):
+                        logger.warning(f"Skipping prompt {template_name} of task {task_name}")
+                        continue
+
                 prompt_template = task_prompts[template_name]
                 # NOTE: We choose a sep that can be easily split.
                 task_name_dict[f"{task_name}+{template_name}"] = get_task(task_name)(
@@ -296,7 +306,13 @@ def get_task_dict_promptsource(task_name_list: List[str]):
             ps_task_name = f"{static_task_obj.DATASET_PATH}{sub_task}"
 
             task_prompts = DatasetTemplates(ps_task_name)
-            for template_name in task_prompts.all_template_names:
+            for i, template_name in enumerate(task_prompts.all_template_names):
+                if isinstance(prompts, list):
+                    assert template_name.isnumeric() is False
+                    if (str(i) not in prompts) and (template_name not in prompts):
+                        print(f"Skipping {template_name} from task {task_name}")
+                        continue
+
                 prompt_template = task_prompts[template_name]
                 # NOTE: We choose a sep that can be easily split.
                 task_name_dict[f"{task_name}+{template_name}"] = get_task(task_name)(
