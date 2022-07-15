@@ -70,16 +70,13 @@ class OpenAICompletionsLM(TokenLM):
         device: Optional[str] = None,
         batch_size: Optional[int] = 20,
         max_gen_toks: Optional[int] = 256,
-        parallelize: Optional[bool] = False,
     ):
         """
         :param engine: str
             OpenAI API engine (e.g. `davinci`)
         """
         super().__init__()
-
         assert device is None, "Can't specify `device` in the OpenAI API."
-        assert parallelize is False, "Can't specify `parallelize` in the OpenAI API."
 
         import openai
 
