@@ -282,6 +282,7 @@ def get_task_dict_promptsource(task_name_list: List[str], prompts=None):
             task_prompts = DatasetTemplates(ps_task_name)
             for i, template_name in enumerate(task_prompts.all_template_names):
                 if isinstance(prompts, list):
+                    assert template_name.isnumeric() is False
                     if not(isinstance(prompts[0], int) and i in prompts) and \
                     not(isinstance(prompts[0], str) and template_name in prompts):
                         logger.warning(f"Skipping prompt {template_name} of task {task_name}")
