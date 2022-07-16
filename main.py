@@ -34,6 +34,7 @@ def parse_args():
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--no_cache", action="store_true")
     parser.add_argument("--no_tracking", action="store_true")
+    parser.add_argument("--bootstrap_iters", type=int, default=100000)
     return parser.parse_args()
 
 
@@ -115,6 +116,7 @@ def main():
             limit=args.limit,
             seed=args.seed,
             prompts=prompts,
+            bootstrap_iters=args.bootstrap_iters,
         )
     else:
         setup_example_logger(output_path)
@@ -131,6 +133,7 @@ def main():
                 limit=args.limit,
                 seed=args.seed,
                 prompts=prompts,
+                bootstrap_iters=args.bootstrap_iters,
             )
 
     with open(f"./outputs/agg-{output_path}.json", "w") as f:
