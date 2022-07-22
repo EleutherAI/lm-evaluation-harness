@@ -114,10 +114,8 @@ def get_rolling_token_windows(token_list, prefix_token, max_seq_len, context_len
 
 def make_disjoint_window(pair):
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
-
     a, b = pair
-
-    return a[: -(len(b) - 1)], b
+    return a[: len(a) - (len(b) - 1)], b
 
 
 class Reorderer:
