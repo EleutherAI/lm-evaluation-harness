@@ -219,3 +219,4 @@ def test_make_disjoint_window():
         [2, 3, 4, 5, 6],
     )
     assert make_disjoint_window(([1, 2, 3, 4, 5], [4, 5, 6])) == ([1, 2, 3], [4, 5, 6])
+    assert make_disjoint_window(([1, 2, 3, 4, 5], [6])) == ([1, 2, 3, 4, 5], [6])
