@@ -78,7 +78,7 @@ def parse_args():
     )
     parser.add_argument(
         "--use_cache",
-        action="store_false",
+        action="store_true",
         help="Whether to cache your model's predictions or not",
     )
     return parser.parse_args()
