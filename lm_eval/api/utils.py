@@ -223,6 +223,38 @@ def group(arr: Iterable, fn: Callable) -> List:
 # CLI utils
 
 
+def cli_template_names(task_name: str, template_names: str) -> List[str]:
+    """Returns a selection of template names for a given task and comma-
+    separated string of template names.
+
+    Example: `cli_template_names("task", "A,B,C")` -> `["A", "B", "C"]`.
+
+    Args:
+        - task_name: Name of the task from which to retrieve template names.
+        - template_names: A string of template names separated by a comma if
+            multiple names are given.
+            General Selectors:
+            - "all_templates": Returns all templates for the task.
+            - "original_templates": Returns all templates with formatting that
+                matches the original task design.
+    """
+    import lm_eval.tasks
+
+    if template_names == "all_templates":
+        selections = lm_eval.tasks.list_templates(task_name)
+    elif template_names == "original_templates":
+        templates = lm_eval.tasks.get_templates(task_name)
+        selections = []
+        for name in templates.all_template_names:
+            if templates[name].metadata.original_task is True:
+                selections.append(name)
+        if not selections:
+            raise ValueError(f"No original task templates found for {task_name}")
+    else:
+        selections = template_names.split(",")
+    return selections
+
+
 def parse_cli_args_string(args: str) -> dict:
     """Parses a string in the following format to a kwargs dictionary.
     "args1=val1,arg2=val2"

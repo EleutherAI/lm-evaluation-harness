@@ -2,7 +2,7 @@ import random
 import transformers
 from typing import List, Tuple
 
-from lm_eval import tasks, evaluator
+import lm_eval
 from lm_eval.api.model import LM
 
 
@@ -11,10 +11,6 @@ class DryrunLM(LM):
         self.tokencost = 0
         self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained("gpt2")
         self.tokenizer.pad_token = "<|endoftext|>"
-
-    @classmethod
-    def create_from_arg_string(cls, arg_string):
-        return cls()
 
     def loglikelihood(self, requests):
         res = []
@@ -46,9 +42,9 @@ def main():
     values = []
     for task_name in task_list.split(","):
         lm.tokencost = 0
-        evaluator.evaluate(
-            lm=lm,
-            task_dict={task_name: tasks.get_task(task_name)()},
+        lm_eval.evaluate(
+            model=lm,
+            tasks=[lm_eval.get_task(task_name)],
             num_fewshot=0,
             limit=None,
             bootstrap_iters=10,

@@ -4,11 +4,8 @@ import os
 import json
 import hashlib
 import collections
-from typing import List
 
-import lm_eval.tasks as tasks
-import lm_eval.models as models
-import lm_eval.evaluator as evaluator
+import lm_eval
 
 
 def _assert_target(name, ob):
@@ -64,8 +61,8 @@ def _flatten(d, parent_key="", sep="."):
 # @pytest.mark.parametrize("task_name,task_class", tasks.TASK_REGISTRY.items())
 def test_versions_stable(task_name, task_class):
     os.makedirs("tests/testdata", exist_ok=True)
-    task_dict = tasks.get_task_dict([task_name])
-    lm = models.get_model("dummy")()
+    task = lm_eval.get_task(task_name)
+    model = lm_eval.get_model("dummy")
 
     def ll_fn(requests):
         for ctx, cont in requests:
@@ -113,14 +110,14 @@ def test_versions_stable(task_name, task_class):
 
         return res
 
-    lm.loglikelihood = ll_fn
-    lm.loglikelihood_rolling = ll_perp_fn
-    lm.greedy_until = greedy_until
+    model.loglikelihood = ll_fn
+    model.loglikelihood_rolling = ll_perp_fn
+    model.greedy_until = greedy_until
 
     limit = None
-    result = evaluator.evaluate(
-        lm=lm,
-        task_dict=task_dict,
+    result = lm_eval.evaluate(
+        model=model,
+        tasks=[task],
         num_fewshot=0,
         limit=limit,
         bootstrap_iters=10,

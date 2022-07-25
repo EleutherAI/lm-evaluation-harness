@@ -3,11 +3,11 @@ import numpy as np
 import random
 import pytest
 
+import lm_eval
 import lm_eval.tasks as tasks
 import lm_eval.api.model as model
 import lm_eval.models as models
 import lm_eval.evaluator as evaluator
-from lm_eval.api.task import PerplexityTask
 from lm_eval.api.utils import set_seed
 
 
@@ -43,38 +43,31 @@ def _ll_perp_fn(requests):
     return res
 
 
-@pytest.mark.parametrize("task_name,task_class", tasks.TASK_REGISTRY.items())
-def test_evaluator(task_name, task_class):
+@pytest.mark.parametrize("task_name", lm_eval.list_tasks())
+def test_evaluator(task_name):
     set_seed(_SEED)
-    task_class = tasks.get_task(task_name)
-    templates = tasks.get_task_templates(task_class)
+    template_names = tasks.list_templates(task_name)
     # Only choose 1 promptsource template.
-    if templates.all_template_names:
-        prompt_name = templates.all_template_names[0]
-        prompt = templates[prompt_name]
-        task_dict = {f"{task_name}+{prompt_name}": task_class(prompt_template=prompt)}
-    elif issubclass(task_class, PerplexityTask):
-        task_dict = {f"{task_name}+null": task_class()}
-    else:
-        assert False, "No templates for task"
+    template_name = template_names[0] if template_names else None
+    task = tasks.get_task(task_name, template_name)
 
     os.system("rm test_cache.db")
-    lm = model.CachingLM(models.get_model("dummy")(), "test_cache.db")
+    lm = model.CachingLM(models.get_model("dummy"), "test_cache.db")
     lm.loglikelihood = _ll_fn
     lm.loglikelihood_rolling = _ll_perp_fn
 
     limit = 5
     e1 = evaluator.evaluate(
-        lm=lm,
-        task_dict=task_dict,
+        model=lm,
+        tasks=[task],
         num_fewshot=0,
         bootstrap_iters=10,
         limit=limit,
         rng=np.random.default_rng(_SEED),
     )["results"]
     e2 = evaluator.evaluate(
-        lm=lm,
-        task_dict=task_dict,
+        model=lm,
+        tasks=[task],
         num_fewshot=0,
         bootstrap_iters=10,
         limit=limit,

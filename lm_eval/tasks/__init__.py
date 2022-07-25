@@ -1,13 +1,12 @@
 import logging
-from typing import List, Union
+from typing import List, Tuple, Type, Union
 from promptsource.templates import DatasetTemplates
 
-import lm_eval.api.task
+from lm_eval.api.task import Task
 
 from . import anli
 from . import blimp
 from . import diabla
-from . import flores_101_mt
 from . import cnn_dailymail
 from . import coqa
 from . import crd3
@@ -109,13 +108,15 @@ TASK_REGISTRY = {
     "crd3": crd3.CRD3,
     # DiaBLa
     "diabla": diabla.DiaBLa,
-    # Flores 101 (MT)
-    "flores_101_mt": flores_101_mt.Flores_101_mt,
     # XQuAD
     "xquad_en": xquad.XQuADEnglish,
     "xquad_ar": xquad.XQuADArabic,
     # PIAF
     "piaf": piaf.PIAF,
+    # Flores 101 (MT)
+    "flores_101_mt": flores_101.Flores101MT,
+    # Flores101 (Perplexity)
+    "flores_101_ppl": flores_101.Flores101Perplexity,
     # GEM/WebNLG
     # Format: `GEM/web_nlg_{webnlg.subset_name}_{split}`
     **gem_webnlg.construct_tasks(),
@@ -125,9 +126,6 @@ TASK_REGISTRY = {
     # GEM WikiLingua
     # Format: `GEM/wiki_lingua_{lang}`
     **gem_wikilingua.construct_tasks(),
-    # Flores101
-    # Format: `gsarti/flores_101_{lang}`
-    **flores_101.construct_tasks(),
     # WMT
     # Format: `wmt{year}_{lang1}_{lang2}`
     **wmt.construct_tasks(),
@@ -221,96 +219,109 @@ TASK_REGISTRY = {
 }
 
 
-ALL_TASKS = sorted(list(TASK_REGISTRY))
+def list_tasks() -> List[str]:
+    """Returns a list of all the available tasks by name."""
+    return sorted(list(TASK_REGISTRY))
 
 
-def get_task(task_name):
+def get_task(task_name: str, template_name: str, **task_kwargs) -> Task:
+    """Returns a task from the registry and instantiates it with the `promptsource`
+    template specified by `template_name`.
+
+    Args:
+        task_name: Name of the task to load from the task registry.
+        template_name: Name of the prompt template from `promptsource` to use
+            for this task.
+        **task_kwargs: Keyword arguments to pass to the task constructor. See constructor
+            args for `lm_eval.api.task.Task`.
+    """
+    task_class = _get_task_from_registry(task_name)
+    template = get_templates(task_name)[template_name]
+    return task_class(prompt_template=template, **task_kwargs)
+
+
+def get_task_list(
+    task_name: str, template_names: List[str], **task_kwargs
+) -> List[Task]:
+    """Returns a list of the same task but with multiple prompt templates.
+
+    Args:
+        task_name: Name of the task to load from the task registry.
+        template_names: Name of the prompt template from `promptsource` to use
+            for this task.
+        **task_kwargs: Keyword arguments to pass to the task constructor. See constructor
+            args for `lm_eval.api.task.Task`.
+    """
+    assert template_names, "Must specify at least one template name"
+    template_names = sorted(set(template_names))
+    return [get_task(task_name, t, **task_kwargs) for t in template_names]
+
+
+def list_templates(task_name: str) -> List[str]:
+    """Returns all template names available in `promptsource` for a given task."""
+    templates = get_templates(task_name)
+    return sorted(templates.all_template_names)
+
+
+def get_templates(task_name: str) -> DatasetTemplates:
+    """Returns the `promptsource` `DatasetTemplates` for the specified task name."""
+    task_class = _get_task_from_registry(task_name)
+    return _get_templates_from_task(task_class)
+
+
+# Helper functions
+
+
+def _get_task_from_registry(task_name: str) -> Type[Task]:
     try:
         return TASK_REGISTRY[task_name]
     except KeyError:
-        logging.warn(f"Available tasks:\n{ALL_TASKS}")
-        raise KeyError(f"Task `{task_name}` is missing.")
+        logger.warning(f"Available tasks:\n{list_tasks()}")
+        raise KeyError(f"`{task_name}` is missing from the task registry.")
 
 
-def get_task_name_from_object(task_object):
-    for name, class_ in TASK_REGISTRY.items():
-        if class_ is task_object:
-            return name
-
-    # this gives a mechanism for non-registered tasks to have a custom name anyways when reporting
-    return (
-        task_object.EVAL_HARNESS_NAME
-        if hasattr(task_object, "EVAL_HARNESS_NAME")
-        else type(task_object).__name__
+def _get_templates_from_task(task: Union[Task, Type[Task]]) -> DatasetTemplates:
+    dataset_name = (
+        task.DATASET_PATH
+        if task.DATASET_NAME is None
+        else f"{task.DATASET_PATH}/{task.DATASET_NAME}"
     )
+    return DatasetTemplates(dataset_name)
 
 
-def get_task_dict(task_name_list: List[Union[str, lm_eval.api.task.Task]]):
-    task_name_dict = {
-        task_name: get_task(task_name)()
-        for task_name in task_name_list
-        if isinstance(task_name, str)
-    }
-    task_name_from_object_dict = {
-        get_task_name_from_object(task_object): task_object
-        for task_object in task_name_list
-        if not isinstance(task_object, str)
-    }
-    assert set(task_name_dict.keys()).isdisjoint(set(task_name_from_object_dict.keys()))
-    return {**task_name_dict, **task_name_from_object_dict}
+# TODO(jon-tow): Refactor everything below! These functions are only required
+# b/c the task registry is non-uniformly hard-coded.
 
 
-def get_task_dict_promptsource(task_name_list: List[str]):
-    """Loads a task instance for each prompt written for that task."""
-    task_name_dict = {}
-
-    for task_name in task_name_list:
-        assert isinstance(task_name, str)
-
-        # Static version of the Task Use this to get HF dataset path / name.
-        static_task_obj = get_task(task_name)
-        if issubclass(static_task_obj, lm_eval.api.task.BioTask):
-            # Create the proper task name arg for DatasetTemplates.
-            sub_task = (
-                f"/{static_task_obj.DATASET_NAME}"
-                if static_task_obj.DATASET_NAME
-                else ""
-            )
-            ps_task_name = static_task_obj.DATASET_PATH.split("/")[-1] + "/"
-            ps_task_name += static_task_obj.DATASET_NAME
-
-            task_prompts = DatasetTemplates(ps_task_name)
-            for template_name in task_prompts.all_template_names:
-                prompt_template = task_prompts[template_name]
-                # NOTE: We choose a sep that can be easily split.
-                task_name_dict[f"{task_name}+{template_name}"] = get_task(task_name)(
-                    prompt_template=prompt_template
-                )
-        elif issubclass(static_task_obj, lm_eval.api.task.PromptSourceTask):
-            # Create the proper task name arg for DatasetTemplates.
-            sub_task = (
-                f"/{static_task_obj.DATASET_NAME}"
-                if static_task_obj.DATASET_NAME
-                else ""
-            )
-            ps_task_name = f"{static_task_obj.DATASET_PATH}{sub_task}"
-
-            task_prompts = DatasetTemplates(ps_task_name)
-            for template_name in task_prompts.all_template_names:
-                prompt_template = task_prompts[template_name]
-                # NOTE: We choose a sep that can be easily split.
-                task_name_dict[f"{task_name}+{template_name}"] = get_task(task_name)(
-                    prompt_template=prompt_template
-                )
-        else:
-            # This is a task with a null prompt.
-            # Right now, the only use case are `PerplexityTask`s.
-            task_name_dict[f"{task_name}+null"] = static_task_obj()
-    return task_name_dict
+# TODO(jon-tow): Remove this function after refactoring the task registry to use
+# `Task` object __str__ representations for task names as opposed to
+# hardcoded string keys.
+def get_registry_name_from_task(task: Task) -> str:
+    """Returns the task registry name from a Task instance."""
+    for name, class_ in TASK_REGISTRY.items():
+        if isinstance(task, class_):
+            return name
+    # This gives a mechanism for non-registered tasks to have a custom name anyways when reporting.
+    return type(task).__name__
 
 
-def get_task_templates(task: lm_eval.api.task.PromptSourceTask) -> DatasetTemplates:
-    """Returns the `promptsource.DatasetTemplates` for a `PromptSourceTask."""
-    sub_task = f"/{task.DATASET_NAME}" if task.DATASET_NAME else ""
-    ps_task_name = f"{task.DATASET_PATH}{sub_task}"
-    return DatasetTemplates(ps_task_name)
+_TASK_TEMPLATE_KEY_SEP = "+"
+
+
+def _get_task_template_key(task_name: str, template_name: str) -> str:
+    """Returns a `str` key for a task with that prompt template name appended.
+    This should be used to uniquely identify a task by its name AND
+    its specific prompt template - as a task can have many templates.
+    """
+    if not template_name:
+        # Add `null` prompt template to the key if no template name is specified.
+        template_name = "null"
+    return f"{task_name}{_TASK_TEMPLATE_KEY_SEP}{template_name}"
+
+
+def _split_task_template_key(task_template_key: str) -> Tuple[str, str]:
+    """Splits a task template key as returned from `_get_task_template_key`
+    into it's constituent parts: (task name, template name).
+    """
+    task_name, template_name = task_template_key.split(_TASK_TEMPLATE_KEY_SEP, 1)
+    return task_name, template_name

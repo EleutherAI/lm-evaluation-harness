@@ -13,4 +13,11 @@ esac
 
 task_no_slash=$(basename "$2")
 
-\time -o ../outputs/time-$1.$task_no_slash.txt -f "%E"  python3 -m main --device cuda --tasks $2 --num_fewshot 0 --model hf-causal --model_args pretrained=$MODEL --no_cache --batch_size $3
+\time -o ../outputs/time-$1.$task_no_slash.txt -f "%E"  python3 -m main \
+    --model_api_name 'hf-causal' \
+    --model_args pretrained=$MODEL \
+    --task_name $2 \
+    --num_fewshot 0 \
+    --use_cache \
+    --device cuda \
+    --batch_size $3

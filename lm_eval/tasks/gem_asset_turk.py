@@ -16,6 +16,9 @@ associated with 8 crowdsourced simplifications that focus on only lexical
 paraphrasing (no sentence splitting or deletion).
 https://cocoxu.github.io/publications/tacl2016-smt-simplification.pdf
 """
+from typing import Optional
+from promptsource.templates import Template
+
 from lm_eval.api.task import PromptSourceTask
 
 
@@ -49,14 +52,22 @@ class AssetTurk(PromptSourceTask):
 
     def __init__(
         self,
-        data_dir=None,
-        cache_dir=None,
-        download_mode=None,
-        prompt_template=None,
-        save_examples=True,
+        data_dir: Optional[str] = None,
+        cache_dir: Optional[str] = None,
+        download_mode: Optional[str] = None,
+        prompt_template: Optional[Template] = None,
+        example_separator: Optional[str] = "\n###\n",
+        text_target_separator: Optional[str] = " ",
+        save_examples: Optional[bool] = True,
     ):
         super().__init__(
-            data_dir, cache_dir, download_mode, prompt_template, save_examples
+            data_dir=data_dir,
+            cache_dir=cache_dir,
+            download_mode=download_mode,
+            prompt_template=prompt_template,
+            example_separator=example_separator,
+            text_target_separator=text_target_separator,
+            save_examples=save_examples,
         )
         # Adding SARI to metrics to list because `promptsource`
         # does not currently support this option.
