@@ -240,6 +240,7 @@ def stderr_for_metric(metric, bootstrap_iters):
         bleu,
         chrf,
         ter,
+        macro_f1_score,
     ]
 
     if metric in bootstrappable:
