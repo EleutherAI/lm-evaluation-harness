@@ -223,7 +223,7 @@ def group(arr: Iterable, fn: Callable) -> List:
 # CLI utils
 
 
-def cli_template_names(task_name: str, template_names: str) -> List[str]:
+def cli_template_names(task_name: str, template_names: str, template_idx: int = None) -> List[str]:
     """Returns a selection of template names for a given task and comma-
     separated string of template names.
 
@@ -252,6 +252,8 @@ def cli_template_names(task_name: str, template_names: str) -> List[str]:
             raise ValueError(f"No original task templates found for {task_name}")
     else:
         selections = template_names.split(",")
+    if template_idx is not None:
+        selections = [selections[template_idx]]
     return selections
 
 

@@ -73,6 +73,7 @@ def parse_args():
     Warning: You currently cannot change/add folder structure.
     """,
     )
+    parser.add_argument("--template_idx", type=int, default=None)
     parser.add_argument("--bootstrap_iters", type=int, default=100000)
     parser.add_argument("--no_tracking", action="store_true")
     parser.add_argument(
@@ -142,7 +143,7 @@ def main():
             "SHOULD NOT BE COMPUTED USING LIMIT."
         )
 
-    template_names = utils.cli_template_names(args.task_name, args.template_names)
+    template_names = utils.cli_template_names(args.task_name, args.template_names, args.template_idx)
     print()  # Ensure a newline after `main` command.
     if args.no_tracking:
         print()  # Add newline between emissions tracker and evaluation logging.
