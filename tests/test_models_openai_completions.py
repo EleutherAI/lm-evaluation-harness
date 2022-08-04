@@ -32,7 +32,9 @@ def _mock_completion(**kwargs):
 def test_openai_completions():
     if "OPENAI_API_SECRET_KEY" not in os.environ:
         os.environ["OPENAI_API_SECRET_KEY"] = ""
-    oa_model = models.get_model("openai").create_from_arg_string("engine=ada")
+    oa_model = models.get_model_from_args_string(
+        model_api_name="openai", model_args="engine=ada"
+    )
     (
         (ll_dog, ig_dog),
         (ll_cat, ig_cat),
@@ -126,7 +128,9 @@ def test_openai_completions():
 def test_openai_completions_perplexity():
     if "OPENAI_API_SECRET_KEY" not in os.environ:
         os.environ["OPENAI_API_SECRET_KEY"] = ""
-    oa_model = models.get_model("openai").create_from_arg_string("engine=ada")
+    oa_model = models.get_model_from_args_string(
+        model_api_name="openai", model_args="engine=ada"
+    )
     test_string = "We study empirical scaling laws for language model performance on the cross-entropy loss."
     perplexity = oa_model.loglikelihood_rolling([(test_string,)])[0]
     tgt = -84.38819608
@@ -139,7 +143,9 @@ def test_openai_completions_perplexity():
         new_callable=mock.PropertyMock,
     ) as mock_max_length:
         mock_max_length.return_value = 5
-        oa_model = models.get_model("openai").create_from_arg_string("engine=ada")
+        oa_model = models.get_model_from_args_string(
+            model_api_name="openai", model_args="engine=ada"
+        )
         perplexity = oa_model.loglikelihood_rolling([(test_string,)])[0]
     tgt = -101.81967209999999
     assert perplexity == pytest.approx(tgt, rel=1e-3)

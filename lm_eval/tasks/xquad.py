@@ -121,12 +121,7 @@ class XQuADEnglish(PromptSourceTask):
             "answers": doc["answers"],
         }
 
-        if self.save_examples:
-            example = {
-                "pred": pred,
-                "target": doc["answers"],
-            }
-        return {
+        out = {
             # Exact match (the normalized answer exactly match the gold answer)
             "exact": (predictions, references),
             # The F-score of predicted tokens versus the gold answer
@@ -143,7 +138,11 @@ class XQuADEnglish(PromptSourceTask):
             "best_exact": (predictions, references),
             # Best F1 (with varying threshold)
             "best_f1": (predictions, references),
-        }, example
+        }
+        if self.save_examples:
+            example = {"pred": pred, "target": doc["answers"]}
+            return out, example
+        return out
 
     def aggregation(self):
         """

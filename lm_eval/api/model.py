@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 from sqlitedict import SqliteDict
 from tqdm import tqdm
-from typing import Iterable, List, Mapping, Optional, Tuple, Union
+from typing import Iterable, List, Optional, Tuple, Union
 from transformers import BatchEncoding
 
 from lm_eval.api import utils
@@ -101,15 +101,6 @@ class LM(abc.ABC):
                 The generated continuation.
         """
         pass
-
-    @classmethod
-    def create_from_arg_string(
-        cls, arg_string: str, additional_config: Optional[Mapping[str, str]] = None
-    ) -> "LM":
-        additional_config = {} if additional_config is None else additional_config
-        args = utils.parse_cli_args_string(arg_string)
-        args2 = {k: v for k, v in additional_config.items() if v is not None}
-        return cls(**args, **args2)
 
     def set_cache_hook(self, cache_hook: "CacheHook"):
         self.cache_hook = cache_hook

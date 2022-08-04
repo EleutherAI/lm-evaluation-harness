@@ -1,6 +1,5 @@
 import unittest.mock as mock
 import pytest
-import torch
 
 import lm_eval.models
 from lm_eval.api.utils import set_seed
@@ -27,8 +26,8 @@ _SEED = 42
 )
 def test_stop_sequences(stop_sequences, test_input, expected):
     set_seed(_SEED)
-    causal_model = lm_eval.models.get_model("hf-causal")(
-        pretrained="gpt2", device=_DEVICE
+    causal_model = lm_eval.models.get_model(
+        "hf-causal", pretrained="gpt2", device=_DEVICE
     )
     inputs = causal_model.tok_encode_batch([test_input])
     input_ids = inputs["input_ids"][
@@ -48,7 +47,8 @@ def test_stop_sequences(stop_sequences, test_input, expected):
 
 def test_causal_model():
     set_seed(_SEED)
-    causal_model = lm_eval.models.get_model("hf-causal")(
+    causal_model = lm_eval.models.get_model(
+        "hf-causal",
         pretrained="gpt2",
         device=_DEVICE,
     )
@@ -140,8 +140,8 @@ def test_causal_model():
 
 
 def test_causal_model_perplexity():
-    causal_model = lm_eval.models.get_model("hf-causal").create_from_arg_string(
-        f"device={_DEVICE},pretrained=gpt2"
+    causal_model = lm_eval.models.get_model_from_args_string(
+        model_api_name="hf-causal", model_args=f"device={_DEVICE},pretrained=gpt2"
     )
     test_string = "We study empirical scaling laws for language model performance on the cross-entropy loss."
     perplexity = causal_model.loglikelihood_rolling([(test_string,)])[0]
@@ -174,8 +174,8 @@ def test_causal_model_perplexity():
         new_callable=mock.PropertyMock,
     ) as mock_max_length:
         mock_max_length.return_value = 5
-        causal_model = lm_eval.models.get_model("hf-causal").create_from_arg_string(
-            f"device={_DEVICE},pretrained=gpt2"
+        causal_model = lm_eval.models.get_model_from_args_string(
+            model_api_name="hf-causal", model_args=f"device={_DEVICE},pretrained=gpt2"
         )
         perplexity = causal_model.loglikelihood_rolling([(test_string,)])[0]
         print(perplexity)

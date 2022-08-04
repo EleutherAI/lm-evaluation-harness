@@ -8,7 +8,6 @@ The dataset contains MR with restaurant attributes and corresponding description
 Homepage: https://github.com/tuetschek/e2e-cleaning
 """
 from lm_eval.api.task import PromptSourceTask
-from lm_eval.api.request import rf
 
 
 _CITATION = """

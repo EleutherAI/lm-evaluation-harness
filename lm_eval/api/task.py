@@ -234,10 +234,9 @@ class PromptSourceTask(Task):
         cache_dir: Optional[str] = None,
         download_mode: Optional[str] = None,
         prompt_template: Optional[promptsource.templates.Template] = None,
-        save_examples: Optional[bool] = True,
-        description: Optional[str] = None,
         example_separator: Optional[str] = "\n###\n",
         text_target_separator: Optional[str] = " ",
+        save_examples: Optional[bool] = True,
     ):
         """
         :param save_examples: Optional[bool]
@@ -245,8 +244,6 @@ class PromptSourceTask(Task):
             an output `dict`.
 
         Few-shot Prompting Args:
-        :param description: Optional[str]
-            The task's description that will be prepended to the few-shot examples.
         :param example_separator: Optional[str]
             The string that will be used to separate the few-shot examples from
             the prompt example.
@@ -261,7 +258,6 @@ class PromptSourceTask(Task):
         super().__init__(data_dir, cache_dir, download_mode)
         self.prompt_template = prompt_template
         self.save_examples = save_examples
-        self.description = description + "\n\n" if description else ""
         self.example_separator = example_separator
         self.text_target_separator = text_target_separator
 
@@ -364,9 +360,8 @@ class PromptSourceTask(Task):
     def fewshot_context(
         self, doc: dict, num_fewshot: int, rng: Optional[np.random.Generator]
     ) -> Tuple[str, dict]:
-        """Returns a few-shot context string made up of a prepended task
-        description (if available), `num_fewshot` number of labeled examples,
-        and an appended prompt example without labeling.
+        """Returns a few-shot context string made up of `num_fewshot` number of
+        labeled examples, and an appended prompt example without labeling.
 
         :param doc: dict
             The document as returned from training_docs, validation_docs, or test_docs.
@@ -410,8 +405,8 @@ class PromptSourceTask(Task):
             # Leave an extra `example_separator` right before the prompt.
             labeled_examples += self.example_separator
 
-        description, prompt = self.description, self.doc_to_text(doc)
-        ctx = description + labeled_examples + prompt
+        prompt = self.doc_to_text(doc)
+        ctx = labeled_examples + prompt
         logging_info = {
             "fewshot_idx": fewshot_idx,
             "fewshot_target_idx": fewshot_target_idx,
@@ -646,15 +641,6 @@ class TranslationTask(PromptSourceTask):
     def process_results(
         self, doc: dict, results: list
     ) -> Union[dict, Tuple[dict, dict]]:
-        """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of sub-metrics and values are the values of
-        the metric for that one document
-
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
-        """
         answer_choices_list = self.prompt_template.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)
 
@@ -694,27 +680,15 @@ class TranslationTask(PromptSourceTask):
         return out
 
 
-class BioTask(PromptSourceTask):
-    """These are the metrics from promptsource that we have
-    added default behavior for. If you want to add default behavior for a new metric,
-    update the functions below. If you want to use one of the following metrics,
-    *and* add additional custom processing, override `process_results`, `higher_is_better`, and `aggregation`.
-    """
-
-    CONFIGURED_RANKED_CHOICE_PS_METRICS = {"Accuracy"}
-    CONFIGURED_GENERATION_PS_METRICS = {"BLEU", "ROUGE", "SARI"}
-    SPLIT = None
-
-
 class PerplexityTask(PromptSourceTask):
+    """NOTE: Prompts are ignored for perplexity tasks."""
+
     def doc_to_text(self, doc: dict) -> str:
         return ""
 
     def doc_to_target(self, doc: dict) -> List[str]:
+        """Because prompts are ignored, return the relevant text from doc."""
         raise NotImplementedError()
-
-    def invalid_doc_for_prompt(self, doc: dict) -> bool:
-        return False
 
     def fewshot_context(
         self,

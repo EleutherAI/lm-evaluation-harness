@@ -8,10 +8,6 @@ class DummyLM(LM):
     def __init__(self):
         super().__init__()
 
-    @classmethod
-    def create_from_arg_string(cls, arg_string, additional_config=None):
-        return cls()
-
     def loglikelihood(
         self, requests: List[Tuple[str, str]]
     ) -> List[Tuple[float, bool]]:

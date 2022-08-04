@@ -223,9 +223,9 @@ class HuggingFaceAutoLM(TokenLM):
     def device(self) -> Union[int, str, torch.device]:
         return self._device
 
-    def tok_encode(self, strings: str) -> TokenSequence:
+    def tok_encode(self, string: str) -> TokenSequence:
         # TODO: Merge `tok_encode_batch` here.
-        return self.tokenizer.encode(strings, add_special_tokens=False)
+        return self.tokenizer.encode(string, add_special_tokens=False)
 
     def tok_encode_batch(self, strings: List[str]) -> TokenSequence:
         return self.tokenizer(
