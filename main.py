@@ -145,6 +145,7 @@ def main():
 
     template_names = utils.cli_template_names(args.task_name, args.template_names, args.template_idx)
     output_path = args_to_name(args)
+    setup_example_logger(output_path)
     print()  # Ensure a newline after `main` command.
     if args.no_tracking:
         print()  # Add newline between emissions tracker and evaluation logging.
@@ -162,7 +163,6 @@ def main():
             bootstrap_iters=args.bootstrap_iters,
         )
     else:
-        setup_example_logger(output_path)
         with OfflineEmissionsTracker(country_iso_code="FRA", log_level="error"):
             print()  # Add newline between emissions tracker and evaluation logging.
             results = evaluator.cli_evaluate(
