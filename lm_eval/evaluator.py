@@ -31,38 +31,7 @@ def cli_evaluate(
     bootstrap_iters: Optional[int] = 100000,
     limit: Optional[int] = None,
     seed: Optional[int] = 1234,
-<<<<<<< HEAD
     prompts: Optional[List[Union[str, int]]] = None,
-):
-    """Instantiate and evaluate a model on a list of tasks.
-
-    :param model: Union[str, lm_eval.api.model.LM]
-        Name of model or LM object, see lm_eval.models.get_model
-    :param model_args: Optional[str]
-        String arguments for each model class, see LM.create_from_arg_string.
-        Ignored if `model` argument is a LM object.
-    :param tasks: list[Union[str, Task]]
-        List of task names or Task objects. Task objects will be taken to have name
-        task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
-    :param num_fewshot: int
-        Number of examples in few-shot context
-    :param batch_size: int, optional
-        Batch size for model
-    :param device: str, optional
-        PyTorch device (e.g. "cpu" or "cuda:0") for running models
-    :param no_cache: bool
-        Whether or not to cache
-    :param bootstrap_iters:
-        Number of iterations for bootstrap statistics
-    :param limit: int, optional
-        Limit the number of examples per task (only use this for testing)
-    :param seed: int
-        Random seed.
-    :param prompts: List
-        Subselect prompts
-    :return
-        Dictionary of results
-=======
 ) -> dict:
     """Evaluate a model from an api on a given task with multiple possible prompt
      formats. This is effectively a wrapper around `evaluate` for command-line
@@ -94,7 +63,6 @@ def cli_evaluate(
          Random seed.
      :return
          Dictionary of results
->>>>>>> master
     """
     set_seed(seed)
 
@@ -105,17 +73,9 @@ def cli_evaluate(
 
     if use_cache:
         cache_args = model_args.replace("=", "-").replace(",", "_").replace("/", "-")
-<<<<<<< HEAD
-        # TODO: Make this path configurable thru an environment var.
-        cache_location = f"lm_cache/{model}_{cache_args}.db"
-        lm = lm_eval.api.model.CachingLM(lm, cache_location)
-
-    task_dict = lm_eval.tasks.get_task_dict_promptsource(tasks, prompts=prompts)
-=======
         # TODO: Make `cache_location` path configurable thru an environment var.
         cache_location = f"lm_cache/{model_api_name}_{cache_args}.db"
         model = lm_eval.api.model.CachingLM(model, cache_location)
->>>>>>> master
 
     results = evaluate(
         model=model,

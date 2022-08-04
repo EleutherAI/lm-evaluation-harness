@@ -319,94 +319,9 @@ def _get_task_template_key(task_name: str, template_name: str) -> str:
     return f"{task_name}{_TASK_TEMPLATE_KEY_SEP}{template_name}"
 
 
-<<<<<<< HEAD
-def get_task_dict(task_name_list: List[Union[str, lm_eval.api.task.Task]]):
-    task_name_dict = {
-        task_name: get_task(task_name)()
-        for task_name in task_name_list
-        if isinstance(task_name, str)
-    }
-    task_name_from_object_dict = {
-        get_task_name_from_object(task_object): task_object
-        for task_object in task_name_list
-        if not isinstance(task_object, str)
-    }
-    assert set(task_name_dict.keys()).isdisjoint(set(task_name_from_object_dict.keys()))
-    return {**task_name_dict, **task_name_from_object_dict}
-
-
-def get_task_dict_promptsource(task_name_list: List[str], prompts=None):
-    """Loads a task instance for each prompt written for that task."""
-    task_name_dict = {}
-
-    for task_name in task_name_list:
-        assert isinstance(task_name, str)
-
-        # Static version of the Task Use this to get HF dataset path / name.
-        static_task_obj = get_task(task_name)
-        if issubclass(static_task_obj, lm_eval.api.task.BioTask):
-            # Create the proper task name arg for DatasetTemplates.
-            sub_task = (
-                f"/{static_task_obj.DATASET_NAME}"
-                if static_task_obj.DATASET_NAME
-                else ""
-            )
-            ps_task_name = static_task_obj.DATASET_PATH.split("/")[-1] + "/"
-            ps_task_name += static_task_obj.DATASET_NAME
-
-            task_prompts = DatasetTemplates(ps_task_name)
-            for i, template_name in enumerate(task_prompts.all_template_names):
-                if isinstance(prompts, list):
-                    assert template_name.isnumeric() is False
-                    if not(isinstance(prompts[0], int) and i in prompts) and \
-                    not(isinstance(prompts[0], str) and template_name in prompts):
-                        logger.warning(f"Skipping prompt {template_name} of task {task_name}")
-                        continue
-
-                prompt_template = task_prompts[template_name]
-                # NOTE: We choose a sep that can be easily split.
-                task_name_dict[f"{task_name}+{template_name}"] = get_task(task_name)(
-                    prompt_template=prompt_template
-                )
-        elif issubclass(static_task_obj, lm_eval.api.task.PromptSourceTask):
-            # Create the proper task name arg for DatasetTemplates.
-            sub_task = (
-                f"/{static_task_obj.DATASET_NAME}"
-                if static_task_obj.DATASET_NAME
-                else ""
-            )
-            ps_task_name = f"{static_task_obj.DATASET_PATH}{sub_task}"
-
-            task_prompts = DatasetTemplates(ps_task_name)
-            for i, template_name in enumerate(task_prompts.all_template_names):
-                if isinstance(prompts, list):
-                    assert template_name.isnumeric() is False
-                    if (str(i) not in prompts) and (template_name not in prompts):
-                        print(f"Skipping {template_name} from task {task_name}")
-                        continue
-
-                prompt_template = task_prompts[template_name]
-                # NOTE: We choose a sep that can be easily split.
-                task_name_dict[f"{task_name}+{template_name}"] = get_task(task_name)(
-                    prompt_template=prompt_template
-                )
-        else:
-            # This is a task with a null prompt.
-            # Right now, the only use case are `PerplexityTask`s.
-            task_name_dict[f"{task_name}+null"] = static_task_obj()
-    return task_name_dict
-
-
-def get_task_templates(task: lm_eval.api.task.PromptSourceTask) -> DatasetTemplates:
-    """Returns the `promptsource.DatasetTemplates` for a `PromptSourceTask."""
-    sub_task = f"/{task.DATASET_NAME}" if task.DATASET_NAME else ""
-    ps_task_name = f"{task.DATASET_PATH}{sub_task}"
-    return DatasetTemplates(ps_task_name)
-=======
 def _split_task_template_key(task_template_key: str) -> Tuple[str, str]:
     """Splits a task template key as returned from `_get_task_template_key`
     into it's constituent parts: (task name, template name).
     """
     task_name, template_name = task_template_key.split(_TASK_TEMPLATE_KEY_SEP, 1)
     return task_name, template_name
->>>>>>> master
