@@ -31,7 +31,6 @@ def cli_evaluate(
     bootstrap_iters: Optional[int] = 100000,
     limit: Optional[int] = None,
     seed: Optional[int] = 1234,
-    prompts: Optional[List[Union[str, int]]] = None,
 ) -> dict:
     """Evaluate a model from an api on a given task with multiple possible prompt
      formats. This is effectively a wrapper around `evaluate` for command-line

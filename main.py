@@ -73,7 +73,6 @@ def parse_args():
     Warning: You currently cannot change/add folder structure.
     """,
     )
-    parser.add_argument("--prompts", default=None)
     parser.add_argument("--bootstrap_iters", type=int, default=100000)
     parser.add_argument("--no_tracking", action="store_true")
     parser.add_argument(
@@ -158,7 +157,6 @@ def main():
             use_cache=args.use_cache,
             limit=args.limit,
             seed=args.seed,
-            prompts=args.prompts,
             bootstrap_iters=args.bootstrap_iters,
         )
     else:
@@ -177,7 +175,6 @@ def main():
                 use_cache=args.use_cache,
                 limit=args.limit,
                 seed=args.seed,
-                prompts=args.prompts,
                 bootstrap_iters=args.bootstrap_iters,
             )
 
