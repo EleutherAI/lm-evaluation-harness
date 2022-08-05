@@ -73,7 +73,7 @@ def parse_args():
     Warning: You currently cannot change/add folder structure.
     """,
     )
-    parser.add_argument("--template_idx", type=int, default=None)
+    parser.add_argument("--template_idx", type=int, default=None, help="Choose template by index from available templates")
     parser.add_argument("--bootstrap_iters", type=int, default=100000, help="Iters for stderr computation")
     parser.add_argument("--no_tracking", action="store_true", help="Skip carbon emission tracking")
     parser.add_argument(
