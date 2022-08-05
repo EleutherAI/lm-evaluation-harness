@@ -74,8 +74,8 @@ def parse_args():
     """,
     )
     parser.add_argument("--template_idx", type=int, default=None)
-    parser.add_argument("--bootstrap_iters", type=int, default=100000)
-    parser.add_argument("--no_tracking", action="store_true")
+    parser.add_argument("--bootstrap_iters", type=int, default=100000, help="Iters for stderr computation")
+    parser.add_argument("--no_tracking", action="store_true", help="Skip carbon emission tracking")
     parser.add_argument(
         "--seed", type=int, default=1234, help="The seed to be put through all RNGs"
     )
