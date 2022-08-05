@@ -162,7 +162,6 @@ def main():
     setup_example_logger(output_path)
     print()  # Ensure a newline after `main` command.
     if args.no_tracking:
-        print()  # Add newline between emissions tracker and evaluation logging.
         results = evaluator.cli_evaluate(
             model_api_name=args.model_api_name,
             model_args=args.model_args,
