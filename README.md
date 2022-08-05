@@ -83,7 +83,7 @@ optional arguments:
                         - Default: `all_templates`
                         - General Selectors:
                             - `"all_templates"`: Selects all templates for the task
-                            - `"original_templates"`: Selects only templates that are 
+                            - `"original_templates"`: Selects only templates that are
                                 designed to match the original task
   --num_fewshot NUM_FEWSHOT
   --batch_size BATCH_SIZE
