@@ -160,6 +160,7 @@ def main():
     )
     output_path = args_to_name(args)
     setup_example_logger(output_path)
+
     print()  # Ensure a newline after `main` command.
     if args.no_tracking:
         results = evaluator.cli_evaluate(
