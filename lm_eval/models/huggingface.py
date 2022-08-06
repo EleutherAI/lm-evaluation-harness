@@ -371,12 +371,10 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             ]
             context_enc = self.tok_encode_batch(context)
             for key in context_enc:
-                context_enc[key] = context_enc[key][:, -(self.max_length - 1) :]
+                context_enc[key] = context_enc[key][:, -self.max_length :]
             continuation_enc = self.tok_encode_batch(list(continuation))
             for key in continuation_enc:
-                continuation_enc[key] = continuation_enc[key][
-                    :, -(self.max_length - 1) :
-                ]
+                continuation_enc[key] = continuation_enc[key][:, -self.max_length :]
             new_requests.append(
                 ((context, continuation), context_enc, continuation_enc)
             )
@@ -453,7 +451,10 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             )
             for cache_key, log_softmax, target_tokens, target_mask in output_iterator:
                 length = target_mask.sum()
+                print("target_mask", target_mask)
+                print("logit size:", log_softmax.shape)
                 log_softmax = log_softmax[:length]
+                print("truncated logit size:", log_softmax.shape)
                 target_tokens = target_tokens[:length]
                 greedy_tokens = log_softmax.argmax(dim=-1)
                 max_equal = (greedy_tokens == target_tokens).all()
