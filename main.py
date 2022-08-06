@@ -108,6 +108,7 @@ def args_to_name(args):
     fields = [
         _fix_model_name(args.model_api_name, args.model_args),
         args.task_name,
+        args.template_names,
         str(args.num_fewshot),
         str(args.seed),
         datetime.datetime.now().isoformat(),
