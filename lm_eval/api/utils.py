@@ -223,7 +223,9 @@ def group(arr: Iterable, fn: Callable) -> List:
 # CLI utils
 
 
-def cli_template_names(task_name: str, template_names: str, template_idx: int = None) -> List[str]:
+def cli_template_names(
+    task_name: str, template_names: str, template_idx: int = None
+) -> List[str]:
     """Returns a selection of template names for a given task and comma-
     separated string of template names.
 
@@ -237,6 +239,7 @@ def cli_template_names(task_name: str, template_names: str, template_idx: int = 
             - "all_templates": Returns all templates for the task.
             - "original_templates": Returns all templates with formatting that
                 matches the original task design.
+        - template_idx: If given, returns only the template at the given index.
     """
     import lm_eval.tasks
 

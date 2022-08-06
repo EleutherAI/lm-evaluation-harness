@@ -73,9 +73,21 @@ def parse_args():
     Warning: You currently cannot change/add folder structure.
     """,
     )
-    parser.add_argument("--template_idx", type=int, default=None, help="Choose template by index from available templates")
-    parser.add_argument("--bootstrap_iters", type=int, default=100000, help="Iters for stderr computation")
-    parser.add_argument("--no_tracking", action="store_true", help="Skip carbon emission tracking")
+    parser.add_argument(
+        "--template_idx",
+        type=int,
+        default=None,
+        help="Choose template by index from available templates",
+    )
+    parser.add_argument(
+        "--bootstrap_iters",
+        type=int,
+        default=100000,
+        help="Iters for stderr computation",
+    )
+    parser.add_argument(
+        "--no_tracking", action="store_true", help="Skip carbon emission tracking"
+    )
     parser.add_argument(
         "--seed", type=int, default=1234, help="The seed to be put through all RNGs"
     )
@@ -144,12 +156,14 @@ def main():
             "SHOULD NOT BE COMPUTED USING LIMIT."
         )
 
-    template_names = utils.cli_template_names(args.task_name, args.template_names, args.template_idx)
+    template_names = utils.cli_template_names(
+        args.task_name, args.template_names, args.template_idx
+    )
     output_path = args_to_name(args)
     setup_example_logger(output_path)
+
     print()  # Ensure a newline after `main` command.
     if args.no_tracking:
-        print()  # Add newline between emissions tracker and evaluation logging.
         results = evaluator.cli_evaluate(
             model_api_name=args.model_api_name,
             model_args=args.model_args,
