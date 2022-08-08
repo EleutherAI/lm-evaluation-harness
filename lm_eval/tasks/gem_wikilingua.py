@@ -48,7 +48,7 @@ class GEMWikiLinguaBase(PromptSourceTask):
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.dataset["test"]
+            return self.dataset["sampled_test"]
 
     def max_generation_length(self):
         return 64
