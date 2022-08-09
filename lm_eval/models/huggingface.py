@@ -283,6 +283,7 @@ class HuggingFaceAutoLM(TokenLM):
             responses = self._model_generate(
                 inputs={"input_ids": input_ids, "attention_mask": attention_mask},
                 max_tokens=max_tokens,
+                min_tokens=self._min_gen_toks,
                 stop=until,
             )
             responses = self.tok_decode(responses.tolist())
@@ -327,10 +328,11 @@ class AutoCausalLM(HuggingFaceAutoLM):
         return self.model(inputs)["logits"]
 
     def _model_generate(
-        self, inputs: TokenSequence, max_tokens: int, stop: Optional[List[str]] = None
+        self, inputs: TokenSequence, max_tokens: int, min_tokens: int, stop: Optional[List[str]] = None
     ) -> TokenSequence:
         stopping_criteria = stop_sequences_criteria(self.tokenizer, stop)
-        min_length = inputs["input_ids"].shape[1] + 1
+        # Generate at least min_tokens; min_length = prompt + gen tokens
+        min_length = inputs["input_ids"].shape[1] + min_tokens
         generations = self.model.generate(
             **inputs,
             # GPT style models require the `generate` `max_length` arg to include the
@@ -477,7 +479,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         return self.model(**inputs, labels=labels["input_ids"])
 
     def _model_generate(
-        self, inputs: TokenSequence, max_tokens: int, stop: Optional[List[str]] = None
+        self, inputs: TokenSequence, max_tokens: int, min_tokens: int, stop: Optional[List[str]] = None
     ) -> Union[TokenSequence, List[str]]:
         stopping_criteria = stop_sequences_criteria(self.tokenizer, stop)
         generations = self.model.generate(
