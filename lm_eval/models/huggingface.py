@@ -341,7 +341,6 @@ class AutoCausalLM(HuggingFaceAutoLM):
             stopping_criteria=stopping_criteria,
             do_sample=False,
         )
-        print("GENERATIONS", generations.shape, generations)
         return utils.select_continuation_from_batch_left_padding(
             generations, max_context_size=inputs["input_ids"].size(1)
         )
@@ -505,9 +504,6 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
         last_token_id = input_ids[0, -self.sequence_id_len :]
         last_tokens = self.tokenizer.decode(last_token_id)
         is_stopped = self.sequence in last_tokens
-        print("STOPPED", is_stopped)
-        print("LASTTOKS", last_tokens)
-        print("SEQ", self.sequence)
         return is_stopped
 
 
