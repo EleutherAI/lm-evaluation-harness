@@ -457,10 +457,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             )
             for cache_key, log_softmax, target_tokens, target_mask in output_iterator:
                 length = target_mask.sum()
-                print("target_mask", target_mask)
-                print("logit size:", log_softmax.shape)
                 log_softmax = log_softmax[:length]
-                print("truncated logit size:", log_softmax.shape)
                 target_tokens = target_tokens[:length]
                 greedy_tokens = log_softmax.argmax(dim=-1)
                 max_equal = (greedy_tokens == target_tokens).all()
