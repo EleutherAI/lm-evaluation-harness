@@ -65,6 +65,7 @@ class HuggingFaceAutoLM(TokenLM):
         subfolder: Optional[str] = None,
         revision: Optional[str] = "main",
         batch_size: Optional[int] = 1,
+        min_gen_toks: Optional[int] = 1,
         max_gen_toks: Optional[int] = 256,
         max_length: Optional[int] = None,
         use_accelerate: Optional[bool] = False,
@@ -106,6 +107,7 @@ class HuggingFaceAutoLM(TokenLM):
 
         self._batch_size = batch_size  # TODO: Adaptive batch size
         self._max_gen_toks = max_gen_toks
+        self._min_gen_toks = min_gen_toks
         self._max_length = max_length
         self._config = transformers.AutoConfig.from_pretrained(pretrained)
 
@@ -241,7 +243,6 @@ class HuggingFaceAutoLM(TokenLM):
             return len(tokens), x[0]
 
         results = []
-        print("GOT REQUESTS", len(requests))
         reorder = utils.Reorderer(requests, _collate)
         for chunk in utils.chunks(
             tqdm(reorder.get_reordered(), disable=False), self.batch_size
@@ -286,7 +287,6 @@ class HuggingFaceAutoLM(TokenLM):
             )
             responses = self.tok_decode(responses.tolist())
 
-            print("GOT RESPONSE", responses)
             for response in responses:
                 for term in until:
                     response = response.split(term)[0]
@@ -295,28 +295,6 @@ class HuggingFaceAutoLM(TokenLM):
                 results.append(response)
         return reorder.get_original(results)
 
-import torch
-from transformers import LogitsProcessor
-
-class ForcedBOSTokenLogitsProcessor(LogitsProcessor):
-    """
-    [`LogitsProcessor`] that enforces the specified token as the first generated token.
-    Args:
-        bos_token_id (`int`):
-            The id of the token to force as the first generated token.
-    """
-
-    def __init__(self, bos_token_id: int):
-        self.bos_token_id = bos_token_id
-
-    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
-        cur_len = input_ids.shape[-1]
-        #print("GOT X", cur_len)
-        if cur_len == 1:
-            num_tokens = scores.shape[1]
-            scores[:, [i for i in range(num_tokens) if i == self.bos_token_id]] = -float("inf")
-            #scores[:, self.bos_token_id] = 0
-        return scores
 
 class AutoCausalLM(HuggingFaceAutoLM):
     """Causal language modeling.
@@ -352,9 +330,6 @@ class AutoCausalLM(HuggingFaceAutoLM):
         self, inputs: TokenSequence, max_tokens: int, stop: Optional[List[str]] = None
     ) -> TokenSequence:
         stopping_criteria = stop_sequences_criteria(self.tokenizer, stop)
-        #print("INPUTS", self.tokenizer.batch_decode(inputs["input_ids"].tolist()))
-        #log_proc = ForcedBOSTokenLogitsProcessor(2)
-        print("SHAPE", inputs["input_ids"].shape)
         min_length = inputs["input_ids"].shape[1] + 1
         generations = self.model.generate(
             **inputs,
@@ -362,12 +337,9 @@ class AutoCausalLM(HuggingFaceAutoLM):
             # context length, so we instead set `max_new_tokens` which is the number
             # of new tokens to generate, excluding the current number of tokens.
             min_length=min_length,
-            #max_length=2048,
             max_new_tokens=max_tokens,
             stopping_criteria=stopping_criteria,
             do_sample=False,
-            #eos_token_id=99999,
-            #logits_processor=[log_proc],
         )
         print("GENERATIONS", generations.shape, generations)
         return utils.select_continuation_from_batch_left_padding(
