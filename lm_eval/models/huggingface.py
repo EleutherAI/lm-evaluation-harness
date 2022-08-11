@@ -65,7 +65,7 @@ class HuggingFaceAutoLM(TokenLM):
         subfolder: Optional[str] = None,
         revision: Optional[str] = "main",
         batch_size: Optional[int] = 1,
-        min_gen_toks: Optional[int] = 1,
+        min_gen_toks: Optional[int] = 0,
         max_gen_toks: Optional[int] = 256,
         max_length: Optional[int] = None,
         use_accelerate: Optional[bool] = False,
@@ -479,8 +479,10 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         self, inputs: TokenSequence, max_tokens: int, min_tokens: int, stop: Optional[List[str]] = None
     ) -> Union[TokenSequence, List[str]]:
         stopping_criteria = stop_sequences_criteria(self.tokenizer, stop)
+        min_length = inputs["input_ids"].shape[1] + min_tokens
         generations = self.model.generate(
             **inputs,
+            min_length=min_length,
             max_length=max_tokens,
             stopping_criteria=stopping_criteria,
             do_sample=False,
