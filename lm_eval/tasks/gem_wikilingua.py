@@ -25,7 +25,7 @@ _CITATION = """
 
 
 class GEMWikiLinguaBase(PromptSourceTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "GEM/wiki_lingua"
     DATASET_NAME = None
 
