@@ -176,8 +176,7 @@ class HuggingFaceAutoLM(TokenLM):
         """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
         tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
-            revision=revision,
-            subfolder=subfolder,
+            revision=revision + ("/" + subfolder if subfolder is not None else ""),
         )
         tokenizer.pad_token = tokenizer.eos_token
         return tokenizer
