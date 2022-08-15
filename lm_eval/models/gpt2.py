@@ -12,6 +12,7 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
+        no_tokenizer_check=False,
     ):
         super().__init__()
 
@@ -62,12 +63,15 @@ class HFLM(BaseLM):
         if isinstance(
             self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
         ):
-            assert self.tokenizer.encode("hello\n\nhello") == [
-                31373,
-                198,
-                198,
-                31373,
-            ], self.tokenizer.encode("hello\n\nhello")
+            if no_tokenizer_check:
+                print('Tokenizer NOT checked (only do this when NOT using the standard GPT2 tokenizer (English vocab)')
+            else:
+                assert self.tokenizer.encode("hello\n\nhello") == [
+                    31373,
+                    198,
+                    198,
+                    31373,
+                ], self.tokenizer.encode("hello\n\nhello")
 
         # multithreading and batching
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
