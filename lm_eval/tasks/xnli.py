@@ -56,6 +56,11 @@ class XNLIBase(Task):
     NEITHER = ""
     OPTIONS = ""
 
+    QUESTION_WORD = None  # 'right'
+    ENTAILMENT_LABEL = None  # 'Yes'
+    NEUTRAL_LABEL = None  # 'Also'
+    CONTRADICTION_LABEL = None  # 'No'
+
     def has_training_docs(self):
         return True
 
@@ -72,7 +77,10 @@ class XNLIBase(Task):
         return self.dataset["test"]
 
     def doc_to_text(self, doc):
-        return doc["premise"] + ", right? [MASK], " + doc["hypothesis"]
+        # Example:
+        # The girl that can help me is all the way across town, right? Yes, The girl I need help from lives a ways away.
+        # [MASK] is replacted with ENTAILMENT_LABEL, NEUTRAL_LABEL, or CONTRADICTION_LABEL
+        return doc["premise"] + ", " + self.QUESTION_WORD + "? [MASK], " + doc["hypothesis"]
 
     def doc_to_target(self, doc):
         # True = entailment
@@ -91,9 +99,10 @@ class XNLIBase(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        ll_true = rf.loglikelihood_rolling(ctx.replace("[MASK]", "Yes")) 
-        ll_neither = rf.loglikelihood_rolling(ctx.replace("[MASK]", "Also")) 
-        ll_false = rf.loglikelihood_rolling(ctx.replace("[MASK]", "No")) 
+        ll_true = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.ENTAILMENT_LABEL)) 
+        ll_neither = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.NEUTRAL_LABEL)) 
+        ll_false = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.CONTRADICTION_LABEL)) 
+
         return ll_true, ll_neither, ll_false
 
     def process_results(self, doc, results):
@@ -127,6 +136,37 @@ class XNLIBase(Task):
         return {"acc": True}
 
 
+class XNLI_en(XNLIBase):  # English
+    DATASET_NAME = "en"
+
+    QUESTION_WORD = 'right'
+    ENTAILMENT_LABEL = 'Yes'
+    NEUTRAL_LABEL = 'Also'
+    CONTRADICTION_LABEL = 'No'
+
+    QUESTION = "Question:"
+    ANSWER = "Answer:"
+    TRUE = "True"
+    FALSE = "False"
+    NEITHER = "Neither"
+    OPTIONS = "True, False or Neither?"
+
+class XNLI_de(XNLIBase):  # German
+    DATASET_NAME = "de"
+
+    QUESTION_WORD = 'richtig'
+    ENTAILMENT_LABEL = 'Ja'
+    NEUTRAL_LABEL = 'Auch'
+    CONTRADICTION_LABEL = 'Nein'
+
+    QUESTION = "Frage:"
+    ANSWER = "Antwort:"
+    TRUE = "Stimmt"
+    FALSE = "Falsch"
+    NEITHER = "Neutral"
+    OPTIONS = "Stimmt, Falsch oder Neutral?"
+
+
 class XNLI_ar(XNLIBase):  # Arabic
     DATASET_NAME = "ar"
 
@@ -149,15 +189,7 @@ class XNLI_bg(XNLIBase):  # Bulgarian
     OPTIONS = "Правда, Ложный или Нейтральный?"
 
 
-class XNLI_de(XNLIBase):  # German
-    DATASET_NAME = "de"
 
-    QUESTION = "Frage:"
-    ANSWER = "Antwort:"
-    TRUE = "Stimmt"
-    FALSE = "Falsch"
-    NEITHER = "Neutral"
-    OPTIONS = "Stimmt, Falsch oder Neutral?"
 
 
 class XNLI_el(XNLIBase):  # Greek
@@ -169,17 +201,6 @@ class XNLI_el(XNLIBase):  # Greek
     FALSE = "Λάθος"
     NEITHER = "Ουδέτερο"
     OPTIONS = "Σωστό, Λάθος ή Ουδέτερο?"
-
-
-class XNLI_en(XNLIBase):  # English
-    DATASET_NAME = "en"
-
-    QUESTION = "Question:"
-    ANSWER = "Answer:"
-    TRUE = "True"
-    FALSE = "False"
-    NEITHER = "Neither"
-    OPTIONS = "True, False or Neither?"
 
 
 class XNLI_es(XNLIBase):  # Spanish
