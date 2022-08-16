@@ -50,6 +50,9 @@ from . import blimp
 from . import asdiv
 from . import gsm8k
 from . import storycloze
+from . import xnli
+from . import xquad
+from . import pawsx
 
 ########################################
 # Translation tasks
@@ -283,6 +286,9 @@ TASK_REGISTRY = {
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
+    **xquad.construct_tasks(),
+    **xnli.construct_tasks(),
+    **pawsx.construct_tasks(),
 }
 
 

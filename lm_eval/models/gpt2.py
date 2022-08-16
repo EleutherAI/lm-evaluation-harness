@@ -12,6 +12,7 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
+        no_tokenizer_check=False,
     ):
         super().__init__()
 
@@ -54,20 +55,29 @@ class HFLM(BaseLM):
                 transformers.GPT2TokenizerFast,
                 transformers.T5Tokenizer,
                 transformers.T5TokenizerFast,
+                transformers.XGLMTokenizer,
+                transformers.XGLMTokenizerFast,
+                transformers.BloomTokenizerFast,
             ),
         ), "this tokenizer has not been checked for compatibility yet!"
 
         self.vocab_size = self.tokenizer.vocab_size
 
-        if isinstance(
-            self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
-        ):
-            assert self.tokenizer.encode("hello\n\nhello") == [
-                31373,
-                198,
-                198,
-                31373,
-            ], self.tokenizer.encode("hello\n\nhello")
+        if no_tokenizer_check:
+            print(
+                "Tokenizer NOT checked (only do this when NOT using the standard GPT2 tokenizer (English vocab)"
+            )
+        else:
+            if isinstance(
+                self.tokenizer,
+                (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast),
+            ):
+                assert self.tokenizer.encode("hello\n\nhello") == [
+                    31373,
+                    198,
+                    198,
+                    31373,
+                ], self.tokenizer.encode("hello\n\nhello")
 
         # multithreading and batching
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
@@ -119,7 +129,7 @@ class HFLM(BaseLM):
         logits returned from the model
         """
         with torch.no_grad():
-            return self.gpt2(inps)[0][:, :, :50257]
+            return self.gpt2(inps)[0][:, :, : len(self.tokenizer)]
 
     def _model_generate(self, context, max_length, eos_token_id):
         return self.gpt2.generate(
