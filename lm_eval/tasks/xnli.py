@@ -65,7 +65,7 @@ class XNLIBase(Task):
     def doc_to_text(self, doc):
         # Example:
         # The girl that can help me is all the way across town, right? Yes, The girl I need help from lives a ways away.
-        # [MASK] is replacted with ENTAILMENT_LABEL, NEUTRAL_LABEL, or CONTRADICTION_LABEL
+        # [MASK] is replaced with ENTAILMENT_LABEL, NEUTRAL_LABEL, or CONTRADICTION_LABEL
         return (
             doc["premise"]
             + ", "
