@@ -20,7 +20,7 @@ pip install git+https://github.com/OpenGPTX/lm-evaluation-harness.git
 With this example, you can evaluate a German GPT model ([malteos/gpt2-xl-wechsel-german](https://huggingface.co/malteos/gpt2-xl-wechsel-german)) on the German subsets of the evaluation tasks:
 
 ```bash
-python main.py 	
+python main.py
   --model gpt2 \
   --model_args pretrained=malteos/gpt2-xl-wechsel-german \
 	--device 0 \
