@@ -66,7 +66,13 @@ class XNLIBase(Task):
         # Example:
         # The girl that can help me is all the way across town, right? Yes, The girl I need help from lives a ways away.
         # [MASK] is replacted with ENTAILMENT_LABEL, NEUTRAL_LABEL, or CONTRADICTION_LABEL
-        return doc["premise"] + ", " + self.QUESTION_WORD + "? [MASK], " + doc["hypothesis"]
+        return (
+            doc["premise"]
+            + ", "
+            + self.QUESTION_WORD
+            + "? [MASK], "
+            + doc["hypothesis"]
+        )
 
     def doc_to_target(self, doc):
         # True = entailment
@@ -88,7 +94,9 @@ class XNLIBase(Task):
         """
         ll_true = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.ENTAILMENT_LABEL))
         ll_neither = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.NEUTRAL_LABEL))
-        ll_false = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.CONTRADICTION_LABEL))
+        ll_false = rf.loglikelihood_rolling(
+            ctx.replace("[MASK]", self.CONTRADICTION_LABEL)
+        )
 
         return ll_true, ll_neither, ll_false
 
@@ -126,64 +134,64 @@ class XNLIBase(Task):
 class XNLI_en(XNLIBase):  # English
     DATASET_NAME = "en"
 
-    QUESTION_WORD = 'right'
-    ENTAILMENT_LABEL = 'Yes'
-    NEUTRAL_LABEL = 'Also'
-    CONTRADICTION_LABEL = 'No'
+    QUESTION_WORD = "right"
+    ENTAILMENT_LABEL = "Yes"
+    NEUTRAL_LABEL = "Also"
+    CONTRADICTION_LABEL = "No"
 
 
 class XNLI_de(XNLIBase):  # German
     DATASET_NAME = "de"
 
-    QUESTION_WORD = 'richtig'
-    ENTAILMENT_LABEL = 'Ja'
-    NEUTRAL_LABEL = 'Auch'
-    CONTRADICTION_LABEL = 'Nein'
+    QUESTION_WORD = "richtig"
+    ENTAILMENT_LABEL = "Ja"
+    NEUTRAL_LABEL = "Auch"
+    CONTRADICTION_LABEL = "Nein"
 
 
 class XNLI_ar(XNLIBase):  # Arabic
     DATASET_NAME = "ar"
 
-    QUESTION_WORD = 'صحيح'
-    ENTAILMENT_LABEL = 'نعم'
-    NEUTRAL_LABEL = 'لذا'
-    CONTRADICTION_LABEL = 'رقم'
+    QUESTION_WORD = "صحيح"
+    ENTAILMENT_LABEL = "نعم"
+    NEUTRAL_LABEL = "لذا"
+    CONTRADICTION_LABEL = "رقم"
 
 
 class XNLI_bg(XNLIBase):  # Bulgarian
     DATASET_NAME = "bg"
 
-    QUESTION_WORD = 'правилно'
-    ENTAILMENT_LABEL = 'да'
-    NEUTRAL_LABEL = 'така'
-    CONTRADICTION_LABEL = 'не'
+    QUESTION_WORD = "правилно"
+    ENTAILMENT_LABEL = "да"
+    NEUTRAL_LABEL = "така"
+    CONTRADICTION_LABEL = "не"
 
 
 class XNLI_el(XNLIBase):  # Greek
     DATASET_NAME = "el"
 
-    QUESTION_WORD = 'σωστός'
-    ENTAILMENT_LABEL = 'Ναί'
-    NEUTRAL_LABEL = 'Έτσι'
-    CONTRADICTION_LABEL = 'όχι'
+    QUESTION_WORD = "σωστός"
+    ENTAILMENT_LABEL = "Ναί"
+    NEUTRAL_LABEL = "Έτσι"
+    CONTRADICTION_LABEL = "όχι"
 
 
 class XNLI_es(XNLIBase):  # Spanish
     DATASET_NAME = "es"
 
-    QUESTION_WORD = 'correcto'
-    ENTAILMENT_LABEL = 'Sí'
-    NEUTRAL_LABEL = 'Asi que'
-    CONTRADICTION_LABEL = 'No'
+    QUESTION_WORD = "correcto"
+    ENTAILMENT_LABEL = "Sí"
+    NEUTRAL_LABEL = "Asi que"
+    CONTRADICTION_LABEL = "No"
 
 
 class XNLI_fr(XNLIBase):  # French
     DATASET_NAME = "fr"
 
-    QUESTION_WORD = 'corriger'
-    ENTAILMENT_LABEL = 'Oui'
-    NEUTRAL_LABEL = 'alors'
-    CONTRADICTION_LABEL = 'No'
+    QUESTION_WORD = "corriger"
+    ENTAILMENT_LABEL = "Oui"
+    NEUTRAL_LABEL = "alors"
+    CONTRADICTION_LABEL = "No"
 
 
 # class XNLI_hi(XNLIBase):  # Hindi
