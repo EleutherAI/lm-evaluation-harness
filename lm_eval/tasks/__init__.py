@@ -52,6 +52,7 @@ from . import gsm8k
 from . import storycloze
 from . import xnli
 from . import xquad
+from . import pawsx
 
 ########################################
 # Translation tasks
@@ -287,6 +288,7 @@ TASK_REGISTRY = {
     # "sat": sat.SATAnalogies,
     **xquad.construct_tasks(),
     **xnli.construct_tasks(),
+    **pawsx.construct_tasks(),
 }
 
 
