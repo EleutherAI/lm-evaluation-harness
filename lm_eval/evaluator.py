@@ -23,7 +23,6 @@ def simple_evaluate(
     description_dict=None,
     check_integrity=False,
     decontamination_ngrams_path=None,
-    no_tokenizer_check=False,
 ):
 
     """Instantiate and evaluate a model on a list of tasks.
@@ -63,7 +62,7 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
         lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device, "no_tokenizer_check": no_tokenizer_check}
+            model_args, {"batch_size": batch_size, "device": device}
         )
     else:
         assert isinstance(model, lm_eval.base.LM)
