@@ -2,6 +2,23 @@
 XNLI: Evaluating Cross-lingual Sentence Representations
 https://arxiv.org/abs/1809.05053
 
+Based on the implementation of @yongzx (see https://github.com/EleutherAI/lm-evaluation-harness/pull/258)
+
+Prompt format (same as XGLM and mGPT):
+
+sentence1 + ", right? " + mask = (Yes|Also|No) + ", " + sentence2
+
+Predicition is the full sequence with the highest likelihood.
+
+Language specific prompts are translated word-by-word with Google Translate
+and may differ from the ones used by mGPT and XGLM (they do not provide their prompts).
+
+"""
+import numpy as np
+from lm_eval.base import rf, Task
+from ..metrics import mean
+
+_CITATIONS = """
 @InProceedings{conneau2018xnli,
   author = "Conneau, Alexis
         and Rinott, Ruty
@@ -20,41 +37,10 @@ https://arxiv.org/abs/1809.05053
 """
 
 
-import numpy as np
-from lm_eval.base import rf, Task
-from ..metrics import mean
-
-
-LANGS = [
-    "ar",
-    "bg",
-    "de",
-    "el",
-    "en",
-    "es",
-    "fr",
-    "hi",
-    "ru",
-    "sw",
-    "th",
-    "tr",
-    "ur",
-    "vi",
-    "zh",
-]
-
-
 class XNLIBase(Task):
     VERSION = 0
     DATASET_PATH = "xnli"
     DATASET_NAME = None
-
-    QUESTION = ""
-    ANSWER = ""
-    TRUE = ""
-    FALSE = ""
-    NEITHER = ""
-    OPTIONS = ""
 
     QUESTION_WORD = None  # 'right'
     ENTAILMENT_LABEL = None  # 'Yes'
@@ -86,7 +72,8 @@ class XNLIBase(Task):
         # True = entailment
         # False = contradiction
         # Neither = neutral
-        return " " + [self.TRUE, self.NEITHER, self.FALSE][doc["label"]]
+        # return " " + [self.TRUE, self.NEITHER, self.FALSE][doc["label"]]
+        raise NotImplementedError()
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
@@ -99,9 +86,9 @@ class XNLIBase(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        ll_true = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.ENTAILMENT_LABEL)) 
-        ll_neither = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.NEUTRAL_LABEL)) 
-        ll_false = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.CONTRADICTION_LABEL)) 
+        ll_true = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.ENTAILMENT_LABEL))
+        ll_neither = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.NEUTRAL_LABEL))
+        ll_false = rf.loglikelihood_rolling(ctx.replace("[MASK]", self.CONTRADICTION_LABEL))
 
         return ll_true, ll_neither, ll_false
 
@@ -144,12 +131,6 @@ class XNLI_en(XNLIBase):  # English
     NEUTRAL_LABEL = 'Also'
     CONTRADICTION_LABEL = 'No'
 
-    QUESTION = "Question:"
-    ANSWER = "Answer:"
-    TRUE = "True"
-    FALSE = "False"
-    NEITHER = "Neither"
-    OPTIONS = "True, False or Neither?"
 
 class XNLI_de(XNLIBase):  # German
     DATASET_NAME = "de"
@@ -159,159 +140,191 @@ class XNLI_de(XNLIBase):  # German
     NEUTRAL_LABEL = 'Auch'
     CONTRADICTION_LABEL = 'Nein'
 
-    QUESTION = "Frage:"
-    ANSWER = "Antwort:"
-    TRUE = "Stimmt"
-    FALSE = "Falsch"
-    NEITHER = "Neutral"
-    OPTIONS = "Stimmt, Falsch oder Neutral?"
-
 
 class XNLI_ar(XNLIBase):  # Arabic
     DATASET_NAME = "ar"
 
-    QUESTION = ":سؤال"
-    ANSWER = ":إِجابة"
-    TRUE = "صحيح"
-    FALSE = "كاذب"
-    NEITHER = "حيادي"
-    OPTIONS = "صحيح أو كاذب أو حيادي؟"
+    QUESTION_WORD = 'صحيح'
+    ENTAILMENT_LABEL = 'نعم'
+    NEUTRAL_LABEL = 'لذا'
+    CONTRADICTION_LABEL = 'رقم'
 
 
 class XNLI_bg(XNLIBase):  # Bulgarian
     DATASET_NAME = "bg"
 
-    QUESTION = "Въпрос:"
-    ANSWER = "Отговор:"
-    TRUE = "Правда"
-    FALSE = "Ложный"
-    NEITHER = "Нейтральный"
-    OPTIONS = "Правда, Ложный или Нейтральный?"
-
-
-
+    QUESTION_WORD = 'правилно'
+    ENTAILMENT_LABEL = 'да'
+    NEUTRAL_LABEL = 'така'
+    CONTRADICTION_LABEL = 'не'
 
 
 class XNLI_el(XNLIBase):  # Greek
     DATASET_NAME = "el"
 
-    QUESTION = "Ερώτηση:"
-    ANSWER = "Απάντηση:"
-    TRUE = "Σωστό"
-    FALSE = "Λάθος"
-    NEITHER = "Ουδέτερο"
-    OPTIONS = "Σωστό, Λάθος ή Ουδέτερο?"
+    QUESTION_WORD = 'σωστός'
+    ENTAILMENT_LABEL = 'Ναί'
+    NEUTRAL_LABEL = 'Έτσι'
+    CONTRADICTION_LABEL = 'όχι'
 
 
 class XNLI_es(XNLIBase):  # Spanish
     DATASET_NAME = "es"
 
-    QUESTION = "Pregunta:"
-    ANSWER = "Respuesta:"
-    TRUE = "Verdad"
-    FALSE = "Falsa"
-    NEITHER = "Ninguno"
-    OPTIONS = "Verdad, Falsa o Ninguno?"
+    QUESTION_WORD = 'correcto'
+    ENTAILMENT_LABEL = 'Sí'
+    NEUTRAL_LABEL = 'Asi que'
+    CONTRADICTION_LABEL = 'No'
 
 
 class XNLI_fr(XNLIBase):  # French
     DATASET_NAME = "fr"
 
-    QUESTION = "Question:"
-    ANSWER = "Réponse:"
-    TRUE = "Vrai"
-    FALSE = "Faux"
-    NEITHER = "Neutre"
-    OPTIONS = "Vrai, Faux ou Neutre?"
+    QUESTION_WORD = 'corriger'
+    ENTAILMENT_LABEL = 'Oui'
+    NEUTRAL_LABEL = 'alors'
+    CONTRADICTION_LABEL = 'No'
 
 
-class XNLI_hi(XNLIBase):  # Hindi
-    DATASET_NAME = "hi"
+# class XNLI_hi(XNLIBase):  # Hindi
+#     DATASET_NAME = "hi"
 
-    QUESTION = "प्रश्न:"
-    ANSWER = "उत्तर:"
-    TRUE = "सत्य"
-    FALSE = "असत्य"
-    NEITHER = "तटस्थ"
-    OPTIONS = "सत्य या असत्य या तटस्थ?"
+#     QUESTION_WORD = 'right'
+#     ENTAILMENT_LABEL = 'Yes'
+#     NEUTRAL_LABEL = 'Also'
+#     CONTRADICTION_LABEL = 'No'
 
-
-class XNLI_ru(XNLIBase):  # Russian
-    DATASET_NAME = "ru"
-
-    QUESTION = "Вопрос:"
-    ANSWER = "Ответ:"
-    TRUE = "Правда"
-    FALSE = "Ложный"
-    NEITHER = "Нейтральный"
-    OPTIONS = "Правда, Ложный или Нейтральный?"
+#     QUESTION = "प्रश्न:"
+#     ANSWER = "उत्तर:"
+#     TRUE = "सत्य"
+#     FALSE = "असत्य"
+#     NEITHER = "तटस्थ"
+#     OPTIONS = "सत्य या असत्य या तटस्थ?"
 
 
-class XNLI_sw(XNLIBase):  # Swahili
-    DATASET_NAME = "sw"
+# class XNLI_ru(XNLIBase):  # Russian
+#     DATASET_NAME = "ru"
 
-    QUESTION = "Swali:"
-    ANSWER = "Jibu:"
-    TRUE = "Kweli"
-    FALSE = "Uongo"
-    NEITHER = "Wala"
-    OPTIONS = "Kweli, Uongo au Wala?"
+#     QUESTION_WORD = 'right'
+#     ENTAILMENT_LABEL = 'Yes'
+#     NEUTRAL_LABEL = 'Also'
+#     CONTRADICTION_LABEL = 'No'
 
-
-class XNLI_th(XNLIBase):  # Thai
-    DATASET_NAME = "th"
-
-    QUESTION = "คำถาม:"
-    ANSWER = "คำตอบ:"
-    TRUE = "จริง"
-    FALSE = "เท็จ"
-    NEITHER = "เป็นกลาง"
-    OPTIONS = "จริงหรือเท็จหรือเป็นกลาง?"
+#     QUESTION = "Вопрос:"
+#     ANSWER = "Ответ:"
+#     TRUE = "Правда"
+#     FALSE = "Ложный"
+#     NEITHER = "Нейтральный"
+#     OPTIONS = "Правда, Ложный или Нейтральный?"
 
 
-class XNLI_tr(XNLIBase):  # Turkish
-    DATASET_NAME = "tr"
+# class XNLI_sw(XNLIBase):  # Swahili
+#     DATASET_NAME = "sw"
 
-    QUESTION = "Soru:"
-    ANSWER = "Cevap:"
-    TRUE = "Doğru"
-    FALSE = "Yanlış"
-    NEITHER = "Nötr"
-    OPTIONS = "Doğru, Yanlış veya Nötr?"
+#     QUESTION_WORD = 'right'
+#     ENTAILMENT_LABEL = 'Yes'
+#     NEUTRAL_LABEL = 'Also'
+#     CONTRADICTION_LABEL = 'No'
 
-
-class XNLI_ur(XNLIBase):  # Urdu
-    DATASET_NAME = "ur"
-
-    QUESTION = ":سوال"
-    ANSWER = ":جواب"
-    TRUE = "صحیح"
-    FALSE = "غلط"
-    NEITHER = "غیر جانبدار"
-    OPTIONS = "صحیح یا غلط یا غیر جانبدار؟"
+#     QUESTION = "Swali:"
+#     ANSWER = "Jibu:"
+#     TRUE = "Kweli"
+#     FALSE = "Uongo"
+#     NEITHER = "Wala"
+#     OPTIONS = "Kweli, Uongo au Wala?"
 
 
-class XNLI_vi(XNLIBase):  # Vietnamese
-    DATASET_NAME = "vi"
+# class XNLI_th(XNLIBase):  # Thai
+#     DATASET_NAME = "th"
 
-    QUESTION = "Câu hỏi:"
-    ANSWER = "Câu trả lời:"
-    TRUE = "Đúng"
-    FALSE = "Sai"
-    NEITHER = "Trung lập"
-    OPTIONS = "Đúng, Sai hay Trung lập?"
+#     QUESTION_WORD = 'right'
+#     ENTAILMENT_LABEL = 'Yes'
+#     NEUTRAL_LABEL = 'Also'
+#     CONTRADICTION_LABEL = 'No'
+
+#     QUESTION = "คำถาม:"
+#     ANSWER = "คำตอบ:"
+#     TRUE = "จริง"
+#     FALSE = "เท็จ"
+#     NEITHER = "เป็นกลาง"
+#     OPTIONS = "จริงหรือเท็จหรือเป็นกลาง?"
 
 
-class XNLI_zh(XNLIBase):  # Chinese
-    DATASET_NAME = "zh"
+# class XNLI_tr(XNLIBase):  # Turkish
+#     DATASET_NAME = "tr"
 
-    QUESTION = "问题:"
-    ANSWER = "回答:"
-    TRUE = "对"
-    FALSE = "错"
-    NEITHER = "中立"
-    OPTIONS = "对、错、还是中立?"
+#     QUESTION_WORD = 'right'
+#     ENTAILMENT_LABEL = 'Yes'
+#     NEUTRAL_LABEL = 'Also'
+#     CONTRADICTION_LABEL = 'No'
 
+#     QUESTION = "Soru:"
+#     ANSWER = "Cevap:"
+#     TRUE = "Doğru"
+#     FALSE = "Yanlış"
+#     NEITHER = "Nötr"
+#     OPTIONS = "Doğru, Yanlış veya Nötr?"
+
+
+# class XNLI_ur(XNLIBase):  # Urdu
+#     DATASET_NAME = "ur"
+
+#     QUESTION_WORD = 'right'
+#     ENTAILMENT_LABEL = 'Yes'
+#     NEUTRAL_LABEL = 'Also'
+#     CONTRADICTION_LABEL = 'No'
+
+#     QUESTION = ":سوال"
+#     ANSWER = ":جواب"
+#     TRUE = "صحیح"
+#     FALSE = "غلط"
+#     NEITHER = "غیر جانبدار"
+#     OPTIONS = "صحیح یا غلط یا غیر جانبدار؟"
+
+
+# class XNLI_vi(XNLIBase):  # Vietnamese
+#     DATASET_NAME = "vi"
+
+#     QUESTION = "Câu hỏi:"
+#     ANSWER = "Câu trả lời:"
+#     TRUE = "Đúng"
+#     FALSE = "Sai"
+#     NEITHER = "Trung lập"
+#     OPTIONS = "Đúng, Sai hay Trung lập?"
+
+
+# class XNLI_zh(XNLIBase):  # Chinese
+#     DATASET_NAME = "zh"
+
+#     QUESTION_WORD = 'right'
+#     ENTAILMENT_LABEL = 'Yes'
+#     NEUTRAL_LABEL = 'Also'
+#     CONTRADICTION_LABEL = 'No'
+
+#     QUESTION = "问题:"
+#     ANSWER = "回答:"
+#     TRUE = "对"
+#     FALSE = "错"
+#     NEITHER = "中立"
+#     OPTIONS = "对、错、还是中立?"
+
+LANGS = [
+    "ar",
+    "bg",
+    "de",
+    "el",
+    "en",
+    "es",
+    "fr",
+    # "hi",
+    # "ru",
+    # "sw",
+    # "th",
+    # "tr",
+    # "ur",
+    # "vi",
+    # "zh",
+]
 
 LANG_CLASSES = [
     XNLI_ar,
@@ -321,14 +334,14 @@ LANG_CLASSES = [
     XNLI_en,
     XNLI_es,
     XNLI_fr,
-    XNLI_hi,
-    XNLI_ru,
-    XNLI_sw,
-    XNLI_th,
-    XNLI_tr,
-    XNLI_ur,
-    XNLI_vi,
-    XNLI_zh,
+    # XNLI_hi,
+    # XNLI_ru,
+    # XNLI_sw,
+    # XNLI_th,
+    # XNLI_tr,
+    # XNLI_ur,
+    # XNLI_vi,
+    # XNLI_zh,
 ]
 
 
