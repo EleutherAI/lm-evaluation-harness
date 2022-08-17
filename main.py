@@ -3,7 +3,6 @@ import datetime
 import json
 import logging
 import os
-from codecarbon import OfflineEmissionsTracker
 
 import lm_eval.evaluator as evaluator
 from lm_eval.api import utils
@@ -178,6 +177,8 @@ def main():
             bootstrap_iters=args.bootstrap_iters,
         )
     else:
+        from codecarbon import OfflineEmissionsTracker
+
         with OfflineEmissionsTracker(country_iso_code="FRA", log_level="error"):
             print()  # Add newline between emissions tracker and evaluation logging.
             results = evaluator.cli_evaluate(

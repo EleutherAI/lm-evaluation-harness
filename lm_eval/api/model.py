@@ -4,7 +4,6 @@ import json
 import os
 import torch
 import torch.nn.functional as F
-from sqlitedict import SqliteDict
 from tqdm import tqdm
 from typing import Iterable, List, Optional, Tuple, Union
 from transformers import BatchEncoding
@@ -374,6 +373,8 @@ class CachingLM:
         :param cache_db: str
             Path to cache db
         """
+        from sqlitedict import SqliteDict
+
         self.lm = lm
         if os.path.dirname(cache_db):
             os.makedirs(os.path.dirname(cache_db), exist_ok=True)
