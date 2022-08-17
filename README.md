@@ -5,9 +5,9 @@ The current implementation progress is tracked under [GitHub issues](https://git
 
 ## Additional tasks
 
-- XNLI (`xnli_en,xnli_de,xnli_fr,xnli_es,xnli_el,xnli_bg,xnli_ar`)
-- XQUAD (`xquad_ar,xquad_de,xquad_el,xquad_en,xquad_es,xquad_hi,xquad_ru,xquad_th,xquad_tr,xquad_vi,xquad_zh`)
-- PAWSX (`pawsx_en,pawsx_fr,pawsx_de`)
+- XNLI (`xnli_{en,de,fr,es,el,bg,ar}`)
+- XQUAD (`xquad_{ar,de,el,en,es,hi,ru,th,tr,vi,zh`)
+- PAWSX (`pawsx_{en,fr,de}`)
 
 ## Install
 
@@ -20,12 +20,12 @@ pip install git+https://github.com/OpenGPTX/lm-evaluation-harness.git
 With this example, you can evaluate a German GPT model ([malteos/gpt2-xl-wechsel-german](https://huggingface.co/malteos/gpt2-xl-wechsel-german)) on the German subsets of the evaluation tasks:
 
 ```bash
-python main.py
+python main.py \
   --model gpt2 \
   --model_args pretrained=malteos/gpt2-xl-wechsel-german \
-	--device 0 \
+  --device 0 \
   --no_tokenizer_check \
-	--tasks xnli_de,xquad_de,pawsx_de
+  --tasks xnli_de,xquad_de,pawsx_de
 ```
 
 
