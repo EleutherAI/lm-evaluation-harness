@@ -5,8 +5,13 @@ import openai
 import mock
 import pickle
 import hashlib
+import logging
 
 import lm_eval.models as models
+from lm_eval.api.utils import set_seed
+
+
+logger = logging.getLogger(__name__)
 
 
 def _mock_completion(**kwargs):
@@ -30,6 +35,7 @@ def _mock_completion(**kwargs):
 
 @mock.patch("lm_eval.models.openai_completions.oa_completion", new=_mock_completion)
 def test_openai_completions():
+    set_seed()
     if "OPENAI_API_SECRET_KEY" not in os.environ:
         os.environ["OPENAI_API_SECRET_KEY"] = ""
     oa_model = models.get_model_from_args_string(
@@ -107,7 +113,7 @@ def test_openai_completions():
     )
     assert gen == " dog"
 
-    print([x[0] for x in vals])
+    logger.info([x[0] for x in vals])
 
     targets = [
         -34.848301606999996,
@@ -126,6 +132,7 @@ def test_openai_completions():
 
 @mock.patch("lm_eval.models.openai_completions.oa_completion", new=_mock_completion)
 def test_openai_completions_perplexity():
+    set_seed()
     if "OPENAI_API_SECRET_KEY" not in os.environ:
         os.environ["OPENAI_API_SECRET_KEY"] = ""
     oa_model = models.get_model_from_args_string(

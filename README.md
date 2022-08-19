@@ -56,54 +56,43 @@ python main.py \
 ### Detailed Usage
 
 ```
-usage: main.py [-h] --model_api_name MODEL_API_NAME [--model_args MODEL_ARGS]
-               --task_name TASK_NAME [--template_names TEMPLATE_NAMES]
-               [--num_fewshot NUM_FEWSHOT] [--batch_size BATCH_SIZE]
-               [--device DEVICE] [--limit LIMIT] [--output_path OUTPUT_PATH]
-               [--template_idx TEMPLATE_IDX] [--bootstrap_iters BOOTSTRAP_ITERS]
-               [--no_tracking] [--seed SEED] [--use_cache]
+usage: main.py [-h] --model_api_name MODEL_API_NAME [--model_args MODEL_ARGS] --task_name TASK_NAME
+               [--template_names TEMPLATE_NAMES] [--num_fewshot NUM_FEWSHOT] [--batch_size BATCH_SIZE]
+               [--device DEVICE] [--limit LIMIT] [--output_path OUTPUT_PATH] [--template_idx TEMPLATE_IDX]
+               [--bootstrap_iters BOOTSTRAP_ITERS] [--no_tracking] [--use_cache]
 
 optional arguments:
   -h, --help            show this help message and exit
   --model_api_name MODEL_API_NAME
-                        Name of the model API to use. See
-                        `lm_eval.list_model_apis()` for available APIs
+                        Name of the model API to use. See `lm_eval.list_model_apis()` for available APIs
   --model_args MODEL_ARGS
-                        Model constructor args that you'd pass into a model of
-                        type `--model_api_name`. These must be comma-separated
-                        keyword args, e.g. `key1=value1,key2=value2`, with no
-                        spaces
+                        Model constructor args that you'd pass into a model of type `--model_api_name`. These must
+                        be comma-separated keyword args, e.g. `key1=value1,key2=value2`, with no spaces
   --task_name TASK_NAME
-                        Name of the task to use as found in the lm_eval registry.
-                        See: `lm_eval.list_tasks()`
+                        Name of the task to use as found in the lm_eval registry. See: `lm_eval.list_tasks()`
   --template_names TEMPLATE_NAMES
-                        Comma-separated list of template names for the specified
-                        task. Example: `> python main.py ... --task_name rte
-                        --template_names imply,mean`
+                        Comma-separated list of template names for the specified task. Example:
+                        `> python main.py ... --task_name rte --template_names imply,mean`
                         - Default: `all_templates`
                         - General Selectors:
                             - `"all_templates"`: Selects all templates for the task
-                            - `"original_templates"`: Selects only templates that are
-                                designed to match the original task
+                            - `"original_templates"`: Selects only templates that are designed to match the original task
   --num_fewshot NUM_FEWSHOT
   --batch_size BATCH_SIZE
-  --device DEVICE       The device to place your model onto, e.g. cuda:0. For
-                        large models available through the HuggingFace Hub you
-                        should use `accelerate` by passing `use_accelerate=True`
-                        to `--model_args`
-  --limit LIMIT         Limit the number of examples to evaluate on; ONLY USE
-                        THIS FOR DEBUGGING PURPOSES
+  --device DEVICE       The device to place your model onto, e.g. cuda:0. For large models available through the
+                        HuggingFace Hub you should use `accelerate` by passing `use_accelerate=True` to
+                        `--model_args`
+  --limit LIMIT         Limit the number of examples to evaluate on; ONLY USE THIS FOR DEBUGGING PURPOSES
   --output_path OUTPUT_PATH
-                        Use output_path as `output_filename`. For example: `>
-                        python main.py ... --output_path blop` # saves files into
-                        `outputs/blop.json` Warning: You currently cannot
-                        change/add folder structure.
+                        Use output_path as `output_filename`. For example:
+                        `> python main.py ... --output_path blop`
+                        # saves files into `outputs/blop.json` Warning: You currently cannot change/add folder
+                        structure.
   --template_idx TEMPLATE_IDX
                         Choose template by index from available templates
   --bootstrap_iters BOOTSTRAP_ITERS
                         Iters for stderr computation
   --no_tracking         Skip carbon emission tracking
-  --seed SEED           The seed to be put through all RNGs
   --use_cache           Whether to cache your model's predictions or not
 ```
 

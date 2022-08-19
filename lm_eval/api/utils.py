@@ -1,6 +1,5 @@
 import collections
 import pathlib
-import random
 import re
 import sys
 import numpy
@@ -17,13 +16,20 @@ class ExitCodeError(Exception):
     pass
 
 
-def set_seed(seed: int) -> None:
-    """Set all the random seeds."""
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    random.seed(seed)
-    transformers_set_seed(seed)
-    numpy.random.seed(seed)
+# Reproducibility utils
+
+
+def get_seed() -> int:
+    """Returns a hard-coded global seed for reproducibility."""
+    return 1234
+
+
+def set_seed() -> None:
+    transformers_set_seed(get_seed())
+
+
+def get_rng() -> numpy.random.Generator:
+    return numpy.random.default_rng(get_seed())
 
 
 # Token Utils

@@ -10,7 +10,7 @@ import lm_eval.models
 import lm_eval.tasks
 import lm_eval.api.metric
 import lm_eval.api.model
-from lm_eval.api.utils import set_seed
+from lm_eval.api.utils import set_seed, get_rng, get_seed
 from lm_eval.api.task import Task
 
 
@@ -30,7 +30,6 @@ def cli_evaluate(
     use_cache: Optional[bool] = False,
     bootstrap_iters: Optional[int] = 100000,
     limit: Optional[int] = None,
-    seed: Optional[int] = 1234,
 ) -> dict:
     """Evaluate a model from an api on a given task with multiple possible prompt
      formats. This is effectively a wrapper around `evaluate` for command-line
@@ -58,13 +57,9 @@ def cli_evaluate(
          Number of iterations for bootstrap statistics.
      :param limit: int, optional
          Limit the number of examples per task (only use this for testing).
-     :param seed: int
-         Random seed.
      :return
          Dictionary of results
     """
-    set_seed(seed)
-
     tasks = lm_eval.tasks.get_task_list(task_name, template_names)
     model = lm_eval.models.get_model_from_args_string(
         model_api_name, model_args, {"batch_size": batch_size, "device": device}
@@ -82,7 +77,6 @@ def cli_evaluate(
         num_fewshot=num_fewshot,
         limit=limit,
         bootstrap_iters=bootstrap_iters,
-        rng=np.random.default_rng(seed),
     )
 
     # Add info about the model and few shot config.
@@ -95,6 +89,7 @@ def cli_evaluate(
         "use_cache": use_cache,
         "limit": limit,
         "bootstrap_iters": bootstrap_iters,
+        "seed": get_seed(),
     }
     return results
 
@@ -106,7 +101,6 @@ def evaluate(
     num_fewshot: Optional[int] = 0,
     bootstrap_iters: Optional[int] = 100000,
     limit: Optional[int] = None,
-    rng: Optional[np.random.Generator] = np.random.default_rng(),
 ) -> dict:
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -120,12 +114,12 @@ def evaluate(
         Number of iterations for bootstrap statistics
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
-    :param rng: np.random.Generator
-        Random number generator for shuffling documents and sampling few-shot examples.
-        Default: np.random.default_rng()
     :return
         Dictionary of results
     """
+    set_seed()
+    rng = get_rng()
+
     # TODO: Completely refactor this entire function to not be a huge mess, ideally breaking it down into smaller pieces
     task_dict = {}
     for task in tasks:

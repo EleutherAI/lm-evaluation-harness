@@ -1,6 +1,10 @@
 import glob
 import json
 import os
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def agg2slim(data):
@@ -22,7 +26,7 @@ def agg2slim(data):
     results = data["results"]
     config = data["config"]
     if isinstance(config, list):
-        print("Warning! This is an old agg file with a buggy config.")
+        logger.warning("Warning! This is an old agg file with a buggy config.")
         # If information needs to be recovered, we can recover it from the filename.
         config = {}
     slim = {
@@ -45,7 +49,7 @@ def main():
             data = json.load(jf)
         slim_json_filename = agg_json_filename.replace("agg", "slim")
         if os.path.exists(slim_json_filename):
-            print("Skipping file as it already exists.")
+            logger.info("Skipping file as it already exists.")
         slim = agg2slim(data)
         with open(slim_json_filename, "w") as jf:
             json.dump(slim, jf, indent=2)

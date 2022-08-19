@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import random
 import pytest
 
@@ -8,10 +7,7 @@ import lm_eval.tasks as tasks
 import lm_eval.api.model as model
 import lm_eval.models as models
 import lm_eval.evaluator as evaluator
-from lm_eval.api.utils import set_seed
-
-
-_SEED = 42
+from lm_eval.api.utils import set_seed, get_seed
 
 
 # TODO: More fine grained unit tests rather than this big honking integration
@@ -27,7 +23,7 @@ def _ll_fn(requests):
         assert ctx[-1] != " "
         assert cont[0] == " "
     res = []
-    random.seed(_SEED)
+    random.seed(get_seed())
     for _ in requests:
         res.append((-random.random(), False))
     return res
@@ -37,7 +33,7 @@ def _ll_perp_fn(requests):
     for (string,) in requests:
         assert isinstance(string, str)
     res = []
-    random.seed(_SEED)
+    random.seed(get_seed())
     for _ in requests:
         res.append(-random.random())
     return res
@@ -45,7 +41,7 @@ def _ll_perp_fn(requests):
 
 @pytest.mark.parametrize("task_name", lm_eval.list_tasks())
 def test_evaluator(task_name):
-    set_seed(_SEED)
+    set_seed()
     template_names = tasks.list_templates(task_name)
     # Only choose 1 promptsource template.
     template_name = template_names[0] if template_names else None
@@ -63,7 +59,6 @@ def test_evaluator(task_name):
         num_fewshot=0,
         bootstrap_iters=10,
         limit=limit,
-        rng=np.random.default_rng(_SEED),
     )["results"]
     e2 = evaluator.evaluate(
         model=lm,
@@ -71,7 +66,6 @@ def test_evaluator(task_name):
         num_fewshot=0,
         bootstrap_iters=10,
         limit=limit,
-        rng=np.random.default_rng(_SEED),
     )["results"]
     # Check that caching is working
     assert e1 == e2

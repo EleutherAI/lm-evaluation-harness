@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 import random
 
-random.seed(42)
+from lm_eval.api.utils import set_seed
 
 
 data = [
@@ -24,10 +24,8 @@ tok = transformers.GPT2Tokenizer.from_pretrained("gpt2")
 
 tgs = []
 
+set_seed()
 for dat in data:
-    random.seed(dat)
-    # print(model(tok.encode(dat, return_tensors="pt"))[0][0])
-
     tokens = tok.encode(dat, return_tensors="pt")
     ind = random.randrange(len(tokens[0]) - 1)
     logits = F.log_softmax(model(tokens)[0], dim=-1)[:, :-1]  # [batch, seq, vocab]

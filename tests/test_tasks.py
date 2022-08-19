@@ -1,3 +1,4 @@
+import logging
 import pytest
 from typing import Optional, Tuple
 from itertools import islice
@@ -6,9 +7,10 @@ from promptsource.templates import Template
 import lm_eval.tasks as tasks
 from lm_eval.api.task import Task
 from lm_eval.api.request import Request
+from lm_eval.api.utils import set_seed
 
 
-_SEED = 42
+logger = logging.getLogger(__name__)
 
 
 def _get_deterministic_template(
@@ -46,7 +48,7 @@ def _filter_docs(task: Task):
 
 @pytest.mark.parametrize("task_name,task_class", tasks.TASK_REGISTRY.items())
 def test_basic_interface(task_name: str, task_class: Task):
-    print("Evaluating task", task_name)
+    logger.info("Evaluating task", task_name)
     prompt_template, is_deterministic = _get_deterministic_template(task_name)
     task = task_class(prompt_template=prompt_template)
 
@@ -100,7 +102,8 @@ def test_basic_interface(task_name: str, task_class: Task):
 
 @pytest.mark.parametrize("task_name,task_class", tasks.TASK_REGISTRY.items())
 def test_documents_and_requests(task_name: str, task_class: Task):
-    print("Evaluating task", task_name)
+    set_seed()
+    logger.info("Evaluating task", task_name)
     prompt_template, _ = _get_deterministic_template(task_name)
     task = task_class(prompt_template=prompt_template)
 

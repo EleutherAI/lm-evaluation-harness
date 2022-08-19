@@ -6,6 +6,7 @@ import hashlib
 import collections
 
 import lm_eval
+from lm_eval.api.utils import get_seed, set_seed
 
 
 def _assert_target(name, ob):
@@ -60,6 +61,7 @@ def _flatten(d, parent_key="", sep="."):
 @pytest.mark.skip(reason="Version stability are not setup for `PropmtSourceTask`s")
 # @pytest.mark.parametrize("task_name,task_class", tasks.TASK_REGISTRY.items())
 def test_versions_stable(task_name, task_class):
+    set_seed()
     os.makedirs("tests/testdata", exist_ok=True)
     task = lm_eval.get_task(task_name)
     model = lm_eval.get_model("dummy")
@@ -77,7 +79,7 @@ def test_versions_stable(task_name, task_class):
         )
         res = []
 
-        random.seed(42)
+        random.seed(get_seed())
         for _ in requests:
             res.append((-random.random(), False))
 
@@ -92,7 +94,7 @@ def test_versions_stable(task_name, task_class):
         )
         res = []
 
-        random.seed(42)
+        random.seed(get_seed())
         for _ in requests:
             res.append(-random.random())
 

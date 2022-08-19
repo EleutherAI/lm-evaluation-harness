@@ -88,9 +88,6 @@ def parse_args():
         "--no_tracking", action="store_true", help="Skip carbon emission tracking"
     )
     parser.add_argument(
-        "--seed", type=int, default=1234, help="The seed to be put through all RNGs"
-    )
-    parser.add_argument(
         "--use_cache",
         action="store_true",
         help="Whether to cache your model's predictions or not",
@@ -121,7 +118,7 @@ def args_to_name(args):
         args.task_name,
         args.template_names,
         str(args.num_fewshot),
-        str(args.seed),
+        str(utils.get_seed()),
         datetime.datetime.now().isoformat(),
     ]
     fields = [f for f in fields if f is not None]
@@ -173,7 +170,6 @@ def main():
             device=args.device,
             use_cache=args.use_cache,
             limit=args.limit,
-            seed=args.seed,
             bootstrap_iters=args.bootstrap_iters,
         )
     else:
@@ -191,7 +187,6 @@ def main():
                 device=args.device,
                 use_cache=args.use_cache,
                 limit=args.limit,
-                seed=args.seed,
                 bootstrap_iters=args.bootstrap_iters,
             )
 

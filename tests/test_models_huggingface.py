@@ -1,14 +1,17 @@
 import unittest.mock as mock
+import logging
 import pytest
 
 import lm_eval.models
 from lm_eval.api.utils import set_seed
 
 
+logger = logging.getLogger(__name__)
+
+
 # Only use cpu to avoid non-deterministic CUDA settings.
 # See: https://pytorch.org/docs/stable/notes/randomness.html
 _DEVICE = "cpu"
-_SEED = 42
 
 
 @pytest.mark.parametrize(
@@ -25,7 +28,7 @@ _SEED = 42
     ],
 )
 def test_stop_sequences(stop_sequences, test_input, expected):
-    set_seed(_SEED)
+    set_seed()
     causal_model = lm_eval.models.get_model(
         "hf-causal", pretrained="gpt2", device=_DEVICE
     )
@@ -46,7 +49,7 @@ def test_stop_sequences(stop_sequences, test_input, expected):
 
 
 def test_causal_model():
-    set_seed(_SEED)
+    set_seed()
     causal_model = lm_eval.models.get_model(
         "hf-causal",
         pretrained="gpt2",
@@ -140,6 +143,7 @@ def test_causal_model():
 
 
 def test_causal_model_perplexity():
+    set_seed()
     causal_model = lm_eval.models.get_model_from_args_string(
         model_api_name="hf-causal", model_args=f"device={_DEVICE},pretrained=gpt2"
     )
@@ -178,7 +182,7 @@ def test_causal_model_perplexity():
             model_api_name="hf-causal", model_args=f"device={_DEVICE},pretrained=gpt2"
         )
         perplexity = causal_model.loglikelihood_rolling([(test_string,)])[0]
-        print(perplexity)
+        logger.info(perplexity)
     tgt = sum(
         [
             -4.96001,
