@@ -29,49 +29,48 @@ _CITATION = """
 
 
 # Helper functions for aggregation (separate function for each metric)
-def _xstance_agg_precision(key, items):
+def _xstance_agg_precision(key, items, labels):
     references, predictions = zip(*items)
     precision_metric = datasets.load_metric("precision")
     return precision_metric.compute(
         references=references,
         predictions=predictions,
         average="macro",
-        labels=np.unique(predictions),
+        labels=labels,
     )[key]
 
 
-def _xstance_agg_recall(key, items):
+def _xstance_agg_recall(key, items, labels):
     references, predictions = zip(*items)
     recall_metric = datasets.load_metric("recall")
     return recall_metric.compute(
         references=references,
         predictions=predictions,
         average="macro",
-        labels=np.unique(predictions),
+        labels=labels,
     )[key]
 
 
-def _xstance_agg_f1(key, items):
+def _xstance_agg_f1(key, items, labels):
     references, predictions = zip(*items)
     f1_metric = datasets.load_metric("f1")
     return f1_metric.compute(
         references=references,
         predictions=predictions,
         average="macro",
-        labels=np.unique(predictions),
+        labels=labels,
     )[key]
 
 
 class XStance(Task):
     VERSION = 0
     DATASET_PATH = "strombergnlp/x-stance"
-    # Select only German part of the dataset
     DATASET_NAME = None
-    TOPIC = "Thema: "
-    OPINION = "Meine Meinung (dafür oder dagegen): "
-    STANCE = "Meine Meinung ist (dafür oder dagegen): "
-    FAVOR = "dafür"
-    AGAINST = "dagegen"
+    TOPIC = None
+    OPINION = None
+    STANCE = None
+    FAVOR = None
+    AGAINST = None
 
     def has_training_docs(self):
         return True
@@ -155,9 +154,9 @@ class XStance(Task):
         true_label = doc["label"]
         return {
             "acc": pred == true_label,
-            "precision": (true_label, pred),
-            "recall": (true_label, pred),
-            "f1": (true_label, pred),
+            "precision": (true_label, pred, [self.FAVOR, self.AGAINST]),
+            "recall": (true_label, pred, [self.FAVOR, self.AGAINST]),
+            "f1": (true_label, pred, [self.FAVOR, self.AGAINST]),
         }
 
     def aggregation(self):
@@ -180,8 +179,6 @@ class XStance(Task):
 
 # German part of the dataset
 class XStanceDE(XStance):
-    VERSION = 0
-    DATASET_PATH = "strombergnlp/x-stance"
     DATASET_NAME = "de"
     TOPIC = "Thema: "
     OPINION = "Meine Meinung (dafür oder dagegen): "
@@ -192,8 +189,6 @@ class XStanceDE(XStance):
 
 # French part of the dataset
 class XStanceFR(XStance):
-    VERSION = 0
-    DATASET_PATH = "strombergnlp/x-stance"
     DATASET_NAME = "fr"
     TOPIC = "Thème: "
     OPINION = "Mon opinion (pour ou contre): "
