@@ -53,6 +53,7 @@ from . import storycloze
 from . import xnli
 from . import xquad
 from . import pawsx
+from . import stereoset
 
 ########################################
 # Translation tasks
@@ -289,6 +290,7 @@ TASK_REGISTRY = {
     **xquad.construct_tasks(),
     **xnli.construct_tasks(),
     **pawsx.construct_tasks(),
+    **stereoset.construct_tasks(),
 }
 
 
