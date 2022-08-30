@@ -71,6 +71,8 @@ class XStance(Task):
     STANCE = None
     FAVOR = None
     AGAINST = None
+    FAVOR_IDX = 1
+    AGAINST_IDX = 0
 
     def has_training_docs(self):
         return True
@@ -109,7 +111,7 @@ class XStance(Task):
 
     def doc_to_target(self, doc):
         target = doc["label"]
-        if target == 0:
+        if target == self.AGAINST_IDX:
             return " " + self.AGAINST
         else:
             return " " + self.FAVOR
@@ -148,9 +150,9 @@ class XStance(Task):
         favor, against = results
         # Evaluation metrics will only work with numerical labels
         if favor[0] > against[0]:
-            pred = 1
+            pred = self.FAVOR_IDX
         else:
-            pred = 0
+            pred = self.AGAINST_IDX
         true_label = doc["label"]
         return {
             "acc": pred == true_label,
