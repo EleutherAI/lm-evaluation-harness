@@ -64,7 +64,7 @@ class StereoSetBase(Task):
         return False
 
     def doc_to_target(self, doc):
-        return None  # we don't have a target in StereoSet
+        return " "  # we don't have a target in StereoSet, we return a string since tests expect a string
 
     def doc_to_text(self, doc):
         return doc["context"]
