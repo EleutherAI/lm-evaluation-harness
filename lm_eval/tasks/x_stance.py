@@ -69,10 +69,10 @@ class XStance(Task):
     TOPIC = None
     OPINION = None
     STANCE = None
-    FAVOR = None
     AGAINST = None
-    FAVOR_IDX = 1
+    FAVOR = None
     AGAINST_IDX = 0
+    FAVOR_IDX = 1
 
     def has_training_docs(self):
         return True
@@ -130,10 +130,10 @@ class XStance(Task):
         """
         # rf.loglikelihood as the task is a classification problem. For each document the model predicts loglikelihood for the correct label
         # ctx is the fully formatted fewshot example, i.e. K examples + comment to rate
-        ll_favor = rf.loglikelihood(ctx, " " + self.FAVOR)
         ll_against = rf.loglikelihood(ctx, " " + self.AGAINST)
+        ll_favor = rf.loglikelihood(ctx, " " + self.FAVOR)
 
-        return ll_favor, ll_against
+        return ll_against, ll_favor
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
@@ -147,18 +147,21 @@ class XStance(Task):
         """
 
         pred = 0
-        favor, against = results
+        against, favor = results
+
         # Evaluation metrics will only work with numerical labels
-        if favor[0] > against[0]:
-            pred = self.FAVOR_IDX
-        else:
+        if against[0] > favor[0]:
             pred = self.AGAINST_IDX
+        else:
+            pred = self.FAVOR_IDX
+
         true_label = doc["label"]
+
         return {
             "acc": pred == true_label,
-            "precision": (true_label, pred, [self.FAVOR, self.AGAINST]),
-            "recall": (true_label, pred, [self.FAVOR, self.AGAINST]),
-            "f1": (true_label, pred, [self.FAVOR, self.AGAINST]),
+            "precision": (true_label, pred, [self.AGAINST, self.FAVOR]),
+            "recall": (true_label, pred, [self.AGAINST, self.FAVOR]),
+            "f1": (true_label, pred, [self.AGAINST, self.FAVOR]),
         }
 
     def aggregation(self):
