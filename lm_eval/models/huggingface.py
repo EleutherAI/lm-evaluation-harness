@@ -13,9 +13,10 @@ _DeviceMapping = NewType("DeviceMapping", Mapping[str, Union[int, str, torch.dev
 
 
 def _get_accelerate_args(
-    max_memory_per_gpu: Optional[Union[int, str]],
-    max_cpu_memory: Optional[Union[int, str]],
-    offload_folder: Optional[str],
+    device_map_option: Optional[str] = "auto",
+    max_memory_per_gpu: Optional[Union[int, str]] = None,
+    max_cpu_memory: Optional[Union[int, str]] = None,
+    offload_folder: Optional[str] = "./offload",
 ) -> dict:
     """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
     max_memory = {}
@@ -31,7 +32,7 @@ def _get_accelerate_args(
     args = {}
     if max_memory:
         args["max_memory"] = max_memory
-    args["device_map"] = "auto"
+    args["device_map"] = device_map_option
     args["offload_folder"] = offload_folder
     return args
 
@@ -68,6 +69,7 @@ class HuggingFaceAutoLM(TokenLM):
         max_gen_toks: Optional[int] = 256,
         max_length: Optional[int] = None,
         use_accelerate: Optional[bool] = False,
+        device_map_option: Optional[str] = "auto",
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
         offload_folder: Optional[str] = "./offload",
@@ -79,6 +81,12 @@ class HuggingFaceAutoLM(TokenLM):
         :param use_accelerate:
             If True, uses the `accelerate` library to load a large model across
             multiple devices.
+        :param device_map_option: Optional[str]
+            The device map option to use when loading the model with `accelerate`.
+            Options:
+                "auto", "balanced", "balanced_low_0", "sequential"
+            See the `accelerate` docs for more details on these options:
+            https://huggingface.co/docs/accelerate/v0.12.0/en/usage_guides/big_modeling#designing-a-device-map
         :param max_memory_per_gpu: Optional[Union[int, str]]
             The maximum memory available for each GPU in bytes as `int` or in
             the format f"{significand}{unit_symbol}" where {unit_symbol} is
@@ -120,7 +128,10 @@ class HuggingFaceAutoLM(TokenLM):
         accelerate_kwargs = {}
         if use_accelerate:
             accelerate_kwargs = _get_accelerate_args(
-                max_memory_per_gpu, max_cpu_memory, offload_folder
+                device_map_option,
+                max_memory_per_gpu,
+                max_cpu_memory,
+                offload_folder,
             )
         self.model = self._create_auto_model(
             pretrained=pretrained,
