@@ -27,24 +27,40 @@ _DEVICE = "cpu"
         ),
     ],
 )
-def test_stop_sequences(stop_sequences, test_input, expected):
+def test_causal_stop_sequences(stop_sequences, test_input, expected):
     set_seed()
     causal_model = lm_eval.models.get_model(
         "hf-causal", pretrained="gpt2", device=_DEVICE
     )
     inputs = causal_model.tok_encode_batch([test_input])
-    input_ids = inputs["input_ids"][
-        :, causal_model.max_gen_toks - causal_model.max_length :
-    ].to(_DEVICE)
-    attention_mask = inputs["attention_mask"][
-        :, causal_model.max_gen_toks - causal_model.max_length :
-    ].to(_DEVICE)
     generations = causal_model._model_generate(
-        inputs={"input_ids": input_ids, "attention_mask": attention_mask},
+        inputs=inputs,
         max_tokens=20,
         stop=stop_sequences,
     )
-    generations = causal_model.tokenizer.decode(generations[0])
+    generations = causal_model.tok_decode(generations)[0]
+    assert test_input + generations == expected
+
+
+@pytest.mark.parametrize(
+    "stop_sequences,test_input,expected",
+    [
+        (["symbiosis"], "bigscience is ", "bigscience is a symbiosis"),
+        (["of"], "which is ", "which is a symphony of"),
+        (["</s>"], "which is ", "which is a symphony of a symphony of a "),
+    ],
+)
+def test_seq2seq_stop_sequences(stop_sequences, test_input, expected):
+    seq2seq_model = lm_eval.models.get_model(
+        "hf-seq2seq", pretrained="google/t5-small-lm-adapt", device=_DEVICE
+    )
+    inputs = seq2seq_model.tok_encode_batch([test_input])
+    generations = seq2seq_model._model_generate(
+        inputs=inputs,
+        max_tokens=20,
+        stop=stop_sequences,
+    )
+    generations = seq2seq_model.tok_decode(generations)[0]
     assert test_input + generations == expected
 
 
