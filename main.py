@@ -95,7 +95,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def args_to_name(args):
+def args_to_name(args, separator):
     """Map `args` to file name. If output_path is set, we use that instead."""
     if args.output_path is not None:
         return args.output_path
@@ -105,7 +105,7 @@ def args_to_name(args):
             return model
         elif "pretrained" not in model_args:
             logger.warning("WARNING: Unprepared for these model args.")
-            return f"{model}_{model_args}"
+            return f"{model}={model_args}"
 
         for arg in model_args.split(","):
             # Example:
@@ -113,28 +113,29 @@ def args_to_name(args):
             if "pretrained" in arg:
                 return arg.split("=")[-1].replace("/", "-")
 
-    fields = [
-        _fix_model_name(args.model_api_name, args.model_args),
-        args.task_name,
-        args.template_names,
-        str(args.num_fewshot),
-        str(utils.get_seed()),
-        datetime.datetime.now().isoformat(),
-    ]
-    fields = [f for f in fields if f is not None]
+    fields = {
+        "model": _fix_model_name(args.model_api_name, args.model_args),
+        "task": args.task_name,
+        "templates": args.template_names,
+        "fewshot": str(args.num_fewshot),
+        "batchsize": str(args.batch_size),
+        "seed": str(utils.get_seed()),
+        "timestamp": datetime.datetime.now().isoformat("T", "seconds"),
+    }
+    fields = [f"{k}={v}" for k, v in fields.items() if v is not None]
     # Some prompts also have "/" in them!
-    filename = "_".join(fields).replace("/", "-")
+    filename = f"{separator}".join(fields).replace("/", "-")
     if args.limit is not None:
         # Do not use limited files for final analysis.
-        return f"limited_{args.limit}_" + filename
+        return f"limited={args.limit}{separator}" + filename
 
     return filename
 
 
-def setup_example_logger(output_path):
+def setup_example_logger(output_path, separator):
     """Sets up a logger that will save each example and prediction."""
     example_logger = logging.getLogger("examples")
-    filename = f"./outputs/examples-{output_path}.jsonl"
+    filename = f"./outputs/examples{separator}{output_path}.jsonl"
     formatter = logging.Formatter("%(message)s")
     handler = logging.FileHandler(filename)
     handler.setFormatter(formatter)
@@ -155,8 +156,9 @@ def main():
     template_names = utils.cli_template_names(
         args.task_name, args.template_names, args.template_idx
     )
-    output_path = args_to_name(args)
-    setup_example_logger(output_path)
+    path_separator = "."
+    output_path = args_to_name(args, separator=path_separator)
+    setup_example_logger(output_path, path_separator)
 
     print()  # Ensure a newline after `main` command.
     if args.no_tracking:
@@ -190,18 +192,18 @@ def main():
                 bootstrap_iters=args.bootstrap_iters,
             )
 
-    with open(f"./outputs/agg-{output_path}.json", "w") as f:
+    with open(f"./outputs/agg{path_separator}{output_path}.json", "w") as f:
         json.dump({"results": results["results"], "config": results["config"]}, f)
 
     from scripts.agg2slim import agg2slim
 
-    with open(f"./outputs/slim-{output_path}.json", "w") as f:
+    with open(f"./outputs/slim{path_separator}{output_path}.json", "w") as f:
         json.dump(agg2slim(results), f, indent=2)
 
     print(f"\n{evaluator.make_table(results)}")
 
     if not args.no_tracking:
-        emissions_output_path = f"./outputs/emissions-{output_path}.csv"
+        emissions_output_path = f"./outputs/emissions{path_separator}{output_path}.csv"
         os.rename("emissions.csv", emissions_output_path)
 
 
