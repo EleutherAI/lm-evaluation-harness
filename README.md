@@ -8,6 +8,7 @@ The current implementation progress is tracked under [GitHub issues](https://git
 - XNLI (`xnli_{en,de,fr,es,el,bg,ar}`)
 - XQUAD (`xquad_{ar,de,el,en,es,hi,ru,th,tr,vi,zh`)
 - PAWSX (`pawsx_{en,fr,de}`)
+- MLQA (`mlqa_{en, es, hi, vi, de, ar})
 
 ## Install
 

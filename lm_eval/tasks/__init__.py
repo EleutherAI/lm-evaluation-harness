@@ -54,6 +54,7 @@ from . import xnli
 from . import xquad
 from . import pawsx
 from . import stereoset
+from . import mlqa
 
 ########################################
 # Translation tasks
@@ -291,6 +292,7 @@ TASK_REGISTRY = {
     **xnli.construct_tasks(),
     **pawsx.construct_tasks(),
     **stereoset.construct_tasks(),
+    **mlqa.construct_tasks(),
 }
 
 
