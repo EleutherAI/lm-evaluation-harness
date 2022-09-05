@@ -50,6 +50,9 @@ from . import blimp
 from . import asdiv
 from . import gsm8k
 from . import storycloze
+from . import xnli
+from . import xquad
+from . import pawsx
 from . import x_stance
 
 ########################################
@@ -287,6 +290,9 @@ TASK_REGISTRY = {
     # X-Stance tasks
     "x_stance_de": x_stance.XStanceDE,
     "x_stance_fr": x_stance.XStanceFR,
+    **xquad.construct_tasks(),
+    **xnli.construct_tasks(),
+    **pawsx.construct_tasks(),
 }
 
 
