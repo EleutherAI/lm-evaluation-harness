@@ -152,7 +152,7 @@ class BaseLM(LM):
         pass
 
     @abstractmethod
-    def _model_generate(self, context, max_length, eos_token_id):
+    def _model_generate(self, context, max_length, eos_token_id, top_k=2, do_sample=False):
         pass
 
     @abstractmethod
@@ -342,29 +342,55 @@ class BaseLM(LM):
 
         re_ord = utils.Reorderer(requests, _collate)
 
-        for context, until in tqdm(re_ord.get_reordered()):
-            if isinstance(until, str):
-                until = [until]
+        print(re_ord)
 
-            (primary_until,) = self.tok_encode(until[0])
+        if len(re_ord.get_reordered()[0]) == 5:
+            for context, until, do_sample, top_k, max_gen_tokens in tqdm(re_ord.get_reordered()):
+                if isinstance(until, str):
+                    until = [until]
 
-            context_enc = torch.tensor(
-                [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
-            ).to(self.device)
+                primary_until, = self.tok_encode(until[0])
 
-            cont = self._model_generate(
-                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until
-            )
+                context_enc = torch.tensor([self.tok_encode(context)[max_gen_tokens - self.max_length:]])\
+                    .to(self.device)
 
-            s = self.tok_decode(cont[0].tolist()[context_enc.shape[1] :])
+                cont = self._model_generate(
+                    context_enc, context_enc.shape[1] + max_gen_tokens, primary_until, top_k=top_k, do_sample=do_sample
+                )
 
-            for term in until:
-                s = s.split(term)[0]
+                s = self.tok_decode(cont[0].tolist()[context_enc.shape[1]:])
 
-            # partial caching
-            self.cache_hook.add_partial("greedy_until", (context, until), s)
+                for term in until:
+                    s = s.split(term)[0]
 
-            res.append(s)
+                # partial caching
+                self.cache_hook.add_partial("greedy_until", (context, until), s)
+
+                res.append(s)
+        else:
+            for context, until in tqdm(re_ord.get_reordered()):
+                if isinstance(until, str):
+                    until = [until]
+
+                (primary_until,) = self.tok_encode(until[0])
+
+                context_enc = torch.tensor(
+                    [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
+                ).to(self.device)
+
+                cont = self._model_generate(
+                    context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until
+                )
+
+                s = self.tok_decode(cont[0].tolist()[context_enc.shape[1] :])
+
+                for term in until:
+                    s = s.split(term)[0]
+
+                # partial caching
+                self.cache_hook.add_partial("greedy_until", (context, until), s)
+
+                res.append(s)
 
         return re_ord.get_original(res)
 

@@ -3,3 +3,6 @@ env
 data/
 lm_cache
 .idea
+.DS_Store
+/run_eval.yaml
+/tests/output/

@@ -49,6 +49,7 @@ from . import truthfulqa
 from . import blimp
 from . import asdiv
 from . import gsm8k
+from . import cnndm
 from . import storycloze
 from . import xnli
 from . import xquad
@@ -145,6 +146,7 @@ TASK_REGISTRY = {
     "anli_r1": anli.ANLIRound1,
     "anli_r2": anli.ANLIRound2,
     "anli_r3": anli.ANLIRound3,
+    "cnndm": cnndm.CNNDM,
     "ethics_cm": hendrycks_ethics.EthicsCM,
     "ethics_deontology": hendrycks_ethics.EthicsDeontology,
     "ethics_justice": hendrycks_ethics.EthicsJustice,
