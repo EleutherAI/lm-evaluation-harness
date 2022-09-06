@@ -63,14 +63,15 @@ class HFLM(BaseLM):
 
         self.vocab_size = self.tokenizer.vocab_size
 
-        if isinstance(
-            self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
-        ):
-            if no_tokenizer_check:
-                print(
-                    "Tokenizer NOT checked (only do this when NOT using the standard GPT2 tokenizer (English vocab)"
-                )
-            else:
+        if no_tokenizer_check:
+            print(
+                "Tokenizer NOT checked (only do this when NOT using the standard GPT2 tokenizer (English vocab)"
+            )
+        else:
+            if isinstance(
+                self.tokenizer,
+                (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast),
+            ):
                 assert self.tokenizer.encode("hello\n\nhello") == [
                     31373,
                     198,
