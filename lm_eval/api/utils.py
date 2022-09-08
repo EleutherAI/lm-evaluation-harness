@@ -2,7 +2,6 @@ import collections
 import pathlib
 import re
 import sys
-import numpy
 import torch
 from typing import Callable, Final, Iterable, List, Optional, Tuple, Union
 from transformers import set_seed as transformers_set_seed
