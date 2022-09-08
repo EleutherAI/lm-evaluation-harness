@@ -55,6 +55,7 @@ from . import xquad
 from . import pawsx
 from . import x_stance
 from . import stereoset
+from . import mlqa
 from . import gnad10
 
 ########################################
@@ -296,6 +297,7 @@ TASK_REGISTRY = {
     **pawsx.construct_tasks(),
     "gnad10": gnad10.GNAD10,
     **stereoset.construct_tasks(),
+    **mlqa.construct_tasks(),
 }
 
 
