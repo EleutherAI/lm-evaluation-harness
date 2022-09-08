@@ -10,7 +10,7 @@ import lm_eval.models
 import lm_eval.tasks
 import lm_eval.api.metric
 import lm_eval.api.model
-from lm_eval.api.utils import get_default_seed,set_seed
+from lm_eval.api.utils import get_default_seed, set_seed
 from lm_eval.api.task import Task
 
 
