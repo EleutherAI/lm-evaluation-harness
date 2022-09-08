@@ -27,10 +27,6 @@ def set_seed(seed: Optional[int] = get_default_seed()):
     transformers_set_seed(seed)
 
 
-def get_rng(seed: int) -> numpy.random.Generator:
-    return numpy.random.default_rng(seed)
-
-
 # Token Utils
 
 

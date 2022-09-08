@@ -10,7 +10,7 @@ import lm_eval.models
 import lm_eval.tasks
 import lm_eval.api.metric
 import lm_eval.api.model
-from lm_eval.api.utils import get_default_seed, get_rng, set_seed
+from lm_eval.api.utils import get_default_seed,set_seed
 from lm_eval.api.task import Task
 
 
@@ -129,7 +129,7 @@ def evaluate(
         Dictionary of results
     """
     set_seed(seed)
-    rng = get_rng(seed)
+    rng = np.random.default_rng(seed)
 
     # TODO: Completely refactor this entire function to not be a huge mess, ideally breaking it down into smaller pieces
     task_dict = {}
