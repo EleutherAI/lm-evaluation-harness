@@ -55,6 +55,7 @@ from . import xquad
 from . import pawsx
 from . import x_stance
 from . import stereoset
+from . import gnad10
 
 ########################################
 # Translation tasks
@@ -293,6 +294,7 @@ TASK_REGISTRY = {
     **xquad.construct_tasks(),
     **xnli.construct_tasks(),
     **pawsx.construct_tasks(),
+    "gnad10": gnad10.GNAD10,
     **stereoset.construct_tasks(),
 }
 
