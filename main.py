@@ -47,7 +47,7 @@ def parse_args():
     )
     parser.add_argument("--num_fewshot", type=int, default=0)
     parser.add_argument("--batch_size", type=int, default=None)
-    parser.add_argument("--seed", type=int, default=utils.get_default_seed())
+    parser.add_argument("--seed", type=int, default=utils.DEFAULT_SEED)
     parser.add_argument(
         "--device",
         type=str,

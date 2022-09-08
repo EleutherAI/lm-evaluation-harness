@@ -10,7 +10,7 @@ import lm_eval.models
 import lm_eval.tasks
 import lm_eval.api.metric
 import lm_eval.api.model
-from lm_eval.api.utils import get_default_seed, set_seed
+from lm_eval.api.utils import DEFAULT_SEED, set_seed
 from lm_eval.api.task import Task
 
 
@@ -29,7 +29,7 @@ def cli_evaluate(
     device: Optional[str] = None,
     use_cache: Optional[bool] = False,
     bootstrap_iters: Optional[int] = 100000,
-    seed: Optional[int] = get_default_seed(),
+    seed: Optional[int] = DEFAULT_SEED,
     limit: Optional[int] = None,
 ) -> dict:
     """Evaluate a model from an api on a given task with multiple possible prompt
@@ -59,7 +59,7 @@ def cli_evaluate(
     :param seed: int, optional
         Seed for pseudo-random number generation. This controls document shuffling,
         few-shot prompt selection, and framework seeding.
-        Default: 1234 = `get_default_seed()`
+        Default: 1234 = `DEFAULT_SEED`
      :param limit: int, optional
          Limit the number of examples per task (only use this for testing).
      :return
@@ -106,7 +106,7 @@ def evaluate(
     tasks: List[Task],
     num_fewshot: Optional[int] = 0,
     bootstrap_iters: Optional[int] = 100000,
-    seed: Optional[int] = get_default_seed(),
+    seed: Optional[int] = DEFAULT_SEED,
     limit: Optional[int] = None,
 ) -> dict:
     """Instantiate and evaluate a model on a list of tasks.
@@ -122,7 +122,7 @@ def evaluate(
     :param seed: int, optional
         Seed for pseudo-random number generation. This controls document shuffling,
         few-shot prompt selection, and framework seeding.
-        Default: 1234 = `get_default_seed()`
+        Default: 1234 = `DEFAULT_SEED`
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
     :return
