@@ -54,6 +54,7 @@ from . import xnli
 from . import xquad
 from . import pawsx
 from . import x_stance
+from . import stereoset
 
 ########################################
 # Translation tasks
@@ -287,12 +288,12 @@ TASK_REGISTRY = {
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
-    # X-Stance tasks
     "x_stance_de": x_stance.XStanceDE,
     "x_stance_fr": x_stance.XStanceFR,
     **xquad.construct_tasks(),
     **xnli.construct_tasks(),
     **pawsx.construct_tasks(),
+    **stereoset.construct_tasks(),
 }
 
 
