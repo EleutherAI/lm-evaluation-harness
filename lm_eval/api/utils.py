@@ -18,7 +18,7 @@ class ExitCodeError(Exception):
 # Reproducibility utils
 
 
-DEFAULT_SEED: Final[int] = 42
+DEFAULT_SEED: Final[int] = 1234
 
 
 def set_seed(seed: Optional[int] = DEFAULT_SEED):
