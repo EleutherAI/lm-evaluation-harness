@@ -52,7 +52,8 @@ def _get_dtype(
 
 
 class HuggingFaceAutoLM(TokenLM):
-
+    AUTO_CONFIG_CLASS: transformers.AutoConfig = transformers.AutoConfig
+    AUTO_TOKENIZER_CLASS: transformers.AutoTokenizer = transformers.AutoTokenizer
     AUTO_MODEL_CLASS: transformers.AutoModel = None
 
     # Default max sequence length setting for when no `max_length` is provided
@@ -131,7 +132,7 @@ class HuggingFaceAutoLM(TokenLM):
         self._batch_size = batch_size  # TODO: Adaptive batch size
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
-        self._config = transformers.AutoConfig.from_pretrained(pretrained)
+        self._config = self.AUTO_CONFIG_CLASS.from_pretrained(pretrained)
 
         self._add_special_tokens = add_special_tokens
         self.tokenizer = self._create_auto_tokenizer(
@@ -200,7 +201,7 @@ class HuggingFaceAutoLM(TokenLM):
         tokenizer: Optional[str] = None,
     ) -> transformers.PreTrainedTokenizer:
         """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
-        tokenizer = transformers.AutoTokenizer.from_pretrained(
+        tokenizer = self.AUTO_TOKENIZER_CLASS.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
         )
