@@ -47,6 +47,7 @@ def parse_args():
     )
     parser.add_argument("--num_fewshot", type=int, default=0)
     parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument("--seed", type=int, default=utils.DEFAULT_SEED)
     parser.add_argument(
         "--device",
         type=str,
@@ -119,7 +120,7 @@ def args_to_name(args, separator):
         "templates": args.template_names,
         "fewshot": str(args.num_fewshot),
         "batchsize": str(args.batch_size),
-        "seed": str(utils.get_seed()),
+        "seed": str(args.seed),
         "timestamp": datetime.datetime.now().isoformat("T", "seconds"),
     }
     fields = [f"{k}={v}" for k, v in fields.items() if v is not None]
@@ -153,44 +154,36 @@ def main():
             "SHOULD NOT BE COMPUTED USING LIMIT."
         )
 
-    template_names = utils.cli_template_names(
-        args.task_name, args.template_names, args.template_idx
-    )
+    print()  # Ensure a newline after `main` command for readability.
+
     path_separator = "."
     output_path = args_to_name(args, separator=path_separator)
     setup_example_logger(output_path, path_separator)
 
-    print()  # Ensure a newline after `main` command.
+    template_names = utils.cli_template_names(
+        args.task_name, args.template_names, args.template_idx
+    )
+    evaluate_args = dict(
+        model_api_name=args.model_api_name,
+        model_args=args.model_args,
+        task_name=args.task_name,
+        template_names=template_names,
+        num_fewshot=args.num_fewshot,
+        batch_size=args.batch_size,
+        device=args.device,
+        use_cache=args.use_cache,
+        bootstrap_iters=args.bootstrap_iters,
+        seed=args.seed,
+        limit=args.limit,
+    )
     if args.no_tracking:
-        results = evaluator.cli_evaluate(
-            model_api_name=args.model_api_name,
-            model_args=args.model_args,
-            task_name=args.task_name,
-            template_names=template_names,
-            num_fewshot=args.num_fewshot,
-            batch_size=args.batch_size,
-            device=args.device,
-            use_cache=args.use_cache,
-            limit=args.limit,
-            bootstrap_iters=args.bootstrap_iters,
-        )
+        results = evaluator.cli_evaluate(**evaluate_args)
     else:
         from codecarbon import OfflineEmissionsTracker
 
         with OfflineEmissionsTracker(country_iso_code="FRA", log_level="error"):
             print()  # Add newline between emissions tracker and evaluation logging.
-            results = evaluator.cli_evaluate(
-                model_api_name=args.model_api_name,
-                model_args=args.model_args,
-                task_name=args.task_name,
-                template_names=template_names,
-                num_fewshot=args.num_fewshot,
-                batch_size=args.batch_size,
-                device=args.device,
-                use_cache=args.use_cache,
-                limit=args.limit,
-                bootstrap_iters=args.bootstrap_iters,
-            )
+            results = evaluator.cli_evaluate(**evaluate_args)
 
     with open(f"./outputs/agg{path_separator}{output_path}.json", "w") as f:
         json.dump({"results": results["results"], "config": results["config"]}, f)

@@ -79,6 +79,7 @@ optional arguments:
                             - `"original_templates"`: Selects only templates that are designed to match the original task
   --num_fewshot NUM_FEWSHOT
   --batch_size BATCH_SIZE
+  --seed SEED
   --device DEVICE       The device to place your model onto, e.g. cuda:0. For large models available through the
                         HuggingFace Hub you should use `accelerate` by passing `use_accelerate=True` to
                         `--model_args`

@@ -10,7 +10,7 @@ import lm_eval.models
 import lm_eval.tasks
 import lm_eval.api.metric
 import lm_eval.api.model
-from lm_eval.api.utils import set_seed, get_rng, get_seed
+from lm_eval.api.utils import DEFAULT_SEED, set_seed
 from lm_eval.api.task import Task
 
 
@@ -29,6 +29,7 @@ def cli_evaluate(
     device: Optional[str] = None,
     use_cache: Optional[bool] = False,
     bootstrap_iters: Optional[int] = 100000,
+    seed: Optional[int] = DEFAULT_SEED,
     limit: Optional[int] = None,
 ) -> dict:
     """Evaluate a model from an api on a given task with multiple possible prompt
@@ -55,6 +56,10 @@ def cli_evaluate(
          Whether or not to use a cache for language model results.
      :param bootstrap_iters:
          Number of iterations for bootstrap statistics.
+    :param seed: int, optional
+        Seed for pseudo-random number generation. This controls document shuffling,
+        few-shot prompt selection, and framework seeding.
+        Default: 1234 = `DEFAULT_SEED`
      :param limit: int, optional
          Limit the number of examples per task (only use this for testing).
      :return
@@ -75,8 +80,9 @@ def cli_evaluate(
         model=model,
         tasks=tasks,
         num_fewshot=num_fewshot,
-        limit=limit,
         bootstrap_iters=bootstrap_iters,
+        seed=seed,
+        limit=limit,
     )
 
     # Add info about the model and few shot config.
@@ -89,7 +95,7 @@ def cli_evaluate(
         "use_cache": use_cache,
         "limit": limit,
         "bootstrap_iters": bootstrap_iters,
-        "seed": get_seed(),
+        "seed": seed,
     }
     return results
 
@@ -100,6 +106,7 @@ def evaluate(
     tasks: List[Task],
     num_fewshot: Optional[int] = 0,
     bootstrap_iters: Optional[int] = 100000,
+    seed: Optional[int] = DEFAULT_SEED,
     limit: Optional[int] = None,
 ) -> dict:
     """Instantiate and evaluate a model on a list of tasks.
@@ -112,13 +119,17 @@ def evaluate(
         Number of examples in few-shot context
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
+    :param seed: int, optional
+        Seed for pseudo-random number generation. This controls document shuffling,
+        few-shot prompt selection, and framework seeding.
+        Default: 1234 = `DEFAULT_SEED`
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
     :return
         Dictionary of results
     """
-    set_seed()
-    rng = get_rng()
+    set_seed(seed)
+    rng = np.random.default_rng(seed)
 
     # TODO: Completely refactor this entire function to not be a huge mess, ideally breaking it down into smaller pieces
     task_dict = {}

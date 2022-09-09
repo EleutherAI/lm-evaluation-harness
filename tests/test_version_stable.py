@@ -6,7 +6,7 @@ import hashlib
 import collections
 
 import lm_eval
-from lm_eval.api.utils import get_seed, set_seed
+from lm_eval.api.utils import DEFAULT_SEED, set_seed
 
 
 def _assert_target(name, ob):
@@ -79,7 +79,7 @@ def test_versions_stable(task_name, task_class):
         )
         res = []
 
-        random.seed(get_seed())
+        random.seed(DEFAULT_SEED)
         for _ in requests:
             res.append((-random.random(), False))
 
@@ -94,7 +94,7 @@ def test_versions_stable(task_name, task_class):
         )
         res = []
 
-        random.seed(get_seed())
+        random.seed(DEFAULT_SEED)
         for _ in requests:
             res.append(-random.random())
 

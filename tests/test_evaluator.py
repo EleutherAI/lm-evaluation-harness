@@ -7,7 +7,7 @@ import lm_eval.tasks as tasks
 import lm_eval.api.model as model
 import lm_eval.models as models
 import lm_eval.evaluator as evaluator
-from lm_eval.api.utils import set_seed, get_seed
+from lm_eval.api.utils import DEFAULT_SEED, set_seed
 
 
 # TODO: More fine grained unit tests rather than this big honking integration
@@ -23,7 +23,7 @@ def _ll_fn(requests):
         assert ctx[-1] != " "
         assert cont[0] == " "
     res = []
-    random.seed(get_seed())
+    random.seed(DEFAULT_SEED)
     for _ in requests:
         res.append((-random.random(), False))
     return res
@@ -33,7 +33,7 @@ def _ll_perp_fn(requests):
     for (string,) in requests:
         assert isinstance(string, str)
     res = []
-    random.seed(get_seed())
+    random.seed(DEFAULT_SEED)
     for _ in requests:
         res.append(-random.random())
     return res

@@ -2,9 +2,8 @@ import collections
 import pathlib
 import re
 import sys
-import numpy
 import torch
-from typing import Callable, Iterable, List, Tuple, Union
+from typing import Callable, Final, Iterable, List, Optional, Tuple, Union
 from transformers import set_seed as transformers_set_seed
 
 
@@ -18,17 +17,11 @@ class ExitCodeError(Exception):
 # Reproducibility utils
 
 
-def get_seed() -> int:
-    """Returns a hard-coded global seed for reproducibility."""
-    return 1234
+DEFAULT_SEED: Final[int] = 1234
 
 
-def set_seed() -> None:
-    transformers_set_seed(get_seed())
-
-
-def get_rng() -> numpy.random.Generator:
-    return numpy.random.default_rng(get_seed())
+def set_seed(seed: Optional[int] = DEFAULT_SEED):
+    transformers_set_seed(seed)
 
 
 # Token Utils

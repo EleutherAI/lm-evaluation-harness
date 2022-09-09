@@ -1,5 +1,6 @@
 import argparse
 import os
+import numpy as np
 
 import lm_eval
 from lm_eval.api import utils
@@ -16,12 +17,13 @@ def parse_args():
     parser.add_argument("--sets", type=str, default="val")  # example: val,test
     parser.add_argument("--num_fewshot", type=int, default=1)
     parser.add_argument("--num_examples", type=int, default=1)
+    parser.add_argument("--seed", type=int, default=utils.DEFAULT_SEED)
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    rng = utils.get_rng()
+    rng = np.random.default_rng(args.seed)
 
     template_names = utils.cli_template_names(args.task_name, args.template_names)
     tasks = lm_eval.get_task_list(args.task_name, template_names)
