@@ -33,18 +33,19 @@ class HFLM(BaseLM):
                 else torch.device("cpu")
             )
 
+        # TODO: update this to be less of a hack once subfolder is fixed in HF
+        revision = revision + ("/" + subfolder if subfolder is not None else "")
+
         self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
             pretrained,
-            # TODO: update this to be less of a hack once subfolder is fixed in HF
-            revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            revision=revision,
         ).to(self.device)
         self.gpt2.eval()
 
         # pretrained tokenizer for neo is broken for now so just hard-coding this to gpt2
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
-            # TODO: update this to be less of a hack once subfolder is fixed in HF
-            revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            revision=revision,
         )
 
         assert isinstance(
