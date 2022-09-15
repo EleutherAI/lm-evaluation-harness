@@ -57,15 +57,6 @@ class DROP(PromptSourceTask):
         return self.dataset["validation"]
 
     def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of sub-metrics and values are the values of
-        the metric for that one document
-
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
-        """
         golds = self.doc_to_target(doc)
         pred = results[0].strip()
         preds = [pred]
@@ -207,17 +198,7 @@ class DROP(PromptSourceTask):
         return normalized
 
     def aggregation(self):
-        """
-        :returns: {str: [float] -> float}
-            A dictionary where keys are the names of sub-metrics and values are
-            functions that aggregate a list of metrics
-        """
         return {"em": mean, "f1": mean}
 
     def higher_is_better(self):
-        """
-        :returns: {str: bool}
-            A dictionary where keys are the names of sub-metrics and values are
-            whether a higher value of the sub-metric is better
-        """
         return {"em": True, "f1": True}

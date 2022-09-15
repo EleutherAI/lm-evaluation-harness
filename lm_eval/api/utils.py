@@ -42,20 +42,22 @@ def get_rolling_token_windows(
 ) -> Iterable[Tuple[List[int], List[int]]]:
     """Returns a generator of rolling windows of length `max_seq_len` from a list of tokens.
 
-    :param token_list: list
-        List of tokens to be PREDICTED
-    :param prefix_token: token
-        Dummy token like <eos> so the first token has something to condition on
-    :param max_seq_len: int
-        max_seq_len of model (or max_seq_len we want to use)
-    :param context_len: int
-        Amount of desired token context for prediction. Needs to be at least 1.
-        This allows for a rolling window context, letting each prediction window
-        to potentially condition on some context.
-    :return: generator
-        Generator of tuples
-            (input_tokens, pred_tokens)
-        Note: Score only the last len(pred_tokens) logits of the LM
+    Args:
+        token_list (List[int]):
+            List of tokens to be predicted.
+        prefix_token (int):
+            Dummy token like <eos> so the first token has something to condition
+            on.
+        max_seq_len (int):
+            The maximum sequence length of the model or a length we want to use.
+        context_len (int):
+            Amount of desired token context for prediction. Needs to be at least 1.
+            This allows for a rolling window context, letting each prediction
+            window to potentially condition on some context.
+
+    Returns:
+        Generator of tuples: (input_tokens, pred_tokens)
+        NOTE: Score only the last len(pred_tokens) logits of the LM.
     """
     assert 1 <= context_len <= max_seq_len
     if not token_list:
@@ -86,23 +88,30 @@ def split_and_pad_windows(
     """Splits and pads a sequence of rolling context and continuation windows
     from `get_rolling_token_windows`.
 
-    E.g. `[
+    Example:
+        [
             ([1] , [23, 19, 3]),  # (context, continuation)
             ([43], [2, 4]])
-          ]
-        =>[
-            [[1],[43]],  # Split & padded contexts.
+        ]
+
+    Output:
+        [
+            [[1],[43]],                # Split & padded contexts.
             [[23, 19, 3], [2, 4, 1]]`  # Split & padded continuations.
-           ]
+        ]
         where `1` = `pad_token` id.
 
-    :param windows:
-        A generator of rolling `(context, continuation)` token windows (tuples).
-    :param pad_token_id: int
-        The token (id) to pad with.
-    :param max_seq_len: int
-        max_seq_len of model (or max_seq_len we want to use)
-    :return: A tuple of (context, continuation) padding windows.
+    Args:
+        windows (List[Tuple[str, str]]):
+            A generator of rolling `(context, continuation)` token windows
+            (tuples).
+        pad_token_id (int):
+            The token id to pad with.
+        max_seq_len (int):
+            The maximum sequence length of the model or a length we want to use.
+
+    Returns:
+        A tuple of (context, continuation) padding windows.
     """
     contexts, continuations = zip(*windows)
     contexts, continuations = list(contexts), list(continuations)
@@ -129,7 +138,9 @@ def split_and_pad_windows(
 
 
 def make_disjoint_window(pair):
-    """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
+    """Takes output from get_rolling_token_windows and makes the context not
+    overlap with the continuation.
+    """
     a, b = pair
     return a[: -(len(b) - 1)], b
 
@@ -139,18 +150,20 @@ def select_continuation_from_batch_left_padding(
 ):
     """Select the continuation from the batch, removing prompts of different lengths.
 
-    generations : tensor of shape B x S
-        batch x sequence x vocab.
-    max_context_size : int
-        the size of the biggest context. generations will proceed from that index.
+    Args:
+        generations (Union[List[List[int]], torch.Tensor]):
+            A tensor or list-of-lists of shape [batch_size, sequence length].
+        max_context_size (int):
+            The size of the biggest context; generations will proceed from that
+            index.
 
     Example:
-    PAD     PAD Continue : The dog chased the cat  [every       day of the week]
-    Riddle  me    this   : The  dog chased the  cat [yesterday] PAD PAD PAD PAD
+        PAD     PAD Continue : The dog chased the cat  [every       day of the week]
+        Riddle  me    this   : The  dog chased the  cat [yesterday] PAD PAD PAD PAD
 
     Output:
-    [every day of the week]
-    [yesterday]  PAD PAD PAD PAD
+        [every day of the week]
+        [yesterday]  PAD PAD PAD PAD
     """
     return generations[:, max_context_size:]
 
@@ -227,17 +240,26 @@ def cli_template_names(
     """Returns a selection of template names for a given task and comma-
     separated string of template names.
 
-    Example: `cli_template_names("task", "A,B,C")` -> `["A", "B", "C"]`.
+    Example:
+        cli_template_names("task", "A,B,C") -> ["A", "B", "C"]
 
     Args:
-        - task_name: Name of the task from which to retrieve template names.
-        - template_names: A string of template names separated by a comma if
-            multiple names are given.
+        task_name (str):
+            Name of the task from which to retrieve template names.
+        template_names (str):
+            A string of template names separated by a comma if multiple names
+            are given.
             General Selectors:
-            - "all_templates": Returns all templates for the task.
-            - "original_templates": Returns all templates with formatting that
-                matches the original task design.
-        - template_idx: If given, returns only the template at the given index.
+                "all_templates":
+                    Returns all templates for the task.
+                "original_templates":
+                    Returns all templates with formatting that matches the
+                    original task design.
+        template_idx (int, optional, defaults to None):
+            If given, returns only the template at the given index.
+
+    Returns:
+        A list of template names.
     """
     import lm_eval.tasks
 
@@ -295,8 +317,7 @@ def to_bool(s: str):
 
 
 def find_test_root(*, start_path: pathlib.Path) -> pathlib.Path:
-    """
-    Search upward in the directory tree to a maximum of three layers
+    """Search upward in the directory tree to a maximum of three layers
     to find and return the package root (containing the 'tests' folder)
     """
     cur_path = start_path.resolve()

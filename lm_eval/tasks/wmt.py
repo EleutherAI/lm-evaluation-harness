@@ -74,7 +74,8 @@ def construct_tasks() -> Dict[str, WMTBase]:
     """Constructs a `dict` of WMT tasks for all available WMT years
     with keys of the form:
         `wmt{year}_{lang1}_{lang2}`
-    Example: `wmt14_cs_en`
+    Example:
+        `wmt14_cs_en`
     """
     tasks = {}
     for wmtyear, lang_pairs in _YEAR_TO_LANG_PAIRS.items():

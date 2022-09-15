@@ -48,26 +48,28 @@ class Task(abc.ABC):
         download_mode: Optional[str] = None,
     ):
         """
-        :param data_dir: str
-            Stores the path to a local folder containing the `Task`'s data files.
-            Use this to specify the path to manually downloaded data (usually when
-            the dataset is not publicly accessible).
-        :param cache_dir: str
-            The directory to read/write the `Task` dataset. This follows the
-            HuggingFace `datasets` API with the default cache directory located at:
-                `~/.cache/huggingface/datasets`
-            NOTE: You can change the cache location globally for a given process
-            by setting the shell environment variable, `HF_DATASETS_CACHE`,
-            to another directory:
-                `export HF_DATASETS_CACHE="/path/to/another/directory"`
-        :param download_mode: datasets.DownloadMode
-            How to treat pre-existing `Task` downloads and data.
-            - `datasets.DownloadMode.REUSE_DATASET_IF_EXISTS`
-                Reuse download and reuse dataset.
-            - `datasets.DownloadMode.REUSE_CACHE_IF_EXISTS`
-                Reuse download with fresh dataset.
-            - `datasets.DownloadMode.FORCE_REDOWNLOAD`
-                Fresh download and fresh dataset.
+        Args:
+            data_dir (str, optional, defaults to None):
+                Stores the path to a local folder containing the `Task`'s data
+                files. Use this to specify the path to manually downloaded data
+                (usually when the dataset is not publicly accessible).
+            cache_dir (str, optional, defaults to None):
+                The directory to read/write the `Task` dataset. This follows the
+                HuggingFace `datasets` API with the default cache directory located
+                at:
+                    `~/.cache/huggingface/datasets`
+                NOTE: You can change the cache location globally for a given
+                process by setting the shell environment variable,
+                `HF_DATASETS_CACHE`, to another directory:
+                    `export HF_DATASETS_CACHE="/path/to/another/directory"`
+            download_mode (datasets.DownloadMode, optional, defaults to None):
+                How to treat pre-existing `Task` downloads and data.
+                - `datasets.DownloadMode.REUSE_DATASET_IF_EXISTS`
+                    Reuse download and reuse dataset.
+                - `datasets.DownloadMode.REUSE_CACHE_IF_EXISTS`
+                    Reuse download with fresh dataset.
+                - `datasets.DownloadMode.FORCE_REDOWNLOAD`
+                    Fresh download and fresh dataset.
         """
         self.download(data_dir, cache_dir, download_mode)
         self._training_docs = None
@@ -80,28 +82,8 @@ class Task(abc.ABC):
         download_mode: Optional[str] = None,
     ):
         """Downloads and returns the task dataset.
-        Override this method to download the dataset from a custom API.
 
-        :param data_dir: str
-            Stores the path to a local folder containing the `Task`'s data files.
-            Use this to specify the path to manually downloaded data (usually when
-            the dataset is not publicly accessible).
-        :param cache_dir: str
-            The directory to read/write the `Task` dataset. This follows the
-            HuggingFace `datasets` API with the default cache directory located at:
-                `~/.cache/huggingface/datasets`
-            NOTE: You can change the cache location globally for a given process
-            by setting the shell environment variable, `HF_DATASETS_CACHE`,
-            to another directory:
-                `export HF_DATASETS_CACHE="/path/to/another/directory"`
-        :param download_mode: datasets.DownloadMode
-            How to treat pre-existing `Task` downloads and data.
-            - `datasets.DownloadMode.REUSE_DATASET_IF_EXISTS`
-                Reuse download and reuse dataset.
-            - `datasets.DownloadMode.REUSE_CACHE_IF_EXISTS`
-                Reuse download with fresh dataset.
-            - `datasets.DownloadMode.FORCE_REDOWNLOAD`
-                Fresh download and fresh dataset.
+        NOTE: Override this method to download the dataset from a custom API.
         """
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
@@ -128,32 +110,31 @@ class Task(abc.ABC):
 
     def training_docs(self) -> datasets.Dataset:
         """
-        :return: datasets.Dataset
+        Returns:
             A dataset of training documents.
         """
         return datasets.Dataset.from_dict({})
 
     def validation_docs(self) -> datasets.Dataset:
         """
-        :return: datasets.Dataset
+        Returns:
             A dataset of validation documents.
         """
         return datasets.Dataset.from_dict({})
 
     def test_docs(self) -> datasets.Dataset:
         """
-        :return: datasets.Dataset
+        Returns:
             A dataset of test documents.
         """
         return datasets.Dataset.from_dict({})
 
     def _process_doc(self, doc):
-        """
-        Override this to process (detokenize, strip, replace, etc.) individual
+        """Override this to process (detokenize, strip, replace, etc.) individual
         documents. This can be used in a map over documents of a data split.
         E.g. `map(self._process_doc, self.dataset["validation"])`
 
-        :return: dict
+        Returns:
             The processed version of the specified `doc`.
         """
         return doc
@@ -171,15 +152,19 @@ class Task(abc.ABC):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param ctx: str
-            The context string, generated by fewshot_context. This includes the natural
-            language description, as well as the few shot examples, and the question
-            part of the document for `doc`.
-        :param args: dict
-            The specifics of the context, including number of few shots.
-        :returns: iterable of `Request` objects.
+        Args:
+            doc (dict):
+                The document as returned from training_docs, validation_docs, or
+                test_docs.
+            ctx (str):
+                The context string, generated by fewshot_context. This includes
+                the natural language description, as well as the few shot examples,
+                and the question part of the document for `doc`.
+            args (dict):
+                The specifics of the context, including number of few shots.
+
+        Returns:
+            An iterable of `Request` objects.
         """
         pass
 
@@ -189,30 +174,37 @@ class Task(abc.ABC):
     ) -> Union[dict, Tuple[dict, dict]]:
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of sub-metrics and values are the values of
-        the metric for that one document
+        the metric for that one document.
 
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
+        Args:
+            doc (dict):
+                The document as returned from training_docs, validation_docs, or
+                test_docs.
+            results (list):
+                The results of the requests created in construct_requests.
+
+        Returns:
+            A dict of metric results.
         """
         pass
 
     @abstractmethod
     def aggregation(self) -> Mapping[str, Callable]:
         """
-        :returns: {str: [metric_score] -> float}
+        Returns:
             A dictionary where keys are the names of sub-metrics and values are
-            functions that aggregate a list of metric scores
+            functions that aggregate a list of metric scores.
+            {str: [metric_score] -> float}
         """
         pass
 
     @abstractmethod
     def higher_is_better(self) -> Mapping[str, bool]:
         """
-        :returns: {str: bool}
+        Returns:
             A dictionary where keys are the names of sub-metrics and values are
-            whether a higher value of the sub-metric is better
+            whether a higher value of the sub-metric is better.
+            {str: bool}
         """
         pass
 
@@ -239,21 +231,24 @@ class PromptSourceTask(Task):
         save_examples: Optional[bool] = True,
     ):
         """
-        :param save_examples: Optional[bool]
-            Whether to save each example and corresponding model predictions to
-            an output `dict`.
+        Args:
+            save_examples (bool, optional, defaults to True):
+                Whether to save each example and corresponding model predictions
+                to an output `dict`.
 
-        Few-shot Prompting Args:
-        :param example_separator: Optional[str]
-            The string that will be used to separate the few-shot examples from
-            the prompt example.
-            Default: "\n###\n"
-                See Webson & Pavlick (2022) https://arxiv.org/pdf/2109.01247.pdf
-                for justification of this separator.
-        :param text_target_separator: Optional[str]
-            The string that will be used to separate the prompt example from the
-            target text. Example:
-            `Q: Where is the Eiffel Tower located? A:{text_target_separator}Paris`
+            > Few-shot prompting args
+
+            example_separator (str, optional, defaults to '\n###\n'):
+                The string that will be used to separate the few-shot examples
+                from the prompt example.
+                Default: '\n###\n'
+                    See Webson & Pavlick (2022) https://arxiv.org/pdf/2109.01247.pdf
+                    for justification of this separator.
+            text_target_separator (str, optional, defaults to ' '):
+                The string that will be used to separate the prompt example
+                from the target text.
+                Example:
+                    Q: Where is the Eiffel Tower located? A:{text_target_separator}Paris
         """
         super().__init__(data_dir, cache_dir, download_mode)
         self.prompt_template = prompt_template
@@ -284,8 +279,7 @@ class PromptSourceTask(Task):
             raise RuntimeError("Task has neither test_docs nor validation_docs")
 
     def fewshot_docs(self) -> datasets.Dataset:
-        """
-        Returns the `dataset` split that the few-shot examples should be sample
+        """Returns the `dataset` split that the few-shot examples should be sample
         from. This prioritizes the `train_docs` split as the few-shot example
         source, then `validation_docs`, and lastly `test_docs`.
         """
@@ -332,15 +326,19 @@ class PromptSourceTask(Task):
     ) -> Tuple[List[dict], List[int]]:
         """Returns `k` random examples from the set of documents in `docs`.
 
-        :param docs: datasets.Dataset
-            The dataset of documents to sample few-shot examples from.
-        :param k: int
-            The number of few-shot examples.
-        :param rng: np.random.Generator
-            The pseudo-random number generator used to randomly sample examples.
-        :param prompt: Optional[dict]
-            The prompt document. Specify this to ensure the prompt is not in
-            the set of few-shot examples.
+        Args:
+            docs (datasets.Dataset):
+                The dataset of documents to sample few-shot examples from.
+            k (int):
+                The number of few-shot examples.
+            rng (np.random.Generator):
+                The pseudo-random number generator used to randomly sample examples.
+            prompt (Optional[dict]):
+                The prompt document. Specify this to ensure the prompt is not in
+                the set of few-shot examples.
+
+        Returns:
+            A tuple of two lists. The first list contains the few-shot examples
         """
         random_indices = np.arange(len(docs)).tolist()
         rng.shuffle(random_indices)
@@ -363,17 +361,22 @@ class PromptSourceTask(Task):
         """Returns a few-shot context string made up of `num_fewshot` number of
         labeled examples, and an appended prompt example without labeling.
 
-        :param doc: dict
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param num_fewshot: int
-            The number of fewshot examples to provide in the returned context string.
-        :param rng: numpy.random.Generator
-            The pseudo-random number generator used to randomly sample few-shot examples.
-        :returns: Tuple[str, dict]
-            ctx: str
-                The fewshot context.
-            logging_info: dict
-                A `dict` of logging info that can be used to identify few-shot sources.
+        Args:
+            doc (dict):
+                The document as returned from training_docs, validation_docs, or test_docs.
+            num_fewshot (int):
+                The number of fewshot examples to provide in the returned context string.
+            rng (numpy.random.Generator):
+                The pseudo-random number generator used to randomly sample few-shot examples.
+
+        Returns:
+            A few-shot context string and a dictionary containing few-shot context
+            logging information.
+                ctx (str):
+                    The fewshot context.
+                logging_info (dict):
+                    A `dict` of logging info that can be used to identify few-shot
+                    sources.
         """
         assert (
             rng is not None
@@ -420,15 +423,19 @@ class PromptSourceTask(Task):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param ctx: str
-            The context string, generated by fewshot_context. This includes the natural
-            language description, as well as the few shot examples, and the question
-            part of the document for `doc`.
-        :param args: dict
-            The specifics of the context, including number of few shots.
-        :returns: iterable of `Request` objects.
+        Args:
+            doc (dict):
+                The document as returned from training_docs, validation_docs, or
+                test_docs.
+            ctx (str):
+                The context string, generated by fewshot_context. This includes
+                the natural language description, as well as the few shot examples,
+                and the question part of the document for `doc`.
+            args (dict):
+                The specifics of the context, including number of few shots.
+
+        Returns:
+            An iterable of `Request` objects.
         """
         requests = []
         answer_choices_list = self.prompt_template.get_answer_choices_list(doc)
@@ -455,15 +462,20 @@ class PromptSourceTask(Task):
     ) -> Union[dict, Tuple[dict, dict]]:
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of sub-metrics and values are the values of
-        the metric for that one document
+        the metric for that one document.
 
         NOTE: This function automates processing by using the `promptsource`
         metadata to determine the metric.
 
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
+        Args:
+            doc (dict):
+                The document as returned from training_docs, validation_docs, or
+                test_docs.
+            results (list):
+                The results of the requests created in construct_requests.
+
+        Returns:
+            A dict of metric results.
         """
         answer_choices_list = self.prompt_template.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)

@@ -58,15 +58,6 @@ class WinoBias(PromptSourceTask):
         return self.dataset["test"]
 
     def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of sub-metrics and values are the values of
-        the metric for that one document
-
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
-        """
         answer_choices_list = self.prompt_template.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)[0].strip()
         pred = " ".join(results[0].strip().split(" ")[: len(target.split(" "))])
@@ -88,11 +79,6 @@ class WinoBias(PromptSourceTask):
         return out
 
     def aggregation(self):
-        """
-        :returns: {str: [metric_score] -> float}
-            A dictionary where keys are the names of sub-metrics and values are
-            functions that aggregate a list of metric scores
-        """
         return {"em": mean}
 
     def higher_is_better(self):

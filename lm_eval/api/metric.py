@@ -6,7 +6,7 @@ import sacrebleu
 import sklearn.metrics
 from collections.abc import Iterable
 from rouge_score import rouge_scorer
-from typing import List, Optional
+from typing import List, Mapping, Optional
 
 from lm_eval.metrics import sari as sari_impl
 
@@ -235,18 +235,23 @@ def rouge(
     refs: List[str],
     pred: str,
     rouge_types: Optional[List[str]] = ["rouge1", "rouge2", "rougeL", "rougeLsum"],
-):
+) -> Mapping[str, float]:
     """ROUGE with multi-reference support
 
     Implementation based on GEM-metrics:
     https://github.com/GEM-benchmark/GEM-metrics/blob/431a8174bd6b3637e8d6118bfad2983e39e99733/gem_metrics/rouge.py
 
-    :param refs:
-        A `list` of reference `str`s.
-    :param pred:
-        A single prediction `str`s.
-    :param rouge_types:
-        An optional list of ROUGE types from the set ["rouge1", "rouge2", "rougeL", "rougeLsum"].
+    Args:
+        refs (List[str]):
+            A `list` of reference `str`s.
+        pred (str):
+            A single prediction `str`s.
+        rouge_types (Optional[List[str]]):
+            An optional list of ROUGE types from the set:
+            ["rouge1", "rouge2", "rougeL", "rougeLsum"]
+
+    Returns:
+        A `dict` of ROUGE scores.
     """
 
     # Add newlines between sentences to correctly compute `rougeLsum`.

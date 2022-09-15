@@ -15,15 +15,18 @@ logging.getLogger("openai").setLevel(logging.WARNING)
 def get_result(response: dict, ctxlen: int) -> Tuple[float, bool]:
     """Process results from OpenAI API response.
 
-    :param response: dict
-        OpenAI API Response
-    :param ctxlen: int
-        Length of context (so we can slice them away and only keep the predictions)
-    :return:
+    Args:
+        response (dict):
+            OpenAI API response.
+        ctxlen (int):
+            Length of context (so we can slice them away and only keep the
+            predictions).
+
+    Returns:
         continuation_logprobs: float
-            Log probabilities of continuation tokens
+            Log probabilities of continuation tokens.
         is_greedy: bool
-            whether argmax matches given continuation exactly
+            Whether argmax matches given continuation exactly.
     """
     is_greedy = True
     logprobs = response["logprobs"]["token_logprobs"]
@@ -43,7 +46,7 @@ def get_result(response: dict, ctxlen: int) -> Tuple[float, bool]:
 def oa_completion(**kwargs):
     """Query OpenAI API for completion.
 
-    Retry with back-off until they respond
+    NOTE: Retry with back-off until they respond.
     """
     import openai
 
@@ -72,8 +75,9 @@ class OpenAICompletionsLM(TokenLM):
         max_gen_toks: Optional[int] = 256,
     ):
         """
-        :param engine: str
-            OpenAI API engine (e.g. `davinci`)
+        Args:
+            engine (str):
+                OpenAI API engine (e.g. `davinci`).
         """
         super().__init__()
         assert device is None, "Can't specify `device` in the OpenAI API."

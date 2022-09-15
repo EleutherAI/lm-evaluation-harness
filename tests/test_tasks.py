@@ -20,7 +20,8 @@ def _get_deterministic_template(
     If `task_class` does not have a prompt template with non-random ordering we
     return None.
 
-    :return: (prompt template, is_deterministic)
+    Returns:
+        (prompt template, is_deterministic)
     """
     # Only choose 1 promptsource template.
     prompt_template = None

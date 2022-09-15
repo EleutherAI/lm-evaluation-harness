@@ -78,16 +78,6 @@ class JigsawUnintendedBias(PromptSourceTask):
             return self.dataset["test_public_leaderboard"]
 
     def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of sub-metrics and values are the values of
-        the metric for that one document
-
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
-        """
-
         answer_choices_list = self.prompt_template.get_answer_choices_list(doc)
         target = self.doc_to_target(doc)
         assert isinstance(target, list) and len(target) == 1

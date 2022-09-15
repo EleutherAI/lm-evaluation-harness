@@ -71,15 +71,6 @@ class CoQA(PromptSourceTask):
         }
 
     def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of sub-metrics and values are the values of
-        the metric for that one document
-
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
-        """
         targets = self.doc_to_target(doc)
         pred = results[0].strip().split("\n")[0]
         scores = self.compute_scores(targets, pred)

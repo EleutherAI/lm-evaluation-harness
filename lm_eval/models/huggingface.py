@@ -80,39 +80,51 @@ class HuggingFaceAutoLM(TokenLM):
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
 
-        :param add_special_tokens:
-            Whether to add special tokens to the input sequences. If `None`, the
-            default value will be set to `True` for seq2seq models (e.g. T5) and
-            `False` for causal models.
-            WARNING: Evaluating causal models with `add_special_tokens=True` is
-            currently __not__ supported.
-        :param use_accelerate:
-            If True, uses the `accelerate` library to load a large model across
-            multiple devices.
-        :param device_map_option: Optional[str]
-            The device map option to use when loading the model with `accelerate`.
-            Options:
-                "auto", "balanced", "balanced_low_0", "sequential"
-            See the `accelerate` docs for more details on these options:
-            https://huggingface.co/docs/accelerate/v0.12.0/en/usage_guides/big_modeling#designing-a-device-map
-        :param max_memory_per_gpu: Optional[Union[int, str]]
-            The maximum memory available for each GPU in bytes as `int` or in
-            the format f"{significand}{unit_symbol}" where {unit_symbol} is
-            any of ["GB", "MB", "GIB", "MIB"]. Refer to the `max_memory` arg in
-            the "Parameters for big model inference" section of the following docs:
-            https://huggingface.co/docs/transformers/v4.20.1/en/main_classes/model#large-model-loading
-        :param max_cpu_memory: Optional[Union[int, str]]
-            The maximum available CPU RAM in bytes as `int` or in the format
-            f"{significand}{unit_symbol}" where {unit_symbol} is any of
-            ["GB", "MB", "GIB", "MIB"]. Refer to the `max_memory` arg in the
-            "Parameters for big model inference" section of the following docs:
-            https://huggingface.co/docs/transformers/v4.20.1/en/main_classes/model#large-model-loading
-        :param offload_folder: Optional[str]
-            The folder to offload weights into if `device_map` contains any "disk" value.
-        :param dtype: Optional[Union[str, torch.dtype]]
-            Converts the model weights to `dtype`, if specified. Strings get
-            converted to `torch.dtype` objects (e.g. `float16` -> `torch.float16`).
-            Use `dtype="auto"` to derive the type from the model’s weights.
+        Args:
+            pretrained (str):
+                The HuggingFace Hub model ID name or the path to a pre-trained
+                model to load. This is effectively the `pretrained_model_name_or_path`
+                argument of `from_pretrained` in the HuggingFace `transformers` API.
+            add_special_tokens (bool, optional, defaults to True):
+                Whether to add special tokens to the input sequences. If `None`, the
+                default value will be set to `True` for seq2seq models (e.g. T5) and
+                `False` for causal models.
+
+                WARNING: Evaluating causal models with `add_special_tokens=True` is
+                currently __not__ supported.
+
+            > Large model loading `accelerate` arguments
+
+            use_accelerate (bool, optional, defaults to False):
+                If True, uses the `accelerate` library to load a large model across
+                multiple devices.
+            device_map_option (str, optional, defaults to "auto"):
+                The device map option to use when loading the model with
+                `accelerate`.
+                Options:
+                    "auto", "balanced", "balanced_low_0", "sequential"
+                See the `accelerate` docs for more details on these options:
+                https://huggingface.co/docs/accelerate/v0.12.0/en/usage_guides/big_modeling#designing-a-device-map
+            max_memory_per_gpu (Union[int, str], optional, defaults to None):
+                The maximum memory available for each GPU in bytes as `int` or in
+                the format f"{significand}{unit_symbol}" where {unit_symbol} is
+                any of ["GB", "MB", "GIB", "MIB"]. Refer to the `max_memory` arg in
+                the "Parameters for big model inference" section of the following
+                docs:
+                https://huggingface.co/docs/transformers/v4.20.1/en/main_classes/model#large-model-loading
+            max_cpu_memory (Union[int, str], optional, defaults to None):
+                The maximum available CPU RAM in bytes as `int` or in the format
+                f"{significand}{unit_symbol}" where {unit_symbol} is any of
+                ["GB", "MB", "GIB", "MIB"]. Refer to the `max_memory` arg in the
+                "Parameters for big model inference" section of the following docs:
+                https://huggingface.co/docs/transformers/v4.20.1/en/main_classes/model#large-model-loading
+            offload_folder (str, optional, defaults to "./offload"):
+                The folder to offload weights into if `device_map` contains any
+                "disk" value.
+            dtype (Union[str, torch.dtype], optional, defaults to None):):
+                Converts the model weights to `dtype`, if specified. Strings get
+                converted to `torch.dtype` objects (e.g. `float16` -> `torch.float16`).
+                Use `dtype="auto"` to derive the type from the model’s weights.
         """
         super().__init__()
 
@@ -564,9 +576,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
 
 
 class MultiTokenEOSCriteria(transformers.StoppingCriteria):
-    """
-    Criteria to stop on the specified multi-token sequence.
-    """
+    """Criteria to stop on the specified multi-token sequence."""
 
     def __init__(
         self,

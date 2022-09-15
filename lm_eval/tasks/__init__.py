@@ -234,6 +234,9 @@ def get_task(task_name: str, template_name: str, **task_kwargs) -> Task:
             for this task.
         **task_kwargs: Keyword arguments to pass to the task constructor. See constructor
             args for `lm_eval.api.task.Task`.
+
+    Returns:
+        A task instance with formatting specified by `template_name`.
     """
     task_class = _get_task_from_registry(task_name)
     template = get_templates(task_name)[template_name]
@@ -251,6 +254,9 @@ def get_task_list(
             for this task.
         **task_kwargs: Keyword arguments to pass to the task constructor. See constructor
             args for `lm_eval.api.task.Task`.
+
+    Returns:
+        A list of tasks with the same name but different prompt templates.
     """
     assert template_names, "Must specify at least one template name"
     template_names = sorted(set(template_names))
