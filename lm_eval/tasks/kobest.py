@@ -21,7 +21,7 @@ Homepage: https://huggingface.co/datasets/skt/kobest_v1
 
 import numpy as np
 from lm_eval.base import MultipleChoiceTask, rf, Task
-from lm_eval.metrics import f1_score, macro_f1_score, mean
+from lm_eval.metrics import macro_f1_score, mean
 
 
 class BoolQ(Task):
@@ -65,21 +65,18 @@ class BoolQ(Task):
         pred = np.argmax(results)
         gold = doc["label"]
         return {
-            "f1": (gold, pred),
             "acc": pred == gold,
             "macro_f1": (gold, pred)
         }
 
     def higher_is_better(self):
         return {
-            "f1": True,
             "acc": True,
             "macro_f1": True
         }
 
     def aggregation(self):
         return {
-            "f1": f1_score,
             "acc": mean,
             "macro_f1": macro_f1_score
         }
@@ -137,14 +134,12 @@ class COPA(Task):
         pred = np.argmax(results)
         gold = doc["label"]
         return {
-            "f1": (gold, pred),
             "acc": pred == gold,
             "macro_f1": (gold, pred)
         }
 
     def higher_is_better(self):
         return {
-            "f1": True,
             "acc": True,
             "macro_f1": True
         }
@@ -152,7 +147,6 @@ class COPA(Task):
 
     def aggregation(self):
         return {
-            "f1": f1_score,
             "acc": mean,
             "macro_f1": macro_f1_score
         }
@@ -198,21 +192,18 @@ class WiC(Task):
         pred = np.argmax(results)
         gold = doc["label"]
         return {
-            "f1": (gold, pred),
             "acc": pred == gold,
             "macro_f1": (gold, pred)
         }
 
     def higher_is_better(self):
         return {
-            "f1": True,
             "acc": True,
             "macro_f1": True
         }
 
     def aggregation(self):
         return {
-            "f1": f1_score,
             "acc": mean,
             "macro_f1": macro_f1_score
         }
@@ -316,21 +307,18 @@ class SentiNeg(Task):
         pred = np.argmax(results)
         gold = doc["label"]
         return {
-            "f1": (gold, pred),
             "acc": pred == gold,
             "macro_f1": (gold, pred)
         }
 
     def higher_is_better(self):
         return {
-            "f1": True,
             "acc": True,
             "macro_f1": True
         }
 
     def aggregation(self):
         return {
-            "f1": f1_score,
             "acc": mean,
             "macro_f1": macro_f1_score
         }
