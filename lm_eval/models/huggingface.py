@@ -131,14 +131,17 @@ class HuggingFaceAutoLM(TokenLM):
         assert isinstance(pretrained, str)
         assert isinstance(device, str)
         assert isinstance(batch_size, int)
-        if add_special_tokens is not None:
+        if (
+            add_special_tokens is not None
+            and self.AUTO_MODEL_CLASS is transformers.AutoModelForCausalLM
+        ):
             # TODO: Support evaluating causal models with special tokens. Currently,
             # this is not possible because the `_loglikelihood_tokens()` method for
             # causal LMs makes a no-special-tokens assumption given that contexts
             # and labels/continuations are tokenized separately without special
             # tokens, concatenated, and then processed as inputs.
             assert (
-                self.AUTO_MODEL_CLASS is not transformers.AutoModelForCausalLM
+                not add_special_tokens
             ), "Evaluating causal models with `add_special_tokens=True` is currently not supported."
 
         self._batch_size = batch_size  # TODO: Adaptive batch size
