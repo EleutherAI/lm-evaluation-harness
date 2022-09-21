@@ -48,6 +48,7 @@ from . import mutual
 from . import truthfulqa
 from . import blimp
 from . import asdiv
+from . import xnli
 from . import gsm8k
 from . import storycloze
 
@@ -114,6 +115,7 @@ TASK_REGISTRY = {
     "piqa": piqa.PiQA,
     "prost": prost.PROST,
     "mc_taco": mc_taco.MCTACO,
+    **xnli.construct_tasks(),
     # Science related
     "pubmedqa": pubmedqa.Pubmed_QA,
     "sciq": sciq.SciQ,
