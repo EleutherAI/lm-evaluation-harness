@@ -147,7 +147,10 @@ class HuggingFaceAutoLM(TokenLM):
         self._batch_size = batch_size  # TODO: Adaptive batch size
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
-        self._config = self.AUTO_CONFIG_CLASS.from_pretrained(pretrained)
+        self._config = self.AUTO_CONFIG_CLASS.from_pretrained(
+            pretrained,
+            revision=revision + ("/" + subfolder if subfolder is not None else ""),
+        )
 
         self._add_special_tokens = add_special_tokens
         self.tokenizer = self._create_auto_tokenizer(
