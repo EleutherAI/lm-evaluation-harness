@@ -4,6 +4,7 @@ import re
 import sys
 import torch
 from typing import Callable, Final, Iterable, List, Optional, Tuple, Union
+from collections.abc import MutableMapping
 from transformers import set_seed as transformers_set_seed
 
 
@@ -195,13 +196,15 @@ class Reorderer:
 
 
 def flatten(
-    d: Union[dict, collections.MutableMapping], parent_key: str = "", sep: str = "_"
+    d: Union[dict, MutableMapping],
+    parent_key: str = "",
+    sep: str = "_",
 ) -> dict:
     # From: https://stackoverflow.com/a/6027615
     items = []
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
-        if isinstance(v, collections.MutableMapping):
+        if isinstance(v, MutableMapping):
             items.extend(flatten(v, new_key, sep=sep).items())
         else:
             items.append((new_key, v))
