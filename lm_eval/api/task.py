@@ -247,9 +247,16 @@ class PromptSourceTask(Task):
             text_target_separator (str, optional, defaults to ' '):
                 The string that will be used to separate the prompt example
                 from the target text.
+                NOTE: This is assumed to be some form of whitespace-only separation,
+                    e.g. "\n\n", "\t", "  ", etc. Otherwise, you should update
+                    the Task's `promptsource` template with the appropriate
+                    separator(s).
                 Example:
                     Q: Where is the Eiffel Tower located? A:{text_target_separator}Paris
         """
+        assert (
+            text_target_separator.isspace()
+        ), f"`text_target_separator` must be whitespace only. Got: `{text_target_separator}`"
         super().__init__(data_dir, cache_dir, download_mode)
         self.prompt_template = prompt_template
         self.save_examples = save_examples
