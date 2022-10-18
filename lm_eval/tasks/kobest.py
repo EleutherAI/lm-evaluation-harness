@@ -53,11 +53,11 @@ class BoolQ(Task):
         return "{} 질문: {} 답변: ".format(doc["paragraph"], doc["question"])
 
     def doc_to_target(self, doc):
-        return " {}".format({0: "아니오.", 1: "예."})
-        
+        return " {}".format({0: "아니오", 1: "예"}[doc["label"]])
+
     def construct_requests(self, doc, ctx):
-        ll_no, _ = rf.loglikelihood(ctx, " 아니오.")
-        ll_yes, _ = rf.loglikelihood(ctx, " 예.")
+        ll_no, _ = rf.loglikelihood(ctx, " 아니오")
+        ll_yes, _ = rf.loglikelihood(ctx, " 예")
 
         return ll_no, ll_yes
 
@@ -180,8 +180,8 @@ class WiC(Task):
         return "문장1: {} 문장2: {} 두 문장에서 {}가 같은 뜻으로 쓰였나?".format(doc["context_1"], doc["context_2"], doc["word"])
 
     def doc_to_target(self, doc):
-        return " {}".format({0: "아니오", 1: "예"})
-        
+        return " {}".format({0: "아니오", 1: "예"}[doc["label"]])
+
     def construct_requests(self, doc, ctx):
         ll_no, _ = rf.loglikelihood(ctx, " 아니오")
         ll_yes, _ = rf.loglikelihood(ctx, " 예")
@@ -295,8 +295,8 @@ class SentiNeg(Task):
         return "문장: {} 긍부정:".format(doc["sentence"])
 
     def doc_to_target(self, doc):
-        return " {}".format({0: "부정", 1: "긍정"})
-        
+        return " {}".format({0: "부정", 1: "긍정"}[doc["label"]])
+
     def construct_requests(self, doc, ctx):
         ll_no, _ = rf.loglikelihood(ctx, " 부정")
         ll_yes, _ = rf.loglikelihood(ctx, " 긍정")
