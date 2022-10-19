@@ -44,9 +44,19 @@ class SubprocessLM(BaseLM):
         raise NotImplementedError()
 
     @staticmethod
-    def start(cmd):
+    def start(cmd, max_length: int, eot_token_id: int = 0):
         process = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT, text=False)
-        return SubprocessLM(process, max_length=256, eot_token_id=0)
+        return SubprocessLM(process, max_length=max_length, eot_token_id=eot_token_id)
+
+    @classmethod
+    def create_from_arg_string(cls, arg_string, additional_config=None):
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--max-len", required=True, type=int)
+        parser.add_argument("--eot-token-id", default=0, type=int)
+        parser.add_argument("cmd", nargs=argparse.REMAINDER)
+        args = parser.parse_args(arg_string.split())
+        return cls.start(args.cmd, max_length=args.max_len, eot_token_id=args.eot_token_id)
 
     @property
     def batch_size(self):
