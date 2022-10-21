@@ -7,14 +7,11 @@ modified from Chinese high school English listening comprehension test data.
 
 Homepage: https://github.com/Nealcly/MuTual
 """
-import json
-import zipfile
-import shutil
 import numpy as np
-from pathlib import Path
+import inspect
+import lm_eval.datasets.mutual.mutual
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-from best_download import download_file
 
 
 _CITATION = """
@@ -30,28 +27,9 @@ _CITATION = """
 
 class MuTualBase(Task):
     VERSION = 1
-    BASE_PATH = Path("data/mutual")
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.mutual.mutual)
     DATASET_NAME = None
-    CHOICES = ['A', 'B', 'C', 'D']
-
-    def __init__(self):
-        super().__init__()
-
-    def download(self):
-        if self.BASE_PATH.exists():
-            return
-        Path.mkdir(self.BASE_PATH, parents=True)
-        master_zip = Path("data/master.zip")
-        download_file(
-            "https://github.com/Nealcly/MuTual/archive/master.zip",
-            local_file=str(master_zip),
-            expected_checksum="bb325cf6c672f0f02699993a37138b0fa0af6fcfc77ec81dfbe46add4d7b29f9")
-        with zipfile.ZipFile(master_zip, 'r') as zip:
-            zip.extractall("data")
-        Path("data/MuTual-master/data").rename(str(self.BASE_PATH))
-        # Remove left over files and directories.
-        master_zip.unlink()
-        shutil.rmtree("data/MuTual-master")
+    CHOICES = ["A", "B", "C", "D"]
 
     def has_training_docs(self):
         return True
@@ -62,24 +40,23 @@ class MuTualBase(Task):
     def has_test_docs(self):
         return False
 
-    def _load_docs(self, path):
-        for file in sorted(path.iterdir()):
-            if file.suffix != ".txt":
-                continue
-            with open(file, 'r', encoding='utf-8') as f:
-                yield json.load(f)
-
     def training_docs(self):
-        return self._load_docs(self.BASE_PATH / self.DATASET_NAME / "train")
+        return self.dataset["train"]
 
     def validation_docs(self):
-        return self._load_docs(self.BASE_PATH / self.DATASET_NAME / "dev")
+        return self.dataset["validation"]
 
     def test_docs(self):
         return NotImplemented
 
     def doc_to_text(self, doc):
         return self.detokenize(doc["article"])
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["article"]
 
     def doc_to_target(self, doc):
         return " " + self.detokenize(doc["options"][self.CHOICES.index(doc["answers"])])
@@ -111,31 +88,19 @@ class MuTualBase(Task):
         r4_1 = np.argmax(results) == gold  # r4_1 = accuracy
         ranks = sorted(results, reverse=True)
         r4_2 = (ranks.index(results[gold]) == 1) + r4_1
-        mrr = 1. / (ranks.index(results[gold]) + 1)  # `+ 1` for index offset
-        return {
-            "r@1": r4_1,
-            "r@2": r4_2,
-            "mrr": mrr
-        }
+        mrr = 1.0 / (ranks.index(results[gold]) + 1)  # `+ 1` for index offset
+        return {"r@1": r4_1, "r@2": r4_2, "mrr": mrr}
 
     def aggregation(self):
-        return {
-            "r@1": mean,
-            "r@2": mean,
-            "mrr": mean
-        }
+        return {"r@1": mean, "r@2": mean, "mrr": mean}
 
     def higher_is_better(self):
-        return {
-            "r@1": True,
-            "r@2": True,
-            "mrr": True
-        }
+        return {"r@1": True, "r@2": True, "mrr": True}
 
 
 class MuTual(MuTualBase):
-    DATASET_NAME = Path("mutual")
+    DATASET_NAME = "mutual"
 
 
 class MuTualPlus(MuTualBase):
-    DATASET_NAME = Path("mutual_plus")
+    DATASET_NAME = "mutual_plus"

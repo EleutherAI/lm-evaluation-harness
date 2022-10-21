@@ -3,22 +3,21 @@ PubMedQA: A Dataset for Biomedical Research Question Answering
 https://arxiv.org/pdf/1909.06146.pdf
 
 PubMedQA is a novel biomedical question answering (QA) dataset collected from
-PubMed abstracts. The task of PubMedQA is to answer research questions with 
-yes/no/maybe (e.g.: Do preoperative statins reduce atrial fibrillation after 
-coronary artery bypass grafting?) using the corresponding abstracts. PubMedQA 
-has 1k expert-annotated, 61.2k unlabeled and 211.3k artificially generated QA 
+PubMed abstracts. The task of PubMedQA is to answer research questions with
+yes/no/maybe (e.g.: Do preoperative statins reduce atrial fibrillation after
+coronary artery bypass grafting?) using the corresponding abstracts. PubMedQA
+has 1k expert-annotated, 61.2k unlabeled and 211.3k artificially generated QA
 instances. Each PubMedQA instance is composed of (1) a question which is either
 an existing research article title or derived from one, (2) a context which is
 the corresponding abstract without its conclusion, (3) a long answer, which is
-the conclusion of the abstract and, presumably, answers the research question, 
+the conclusion of the abstract and, presumably, answers the research question,
 and (4) a yes/no/maybe answer which summarizes the conclusion.
 
 Homepage: https://pubmedqa.github.io/
 """
 import numpy as np
-from .common import HFTask
-from lm_eval.base import rf
-from ..metrics import mean
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean
 
 
 _CITATION = """
@@ -32,7 +31,7 @@ _CITATION = """
 """
 
 
-class Pubmed_QA(HFTask):
+class Pubmed_QA(Task):
     VERSION = 0
     DATASET_PATH = "pubmed_qa"
     DATASET_NAME = "pqa_labeled"
@@ -49,21 +48,25 @@ class Pubmed_QA(HFTask):
     def test_docs(self):
         if self.has_test_docs():
             # HF is labelled as train but its really just for testing
-            return self.data["train"]
+            return self.dataset["train"]
 
     def doc_to_text(self, doc):
         ctxs = "\n".join(doc["context"]["contexts"])
         return "Abstract: {}\nQuestion: {}\nAnswer:".format(
-            ctxs,
-            doc["question"],
-            doc["final_decision"]
+            ctxs, doc["question"], doc["final_decision"]
         )
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["question"] + " " + "\n".join(doc["context"]["contexts"])
 
     def doc_to_target(self, doc):
         return " {}".format(doc["final_decision"])
 
     def construct_requests(self, doc, ctx):
-        """ Uses RequestFactory to construct Requests and returns
+        """Uses RequestFactory to construct Requests and returns
         an iterable of Requests which will be sent to the LM.
         """
         ll_yes, _ = rf.loglikelihood(ctx, " yes")
@@ -76,15 +79,11 @@ class Pubmed_QA(HFTask):
         ll_yes, ll_no, ll_maybe = results
         pred = np.argmax(results)
         return {
-            "acc": ["yes", "no", "maybe"][pred] == gold, 
+            "acc": ["yes", "no", "maybe"][pred] == gold,
         }
 
     def aggregation(self):
-        return {
-            "acc" : mean
-        }
+        return {"acc": mean}
 
     def higher_is_better(self):
-        return {
-            "acc" : True
-        }
+        return {"acc": True}

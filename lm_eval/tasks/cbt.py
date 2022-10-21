@@ -2,7 +2,7 @@
 The Children’s Book Test (CBT) from the paper:
 https://research.fb.com/wp-content/uploads/2016/11/the_goldilocks_principle_reading_children_s_books_with_explicit_memory_representations.pdf
 
-The Children's Book Test (CBT) is test of how well language models capture 
+The Children's Book Test (CBT) is test of how well language models capture
 meaning in children's books. Unlike standard language modelling benchmarks,
 it distinguishes the task of predicting syntactic function words from that
 of predicting lower-frequency words, which carry greater semantic content.
@@ -13,14 +13,13 @@ used by the Recurrent Language Models described in the paper. See section 4.4.
 Homepage: https://github.com/facebookresearch/ParlAI/tree/main/parlai/tasks/cbt
 """
 import numpy as np
-from lm_eval.base import rf
+from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
-from .common import HFTask
 
 
 _CITATION = """
 @misc{hill2016goldilocks,
-    title={The Goldilocks Principle: Reading Children's Books with Explicit Memory Representations}, 
+    title={The Goldilocks Principle: Reading Children's Books with Explicit Memory Representations},
     author={Felix Hill and Antoine Bordes and Sumit Chopra and Jason Weston},
     year={2016},
     eprint={1511.02301},
@@ -30,11 +29,30 @@ _CITATION = """
 """
 
 
-class CBTBase(HFTask):
+class CBTBase(Task):
     VERSION = 0
     DATASET_PATH = "cbt"
     DATASET_NAME = None
 
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
+    def test_docs(self):
+        return self.dataset["test"]
 
     def detokenize(self, text):
         text = text.replace(" '", "'")
@@ -57,11 +75,20 @@ class CBTBase(HFTask):
         text = "Passage: " + passage + "\nQuestion: " + doc["question"]
         return self.detokenize(text)
 
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        passage = " ".join(doc["sentences"])
+        return passage
+
     def doc_to_target(self, doc):
         return ""
 
     def fewshot_examples(self, k, rnd):
-        assert k == 0, f"CBT is only implemented for the zero-shot setting. Given k={k}."
+        assert (
+            k == 0
+        ), f"CBT is only implemented for the zero-shot setting. Given k={k}."
         return super().fewshot_examples(k, rnd)
 
     def construct_requests(self, doc, ctx):
@@ -95,9 +122,7 @@ class CBTBase(HFTask):
         """
         gold = doc["options"].index(doc["answer"])
         pred = np.argmax(results)
-        return {
-            "acc": pred == gold
-        }
+        return {"acc": pred == gold}
 
     def aggregation(self):
         """
@@ -105,9 +130,7 @@ class CBTBase(HFTask):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
     def higher_is_better(self):
         """
@@ -115,9 +138,7 @@ class CBTBase(HFTask):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
 
 class CBTCN(CBTBase):

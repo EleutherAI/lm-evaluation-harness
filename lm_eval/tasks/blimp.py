@@ -10,9 +10,8 @@ grammars.
 
 Homepage: https://github.com/alexwarstadt/blimp
 """
-from lm_eval.base import rf
+from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
-from .common import HFTask
 
 
 _CITATION = """
@@ -29,26 +28,35 @@ _CITATION = """
     eprint = {https://doi.org/10.1162/tacl_a_00321},
     abstract = { We introduce The Benchmark of Linguistic Minimal Pairs (BLiMP),1 a challenge set for evaluating the linguistic knowledge of language models (LMs) on major grammatical phenomena in English. BLiMP consists of 67 individual datasets, each containing 1,000 minimal pairs—that is, pairs of minimally different sentences that contrast in grammatical acceptability and isolate specific phenomenon in syntax, morphology, or semantics. We generate the data according to linguist-crafted grammar templates, and human aggregate agreement with the labels is 96.4\%. We evaluate n-gram, LSTM, and Transformer (GPT-2 and Transformer-XL) LMs by observing whether they assign a higher probability to the acceptable sentence in each minimal pair. We find that state-of-the-art models identify morphological contrasts related to agreement reliably, but they struggle with some subtle semantic and syntactic phenomena, such as negative polarity items and extraction islands. }
 }
-"""
+"""  # noqa: W605
 
 
-class BlimpTask(HFTask):
+class BlimpTask(Task):
     VERSION = 0
     DATASET_PATH = "blimp"
 
-    def download(self):
-        super().download()
+    def has_training_docs(self):
+        return False
 
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return False
+
+    def validation_docs(self):
         # The HF dataset only contains a "train" dataset, but the harness expects a "validation"
         # dataset. Let's use the training dataset, on the assumption that the model wasn't actually
         # trained on this data.
+        return self.dataset["train"]
 
-        self.data["validation"] = self.data["train"]
-        del self.data["train"]
-
-    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
+    def fewshot_context(
+        self, doc, num_fewshot, provide_description=None, rnd=None, description=None
+    ):
         assert num_fewshot == 0
-        assert rnd is not None, "A `random.Random` generator argument must be provided to `rnd`"
+        assert (
+            rnd is not None
+        ), "A `random.Random` generator argument must be provided to `rnd`"
         assert not provide_description, (
             "The `provide_description` arg will be removed in future versions. To prepend "
             "a custom description to the context, supply the corresponding string via the  "
@@ -56,13 +64,21 @@ class BlimpTask(HFTask):
         )
         if provide_description is not None:
             # nudge people to not specify it at all
-            print("WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict")
+            print(
+                "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
+            )
 
         return ""
 
     def doc_to_text(self, doc):
         # this method is invoked by tests only
         return ""
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["sentence_good"] + " " + doc["sentence_bad"]
 
     def doc_to_target(self, doc):
         # this method is invoked by tests only

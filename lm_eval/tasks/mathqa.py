@@ -10,12 +10,11 @@ Homepage: https://math-qa.github.io/math-QA/
 """
 import re
 from lm_eval.base import MultipleChoiceTask
-from . common import HFTask
 
 
 _CITATION = """
 @misc{amini2019mathqa,
-    title={MathQA: Towards Interpretable Math Word Problem Solving with Operation-Based Formalisms}, 
+    title={MathQA: Towards Interpretable Math Word Problem Solving with Operation-Based Formalisms},
     author={Aida Amini and Saadia Gabriel and Peter Lin and Rik Koncel-Kedziorski and Yejin Choi and Hannaneh Hajishirzi},
     year={2019},
     eprint={1905.13319},
@@ -25,7 +24,7 @@ _CITATION = """
 """
 
 
-class MathQA(HFTask, MultipleChoiceTask):
+class MathQA(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "math_qa"
     DATASET_NAME = None
@@ -39,17 +38,36 @@ class MathQA(HFTask, MultipleChoiceTask):
     def has_test_docs(self):
         return True
 
-    def _convert_standard(self, doc):
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
+        return self._training_docs
 
-        answer_idx = ['a', 'b', 'c', 'd', 'e'].index(doc['correct'])
-        choices = [c[4:].rstrip(" ,") for c in re.findall(r"[abcd] \) .*?, |e \) .*?$", doc['options'])]
+    def validation_docs(self):
+        return map(self._process_doc, self.dataset["validation"])
+
+    def test_docs(self):
+        return map(self._process_doc, self.dataset["test"])
+
+    def _process_doc(self, doc):
+        answer_idx = ["a", "b", "c", "d", "e"].index(doc["correct"])
+        choices = [
+            c[4:].rstrip(" ,")
+            for c in re.findall(r"[abcd] \) .*?, |e \) .*?$", doc["options"])
+        ]
 
         out_doc = {
-            "query": "Question: " + doc['Problem'] +"\nAnswer:",
+            "query": "Question: " + doc["Problem"] + "\nAnswer:",
             "choices": choices,
             "gold": answer_idx,
         }
         return out_doc
 
     def doc_to_text(self, doc):
+        return doc["query"]
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
         return doc["query"]

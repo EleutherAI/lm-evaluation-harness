@@ -2,24 +2,23 @@
 "Training Verifiers to Solve Math Word Problems"
 https://arxiv.org/abs/2110.14168
 
-State-of-the-art language models can match human performance on many tasks, but 
-they still struggle to robustly perform multi-step mathematical reasoning. To 
+State-of-the-art language models can match human performance on many tasks, but
+they still struggle to robustly perform multi-step mathematical reasoning. To
 diagnose the failures of current models and support research, we introduce GSM8K,
 a dataset of 8.5K high quality linguistically diverse grade school math word problems.
-We find that even the largest transformer models fail to achieve high test performance, 
+We find that even the largest transformer models fail to achieve high test performance,
 despite the conceptual simplicity of this problem distribution.
 
-NOTE: See the official implementation of the task: 
+NOTE: See the official implementation of the task:
     https://github.com/openai/grade-school-math/blob/master/grade_school_math/calculator.py
 for how to make use of the dataset's calculator annotations in your language
 model's sample/generation function.
 
 Homepage: https://github.com/openai/grade-school-math
 """
-
-import json
+import inspect
 import re
-from best_download import download_file
+import lm_eval.datasets.gsm8k.gsm8k
 from pathlib import Path
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
@@ -43,21 +42,8 @@ INVALID_ANS = "[invalid]"
 
 class GradeSchoolMath8K(Task):
     VERSION = 0
-    DATASET_PATH = Path('data/gsm8k')
-
-    def download(self):
-        if self.DATASET_PATH.exists():
-            return
-        Path.mkdir(self.DATASET_PATH, parents=True)
-        base_url = "https://raw.githubusercontent.com/openai/grade-school-math/master/grade_school_math/data"
-        splits = [
-            {"name": "train", "checksum": "17f347dc51477c50d4efb83959dbb7c56297aba886e5544ee2aaed3024813465"},
-            {"name": "test", "checksum": "3730d312f6e3440559ace48831e51066acaca737f6eabec99bccb9e4b3c39d14"},
-        ]
-        for split in splits:
-            file = self.DATASET_PATH / f"{split['name']}.jsonl"
-            url = f"{base_url}/{split['name']}.jsonl"
-            download_file(url, local_file=str(file), expected_checksum=split["checksum"])
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.gsm8k.gsm8k)
+    DATASET_NAME = None
 
     def has_training_docs(self):
         return True
@@ -68,26 +54,23 @@ class GradeSchoolMath8K(Task):
     def has_test_docs(self):
         return True
 
-    def _load_docs(self, file):
-        return (json.loads(line) for line in open(file).read().splitlines())
-
     def training_docs(self):
-        return self._load_docs(self.DATASET_PATH / "train.jsonl")
+        return self.dataset["train"]
 
     def validation_docs(self):
         raise NotImplementedError
 
     def test_docs(self):
-        return self._load_docs(self.DATASET_PATH / "test.jsonl")
+        return self.dataset["test"]
 
     def doc_to_text(self, doc):
-        return "Question: " + doc['question'] + '\nAnswer:'
+        return "Question: " + doc["question"] + "\nAnswer:"
 
     def doc_to_target(self, doc):
-        return " " + doc['answer']
+        return " " + doc["answer"]
 
     def construct_requests(self, doc, ctx):
-        """ Uses RequestFactory to construct Requests and returns an iterable of
+        """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
         :param doc:
@@ -97,10 +80,10 @@ class GradeSchoolMath8K(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        # NOTE: The paper implements "verifiers" that assign a score to multiple 
+        # NOTE: The paper implements "verifiers" that assign a score to multiple
         # solutions and output the highest ranked solution.
-        completion = rf.greedy_until(ctx, ['\n'])
-        return completion 
+        completion = rf.greedy_until(ctx, ["\n"])
+        return completion
 
     def _extract_answer(self, completion):
         match = ANS_RE.search(completion)
@@ -114,7 +97,7 @@ class GradeSchoolMath8K(Task):
     def _is_correct(self, completion, answer):
         gold = self._extract_answer(answer)
         assert gold != INVALID_ANS, "No ground truth answer found in the document."
-        return self._extract_answer(completion) == gold 
+        return self._extract_answer(completion) == gold
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
@@ -128,9 +111,7 @@ class GradeSchoolMath8K(Task):
         """
         completion = results[0]
         answer = doc["answer"]
-        return {
-            "acc": self._is_correct(completion, answer)
-        }
+        return {"acc": self._is_correct(completion, answer)}
 
     def aggregation(self):
         """
@@ -138,9 +119,7 @@ class GradeSchoolMath8K(Task):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
     def higher_is_better(self):
         """
@@ -148,6 +127,4 @@ class GradeSchoolMath8K(Task):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {
-            "acc": True
-        }
+        return {"acc": True}

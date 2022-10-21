@@ -9,15 +9,14 @@ task with binary options, the goal is to choose the right option for a given
 sentence which requires commonsense reasoning.
 
 NOTE: This evaluation of Winogrande uses partial evaluation as described by
-Trinh & Le in Simple Method for Commonsense Reasoning (2018). 
+Trinh & Le in Simple Method for Commonsense Reasoning (2018).
 See: https://arxiv.org/abs/1806.02847
 
 Homepage: https://leaderboard.allenai.org/winogrande/submissions/public
 """
 import numpy as np
-from . common import HFTask
-from lm_eval.base import rf
-from ..metrics import mean
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean
 
 
 _CITATION = """
@@ -30,12 +29,12 @@ _CITATION = """
 """
 
 
-class Winogrande(HFTask):
+class Winogrande(Task):
     VERSION = 0
     DATASET_PATH = "winogrande"
     DATASET_NAME = "winogrande_xl"
 
-    answer_to_num = {'1': 0, '2': 1}
+    answer_to_num = {"1": 0, "2": 1}
 
     def has_training_docs(self):
         return True
@@ -46,8 +45,22 @@ class Winogrande(HFTask):
     def has_test_docs(self):
         return False
 
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
     def doc_to_text(self, doc):
         return self.partial_context(doc, doc["option" + doc["answer"]])
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["sentence"]
 
     @classmethod
     def partial_context(cls, doc, option):
@@ -100,9 +113,7 @@ class Winogrande(HFTask):
         :param results:
             The results of the requests created in construct_requests.
         """
-        return {
-            "acc": np.argmax(results) == self.answer_to_num[doc["answer"]]
-        }
+        return {"acc": np.argmax(results) == self.answer_to_num[doc["answer"]]}
 
     def aggregation(self):
         """
@@ -110,9 +121,7 @@ class Winogrande(HFTask):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
     def higher_is_better(self):
         """
@@ -120,6 +129,4 @@ class Winogrande(HFTask):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {
-            "acc": True
-        }
+        return {"acc": True}

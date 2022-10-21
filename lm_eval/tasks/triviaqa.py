@@ -9,13 +9,10 @@ high quality distant supervision for answering the questions.
 
 Homepage: https://nlp.cs.washington.edu/triviaqa/
 """
-import os
-import json
-import jsonlines
+import inspect
+import lm_eval.datasets.triviaqa.triviaqa
 from lm_eval.base import Task, rf
-from ..metrics import mean
-from ..utils import sh
-from best_download import download_file
+from lm_eval.metrics import mean
 
 
 _CITATION = """
@@ -33,14 +30,8 @@ _CITATION = """
 
 class TriviaQA(Task):
     VERSION = 0
-    def download(self):
-        if not os.path.exists('data/triviaqa/unfiltered-web-train.jsonl'):
-            os.makedirs("data/triviaqa/", exist_ok=True)
-            download_file("http://eaidata.bmk.sh/data/triviaqa-unfiltered.tar.gz", local_file="data/triviaqa/triviaqa-unfiltered.tar.gz", expected_checksum="adc19b42769062d241a8fbe834c56e58598d9322eb6c614e9f33a68a2cf5523e")
-            sh("""
-            cd data/triviaqa/
-            tar -xf triviaqa-unfiltered.tar.gz
-            """)
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.triviaqa.triviaqa)
+    DATASET_NAME = None
 
     def has_training_docs(self):
         return True
@@ -52,19 +43,25 @@ class TriviaQA(Task):
         return False
 
     def training_docs(self):
-        return jsonlines.open('data/triviaqa/unfiltered-web-train.jsonl')
+        return self.dataset["train"]
 
     def validation_docs(self):
-        return jsonlines.open('data/triviaqa/unfiltered-web-dev.jsonl')
+        return self.dataset["validation"]
 
     def test_docs(self):
         raise NotImplementedError()
-    
+
     def doc_to_text(self, doc):
-        return f"Question: {doc['Question']}\nAnswer:"
+        return f"Question: {doc['question']}\nAnswer:"
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["question"]
 
     def doc_to_target(self, doc):
-        return " " + doc['Answer']['Value']
+        return " " + doc["answer"]["value"]
 
     def _remove_prefixes(self, aliases):
         # Optimization: Remove any alias that has a strict prefix elsewhere in the list
@@ -74,20 +71,17 @@ class TriviaQA(Task):
         for alias in aliases[1:]:
             if not alias.startswith(ret[-1]):
                 ret.append(alias)
-
         return ret
 
     def construct_requests(self, doc, ctx):
         ret = []
-        for alias in self._remove_prefixes(doc['Answer']['Aliases']):
+        for alias in self._remove_prefixes(doc["answer"]["aliases"]):
             _, is_prediction = rf.loglikelihood(ctx, " " + alias)
             ret.append(is_prediction)
         return ret
 
     def process_results(self, doc, results):
-        return {
-            "acc": float(any(results))
-        }
+        return {"acc": float(any(results))}
 
     def aggregation(self):
         return {
@@ -95,6 +89,4 @@ class TriviaQA(Task):
         }
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}

@@ -5,14 +5,11 @@ https://arxiv.org/pdf/1911.11641.pdf
 Physical Interaction: Question Answering (PIQA) is a physical commonsense
 reasoning and a corresponding benchmark dataset. PIQA was designed to investigate
 the physical knowledge of existing models. To what extent are current approaches
-actually learning about the world? 
+actually learning about the world?
 
 Homepage: https://yonatanbisk.com/piqa/
 """
-import numpy as np
-from lm_eval.base import MultipleChoiceTask, rf
-from ..metrics import mean
-from . common import HFTask
+from lm_eval.base import MultipleChoiceTask
 
 
 _CITATION = """
@@ -29,7 +26,7 @@ _CITATION = """
 """
 
 
-class PiQA(HFTask, MultipleChoiceTask):
+class PiQA(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "piqa"
     DATASET_NAME = None
@@ -43,7 +40,15 @@ class PiQA(HFTask, MultipleChoiceTask):
     def has_test_docs(self):
         return False
 
-    def _convert_standard(self, doc):
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
+        return self._training_docs
+
+    def validation_docs(self):
+        return map(self._process_doc, self.dataset["validation"])
+
+    def _process_doc(self, doc):
         out_doc = {
             "goal": doc["goal"],
             "choices": [doc["sol1"], doc["sol2"]],
@@ -53,3 +58,9 @@ class PiQA(HFTask, MultipleChoiceTask):
 
     def doc_to_text(self, doc):
         return "Question: " + doc["goal"] + "\nAnswer:"
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["goal"]

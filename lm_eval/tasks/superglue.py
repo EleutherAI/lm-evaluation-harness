@@ -12,10 +12,9 @@ TODO: WSC requires free-form generation.
 import numpy as np
 import sklearn
 import transformers.data.metrics.squad_metrics as squad_metrics
-from . common import HFTask, yesno
-from lm_eval.base import rf
-from ..metrics import mean, acc_all, metric_max_over_ground_truths
-from ..utils import general_detokenize
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean, acc_all, metric_max_over_ground_truths, yesno
+from lm_eval.utils import general_detokenize
 
 
 _CITATION = """
@@ -33,7 +32,7 @@ _CITATION = """
 """
 
 
-class BoolQ(HFTask):
+class BoolQ(Task):
     VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "boolq"
@@ -47,16 +46,30 @@ class BoolQ(HFTask):
     def has_test_docs(self):
         return False
 
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
     def doc_to_text(self, doc):
         return f"{doc['passage']}\nQuestion: {doc['question']}?\nAnswer:"
-    
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["passage"]
+
     def doc_to_target(self, doc):
-        return " " + yesno(doc['label']) 
+        return " " + yesno(doc["label"])
 
     def construct_requests(self, doc, ctx):
 
-        ll_yes, _ = rf.loglikelihood(ctx, ' yes')
-        ll_no, _ = rf.loglikelihood(ctx, ' no')
+        ll_yes, _ = rf.loglikelihood(ctx, " yes")
+        ll_no, _ = rf.loglikelihood(ctx, " no")
 
         return ll_yes, ll_no
 
@@ -64,24 +77,18 @@ class BoolQ(HFTask):
         ll_yes, ll_no = results
         gold = doc["label"]
 
-        acc = 1. if (ll_yes > ll_no) == gold else 0.
+        acc = 1.0 if (ll_yes > ll_no) == gold else 0.0
 
-        return {
-            "acc": acc
-        }
-    
+        return {"acc": acc}
+
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
-    
+        return {"acc": True}
+
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
 
-class CommitmentBank(HFTask):
+class CommitmentBank(Task):
     VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "cb"
@@ -94,6 +101,14 @@ class CommitmentBank(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {}. True, False or Neither?\nAnswer:".format(
@@ -108,27 +123,21 @@ class CommitmentBank(HFTask):
         return " {}".format({0: "True", 1: "False", 2: "Neither"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, ' True')
-        ll_false, _ = rf.loglikelihood(ctx, ' False')
-        ll_neither, _ = rf.loglikelihood(ctx, ' Neither')
+        ll_true, _ = rf.loglikelihood(ctx, " True")
+        ll_false, _ = rf.loglikelihood(ctx, " False")
+        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
 
         return ll_true, ll_false, ll_neither
 
     def process_results(self, doc, results):
         gold = doc["label"]
         pred = np.argmax(results)
-        acc = 1. if pred == gold else 0.
+        acc = 1.0 if pred == gold else 0.0
 
-        return {
-            "acc": acc,
-            "f1": (pred, gold)
-        }
-    
+        return {"acc": acc, "f1": (pred, gold)}
+
     def higher_is_better(self):
-        return {
-            "acc": True,
-            "f1": True
-        }
+        return {"acc": True, "f1": True}
 
     @classmethod
     def cb_multi_fi(cls, items):
@@ -140,7 +149,7 @@ class CommitmentBank(HFTask):
         f13 = sklearn.metrics.f1_score(y_true=golds == 2, y_pred=preds == 2)
         avg_f1 = mean([f11, f12, f13])
         return avg_f1
-    
+
     def aggregation(self):
         return {
             "acc": mean,
@@ -148,7 +157,7 @@ class CommitmentBank(HFTask):
         }
 
 
-class Copa(HFTask):
+class Copa(Task):
     VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "copa"
@@ -161,6 +170,14 @@ class Copa(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         # Drop the period
@@ -178,7 +195,7 @@ class Copa(HFTask):
     def construct_requests(self, doc, ctx):
         choice1 = " " + self.convert_choice(doc["choice1"])
         choice2 = " " + self.convert_choice(doc["choice2"])
-        
+
         ll_choice1, _ = rf.loglikelihood(ctx, choice1)
         ll_choice2, _ = rf.loglikelihood(ctx, choice2)
 
@@ -187,28 +204,22 @@ class Copa(HFTask):
     def process_results(self, doc, results):
         gold = doc["label"]
         pred = np.argmax(results)
-        acc = 1. if pred == gold else 0.
+        acc = 1.0 if pred == gold else 0.0
 
-        return {
-            "acc": acc
-        }
-    
+        return {"acc": acc}
+
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
-    
+        return {"acc": True}
+
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
     @staticmethod
     def convert_choice(choice):
         return choice[0].lower() + choice[1:]
 
 
-class MultiRC(HFTask):
+class MultiRC(Task):
     VERSION = 1
     DATASET_PATH = "super_glue"
     DATASET_NAME = "multirc"
@@ -221,6 +232,14 @@ class MultiRC(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return f"{doc['paragraph']}\nQuestion: {doc['question']}\nAnswer:"
@@ -236,31 +255,25 @@ class MultiRC(HFTask):
     def construct_requests(self, doc, ctx):
         true_choice = self.format_answer(answer=doc["answer"], label=True)
         false_choice = self.format_answer(answer=doc["answer"], label=False)
-        
-        ll_true_choice, _ = rf.loglikelihood(ctx, f' {true_choice}')
-        ll_false_choice, _ = rf.loglikelihood(ctx, f' {false_choice}')
+
+        ll_true_choice, _ = rf.loglikelihood(ctx, f" {true_choice}")
+        ll_false_choice, _ = rf.loglikelihood(ctx, f" {false_choice}")
 
         return ll_true_choice, ll_false_choice
 
     def process_results(self, doc, results):
         ll_true_choice, ll_false_choice = results
         pred = ll_true_choice > ll_false_choice
-        return {
-            "acc": (pred, doc)
-        }
-    
+        return {"acc": (pred, doc)}
+
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
-    
+        return {"acc": True}
+
     def aggregation(self):
-        return {
-            "acc": acc_all
-        }
+        return {"acc": acc_all}
 
 
-class ReCoRD(HFTask):
+class ReCoRD(Task):
     VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "record"
@@ -279,13 +292,13 @@ class ReCoRD(HFTask):
         # Each doc consists of multiple answer candidates, each of which is scored yes/no.
         if self._training_docs is None:
             self._training_docs = []
-            for doc in self.data["train"]:
+            for doc in self.dataset["train"]:
                 self._training_docs.append(self._process_doc(doc))
         return self._training_docs
 
     def validation_docs(self):
         # See: training_docs
-        for doc in self.data["validation"]:
+        for doc in self.dataset["validation"]:
             yield self._process_doc(doc)
 
     @classmethod
@@ -306,7 +319,7 @@ class ReCoRD(HFTask):
 
     @classmethod
     def format_answer(cls, query, entity):
-        return f'  - {query}'.replace("@placeholder", entity)
+        return f"  - {query}".replace("@placeholder", entity)
 
     def doc_to_target(self, doc):
         # We only output the first correct entity in a doc
@@ -328,8 +341,12 @@ class ReCoRD(HFTask):
 
         prediction = doc["entities"][max_idx]
         gold_label_set = doc["answers"]
-        f1 = metric_max_over_ground_truths(squad_metrics.compute_f1, prediction, gold_label_set)
-        em = metric_max_over_ground_truths(squad_metrics.compute_exact, prediction, gold_label_set)
+        f1 = metric_max_over_ground_truths(
+            squad_metrics.compute_f1, prediction, gold_label_set
+        )
+        em = metric_max_over_ground_truths(
+            squad_metrics.compute_exact, prediction, gold_label_set
+        )
 
         return {
             "f1": f1,
@@ -349,7 +366,7 @@ class ReCoRD(HFTask):
         }
 
 
-class WordsInContext(HFTask):
+class WordsInContext(Task):
     VERSION = 0
     DATASET_PATH = "super_glue"
     DATASET_NAME = "wic"
@@ -363,20 +380,30 @@ class WordsInContext(HFTask):
     def has_test_docs(self):
         return False
 
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
     def doc_to_text(self, doc):
-        return "Sentence 1: {}\nSentence 2: {}\nQuestion: Is the word '{}' used in the same way in the" \
-               " two sentences above?\nAnswer:".format(
-                    doc["sentence1"],
-                    doc["sentence2"],
-                    doc["sentence1"][doc["start1"]:doc["end1"]],
-                )
+        return (
+            "Sentence 1: {}\nSentence 2: {}\nQuestion: Is the word '{}' used in the same way in the"
+            " two sentences above?\nAnswer:".format(
+                doc["sentence1"],
+                doc["sentence2"],
+                doc["sentence1"][doc["start1"] : doc["end1"]],
+            )
+        )
 
     def doc_to_target(self, doc):
         return " {}".format({0: "no", 1: "yes"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, ' yes')
-        ll_no, _ = rf.loglikelihood(ctx, ' no')
+        ll_yes, _ = rf.loglikelihood(ctx, " yes")
+        ll_no, _ = rf.loglikelihood(ctx, " no")
 
         return ll_yes, ll_no
 
@@ -384,24 +411,18 @@ class WordsInContext(HFTask):
         ll_yes, ll_no = results
         gold = doc["label"]
 
-        acc = 1. if (ll_yes > ll_no) == gold else 0.
+        acc = 1.0 if (ll_yes > ll_no) == gold else 0.0
 
-        return {
-            "acc": acc
-        }
+        return {"acc": acc}
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
 
-class SGWinogradSchemaChallenge(HFTask):
+class SGWinogradSchemaChallenge(Task):
     VERSION = 0
     # Note: This implementation differs from Fig G.32 because this is the SuperGLUE,
     #       binary version of the task.
@@ -422,34 +443,35 @@ class SGWinogradSchemaChallenge(HFTask):
             if self._training_docs is None:
                 # GPT-3 Paper's format only uses positive examples for fewshot "training"
                 self._training_docs = [
-                    doc for doc in
-                    self.data["train"]
-                    if doc["label"]
+                    doc for doc in self.dataset["train"] if doc["label"]
                 ]
             return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         raw_passage = doc["text"]
         # NOTE: HuggingFace span indices are word-based not character-based.
-        pre = " ".join(raw_passage.split()[:doc["span2_index"]])
-        post = raw_passage[len(pre) + len(doc["span2_text"]) + 1:]
-        passage = general_detokenize(pre + " *{}*".format(doc['span2_text']) + post)
+        pre = " ".join(raw_passage.split()[: doc["span2_index"]])
+        post = raw_passage[len(pre) + len(doc["span2_text"]) + 1 :]
+        passage = general_detokenize(pre + " *{}*".format(doc["span2_text"]) + post)
         noun = doc["span1_text"]
         pronoun = doc["span2_text"]
         text = (
             f"Passage: {passage}\n"
-            + f"Question: In the passage above, does the pronoun \"*{pronoun}*\" refer to \"*{noun}*\"?\n"
+            + f'Question: In the passage above, does the pronoun "*{pronoun}*" refer to "*{noun}*"?\n'
             + "Answer:"
         )
         return text
 
     def doc_to_target(self, doc):
-        return " " + yesno(doc['label'])
+        return " " + yesno(doc["label"])
 
     def construct_requests(self, doc, ctx):
 
-        ll_yes, _ = rf.loglikelihood(ctx, ' yes')
-        ll_no, _ = rf.loglikelihood(ctx, ' no')
+        ll_yes, _ = rf.loglikelihood(ctx, " yes")
+        ll_no, _ = rf.loglikelihood(ctx, " no")
 
         return ll_yes, ll_no
 
@@ -457,18 +479,12 @@ class SGWinogradSchemaChallenge(HFTask):
         ll_yes, ll_no = results
         gold = doc["label"]
 
-        acc = 1. if (ll_yes > ll_no) == gold else 0.
+        acc = 1.0 if (ll_yes > ll_no) == gold else 0.0
 
-        return {
-            "acc": acc
-        }
+        return {"acc": acc}
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}

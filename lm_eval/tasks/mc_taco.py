@@ -3,26 +3,25 @@
 A Study of Temporal Commonsense Understanding
 https://arxiv.org/pdf/1909.03065.pdf
 
-MC-TACO is a dataset of 13k question-answer pairs that require temporal commonsense 
+MC-TACO is a dataset of 13k question-answer pairs that require temporal commonsense
 comprehension. The dataset contains five temporal properties, (1) duration (how long
-an event takes), (2) temporal ordering (typical order of events), (3) typical time 
+an event takes), (2) temporal ordering (typical order of events), (3) typical time
 (when an event occurs), (4) frequency (how often an event occurs), and (5) stationarity
 (whether a state is maintained for a very long time or indefinitely).
 
-WARNING: Running this task with a `--limit` arg will give misleading results! The 
+WARNING: Running this task with a `--limit` arg will give misleading results! The
 corresponding dataset is structured such that each multiple-choice-question gathered
-by the authors is split into question-option pairs, where each such pair gets 
+by the authors is split into question-option pairs, where each such pair gets
 siloed into an individual document for plausibility testing. Because the harness
 shuffles these documents, setting `--limit` will likely "cut off" certain candidate
-answers. This is a problem because the task's metrics require an exhaustive evaluation 
+answers. This is a problem because the task's metrics require an exhaustive evaluation
 of a question's options. See section 4 of the paper for details.
 
 Homepage: https://leaderboard.allenai.org/mctaco/submissions/public
 """
 import numpy as np
-from lm_eval.base import rf
 from collections import defaultdict
-from . common import HFTask
+from lm_eval.base import rf, Task
 
 
 _CITATION = """
@@ -35,7 +34,7 @@ _CITATION = """
 """
 
 
-class MCTACO(HFTask):
+class MCTACO(Task):
     VERSION = 0
     DATASET_PATH = "mc_taco"
     DATASET_NAME = None
@@ -49,15 +48,29 @@ class MCTACO(HFTask):
     def has_test_docs(self):
         return True
 
+    def validation_docs(self):
+        return self.dataset["validation"]
+
+    def test_docs(self):
+        return self.dataset["test"]
+
     def doc_to_text(self, doc):
-        return f"{doc['sentence']}\nQuestion: {doc['question']}\n"\
+        return (
+            f"{doc['sentence']}\nQuestion: {doc['question']}\n"
             f"Answer: {doc['answer']}\nPlausible:"
+        )
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["question"] + " " + doc["sentence"]
 
     def doc_to_target(self, doc):
-        return " " + ["no", "yes"][doc['label']]
+        return " " + ["no", "yes"][doc["label"]]
 
     def construct_requests(self, doc, ctx):
-        """ Uses RequestFactory to construct Requests and returns an iterable of
+        """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
         :param doc:
@@ -82,18 +95,15 @@ class MCTACO(HFTask):
             The results of the requests created in construct_requests.
         """
         ll_no, ll_yes = results
-        gold = doc['label']
+        gold = doc["label"]
         pred = int(ll_yes > ll_no)
         question_id = self._question2id(doc)
         items = (gold, pred, question_id)
-        return {
-            "em": items,
-            "f1": items
-        }
+        return {"em": items, "f1": items}
 
     def _question2id(self, doc):
-        """ Returns an identifier for the question in the given document. """
-        return " ".join([doc['sentence'], doc['question']])
+        """Returns an identifier for the question in the given document."""
+        return " ".join([doc["sentence"], doc["question"]])
 
     def aggregation(self):
         return {
@@ -121,7 +131,7 @@ def exact_match(items):
 
 
 def f1(items):
-    """ See section 4 "Evaluation Metrics" in the paper about the F1 metric used. """
+    """See section 4 "Evaluation Metrics" in the paper about the F1 metric used."""
     results = list(zip(*items))
     # Group the positive ("yes" = 1) golds and predictions by question.
     gold_positives, pred_positives = defaultdict(list), defaultdict(list)
@@ -135,5 +145,5 @@ def f1(items):
         p = tp / pp if pp > 0.0 else 1.0
         r = tp / gp if gp > 0.0 else 1.0
         if p + r > 0.0:
-            f1.append(2. * (p * r) / (p + r))
+            f1.append(2.0 * (p * r) / (p + r))
     return np.mean(f1)

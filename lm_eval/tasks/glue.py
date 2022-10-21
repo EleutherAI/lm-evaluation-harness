@@ -14,10 +14,9 @@ respect to a wide range of linguistic phenomena found in natural language.
 Homepage: https://gluebenchmark.com/
 """
 import numpy as np
-from lm_eval.base import rf
-from ..metrics import mean, matthews_corrcoef, f1_score
-from . common import HFTask, yesno
-from ..utils import general_detokenize
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean, matthews_corrcoef, f1_score, yesno
+from lm_eval.utils import general_detokenize
 
 
 # TODO(jon-tow): Add citations for the individual datasets/tasks that make up GLUE.
@@ -46,7 +45,7 @@ _CITATION = """
 # Single-Sentence Tasks
 
 
-class CoLA(HFTask):
+class CoLA(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "cola"
@@ -60,8 +59,24 @@ class CoLA(HFTask):
     def has_test_docs(self):
         return False
 
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
     def doc_to_text(self, doc):
-        return "{}\nQuestion: Does this sentence make sense?\nAnswer:".format(doc["sentence"])
+        return "{}\nQuestion: Does this sentence make sense?\nAnswer:".format(
+            doc["sentence"]
+        )
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["sentence"]
 
     def doc_to_target(self, doc):
         return " {}".format({1: "yes", 0: "no"}[doc["label"]])
@@ -75,22 +90,16 @@ class CoLA(HFTask):
         ll_true, ll_false = results
         pred = ll_true > ll_false
         gold = doc["label"]
-        return {
-            "mcc": (gold, pred)
-        }
+        return {"mcc": (gold, pred)}
 
     def higher_is_better(self):
-        return {
-            "mcc": True
-        }
+        return {"mcc": True}
 
     def aggregation(self):
-        return {
-            "mcc": matthews_corrcoef
-        }
+        return {"mcc": matthews_corrcoef}
 
 
-class SST(HFTask):
+class SST(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "sst2"
@@ -103,6 +112,14 @@ class SST(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: Is this sentence positive or negative?\nAnswer:".format(
@@ -121,25 +138,19 @@ class SST(HFTask):
         ll_positive, ll_negative = results
         pred = ll_positive > ll_negative
         gold = doc["label"]
-        return {
-            "acc": pred == gold
-        }
+        return {"acc": pred == gold}
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
 
 # Inference Tasks
 
 
-class MNLI(HFTask):
+class MNLI(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "mnli"
@@ -153,18 +164,24 @@ class MNLI(HFTask):
     def has_test_docs(self):
         return False
 
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
     def validation_docs(self):
         if self.has_validation_docs():
-            return self.data["validation_matched"]
+            return self.dataset["validation_matched"]
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.data["test_matched"]
+            return self.dataset["test_matched"]
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {} True, False or Neither?\nAnswer:".format(
             doc["premise"],
-            doc["hypothesis"].strip() + ('' if doc["hypothesis"].strip().endswith('.') else '.'),
+            doc["hypothesis"].strip()
+            + ("" if doc["hypothesis"].strip().endswith(".") else "."),
         )
 
     def doc_to_target(self, doc):
@@ -182,19 +199,13 @@ class MNLI(HFTask):
     def process_results(self, doc, results):
         gold = doc["label"]
         pred = np.argmax(results)
-        return {
-            "acc": pred == gold
-        }
+        return {"acc": pred == gold}
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
 
 class MNLIMismatched(MNLI):
@@ -202,14 +213,14 @@ class MNLIMismatched(MNLI):
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return self.data["validation_mismatched"]
+            return self.dataset["validation_mismatched"]
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.data["test_mismatched"]
+            return self.dataset["test_mismatched"]
 
 
-class QNLI(HFTask):
+class QNLI(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "qnli"
@@ -223,10 +234,20 @@ class QNLI(HFTask):
     def has_test_docs(self):
         return False
 
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
     def doc_to_text(self, doc):
-        return "{}\n{}\nQuestion: Does this response answer the question?\nAnswer:".format(
-            doc["question"],
-            doc["sentence"],
+        return (
+            "{}\n{}\nQuestion: Does this response answer the question?\nAnswer:".format(
+                doc["question"],
+                doc["sentence"],
+            )
         )
 
     def doc_to_target(self, doc):
@@ -243,22 +264,16 @@ class QNLI(HFTask):
         ll_yes, ll_no = results
         pred = ll_no > ll_yes
         gold = doc["label"]
-        return {
-            "acc": pred == gold
-        }
+        return {"acc": pred == gold}
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
 
-class WNLI(HFTask):
+class WNLI(Task):
     VERSION = 1
     DATASET_PATH = "glue"
     DATASET_NAME = "wnli"
@@ -271,6 +286,14 @@ class WNLI(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {} True or False?\nAnswer:".format(
@@ -292,22 +315,16 @@ class WNLI(HFTask):
         ll_true, ll_false = results
         pred = ll_true > ll_false
         gold = doc["label"]
-        return {
-            "acc": pred == gold
-        }
+        return {"acc": pred == gold}
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
 
-class RTE(HFTask):
+class RTE(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "rte"
@@ -320,6 +337,14 @@ class RTE(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "{}\nQuestion: {} True or False?\nAnswer:".format(
@@ -341,25 +366,19 @@ class RTE(HFTask):
         ll_true, ll_false = results
         pred = ll_false > ll_true
         gold = doc["label"]
-        return {
-            "acc": pred == gold
-        }
+        return {"acc": pred == gold}
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
     def aggregation(self):
-        return {
-            "acc": mean
-        }
+        return {"acc": mean}
 
 
 # Similarity and Paraphrase Tasks
 
 
-class MRPC(HFTask):
+class MRPC(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "mrpc"
@@ -372,6 +391,14 @@ class MRPC(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "Sentence 1: {}\nSentence 2: {}\nQuestion: Do both sentences mean the same thing?\nAnswer:".format(
@@ -397,19 +424,13 @@ class MRPC(HFTask):
         }
 
     def higher_is_better(self):
-        return {
-            "acc": True,
-            "f1": True
-        }
+        return {"acc": True, "f1": True}
 
     def aggregation(self):
-        return {
-            "acc": mean,
-            "f1": f1_score
-        }
+        return {"acc": mean, "f1": f1_score}
 
 
-class QQP(HFTask):
+class QQP(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "qqp"
@@ -422,6 +443,14 @@ class QQP(HFTask):
 
     def has_test_docs(self):
         return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
 
     def doc_to_text(self, doc):
         return "Question 1: {}\nQuestion 2: {}\nQuestion: Do both questions ask the same thing?\nAnswer:".format(
@@ -447,19 +476,13 @@ class QQP(HFTask):
         }
 
     def higher_is_better(self):
-        return {
-            "acc": True,
-            "f1": True
-        }
+        return {"acc": True, "f1": True}
 
     def aggregation(self):
-        return {
-            "acc": mean,
-            "f1": f1_score
-        }
+        return {"acc": mean, "f1": f1_score}
 
 
-class STSB(HFTask):
+class STSB(Task):
     VERSION = 0
     DATASET_PATH = "glue"
     DATASET_NAME = "stsb"
@@ -473,6 +496,17 @@ class STSB(HFTask):
     def has_test_docs(self):
         return True
 
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
+    def test_docs(self):
+        return self.dataset["test"]
+
     def doc_to_text(self, doc):
         return "sentence 1: {}\nsentence 2: {}\nAnswer:".format(
             doc["sentence1"],
@@ -483,22 +517,22 @@ class STSB(HFTask):
         return " {}".format(doc["label"])
 
     def construct_requests(self, doc, ctx):
-        """ Uses RequestFactory to construct Requests and returns an iterable of 
+        """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
         :param doc:
             The document as returned from training_docs, validation_docs, or test_docs.
         :param ctx: str
-            The context string, generated by fewshot_context. This includes the natural 
+            The context string, generated by fewshot_context. This includes the natural
             language description, as well as the few shot examples, and the question
-            part of the document for `doc`. 
+            part of the document for `doc`.
         """
         # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
-    
+        raise NotImplementedError("Evaluation not implemented")
+
     def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a 
-        dict where keys are the names of submetrics and values are the values of 
+        """Take a single document and the LM results and evaluates, returning a
+        dict where keys are the names of submetrics and values are the values of
         the metric for that one document
 
         :param doc:
@@ -507,22 +541,22 @@ class STSB(HFTask):
             The results of the requests created in construct_requests.
         """
         # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        raise NotImplementedError("Evaluation not implemented")
 
     def aggregation(self):
         """
         :returns: {str: [float] -> float}
-            A dictionary where keys are the names of submetrics and values are 
+            A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
         # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        raise NotImplementedError("Evaluation not implemented")
 
     def higher_is_better(self):
         """
         :returns: {str: bool}
-            A dictionary where keys are the names of submetrics and values are 
+            A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
         # TODO: implement evaluation.
-        raise NotImplementedError('Evaluation not implemented')
+        raise NotImplementedError("Evaluation not implemented")

@@ -15,7 +15,6 @@ have been trained on data not specifically collected to succeed on PROST."
 Homepage: https://github.com/nala-cub/prost
 """
 from lm_eval.base import MultipleChoiceTask
-from . common import HFTask
 
 
 _CITATION = """
@@ -36,7 +35,7 @@ _CITATION = """
 """
 
 
-class PROST(HFTask, MultipleChoiceTask):
+class PROST(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "corypaik/prost"
     DATASET_NAME = None
@@ -50,22 +49,32 @@ class PROST(HFTask, MultipleChoiceTask):
     def has_test_docs(self):
         return True
 
-    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
-        assert num_fewshot == 0, 'PROST is designed to probe models in a zero-shot fashion only.'
+    def test_docs(self):
+        return map(self._process_doc, self.dataset["test"])
+
+    def fewshot_context(
+        self, doc, num_fewshot, provide_description=None, rnd=None, description=None
+    ):
+        assert (
+            num_fewshot == 0
+        ), "PROST is designed to probe models in a zero-shot fashion only."
         return super().fewshot_context(
-            doc=doc,
-            num_fewshot=num_fewshot,
-            rnd=rnd,
-            description=description
+            doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
         )
 
-    def _convert_standard(self, doc):
+    def _process_doc(self, doc):
         out_doc = {
             "query": f"{doc['context']}\nQuestion: {doc['ex_question']}\nAnswer:",
-            "choices": [doc['A'], doc['B'], doc['C'], doc['D']],
-            "gold": doc['label'],
+            "choices": [doc["A"], doc["B"], doc["C"], doc["D"]],
+            "gold": doc["label"],
         }
         return out_doc
 
     def doc_to_text(self, doc):
+        return doc["query"]
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
         return doc["query"]

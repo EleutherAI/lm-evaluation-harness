@@ -2,8 +2,8 @@
 DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs
 https://aclanthology.org/attachments/N19-1246.Supplementary.pdf
 
-DROP is a QA dataset which tests comprehensive understanding of paragraphs. In 
-this crowdsourced, adversarially-created, 96k question-answering benchmark, a 
+DROP is a QA dataset which tests comprehensive understanding of paragraphs. In
+this crowdsourced, adversarially-created, 96k question-answering benchmark, a
 system must resolve multiple references in a question, map them onto a paragraph,
 and perform discrete operations over them (such as addition, counting, or sorting).
 
@@ -12,21 +12,19 @@ Homepage: https://allenai.org/data/drop
 Acknowledgement: This implementation is based on the official evaluation for `DROP`:
 https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_rc/eval/drop_eval.py
 """
-import json
+import inspect
 import numpy as np
 import re
 import string
-from best_download import download_file
+import lm_eval.datasets.drop.drop
 from scipy.optimize import linear_sum_assignment
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
-from pathlib import Path
-from zipfile import ZipFile
 
 
 _CITATION = """
 @misc{dua2019drop,
-    title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs}, 
+    title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs},
     author={Dheeru Dua and Yizhong Wang and Pradeep Dasigi and Gabriel Stanovsky and Sameer Singh and Matt Gardner},
     year={2019},
     eprint={1903.00161},
@@ -41,18 +39,8 @@ _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
 
 class DROP(Task):
     VERSION = 1
-    DATASET_PATH = Path("data/drop")
-
-    def download(self):
-        if self.DATASET_PATH.exists():
-            return
-        Path.mkdir(self.DATASET_PATH, parents=True)
-        url = "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip"
-        checksum = "39d2278a29fd729de301b111a45f434c24834f40df8f4ff116d864589e3249d6"
-        zip_path = self.DATASET_PATH / "drop_dataset.zip"
-        download_file(url, local_file=str(zip_path), expected_checksum=checksum)
-        with ZipFile(zip_path, "r") as zip:
-            zip.extractall(self.DATASET_PATH)
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.drop.drop)
+    DATASET_NAME = None
 
     def has_training_docs(self):
         return True
@@ -63,29 +51,51 @@ class DROP(Task):
     def has_test_docs(self):
         return False
 
-    def _load_docs(self, docs):
-        for doc in docs:
-            for qa in doc["qa_pairs"]:
-                yield {
-                    "id": qa["query_id"],
-                    "passage": doc["passage"],
-                    "question": qa["question"],
-                    "answers": self.get_answers(qa),
-                }
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
+        return self._training_docs
+
+    def validation_docs(self):
+        return map(self._process_doc, self.dataset["validation"])
+
+    def _process_doc(self, doc):
+        return {
+            "id": doc["query_id"],
+            "passage": doc["passage"],
+            "question": doc["question"],
+            "answers": self.get_answers(doc),
+        }
 
     @classmethod
     def get_answers(cls, qa):
+        def _flatten_validated_answers(validated_answers):
+            """Flattens a dict of lists of validated answers.
+            {"number": ['1', '8'], ...}
+            -> [{"number": ['1'], ...}, {"number": ['8'], ...}]
+            """
+            valid_answers = []
+            for i in range(len(validated_answers["number"])):
+                valid_answers.append(
+                    {
+                        "number": validated_answers["number"][i],
+                        "date": validated_answers["date"][i],
+                        "spans": validated_answers["spans"][i],
+                    }
+                )
+            return valid_answers
+
         answers = []
         answers_set = set()
-
-        candidates = [qa["answer"]] + qa.get("validated_answers", [])
+        candidates = [qa["answer"]] + _flatten_validated_answers(
+            qa["validated_answers"]
+        )
         for candidate in candidates:
             answer = cls.parse_answer(candidate)
             if answer in answers_set:
                 continue
             answers_set.add(answer)
             answers.append(answer)
-
         return answers
 
     @classmethod
@@ -95,20 +105,20 @@ class DROP(Task):
             return (str(answer["number"]),)
         if answer["spans"] != []:
             return tuple(answer["spans"])
-        return (" ".join([answer["date"]["day"],
-                          answer["date"]["month"],
-                          answer["date"]["year"]]).strip(),)
-
-    def training_docs(self):
-        docs = json.load(open(self.DATASET_PATH / "drop_dataset" / "drop_dataset_train.json"))
-        return self._load_docs([docs[k] for k in docs.keys()])
-
-    def validation_docs(self):
-        docs = json.load(open(self.DATASET_PATH / "drop_dataset" / "drop_dataset_dev.json"))
-        return self._load_docs([docs[k] for k in docs.keys()])
+        return (
+            " ".join(
+                [answer["date"]["day"], answer["date"]["month"], answer["date"]["year"]]
+            ).strip(),
+        )
 
     def doc_to_text(self, doc):
         return f"Passage: {doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["passage"] + " " + doc["question"]
 
     def doc_to_target(self, doc):
         return " " + ", ".join(doc["answers"][0])
@@ -145,10 +155,7 @@ class DROP(Task):
             if gold_answer[0].strip():
                 max_em = max(max_em, exact_match)
                 max_f1 = max(max_f1, f1_score)
-        return {
-            "em": max_em,
-            "f1": max_f1
-        }
+        return {"em": max_em, "f1": max_f1}
 
     def get_metrics(self, predicted, gold):
         """
@@ -161,7 +168,9 @@ class DROP(Task):
         predicted_bags = self._answer_to_bags(predicted)
         gold_bags = self._answer_to_bags(gold)
 
-        if set(predicted_bags[0]) == set(gold_bags[0]) and len(predicted_bags[0]) == len(gold_bags[0]):
+        if set(predicted_bags[0]) == set(gold_bags[0]) and len(
+            predicted_bags[0]
+        ) == len(gold_bags[0]):
             exact_match = 1.0
         else:
             exact_match = 0.0
@@ -193,7 +202,9 @@ class DROP(Task):
         for gold_index, gold_item in enumerate(gold):
             for pred_index, pred_item in enumerate(predicted):
                 if self._match_numbers_if_present(gold_item, pred_item):
-                    scores[gold_index, pred_index] = self._compute_f1(pred_item, gold_item)
+                    scores[gold_index, pred_index] = self._compute_f1(
+                        pred_item, gold_item
+                    )
         row_ind, col_ind = linear_sum_assignment(-scores)
 
         max_scores = np.zeros([max(len(gold), len(predicted))])
@@ -259,7 +270,11 @@ class DROP(Task):
 
     def _normalize(self, answer):
         tokens = [
-            self._white_space_fix(self._remove_articles(self._fix_number(self._remove_punc(token.lower()))))
+            self._white_space_fix(
+                self._remove_articles(
+                    self._fix_number(self._remove_punc(token.lower()))
+                )
+            )
             for token in self._tokenize(answer)
         ]
         tokens = [token for token in tokens if token.strip()]
@@ -272,10 +287,7 @@ class DROP(Task):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {
-            "em": mean,
-            "f1": mean
-        }
+        return {"em": mean, "f1": mean}
 
     def higher_is_better(self):
         """
@@ -283,7 +295,4 @@ class DROP(Task):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {
-            "em": True,
-            "f1": True
-        }
+        return {"em": True, "f1": True}
