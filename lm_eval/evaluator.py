@@ -2,6 +2,7 @@ import collections
 import itertools
 import json
 import logging
+import sys
 import numpy as np
 from tqdm import tqdm
 from typing import List, Optional
@@ -16,6 +17,7 @@ from lm_eval.api.task import Task
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def cli_evaluate(
@@ -166,11 +168,11 @@ def evaluate(
             lambda ex, idx: {**ex, "doc_id": idx}, with_indices=True
         )
 
-        logger.info(f"» Filtering invalid docs from '{task_template_key}'")
+        logger.info(f"\n» Filtering invalid docs from '{task_template_key}'")
         task_docs = task_docs.filter(lambda d: not task.invalid_doc_for_prompt(d))
         task_docs = task_docs.shuffle(generator=rng)
 
-        logger.info(f"» Constructing '{task_template_key}' contexts and requests")
+        logger.info(f"\n» Constructing '{task_template_key}' contexts and requests")
         pbar_limit = len(task_docs) if not limit else np.minimum(limit, len(task_docs))
 
         for doc_id, doc in enumerate(
