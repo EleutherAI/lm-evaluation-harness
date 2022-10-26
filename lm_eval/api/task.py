@@ -355,7 +355,12 @@ class PromptSourceTask(Task):
         for idx in random_indices:
             if i >= k:  # Break when we have enough examples.
                 break
-            if self.invalid_doc_for_prompt(docs[idx]) or docs[idx] == prompt:
+            is_same_prompt = prompt is not None and all(
+                # Skips the `doc_id` key assigned to `prompt`s during eval pre-processing.
+                docs[idx][k] == prompt[k]
+                for k in docs[idx].keys()
+            )
+            if self.invalid_doc_for_prompt(docs[idx]) or is_same_prompt:
                 continue
             fewshot_examples.append(docs[idx])
             fewshot_idx.append(int(idx))
