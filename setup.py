@@ -30,7 +30,7 @@ setuptools.setup(
         "sacrebleu==1.5.0",
         "rouge-score==0.0.4",
         "pycountry==20.7.3",
-        "numexpr==2.7.2",
+        "numexpr>=2.7.2",
         "lm_dataformat==0.0.20",
         "pybind11==2.6.2",
         "tqdm-multiprocess==0.0.11",
