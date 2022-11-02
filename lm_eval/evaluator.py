@@ -25,6 +25,7 @@ def cli_evaluate(
     model_api_name: str,
     model_args: str,
     task_name: str,
+    task_args: str,
     template_names: List[str],
     num_fewshot: Optional[int] = 0,
     batch_size: Optional[int] = None,
@@ -47,6 +48,10 @@ def cli_evaluate(
                 `lm_eval.api.model.get_model_from_args_string`
         task_name (str):
             The task name of the task to evaluate the model on.
+        task_args (str):
+            String arguments for the task. See:
+                `lm_eval.api.task.get_task_list_from_args_string`
+            WARNING: To avoid parse errors, separators must not contain commas.
         template_names (List[str]):
             List of template names for the specified `task_name` to evaluate
             under.
@@ -69,7 +74,9 @@ def cli_evaluate(
     Returns:
         Dictionary of results.
     """
-    tasks = lm_eval.tasks.get_task_list(task_name, template_names)
+    tasks = lm_eval.tasks.get_task_list_from_args_string(
+        task_name, template_names, task_args
+    )
     model = lm_eval.models.get_model_from_args_string(
         model_api_name, model_args, {"batch_size": batch_size, "device": device}
     )
@@ -93,6 +100,7 @@ def cli_evaluate(
     results["config"] = {
         "model": model_api_name,
         "model_args": model_args,
+        "task_args": task_args,
         "num_fewshot": num_fewshot,
         "batch_size": batch_size,
         "device": device,

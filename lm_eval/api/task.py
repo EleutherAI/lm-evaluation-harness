@@ -254,9 +254,14 @@ class PromptSourceTask(Task):
                 Example:
                     Q: Where is the Eiffel Tower located? A:{text_target_separator}Paris
         """
+        assert isinstance(save_examples, bool), "`save_examples` must be a bool."
+        assert isinstance(example_separator, str) and isinstance(
+            text_target_separator, str
+        ), "Separator args must be strings."
         assert (
             text_target_separator.isspace()
         ), f"`text_target_separator` must be whitespace only. Got: `{text_target_separator}`"
+
         super().__init__(data_dir, cache_dir, download_mode)
         self.prompt_template = prompt_template
         self.save_examples = save_examples

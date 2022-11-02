@@ -1,7 +1,8 @@
 import logging
-from typing import List, Tuple, Type, Union
+from typing import List, Mapping, Tuple, Type, Optional, Union
 from promptsource.templates import DatasetTemplates
 
+import lm_eval.api.utils
 from lm_eval.api.task import Task
 
 from . import anli
@@ -278,6 +279,38 @@ def get_templates(task_name: str) -> DatasetTemplates:
     """Returns the `promptsource` `DatasetTemplates` for the specified task name."""
     task_class = _get_task_from_registry(task_name)
     return _get_templates_from_task(task_class)
+
+
+def get_task_list_from_args_string(
+    task_name: str,
+    template_names: List[str],
+    task_args: str,
+    additional_config: Optional[Mapping[str, str]] = None,
+) -> List[Task]:
+    """Returns a list of the same task but with multiple prompt templates, each
+    task instantiated with the given kwargs.
+
+    Args:
+        task_name: Name of the task to use as found in the task registry.
+        template_names: Name of the prompt template from `promptsource` to use
+            for this task.
+        task_args: A string of comma-separated key=value pairs that will be passed
+            to the task constructor. E.g. "data_dir=./datasets,example_separator=\n\n"
+        additional_config: An additional dictionary of key=value pairs that will
+            be passed to the task constructor.
+
+    Returns:
+        A list of `Task` instances.
+    """
+    kwargs = lm_eval.api.utils.parse_cli_args_string(task_args)
+    assert "prompt_template" not in kwargs, (
+        "Cannot specify a `prompt_template` object in the `task_args` string. "
+        "Only primitive type arguments are allowed."
+    )
+    additional_config = {} if additional_config is None else additional_config
+    additional_args = {k: v for k, v in additional_config.items() if v is not None}
+    kwargs.update(additional_args)
+    return get_task_list(task_name, template_names, **kwargs)
 
 
 # Helper functions

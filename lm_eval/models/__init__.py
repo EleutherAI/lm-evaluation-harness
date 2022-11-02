@@ -54,7 +54,7 @@ def get_model_from_args_string(
         model_args: A string of comma-separated key=value pairs that will be passed
             to the model constructor. E.g. "pretrained=gpt2,batch_size=32".
         additional_config: An additional dictionary of key=value pairs that will be
-            passed to the model constructor
+            passed to the model constructor.
 
     Returns:
         A language model instance.

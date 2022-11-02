@@ -287,13 +287,15 @@ def parse_cli_args_string(args: str) -> dict:
     """Parses a string in the following format to a kwargs dictionary.
     "args1=val1,arg2=val2"
     """
-    args = args.strip()
+    # Remove leading whitespace but not trailing in case a `val` contains necessary whitespace.
+    args = args.lstrip()
     if not args:
         return {}
     arg_list = args.split(",")
     args_dict = {}
     for arg in arg_list:
-        k, v = arg.split("=")
+        # Split on the first `=` to allow for `=`s in `val`.
+        k, v = arg.split("=", 1)
         args_dict[k] = str_to_builtin_type(v)
     return args_dict
 

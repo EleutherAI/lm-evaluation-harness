@@ -32,6 +32,15 @@ def parse_args():
         "in the lm_eval registry. See: `lm_eval.list_tasks()`",
     )
     parser.add_argument(
+        "--task_args",
+        default="",
+        help="""Optional task constructor args that you'd pass into a task class of kind "
+        `--task_name`. These must be comma-separated keyword args, e.g.
+        `key1=value1,key2=value2`, with no spaces.
+        WARNING: To avoid parsing errors, ensure your strings are quoted. For example,
+        example_separator='\\n+++\\n'. Separators must not contain commas.""",
+    )
+    parser.add_argument(
         "--template_names",
         default="all_templates",
         help="""Comma-separated list of template names for the specified
@@ -167,6 +176,7 @@ def main():
         model_api_name=args.model_api_name,
         model_args=args.model_args,
         task_name=args.task_name,
+        task_args=args.task_args,
         template_names=template_names,
         num_fewshot=args.num_fewshot,
         batch_size=args.batch_size,
