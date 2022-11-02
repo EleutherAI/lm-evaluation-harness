@@ -71,8 +71,11 @@ optional arguments:
   --task_name TASK_NAME
                         Name of the task to use as found in the lm_eval registry. See: `lm_eval.list_tasks()`
   --task_args TASK_ARGS
-                        Optional task constructor args that you'd pass into a task class of kind " `--task_name`. These must be comma-separated keyword args, e.g. `key1=value1,key2=value2`, with no spaces.
-                        WARNING: To avoid parsing errors, ensure your strings are quoted. For example, example_separator='\n+++\n'. Separators must not contain commas.
+                        Optional task constructor args that you'd pass into a task class of kind " `--task_name`.
+                        These must be comma-separated keyword args, e.g. `key1=value1,key2=value2`, with no spaces.
+                        WARNING: To avoid parsing errors, ensure your strings are quoted. For example,
+                            `example_separator='\n+++\n'`
+                        WARNING: Values must NOT contain commas.
   --template_names TEMPLATE_NAMES
                         Comma-separated list of template names for the specified task. Example:
                         `> python main.py ... --task_name rte --template_names imply,mean`
