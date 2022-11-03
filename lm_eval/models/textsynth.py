@@ -7,7 +7,7 @@ enough credits.
 
 Example usage:
 
-    python main.py --model textsynth --model_args engine=gptj_4B --no_cache --tasks piqa
+    python main.py --model textsynth --model_args engine=gptj_6B --no_cache --tasks piqa
 
 Homepage: https://textsynth.com/index.html
 """
