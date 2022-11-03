@@ -261,10 +261,6 @@ def textsynth_mock_completion(**kwargs):
     hash = hashlib.sha256(
         json.dumps(kwargs, sort_keys=True).encode("utf-8")
     ).hexdigest()
-    print("=====" * 10)
-    print("KEYS", kwargs.keys())
-    print("HASH", hash)
-    print("=====" * 10)
     fname = f"tests/testdata/textsynth_test_{hash}.pkl"
 
     if os.path.exists(fname):
