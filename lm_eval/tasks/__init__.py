@@ -6,6 +6,7 @@ import lm_eval.api.utils
 from lm_eval.api.task import Task
 
 from . import anli
+from . import bias_shades
 from . import blimp
 from . import diabla
 from . import cnn_dailymail
@@ -135,6 +136,9 @@ TASK_REGISTRY = {
     # WMT
     # Format: `wmt{year}_{lang1}_{lang2}`
     **wmt.construct_tasks(),
+    # Bias-Shades
+    # Format: `bias_shades_{lang}`
+    **bias_shades.construct_tasks(),
     # BLiMP
     "blimp_adjunct_island": blimp.BlimpAdjunctIsland,
     "blimp_anaphor_gender_agreement": blimp.BlimpAnaphorGenderAgreement,
