@@ -19,7 +19,7 @@ versions and reference translations produced a posteriori
 Homepage: http://almanach.inria.fr/software_and_resources/custom/DiaBLa-en.html
 """
 from lm_eval.api.task import PromptSourceTask
-from typing import List, Tuple, Union, Optional
+from typing import List, Tuple, Optional
 import datasets
 import copy
 import numpy as np
@@ -75,7 +75,7 @@ class DiaBLa(PromptSourceTask):
         return False
 
 
-class DiaBLa_1_shot_context(PromptSourceTask):
+class DiaBLa_1_shot_context_same(PromptSourceTask):
     """
     This task is identical to the DiaBLa task, but in the 1-shot setting takes the
     1-shot example from the previous sentence in the dialogue if this is available
@@ -227,3 +227,59 @@ class DiaBLa_1_shot_context(PromptSourceTask):
             "ctx": ctx,
         }
         return ctx, logging_info
+
+
+class DiaBLa_1_shot_context_opposite(DiaBLa_1_shot_context_same):
+    """
+    This task is identical to the DiaBLa task, but in the 1-shot setting takes the
+    1-shot example from the previous sentence in the dialogue if this is available
+    (source sentence and MT output, in the same language direction as the direction
+    of the current example). N.B. this task is not currently designed for more than
+    1-shot.
+    """
+
+    DATASET_PATH = "rbawden/DiaBLa"
+    DATASET_NAME = None
+
+    # heuristically hack the current template to replace the attributes 'orig' and 'ref' by
+    # the original and reference sentences of the previous sentence (if available)
+    def get_fewshot_template(self):
+        self.shot_prompt_template = copy.deepcopy(self.prompt_template)
+        old_jinja = self.shot_prompt_template.jinja
+        preamble = '{% set src_sent = ""%}'
+        preamble += '{% set trg_sent = "" %}'
+        preamble += "{% if dialogue_history|length > 0 %}{% if utterance_meta.lang != dialogue_history[-1].utterance_meta.lang %}{% set src_sent = dialogue_history[-1].orig %}{% set trg_sent = dialogue_history[-1].ref %}{% else %}{% set src_sent = dialogue_history[-1].ref %}{% set trg_sent = dialogue_history[-1].orig %}{% endif %}{% endif %}"
+        self.shot_prompt_template.jinja = preamble + old_jinja.replace(
+            "{{ orig }}", "{{ src_sent }}"
+        ).replace("{{ ref }}", "{{ trg_sent }}").replace(
+            '{% if utterance_meta.lang == "french" %}',
+            '{% if utterance_meta.lang != "french" %}',
+        )
+        return self.shot_prompt_template
+
+
+class DiaBLa_1_shot_context_orig(DiaBLa_1_shot_context_same):
+    """
+    This task is identical to the DiaBLa task, but in the 1-shot setting takes the
+    1-shot example from the previous sentence in the dialogue if this is available
+    (source sentence and MT output, in the same language direction as the direction
+    of the current example). N.B. this task is not currently designed for more than
+    1-shot.
+    """
+
+    DATASET_PATH = "rbawden/DiaBLa"
+    DATASET_NAME = None
+
+    # heuristically hack the current template to replace the attributes 'orig' and 'ref' by
+    # the original and reference sentences of the previous sentence (if available)
+    def get_fewshot_template(self):
+        self.shot_prompt_template = copy.deepcopy(self.prompt_template)
+        old_jinja = self.shot_prompt_template.jinja
+        preamble = '{% set src_sent = ""%}{% set trg_sent = "" %}'
+        preamble += "{% if dialogue_history|length > 0 %}{% set src_sent = dialogue_history[-1].orig %}{% set trg_sent = dialogue_history[-1].ref %}{% endif %}"
+        self.shot_prompt_template.jinja = preamble + old_jinja.replace(
+            "{{ orig }}", "{{ src_sent }}"
+        ).replace("{{ ref }}", "{{ trg_sent }}").replace(
+            "utterance_meta.lang", "dialogue_history[-1].utterance_meta.lang"
+        )
+        return self.shot_prompt_template

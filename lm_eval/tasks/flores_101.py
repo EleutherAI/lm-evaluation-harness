@@ -12,7 +12,7 @@ FLORES-101 is a Many-to-Many multilingual translation benchmark dataset for 101 
 Github: https://github.com/facebookresearch/flores
 """
 from lm_eval.api.task import PromptSourceTask, PerplexityTask
-from typing import List, Tuple, Union, Optional
+from typing import List, Tuple, Optional
 import datasets
 import copy
 import re
@@ -128,12 +128,181 @@ class Flores101MT_fewshot_wmt_fr2en(Flores101MT):
 
     def fewshot_docs(self) -> datasets.Dataset:
         """Returns a wmt dataset split"""
-        return datasets.load_dataset(
-            "wmt14",
-            "fr-en",
-            cache_dir=self.cache_dir,
-            download_mode=self.download_mode,
-        )["validation"]
+        return (
+            "valid",
+            datasets.load_dataset(
+                "wmt14",
+                "fr-en",
+                cache_dir=self.cache_dir,
+                download_mode=self.download_mode,
+            )["validation"]["translation"],
+        )
+
+    def fewshot_context(
+        self, doc: dict, num_fewshot: int, rng: Optional[np.random.Generator]
+    ) -> Tuple[str, dict]:
+        """Returns a few-shot context string made up of `num_fewshot` number of
+        labeled examples, and an appended prompt example without labeling.
+
+        :param doc: dict
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param num_fewshot: int
+            The number of fewshot examples to provide in the returned context string.
+        :param rng: numpy.random.Generator
+            The pseudo-random number generator used to randomly sample few-shot examples.
+        :returns: Tuple[str, dict]
+            ctx: str
+                The fewshot context.
+            logging_info: dict
+                A `dict` of logging info that can be used to identify few-shot sources.
+        """
+        assert (
+            rng is not None
+        ), "A `numpy.random.Generator` argument must be provided to `rng`"
+
+        self.get_fewshot_template()
+
+        if num_fewshot == 0:
+            labeled_examples = ""
+            fewshot_idx, fewshot_target_idx, fewshot_src = ([], [], None)
+        else:
+            # Construct few-shot labeled examples.
+            fewshot_src, fewshot_docs = self.fewshot_docs()
+
+            fewshot_examples, fewshot_idx = self.fewshot_examples(
+                fewshot_docs, k=num_fewshot, rng=rng, prompt=doc
+            )
+            labeled_examples_list = []
+            fewshot_target_idx = []
+            for fewshot_example in fewshot_examples:
+                # format the example, but use the previous context of the example
+                text = self.doc_to_shot_text(fewshot_example)
+                targets = self.doc_to_shot_target(fewshot_example)
+                # Choose 1 random target from multi-reference targets.
+                target_idx = int(rng.integers(0, len(targets)))
+                target = targets[target_idx].strip()
+                labeled_examples_list.append(
+                    self.format_example(text, target, self.text_target_separator)
+                )
+                fewshot_target_idx.append(target_idx)
+            labeled_examples = self.example_separator.join(labeled_examples_list)
+            # Leave an extra `example_separator` right before the prompt.
+            labeled_examples += self.example_separator
+
+        prompt = self.doc_to_text(doc)
+        ctx = labeled_examples + prompt
+        logging_info = {
+            "fewshot_idx": fewshot_idx,
+            "fewshot_target_idx": fewshot_target_idx,
+            "fewshot_source": fewshot_src,
+            "fewshot_num": num_fewshot,
+            "ctx": ctx,
+        }
+        return ctx, logging_info
+
+    def doc_to_shot_text(self, doc: dict) -> str:
+        text, _ = self.shot_prompt_template.apply(doc)
+        return text
+
+    def doc_to_shot_target(self, doc: dict) -> List[str]:
+        _, target = self.shot_prompt_template.apply(doc)
+        return target
+
+    def fewshot_values(self):
+        return "French", "English", "{{ fr }}", "{{ en }}"
+
+    # heuristically hack the prompt template used to create few-shot examples
+    def get_fewshot_template(self):
+        self.shot_prompt_template = copy.deepcopy(self.prompt_template)
+
+        # get things to replace in the prompt
+        src_lang, trg_lang = self.prompt_template.name.split("-")[-2:]
+        src_sent, trg_sent = re.findall("{{ .+? }}", self.prompt_template.jinja)
+        # new attributes to drop in as replacement
+        new_src_lang, new_trg_lang, new_src_sent, new_trg_sent = self.fewshot_values()
+        # create new prompt
+        assert len(re.findall(src_lang, self.shot_prompt_template.jinja)) == 1
+        assert len(re.findall(trg_lang, self.shot_prompt_template.jinja)) == 1
+        for old_text, new_text in [
+            (src_lang, new_src_lang),
+            (trg_lang, new_trg_lang),
+            (src_sent, new_src_sent),
+            (trg_sent, new_trg_sent),
+        ]:
+            self.shot_prompt_template.jinja = self.shot_prompt_template.jinja.replace(
+                old_text, new_text
+            )
+        return self.shot_prompt_template
+
+    def fewshot_examples(
+        self,
+        docs: datasets.Dataset,
+        k: int,
+        rng: np.random.Generator,
+        prompt: dict = None,
+    ) -> Tuple[List[dict], List[int]]:
+        """Returns `k` random examples from the set of documents in `docs`.
+
+        Args:
+            docs (datasets.Dataset):
+                The dataset of documents to sample few-shot examples from.
+            k (int):
+                The number of few-shot examples.
+            rng (np.random.Generator):
+                The pseudo-random number generator used to randomly sample examples.
+            prompt (Optional[dict]):
+                The prompt document. Specify this to ensure the prompt is not in
+                the set of few-shot examples.
+
+        Returns:
+            A tuple of two lists. The first list contains the few-shot examples
+        """
+        random_indices = np.arange(len(docs)).tolist()
+        rng.shuffle(random_indices)
+
+        i = 0
+        fewshot_examples, fewshot_idx = [], []
+        for idx in random_indices:
+            if i >= k:  # Break when we have enough examples.
+                break
+            is_same_prompt = False
+            # is never same prompt with this task
+            # is_same_prompt = prompt is not None and all(
+            #    # Skips the `doc_id` key assigned to `prompt`s during eval pre-processing.
+            #    docs[idx][k] == prompt[k]
+            #    for k in docs[idx].keys()
+            # )
+
+            if self.invalid_doc_for_prompt(docs[idx]) or is_same_prompt:
+                continue
+            fewshot_examples.append(docs[idx])
+            fewshot_idx.append(int(idx))
+            i += 1
+        return fewshot_examples, fewshot_idx
+
+
+class Flores101MT_fewshot_wmt_hi2en(Flores101MT_fewshot_wmt_fr2en):
+    """
+    This task is Identical to the Flores101MT task, except in the few-shot setting
+    where few-shot examples are created using examples from the WMT14 Hindi-to-English
+    development set, whatever the language specified in the prompt.
+    """
+
+    VERSION = 0
+    DATASET_PATH = "gsarti/flores_101"
+    DATASET_NAME = "all"
+
+    def fewshot_docs(self) -> datasets.Dataset:
+        """Returns a wmt dataset split"""
+        return (
+            "valid",
+            datasets.load_dataset(
+                "wmt14",
+                "hi-en",
+                cache_dir=self.cache_dir,
+                download_mode=self.download_mode,
+            )["validation"],
+        )
 
 
 class Flores101MT_fewshot_fr2en(Flores101MT):
@@ -166,7 +335,7 @@ class Flores101MT_fewshot_fr2en(Flores101MT):
             (src_lang, new_src_lang),
             (trg_lang, new_trg_lang),
             (src_sent, new_src_sent),
-            (trg_sent, new_src_sent),
+            (trg_sent, new_trg_sent),
         ]:
             self.shot_prompt_template.jinja = self.shot_prompt_template.jinja.replace(
                 old_text, new_text
@@ -272,6 +441,21 @@ class Flores101MT_fewshot_fr2ar(Flores101MT_fewshot_fr2en):
 
     def fewshot_values(self):
         return "French", "Arabic", "{{ sentence_fra }}", "{{ sentence_ara }}"
+
+
+class Flores101MT_fewshot_en2bn(Flores101MT_fewshot_fr2en):
+    """
+    This task is Identical to the Flores101MT task, except in the few-shot setting
+    where few-shot examples are created using English as the source language and Bengali
+    as the target language, whatever the language specified in the prompt.
+    """
+
+    VERSION = 0
+    DATASET_PATH = "gsarti/flores_101"
+    DATASET_NAME = "all"
+
+    def fewshot_values(self):
+        return "English", "Bengali", "{{ sentence_eng }}", "{{ sentence_ben }}"
 
 
 class Flores101Perplexity(PerplexityTask):

@@ -110,7 +110,9 @@ TASK_REGISTRY = {
     "crd3": crd3.CRD3,
     # DiaBLa
     "diabla": diabla.DiaBLa,
-    "diabla_1_shot_context": diabla.DiaBLa_1_shot_context,
+    "diabla_1_shot_context_orig": diabla.DiaBLa_1_shot_context_orig,
+    "diabla_1_shot_context_same": diabla.DiaBLa_1_shot_context_same,
+    "diabla_1_shot_context_opposite": diabla.DiaBLa_1_shot_context_opposite,
     # XQuAD
     "xquad_en": xquad.XQuADEnglish,
     "xquad_ar": xquad.XQuADArabic,
@@ -121,7 +123,9 @@ TASK_REGISTRY = {
     "flores_101_mt_fewshot_fr2en": flores_101.Flores101MT_fewshot_fr2en,
     "flores_101_mt_fewshot_hi2en": flores_101.Flores101MT_fewshot_hi2en,
     "flores_101_mt_fewshot_fr2ar": flores_101.Flores101MT_fewshot_fr2ar,
+    "flores_101_mt_fewshot_en2bn": flores_101.Flores101MT_fewshot_en2bn,
     "flores_101_mt_fewshot_wmt_fr2en": flores_101.Flores101MT_fewshot_wmt_fr2en,
+    "flores_101_mt_fewshot_wmt_hi2en": flores_101.Flores101MT_fewshot_wmt_hi2en,
     # Flores101 (Perplexity)
     "flores_101_ppl": flores_101.Flores101Perplexity,
     # GEM/WebNLG
