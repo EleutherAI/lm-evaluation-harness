@@ -123,10 +123,12 @@ class Reorderer:
         self.size = len(arr)
         arr = list(enumerate(arr))
         arr = group(arr, lambda x: fn(x[1]))
-        arr = [([y[0] for y in x], x[0][1]) for x in arr]
+        arr = [([y[0]], x[0][1]) for x in arr for y in x]
+        # arr = [([y[0] for y in x], x[0][1]) for x in arr]
         arr.sort(key=lambda x: fn(x[1]))
 
         self.arr = arr
+        [print(x) for x in arr[:3]]
 
     def get_reordered(self):
         return [x[1] for x in self.arr]
