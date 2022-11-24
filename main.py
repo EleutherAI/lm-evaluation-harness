@@ -3,7 +3,7 @@ import json
 import logging
 import fnmatch
 
-from lm_eval import tasks, evaluator
+from lm_eval import tasks, evaluator, wandb_reporter
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 
@@ -40,6 +40,8 @@ def parse_args():
     parser.add_argument("--decontamination_ngrams_path", default=None)
     parser.add_argument("--description_dict_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
+    parser.add_argument("--wandb_project", default=None, type=str)
+    parser.add_argument("--wandb_entity", default=None, type=str)
 
     return parser.parse_args()
 
@@ -101,7 +103,10 @@ def main():
         f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, "
         f"num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}"
     )
-    print(evaluator.make_table(results))
+    results_md = evaluator.make_table(results)
+    print(results_md)
+    if args.wandb_project is not None:
+        wandb_reporter.report_evaluation(args, results, results_md)
 
 
 if __name__ == "__main__":
