@@ -49,7 +49,7 @@ setuptools.setup(
         "dev": ["pytest", "black", "pre-commit"],
         "wandb": [
             # TODO: Change to wandb>=0.13.6 once it's released
-            "wandb @ git+https://github.com/wandb/wandb.git@andrew/report-api-fixes"
+            "wandb>=0.13.5"
         ],
     },
 )
