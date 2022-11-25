@@ -1,4 +1,4 @@
-# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
+# Copyright 2022 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # TODO: Address all TODOs and remove all explanatory comments
-"""LAMBADA dataset."""
+"""LAMBADA (OpenAI) dataset."""
 
 
 import json
@@ -32,13 +32,15 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-LAMBADA is a dataset to evaluate the capabilities of computational models for text
-understanding by means of a word prediction task. LAMBADA is a collection of narrative
-texts sharing the characteristic that human subjects are able to guess their last
-word if they are exposed to the whole text, but not if they only see the last
-sentence preceding the target word. To succeed on LAMBADA, computational models
-cannot simply rely on local context, but must be able to keep track of information
-in the broader discourse.
+The LAMBADA dataset as processed by OpenAI. It is used to evaluate the capabilities
+of computational models for text understanding by means of a word prediction task.
+LAMBADA is a collection of narrative texts sharing the characteristic that human subjects
+are able to guess their last word if they are exposed to the whole text, but not
+if they only see the last sentence preceding the target word. To succeed on LAMBADA,
+computational models cannot simply rely on local context, but must be able to keep track
+of information in the broader discourse.
+
+Reference: https://github.com/openai/gpt-2/issues/131#issuecomment-497136199
 """
 
 _HOMEPAGE = "https://zenodo.org/record/2630551#.X4Xzn5NKjUI"
@@ -47,7 +49,7 @@ _HOMEPAGE = "https://zenodo.org/record/2630551#.X4Xzn5NKjUI"
 _LICENSE = ""
 
 _URLS = {
-    "original": "http://eaidata.bmk.sh/data/lambada_test.jsonl",
+    "default": "https://openaipublic.blob.core.windows.net/gpt-2/data/lambada_test.jsonl",
     "en": "http://eaidata.bmk.sh/data/lambada_test_en.jsonl",
     "fr": "http://eaidata.bmk.sh/data/lambada_test_fr.jsonl",
     "de": "http://eaidata.bmk.sh/data/lambada_test_de.jsonl",
@@ -56,43 +58,45 @@ _URLS = {
 }
 
 
-class Lambada(datasets.GeneratorBasedBuilder):
+class LambadaOpenAI(datasets.GeneratorBasedBuilder):
     """LAMBADA is a dataset to evaluate the capabilities of computational models for text understanding by means of a word prediction task."""
 
     VERSION = datasets.Version("0.0.1")
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="original", version=VERSION, description="The LAMBADA dataset"
+            name="default",
+            version=VERSION,
+            description="Pre-processed English LAMBADA dataset from OpenAI",
         ),
         datasets.BuilderConfig(
             name="en",
             version=VERSION,
-            description="The English translated LAMBADA dataset",
+            description="The English translated LAMBADA OpenAI dataset",
         ),
         datasets.BuilderConfig(
             name="fr",
             version=VERSION,
-            description="The French translated LAMBADA dataset",
+            description="The French translated LAMBADA OpenAI dataset",
         ),
         datasets.BuilderConfig(
             name="de",
             version=VERSION,
-            description="The German translated LAMBADA dataset",
+            description="The German translated LAMBADA OpenAI dataset",
         ),
         datasets.BuilderConfig(
             name="it",
             version=VERSION,
-            description="The Italian translated LAMBADA dataset",
+            description="The Italian translated LAMBADA OpenAI dataset",
         ),
         datasets.BuilderConfig(
             name="es",
             version=VERSION,
-            description="The Spanish translated LAMBADA dataset",
+            description="The Spanish translated LAMBADA OpenAI dataset",
         ),
     ]
 
-    DEFAULT_CONFIG_NAME = "original"
+    DEFAULT_CONFIG_NAME = "default"
 
     def _info(self):
         features = datasets.Features(
