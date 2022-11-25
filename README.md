@@ -60,7 +60,28 @@ python main.py \
 	--tasks lambada,hellaswag \
 	--check_integrity
 ```
-To evaluate mesh-transformer-jax models that are not available on HF, please invoke eval harness through [this script](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
+
+To evaluate mesh-transformer-jax models that are not available on HF, please invoke eval harness
+through [this script](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
+
+### Weights & Biases Reports
+
+To enable [Weights & Biases](https://wandb.ai/site) reporting for your evaluations install the wandb extras by
+running `pip install lm-eval[wandb]`.
+Add the `--wandb_project=<YOUR_PROJECT_NAME>` to the main command. You can also add `--wandb_entity=<YOUR_ENTITY_NAME>`
+if you are using a team account.
+
+```bash
+python main.py \
+	--model gpt2 \
+	--model_args pretrained=EleutherAI/gpt-neo-2.7B \
+	--device 0 \
+	--tasks lambada,hellaswag
+	--wandb_project=<YOUR_PROJECT_NAME>
+```
+
+This auto generates a [Weights & Biases report](https://wandb.ai/site/reports) that can be easily shared. Here is
+an [example report](https://wandb.ai/parambharat/lm_eval/reports/-2022-11-25-06-00-59-Model-distilgpt2-Evaluation-report--VmlldzozMDMzMTY2):
 
 ## Implementing new tasks
 

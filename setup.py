@@ -45,5 +45,11 @@ setuptools.setup(
     dependency_links=[
         "https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt",
     ],
-    extras_require={"dev": ["pytest", "black", "pre-commit"]},
+    extras_require={
+        "dev": ["pytest", "black", "pre-commit"],
+        "wandb": [
+            # TODO: Change to wandb>=0.13.6 once it's released
+            "wandb>=0.13.5"
+        ],
+    },
 )
