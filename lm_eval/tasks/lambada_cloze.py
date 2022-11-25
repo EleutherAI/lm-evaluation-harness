@@ -13,7 +13,7 @@ in the broader discourse.
 
 Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
 """
-from lm_eval.tasks.lambada import LAMBADA
+from lm_eval.tasks.lambada import LambadaOpenAI, LambadaStandard
 
 
 _CITATION = """
@@ -28,7 +28,27 @@ _CITATION = """
 """
 
 
-class LAMBADA_cloze(LAMBADA):
+class LambadaStandardCloze(LambadaStandard):
+    """Cloze-style LambadaStandard."""
+
+    VERSION = 0
+
+    def doc_to_text(self, doc):
+        return doc["text"].rsplit(" ", 1)[0] + " ____. ->"
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["text"]
+
+    def doc_to_target(self, doc):
+        return " " + doc["text"].rsplit(" ", 1)[1]
+
+
+class LambadaOpenAICloze(LambadaOpenAI):
+    """Cloze-style LambadaOpenAI."""
+
     VERSION = 0
 
     def doc_to_text(self, doc):
