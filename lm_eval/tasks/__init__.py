@@ -59,6 +59,8 @@ from . import mlqa
 from . import gnad10
 from . import mlsum
 from . import germeval2017
+from . import german_ler_ppl
+from . import german_europarl_ppl
 
 ########################################
 # Translation tasks
@@ -304,6 +306,8 @@ TASK_REGISTRY = {
     **mlqa.construct_tasks(),
     **mlsum.construct_tasks(),
     "germeval2017": germeval2017.GermEval2017,
+    "german_ler_ppl": german_ler_ppl.GermanLERPerplexity,
+    "german_europarl_ppl": german_europarl_ppl.GermanEuroparlPerplexity,
 }
 
 
