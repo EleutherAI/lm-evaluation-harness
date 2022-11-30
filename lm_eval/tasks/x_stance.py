@@ -29,37 +29,34 @@ _CITATION = """
 
 
 # Helper functions for aggregation (separate function for each metric)
-def _xstance_agg_precision(key, items, labels):
+def _xstance_agg_precision(items):
     references, predictions = zip(*items)
     precision_metric = datasets.load_metric("precision")
     return precision_metric.compute(
         references=references,
         predictions=predictions,
         average="macro",
-        labels=labels,
-    )[key]
+    )["precision"]
 
 
-def _xstance_agg_recall(key, items, labels):
+def _xstance_agg_recall(items):
     references, predictions = zip(*items)
     recall_metric = datasets.load_metric("recall")
     return recall_metric.compute(
         references=references,
         predictions=predictions,
         average="macro",
-        labels=labels,
-    )[key]
+    )["recall"]
 
 
-def _xstance_agg_f1(key, items, labels):
+def _xstance_agg_f1(items):
     references, predictions = zip(*items)
     f1_metric = datasets.load_metric("f1")
     return f1_metric.compute(
         references=references,
         predictions=predictions,
         average="macro",
-        labels=labels,
-    )[key]
+    )["f1"]
 
 
 class XStance(Task):
@@ -84,19 +81,13 @@ class XStance(Task):
         return True
 
     def training_docs(self):
-        if self.has_training_docs():
-            if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
-
-            return self._training_docs
+        return self.dataset["train"]
 
     def validation_docs(self):
-        if self.has_validation_docs():
-            return self.dataset["validation"]
+        return self.dataset["validation"]
 
     def test_docs(self):
-        if self.has_test_docs():
-            return self.dataset["test"]
+        return self.dataset["test"]
 
     def doc_to_text(self, doc):
         return (
@@ -159,9 +150,9 @@ class XStance(Task):
 
         return {
             "acc": pred == true_label,
-            "precision": (true_label, pred, [self.AGAINST, self.FAVOR]),
-            "recall": (true_label, pred, [self.AGAINST, self.FAVOR]),
-            "f1": (true_label, pred, [self.AGAINST, self.FAVOR]),
+            "precision": (true_label, pred),
+            "recall": (true_label, pred),
+            "f1": (true_label, pred),
         }
 
     def aggregation(self):
@@ -173,9 +164,9 @@ class XStance(Task):
 
         return {
             "acc": mean,
-            "precision": partial(_xstance_agg_precision, "precision"),
-            "recall": partial(_xstance_agg_recall, "recall"),
-            "f1": partial(_xstance_agg_f1, "f1"),
+            "precision": _xstance_agg_precision,
+            "recall": _xstance_agg_recall,
+            "f1": _xstance_agg_f1,
         }
 
     def higher_is_better(self):

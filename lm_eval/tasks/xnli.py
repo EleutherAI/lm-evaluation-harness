@@ -56,6 +56,9 @@ class XNLIBase(Task):
     def has_test_docs(self):
         return True
 
+    def training_docs(self):
+        return self.dataset["train"]
+
     def validation_docs(self):
         return self.dataset["validation"]
 
@@ -78,8 +81,12 @@ class XNLIBase(Task):
         # True = entailment
         # False = contradiction
         # Neither = neutral
-        # return " " + [self.TRUE, self.NEITHER, self.FALSE][doc["label"]]
-        raise NotImplementedError()
+        return (
+            " "
+            + [self.ENTAILMENT_LABEL, self.NEUTRAL_LABEL, self.CONTRADICTION_LABEL][
+                doc["label"]
+            ]
+        )
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of

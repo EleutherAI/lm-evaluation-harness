@@ -57,6 +57,7 @@ from . import x_stance
 from . import stereoset
 from . import mlqa
 from . import gnad10
+from . import mlsum
 
 ########################################
 # Translation tasks
@@ -111,8 +112,10 @@ TASK_REGISTRY = {
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
     "drop": drop.DROP,
-    "lambada": lambada.LAMBADA,
-    "lambada_cloze": lambada_cloze.LAMBADA_cloze,
+    "lambada_openai": lambada.LambadaOpenAI,
+    "lambada_standard": lambada.LambadaStandard,
+    "lambada_openai_cloze": lambada_cloze.LambadaOpenAICloze,
+    "lambada_standard_cloze": lambada_cloze.LambadaStandardCloze,
     # multilingual lambada
     **lambada_multilingual.construct_tasks(),
     "wikitext": wikitext.WikiText,
@@ -298,6 +301,7 @@ TASK_REGISTRY = {
     "gnad10": gnad10.GNAD10,
     **stereoset.construct_tasks(),
     **mlqa.construct_tasks(),
+    **mlsum.construct_tasks(),
 }
 
 

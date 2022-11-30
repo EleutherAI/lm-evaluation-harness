@@ -19,11 +19,9 @@ we could try this?
 
 Homepage: https://github.com/sylinrl/TruthfulQA
 """
-import inspect
 import numpy as np
 import sacrebleu
 import datasets
-import lm_eval.datasets.truthfulqa.truthfulqa
 from rouge_score import rouge_scorer, scoring
 from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
@@ -60,7 +58,7 @@ QA_PROMPT = (
 
 class TruthfulQAMultipleChoice(Task):
     VERSION = 1
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.truthfulqa.truthfulqa)
+    DATASET_PATH = "truthful_qa"
     DATASET_NAME = "multiple_choice"
 
     def has_training_docs(self):
@@ -161,7 +159,7 @@ class TruthfulQAMultipleChoice(Task):
 
 class TruthfulQAGeneration(Task):
     VERSION = 1
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.truthfulqa.truthfulqa)
+    DATASET_PATH = "truthful_qa"
     DATASET_NAME = "generation"
 
     def __init__(self):
