@@ -1,13 +1,13 @@
 """
-MLSum: 
+MLSum:
 
-We present MLSUM, the first large-scale MultiLingual SUMmarization dataset. 
-Obtained from online newspapers, it contains 1.5M+ article/summary pairs in five 
-different languages -- namely, French, German, Spanish, Russian, Turkish. 
+We present MLSUM, the first large-scale MultiLingual SUMmarization dataset.
+Obtained from online newspapers, it contains 1.5M+ article/summary pairs in five
+different languages -- namely, French, German, Spanish, Russian, Turkish.
 Together with English newspapers from the popular CNN/Daily mail dataset,
 the collected data form a large scale multilingual dataset which can enable
 new research directions for the text summarization community.
-We report cross-lingual comparative analyses based on state-of-the-art systems. 
+We report cross-lingual comparative analyses based on state-of-the-art systems.
 These highlight existing biases which motivate the use of a multi-lingual dataset.
 
 Paper: https://www.aclweb.org/anthology/2020.emnlp-main.647/
@@ -24,9 +24,7 @@ from functools import partial
 
 def _mlsum_metric(predictions, references):
     summarization_metric = datasets.load_metric("rouge")
-    return summarization_metric.compute(
-        predictions=predictions, references=references, use_agregator=True
-    )
+    return summarization_metric.compute(predictions=predictions, references=references)
 
 
 def _mlsum_agg(key, items):
@@ -60,7 +58,6 @@ class MLSumBase(Task):
 
     def test_docs(self):
         return self.dataset["test"]
-
 
     def doc_to_text(self, doc):
         return self.PROMPT_INSTRUCTION + doc["text"] + "\n\n" + self.PROMPT_END
@@ -138,20 +135,24 @@ class MLSumDE(MLSumBase):
     PROMPT_INSTRUCTION = "Artikel: "
     PROMPT_END = "Zusammenfassung: "
 
+
 class MLSumES(MLSumBase):
     DATASET_NAME = "es"
     PROMPT_INSTRUCTION = "Artículo: "
     PROMPT_END = "Resumen: "
+
 
 class MLSumFR(MLSumBase):
     DATASET_NAME = "fr"
     PROMPT_INSTRUCTION = "Article: "
     PROMPT_END = "Sommaire: "
 
+
 class MLSumRU(MLSumBase):
     DATASET_NAME = "ru"
     PROMPT_INSTRUCTION = "Статья: "
     PROMPT_END = "Резюме: "
+
 
 class MLSumTU(MLSumBase):
     DATASET_NAME = "tu"
@@ -159,13 +160,9 @@ class MLSumTU(MLSumBase):
     PROMPT_END = "Özet: "
 
 
-LANGS = [
-    "de", "es", "fr", "ru", "tu"
-]
+LANGS = ["de", "es", "fr", "ru", "tu"]
 
-LANG_CLASSES = [
-    MLSumDE, MLSumES, MLSumFR, MLSumRU, MLSumTU
-]
+LANG_CLASSES = [MLSumDE, MLSumES, MLSumFR, MLSumRU, MLSumTU]
 
 
 def construct_tasks():
@@ -173,4 +170,3 @@ def construct_tasks():
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
         tasks[f"mlsum_{lang}"] = lang_class
     return tasks
-

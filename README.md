@@ -5,10 +5,14 @@ The current implementation progress is tracked under [GitHub issues](https://git
 
 ## Additional tasks
 
-- XNLI (`xnli_{en,de,fr,es,el,bg,ar}`)
-- XQUAD (`xquad_{ar,de,el,en,es,hi,ru,th,tr,vi,zh`)
-- PAWSX (`pawsx_{en,fr,de}`)
-- MLQA (`mlqa_{en, es, hi, vi, de, ar})
+- XNLI (en,de,fr,es,el,bg,ar)
+- XQUAD (ar,de,el,en,es,hi,ru,th,tr,vi,zh)
+- PAWSX (en,fr,de)
+- MLQA (en,es,hi,vi,de,ar)
+- MLSum (de,fr,es,ru,tu)
+- XStance (de,fr)
+- GNAD10 (de)
+- StereoSet (en,de)
 
 ## Install
 
