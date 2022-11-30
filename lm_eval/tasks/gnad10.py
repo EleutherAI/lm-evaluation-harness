@@ -31,28 +31,28 @@ _CITATION = """
 
 
 # Helper functions for aggregation
-def _gnad10_agg_precision(key, items, labels):
+def _gnad10_agg_precision(items):
     references, predictions = zip(*items)
     precision_metric = datasets.load_metric("precision")
     return precision_metric.compute(
-        references=references, predictions=predictions, average="macro", labels=labels
-    )[key]
+        references=references, predictions=predictions, average="macro"
+    )["precision"]
 
 
-def _gnad10_agg_recall(key, items, labels):
+def _gnad10_agg_recall(items):
     references, predictions = zip(*items)
     recall_metric = datasets.load_metric("recall")
     return recall_metric.compute(
-        references=references, predictions=predictions, average="macro", labels=labels
-    )[key]
+        references=references, predictions=predictions, average="macro"
+    )["recall"]
 
 
-def _gnad10_agg_f1(key, items, labels):
+def _gnad10_agg_f1(items):
     references, predictions = zip(*items)
     f1_metric = datasets.load_metric("f1")
     return f1_metric.compute(
-        references=references, predictions=predictions, average="macro", labels=labels
-    )[key]
+        references=references, predictions=predictions, average="macro"
+    )["f1"]
 
 
 class GNAD10(Task):
@@ -197,9 +197,9 @@ class GNAD10(Task):
 
         return {
             "acc": pred == true_label,
-            "precision": (true_label, pred, self.LABELS),
-            "recall": (true_label, pred, self.LABELS),
-            "f1": (true_label, pred, self.LABELS),
+            "precision": (true_label, pred),
+            "recall": (true_label, pred),
+            "f1": (true_label, pred),
         }
 
     def aggregation(self):
@@ -210,9 +210,9 @@ class GNAD10(Task):
         """
         return {
             "acc": mean,
-            "precision": partial(_gnad10_agg_precision, "precision"),
-            "recall": partial(_gnad10_agg_recall, "recall"),
-            "f1": partial(_gnad10_agg_f1, "f1"),
+            "precision": _gnad10_agg_precision,
+            "recall": _gnad10_agg_recall,
+            "f1": _gnad10_agg_f1,
         }
 
     def higher_is_better(self):
