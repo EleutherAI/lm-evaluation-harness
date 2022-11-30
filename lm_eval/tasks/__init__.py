@@ -58,6 +58,7 @@ from . import stereoset
 from . import mlqa
 from . import gnad10
 from . import mlsum
+from . import germeval2017
 
 ########################################
 # Translation tasks
@@ -302,6 +303,7 @@ TASK_REGISTRY = {
     **stereoset.construct_tasks(),
     **mlqa.construct_tasks(),
     **mlsum.construct_tasks(),
+    "germeval2017": germeval2017.GermEval2017,
 }
 
 
