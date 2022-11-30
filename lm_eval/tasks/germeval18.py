@@ -26,6 +26,7 @@ _CITATION = """
     url       = "https://epub.oeaw.ac.at/0xc1aa5576_0x003a10d2.pdf"
 }"""
 
+
 def _germeval_agg_precision(key, items):
     references, predictions = zip(*items)
     precision_metric = datasets.load_metric("precision")
@@ -54,6 +55,7 @@ def _germeval_agg_f1(key, items):
         predictions=predictions,
         average="binary",
     )[key]
+
 
 class GermEval2018(Task):
     VERSION = 0
@@ -85,7 +87,7 @@ class GermEval2018(Task):
     def test_docs(self):
         if self.has_test_docs():
             return self.dataset["test"]
- 
+
     def doc_to_text(self, doc):
         return (
             "Tweet (Beleidigung, Sonstiges): "
@@ -96,7 +98,7 @@ class GermEval2018(Task):
         )
 
     def doc_to_target(self, doc):
-        label=doc["binary"]
+        label = doc["binary"]
         target = ""
         if label in self.binary_dict.keys():
             target = self.binary_dict(label)
