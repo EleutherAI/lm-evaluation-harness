@@ -60,6 +60,7 @@ from . import gnad10
 from . import mlsum
 from . import germeval18
 from . import germeval18_fine
+from . import germanquad
 
 ########################################
 # Translation tasks
@@ -306,6 +307,7 @@ TASK_REGISTRY = {
     **mlsum.construct_tasks(),
     "germeval18": germeval18.GermEval2018,
     "germeval18_fine": germeval18_fine.GermEval2018_fine,
+    "germanquad": germanquad.GermanQuAD,
 }
 
 
