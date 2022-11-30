@@ -50,37 +50,34 @@ _CITATION = """
 }"""
 
 
-def _pawsx_agg_precision(key, items):
+def _pawsx_agg_precision(items):
     references, predictions = zip(*items)
     precision_metric = datasets.load_metric("precision")
     return precision_metric.compute(
         references=references,
         predictions=predictions,
         average="macro",
-        labels=np.unique(predictions),
-    )[key]
+    )["precision"]
 
 
-def _pawsx_agg_recall(key, items):
+def _pawsx_agg_recall(items):
     references, predictions = zip(*items)
     recall_metric = datasets.load_metric("recall")
     return recall_metric.compute(
         references=references,
         predictions=predictions,
         average="macro",
-        labels=np.unique(predictions),
-    )[key]
+    )["recall"]
 
 
-def _pawsx_agg_f1(key, items):
+def _pawsx_agg_f1(items):
     references, predictions = zip(*items)
     f1_metric = datasets.load_metric("f1")
     return f1_metric.compute(
         references=references,
         predictions=predictions,
         average="macro",
-        labels=np.unique(predictions),
-    )[key]
+    )["f1"]
 
 
 class PAWSXBase(Task):
@@ -102,16 +99,13 @@ class PAWSXBase(Task):
         return True
 
     def training_docs(self):
-        if self.has_training_docs():
-            return self.dataset["train"]
+        return self.dataset["train"]
 
     def validation_docs(self):
-        if self.has_validation_docs():
-            return self.dataset["validation"]
+        return self.dataset["validation"]
 
     def test_docs(self):
-        if self.has_test_docs():
-            return self.dataset["test"]
+        return self.dataset["test"]
 
     def doc_to_text(self, doc):
         # same as in mGPT paper
@@ -124,7 +118,7 @@ class PAWSXBase(Task):
         )
 
     def doc_to_target(self, doc):
-        raise NotImplementedError()
+        return " " + [self.YES, self.NO][doc["label"]]
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
@@ -175,9 +169,9 @@ class PAWSXBase(Task):
         """
         return {
             "acc": mean,
-            "precision": partial(_pawsx_agg_precision, "precision"),
-            "recall": partial(_pawsx_agg_recall, "recall"),
-            "f1": partial(_pawsx_agg_f1, "f1"),
+            "precision": _pawsx_agg_precision,
+            "recall": _pawsx_agg_recall,
+            "f1": _pawsx_agg_f1,
         }
 
     def higher_is_better(self):
