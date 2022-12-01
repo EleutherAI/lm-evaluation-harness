@@ -3,11 +3,11 @@ OSCAR
 https://oscar-project.org/
 
 
-OSCAR or Open Super-large Crawled Aggregated coRpus is a huge multilingual 
-corpus obtained by language classification and filtering of the Common Crawl 
+OSCAR or Open Super-large Crawled Aggregated coRpus is a huge multilingual
+corpus obtained by language classification and filtering of the Common Crawl
 corpus using the Ungoliant architecture.
 
-Dataset: 
+Dataset:
 - Original https://huggingface.co/datasets/oscar
 - Subset https://huggingface.co/datasets/malteos/wechsel_de
 
@@ -45,7 +45,7 @@ class OscarPerplexityGerman(PerplexityTask):
             "malteos/wechsel_de",
             data_files={
                 "test": "valid.random_1636.json.gz",
-            }
+            },
         )
 
     def has_training_docs(self):
