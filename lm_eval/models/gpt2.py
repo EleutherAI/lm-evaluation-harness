@@ -94,11 +94,15 @@ class HFLM(BaseLM):
 
     @property
     def max_length(self):
-        try:
-            return self.gpt2.config.n_ctx
-        except AttributeError:
-            # gptneoconfig doesn't have n_ctx apparently
-            return self.gpt2.config.max_position_embeddings
+        if isinstance(self.gpt2.config, transformers.BloomConfig):
+            # Bloom does not store max length in model config
+            return 2048
+        else:
+            try:
+                return self.gpt2.config.n_ctx
+            except AttributeError:
+                # gptneoconfig doesn't have n_ctx apparently
+                return self.gpt2.config.max_position_embeddings
 
     @property
     def max_gen_toks(self):
