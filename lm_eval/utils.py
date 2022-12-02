@@ -5,7 +5,6 @@ import collections
 import functools
 import inspect
 import sys
-import pytest
 from typing import List
 
 
@@ -187,6 +186,8 @@ def run_task_tests(task_list: List[str]):
     """
     Find the package root and run the tests for the given tasks
     """
+    import pytest
+
     package_root = find_test_root(start_path=pathlib.Path(__file__))
     task_string = " or ".join(task_list)
     args = [

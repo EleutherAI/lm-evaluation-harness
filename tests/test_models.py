@@ -258,8 +258,9 @@ def textsynth_mock_completion(**kwargs):
     import requests
 
     os.makedirs("tests/testdata", exist_ok=True)
+    hash_kwargs = {k: v for k, v in kwargs.items() if k != "headers"}
     hash = hashlib.sha256(
-        json.dumps(kwargs, sort_keys=True).encode("utf-8")
+        json.dumps(hash_kwargs, sort_keys=True).encode("utf-8")
     ).hexdigest()
     fname = f"tests/testdata/textsynth_test_{hash}.pkl"
 
