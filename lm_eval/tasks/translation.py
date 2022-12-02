@@ -77,8 +77,6 @@ def create_tasks_from_benchmarks(benchmark_dict):
 
 def zh_split(zh_text: List[str]) -> List[str]:
     """Chinese splitting"""
-    import jieba
-
     if not HAS_JIEBA:
         raise ImportError(
             "Chinese text splitting requires the `jieba` package. "
