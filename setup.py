@@ -30,7 +30,7 @@ setuptools.setup(
         "sacrebleu==1.5.0",
         "rouge-score==0.0.4",
         "pycountry==20.7.3",
-        "numexpr>=2.7.2",
+        "numexpr>=2.8.3",
         "lm_dataformat==0.0.20",
         "pybind11==2.6.2",
         "tqdm-multiprocess==0.0.11",
@@ -39,11 +39,13 @@ setuptools.setup(
         "mock==4.0.3",
         "openai==0.6.4",
         "jieba==0.42.1",
-        "nagisa==0.2.7",
-        "bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt",
+        "pytest",
+        "mosaicml"
+        # "nagisa==0.2.8",
+        # "bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt",
     ],
     dependency_links=[
-        "https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt",
+        # "https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt",
     ],
     extras_require={"dev": ["pytest", "black", "pre-commit"]},
 )

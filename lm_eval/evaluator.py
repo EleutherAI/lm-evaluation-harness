@@ -7,6 +7,91 @@ import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
 from lm_eval.utils import positional_deprecated, run_task_tests
+from torch.utils.data import DistributedSampler
+
+
+def simple_evaluate_args(
+    model,
+    model_args=None,
+    tasks=[],
+    num_fewshot=0,
+    batch_size=None,
+    device=None,
+    no_cache=False,
+    limit=None,
+    bootstrap_iters=100000,
+    description_dict=None,
+    check_integrity=False,
+    decontamination_ngrams_path=None,
+):
+
+    """Return arguments to evaluate(...) a model on a list of tasks.
+
+    :param model: Union[str, LM]
+        Name of model or LM object, see lm_eval.models.get_model
+    :param model_args: Optional[str]
+        String arguments for each model class, see LM.create_from_arg_string.
+        Ignored if `model` argument is a LM object.
+    :param tasks: list[Union[str, Task]]
+        List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
+    :param num_fewshot: int
+        Number of examples in few-shot context
+    :param batch_size: int, optional
+        Batch size for model
+    :param device: str, optional
+        PyTorch device (e.g. "cpu" or "cuda:0") for running models
+    :param no_cache: bool
+        Whether or not to cache
+    :param limit: int, optional
+        Limit the number of examples per task (only use this for testing)
+    :param bootstrap_iters:
+        Number of iterations for bootstrap statistics
+    :param description_dict: dict[str, str]
+        Dictionary of custom task descriptions of the form: `task_name: description`
+    :param check_integrity: bool
+        Whether to run the relevant part of the test suite for the tasks
+    :return
+        Dictionary of arguments
+    """
+    random.seed(1234)
+    np.random.seed(1234)
+
+    assert tasks != [], "No tasks specified"
+
+    if isinstance(model, str):
+        if model_args is None:
+            model_args = ""
+        lm = lm_eval.models.get_model(model).create_from_arg_string(
+            model_args, {"batch_size": batch_size, "device": device}
+        )
+    else:
+        assert isinstance(model, lm_eval.base.LM)
+        lm = model
+
+    if not no_cache:
+        lm = lm_eval.base.CachingLM(
+            lm,
+            "lm_cache/"
+            + model
+            + "_"
+            + model_args.replace("=", "-").replace(",", "_").replace("/", "-")
+            + ".db",
+        )
+
+    task_dict = lm_eval.tasks.get_task_dict(tasks)
+
+    if check_integrity:
+        run_task_tests(task_list=tasks)
+
+    return {
+        "lm": lm,
+        "task_dict": task_dict,
+        "num_fewshot": num_fewshot,
+        "limit": limit,
+        "bootstrap_iters": bootstrap_iters,
+        "description_dict": description_dict,
+        "decontamination_ngrams_path": decontamination_ngrams_path,
+    }
 
 
 @positional_deprecated
@@ -53,44 +138,21 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
-    random.seed(1234)
-    np.random.seed(1234)
-
-    assert tasks != [], "No tasks specified"
-
-    if isinstance(model, str):
-        if model_args is None:
-            model_args = ""
-        lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device}
-        )
-    else:
-        assert isinstance(model, lm_eval.base.LM)
-        lm = model
-
-    if not no_cache:
-        lm = lm_eval.base.CachingLM(
-            lm,
-            "lm_cache/"
-            + model
-            + "_"
-            + model_args.replace("=", "-").replace(",", "_").replace("/", "-")
-            + ".db",
-        )
-
-    task_dict = lm_eval.tasks.get_task_dict(tasks)
-
-    if check_integrity:
-        run_task_tests(task_list=tasks)
-
     results = evaluate(
-        lm=lm,
-        task_dict=task_dict,
-        num_fewshot=num_fewshot,
-        limit=limit,
-        bootstrap_iters=bootstrap_iters,
-        description_dict=description_dict,
-        decontamination_ngrams_path=decontamination_ngrams_path,
+        **simple_evaluate_args(
+            model=model,
+            model_args=model_args,
+            tasks=tasks,
+            num_fewshot=num_fewshot,
+            batch_size=batch_size,
+            device=device,
+            no_cache=no_cache,
+            limit=limit,
+            bootstrap_iters=bootstrap_iters,
+            description_dict=description_dict,
+            check_integrity=check_integrity,
+            decontamination_ngrams_path=decontamination_ngrams_path,
+        )
     )
 
     # add info about the model and few shot config
@@ -112,16 +174,24 @@ def simple_evaluate(
 decontaminate_suffix = "_decontaminate"
 
 
-@positional_deprecated
-def evaluate(
+def filter_task_dict(task_dict):
+    return {
+        name: task
+        for name, task in task_dict.items()
+        if (task.has_validation_docs() or task.has_test_docs())
+    }
+
+
+def evaluate_inference(
     lm,
     task_dict,
     provide_description=None,
     num_fewshot=0,
     limit=None,
-    bootstrap_iters=100000,
     description_dict=None,
     decontamination_ngrams_path=None,
+    distributed=True,
+    **kwargs,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -154,13 +224,6 @@ def evaluate(
 
     decontaminate = decontamination_ngrams_path is not None
 
-    task_dict_items = [
-        (name, task)
-        for name, task in task_dict.items()
-        if (task.has_validation_docs() or task.has_test_docs())
-    ]
-
-    results = collections.defaultdict(dict)
     versions = collections.defaultdict(dict)
 
     requests = collections.defaultdict(list)
@@ -179,7 +242,7 @@ def evaluate(
     docs_for_decontamination = collections.defaultdict(list)
 
     # get lists of each type of request
-    for task_name, task in task_dict_items:
+    for task_name, task in filter_task_dict(task_dict).items():
         versions[task_name] = task.VERSION
         # default to test doc, fall back to val doc if validation unavailable
         # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
@@ -233,9 +296,6 @@ def evaluate(
             docs_for_decontamination, decontamination_ngrams_path, limit
         )
 
-    # all responses for each (task, doc)
-    process_res_queue = collections.defaultdict(list)
-
     # execute each type of request
     for reqtype, reqs in requests.items():
         # TODO: right now, this code runs multiple separate LM requests for multiple Requests differing
@@ -244,14 +304,62 @@ def evaluate(
         #       they should end up next to each other.
 
         print("Running", reqtype, "requests")
-        resps = getattr(lm, reqtype)([req.args for req in reqs])
+        if reqtype == "loglikelihood":
+            sampled_indices = []
+            if distributed:
+                for index in DistributedSampler(range(len(reqs) // 2)):
+                    sampled_indices.append(index * 2)
+                    sampled_indices.append(index * 2 + 1)
+            else:
+                sampled_indices = list(range(len(reqs)))
+        else:
+            raise Exception(f"distributed sampling unsupported for reqtype: {reqtype}")
+
+        sampled_reqs = [reqs[index] for index in sampled_indices]
+        resps = getattr(lm, reqtype)([req.args for req in sampled_reqs])
         resps = [
-            x if req.index is None else x[req.index] for x, req in zip(resps, reqs)
+            x if req.index is None else x[req.index] for x, req in zip(resps, sampled_reqs)
         ]
 
-        for resp, (i, task_name, doc, doc_id) in zip(resps, requests_origin[reqtype]):
+    return {
+        "requests": requests,
+        "requests_origin": requests_origin,
+        "docs": docs,
+        "overlaps": overlaps,
+        "sampled_indices": sampled_indices,
+        "resps": resps,
+        "versions": versions
+    }
+
+
+def evaluate_metrics(
+    task_dict,
+    requests,
+    requests_origin,
+    docs,
+    overlaps,
+    sampled_indices,
+    resps,
+    versions,
+    decontamination_ngrams_path=None,
+    bootstrap_iters=100000,
+    **kwargs,
+):
+
+    sampled_indices = sorted(set(sampled_indices))
+    assert max(sampled_indices) == len(sampled_indices) - 1, f"{max(sampled_indices)} != {len(sampled_indices) - 1}"
+    assert len(sampled_indices) == len(set(sampled_indices)), f"{len(sampled_indices) - len(set(sampled_indices))} duplicates in sample_indices!"
+    process_res_queue = collections.defaultdict(list)
+    for reqtype in requests:
+        for resp, (i, task_name, doc, doc_id) in zip(
+            resps,
+            [requests_origin[reqtype][index] for index in sampled_indices],
+        ):
             process_res_queue[(task_name, doc_id)].append((i, resp))
 
+    results = collections.defaultdict(dict)
+    versions = collections.defaultdict(dict)
+    decontaminate = decontamination_ngrams_path is not None
     vals = collections.defaultdict(list)
 
     # unpack results and sort back in order and return control to Task
@@ -295,6 +403,61 @@ def evaluate(
             results[task_name][metric + "_stderr"] = stderr(items)
 
     return {"results": dict(results), "versions": dict(versions)}
+
+
+@positional_deprecated
+def evaluate(
+    lm,
+    task_dict,
+    provide_description=None,
+    num_fewshot=0,
+    limit=None,
+    bootstrap_iters=100000,
+    description_dict=None,
+    decontamination_ngrams_path=None,
+):
+    """Instantiate and evaluate a model on a list of tasks.
+
+    :param lm: obj
+        Language Model
+    :param task_dict: dict[str, Task]
+        Dictionary of tasks. Tasks will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
+    :param provide_description: bool
+        Not implemented, and this option is deprecated and will be removed in a future version in favor of a different description providing method
+    :param num_fewshot: int
+        Number of examples in few-shot context
+    :param limit: int, optional
+        Limit the number of examples per task (only use this for testing)
+    :param bootstrap_iters:
+        Number of iterations for bootstrap statistics
+    :param description_dict: dict[str, str]
+        Dictionary of custom task descriptions of the form: `task_name: description`
+    :return
+        Dictionary of results
+    """
+
+    inference = evaluate_inference(
+        lm,
+        task_dict=task_dict,
+        provide_description=provide_description,
+        num_fewshot=num_fewshot,
+        limit=limit,
+        description_dict=description_dict,
+        decontamination_ngrams_path=decontamination_ngrams_path,
+    )
+
+    return evaluate_metrics(
+        task_dict,
+        requests=inference["requests"],
+        requests_origin=inference["requests_origin"],
+        docs=inference["docs"],
+        overlaps=inference["overlaps"],
+        sampled_indices=inference["sampled_indices"],
+        resps=inference["resps"],
+        versions=inference["versions"],
+        decontamination_ngrams_path=decontamination_ngrams_path,
+        bootstrap_iters=bootstrap_iters,
+    )
 
 
 def make_table(result_dict):
