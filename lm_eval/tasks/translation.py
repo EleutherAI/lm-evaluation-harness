@@ -16,6 +16,20 @@ from lm_eval import metrics
 from lm_eval.base import Task, rf
 from typing import List
 
+try:
+    import nagisa
+
+    HAS_NAGISA = True
+except ImportError:
+    HAS_NAGISA = False
+
+try:
+    import jieba
+
+    HAS_JIEBA = True
+except ImportError:
+    HAS_JIEBA = False
+
 
 _CITATION = """
 @inproceedings{post-2018-call,
@@ -63,14 +77,22 @@ def create_tasks_from_benchmarks(benchmark_dict):
 
 def zh_split(zh_text: List[str]) -> List[str]:
     """Chinese splitting"""
-    import jieba
+    if not HAS_JIEBA:
+        raise ImportError(
+            "Chinese text splitting requires the `jieba` package. "
+            "Please install it with:\npip install jieba"
+        )
 
     return [" ".join(jieba.cut(txt.strip())) for txt in zh_text]
 
 
 def ja_split(ja_text: List[str]) -> List[str]:
     """Japanese splitting"""
-    import nagisa
+    if not HAS_NAGISA:
+        raise ImportError(
+            "Japanese text splitting requires the `nagisa` package. "
+            "Please install it with:\npip install nagisa"
+        )
 
     return [" ".join(nagisa.tagging(txt.strip()).words) for txt in ja_text]
 
