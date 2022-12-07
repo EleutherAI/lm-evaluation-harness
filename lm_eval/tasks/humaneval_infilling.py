@@ -8,6 +8,10 @@ Homepage: https://github.com/openai/human-eval
 """
 import os
 import json
+
+import lm_eval.datasets.humaneval.humaneval
+import inspect
+
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 
@@ -24,9 +28,9 @@ _CITATION = """
 """
 
 
-class HumanEval(Task):
+class HumanEvalInfilling(Task):
     VERSION = 0
-    DATASET_PATH = "openai_humaneval"
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.humaneval.humaneval)
     DATASET_NAME = None
 
     def has_training_docs(self):
@@ -48,7 +52,7 @@ class HumanEval(Task):
         return self.dataset["test"]
 
     def doc_to_text(self, doc):
-        return doc["prompt"]
+        return "<|SUF|>" + doc["suffix"] + "<|PRE|>" + doc["prompt"] + "<|MID|>"
 
     def doc_to_target(self, doc):
         return doc["canonical_solution"]
@@ -64,7 +68,7 @@ class HumanEval(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        completion = [rf.greedy_until(ctx, ["\n\n"]) for i in range(1)]
+        completion = [rf.greedy_until(ctx, []) for i in range(1)]
         return completion
 
     def _is_correct(self, completion, doc):
@@ -82,10 +86,10 @@ class HumanEval(Task):
         """
         
         # log outputs to a jsonl file, for use with the official evaluation + execution script.
-        if os.environ.get('CODE_DUMP_PATH', None) is not None:
-            with open(f"{os.environ['CODE_DUMP_PATH']}", "a") as f:
+        if os.environ.get('CODE_DUMP_INFILL_PATH', None) is not None:
+            with open(f"{os.environ['CODE_DUMP_INFILL_PATH']}", "a") as f:
                 for completion in results:
-                    f.write(json.dumps({"task_id": doc["task_id"], "completion": completion}) + "\n")
+                    f.write(json.dumps({"task_id": doc["task_id"], "completion": completion, "input": "<|SUF|>" + doc["suffix"] + "<|PRE|>" + doc["prompt"] + "<|MID|>", "canonical_solution": doc["canonical_solution"]}) + "\n")
        
         # execution code would go here if we allowed it, but we don't
         return {"pass@1": self._is_correct(results, doc), "pass@10": self._is_correct(results, doc)}
@@ -105,3 +109,9 @@ class HumanEval(Task):
             whether a higher value of the submetric is better
         """
         return {f"pass@{k}": True for k in [1, 10, 100]}
+
+
+class PromptedInfilling(HumanEvalInfilling):
+    def doc_to_text(self, doc):
+        return "# Please complete the blank given by '____' in the following function:\n" + doc["prompt"] + "____" + doc["suffix"] + "\n# Write the missing code below:\n"
+

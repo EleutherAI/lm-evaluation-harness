@@ -128,7 +128,6 @@ class Reorderer:
         arr.sort(key=lambda x: fn(x[1]))
 
         self.arr = arr
-        [print(x) for x in arr[:3]]
 
     def get_reordered(self):
         return [x[1] for x in self.arr]
