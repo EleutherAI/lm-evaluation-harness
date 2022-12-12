@@ -100,14 +100,18 @@ class Triviaqa(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "triviaqa-unfiltered", "unfiltered-web-train.json"),
+                    "filepath": os.path.join(
+                        data_dir, "triviaqa-unfiltered", "unfiltered-web-train.json"
+                    ),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "triviaqa-unfiltered", "unfiltered-web-dev.json"),
+                    "filepath": os.path.join(
+                        data_dir, "triviaqa-unfiltered", "unfiltered-web-dev.json"
+                    ),
                 },
             ),
         ]
@@ -115,7 +119,7 @@ class Triviaqa(datasets.GeneratorBasedBuilder):
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     def _generate_examples(self, filepath):
         with open(filepath, encoding="utf-8") as f:
-            json_data = json.load(f)['Data']
+            json_data = json.load(f)["Data"]
             for key, data in enumerate(json_data):
                 search_results = []
                 for search_result in data["SearchResults"]:
