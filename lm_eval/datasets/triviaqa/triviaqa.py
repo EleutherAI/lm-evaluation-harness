@@ -46,13 +46,13 @@ _HOMEPAGE = "https://nlp.cs.washington.edu/triviaqa/"
 
 _LICENSE = "Apache License 2.0"
 
-_URLS = "http://eaidata.bmk.sh/data/triviaqa-unfiltered.tar.gz"
+_URLS = "https://nlp.cs.washington.edu/triviaqa/data/triviaqa-unfiltered.tar.gz"
 
 
 class Triviaqa(datasets.GeneratorBasedBuilder):
     """TriviaQA is a reading comprehension dataset containing over 650K question-answer-evidence triples"""
 
-    VERSION = datasets.Version("0.0.1")
+    VERSION = datasets.Version("0.0.2")
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
@@ -100,14 +100,18 @@ class Triviaqa(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "unfiltered-web-train.jsonl"),
+                    "filepath": os.path.join(
+                        data_dir, "triviaqa-unfiltered", "unfiltered-web-train.json"
+                    ),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "unfiltered-web-dev.jsonl"),
+                    "filepath": os.path.join(
+                        data_dir, "triviaqa-unfiltered", "unfiltered-web-dev.json"
+                    ),
                 },
             ),
         ]
@@ -115,8 +119,8 @@ class Triviaqa(datasets.GeneratorBasedBuilder):
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
     def _generate_examples(self, filepath):
         with open(filepath, encoding="utf-8") as f:
-            for key, row in enumerate(f):
-                data = json.loads(row)
+            json_data = json.load(f)["Data"]
+            for key, data in enumerate(json_data):
                 search_results = []
                 for search_result in data["SearchResults"]:
                     search_results.append(
