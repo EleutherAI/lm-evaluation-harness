@@ -13,7 +13,7 @@ in the broader discourse.
 Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
 """
 import inspect
-import lm_eval.datasets.lambada.lambada
+import lm_eval.datasets.lambada_openai.lambada_openai
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, perplexity
 
@@ -30,27 +30,20 @@ _CITATION = """
 """
 
 
-class LAMBADA(Task):
-    VERSION = 0
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.lambada.lambada)
-
-    def has_training_docs(self):
-        return False
-
-    def has_validation_docs(self):
-        return True
-
-    def has_test_docs(self):
-        return False
+class LambadaBase(Task):
+    VERSION = None
 
     def training_docs(self):
-        pass
+        if self.has_training_docs():
+            return self.dataset["train"]
 
     def validation_docs(self):
-        return self.dataset["validation"]
+        if self.has_validation_docs():
+            return self.dataset["validation"]
 
     def test_docs(self):
-        pass
+        if self.has_test_docs():
+            return self.dataset["test"]
 
     def doc_to_text(self, doc):
         return doc["text"].rsplit(" ", 1)[0]
@@ -79,3 +72,39 @@ class LAMBADA(Task):
 
     def higher_is_better(self):
         return {"ppl": False, "acc": True}
+
+
+class LambadaStandard(LambadaBase):
+    """The LAMBADA task using the standard original LAMBADA dataset."""
+
+    VERSION = 0
+    DATASET_PATH = "lambada"
+
+    def has_training_docs(self):
+        return False
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+
+class LambadaOpenAI(LambadaBase):
+    """The LAMBADA task using the LAMBADA OpenAI dataset, a modified version of the
+    original LAMBADA dataset created by OpenAI for evaluating their GPT-2 model.
+
+    Reference: https://github.com/openai/gpt-2/issues/131#issuecomment-497136199
+    """
+
+    VERSION = 0
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.lambada_openai.lambada_openai)
+
+    def has_training_docs(self):
+        return False
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return False
