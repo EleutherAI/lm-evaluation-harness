@@ -29,7 +29,7 @@ _CITATION = """
 
 
 class TriviaQA(Task):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = inspect.getfile(lm_eval.datasets.triviaqa.triviaqa)
     DATASET_NAME = None
 
