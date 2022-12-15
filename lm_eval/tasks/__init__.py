@@ -303,8 +303,8 @@ TASK_REGISTRY = {
     **stereoset.construct_tasks(),
     **mlqa.construct_tasks(),
     **mlsum.construct_tasks(),
-    "germeval18_coarse": germeval_2018.GermEval2018,
-    "germeval18_fine": germeval_2018.GermEval2018_fine,
+    "germeval2018_coarse": germeval_2018.GermEval2018,
+    "germeval2018_fine": germeval_2018.GermEval2018_fine,
 }
 
 
