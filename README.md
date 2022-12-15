@@ -13,6 +13,9 @@ The current implementation progress is tracked under [GitHub issues](https://git
 - XStance (de,fr)
 - GNAD10 (de)
 - StereoSet (en,de)
+- GermEval 2017 (de)
+- German LER PPL (de)
+- German Europarl PPL (de)
 
 ## Install
 
