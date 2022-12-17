@@ -12,8 +12,6 @@ in the broader discourse.
 
 Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
 """
-import inspect
-import lm_eval.datasets.lambada_openai.lambada_openai
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, perplexity
 
@@ -98,13 +96,13 @@ class LambadaOpenAI(LambadaBase):
     """
 
     VERSION = 0
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.lambada_openai.lambada_openai)
+    DATASET_PATH = "EleutherAI/lambada_openai"
 
     def has_training_docs(self):
         return False
 
     def has_validation_docs(self):
-        return True
+        return False
 
     def has_test_docs(self):
-        return False
+        return True
