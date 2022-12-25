@@ -36,7 +36,8 @@ To evaluate a model (e.g. GPT-2) on NLP tasks such as SuperGLUE WiC, you can run
 python main.py \
     --model gpt2 \
     --tasks lambada_openai,hellaswag \
-    --device 0
+    --device 0 \
+    --custom_info "{'model':'gpt2', 'step':1500}" # used for plotting results from eval jsons.
 ```
 
 This example uses gpt2-117M by default as per HF defaults.
