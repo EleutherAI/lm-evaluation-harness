@@ -35,6 +35,12 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=None)
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--output_path", default=None)
+    parser.add_argument(
+        "--custom_info",
+        default=None,
+        type=json.loads,
+        help="dict string for custom info used in plotting. Example: '{'model':'gpt2-0shot', 'step': 1500}' ",
+    )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--no_cache", action="store_true")
     parser.add_argument("--decontamination_ngrams_path", default=None)
@@ -89,6 +95,9 @@ def main():
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
     )
+
+    if args.custom_info:
+        results["custom_info"] = args.custom_info
 
     dumped = json.dumps(results, indent=2)
     print(dumped)
