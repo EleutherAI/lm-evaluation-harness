@@ -88,10 +88,30 @@ python main.py \
 	--device 0 \
 	--tasks lambada,hellaswag
 	--wandb_project=<YOUR_PROJECT_NAME>
+	--wandb_entity=<YOUR_ENTITY_NAME>
+	--wandb_group=<YOUR_RUN_GROUP_NAME>
 ```
 
 This auto generates a [Weights & Biases report](https://wandb.ai/site/reports) that can be easily shared. Here is
-an [example report](https://wandb.ai/parambharat/lm_eval/reports/-2022-11-25-06-00-59-Model-distilgpt2-Evaluation-report--VmlldzozMDMzMTY2):
+an [example report](https://wandb.ai/parambharat/lm_eval/reports/-2023-01-03-08-36-21-Model-distilgpt2-Evaluation-report--VmlldzozMjU0MTgy):
+
+To compare multiple models across tasks, run the above evaluation with the same `--wandb_group` argument and then run
+the `wandb_reporte.py` as follows.
+
+```bash
+python wandb_reporter.py \
+    --project <YOUR_PROJECT_NAME> \
+    --entity <YOUR_ENTITY_NAME> \
+    --group <YOUR_RUN_GROUP_NAME>
+```
+
+This logs a run with charts that compare the models and generates a report with the logged metrics table.
+Here is
+an [example report](https://wandb.ai/parambharat/lm_eval/reports/-2023-01-03-09-06-02-Model-comparison-report--VmlldzozMjU0Mzg5)
+and the corresponding [run](https://wandb.ai/parambharat/lm_eval/runs/1awvscu4)
+
+*Note: This only works for models that have been evaluated on the same tasks and models that are a subclass of `HFLM`
+or `GPT2LM` models.*
 
 💡 **Tip**: You can inspect what the LM inputs look like by running the following command:
 

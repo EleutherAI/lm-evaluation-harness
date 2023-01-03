@@ -40,9 +40,6 @@ setuptools.setup(
     extras_require={
         "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],
         "multilingual": ["nagisa>=0.2.7", "jieba>=0.42.1"],
-        "wandb": [
-            # TODO: Change to wandb>=0.13.6 once it's released
-            "wandb>=0.13.5"
-        ],
+        "wandb": ["pandas", "wandb>=0.13.6"],
     },
 )

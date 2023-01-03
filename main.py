@@ -3,7 +3,8 @@ import json
 import logging
 import fnmatch
 
-from lm_eval import tasks, evaluator, wandb_reporter
+from lm_eval import tasks, evaluator
+import wandb_reporter
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 
@@ -42,6 +43,7 @@ def parse_args():
     parser.add_argument("--check_integrity", action="store_true")
     parser.add_argument("--wandb_project", default=None, type=str)
     parser.add_argument("--wandb_entity", default=None, type=str)
+    parser.add_argument("--wandb_group", default=None, type=str)
 
     return parser.parse_args()
 
