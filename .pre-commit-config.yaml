@@ -24,7 +24,7 @@ repos:
         args: [--remove]
       - id: mixed-line-ending
         args: [--fix=lf]
-  - repo: https://gitlab.com/pycqa/flake8
+  - repo: https://github.com/pycqa/flake8
     rev: 3.7.9
     hooks:
       - id: flake8
