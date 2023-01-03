@@ -47,9 +47,6 @@ setuptools.setup(
     ],
     extras_require={
         "dev": ["pytest", "black", "pre-commit"],
-        "wandb": [
-            # TODO: Change to wandb>=0.13.6 once it's released
-            "wandb>=0.13.5"
-        ],
+        "wandb": ["pandas", "wandb>=0.13.6"],
     },
 )
