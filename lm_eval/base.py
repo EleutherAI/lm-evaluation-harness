@@ -152,7 +152,7 @@ class BaseLM(LM):
         pass
 
     @abstractmethod
-    def _model_generate(self, context, max_length, eos_token_id):
+    def _model_generate(self, context, max_length, eos_token_id, temperature=0.):
         pass
 
     @abstractmethod
@@ -328,6 +328,44 @@ class BaseLM(LM):
                 res.append(answer)
 
         return re_ord.get_original(res)
+
+    def multiple_temperature_sample_until(self, requests, k=32, temperature=0.3):
+        res = []
+
+        def _collate(x):
+            toks = self.tok_encode(x[0])
+            return len(toks), x[0]
+
+        re_ord = utils.Reorderer(requests, _collate)
+
+        for context, until in tqdm(re_ord.get_reordered()):
+            if isinstance(until, str):
+                until = [until]
+
+            (primary_until,) = self.tok_encode(until[0])
+
+            context_enc = torch.tensor(
+                [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
+            ).to(self.device)
+            assert context_enc.shape[0] == 1
+
+            context_enc = context_enc.expand(k, context_enc.shape[1])
+            cont = self._model_generate(
+                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until,
+                temperature=temperature
+            )
+            
+            generated_tokens = cont[:, context_enc.shape[1]:]
+            s = [self.tok_decode(candidate) for candidate in generated_tokens]
+            for term in until:
+                s = [candidate.split(term)[0] for candidate in s]
+
+            # partial caching
+            self.cache_hook.add_partial("multiple_temperature_sample_until", (context, until, k, temperature), s)
+
+            res.append(s)
+        return re_ord.get_original(res)
+
 
     def greedy_until(self, requests):
         # TODO: implement fully general `until` that handles until that are
@@ -843,6 +881,7 @@ class CachingLM:
 REQUEST_RETURN_LENGTHS = {
     "loglikelihood": 2,
     "greedy_until": None,
+    "multiple_temperature_sample_until": None,
     "loglikelihood_rolling": None,
 }
 

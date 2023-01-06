@@ -286,6 +286,48 @@ class MathAlgebra(Math):
     DATASET_NAME = "algebra"
 
 
+class MathAlgebraMaj(Math):
+    VERSION = 1
+    DATASET_NAME = "algebra"
+
+    def construct_requests(self, doc, ctx):
+        return rf.multiple_temperature_sample_until(ctx, ["\n"])
+
+    def process_results(self, doc, results):
+        retval = 0
+
+        candidates = results[0]
+        answers = []
+        for candidate in candidates:
+            indices = [pos for pos, char in enumerate(candidate) if char == "$"]
+            if len(indices) <= 1:
+                answer = candidate
+            else:
+                answer = candidate[indices[0] + 1 : indices[-1]]
+            try:
+                answer = self.remove_boxed(self.last_boxed_only_string(answer))
+            except:
+                answer = None
+            answers.append(answer)
+        
+        answer_votes = {}
+        for answer in answers:
+            answer_votes[answer] = answer_votes.get(answer, 0) + 1
+
+        max_vote = 0
+        elected = None
+        for answer, vote in answer_votes.items():
+            if vote > max_vote and answer is not None:
+                elected = answer
+                max_vote = vote
+        
+        if self.is_equiv(
+            elected, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
+        ):
+            retval = 1
+
+        return {"acc": retval}
+
 class MathCountingAndProbability(Math):
     VERSION = 1
     DATASET_NAME = "counting_and_probability"

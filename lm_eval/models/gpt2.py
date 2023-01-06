@@ -121,10 +121,16 @@ class HFLM(BaseLM):
         with torch.no_grad():
             return self.gpt2(inps)[0][:, :, :50257]
 
-    def _model_generate(self, context, max_length, eos_token_id):
-        return self.gpt2.generate(
-            context, max_length=max_length, eos_token_id=eos_token_id, do_sample=False
-        )
+    def _model_generate(self, context, max_length, eos_token_id, temperature=0.):
+        assert temperature >= 0.
+        if temperature == 0.:
+            return self.gpt2.generate(
+                context, max_length=max_length, eos_token_id=eos_token_id, do_sample=False
+            )
+        else:
+            return self.gpt2.generate(
+                context, max_length=max_length, eos_token_id=eos_token_id, do_sample=True, temperature=temperature
+            )
 
 
 # for backwards compatibility
