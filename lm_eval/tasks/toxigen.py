@@ -7,7 +7,6 @@ Classify input text as either hateful or not hateful.
 Homepage: https://github.com/microsoft/TOXIGEN
 """
 from lm_eval.base import MultipleChoiceTask
-import datasets
 import numpy as np
 import pandas as pd
 
@@ -28,7 +27,7 @@ class ToxiGen(MultipleChoiceTask):
     DATASET_NAME = "annotated"
 
     def has_training_docs(self):
-        return False
+        return True
 
     def has_validation_docs(self):
         return False
@@ -42,30 +41,29 @@ class ToxiGen(MultipleChoiceTask):
             # few-shot processing. If the data is too large to fit in memory,
             # return the training data as a generator instead of a list.
             if self._training_docs is None:
-                self._training_docs = list(
-                    map(self._process_doc, self.dataset["train"])
-                )
+                dataset = self._preprocess_dataset("train")
+                self._training_docs = list(map(self._process_doc, dataset))
             return self._training_docs
-
-    def validation_docs(self):
-        if self.has_validation_docs():
-            return map(self._process_doc, self.dataset["validation"])
 
     def test_docs(self):
         if self.has_test_docs():
-            d = pd.DataFrame(self.dataset["test"])
-            labels = np.round(((d["toxicity_ai"] + d["toxicity_human"]) > 5.5), 0).astype(np.int32)
-            text = d["text"]
-            dataset = []
-            for x, y in zip(text, labels):
-                dataset.append([x, y])
+            dataset = self._preprocess_dataset("test")
             return map(self._process_doc, dataset)
+
+    def _preprocess_dataset(self, split: str):
+        """Preprocess the dataset into a list of (text, label) tuples."""
+        d = pd.DataFrame(self.dataset[split])
+        text = d["text"]
+        labels = np.round(((d["toxicity_ai"] + d["toxicity_human"]) > 5.5), 0).astype(
+            np.int32
+        )
+        return [[x, y] for x, y in zip(text, labels)]
 
     def _process_doc(self, doc):
         return {
-            "query": doc[0],  # The query prompt.
-            "choices": ["No", "Yes"],  # The list of choices.
-            "gold": doc[1],  # The integer used to index into the correct element of `"choices"`.
+            "query": doc[0],
+            "choices": ["No", "Yes"],
+            "gold": doc[1],
         }
 
     def doc_to_text(self, doc):
