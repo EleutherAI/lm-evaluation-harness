@@ -1,4 +1,3 @@
-# TODO: Remove all TODO comments once the implementation is complete.
 """
 GermanQuAD and GermanDPR: Improving Non-English Question Answering and Passage Retrieval
 https://arxiv.org/abs/2104.12741
@@ -37,7 +36,6 @@ def _squad_agg(key, items):
     return _squad_metric(predictions=predictions, references=references)[key]
 
 
-# TODO: Replace `NewTask` with the name of your Task.
 class GermanQuAD(Task):
     VERSION = 0
     DATASET_PATH = "deepset/germanquad"
@@ -60,13 +58,13 @@ class GermanQuAD(Task):
 
     def doc_to_text(self, doc):
         return (
-            "Background: "
+            "Kontext: "
             + doc["context"]
             + "\n\n"
-            + "Question: "
+            + "Frage: "
             + doc["question"]
             + "\n\n"
-            + "Answer:"
+            + "Antwort:"
         )
 
     def doc_to_target(self, doc):
