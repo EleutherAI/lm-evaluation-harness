@@ -101,11 +101,16 @@ class GermEval2017(Task):
     def training_docs(self):
         return self.dataset["train"].filter(
             lambda example: example["relevance"] == "True"
+            and example["text"] is not None
+            and example["sentiment"] in self.LABEL_TO_INDEX
         )
 
     def test_docs(self):
-        # Do NOT filter test set
-        return self.dataset["test"]
+        # Do NOT filter test set for relevance
+        return self.dataset["test"].filter(
+            lambda example: example["text"] is not None
+            and example["sentiment"] in self.LABEL_TO_INDEX
+        )
 
     def doc_to_text(self, doc):
         return doc["text"] + "\n\nBewertung:"
