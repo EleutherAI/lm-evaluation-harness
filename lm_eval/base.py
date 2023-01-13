@@ -7,6 +7,7 @@ import os
 import json
 import hashlib
 import datasets
+import inspect
 from sqlitedict import SqliteDict
 from tqdm import tqdm
 import torch
@@ -329,7 +330,7 @@ class BaseLM(LM):
 
         return re_ord.get_original(res)
 
-    def multiple_temperature_sample_until(self, requests, k=32, temperature=0.3):
+    def generate(self, requests):
         res = []
 
         def _collate(x):
@@ -338,21 +339,33 @@ class BaseLM(LM):
 
         re_ord = utils.Reorderer(requests, _collate)
 
-        for context, until in tqdm(re_ord.get_reordered()):
+        for request in tqdm(re_ord.get_reordered()):
+            if len(request) == 2:
+                # Unpack greedy sample request
+                context, until, = request
+                k, temperature = 1, 0.
+                _model_generate_kwargs = {}
+            elif len(request) == 4:
+                # Unpack temperature sample request
+                context, until, k, temperature = request
+                for key in ["k", "temperature"]:
+                    assert key in inspect.getfullargspec(self._model_generate).args, \
+                        f"Model generation parameter '{key}' not accepted as an argument for _model_generate"
+                _model_generate_kwargs = {"k": k, "temperature": temperature}
+            else:
+                raise AssertionError
+
             if isinstance(until, str):
                 until = [until]
-
             (primary_until,) = self.tok_encode(until[0])
 
             context_enc = torch.tensor(
                 [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
             ).to(self.device)
-            assert context_enc.shape[0] == 1
-
-            context_enc = context_enc.expand(k, context_enc.shape[1])
+            
             cont = self._model_generate(
                 context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until,
-                temperature=temperature
+                **_model_generate_kwargs
             )
             
             generated_tokens = cont[:, context_enc.shape[1]:]
@@ -361,50 +374,16 @@ class BaseLM(LM):
                 s = [candidate.split(term)[0] for candidate in s]
 
             # partial caching
-            self.cache_hook.add_partial("multiple_temperature_sample_until", (context, until, k, temperature), s)
-
+            self.cache_hook.add_partial("generate", (context, until, k, temperature), s)
             res.append(s)
         return re_ord.get_original(res)
-
 
     def greedy_until(self, requests):
         # TODO: implement fully general `until` that handles until that are
         #       multiple tokens or that span multiple tokens correctly
 
         # TODO: extract to TokenizedLM?
-        res = []
-
-        def _collate(x):
-            toks = self.tok_encode(x[0])
-            return len(toks), x[0]
-
-        re_ord = utils.Reorderer(requests, _collate)
-
-        for context, until in tqdm(re_ord.get_reordered()):
-            if isinstance(until, str):
-                until = [until]
-
-            (primary_until,) = self.tok_encode(until[0])
-
-            context_enc = torch.tensor(
-                [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
-            ).to(self.device)
-
-            cont = self._model_generate(
-                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until
-            )
-
-            s = self.tok_decode(cont[0].tolist()[context_enc.shape[1] :])
-
-            for term in until:
-                s = s.split(term)[0]
-
-            # partial caching
-            self.cache_hook.add_partial("greedy_until", (context, until), s)
-
-            res.append(s)
-
-        return re_ord.get_original(res)
+        return self.generate(requests)
 
 
 class Task(abc.ABC):
@@ -881,7 +860,7 @@ class CachingLM:
 REQUEST_RETURN_LENGTHS = {
     "loglikelihood": 2,
     "greedy_until": None,
-    "multiple_temperature_sample_until": None,
+    "generate": None,
     "loglikelihood_rolling": None,
 }
 

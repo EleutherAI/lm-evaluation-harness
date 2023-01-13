@@ -157,7 +157,6 @@ TASK_REGISTRY = {
     "mutual_plus": mutual.MuTualPlus,
     # math
     "math_algebra": hendrycks_math.MathAlgebra,
-    "math_algebra_maj@k": hendrycks_math.MathAlgebraMaj,
     "math_counting_and_prob": hendrycks_math.MathCountingAndProbability,
     "math_geometry": hendrycks_math.MathGeometry,
     "math_intermediate_algebra": hendrycks_math.MathIntermediateAlgebra,

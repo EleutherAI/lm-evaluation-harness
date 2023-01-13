@@ -27,6 +27,8 @@ _CITATION = """
 class Math(Task):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
     DATASET_NAME = None
+    MAJORITY_VOTING = "majority_voting"
+    SAMPLING_TEMPERATURE = "sampling_temperature"
 
     def has_training_docs(self):
         return True
@@ -62,21 +64,72 @@ class Math(Task):
     def doc_to_target(self, doc):
         return " " + doc["solution"]
 
-    def construct_requests(self, doc, ctx):
-        return rf.greedy_until(ctx, ["\n"])
+    def parse_description(self, description):
+        """description is a string with comma-separated key=value tuples
+        e.g.: 
+        "majority_voting=32,sampling_temperature=1.0"
+        """
+        parsed_dict = {}
+        for term in description.split(","):
+            if not term.strip():
+                continue
+            key, value = term.split("=")
+            parsed_dict[key] = value
+        return parsed_dict
 
-    def process_results(self, doc, results):
-        retval = 0
-        indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
+    def construct_requests(self, doc, ctx, description=""):
+        if not description.strip():
+            return rf.generate(ctx, ["\n"])
+        
+        parsed_description = self.parse_description(description=description)
+        majority_voting_value = int(parsed_description.get(self.MAJORITY_VOTING, 1))
+        sampling_temperature_value = float(parsed_description.get(self.SAMPLING_TEMPERATURE, 1.0))
+        return rf.generate(ctx, ["\n"], 
+            majority_voting_value, sampling_temperature_value)
+    
+    def get_pure_answer(self, candidate):
+        indices = [pos for pos, char in enumerate(candidate) if char == "$"]
         if len(indices) <= 1:
-            answer = results[0]
-        else:
-            answer = results[0][indices[0] + 1 : indices[-1]]
+            return candidate
+        return candidate[indices[0] + 1 : indices[-1]]
 
+    def majority_vote(self, candidates):
+        answers = []
+        for candidate in candidates:
+            answer = self.get_pure_answer(candidate)
+            try:
+                answer = self.remove_boxed(self.last_boxed_only_string(answer))
+            except:
+                answer = None
+            answers.append(answer)
+        
+        answer_votes = {}
+        for answer in answers:
+            answer_votes[answer] = answer_votes.get(answer, 0) + 1
+
+        max_vote = 0
+        elected = None
+        for answer, vote in answer_votes.items():
+            if vote > max_vote and answer is not None:
+                elected = answer
+                max_vote = vote
+        return elected
+
+    def process_results(self, doc, results, description=""):
+        retval = 0
+
+        if description == "":
+            answer = self.get_pure_answer(results[0])
+        elif self.MAJORITY_VOTING in self.parse_description(description):
+            answer = self.majority_vote(results[0])
+        else:
+            raise AssertionError
+        
         if self.is_equiv(
             answer, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
         ):
             retval = 1
+
         return {"acc": retval}
 
     def aggregation(self):
@@ -285,48 +338,6 @@ class MathAlgebra(Math):
     VERSION = 1
     DATASET_NAME = "algebra"
 
-
-class MathAlgebraMaj(Math):
-    VERSION = 1
-    DATASET_NAME = "algebra"
-
-    def construct_requests(self, doc, ctx):
-        return rf.multiple_temperature_sample_until(ctx, ["\n"])
-
-    def process_results(self, doc, results):
-        retval = 0
-
-        candidates = results[0]
-        answers = []
-        for candidate in candidates:
-            indices = [pos for pos, char in enumerate(candidate) if char == "$"]
-            if len(indices) <= 1:
-                answer = candidate
-            else:
-                answer = candidate[indices[0] + 1 : indices[-1]]
-            try:
-                answer = self.remove_boxed(self.last_boxed_only_string(answer))
-            except:
-                answer = None
-            answers.append(answer)
-        
-        answer_votes = {}
-        for answer in answers:
-            answer_votes[answer] = answer_votes.get(answer, 0) + 1
-
-        max_vote = 0
-        elected = None
-        for answer, vote in answer_votes.items():
-            if vote > max_vote and answer is not None:
-                elected = answer
-                max_vote = vote
-        
-        if self.is_equiv(
-            elected, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
-        ):
-            retval = 1
-
-        return {"acc": retval}
 
 class MathCountingAndProbability(Math):
     VERSION = 1

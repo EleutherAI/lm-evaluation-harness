@@ -121,16 +121,23 @@ class HFLM(BaseLM):
         with torch.no_grad():
             return self.gpt2(inps)[0][:, :, :50257]
 
-    def _model_generate(self, context, max_length, eos_token_id, temperature=0.):
-        assert temperature >= 0.
-        if temperature == 0.:
-            return self.gpt2.generate(
-                context, max_length=max_length, eos_token_id=eos_token_id, do_sample=False
-            )
-        else:
-            return self.gpt2.generate(
-                context, max_length=max_length, eos_token_id=eos_token_id, do_sample=True, temperature=temperature
-            )
+    def _model_generate(self, context, max_length, eos_token_id, k=1, temperature=0.):
+        assert (isinstance(k, int) and k >= 1), f"Incorrect number of candidates to generate: {k}"
+        assert temperature >= 0., f"Negative sampling temperature: {temperature}"
+        
+        # Whether to sample or to decode greedily
+        do_sample = (temperature != 0.)
+        if not do_sample:
+            # If decoding greedily, only sample once
+            assert k == 1, f"Decoding greedily but {k} generations"
+
+        if k > 1:
+            context = context.expand(k, context.shape[1])
+        
+        return self.gpt2.generate(
+            context, max_length=max_length, eos_token_id=eos_token_id,
+            do_sample=do_sample, temperature=temperature
+        )
 
 
 # for backwards compatibility
