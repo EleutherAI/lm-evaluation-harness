@@ -110,7 +110,7 @@ class GermEval2018(Task):
         return True
 
     def training_docs(self):
-        if self.has_train_docs():
+        if self.has_training_docs():
             return self.dataset["train"]
 
     def validation_docs(self):
@@ -124,7 +124,6 @@ class GermEval2018(Task):
     def doc_to_text(self, doc):
         return (
             "Tweet (Beleidigung, Sonstiges): "
-            + "Text:"
             + doc["text"]
             + "\n\n"
             + "Sprache (Beleidigung, Sonstiges): "
@@ -134,7 +133,7 @@ class GermEval2018(Task):
         label = doc["binary"]
         target = ""
         if label in self.binary_dict.keys():
-            target = self.binary_dict(label)
+            target = self.binary_dict[label]
         else:
             target = ""
 
@@ -210,7 +209,6 @@ class GermEval2018_fine(GermEval2018):
     def doc_to_text(self, doc):
         return (
             "Tweet (Beleidigung, Beschimpfung, Profanität, Sonstiges): "
-            + "Text:"
             + doc["text"]
             + "\n\n"
             + "Sprache (Beleidigung, Beschimpfung, Profanität, Sonstiges): "
@@ -220,7 +218,7 @@ class GermEval2018_fine(GermEval2018):
         label = doc["multi"]
         target = ""
         if label in self.multi_dict.keys():
-            target = self.multi_dict(label)
+            target = self.multi_dict[label]
         else:
             target = ""
 
