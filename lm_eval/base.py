@@ -153,7 +153,7 @@ class BaseLM(LM):
         pass
 
     @abstractmethod
-    def _model_generate(self, context, max_length, eos_token_id, temperature=0.):
+    def _model_generate(self, context, max_length, eos_token_id):
         pass
 
     @abstractmethod
