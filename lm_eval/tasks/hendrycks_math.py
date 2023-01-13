@@ -118,13 +118,14 @@ class Math(Task):
     def process_results(self, doc, results, description=""):
         retval = 0
 
+        assert isinstance(description, str)
         if description == "":
             answer = self.get_pure_answer(results[0])
         elif self.MAJORITY_VOTING in self.parse_description(description):
             answer = self.majority_vote(results[0])
         else:
             raise AssertionError
-        
+        print(answer)
         if self.is_equiv(
             answer, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
         ):

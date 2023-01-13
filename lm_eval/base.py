@@ -383,7 +383,7 @@ class BaseLM(LM):
         #       multiple tokens or that span multiple tokens correctly
 
         # TODO: extract to TokenizedLM?
-        return self.generate(requests)
+        return self.generate(requests)[0]
 
 
 class Task(abc.ABC):
