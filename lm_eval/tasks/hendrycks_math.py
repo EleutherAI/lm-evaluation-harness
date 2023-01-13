@@ -67,7 +67,7 @@ class Math(Task):
     def parse_description(self, description):
         """description is a string with comma-separated key=value tuples
         e.g.: 
-        "majority_voting=32,sampling_temperature=1.0"
+        "majority_voting=32,sampling_temperature=0.3"
         """
         parsed_dict = {}
         for term in description.split(","):
@@ -125,7 +125,7 @@ class Math(Task):
             answer = self.majority_vote(results[0])
         else:
             raise AssertionError
-        print(answer)
+
         if self.is_equiv(
             answer, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
         ):
