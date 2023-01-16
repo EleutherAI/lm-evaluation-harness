@@ -120,7 +120,8 @@ class Math(Task):
 
         assert isinstance(description, str)
         if description == "":
-            answer = self.get_pure_answer(results[0])
+            last_box_content = self.last_boxed_only_string(results[0])
+            answer = self.get_pure_answer(self.remove_boxed(last_box_content)) if last_box_content is not None else self.get_pure_answer(results[0])
         elif self.MAJORITY_VOTING in self.parse_description(description):
             answer = self.majority_vote(results[0])
         else:
