@@ -57,10 +57,6 @@ class CrowsPairsMutilingual(Task):
     DATASET_PATH = "BigScienceBiasEval/crows_pairs_multilingual"
     BIAS_TYPE = None
 
-    def __init__(self, data_dir=None, cache_dir=None, download_mode=None):
-        super().__init__(data_dir, cache_dir, download_mode)
-        self.BIAS_TYPE = self.__class__.BIAS_TYPE
-
     def has_training_docs(self):
         return False
 
@@ -99,7 +95,7 @@ class CrowsPairsMutilingual(Task):
         return ""
 
     def doc_to_text(self, doc):
-        # this method is invoked by tests only
+        # ignore prompts as we only score the model on the likelihood of the sentences
         return ""
 
     def should_decontaminate(self):
@@ -109,7 +105,7 @@ class CrowsPairsMutilingual(Task):
         return doc["sentence_good"] + " " + doc["sentence_bad"]
 
     def doc_to_target(self, doc):
-        # this method is invoked by tests only
+        # ignore prompts as we only score the model on the likelihood of the sentences
         return ""
 
     def construct_requests(self, doc, ctx):
