@@ -116,7 +116,7 @@ class CrowsPairsMutilingual(Task):
         likelihood1, likelihood2 = results
 
         # Calculate the difference in loglikelihoods
-        diff = likelihood1[0] - likelihood2[0]
+        diff = abs(likelihood1[0] - likelihood2[0])
 
         return {"likelihood_difference": diff}
 
