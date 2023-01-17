@@ -306,7 +306,6 @@ TASK_REGISTRY = {
     "crows_pairs_french_nationality": crowspairs.CrowsPairsFrenchNationality,
     "crows_pairs_french_physical_appearance": crowspairs.CrowsPairsFrenchPhysicalAppearance,
     "crows_pairs_french_autre": crowspairs.CrowsPairsFrenchAutre,
-
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
