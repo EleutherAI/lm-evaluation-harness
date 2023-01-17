@@ -110,16 +110,15 @@ class CrowsPairsMutilingual(Task):
         return [
             rf.loglikelihood("", doc["sent_more"]),
             rf.loglikelihood("", doc["sent_less"]),
-            doc["bias_type"]
         ]
 
     def process_results(self, doc, results):
-        likelihood1, likelihood2, bias_type = results
+        likelihood1, likelihood2 = results
 
         # Calculate the difference in loglikelihoods
-        diff = likelihood1 - likelihood2
+        diff = likelihood1[0] - likelihood2[0]
 
-        return {"loglikelihood_difference": diff}
+        return {"likelihood_difference": diff}
 
     def higher_is_better(self):
         # For all metrics lower is better
