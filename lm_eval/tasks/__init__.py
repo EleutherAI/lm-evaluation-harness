@@ -51,6 +51,7 @@ from . import asdiv
 from . import gsm8k
 from . import storycloze
 from . import toxigen
+from . import crowspairs
 
 ########################################
 # Translation tasks
@@ -283,6 +284,8 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
     "toxigen": toxigen.ToxiGen,
+    "crows_pairs_english": crowspairs.CrowsPairsEnglish,
+    "crows_pairs_french": crowspairs.CrowsPairsFrench,
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
