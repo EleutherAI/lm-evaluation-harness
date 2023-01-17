@@ -51,6 +51,7 @@ from . import asdiv
 from . import gsm8k
 from . import storycloze
 from . import toxigen
+from . import crowspairs
 
 ########################################
 # Translation tasks
@@ -283,6 +284,28 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
     "toxigen": toxigen.ToxiGen,
+    "crows_pairs_english": crowspairs.CrowsPairsEnglish,
+    "crows_pairs_english_race_color": crowspairs.CrowsPairsEnglishRaceColor,
+    "crows_pairs_english_socioeconomic": crowspairs.CrowsPairsEnglishSocioeconomic,
+    "crows_pairs_english_gender": crowspairs.CrowsPairsEnglishGender,
+    "crows_pairs_english_age": crowspairs.CrowsPairsEnglishAge,
+    "crows_pairs_english_religion": crowspairs.CrowsPairsEnglishReligion,
+    "crows_pairs_english_disability": crowspairs.CrowsPairsEnglishDisability,
+    "crows_pairs_english_sexual_orientation": crowspairs.CrowsPairsEnglishSexualOrientation,
+    "crows_pairs_english_nationality": crowspairs.CrowsPairsEnglishNationality,
+    "crows_pairs_english_physical_appearance": crowspairs.CrowsPairsEnglishPhysicalAppearance,
+    "crows_pairs_english_autre": crowspairs.CrowsPairsEnglishAutre,
+    "crows_pairs_french": crowspairs.CrowsPairsFrench,
+    "crows_pairs_french_race_color": crowspairs.CrowsPairsFrenchRaceColor,
+    "crows_pairs_french_socioeconomic": crowspairs.CrowsPairsFrenchSocioeconomic,
+    "crows_pairs_french_gender": crowspairs.CrowsPairsFrenchGender,
+    "crows_pairs_french_age": crowspairs.CrowsPairsFrenchAge,
+    "crows_pairs_french_religion": crowspairs.CrowsPairsFrenchReligion,
+    "crows_pairs_french_disability": crowspairs.CrowsPairsFrenchDisability,
+    "crows_pairs_french_sexual_orientation": crowspairs.CrowsPairsFrenchSexualOrientation,
+    "crows_pairs_french_nationality": crowspairs.CrowsPairsFrenchNationality,
+    "crows_pairs_french_physical_appearance": crowspairs.CrowsPairsFrenchPhysicalAppearance,
+    "crows_pairs_french_autre": crowspairs.CrowsPairsFrenchAutre,
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
