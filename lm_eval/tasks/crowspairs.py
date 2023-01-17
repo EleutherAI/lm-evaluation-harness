@@ -6,7 +6,7 @@ language models to a language other than English
 https://aclanthology.org/2022.acl-long.583/
 
 CrowS-Pairs is a challenge set for evaluating what language models (LMs) on their tendency
-to generate biased outputs. CrowS-Pairs comes in 2 languages and the English version has 
+to generate biased outputs. CrowS-Pairs comes in 2 languages and the English subset has 
 a newer version which fixes some of the issues with the original version. 
 
 Homepage: https://github.com/nyu-mll/crows-pairs, https://gitlab.inria.fr/french-crows-pairs
