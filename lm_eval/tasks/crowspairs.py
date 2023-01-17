@@ -55,7 +55,12 @@ _CITATION = """
 class CrowsPairsMutilingual(Task):
     VERSION = 0
     DATASET_PATH = "BigScienceBiasEval/crows_pairs_multilingual"
+    BIAS_TYPE = None
 
+    def __init__(self, data_dir=None, cache_dir=None, download_mode=None):
+        super().__init__(data_dir, cache_dir, download_mode)
+        self.BIAS_TYPE = self.__class__.BIAS_TYPE
+        
     def has_training_docs(self):
         return False
 
@@ -66,7 +71,10 @@ class CrowsPairsMutilingual(Task):
         return False
 
     def validation_docs(self):
-        return self.dataset["test"]
+        test_dataset = self.dataset["test"]
+        if self.BIAS_TYPE is not None:
+            test_dataset = test_dataset.filter(lambda example: example["bias_type"].startswith(self.BIAS_TYPE))
+        return test_dataset
 
     def fewshot_context(
         self, doc, num_fewshot, provide_description=None, rnd=None, description=None
@@ -134,3 +142,83 @@ class CrowsPairsEnglish(CrowsPairsMutilingual):
 
 class CrowsPairsFrench(CrowsPairsMutilingual):
     DATASET_NAME = "french"
+
+class CrowsPairsEnglishRaceColor(CrowsPairsMutilingual):
+    DATASET_NAME = "english"
+    BIAS_TYPE = "race-color"
+
+class CrowsPairsEnglishSocioeconomic(CrowsPairsMutilingual):
+    DATASET_NAME = "english"
+    BIAS_TYPE = "socioeconomic"
+
+class CrowsPairsEnglishGender(CrowsPairsMutilingual):
+    DATASET_NAME = "english"
+    BIAS_TYPE = "gender"
+
+class CrowsPairsEnglishAge(CrowsPairsMutilingual):
+    DATASET_NAME = "english"
+    BIAS_TYPE = "age"
+
+class CrowsPairsEnglishReligion(CrowsPairsMutilingual):
+    DATASET_NAME = "english"
+    BIAS_TYPE = "religion"
+
+class CrowsPairsEnglishDisability(CrowsPairsMutilingual):
+    DATASET_NAME = "english"
+    BIAS_TYPE = "disability"
+
+class CrowsPairsEnglishSexualOrientation(CrowsPairsMutilingual):
+    DATASET_NAME = "english"
+    BIAS_TYPE = "sexual-orientation"
+
+class CrowsPairsEnglishNationality(CrowsPairsMutilingual):
+    DATASET_NAME = "english"
+    BIAS_TYPE = "nationality"
+
+class CrowsPairsEnglishPhysicalAppearance(CrowsPairsMutilingual):
+    DATASET_NAME = "english"
+    BIAS_TYPE = "physical-appearance"
+
+class CrowsPairsEnglishAutre(CrowsPairsMutilingual):
+    DATASET_NAME = "english"
+    BIAS_TYPE = "autre"
+
+class CrowsPairsFrenchRaceColor(CrowsPairsMutilingual):
+    DATASET_NAME = "french"
+    BIAS_TYPE = "race-color"
+
+class CrowsPairsFrenchSocioeconomic(CrowsPairsMutilingual):
+    DATASET_NAME = "french"
+    BIAS_TYPE = "socioeconomic"
+
+class CrowsPairsFrenchGender(CrowsPairsMutilingual):
+    DATASET_NAME = "french"
+    BIAS_TYPE = "gender"
+
+class CrowsPairsFrenchAge(CrowsPairsMutilingual):
+    DATASET_NAME = "french"
+    BIAS_TYPE = "age"
+
+class CrowsPairsFrenchReligion(CrowsPairsMutilingual):
+    DATASET_NAME = "french"
+    BIAS_TYPE = "religion"
+
+class CrowsPairsFrenchDisability(CrowsPairsMutilingual):
+    DATASET_NAME = "french"
+    BIAS_TYPE = "disability"
+
+class CrowsPairsFrenchSexualOrientation(CrowsPairsMutilingual):
+    DATASET_NAME = "french"
+    BIAS_TYPE = "sexual-orientation"
+
+class CrowsPairsFrenchNationality(CrowsPairsMutilingual):
+    DATASET_NAME = "french"
+    BIAS_TYPE = "nationality"
+
+class CrowsPairsFrenchPhysicalAppearance(CrowsPairsMutilingual):
+    DATASET_NAME = "french"
+    BIAS_TYPE = "physical-appearance"
+
+class CrowsPairsFrenchAutre(CrowsPairsMutilingual):
+    DATASET_NAME = "french"
+    BIAS_TYPE = "autre"
