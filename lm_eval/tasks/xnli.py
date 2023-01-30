@@ -195,10 +195,10 @@ class XNLI_es(XNLIBase):  # Spanish
 class XNLI_fr(XNLIBase):  # French
     DATASET_NAME = "fr"
 
-    QUESTION_WORD = "corriger"
+    QUESTION_WORD = "correct"
     ENTAILMENT_LABEL = "Oui"
-    NEUTRAL_LABEL = "alors"
-    CONTRADICTION_LABEL = "No"
+    NEUTRAL_LABEL = "Aussi"
+    CONTRADICTION_LABEL = "Non"
 
 
 # class XNLI_hi(XNLIBase):  # Hindi
