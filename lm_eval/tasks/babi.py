@@ -74,7 +74,7 @@ class Babi(Task):
             The results of the requests created in construct_requests.
         """
         gold = doc["answer"]
-        pred = gold == results
+        pred = gold.strip() == results[0].strip()
         return {"em": pred}
 
     def aggregation(self):
