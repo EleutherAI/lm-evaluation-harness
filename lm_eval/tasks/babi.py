@@ -16,10 +16,10 @@ class Babi(Task):
     DATASET_NAME = None
 
     def has_training_docs(self):
-        return False
+        return True
 
     def has_validation_docs(self):
-        return False
+        return True
 
     def has_test_docs(self):
         return True
@@ -34,7 +34,7 @@ class Babi(Task):
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.dataset["train"]
+            return self.dataset["test"]
 
     def doc_to_text(self, doc):
         return (
@@ -42,7 +42,7 @@ class Babi(Task):
         )
 
     def should_decontaminate(self):
-        return False ## TODO Necessary?
+        return False # TODO Necessary?
 
     def doc_to_decontamination_query(self, doc):
         return doc['passage'] + doc['question']
