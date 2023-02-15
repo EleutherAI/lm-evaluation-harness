@@ -354,6 +354,13 @@ class BaseLM(LM):
                         f"Model generation parameter '{key}' not accepted as an argument for _model_generate"
                 greedy = False
                 _model_generate_kwargs = {"k": k, "temperature": temperature}
+            elif len(request) == 5:
+                context, until, k, temperature, k_batch = request
+                for key in ["k", "temperature", "k_batch"]:
+                    assert key in inspect.getfullargspec(self._model_generate).args, \
+                        f"Model generation parameter '{key}' not accepted as an argument for _model_generate"
+                greedy = False
+                _model_generate_kwargs = {"k": k, "temperature": temperature, "k_batch": k_batch}
             else:
                 raise AssertionError
 

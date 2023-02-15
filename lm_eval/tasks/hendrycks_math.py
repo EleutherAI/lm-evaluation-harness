@@ -29,6 +29,7 @@ class Math(Task):
     DATASET_NAME = None
     MAJORITY_VOTING = "majority_voting"
     SAMPLING_TEMPERATURE = "sampling_temperature"
+    EVAL_BATCH_SIZE = "eval_batch_size"
 
     def has_training_docs(self):
         return True
@@ -67,7 +68,7 @@ class Math(Task):
     def parse_description(self, description):
         """description is a string with comma-separated key=value tuples
         e.g.: 
-        "majority_voting=32,sampling_temperature=0.3"
+        "majority_voting=32,sampling_temperature=0.3,eval_batch_size=8"
         """
         parsed_dict = {}
         for term in description.split(","):
@@ -84,8 +85,10 @@ class Math(Task):
         parsed_description = self.parse_description(description=description)
         majority_voting_value = int(parsed_description.get(self.MAJORITY_VOTING, 1))
         sampling_temperature_value = float(parsed_description.get(self.SAMPLING_TEMPERATURE, 1.0))
+        eval_batch_size = parsed_description.get(self.EVAL_BATCH_SIZE, None)
+        eval_batch_size = int(eval_batch_size) if isinstance(eval_batch_size, str) else eval_batch_size
         return rf.generate(ctx, ["\n"], 
-            majority_voting_value, sampling_temperature_value)
+            majority_voting_value, sampling_temperature_value, eval_batch_size)
     
     def get_pure_answer(self, candidate):
         indices = [pos for pos, char in enumerate(candidate) if char == "$"]
