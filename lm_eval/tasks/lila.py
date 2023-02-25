@@ -177,6 +177,146 @@ class Lila(Task):
         return correct, ran, answer, msg
 
 
+class LilaOOD(Lila):
+    DATASET_NAME = 'ood'
+
 class LilaAddSub(Lila):
-    VERSION = 0
     DATASET_NAME = 'addsub'
+
+class LilaAmpsAlgebra(Lila):
+    DATASET_NAME = 'amps_algebra'
+
+class LilaAmpsCalculus(Lila):
+    DATASET_NAME = 'amps_calculus'
+
+class LilaAmpsCountingAndStats(Lila):
+    DATASET_NAME = 'amps_counting_and_stats'
+
+class LilaAmpsGeometry(Lila):
+    DATASET_NAME = 'amps_geometry'
+
+class LilaAmpsLinearAlgebra(Lila):
+    DATASET_NAME = 'amps_linear_algebra'
+
+class LilaAmpsNumberTheory(Lila):
+    DATASET_NAME = 'amps_number_theory'
+
+class LilaAPPSStructured(Lila):
+    DATASET_NAME = 'APPS_structured'
+
+class LilaASDiv(Lila):
+    DATASET_NAME = 'asdiv'
+
+class LilaConalaStructured(Lila):
+    DATASET_NAME = 'conala_structured'
+
+class LilaDeepmindMathematicsAlgebra(Lila):
+    DATASET_NAME = 'deepmind_mathematics_algebra'
+
+class LilaDeepmindMathematicsBasicmath(Lila):
+    DATASET_NAME = 'deepmind_mathematics_basicmath'
+
+class LilaDeepmindMathematicsCalculus(Lila):
+    DATASET_NAME = 'deepmind_mathematics_calculus'
+
+class LilaDeepmindMathematicsMuldiv(Lila):
+    DATASET_NAME = 'deepmind_mathematics_muldiv'
+
+class LilaDeepmindMathematicsNumbertheory(Lila):
+    DATASET_NAME = 'deepmind_mathematics_numbertheory'
+
+class LilaDolphinT2Final(Lila):
+    DATASET_NAME = 'dolphin_t2_final'
+
+class LilaDrawStructured(Lila):
+    DATASET_NAME = 'draw_structured'
+
+class LilaGSM8kStructured(Lila):
+    DATASET_NAME = 'GSM8k_structured'
+
+class LilaMATHAlgebraCrowdsourced(Lila):
+    DATASET_NAME = 'MATH_algebra_crowdsourced'
+
+class LilaMATHCountingAndProbabilityCrowdsourced(Lila):
+    DATASET_NAME = 'MATH_counting_and_probability_crowdsourced'
+
+class LilaMATHIntermediateAlgebraCrowdsourced(Lila):
+    DATASET_NAME = 'MATH_intermediate_algebra_crowdsourced'
+
+class LilaMathqaGain(Lila):
+    DATASET_NAME = 'mathqa_gain'
+
+class LilaMathqaGeneral(Lila):
+    DATASET_NAME = 'mathqa_general'
+
+class LilaMathqaGeometry(Lila):
+    DATASET_NAME = 'mathqa_geometry'
+
+class LilaMathqaOther(Lila):
+    DATASET_NAME = 'mathqa_other'
+
+class LilaMathqaPhysics(Lila):
+    DATASET_NAME = 'mathqa_physics'
+
+class LilaMathqaProbability(Lila):
+    DATASET_NAME = 'mathqa_probability'
+
+class LilaMbppStructured(Lila):
+    DATASET_NAME = 'mbpp_structured'
+
+class LilaMCTacoEventDurationStructured(Lila):
+    DATASET_NAME = 'MCTaco_event_duration_structured'
+
+class LilaMCTacoEventOrderingStructured(Lila):
+    DATASET_NAME = 'MCTaco_event_ordering_structured'
+
+class LilaMCTacoEventTypicalTimeStructured(Lila):
+    DATASET_NAME = 'MCTaco_event_typical_time_structured'
+
+class LilaMCTacoFrequencyStructured(Lila):
+    DATASET_NAME = 'MCTaco_frequency_structured'
+
+class LilaMCTacoStationarityStructured(Lila):
+    DATASET_NAME = 'MCTaco_stationarity_structured'
+
+class LilaMultiArith(Lila):
+    DATASET_NAME = 'multiarith'
+
+class LilaNumersenseStructured(Lila):
+    DATASET_NAME = 'Numersense_structured'
+
+class LilaNumGLUEType1Crowdsourced(Lila):
+    DATASET_NAME = 'NumGLUE_Type_1_crowdsourced'
+
+class LilaNumGLUEType2Crowdsourced(Lila):
+    DATASET_NAME = 'NumGLUE_Type_2_crowdsourced'
+
+class LilaNumGLUEType3Crowdsourced(Lila):
+    DATASET_NAME = 'NumGLUE_Type_3_crowdsourced'
+
+class LilaNumGLUEType4Crowdsourced(Lila):
+    DATASET_NAME = 'NumGLUE_Type_4_crowdsourced'
+
+class LilaNumGLUEType5Crowdsourced(Lila):
+    DATASET_NAME = 'NumGLUE_Type_5_crowdsourced'
+
+class LilaNumGLUEType6Crowdsourced(Lila):
+    DATASET_NAME = 'NumGLUE_Type_6_crowdsourced'
+
+class LilaNumGLUEType7Crowdsourced(Lila):
+    DATASET_NAME = 'NumGLUE_Type_7_crowdsourced'
+
+class LilaNumGLUEType8Crowdsourced(Lila):
+    DATASET_NAME = 'NumGLUE_Type_8_crowdsourced'
+
+class LilaSimulEq(Lila):
+    DATASET_NAME = 'simuleq'
+
+class LilaSingleOp(Lila):
+    DATASET_NAME = 'singleop'
+
+class LilaSinglEq(Lila):
+    DATASET_NAME = 'singleq'
+
+class LilaSvampStructured(Lila):
+    DATASET_NAME = 'svamp_structured'
