@@ -10,6 +10,7 @@ Homepage: https://github.com/allenai/lila
 import re
 from io import StringIO
 from contextlib import redirect_stdout
+from collections import Counter
 
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
@@ -97,11 +98,16 @@ class Lila(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        true_answer = doc['output_answer']
-        program = self._parse_result(results[0])  # TODO multiple results
-        correct, ran, _, _ = Lila.evaluate(program, true_answer)
+        program = self._parse_result(results[0])
+        f1, exact_match, ran = self.evaluate(
+            program=program,
+            gold_answer=doc['output_answer'],
+            gold_program=doc['output_program'],
+            dataset=doc['dataset']
+        )
         return {
-            "acc": correct,
+            "f1": f1,
+            "exact_match": exact_match,
             "ran": ran
         }
 
@@ -112,22 +118,60 @@ class Lila(Task):
             functions that aggregate a list of metric scores
         """
         return {
-            "acc": mean,
-            "ran": mean
+            "f1": mean,
+            "exact_match": mean,
+            "ran": mean,
         }
 
     def higher_is_better(self):
         return {
-            "acc": True,
+            "f1": True,
+            "exact_match": True,
             "ran": True
         }
+
+    def evaluate(self, program, gold_answer, gold_program, dataset):
+        # No execution for these datasets.
+        skip_execution = dataset in {'APPS_structured', 'mbpp_structured'}
+        if skip_execution:
+            # Set versions of the predicted program as predicted answer candidates.
+            predicted_answers = self._versions(program)
+            gold_answers = self._versions(gold_answer)
+            ran = True
+        else:
+            # Get the execution result.
+            exec_result, ran, msg = self._run(program)
+
+            # Set versions of the execution result as predicted answer candidates.
+            predicted_answers = self._versions(exec_result)
+
+            # Get additional gold answer candidates by executing the gold program.
+            gold_answers = self._versions(gold_answer)
+            gold_exec_result, gold_ran, _ = self._run(gold_program)
+            if gold_ran:
+                gold_answers.extend(self._versions(gold_exec_result))
+
+        # Take the maximum metric value over all pairs of predicted and gold answers.
+        f1 = self._metric_max_over_ground_truths(
+            self._f1_score, predicted_answers, gold_answers
+        )
+        em = self._metric_max_over_ground_truths(
+            self._em, predicted_answers, gold_answers
+        )
+        return f1, em, ran
 
     def _parse_result(self, result):
         program = result.strip()
         return program
 
-    @staticmethod
-    def _run(program):
+    def _versions(self, answer):
+        return [
+            self._parse_float(answer),     # parsed_float
+            self._normalize_text(answer),  # normalized text
+            answer,  # original
+        ]
+
+    def _run(self, program):
         f = StringIO()
         msg = {}
         with redirect_stdout(f):
@@ -144,8 +188,25 @@ class Lila(Task):
                 ran = False
         return answer, ran, msg
 
-    @staticmethod
-    def _parse_float(text):
+    def _em(self, predicted, gold):
+        return predicted == gold
+
+    def _f1_score(self, prediction: str, ground_truth: str):
+        def _normalize_answer(s):
+            return str(s).strip()
+
+        prediction_tokens = _normalize_answer(prediction).split()
+        ground_truth_tokens = _normalize_answer(ground_truth).split()
+        common = Counter(prediction_tokens) & Counter(ground_truth_tokens)
+        num_same = sum(common.values())
+        if num_same == 0:
+            return 0
+        precision = 1.0 * num_same / len(prediction_tokens)
+        recall = 1.0 * num_same / len(ground_truth_tokens)
+        f1 = (2 * precision * recall) / (precision + recall)
+        return f1
+
+    def _parse_float(self, text):
         """Converts `text` according to the following precedence:
             1. convert with `float()`
             2. find exactly one integer or float via regex
@@ -155,26 +216,32 @@ class Lila(Task):
         try:
             answer = float(text)
             return answer
-        except:
+        except ValueError:
             rx = re.compile(r'(-?\d+\.?\d*)')
             matches = rx.findall(text)
             if len(matches) == 1:
                 try:
                     answer = float(matches[0])
                     return answer
-                except:
-                    return matches[0]
+                except ValueError:
+                    pass
         return text
 
-    @staticmethod
-    def evaluate(text, true_answer):
-        answer, ran, msg = Lila._run(text)
-        try:
-            correct = Lila._parse_float(true_answer) == Lila._parse_float(answer)
-        except:
-            correct = False
-        correct = float(correct)
-        return correct, ran, answer, msg
+    def _normalize_text(self, text):
+        """Strip, lower text and remove extra whitespace."""
+        def white_space_fix(text):
+            return " ".join(text.split())
+        def lower(text):
+            return text.lower()
+        return white_space_fix(lower(text.strip()))
+
+    def _metric_max_over_ground_truths(self, metric_fn, predictions, ground_truths):
+        scores = []
+        for prediction in predictions:
+            for ground_truth in ground_truths:
+                score = metric_fn(prediction, ground_truth)
+                scores.append(score)
+        return max(scores)
 
 
 class LilaOOD(Lila):
