@@ -3,7 +3,14 @@ LILA: A Unified Benchmark for Mathematical Reasoning
 https://aclanthology.org/2022.emnlp-main.392.pdf
 
 Given a natural language problem specification x, the task is to generate
-a program y that upon execution returns the correct answer to x.
+a program y that upon execution returns the correct answer to x. In the
+evaluation harness, LILA has 48 tasks. Each task corresponds to a subset
+in the HuggingFace dataset (https://huggingface.co/datasets/allenai/lila),
+and is named `lila_{subset}`. 46 of the tasks correspond to either an
+individual dataset (e.g. lila_GSM8k_structured) or a dataset partition
+(e.g. lila_amps_algebra). The other two tasks are 'aggregate' tasks,
+`lila_iid` and `lila_ood`, corresponding to the IID and OOD multitask splits
+defined in the paper, respectively.
 
 Homepage: https://github.com/allenai/lila
 """
@@ -99,7 +106,7 @@ class Lila(Task):
             The results of the requests created in construct_requests.
         """
         program = self._parse_result(results[0])
-        f1, exact_match, ran = self.evaluate(
+        f1, exact_match, ran, exec_result = self.evaluate(
             program=program,
             gold_answer=doc['output_answer'],
             gold_program=doc['output_program'],
@@ -138,6 +145,7 @@ class Lila(Task):
             predicted_answers = self._versions(program)
             gold_answers = self._versions(gold_answer)
             ran = True
+            exec_result = ''
         else:
             # Get the execution result.
             exec_result, ran, msg = self._run(program)
@@ -158,7 +166,7 @@ class Lila(Task):
         em = self._metric_max_over_ground_truths(
             self._em, predicted_answers, gold_answers
         )
-        return f1, em, ran
+        return f1, em, ran, exec_result
 
     def _parse_result(self, result):
         program = result.strip()
