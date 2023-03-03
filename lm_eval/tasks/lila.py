@@ -15,6 +15,7 @@ defined in the paper, respectively.
 Homepage: https://github.com/allenai/lila
 """
 import re
+import timeout_decorator
 from io import StringIO
 from contextlib import redirect_stdout
 from collections import Counter
@@ -139,7 +140,10 @@ class Lila(Task):
 
     def evaluate(self, program, gold_answer, gold_program, dataset):
         # No execution for these datasets.
-        skip_execution = dataset in {'APPS_structured', 'mbpp_structured'}
+        skip_execution = False
+        for name in {'APPS_structured', 'mbpp_structured', 'conala_structured'}:
+            if name in dataset:
+                skip_execution = True
         if skip_execution:
             # Set versions of the predicted program as predicted answer candidates.
             predicted_answers = self._versions(program)
@@ -179,21 +183,26 @@ class Lila(Task):
             answer,  # original
         ]
 
-    def _run(self, program):
-        f = StringIO()
+    def _run(self, program, timeout=1):
+        ran = False
         msg = {}
-        with redirect_stdout(f):
-            try:
+
+        @timeout_decorator.timeout(timeout)
+        def __run():
+            f = StringIO()
+            with redirect_stdout(f):
                 exec(program)
                 answer = f.getvalue().strip()
-                ran = True
-            except Exception as e:
-                answer = 'FAILED'
-                msg = {
-                    'type': str(type(e)),
-                    'exception': str(e)
-                }
-                ran = False
+                return answer, True
+        try:
+            answer, ran = __run()
+        except Exception as e:
+            answer = 'FAILED'
+            msg = {
+                'type': str(type(e)),
+                'exception': str(e)
+            }
+            ran = False
         return answer, ran, msg
 
     def _em(self, predicted, gold):
