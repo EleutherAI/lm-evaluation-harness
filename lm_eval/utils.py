@@ -7,6 +7,8 @@ import inspect
 import sys
 from typing import List
 
+from omegaconf import OmegaConf
+
 
 class ExitCodeError(Exception):
     pass
@@ -27,10 +29,7 @@ def simple_parse_args_string(args_string):
     if not args_string:
         return {}
     arg_list = args_string.split(",")
-    args_dict = {}
-    for arg in arg_list:
-        k, v = arg.split("=")
-        args_dict[k] = v
+    args_dict = OmegaConf.to_object(OmegaConf.from_dotlist(arg_list))
     return args_dict
 
 

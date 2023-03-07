@@ -1,5 +1,5 @@
-import transformers
 import torch
+import transformers
 from lm_eval.base import BaseLM
 
 
@@ -9,6 +9,7 @@ class HFLM(BaseLM):
         device="cuda",
         pretrained="gpt2",
         revision="main",
+        low_cpu_mem_usage=None,
         subfolder=None,
         tokenizer=None,
         batch_size=1,
@@ -37,8 +38,7 @@ class HFLM(BaseLM):
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
         self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
-            pretrained,
-            revision=revision,
+            pretrained, revision=revision, low_cpu_mem_usage=low_cpu_mem_usage
         ).to(self.device)
         self.gpt2.eval()
 
