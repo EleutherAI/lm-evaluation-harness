@@ -8,7 +8,6 @@ problem in natural language.
 Homepage: https://github.com/openai/gpt-3/tree/master/data
 """
 import inspect
-import lm_eval.datasets.arithmetic.arithmetic
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 
