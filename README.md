@@ -29,29 +29,32 @@ pip install "lm-eval[multilingual]"
 
 > **Note**: When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility. This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](#task-versioning) section for more info.
 
-To evaluate a model (e.g. GPT-2) on NLP tasks such as SuperGLUE WiC, you can run the following command:
+To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) you can use the following command:
 
 
 ```bash
 python main.py \
-    --model gpt2 \
+    --model hf-causal \
+    --model_args pretrained=EleutherAI/gpt-j-6B \
     --tasks lambada_openai,hellaswag \
     --device 0
 ```
 
-This example uses gpt2-117M by default as per HF defaults.
-
-Additional arguments can be provided to the model constructor using the `--model_args` flag. Most importantly, the `gpt2` model can be used to load an arbitrary HuggingFace CausalLM. For example, to run GPTNeo use the following:
+Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partialy trained checkpoints:
 
 ```bash
 python main.py \
-    --model gpt2 \
-    --model_args pretrained=EleutherAI/gpt-neo-2.7B \
+    --model hf-causal \
+    --model_args pretrained=EleutherAI/pythia-160m,revision=step100000 \
     --tasks lambada_openai,hellaswag \
     --device 0
 ```
 
-If you have access to the OpenAI API, you can also evaluate GPT-3:
+To evaluate models that are called via `AutoSeq2SeqLM`, you instead use `hf-seq2seq`.
+
+> **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
+
+Our library also supports the OpenAI API:
 
 ```bash
 export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
@@ -61,7 +64,9 @@ python main.py \
     --tasks lambada_openai,hellaswag
 ```
 
-And if you want to verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
+While this functionality is only officially mantained for the official OpenAI API, it tends to also work for other hosting services that use the same API such as [goose.ai](goose.ai) with minor modification. We also have an implementation for the [TextSynth](https://textsynth.com/index.html) API, using `--model textsynth`.
+
+To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
 
 ```bash
 python main.py \
