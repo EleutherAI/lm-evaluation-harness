@@ -30,7 +30,7 @@ _CITATION = """
 
 class Arithmetic(Task):
     VERSION = 0
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.arithmetic.arithmetic)
+    DATASET_PATH = "bfattori/arithmetic"
 
     def has_training_docs(self):
         return False
