@@ -11,6 +11,8 @@ from sqlitedict import SqliteDict
 from tqdm import tqdm
 import torch
 import torch.nn.functional as F
+from accelerate import find_executable_batch_size
+
 
 from lm_eval.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
 from lm_eval import utils
@@ -233,10 +235,27 @@ class BaseLM(LM):
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
-        # TODO: automatic (variable) batch size detection for vectorization
+        
         re_ord = utils.Reorderer(requests, _collate)
+
+        # automatic (variable) batch size detection for vectorization
+        # pull longest context sample from request
+        _, context_enc, continuation_enc = re_ord.get_reordered()[0] 
+        max_context = len(context_enc) + len(continuation_enc)
+        if self.batch_size == 'auto':
+            print('Passed argument batch_size = auto. Detecting largest batch size')
+            @find_executable_batch_size(starting_batch_size=512) # if OOM, then halves batch_size and tries again
+            def forward_batch(batch_size):
+                test_batch = torch.ones((batch_size, max_context), device=self.device).long()
+                self._model_call(test_batch) 
+                return batch_size
+            
+            batch_size = forward_batch() 
+            print(f"Determined Largest batch size: {batch_size}")
+            adaptive_batch_size = batch_size
+
         for chunk in utils.chunks(
-            tqdm(re_ord.get_reordered(), disable=disable_tqdm), self.batch_size
+            tqdm(re_ord.get_reordered(), disable=disable_tqdm), self.batch_size if self.batch_size != "auto" else adaptive_batch_size
         ):
             inps = []
             cont_toks_list = []

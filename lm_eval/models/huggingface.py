@@ -129,7 +129,7 @@ class HuggingFaceAutoLM(BaseLM):
 
         assert isinstance(pretrained, str)
         assert isinstance(device, str)
-        assert isinstance(batch_size, int)
+        assert isinstance(batch_size, (int, str))
         if (
             add_special_tokens is not None
             and self.AUTO_MODEL_CLASS is transformers.AutoModelForCausalLM
@@ -143,7 +143,12 @@ class HuggingFaceAutoLM(BaseLM):
                 not add_special_tokens
             ), "Evaluating causal models with `add_special_tokens=True` is currently not supported."
 
-        self._batch_size = batch_size  # TODO: Adaptive batch size
+        # setup for automatic batch size detection
+        if batch_size == 'auto': 
+            self._batch_size = batch_size
+        else:
+            self._batch_size = int(batch_size) 
+
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
         self._config = self.AUTO_CONFIG_CLASS.from_pretrained(
