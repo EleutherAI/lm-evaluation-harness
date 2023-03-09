@@ -1,7 +1,6 @@
 import torch
 import transformers
 from lm_eval.base import BaseLM
-from accelerate import find_executable_batch_size
 
 class HFLM(BaseLM):
     def __init__(
