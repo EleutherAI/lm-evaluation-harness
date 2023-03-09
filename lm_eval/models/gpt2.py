@@ -69,27 +69,12 @@ class HFLM(BaseLM):
                 31373,
             ], self.tokenizer.encode("hello\n\nhello")
 
-        # multithreading and batching
-        # automatic batch size detection
-        # TODO: this may be suboptimal if using FSDP or offloading params
-        if batch_size == 'auto':
-            print('Passed argument batch_size = auto. Detecting largest batch size')
-            @find_executable_batch_size(starting_batch_size=512) # if OOM, then halves batch_size and tries again
-            def forward_batch(batch_size):
-                # since we pad out samples to maximum length, just fwd pass a full batch at a fixed batch size
-                test_batch = torch.ones((batch_size, self.max_length), device=self.device).long()
-                self._model_call(test_batch) 
-                return batch_size
-            
-            batch_size = forward_batch() 
-            print(f"Determined Largest batch size: {batch_size}")
+        # setup for automatic batch size detection
+        if batch_size == 'auto': 
             self.batch_size_per_gpu = batch_size
-
         else:
-            try:
-                self.batch_size_per_gpu = int(batch_size) 
-            except Exception as e:
-                raise e
+            self.batch_size_per_gpu = int(batch_size) 
+
 
     @property
     def eot_token_id(self):
