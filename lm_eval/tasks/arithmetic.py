@@ -28,7 +28,7 @@ _CITATION = """
 
 class Arithmetic(Task):
     VERSION = 0
-    DATASET_PATH = "bfattori/arithmetic"
+    DATASET_PATH = "EleutherAI/arithmetic"
 
     def has_training_docs(self):
         return False
