@@ -1,7 +1,7 @@
 import torch
 import transformers
 from lm_eval.base import BaseLM
-
+from accelerate import find_executable_batch_size
 
 class HFLM(BaseLM):
     def __init__(
@@ -18,7 +18,7 @@ class HFLM(BaseLM):
 
         assert isinstance(device, str)
         assert isinstance(pretrained, str)
-        assert isinstance(batch_size, int)
+        assert isinstance(batch_size, (int,str))
 
         if device:
             if device not in ["cuda", "cpu"]:
@@ -70,12 +70,26 @@ class HFLM(BaseLM):
             ], self.tokenizer.encode("hello\n\nhello")
 
         # multithreading and batching
-        self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
+        # automatic batch size detection
+        # TODO: this may be suboptimal if using FSDP or offloading params
+        if batch_size == 'auto':
+            print('Passed argument batch_size = auto. Detecting largest batch size')
+            @find_executable_batch_size(starting_batch_size=512) # if OOM, then halves batch_size and tries again
+            def forward_batch(batch_size):
+                # since we pad out samples to maximum length, just fwd pass a full batch at a fixed batch size
+                test_batch = torch.ones((batch_size, self.max_length), device=self.device).long()
+                self._model_call(test_batch) 
+                return batch_size
+            
+            batch_size = forward_batch() 
+            print(f"Determined Largest batch size: {batch_size}")
+            self.batch_size_per_gpu = batch_size
 
-        # TODO: fix multi-gpu
-        # gpus = torch.cuda.device_count()
-        # if gpus > 1:
-        #     self.gpt2 = nn.DataParallel(self.gpt2)
+        else:
+            try:
+                self.batch_size_per_gpu = int(batch_size) 
+            except Exception as e:
+                raise e
 
     @property
     def eot_token_id(self):
