@@ -1,7 +1,7 @@
 import torch
 import transformers
 from lm_eval.base import BaseLM
-
+from accelerate import find_executable_batch_size
 
 class HFLM(BaseLM):
     def __init__(
@@ -18,7 +18,7 @@ class HFLM(BaseLM):
 
         assert isinstance(device, str)
         assert isinstance(pretrained, str)
-        assert isinstance(batch_size, int)
+        assert isinstance(batch_size, (int,str))
 
         if device:
             if device not in ["cuda", "cpu"]:
@@ -69,13 +69,12 @@ class HFLM(BaseLM):
                 31373,
             ], self.tokenizer.encode("hello\n\nhello")
 
-        # multithreading and batching
-        self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
+        # setup for automatic batch size detection
+        if batch_size == 'auto': 
+            self.batch_size_per_gpu = batch_size
+        else:
+            self.batch_size_per_gpu = int(batch_size) 
 
-        # TODO: fix multi-gpu
-        # gpus = torch.cuda.device_count()
-        # if gpus > 1:
-        #     self.gpt2 = nn.DataParallel(self.gpt2)
 
     @property
     def eot_token_id(self):
