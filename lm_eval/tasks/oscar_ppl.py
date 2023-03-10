@@ -41,12 +41,11 @@ class OscarPerplexityGerman(PerplexityTask):
     VERSION = 0
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None):
-        self.dataset = datasets.load_dataset(
-            "malteos/wechsel_de",
-            data_files={
-                "test": "valid.random_1636.json.gz",
-            },
+        args = ("malteos/wechsel_de",)
+        kwargs = dict(
+            data_files={"test": "valid.random_1636.json.gz"},
         )
+        self._download_pushed(args, kwargs, data_dir, cache_dir, download_mode)
 
     def has_training_docs(self):
         return False
