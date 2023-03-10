@@ -41,5 +41,6 @@ setuptools.setup(
     extras_require={
         "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],
         "multilingual": ["nagisa>=0.2.7", "jieba>=0.42.1"],
+        "cohere": ["cohere"],
     },
 )
