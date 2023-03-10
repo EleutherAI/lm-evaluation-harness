@@ -61,7 +61,7 @@ def wikitext_detokenizer(string):
 
 class WikiText(PerplexityTask):
     VERSION = 1
-    DATASET_PATH = "bfattori/wikitext_document_level"
+    DATASET_PATH = "EleutherAI/wikitext_document_level"
     DATASET_NAME = "wikitext-2-raw-v1"
 
     def has_training_docs(self):
