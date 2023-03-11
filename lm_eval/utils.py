@@ -119,9 +119,23 @@ def make_disjoint_window(pair):
 class Reorderer:
     def __init__(self, arr, fn):
         self.size = len(arr)
+
+        # create list of (index, value) pairs
+        # e.g [(0,arr[0]), (1,arr[1])]
         arr = list(enumerate(arr))
+
+        # set arr to a list of lists of entries arr[i]s with the same fn(arr[i])
+        # e.g. [[(0,arr[0]), (1,arr[1])]]
         arr = group(arr, lambda x: fn(x[1]))
+
+        # set arr to list of tuples of original list indices
+        #  mapping to the same fn output and the first
+        #  corresponding value of the original array
+        # e.g. [([0,1], arr[0])]
         arr = [([y[0] for y in x], x[0][1]) for x in arr]
+
+        # sort the list by the value of fn applied to the
+        # first corresponding value of the original array
         arr.sort(key=lambda x: fn(x[1]))
 
         self.arr = arr
