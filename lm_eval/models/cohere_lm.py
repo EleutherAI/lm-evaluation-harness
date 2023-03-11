@@ -124,8 +124,7 @@ class CohereLM(BaseLM):
     def _loglikelihood_tokens(self, requests, disable_tqdm=False):
         """Compute log-likelihood of generating a continuation from a context.
 
-        Downstream tasks should attempt to use loglikelihood instead of other
-        LM calls whenever possible.
+        The log likelihood of tokens can be obtained directly from the API.
 
         :param requests: list
             A list of pairs (context, continuation)
@@ -144,15 +143,29 @@ class CohereLM(BaseLM):
 
         res = []
 
+        # We first create datastructure for the requests
+        # that allows us to:
+        # 1) avoid duplicate requests to minimise API calls
+        # 2) reorder requests to start with the longest requests
+        # We use the following two methods:
+        #
+        # re_ord.get_reordered(): returns
+        #   a list of unique context, continuation pairs
+        #   ordered by descending length of context+continuation
+        # re_ord.get_original(res): given an array res of the same
+        #   len as get_reordered(), returns the original array with
+        #   res array elements switched in for index matching
+        #   original values.
+
         def _collate(x):
-            # this doesn't efficiently handle last-token differences yet, but those are kinda annoying because
-            # it's not guaranteed that the 100 or so logprobs we get to see actually contain all the continuations
-            # we care about and so we need some kind of backup for when it isn't
+            # makes the reorderer sort by descending
+            # length of context+continuation
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
         re_ord = utils.Reorderer(requests, _collate)
 
+        # iterate over chunks (i.e. subsets) of reordered requests
         for chunk in tqdm(
             list(utils.chunks(re_ord.get_reordered(), self.REQ_CHUNK_SIZE)),
             disable=disable_tqdm,
@@ -166,7 +179,8 @@ class CohereLM(BaseLM):
                 ctxlen = len(context_enc) - max(
                     0, len(context_enc) + len(continuation_enc) - (self.max_length + 1)
                 )
-
+                # TODO: why do we need to do this?
+                # list of lists
                 inps.append(inp)
                 ctxlens.append(ctxlen)
 
