@@ -61,13 +61,12 @@ class STS(Task):
         return " {}".format({0: "아니오", 1: "예"}[doc["labels"]["binary-label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_positive, _ = rf.loglikelihood(ctx, " 예")
         ll_negative, _ = rf.loglikelihood(ctx, " 아니오")
-        return ll_positive, ll_negative
+        ll_positive, _ = rf.loglikelihood(ctx, " 예")
+        return ll_negative, ll_positive
 
     def process_results(self, doc, results):
-        ll_positive, ll_negative = results
-        pred = ll_positive > ll_negative
+        pred = np.argmax(results)
         gold = doc["labels"]["binary-label"]
         return {
             "acc": pred == gold,
