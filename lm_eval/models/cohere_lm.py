@@ -1,5 +1,7 @@
+"""Module with Cohere API-based language model."""
+
 import os
-import numpy as np
+import traceback
 import transformers
 from lm_eval.base import BaseLM
 from lm_eval import utils
@@ -8,48 +10,24 @@ import time
 import cohere
 
 
-def get_result(response, ctxlen):
-    """Process results from OpenAI API response.
-
-    :param response: dict
-        OpenAI API Response
-    :param ctxlen: int
-        Length of context (so we can slice them away and only keep the predictions)
-    :return:
-        continuation_logprobs: np.array
-            Log probabilities of continuation tokens
-        is_greedy: bool
-            whether argmax matches given continuation exactly
-    """
-    is_greedy = True
-    logprobs = response["logprobs"]["token_logprobs"]
-    continuation_logprobs = sum(logprobs[ctxlen:])
-
-    for i in range(ctxlen, len(response["logprobs"]["tokens"])):
-        token = response["logprobs"]["tokens"][i]
-        top_tokens = response["logprobs"]["top_logprobs"][i]
-        top_token = max(top_tokens.keys(), key=lambda x: top_tokens[x])
-        if top_token != token:
-            is_greedy = False
-            break
-
-    return continuation_logprobs, is_greedy
-
-
-def oa_completion(**kwargs):
-    """Query OpenAI API for completion.
+def cohere_api_call(cohere_client, kwargs, request_type="generate"):
+    """Query Cohere API.
 
     Retry with back-off until they respond
     """
-
     backoff_time = 3
     while True:
         try:
-            return openai.Completion.create(**kwargs)
-        except openai.error.OpenAIError:
-            import traceback
+            if request_type == "generate":
+                return cohere_client.generate(**kwargs)
+            if request_type == "tokenize":
+                return cohere_client.tokenize(**kwargs)
 
+        except cohere.CohereError:
             traceback.print_exc()
+            print(
+                f"API error detected during evaluation. Will retry same prompt in {backoff_time}s."
+            )
             time.sleep(backoff_time)
             backoff_time *= 1.5
 
@@ -178,19 +156,30 @@ class CohereLM(BaseLM):
         ):
             for (context, continuation), _, _ in chunk:
 
-                response = self.cohere_client.generate(
-                    model=self.model,  # "medium" or "xlarge"
-                    prompt=context + continuation,
-                    max_tokens=0,
-                    temperature=0.0,
-                    return_likelihoods="ALL",
-                    # truncate any tokens from beginning
-                    # over the limit of 2048 of API
-                    truncate="START",
+                # get response from cohere API and retry later if error is thrown
+                response = cohere_api_call(
+                    self.cohere_client,
+                    kwargs=dict(
+                        model=self.model,  # "medium" or "xlarge"
+                        prompt=context + continuation,
+                        max_tokens=0,
+                        temperature=0.0,
+                        return_likelihoods="ALL",
+                        # truncate any tokens from beginning
+                        # over the limit of 2048 of API
+                        truncate="START",
+                    ),
                 )
+
                 token_likelihoods = response.generations[0].token_likelihoods
 
-                contex_token_len = len(self.cohere_client.tokenize(context))
+                contex_token_len = len(
+                    cohere_api_call(
+                        self.cohere_client,
+                        kwargs={"text": context},
+                        request_type="tokenize",
+                    ),
+                )
                 continuation_logprob = sum(
                     [token.likelihood for token in token_likelihoods[contex_token_len:]]
                 )
