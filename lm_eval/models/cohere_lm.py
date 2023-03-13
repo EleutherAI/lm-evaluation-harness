@@ -188,6 +188,7 @@ class CohereLM(BaseLM):
                 # under Cohere's model. Thus setting `is_greedy` return to False.
                 # Not that metrics using this return value will thus not be valid.
                 answer = continuation_logprob, False
+                res.append(answer)
 
                 cache_key = (context, continuation)
                 if cache_key is not None:
