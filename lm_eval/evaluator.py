@@ -8,6 +8,8 @@ import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
 from lm_eval.utils import positional_deprecated, run_task_tests
+from tqdm import tqdm
+from copy import deepcopy
 
 
 @positional_deprecated
@@ -259,9 +261,10 @@ def evaluate(
             process_res_queue[(task_name, doc_id)].append((i, resp))
 
     vals = collections.defaultdict(list)
+    results_cache = collections.defaultdict(list)
 
     # unpack results and sort back in order and return control to Task
-    for (task_name, doc_id), requests in process_res_queue.items():
+    for (task_name, doc_id), requests in tqdm(process_res_queue.items(), total=len(process_res_queue)):
         requests.sort(key=lambda x: x[0])
         requests = [x[1] for x in requests]
 
@@ -270,16 +273,26 @@ def evaluate(
 
         # be backward compatible with tasks that do not allow description_dict in process_results
         if "description" in inspect.getfullargspec(task.process_results).args:
-            metrics = task.process_results(doc, requests, task_to_description[task_name])
+            results = task.process_results(doc, requests, task_to_description[task_name])
         else:
-            metrics = task.process_results(doc, requests)
-        for metric, value in metrics.items():
+            results = task.process_results(doc, requests)
+
+        for metric, value in results.items():
+            if metric == 'metadata':
+                continue
             vals[(task_name, metric)].append(value)
 
             # Re-use the evaluation for the decontaminated set by just ignoring the overlaps
             if decontaminate and task_name in overlaps:
                 if doc_id not in overlaps[task_name]:
                     vals[(task_name, metric + decontaminate_suffix)].append(value)
+
+        # Save document and results (metrics and metadata) in a cache.
+        cached_result = deepcopy(doc)
+        for k, v in results.items():
+            cached_result[k] = v
+
+        results_cache[task_name].append(cached_result)
 
     # aggregate results
     for (task_name, metric), items in vals.items():
@@ -304,7 +317,7 @@ def evaluate(
         if stderr is not None:
             results[task_name][metric + "_stderr"] = stderr(items)
 
-    return {"results": dict(results), "versions": dict(versions)}
+    return {"results": dict(results), "versions": dict(versions), "cache": results_cache}
 
 
 def make_table(result_dict):
