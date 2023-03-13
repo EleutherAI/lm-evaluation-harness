@@ -27,6 +27,9 @@ _CITATION = """
 class Math(Task):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
     DATASET_NAME = None
+    MAJORITY_VOTING = "majority_voting"
+    SAMPLING_TEMPERATURE = "sampling_temperature"
+    EVAL_BATCH_SIZE = "eval_batch_size"
 
     def has_training_docs(self):
         return True
@@ -62,21 +65,76 @@ class Math(Task):
     def doc_to_target(self, doc):
         return " " + doc["solution"]
 
-    def construct_requests(self, doc, ctx):
-        return rf.greedy_until(ctx, ["\n"])
+    def parse_description(self, description):
+        """description is a string with comma-separated key=value tuples
+        e.g.: 
+        "majority_voting=32,sampling_temperature=0.3,eval_batch_size=8"
+        """
+        parsed_dict = {}
+        for term in description.split(","):
+            if not term.strip():
+                continue
+            key, value = term.split("=")
+            parsed_dict[key] = value
+        return parsed_dict
 
-    def process_results(self, doc, results):
-        retval = 0
-        indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
+    def construct_requests(self, doc, ctx, description=""):
+        if not description.strip():
+            return rf.generate(ctx, ["\n"])
+        
+        parsed_description = self.parse_description(description=description)
+        majority_voting_value = int(parsed_description.get(self.MAJORITY_VOTING, 1))
+        sampling_temperature_value = float(parsed_description.get(self.SAMPLING_TEMPERATURE, 1.0))
+        eval_batch_size = parsed_description.get(self.EVAL_BATCH_SIZE, None)
+        eval_batch_size = int(eval_batch_size) if isinstance(eval_batch_size, str) else eval_batch_size
+        return rf.generate(ctx, ["\n"], 
+            majority_voting_value, sampling_temperature_value, eval_batch_size)
+    
+    def get_pure_answer(self, candidate):
+        indices = [pos for pos, char in enumerate(candidate) if char == "$"]
         if len(indices) <= 1:
-            answer = results[0]
+            return candidate
+        return candidate[indices[0] + 1 : indices[-1]]
+
+    def majority_vote(self, candidates):
+        answers = []
+        for candidate in candidates:
+            answer = self.get_pure_answer(candidate)
+            try:
+                answer = self.remove_boxed(self.last_boxed_only_string(answer))
+            except:
+                answer = None
+            answers.append(answer)
+        
+        answer_votes = {}
+        for answer in answers:
+            answer_votes[answer] = answer_votes.get(answer, 0) + 1
+
+        max_vote = 0
+        elected = None
+        for answer, vote in answer_votes.items():
+            if vote > max_vote and answer is not None:
+                elected = answer
+                max_vote = vote
+        return elected
+
+    def process_results(self, doc, results, description=""):
+        retval = 0
+
+        assert isinstance(description, str)
+        if description == "":
+            last_box_content = self.last_boxed_only_string(results[0])
+            answer = self.get_pure_answer(self.remove_boxed(last_box_content)) if last_box_content is not None else self.get_pure_answer(results[0])
+        elif self.MAJORITY_VOTING in self.parse_description(description):
+            answer = self.majority_vote(results[0])
         else:
-            answer = results[0][indices[0] + 1 : indices[-1]]
+            raise AssertionError
 
         if self.is_equiv(
             answer, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
         ):
             retval = 1
+
         return {"acc": retval}
 
     def aggregation(self):

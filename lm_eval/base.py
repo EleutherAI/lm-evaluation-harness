@@ -7,6 +7,7 @@ import os
 import json
 import hashlib
 import datasets
+import inspect
 from sqlitedict import SqliteDict
 from tqdm import tqdm
 import torch
@@ -329,11 +330,7 @@ class BaseLM(LM):
 
         return re_ord.get_original(res)
 
-    def greedy_until(self, requests):
-        # TODO: implement fully general `until` that handles until that are
-        #       multiple tokens or that span multiple tokens correctly
-
-        # TODO: extract to TokenizedLM?
+    def generate(self, requests):
         res = []
 
         def _collate(x):
@@ -342,31 +339,61 @@ class BaseLM(LM):
 
         re_ord = utils.Reorderer(requests, _collate)
 
-        for context, until in tqdm(re_ord.get_reordered()):
+        for request in tqdm(re_ord.get_reordered()):
+            if len(request) == 2:
+                # Unpack greedy sample request
+                context, until, = request
+                k, temperature = 1, 0.
+                greedy = True
+                _model_generate_kwargs = {}
+            elif len(request) == 4:
+                # Unpack temperature sample request
+                context, until, k, temperature = request
+                for key in ["k", "temperature"]:
+                    assert key in inspect.getfullargspec(self._model_generate).args, \
+                        f"Model generation parameter '{key}' not accepted as an argument for _model_generate"
+                greedy = False
+                _model_generate_kwargs = {"k": k, "temperature": temperature}
+            elif len(request) == 5:
+                context, until, k, temperature, k_batch = request
+                for key in ["k", "temperature", "k_batch"]:
+                    assert key in inspect.getfullargspec(self._model_generate).args, \
+                        f"Model generation parameter '{key}' not accepted as an argument for _model_generate"
+                greedy = False
+                _model_generate_kwargs = {"k": k, "temperature": temperature, "k_batch": k_batch}
+            else:
+                raise AssertionError
+
             if isinstance(until, str):
                 until = [until]
-
             (primary_until,) = self.tok_encode(until[0])
 
             context_enc = torch.tensor(
                 [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
             ).to(self.device)
-
+            
             cont = self._model_generate(
-                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until
+                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until,
+                **_model_generate_kwargs
             )
-
-            s = self.tok_decode(cont[0].tolist()[context_enc.shape[1] :])
-
+            
+            generated_tokens = cont[:, context_enc.shape[1]:]
+            s = [self.tok_decode(candidate) for candidate in generated_tokens]
             for term in until:
-                s = s.split(term)[0]
+                s = [candidate.split(term)[0] for candidate in s]
 
+            s = s[0] if greedy else s
             # partial caching
-            self.cache_hook.add_partial("greedy_until", (context, until), s)
-
+            self.cache_hook.add_partial("generate", (context, until, k, temperature), s)
             res.append(s)
-
         return re_ord.get_original(res)
+
+    def greedy_until(self, requests):
+        # TODO: implement fully general `until` that handles until that are
+        #       multiple tokens or that span multiple tokens correctly
+
+        # TODO: extract to TokenizedLM?
+        return self.generate(requests)
 
 
 class Task(abc.ABC):
@@ -843,6 +870,7 @@ class CachingLM:
 REQUEST_RETURN_LENGTHS = {
     "loglikelihood": 2,
     "greedy_until": None,
+    "generate": None,
     "loglikelihood_rolling": None,
 }
 

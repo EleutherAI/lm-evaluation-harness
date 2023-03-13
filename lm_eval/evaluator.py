@@ -2,6 +2,7 @@ import collections
 import itertools
 import numpy as np
 import random
+import inspect
 import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
@@ -177,6 +178,7 @@ def evaluate(
     docs = {}
 
     docs_for_decontamination = collections.defaultdict(list)
+    task_to_description = {}
 
     # get lists of each type of request
     for task_name, task in task_dict_items:
@@ -203,6 +205,7 @@ def evaluate(
             if description_dict and task_name in description_dict
             else ""
         )
+        task_to_description[task_name] = description
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
 
@@ -215,7 +218,10 @@ def evaluate(
             ctx = task.fewshot_context(
                 doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
             )
-            reqs = task.construct_requests(doc, ctx)
+            if "description" in inspect.getfullargspec(task.construct_requests).args:
+                reqs = task.construct_requests(doc, ctx, description=description)
+            else:
+                reqs = task.construct_requests(doc, ctx)
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]
             for i, req in enumerate(reqs):
@@ -262,7 +268,11 @@ def evaluate(
         task = task_dict[task_name]
         doc = docs[(task_name, doc_id)]
 
-        metrics = task.process_results(doc, requests)
+        # be backward compatible with tasks that do not allow description_dict in process_results
+        if "description" in inspect.getfullargspec(task.process_results).args:
+            metrics = task.process_results(doc, requests, task_to_description[task_name])
+        else:
+            metrics = task.process_results(doc, requests)
         for metric, value in metrics.items():
             vals[(task_name, metric)].append(value)
 
