@@ -85,6 +85,26 @@ python write_out.py \
 
 This will write out one text file for each task.
 
+### Advanced usage (e.g. majority voting, decoding hyperparameters)
+**Warning:** Currently only the tasks defined in `hendrycks_math.py` support these options. If you are interested in adding this functionality to other tasks, see [this guide](./docs/task_guide.md).
+
+Additional generation options can be specified through a configuration file and the `--description_dict_path` argument.
+For example, to enable majority voting with temperature 0.3 on the `math_algebra` task, we create a `config.json` file:
+```json
+{
+    "math_algebra": "majority_voting=32,sampling_temperature=0.3"
+}
+```
+then pass the file through the `--description_dict_path` argument:
+```bash
+python main.py --model gpt2 \
+    --tasks math_algebra 
+    --description_dict_path config.json 
+    --device cuda 
+    --num_fewshot 3 
+```
+
+
 ## Implementing new tasks
 
 To implement a new task in the eval harness, see [this guide](./docs/task_guide.md).
