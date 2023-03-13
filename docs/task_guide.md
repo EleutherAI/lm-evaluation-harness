@@ -250,6 +250,29 @@ Some tasks that are good examples of various ways evaluation can be implemented 
 
 Tip: Feel free to create your own helper-methods for your task!
 
+### Adding support for generation settings (e.g. majority voting, sampling hyperparameters)
+The `process_results` function can take an additional `description` string parameter:
+```python
+def process_results(self, doc, results, description=""):
+   ...
+```
+The `description` is parsed from a config file containing a task description. For example, the following `config.json` specifies generation settings for the `math_algebra` task:
+```json
+{
+    "math_algebra": "majority_voting=32,sampling_temperature=0.3"
+}
+```
+
+The `process_results` function can then parse the configuration, and call `rf.generate` with the parsed settings.
+See [MATH](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py) for an example; namely, this file contains the call
+```python
+rf.generate(ctx, ["\n"], 
+            majority_voting_value, sampling_temperature_value, eval_batch_size)
+```
+where `majority_voting_value, sampling_temperature_value, eval_batch_size` are parsed from the `description`. 
+
+
+
 ### Checking the Task Performance
 
 ```sh
