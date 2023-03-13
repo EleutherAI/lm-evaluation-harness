@@ -58,11 +58,11 @@ class STS(Task):
         )
 
     def doc_to_target(self, doc):
-        return " {}".format({1: " 예", 0: " 아니"}[doc["labels"]["binary-label"]])
+        return " {}".format({0: "아니오", 1: "예"}[doc["labels"]["binary-label"]])
 
     def construct_requests(self, doc, ctx):
         ll_positive, _ = rf.loglikelihood(ctx, " 예")
-        ll_negative, _ = rf.loglikelihood(ctx, " 아니")
+        ll_negative, _ = rf.loglikelihood(ctx, " 아니오")
         return ll_positive, ll_negative
 
     def process_results(self, doc, results):
