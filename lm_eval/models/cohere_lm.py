@@ -59,7 +59,7 @@ class CohereLM(BaseLM):
 
     REQ_CHUNK_SIZE = 20
 
-    def __init__(self, model, truncate=False):
+    def __init__(self, model="medium", truncate=False):
         """Language model accessed via Cohere API.
 
         The API is documented here: https://docs.cohere.ai/reference/generate.
@@ -70,6 +70,7 @@ class CohereLM(BaseLM):
 
         :param model: str
             The type of Cohere model to be used, can be either `medium` or `xlarge`.
+            Deaults to `medium`.
         :param truncate: bool
             Truncate input if too long (if False and input is too long, throw error)
         """
@@ -127,12 +128,14 @@ class CohereLM(BaseLM):
         The log likelihood of tokens can be obtained directly from the API.
 
         :param requests: list
-            A list of pairs (context, continuation)
+            A list with elements ((context, continuation), context_enc, continuation_enc)
+            Where
             context: str
-                Context as tokens.
+                Context string.
             continuation: str
                 The continuation as tokens over which log likelihood
                 will be calculated.
+            *_enc: the encoded (tokenised) version of context und continuations.
         :return: list
             A list of pairs (logprob, isgreedy)
             logprob: float
@@ -146,21 +149,24 @@ class CohereLM(BaseLM):
         # We first create datastructure for the requests
         # that allows us to:
         # 1) avoid duplicate requests to minimise API calls
-        # 2) reorder requests to start with the longest requests
+        # 2) reorder requests to start with the longest requests to
+        #   have out-of-memory errors at the beginning of loop.
+        #
         # We use the following two methods:
         #
         # re_ord.get_reordered(): returns
         #   a list of unique context, continuation pairs
-        #   ordered by descending length of context+continuation
+        #   (where any split between context and contuation is considered
+        #   identical). Ordered by descending length of context+continuation
         # re_ord.get_original(res): given an array res of the same
         #   len as get_reordered(), returns the original array with
         #   res array elements switched in for index matching
         #   original values.
 
-        def _collate(x):
+        def _collate(val):
             # makes the reorderer sort by descending
             # length of context+continuation
-            toks = x[1] + x[2]
+            toks = val[1] + val[2]
             return -len(toks), tuple(toks)
 
         re_ord = utils.Reorderer(requests, _collate)
@@ -170,44 +176,31 @@ class CohereLM(BaseLM):
             list(utils.chunks(re_ord.get_reordered(), self.REQ_CHUNK_SIZE)),
             disable=disable_tqdm,
         ):
-            inps = []
-            ctxlens = []
-            for cache_key, context_enc, continuation_enc in chunk:
-                # max_length+1 because the API takes up to 2049 tokens, including the first context token
-                inp = (context_enc + continuation_enc)[-(self.max_length + 1) :]
-                # TODO: the logic is much simpler if we just look at the length of continuation tokens
-                ctxlen = len(context_enc) - max(
-                    0, len(context_enc) + len(continuation_enc) - (self.max_length + 1)
+            for (context, continuation), _, _ in chunk:
+
+                response = self.cohere_client.generate(
+                    model=self.model,  # "medium" or "xlarge"
+                    prompt=context + continuation,
+                    max_tokens=0,
+                    temperature=0.0,
+                    return_likelihoods="ALL",
+                    # truncate any tokens from beginning
+                    # over the limit of 2048 of API
+                    truncate="START",
                 )
-                # TODO: why do we need to do this?
-                # list of lists
-                inps.append(inp)
-                ctxlens.append(ctxlen)
+                token_likelihoods = response.generations[0].token_likelihoods
 
-            response = self.cohere_client.generate(
-                model=self.model,  # "medium" or "xlarge"
-                prompt=inps,
-                max_tokens=0,
-                temperature=0.0,
-            )
+                contex_token_len = len(self.cohere_client.tokenize(context))
+                continuation_logprob = sum(
+                    [token.likelihood for token in token_likelihoods[contex_token_len:]]
+                )
 
-            oa_completion(
-                engine=self.engine,
-                prompt=inps,
-                echo=True,
-                max_tokens=0,
-                temperature=0.0,
-                logprobs=10,
-            )
+                # Note that we cannot deduce whether the prompt is greedy
+                # under Cohere's model. Thus setting `is_greedy` return to False.
+                # Not that metrics using this return value will thus not be valid.
+                answer = continuation_logprob, False
 
-            for resp, ctxlen, (cache_key, context_enc, continuation_enc) in zip(
-                response.choices, ctxlens, chunk
-            ):
-                answer = get_result(resp, ctxlen)
-
-                res.append(answer)
-
-                # partial caching
+                cache_key = (context, continuation)
                 if cache_key is not None:
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
