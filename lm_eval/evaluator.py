@@ -273,11 +273,11 @@ def evaluate(
 
         # be backward compatible with tasks that do not allow description_dict in process_results
         if "description" in inspect.getfullargspec(task.process_results).args:
-            results = task.process_results(doc, requests, task_to_description[task_name])
+            outputs = task.process_results(doc, requests, task_to_description[task_name])
         else:
-            results = task.process_results(doc, requests)
+            outputs = task.process_results(doc, requests)
 
-        for metric, value in results.items():
+        for metric, value in outputs.items():
             if metric == 'metadata':
                 continue
             vals[(task_name, metric)].append(value)
@@ -287,9 +287,9 @@ def evaluate(
                 if doc_id not in overlaps[task_name]:
                     vals[(task_name, metric + decontaminate_suffix)].append(value)
 
-        # Save document and results (metrics and metadata) in a cache.
+        # Save document and outputs of `process_results` (metrics and metadata) in a cache.
         cached_result = deepcopy(doc)
-        for k, v in results.items():
+        for k, v in outputs.items():
             cached_result[k] = v
 
         results_cache[task_name].append(cached_result)
