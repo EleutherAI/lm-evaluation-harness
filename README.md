@@ -90,19 +90,11 @@ python write_out.py \
 
 This will write out one text file for each task.
 
-### Accelerate
-You can use the HuggingFace `accelerate` library. To do so, use the `--accelerate` flag along with a `hf-causal` or `hf-seq2seq` model. 
-Here is an example command:
-```bash
-python main.py \
-    --model hf-causal \
-    --model_args pretrained=EleutherAI/pythia-2.8b-deduped \
-    --num_fewshot 5 \
-    --tasks lila_addsub
-```
 
-### Advanced usage (e.g. majority voting, decoding hyperparameters)
-**Warning:** Currently only the tasks defined in `hendrycks_math.py` support these options. If you are interested in adding this functionality to other tasks, see [this guide](./docs/task_guide.md).
+
+## Advanced features
+
+### Majority voting, generation hyperparameters
 
 Additional generation options can be specified through a configuration file and the `--description_dict_path` argument.
 For example, to enable majority voting with temperature 0.3 on the `math_algebra` task, we create a `config.json` file containing a `params` field:
@@ -121,8 +113,9 @@ python main.py --model gpt2 \
     --device cuda 
     --num_fewshot 3 
 ```
+**Warning:** Currently only the tasks defined in `hendrycks_math.py` support these options. If you are interested in adding this functionality to other tasks, see [this guide](./docs/task_guide.md).
 
-#### Prepending a task description in the prompt
+### Prepending a task description in the prompt
 In the `config` file, you can add a `description` field containing a string. The string will be prepended to each prompt during evaluation.
 Continuing the example from above, we have a `config.json` file containing:
 ```json
@@ -132,6 +125,17 @@ Continuing the example from above, we have a `config.json` file containing:
         "description": "You will solve a mathematical problem. Here are some examples:", 
     }
 }
+```
+
+### Accelerate
+You can use the HuggingFace `accelerate` library. To do so, use the `--accelerate` flag along with a `hf-causal` or `hf-seq2seq` model. 
+Here is an example command:
+```bash
+python main.py \
+    --model hf-causal \
+    --model_args pretrained=EleutherAI/pythia-2.8b-deduped \
+    --num_fewshot 5 \
+    --tasks lila_addsub
 ```
 
 ## Implementing new tasks
