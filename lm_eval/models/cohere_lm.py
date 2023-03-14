@@ -192,7 +192,8 @@ class CohereLM(BaseLM):
                 answer = continuation_logprob, False
                 res.append(answer)
 
-                # TODO: does this cache key logic make any sense? This is copied from gpt3.py LM class.
+                # TODO: does this cache key logic make any sense?
+                # The logic is copied from gpt3.py LM class.
                 cache_key = (context, continuation)
                 if cache_key is not None:
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
@@ -226,6 +227,9 @@ class CohereLM(BaseLM):
         re_ord = utils.Reorderer(requests, _collate)
 
         def sameuntil_chunks(xs, size):
+            """Iterable that returns sublists of xs of max len `size`
+            and with identical until values.
+            """
             ret = []
             lastuntil = xs[0][1]
             for x in xs:
@@ -238,35 +242,31 @@ class CohereLM(BaseLM):
             if ret:
                 yield ret, lastuntil
 
-        # todo: more intelligent batching for heterogeneous `until`
         for chunk, until in tqdm(
             list(sameuntil_chunks(re_ord.get_reordered(), self.REQ_CHUNK_SIZE))
         ):
-            inps = []
             for context, _ in chunk:
-                context_enc = self.tok_encode(context)
-                inp = context_enc[-(self.max_length - self.max_gen_toks) :]
-                inps.append(inp)
-
-            response = oa_completion(
-                engine=self.engine,
-                prompt=inps,
-                max_tokens=self.max_gen_toks,
-                temperature=0.0,
-                logprobs=10,
-                stop=until,
-            )
-
-            for resp, (context, until_) in zip(response.choices, chunk):
-                s = resp["text"]
-
-                for term in until_:
-                    s = s.split(term)[0]
+                response = cohere_api_call(
+                    self.cohere_client,
+                    kwargs=dict(
+                        model=self.model,  # "medium" or "xlarge"
+                        prompt=context,
+                        max_tokens=self.max_gen_toks,
+                        temperature=0.0,
+                        return_likelihoods="ALL",
+                        # truncate any tokens from beginning
+                        # over the limit of 2048 of API
+                        truncate="START",
+                        # end sequences are NOT included in returned text
+                        end_sequences=until,
+                    ),
+                )
+                gen_text = response.generations[0].text
 
                 # partial caching
-                self.cache_hook.add_partial("greedy_until", (context, until_), s)
+                self.cache_hook.add_partial("greedy_until", (context, until), gen_text)
 
-                res.append(s)
+                res.append(gen_text)
 
         return re_ord.get_original(res)
 
