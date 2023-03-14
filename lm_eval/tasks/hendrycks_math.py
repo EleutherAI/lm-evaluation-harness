@@ -63,31 +63,17 @@ class Math(Task):
         return doc["problem"]
 
     def doc_to_target(self, doc):
-        return " " + doc["solution"]
+        return " " + doc["solution"] + " The answer is " + self.last_boxed_only_string(doc['solution']) + "```"
 
-    def parse_description(self, description):
-        """description is a string with comma-separated key=value tuples
-        e.g.: 
-        "majority_voting=32,sampling_temperature=0.3,eval_batch_size=8"
-        """
-        parsed_dict = {}
-        for term in description.split(","):
-            if not term.strip():
-                continue
-            key, value = term.split("=")
-            parsed_dict[key] = value
-        return parsed_dict
-
-    def construct_requests(self, doc, ctx, description=""):
-        if not description.strip():
-            return rf.generate(ctx, ["\n"])
+    def construct_requests(self, doc, ctx, params={}):
+        if params == {}:
+            return rf.generate(ctx, ["``"])
         
-        parsed_description = self.parse_description(description=description)
-        majority_voting_value = int(parsed_description.get(self.MAJORITY_VOTING, 1))
-        sampling_temperature_value = float(parsed_description.get(self.SAMPLING_TEMPERATURE, 1.0))
-        eval_batch_size = parsed_description.get(self.EVAL_BATCH_SIZE, None)
+        majority_voting_value = int(params.get(self.MAJORITY_VOTING, 1))
+        sampling_temperature_value = float(params.get(self.SAMPLING_TEMPERATURE, 1.0))
+        eval_batch_size = params.get(self.EVAL_BATCH_SIZE, None)
         eval_batch_size = int(eval_batch_size) if isinstance(eval_batch_size, str) else eval_batch_size
-        return rf.generate(ctx, ["\n"], 
+        return rf.generate(ctx, ["``"],
             majority_voting_value, sampling_temperature_value, eval_batch_size)
     
     def get_pure_answer(self, candidate):
@@ -99,9 +85,8 @@ class Math(Task):
     def majority_vote(self, candidates):
         answers = []
         for candidate in candidates:
-            answer = self.get_pure_answer(candidate)
             try:
-                answer = self.remove_boxed(self.last_boxed_only_string(answer))
+                answer = self.remove_boxed(self.last_boxed_only_string(candidate))
             except:
                 answer = None
             answers.append(answer)
@@ -118,14 +103,14 @@ class Math(Task):
                 max_vote = vote
         return elected
 
-    def process_results(self, doc, results, description=""):
+    def process_results(self, doc, results, params={}):
         retval = 0
 
-        assert isinstance(description, str)
-        if description == "":
+        assert isinstance(params, dict)
+        if params == {}:
             last_box_content = self.last_boxed_only_string(results[0])
             answer = self.get_pure_answer(self.remove_boxed(last_box_content)) if last_box_content is not None else self.get_pure_answer(results[0])
-        elif self.MAJORITY_VOTING in self.parse_description(description):
+        elif self.MAJORITY_VOTING in params:
             answer = self.majority_vote(results[0])
         else:
             raise AssertionError
@@ -337,6 +322,20 @@ class Math(Task):
         string = self.fix_a_slash_b(string)
 
         return string
+
+class MathAlgebraEasy(Math):
+    VERSION = 1
+    DATASET_NAME = "algebra"
+
+    def training_docs(self):
+        data = map(self._process_doc, self.dataset["train"])
+        data = filter(lambda x: x['level'] == 'Level 1', data)
+        return data
+
+    def test_docs(self):
+        data = map(self._process_doc, self.dataset["train"])
+        data = filter(lambda x: x['level'] == 'Level 1', data)
+        return data
 
 
 class MathAlgebra(Math):
