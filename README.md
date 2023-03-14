@@ -105,10 +105,12 @@ python main.py \
 **Warning:** Currently only the tasks defined in `hendrycks_math.py` support these options. If you are interested in adding this functionality to other tasks, see [this guide](./docs/task_guide.md).
 
 Additional generation options can be specified through a configuration file and the `--description_dict_path` argument.
-For example, to enable majority voting with temperature 0.3 on the `math_algebra` task, we create a `config.json` file:
+For example, to enable majority voting with temperature 0.3 on the `math_algebra` task, we create a `config.json` file containing a `params` field:
 ```json
 {
-    "math_algebra": "majority_voting=32,sampling_temperature=0.3"
+    "math_algebra": {
+        "params": {"majority_voting": 16, "sampling_temperature":0.5, "eval_batch_size":4},
+    }
 }
 ```
 then pass the file through the `--description_dict_path` argument:
@@ -120,6 +122,17 @@ python main.py --model gpt2 \
     --num_fewshot 3 
 ```
 
+#### Prepending a task description in the prompt
+In the `config` file, you can add a `description` field containing a string. The string will be prepended to each prompt during evaluation.
+Continuing the example from above, we have a `config.json` file containing:
+```json
+{
+    "math_algebra": {
+        "params": {"majority_voting": 16, "sampling_temperature":0.5, "eval_batch_size":4},
+        "description": "You will solve a mathematical problem. Here are some examples:", 
+    }
+}
+```
 
 ## Implementing new tasks
 
