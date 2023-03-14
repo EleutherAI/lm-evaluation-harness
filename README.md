@@ -90,6 +90,17 @@ python write_out.py \
 
 This will write out one text file for each task.
 
+### Accelerate
+You can use the HuggingFace `accelerate` library. To do so, use the `--accelerate` flag along with a `hf-causal` or `hf-seq2seq` model. 
+Here is an example command:
+```bash
+python main.py \
+    --model hf-causal \
+    --model_args pretrained=EleutherAI/pythia-2.8b-deduped \
+    --num_fewshot 5 \
+    --tasks lila_addsub
+```
+
 ### Advanced usage (e.g. majority voting, decoding hyperparameters)
 **Warning:** Currently only the tasks defined in `hendrycks_math.py` support these options. If you are interested in adding this functionality to other tasks, see [this guide](./docs/task_guide.md).
 
