@@ -390,6 +390,9 @@ class AutoCausalLM(HuggingFaceAutoLM):
         inputs: transformers.BatchEncoding,
         max_tokens: int,
         stop: Optional[List[str]] = None,
+        num_return_sequences: int = 1,
+        num_return_sequences_batch: int = -1,
+        temperature: float = 0.0
     ) -> TokenSequence:
         # Ensure that the context does not encroach into the `space`
         # for the generation.
@@ -404,19 +407,30 @@ class AutoCausalLM(HuggingFaceAutoLM):
             self.tokenizer, stop, input_ids.shape[1], input_ids.shape[0]
         )
 
-        generations = self.model.generate(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-            # GPT style models require the `generate` `max_length` arg to include the
-            # context length, so we instead set `max_new_tokens` which is the number
-            # of new tokens to generate, excluding the current number of tokens.
-            max_new_tokens=max_tokens,
-            stopping_criteria=stopping_criteria,
-            do_sample=False,
-        )
-        return utils.select_continuation_from_batch_left_padding(
-            generations, max_context_size=inputs["input_ids"].size(1)
-        )
+        if num_return_sequences_batch > 0:
+            num_batches = num_return_sequences // num_return_sequences_batch
+            num_return_sequences = num_return_sequences_batch
+        else:
+            num_batches = 1
+
+        outputs = []
+        for _ in range(num_batches):
+            generations = self.model.generate(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                # GPT style models require the `generate` `max_length` arg to include the
+                # context length, so we instead set `max_new_tokens` which is the number
+                # of new tokens to generate, excluding the current number of tokens.
+                max_new_tokens=max_tokens,
+                stopping_criteria=stopping_criteria,
+                do_sample=temperature > 0,
+                temperature=temperature,
+                num_return_sequences=num_return_sequences
+            )
+            outputs_ = self.tok_decode(generations[:, inputs['input_ids'].size(1):].tolist())
+            outputs.extend(outputs_)
+
+        return outputs
 
 
 class AutoSeq2SeqLM(HuggingFaceAutoLM):
