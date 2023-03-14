@@ -122,23 +122,23 @@ class HFLM(BaseLM):
         with torch.no_grad():
             return self.gpt2(inps)[0]
 
-    def _model_generate(self, context, max_length, eos_token_id, k=1, temperature=0., k_batch=None):
-        assert (isinstance(k, int) and k >= 1), f"Incorrect number of candidates to generate: {k}"
+    def _model_generate(self, context, max_length, eos_token_id, num_return_sequences=1, temperature=0., num_return_sequences_batch=None):
+        assert (isinstance(num_return_sequences, int) and num_return_sequences >= 1), f"Incorrect number of candidates to generate: {num_return_sequences}"
         assert temperature >= 0., f"Negative sampling temperature: {temperature}"
         
         # Whether to sample or to decode greedily
         do_sample = (temperature != 0.)
         if not do_sample:
             # If decoding greedily, only sample once
-            assert k == 1, f"Decoding greedily but {k} generations"
+            assert num_return_sequences == 1, f"Decoding greedily but {num_return_sequences} generations"
 
-        if k_batch is not None and k > 1:
-            context = context.expand(k_batch, context.shape[1])
+        if num_return_sequences_batch is not None and num_return_sequences > 1:
+            context = context.expand(num_return_sequences_batch, context.shape[1])
             generated_vectors = [
                 self.gpt2.generate(
                     context, max_length=max_length, eos_token_id=eos_token_id,
                     do_sample=do_sample, temperature=temperature
-                ) for _ in range(math.ceil(k/k_batch))
+                ) for _ in range(math.ceil(num_return_sequences/num_return_sequences_batch))
             ]
             # Pad the generated vectors such that they have the same length
             max_length = max(element.size(1) for element in generated_vectors)
@@ -147,12 +147,12 @@ class HFLM(BaseLM):
                 if vector.size(1) < max_length:
                     vector = torch.cat([vector, torch.zeros(vector.size(0), max_length-vector.size(1), dtype=torch.int32, device=self._device)], dim=1)
                 padded_vectors.append(vector)
-            return torch.cat(padded_vectors, dim=0)[:k]
+            return torch.cat(padded_vectors, dim=0)[:num_return_sequences]
         
-        assert k_batch is None
+        assert num_return_sequences_batch is None
 
-        if k > 1:
-            context = context.expand(k, context.shape[1])
+        if num_return_sequences > 1:
+            context = context.expand(num_return_sequences, context.shape[1])
         return self.gpt2.generate(
             context, max_length=max_length, eos_token_id=eos_token_id,
             do_sample=do_sample, temperature=temperature
