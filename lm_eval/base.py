@@ -343,48 +343,67 @@ class BaseLM(LM):
             if len(request) == 2:
                 # Unpack greedy sample request
                 context, until, = request
-                k, temperature = 1, 0.
+                num_return_sequences, temperature = 1, 0.
                 greedy = True
                 _model_generate_kwargs = {}
             elif len(request) == 4:
                 # Unpack temperature sample request
-                context, until, k, temperature = request
-                for key in ["k", "temperature"]:
+                context, until, num_return_sequences, temperature = request
+                for key in ["num_return_sequences", "temperature"]:
                     assert key in inspect.getfullargspec(self._model_generate).args, \
                         f"Model generation parameter '{key}' not accepted as an argument for _model_generate"
                 greedy = False
-                _model_generate_kwargs = {"k": k, "temperature": temperature}
+                _model_generate_kwargs = {
+                    "num_return_sequences": num_return_sequences,
+                    "temperature": temperature
+                }
             elif len(request) == 5:
-                context, until, k, temperature, k_batch = request
-                for key in ["k", "temperature", "k_batch"]:
+                context, until, num_return_sequences, temperature, num_return_sequences_batch = request
+                for key in ["num_return_sequences", "temperature", "num_return_sequences_batch"]:
                     assert key in inspect.getfullargspec(self._model_generate).args, \
                         f"Model generation parameter '{key}' not accepted as an argument for _model_generate"
                 greedy = False
-                _model_generate_kwargs = {"k": k, "temperature": temperature, "k_batch": k_batch}
+                _model_generate_kwargs = {
+                    "num_return_sequences": num_return_sequences,
+                    "temperature": temperature,
+                    "num_return_sequences_batch": num_return_sequences_batch
+                }
             else:
                 raise AssertionError
 
-            if isinstance(until, str):
-                until = [until]
-            (primary_until,) = self.tok_encode(until[0])
+            from lm_eval.models.huggingface import AutoCausalLM
+            if isinstance(self, AutoCausalLM):
+                if isinstance(until, str):
+                    until = [until]
+                context_enc = self.tok_encode_batch(context)
+                s = self._model_generate(
+                    inputs=context_enc,
+                    max_tokens=context_enc['input_ids'].shape[1] + self.max_gen_toks,
+                    stop=until,
+                    **_model_generate_kwargs
+                )
+            else:
+                if isinstance(until, str):
+                    until = [until]
+                (primary_until,) = self.tok_encode(until[0])
 
-            context_enc = torch.tensor(
-                [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
-            ).to(self.device)
-            
-            cont = self._model_generate(
-                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until,
-                **_model_generate_kwargs
-            )
-            
-            generated_tokens = cont[:, context_enc.shape[1]:]
-            s = [self.tok_decode(candidate) for candidate in generated_tokens]
+                context_enc = torch.tensor(
+                    [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
+                ).to(self.device)
+
+                cont = self._model_generate(
+                    context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until,
+                    **_model_generate_kwargs
+                )
+                generated_tokens = cont[:, context_enc.shape[1]:]
+                s = [self.tok_decode(candidate) for candidate in generated_tokens]
+
             for term in until:
                 s = [candidate.split(term)[0] for candidate in s]
 
             s = s[0] if greedy else s
             # partial caching
-            self.cache_hook.add_partial("generate", (context, until, k, temperature), s)
+            self.cache_hook.add_partial("generate", (context, until, num_return_sequences, temperature), s)
             res.append(s)
         return re_ord.get_original(res)
 

@@ -113,11 +113,16 @@ class Lila(Task):
             gold_program=doc['output_program'],
             dataset=doc['dataset']
         )
-        return {
+        results = {
             "f1": f1,
             "exact_match": exact_match,
-            "ran": ran
+            "ran": ran,
+            "metadata": {
+                "exec_result": exec_result,
+                "program": program
+            }
         }
+        return results
 
     def aggregation(self):
         """
