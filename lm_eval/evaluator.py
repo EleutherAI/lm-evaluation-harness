@@ -3,6 +3,7 @@ import itertools
 import numpy as np
 import random
 import inspect
+import json
 import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
@@ -26,6 +27,12 @@ def simple_evaluate(
     description_dict=None,
     check_integrity=False,
     decontamination_ngrams_path=None,
+    use_accelerate=False,
+    accelerate_device_map_option="auto",
+    accelerate_max_memory_per_gpu=None,
+    accelerate_max_cpu_memory=None,
+    accelerate_offload_folder="./offload",
+    accelerate_dtype=None,
 ):
 
     """Instantiate and evaluate a model on a list of tasks.
@@ -65,7 +72,16 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
         lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device}
+            model_args, {
+                "batch_size": batch_size,
+                "device": device,
+                "use_accelerate": use_accelerate,
+                "device_map_option": accelerate_device_map_option,
+                "max_memory_per_gpu": accelerate_max_memory_per_gpu,
+                "max_cpu_memory": accelerate_max_cpu_memory,
+                "offload_folder": accelerate_offload_folder,
+                "dtype": accelerate_dtype   
+            }
         )
     else:
         assert isinstance(model, lm_eval.base.LM)
@@ -181,6 +197,7 @@ def evaluate(
 
     docs_for_decontamination = collections.defaultdict(list)
     task_to_description = {}
+    task_to_params = {}
 
     # get lists of each type of request
     for task_name, task in task_dict_items:
@@ -202,12 +219,13 @@ def evaluate(
         rnd.seed(42)
         rnd.shuffle(task_docs)
 
-        description = (
+        task_config = (
             description_dict[task_name]
             if description_dict and task_name in description_dict
-            else ""
+            else {}
         )
-        task_to_description[task_name] = description
+        task_to_description[task_name] = task_config.get("description", "")
+        task_to_params[task_name] = task_config.get("params", {})
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
 
@@ -217,11 +235,12 @@ def evaluate(
                 )
 
             docs[(task_name, doc_id)] = doc
+
             ctx = task.fewshot_context(
-                doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
+                doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=task_to_description[task_name]
             )
-            if "description" in inspect.getfullargspec(task.construct_requests).args:
-                reqs = task.construct_requests(doc, ctx, description=description)
+            if "params" in inspect.getfullargspec(task.construct_requests).args:
+                reqs = task.construct_requests(doc, ctx, params=task_to_params[task_name])
             else:
                 reqs = task.construct_requests(doc, ctx)
             if not isinstance(reqs, (list, tuple)):
@@ -272,8 +291,8 @@ def evaluate(
         doc = docs[(task_name, doc_id)]
 
         # be backward compatible with tasks that do not allow description_dict in process_results
-        if "description" in inspect.getfullargspec(task.process_results).args:
-            outputs = task.process_results(doc, requests, task_to_description[task_name])
+        if "params" in inspect.getfullargspec(task.process_results).args:
+            outputs = task.process_results(doc, requests, task_to_params[task_name])
         else:
             outputs = task.process_results(doc, requests)
 
