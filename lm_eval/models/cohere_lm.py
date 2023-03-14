@@ -171,25 +171,28 @@ class CohereLM(BaseLM):
                     ),
                 )
 
-                token_likelihoods = response.generations[0].token_likelihoods
-
-                contex_token_len = len(
+                context_token_len = len(
                     cohere_api_call(
                         self.cohere_client,
                         kwargs={"text": context},
                         request_type="tokenize",
                     ),
                 )
+                token_likelihoods = response.generations[0].token_likelihoods
                 continuation_logprob = sum(
-                    [token.likelihood for token in token_likelihoods[contex_token_len:]]
+                    [
+                        token.likelihood
+                        for token in token_likelihoods[context_token_len:]
+                    ]
                 )
 
                 # Note that we cannot deduce whether the prompt is greedy
                 # under Cohere's model. Thus setting `is_greedy` return to False.
-                # Not that metrics using this return value will thus not be valid.
+                # Metrics using this return value will thus not be valid.
                 answer = continuation_logprob, False
                 res.append(answer)
 
+                # TODO: does this cache key logic make any sense? This is copied from gpt3.py LM class.
                 cache_key = (context, continuation)
                 if cache_key is not None:
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
