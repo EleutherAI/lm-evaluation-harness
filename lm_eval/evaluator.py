@@ -76,7 +76,7 @@ def simple_evaluate(
                 model_args, {
                     "batch_size": batch_size,
                     "device": device,
-                    "accelerate": use_accelerate,
+                    "use_accelerate": use_accelerate,
                     "device_map_option": accelerate_device_map_option,
                     "max_memory_per_gpu": accelerate_max_memory_per_gpu,
                     "max_cpu_memory": accelerate_max_cpu_memory,
