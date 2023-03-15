@@ -71,18 +71,26 @@ def simple_evaluate(
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
-        lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {
-                "batch_size": batch_size,
-                "device": device,
-                "use_accelerate": use_accelerate,
-                "device_map_option": accelerate_device_map_option,
-                "max_memory_per_gpu": accelerate_max_memory_per_gpu,
-                "max_cpu_memory": accelerate_max_cpu_memory,
-                "offload_folder": accelerate_offload_folder,
-                "dtype": accelerate_dtype   
-            }
-        )
+        if 'hf-causal' in model:
+            lm = lm_eval.models.get_model(model).create_from_arg_string(
+                model_args, {
+                    "batch_size": batch_size,
+                    "device": device,
+                    "accelerate": use_accelerate,
+                    "device_map_option": accelerate_device_map_option,
+                    "max_memory_per_gpu": accelerate_max_memory_per_gpu,
+                    "max_cpu_memory": accelerate_max_cpu_memory,
+                    "offload_folder": accelerate_offload_folder,
+                    "dtype": accelerate_dtype
+                }
+            )
+        else:
+            lm = lm_eval.models.get_model(model).create_from_arg_string(
+                model_args, {
+                    "batch_size": batch_size,
+                    "device": device
+                }
+            )
     else:
         assert isinstance(model, lm_eval.base.LM)
         lm = model
