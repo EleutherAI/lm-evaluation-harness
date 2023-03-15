@@ -251,25 +251,28 @@ Some tasks that are good examples of various ways evaluation can be implemented 
 Tip: Feel free to create your own helper-methods for your task!
 
 ### Adding support for generation settings (e.g. majority voting, sampling hyperparameters)
-The `process_results` function can take an additional `description` string parameter:
+The `process_results` function can take an additional `params` dict:
 ```python
-def process_results(self, doc, results, description=""):
+def process_results(self, doc, results, params={}):
    ...
 ```
-The `description` is parsed from a config file containing a task description. For example, the following `config.json` specifies generation settings for the `math_algebra` task:
+The `params` are parsed from a config file. For example, the following `config.json` specifies params for the `math_algebra` task:
 ```json
 {
-    "math_algebra": "majority_voting=32,sampling_temperature=0.3"
+    "math_algebra": {
+        "params": {"majority_voting": 16, "sampling_temperature":0.5, "eval_batch_size":4},
+        "description": "You will solve a mathematical problem. Here are some examples:" 
+    }
 }
 ```
 
-The `process_results` function can then parse the configuration, and call `rf.generate` with the parsed settings.
+The `process_results` function can then access these `params`, and call `rf.generate` accordingly.
 See [MATH](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/lm_eval/tasks/hendrycks_math.py) for an example; namely, this file contains the call
 ```python
 rf.generate(ctx, ["\n"], 
             majority_voting_value, sampling_temperature_value, eval_batch_size)
 ```
-where `majority_voting_value, sampling_temperature_value, eval_batch_size` are parsed from the `description`. 
+where `majority_voting_value, sampling_temperature_value, eval_batch_size` are values specified in `params`. 
 
 
 
