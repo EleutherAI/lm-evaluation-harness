@@ -42,11 +42,11 @@ def parse_args():
     parser.add_argument("--check_integrity", action="store_true")
 
     parser.add_argument("--use_accelerate", action="store_true")
-    parser.add_argument("--accelerate_device_map_option", type="str", default="auto")
-    parser.add_argument("--accelerate_max_memory_per_gpu", type="str", default=None)
-    parser.add_argument("--accelerate_max_cpu_memory", type="str", default=None)
-    parser.add_argument("--accelerate_offload_folder", type="str", default="./offload")
-    parser.add_argument("--accelerate_dtype", type="str", default=None)
+    parser.add_argument("--accelerate_device_map_option", type=str, default="auto")
+    parser.add_argument("--accelerate_max_memory_per_gpu", type=str, default=None)
+    parser.add_argument("--accelerate_max_cpu_memory", type=str, default=None)
+    parser.add_argument("--accelerate_offload_folder", type=str, default="./offload")
+    parser.add_argument("--accelerate_dtype", type=str, default=None)
 
     return parser.parse_args()
 
