@@ -128,11 +128,12 @@ Continuing the example from above, we have a `config.json` file containing:
 ```
 
 ### Accelerate
-You can use the HuggingFace `accelerate` library. To do so, use the `--accelerate` flag along with a `hf-causal` or `hf-seq2seq` model. 
+You can use the HuggingFace `accelerate` library. To do so, use the `--use_accelerate` flag along with a `hf-causal` or `hf-seq2seq` model. 
 Here is an example command:
 ```bash
 python main.py \
     --model hf-causal \
+    --use_accelerate \
     --model_args pretrained=EleutherAI/pythia-2.8b-deduped \
     --num_fewshot 5 \
     --tasks lila_addsub
