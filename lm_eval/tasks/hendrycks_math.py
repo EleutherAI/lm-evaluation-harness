@@ -105,13 +105,13 @@ class Math(Task):
 
     def process_results(self, doc, results, params={}):
         retval = 0
-
+        candidates = results[0]
         assert isinstance(params, dict)
         if params == {}:
-            last_box_content = self.last_boxed_only_string(results[0])
-            answer = self.get_pure_answer(self.remove_boxed(last_box_content)) if last_box_content is not None else self.get_pure_answer(results[0])
+            last_box_content = self.last_boxed_only_string(candidates)
+            answer = self.get_pure_answer(self.remove_boxed(last_box_content)) if last_box_content is not None else self.get_pure_answer(candidates)
         elif self.MAJORITY_VOTING in params:
-            answer = self.majority_vote(results[0])
+            answer = self.majority_vote(candidates)
         else:
             raise AssertionError
 
@@ -120,7 +120,14 @@ class Math(Task):
         ):
             retval = 1
 
-        return {"acc": retval}
+        results = {
+            "acc": retval,
+            "metadata": {
+                "selected_answer": answer,
+                "candidates": candidates
+            }
+        }
+        return results
 
     def aggregation(self):
         return {"acc": mean}
