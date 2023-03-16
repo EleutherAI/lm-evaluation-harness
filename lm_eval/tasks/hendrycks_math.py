@@ -27,6 +27,9 @@ _CITATION = """
 class Math(Task):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
     DATASET_NAME = None
+    MAJORITY_VOTING = "majority_voting"
+    SAMPLING_TEMPERATURE = "sampling_temperature"
+    EVAL_BATCH_SIZE = "eval_batch_size"
 
     def has_training_docs(self):
         return True
@@ -60,24 +63,75 @@ class Math(Task):
         return doc["problem"]
 
     def doc_to_target(self, doc):
-        return " " + doc["solution"]
+        return " " + doc["solution"] + " The answer is " + self.last_boxed_only_string(doc['solution']) + ".```"
 
-    def construct_requests(self, doc, ctx):
-        return rf.greedy_until(ctx, ["\n"])
+    def construct_requests(self, doc, ctx, params={}):
+        if params == {}:
+            return rf.generate(ctx, ["```"])
+        
+        majority_voting_value = int(params.get(self.MAJORITY_VOTING, 1))
+        sampling_temperature_value = float(params.get(self.SAMPLING_TEMPERATURE, 1.0))
+        eval_batch_size = params.get(self.EVAL_BATCH_SIZE, None)
+        eval_batch_size = int(eval_batch_size) if isinstance(eval_batch_size, str) else eval_batch_size
+        generation_params = {
+            'num_return_sequences': majority_voting_value,
+            'temperature': sampling_temperature_value,
+            'num_return_sequences_batch': eval_batch_size
+        }
+        return rf.generate(ctx, ["```"], generation_params)
 
-    def process_results(self, doc, results):
-        retval = 0
-        indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
+    def get_pure_answer(self, candidate):
+        indices = [pos for pos, char in enumerate(candidate) if char == "$"]
         if len(indices) <= 1:
-            answer = results[0]
+            return candidate
+        return candidate[indices[0] + 1 : indices[-1]]
+
+    def majority_vote(self, candidates):
+        answers = []
+        for candidate in candidates:
+            try:
+                answer = self.remove_boxed(self.last_boxed_only_string(candidate))
+            except:
+                answer = None
+            answers.append(answer)
+        
+        answer_votes = {}
+        for answer in answers:
+            answer_votes[answer] = answer_votes.get(answer, 0) + 1
+
+        max_vote = 0
+        elected = None
+        for answer, vote in answer_votes.items():
+            if vote > max_vote and answer is not None:
+                elected = answer
+                max_vote = vote
+        return elected
+
+    def process_results(self, doc, results, params={}):
+        retval = 0
+        candidates = results[0]
+        assert isinstance(params, dict)
+        if params == {}:
+            last_box_content = self.last_boxed_only_string(candidates)
+            answer = self.get_pure_answer(self.remove_boxed(last_box_content)) if last_box_content is not None else self.get_pure_answer(candidates)
+        elif self.MAJORITY_VOTING in params:
+            answer = self.majority_vote(candidates)
         else:
-            answer = results[0][indices[0] + 1 : indices[-1]]
+            raise AssertionError
 
         if self.is_equiv(
             answer, self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
         ):
             retval = 1
-        return {"acc": retval}
+
+        results = {
+            "acc": retval,
+            "metadata": {
+                "selected_answer": answer,
+                "candidates": candidates
+            }
+        }
+        return results
 
     def aggregation(self):
         return {"acc": mean}
@@ -279,6 +333,20 @@ class Math(Task):
         string = self.fix_a_slash_b(string)
 
         return string
+
+class MathAlgebraEasy(Math):
+    VERSION = 1
+    DATASET_NAME = "algebra"
+
+    def training_docs(self):
+        data = map(self._process_doc, self.dataset["train"])
+        data = filter(lambda x: x['level'] == 'Level 1', data)
+        return data
+
+    def test_docs(self):
+        data = map(self._process_doc, self.dataset["train"])
+        data = filter(lambda x: x['level'] == 'Level 1', data)
+        return data
 
 
 class MathAlgebra(Math):

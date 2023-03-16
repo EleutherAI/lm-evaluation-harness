@@ -1,5 +1,6 @@
 import transformers
 import torch
+import math
 from lm_eval.base import BaseLM
 
 
@@ -47,15 +48,15 @@ class HFLM(BaseLM):
             revision=revision,
         )
 
-        assert isinstance(
-            self.tokenizer,
-            (
-                transformers.GPT2Tokenizer,
-                transformers.GPT2TokenizerFast,
-                transformers.T5Tokenizer,
-                transformers.T5TokenizerFast,
-            ),
-        ), "this tokenizer has not been checked for compatibility yet!"
+        #assert isinstance(
+        #    self.tokenizer,
+        #    (
+        #        transformers.GPT2Tokenizer,
+        #        transformers.GPT2TokenizerFast,
+        #        transformers.T5Tokenizer,
+        #        transformers.T5TokenizerFast,
+        #    ),
+        #), "this tokenizer has not been checked for compatibility yet!"
 
         self.vocab_size = self.tokenizer.vocab_size
 
@@ -121,9 +122,40 @@ class HFLM(BaseLM):
         with torch.no_grad():
             return self.gpt2(inps)[0]
 
-    def _model_generate(self, context, max_length, eos_token_id):
+    def _model_generate(self, context, max_length, eos_token_id, num_return_sequences=1, temperature=0., num_return_sequences_batch=None):
+        assert (isinstance(num_return_sequences, int) and num_return_sequences >= 1), f"Incorrect number of candidates to generate: {num_return_sequences}"
+        assert temperature >= 0., f"Negative sampling temperature: {temperature}"
+        
+        # Whether to sample or to decode greedily
+        do_sample = (temperature != 0.)
+        if not do_sample:
+            # If decoding greedily, only sample once
+            assert num_return_sequences == 1, f"Decoding greedily but {num_return_sequences} generations"
+
+        if num_return_sequences_batch is not None and num_return_sequences > 1:
+            context = context.expand(num_return_sequences_batch, context.shape[1])
+            generated_vectors = [
+                self.gpt2.generate(
+                    context, max_length=max_length, eos_token_id=eos_token_id,
+                    do_sample=do_sample, temperature=temperature
+                ) for _ in range(math.ceil(num_return_sequences/num_return_sequences_batch))
+            ]
+            # Pad the generated vectors such that they have the same length
+            max_length = max(element.size(1) for element in generated_vectors)
+            padded_vectors = []
+            for vector in generated_vectors:
+                if vector.size(1) < max_length:
+                    vector = torch.cat([vector, torch.zeros(vector.size(0), max_length-vector.size(1), dtype=torch.int32, device=self._device)], dim=1)
+                padded_vectors.append(vector)
+            return torch.cat(padded_vectors, dim=0)[:num_return_sequences]
+        
+        assert num_return_sequences_batch is None
+
+        if num_return_sequences > 1:
+            context = context.expand(num_return_sequences, context.shape[1])
         return self.gpt2.generate(
-            context, max_length=max_length, eos_token_id=eos_token_id, do_sample=False
+            context, max_length=max_length, eos_token_id=eos_token_id,
+            do_sample=do_sample, temperature=temperature
         )
 
 

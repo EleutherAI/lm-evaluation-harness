@@ -52,6 +52,7 @@ from . import gsm8k
 from . import storycloze
 from . import toxigen
 from . import crowspairs
+from . import lila
 
 ########################################
 # Translation tasks
@@ -159,6 +160,7 @@ TASK_REGISTRY = {
     "mutual_plus": mutual.MuTualPlus,
     # math
     "math_algebra": hendrycks_math.MathAlgebra,
+    "math_algebra_easy": hendrycks_math.MathAlgebraEasy,
     "math_counting_and_prob": hendrycks_math.MathCountingAndProbability,
     "math_geometry": hendrycks_math.MathGeometry,
     "math_intermediate_algebra": hendrycks_math.MathIntermediateAlgebra,
@@ -306,6 +308,56 @@ TASK_REGISTRY = {
     "crows_pairs_french_nationality": crowspairs.CrowsPairsFrenchNationality,
     "crows_pairs_french_physical_appearance": crowspairs.CrowsPairsFrenchPhysicalAppearance,
     "crows_pairs_french_autre": crowspairs.CrowsPairsFrenchAutre,
+    # Lila
+    "lila_iid": lila.Lila,
+    "lila_ood": lila.LilaOOD,
+    "lila_addsub": lila.LilaAddSub,
+    "lila_amps_algebra": lila.LilaAmpsAlgebra,
+    "lila_amps_calculus": lila.LilaAmpsCalculus,
+    "lila_amps_counting_and_stats": lila.LilaAmpsCountingAndStats,
+    "lila_amps_geometry": lila.LilaAmpsGeometry,
+    "lila_amps_linear_algebra": lila.LilaAmpsLinearAlgebra,
+    "lila_amps_number_theory": lila.LilaAmpsNumberTheory,
+    "lila_APPS_structured": lila.LilaAPPSStructured,
+    "lila_asdiv": lila.LilaASDiv,
+    "lila_conala_structured": lila.LilaConalaStructured,
+    "lila_deepmind_mathematics_algebra": lila.LilaDeepmindMathematicsAlgebra,
+    "lila_deepmind_mathematics_basicmath": lila.LilaDeepmindMathematicsBasicmath,
+    "lila_deepmind_mathematics_calculus": lila.LilaDeepmindMathematicsCalculus,
+    "lila_deepmind_mathematics_muldiv": lila.LilaDeepmindMathematicsMuldiv,
+    "lila_deepmind_mathematics_numbertheory": lila.LilaDeepmindMathematicsNumbertheory,
+    "lila_dolphin_t2_final": lila.LilaDolphinT2Final,
+    "lila_draw_structured": lila.LilaDrawStructured,
+    "lila_GSM8k_structured": lila.LilaGSM8kStructured,
+    "lila_MATH_algebra_crowdsourced": lila.LilaMATHAlgebraCrowdsourced,
+    "lila_MATH_counting_and_probability_crowdsourced": lila.LilaMATHCountingAndProbabilityCrowdsourced,
+    "lila_MATH_intermediate_algebra_crowdsourced": lila.LilaMATHIntermediateAlgebraCrowdsourced,
+    "lila_mathqa_gain": lila.LilaMathqaGain,
+    "lila_mathqa_general": lila.LilaMathqaGeneral,
+    "lila_mathqa_geometry": lila.LilaMathqaGeometry,
+    "lila_mathqa_other": lila.LilaMathqaOther,
+    "lila_mathqa_physics": lila.LilaMathqaPhysics,
+    "lila_mathqa_probability": lila.LilaMathqaProbability,
+    "lila_mbpp_structured": lila.LilaMbppStructured,
+    "lila_MCTaco_event_duration": lila.LilaMCTacoEventDurationStructured,
+    "lila_MCTaco_event_ordering": lila.LilaMCTacoEventOrderingStructured,
+    "lila_MCTaco_event_typical_time": lila.LilaMCTacoEventTypicalTimeStructured,
+    "lila_MCTaco_frequency": lila.LilaMCTacoFrequencyStructured,
+    "lila_MCTaco_stationarity": lila.LilaMCTacoStationarityStructured,
+    "lila_multiarith": lila.LilaMultiArith,
+    "lila_Numersense_structured": lila.LilaNumersenseStructured,
+    "lila_NumGLUE_Type_1_crowdsourced": lila.LilaNumGLUEType1Crowdsourced,
+    "lila_NumGLUE_Type_2_crowdsourced": lila.LilaNumGLUEType2Crowdsourced,
+    "lila_NumGLUE_Type_3_crowdsourced": lila.LilaNumGLUEType3Crowdsourced,
+    "lila_NumGLUE_Type_4_crowdsourced": lila.LilaNumGLUEType4Crowdsourced,
+    "lila_NumGLUE_Type_5_crowdsourced": lila.LilaNumGLUEType5Crowdsourced,
+    "lila_NumGLUE_Type_6_crowdsourced": lila.LilaNumGLUEType6Crowdsourced,
+    "lila_NumGLUE_Type_7_crowdsourced": lila.LilaNumGLUEType7Crowdsourced,
+    "lila_NumGLUE_Type_8_crowdsourced": lila.LilaNumGLUEType8Crowdsourced,
+    "lila_simuleq": lila.LilaSimulEq,
+    "lila_singleop": lila.LilaSingleOp,
+    "lila_singleq": lila.LilaSinglEq,
+    "lila_svamp_structured": lila.LilaSvampStructured
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,

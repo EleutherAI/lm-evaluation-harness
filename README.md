@@ -29,29 +29,32 @@ pip install "lm-eval[multilingual]"
 
 > **Note**: When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility. This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](#task-versioning) section for more info.
 
-To evaluate a model (e.g. GPT-2) on NLP tasks such as SuperGLUE WiC, you can run the following command:
+To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) you can use the following command:
 
 
 ```bash
 python main.py \
-    --model gpt2 \
+    --model hf-causal \
+    --model_args pretrained=EleutherAI/gpt-j-6B \
     --tasks lambada_openai,hellaswag \
     --device 0
 ```
 
-This example uses gpt2-117M by default as per HF defaults.
-
-Additional arguments can be provided to the model constructor using the `--model_args` flag. Most importantly, the `gpt2` model can be used to load an arbitrary HuggingFace CausalLM. For example, to run GPTNeo use the following:
+Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partialy trained checkpoints:
 
 ```bash
 python main.py \
-    --model gpt2 \
-    --model_args pretrained=EleutherAI/gpt-neo-2.7B \
+    --model hf-causal \
+    --model_args pretrained=EleutherAI/pythia-160m,revision=step100000 \
     --tasks lambada_openai,hellaswag \
     --device 0
 ```
 
-If you have access to the OpenAI API, you can also evaluate GPT-3:
+To evaluate models that are called via `AutoSeq2SeqLM`, you instead use `hf-seq2seq`.
+
+> **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
+
+Our library also supports the OpenAI API:
 
 ```bash
 export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
@@ -61,7 +64,9 @@ python main.py \
     --tasks lambada_openai,hellaswag
 ```
 
-And if you want to verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
+While this functionality is only officially mantained for the official OpenAI API, it tends to also work for other hosting services that use the same API such as [goose.ai](goose.ai) with minor modification. We also have an implementation for the [TextSynth](https://textsynth.com/index.html) API, using `--model textsynth`.
+
+To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
 
 ```bash
 python main.py \
@@ -84,6 +89,58 @@ python write_out.py \
 ```
 
 This will write out one text file for each task.
+
+
+
+## Advanced features
+
+### Majority voting, generation hyperparameters
+
+Additional generation options can be specified through a configuration file and the `--description_dict_path` argument.
+For example, to enable majority voting with temperature 0.3 on the `math_algebra` task, we create a `config.json` file containing a `params` field:
+```json
+{
+    "math_algebra": {
+        "params": {"majority_voting": 16, "sampling_temperature":0.5, "eval_batch_size":4},
+    }
+}
+```
+then pass the file through the `--description_dict_path` argument:
+```bash
+python main.py --model gpt2 \
+    --tasks math_algebra 
+    --description_dict_path config.json 
+    --device cuda 
+    --num_fewshot 3 
+```
+**Warning:** Currently only the tasks defined in `hendrycks_math.py` support these options. If you are interested in adding this functionality to other tasks, see [this guide](./docs/task_guide.md).
+
+### Prepending a task description in the prompt
+In the `config` file, you can add a `description` field containing a string. The string will be prepended to each prompt during evaluation.
+Continuing the example from above, we have a `config.json` file containing:
+```json
+{
+    "math_algebra": {
+        "params": {"majority_voting": 16, "sampling_temperature":0.5, "eval_batch_size":4},
+        "description": "You will solve a mathematical problem. Here are some examples:", 
+    }
+}
+```
+
+### Accelerate
+You can use the HuggingFace `accelerate` library. To do so, use the `--use_accelerate` flag along with a `hf-causal` model. 
+Here is an example command:
+```bash
+python main.py \
+    --model hf-causal \
+    --use_accelerate \
+    --model_args pretrained=EleutherAI/pythia-2.8b-deduped \
+    --num_fewshot 5 \
+    --tasks lila_addsub
+```
+NOTE: With default settings, `--model hf-causal` may have different performance than `--model gpt2`. One known discrepancy is that `hf-causal` may use `float16` by default, while `--model gpt2` uses `float32`. Add the command-line argument `--accelerate_dtype float32` to prevent this discrepancy.
+
+NOTE: we do not yet support `hf-seq2seq`.
 
 ## Implementing new tasks
 

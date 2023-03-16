@@ -7,6 +7,7 @@ import os
 import json
 import hashlib
 import datasets
+import inspect
 from sqlitedict import SqliteDict
 from tqdm import tqdm
 import torch
@@ -329,44 +330,75 @@ class BaseLM(LM):
 
         return re_ord.get_original(res)
 
-    def greedy_until(self, requests):
-        # TODO: implement fully general `until` that handles until that are
-        #       multiple tokens or that span multiple tokens correctly
+    def parse_request(self, request):
+        if len(request) == 2:
+            is_greedy = True
+            context, until = request
+            _model_generate_kwargs = {}
+        elif len(request) == 3:
+            is_greedy = False
+            context, until, _model_generate_kwargs = request
+            for k, v in _model_generate_kwargs.items():
+                assert k in inspect.getfullargspec(self._model_generate).args, \
+                    f"Generation parameter '{k}' not a valid argument for _model_generate"
+        else:
+            raise AssertionError()
+        return context, until, is_greedy, _model_generate_kwargs
 
-        # TODO: extract to TokenizedLM?
+    def generate(self, requests):
         res = []
-
         def _collate(x):
             toks = self.tok_encode(x[0])
             return len(toks), x[0]
 
         re_ord = utils.Reorderer(requests, _collate)
+        for request in tqdm(re_ord.get_reordered()):
+            context, until, is_greedy, _model_generate_kwargs = self.parse_request(request)
 
-        for context, until in tqdm(re_ord.get_reordered()):
             if isinstance(until, str):
                 until = [until]
-
             (primary_until,) = self.tok_encode(until[0])
 
             context_enc = torch.tensor(
-                [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
+                [self.tok_encode(context)[self.max_gen_toks - self.max_length:]]
             ).to(self.device)
 
-            cont = self._model_generate(
-                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until
+            generated_tokens = self._model_generate(
+                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until,
+                **_model_generate_kwargs
+            )
+            generated_texts = self.postprocess(
+                generated_tokens=generated_tokens,
+                prefix_length=context_enc.shape[1],
+                until=until,
+                is_greedy=is_greedy
             )
 
-            s = self.tok_decode(cont[0].tolist()[context_enc.shape[1] :])
-
-            for term in until:
-                s = s.split(term)[0]
-
             # partial caching
-            self.cache_hook.add_partial("greedy_until", (context, until), s)
-
-            res.append(s)
-
+            cache = (context, until, tuple(_model_generate_kwargs))
+            self.cache_hook.add_partial("generate", cache, generated_texts)
+            res.append(generated_texts)
         return re_ord.get_original(res)
+
+    def postprocess(self, generated_tokens, prefix_length, until, is_greedy):
+        generated_tokens = generated_tokens[:, prefix_length:]
+        generated_texts = [self.tok_decode(candidate) for candidate in generated_tokens]
+
+        for term in until:
+            generated_texts = [candidate.split(term)[0] for candidate in generated_texts]
+
+        # NOTE(wellecks): this greedy was in the code previously so we are keeping it,
+        # but it seems odd since it changes the output type from a list to a string.
+        if is_greedy:
+            generated_texts = generated_texts[0]
+        return generated_texts
+
+    def greedy_until(self, requests):
+        # TODO: implement fully general `until` that handles until that are
+        #       multiple tokens or that span multiple tokens correctly
+
+        # TODO: extract to TokenizedLM?
+        return self.generate(requests)
 
 
 class Task(abc.ABC):
@@ -843,6 +875,7 @@ class CachingLM:
 REQUEST_RETURN_LENGTHS = {
     "loglikelihood": 2,
     "greedy_until": None,
+    "generate": None,
     "loglikelihood_rolling": None,
 }
 
