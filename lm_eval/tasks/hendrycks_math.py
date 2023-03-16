@@ -63,19 +63,23 @@ class Math(Task):
         return doc["problem"]
 
     def doc_to_target(self, doc):
-        return " " + doc["solution"] + " The answer is " + self.last_boxed_only_string(doc['solution']) + "```"
+        return " " + doc["solution"] + " The answer is " + self.last_boxed_only_string(doc['solution']) + ".```"
 
     def construct_requests(self, doc, ctx, params={}):
         if params == {}:
-            return rf.generate(ctx, ["``"])
+            return rf.generate(ctx, ["```"])
         
         majority_voting_value = int(params.get(self.MAJORITY_VOTING, 1))
         sampling_temperature_value = float(params.get(self.SAMPLING_TEMPERATURE, 1.0))
         eval_batch_size = params.get(self.EVAL_BATCH_SIZE, None)
         eval_batch_size = int(eval_batch_size) if isinstance(eval_batch_size, str) else eval_batch_size
-        return rf.generate(ctx, ["``"],
-            majority_voting_value, sampling_temperature_value, eval_batch_size)
-    
+        generation_params = {
+            'num_return_sequences': majority_voting_value,
+            'temperature': sampling_temperature_value,
+            'num_return_sequences_batch': eval_batch_size
+        }
+        return rf.generate(ctx, ["```"], generation_params)
+
     def get_pure_answer(self, candidate):
         indices = [pos for pos, char in enumerate(candidate) if char == "$"]
         if len(indices) <= 1:

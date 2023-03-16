@@ -93,7 +93,7 @@ class Lila(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        output = rf.greedy_until(ctx, "``")
+        output = rf.greedy_until(ctx, "```")
         return output
 
     def process_results(self, doc, results):
