@@ -128,7 +128,7 @@ Continuing the example from above, we have a `config.json` file containing:
 ```
 
 ### Accelerate
-You can use the HuggingFace `accelerate` library. To do so, use the `--use_accelerate` flag along with a `hf-causal` or `hf-seq2seq` model. 
+You can use the HuggingFace `accelerate` library. To do so, use the `--use_accelerate` flag along with a `hf-causal` model. 
 Here is an example command:
 ```bash
 python main.py \
@@ -138,6 +138,7 @@ python main.py \
     --num_fewshot 5 \
     --tasks lila_addsub
 ```
+NOTE: we do not support `hf-seq2seq` in this branch.
 
 ## Implementing new tasks
 
