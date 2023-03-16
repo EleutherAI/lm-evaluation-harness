@@ -256,7 +256,7 @@ class BaseLM(LM):
         # pull longest context sample from request
         _, context_enc, continuation_enc = re_ord.get_reordered()[0] 
         max_context = len((context_enc + continuation_enc)[-(self.max_length + 1) :][:-1])
-
+        
         if (self.batch_size == 'auto'):
             
             if override_bs is None:
@@ -268,11 +268,13 @@ class BaseLM(LM):
                     return batch_size
                 
                 batch_size = forward_batch() 
-                print(f"Determined Largest batch size: {batch_size}")
+                print(f"Determined largest batch size: {batch_size}")
                 adaptive_batch_size = batch_size
 
             else:
                 adaptive_batch_size = override_bs
+        
+        torch.cuda.empty_cache() # empty cache after determining batch size
 
         for chunk in utils.chunks(
             tqdm(re_ord.get_reordered(), disable=disable_tqdm), self.batch_size if self.batch_size != "auto" else adaptive_batch_size
