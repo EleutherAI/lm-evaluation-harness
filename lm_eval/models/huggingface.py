@@ -312,10 +312,12 @@ class HuggingFaceAutoLM(BaseLM):
         reorder = utils.Reorderer(requests, _collate)
         for chunk in utils.chunks(tqdm(reorder.get_reordered(), disable=False), self.batch_size):
             context = [c[0] for c in chunk]
-            until = [chunk[0][1]]
+            until = chunk[0][1]
             for c in chunk:
-                assert [c[1]] == until, \
-                    "`until` condition must be the same across batch elements. Use batch_size=1."
+                assert c[1] == until, \
+                    "`until` condition must be the same across batch elements (%s vs %s). Use batch_size=1." % (
+                        c[1], until
+                    )
             max_tokens = self.max_gen_toks
             token_context = self.tok_encode_batch(context)
             generated_tokens = self._model_generate(
