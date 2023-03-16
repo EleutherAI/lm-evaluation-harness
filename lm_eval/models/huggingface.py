@@ -318,7 +318,6 @@ class HuggingFaceAutoLM(BaseLM):
                     "`until` condition must be the same across batch elements. Use batch_size=1."
             max_tokens = self.max_gen_toks
             token_context = self.tok_encode_batch(context)
-
             generated_tokens = self._model_generate(
                 inputs=token_context,
                 max_tokens=max_tokens,
@@ -467,7 +466,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
                         vector.size(0), max_length - vector.size(1),
                         dtype=vector.dtype,
                         device=vector.device
-                    )], dim=1
+                    ).fill(self.tokenizer.pad_token_id)], dim=1
                 )
             padded_vectors.append(vector)
         return torch.cat(padded_vectors, dim=0)
