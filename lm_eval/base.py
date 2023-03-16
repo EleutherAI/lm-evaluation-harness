@@ -330,82 +330,68 @@ class BaseLM(LM):
 
         return re_ord.get_original(res)
 
+    def parse_request(self, request):
+        if len(request) == 2:
+            is_greedy = True
+            context, until = request
+            _model_generate_kwargs = {}
+        elif len(request) == 3:
+            is_greedy = False
+            context, until, _model_generate_kwargs = request
+            for k, v in _model_generate_kwargs.items():
+                assert k in inspect.getfullargspec(self._model_generate).args, \
+                    f"Generation parameter '{k}' not a valid argument for _model_generate"
+        else:
+            raise AssertionError()
+        return context, until, is_greedy, _model_generate_kwargs
+
     def generate(self, requests):
         res = []
-
         def _collate(x):
             toks = self.tok_encode(x[0])
             return len(toks), x[0]
 
         re_ord = utils.Reorderer(requests, _collate)
-
         for request in tqdm(re_ord.get_reordered()):
-            if len(request) == 2:
-                # Unpack greedy sample request
-                context, until, = request
-                num_return_sequences, temperature = 1, 0.
-                greedy = True
-                _model_generate_kwargs = {}
-            elif len(request) == 4:
-                # Unpack temperature sample request
-                context, until, num_return_sequences, temperature = request
-                for key in ["num_return_sequences", "temperature"]:
-                    assert key in inspect.getfullargspec(self._model_generate).args, \
-                        f"Model generation parameter '{key}' not accepted as an argument for _model_generate"
-                greedy = False
-                _model_generate_kwargs = {
-                    "num_return_sequences": num_return_sequences,
-                    "temperature": temperature
-                }
-            elif len(request) == 5:
-                context, until, num_return_sequences, temperature, num_return_sequences_batch = request
-                for key in ["num_return_sequences", "temperature", "num_return_sequences_batch"]:
-                    assert key in inspect.getfullargspec(self._model_generate).args, \
-                        f"Model generation parameter '{key}' not accepted as an argument for _model_generate"
-                greedy = False
-                _model_generate_kwargs = {
-                    "num_return_sequences": num_return_sequences,
-                    "temperature": temperature,
-                    "num_return_sequences_batch": num_return_sequences_batch
-                }
-            else:
-                raise AssertionError
+            context, until, is_greedy, _model_generate_kwargs = self.parse_request(request)
 
-            from lm_eval.models.huggingface import AutoCausalLM
-            if isinstance(self, AutoCausalLM):
-                if isinstance(until, str):
-                    until = [until]
-                context_enc = self.tok_encode_batch(context)
-                s = self._model_generate(
-                    inputs=context_enc,
-                    max_tokens=context_enc['input_ids'].shape[1] + self.max_gen_toks,
-                    stop=until,
-                    **_model_generate_kwargs
-                )
-            else:
-                if isinstance(until, str):
-                    until = [until]
-                (primary_until,) = self.tok_encode(until[0])
+            if isinstance(until, str):
+                until = [until]
+            (primary_until,) = self.tok_encode(until[0])
 
-                context_enc = torch.tensor(
-                    [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
-                ).to(self.device)
+            context_enc = torch.tensor(
+                [self.tok_encode(context)[self.max_gen_toks - self.max_length:]]
+            ).to(self.device)
 
-                cont = self._model_generate(
-                    context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until,
-                    **_model_generate_kwargs
-                )
-                generated_tokens = cont[:, context_enc.shape[1]:]
-                s = [self.tok_decode(candidate) for candidate in generated_tokens]
+            generated_tokens = self._model_generate(
+                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until,
+                **_model_generate_kwargs
+            )
+            generated_texts = self.postprocess(
+                generated_tokens=generated_tokens,
+                prefix_length=context_enc.shape[1],
+                until=until,
+                is_greedy=is_greedy
+            )
 
-            for term in until:
-                s = [candidate.split(term)[0] for candidate in s]
-
-            s = s[0] if greedy else s
             # partial caching
-            self.cache_hook.add_partial("generate", (context, until, num_return_sequences, temperature), s)
-            res.append(s)
+            cache = (context, until, tuple(_model_generate_kwargs))
+            self.cache_hook.add_partial("generate", cache, generated_texts)
+            res.append(generated_texts)
         return re_ord.get_original(res)
+
+    def postprocess(self, generated_tokens, prefix_length, until, is_greedy):
+        generated_tokens = generated_tokens[:, prefix_length:]
+        generated_texts = [self.tok_decode(candidate) for candidate in generated_tokens]
+
+        for term in until:
+            generated_texts = [candidate.split(term)[0] for candidate in generated_texts]
+
+        # NOTE(wellecks): this greedy was in the code previously so we are keeping it,
+        # but it seems odd since it changes the output type from a list to a string.
+        if is_greedy:
+            generated_texts = generated_texts[0]
+        return generated_texts
 
     def greedy_until(self, requests):
         # TODO: implement fully general `until` that handles until that are
