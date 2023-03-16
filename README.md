@@ -138,7 +138,9 @@ python main.py \
     --num_fewshot 5 \
     --tasks lila_addsub
 ```
-NOTE: we do not support `hf-seq2seq` in this branch.
+NOTE: With default settings, `--model hf-causal` may have different performance than `--model gpt2`. One known discrepancy is that `hf-causal` may use `float16` by default, while `--model gpt2` uses `float32`. Add the command-line argument `--accelerate_dtype float32` to prevent this discrepancy.
+
+NOTE: we do not yet support `hf-seq2seq`.
 
 ## Implementing new tasks
 
