@@ -85,13 +85,20 @@ class Task(abc.ABC):
 
         NOTE: Override this method to download the dataset from a custom API.
         """
-        self.dataset = datasets.load_dataset(
-            path=self.DATASET_PATH,
-            name=self.DATASET_NAME,
-            data_dir=data_dir,
-            cache_dir=cache_dir,
-            download_mode=download_mode,
-        )
+        if download_mode=="load_from_disk" and data_dir is not None:
+            print("There is no compatibility check between task dataset and template")
+            self.dataset = datasets.load_from_disk(
+                data_dir
+            )
+
+        else:    
+            self.dataset = datasets.load_dataset(
+                path=self.DATASET_PATH,
+                name=self.DATASET_NAME,
+                data_dir=data_dir,
+                cache_dir=cache_dir,
+                download_mode=download_mode,
+            )
 
     @abstractmethod
     def has_training_docs(self):

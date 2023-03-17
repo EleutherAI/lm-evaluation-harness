@@ -155,3 +155,7 @@ Some high-level convenience functions are also made available:
 ## Implementing new tasks
 
 To implement a new task in eval harness, follow the [`PromptSourceTask` template](./templates/new_prompt_source_task.py).
+
+## Using load_from_disk instead of load_dataset
+
+You can use load_from_disk (convenient on Jean Zay supercomputer) by setting `task_args download_mode='load_from_disk',data_dir=<data/path>`

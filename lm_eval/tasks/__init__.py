@@ -5,6 +5,7 @@ from promptsource.templates import DatasetTemplates
 import lm_eval.api.utils
 from lm_eval.api.task import Task
 
+from . import amazon_reviews_multi
 from . import anli
 from . import bias_shades
 from . import blimp
@@ -137,6 +138,9 @@ TASK_REGISTRY = {
     # GEM WikiLingua
     # Format: `GEM/wiki_lingua_{lang}`
     **gem_wikilingua.construct_tasks(),
+    # Amazon Reviews Multi
+    # Format: `amazon_reviews_multi_{lang}`
+    **amazon_reviews_multi.construct_tasks(),
     # WMT
     # Format: `wmt{year}_{lang1}_{lang2}`
     **wmt.construct_tasks(),
