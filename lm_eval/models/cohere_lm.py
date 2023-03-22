@@ -8,6 +8,7 @@ from lm_eval import utils
 from tqdm import tqdm
 import time
 import cohere
+import requests.exceptions
 
 
 def cohere_api_call(cohere_client, kwargs, request_type="generate"):
@@ -23,7 +24,7 @@ def cohere_api_call(cohere_client, kwargs, request_type="generate"):
             if request_type == "tokenize":
                 return cohere_client.tokenize(**kwargs)
 
-        except cohere.CohereError:
+        except requests.exceptions.RetryError:
             traceback.print_exc()
             print(
                 f"API error detected during evaluation. Will retry same prompt in {backoff_time}s."
@@ -144,8 +145,10 @@ class CohereLM(BaseLM):
         def _collate(val):
             # makes the reorderer sort by descending
             # length of context+continuation
-            toks = val[1] + val[2]
-            return -len(toks), tuple(toks)
+            # note that tokens are not used here,
+            # thus using str length
+            combined_str = val[0][0] + val[0][1]
+            return -len(combined_str), tuple(combined_str)
 
         re_ord = utils.Reorderer(requests, _collate)
 
@@ -171,25 +174,54 @@ class CohereLM(BaseLM):
                     ),
                 )
 
-                context_token_len = len(
+                # Check if greedy
+
+                # Cohere's API does not provide a logprobs argument
+                # (like OpenAI's), thus we need a second API call to
+                # check if the greedy continuation is the same as the
+                # evaluated continuation.
+                context_tokens = (
                     cohere_api_call(
                         self.cohere_client,
                         kwargs={"text": context},
                         request_type="tokenize",
                     ),
                 )
-                token_likelihoods = response.generations[0].token_likelihoods
+                context_token_len = len(context_tokens[0].tokens)
+                overall_token_len = len(response.generations[0].token_likelihoods)
+                continuation_token_len = overall_token_len - context_token_len
+
+                greedy_response = cohere_api_call(
+                    self.cohere_client,
+                    kwargs=dict(
+                        model=self.model,  # "medium" or "xlarge"
+                        prompt=context,
+                        max_tokens=continuation_token_len,
+                        temperature=0.0,
+                        return_likelihoods="ALL",
+                        # truncate any tokens from beginning
+                        # over the limit of 2048 of API
+                        truncate="START",
+                    ),
+                )
+                # getting string from tokens for both greedy and given continuation
+                regular_likelihoods = response.generations[0].token_likelihoods
+                regular_string = "".join([gen.token for gen in regular_likelihoods])
+                greedy_likelihoods = greedy_response.generations[0].token_likelihoods
+                greedy_string = "".join([gen.token for gen in greedy_likelihoods])
+
+                is_greedy = regular_string == greedy_string
+
+
+                # compute logprob of continuation
                 continuation_logprob = sum(
                     [
                         token.likelihood
-                        for token in token_likelihoods[context_token_len:]
+                        for token in regular_likelihoods[context_token_len:]
                     ]
                 )
 
-                # Note that we cannot deduce whether the prompt is greedy
-                # under Cohere's model. Thus setting `is_greedy` return to False.
-                # Metrics using this return value will thus not be valid.
-                answer = continuation_logprob, False
+                answer = continuation_logprob, is_greedy
                 res.append(answer)
 
                 # TODO: does this cache key logic make any sense?
