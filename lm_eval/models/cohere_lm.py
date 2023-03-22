@@ -145,6 +145,11 @@ class CohereLM(BaseLM):
         ):
             for (context, continuation), _, _ in chunk:
 
+                # if context is empty, we add a newline to avoid
+                # failure of API with empty context
+                if len(context) == 0:
+                    context = "\n"
+
                 # get response from cohere API and retry later if error is thrown
                 response = self.cohere_client.generate(
                     model=self.model,  # "medium" or "xlarge"
@@ -158,11 +163,8 @@ class CohereLM(BaseLM):
                 )
 
                 # compute token lengths for downstream tasks
-                if len(context) > 0:
-                    context_tokens = self.cohere_client.tokenize(text=context)
-                    context_token_len = len(context_tokens.tokens)
-                else:
-                    context_token_len = 0
+                context_tokens = self.cohere_client.tokenize(text=context)
+                context_token_len = len(context_tokens.tokens)
                 overall_token_len = len(response.generations[0].token_likelihoods)
                 continuation_token_len = overall_token_len - context_token_len
 
@@ -250,21 +252,19 @@ class CohereLM(BaseLM):
             list(sameuntil_chunks(re_ord.get_reordered(), self.REQ_CHUNK_SIZE))
         ):
             for context, _ in chunk:
-                response = cohere_api_call(
-                    self.cohere_client,
-                    kwargs=dict(
-                        model=self.model,  # "medium" or "xlarge"
-                        prompt=context,
-                        max_tokens=self.max_gen_toks,
-                        temperature=0.0,
-                        return_likelihoods="ALL",
-                        # truncate any tokens from beginning
-                        # over the limit of 2048 of API
-                        truncate="START",
-                        # end sequences are NOT included in returned text
-                        end_sequences=until,
-                    ),
+                response = self.cohere_client.generate(
+                    model=self.model,  # "medium" or "xlarge"
+                    prompt=context,
+                    max_tokens=self.max_gen_toks,
+                    temperature=0.0,
+                    return_likelihoods="ALL",
+                    # truncate any tokens from beginning
+                    # over the limit of 2048 of API
+                    truncate="START",
+                    # end sequences are NOT included in returned text
+                    end_sequences=until,
                 )
+
                 gen_text = response.generations[0].text
 
                 # partial caching
