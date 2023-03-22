@@ -1,36 +1,11 @@
 """Module with Cohere API-based language model."""
 
 import os
-import traceback
 import transformers
 from lm_eval.base import BaseLM
 from lm_eval import utils
 from tqdm import tqdm
-import time
 import cohere
-import requests.exceptions
-
-
-def cohere_api_call(cohere_client, kwargs, request_type="generate"):
-    """Query Cohere API.
-
-    Retry with back-off until they respond
-    """
-    backoff_time = 3
-    while True:
-        try:
-            if request_type == "generate":
-                return cohere_client.generate(**kwargs)
-            if request_type == "tokenize":
-                return cohere_client.tokenize(**kwargs)
-
-        except requests.exceptions.RetryError:
-            traceback.print_exc()
-            print(
-                f"API error detected during evaluation. Will retry same prompt in {backoff_time}s."
-            )
-            time.sleep(backoff_time)
-            backoff_time *= 1.5
 
 
 class CohereLM(BaseLM):
@@ -38,7 +13,7 @@ class CohereLM(BaseLM):
 
     REQ_CHUNK_SIZE = 20
 
-    def __init__(self, model="medium", truncate=False):
+    def __init__(self, model="medium", truncate=False, max_retries=100, timeout=30):
         """Language model accessed via Cohere API.
 
         The API is documented here: https://docs.cohere.ai/reference/generate.
@@ -52,6 +27,10 @@ class CohereLM(BaseLM):
             Deaults to `medium`.
         :param truncate: bool
             Truncate input if too long (if False and input is too long, throw error)
+        :param max_retries: int
+            Maximum number of retries for each API call.
+        :param timeout: int
+            Timeout for each API call in seconds.
         """
         super().__init__()
 
@@ -70,7 +49,9 @@ class CohereLM(BaseLM):
 
         # Set up Cohere API client
         api_key = os.environ["COHERE_API_SECRET_KEY"]
-        self.cohere_client = cohere.Client(api_key)
+        self.cohere_client = cohere.Client(
+            api_key, max_retries=max_retries, timeout=timeout
+        )
 
     @property
     def eot_token_id(self):
@@ -147,7 +128,9 @@ class CohereLM(BaseLM):
             # length of context+continuation
             # note that tokens are not used here,
             # thus using str length
-            combined_str = val[0][0] + val[0][1]
+            contin_str = val[0][1]
+            context_str = val[0][0]
+            combined_str = context_str + contin_str
             return -len(combined_str), tuple(combined_str)
 
         re_ord = utils.Reorderer(requests, _collate)
@@ -160,18 +143,15 @@ class CohereLM(BaseLM):
             for (context, continuation), _, _ in chunk:
 
                 # get response from cohere API and retry later if error is thrown
-                response = cohere_api_call(
-                    self.cohere_client,
-                    kwargs=dict(
-                        model=self.model,  # "medium" or "xlarge"
-                        prompt=context + continuation,
-                        max_tokens=0,
-                        temperature=0.0,
-                        return_likelihoods="ALL",
-                        # truncate any tokens from beginning
-                        # over the limit of 2048 of API
-                        truncate="START",
-                    ),
+                response = self.cohere_client.generate(
+                    model=self.model,  # "medium" or "xlarge"
+                    prompt=context + continuation,
+                    max_tokens=0,
+                    temperature=0.0,
+                    return_likelihoods="ALL",
+                    # truncate any tokens from beginning
+                    # over the limit of 2048 of API
+                    truncate="START",
                 )
 
                 # Check if greedy
@@ -180,40 +160,26 @@ class CohereLM(BaseLM):
                 # (like OpenAI's), thus we need a second API call to
                 # check if the greedy continuation is the same as the
                 # evaluated continuation.
-                context_tokens = (
-                    cohere_api_call(
-                        self.cohere_client,
-                        kwargs={"text": context},
-                        request_type="tokenize",
-                    ),
-                )
-                context_token_len = len(context_tokens[0].tokens)
+                context_tokens = self.cohere_client.tokenize(text=context)
+                context_token_len = len(context_tokens.tokens)
                 overall_token_len = len(response.generations[0].token_likelihoods)
                 continuation_token_len = overall_token_len - context_token_len
 
-                greedy_response = cohere_api_call(
-                    self.cohere_client,
-                    kwargs=dict(
-                        model=self.model,  # "medium" or "xlarge"
-                        prompt=context,
-                        max_tokens=continuation_token_len,
-                        temperature=0.0,
-                        return_likelihoods="ALL",
-                        # truncate any tokens from beginning
-                        # over the limit of 2048 of API
-                        truncate="START",
-                    ),
+                greedy_response = self.cohere_client.generate(
+                    model=self.model,  # "medium" or "xlarge"
+                    prompt=context,
+                    max_tokens=continuation_token_len,
+                    temperature=0.0,
+                    # truncate any tokens from beginning
+                    # over the limit of 2048 of API
+                    truncate="START",
                 )
-                # getting string from tokens for both greedy and given continuation
-                regular_likelihoods = response.generations[0].token_likelihoods
-                regular_string = "".join([gen.token for gen in regular_likelihoods])
-                greedy_likelihoods = greedy_response.generations[0].token_likelihoods
-                greedy_string = "".join([gen.token for gen in greedy_likelihoods])
-
-                is_greedy = regular_string == greedy_string
-
+                is_greedy = (
+                    response.generations[0].text == greedy_response.generations[0].text
+                )
 
                 # compute logprob of continuation
+                regular_likelihoods = response.generations[0].token_likelihoods
                 continuation_logprob = sum(
                     [
                         token.likelihood
