@@ -16,7 +16,10 @@ class CohereLM(BaseLM):
     def __init__(self, model="medium", truncate=False, max_retries=100, timeout=30):
         """Language model accessed via Cohere API.
 
-        The API is documented here: https://docs.cohere.ai/reference/generate.
+        The API is documented here:
+        - https://docs.cohere.ai/reference/generate.
+        - https://cohere-sdk.readthedocs.io/
+
         This class is based on the gpt3.py model with the OpenAI API.
 
         Imortant: in order to use this LM you need to set the environment variable
@@ -154,29 +157,32 @@ class CohereLM(BaseLM):
                     truncate="START",
                 )
 
-                # Check if greedy
-
-                # Cohere's API does not provide a logprobs argument
-                # (like OpenAI's), thus we need a second API call to
-                # check if the greedy continuation is the same as the
-                # evaluated continuation.
-                context_tokens = self.cohere_client.tokenize(text=context)
-                context_token_len = len(context_tokens.tokens)
+                # compute token lengths for downstream tasks
+                if len(context) > 0:
+                    context_tokens = self.cohere_client.tokenize(text=context)
+                    context_token_len = len(context_tokens.tokens)
+                else:
+                    context_token_len = 0
                 overall_token_len = len(response.generations[0].token_likelihoods)
                 continuation_token_len = overall_token_len - context_token_len
 
+                # Check if greedy
+                #
+                # Cohere's API does not provide a logprobs argument
+                # (like OpenAI's), thus we need a second generation API call
+                # to check if the greedy continuation is the same as the
+                # evaluated continuation.
                 greedy_response = self.cohere_client.generate(
                     model=self.model,  # "medium" or "xlarge"
                     prompt=context,
                     max_tokens=continuation_token_len,
                     temperature=0.0,
+                    return_likelihoods="NONE",
                     # truncate any tokens from beginning
                     # over the limit of 2048 of API
                     truncate="START",
                 )
-                is_greedy = (
-                    response.generations[0].text == greedy_response.generations[0].text
-                )
+                is_greedy = continuation == greedy_response.generations[0].text
 
                 # compute logprob of continuation
                 regular_likelihoods = response.generations[0].token_likelihoods
