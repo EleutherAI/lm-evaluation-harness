@@ -322,3 +322,32 @@ def test_textsynth():
 
     for (pred, _), tgt in zip(vals, targets):
         assert pred == pytest.approx(tgt, rel=1e-3)
+
+
+def test_cohere():
+    # to run just this test, use `pytest -k test_cohere`
+    if "COHERE_API_SECRET_KEY" not in os.environ:
+        print("COHERE_API_SECRET_KEY not set, attempting setting key to empty string.")
+        os.environ["COHERE_API_SECRET_KEY"] = ""
+
+    cohere_lm = models.get_model("cohere").create_from_arg_string("")
+
+    # limited test cases to stay within free tier of API
+    # (may take longer because free tier is rate-limited to 5 requests/min)
+    (
+        (ll_dog, ig_dog),
+        (ll_cat, ig_cat),
+    ) = cohere_lm.loglikelihood(LOGLIKELIHOOD_TEST_CASES[:2])
+
+    assert ll_dog > ll_cat
+    assert not ig_cat
+    assert ig_dog
+
+    # test empty context
+    cohere_lm.loglikelihood([("", "test")])
+
+    (gen,) = cohere_lm.greedy_until(
+        [("The quick brown fox jumps over the lazy", [".", "\n"])]
+    )
+
+    assert gen == " dog"
