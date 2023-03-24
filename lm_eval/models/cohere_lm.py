@@ -27,7 +27,7 @@ class CohereLM(BaseLM):
 
         :param model: str
             The type of Cohere model to be used, can be either `medium` or `xlarge`.
-            Deaults to `medium`.
+            Defaults to `medium`.
         :param truncate: bool
             Truncate input if too long (if False and input is too long, throw error)
         :param max_retries: int
