@@ -37,7 +37,7 @@ python main.py \
     --model hf-causal \
     --model_args pretrained=EleutherAI/gpt-j-6B \
     --tasks lambada_openai,hellaswag \
-    --device 0
+    --device cuda:0
 ```
 
 Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partialy trained checkpoints:
@@ -47,7 +47,7 @@ python main.py \
     --model hf-causal \
     --model_args pretrained=EleutherAI/pythia-160m,revision=step100000 \
     --tasks lambada_openai,hellaswag \
-    --device 0
+    --device cuda:0
 ```
 
 To evaluate models that are called via `AutoSeq2SeqLM`, you instead use `hf-seq2seq`.
@@ -111,7 +111,7 @@ python main.py \
     --model gpt2 \
     --tasks sciq \
     --decontamination_ngrams_path path/containing/training/set/ngrams \
-    --device 0
+    --device cuda:0
 ```
 
 ## Cite as
