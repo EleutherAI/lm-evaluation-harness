@@ -633,4 +633,3 @@ def stop_sequences_criteria(
             ],
         ]
     )
-
