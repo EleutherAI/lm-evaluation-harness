@@ -1,11 +1,12 @@
 import abc
 import logging
 import re
+from abc import abstractmethod
+from typing import Callable, List, Mapping, Optional, Tuple, Union
+
 import datasets
 import numpy as np
 import promptsource.templates
-from abc import abstractmethod
-from typing import Callable, List, Mapping, Optional, Tuple, Union
 
 from lm_eval.api import utils
 from lm_eval.api.metric import (
@@ -17,7 +18,6 @@ from lm_eval.api.metric import (
     weighted_perplexity,
 )
 from lm_eval.api.request import Request, rf
-
 
 logger = logging.getLogger(__name__)
 
@@ -85,13 +85,11 @@ class Task(abc.ABC):
 
         NOTE: Override this method to download the dataset from a custom API.
         """
-        if download_mode=="load_from_disk" and data_dir is not None:
+        if download_mode == "load_from_disk" and data_dir is not None:
             print("There is no compatibility check between task dataset and template")
-            self.dataset = datasets.load_from_disk(
-                data_dir
-            )
+            self.dataset = datasets.load_from_disk(data_dir)
 
-        else:    
+        else:
             self.dataset = datasets.load_dataset(
                 path=self.DATASET_PATH,
                 name=self.DATASET_NAME,
@@ -359,12 +357,16 @@ class PromptSourceTask(Task):
         Returns:
             A tuple of two lists. The first list contains the few-shot examples
         """
-        random_indices = np.arange(len(docs)).tolist()
-        rng.shuffle(random_indices)
+
+        def random_indices():
+            while True:
+                yield from rng.choice(
+                    len(docs), size=(10 * k,), replace=False, shuffle=True
+                ).tolist()
 
         i = 0
         fewshot_examples, fewshot_idx = [], []
-        for idx in random_indices:
+        for idx in random_indices():
             if i >= k:  # Break when we have enough examples.
                 break
             is_same_prompt = prompt is not None and all(
