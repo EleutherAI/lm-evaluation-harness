@@ -81,10 +81,19 @@ class CohereLM(BaseLM):
     def tok_decode(self, tokens):
         return self.cohere_client.detokenize(tokens).text
 
+    def loglikelihood(self, requests):
+        # Add dummy encodings of context and continuation (both set to None).
+        # This adaptation is to remain similar to other LMs whilst reducing the
+        # overall number of API calls. We can do this because the _loglikelihood_tokens()
+        # methods does not use any tokenised/encoded context/continuation.
+        new_reqs = list(zip(requests, [None] * len(requests), [None] * len(requests)))
+
+        return self._loglikelihood_tokens(new_reqs)
+
     def _loglikelihood_tokens(self, requests, disable_tqdm=False):
         """Compute log-likelihood of generating a continuation from a context.
 
-        The log likelihood of tokens can be obtained directly from the API.
+        The log likelihood of continuation can be obtained directly from the API.
 
         :param requests: list
             A list with elements ((context, continuation), context_enc, continuation_enc)
