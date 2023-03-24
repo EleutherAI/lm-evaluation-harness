@@ -2,10 +2,10 @@
 
 import os
 import transformers
-from lm_eval.base import BaseLM
-from lm_eval import utils
 from tqdm import tqdm
 import cohere
+from lm_eval.base import BaseLM
+from lm_eval import utils
 
 
 class CohereLM(BaseLM):
@@ -38,17 +38,7 @@ class CohereLM(BaseLM):
         super().__init__()
 
         self.model = model
-
-        # Set up tokenizer
-        self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained("gpt2")
-        self.vocab_size = self.tokenizer.vocab_size
-        # to make the annoying "Using pad_token, but it is not set yet." error go away
-        self.tokenizer.pad_token = "<|endoftext|>"
-        assert self.tokenizer.encode("hello\n\nhello") == [31373, 198, 198, 31373]
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.convert_tokens_to_ids(
-            ["<|endoftext|>"]
-        )[0]
 
         # Set up Cohere API client
         api_key = os.environ["COHERE_API_SECRET_KEY"]
@@ -58,12 +48,18 @@ class CohereLM(BaseLM):
 
     @property
     def eot_token_id(self):
-        return self.tokenizer.eos_token_id
+        raise NotImplementedError()
+
+    @property
+    def vocab_size(self):
+        raise NotImplementedError()
 
     @property
     def max_length(self):
-        # Note: the OpenAI API supports up to 2049 tokens, with the first token being the first input token
-        return 2048
+        # As the cohere API only accepts strings but the
+        # max length of the API is in tokens, max (token) length
+        # is unknown.
+        raise NotImplementedError()
 
     @property
     def max_gen_toks(self):
@@ -80,10 +76,10 @@ class CohereLM(BaseLM):
         raise NotImplementedError()
 
     def tok_encode(self, string: str):
-        return self.tokenizer.encode(string, add_special_tokens=False)
+        return self.cohere_client.tokenize(text=string).tokens
 
     def tok_decode(self, tokens):
-        return self.tokenizer.decode(tokens)
+        return self.cohere_client.detokenize(tokens).text
 
     def _loglikelihood_tokens(self, requests, disable_tqdm=False):
         """Compute log-likelihood of generating a continuation from a context.
@@ -227,8 +223,7 @@ class CohereLM(BaseLM):
         res = []
 
         def _collate(x):
-            toks = self.tok_encode(x[0])
-            return len(toks), x[0]
+            return len(x[0]), x[0]
 
         re_ord = utils.Reorderer(requests, _collate)
 
