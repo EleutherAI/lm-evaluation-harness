@@ -13,7 +13,14 @@ class CohereLM(BaseLM):
 
     REQ_CHUNK_SIZE = 20
 
-    def __init__(self, model="medium", truncate="START", max_retries=100, timeout=30):
+    def __init__(
+        self,
+        model="medium",
+        truncate="START",
+        max_retries=100,
+        timeout=30,
+        disable_is_greedy_computation=False,
+    ):
         """Language model accessed via Cohere API.
 
         The API is documented here:
@@ -38,11 +45,18 @@ class CohereLM(BaseLM):
             Maximum number of retries for each API call.
         :param timeout: int
             Timeout for each API call in seconds.
+        :param disable_is_greedy_computation: bool
+            If True, check of whether continuation is greedy is disabled. This is useful if
+            you have empty context strings and you don't need to check if greedy.
+            Otherwise the API would return an error for empty context strings
+            because of the greedy check. Defaults to False. Instead of a boolean value,
+            None will be returned for is_greedy.
         """
         super().__init__()
 
         self.model = model
         self.truncate = truncate
+        self.disable_is_greedy_computation = disable_is_greedy_computation
 
         # Set up Cohere API client
         api_key = os.environ["COHERE_API_SECRET_KEY"]
@@ -153,12 +167,6 @@ class CohereLM(BaseLM):
             disable=disable_tqdm,
         ):
             for (context, continuation), _, _ in chunk:
-
-                # if context is empty, we add a newline to avoid
-                # failure of API with empty context
-                if len(context) == 0:
-                    context = "\n"
-
                 # get response from cohere API and retry later if error is thrown
                 response = self.cohere_client.generate(
                     model=self.model,  # "medium" or "xlarge"
@@ -170,26 +178,29 @@ class CohereLM(BaseLM):
                 )
 
                 # compute token lengths for downstream tasks
-                context_tokens = self.cohere_client.tokenize(text=context)
-                context_token_len = len(context_tokens.tokens)
+                continuation_tokens = self.cohere_client.tokenize(text=continuation)
+                continuation_token_len = len(continuation_tokens.tokens)
                 overall_token_len = len(response.generations[0].token_likelihoods)
-                continuation_token_len = overall_token_len - context_token_len
+                context_token_len = overall_token_len - continuation_token_len
 
-                # Check if greedy
-                #
-                # Cohere's API does not provide a logprobs argument
-                # (like OpenAI's), thus we need a second generation API call
-                # to check if the greedy continuation is the same as the
-                # evaluated continuation.
-                greedy_response = self.cohere_client.generate(
-                    model=self.model,  # "medium" or "xlarge"
-                    prompt=context,
-                    max_tokens=continuation_token_len,
-                    temperature=0.0,
-                    return_likelihoods="NONE",
-                    truncate=self.truncate,
-                )
-                is_greedy = continuation == greedy_response.generations[0].text
+                if not self.disable_is_greedy_computation:
+                    # Check if greedy
+                    #
+                    # Cohere's API does not provide a logprobs argument
+                    # (like OpenAI's), thus we need a second generation API call
+                    # to check if the greedy continuation is the same as the
+                    # evaluated continuation.
+                    greedy_response = self.cohere_client.generate(
+                        model=self.model,  # "medium" or "xlarge"
+                        prompt=context,
+                        max_tokens=continuation_token_len,
+                        temperature=0.0,
+                        return_likelihoods="NONE",
+                        truncate=self.truncate,
+                    )
+                    is_greedy = continuation == greedy_response.generations[0].text
+                else:
+                    is_greedy = None
 
                 # compute logprob of continuation
                 regular_likelihoods = response.generations[0].token_likelihoods
