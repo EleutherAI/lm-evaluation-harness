@@ -1,6 +1,7 @@
 import hashlib
 import json
 import openai
+import cohere.error
 import os
 import pickle
 import pytest
@@ -343,8 +344,16 @@ def test_cohere():
     assert not ig_cat
     assert ig_dog
 
-    # test empty context
-    cohere_lm.loglikelihood([("", "test")])
+    # test empty context (should raise error without special LM config)
+    with pytest.raises(cohere.error.CohereAPIError):
+        cohere_lm.loglikelihood([("", "test test")])
+
+    cohere_lm_no_greedy = models.get_model("cohere").create_from_arg_string(
+        "disable_is_greedy_computation=True"
+    )
+    # note that this will still raise an error if the continuation
+    # was equivalent to a single token (e.g. just "test")
+    cohere_lm_no_greedy.loglikelihood([("", "test test")])
 
     (gen,) = cohere_lm.greedy_until(
         [("The quick brown fox jumps over the lazy", [".", "\n"])]
