@@ -13,7 +13,7 @@ class CohereLM(BaseLM):
 
     REQ_CHUNK_SIZE = 20
 
-    def __init__(self, model="medium", truncate=False, max_retries=100, timeout=30):
+    def __init__(self, model="medium", truncate="START", max_retries=100, timeout=30):
         """Language model accessed via Cohere API.
 
         The API is documented here:
@@ -28,8 +28,12 @@ class CohereLM(BaseLM):
         :param model: str
             The type of Cohere model to be used, can be either `medium` or `xlarge`.
             Defaults to `medium`.
-        :param truncate: bool
-            Truncate input if too long (if False and input is too long, throw error)
+        :param truncate: str
+            Directly passed to Cohere API. One of NONE|START|END to specify how the API will handle inputs longer than the maximum token length.
+
+            Passing START will discard the start of the input. END will discard the end of the input. In both cases, input is discarded until the remaining input is exactly the maximum input token length for the model.
+
+            If NONE is selected, when the input exceeds the maximum input token length an error will be returned.
         :param max_retries: int
             Maximum number of retries for each API call.
         :param timeout: int
@@ -162,9 +166,7 @@ class CohereLM(BaseLM):
                     max_tokens=0,
                     temperature=0.0,
                     return_likelihoods="ALL",
-                    # truncate any tokens from beginning
-                    # over the limit of 2048 of API
-                    truncate="START",
+                    truncate=self.truncate,
                 )
 
                 # compute token lengths for downstream tasks
@@ -185,9 +187,7 @@ class CohereLM(BaseLM):
                     max_tokens=continuation_token_len,
                     temperature=0.0,
                     return_likelihoods="NONE",
-                    # truncate any tokens from beginning
-                    # over the limit of 2048 of API
-                    truncate="START",
+                    truncate=self.truncate,
                 )
                 is_greedy = continuation == greedy_response.generations[0].text
 
@@ -262,9 +262,7 @@ class CohereLM(BaseLM):
                     max_tokens=self.max_gen_toks,
                     temperature=0.0,
                     return_likelihoods="ALL",
-                    # truncate any tokens from beginning
-                    # over the limit of 2048 of API
-                    truncate="START",
+                    truncate=self.truncate,
                     # end sequences are NOT included in returned text
                     end_sequences=until,
                 )
