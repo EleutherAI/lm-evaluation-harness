@@ -138,3 +138,56 @@ class YNAT(MultipleChoiceTask):
         return {
             "f1": macro_f1_score
         }
+
+
+class NLI(Task):
+    VERSION = 0
+    DATASET_PATH = "klue"
+    DATASET_NAME = "nli"
+
+    def has_training_docs(self):
+        return True
+
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return False
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
+    def doc_to_text(self, doc):
+        return "{}\질문: {} 참, 거짓, 혹은 무관?\n정답:".format(
+            doc["premise"],
+            doc["hypothesis"].strip()
+            + ("" if doc["hypothesis"].strip().endswith(".") else "."),
+        )
+
+    def doc_to_target(self, doc):
+        # 참 = entailment
+        # 거짓 = contradiction
+        # 무관 = neutral
+        return " {}".format({0: "참", 1: "무관", 2: "거짓"}[doc["label"]])
+
+    def construct_requests(self, doc, ctx):
+        ll_true, _ = rf.loglikelihood(ctx, " 참")
+        ll_neither, _ = rf.loglikelihood(ctx, " 무관")
+        ll_false, _ = rf.loglikelihood(ctx, " 거짓")
+        return ll_true, ll_neither, ll_false
+
+    def process_results(self, doc, results):
+        gold = doc["label"]
+        pred = np.argmax(results)
+        return {"acc": pred == gold}
+
+    def higher_is_better(self):
+        return {"acc": True}
+
+    def aggregation(self):
+        return {"acc": mean}
