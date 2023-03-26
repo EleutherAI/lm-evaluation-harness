@@ -342,18 +342,25 @@ class BaseLM(LM):
 
         re_ord = utils.Reorderer(requests, _collate)
 
-        for context, until in tqdm(re_ord.get_reordered()):
+        for context, request_args in tqdm(re_ord.get_reordered()):
+            until = request_args['until']
             if isinstance(until, str):
                 until = [until]
 
-            (primary_until,) = self.tok_encode(until[0])
+            if until:
+                (primary_until,) = self.tok_encode(until[0])
+            else:
+                primary_until = None
 
             context_enc = torch.tensor(
                 [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
             ).to(self.device)
 
+            max_gen_tokens = min(
+                self.max_gen_toks, request_args.get('max_length', self.max_gen_toks)
+            )
             cont = self._model_generate(
-                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until
+                context_enc, context_enc.shape[1] + max_gen_tokens, primary_until
             )
 
             s = self.tok_decode(cont[0].tolist()[context_enc.shape[1] :])
