@@ -163,7 +163,7 @@ class NLI(Task):
         return self.dataset["validation"]
 
     def doc_to_text(self, doc):
-        return "{}\질문: {} 참, 거짓, 혹은 무관?\n정답:".format(
+        return "{}\n질문: {} 참, 거짓, 혹은 무관?\n정답:".format(
             doc["premise"],
             doc["hypothesis"].strip()
             + ("" if doc["hypothesis"].strip().endswith(".") else "."),
