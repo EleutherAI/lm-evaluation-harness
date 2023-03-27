@@ -163,7 +163,7 @@ class NLI(Task):
         return self.dataset["validation"]
 
     def doc_to_text(self, doc):
-        return "{}\n질문: {} 참, 거짓, 혹은 무관?\n정답:".format(
+        return "{}\n질문: {} 참, 거짓, 중립 중 무엇인가요?\n정답:".format(
             doc["premise"],
             doc["hypothesis"].strip()
             + ("" if doc["hypothesis"].strip().endswith(".") else "."),
@@ -173,11 +173,11 @@ class NLI(Task):
         # 참 = entailment
         # 거짓 = contradiction
         # 무관 = neutral
-        return " {}".format({0: "참", 1: "무관", 2: "거짓"}[doc["label"]])
+        return " {}".format({0: "참", 1: "중립", 2: "거짓"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
         ll_true, _ = rf.loglikelihood(ctx, " 참")
-        ll_neither, _ = rf.loglikelihood(ctx, " 무관")
+        ll_neither, _ = rf.loglikelihood(ctx, " 중립")
         ll_false, _ = rf.loglikelihood(ctx, " 거짓")
         return ll_true, ll_neither, ll_false
 
