@@ -52,7 +52,7 @@ class STS(Task):
         return self.dataset["validation"]
 
     def doc_to_text(self, doc):
-        return "질문: 문장 1과 문장 2는 서로 유사한 의미를 가지나요?\n문장 1:{}\n문장 2:{}\n정답:".format(
+        return "질문: 문장 1과 문장 2는 서로 유사한 의미를 가지나요?\n문장 1: {}\n문장 2: {}\n정답:".format(
             general_detokenize(doc["sentence1"]),
             general_detokenize(doc["sentence2"]) 
         )
