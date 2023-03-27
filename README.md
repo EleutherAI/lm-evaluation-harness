@@ -15,14 +15,18 @@ Features:
 
 ## Install
 
+To install `lm-eval` from the github repository main branch, run:
+
 ```bash
-pip install lm-eval
+git clone https://github.com/EleutherAI/lm-evaluation-harness
+cd lm-evaluation-harness
+pip install -e .
 ```
 
-To install additional multlingual tokenization and text segmenation packages, you must install the package with the `multilingual` extra:
+To install additional multilingual tokenization and text segmentation packages, you must install the package with the `multilingual` extra:
 
 ```bash
-pip install "lm-eval[multilingual]"
+pip install -e ".[multilingual]"
 ```
 
 ## Basic Usage
