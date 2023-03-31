@@ -34,6 +34,7 @@ def parse_args():
     parser.add_argument("--num_fewshot", type=int, default=0)
     parser.add_argument("--batch_size", type=int, default=None)
     parser.add_argument("--device", type=str, default=None)
+    parser.add_argument("--dtype", type=str, default=None)
     parser.add_argument("--output_path", default=None)
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--no_cache", action="store_true")
@@ -83,6 +84,7 @@ def main():
         num_fewshot=args.num_fewshot,
         batch_size=args.batch_size,
         device=args.device,
+        dtype=args.dtype,
         no_cache=args.no_cache,
         limit=args.limit,
         description_dict=description_dict,

@@ -17,6 +17,7 @@ def simple_evaluate(
     num_fewshot=0,
     batch_size=None,
     device=None,
+    dtype=None,
     no_cache=False,
     limit=None,
     bootstrap_iters=100000,
@@ -40,6 +41,8 @@ def simple_evaluate(
         Batch size for model
     :param device: str, optional
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
+    :param dtype: str, optional
+        PyTorch dtype (e.g. "float32" or "bfloat16" or "float16") for running models
     :param no_cache: bool
         Whether or not to cache
     :param limit: int, optional
@@ -62,7 +65,7 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
         lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device}
+            model_args, {"batch_size": batch_size, "device": device, "dtype": dtype}
         )
     else:
         assert isinstance(model, lm_eval.base.LM)
