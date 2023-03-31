@@ -23,6 +23,9 @@ def simple_evaluate(
     description_dict=None,
     check_integrity=False,
     decontamination_ngrams_path=None,
+    ipex=False,
+    dtype=None,
+    int8_model_path=None
 ):
 
     """Instantiate and evaluate a model on a list of tasks.
@@ -57,13 +60,19 @@ def simple_evaluate(
     np.random.seed(1234)
 
     assert tasks != [], "No tasks specified"
-
+    if dtype is None:
+        dtype="float32"
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
-        lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device}
-        )
+        if int8_model_path is None and not ipex:
+            lm = lm_eval.models.get_model(model).create_from_arg_string(
+                    model_args, {"batch_size": batch_size, "device": device, "dtype":dtype}
+                    )
+        else:
+            lm = lm_eval.models.get_model(model).create_from_arg_string(
+                    model_args, {"batch_size": batch_size, "device": device, "ipex": ipex, "dtype": dtype, "int8_model_path": int8_model_path}
+                    )
     else:
         assert isinstance(model, lm_eval.base.LM)
         lm = model

@@ -80,6 +80,8 @@ class HuggingFaceAutoLM(BaseLM):
         offload_folder: Optional[str] = "./offload",
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[Union[int, str]] = "cuda",
+        ipex: Optional[bool] = False,
+        int8_model_path: Optional[str] = None,
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -168,13 +170,34 @@ class HuggingFaceAutoLM(BaseLM):
                 max_cpu_memory,
                 offload_folder,
             )
-        self.model = self._create_auto_model(
-            pretrained=pretrained,
-            revision=revision,
-            subfolder=subfolder,
-            torch_dtype=_get_dtype(dtype, self._config),
-            **accelerate_kwargs,
-        )
+        if ipex:
+            try:
+                import intel_extension_for_pytorch
+            except ImportError:
+                try:
+                    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'intel-extension-for-pytorch'])
+                    import intel_extension_for_pytorch
+                except:
+                    assert False, "Unable to import intel-extension-for-pytorch from the local environment."
+        if ipex and int8_model_path is not None:
+            self.model = torch.jit.load(int8_model_path)
+            self.model = torch.jit.freeze(self.model.eval())
+        elif not ipex and int8_model_path is not None:
+            from transformers import AutoConfig
+            from intel_extension_for_transformers import OptimizedModel
+            config = AutoConfig.from_pretrained(int8_model_path)
+            # Load the model obtained after Intel Neural Compressor (INC) quantization
+            self.model = OptimizedModel.from_pretrained(int8_model_path,
+            config=config,
+            ) 
+        else:
+            self.model = self._create_auto_model(
+                pretrained=pretrained,
+                revision=revision,
+                subfolder=subfolder,
+                torch_dtype=_get_dtype(dtype, self._config),
+                **accelerate_kwargs,
+            )
         self.model.eval()
         torch.set_grad_enabled(False)
 
