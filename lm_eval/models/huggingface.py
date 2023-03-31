@@ -406,7 +406,12 @@ class AutoCausalLM(HuggingFaceAutoLM):
     def _model_call(
         self, inputs: TokenSequence, labels: Optional[TokenSequence] = None
     ) -> TokenSequence:
-        return self.model(inputs)["logits"]
+        outputs = self.model(inputs)
+        if isinstance(outputs, tuple):
+            return outputs[0]
+        else:
+            return outputs["logits"]
+        
 
     def _model_generate(
         self,
