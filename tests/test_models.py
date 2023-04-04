@@ -333,6 +333,9 @@ def test_cohere():
 
     cohere_lm = models.get_model("cohere").create_from_arg_string("")
 
+    # loglikelihood_rolling appears to take a list of string *tuples*
+    cohere_lm.loglikelihood_rolling([("This is a test",), ("And another test",)])
+
     # limited test cases to stay within free tier of API
     # (may take longer because free tier is rate-limited to 5 requests/min)
     (
@@ -358,5 +361,4 @@ def test_cohere():
     (gen,) = cohere_lm.greedy_until(
         [("The quick brown fox jumps over the lazy", [".", "\n"])]
     )
-
     assert gen == " dog"
