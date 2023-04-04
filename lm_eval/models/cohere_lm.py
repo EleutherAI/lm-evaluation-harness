@@ -64,6 +64,9 @@ class CohereLM(BaseLM):
             api_key, max_retries=max_retries, timeout=timeout
         )
 
+        # set prefix token for rolling window loglikelihood computation
+        self.prefix_token = self.cohere_client.tokenize(text="\n").tokens[0]
+
     @property
     def eot_token_id(self):
         raise NotImplementedError()
@@ -74,10 +77,10 @@ class CohereLM(BaseLM):
 
     @property
     def max_length(self):
-        # As the cohere API only accepts strings but the
-        # max length of the API is in tokens, max (token) length
-        # is unknown.
-        raise NotImplementedError()
+        # max length in number of tokens
+        # "Generation models support up to 2048 tokens."
+        # from https://docs.cohere.ai/docs/tokens
+        return 2048
 
     @property
     def max_gen_toks(self):
@@ -108,6 +111,36 @@ class CohereLM(BaseLM):
 
         return self._loglikelihood_tokens(new_reqs)
 
+    def loglikelihood_rolling(self, requests):
+
+        loglikelihoods = []
+        for (string,) in tqdm(requests):
+            rolling_token_windows = list(
+                map(
+                    utils.make_disjoint_window,
+                    utils.get_rolling_token_windows(
+                        token_list=self.tok_encode(string),
+                        prefix_token=self.prefix_token,  # only difference to standard base LM class
+                        max_seq_len=self.max_length,
+                        context_len=1,
+                    ),
+                )
+            )
+
+            rolling_token_windows = [(None,) + x for x in rolling_token_windows]
+
+            string_nll = self._loglikelihood_tokens(
+                rolling_token_windows, disable_tqdm=True
+            )
+
+            # discard is_greedy
+            string_nll = [x[0] for x in string_nll]
+
+            string_nll = sum(string_nll)
+            loglikelihoods.append(string_nll)
+
+        return loglikelihoods
+
     def _loglikelihood_tokens(self, requests, disable_tqdm=False):
         """Compute log-likelihood of generating a continuation from a context.
 
@@ -132,7 +165,7 @@ class CohereLM(BaseLM):
 
         res = []
 
-        # We first create datastructure for the requests
+        # We create datastructure for the requests
         # that allows us to:
         # 1) avoid duplicate requests to minimise API calls
         # 2) reorder requests to start with the longest requests to
@@ -149,15 +182,23 @@ class CohereLM(BaseLM):
         #   res array elements switched in for index matching
         #   original values.
 
+        decoded_request_available = requests[0][0] is not None
+
         def _collate(val):
             # makes the reorderer sort by descending
             # length of context+continuation
-            # note that tokens are not used here,
-            # thus using str length
-            contin_str = val[0][1]
-            context_str = val[0][0]
-            combined_str = context_str + contin_str
-            return -len(combined_str), tuple(combined_str)
+            # note that tokens are by default not used here,
+            # because unavailable. Thus using str length
+            if decoded_request_available:
+                contin_str = val[0][1]
+                context_str = val[0][0]
+                combined = context_str + contin_str
+            else:
+                # if only tokens are available tokens are used
+                contin_enc = val[1]
+                context_enc = val[2]
+                combined = context_enc + contin_enc
+            return -len(combined), tuple(combined)
 
         re_ord = utils.Reorderer(requests, _collate)
 
@@ -166,8 +207,15 @@ class CohereLM(BaseLM):
             list(utils.chunks(re_ord.get_reordered(), self.REQ_CHUNK_SIZE)),
             disable=disable_tqdm,
         ):
-            for (context, continuation), _, _ in chunk:
-                # get response from cohere API and retry later if error is thrown
+            for decoded_request, context_enc, contin_enc in chunk:
+
+                if decoded_request is not None:
+                    (context, continuation) = decoded_request
+                else:
+                    # if only tokens are available
+                    context = self.tok_decode(context_enc)
+                    continuation = self.tok_decode(contin_enc)
+
                 response = self.cohere_client.generate(
                     model=self.model,  # "medium" or "xlarge"
                     prompt=context + continuation,
