@@ -319,7 +319,7 @@ class BaseLM(LM):
                 )  # [1, seq]
 
                 # Answer: (log prob, is-exact-match)
-                answer = (float(logits.sum()//logits.size(1)), bool(max_equal))
+                answer = (float(logits.sum()/logits.size(1)), bool(max_equal))
 
                 # partial caching
                 if cache_key is not None:
