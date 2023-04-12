@@ -264,7 +264,7 @@ class BaseLM(LM):
                 print('Passed argument batch_size = auto. Detecting largest batch size')
                 @find_executable_batch_size(starting_batch_size=512) # if OOM, then halves batch_size and tries again
                 def forward_batch(batch_size):
-                    test_batch = test_batch = torch.ones((batch_size, max_context), device=self.device).long()
+                    test_batch = torch.ones((batch_size, max_context), device=self.device).long()
                     out = F.log_softmax(self._model_call(test_batch), dim = -1)
                     return batch_size
                 
