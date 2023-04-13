@@ -7,10 +7,7 @@ from itertools import islice
 @pytest.mark.parametrize("taskname,task_class", tasks.TASK_REGISTRY.items())
 def test_basic_interface(taskname, task_class):
     print("Evaluating task", taskname)
-    # dl = task_class.download
-    # task_class.download = MagicMock()
     task = task_class()
-    # task_class.download = dl
 
     assert task.has_training_docs() in [True, False]
     assert task.has_validation_docs() in [True, False]

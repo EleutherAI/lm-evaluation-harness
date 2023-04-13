@@ -42,8 +42,8 @@ _HOMEPAGE = "https://pile.eleuther.ai/"
 _LICENSE = ""
 
 _URLS = {
-    "validation": "http://eaidata.bmk.sh/data/pile/val.jsonl.zst",
-    "test": "http://eaidata.bmk.sh/data/pile/test.jsonl.zst",
+    "validation": "https://the-eye.eu/public/AI/pile/val.jsonl.zst",
+    "test": "https://the-eye.eu/public/AI/pile/test.jsonl.zst",
 }
 
 _NAMES = {
