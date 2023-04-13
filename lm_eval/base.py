@@ -444,31 +444,31 @@ class Task(abc.ABC):
             Keyword arguments passed to `datasets.load_dataset`.
         """
         assert isinstance(args, tuple) and isinstance(kwargs, dict), (
-            'positional arguments must be tuple and keyword arguments must '
-            'be dictionary for getting cache name'
+            "positional arguments must be tuple and keyword arguments must "
+            "be dictionary for getting cache name"
         )
         # Try to get the `path`.
         if args:
             name = args[0]
-        elif 'path' in kwargs:
-            name = kwargs['path']
+        elif "path" in kwargs:
+            name = kwargs["path"]
         elif self.DATASET_PATH:
             name = self.DATASET_PATH
         # Try to get the `name`.
         elif len(args) > 1:
             name = args[1]
-        elif 'name' in kwargs:
-            name = kwargs['name']
+        elif "name" in kwargs:
+            name = kwargs["name"]
         elif self.DATASET_NAME:
             name = self.DATASET_NAME
         else:
-            raise ValueError('cannot find a dataset name')
+            raise ValueError("cannot find a dataset name")
 
         # Similar to what the usual `datasets` caching does.
-        name = name.replace('/', '--').replace('\0', '-0-')
+        name = name.replace("/", "--").replace("\0", "-0-")
         hasher = datasets.fingerprint.Hasher()
         hashed_all_args = hasher.hash((args, kwargs))
-        return f'{name}_{hashed_all_args}'
+        return f"{name}_{hashed_all_args}"
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None):
         """Downloads and returns the task dataset.
@@ -504,12 +504,12 @@ class Task(abc.ABC):
         )
 
     def _download_pushed(
-            self,
-            args,
-            kwargs,
-            data_dir=None,
-            cache_dir=None,
-            download_mode=None,
+        self,
+        args,
+        kwargs,
+        data_dir=None,
+        cache_dir=None,
+        download_mode=None,
     ):
         """Download and assign a task dataset that was pushed to the hub
         (i.e. the usual `download` API does not work in offline mode).
@@ -541,12 +541,12 @@ class Task(abc.ABC):
                 Fresh download and fresh dataset.
 
         """
-        if 'data_dir' in kwargs:
-            data_dir = kwargs.pop('data_dir')
-        if 'cache_dir' in kwargs:
-            cache_dir = kwargs.pop('cache_dir')
-        if 'download_mode' in kwargs:
-            download_mode = kwargs.pop('download_mode')
+        if "data_dir" in kwargs:
+            data_dir = kwargs.pop("data_dir")
+        if "cache_dir" in kwargs:
+            cache_dir = kwargs.pop("cache_dir")
+        if "download_mode" in kwargs:
+            download_mode = kwargs.pop("download_mode")
 
         cached_path = self._get_cache_path(args, kwargs, cache_dir)
         if not datasets.config.HF_DATASETS_OFFLINE:
