@@ -68,7 +68,8 @@ class GermEval2017(Task):
     }
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None):
-        self.dataset = datasets.load_dataset(
+        args = ()
+        kwargs = dict(
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
             data_dir=data_dir,
@@ -88,6 +89,7 @@ class GermEval2017(Task):
                 }
             ),
         )
+        self._download_pushed(args, kwargs, data_dir, cache_dir, download_mode)
 
     def has_training_docs(self):
         return True
