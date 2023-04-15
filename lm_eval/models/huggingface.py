@@ -69,7 +69,7 @@ class HuggingFaceAutoLM(BaseLM):
         tokenizer: Optional[str] = None,
         subfolder: Optional[str] = None,
         revision: Optional[str] = "main",
-        batch_size: Optional[int] = 1,
+        batch_size: Optional[Union[int,str]] = 1,
         max_gen_toks: Optional[int] = 256,
         max_length: Optional[int] = None,
         add_special_tokens: Optional[bool] = None,
