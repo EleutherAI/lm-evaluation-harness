@@ -197,14 +197,13 @@ class BaseLM(LM):
             @find_executable_batch_size(starting_batch_size=512) # if OOM, then halves batch_size and tries again
             def forward_batch(batch_size):
                 test_batch = torch.ones((batch_size, self.max_length), device=self.device).long()
-                out = F.log_softmax(self._model_call(test_batch), dim = -1)
+                for _ in range(5): 
+                    out = F.log_softmax(self._model_call(test_batch), dim = -1).cpu()
                 return batch_size
             
             batch_size = forward_batch() 
             print(f"Determined Largest batch size: {batch_size}")
             adaptive_batch_size = batch_size
-            torch.cuda.empty_cache()
-            gc.collect()
 
         loglikelihoods = []
         for (string,) in tqdm(requests):
@@ -265,15 +264,14 @@ class BaseLM(LM):
                 @find_executable_batch_size(starting_batch_size=512) # if OOM, then halves batch_size and tries again
                 def forward_batch(batch_size):
                     test_batch = torch.ones((batch_size, max_context), device=self.device).long()
-                    out = F.log_softmax(self._model_call(test_batch), dim = -1)
+                    for _ in range(5): 
+                        out = F.log_softmax(self._model_call(test_batch), dim = -1).cpu()
                     return batch_size
                 
                 batch_size = forward_batch() 
                 print(f"Determined largest batch size: {batch_size}")
                 adaptive_batch_size = batch_size
-                torch.cuda.empty_cache()
-                gc.collect()
-                    
+                
             else:
                 adaptive_batch_size = override_bs
 
