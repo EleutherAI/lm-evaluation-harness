@@ -26,6 +26,7 @@ setuptools.setup(
         "numexpr",
         "openai>=0.6.4",
         "omegaconf>=2.2",
+        "peft>=0.2.0"
         "pybind11>=2.6.2",
         "pycountry",
         "pytablewriter",
@@ -41,5 +42,6 @@ setuptools.setup(
     extras_require={
         "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],
         "multilingual": ["nagisa>=0.2.7", "jieba>=0.42.1"],
+        "sentencepiece": ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
     },
 )
