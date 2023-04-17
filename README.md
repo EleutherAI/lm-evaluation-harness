@@ -11,6 +11,7 @@ Features:
 
 - 200+ tasks implemented. See the [task-table](./docs/task_table.md) for a complete list.
 - Support for GPT-2, GPT-3, GPT-Neo, GPT-NeoX, and GPT-J, with flexible tokenization-agnostic interface.
+- Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
 - Task versioning to ensure reproducibility.
 
 ## Install
@@ -57,6 +58,15 @@ python main.py \
 To evaluate models that are called via `AutoSeq2SeqLM`, you instead use `hf-seq2seq`.
 
 > **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
+
+To use with [PEFT](https://github.com/huggingface/peft), you can use the following command:
+```bash
+python main.py \
+    --model hf-causal \
+    --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
+    --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \ 
+    --device cuda:0 
+```
 
 Our library also supports the OpenAI API:
 
