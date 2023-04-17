@@ -2,6 +2,7 @@ import math
 import torch
 import torch.nn.functional as F
 import transformers
+import peft
 from typing import List, Mapping, NewType, Optional, Tuple, Union
 from tqdm import tqdm
 
@@ -58,6 +59,7 @@ class HuggingFaceAutoLM(BaseLM):
     AUTO_CONFIG_CLASS: transformers.AutoConfig = transformers.AutoConfig
     AUTO_TOKENIZER_CLASS: transformers.AutoTokenizer = transformers.AutoTokenizer
     AUTO_MODEL_CLASS: transformers.AutoModel = None
+    AUTO_PEFT_CLASS: peft.PeftModel = None
 
     # Default max sequence length setting for when no `max_length` is provided
     # or no max length config setting is found in the model or tokenizer.
@@ -80,6 +82,7 @@ class HuggingFaceAutoLM(BaseLM):
         offload_folder: Optional[str] = "./offload",
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[Union[int, str]] = "cuda",
+        peft: str = None,
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -124,6 +127,10 @@ class HuggingFaceAutoLM(BaseLM):
                 Converts the model weights to `dtype`, if specified. Strings get
                 converted to `torch.dtype` objects (e.g. `float16` -> `torch.float16`).
                 Use `dtype="auto"` to derive the type from the model’s weights.
+            peft (str, optional, defaults to None):
+                Path of the adapter weights to load from Huggingface. This will usually
+                include a directory that includes the files `adapter_config.json` and 
+                `adapter_model.bin`. Compatible with [PEFT](https://github.com/huggingface/peft)
         """
         super().__init__()
 
@@ -175,6 +182,16 @@ class HuggingFaceAutoLM(BaseLM):
             torch_dtype=_get_dtype(dtype, self._config),
             **accelerate_kwargs,
         )
+        # note: peft_path can be different than pretrained model path
+        if peft is not None:
+            self.model = self._create_auto_model_peft(
+                model=self.model,
+                peft=peft,
+                revision=revision,
+                subfolder=subfolder,
+                torch_dtype=_get_dtype(dtype, self._config),
+                **accelerate_kwargs,
+            )
         self.model.eval()
         torch.set_grad_enabled(False)
 
@@ -201,6 +218,29 @@ class HuggingFaceAutoLM(BaseLM):
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
         model = self.AUTO_MODEL_CLASS.from_pretrained(
             pretrained,
+            revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            device_map=device_map,
+            max_memory=max_memory,
+            offload_folder=offload_folder,
+            torch_dtype=torch_dtype,
+        )
+        return model
+        
+    def _create_auto_model_peft(
+        self,
+        *,
+        model: transformers.PreTrainedModel,
+        peft: str,
+        revision: str,
+        subfolder: str,
+        device_map: Optional[Union[str, _DeviceMapping]] = None,
+        max_memory: Optional[dict] = None,
+        offload_folder: Optional[str] = None,
+        torch_dtype: Optional[Union[str, torch.dtype]] = None,
+    ):
+        model = self.AUTO_PEFT_CLASS.from_pretrained(
+            model,
+            peft,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
             device_map=device_map,
             max_memory=max_memory,
@@ -362,6 +402,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
     """
 
     AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
+    AUTO_PEFT_CLASS = peft.PeftModel
 
     def _create_auto_tokenizer(
         self,
