@@ -59,7 +59,7 @@ To evaluate models that are called via `AutoSeq2SeqLM`, you instead use `hf-seq2
 
 > **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
 
-To use with [PEFT](https://github.com/huggingface/peft), you can use the following command:
+To use with [PEFT](https://github.com/huggingface/peft), take the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument as shown below:
 ```bash
 python main.py \
     --model hf-causal \
