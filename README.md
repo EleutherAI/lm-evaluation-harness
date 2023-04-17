@@ -5,7 +5,7 @@
 
 ## Overview
 
-This project provides a unified framework to test autoregressive language models (GPT-2, GPT-3, GPTNeo, etc) on a large number of different evaluation tasks.
+This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
 
 Features:
 
@@ -115,6 +115,8 @@ To help improve reproducibility, all tasks have a `VERSION` field. When run from
 When reporting eval harness results, please also report the version of each task. This can be done either with a separate column in the table, or by reporting the task name with the version appended as such: taskname-v0.
 
 ## Test Set Decontamination
+
+To address concerns about train / test contamination, we provide utilities for comparing results on a benchmark using only the data points nto found in the model trainign set. Unfortunately, outside of models trained on the Pile ans C4, its very rare that people who train models disclose the contents of the training data. However this utility can be useful to evaluate models you have trained on private data, provided you are willing to pre-compute the necessary indices. We provide computed indices for 13-gram exact match deduplication against the Pile, and plan to add additional precomputed dataset indices in the future (including C4 and min-hash LSH deduplication).
 
 For details on text decontamination, see the [decontamination guide](./docs/decontamination.md).
 
