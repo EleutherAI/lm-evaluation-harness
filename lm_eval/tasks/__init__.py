@@ -66,6 +66,7 @@ from . import germeval2017
 from . import german_ler_ppl
 from . import german_europarl_ppl
 from . import oscar_ppl
+from .aam.all_tasks_registry import TASK_REGISTRY as AAM_TASK_REGISTRY
 
 ########################################
 # Translation tasks
@@ -346,7 +347,6 @@ TASK_REGISTRY = {
 ALL_TASKS = sorted(list(TASK_REGISTRY))
 
 # append the multilingual tasks to the registry
-from .aam.all_tasks_registry import TASK_REGISTRY as AAM_TASK_REGISTRY
 TASK_REGISTRY.update(AAM_TASK_REGISTRY)
 
 

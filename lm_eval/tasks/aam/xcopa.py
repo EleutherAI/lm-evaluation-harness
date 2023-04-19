@@ -24,8 +24,6 @@ class XCOPA_it(Task):
     def has_test_docs(self):
         return True
 
-
-
     def training_docs(self):
         if self.has_training_docs():
             if self._training_docs is None:
@@ -41,9 +39,7 @@ class XCOPA_it(Task):
             return self.dataset["test"]
 
     def fewshot_description(self):
-        return (
-            "Data una premessa e un'alternativa con una relazione causale con la premessa e un'altra senza, scegliere l'alternativa più plausibile."
-        )
+        return "Data una premessa e un'alternativa con una relazione causale con la premessa e un'altra senza, scegliere l'alternativa più plausibile."
 
     def doc_to_text(self, doc):
         # modeled after the super_glue/copa evaluation

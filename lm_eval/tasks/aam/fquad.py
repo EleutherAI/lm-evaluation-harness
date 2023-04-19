@@ -30,11 +30,13 @@ class FQuAD(Task):
         return self.load_docs("validation")
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None):
-        # access to the dataset has to be requested with the fquad authors 
+        # access to the dataset has to be requested with the fquad authors
         # and this folder has to be manually created from the provided files
         self.data_file_path = "data/fquad_1.0/"
 
-        assert os.path.exists(self.data_file_path + "valid.json"), f"Data file expected in: {self.data_file_path + 'valid.json'}"
+        assert os.path.exists(
+            self.data_file_path + "valid.json"
+        ), f"Data file expected in: {self.data_file_path + 'valid.json'}"
 
     def load_docs(self, split):
         filename = "valid.json" if split == "validation" else "train.json"
@@ -45,21 +47,35 @@ class FQuAD(Task):
                 for paragraph in item["paragraphs"]:
                     for qas in paragraph["qas"]:
                         id += 1
-                        yield { 
+                        yield {
                             "id": id,
                             "context": paragraph["context"],
                             "question": qas["question"],
                             "answers": {
-                                "text": [qas["answers"][i]["text"] for i in range(len(qas["answers"]))],
-                                "answer_start": [qas["answers"][i]["answer_start"] for i in range(len(qas["answers"]))]
-                            }
+                                "text": [
+                                    qas["answers"][i]["text"]
+                                    for i in range(len(qas["answers"]))
+                                ],
+                                "answer_start": [
+                                    qas["answers"][i]["answer_start"]
+                                    for i in range(len(qas["answers"]))
+                                ],
+                            },
                         }
 
     def fewshot_description(self):
-        return "En tenant compte du contexte, répondez succinctement à la question posée."
+        return (
+            "En tenant compte du contexte, répondez succinctement à la question posée."
+        )
 
     def doc_to_text(self, doc):
-        return "Contexte: " + doc["context"] + "\nQuestion:" + doc["question"] + "\nRéponse:"
+        return (
+            "Contexte: "
+            + doc["context"]
+            + "\nQuestion:"
+            + doc["question"]
+            + "\nRéponse:"
+        )
 
     def doc_to_target(self, doc):
         answer_list = doc["answers"]["text"]
@@ -97,7 +113,7 @@ class FQuAD(Task):
             "f1": (
                 predictions,
                 references,
-            ),  #  The F-score of predicted tokens versus the gold answer
+            ),  # The F-score of predicted tokens versus the gold answer
         }
 
     def aggregation(self):
@@ -107,11 +123,11 @@ class FQuAD(Task):
             ),  # Exact match (the normalized answer exactly match the gold answer)
             "f1": partial(
                 _squad_agg, "f1"
-            ),  #  The F-score of predicted tokens versus the gold answer
+            ),  # The F-score of predicted tokens versus the gold answer
         }
 
     def higher_is_better(self):
         return {
             "exact": True,  # Exact match (the normalized answer exactly match the gold answer)
-            "f1": True,  #  The F-score of predicted tokens versus the gold answer
+            "f1": True,  # The F-score of predicted tokens versus the gold answer
         }

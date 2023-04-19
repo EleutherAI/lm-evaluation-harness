@@ -140,7 +140,7 @@ class MLQABase(Task):
             ),  # Exact match (the normalized answer exactly match the gold answer)
             "f1": partial(
                 _squad_agg, "f1"
-            ),  #  The F-score of predicted tokens versus the gold answer
+            ),  # The F-score of predicted tokens versus the gold answer
         }
 
     def higher_is_better(self):
@@ -151,8 +151,9 @@ class MLQABase(Task):
         """
         return {
             "exact": True,  # Exact match (the normalized answer exactly match the gold answer)
-            "f1": True,  #  The F-score of predicted tokens versus the gold answer
+            "f1": True,  # The F-score of predicted tokens versus the gold answer
         }
+
 
 class MLQADe(MLQABase):
     DATASET_NAME = "mlqa.de.de"
@@ -171,6 +172,7 @@ class MLQADe(MLQABase):
             + "Antwort:"
         )
 
+
 class MLQAEs(MLQABase):
     DATASET_NAME = "mlqa.es.es"
 
@@ -187,6 +189,7 @@ class MLQAEs(MLQABase):
             + "\n\n"
             + "Respuesta:"
         )
+
 
 class MLQAEn(MLQABase):
     DATASET_NAME = "mlqa.en.en"
@@ -205,6 +208,7 @@ class MLQAEn(MLQABase):
             + "Response:"
         )
 
+
 class MLQAEnDe(MLQABase):
     DATASET_NAME = "mlqa.en.de"
 
@@ -221,6 +225,7 @@ class MLQAEnDe(MLQABase):
             + "\n\n"
             + "Response:"
         )
+
 
 class MLQADeEn(MLQABase):
     DATASET_NAME = "mlqa.de.en"
