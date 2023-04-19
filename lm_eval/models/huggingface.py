@@ -467,6 +467,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
     """
 
     AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
+    AUTO_PEFT_CLASS = peft.PeftModel
 
     @property
     def max_length(self) -> int:
