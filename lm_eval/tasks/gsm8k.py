@@ -17,8 +17,12 @@ model's sample/generation function.
 Homepage: https://github.com/openai/grade-school-math
 """
 import re
-from lm_eval.base import Task, rf
-from lm_eval.metrics import mean
+from lm_eval.api.task import Task
+from lm_eval.api.instance import GenerationInstance
+from lm_eval.api.metrics import mean
+
+from lm_eval import utils
+from lm_eval.prompts import get_prompt
 
 
 _CITATION = """
@@ -42,6 +46,8 @@ class GradeSchoolMath8K(Task):
     DATASET_PATH = "gsm8k"
     DATASET_NAME = "main"
 
+    OUTPUT_TYPE = "greedy_until"
+
     def has_training_docs(self):
         return True
 
@@ -61,12 +67,14 @@ class GradeSchoolMath8K(Task):
         return self.dataset["test"]
 
     def doc_to_text(self, doc):
-        return "Question: " + doc["question"] + "\nAnswer:"
+        doc_to_text = get_prompt("qa-basic:question-newline-answer")
+        return utils.apply_template(doc_to_text, doc)
+        # return "Question: " + doc["question"] + "\nAnswer:"
 
     def doc_to_target(self, doc):
         return " " + doc["answer"]
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, **kwargs):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
@@ -79,8 +87,9 @@ class GradeSchoolMath8K(Task):
         """
         # NOTE: The paper implements "verifiers" that assign a score to multiple
         # solutions and output the highest ranked solution.
-        completion = rf.greedy_until(ctx, ["\n"])
-        return completion
+        return GenerationInstance(doc=doc, arguments=(ctx, ["\n"]), id_=0, **kwargs)
+        # completion = rf.greedy_until(ctx, ["\n"])
+        # return completion
 
     def _extract_answer(self, completion):
         match = ANS_RE.search(completion)
@@ -94,7 +103,9 @@ class GradeSchoolMath8K(Task):
     def _is_correct(self, completion, answer):
         gold = self._extract_answer(answer)
         assert gold != INVALID_ANS, "No ground truth answer found in the document."
-        return self._extract_answer(completion) == gold
+        # return self._extract_answer(completion) == gold
+        # print(completion)
+        return completion == gold
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
@@ -106,6 +117,7 @@ class GradeSchoolMath8K(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
+
         completion = results[0]
         answer = doc["answer"]
         return {"acc": self._is_correct(completion, answer)}

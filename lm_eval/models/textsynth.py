@@ -16,7 +16,7 @@ import os
 import requests as _requests
 import time
 from tqdm import tqdm
-from lm_eval.base import BaseLM
+from lm_eval.api.model import LM
 
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ def textsynth_completion(**kwargs):
             backoff_time *= 1.5
 
 
-class TextSynthLM(BaseLM):
+class TextSynthLM(LM):
     def __init__(self, engine, truncate=False):
         """
         :param engine: str
