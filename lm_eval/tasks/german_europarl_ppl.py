@@ -39,13 +39,14 @@ class GermanEuroparlPerplexity(PerplexityTask):
             "https://nlpado.de/~sebastian/software/ner/ep-96-04-15.conll"
         )
 
-        self.dataset = datasets.load_dataset(
-            "text",
+        args = ("text",)
+        kwargs = dict(
             data_files={
                 "test": europarl_ner_german_test_path,
             },
             encoding="windows-1252",
         )
+        self._download_pushed(args, kwargs, data_dir, cache_dir, download_mode)
 
         # Convert CONLL to plain text
         self.text_docs = (
