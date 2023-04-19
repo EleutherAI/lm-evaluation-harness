@@ -261,7 +261,9 @@ def evaluate(
 
             # print the prompt for the first few documents
             if doc_id < 1:
-                print(f"Task: {task_name}; document {doc_id}; context prompt (starting on next line):\n{ctx}\n(end of prompt on previous line)")
+                print(
+                    f"Task: {task_name}; document {doc_id}; context prompt (starting on next line):\n{ctx}\n(end of prompt on previous line)"
+                )
                 print("Requests:", reqs)
 
             if not isinstance(reqs, (list, tuple)):
@@ -307,16 +309,20 @@ def evaluate(
 
         for resp, (i, task_name, doc, doc_id) in zip(resps, requests_origin[reqtype]):
             process_res_queue[(task_name, doc_id)].append((i, resp))
-            
+
             if write_detailed_eval_info:
                 detailed_eval_info[task_name][doc_id][f"logit_{i}"] = resp
                 task = task_dict[task_name]
                 if isinstance(task, lm_eval.base.MultipleChoiceTask):
                     detailed_eval_info[task_name][doc_id]["truth"] = doc["gold"]
                 elif isinstance(task, lm_eval.tasks.winogrande.Winogrande):
-                    detailed_eval_info[task_name][doc_id]["truth"] = task.answer_to_num[doc["answer"]]
+                    detailed_eval_info[task_name][doc_id]["truth"] = task.answer_to_num[
+                        doc["answer"]
+                    ]
                 else:
-                    detailed_eval_info[task_name][doc_id]["truth"] = task.doc_to_target(doc)
+                    detailed_eval_info[task_name][doc_id]["truth"] = task.doc_to_target(
+                        doc
+                    )
 
     vals = collections.defaultdict(list)
 
@@ -374,7 +380,9 @@ def evaluate(
                 "w",
                 encoding="utf8",
             ) as fp:
-                json.dump(detailed_eval_info[task_name], fp, indent=4, ensure_ascii=False)
+                json.dump(
+                    detailed_eval_info[task_name], fp, indent=4, ensure_ascii=False
+                )
 
     return {"results": dict(results), "versions": dict(versions)}
 

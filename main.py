@@ -41,7 +41,9 @@ def parse_args():
     parser.add_argument("--description_dict_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
     parser.add_argument("--no_tokenizer_check", action="store_true")
-    parser.add_argument("--write_detailed_eval_info", action="store_true", default=False)
+    parser.add_argument(
+        "--write_detailed_eval_info", action="store_true", default=False
+    )
     parser.add_argument("--detailed_eval_info_path", type=str, default=None)
 
     return parser.parse_args()
