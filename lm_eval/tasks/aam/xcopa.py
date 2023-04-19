@@ -24,8 +24,6 @@ class XCOPA_it(Task):
     def has_test_docs(self):
         return True
 
-
-
     def training_docs(self):
         if self.has_training_docs():
             if self._training_docs is None:
