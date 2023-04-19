@@ -1,6 +1,9 @@
 import collections
+import datetime
 import itertools
+import json
 import numpy as np
+import pathlib
 import random
 import lm_eval.metrics
 import lm_eval.models
@@ -171,6 +174,17 @@ def evaluate(
         print(
             "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
         )
+
+    if write_detailed_eval_info:
+        detailed_eval_info_path = (
+            pathlib.Path(detailed_eval_info_path)
+            if detailed_eval_info_path is not None
+            else pathlib.Path(".")
+        )
+        try:
+            detailed_eval_info_path.mkdir(parents=True, exist_ok=False)
+        except FileExistsError:
+            pass
 
     decontaminate = decontamination_ngrams_path is not None
 
@@ -350,18 +364,6 @@ def evaluate(
             results[task_name][metric + "_stderr"] = stderr(items)
 
     if write_detailed_eval_info:
-        import json, datetime, pathlib
-
-        detailed_eval_info_path = (
-            pathlib.Path(detailed_eval_info_path)
-            if detailed_eval_info_path is not None
-            else pathlib.Path(".")
-        )
-        try:
-            detailed_eval_info_path.mkdir(parents=True, exist_ok=False)
-        except FileExistsError:
-            pass
-
         timestamp = datetime.datetime.utcnow().strftime("%d%m%Y-%H:%M:%S")
 
         for task_name, _ in task_dict_items:
