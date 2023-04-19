@@ -97,7 +97,7 @@ class FQuAD(Task):
             "f1": (
                 predictions,
                 references,
-            ),  #  The F-score of predicted tokens versus the gold answer
+            ),  # The F-score of predicted tokens versus the gold answer
         }
 
     def aggregation(self):
@@ -107,11 +107,11 @@ class FQuAD(Task):
             ),  # Exact match (the normalized answer exactly match the gold answer)
             "f1": partial(
                 _squad_agg, "f1"
-            ),  #  The F-score of predicted tokens versus the gold answer
+            ),  # The F-score of predicted tokens versus the gold answer
         }
 
     def higher_is_better(self):
         return {
             "exact": True,  # Exact match (the normalized answer exactly match the gold answer)
-            "f1": True,  #  The F-score of predicted tokens versus the gold answer
+            "f1": True,  # The F-score of predicted tokens versus the gold answer
         }
