@@ -34,14 +34,14 @@ def assert_target_hashed(name, ob):
             assert (
                 fh.read()
                 == hashlib.sha256(
-                    json.dumps(ob, sort_keys=True).encode("utf-8")
+                    json.dumps([o.__dict__ for o in ob], sort_keys=True).encode("utf-8")
                 ).hexdigest()
             )
     else:
         with open(fname, "w") as fh:
             fh.write(
                 hashlib.sha256(
-                    json.dumps(ob, sort_keys=True).encode("utf-8")
+                    json.dumps([o.__dict__ for o in ob], sort_keys=True).encode("utf-8")
                 ).hexdigest()
             )
 
@@ -67,7 +67,7 @@ def test_versions_stable(taskname, task_class):
     lm = models.get_model("dummy")()
 
     def ll_fn(reqs):
-        for ctx, cont in reqs:
+        for ctx, cont in [req.args for req in reqs]:
             if len(ctx) == 0:
                 continue
             # space convention
@@ -84,7 +84,7 @@ def test_versions_stable(taskname, task_class):
         return res
 
     def ll_perp_fn(reqs):
-        for (string,) in reqs:
+        for (string,) in [req.args for req in reqs]:
             assert isinstance(string, str)
 
         assert_target_hashed(
@@ -102,7 +102,7 @@ def test_versions_stable(taskname, task_class):
         res = []
         assert_target_hashed(f"{taskname}-v{task_class.VERSION}-greedy_until", reqs)
 
-        for ctx, _ in reqs:
+        for ctx, _ in [req.args for req in reqs]:
             res.append("lol")
             assert ctx.strip() != ""
 
@@ -119,7 +119,6 @@ def test_versions_stable(taskname, task_class):
         num_fewshot=0,
         limit=limit,
         bootstrap_iters=10,
-        description_dict=None,
     )
 
     assert_target(f"{taskname}-v{task_class.VERSION}-res", result)

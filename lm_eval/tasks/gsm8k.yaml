@@ -1,0 +1,13 @@
+dataset_path: gsm8k
+dataset_name: main
+training_split: train
+test_split: test
+doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_target: "{{answer}}" # TODO: this field needs to change to account for the regexing that happens etc.
+metric_list: [
+  [acc, mean, true]
+  ]
+filters: [
+  ["regex", ["regex", "take_first"]]
+]
+stop_sequences: ["\n"]

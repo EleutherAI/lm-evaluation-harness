@@ -8,6 +8,7 @@ import sys
 from typing import List
 
 from omegaconf import OmegaConf
+from jinja2 import BaseLoader, Environment
 
 
 class ExitCodeError(Exception):
@@ -121,7 +122,9 @@ class Reorderer:
         self.size = len(arr)
         arr = list(enumerate(arr))
         arr = group(arr, lambda x: fn(x[1]))
-        arr = [([y[0] for y in x], x[0][1]) for x in arr]
+        # arr = [([y[0] for y in x], x[0][1]) for x in arr]
+        # TODO: overhaul reorderer. It currently grouped requests by content but we don't want this
+        arr = [([y[0]], x[0][1]) for x in arr for y in x]
         arr.sort(key=lambda x: fn(x[1]))
 
         self.arr = arr
@@ -141,6 +144,40 @@ class Reorderer:
         assert all(cov)
 
         return res
+
+
+
+def make_table(result_dict):
+    """Generate table of results."""
+    from pytablewriter import MarkdownTableWriter, LatexTableWriter
+
+    md_writer = MarkdownTableWriter()
+    latex_writer = LatexTableWriter()
+    md_writer.headers = ["Task", "Version", "Metric", "Value", "", "Stderr"]
+    latex_writer.headers = ["Task", "Version", "Metric", "Value", "", "Stderr"]
+
+    values = []
+
+    for k, dic in result_dict["results"].items():
+        version = result_dict["versions"][k]
+        for m, v in dic.items():
+            if m.endswith("_stderr"):
+                continue
+
+            if m + "_stderr" in dic:
+                se = dic[m + "_stderr"]
+                values.append([k, version, m, "%.4f" % v, "±", "%.4f" % se])
+            else:
+                values.append([k, version, m, "%.4f" % v, "", ""])
+            k = ""
+            version = ""
+    md_writer.value_matrix = values
+    latex_writer.value_matrix = values
+
+    # todo: make latex table look good
+    # print(latex_writer.dumps())
+
+    return md_writer.dumps()
 
 
 def positional_deprecated(fn):
@@ -201,3 +238,11 @@ def run_task_tests(task_list: List[str]):
         raise ValueError(
             f"Not all tests for the specified tasks ({task_list}) ran successfully! Error code: {pytest_return_val}"
         )
+
+
+env = Environment(loader=BaseLoader)
+
+
+def apply_template(template, doc):
+    rtemplate = env.from_string(template)
+    return rtemplate.render(**doc)

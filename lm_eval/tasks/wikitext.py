@@ -10,7 +10,7 @@ NOTE: This `Task` is based on WikiText-2.
 Homepage: https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/
 """
 import re
-from lm_eval.base import PerplexityTask
+from lm_eval.api.task import PerplexityTask
 
 
 _CITATION = """
@@ -60,7 +60,7 @@ def wikitext_detokenizer(string):
 
 
 class WikiText(PerplexityTask):
-    VERSION = 1
+    VERSION = "2.0"
     DATASET_PATH = "EleutherAI/wikitext_document_level"
     DATASET_NAME = "wikitext-2-raw-v1"
 

@@ -1,5 +1,5 @@
 import random
-from lm_eval.base import LM
+from lm_eval.api.model import LM
 
 
 class DummyLM(LM):
