@@ -39,9 +39,7 @@ class XCOPA_it(Task):
             return self.dataset["test"]
 
     def fewshot_description(self):
-        return (
-            "Data una premessa e un'alternativa con una relazione causale con la premessa e un'altra senza, scegliere l'alternativa più plausibile."
-        )
+        return "Data una premessa e un'alternativa con una relazione causale con la premessa e un'altra senza, scegliere l'alternativa più plausibile."
 
     def doc_to_text(self, doc):
         # modeled after the super_glue/copa evaluation
