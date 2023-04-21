@@ -21,6 +21,8 @@ def _get_accelerate_args(
     max_memory_per_gpu: Optional[Union[int, str]] = None,
     max_cpu_memory: Optional[Union[int, str]] = None,
     offload_folder: Optional[str] = "./offload",
+    load_in_8bit: Optional[bool] = False, # based on https://huggingface.co/docs/transformers/main_classes/model
+    trust_remote_code: Optional[bool] = False, # based on https://huggingface.co/docs/transformers/main_classes/model
 ) -> dict:
     """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
     max_memory = {}
@@ -81,6 +83,7 @@ class HuggingFaceAutoLM(BaseLM):
         max_cpu_memory: Optional[Union[int, str]] = None,
         offload_folder: Optional[str] = "./offload",
         load_in_8bit: Optional[bool] = False, # based on https://huggingface.co/docs/transformers/main_classes/model
+        trust_remote_code: Optional[bool] = False, # based on https://huggingface.co/docs/transformers/main_classes/model
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[Union[int, str]] = "cuda",
         peft: str = None,
@@ -214,6 +217,8 @@ class HuggingFaceAutoLM(BaseLM):
         device_map: Optional[Union[str, _DeviceMapping]] = None,
         max_memory: Optional[dict] = None,
         offload_folder: Optional[str] = None,
+        load_in_8bit: Optional[bool] = False,
+        trust_remote_code: Optional[bool] = False,
         torch_dtype: Optional[Union[str, torch.dtype]] = None,
     ) -> transformers.AutoModel:
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
@@ -223,6 +228,8 @@ class HuggingFaceAutoLM(BaseLM):
             device_map=device_map,
             max_memory=max_memory,
             offload_folder=offload_folder,
+            load_in_8bit=load_in_8bit,
+            trust_remote_code=trust_remote_code,
             torch_dtype=torch_dtype,
         )
         return model
@@ -237,6 +244,8 @@ class HuggingFaceAutoLM(BaseLM):
         device_map: Optional[Union[str, _DeviceMapping]] = None,
         max_memory: Optional[dict] = None,
         offload_folder: Optional[str] = None,
+        load_in_8bit: Optional[bool] = False,
+        trust_remote_code: Optional[bool] = False,
         torch_dtype: Optional[Union[str, torch.dtype]] = None,
     ):
         model = self.AUTO_PEFT_CLASS.from_pretrained(
@@ -246,6 +255,8 @@ class HuggingFaceAutoLM(BaseLM):
             device_map=device_map,
             max_memory=max_memory,
             offload_folder=offload_folder,
+            load_in_8bit=load_in_8bit,
+            trust_remote_code=trust_remote_code,
             torch_dtype=torch_dtype,
         )
         return model
