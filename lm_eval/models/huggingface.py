@@ -80,6 +80,7 @@ class HuggingFaceAutoLM(BaseLM):
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
         offload_folder: Optional[str] = "./offload",
+        load_in_8bit: Optional[bool] = False, # based on https://huggingface.co/docs/transformers/main_classes/model
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[Union[int, str]] = "cuda",
         peft: str = None,
