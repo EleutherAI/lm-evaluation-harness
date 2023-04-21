@@ -159,12 +159,14 @@ class HuggingFaceAutoLM(BaseLM):
         self._max_length = max_length
         self._config = self.AUTO_CONFIG_CLASS.from_pretrained(
             pretrained,
+            trust_remote_code=trust_remote_code,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
         )
 
         self._add_special_tokens = add_special_tokens
         self.tokenizer = self._create_auto_tokenizer(
             pretrained=pretrained,
+            trust_remote_code=trust_remote_code,
             revision=revision,
             subfolder=subfolder,
             tokenizer=tokenizer,
@@ -181,6 +183,7 @@ class HuggingFaceAutoLM(BaseLM):
             )
         self.model = self._create_auto_model(
             pretrained=pretrained,
+            trust_remote_code=trust_remote_code,
             revision=revision,
             subfolder=subfolder,
             torch_dtype=_get_dtype(dtype, self._config),
