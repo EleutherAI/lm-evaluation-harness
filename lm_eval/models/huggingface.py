@@ -166,7 +166,6 @@ class HuggingFaceAutoLM(BaseLM):
         self._add_special_tokens = add_special_tokens
         self.tokenizer = self._create_auto_tokenizer(
             pretrained=pretrained,
-            trust_remote_code=trust_remote_code,
             revision=revision,
             subfolder=subfolder,
             tokenizer=tokenizer,
@@ -269,6 +268,7 @@ class HuggingFaceAutoLM(BaseLM):
         self,
         *,
         pretrained: str,
+
         revision: str,
         subfolder: str,
         tokenizer: Optional[str] = None,

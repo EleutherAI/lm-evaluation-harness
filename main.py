@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument("--no_cache", action="store_true")
     parser.add_argument("--decontamination_ngrams_path", default=None)
     parser.add_argument("--description_dict_path", default=None)
-    parser.add_argument("--trust_remote_code", type=bool, default=False)
+    #parser.add_argument("--trust_remote_code", type=bool, default=False)
     parser.add_argument("--check_integrity", action="store_true")
 
     return parser.parse_args()
