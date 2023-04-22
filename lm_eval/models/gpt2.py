@@ -1,6 +1,6 @@
 import torch
 import transformers
-from typing import List, Mapping, NewType, Optional, Tuple, Union
+from typing import Optional
 from lm_eval.base import BaseLM
 
 
@@ -12,10 +12,10 @@ class HFLM(BaseLM):
         revision="main",
         low_cpu_mem_usage=None,
         subfolder=None,
-        load_in_8bit: Optional[bool] = False, # based on https://huggingface.co/docs/transformers/main_classes/model
-        trust_remote_code: Optional[bool] = False, # based on https://huggingface.co/docs/transformers/main_classes/model
         tokenizer=None,
         batch_size=1,
+        load_in_8bit: Optional[bool] = False,
+        trust_remote_code: Optional[bool] = False,
     ):
         super().__init__()
 
@@ -41,15 +41,18 @@ class HFLM(BaseLM):
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
         self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
-            pretrained, 
+            pretrained,
+            load_in_8bit=load_in_8bit,
+            low_cpu_mem_usage=low_cpu_mem_usage,
+            revision=revision,
             trust_remote_code=trust_remote_code,
-            revision=revision, low_cpu_mem_usage=low_cpu_mem_usage
         ).to(self.device)
         self.gpt2.eval()
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision,
+            trust_remote_code=trust_remote_code,
         )
 
         assert isinstance(

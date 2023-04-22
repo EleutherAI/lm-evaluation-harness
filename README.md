@@ -64,8 +64,8 @@ To use with [PEFT](https://github.com/huggingface/peft), take the call you would
 python main.py \
     --model hf-causal \
     --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
-    --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \ 
-    --device cuda:0 
+    --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
+    --device cuda:0
 ```
 
 Our library also supports the OpenAI API:

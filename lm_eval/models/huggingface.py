@@ -21,8 +21,6 @@ def _get_accelerate_args(
     max_memory_per_gpu: Optional[Union[int, str]] = None,
     max_cpu_memory: Optional[Union[int, str]] = None,
     offload_folder: Optional[str] = "./offload",
-    load_in_8bit: Optional[bool] = False, # based on https://huggingface.co/docs/transformers/main_classes/model
-    trust_remote_code: Optional[bool] = False, # based on https://huggingface.co/docs/transformers/main_classes/model
 ) -> dict:
     """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
     max_memory = {}
@@ -82,11 +80,11 @@ class HuggingFaceAutoLM(BaseLM):
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
         offload_folder: Optional[str] = "./offload",
-        load_in_8bit: Optional[bool] = False, # based on https://huggingface.co/docs/transformers/main_classes/model
-        trust_remote_code: Optional[bool] = False, # based on https://huggingface.co/docs/transformers/main_classes/model
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[Union[int, str]] = "cuda",
         peft: str = None,
+        load_in_8bit: Optional[bool] = False,
+        trust_remote_code: Optional[bool] = False,
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -110,20 +108,20 @@ class HuggingFaceAutoLM(BaseLM):
                 Options:
                     "auto", "balanced", "balanced_low_0", "sequential"
                 See the `accelerate` docs for more details on these options:
-                https://huggingface.co/docs/accelerate/v0.12.0/en/usage_guides/big_modeling#designing-a-device-map
+                https://huggingface.co/docs/transformers/main/en/main_classes/model#transformers.PreTrainedModel.from_pretrained.device_map
             max_memory_per_gpu (Union[int, str], optional, defaults to None):
                 The maximum memory available for each GPU in bytes as `int` or in
                 the format f"{significand}{unit_symbol}" where {unit_symbol} is
                 any of ["GB", "MB", "GIB", "MIB"]. Refer to the `max_memory` arg in
                 the "Parameters for big model inference" section of the following
                 docs:
-                https://huggingface.co/docs/transformers/v4.20.1/en/main_classes/model#large-model-loading
+                https://huggingface.co/docs/transformers/main/en/main_classes/model#transformers.PreTrainedModel.from_pretrained.max_memory
             max_cpu_memory (Union[int, str], optional, defaults to None):
                 The maximum available CPU RAM in bytes as `int` or in the format
                 f"{significand}{unit_symbol}" where {unit_symbol} is any of
                 ["GB", "MB", "GIB", "MIB"]. Refer to the `max_memory` arg in the
                 "Parameters for big model inference" section of the following docs:
-                https://huggingface.co/docs/transformers/v4.20.1/en/main_classes/model#large-model-loading
+                https://huggingface.co/docs/transformers/main/en/main_classes/model#transformers.PreTrainedModel.from_pretrained.max_memory
             offload_folder (str, optional, defaults to "./offload"):
                 The folder to offload weights into if `device_map` contains any
                 "disk" value.
@@ -133,8 +131,13 @@ class HuggingFaceAutoLM(BaseLM):
                 Use `dtype="auto"` to derive the type from the model’s weights.
             peft (str, optional, defaults to None):
                 Path of the adapter weights to load from Huggingface. This will usually
-                include a directory that includes the files `adapter_config.json` and 
+                include a directory that includes the files `adapter_config.json` and
                 `adapter_model.bin`. Compatible with [PEFT](https://github.com/huggingface/peft)
+            load_in_8bit (bool, optional, defaults to False):
+                If True, will convert the loaded model into mixed-8bit quantized model. See:
+                https://huggingface.co/docs/transformers/main/en/main_classes/model#transformers.PreTrainedModel.from_pretrained.load_in_8bit
+            trust_remote_code (bool, optional, defaults to False):
+                If True, will trust the remote code when loading the model.
         """
         super().__init__()
 
@@ -172,21 +175,22 @@ class HuggingFaceAutoLM(BaseLM):
         )
         self.tokenizer.model_max_length = self.max_length
 
-        accelerate_kwargs = {}
+        model_kwargs = {}
         if use_accelerate:
-            accelerate_kwargs = _get_accelerate_args(
+            model_kwargs = _get_accelerate_args(
                 device_map_option,
                 max_memory_per_gpu,
                 max_cpu_memory,
                 offload_folder,
             )
+        model_kwargs["load_in_8bit"] = load_in_8bit
         self.model = self._create_auto_model(
             pretrained=pretrained,
             trust_remote_code=trust_remote_code,
             revision=revision,
             subfolder=subfolder,
             torch_dtype=_get_dtype(dtype, self._config),
-            **accelerate_kwargs,
+            **model_kwargs,
         )
         # note: peft_path can be different than pretrained model path
         if peft is not None:
@@ -196,7 +200,7 @@ class HuggingFaceAutoLM(BaseLM):
                 revision=revision,
                 subfolder=subfolder,
                 torch_dtype=_get_dtype(dtype, self._config),
-                **accelerate_kwargs,
+                **model_kwargs,
             )
         self.model.eval()
         torch.set_grad_enabled(False)
@@ -235,7 +239,7 @@ class HuggingFaceAutoLM(BaseLM):
             torch_dtype=torch_dtype,
         )
         return model
-        
+
     def _create_auto_model_peft(
         self,
         *,
@@ -689,4 +693,3 @@ def stop_sequences_criteria(
             ],
         ]
     )
-
