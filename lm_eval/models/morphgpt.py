@@ -1,13 +1,15 @@
 import transformers
 import torch
 from lm_eval.base import BaseLM
-from MorphpieceBPE import MorphpieceBPE
+from morphpiece import MorphPieceBPE
 
 class MorphGPT(BaseLM):
     def __init__(
         self,
         device="cuda",
-        pretrained="maveriq/morphgpt-base-50000", #morphgpt-lg-30000",
+        pretrained="maveriq/morphgpt-base-50k", #morphgpt-lg-30000",
+        use_auth_token=True,
+        trust_remote_code=True,
         # revision="main",
         # subfolder=None,
         # tokenizer='gpt2-large',
@@ -38,12 +40,12 @@ class MorphGPT(BaseLM):
 
         self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
             pretrained,
-            use_auth_token=True,
-            trust_remote_code=True,
+            use_auth_token=use_auth_token,
+            trust_remote_code=trust_remote_code,
         ).to(self.device)
         self.gpt2.eval()
 
-        self.tokenizer = MorphpieceBPE()
+        self.tokenizer = MorphPieceBPE()
 
         assert isinstance(
             self.tokenizer,
@@ -125,8 +127,8 @@ class MorphGPT(BaseLM):
         )
         
 if __name__=="__main__":
-    model = MorphPiece()
+    model = MorphGPT()
     print(model.tokenizer.encode("hello"))
     
-    tokenizer = MorphpieceBPE()
+    tokenizer = MorphPieceBPE()
     print(tokenizer.tokenize("hello"))

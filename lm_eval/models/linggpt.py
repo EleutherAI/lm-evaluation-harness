@@ -46,7 +46,7 @@ class LingGPT(BaseLM):
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
-            revision=revision,
+            # revision=revision,
         )
 
         assert isinstance(
