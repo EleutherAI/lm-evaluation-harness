@@ -267,7 +267,6 @@ class HuggingFaceAutoLM(BaseLM):
         self,
         *,
         pretrained: str,
-
         revision: str,
         subfolder: str,
         tokenizer: Optional[str] = None,
