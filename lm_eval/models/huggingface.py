@@ -361,7 +361,7 @@ class HuggingFaceAutoLM(BaseLM):
     def tok_decode(self, tokens: torch.LongTensor) -> List[str]:
         return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
 
-    def greedy_until(self, requests: List[Tuple[str, dict]]) -> List[str]:
+    def greedy_until(self, requests: List[Tuple[str, Union[List[str], str]]]) -> List[str]:
         def _collate(x):
             tokens = self.tok_encode(x[0])
             return len(tokens), x[0]
@@ -373,18 +373,16 @@ class HuggingFaceAutoLM(BaseLM):
         ):
             context = [c[0] for c in chunk]
             request_args = chunk[0][1]
-            stop_sequences = request_args["stop_sequences"]
-            max_generation_length = request_args["max_generation_length"]
-            num_fewshot = request_args["num_fewshot"]
+            stop_sequences = request_args if isinstance(request_args, list) else [request_args] # request_args["stop_sequences"]
+            max_generation_length = self._max_gen_toks # request_args["max_generation_length"]
 
             assert (
                 isinstance(max_generation_length, int) or max_generation_length is None
             )
             assert isinstance(stop_sequences, list) or stop_sequences is None
-            assert isinstance(num_fewshot, int) or num_fewshot is None
-
+            
             # TODO: Find a better way to handle stop sequences for 0-shot.
-            if stop_sequences is None or num_fewshot == 0:
+            if stop_sequences is None:
                 until = [self.eot_token]
             else:
                 until = stop_sequences + [self.eot_token]
