@@ -31,9 +31,7 @@ class TaskConfig(dict):
     test_split: str = None
     fewshot_split: str = None # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
     
-    # TODO: add this as more jinja2 appended to start of jinja2 templates. Should allow users to set vars 
-    # s.t. they can define e.g. {% set question = query %} to map dataset columns to "canonical" names in prompts.
-    template_aliases: str = None 
+    template_aliases: str = "" 
     doc_to_text: str = None
     doc_to_target: str = None
 
@@ -48,6 +46,13 @@ class TaskConfig(dict):
     filters: str = None #TODO: need to make this typehint `list`?
     normalization: str = None # TODO: add length-normalization of various types, mutual info
     stop_sequences: list = None # TODO: allow passing of stop sequences to greedy gen.
+
+    def __post_init__(self):
+        # allow user-specified aliases so that users can
+        # force prompt-compatibility for some prompt regardless of
+        # field names in prompt
+        self.doc_to_text = self.template_aliases + self.doc_to_text
+        self.doc_to_target = self.template_aliases + self.doc_to_target
 
     def __getitem__(self, item):
         return getattr(self, item)
