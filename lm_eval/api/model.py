@@ -2,6 +2,29 @@ import abc
 
 from lm_eval import utils
 
+MODEL_REGISTRY = {}
+
+def register_model(name):
+    # TODO: should fairseq/elk be cited for this design pattern?
+
+    def decorate(cls):
+        assert (
+            issubclass(cls, LM)
+        ), f"Model '{name}' ({cls.__name__}) must extend LM class"
+
+        assert (
+            name not in MODEL_REGISTRY
+        ), f"Model named '{name}' conflicts with existing model!"
+
+        MODEL_REGISTRY[name] = cls
+        return cls
+    
+    return decorate
+
+
+def get_model(model_name):
+    return MODEL_REGISTRY[model_name]
+
 
 class LM(abc.ABC):
     def __init__(self):

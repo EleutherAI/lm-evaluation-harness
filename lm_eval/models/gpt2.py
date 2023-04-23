@@ -6,9 +6,11 @@ from tqdm import tqdm
 import torch.nn.functional as F
 
 from lm_eval import utils
-from lm_eval.api.model import LM
+from lm_eval.api.model import LM, register_model
 
+# from lm_eval.models import register_model
 
+@register_model("hf-causal")
 class HFLM(LM):
     def __init__(
         self,

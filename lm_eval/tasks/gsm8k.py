@@ -17,7 +17,7 @@ model's sample/generation function.
 Homepage: https://github.com/openai/grade-school-math
 """
 import re
-from lm_eval.api.task import Task
+from lm_eval.api.task import Task, register_task
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean
 
@@ -41,6 +41,7 @@ ANS_RE = re.compile(r"#### (\-?[0-9\.\,]+)")
 INVALID_ANS = "[invalid]"
 
 
+@register_task("gsm8k")
 class GradeSchoolMath8K(Task):
     VERSION = 0
     DATASET_PATH = "gsm8k"
