@@ -13,7 +13,7 @@ in the broader discourse.
 Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
 """
 from lm_eval.api.task import Task
-from lm_eval.api.instance import LoglikelihoodInstance
+from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean, perplexity
 
 
@@ -59,9 +59,7 @@ class LambadaBase(Task):
         return " " + doc["text"].rsplit(" ", 1)[1]
 
     def construct_requests(self, doc, ctx, **kwargs):
-        return LoglikelihoodInstance(doc=doc, arguments=(ctx, self.doc_to_target(doc)), **kwargs)
-
-        return ll, is_greedy
+        return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(ctx, self.doc_to_target(doc)), **kwargs)
 
     def process_results(self, doc, results):
         # TODO: this ^ is a hack. filters should make it so that we only have one response per request that we score

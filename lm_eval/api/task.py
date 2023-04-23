@@ -10,7 +10,7 @@ import datasets
 import numpy as np
 
 from lm_eval.api import METRIC_REGISTRY, AGGREGATION_REGISTRY
-from lm_eval.api.instance import LoglikelihoodInstance, RollingLoglikelihoodInstance, GenerationInstance
+from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
 from lm_eval import utils
 
@@ -460,7 +460,7 @@ class ConfigurableTask(Task):
     def construct_requests(self, doc, ctx, **kwargs):
 
         if self.OUTPUT_TYPE == "greedy_until":
-            return GenerationInstance(doc=doc, arguments=(ctx, "\n\n"), id_=0, **kwargs)
+            return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(ctx, "\n\n"), id_=0, **kwargs)
 
     def process_results(self, doc, results):
 
@@ -498,7 +498,8 @@ class MultipleChoiceTask(Task):
 
     def construct_requests(self, doc, ctx, **kwargs):
         
-        return [LoglikelihoodInstance(
+        return [Instance(
+                request_type="loglikelihood",
                 doc=doc, 
                 arguments=(ctx, " {}".format(choice)),
                 id_=i,
@@ -579,7 +580,7 @@ class PerplexityTask(Task, abc.ABC):
     def construct_requests(self, doc, ctx, **kwargs):
         assert not ctx
 
-        return RollingLoglikelihoodInstance(doc=doc, arguments=(self.doc_to_target(doc),), id_=0, **kwargs)
+        return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(self.doc_to_target(doc),), id_=0, **kwargs)
         # req = rf.loglikelihood_rolling(self.doc_to_target(doc))
         # return req
 
