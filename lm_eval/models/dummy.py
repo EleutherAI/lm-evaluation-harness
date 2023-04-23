@@ -1,7 +1,8 @@
 import random
-from lm_eval.api.model import LM
+from lm_eval.api.model import LM, register_model
 
 
+@register_model("dummy")
 class DummyLM(LM):
     def __init__(self):
         pass

@@ -8,7 +8,7 @@ import sys
 from typing import List
 
 from omegaconf import OmegaConf
-from jinja2 import BaseLoader, Environment
+from jinja2 import BaseLoader, Environment, StrictUndefined
 
 
 class ExitCodeError(Exception):
@@ -240,7 +240,7 @@ def run_task_tests(task_list: List[str]):
         )
 
 
-env = Environment(loader=BaseLoader)
+env = Environment(loader=BaseLoader, undefined=StrictUndefined)
 
 
 def apply_template(template, doc):
