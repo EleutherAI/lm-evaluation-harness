@@ -55,14 +55,14 @@ python main.py \
     --device cuda:0
 ```
 
-To evaluate models that are called via `AutoSeq2SeqLM`, you instead use `hf-seq2seq`.
+To evaluate models that are loaded via `AutoSeq2SeqLM` in Huggingface, you instead use `hf-seq2seq`. *To evaluate (causal) models across multiple GPUs, use `--model hf-causal-experimental`. Note that this is *
 
 > **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
 
 To use with [PEFT](https://github.com/huggingface/peft), take the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument as shown below:
 ```bash
 python main.py \
-    --model hf-causal \
+    --model hf-causal-experimental \
     --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
     --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \ 
     --device cuda:0 
