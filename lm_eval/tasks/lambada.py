@@ -12,7 +12,7 @@ in the broader discourse.
 
 Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
 """
-from lm_eval.api.task import Task
+from lm_eval.api.task import Task, register_task
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean, perplexity
 
@@ -75,6 +75,7 @@ class LambadaBase(Task):
         return {"ppl": False, "acc": True}
 
 
+@register_task("lambada_standard")
 class LambadaStandard(LambadaBase):
     """The LAMBADA task using the standard original LAMBADA dataset."""
 
@@ -90,7 +91,7 @@ class LambadaStandard(LambadaBase):
     def has_test_docs(self):
         return True
 
-
+@register_task("lambada_openai")
 class LambadaOpenAI(LambadaBase):
     """The LAMBADA task using the LAMBADA OpenAI dataset, a modified version of the
     original LAMBADA dataset created by OpenAI for evaluating their GPT-2 model.

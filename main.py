@@ -5,14 +5,17 @@ import fnmatch
 import yaml
 
 from lm_eval import tasks, evaluator
-from lm_eval.api.task import ConfigurableTask
+# import lm_eval.api.task
+from lm_eval.api.task import ConfigurableTask, TASK_REGISTRY
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 
+ALL_TASKS = sorted(list(TASK_REGISTRY))
 
 class MultiChoice:
     def __init__(self, choices):
         self.choices = choices
+        print(f"{ALL_TASKS} is this")
 
     # Simple wildcard support (linux filename patterns)
     def __contains__(self, values):
@@ -31,7 +34,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True)
     parser.add_argument("--model_args", default="")
-    parser.add_argument("--tasks", default=None, choices=MultiChoice(tasks.ALL_TASKS))
+    parser.add_argument("--tasks", default=None, choices=MultiChoice(ALL_TASKS))
     parser.add_argument("--config", default=None)
     parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--num_fewshot", type=int, default=0)
@@ -80,9 +83,9 @@ def main():
 
                 task_names.append(config)
         else:
-            task_names = tasks.ALL_TASKS
+            task_names = ALL_TASKS
     else:
-        task_names = pattern_match(args.tasks.split(","), tasks.ALL_TASKS)
+        task_names = pattern_match(args.tasks.split(","), ALL_TASKS)
 
     print(f"Selected Tasks: {task_names}")
 
