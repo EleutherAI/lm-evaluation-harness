@@ -12,7 +12,7 @@ a co-occurrence method fail to answer correctly) and an Easy Set of 5,197 questi
 
 Homepage: https://allenai.org/data/arc
 """
-from lm_eval.api.task import MultipleChoiceTask
+from lm_eval.api.task import MultipleChoiceTask, register_task
 from lm_eval.prompts import get_prompt
 
 from lm_eval import utils
@@ -28,7 +28,7 @@ _CITATION = """
 }
 """
 
-
+@register_task("arc_easy")
 class ARCEasy(MultipleChoiceTask):
     VERSION = "2.0"
     DATASET_PATH = "ai2_arc"
@@ -80,6 +80,7 @@ class ARCEasy(MultipleChoiceTask):
         return doc["query"]
 
 
+@register_task("arc_challenge")
 class ARCChallenge(ARCEasy):
     DATASET_PATH = "ai2_arc"
     DATASET_NAME = "ARC-Challenge"

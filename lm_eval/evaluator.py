@@ -58,14 +58,14 @@ def simple_evaluate(
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
-        lm = lm_eval.models.get_model(model).create_from_arg_string(
+        lm = lm_eval.api.model.get_model(model).create_from_arg_string(
             model_args, {"batch_size": batch_size, "device": device}
         )
     else:
         assert isinstance(model, lm_eval.api.model.LM)
         lm = model
 
-    task_dict = lm_eval.tasks.get_task_dict(tasks, num_fewshot=num_fewshot)
+    task_dict = lm_eval.api.task.get_task_dict(tasks, num_fewshot=num_fewshot)
 
     if check_integrity:
         run_task_tests(task_list=tasks)

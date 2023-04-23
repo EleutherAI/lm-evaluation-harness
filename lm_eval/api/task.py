@@ -9,6 +9,8 @@ import itertools
 import datasets
 import numpy as np
 
+from typing import List, Union
+
 from lm_eval.api import METRIC_REGISTRY, AGGREGATION_REGISTRY
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
@@ -31,7 +33,7 @@ class TaskConfig(dict):
     
     # TODO: add this as more jinja2 appended to start of jinja2 templates. Should allow users to set vars 
     # s.t. they can define e.g. {% set question = query %} to map dataset columns to "canonical" names in prompts.
-    template_vars: str = None 
+    template_aliases: str = None 
     doc_to_text: str = None
     doc_to_target: str = None
 
@@ -609,3 +611,82 @@ class PerplexityTask(Task, abc.ABC):
     def count_words(cls, doc):
         """Downstream tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
+
+
+# TODO: confirm we want this to go in this file
+
+TASK_REGISTRY = {}
+ALL_TASKS = []
+
+def register_task(name):
+
+    def decorate(cls):
+        assert (
+            issubclass(cls, Task)
+        ), f"Task '{name}' ({cls.__name__}) must extend Task class"
+
+        assert (
+            name not in TASK_REGISTRY
+        ), f"Task named '{name}' conflicts with existing task!"
+
+        TASK_REGISTRY[name] = cls
+        ALL_TASKS = sorted(list(TASK_REGISTRY)) # TODO: this doesn't seem to import right.
+        return cls
+    
+    return decorate
+
+
+##### Task registry utils and setup.
+# ALL_TASKS = sorted(list(TASK_REGISTRY))
+
+
+def get_task(task_name):
+    try:
+        return TASK_REGISTRY[task_name]
+    except KeyError:
+        print("Available tasks:")
+        pprint(TASK_REGISTRY)
+        raise KeyError(f"Missing task {task_name}")
+
+
+def get_task_name_from_object(task_object):
+    for name, class_ in TASK_REGISTRY.items():
+        if class_ is task_object:
+            return name
+
+    # this gives a mechanism for non-registered tasks to have a custom name anyways when reporting
+    return (
+        task_object.EVAL_HARNESS_NAME
+        if hasattr(task_object, "EVAL_HARNESS_NAME")
+        else type(task_object).__name__
+    )
+
+
+def get_task_name_from_config(task_config):
+    return "configurable_{dataset_path}_{dataset_name}".format(**task_config)
+
+
+def get_task_dict(task_name_list: List[Union[str, dict, Task]], num_fewshot=None): # TODO: pass num_fewshot and other cmdline overrides in a better way
+    task_name_dict = {
+        task_name: get_task(task_name)(config={"num_fewshot": num_fewshot if num_fewshot else 0, "task_name": task_name})
+        for task_name in task_name_list
+        if isinstance(task_name, str)
+    }
+    task_name_from_config_dict = {
+        get_task_name_from_config(task_config): ConfigurableTask(
+            config=task_config
+        )
+        for task_config in task_name_list
+        if isinstance(task_config, dict)
+    }
+    task_name_from_object_dict = {
+        get_task_name_from_object(task_object): task_object
+        for task_object in task_name_list
+        if isinstance(task_object, Task)
+    }
+    assert set(task_name_dict.keys()).isdisjoint(set(task_name_from_object_dict.keys()))
+    return {
+        **task_name_dict,
+        **task_name_from_config_dict,
+        **task_name_from_object_dict,
+    }
