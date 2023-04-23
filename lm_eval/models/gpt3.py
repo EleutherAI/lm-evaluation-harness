@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import transformers
-from lm_eval.api.model import LM
+from lm_eval.api.model import LM, register_model
 from lm_eval import utils
 from tqdm import tqdm
 import time
@@ -54,6 +54,7 @@ def oa_completion(**kwargs):
             backoff_time *= 1.5
 
 
+@register_model("openai")
 class GPT3LM(LM):
     REQ_CHUNK_SIZE = 20
 
