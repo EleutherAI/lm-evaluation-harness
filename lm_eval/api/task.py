@@ -11,9 +11,8 @@ import numpy as np
 
 from typing import List, Union
 
-from lm_eval.api import METRIC_REGISTRY, AGGREGATION_REGISTRY
 from lm_eval.api.instance import Instance
-from lm_eval.api.metrics import mean, weighted_perplexity, weighted_mean, bits_per_byte
+from lm_eval.api.metrics import get_metric, get_aggregation, mean, weighted_perplexity, bits_per_byte
 from lm_eval import utils
 
 from lm_eval.filters import build_filter_ensemble
@@ -32,8 +31,8 @@ class TaskConfig(dict):
     fewshot_split: str = None # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
     
     template_aliases: str = "" 
-    doc_to_text: str = None
-    doc_to_target: str = None
+    doc_to_text: str = ""
+    doc_to_target: str = ""
 
     # aggregation: dict = None # TODO: remove, I think these 2 are obsolete w/ current metric_list impl.
     # higher_is_better: dict = None
@@ -111,7 +110,7 @@ class Task(abc.ABC):
         self._fewshot_docs = None
         self._instances = None
 
-        self._config = TaskConfig(**config) if config else {}
+        self._config = TaskConfig(**config) if config else TaskConfig()
 
         if not hasattr(self, "_filters"):
             self._filters = []
@@ -392,20 +391,23 @@ class ConfigurableTask(Task):
             self._higher_is_better = {}
             for (metric_name, aggregation, higher_is_better) in self._config.metric_list:
 
-                self._aggregation_list[metric_name] = AGGREGATION_REGISTRY[aggregation]
+                self._aggregation_list[metric_name] = get_aggregation(aggregation)
                 self._higher_is_better[metric_name] = higher_is_better
 
-                if metric_name in METRIC_REGISTRY.keys():
-                    self._metric_list[metric_name] = METRIC_REGISTRY[metric_name]
-                else:
-                    try:
-                        metric_object = evaluate.load(metric_name)
-                        self._metric_list[metric_name] = metric_object
-                    except Exception as ex:
-                        raise Warning(
-                            "{} not found in the evaluate library!".format(metric_name),
-                            "Please check https://huggingface.co/evaluate-metric",
-                        )
+                self._metric_list[metric_name] = get_metric(metric_name)
+
+
+                # if metric_name in METRIC_REGISTRY.keys():
+                #     self._metric_list[metric_name] = METRIC_REGISTRY[metric_name]
+                # else:
+                #     try:
+                #         metric_object = evaluate.load(metric_name)
+                #         self._metric_list[metric_name] = metric_object
+                #     except Exception as ex:
+                #         raise Warning(
+                #             "{} not found in the evaluate library!".format(metric_name),
+                #             "Please check https://huggingface.co/evaluate-metric",
+                #         )
 
         self.download(data_dir, cache_dir, download_mode)
         self._training_docs = None
@@ -478,7 +480,7 @@ class ConfigurableTask(Task):
 
         result_dict = {}
         for key, result in zip(self._metric_list.keys(), results):
-            _dict = self._metric_list[key].compute(
+            _dict = self._metric_list[key](
                 references=[gold],
                 predictions=[result],
             )
@@ -493,7 +495,7 @@ class ConfigurableTask(Task):
 
     def higher_is_better(self):
         
-        return self._higher_is_better_list
+        return self._higher_is_better
 
 
 class MultipleChoiceTask(Task):
@@ -659,6 +661,7 @@ def get_task_name_from_object(task_object):
         if class_ is task_object:
             return name
 
+    # TODO: scrap this
     # this gives a mechanism for non-registered tasks to have a custom name anyways when reporting
     return (
         task_object.EVAL_HARNESS_NAME

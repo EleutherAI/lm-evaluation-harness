@@ -6,7 +6,67 @@ import sacrebleu
 import sklearn.metrics
 import random
 
+import evaluate
 
+
+AGGREGATION_REGISTRY = {}
+METRIC_REGISTRY = {}
+
+
+def register_metric(name):
+    # TODO: do we want to enforce a certain interface to registered metrics?
+    def decorate(fn):
+        assert (
+            name not in METRIC_REGISTRY
+        ), f"metric named '{name}' conflicts with existing registered metric!"
+
+        METRIC_REGISTRY[name] = fn
+        return fn
+    
+    return decorate
+
+
+def get_metric(name):
+
+    try:
+        return METRIC_REGISTRY[name]
+    except KeyError:
+        # TODO: change this print to logging?
+        print(f"Could not find registered metric '{name}' in lm-eval, \
+searching in HF Evaluate library...")
+        try:
+            metric_object = evaluate.load(name)
+            return metric_object.compute
+        except:
+            raise Warning(
+                "{} not found in the evaluate library!".format(name),
+                "Please check https://huggingface.co/evaluate-metric",
+            )
+
+
+def register_aggregation(name):
+    def decorate(fn):
+        assert (
+            name not in AGGREGATION_REGISTRY
+        ), f"aggregation named '{name}' conflicts with existing registered aggregation!"
+
+        AGGREGATION_REGISTRY[name] = fn
+        return fn
+    
+    return decorate
+
+
+def get_aggregation(name):
+
+    try:
+        return AGGREGATION_REGISTRY[name]
+    except KeyError:
+        raise Warning(
+            "{} not a registered aggregation metric!".format(name),
+        )
+
+
+@register_aggregation("mean")
 def mean(arr):
     return sum(arr) / len(arr)
 
@@ -25,10 +85,12 @@ def mean_stderr(arr):
     return sample_stddev(arr) / math.sqrt(len(arr))
 
 
+@register_aggregation("median")
 def median(arr):
     return arr[len(arr) // 2]
 
 
+@register_metric("matthews_corrcoef")
 def matthews_corrcoef(items):
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
@@ -36,6 +98,7 @@ def matthews_corrcoef(items):
     return sklearn.metrics.matthews_corrcoef(golds, preds)
 
 
+@register_metric("f1_score")
 def f1_score(items):
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
@@ -91,6 +154,7 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
     return max(scores_for_ground_truths)
 
 
+@register_metric("perplexity")
 def perplexity(items):
     return math.exp(-mean(items))
 
@@ -100,6 +164,7 @@ def weighted_mean(items):
     return sum(a) / sum(b)
 
 
+@register_metric("weighted_perplexity")
 def weighted_perplexity(items):
     return math.exp(-weighted_mean(items))
 
@@ -108,6 +173,7 @@ def bits_per_byte(items):
     return -weighted_mean(items) / math.log(2)
 
 
+@register_metric("bleu")
 def bleu(items):
     """The Bilingual Evaluation Understudy Score, or BLEU for short, is a metric
     for evaluating a generated sentence to a reference sentence. It counts matching
@@ -125,6 +191,7 @@ def bleu(items):
     return sacrebleu.corpus_bleu(preds, refs).score
 
 
+@register_metric("chrf")
 def chrf(items):
     """chrF++ is a tool for automatic evaluation of machine translation output
     based on character n-gram precision and recall enhanced with word n-grams.
@@ -139,6 +206,7 @@ def chrf(items):
     return sacrebleu.corpus_chrf(preds, refs).score
 
 
+@register_metric("ter")
 def ter(items):
     """Translation Error Rate is an error metric for machine translation that
     measures the number of edits required to change a system output into one
