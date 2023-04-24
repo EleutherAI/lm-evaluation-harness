@@ -55,7 +55,7 @@ python main.py \
     --device cuda:0
 ```
 
-To evaluate models that are loaded via `AutoSeq2SeqLM` in Huggingface, you instead use `hf-seq2seq`. *To evaluate (causal) models across multiple GPUs, use `--model hf-causal-experimental`. Note that this is *
+To evaluate models that are loaded via `AutoSeq2SeqLM` in Huggingface, you instead use `hf-seq2seq`. *To evaluate (causal) models across multiple GPUs, use `--model hf-causal-experimental`*
 
 > **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
 
