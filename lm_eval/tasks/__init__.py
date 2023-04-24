@@ -56,6 +56,7 @@ from . import nsmc
 from . import klue
 from . import ko_translation
 from . import korquad
+from . import korunsmile
 
 ########################################
 # Translation tasks
@@ -319,7 +320,8 @@ TASK_REGISTRY = {
     "kobest_hellaswag": kobest.HellaSwag,
     "kobest_sentineg": kobest.SentiNeg,
     "ko_en_translation": ko_translation.KoEnTranslation,
-    "en_ko_translation": ko_translation.EnKoTranslation
+    "en_ko_translation": ko_translation.EnKoTranslation,
+    "korunsmile": korunsmile.KorUnSmile
 }
 
 
