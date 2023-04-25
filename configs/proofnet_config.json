@@ -1,0 +1,10 @@
+{
+  "proofnet_autoformalize_statements" : {
+    "description": "",
+    "params": {}
+  },
+  "proofnet_informalize_statements" : {
+    "description": "",
+    "params": {}
+  }
+}
