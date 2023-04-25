@@ -34,14 +34,14 @@ pip install -e ".[multilingual]"
 
 > **Note**: When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility. This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](#task-versioning) section for more info.
 
-To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) you can use the following command:
+To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on tasks with names matching the pattern `lambada_*` and `hellaswag` you can use the following command:
 
 
 ```bash
 python main.py \
     --model hf-causal \
     --model_args pretrained=EleutherAI/gpt-j-6B \
-    --tasks lambada_openai,hellaswag \
+    --tasks lambada_*,hellaswag \
     --device cuda:0
 ```
 
