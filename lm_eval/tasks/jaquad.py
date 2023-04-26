@@ -1,14 +1,13 @@
 # TODO: Remove all TODO comments once the implementation is complete.
 """
-TODO: Add the Paper Title on this line.
-TODO: Add the paper's PDF URL (preferably from arXiv) on this line.
+JaQuAD: Japanese Question Answering Dataset for Machine Reading Comprehension
+https://arxiv.org/abs/2202.01764
 
-TODO: Write a Short Description of the task.
-
-Homepage: TODO: Add the URL to the task's Homepage here.
-
-
-Japanese Question Answering Dataset (JaQuAD), released in 2022, is a human-annotated dataset created for Japanese Machine Reading Comprehension. JaQuAD is developed to provide a SQuAD-like QA dataset in Japanese. JaQuAD contains 39,696 question-answer pairs. Questions and answers are manually curated by human annotators. Contexts are collected from Japanese Wikipedia articles. Fine-tuning BERT-Japanese on JaQuAD achieves 78.92% for an F1 score and 63.38% for an exact match.
+Question Answering (QA) is a task in which a machine understands a given document and a question to find an answer.
+Despite impressive progress in the NLP area, QA is still a challenging problem, especially for non-English languages due to the lack of annotated datasets.
+In this paper, we present the Japanese Question Answering Dataset, JaQuAD, which is annotated by humans. JaQuAD consists of 39,696 extractive question-answer pairs on Japanese Wikipedia articles.
+We finetuned a baseline model which achieves 78.92% for F1 score and 63.38% for EM on test set.
+The dataset and our experiments are available at this https URL.
 """
 from functools import partial
 import datasets
@@ -24,7 +23,6 @@ _CITATION = """
       archivePrefix={arXiv},
       primaryClass={cs.CL}
 }
-
 """
 
 
