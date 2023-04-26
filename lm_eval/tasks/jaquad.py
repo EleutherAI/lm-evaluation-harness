@@ -56,16 +56,25 @@ class Jaquad(Task):
             # few-shot processing. If the data is too large to fit in memory,
             # return the training data as a generator instead of a list.
             if self._training_docs is None:
-                self._training_docs = list(self.dataset["train"])
+                self._training_docs = list(map(self._process_doc, self.dataset["train"]))
             return self._training_docs
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return self.dataset["validation"]
+            return map(self._process_doc, self.dataset["validation"])
 
     def test_docs(self):
         if self.has_test_docs():
-            return self.dataset["test"]
+            return map(self._process_doc, self.dataset["test"])
+
+    def _process_doc(self, doc):
+        # TODO: Process (detokenize, strip, replace etc.) each individual `doc`
+        # with this function. You can map this across the docs in each available
+        # dataset split. See the TODOs in `train_docs`, `validation_docs`, and
+        # `test_docs` for snippets.
+        # NOTE: DELETE THIS FUNCTION IF UNUSED.
+        _ = doc['answers'].pop('answer_type')
+        return doc
 
     def doc_to_text(self, doc):
         return 'コンテキスト: ' + doc['context'] + '\n\n' + '質問: ' + doc['question'] + '\n\n' + '回答:'
