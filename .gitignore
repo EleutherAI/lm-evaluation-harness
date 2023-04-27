@@ -3,3 +3,6 @@ env
 data/
 lm_cache
 .idea
+*.egg-info
+results/sanity_checks
+scratch
