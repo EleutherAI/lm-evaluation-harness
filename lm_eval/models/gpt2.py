@@ -110,9 +110,10 @@ class HFLM(BaseLM):
             return self.gpt2(inps)[0]
 
     def _model_generate(self, context, max_length, eos_token_id):
-        return self.gpt2.generate(
-            context, max_length=max_length, eos_token_id=eos_token_id, do_sample=False
-        )
+        generation_kwargs = {'do_sample': False, 'max_length': max_length}
+        if eos_token_id is not None:
+            generation_kwargs['eos_token_id'] = eos_token_id
+        return self.gpt2.generate(context, **generation_kwargs)
 
 
 # for backwards compatibility
