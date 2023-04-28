@@ -71,7 +71,13 @@ def main():
 
     print(f"Selected Tasks: {task_names}")
 
-    description_dict = {}
+    # TODO: move to standalone json file later
+    description_dict = {
+        "jcommonsenseqa": (
+            "[問題]に対する[答え]を[選択肢]の中から選んでください。"
+        )
+
+    }
     if args.description_dict_path:
         with open(args.description_dict_path, "r") as f:
             description_dict = json.load(f)
