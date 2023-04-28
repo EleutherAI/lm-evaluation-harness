@@ -15,6 +15,7 @@ from lm_eval.api import METRIC_REGISTRY, AGGREGATION_REGISTRY, HIGHER_IS_BETTER_
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import get_metric, get_aggregation, mean, weighted_perplexity, bits_per_byte
 from lm_eval import utils
+from lm_eval.prompts import get_prompt
 
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.api import samplers
@@ -45,9 +46,9 @@ class TaskConfig(dict):
     delimiter: str = "\n\n"
     filters: str = None #TODO: need to make this typehint `list`?
     normalization: str = None # TODO: add length-normalization of various types, mutual info
-    stop_sequences: list = None # TODO: allow passing of stop sequences to greedy gen.
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
+    use_prompt: str = None
 
     def __post_init__(self):
         # allow user-specified aliases so that users can
@@ -394,15 +395,15 @@ class ConfigurableTask(Task):
 
         if self._config.metric_list is not None:
             self._metric_list = {}
+            self._metric_kwargs = {}
             self._aggregation_list = {}
             self._higher_is_better = {}
-            self._metric_kwargs = {}
             for metric_config in self._config.metric_list:
 
                 metric_name = metric_config['metric']
                 aggregation = metric_config['aggregation']
                 higher_is_better = metric_config['higher_is_better']
-                kwargs = {key: metric_config[key] for key in metric_config if key not in ['name', 'aggregation', 'higher_is_better']}
+                kwargs = {key: metric_config[key] for key in metric_config if key not in ['metric', 'aggregation', 'higher_is_better']}
 
                 self._aggregation_list[metric_name] = AGGREGATION_REGISTRY[aggregation]
 
@@ -481,7 +482,11 @@ class ConfigurableTask(Task):
         return doc
 
     def doc_to_text(self, doc):
-        return utils.apply_template(self._config.doc_to_text, doc)
+        if self._config.use_prompt is not None:
+            doc_to_text = get_prompt(self._config.use_prompt)
+        else:
+            doc_to_text = self._config.doc_to_text
+        return utils.apply_template(doc_to_text, doc)
 
     def doc_to_target(self, doc):
         return utils.apply_template(self._config.doc_to_target, doc)
@@ -493,7 +498,7 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
             arguments=(self.doc_to_target(doc),)
         elif self.OUTPUT_TYPE == "greedy_until":
-            arguments=(ctx, "\n\n")
+            arguments=(ctx, self._config.delimiter)
 
         return Instance(
             request_type=self.OUTPUT_TYPE,
