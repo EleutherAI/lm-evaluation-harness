@@ -1,5 +1,6 @@
 import torch
 import transformers
+from typing import Optional
 from lm_eval.base import BaseLM
 
 
@@ -13,6 +14,8 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
+        load_in_8bit: Optional[bool] = False,
+        trust_remote_code: Optional[bool] = False,
     ):
         super().__init__()
 
@@ -38,36 +41,21 @@ class HFLM(BaseLM):
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
         self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
-            pretrained, revision=revision, low_cpu_mem_usage=low_cpu_mem_usage
+            pretrained,
+            load_in_8bit=load_in_8bit,
+            low_cpu_mem_usage=low_cpu_mem_usage,
+            revision=revision,
+            trust_remote_code=trust_remote_code,
         ).to(self.device)
         self.gpt2.eval()
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision,
+            trust_remote_code=trust_remote_code,
         )
 
-        assert isinstance(
-            self.tokenizer,
-            (
-                transformers.GPT2Tokenizer,
-                transformers.GPT2TokenizerFast,
-                transformers.T5Tokenizer,
-                transformers.T5TokenizerFast,
-            ),
-        ), "this tokenizer has not been checked for compatibility yet!"
-
         self.vocab_size = self.tokenizer.vocab_size
-
-        if isinstance(
-            self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
-        ):
-            assert self.tokenizer.encode("hello\n\nhello") == [
-                31373,
-                198,
-                198,
-                31373,
-            ], self.tokenizer.encode("hello\n\nhello")
 
         # multithreading and batching
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
