@@ -50,13 +50,22 @@ from . import blimp
 from . import asdiv
 from . import gsm8k
 from . import storycloze
+<<<<<<< HEAD
 from . import toxigen
 from . import crowspairs
 from . import bigbench
+=======
+from . import kobest
+from . import nsmc
+from . import klue
+from . import ko_translation
+from . import korquad
+>>>>>>> 2036a7acc03cb76757165e9deefd088038ab6cd1
 
 ########################################
 # Translation tasks
 ########################################
+
 
 # 6 total
 gpt3_translation_benchmarks = {
@@ -104,6 +113,7 @@ TASK_REGISTRY = {
     "record": superglue.ReCoRD,
     "wic": superglue.WordsInContext,
     "wsc": superglue.SGWinogradSchemaChallenge,
+<<<<<<< HEAD
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
     "drop": drop.DROP,
@@ -111,6 +121,15 @@ TASK_REGISTRY = {
     "lambada_standard": lambada.LambadaStandard,
     "lambada_openai_cloze": lambada_cloze.LambadaOpenAICloze,
     "lambada_standard_cloze": lambada_cloze.LambadaStandardCloze,
+=======
+
+    # Order by benchmark/genre?
+    "coqa": coqa.CoQA,
+    "drop": drop.DROP,
+    "lambada": lambada.LAMBADA,
+    "lambada_cloze": lambada_cloze.LAMBADA_cloze,
+
+>>>>>>> 2036a7acc03cb76757165e9deefd088038ab6cd1
     # multilingual lambada
     **lambada_multilingual.construct_tasks(),
     "wikitext": wikitext.WikiText,
@@ -216,6 +235,10 @@ TASK_REGISTRY = {
     "pile_ubuntu-irc": pile.PileUbuntuIrc,
     "pile_wikipedia": pile.PileWikipedia,
     "pile_youtubesubtitles": pile.PileYoutubeSubtitles,
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2036a7acc03cb76757165e9deefd088038ab6cd1
     # BLiMP
     "blimp_adjunct_island": blimp.BlimpAdjunctIsland,
     "blimp_anaphor_gender_agreement": blimp.BlimpAnaphorGenderAgreement,
@@ -284,6 +307,7 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
+<<<<<<< HEAD
     "toxigen": toxigen.ToxiGen,
     "crows_pairs_english": crowspairs.CrowsPairsEnglish,
     "crows_pairs_english_race_color": crowspairs.CrowsPairsEnglishRaceColor,
@@ -307,11 +331,29 @@ TASK_REGISTRY = {
     "crows_pairs_french_nationality": crowspairs.CrowsPairsFrenchNationality,
     "crows_pairs_french_physical_appearance": crowspairs.CrowsPairsFrenchPhysicalAppearance,
     "crows_pairs_french_autre": crowspairs.CrowsPairsFrenchAutre,
+=======
+>>>>>>> 2036a7acc03cb76757165e9deefd088038ab6cd1
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
+<<<<<<< HEAD
     **bigbench.create_all_tasks(),
+=======
+  
+    "klue_sts": klue.STS,
+    "klue_ynat": klue.YNAT,
+    "klue_nli": klue.NLI,
+    "nsmc": nsmc.NSMC,    
+    "korquad": korquad.Korquad,
+    "kobest_boolq": kobest.BoolQ,
+    "kobest_copa": kobest.COPA,
+    "kobest_wic": kobest.WiC,
+    "kobest_hellaswag": kobest.HellaSwag,
+    "kobest_sentineg": kobest.SentiNeg,
+    "ko_en_translation": ko_translation.KoEnTranslation,
+    "en_ko_translation": ko_translation.EnKoTranslation
+>>>>>>> 2036a7acc03cb76757165e9deefd088038ab6cd1
 }
 
 

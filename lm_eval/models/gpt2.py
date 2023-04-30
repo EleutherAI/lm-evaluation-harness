@@ -51,12 +51,28 @@ class HFLM(BaseLM):
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
+<<<<<<< HEAD
             revision=revision,
             trust_remote_code=trust_remote_code,
         )
 
         self.vocab_size = self.tokenizer.vocab_size
 
+=======
+            revision=revision + ("/" + subfolder if subfolder is not None else ""))
+
+        # assert isinstance(self.tokenizer, (
+        #     transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast,
+        #     transformers.T5Tokenizer, transformers.T5TokenizerFast,
+        # )), "this tokenizer has not been checked for compatibility yet!"
+
+        self.vocab_size = self.tokenizer.vocab_size
+
+        # if isinstance(self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)):
+        #     assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373], \
+        #         self.tokenizer.encode('hello\n\nhello')
+
+>>>>>>> 2036a7acc03cb76757165e9deefd088038ab6cd1
         # multithreading and batching
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
 

@@ -44,6 +44,13 @@ def f1_score(items):
 
     return np.max(fscore)
 
+def macro_f1_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = sklearn.metrics.f1_score(golds, preds, average='macro')
+
+    return fscore
 
 def acc_all(items):
     # Only count as correct if all answers are labeled correctly for each question
@@ -242,6 +249,7 @@ def stderr_for_metric(metric, bootstrap_iters):
         bleu,
         chrf,
         ter,
+        macro_f1_score,
     ]
 
     if metric in bootstrappable:
