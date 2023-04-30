@@ -1,4 +1,4 @@
-""" 
+"""
 A Dataset of Information-Seeking Questions and Answers Anchored in Research Papers
 https://arxiv.org/abs/2105.03011
 
@@ -214,7 +214,7 @@ class QASPER(Task):
         """
         # unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
         if doc["answer_type"] in ("free form answer"):
-            return [rf.greedy_until(ctx, ["\n"])]
+            return [rf.greedy_until(ctx, {'until': ["\n"]})]
         elif doc["answer_type"] in ("bool"):
             ll_yes, _ = rf.loglikelihood(ctx, " yes")
             ll_no, _ = rf.loglikelihood(ctx, " no")

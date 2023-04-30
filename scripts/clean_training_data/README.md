@@ -1,17 +1,17 @@
-janitor.py contains a script to remove benchmark data contamination from training data sets. 
+janitor.py contains a script to remove benchmark data contamination from training data sets.
 It uses the approach described in the [GPT-3 paper](https://arxiv.org/abs/2005.14165).
 
 ## Algorithm
 1) Collects all contamination text files that are to be removed from training data
-2) Filters training data by finding `N`gram matches between the training data 
+2) Filters training data by finding `N`gram matches between the training data
    and any contamination
-   1) `N`grams ignore case and punctation and are split on whitespace.  
-   2) Matching `N`gram substrings are removed, as is a `window_to_remove` character window around 
+   1) `N`grams ignore case and punctuation and are split on whitespace.
+   2) Matching `N`gram substrings are removed, as is a `window_to_remove` character window around
     the match, splitting the training data into chunks
    3) Any chunks less than `minimum_slice_length` are removed
    4) Training data sets split into more than `too_dirty_cutoff` are considered
     completey contaminated and removed
-      
+
 OpenAI used:
 ```
 ngram_n = 13
@@ -20,7 +20,7 @@ minimum_slice_length = 200
 too_dirty_cutoff = 10
 ```
 
-## Compling
+## Compiling
 
 Janitor can be used as a pure python program, but it is much faster if the ngram
 code is run in C++. To compile the C++ code, run
@@ -31,4 +31,3 @@ c++ -O3 -Wall -shared -std=c++11 -fPIC $(python3 -m pybind11 --includes) janitor
 ```
 
 If your your compiler isn't linked to python, you may need to add to the above `-undefined dynamic_lookup`
-

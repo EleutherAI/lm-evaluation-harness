@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +13,7 @@
 # limitations under the License.
 #
 # NOTE: This is an exact copy of
-# https://github.com/huggingface/datasets/blob/3804442bb7cfcb9d52044d92688115cfdc69c2da/datasets/head_qa/head_qa.py 
+# https://github.com/huggingface/datasets/blob/3804442bb7cfcb9d52044d92688115cfdc69c2da/datasets/head_qa/head_qa.py
 # with the exception of the `image` feature. This is to avoid adding `Pillow`
 # as a dependency.
 """HEAD-QA: A Healthcare Dataset for Complex Reasoning."""
@@ -65,8 +64,12 @@ class HeadQA(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="es", version=VERSION, description="Spanish HEAD dataset"),
-        datasets.BuilderConfig(name="en", version=VERSION, description="English HEAD dataset"),
+        datasets.BuilderConfig(
+            name="es", version=VERSION, description="Spanish HEAD dataset"
+        ),
+        datasets.BuilderConfig(
+            name="en", version=VERSION, description="English HEAD dataset"
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "es"
@@ -106,15 +109,24 @@ class HeadQA(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_lang_dir, f"train_{dir}.json")},
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "filepath": os.path.join(data_lang_dir, f"train_{dir}.json"),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_lang_dir, f"test_{dir}.json")},
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "filepath": os.path.join(data_lang_dir, f"test_{dir}.json"),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_lang_dir, f"dev_{dir}.json")},
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "filepath": os.path.join(data_lang_dir, f"dev_{dir}.json"),
+                },
             ),
         ]
 
@@ -134,7 +146,9 @@ class HeadQA(datasets.GeneratorBasedBuilder):
 
                     aids = [answer["aid"] for answer in question["answers"]]
                     atexts = [answer["atext"].strip() for answer in question["answers"]]
-                    answers = [{"aid": aid, "atext": atext} for aid, atext in zip(aids, atexts)]
+                    answers = [
+                        {"aid": aid, "atext": atext} for aid, atext in zip(aids, atexts)
+                    ]
 
                     id_ = f"{exam_id}_{qid}"
                     yield id_, {
