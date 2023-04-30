@@ -80,7 +80,7 @@ class NSMC(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filepath": downloaded_files["validation"],
+                    "filepath": downloaded_files["test"],
                     "split": "test",
                 },
             ),
