@@ -115,5 +115,6 @@ class HFLM(BaseLM):
             generation_kwargs['pad_token_id'] = eos_token_id
         return self.gpt2.generate(context, **generation_kwargs)
 
+
 # for backwards compatibility
 GPT2LM = HFLM
