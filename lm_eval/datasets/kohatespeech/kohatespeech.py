@@ -53,7 +53,7 @@ _URLs = {
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class HateSpeech(datasets.GeneratorBasedBuilder):
-    """Korean Naver movie review dataset."""
+    """Korean Hate speech dataset."""
 
     VERSION = datasets.Version("1.1.0")
 
