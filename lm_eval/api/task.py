@@ -469,7 +469,7 @@ class ConfigurableTask(Task):
     def construct_requests(self, doc, ctx, **kwargs):
 
         if self.OUTPUT_TYPE == "greedy_until":
-            return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(ctx, "\n\n"), id_=0, **kwargs)
+            return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(ctx, "\n\n"), idx=0, **kwargs)
 
     def process_results(self, doc, results):
 
@@ -511,7 +511,7 @@ class MultipleChoiceTask(Task):
                 request_type="loglikelihood",
                 doc=doc, 
                 arguments=(ctx, " {}".format(choice)),
-                id_=i,
+                idx=i,
                 **kwargs,
             )
             for i, choice in enumerate(doc["choices"])]
@@ -589,7 +589,7 @@ class PerplexityTask(Task, abc.ABC):
     def construct_requests(self, doc, ctx, **kwargs):
         assert not ctx
 
-        return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(self.doc_to_target(doc),), id_=0, **kwargs)
+        return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(self.doc_to_target(doc),), idx=0, **kwargs)
         # req = rf.loglikelihood_rolling(self.doc_to_target(doc))
         # return req
 
