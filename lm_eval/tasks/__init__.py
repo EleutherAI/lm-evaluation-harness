@@ -56,6 +56,7 @@ from . import nsmc
 from . import klue
 from . import ko_translation
 from . import korquad
+from . import kohatespeech
 
 ########################################
 # Translation tasks
@@ -319,9 +320,10 @@ TASK_REGISTRY = {
     "kobest_hellaswag": kobest.HellaSwag,
     "kobest_sentineg": kobest.SentiNeg,
     "ko_en_translation": ko_translation.KoEnTranslation,
-    "en_ko_translation": ko_translation.EnKoTranslation
+    "en_ko_translation": ko_translation.EnKoTranslation,
+    "kohatespeech":kohatespeech.HateSpeech,
+    "kohatespeech_gen_bias":kohatespeech.GenderBias
 }
-
 
 ALL_TASKS = sorted(list(TASK_REGISTRY))
 
