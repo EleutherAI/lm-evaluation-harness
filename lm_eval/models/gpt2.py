@@ -23,9 +23,8 @@ class HFLM(BaseLM):
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
 
-        if device:
-            if device not in ["cuda", "cpu"]:
-                device = int(device)
+        device_list = set(["cuda", "cpu"] + [f'cuda:{i}' for i in range(torch.cuda.device_count())])
+        if device and device in device_list:
             self._device = torch.device(device)
             print(f"Using device '{device}'")
         else:
