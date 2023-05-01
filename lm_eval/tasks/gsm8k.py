@@ -88,7 +88,7 @@ class GradeSchoolMath8K(Task):
         """
         # NOTE: The paper implements "verifiers" that assign a score to multiple
         # solutions and output the highest ranked solution.
-        return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(ctx, ["\n"]), id_=0, **kwargs)
+        return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(ctx, ["\n"]), idx=0, **kwargs)
         # completion = rf.greedy_until(ctx, ["\n"])
         # return completion
 
