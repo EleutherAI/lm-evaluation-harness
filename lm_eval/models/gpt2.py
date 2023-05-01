@@ -112,8 +112,7 @@ class HFLM(BaseLM):
         generation_kwargs = {'do_sample': False, 'max_length': max_length}
         if eos_token_id is not None:
             generation_kwargs['eos_token_id'] = eos_token_id
-        return self.gpt2.generate(context, **generation_kwargs)
-
+        return self.gpt2.generate(context, pad_token_id=eos_token_id, **generation_kwargs)
 
 # for backwards compatibility
 GPT2LM = HFLM
