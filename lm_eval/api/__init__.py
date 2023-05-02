@@ -22,4 +22,10 @@ HIGHER_IS_BETTER_REGISTRY = {
     "bleu": True,
     "chrf": True,
     "ter": False,
+
+    "acc": True,
+    "acc_norm": True,
+    "word_perplexity": False,
+    "byte_perplexity": False,
+    "bits_per_byte": False,
 }
