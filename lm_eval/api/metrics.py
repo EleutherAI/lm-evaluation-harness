@@ -12,7 +12,9 @@ import evaluate
 AGGREGATION_REGISTRY = {}
 METRIC_REGISTRY = {
     "acc": None,
-    "acc_norm": None,  
+    "acc_norm": None,
+    "word_perplexity": None,
+    "byte_perplexity": None,
 }
 
 
@@ -170,10 +172,13 @@ def weighted_mean(items):
 
 
 @register_metric("weighted_perplexity")
+@register_aggregation("weighted_perplexity")
 def weighted_perplexity(items):
     return math.exp(-weighted_mean(items))
 
 
+@register_metric("bits_per_byte")
+@register_aggregation("bits_per_byte")
 def bits_per_byte(items):
     return -weighted_mean(items) / math.log(2)
 

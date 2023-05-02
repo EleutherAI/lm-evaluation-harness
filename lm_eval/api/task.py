@@ -330,6 +330,16 @@ class Task(abc.ABC):
         """
         pass
 
+    @classmethod
+    def count_bytes(cls, doc):
+        """Used for byte-level perplexity metrics in rolling loglikelihood"""
+        return len(doc.encode("utf-8"))
+
+    @classmethod
+    def count_words(cls, doc):
+        """Downstream loglikelihood_rolling perplexity tasks with custom word boundaries should override this!"""
+        return len(re.split(r"\s+", doc))
+
     @utils.positional_deprecated
     def fewshot_context(self, doc, num_fewshot, rnd=None):
         """Returns a fewshot context string that is made up of a prepended description
@@ -555,10 +565,17 @@ class ConfigurableTask(Task):
             ll, is_greedy = results
             result_dict = {"perplexity": ll, "accuracy": int(is_greedy)}
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
-            pass
+            (loglikelihood,) = results
+            words = self.count_words(self.doc_to_target(doc))
+            bytes_ = self.count_bytes(self.doc_to_target(doc))
+            return {
+                "word_perplexity": (loglikelihood, words),
+                "byte_perplexity": (loglikelihood, bytes_),
+                "bits_per_byte": (loglikelihood, bytes_),
+            }
         elif self.OUTPUT_TYPE == "multiple_choice":
-            lls = [res[0] for res in results] # only retain loglikelihoods, discard is_greedy 
-            gold = int(self.doc_to_target(doc)) # TODO: if `gold` here is an integer/ds label obj, map it to answer_choice
+            lls = [res[0] for res in results] # only retain loglikelihoods, discard is_greedy TODO: keep is_greedy to report exact_match as well on multiple choice probs
+            gold = int(self.doc_to_target(doc))
             # TODO: remove dependence on "gold" and "choices" columns
 
             acc = 1.0 if np.argmax(lls) == gold else 0.0
@@ -693,8 +710,8 @@ class PerplexityTask(Task, abc.ABC):
 
     def process_results(self, doc, results):
         (loglikelihood,) = results
-        words = self.count_words(doc)
-        bytes_ = self.count_bytes(doc)
+        words = self.count_words(self.doc_to_target(doc))
+        bytes_ = self.count_bytes(self.doc_to_target(doc))
         return {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
