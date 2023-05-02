@@ -1,7 +1,6 @@
 
 
-
-class Sampler: # TODO: make this abstract class?
+class Sampler:
 
     def __init__(self, docs, task, fewshot_indices=None, rnd=None):
 
@@ -17,14 +16,17 @@ class Sampler: # TODO: make this abstract class?
         if fewshot_indices: # subset few-shot docs from 
             self.docs = self.docs.select(fewshot_indices)
 
+
     def get_context(self, doc, num_fewshot):
 
-        # draw an extra fewshot sample if 
+        # draw an extra fewshot sample if using same split as evaluting on
         n_samples = num_fewshot + 1 if self.config.fewshot_split == self.config.test_split else num_fewshot 
 
+        # draw `n_samples` docs from fewshot_docs
         fewshotex = self.sample(n_samples)
 
         # get rid of the doc that's the one we're evaluating, if it's in the fewshot
+        # TODO: should we just stop people from using fewshot from same split as evaluating?
         selected_docs = [x for x in fewshotex if x != doc][:num_fewshot]
         
         labeled_examples = (
@@ -53,7 +55,7 @@ class BalancedSampler(Sampler):
     def sample(self, n):
         """
         TODO: this should return approximately class-balanced samples from our fewshot examples. 
-        TODO: what order should they be in?
+        TODO: what order should they be in? maybe random?
         """
 
         pass

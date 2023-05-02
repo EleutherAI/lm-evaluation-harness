@@ -1,13 +1,13 @@
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Literal, Tuple
 
 @dataclass
 class Instance:
     request_type: str = Literal["loglikelihood", "loglikelihood_rolling", "greedy_until"]
     doc: dict = None
     arguments: tuple = None
-    id_: int = None
-    metadata: tuple = None # TODO: better typehints here
+    idx: int = None
+    metadata: tuple = Tuple[str, int, int] # TODO: better typehints here
     resps: list = field(default_factory=list)
     filtered_resps: dict = field(default_factory=dict)
 
