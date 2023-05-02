@@ -2,8 +2,7 @@ dataset_path: super_glue
 dataset_name: cb
 training_split: train
 validation_split: validation
-template_aliases: "{% set hypo = hypothesis %}"
-doc_to_text: "Suppose {{premise}} Can we infer that \"{{hypo}}\"? Yes, no, or maybe?"
+doc_to_text: "Suppose {{premise}} Can we infer that \"{{hypothesis}}\"? Yes, no, or maybe?"
 doc_to_target: "{% set answer_choices = ['Yes', 'No', 'Maybe'] %}{{answer_choices[label]}}"
 metric_list:
   - metric: exact_match
