@@ -11,6 +11,7 @@ class Instance:
     resps: list = field(default_factory=list)
     filtered_resps: dict = field(default_factory=dict)
 
+    # initialized after init
     task_name: str = None
     doc_id: str = None
     repeats: str = None

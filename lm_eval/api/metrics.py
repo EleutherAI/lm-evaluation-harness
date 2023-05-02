@@ -10,7 +10,10 @@ import evaluate
 
 
 AGGREGATION_REGISTRY = {}
-METRIC_REGISTRY = {}
+METRIC_REGISTRY = {
+    "acc": None,
+    "acc_norm": None,  
+}
 
 
 def register_metric(name):
@@ -45,6 +48,7 @@ searching in HF Evaluate library...")
 
 
 def register_aggregation(name):
+    # TODO: should we enforce a specific interface to aggregation metrics?
     def decorate(fn):
         assert (
             name not in AGGREGATION_REGISTRY
@@ -155,6 +159,7 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
 
 
 @register_metric("perplexity")
+@register_aggregation("perplexity")
 def perplexity(items):
     return math.exp(-mean(items))
 
