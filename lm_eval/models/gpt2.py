@@ -9,7 +9,7 @@ from lm_eval import utils
 from lm_eval.api.model import LM, register_model
 
 
-@register_model("hf-causal")
+@register_model("hf-causal", "gpt2")
 class HFLM(LM):
     def __init__(
         self,

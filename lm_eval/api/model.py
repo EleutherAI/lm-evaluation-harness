@@ -1,22 +1,26 @@
 import abc
 
+from typing import Union
+
 from lm_eval import utils
 
 MODEL_REGISTRY = {}
 
-def register_model(name):
-    # TODO: should fairseq/elk be cited for this design pattern?
-
+def register_model(*names):
+    # either pass a list or a single alias.
+    # function receives them as a tuple of strings
+    
     def decorate(cls):
-        assert (
-            issubclass(cls, LM)
-        ), f"Model '{name}' ({cls.__name__}) must extend LM class"
+        for name in names: 
+            assert (
+                issubclass(cls, LM)
+            ), f"Model '{name}' ({cls.__name__}) must extend LM class"
 
-        assert (
-            name not in MODEL_REGISTRY
-        ), f"Model named '{name}' conflicts with existing model!"
+            assert (
+                name not in MODEL_REGISTRY
+            ), f"Model named '{name}' conflicts with existing model! Please register with a non-conflicting alias instead."
 
-        MODEL_REGISTRY[name] = cls
+            MODEL_REGISTRY[name] = cls
         return cls
     
     return decorate
