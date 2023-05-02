@@ -4,54 +4,7 @@ from typing import List, Union
 import sacrebleu
 from lm_eval import api
 
-# from . import superglue
-# from . import glue
-from . import arc
-# from . import coqa
-# from . import race
-# from . import webqs
-# from . import anli
-# from . import wsc273
-# from . import winogrande
-# from . import quac
-# from . import hellaswag
-# from . import swag
-# from . import openbookqa
-# from . import squad
-# from . import naturalqs
-# from . import sat
-# from . import arithmetic
-from . import lambada
-# from . import piqa
-# from . import prost
-# from . import mc_taco
-# from . import triviaqa
-# from . import pubmedqa
-# from . import sciq
-# from . import qasper
-# from . import qa4mre
-# from . import translation
-# from . import headqa
-# from . import mathqa
-# from . import hendrycks_ethics
-# from . import drop
-# from . import unscramble
-# from . import logiqa
-# from . import hendrycks_test
-# from . import hendrycks_math
-# from . import cbt
-# from . import lambada_cloze
-from . import pile
-from . import wikitext
-# from . import lambada_multilingual
-# from . import mutual
-# from . import truthfulqa
-# from . import blimp
-# from . import asdiv
-from . import gsm8k
-# from . import storycloze
-# from . import toxigen
-# from . import crowspairs
+from vanilla import *
 
 # ########################################
 # # Translation tasks
