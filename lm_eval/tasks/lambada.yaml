@@ -1,8 +1,8 @@
 dataset_path: EleutherAI/lambada_openai
 dataset_name: default
-output_type: "loglikelihood"
+output_type: loglikelihood
 test_split: test
-template_aliases: "{% set hypo = hypothesis %}"
+template_aliases: ""
 doc_to_text: "{{text.split(' ')[:-1]|join(' ')}}"
 doc_to_target: "{{' '+text.split(' ')[-1]}}"
 should_decontaminate: true
@@ -12,5 +12,5 @@ metric_list:
     aggregation: perplexity
     higher_is_better: true
   - metric: accuracy
-    aggregation: perplexity
+    aggregation: mean
     higher_is_better: true
