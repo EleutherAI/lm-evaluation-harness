@@ -182,7 +182,7 @@ def evaluate(
             for doc_id, doc in enumerate(itertools.islice(task.test_docs(), 0, limit) if task.has_test_docs() else task.validation_docs()):
                 # subset instances to only this document id ; sort by idx
                 requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
-                requests.sort(key=lambda x: x.id_)
+                requests.sort(key=lambda x: x.idx)
                 metrics = task.process_results(doc, [req.filtered_resps[key] for req in requests])
                 for metric, value in metrics.items():
                     vals[(task_name, key, metric)].append(value)
