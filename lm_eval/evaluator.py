@@ -145,7 +145,8 @@ def evaluate(
         # for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
         task.build_all_requests(limit=limit)
         # aggregate Instances by LM method requested to get output.
-        requests[task.OUTPUT_TYPE].extend(task.instances) 
+        reqtype = "loglikelihood" if task.OUTPUT_TYPE == "multiple_choice" else task.OUTPUT_TYPE #TODO: this is hacky, fix in task.py
+        requests[reqtype].extend(task.instances) 
     
     ### Run LM on inputs, get all outputs ###
     # execute each type of request

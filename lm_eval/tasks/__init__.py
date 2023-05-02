@@ -41,7 +41,7 @@ from . import lambada
 # from . import hendrycks_math
 # from . import cbt
 # from . import lambada_cloze
-# from . import pile
+from . import pile
 from . import wikitext
 # from . import lambada_multilingual
 # from . import mutual

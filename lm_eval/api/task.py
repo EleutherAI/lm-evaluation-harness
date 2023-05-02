@@ -5,15 +5,19 @@ import re
 import evaluate
 import random
 import itertools
+import functools
 
 import datasets
 import numpy as np
 
 from typing import List, Union
 
+from lm_eval.api.metrics import METRIC_REGISTRY, AGGREGATION_REGISTRY
+from lm_eval.api import HIGHER_IS_BETTER_REGISTRY
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import get_metric, get_aggregation, mean, weighted_perplexity, bits_per_byte
 from lm_eval import utils
+from lm_eval.prompts import get_prompt
 
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.api import samplers
@@ -34,17 +38,20 @@ class TaskConfig(dict):
     doc_to_text: str = ""
     doc_to_target: str = ""
 
-    # aggregation: dict = None # TODO: remove, I think these 2 are obsolete w/ current metric_list impl.
-    # higher_is_better: dict = None
+
     num_fewshot: int = 0
     batch_size: int = 1
+    repeats: int = 1
+
     metric_list: str = None
     gold_alias: str = None
     output_type: str = "greedy_until"
     delimiter: str = "\n\n"
     filters: str = None #TODO: need to make this typehint `list`?
     normalization: str = None # TODO: add length-normalization of various types, mutual info
-    stop_sequences: list = None # TODO: allow passing of stop sequences to greedy gen.
+    should_decontaminate: bool = False
+    doc_to_decontamination_query: str = None
+    use_prompt: str = None
 
     def __post_init__(self):
         # allow user-specified aliases so that users can
@@ -118,7 +125,8 @@ class Task(abc.ABC):
                 filter_pipeline = build_filter_ensemble(name, components)
                 self._filters.append(filter_pipeline)
 
-        self.sampler = samplers.Sampler(self.training_docs(), self, rnd=random.Random()) # TODO: pass the correct docs in here
+ 
+        self.sampler = samplers.Sampler(self.fewshot_docs(), self, rnd=random.Random()) # TODO: pass the correct docs in here
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None):
         """Downloads and returns the task dataset.
@@ -188,6 +196,19 @@ class Task(abc.ABC):
             A iterable of any object, that doc_to_text can handle
         """
         return []
+
+    def fewshot_docs(self):
+        """
+        :return: Iterable[obj]
+            A iterable of any object, that doc_to_text can handle
+        """
+        if self.has_training_docs():
+            return self.training_docs()
+        elif self.has_validation_docs():
+            return self.validation_docs()
+        else:
+            # TODO: should we allow this case to occur? / should raise a warning here
+            return self.test_docs()
 
     def _process_doc(self, doc):
         """
@@ -309,6 +330,16 @@ class Task(abc.ABC):
         """
         pass
 
+    @classmethod
+    def count_bytes(cls, doc):
+        """Used for byte-level perplexity metrics in rolling loglikelihood"""
+        return len(doc.encode("utf-8"))
+
+    @classmethod
+    def count_words(cls, doc):
+        """Downstream loglikelihood_rolling perplexity tasks with custom word boundaries should override this!"""
+        return len(re.split(r"\s+", doc))
+
     @utils.positional_deprecated
     def fewshot_context(self, doc, num_fewshot, rnd=None):
         """Returns a fewshot context string that is made up of a prepended description
@@ -332,33 +363,33 @@ class Task(abc.ABC):
             labeled_examples = ""
         else:
 
-            # labeled_examples = self.sampler.get_context(doc, self._config.num_fewshot)
+            labeled_examples = self.sampler.get_context(doc, self._config.num_fewshot)
 
             # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
-            if self.has_training_docs():
-                fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
-            else:
-                if self._fewshot_docs is None:
-                    self._fewshot_docs = list(
-                        self.validation_docs()
-                        if self.has_validation_docs()
-                        else self.test_docs()
-                    )
+            # if self.has_training_docs():
+            #     fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
+            # else:
+            #     if self._fewshot_docs is None:
+            #         self._fewshot_docs = list(
+            #             self.validation_docs()
+            #             if self.has_validation_docs()
+            #             else self.test_docs()
+            #         )
 
-                fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
+            #     fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
 
-                # get rid of the doc that's the one we're evaluating, if it's in the fewshot
-                fewshotex = [x for x in fewshotex if x != doc][:num_fewshot]
+            #     # get rid of the doc that's the one we're evaluating, if it's in the fewshot
+            #     fewshotex = [x for x in fewshotex if x != doc][:num_fewshot]
 
-            labeled_examples = (
-                "\n\n".join(
-                    [
-                        self.doc_to_text(doc) + self.doc_to_target(doc)
-                        for doc in fewshotex
-                    ]
-                )
-                + "\n\n"
-            )
+            # labeled_examples = (
+            #     "\n\n".join(
+            #         [
+            #             self.doc_to_text(doc) + self.doc_to_target(doc)
+            #             for doc in fewshotex
+            #         ]
+            #     )
+            #     + "\n\n"
+            # )
 
         example = self.doc_to_text(doc)
         return labeled_examples + example
@@ -372,13 +403,17 @@ class Task(abc.ABC):
 class ConfigurableTask(Task):
 
     VERSION = "2.0"
-    OUTPUT_TYPE = "greedy_until"
+    OUTPUT_TYPE = None
 
     def __init__(
         self, data_dir=None, cache_dir=None, download_mode=None, config: dict = None
     ):
 
         self._config = TaskConfig(**config)
+
+        if self._config.output_type is not None:
+            self.OUTPUT_TYPE = self._config.output_type
+
         if self._config.dataset_path is not None:
             self.DATASET_PATH = self._config.dataset_path
 
@@ -387,27 +422,33 @@ class ConfigurableTask(Task):
 
         if self._config.metric_list is not None:
             self._metric_list = {}
+            self._metric_kwargs = {}
             self._aggregation_list = {}
             self._higher_is_better = {}
-            for (metric_name, aggregation, higher_is_better) in self._config.metric_list:
+            for metric_config in self._config.metric_list:
 
-                self._aggregation_list[metric_name] = get_aggregation(aggregation)
-                self._higher_is_better[metric_name] = higher_is_better
+                metric_name = metric_config['metric']
+                aggregation = metric_config['aggregation']
+                higher_is_better = metric_config['higher_is_better']
+                kwargs = {key: metric_config[key] for key in metric_config if key not in ['metric', 'aggregation', 'higher_is_better']}
 
-                self._metric_list[metric_name] = get_metric(metric_name)
+                self._aggregation_list[metric_name] = AGGREGATION_REGISTRY[aggregation]
 
+                if metric_name in METRIC_REGISTRY.keys():
+                    self._metric_list[metric_name] = METRIC_REGISTRY[metric_name]
+                    self._higher_is_better[metric_name] = HIGHER_IS_BETTER_REGISTRY[metric_name]
+                else:
+                    self._higher_is_better[metric_name] = higher_is_better
+                    try:
+                        metric_object = evaluate.load(metric_name)
+                        self._metric_list[metric_name] = metric_object
+                        self._metric_kwargs[metric_name] = kwargs
 
-                # if metric_name in METRIC_REGISTRY.keys():
-                #     self._metric_list[metric_name] = METRIC_REGISTRY[metric_name]
-                # else:
-                #     try:
-                #         metric_object = evaluate.load(metric_name)
-                #         self._metric_list[metric_name] = metric_object
-                #     except Exception as ex:
-                #         raise Warning(
-                #             "{} not found in the evaluate library!".format(metric_name),
-                #             "Please check https://huggingface.co/evaluate-metric",
-                #         )
+                    except Exception as ex:
+                        raise Warning(
+                            "{} not found in the evaluate library!".format(metric_name),
+                            "Please check https://huggingface.co/evaluate-metric",
+                        )
 
         self.download(data_dir, cache_dir, download_mode)
         self._training_docs = None
@@ -418,6 +459,8 @@ class ConfigurableTask(Task):
         for name, components in self._config.get("filters", [["none", ["take_first"]]]):
             filter_pipeline = build_filter_ensemble(name, components)
             self._filters.append(filter_pipeline)
+        
+        self.sampler = samplers.Sampler(list(self.fewshot_docs()), self, rnd=random.Random()) # TODO: pass the correct docs in here
 
     def has_training_docs(self):
         if self._config.training_split is not None:
@@ -449,6 +492,20 @@ class ConfigurableTask(Task):
         if self._config.test_split is not None:
             return self.dataset[self._config.test_split]
 
+    def fewshot_docs(self):
+        if self._config.fewshot_split:
+            return self.dataset[self._config.fewshot_split]
+        else:
+            # TODO: warn user if fewshot split isn't explicitly set
+            return super().fewshot_docs()
+
+    def should_decontaminate(self):
+        return self._config.should_decontaminate
+
+    def doc_to_decontamination_query(self, doc):
+        if self._config.should_decontaminate:
+            return utils.apply_template(self._config.doc_to_decontamination_query, doc)
+
     def _process_doc(self, doc):
         """
         Override this to process (detokenize, strip, replace, etc.) individual
@@ -461,40 +518,103 @@ class ConfigurableTask(Task):
         return doc
 
     def doc_to_text(self, doc):
-        return utils.apply_template(self._config.doc_to_text, doc)
+        if self._config.use_prompt is not None:
+            doc_to_text = get_prompt(self._config.use_prompt)
+        else:
+            doc_to_text = self._config.doc_to_text
+        return utils.apply_template(doc_to_text, doc)
 
     def doc_to_target(self, doc):
         return utils.apply_template(self._config.doc_to_target, doc)
 
     def construct_requests(self, doc, ctx, **kwargs):
 
-        if self.OUTPUT_TYPE == "greedy_until":
-            return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(ctx, "\n\n"), idx=0, **kwargs)
+        if self.OUTPUT_TYPE == "loglikelihood":
+            arguments=(ctx, self.doc_to_target(doc))
+        elif self.OUTPUT_TYPE == "loglikelihood_rolling":
+            arguments=(self.doc_to_target(doc),)
+        elif self.OUTPUT_TYPE == "multiple_choice":
+            import ast
+            return [
+                Instance(
+                    request_type="loglikelihood",
+                    doc=doc, 
+                    arguments=(ctx, " {}".format(choice)),
+                    idx=i,
+                    **kwargs,
+                )
+                for i, choice in enumerate(ast.literal_eval(utils.apply_template(self._config.template_aliases + "{{answer_choices}}", doc))) 
+                # we pass the user-defined answer_choices var (in aliases) and echo the result. TODO: any cleaner way to do this?
+            ]
+        elif self.OUTPUT_TYPE == "greedy_until":
+            arguments=(ctx, self._config.delimiter)
+
+        return Instance(
+            request_type=self.OUTPUT_TYPE,
+            doc=doc,
+            arguments=arguments,
+            idx=0,
+            **kwargs
+            )
 
     def process_results(self, doc, results):
 
-        if self._config.gold_alias is not None:
-            gold = doc[self._config.gold_alias]
-        else:
-            gold = self.doc_to_target(doc)
-
         result_dict = {}
-        for key, result in zip(self._metric_list.keys(), results):
-            _dict = self._metric_list[key](
-                references=[gold],
-                predictions=[result],
-            )
+        if self.OUTPUT_TYPE == "loglikelihood":
+            results = results[0]
+            ll, is_greedy = results
+            result_dict = {"perplexity": ll, "accuracy": int(is_greedy)}
+        elif self.OUTPUT_TYPE == "loglikelihood_rolling":
+            (loglikelihood,) = results
+            words = self.count_words(self.doc_to_target(doc))
+            bytes_ = self.count_bytes(self.doc_to_target(doc))
+            return {
+                "word_perplexity": (loglikelihood, words),
+                "byte_perplexity": (loglikelihood, bytes_),
+                "bits_per_byte": (loglikelihood, bytes_),
+            }
+        elif self.OUTPUT_TYPE == "multiple_choice":
+            lls = [res[0] for res in results] # only retain loglikelihoods, discard is_greedy TODO: keep is_greedy to report exact_match as well on multiple choice probs
+            gold = int(self.doc_to_target(doc))
+            # TODO: remove dependence on "gold" and "choices" columns
 
-            result_dict[key] = _dict[key]
+            acc = 1.0 if np.argmax(lls) == gold else 0.0
+            completion_len = np.array([float(len(i)) for i in doc["choices"]])
+            acc_norm = 1.0 if np.argmax(results / completion_len) == gold else 0.0
+
+            # TODO: set which normalization metrics should be reported, and calculate them
+            # TODO: add mutual info.
+
+            result_dict = {
+                "acc": acc,
+                "acc_norm": acc_norm,
+            } 
+        elif self.OUTPUT_TYPE == "greedy_until":
+
+            if self._config.gold_alias is not None:
+                gold = doc[self._config.gold_alias]
+            else:
+                gold = self.doc_to_target(doc)
+
+            for key, result in zip(self._metric_list.keys(), results):
+                _dict = self._metric_list[key].compute(
+                    references=[gold],
+                    predictions=[result],
+                    **self._metric_kwargs[key]
+                )
+
+                result_dict[key] = _dict[key]
+        else:
+            raise ValueError(f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ", 
+                "'loglikelihood', 'loglikelihood_rolling', 'greedy_until'"
+            )
 
         return result_dict
 
     def aggregation(self):
-
         return self._aggregation_list
 
     def higher_is_better(self):
-        
         return self._higher_is_better
 
 
@@ -515,11 +635,6 @@ class MultipleChoiceTask(Task):
                 **kwargs,
             )
             for i, choice in enumerate(doc["choices"])]
-        #lls = [
-        #    rf.loglikelihood(ctx, " {}".format(choice))[0] for choice in doc["choices"]
-        # ]
-
-        # return lls
 
     def process_results(self, doc, results):
         results = [res[0] for res in results] # only retain loglikelihoods, discard is_greedy TODO: do we need is_greedy anywhere? 
@@ -595,8 +710,8 @@ class PerplexityTask(Task, abc.ABC):
 
     def process_results(self, doc, results):
         (loglikelihood,) = results
-        words = self.count_words(doc)
-        bytes_ = self.count_bytes(doc)
+        words = self.count_words(self.doc_to_target(doc))
+        bytes_ = self.count_bytes(self.doc_to_target(doc))
         return {
             "word_perplexity": (loglikelihood, words),
             "byte_perplexity": (loglikelihood, bytes_),
@@ -625,19 +740,22 @@ class PerplexityTask(Task, abc.ABC):
 TASK_REGISTRY = {}
 ALL_TASKS = []
 
-def register_task(name):
+def register_task(*names):
+    # either pass a list or a single alias.
+    # function receives them as a tuple of strings
 
     def decorate(cls):
-        assert (
-            issubclass(cls, Task)
-        ), f"Task '{name}' ({cls.__name__}) must extend Task class"
+        for name in names:
+            assert (
+                issubclass(cls, Task)
+            ), f"Task '{name}' ({cls.__name__}) must extend Task class"
 
-        assert (
-            name not in TASK_REGISTRY
-        ), f"Task named '{name}' conflicts with existing task!"
+            assert (
+                name not in TASK_REGISTRY
+            ), f"Task named '{name}' conflicts with existing task! Please register with a non-conflicting alias instead."
 
-        TASK_REGISTRY[name] = cls
-        ALL_TASKS = sorted(list(TASK_REGISTRY)) # TODO: this doesn't seem to import right.
+            TASK_REGISTRY[name] = cls
+            ALL_TASKS = sorted(list(TASK_REGISTRY)) # TODO: this doesn't seem to import right.
         return cls
     
     return decorate
