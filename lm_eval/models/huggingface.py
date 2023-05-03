@@ -2,6 +2,7 @@ import math
 import torch
 import torch.nn.functional as F
 import transformers
+import peft
 from typing import List, Mapping, NewType, Optional, Tuple, Union
 from tqdm import tqdm
 
@@ -59,6 +60,7 @@ class HuggingFaceAutoLM(BaseLM):
     AUTO_CONFIG_CLASS: transformers.AutoConfig = transformers.AutoConfig
     AUTO_TOKENIZER_CLASS: transformers.AutoTokenizer = transformers.AutoTokenizer
     AUTO_MODEL_CLASS: transformers.AutoModel = None
+    AUTO_PEFT_CLASS: peft.PeftModel = None
 
     # Default max sequence length setting for when no `max_length` is provided
     # or no max length config setting is found in the model or tokenizer.
@@ -81,6 +83,9 @@ class HuggingFaceAutoLM(BaseLM):
         offload_folder: Optional[str] = "./offload",
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[Union[int, str]] = "cuda",
+        peft: str = None,
+        load_in_8bit: Optional[bool] = False,
+        trust_remote_code: Optional[bool] = False,
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -104,20 +109,20 @@ class HuggingFaceAutoLM(BaseLM):
                 Options:
                     "auto", "balanced", "balanced_low_0", "sequential"
                 See the `accelerate` docs for more details on these options:
-                https://huggingface.co/docs/accelerate/v0.12.0/en/usage_guides/big_modeling#designing-a-device-map
+                https://huggingface.co/docs/transformers/main/en/main_classes/model#transformers.PreTrainedModel.from_pretrained.device_map
             max_memory_per_gpu (Union[int, str], optional, defaults to None):
                 The maximum memory available for each GPU in bytes as `int` or in
                 the format f"{significand}{unit_symbol}" where {unit_symbol} is
                 any of ["GB", "MB", "GIB", "MIB"]. Refer to the `max_memory` arg in
                 the "Parameters for big model inference" section of the following
                 docs:
-                https://huggingface.co/docs/transformers/v4.20.1/en/main_classes/model#large-model-loading
+                https://huggingface.co/docs/transformers/main/en/main_classes/model#transformers.PreTrainedModel.from_pretrained.max_memory
             max_cpu_memory (Union[int, str], optional, defaults to None):
                 The maximum available CPU RAM in bytes as `int` or in the format
                 f"{significand}{unit_symbol}" where {unit_symbol} is any of
                 ["GB", "MB", "GIB", "MIB"]. Refer to the `max_memory` arg in the
                 "Parameters for big model inference" section of the following docs:
-                https://huggingface.co/docs/transformers/v4.20.1/en/main_classes/model#large-model-loading
+                https://huggingface.co/docs/transformers/main/en/main_classes/model#transformers.PreTrainedModel.from_pretrained.max_memory
             offload_folder (str, optional, defaults to "./offload"):
                 The folder to offload weights into if `device_map` contains any
                 "disk" value.
@@ -125,6 +130,15 @@ class HuggingFaceAutoLM(BaseLM):
                 Converts the model weights to `dtype`, if specified. Strings get
                 converted to `torch.dtype` objects (e.g. `float16` -> `torch.float16`).
                 Use `dtype="auto"` to derive the type from the model’s weights.
+            peft (str, optional, defaults to None):
+                Path of the adapter weights to load from Huggingface. This will usually
+                include a directory that includes the files `adapter_config.json` and
+                `adapter_model.bin`. Compatible with [PEFT](https://github.com/huggingface/peft)
+            load_in_8bit (bool, optional, defaults to False):
+                If True, will convert the loaded model into mixed-8bit quantized model. See:
+                https://huggingface.co/docs/transformers/main/en/main_classes/model#transformers.PreTrainedModel.from_pretrained.load_in_8bit
+            trust_remote_code (bool, optional, defaults to False):
+                If True, will trust the remote code when loading the model.
         """
         super().__init__()
 
@@ -154,6 +168,7 @@ class HuggingFaceAutoLM(BaseLM):
         self._max_length = max_length
         self._config = self.AUTO_CONFIG_CLASS.from_pretrained(
             pretrained,
+            trust_remote_code=trust_remote_code,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
         )
 
@@ -166,21 +181,33 @@ class HuggingFaceAutoLM(BaseLM):
         )
         self.tokenizer.model_max_length = self.max_length
 
-        accelerate_kwargs = {}
+        model_kwargs = {}
         if use_accelerate:
-            accelerate_kwargs = _get_accelerate_args(
+            model_kwargs = _get_accelerate_args(
                 device_map_option,
                 max_memory_per_gpu,
                 max_cpu_memory,
                 offload_folder,
             )
+        model_kwargs["load_in_8bit"] = load_in_8bit
         self.model = self._create_auto_model(
             pretrained=pretrained,
+            trust_remote_code=trust_remote_code,
             revision=revision,
             subfolder=subfolder,
             torch_dtype=_get_dtype(dtype, self._config),
-            **accelerate_kwargs,
+            **model_kwargs,
         )
+        # note: peft_path can be different than pretrained model path
+        if peft is not None:
+            self.model = self._create_auto_model_peft(
+                model=self.model,
+                peft=peft,
+                revision=revision,
+                subfolder=subfolder,
+                torch_dtype=_get_dtype(dtype, self._config),
+                **model_kwargs,
+            )
         self.model.eval()
         torch.set_grad_enabled(False)
 
@@ -202,6 +229,8 @@ class HuggingFaceAutoLM(BaseLM):
         device_map: Optional[Union[str, _DeviceMapping]] = None,
         max_memory: Optional[dict] = None,
         offload_folder: Optional[str] = None,
+        load_in_8bit: Optional[bool] = False,
+        trust_remote_code: Optional[bool] = False,
         torch_dtype: Optional[Union[str, torch.dtype]] = None,
     ) -> transformers.AutoModel:
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
@@ -211,6 +240,35 @@ class HuggingFaceAutoLM(BaseLM):
             device_map=device_map,
             max_memory=max_memory,
             offload_folder=offload_folder,
+            load_in_8bit=load_in_8bit,
+            trust_remote_code=trust_remote_code,
+            torch_dtype=torch_dtype,
+        )
+        return model
+
+    def _create_auto_model_peft(
+        self,
+        *,
+        model: transformers.PreTrainedModel,
+        peft: str,
+        revision: str,
+        subfolder: str,
+        device_map: Optional[Union[str, _DeviceMapping]] = None,
+        max_memory: Optional[dict] = None,
+        offload_folder: Optional[str] = None,
+        load_in_8bit: Optional[bool] = False,
+        trust_remote_code: Optional[bool] = False,
+        torch_dtype: Optional[Union[str, torch.dtype]] = None,
+    ):
+        model = self.AUTO_PEFT_CLASS.from_pretrained(
+            model,
+            peft,
+            revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            device_map=device_map,
+            max_memory=max_memory,
+            offload_folder=offload_folder,
+            load_in_8bit=load_in_8bit,
+            trust_remote_code=trust_remote_code,
             torch_dtype=torch_dtype,
         )
         return model
@@ -309,7 +367,7 @@ class HuggingFaceAutoLM(BaseLM):
     def tok_decode(self, tokens: torch.LongTensor) -> List[str]:
         return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
 
-    def greedy_until(self, requests: List[Tuple[str, dict]]) -> List[str]:
+    def greedy_until(self, requests: List[Tuple[str, Union[List[str], str]]]) -> List[str]:
         def _collate(x):
             tokens = self.tok_encode(x[0])
             return len(tokens), x[0]
@@ -341,18 +399,17 @@ class HuggingFaceAutoLM(BaseLM):
         ):
             context = [c[0] for c in chunk]
             request_args = chunk[0][1]
-            stop_sequences = request_args["stop_sequences"]
-            max_generation_length = request_args["max_generation_length"]
-            num_fewshot = request_args["num_fewshot"]
+            stop = request_args.get('until', None)
+            stop_sequences = [stop] if isinstance(stop, list) else stop
+            max_generation_length = request_args.get("max_length", None)
 
             assert (
                 isinstance(max_generation_length, int) or max_generation_length is None
             )
             assert isinstance(stop_sequences, list) or stop_sequences is None
-            assert isinstance(num_fewshot, int) or num_fewshot is None
-
+            
             # TODO: Find a better way to handle stop sequences for 0-shot.
-            if stop_sequences is None or num_fewshot == 0:
+            if stop_sequences is None:
                 until = [self.eot_token]
             else:
                 until = stop_sequences + [self.eot_token]
@@ -388,6 +445,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
     """
 
     AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
+    AUTO_PEFT_CLASS = peft.PeftModel
 
     def _create_auto_tokenizer(
         self,
@@ -452,6 +510,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
     """
 
     AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
+    AUTO_PEFT_CLASS = peft.PeftModel
 
     @property
     def max_length(self) -> int:
@@ -659,4 +718,3 @@ def stop_sequences_criteria(
             ],
         ]
     )
-
