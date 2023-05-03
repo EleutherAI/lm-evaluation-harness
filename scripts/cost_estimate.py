@@ -26,7 +26,7 @@ class DryrunLM(LM):
     def greedy_until(self, requests):
         res = []
 
-        for ctx, until in requests:
+        for ctx, _ in requests:
             res.append("lol")
 
             # assume worst case - generates until 256
