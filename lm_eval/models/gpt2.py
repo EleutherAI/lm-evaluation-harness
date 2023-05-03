@@ -3,7 +3,6 @@ import transformers
 from typing import Optional
 from lm_eval.base import BaseLM
 
-
 class HFLM(BaseLM):
     def __init__(
         self,
@@ -21,7 +20,7 @@ class HFLM(BaseLM):
 
         assert isinstance(device, str)
         assert isinstance(pretrained, str)
-        assert isinstance(batch_size, int)
+        assert isinstance(batch_size, (int,str))
 
         device_list = set(["cuda", "cpu"] + [f'cuda:{i}' for i in range(torch.cuda.device_count())])
         if device and device in device_list:
@@ -56,13 +55,21 @@ class HFLM(BaseLM):
 
         self.vocab_size = self.tokenizer.vocab_size
 
-        # multithreading and batching
-        self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
+        if isinstance(
+            self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
+        ):
+            assert self.tokenizer.encode("hello\n\nhello") == [
+                31373,
+                198,
+                198,
+                31373,
+            ], self.tokenizer.encode("hello\n\nhello")
 
-        # TODO: fix multi-gpu
-        # gpus = torch.cuda.device_count()
-        # if gpus > 1:
-        #     self.gpt2 = nn.DataParallel(self.gpt2)
+        # setup for automatic batch size detection
+        if batch_size == 'auto': 
+            self.batch_size_per_gpu = batch_size
+        else:
+            self.batch_size_per_gpu = int(batch_size) 
 
     @property
     def eot_token_id(self):
