@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="lm_eval",
-    version="0.3.0",
+    version="0.4.0",
     author="Leo Gao",
     author_email="lg@eleuther.ai",
     description="A framework for evaluating autoregressive language models",
@@ -19,7 +19,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.9",
     install_requires=[
         "datasets>=2.0.0",
         "jsonlines",
