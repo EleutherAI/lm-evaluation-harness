@@ -53,6 +53,7 @@ from . import storycloze
 from . import toxigen
 from . import crowspairs
 from . import bigbench
+from . import clue
 
 ########################################
 # Translation tasks
@@ -85,6 +86,8 @@ all_translation_benchmarks = {
 
 
 TASK_REGISTRY = {
+    # CLUE
+    "cmrc2018":clue.Cmrc2018,
     # GLUE
     "cola": glue.CoLA,
     "mnli": glue.MNLI,
