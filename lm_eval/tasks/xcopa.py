@@ -33,6 +33,18 @@ class XCopa(Copa):
     def has_training_docs(self):
         return False
 
+    def has_validation_docs(self):
+        return True
+
+    def has_test_docs(self):
+        return True
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
+    def test_docs(self):
+        return self.dataset["test"]
+
     def doc_to_text(self, doc):
         # Drop the period
         connector = {
