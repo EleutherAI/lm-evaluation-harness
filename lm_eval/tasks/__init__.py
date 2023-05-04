@@ -54,6 +54,7 @@ from . import toxigen
 from . import crowspairs
 from . import xcopa
 from . import bigbench
+from . import xstorycloze
 
 ########################################
 # Translation tasks
@@ -314,6 +315,7 @@ TASK_REGISTRY = {
     # "sat": sat.SATAnalogies,
     **xcopa.construct_tasks(),
     **bigbench.create_all_tasks(),
+    **xstorycloze.create_all_tasks(),
 }
 
 

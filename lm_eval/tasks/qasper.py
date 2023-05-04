@@ -214,7 +214,7 @@ class QASPER(Task):
         """
         # unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
         if doc["answer_type"] in ("free form answer"):
-            return [rf.greedy_until(ctx, {'until': ["\n"]})]
+            return [rf.greedy_until(ctx, {"until": ["\n"]})]
         elif doc["answer_type"] in ("bool"):
             ll_yes, _ = rf.loglikelihood(ctx, " yes")
             ll_no, _ = rf.loglikelihood(ctx, " no")
