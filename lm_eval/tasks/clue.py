@@ -100,7 +100,7 @@ class Cmrc2018(Task):
         """
         # TODO: Construct your language model requests with the request factory, `rf`,
         # and return them as an iterable.
-        return [rf.loglikelihood(ctx,doc['answers'][0])]
+        return [rf.loglikelihood(ctx,doc['answers']['text'][0])]
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
