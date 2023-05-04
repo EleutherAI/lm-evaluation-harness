@@ -53,6 +53,7 @@ from . import storycloze
 from . import toxigen
 from . import crowspairs
 from . import xcopa
+from . import bigbench
 
 ########################################
 # Translation tasks
@@ -312,6 +313,7 @@ TASK_REGISTRY = {
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
     **xcopa.construct_tasks(),
+    **bigbench.create_all_tasks(),
 }
 
 

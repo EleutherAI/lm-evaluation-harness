@@ -19,7 +19,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.9",
     install_requires=[
         "datasets>=2.0.0",
         "jsonlines",
@@ -38,6 +38,7 @@ setuptools.setup(
         "tqdm-multiprocess",
         "transformers>=4.1",
         "zstandard",
+        "accelerate>=0.17.1"
     ],
     extras_require={
         "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],

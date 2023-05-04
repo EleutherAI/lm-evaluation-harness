@@ -7,6 +7,7 @@ from typing import List, Mapping, NewType, Optional, Tuple, Union
 from tqdm import tqdm
 
 from transformers import BatchEncoding
+from accelerate import find_executable_batch_size
 
 from lm_eval import utils
 from lm_eval.base import BaseLM
@@ -71,7 +72,7 @@ class HuggingFaceAutoLM(BaseLM):
         tokenizer: Optional[str] = None,
         subfolder: Optional[str] = None,
         revision: Optional[str] = "main",
-        batch_size: Optional[int] = 1,
+        batch_size: Optional[Union[int,str]] = 1,
         max_gen_toks: Optional[int] = 256,
         max_length: Optional[int] = None,
         add_special_tokens: Optional[bool] = None,
@@ -143,7 +144,7 @@ class HuggingFaceAutoLM(BaseLM):
 
         assert isinstance(pretrained, str)
         assert isinstance(device, str)
-        assert isinstance(batch_size, int)
+        assert isinstance(batch_size, (int, str))
         if (
             add_special_tokens is not None
             and self.AUTO_MODEL_CLASS is transformers.AutoModelForCausalLM
@@ -157,7 +158,12 @@ class HuggingFaceAutoLM(BaseLM):
                 not add_special_tokens
             ), "Evaluating causal models with `add_special_tokens=True` is currently not supported."
 
-        self._batch_size = batch_size  # TODO: Adaptive batch size
+        # setup for automatic batch size detection
+        if batch_size == 'auto': 
+            self._batch_size = batch_size
+        else:
+            self._batch_size = int(batch_size) 
+
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
         self._config = self.AUTO_CONFIG_CLASS.from_pretrained(
@@ -334,6 +340,8 @@ class HuggingFaceAutoLM(BaseLM):
             if hasattr(self._config, attr):
                 return getattr(self._config, attr)
         if hasattr(self.tokenizer, "model_max_length"):
+            if self.tokenizer.model_max_length == 1000000000000000019884624838656:
+                return self._DEFAULT_MAX_LENGTH
             return self.tokenizer.model_max_length
         return self._DEFAULT_MAX_LENGTH
 
@@ -361,30 +369,45 @@ class HuggingFaceAutoLM(BaseLM):
     def tok_decode(self, tokens: torch.LongTensor) -> List[str]:
         return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
 
-    def greedy_until(self, requests: List[Tuple[str, dict]]) -> List[str]:
+    def greedy_until(self, requests: List[Tuple[str, Union[List[str], str]]]) -> List[str]:
         def _collate(x):
             tokens = self.tok_encode(x[0])
             return len(tokens), x[0]
-
+        
         results = []
         reorder = utils.Reorderer(requests, _collate)
+        
+        adaptive_batch_size = None
+        if self.batch_size == 'auto': 
+            # using rolling window with maximum context
+            print('Passed argument batch_size = auto. Detecting largest batch size')
+            @find_executable_batch_size(starting_batch_size=512) # if OOM, then halves batch_size and tries again
+            def forward_batch(batch_size):
+                test_batch = torch.ones((batch_size, self.max_length), device=self.device).long()
+                for _ in range(5): 
+                    out = F.log_softmax(self._model_call(test_batch), dim = -1).cpu()
+                return batch_size
+
+            batch_size = forward_batch() 
+            print(f"Determined Largest batch size: {batch_size}")
+            adaptive_batch_size = batch_size
+
         for chunk in utils.chunks(
-            tqdm(reorder.get_reordered(), disable=False), self.batch_size
+            tqdm(reorder.get_reordered(), disable=False), self.batch_size if self.batch_size != "auto" else adaptive_batch_size
         ):
             context = [c[0] for c in chunk]
             request_args = chunk[0][1]
-            stop_sequences = request_args["stop_sequences"]
-            max_generation_length = request_args["max_generation_length"]
-            num_fewshot = request_args["num_fewshot"]
+            stop = request_args.get('until', None)
+            stop_sequences = stop if isinstance(stop, list) else [stop]
+            max_generation_length = request_args.get("max_length", None)
 
             assert (
                 isinstance(max_generation_length, int) or max_generation_length is None
             )
             assert isinstance(stop_sequences, list) or stop_sequences is None
-            assert isinstance(num_fewshot, int) or num_fewshot is None
-
+            
             # TODO: Find a better way to handle stop sequences for 0-shot.
-            if stop_sequences is None or num_fewshot == 0:
+            if stop_sequences is None:
                 until = [self.eot_token]
             else:
                 until = stop_sequences + [self.eot_token]
