@@ -200,7 +200,7 @@ def evaluate(
         # calculate values for each filter setup (TODO: make getting list of keys cleaner)
         # TODO: make it possible to use a different metric per key
         for key in task.instances[0].filtered_resps.keys():
-            for doc_id, doc in enumerate(itertools.islice(task.test_docs(), 0, limit) if task.has_test_docs() else task.validation_docs()):
+            for doc_id, doc in itertools.islice(enumerate(task.test_docs()), lm.rank, None, lm.world_size) if task.has_test_docs() else itertools.islice(enumerate(task.validation_docs()), lm.rank, None, lm.world_size):
                 # subset instances to only this document id ; sort by idx
                 requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
                 requests.sort(key=lambda x: x.idx)
