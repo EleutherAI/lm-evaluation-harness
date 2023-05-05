@@ -57,6 +57,7 @@ from . import bigbench
 from . import xstorycloze
 from . import xwinograd
 from . import pawsx
+from . import xnli
 
 ########################################
 # Translation tasks
@@ -320,6 +321,7 @@ TASK_REGISTRY = {
     **xstorycloze.create_all_tasks(),
     **xwinograd.create_all_tasks(),
     **pawsx.construct_tasks(),
+    **xnli.construct_tasks(),
 }
 
 

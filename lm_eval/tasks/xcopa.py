@@ -55,77 +55,66 @@ class XCopa(Copa):
 
 
 class XCopaEt(XCopa):
-    VERSION = 0
     DATASET_NAME = "et"
     CAUSE = "sest"
     EFFECT = "seetõttu"
 
 
 class XCopaHt(XCopa):
-    VERSION = 0
     DATASET_NAME = "ht"
     CAUSE = "poukisa"
     EFFECT = "donk sa"
 
 
 class XCopaIt(XCopa):
-    VERSION = 0
     DATASET_NAME = "it"
     CAUSE = "perché"
     EFFECT = "quindi"
 
 
 class XCopaId(XCopa):
-    VERSION = 0
     DATASET_NAME = "id"
     CAUSE = "karena"
     EFFECT = "maka"
 
 
 class XCopaQu(XCopa):
-    VERSION = 0
     DATASET_NAME = "qu"
     CAUSE = "imataq"
     EFFECT = "chaymi"
 
 
 class XCopaSw(XCopa):
-    VERSION = 0
     DATASET_NAME = "sw"
     CAUSE = "kwa sababu"
     EFFECT = "kwa hiyo"
 
 
 class XCopaZh(XCopa):
-    VERSION = 0
     DATASET_NAME = "zh"
     CAUSE = "因为"
     EFFECT = "所以"
 
 
 class XCopaTa(XCopa):
-    VERSION = 0
     DATASET_NAME = "ta"
     CAUSE = "காரணமாக"
     EFFECT = "எனவே"
 
 
 class XCopaTh(XCopa):
-    VERSION = 0
     DATASET_NAME = "th"
     CAUSE = "เพราะ"
     EFFECT = "ดังนั้น"
 
 
 class XCopaTr(XCopa):
-    VERSION = 0
     DATASET_NAME = "tr"
     CAUSE = "çünkü"
     EFFECT = "bu yüzden"
 
 
 class XCopaVi(XCopa):
-    VERSION = 0
     DATASET_NAME = "vi"
     CAUSE = "bởi vì"
     EFFECT = "vì vậy"
