@@ -73,7 +73,7 @@ class HFLM(LM):
             self.accelerator = accelerator
 
             if self.accelerator.is_local_main_process:
-                print(f"Using {gpus} GPUs with FullyShardedDataParalell and accelerate")
+                print(f"Using {gpus} GPUs with Data Parallelism")
 
             self._rank = self.accelerator.local_process_index
             self._world_size = gpus
@@ -202,7 +202,7 @@ class HFLM(LM):
         # TODO: automatic (variable) batch size detection for vectorization
         re_ord = utils.Reorderer(requests, _collate)
         for chunk in utils.chunks(
-            tqdm(re_ord.get_reordered(), disable=disable_tqdm), self.batch_size
+            tqdm(re_ord.get_reordered(), disable=(disable_tqdm or not (self.rank == 0))), self.batch_size
         ):
             inps = []
             cont_toks_list = []
