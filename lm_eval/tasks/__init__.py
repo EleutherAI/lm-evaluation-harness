@@ -55,6 +55,7 @@ from . import crowspairs
 from . import xcopa
 from . import bigbench
 from . import xstorycloze
+from . import xwinograd
 
 ########################################
 # Translation tasks
@@ -316,6 +317,7 @@ TASK_REGISTRY = {
     **xcopa.construct_tasks(),
     **bigbench.create_all_tasks(),
     **xstorycloze.create_all_tasks(),
+    **xwinograd.create_all_tasks(),
 }
 
 
