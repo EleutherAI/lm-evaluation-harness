@@ -8,6 +8,8 @@ import torch.nn.functional as F
 from lm_eval import utils
 from lm_eval.api.model import LM, register_model
 
+from accelerate import Accelerator
+from itertools import islice
 
 @register_model("hf-causal", "gpt2")
 class HFLM(LM):
@@ -26,20 +28,22 @@ class HFLM(LM):
         assert isinstance(device, str)
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
-
-        if device:
-            if device not in ["cuda", "cpu"]:
-                device = int(device)
-            self._device = torch.device(device)
-            print(f"Using device '{device}'")
-        else:
-            print("Device not specified")
-            print(f"Cuda Available? {torch.cuda.is_available()}")
-            self._device = (
-                torch.device("cuda")
-                if torch.cuda.is_available()
-                else torch.device("cpu")
-            )
+        
+        gpus = torch.cuda.device_count()
+        if gpus <= 1:
+            if device:  
+                if device not in ["cuda", "cpu"]:
+                    device = int(device)
+                self._device = torch.device(device)
+                print(f"Using device '{device}'")
+            else:
+                print("Device not specified")
+                print(f"Cuda Available? {torch.cuda.is_available()}")
+                self._device = (
+                    torch.device("cuda")
+                    if torch.cuda.is_available()
+                    else torch.device("cpu")
+                )
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
@@ -59,10 +63,17 @@ class HFLM(LM):
         # multithreading and batching
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
 
-        # TODO: fix multi-gpu
-        # gpus = torch.cuda.device_count()
-        # if gpus > 1:
-        #     self.gpt2 = nn.DataParallel(self.gpt2)
+        if gpus > 1:
+            accelerator = Accelerator(device_placement=False)
+            self.gpt2 = accelerator.prepare(self.gpt2)
+            self._device = torch.device(f"cuda:{accelerator.local_process_index}")
+            self.accelerator = accelerator
+
+            if self.accelerator.is_local_main_process:
+                print(f"Using {gpus} GPUs with FullyShardedDataParalell and accelerate")
+
+            self._rank = self.accelerator.local_process_index
+            self._world_size = gpus
 
     @property
     def eot_token_id(self):
@@ -90,6 +101,14 @@ class HFLM(LM):
     def device(self):
         # TODO: fix multi-gpu
         return self._device
+    
+    @property
+    def rank(self):
+        return self._rank
+
+    @property
+    def world_size(self):
+        return self._world_size
 
     def tok_encode(self, string: str):
         return self.tokenizer.encode(string, add_special_tokens=False)

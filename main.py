@@ -89,30 +89,31 @@ def main():
 
     print(f"Selected Tasks: {task_names}")
 
-    results = evaluator.simple_evaluate(
-        model=args.model,
-        model_args=args.model_args,
-        tasks=task_names,
-        num_fewshot=args.num_fewshot,
-        batch_size=args.batch_size,
-        device=args.device,
-        limit=args.limit,
-        decontamination_ngrams_path=args.decontamination_ngrams_path,
-        check_integrity=args.check_integrity,
-    )
+    if results is not None:
+        results = evaluator.simple_evaluate(
+            model=args.model,
+            model_args=args.model_args,
+            tasks=task_names,
+            num_fewshot=args.num_fewshot,
+            batch_size=args.batch_size,
+            device=args.device,
+            limit=args.limit,
+            decontamination_ngrams_path=args.decontamination_ngrams_path,
+            check_integrity=args.check_integrity,
+        )
 
-    dumped = json.dumps(results, indent=2)
-    print(dumped)
+        dumped = json.dumps(results, indent=2)
+        print(dumped)
 
-    if args.output_path:
-        with open(args.output_path, "w") as f:
-            f.write(dumped)
+        if args.output_path:
+            with open(args.output_path, "w") as f:
+                f.write(dumped)
 
-    print(
-        f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, "
-        f"num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}"
-    )
-    print(evaluator.make_table(results))
+        print(
+            f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, "
+            f"num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}"
+        )
+        print(evaluator.make_table(results))
 
 
 if __name__ == "__main__":

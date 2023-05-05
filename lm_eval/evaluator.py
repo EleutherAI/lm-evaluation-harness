@@ -7,7 +7,7 @@ import lm_eval.models
 import lm_eval.tasks
 import lm_eval.api
 from lm_eval.utils import positional_deprecated, run_task_tests, make_table
-
+import torch 
 
 @positional_deprecated
 def simple_evaluate(
@@ -79,19 +79,23 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
     )
 
-    # add info about the model and few shot config
-    results["config"] = {
-        "model": model,
-        "model_args": model_args,
-        "num_fewshot": num_fewshot,
-        "batch_size": batch_size,
-        "device": device,
-        "no_cache": no_cache,
-        "limit": limit,
-        "bootstrap_iters": bootstrap_iters,
-    }
+    if lm.rank == 0:
+        # add info about the model and few shot config
+        results["config"] = {
+            "model": model,
+            "model_args": model_args,
+            "num_fewshot": num_fewshot,
+            "batch_size": batch_size,
+            "device": device,
+            "no_cache": no_cache,
+            "limit": limit,
+            "bootstrap_iters": bootstrap_iters,
+        }
 
-    return results
+        return results
+    else:
+        return None
+
 
 
 decontaminate_suffix = "_decontaminate"
@@ -143,10 +147,20 @@ def evaluate(
         # rnd.shuffle(task_docs)
 
         # for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
-        task.build_all_requests(limit=limit)
+        task.build_all_requests(limit=limit, rank = lm.rank, world_size = lm.world_size)
         # aggregate Instances by LM method requested to get output.
         reqtype = "loglikelihood" if task.OUTPUT_TYPE == "multiple_choice" else task.OUTPUT_TYPE #TODO: this is hacky, fix in task.py
         requests[reqtype].extend(task.instances) 
+
+        if lm.world_size > 1:
+            instances_rnk = torch.tensor(len(task._instances), device = lm.device)
+            gathered_item = lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
+
+            # compute number of pseudobatches to pad with (FSDP/DDP require even batches + can't use join)
+            # we assume rank 0 always has largest iterator
+            numpad = gathered_item[0] - gathered_item[lm.rank]
+            if numpad > 0:
+                print(f"{task_name} / balancing iterators across ranks / rank: {lm.rank} / + {numpad} sample")
     
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
@@ -157,12 +171,19 @@ def evaluate(
         for req in reqs:
             cloned_reqs.extend([req] * req.repeats)
         
+        if (lm.rank > 0) and (numpad > 0):
+            for _ in range(numpad):
+                cloned_reqs.extend([req] * req.repeats)
+
         # run requests through model
         resps = getattr(lm, reqtype)(cloned_reqs)
 
         # put responses from model into a list of length K for each request.
         for x, req in zip(resps, cloned_reqs):
             req.resps.append(x)
+
+    if lm.world_size > 1:
+        lm.accelerator.wait_for_everyone()
 
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
@@ -187,25 +208,61 @@ def evaluate(
                 for metric, value in metrics.items():
                     vals[(task_name, key, metric)].append(value)
     
+    if lm.world_size > 1:
+        # if multigpu, then gather data across all ranks    
+        vals_torch = collections.defaultdict(list)
+        for (task_name, key, metric), items in vals.items():
+            
+            numitem = 0 
+            if type(items[0]) == tuple:
+                numitem = len(items[0]) 
+    
+            # distributed gather requires all ranks to have same dimensionality -> pad out with float32 min value
+            pad_value = torch.finfo(torch.float32).min
+            metrics_tensor = torch.tensor(items, device = lm.device)
+            
+            original_dtype = metrics_tensor.dtype # store original dtype 
+            torch_device_tensor = lm.accelerator.pad_across_processes(metrics_tensor.to(torch.float32), pad_index = pad_value)
+            gathered_item = lm.accelerator.gather(torch_device_tensor)
+    
+            #TODO: This is required when we get a tensor with a tuple of info like (ppl, _bytes) from wikitext
+            if numitem > 0:
+                gathered_filtered = gathered_item[gathered_item[:,0] != pad_value]
+            else:
+                gathered_filtered = gathered_item[gathered_item != pad_value]
+                
+            gathered_item = gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
+            # reconvert if we were passed a tuple of values
+            if numitem > 0:
+                gathered_item = [tuple(g) for g in gathered_item]
+    
+            if lm.rank == 0:
+                vals_torch[(task_name, key, metric)] = gathered_item
+    
+        vals = vals_torch
 
 
-    ### Aggregate results over all datapoints ###
-    # aggregate results ; run bootstrap CIs
-    for (task_name, key, metric), items in vals.items():
-        task = task_dict[task_name]
-        results[task_name][metric + " - filter=" + key] = task.aggregation()[metric](items)
+    if lm.rank == 0:
+        ### Aggregate results over all datapoints ###
+        # aggregate results ; run bootstrap CIs
+        for (task_name, key, metric), items in vals.items():
+            task = task_dict[task_name]
+            results[task_name][metric + " - filter=" + key] = task.aggregation()[metric](items)
 
-        # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
-        # so we run them less iterations. still looking for a cleaner way to do this
+            # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
+            # so we run them less iterations. still looking for a cleaner way to do this
 
-        stderr = lm_eval.api.metrics.stderr_for_metric(
-            metric=task.aggregation()[metric],
-            bootstrap_iters=min(bootstrap_iters, 1000)
-            if metric in ["bleu", "chrf", "ter"]
-            else bootstrap_iters,
-        )
+            stderr = lm_eval.api.metrics.stderr_for_metric(
+                metric=task.aggregation()[metric],
+                bootstrap_iters=min(bootstrap_iters, 1000)
+                if metric in ["bleu", "chrf", "ter"]
+                else bootstrap_iters,
+            )
 
-        if stderr is not None:
-            results[task_name][metric + " - filter=" + key + "_stderr"] = stderr(items)
+            if stderr is not None:
+                results[task_name][metric + " - filter=" + key + "_stderr"] = stderr(items)
 
-    return {"results": dict(results), "versions": dict(versions)}
+        return {"results": dict(results), "versions": dict(versions)}
+
+    else:
+        return None
