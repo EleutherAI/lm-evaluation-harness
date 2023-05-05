@@ -248,7 +248,7 @@ class Task(abc.ABC):
     def doc_to_target(self, doc):
         pass
 
-    def build_all_requests(self, limit=None):
+    def build_all_requests(self, limit=None, rank=None, world_size=None):
         """Build a set of Instances for a task, and store them in task.instances"""
         if self.has_test_docs():
             docs = self.test_docs()
@@ -260,8 +260,9 @@ class Task(abc.ABC):
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
         instances = []
-        for doc_id, doc in enumerate(itertools.islice(docs, 0, limit) if limit else docs):
-            # sample fewshot context
+        # for doc_id, doc in enumerate(itertools.islice(docs, 0, limit) if limit else docs):
+        for doc_id, doc in itertools.islice(enumerate(docs), rank, None, world_size):
+            # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(
                 doc, self._config.num_fewshot, rnd=random.Random()
             )
