@@ -17,6 +17,23 @@ _CITATION = """
 }
 """
 
+def multilable_to_multiclass(label: list):
+    """
+    0 = 혐오
+    1 = 욕설
+    2 = 양호
+    """
+    assert type(label[0]) == int
+    _id = np.argmax(label)
+
+    if _id == 8:
+        return 1
+    elif _id == 9:
+        return 2
+    else:
+        return 0
+
+
 class KorUnSmile(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "smilegate-ai/kor_unsmile"
@@ -42,8 +59,8 @@ class KorUnSmile(MultipleChoiceTask):
     def _process_doc(self, doc):
         out_doc = {
             "title": doc["문장"],
-            "choices": ["여성/가족", "남성", "성소수자", "인종/국적", "연령", "지역", "종교", "기타 혐오", "악플/욕설", "clean"],
-            "gold": np.argmax(doc["labels"])
+            "choices": ["혐오", "욕설", "양호"],
+            "gold": multilable_to_multiclass(doc["labels"])
         }
         return out_doc
 
@@ -51,7 +68,7 @@ class KorUnSmile(MultipleChoiceTask):
         return "{}".format(doc["title"])
 
     def doc_to_target(self, doc):
-        return " {}".format({0: "여성/가족", 1: "남성", 2: "성소수자", 3: "인종/국적", 4: "연령", 5: "지역", 6: "종교", 7: "기타 혐오", 8: "악플/욕설", 9: "clean"}[doc["gold"]])
+        return " {}".format({0: "혐오", 1: "욕설", 2: "양호"}[doc["gold"]])
 
     def process_results(self, doc, results):
         pred = np.argmax(results)
