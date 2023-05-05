@@ -89,19 +89,18 @@ def main():
 
     print(f"Selected Tasks: {task_names}")
 
+    results = evaluator.simple_evaluate(
+        model=args.model,
+        model_args=args.model_args,
+        tasks=task_names,
+        num_fewshot=args.num_fewshot,
+        batch_size=args.batch_size,
+        device=args.device,
+        limit=args.limit,
+        decontamination_ngrams_path=args.decontamination_ngrams_path,
+        check_integrity=args.check_integrity,
+    )
     if results is not None:
-        results = evaluator.simple_evaluate(
-            model=args.model,
-            model_args=args.model_args,
-            tasks=task_names,
-            num_fewshot=args.num_fewshot,
-            batch_size=args.batch_size,
-            device=args.device,
-            limit=args.limit,
-            decontamination_ngrams_path=args.decontamination_ngrams_path,
-            check_integrity=args.check_integrity,
-        )
-
         dumped = json.dumps(results, indent=2)
         print(dumped)
 

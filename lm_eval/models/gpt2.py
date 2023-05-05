@@ -45,6 +45,9 @@ class HFLM(LM):
                     else torch.device("cpu")
                 )
 
+        else:
+            self._device = 'cpu'
+
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
