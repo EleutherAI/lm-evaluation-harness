@@ -260,8 +260,7 @@ class Task(abc.ABC):
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
         instances = []
-        # for doc_id, doc in enumerate(itertools.islice(docs, 0, limit) if limit else docs):
-        for doc_id, doc in itertools.islice(enumerate(docs), rank, None, world_size):
+        for doc_id, doc in utils.create_iterator(enumerate(docs), rank, world_size, limit):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(
                 doc, self._config.num_fewshot, rnd=random.Random()

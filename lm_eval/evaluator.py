@@ -6,7 +6,7 @@ import lm_eval.api.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.api
-from lm_eval.utils import positional_deprecated, run_task_tests, make_table
+from lm_eval.utils import positional_deprecated, run_task_tests, make_table, create_iterator
 import torch 
 
 @positional_deprecated
@@ -146,7 +146,6 @@ def evaluate(
         # rnd.seed(42)
         # rnd.shuffle(task_docs)
 
-        # for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
         task.build_all_requests(limit=limit, rank = lm.rank, world_size = lm.world_size)
         # aggregate Instances by LM method requested to get output.
         reqtype = "loglikelihood" if task.OUTPUT_TYPE == "multiple_choice" else task.OUTPUT_TYPE #TODO: this is hacky, fix in task.py
@@ -156,11 +155,9 @@ def evaluate(
             instances_rnk = torch.tensor(len(task._instances), device = lm.device)
             gathered_item = lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
 
-            # compute number of pseudobatches to pad with (FSDP/DDP require even batches + can't use join)
+            # compute number of pseudobatches to pad with (FSDP/DDP require even batches among ranks)
             # we assume rank 0 always has largest iterator
             numpad = gathered_item[0] - gathered_item[lm.rank]
-            if numpad > 0:
-                print(f"{task_name} / balancing iterators across ranks / rank: {lm.rank} / + {numpad} sample")
     
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
@@ -200,7 +197,8 @@ def evaluate(
         # calculate values for each filter setup (TODO: make getting list of keys cleaner)
         # TODO: make it possible to use a different metric per key
         for key in task.instances[0].filtered_resps.keys():
-            for doc_id, doc in itertools.islice(enumerate(task.test_docs()), lm.rank, None, lm.world_size) if task.has_test_docs() else itertools.islice(enumerate(task.validation_docs()), lm.rank, None, lm.world_size):
+            doc_iterator = itertools.islice(enumerate(task.test_docs()), lm.rank, None, lm.world_size) if task.has_test_docs() else itertools.islice(enumerate(task.validation_docs()), lm.rank, None, lm.world_size)
+            for doc_id, doc in doc_iterator:
                 # subset instances to only this document id ; sort by idx
                 requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
                 requests.sort(key=lambda x: x.idx)
