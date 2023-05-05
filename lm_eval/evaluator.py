@@ -271,6 +271,7 @@ def evaluate(
                 if doc_id not in overlaps[task_name]:
                     vals[(task_name, metric + decontaminate_suffix)].append(value)
 
+    raw_vals = {}
     # aggregate results
     for (task_name, metric), items in vals.items():
         task = task_dict[task_name]
@@ -294,7 +295,9 @@ def evaluate(
         if stderr is not None:
             results[task_name][metric + "_stderr"] = stderr(items)
 
-    return {"results": dict(results), "versions": dict(versions)}
+        raw_vals[task_name] = items
+
+    return {"results": dict(results), "versions": dict(versions), "raw": dict(raw_vals)}
 
 
 def make_table(result_dict):

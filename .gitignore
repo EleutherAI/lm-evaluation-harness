@@ -5,3 +5,5 @@ lm_cache
 .idea
 .ipynb_checkpoints
 build/
+*.json
+*egg-info*

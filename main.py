@@ -41,6 +41,7 @@ def parse_args():
     parser.add_argument("--description_dict_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
 
+    tmp_args = "--tasks sst,wnli --model morph --model_args pretrained=maveriq/morphgpt-base-150k --device 0 --batch_size 3".split()
     return parser.parse_args()
 
 
