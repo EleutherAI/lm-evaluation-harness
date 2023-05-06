@@ -78,7 +78,8 @@ class HFLM(LM):
                 print(f"Using {gpus} GPUs with Data Parallelism")
 
             self._rank = self.accelerator.local_process_index
-            self._world_size = gpus
+            self._world_size = self.accelerator.num_processes
+            assert gpus == self.accelerator.num_processes, "Number of GPUs does not match the world size. If evaluating with data parallelism, please call script with accelerate launch *script name*"
 
     @property
     def eot_token_id(self):
