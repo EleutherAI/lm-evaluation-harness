@@ -104,6 +104,12 @@ python write_out.py \
 
 This will write out one text file for each task.
 
+## Advanced Usage
+
+We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
+
+We currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, check out the [BigScience fork](https://github.com/bigscience-workshop/lm-evaluation-harness) of this repo. We are currently working on upstreaming this capability to `main`.
+
 ## Implementing new tasks
 
 To implement a new task in the eval harness, see [this guide](./docs/task_guide.md).
