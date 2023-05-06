@@ -44,6 +44,8 @@ class HFLM(LM):
                     if torch.cuda.is_available()
                     else torch.device("cpu")
                 )
+            self._rank = 0
+            self._world_size = 1
 
         else:
             self._device = 'cpu'
