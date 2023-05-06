@@ -157,19 +157,64 @@ class HFLM(LM):
         # TODO: Implement caching once we've confirmed the perplexity implementation
         # TODO: automatic batch size detection for vectorization
 
-        loglikelihoods = []
-        for (string,) in tqdm([req.args for req in requests]):
-            rolling_token_windows = list(
-                map(
-                    utils.make_disjoint_window,
-                    utils.get_rolling_token_windows(
-                        token_list=self.tok_encode(string),
-                        prefix_token=self.eot_token_id,
-                        max_seq_len=self.max_length,
-                        context_len=1,
-                    ),
+        extra_pad = []
+        numpad_batches = 0
+        # balance token batches among iterators
+        if self.world_size > 1:
+            cumulative_batches = 0 
+            # compute cumlative batches once -> could also just cache this can then use it later
+            for (string,) in tqdm([req.args for req in requests],disable=(self.rank != 0)):
+                rolling_token_windows = list(
+                    map(
+                        utils.make_disjoint_window,
+                        utils.get_rolling_token_windows(
+                            token_list=self.tok_encode(string),
+                            prefix_token=self.eot_token_id,
+                            max_seq_len=self.max_length,
+                            context_len=1,
+                        ),
+                    )
                 )
-            )
+
+                rolling_token_windows = [(None,) + x for x in rolling_token_windows]
+                cumulative_batches += len(rolling_token_windows)
+
+            cum_batches_ranks = torch.tensor(cumulative_batches, device = self.device)
+            gathered_item = self.accelerator.gather(cum_batches_ranks).cpu().detach().numpy().tolist()
+
+            # compute number of pseudobatches to pad with (FSDP/DDP require even batches among ranks)
+            numpad_batches = max(gathered_item) - gathered_item[self.rank]
+            extra_pad = [('pad',)] if numpad_batches > 0 else []
+
+            print(self.rank, numpad_batches)
+
+        loglikelihoods = []
+        for (string,) in tqdm(extra_pad + [req.args for req in requests],disable=(self.rank != 0)):
+            if numpad_batches > 0:
+                rolling_token_windows = list(
+                    map(
+                        utils.make_disjoint_window,
+                        utils.get_rolling_token_windows(
+                            token_list=[self.eot_token_id]*self.max_length*numpad_batches,
+                            prefix_token=self.eot_token_id,
+                            max_seq_len=self.max_length,
+                            context_len=1,
+                        ),
+                    )
+                )
+                
+            else:
+                rolling_token_windows = list(
+                    map(
+                        utils.make_disjoint_window,
+                        utils.get_rolling_token_windows(
+                            token_list=self.tok_encode(string),
+                            prefix_token=self.eot_token_id,
+                            max_seq_len=self.max_length,
+                            context_len=1,
+                        ),
+                    )
+                )
 
             rolling_token_windows = [(None,) + x for x in rolling_token_windows]
 
@@ -179,11 +224,16 @@ class HFLM(LM):
                 rolling_token_windows, disable_tqdm=True
             )
 
-            # discard is_greedy
-            string_nll = [x[0] for x in string_nll]
+            if numpad_batches > 0:
+                numpad_batches = 0 
 
-            string_nll = sum(string_nll)
-            loglikelihoods.append(string_nll)
+            else:
+                # discard is_greedy
+                string_nll = [x[0] for x in string_nll]
+
+                string_nll = sum(string_nll)
+                loglikelihoods.append(string_nll)
+        
 
         return loglikelihoods
 
@@ -205,7 +255,7 @@ class HFLM(LM):
         # TODO: automatic (variable) batch size detection for vectorization
         re_ord = utils.Reorderer(requests, _collate)
         for chunk in utils.chunks(
-            tqdm(re_ord.get_reordered(), disable=(disable_tqdm or not (self.rank == 0))), self.batch_size
+            tqdm(re_ord.get_reordered(), disable=(disable_tqdm or (self.rank != 0))), self.batch_size
         ):
             inps = []
             cont_toks_list = []
