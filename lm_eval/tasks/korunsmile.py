@@ -20,7 +20,7 @@ _CITATION = """
 def multilable_to_multiclass(label: list):
     """
     0 = 혐오
-    1 = 욕설
+    1 = 악플
     2 = 양호
     """
     assert type(label[0]) == int
@@ -59,7 +59,7 @@ class KorUnSmile(MultipleChoiceTask):
     def _process_doc(self, doc):
         out_doc = {
             "title": doc["문장"],
-            "choices": ["혐오", "욕설", "양호"],
+            "choices": ["혐오", "악플", "양호"],
             "gold": multilable_to_multiclass(doc["labels"])
         }
         return out_doc
@@ -68,7 +68,7 @@ class KorUnSmile(MultipleChoiceTask):
         return "{}".format(doc["title"])
 
     def doc_to_target(self, doc):
-        return " {}".format({0: "혐오", 1: "욕설", 2: "양호"}[doc["gold"]])
+        return " {}".format({0: "혐오", 1: "악플", 2: "양호"}[doc["gold"]])
 
     def process_results(self, doc, results):
         pred = np.argmax(results)
