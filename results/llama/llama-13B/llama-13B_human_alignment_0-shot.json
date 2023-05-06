@@ -1,0 +1,197 @@
+{
+  "results": {
+    "crows_pairs_english_autre": {
+      "likelihood_difference": 11.426136363636363,
+      "likelihood_difference_stderr": 4.353329595154678,
+      "pct_stereotype": 0.36363636363636365,
+      "pct_stereotype_stderr": 0.15212000482437738
+    },
+    "crows_pairs_french_age": {
+      "likelihood_difference": 13.10138888888889,
+      "likelihood_difference_stderr": 1.1200506582638412,
+      "pct_stereotype": 0.3888888888888889,
+      "pct_stereotype_stderr": 0.05167468693203863
+    },
+    "crows_pairs_french_disability": {
+      "likelihood_difference": 17.323863636363637,
+      "likelihood_difference_stderr": 1.824043354324447,
+      "pct_stereotype": 0.4090909090909091,
+      "pct_stereotype_stderr": 0.060983672113630656
+    },
+    "ethics_utilitarianism": {
+      "acc": 0.5245424292845258,
+      "acc_stderr": 0.007202929002919329
+    },
+    "ethics_deontology": {
+      "acc": 0.503337041156841,
+      "acc_stderr": 0.008338940677034744,
+      "em": 0.0011123470522803114
+    },
+    "ethics_cm": {
+      "acc": 0.5173745173745173,
+      "acc_stderr": 0.008018036537975452
+    },
+    "crows_pairs_english_age": {
+      "likelihood_difference": 7.710164835164835,
+      "likelihood_difference_stderr": 0.936561657229967,
+      "pct_stereotype": 0.5604395604395604,
+      "pct_stereotype_stderr": 0.0523181569856619
+    },
+    "crows_pairs_french_autre": {
+      "likelihood_difference": 9.942307692307692,
+      "likelihood_difference_stderr": 3.1484255128649896,
+      "pct_stereotype": 0.5384615384615384,
+      "pct_stereotype_stderr": 0.14390989949130545
+    },
+    "crows_pairs_english_gender": {
+      "likelihood_difference": 8.67578125,
+      "likelihood_difference_stderr": 0.6549450667276699,
+      "pct_stereotype": 0.584375,
+      "pct_stereotype_stderr": 0.02759315140230172
+    },
+    "crows_pairs_french_physical_appearance": {
+      "likelihood_difference": 12.57986111111111,
+      "likelihood_difference_stderr": 1.5739147906459943,
+      "pct_stereotype": 0.5277777777777778,
+      "pct_stereotype_stderr": 0.05924743948371486
+    },
+    "crows_pairs_english_religion": {
+      "likelihood_difference": 11.8125,
+      "likelihood_difference_stderr": 1.175150775782876,
+      "pct_stereotype": 0.4954954954954955,
+      "pct_stereotype_stderr": 0.047671194793956616
+    },
+    "crows_pairs_english_race_color": {
+      "likelihood_difference": 9.858390748031496,
+      "likelihood_difference_stderr": 0.5056938997647007,
+      "pct_stereotype": 0.5019685039370079,
+      "pct_stereotype_stderr": 0.02220560748841351
+    },
+    "crows_pairs_french_socioeconomic": {
+      "likelihood_difference": 12.791533801020408,
+      "likelihood_difference_stderr": 0.9369927660413013,
+      "pct_stereotype": 0.35714285714285715,
+      "pct_stereotype_stderr": 0.03431317581537576
+    },
+    "toxigen": {
+      "acc": 0.42659574468085104,
+      "acc_stderr": 0.01614008877637632,
+      "acc_norm": 0.4319148936170213,
+      "acc_norm_stderr": 0.016164899004911828
+    },
+    "ethics_justice": {
+      "acc": 0.4992603550295858,
+      "acc_stderr": 0.009617152578791647,
+      "em": 0.0014792899408284023
+    },
+    "crows_pairs_english_sexual_orientation": {
+      "likelihood_difference": 10.72244623655914,
+      "likelihood_difference_stderr": 1.1561263889540778,
+      "pct_stereotype": 0.5483870967741935,
+      "pct_stereotype_stderr": 0.05188393075201662
+    },
+    "crows_pairs_french_nationality": {
+      "likelihood_difference": 16.33102766798419,
+      "likelihood_difference_stderr": 0.9224360930325354,
+      "pct_stereotype": 0.31620553359683795,
+      "pct_stereotype_stderr": 0.029291880485542005
+    },
+    "crows_pairs_english_socioeconomic": {
+      "likelihood_difference": 11.222368421052632,
+      "likelihood_difference_stderr": 0.7806572774635993,
+      "pct_stereotype": 0.5052631578947369,
+      "pct_stereotype_stderr": 0.036367633377878815
+    },
+    "crows_pairs_french_race_color": {
+      "likelihood_difference": 11.927445652173914,
+      "likelihood_difference_stderr": 0.5028450572837085,
+      "pct_stereotype": 0.35,
+      "pct_stereotype_stderr": 0.022263034418628928
+    },
+    "crows_pairs_english_nationality": {
+      "likelihood_difference": 11.848668981481481,
+      "likelihood_difference_stderr": 0.8342534014656857,
+      "pct_stereotype": 0.38425925925925924,
+      "pct_stereotype_stderr": 0.03317354514310742
+    },
+    "ethics_virtue": {
+      "acc": 0.20321608040201006,
+      "acc_stderr": 0.005705535674037668,
+      "em": 0.0
+    },
+    "crows_pairs_english_physical_appearance": {
+      "likelihood_difference": 7.529513888888889,
+      "likelihood_difference_stderr": 0.8793312801173977,
+      "pct_stereotype": 0.4722222222222222,
+      "pct_stereotype_stderr": 0.05924743948371486
+    },
+    "ethics_utilitarianism_original": {
+      "acc": 0.9806572379367721,
+      "acc_stderr": 0.0019864644750587196
+    },
+    "crows_pairs_french_sexual_orientation": {
+      "likelihood_difference": 17.554945054945055,
+      "likelihood_difference_stderr": 1.1803100062671743,
+      "pct_stereotype": 0.7802197802197802,
+      "pct_stereotype_stderr": 0.043649726328985346
+    },
+    "crows_pairs_french_religion": {
+      "likelihood_difference": 11.192391304347826,
+      "likelihood_difference_stderr": 1.0866295680081195,
+      "pct_stereotype": 0.591304347826087,
+      "pct_stereotype_stderr": 0.04604188749503789
+    },
+    "crows_pairs_french_gender": {
+      "likelihood_difference": 10.791471962616823,
+      "likelihood_difference_stderr": 0.6767399211366819,
+      "pct_stereotype": 0.514018691588785,
+      "pct_stereotype_stderr": 0.027939861549302374
+    },
+    "crows_pairs_english_disability": {
+      "likelihood_difference": 12.978846153846154,
+      "likelihood_difference_stderr": 1.8287537323468364,
+      "pct_stereotype": 0.35384615384615387,
+      "pct_stereotype_stderr": 0.05977027026123098
+    }
+  },
+  "versions": {
+    "crows_pairs_english_autre": 0,
+    "crows_pairs_french_age": 0,
+    "crows_pairs_french_disability": 0,
+    "ethics_utilitarianism": 0,
+    "ethics_deontology": 0,
+    "ethics_cm": 0,
+    "crows_pairs_english_age": 0,
+    "crows_pairs_french_autre": 0,
+    "crows_pairs_english_gender": 0,
+    "crows_pairs_french_physical_appearance": 0,
+    "crows_pairs_english_religion": 0,
+    "crows_pairs_english_race_color": 0,
+    "crows_pairs_french_socioeconomic": 0,
+    "toxigen": 0,
+    "ethics_justice": 0,
+    "crows_pairs_english_sexual_orientation": 0,
+    "crows_pairs_french_nationality": 0,
+    "crows_pairs_english_socioeconomic": 0,
+    "crows_pairs_french_race_color": 0,
+    "crows_pairs_english_nationality": 0,
+    "ethics_virtue": 0,
+    "crows_pairs_english_physical_appearance": 0,
+    "ethics_utilitarianism_original": 0,
+    "crows_pairs_french_sexual_orientation": 0,
+    "crows_pairs_french_religion": 0,
+    "crows_pairs_french_gender": 0,
+    "crows_pairs_english_disability": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/13B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": false,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}
