@@ -24,7 +24,6 @@ and may differ from the ones used by mGPT and XGLM (they do not provide their pr
 
 Homepage: https://github.com/google-research-datasets/paws/tree/master/pawsx
 """
-import datasets
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 
@@ -44,36 +43,6 @@ _CITATION = """
     doi = "10.18653/v1/D19-1382",
     pages = "3687--3692",
 }"""
-
-
-def _pawsx_agg_precision(items):
-    references, predictions = zip(*items)
-    precision_metric = datasets.load_metric("precision")
-    return precision_metric.compute(
-        references=references,
-        predictions=predictions,
-        average="macro",
-    )["precision"]
-
-
-def _pawsx_agg_recall(items):
-    references, predictions = zip(*items)
-    recall_metric = datasets.load_metric("recall")
-    return recall_metric.compute(
-        references=references,
-        predictions=predictions,
-        average="macro",
-    )["recall"]
-
-
-def _pawsx_agg_f1(items):
-    references, predictions = zip(*items)
-    f1_metric = datasets.load_metric("f1")
-    return f1_metric.compute(
-        references=references,
-        predictions=predictions,
-        average="macro",
-    )["f1"]
 
 
 class PAWSXBase(Task):
@@ -152,9 +121,6 @@ class PAWSXBase(Task):
 
         return {
             "acc": pred == true_label,
-            "precision": (true_label, pred),
-            "recall": (true_label, pred),
-            "f1": (true_label, pred),
         }
 
     def aggregation(self):
@@ -165,13 +131,10 @@ class PAWSXBase(Task):
         """
         return {
             "acc": mean,
-            "precision": _pawsx_agg_precision,
-            "recall": _pawsx_agg_recall,
-            "f1": _pawsx_agg_f1,
         }
 
     def higher_is_better(self):
-        return {"acc": True, "precision": True, "recall": True, "f1": True}
+        return {"acc": True}
 
 
 class PAWSX_en(PAWSXBase):
