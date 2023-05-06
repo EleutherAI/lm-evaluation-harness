@@ -69,7 +69,6 @@ gpt3_translation_benchmarks = {
     "wmt16": ['en-ro', 'ro-en', 'de-en', 'en-de'],  # German, Romanian
 }
 
-
 # 28 total
 selected_translation_benchmarks = {
     **gpt3_translation_benchmarks,
@@ -88,7 +87,7 @@ all_translation_benchmarks = {
 # All tasks
 ########################################
 
-
+# task 레지스트리에 클래스 추가 
 TASK_REGISTRY = {
     # GLUE
     "cola": glue.CoLA,
@@ -322,7 +321,8 @@ TASK_REGISTRY = {
     "ko_en_translation": ko_translation.KoEnTranslation,
     "en_ko_translation": ko_translation.EnKoTranslation,
     "kohatespeech":kohatespeech.HateSpeech,
-    "kohatespeech_gen_bias":kohatespeech.GenderBias
+    "kohatespeech_gen_bias":kohatespeech.GenderBias,
+    "kohatespeech_apeach":kohatespeech.Apeach
 }
 
 ALL_TASKS = sorted(list(TASK_REGISTRY))
