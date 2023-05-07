@@ -203,7 +203,7 @@ def evaluate(
             if description_dict and task_name in description_dict
             else ""
         )
-        if limit < 1:
+        if limit is not None and limit < 1:
             limit = int(len(task_docs) * limit)
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
