@@ -56,6 +56,7 @@ from . import nsmc
 from . import klue
 from . import ko_translation
 from . import korquad
+from . import korunsmile
 from . import kohatespeech
 
 ########################################
@@ -320,6 +321,7 @@ TASK_REGISTRY = {
     "kobest_sentineg": kobest.SentiNeg,
     "ko_en_translation": ko_translation.KoEnTranslation,
     "en_ko_translation": ko_translation.EnKoTranslation,
+    "korunsmile": korunsmile.KorUnSmile
     "kohatespeech":kohatespeech.HateSpeech,
     "kohatespeech_gen_bias":kohatespeech.GenderBias,
     "kohatespeech_apeach":kohatespeech.Apeach
