@@ -42,8 +42,8 @@ def simple_evaluate(
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
     :param no_cache: bool
         Whether or not to cache
-    :param limit: int, optional
-        Limit the number of examples per task (only use this for testing)
+    :param limit: int or float, optional
+        Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
     :param description_dict: dict[str, str]
@@ -203,6 +203,8 @@ def evaluate(
             if description_dict and task_name in description_dict
             else ""
         )
+        if limit is not None:
+            limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
 
