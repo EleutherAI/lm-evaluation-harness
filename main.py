@@ -36,7 +36,7 @@ def parse_args():
     parser.add_argument("--batch_size", type=str, default=None)
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--output_path", default=None)
-    parser.add_argument("--limit", type=Union[int, float], default=None,
+    parser.add_argument("--limit", type=float, default=None,
                         help="Limit the number of examples per task. "
                              "If <1, limit is a percentage of the total number of examples.")
     parser.add_argument("--data_sampling", type=float, default=None)
