@@ -248,20 +248,28 @@ class HellaSwag(MultipleChoiceTask):
     def process_results(self, doc, results):
         pred = np.argmax(results)
         gold = doc["gold"]
+
+        acc = 1. if np.argmax(results) == gold else 0.
+        completion_len = np.array([float(len(i)) for i in doc["choices"]])
+        acc_norm = 1. if np.argmax(results / completion_len) == gold else 0.
+
         return {
-            "acc": pred == gold,
+            "acc": acc,
+            "acc_norm": acc_norm,
             "macro_f1": (gold, pred)
         }
 
     def higher_is_better(self):
         return {
             "acc": True,
+            "acc_norm": True,
             "macro_f1": True
         }
 
     def aggregation(self):
         return {
             "acc": mean,
+            "acc_norm": mean,
             "macro_f1": macro_f1_score
         }
 
