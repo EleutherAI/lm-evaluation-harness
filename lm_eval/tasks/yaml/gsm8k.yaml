@@ -1,3 +1,5 @@
+names: 
+  - gsm8k_yaml
 dataset_path: gsm8k
 dataset_name: main
 training_split: train

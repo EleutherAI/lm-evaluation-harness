@@ -1,3 +1,5 @@
+names:
+  - pile_enron_yaml
 dataset_path: EleutherAI/the_pile
 dataset_name: enron_emails
 output_type: loglikelihood_rolling
