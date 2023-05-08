@@ -36,10 +36,18 @@ class HFLM(BaseLM):
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
-        self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
-            pretrained,
-            revision=revision,
-        ).to(self.device)
+        try:
+            self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
+                pretrained,
+                revision=revision,
+            ).to(self.device)
+            self.is_seq2seq = False
+        except ValueError:
+            self.gpt2 = transformers.AutoModelForSeq2SeqLM.from_pretrained(
+                pretrained,
+                revision=revision,
+            ).to(self.device)
+            self.is_seq2seq = True
         self.gpt2.eval()
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
@@ -119,7 +127,21 @@ class HFLM(BaseLM):
         logits returned from the model
         """
         with torch.no_grad():
-            return self.gpt2(inps)[0]
+            if self.is_seq2seq:
+                dec_inps = torch.cat(
+                    [
+                        torch.tensor(
+                            self.gpt2.config.decoder_start_token_id,
+                        )
+                        .tile(len(inps), 1)
+                        .to(inps),
+                        inps,
+                    ],
+                    dim=1,
+                )
+                return self.gpt2(inps, decoder_input_ids=dec_inps)[0]
+            else:
+                return self.gpt2(inps)[0]
 
     def _model_generate(self, context, max_length, eos_token_id):
         return self.gpt2.generate(
