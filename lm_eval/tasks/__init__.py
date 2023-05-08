@@ -312,6 +312,7 @@ TASK_REGISTRY = {
     "klue_sts": klue.STS,
     "klue_ynat": klue.YNAT,
     "klue_nli": klue.NLI,
+    "klue_mrc": klue.MRC,
     "nsmc": nsmc.NSMC,    
     "korquad": korquad.Korquad,
     "kobest_boolq": kobest.BoolQ,
