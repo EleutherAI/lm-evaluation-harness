@@ -33,6 +33,16 @@ def parse_args():
     parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--num_fewshot", type=int, default=0)
     parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument(
+        "--max_length",
+        type=int,
+        default=None,
+        help=(
+            "Maximum sequence length to send to the model. If not given, an attempt is "
+            "made to figure out the maximum sequence length accepted by the model "
+            "automatically. However, this is not always possible."
+        ),
+    )
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--output_path", default=None)
     parser.add_argument("--limit", type=int, default=None)
@@ -82,6 +92,7 @@ def main():
         tasks=task_names,
         num_fewshot=args.num_fewshot,
         batch_size=args.batch_size,
+        max_length=args.max_length,
         device=args.device,
         no_cache=args.no_cache,
         limit=args.limit,
@@ -99,7 +110,8 @@ def main():
 
     print(
         f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, "
-        f"num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}"
+        f"num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}, "
+        f"max_length: {results['config']['max_length']}"
     )
     print(evaluator.make_table(results))
 

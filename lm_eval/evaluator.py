@@ -16,6 +16,7 @@ def simple_evaluate(
     tasks=[],
     num_fewshot=0,
     batch_size=None,
+    max_length=None,
     device=None,
     no_cache=False,
     limit=None,
@@ -38,6 +39,8 @@ def simple_evaluate(
         Number of examples in few-shot context
     :param batch_size: int, optional
         Batch size for model
+    :param max_length: int, optional
+        Maximum sequence length to supply to the model
     :param device: str, optional
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
     :param no_cache: bool
@@ -62,7 +65,12 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
         lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device}
+            model_args,
+            {
+                "batch_size": batch_size,
+                "max_length": max_length,
+                "device": device,
+            },
         )
     else:
         assert isinstance(model, lm_eval.base.LM)
@@ -99,6 +107,7 @@ def simple_evaluate(
         "model_args": model_args,
         "num_fewshot": num_fewshot,
         "batch_size": batch_size,
+        "max_length": lm.max_length if no_cache else lm.lm.max_length,
         "device": device,
         "no_cache": no_cache,
         "limit": limit,

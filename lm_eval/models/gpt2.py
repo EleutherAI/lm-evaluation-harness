@@ -12,6 +12,7 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
+        max_length=None,
     ):
         super().__init__()
 
@@ -41,6 +42,8 @@ class HFLM(BaseLM):
             revision=revision,
         ).to(self.device)
         self.gpt2.eval()
+
+        self._max_length = self._get_max_length(max_length)
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
@@ -82,18 +85,26 @@ class HFLM(BaseLM):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
         return self.tokenizer.eos_token_id
 
+    def _get_max_length(self, max_length):
+        if max_length:
+            return max_length
+        else:
+            for max_len_name in [
+                "n_ctx",
+                "max_position_embeddings",
+                "n_positions",
+            ]:
+                try:
+                    return getattr(self.gpt2.config, max_len_name)
+                except AttributeError:
+                    pass
+            raise AttributeError(
+                "no matching attribute for finding maximum length found"
+            )
+
     @property
     def max_length(self):
-        for max_len_name in [
-            "n_ctx",
-            "max_position_embeddings",
-            "n_positions",
-        ]:
-            try:
-                return getattr(self.gpt2.config, max_len_name)
-            except AttributeError:
-                pass
-        raise AttributeError("no matching attribute for finding maximum length found")
+        return self._max_length
 
     @property
     def max_gen_toks(self):
