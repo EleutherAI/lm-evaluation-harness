@@ -1,5 +1,5 @@
 dataset_path: ai2_arc
-dataset_name: ARC-Challenge
+dataset_name: ARC-Easy
 output_type: multiple_choice
 training_split: train
 validation_split: validation
@@ -14,3 +14,9 @@ metric_list:
   - metric: acc_norm
     aggregation: mean
     higher_is_better: true
+  - metric: acc_mutual_info
+    aggregation: mean
+    higher_is_better: true
+  # - metric: exact_match
+  #   aggregation: mean
+  #   higher_is_better: true
