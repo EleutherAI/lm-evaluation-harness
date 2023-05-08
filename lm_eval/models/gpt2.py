@@ -84,11 +84,16 @@ class HFLM(BaseLM):
 
     @property
     def max_length(self):
-        try:
-            return self.gpt2.config.n_ctx
-        except AttributeError:
-            # gptneoconfig doesn't have n_ctx apparently
-            return self.gpt2.config.max_position_embeddings
+        for max_len_name in [
+            "n_ctx",
+            "max_position_embeddings",
+            "n_positions",
+        ]:
+            try:
+                return getattr(self.gpt2.config, max_len_name)
+            except AttributeError:
+                pass
+        raise AttributeError("no matching attribute for finding maximum length found")
 
     @property
     def max_gen_toks(self):
