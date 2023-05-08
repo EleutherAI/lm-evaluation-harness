@@ -432,6 +432,15 @@
 |    |       |f1    |11.35|±  |  0.23|
 |race|      1|acc   |39.90|±  |  1.52|
 
+## llama-7B_unscramble_0-shot.json
+|      Task      |Version|Metric|Value|   |Stderr|
+|----------------|------:|------|----:|---|-----:|
+|anagrams1       |      0|acc   |    0|±  |     0|
+|anagrams2       |      0|acc   |    0|±  |     0|
+|cycle_letters   |      0|acc   |    0|±  |     0|
+|random_insertion|      0|acc   |    0|±  |     0|
+|reversed_words  |      0|acc   |    0|±  |     0|
+
 ## llama-7B_xcopa_0-shot.json
 |  Task  |Version|Metric|Value|   |Stderr|
 |--------|------:|------|----:|---|-----:|
