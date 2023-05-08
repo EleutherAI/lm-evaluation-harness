@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import fnmatch
+import os
 
 from lm_eval import tasks, evaluator
 
@@ -94,6 +95,7 @@ def main():
     print(dumped)
 
     if args.output_path:
+        os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
         with open(args.output_path, "w") as f:
             f.write(dumped)
 
