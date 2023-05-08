@@ -17,6 +17,29 @@ def sh(x):
         raise ExitCodeError()
 
 
+def escaped_split(text, sep_char, maxsplit=-1):
+    """Split text into a list on occurrences of the given separation
+    character `sep_char`. The separation character may be escaped by a
+    backslash to avoid splitting at that location.
+
+    The separation character must be a string of size 1.
+
+    If `maxsplit` is given, at most `maxsplit` splits are done (thus,
+    the list will have at most `maxsplit + 1` elements). If `maxsplit`
+    is not specified or less than 0, then there is no limit on the
+    number of splits (all possible splits are made).
+    """
+    assert (
+        len(sep_char) == 1
+    ), "separation string must be a single character for escaped splitting"
+
+    if maxsplit == 0:
+        return text
+    maxsplit = max(0, maxsplit)
+
+    return re.split(r"(?<!\\)" + sep_char, text, maxsplit)
+
+
 def simple_parse_args_string(args_string):
     """
     Parses something like
