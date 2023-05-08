@@ -167,7 +167,7 @@ def evaluate(
         for req in reqs:
             cloned_reqs.extend([req] * req.repeats)
         
-        if (numpad > 0):
+        if (lm.world_size > 1) and (numpad > 0):
             for _ in range(numpad):
                 cloned_reqs.extend([req] * req.repeats)
 
