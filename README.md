@@ -34,14 +34,14 @@ pip install -e ".[multilingual]"
 
 > **Note**: When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility. This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](#task-versioning) section for more info.
 
-To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on tasks with names matching the pattern `lambada_*` and `hellaswag` you can use the following command:
+To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command:
 
 
 ```bash
 python main.py \
     --model hf-causal \
     --model_args pretrained=EleutherAI/gpt-j-6B \
-    --tasks lambada_*,hellaswag \
+    --tasks hellaswag \
     --device cuda:0
 ```
 
@@ -58,15 +58,6 @@ python main.py \
 To evaluate models that are loaded via `AutoSeq2SeqLM` in Huggingface, you instead use `hf-seq2seq`. *To evaluate (causal) models across multiple GPUs, use `--model hf-causal-experimental`*
 
 > **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
-
-To use with [PEFT](https://github.com/huggingface/peft), take the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument as shown below:
-```bash
-python main.py \
-    --model hf-causal-experimental \
-    --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
-    --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
-    --device cuda:0
-```
 
 Our library also supports the OpenAI API:
 
@@ -105,6 +96,16 @@ python write_out.py \
 This will write out one text file for each task.
 
 ## Advanced Usage
+
+For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
+```bash
+python main.py \
+    --model hf-causal-experimental \
+    --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
+    --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
+    --device cuda:0
+```
+
 
 We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
 
