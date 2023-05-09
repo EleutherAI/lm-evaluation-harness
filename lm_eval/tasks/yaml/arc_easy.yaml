@@ -1,3 +1,5 @@
+names: 
+  - arc_easy_yaml
 dataset_path: ai2_arc
 dataset_name: ARC-Easy
 output_type: multiple_choice

@@ -27,7 +27,8 @@ from lm_eval.api import samplers
 @dataclass
 class TaskConfig(dict):
 
-    task_name: str = None
+    names: str = None
+    task_name: str = None # TODO: deprecate this, it'll be set in __post_init__ to be names[0]
     dataset_path: str = None
     dataset_name: str = None
     training_split: str = None
@@ -54,12 +55,18 @@ class TaskConfig(dict):
     doc_to_decontamination_query: str = None
     use_prompt: str = None
 
+    metadata: str = None # by default, not used in the code. allows for users to pass arbitrary info to tasks
+
     def __post_init__(self):
         # allow user-specified aliases so that users can
         # force prompt-compatibility for some prompt regardless of
         # field names in prompt
         self.doc_to_text = self.template_aliases + self.doc_to_text
         self.doc_to_target = self.template_aliases + self.doc_to_target
+
+        # set "task_name" metadata field based on the "primary" name set
+        if self.names:
+            self.task_name = self.names[0]
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -268,7 +275,7 @@ class Task(abc.ABC):
             )
 
             # TODO: hardcoded for now: # of runs on each input to be 2. # TODO: we should override this if doing greedy gen so users don't waste time+compute
-            inst = self.construct_requests(doc=doc, ctx=fewshot_ctx, metadata=(self._config["task_name"], doc_id, 2))
+            inst = self.construct_requests(doc=doc, ctx=fewshot_ctx, metadata=(self._config["task_name"], doc_id, 1))
 
             if not isinstance(inst, list):
                 inst = [inst]
@@ -405,12 +412,18 @@ class ConfigurableTask(Task):
 
     VERSION = "2.0"
     OUTPUT_TYPE = None
+    CONFIG = None
 
     def __init__(
         self, data_dir=None, cache_dir=None, download_mode=None, config: dict = None
     ):
-
-        self._config = TaskConfig(**config)
+        # if we are a subclass that has the CONFIG class attr set, ignore whatever is passed.
+        self._config = self.CONFIG
+        # else, if a config was passed as kwarg: use it
+        if (self._config is None) and config:
+            self._config = TaskConfig(**config)
+        if self._config is None:
+            raise ValueError("Must pass a config to ConfigurableTask, either in cls.CONFIG or `config` kwarg") 
 
         if self._config.output_type is not None:
             self.OUTPUT_TYPE = self._config.output_type
@@ -620,7 +633,6 @@ class ConfigurableTask(Task):
             }
 
             # TODO: set which normalization metrics should be reported, and calculate them
-            # TODO: add mutual info.
 
             if "exact_match" in self._metric_list.keys():
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
@@ -670,7 +682,7 @@ class MultipleChoiceTask(Task):
         return " " + doc["choices"][doc["gold"]]
 
     def construct_requests(self, doc, ctx, **kwargs):
-        
+        # TODO: add mutual info here?
         return [Instance(
                 request_type="loglikelihood",
                 doc=doc, 
@@ -801,6 +813,38 @@ def register_task(*names):
         return cls
     
     return decorate
+
+
+def register_yaml_task(yaml_path):
+    # same goal as register_task() but used to register yamls
+    import yaml
+    with open(yaml_path, "r") as f:
+        config = yaml.load(f, yaml.Loader)
+    from functools import partial
+    
+    # TODO: strip whitespace from name? 
+    # TODO: ensure num_fewshot overrides the config vals
+
+    def decorate(names, cls):
+        for name in names:
+            assert (
+                issubclass(cls, Task)
+            ), f"Task '{name}' ({cls.__name__}) must extend Task class"
+
+            assert (
+                name not in TASK_REGISTRY
+            ), f"Task named '{name}' conflicts with existing task! Please register with a non-conflicting alias instead."
+
+            TASK_REGISTRY[name] = cls
+            ALL_TASKS = sorted(list(TASK_REGISTRY)) # TODO: this doesn't seem to import properly.
+        return cls
+
+    # we create a subclass that has subclass attr CONFIG = our yaml config, and decorate with the config's specified aliases
+    names = config['names']    
+    yaml_task = decorate(
+        names, 
+        type(config['names'][0] + 'ConfigurableTask', (ConfigurableTask,), {'CONFIG': TaskConfig(**config)})
+    ) 
 
 
 ##### Task registry utils and setup.

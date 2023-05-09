@@ -1,3 +1,5 @@
+names:
+  - arc_challenge_yaml
 dataset_path: ai2_arc
 dataset_name: ARC-Challenge
 output_type: multiple_choice
