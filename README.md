@@ -10,9 +10,10 @@ This project provides a unified framework to test generative language models on 
 Features:
 
 - 200+ tasks implemented. See the [task-table](./docs/task_table.md) for a complete list.
-- Support for the Hugging Face `transformers` library, GPT-NeoX, Megatron-DeepSpeed, and the OpenAI API, with flexible tokenization-agnostic interface.
+- Support for models loaded via [transformers](https://github.com/huggingface/transformers/), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
-- Task versioning to ensure reproducibility.
+- Evaluating with publicly available prompts ensures reproducibility and comparability between papers.
+- Task versioning to ensure reproducibility when tasks are updated.
 
 ## Install
 
@@ -33,6 +34,8 @@ pip install -e ".[multilingual]"
 ## Basic Usage
 
 > **Note**: When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility. This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](#task-versioning) section for more info.
+
+### Hugging Face `transformers`
 
 To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command:
 
@@ -59,7 +62,9 @@ To evaluate models that are loaded via `AutoSeq2SeqLM` in Huggingface, you inste
 
 > **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
 
-Our library also supports the OpenAI API:
+### Commercial APIs
+
+Our library also supports language models served via the OpenAI API:
 
 ```bash
 export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
@@ -81,7 +86,9 @@ python main.py \
     --check_integrity
 ```
 
-To evaluate mesh-transformer-jax models that are not available on HF, please invoke eval harness through [this script](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
+### Other Frameworks
+
+A number of other libraries contain scripts for calling the eval harness through their library. These include [GPT-NeoX](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py), [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/blob/main/examples/MoE/readme_evalharness.md), and [mesh-transformer-jax](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
 
 💡 **Tip**: You can inspect what the LM inputs look like by running the following command:
 
