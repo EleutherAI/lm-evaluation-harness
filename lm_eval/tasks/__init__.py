@@ -344,10 +344,10 @@ TASK_REGISTRY = {
 }
 
 
-ALL_TASKS = sorted(list(TASK_REGISTRY))
-
 # append the multilingual tasks to the registry
 TASK_REGISTRY.update(AAM_TASK_REGISTRY)
+
+ALL_TASKS = sorted(list(TASK_REGISTRY))
 
 
 def get_task(task_name):
