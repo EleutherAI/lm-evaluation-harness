@@ -86,7 +86,7 @@ class HFLM(LM):
                 self.accelerator = accelerator
 
                 if self.accelerator.is_local_main_process:
-                    print(f"Using {gpus} devices data parallelism")
+                    print(f"Using {gpus} devices with data parallelism")
 
                 self._rank = self.accelerator.local_process_index
                 self._world_size = self.accelerator.num_processes
@@ -111,12 +111,10 @@ class HFLM(LM):
 
     @property
     def batch_size(self):
-        # TODO: fix multi-gpu
-        return self.batch_size_per_gpu  # * gpus
+        return self.batch_size_per_gpu
 
     @property
     def device(self):
-        # TODO: fix multi-gpu
         return self._device
     
     @property
