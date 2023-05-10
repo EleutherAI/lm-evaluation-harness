@@ -10,7 +10,8 @@ math, computer science, and philosophy papers.
 Homepage: https://pile.eleuther.ai/
 """
 
-from lm_eval.api.task import PerplexityTask, register_task
+from lm_eval import utils
+from lm_eval.api.task import PerplexityTask
 
 
 _CITATION = """
@@ -69,8 +70,9 @@ class PileDmMathematics(PilePerplexityTask):
     DATASET_NAME = "pile_dm-mathematics"
 
 
-@register_task("pile_enron")
+@utils.register_task
 class PileEnron(PilePerplexityTask):
+    TASK_NAME = "pile_enron"
     DATASET_NAME = "enron_emails"
 
 

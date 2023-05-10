@@ -12,10 +12,11 @@ in the broader discourse.
 
 Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
 """
-from lm_eval.api.task import Task, register_task
+from lm_eval.api.task import Task
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean, perplexity
 
+from lm_eval import utils
 
 _CITATION = """
 @misc{
@@ -75,11 +76,12 @@ class LambadaBase(Task):
         return {"ppl": False, "acc": True}
 
 
-@register_task("lambada_standard")
+@utils.register_task
 class LambadaStandard(LambadaBase):
     """The LAMBADA task using the standard original LAMBADA dataset."""
 
     VERSION = "2.0"
+    TASK_NAME = "lambada_standard"
     DATASET_PATH = "lambada"
 
     def has_training_docs(self):
@@ -91,7 +93,8 @@ class LambadaStandard(LambadaBase):
     def has_test_docs(self):
         return True
 
-@register_task("lambada_openai")
+
+@utils.register_task
 class LambadaOpenAI(LambadaBase):
     """The LAMBADA task using the LAMBADA OpenAI dataset, a modified version of the
     original LAMBADA dataset created by OpenAI for evaluating their GPT-2 model.
@@ -100,6 +103,7 @@ class LambadaOpenAI(LambadaBase):
     """
 
     VERSION = "2.0"
+    TASK_NAME = "lambada_openai"
     DATASET_PATH = "EleutherAI/lambada_openai"
 
     def has_training_docs(self):
