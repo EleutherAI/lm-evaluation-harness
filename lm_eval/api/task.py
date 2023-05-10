@@ -2,6 +2,7 @@ import abc
 from dataclasses import dataclass
 
 import re
+import ast
 import evaluate
 import random
 import itertools
@@ -26,7 +27,8 @@ from lm_eval.api import samplers
 @dataclass
 class TaskConfig(dict):
 
-    task_name: str = None
+    names: str = None
+    task_name: str = None # TODO: deprecate this, it'll be set in __post_init__ to be names[0]
     dataset_path: str = None
     dataset_name: str = None
     training_split: str = None
@@ -53,12 +55,18 @@ class TaskConfig(dict):
     doc_to_decontamination_query: str = None
     use_prompt: str = None
 
+    metadata: str = None # by default, not used in the code. allows for users to pass arbitrary info to tasks
+
     def __post_init__(self):
         # allow user-specified aliases so that users can
         # force prompt-compatibility for some prompt regardless of
         # field names in prompt
         self.doc_to_text = self.template_aliases + self.doc_to_text
         self.doc_to_target = self.template_aliases + self.doc_to_target
+
+        # set "task_name" metadata field based on the "primary" name set
+        if self.names:
+            self.task_name = self.names[0]
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -267,7 +275,7 @@ class Task(abc.ABC):
             )
 
             # TODO: hardcoded for now: # of runs on each input to be 2. # TODO: we should override this if doing greedy gen so users don't waste time+compute
-            inst = self.construct_requests(doc=doc, ctx=fewshot_ctx, metadata=(self._config["task_name"], doc_id, 2))
+            inst = self.construct_requests(doc=doc, ctx=fewshot_ctx, metadata=(self._config["task_name"], doc_id, 1))
 
             if not isinstance(inst, list):
                 inst = [inst]
@@ -404,12 +412,18 @@ class ConfigurableTask(Task):
 
     VERSION = "2.0"
     OUTPUT_TYPE = None
+    CONFIG = None
 
     def __init__(
         self, data_dir=None, cache_dir=None, download_mode=None, config: dict = None
     ):
-
-        self._config = TaskConfig(**config)
+        # if we are a subclass that has the CONFIG class attr set, ignore whatever is passed.
+        self._config = self.CONFIG
+        # else, if a config was passed as kwarg: use it
+        if (self._config is None) and config:
+            self._config = TaskConfig(**config)
+        if self._config is None:
+            raise ValueError("Must pass a config to ConfigurableTask, either in cls.CONFIG or `config` kwarg") 
 
         if self._config.output_type is not None:
             self.OUTPUT_TYPE = self._config.output_type
@@ -534,8 +548,10 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
             arguments=(self.doc_to_target(doc),)
         elif self.OUTPUT_TYPE == "multiple_choice":
-            import ast
-            return [
+            # we pass the user-defined answer_choices var (in aliases) and translate the result to a Python list.
+            # TODO: any cleaner way to do this?
+            choices = ast.literal_eval(utils.apply_template(self._config.template_aliases + "{{answer_choices}}", doc))
+            request_list = [
                 Instance(
                     request_type="loglikelihood",
                     doc=doc, 
@@ -543,9 +559,30 @@ class ConfigurableTask(Task):
                     idx=i,
                     **kwargs,
                 )
-                for i, choice in enumerate(ast.literal_eval(utils.apply_template(self._config.template_aliases + "{{answer_choices}}", doc))) 
-                # we pass the user-defined answer_choices var (in aliases) and echo the result. TODO: any cleaner way to do this?
+                for i, choice in enumerate(choices) 
             ]
+            # TODO: we should raise a warning telling users this will at most ~2x runtime.
+            if "acc_mutual_info" in self._metric_list.keys():
+                # if we are calculating multiple choice accuracy
+                # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
+
+                # here mutual info refers to calculating 
+                # log(P(choice|ctx) / P(choice)) = log(P(choice|ctx)) - log(P(choice))
+                # in other words normalizing by subtracting the unconditional logprob of each choice.
+                request_list.extend(
+                    [
+                        Instance(
+                            request_type="loglikelihood",
+                            doc=doc, 
+                            arguments=("", "{}".format(choice)),
+                            idx=i,
+                            **kwargs,
+                        )
+                        for i, choice in enumerate(choices) 
+                    ]
+                )
+            return request_list
+            
         elif self.OUTPUT_TYPE == "greedy_until":
             arguments=(ctx, self._config.delimiter)
 
@@ -574,21 +611,40 @@ class ConfigurableTask(Task):
                 "bits_per_byte": (loglikelihood, bytes_),
             }
         elif self.OUTPUT_TYPE == "multiple_choice":
-            lls = [res[0] for res in results] # only retain loglikelihoods, discard is_greedy TODO: keep is_greedy to report exact_match as well on multiple choice probs
+            lls = [res[0] for res in results] # only retain loglikelihoods, discard is_greedy
             gold = int(self.doc_to_target(doc))
-            # TODO: remove dependence on "gold" and "choices" columns
+            # retrieve choices in List[str] form, to compute choice lengths, etc.
+            choices = ast.literal_eval(utils.apply_template(self._config.template_aliases + "{{answer_choices}}", doc))
+            if 2 * len(choices) == len(lls) and "acc_mutual_info" in self._metric_list.keys():
+                # then we are doing mutual info.
+                # this stores the "dryrun" / unconditional answer loglikelihoods
+                lls_unconditional = lls[1::2]
+                assert len(lls_unconditional) == len(choices)
+                # and this stores our "regular" conditional loglikelihoods
+                lls = lls[::2]
 
             acc = 1.0 if np.argmax(lls) == gold else 0.0
-            completion_len = np.array([float(len(i)) for i in doc["choices"]])
-            acc_norm = 1.0 if np.argmax(results / completion_len) == gold else 0.0
-
-            # TODO: set which normalization metrics should be reported, and calculate them
-            # TODO: add mutual info.
+            completion_len = np.array([float(len(i)) for i in choices])
+            acc_norm = 1.0 if np.argmax(lls / completion_len) == gold else 0.0
 
             result_dict = {
                 "acc": acc,
                 "acc_norm": acc_norm,
-            } 
+            }
+
+            # TODO: set which normalization metrics should be reported, and calculate them
+
+            if "exact_match" in self._metric_list.keys():
+                # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
+                is_greedy = [res[1] for res in results] # take only the `is_greedy` results
+                is_greedy = is_greedy[gold] # take value for the gold answer
+                result_dict["exact_match"] = int(is_greedy)
+
+            if "acc_mutual_info" in self._metric_list.keys():
+                lls_mutual_info = [ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)]
+                acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
+                result_dict["acc_mutual_info"] = acc_mutual_info
+
         elif self.OUTPUT_TYPE == "greedy_until":
 
             if self._config.gold_alias is not None:
@@ -626,7 +682,7 @@ class MultipleChoiceTask(Task):
         return " " + doc["choices"][doc["gold"]]
 
     def construct_requests(self, doc, ctx, **kwargs):
-        
+        # TODO: add mutual info here?
         return [Instance(
                 request_type="loglikelihood",
                 doc=doc, 
@@ -705,8 +761,6 @@ class PerplexityTask(Task, abc.ABC):
         assert not ctx
 
         return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(self.doc_to_target(doc),), idx=0, **kwargs)
-        # req = rf.loglikelihood_rolling(self.doc_to_target(doc))
-        # return req
 
     def process_results(self, doc, results):
         (loglikelihood,) = results
@@ -759,6 +813,38 @@ def register_task(*names):
         return cls
     
     return decorate
+
+
+def register_yaml_task(yaml_path):
+    # same goal as register_task() but used to register yamls
+    import yaml
+    with open(yaml_path, "r") as f:
+        config = yaml.load(f, yaml.Loader)
+    from functools import partial
+    
+    # TODO: strip whitespace from name? 
+    # TODO: ensure num_fewshot overrides the config vals
+
+    def decorate(names, cls):
+        for name in names:
+            assert (
+                issubclass(cls, Task)
+            ), f"Task '{name}' ({cls.__name__}) must extend Task class"
+
+            assert (
+                name not in TASK_REGISTRY
+            ), f"Task named '{name}' conflicts with existing task! Please register with a non-conflicting alias instead."
+
+            TASK_REGISTRY[name] = cls
+            ALL_TASKS = sorted(list(TASK_REGISTRY)) # TODO: this doesn't seem to import properly.
+        return cls
+
+    # we create a subclass that has subclass attr CONFIG = our yaml config, and decorate with the config's specified aliases
+    names = config['names']    
+    yaml_task = decorate(
+        names, 
+        type(config['names'][0] + 'ConfigurableTask', (ConfigurableTask,), {'CONFIG': TaskConfig(**config)})
+    ) 
 
 
 ##### Task registry utils and setup.

@@ -13,6 +13,7 @@ AGGREGATION_REGISTRY = {}
 METRIC_REGISTRY = {
     "acc": None,
     "acc_norm": None,
+    "acc_mutual_info": None,
     "word_perplexity": None,
     "byte_perplexity": None,
 }
