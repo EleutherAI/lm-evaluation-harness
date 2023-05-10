@@ -6,12 +6,10 @@ import yaml
 import os
 
 from lm_eval import evaluator, tasks
-from lm_eval.api.task import ConfigurableTask, TASK_REGISTRY
+from lm_eval.tasks import ALL_TASKS
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
-ALL_TASKS = sorted(list(TASK_REGISTRY))
-
 
 class MultiChoice:
     def __init__(self, choices):
@@ -73,8 +71,7 @@ def main():
         if args.config:
             task_names = []
             for config_files in args.config.split(","):
-                with open(config_files, "r") as f:
-                    config = yaml.load(f, yaml.Loader)
+                config = get_yaml_config(config_files)
 
                 if args.num_fewshot != 0:
                     config["num_fewshot"] = args.num_fewshot
