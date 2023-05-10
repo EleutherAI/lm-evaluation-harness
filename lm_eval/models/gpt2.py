@@ -71,7 +71,7 @@ class HFLM(LM):
         # multigpu support with accelerate
         if gpus > 1:
             accelerator = Accelerator(device_placement=False)
-            if gpus > self.accelerator.num_processes:
+            if gpus > accelerator.num_processes:
                 warning = ("WARNING: The number of total GPUs does not match the number of spawned processes. " 
                       "If you would like to use data parallelism, please launch the script "
                       "with 'accelerate launch *script*'. " 
