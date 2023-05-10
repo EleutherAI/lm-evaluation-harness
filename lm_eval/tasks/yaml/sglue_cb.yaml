@@ -1,3 +1,5 @@
+names: 
+  - sglue_cb_yamltest
 dataset_path: super_glue
 dataset_name: cb
 training_split: train

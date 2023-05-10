@@ -6,7 +6,7 @@ import lm_eval.api.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.api
-from lm_eval.utils import positional_deprecated, run_task_tests, make_table
+from lm_eval.utils import positional_deprecated, run_task_tests, make_table, get_git_commit_hash
 
 
 @positional_deprecated
@@ -90,6 +90,7 @@ def simple_evaluate(
         "limit": limit,
         "bootstrap_iters": bootstrap_iters,
     }
+    results["git_hash"] = get_git_commit_hash()
 
     return results
 
