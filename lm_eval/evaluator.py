@@ -188,7 +188,7 @@ def evaluate(
 
     # TODO: we need unit tests & sanity checks or something to ensure that the return of `validation_docs` is stable
     docs = {}
-    detailed_eval_info = {}
+    write_out_info = {}
 
     docs_for_decontamination = collections.defaultdict(list)
 
@@ -258,7 +258,7 @@ def evaluate(
                     )
 
         if write_out:
-            detailed_eval_info[task_name] = prompt_details
+            write_out_info[task_name] = prompt_details
 
     # Compare all tasks/sets at once to ensure a single training set scan
     if decontaminate:
@@ -289,18 +289,16 @@ def evaluate(
             process_res_queue[(task_name, doc_id)].append((i, resp))
 
             if write_out:
-                detailed_eval_info[task_name][doc_id][f"logit_{i}"] = resp
+                write_out_info[task_name][doc_id][f"logit_{i}"] = resp
                 task = task_dict[task_name]
                 if isinstance(task, lm_eval.base.MultipleChoiceTask):
-                    detailed_eval_info[task_name][doc_id]["truth"] = doc["gold"]
+                    write_out_info[task_name][doc_id]["truth"] = doc["gold"]
                 elif isinstance(task, lm_eval.tasks.winogrande.Winogrande):
-                    detailed_eval_info[task_name][doc_id]["truth"] = task.answer_to_num[
+                    write_out_info[task_name][doc_id]["truth"] = task.answer_to_num[
                         doc["answer"]
                     ]
                 else:
-                    detailed_eval_info[task_name][doc_id]["truth"] = task.doc_to_target(
-                        doc
-                    )
+                    write_out_info[task_name][doc_id]["truth"] = task.doc_to_target(doc)
 
     vals = collections.defaultdict(list)
 
@@ -317,7 +315,7 @@ def evaluate(
             vals[(task_name, metric)].append(value)
 
             if write_out:
-                detailed_eval_info[task_name][doc_id][metric] = str(value)
+                write_out_info[task_name][doc_id][metric] = str(value)
 
             # Re-use the evaluation for the decontaminated set by just ignoring the overlaps
             if decontaminate and task_name in overlaps:
@@ -363,13 +361,11 @@ def evaluate(
 
         for task_name, _ in task_dict_items:
             with open(
-                output_base_path.joinpath(f"{task_name}_detailed_eval_info.json"),
+                output_base_path.joinpath(f"{task_name}_write_out_info.json"),
                 "w",
                 encoding="utf8",
             ) as fp:
-                json.dump(
-                    detailed_eval_info[task_name], fp, indent=4, ensure_ascii=False
-                )
+                json.dump(write_out_info[task_name], fp, indent=4, ensure_ascii=False)
 
     return {"results": dict(results), "versions": dict(versions)}
 
