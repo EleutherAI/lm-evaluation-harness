@@ -67,6 +67,9 @@ from . import german_ler_ppl
 from . import german_europarl_ppl
 from . import oscar_ppl
 from .aam.all_tasks_registry import TASK_REGISTRY as AAM_TASK_REGISTRY
+from . import xcsr
+from . import wino_x
+from . import xlwic
 
 ########################################
 # Translation tasks
@@ -341,6 +344,10 @@ TASK_REGISTRY = {
     "german_ler_ppl": german_ler_ppl.GermanLERPerplexity,
     "german_europarl_ppl": german_europarl_ppl.GermanEuroparlPerplexity,
     "oscar_ppl_de": oscar_ppl.OscarPerplexityGerman,
+    **xcsr.construct_tasks(),
+    "wino_de": wino_x.WinograndeXDe,
+    "xlwic_de": xlwic.WordsInContextDe,
+    "xlwic_it": xlwic.WordsInContextIt,
 }
 
 
