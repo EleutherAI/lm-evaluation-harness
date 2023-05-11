@@ -1,3 +1,47 @@
+
+# JP Language Model Evaluation Harness
+## Install
+
+To install `lm-eval` from the github repository main branch, run:
+
+```bash
+git clone -b jp-stable https://github.com/Stability-AI/lm-evaluation-harness.git
+cd lm-evaluation-harness
+pip install -e .
+```
+
+## JP Metrics 
+- JSQuAD
+- JCommonsenseQA
+- JaQuAD
+- LAMBADA (1k) translated by DeepL
+
+## Examples
+- In the [Ricoh's paper](https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/H9-4.pdf), `jcommonsenseqa` is 3-shot setting (`--num_fewshot 3`) and `jsquad` is 2-shot setting (`--num_fewshot 2`).  
+- Also, please see `harness.sh` for slurm. 
+
+### Using HF checkpoints
+```
+MODEL_ARGS="pretrained=abeja/gpt-neox-japanese-2.7b,low_cpu_mem_usage=True"
+TASK="jsquad,jaquad" # jsquad, jaquad, jcommonsenseqa, lambada_openai_mt_ja
+python scripts/lm_harness_main.py \
+    --model hf-causal \
+    --model_args $MODEL_ARGS \
+    --tasks $TASK \
+    --num_fewshot 2 \
+    --device "cuda" 
+```
+
+### Using gpt-neox checkpoints
+```bash
+MODEL_CONFIG=/fsx/home-mkshing/code/jp-StableLM/gpt-neox/models/1b_test/global_step100/configs/stable-lm-jp-1b-experimental.yml
+python ./deepy.py evaluate.py \
+    -d configs $MODEL_CONFIG \
+    --eval_tasks jcommonsenseqa \
+    --eval_num_fewshot 3
+```
+
+-----------------
 # Language Model Evaluation Harness
 
 ![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Build/badge.svg)

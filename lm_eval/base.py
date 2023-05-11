@@ -177,8 +177,12 @@ class BaseLM(LM):
                 context_enc = [self.eot_token_id]
             else:
                 context_enc = self.tok_encode(context)
-
-            continuation_enc = self.tok_encode(continuation)
+            if continuation == "__lasttoken__":
+                # take last token from context
+                continuation_enc = [context_enc[-1]]
+                context_enc = context_enc[:-1]
+            else:
+                continuation_enc = self.tok_encode(continuation)
 
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
@@ -341,13 +345,15 @@ class BaseLM(LM):
             return len(toks), x[0]
 
         re_ord = utils.Reorderer(requests, _collate)
-
         for context, until in tqdm(re_ord.get_reordered()):
             if isinstance(until, str):
                 until = [until]
-
-            (primary_until,) = self.tok_encode(until[0])
-
+            # (primary_until,) = self.tok_encode(until[0])   
+            primary_until = self.tok_encode(until[0])
+            if len(primary_until) == 0:
+                primary_until = self.tokenizer.eos_token_id
+            else:
+                primary_until = primary_until[-1]
             context_enc = torch.tensor(
                 [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
             ).to(self.device)
@@ -607,7 +613,12 @@ class Task(abc.ABC):
                 "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
             )
 
-        description = description + "\n\n" if description else ""
+        if description:
+            description += "\n\n"
+        elif hasattr(self, "DESCRIPTION"):
+            description = self.DESCRIPTION
+        else:
+            description = ""
 
         if num_fewshot == 0:
             labeled_examples = ""

@@ -15,8 +15,11 @@ Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
 
 Reference (OpenAI): https://github.com/openai/gpt-2/issues/131#issuecomment-497136199
 """
+import inspect
 from .lambada import LambadaOpenAI
-
+from lm_eval.base import rf
+import lm_eval.datasets.lambda_ja.lambada_ja
+from lm_eval.metrics import mean, perplexity
 
 _CITATION = """
 @misc{
@@ -55,12 +58,60 @@ class LambadaOpenAIMultilingualSpanish(LambadaOpenAI):
     DATASET_NAME = "es"
 
 
+class LambadaOpenAIMultilingualJapanese(LambadaOpenAI):
+    VERSION = 0
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.lambda_ja.lambada_ja)
+    DATASET_NAME = "ja"
+
+
+    def test_docs(self):
+        # TODO: because all lambda texts are not translated yet, only take 1k translated texts
+        # return self.dataset['test']
+        texts = [item['text'] for item in self.dataset['test'] if item['text'] != ''][:1000]
+        # remove last 。
+        texts = [text[:-1] if text[-1] == "。" else text for text in texts]
+        return texts
+        # for doc in self.dataset["test"]:
+        #     yield doc["text"]
+
+    def doc_to_text(self, doc):
+        # return doc.rsplit(" ", 1)[0]
+        return doc
+        # # using janome
+        # try:
+        #     from janome.tokenizer import Tokenizer
+        #     t = Tokenizer()
+        # except ImportError:
+        #     raise ImportError("Please install janome first! (`pip install janome`)")
+        # words = [token.surface for token in t.tokenize(doc)][:-1]
+        # return "".join(words)
+
+    def doc_to_target(self, doc):
+        # return " " + doc["text"].rsplit(" ", 1)[1]
+        # # take last token from context
+        return "__lasttoken__"
+        # # using janome
+        # try:
+        #     from janome.tokenizer import Tokenizer
+        #     t = Tokenizer()
+        # except ImportError:
+        #     raise ImportError("Please install janome first! (`pip install janome`)")
+        # word = [token.surface for token in t.tokenize(doc)][-1]
+        # return word
+    
+    def construct_requests(self, doc, ctx):
+        ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
+
+        return ll, is_greedy
+
+
 LANG_CLASSES = [
     LambadaOpenAIMultilingualEnglish,
     LambadaOpenAIMultilingualFrench,
     LambadaOpenAIMultilingualGerman,
     LambadaOpenAIMultilingualItalian,
     LambadaOpenAIMultilingualSpanish,
+    LambadaOpenAIMultilingualJapanese,
 ]
 
 
