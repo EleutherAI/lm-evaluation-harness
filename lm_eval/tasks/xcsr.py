@@ -3,11 +3,11 @@ Common Sense Beyond English: Evaluating and Improving Multilingual Language Mode
 https://aclanthology.org/2021.acl-long.102.pdf
 
 X-CSR consists of two different datasets: X-CSQA and X-CODAH
-X-CommonsenseQA (X-CSQA) is a multiple-choice QA task targeting general commonsense knowledge, 
-however, it only has English version. X-CODAH dataset is a scene completion task with options, 
-which shares a similar format to CSQA. Those two datasets are used to evaluate multi-lingual 
+X-CommonsenseQA (X-CSQA) is a multiple-choice QA task targeting general commonsense knowledge,
+however, it only has English version. X-CODAH dataset is a scene completion task with options,
+which shares a similar format to CSQA. Those two datasets are used to evaluate multi-lingual
 language models (ML-LMs) for commonsense reasoning in a cross-lingual zero-shot transfer setting.
-The total 16 languages for X-CSR: {en, zh, de, es, fr, it, jap, nl, pl, pt, ru, ar, vi, hi, sw, ur}. 
+The total 16 languages for X-CSR: {en, zh, de, es, fr, it, jap, nl, pl, pt, ru, ar, vi, hi, sw, ur}.
 
 Homepage: https://inklab.usc.edu/XCSR/xcsr_datasets
 """
@@ -23,6 +23,7 @@ _CITATION = """
     note={to appear}
 }
 """
+
 
 class XCSQABase(MultipleChoiceTask):
     VERSION = 0
@@ -45,10 +46,10 @@ class XCSQABase(MultipleChoiceTask):
         return map(self._process_doc, self.dataset["test"])
 
     def _process_doc(self, doc):
-        out_doc={
+        out_doc = {
             "query": doc["question"]["stem"],
-            "choices":doc["question"]['choices']['text'],
-            "gold":["A","B","C","D","E"].index(doc["answerKey"].strip()),
+            "choices": doc["question"]["choices"]["text"],
+            "gold": ["A", "B", "C", "D", "E"].index(doc["answerKey"].strip()),
         }
         return out_doc
 
@@ -60,6 +61,7 @@ class XCSQABase(MultipleChoiceTask):
 
     def doc_to_decontamination_query(self, doc):
         return doc["query"]
+
 
 class XCODAHBase(MultipleChoiceTask):
     VERSION = 0
@@ -82,10 +84,10 @@ class XCODAHBase(MultipleChoiceTask):
         return map(self._process_doc, self.dataset["test"])
 
     def _process_doc(self, doc):
-        out_doc={
+        out_doc = {
             "query": doc["question"]["stem"],
-            "choices":doc["question"]['choices']['text'],
-            "gold":["A","B","C","D"].index(doc["answerKey"].strip()),
+            "choices": doc["question"]["choices"]["text"],
+            "gold": ["A", "B", "C", "D"].index(doc["answerKey"].strip()),
         }
         return out_doc
 
@@ -102,47 +104,62 @@ class XCODAHBase(MultipleChoiceTask):
 class XCSQA_ar(XCSQABase):  # Arabic
     DATASET_NAME = "X-CSQA-ar"
 
+
 class XCSQA_de(XCSQABase):  # German
     DATASET_NAME = "X-CSQA-de"
+
 
 class XCSQA_en(XCSQABase):  # English
     DATASET_NAME = "X-CSQA-en"
 
+
 class XCSQA_es(XCSQABase):  # Spanish
     DATASET_NAME = "X-CSQA-es"
+
 
 class XCSQA_fr(XCSQABase):  # French
     DATASET_NAME = "X-CSQA-fr"
 
+
 class XCSQA_hi(XCSQABase):  # Hindi
     DATASET_NAME = "X-CSQA-hi"
+
 
 class XCSQA_it(XCSQABase):  # Italian
     DATASET_NAME = "X-CSQA-it"
 
+
 class XCSQA_jap(XCSQABase):  # Japanese
     DATASET_NAME = "X-CSQA-jap"
+
 
 class XCSQA_nl(XCSQABase):  # Dutch
     DATASET_NAME = "X-CSQA-nl"
 
+
 class XCSQA_pl(XCSQABase):  # Polish
     DATASET_NAME = "X-CSQA-pl"
+
 
 class XCSQA_pt(XCSQABase):  # Portuguese
     DATASET_NAME = "X-CSQA-pt"
 
+
 class XCSQA_ru(XCSQABase):  # Russian
     DATASET_NAME = "X-CSQA-ru"
+
 
 class XCSQA_sw(XCSQABase):  # Swahili
     DATASET_NAME = "X-CSQA-sw"
 
+
 class XCSQA_ur(XCSQABase):  # Urdu
     DATASET_NAME = "X-CSQA-ur"
 
+
 class XCSQA_vi(XCSQABase):  # Vietnamese
     DATASET_NAME = "X-CSQA-vi"
+
 
 class XCSQA_zh(XCSQABase):  # Chinese
     DATASET_NAME = "X-CSQA-zh"
@@ -151,68 +168,84 @@ class XCSQA_zh(XCSQABase):  # Chinese
 class XCODAH_ar(XCODAHBase):  # Arabic
     DATASET_NAME = "X-CODAH-ar"
 
+
 class XCODAH_de(XCODAHBase):  # German
     DATASET_NAME = "X-CODAH-de"
+
 
 class XCODAH_en(XCODAHBase):  # English
     DATASET_NAME = "X-CODAH-en"
 
+
 class XCODAH_es(XCODAHBase):  # Spanish
     DATASET_NAME = "X-CODAH-es"
+
 
 class XCODAH_fr(XCODAHBase):  # French
     DATASET_NAME = "X-CODAH-fr"
 
+
 class XCODAH_hi(XCODAHBase):  # Hindi
     DATASET_NAME = "X-CODAH-hi"
+
 
 class XCODAH_it(XCODAHBase):  # Italian
     DATASET_NAME = "X-CODAH-it"
 
+
 class XCODAH_jap(XCODAHBase):  # Japanese
     DATASET_NAME = "X-CODAH-jap"
+
 
 class XCODAH_nl(XCODAHBase):  # Dutch
     DATASET_NAME = "X-CODAH-nl"
 
+
 class XCODAH_pl(XCODAHBase):  # Polish
-     DATASET_NAME = "X-CODAH-pl"
+    DATASET_NAME = "X-CODAH-pl"
+
 
 class XCODAH_pt(XCODAHBase):  # Portuguese
     DATASET_NAME = "X-CODAH-pt"
 
+
 class XCODAH_ru(XCODAHBase):  # Russian
     DATASET_NAME = "X-CODAH-ru"
+
 
 class XCODAH_sw(XCODAHBase):  # Swahili
     DATASET_NAME = "X-CODAH-sw"
 
+
 class XCODAH_ur(XCODAHBase):  # Urdu
     DATASET_NAME = "X-CODAH-ur"
+
 
 class XCODAH_vi(XCODAHBase):  # Vietnamese
     DATASET_NAME = "X-CODAH-vi"
 
+
 class XCODAH_zh(XCODAHBase):  # Chinese
     DATASET_NAME = "X-CODAH-zh"
 
+
 LANGS = [
-     "ar",
-     "de",
-     "en",
-     "es",
-     "fr",
-     "hi",
-     "it",
-     "jap",
-     "nl",
-     "pl",
-     "pt",
-     "ru",
-     "sw",
-     "ur",
-     "vi",
-     "zh",
+    "ar",
+    "de",
+    "en",
+    "es",
+    "fr",
+    "hi",
+    "it",
+    "jap",
+    "nl",
+    "pl",
+    "pt",
+    "ru",
+    "sw",
+    "ur",
+    "vi",
+    "zh",
 ]
 
 LANG_CLASSES = [
@@ -235,22 +268,22 @@ LANG_CLASSES = [
 ]
 
 LANGS_CODAH = [
-     "ar",
-     "de",
-     "en",
-     "es",
-     "fr",
-     "hi",
-     "it",
-     "jap",
-     "nl",
-     "pl",
-     "pt",
-     "ru",
-     "sw",
-     "ur",
-     "vi",
-     "zh",
+    "ar",
+    "de",
+    "en",
+    "es",
+    "fr",
+    "hi",
+    "it",
+    "jap",
+    "nl",
+    "pl",
+    "pt",
+    "ru",
+    "sw",
+    "ur",
+    "vi",
+    "zh",
 ]
 LANG_CLASSES_CODAH = [
     XCODAH_ar,
@@ -270,6 +303,7 @@ LANG_CLASSES_CODAH = [
     XCODAH_vi,
     XCODAH_zh,
 ]
+
 
 def construct_tasks():
     tasks = {}

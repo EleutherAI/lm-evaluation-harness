@@ -2,11 +2,11 @@
 XL-WiC: A Multilingual Benchmark for Evaluating Semantic Contextualization
 https://arxiv.org/abs/2010.06478
 
-We put forward a large multilingual benchmark, XL-WiC, featuring gold standards in 12 new languages from varied language families 
+We put forward a large multilingual benchmark, XL-WiC, featuring gold standards in 12 new languages from varied language families
 and with different degrees of resource availability, opening room for evaluation scenarios such as zero-shot cross-lingual
-transfer. XL-WiC is framed as a binary classification task. Each instance in XL-WiC has a target word w, 
-either a verb or a noun, for which two contexts are provided. Each of these contexts triggers a 
-specific meaning of w. The task is to identify if the occurrences of w in the two contexts correspond to the same meaning or not. 
+transfer. XL-WiC is framed as a binary classification task. Each instance in XL-WiC has a target word w,
+either a verb or a noun, for which two contexts are provided. Each of these contexts triggers a
+specific meaning of w. The task is to identify if the occurrences of w in the two contexts correspond to the same meaning or not.
 
 Homepage: https://pilehvar.github.io/xlwic/
 
@@ -32,11 +32,13 @@ _CITATION = """
   bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
 """
+
+
 class WordsInContextBase(Task):
     VERSION = 0
     DATASET_PATH = "pasinit/xlwic"
     DATASET_NAME = None
- 
+
     def has_training_docs(self):
         return True
 
@@ -67,10 +69,11 @@ class WordsInContextBase(Task):
 
     def aggregation(self):
         return {"acc": mean}
-    
+
+
 class WordsInContextIt(WordsInContextBase):
     DATASET_NAME = "xlwic_it_it"
-    
+
     def doc_to_text(self, doc):
         return (
             "Frase 1: {}\nFrase 2: {}\nDomande: La parola '{}' è usata allo stesso modo nelle due frasi precedenti?"
@@ -80,7 +83,7 @@ class WordsInContextIt(WordsInContextBase):
                 doc["target_word"],
             )
         )
-    
+
     def doc_to_target(self, doc):
         return " {}".format({0: "no", 1: "sì"}[doc["label"]])
 
@@ -90,9 +93,10 @@ class WordsInContextIt(WordsInContextBase):
 
         return ll_yes, ll_no
 
+
 class WordsInContextDe(WordsInContextBase):
     DATASET_NAME = "xlwic_de_de"
-    
+
     def doc_to_text(self, doc):
         return (
             "Satz 1: {}\nSatz 2: {}\nFrage: Wird das Wort '{}' in den beiden obigen Sätzen auf dieselbe Weise verwendet?"
@@ -102,7 +106,7 @@ class WordsInContextDe(WordsInContextBase):
                 doc["target_word"],
             )
         )
-    
+
     def doc_to_target(self, doc):
         return " {}".format({0: "nein", 1: "ja"}[doc["label"]])
 
