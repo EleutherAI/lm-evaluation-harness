@@ -136,7 +136,7 @@ class Task(abc.ABC):
                 self._filters.append(filter_pipeline)
 
  
-        self.sampler = samplers.Sampler(self.fewshot_docs(), self, rnd=random.Random()) # TODO: pass the correct docs in here
+        self.sampler = samplers.Sampler(list(self.fewshot_docs()), self, rnd=random.Random()) # TODO: pass the correct docs in here
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None):
         """Downloads and returns the task dataset.
@@ -275,7 +275,6 @@ class Task(abc.ABC):
             fewshot_ctx = self.fewshot_context(
                 doc, self._config.num_fewshot, rnd=random.Random()
             )
-
             # TODO: hardcoded for now: # of runs on each input to be 2. # TODO: we should override this if doing greedy gen so users don't waste time+compute
             inst = self.construct_requests(doc=doc, ctx=fewshot_ctx, metadata=(self._config["task_name"], doc_id, 1))
 
@@ -372,7 +371,6 @@ class Task(abc.ABC):
         if num_fewshot == 0:
             labeled_examples = ""
         else:
-
             labeled_examples = self.sampler.get_context(doc, self._config.num_fewshot)
 
             # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
