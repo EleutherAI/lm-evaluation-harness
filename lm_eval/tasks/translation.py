@@ -184,7 +184,7 @@ class GeneralTranslationTask(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        return rf.greedy_until(ctx, {'until': ["\n"]})
+        return rf.greedy_until(ctx, {"until": ["\n"]})
 
     def process_results(self, doc, results):
         # Add spaces between words for BLEU score calculation of target languages like Chinese

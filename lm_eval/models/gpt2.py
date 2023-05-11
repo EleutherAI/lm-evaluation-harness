@@ -3,6 +3,7 @@ import transformers
 from typing import Optional
 from lm_eval.base import BaseLM
 
+
 class HFLM(BaseLM):
     def __init__(
         self,
@@ -20,9 +21,11 @@ class HFLM(BaseLM):
 
         assert isinstance(device, str)
         assert isinstance(pretrained, str)
-        assert isinstance(batch_size, (int,str))
+        assert isinstance(batch_size, (int, str))
 
-        device_list = set(["cuda", "cpu"] + [f'cuda:{i}' for i in range(torch.cuda.device_count())])
+        device_list = set(
+            ["cuda", "cpu"] + [f"cuda:{i}" for i in range(torch.cuda.device_count())]
+        )
         if device and device in device_list:
             self._device = torch.device(device)
             print(f"Using device '{device}'")
@@ -66,10 +69,10 @@ class HFLM(BaseLM):
             ], self.tokenizer.encode("hello\n\nhello")
 
         # setup for automatic batch size detection
-        if batch_size == 'auto': 
+        if batch_size == "auto":
             self.batch_size_per_gpu = batch_size
         else:
-            self.batch_size_per_gpu = int(batch_size) 
+            self.batch_size_per_gpu = int(batch_size)
 
     @property
     def eot_token_id(self):
@@ -116,7 +119,7 @@ class HFLM(BaseLM):
             return self.gpt2(inps)[0]
 
     def _model_generate(self, context, max_length, eos_token_id):
-        generation_kwargs = {'do_sample': False, 'max_length': max_length}
+        generation_kwargs = {"do_sample": False, "max_length": max_length}
         if eos_token_id is not None:
             generation_kwargs['eos_token_id'] = eos_token_id
             generation_kwargs['pad_token_id'] = eos_token_id # setting eos_token_id as pad token

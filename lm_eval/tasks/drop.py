@@ -134,7 +134,7 @@ class DROP(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        conts = [rf.greedy_until(ctx, {'until': ["."]})]
+        conts = [rf.greedy_until(ctx, {"until": ["."]})]
         return conts
 
     def process_results(self, doc, results):
