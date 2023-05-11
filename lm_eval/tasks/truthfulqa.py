@@ -23,9 +23,10 @@ import numpy as np
 import sacrebleu
 import datasets
 from rouge_score import rouge_scorer, scoring
+from tqdm import tqdm
 from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
-
+import evaluate
 
 try:
     import bleurt
@@ -178,7 +179,8 @@ class TruthfulQAGeneration(Task):
                 "pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt"
                 "\nWARNING: Installing any other version of bleurt may result in different results."
             )
-        self.bleurt = datasets.load_metric("bleurt")
+        # self.bleurt = datasets.load_metric("bleurt")
+        self.bleurt = evaluate.load('bleurt', 'bleurt-large-512')
 
     def has_training_docs(self):
         return False
@@ -409,7 +411,7 @@ class TruthfulQAGeneration(Task):
 
         # Accumulate confidence intervals.
         aggregator = scoring.BootstrapAggregator()
-        for ref, pred in zip(refs, preds):
+        for ref, pred in tqdm(zip(refs, preds)):
             ref = _prepare_summary(ref)
             pred = _prepare_summary(pred)
             aggregator.add_scores(scorer.score(ref, pred))
