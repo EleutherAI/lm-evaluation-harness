@@ -59,7 +59,7 @@ class WordUnscrambleTask(Task):
         return doc["completion"]
 
     def construct_requests(self, doc, ctx):
-        completion = rf.greedy_until(ctx, {'until': ["\n"]})
+        completion = rf.greedy_until(ctx, {"until": ["\n"]})
         return completion
 
     def process_results(self, doc, results):

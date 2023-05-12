@@ -63,7 +63,7 @@ class Math(Task):
         return " " + doc["solution"]
 
     def construct_requests(self, doc, ctx):
-        return rf.greedy_until(ctx, {'until': ["\n"]})
+        return rf.greedy_until(ctx, {"until": ["\n"]})
 
     def process_results(self, doc, results):
         retval = 0
