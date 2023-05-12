@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 import re
 import ast
+import yaml
 import evaluate
 import random
 import itertools
@@ -25,10 +26,14 @@ from lm_eval.filters import build_filter_ensemble
 
 
 @dataclass
-class TaskConfig(dict):
+class TaskConfig(yaml.YAMLObject):
+
+    yaml_tag = u'!task'
 
     names: str = None
+    reference: str = None
     task_name: str = None # TODO: deprecate this, it'll be set in __post_init__ to be names[0]
+    base_task: str = None
     dataset_path: str = None
     dataset_name: str = None
     training_split: str = None
@@ -723,7 +728,7 @@ class MultipleChoiceTask(Task):
         }
 
 
-class PerplexityTask(Task, abc.ABC):
+class PerplexityTask(Task):
 
     OUTPUT_TYPE = "loglikelihood_rolling"
 
