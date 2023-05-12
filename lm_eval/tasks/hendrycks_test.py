@@ -163,7 +163,9 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         if self._fewshot_docs is None:
             self._fewshot_docs = list(map(self._process_doc, self.dataset["dev"]))
 
-        return self._fewshot_docs[:k]  # rnd.sample(list(self._fewshot_docs), k)
+        # use the unchanged order of the dev set without sampling, 
+        # just as in the original code https://github.com/hendrycks/test/blob/master/evaluate.py#L28
+        return self._fewshot_docs[:k]  
 
     def doc_to_text(self, doc):
         return doc["query"]
