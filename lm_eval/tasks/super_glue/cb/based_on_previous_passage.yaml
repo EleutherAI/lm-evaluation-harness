@@ -1,0 +1,5 @@
+!task
+name: based on the previous passage
+reference: "Adapted from the BoolQ prompts in Schick & Sch\xFCtze 2021."
+doc_to_text: '{{premise}} Based on the previous passage, is it true that "{{hypothesis}}"? Yes, no, or maybe?'
+doc_to_target: '{% set answer_choices = ['Yes', 'No', 'Maybe'] %}{{answer_choices[label]}}'

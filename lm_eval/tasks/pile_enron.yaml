@@ -1,0 +1,40 @@
+# The Pile: An 800GB Dataset of Diverse Text for Language Modeling
+# https://arxiv.org/pdf/2101.00027.pdf
+
+# The Pile is a 825 GiB diverse, open source language modelling data set that consists
+# of 22 smaller, high-quality datasets combined together. To score well on Pile
+# BPB (bits per byte), a model must be able to understand many disparate domains
+# including books, github repositories, webpages, chat logs, and medical, physics,
+# math, computer science, and philosophy papers.
+# Homepage: https://pile.eleuther.ai/
+
+# _CITATION = """
+# @article{pile,
+#   title={The {P}ile: An 800GB Dataset of Diverse Text for Language Modeling},
+#   author={Gao, Leo and Biderman, Stella and Black, Sid and Golding, Laurence and Hoppe, Travis and Foster, Charles and Phang, Jason and He, Horace and Thite, Anish and Nabeshima, Noa and Presser, Shawn and Leahy, Connor},
+#   journal={arXiv preprint arXiv:2101.00027},
+#   year={2020}
+# }
+# """
+
+names:
+  - pile_enron_yaml
+dataset_path: EleutherAI/the_pile
+dataset_name: enron_emails
+output_type: loglikelihood_rolling
+test_split: train
+template_aliases: ""
+doc_to_text: ""
+doc_to_target: "{{text}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{text}}"
+metric_list:
+  - metric: word_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    aggregation: bits_per_byte
+    higher_is_better: false
