@@ -67,20 +67,20 @@ def main():
             "WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
 
-    if args.tasks is None:
+    if args.tasks != None:
         if os.path.isdir(args.tasks):
             import glob
             task_names = []
             yaml_path = os.path.join(args.tasks, "*.yaml")
             for yaml_file in glob.glob(yaml_path):
-                config = utils.get_yaml_config(yaml_file)
+                config = yaml.full_load(yaml_file)
                 task_names.append(config)
         else:
             tasks_list = args.tasks.split(",")
             task_names = pattern_match(tasks_list, ALL_TASKS)
             for task in [task for task in tasks_list if task not in task_names]:
                 if os.path.isfile(task):
-                    config = utils.get_yaml_config(config_files)
+                    config = utils.get_yaml_config(task)
                     task_names.append(config)
 
     #     # Tas
