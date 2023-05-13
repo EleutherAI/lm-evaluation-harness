@@ -26,10 +26,10 @@ from lm_eval.filters import build_filter_ensemble
 
 
 @dataclass
-class TaskConfig(yaml.YAMLObject):
+class TaskConfig(dict):
 
-    yaml_tag = u'!task'
-
+    task: str = None
+    group: str = None
     names: str = None
     reference: str = None
     task_name: str = None # TODO: deprecate this, it'll be set in __post_init__ to be names[0]
@@ -89,7 +89,6 @@ class Task(abc.ABC):
 
     VERSION = None
 
-    TASK_NAME: str = None
     # The name of the `Task` benchmark as denoted in the HuggingFace datasets Hub
     # or a path to a custom `datasets` loading script.
     DATASET_PATH: str = None
@@ -430,7 +429,8 @@ class ConfigurableTask(Task):
             self._config = TaskConfig(**config)
         # Overwrite configs
         else:
-            self._config.__dict__.update(config)
+            if config != None:
+                self._config.__dict__.update(config)
 
         if self._config is None:
             raise ValueError("Must pass a config to ConfigurableTask, either in cls.CONFIG or `config` kwarg") 
