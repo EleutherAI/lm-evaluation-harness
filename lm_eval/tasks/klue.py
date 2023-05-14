@@ -18,6 +18,7 @@ import numpy as np
 from lm_eval.base import Task, MultipleChoiceTask, rf
 from lm_eval.metrics import macro_f1_score, mean, matthews_corrcoef, f1_score, yesno
 from lm_eval.utils import general_detokenize
+from functools import partial
 
 _CITATION = """
 @misc{park2021klue,
