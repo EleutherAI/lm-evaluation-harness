@@ -121,7 +121,7 @@ class JSQuAD(Task):
     def doc_to_target(self, doc):
         answer_list = doc["answers"]["text"]
         answer = answer_list[0]
-        return " " + answer
+        return answer
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
