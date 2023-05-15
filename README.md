@@ -14,7 +14,7 @@ pip install -e .
 - JSQuAD
 - JCommonsenseQA
 - JaQuAD
-- LAMBADA (1k) translated by DeepL
+- LAMBADA (1k) translated by DeepL (experimental)
 
 ## Examples
 - In the [Ricoh's paper](https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/H9-4.pdf), `jcommonsenseqa` is 3-shot setting (`--num_fewshot 3`) and `jsquad` is 2-shot setting (`--num_fewshot 2`).  
