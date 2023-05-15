@@ -1,4 +1,7 @@
-name: claim true/false/inconclusive
+group:
+  - super-glue-cb
+include: based_on_previous_passage.yaml
+task: claim true/false/inconclusive
 reference: Sanh et al. 2021
-doc_to_text: '{{premise}} Based on that information, is the claim: "{{hypothesis}}" {{"true"}}, {{"false"}}, or {{"inconclusive"}}?'
-doc_to_target: '{% set answer_choices = ['True', 'False', 'Inconclusive'] %}{{answer_choices[label]}}'
+doc_to_text: "{{premise}} Based on that information, is the claim: \"{{hypothesis}}\" \"true\", \"false\", or \"inconclusive\"?"
+doc_to_target: "{% set answer_choices = ['True', 'False', 'Inconclusive'] %}{{answer_choices[label]}}"
