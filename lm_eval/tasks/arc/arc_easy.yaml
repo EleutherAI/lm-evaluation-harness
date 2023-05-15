@@ -1,3 +1,5 @@
+group:
+  - arc_yaml
 task: arc_easy_yaml
 dataset_path: ai2_arc
 dataset_name: ARC-Easy
@@ -18,6 +20,3 @@ metric_list:
   - metric: acc_mutual_info
     aggregation: mean
     higher_is_better: true
-  # - metric: exact_match
-  #   aggregation: mean
-  #   higher_is_better: true
