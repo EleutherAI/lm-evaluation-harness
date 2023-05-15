@@ -75,7 +75,7 @@ for root, subdirs, file_list in os.walk(task_dir):
 
 TASK_REGISTRY = task_registry
 GROUP_REGISTRY = group_registry
-ALL_TASKS = sorted(list(TASK_REGISTRY))
+ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
 
 def get_task(task_name, config):
     try:
@@ -105,7 +105,9 @@ def get_task_name_from_config(task_config):
 
 
 # TODO: pass num_fewshot and other cmdline overrides in a better way
-def get_task_dict(task_name_list: List[Union[str, dict, Task]], config, **kwargs):
+def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
+
+    config = {**kwargs}
 
     task_name_from_registry_dict = {}
     task_name_from_config_dict = {}
