@@ -18,7 +18,7 @@ Reference (OpenAI): https://github.com/openai/gpt-2/issues/131#issuecomment-4971
 import inspect
 from .lambada import LambadaOpenAI
 from lm_eval.base import rf
-import lm_eval.datasets.lambda_ja.lambada_ja
+import lm_eval.datasets.lambada_ja.lambada_ja
 from lm_eval.metrics import mean, perplexity
 
 _CITATION = """
@@ -60,7 +60,7 @@ class LambadaOpenAIMultilingualSpanish(LambadaOpenAI):
 
 class LambadaOpenAIMultilingualJapanese(LambadaOpenAI):
     VERSION = 0
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.lambda_ja.lambada_ja)
+    DATASET_PATH = inspect.getfile(lm_eval.datasets.lambada_ja.lambada_ja)
     DATASET_NAME = "ja"
 
 
