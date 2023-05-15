@@ -256,30 +256,9 @@ def get_git_commit_hash():
     return git_hash
 
 
-def get_yaml_config(yaml_path):
-    with open(yaml_path, "r") as f:
-        return yaml.load(f, yaml.Loader)
-
-
-def RegistryDecorator():
-    registry = {}
-
-    def registrar(func):
-        if func.TASK_NAME is None:
-            name = func.__name__
-        else:
-            name = func.TASK_NAME
-
-        registry[name] = func
-        return func
-
-    registrar.all = registry
-    return registrar
-
-register_task = RegistryDecorator()
-
 env = Environment(loader=BaseLoader, undefined=StrictUndefined)
 
 def apply_template(template, doc):
     rtemplate = env.from_string(template)
     return rtemplate.render(**doc)
+
