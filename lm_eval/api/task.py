@@ -444,11 +444,9 @@ class ConfigurableTask(Task):
             self.OUTPUT_TYPE = self._config.output_type
 
         if self._config.dataset_path is not None:
-            print(self._config.dataset_path)
             self.DATASET_PATH = self._config.dataset_path
 
         if self._config.dataset_name is not None:
-            print(self._config.dataset_name)
             self.DATASET_NAME = self._config.dataset_name
 
         if self._config.metric_list is not None:
@@ -553,12 +551,10 @@ class ConfigurableTask(Task):
             doc_to_text = get_prompt(self._config.use_prompt)
         else:
             doc_to_text = self._config.doc_to_text
-
-        print(doc_to_text)
         
         if type(doc_to_text) == str:
             return utils.apply_template(doc_to_text, doc)
-        elif type(doc_to_text) == Callable:
+        elif callable(doc_to_text):
             return doc_to_text(doc)
         else:
             raise TypeError
@@ -567,7 +563,7 @@ class ConfigurableTask(Task):
         doc_to_target = self._config.doc_to_target
         if type(doc_to_target) == str:
             return utils.apply_template(doc_to_target, doc)
-        elif type(doc_to_target) == Callable:
+        elif callable(doc_to_target):
             return doc_to_target(doc)
         else:
             raise TypeError
