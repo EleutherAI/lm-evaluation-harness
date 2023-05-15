@@ -28,23 +28,3 @@ def register_group(name):
             group_registry[name] = [func_name]
         return func
     return wrapper
-
-
-# @register_group('group_a')
-# @register_task('a')
-# def foo():
-#     pass
-
-# @register_group('group_a')
-# @register_task('b')
-# def fii():
-#     pass
-
-# @register_group('group_b')
-# @register_task('c')
-# def bar():
-#     pass
-
-# name = 'A'  # or args.type
-# func_to_call = REGISTER[name]
-# func_to_call()  # actual call is done here
