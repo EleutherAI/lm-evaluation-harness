@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument("--model_args", default="")
     parser.add_argument("--tasks", default=None, choices=MultiChoice(tasks.ALL_TASKS))
     parser.add_argument("--provide_description", action="store_true")
-    parser.add_argument("--num_fewshot", type=int, default=0)
+    parser.add_argument("--num_fewshot", type=str, default="0")
     parser.add_argument("--batch_size", type=str, default=None)
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--output_path", default=None)
@@ -70,17 +70,20 @@ def main():
         task_names = pattern_match(args.tasks.split(","), tasks.ALL_TASKS)
 
     print(f"Selected Tasks: {task_names}")
+    if "," in args.num_fewshot:
+        num_fewshot = [int(n) for n in args.num_fewshot.split(",")]
+    else:
+        num_fewshot = int(args.num_fewshot)
 
     description_dict = {}
     if args.description_dict_path:
         with open(args.description_dict_path, "r") as f:
             description_dict = json.load(f)
-
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
         tasks=task_names,
-        num_fewshot=args.num_fewshot,
+        num_fewshot=num_fewshot,
         batch_size=args.batch_size,
         device=args.device,
         no_cache=args.no_cache,

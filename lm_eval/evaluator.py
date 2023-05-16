@@ -34,7 +34,7 @@ def simple_evaluate(
         Ignored if `model` argument is a LM object.
     :param tasks: list[Union[str, Task]]
         List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
-    :param num_fewshot: int
+    :param num_fewshot: int or list of int
         Number of examples in few-shot context
     :param batch_size: int, optional
         Batch size for model
@@ -131,7 +131,7 @@ def evaluate(
         Dictionary of tasks. Tasks will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param provide_description: bool
         Not implemented, and this option is deprecated and will be removed in a future version in favor of a different description providing method
-    :param num_fewshot: int
+    :param num_fewshot: int or list of int 
         Number of examples in few-shot context
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
@@ -151,7 +151,11 @@ def evaluate(
         print(
             "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
         )
-
+    if isinstance(num_fewshot, list):
+        assert len(task_dict) == len(num_fewshot), f"The number of tasks ({len(task_dict)}) must be same as the number of elements in `num_fewshot` ({len(num_fewshot)})"
+    else:
+        # num_fewshot is int
+        num_fewshot = [num_fewshot] * len(task_dict)
     decontaminate = decontamination_ngrams_path is not None
 
     task_dict_items = [
@@ -179,7 +183,7 @@ def evaluate(
     docs_for_decontamination = collections.defaultdict(list)
 
     # get lists of each type of request
-    for task_name, task in task_dict_items:
+    for idx, (task_name, task) in enumerate(task_dict_items):
         versions[task_name] = task.VERSION
         # default to test doc, fall back to val doc if validation unavailable
         # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
@@ -213,7 +217,7 @@ def evaluate(
 
             docs[(task_name, doc_id)] = doc
             ctx = task.fewshot_context(
-                doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
+                doc=doc, num_fewshot=num_fewshot[idx], rnd=rnd, description=description
             )
             reqs = task.construct_requests(doc, ctx)
             if not isinstance(reqs, (list, tuple)):
