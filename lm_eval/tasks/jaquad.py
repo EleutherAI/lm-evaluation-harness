@@ -29,10 +29,10 @@ _CITATION = """
 
 
 class JaQuAD(JSQuAD):
-    VERSION = 0.1
     DATASET_PATH = "SkelterLabsInc/JaQuAD"
     DATASET_NAME = None
-
+    VERSION = 0.1
+    
     def training_docs(self):
         return self.dataset["train"]
 
@@ -55,7 +55,7 @@ class JaQuAD(JSQuAD):
 
 
 class JaQuADWithFintanPrompt(JSQuADWithFintanPrompt, JaQuAD):
-    VERSION = 0.2
+    PROMPT_VERSION = 0.2
 
 
 
@@ -68,5 +68,5 @@ VERSIONS = [
 def construct_tasks():
     tasks = {}
     for version_class in VERSIONS:
-        tasks[f"jaquad_{version_class.VERSION}"] = version_class
+        tasks[f"jaquad-{version_class.VERSION}-{version_class.PROMPT_VERSION}"] = version_class
     return tasks

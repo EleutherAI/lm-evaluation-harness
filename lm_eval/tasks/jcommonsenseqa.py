@@ -33,8 +33,8 @@ class JCommonsenseQA(MultipleChoiceTask):
     """
     prompt format is taken from [日本語に特化した60億パラメータ規模のGPTモデルの構築と評価](https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/H9-4.pdf)
     """
-    # VERSION = {structure_version}.{prompt_template_version}
-    VERSION = 0.1
+    VERSION = 1.1
+    PROMPT_VERSION = 0.1
     DATASET_PATH = "shunk031/JGLUE"
     DATASET_NAME = "JCommonsenseQA"
     DESCRIPTION = "[問題]に対する[答え]を[選択肢]の中から選んでください。\n\n"
@@ -86,8 +86,8 @@ class JCommonsenseQAWithFintanPrompt(JCommonsenseQA):
     """
     prompt template is taken from [ChatGPT vs BERT: どちらが日本語をより理解できるのか?](https://fintan.jp/page/9126/)
     """
-    # VERSION = {structure_version}.{prompt_template_version}
-    VERSION = 0.2
+    VERSION = 1.1
+    PROMPT_VERSION = 0.2
     DESCRIPTION = "質問と回答の選択肢を入力として受け取り、選択肢から回答を選択してください。なお、回答は選択肢の番号(例:0)でするものとします。 \n\n"
 
 
@@ -113,5 +113,5 @@ VERSIONS = [
 def construct_tasks():
     tasks = {}
     for version_class in VERSIONS:
-        tasks[f"jcommonsenseqa_{version_class.VERSION}"] = version_class
+        tasks[f"jcommonsenseqa-{version_class.VERSION}-{version_class.PROMPT_VERSION}"] = version_class
     return tasks

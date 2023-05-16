@@ -48,8 +48,8 @@ class JSQuAD(Task):
     """
     prompt template is taken from [日本語に特化した60億パラメータ規模のGPTモデルの構築と評価](https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/H9-4.pdf)
     """
-    # VERSION = {structure_version}.{prompt_template_version}
-    VERSION = 0.1
+    VERSION = 1.1
+    PROMPT_VERSION = 0.1
     DATASET_PATH = "shunk031/JGLUE"
     DATASET_NAME = "JSQuAD"
     DESCRIPTION = "[題名]と[問題]から[質問]に対する[答え]を抜き出しなさい\n\n"
@@ -173,8 +173,7 @@ class JSQuADWithFintanPrompt(JSQuAD):
     """
     prompt template is taken from [ChatGPT vs BERT: どちらが日本語をより理解できるのか?](https://fintan.jp/page/9126/)
     """
-    # VERSION = {structure_version}.{prompt_template_version}
-    VERSION = 0.2
+    PROMPT_VERSION = 0.2
     DESCRIPTION = "質問に対する回答を文章から一言で抽出してください。回答は名詞で答えてください。\n\n"
     SEP = "\n"
     def doc_to_text(self, doc):
@@ -198,5 +197,5 @@ VERSIONS = [
 def construct_tasks():
     tasks = {}
     for version_class in VERSIONS:
-        tasks[f"jsquad_{version_class.VERSION}"] = version_class
+        tasks[f"jsquad-{version_class.VERSION}-{version_class.PROMPT_VERSION}"] = version_class
     return tasks
