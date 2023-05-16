@@ -6,6 +6,7 @@ from tqdm import tqdm
 import torch.nn.functional as F
 
 from lm_eval import utils
+from lm_eval.logger import eval_logger
 from lm_eval.api.model import LM, register_model
 
 
@@ -31,10 +32,10 @@ class HFLM(LM):
             if device not in ["cuda", "cpu"]:
                 device = int(device)
             self._device = torch.device(device)
-            print(f"Using device '{device}'")
+            eval_logger.info(f"Using device '{device}'")
         else:
-            print("Device not specified")
-            print(f"Cuda Available? {torch.cuda.is_available()}")
+            eval_logger.warning("Device not specified")
+            eval_logger.info(f"Cuda Available? {torch.cuda.is_available()}")
             self._device = (
                 torch.device("cuda")
                 if torch.cuda.is_available()
