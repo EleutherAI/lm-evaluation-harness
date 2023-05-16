@@ -40,6 +40,16 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
 delimiter: "\n"
-# filters: [
-#   ["regex", ["regex", "take_first"]]
-# ]
+filter_list:
+  - name: "just regex"
+    filter:
+      - function: "regex"
+        regex_pattern: ".*"
+      - function: "regex"
+        regex_pattern: ".*"
+  - name: "another regex"
+    filter:
+      - function: "regex"
+        regex_pattern: ".*"
+      - function: "regex"
+        regex_pattern: ".*"

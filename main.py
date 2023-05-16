@@ -1,11 +1,7 @@
 import os
-import yaml
 import json
 import fnmatch
-import warnings
 import argparse
-
-from pprint import pformat
 
 from lm_eval import evaluator, utils
 from lm_eval.tasks import ALL_TASKS
@@ -22,7 +18,7 @@ class MultiChoice:
         for value in values.split(","):
             if len(fnmatch.filter(self.choices, value)) == 0:
                 eval_logger.warning("{} is not in task list.".format(value))
-                # eval_logger.info(f"{ALL_TASKS} is this")
+                # eval_logger.info(f"{choices} is this")
 
         return True
 
