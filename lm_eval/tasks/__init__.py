@@ -4,6 +4,7 @@ from typing import List, Union
 from .arc import *
 
 from lm_eval import utils
+from lm_eval.logger import eval_logger
 from lm_eval.api.task import TaskConfig, Task, ConfigurableTask
 from lm_eval.api.register import (
     register_task,
@@ -53,8 +54,8 @@ def get_task(task_name, config):
     try:
         return TASK_REGISTRY[task_name](config)
     except KeyError:
-        print("Available tasks:")
-        pprint(TASK_REGISTRY)
+        eval_logger.info("Available tasks:")
+        eval_logger.info(TASK_REGISTRY)
         raise KeyError(f"Missing task {task_name}")
 
 

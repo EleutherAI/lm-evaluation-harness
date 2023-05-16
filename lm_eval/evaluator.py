@@ -1,12 +1,18 @@
-import collections
-import itertools
-import numpy as np
 import random
-import lm_eval.api.metrics
-import lm_eval.models
-import lm_eval.tasks
+import itertools
+import collections
+
+import numpy as np
+
 import lm_eval.api
+import lm_eval.api.metrics
+
+import lm_eval.tasks
+import lm_eval.models
+
 from lm_eval.utils import positional_deprecated, run_task_tests, make_table, get_git_commit_hash
+
+from lm_eval.logger import eval_logger
 
 
 @positional_deprecated
@@ -152,7 +158,7 @@ def evaluate(
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
     for reqtype, reqs in requests.items():
-        print("Running", reqtype, "requests")
+        eval_logger.info("Running {} requests".format(reqtype))
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []
         for req in reqs:
