@@ -44,10 +44,9 @@ class TaskConfig(dict):
     test_split: str = None
     fewshot_split: str = None # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
     
-    template_aliases: str = "" 
+    template_aliases: str = None
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
-
 
     num_fewshot: int = 0
     batch_size: int = 1
@@ -57,7 +56,7 @@ class TaskConfig(dict):
     gold_alias: str = None
     output_type: str = "greedy_until"
     delimiter: str = "\n\n"
-    filters: str = None #TODO: need to make this typehint `list`?
+    filters: Union[str, list] = None
     normalization: str = None # TODO: add length-normalization of various types, mutual info
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
@@ -69,11 +68,12 @@ class TaskConfig(dict):
         # allow user-specified aliases so that users can
         # force prompt-compatibility for some prompt regardless of
         # field names in prompt
-        if type(self.doc_to_text) == str:
-            self.doc_to_text = self.template_aliases + self.doc_to_text
+        if self.template_aliases != None:
+            if type(self.doc_to_text) == str:
+                self.doc_to_text = self.template_aliases + self.doc_to_text
 
-        if type(self.doc_to_target) == str:
-            self.doc_to_target = self.template_aliases + self.doc_to_target
+            if type(self.doc_to_target) == str:
+                self.doc_to_target = self.template_aliases + self.doc_to_target
 
         # set "task_name" metadata field based on the "primary" name set
         if self.names:
