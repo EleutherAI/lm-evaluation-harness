@@ -4,9 +4,9 @@ def doc_to_text(x):
 
     def _mark_span(text, span_str, span_idx, mark):
         pattern_tmpl = r'^((?:\S+\s){N})(W)'
-        pattern = re.sub(pattern_tmpl, 'N', str(span_idx))
-        pattern = re.sub(pattern, 'W', span_str)
-        return re.sub(text, pattern, r'\1{0} \2 {0}'.format(mark))
+        pattern = re.sub('N', str(span_idx), pattern_tmpl)
+        pattern = re.sub('W', span_str, pattern)
+        return re.sub(pattern, r'\1{0} \2 {0}'.format(mark), text)
 
     text = x['text']
     text = _mark_span(text, x['span1_text'], x['span1_index'], '*')
