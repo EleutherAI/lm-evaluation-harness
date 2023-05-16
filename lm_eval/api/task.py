@@ -491,9 +491,7 @@ class ConfigurableTask(Task):
         self._training_docs = None
         self._fewshot_docs = None
 
-        
         self._filters = []
-
         if self._config.filter_list != None:
             for filter_config in self._config.filter_list:
                 for filter_pipeline in filter_config:
