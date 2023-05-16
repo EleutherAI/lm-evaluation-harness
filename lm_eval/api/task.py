@@ -56,7 +56,7 @@ class TaskConfig(dict):
     gold_alias: str = None
     output_type: str = "greedy_until"
     delimiter: str = "\n\n"
-    filters: Union[str, list] = None
+    filter_list: Union[str, list] = None
     normalization: str = None # TODO: add length-normalization of various types, mutual info
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
@@ -428,7 +428,11 @@ class ConfigurableTask(Task):
     CONFIG = None
 
     def __init__(
-        self, data_dir=None, cache_dir=None, download_mode=None, config: dict = None
+        self,
+        data_dir=None,
+        cache_dir=None,
+        download_mode=None,
+        config: dict=None
     ):
         # Get pre-configured attributes
         self._config = self.CONFIG
@@ -489,11 +493,27 @@ class ConfigurableTask(Task):
 
         
         self._filters = []
-        for name, components in self._config.get("filters", [["none", ["take_first"]]]):
-            filter_pipeline = build_filter_ensemble(name, components)
+
+        if self._config.filter_list != None:
+            for filter_config in self._config.filter_list:
+                for filter_pipeline in filter_config:
+                    filter_name = filter_config["name"]
+                    filter_functions = filter_config["filter"]
+                    components = []
+                    for function in filter_functions:
+                        kwargs = {
+                            key: function[key] for key in function if key != "function"
+                            }
+                        components.append([
+                            function['function'],
+                            kwargs
+                        ])
+
+                    filter_pipeline = build_filter_ensemble(filter_name, components)
             self._filters.append(filter_pipeline)
         
-        self.sampler = samplers.Sampler(list(self.fewshot_docs()), self, rnd=random.Random()) # TODO: pass the correct docs in here
+        if self.fewshot_docs() != None:
+            self.sampler = samplers.Sampler(list(self.fewshot_docs()), self, rnd=random.Random()) # TODO: pass the correct docs in here
 
     def has_training_docs(self):
         if self._config.training_split is not None:
@@ -526,7 +546,7 @@ class ConfigurableTask(Task):
             return self.dataset[self._config.test_split]
 
     def fewshot_docs(self):
-        if (self.num_fewshot > 0) and (self._config.fewshot_split == None):
+        if (self._config.num_fewshot > 0) and (self._config.fewshot_split == None):
             eval_logger.warning(
                 "num_fewshot > 0 but fewshot_split is None",
                 "using preconfigured rule."
