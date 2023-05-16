@@ -23,6 +23,7 @@ from lm_eval.api.metrics import (
     get_metric, get_aggregation, mean, weighted_perplexity, bits_per_byte
     )
 
+from lm_eval.logger import eval_logger
 from lm_eval.prompts import get_prompt
 from lm_eval.filters import build_filter_ensemble
 
@@ -226,7 +227,10 @@ class Task(abc.ABC):
         elif self.has_validation_docs():
             return self.validation_docs()
         else:
-            # TODO: should we allow this case to occur? / should raise a warning here
+            eval_logger.warning(
+                "has_training_docs and has_validation_docs are False",
+                "using test_docs but this is not recommended."
+                )
             return self.test_docs()
 
     def _process_doc(self, doc):
@@ -522,11 +526,15 @@ class ConfigurableTask(Task):
             return self.dataset[self._config.test_split]
 
     def fewshot_docs(self):
+        if (self.num_fewshot > 0) and (self._config.fewshot_split == None):
+            eval_logger.warning(
+                "num_fewshot > 0 but fewshot_split is None",
+                "using preconfigured rule."
+                )
+            return super().fewshot_docs()
+        
         if self._config.fewshot_split:
             return self.dataset[self._config.fewshot_split]
-        else:
-            # TODO: warn user if fewshot split isn't explicitly set
-            return super().fewshot_docs()
 
     def should_decontaminate(self):
         return self._config.should_decontaminate
