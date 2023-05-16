@@ -12,7 +12,7 @@ Homepage: https://github.com/SkelterLabsInc/JaQuAD
 """
 from .jsquad import (
     JSQuAD, 
-    JSQuADForFintan
+    JSQuADWithFintanPrompt
 )
 
 
@@ -54,14 +54,14 @@ class JaQuAD(JSQuAD):
         return JSQuAD.process_results(self, doc, results)
 
 
-class JaQuADForFintan(JSQuADForFintan, JaQuAD):
+class JaQuADWithFintanPrompt(JSQuADWithFintanPrompt, JaQuAD):
     VERSION = 0.2
 
 
 
 VERSIONS = [
     JaQuAD,
-    JaQuADForFintan,
+    JaQuADWithFintanPrompt,
 ]
 
 

@@ -82,7 +82,7 @@ class JCommonsenseQA(MultipleChoiceTask):
         return doc["goal"]
     
 
-class JCommonsenseQAForFintan(JCommonsenseQA):
+class JCommonsenseQAWithFintanPrompt(JCommonsenseQA):
     """
     prompt template is taken from [ChatGPT vs BERT: どちらが日本語をより理解できるのか?](https://fintan.jp/page/9126/)
     """
@@ -106,7 +106,7 @@ class JCommonsenseQAForFintan(JCommonsenseQA):
 
 VERSIONS = [
     JCommonsenseQA,
-    JCommonsenseQAForFintan,
+    JCommonsenseQAWithFintanPrompt,
 ]
 
 

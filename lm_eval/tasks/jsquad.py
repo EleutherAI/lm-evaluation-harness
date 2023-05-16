@@ -169,7 +169,7 @@ class JSQuAD(Task):
         }
 
 
-class JSQuADForFintan(JSQuAD):
+class JSQuADWithFintanPrompt(JSQuAD):
     """
     prompt template is taken from [ChatGPT vs BERT: どちらが日本語をより理解できるのか?](https://fintan.jp/page/9126/)
     """
@@ -191,7 +191,7 @@ class JSQuADForFintan(JSQuAD):
 
 VERSIONS = [
     JSQuAD,
-    JSQuADForFintan,
+    JSQuADWithFintanPrompt,
 ]
 
 
