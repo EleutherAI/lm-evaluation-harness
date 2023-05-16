@@ -10,7 +10,10 @@ Contexts are collected from Japanese Wikipedia articles.
 
 Homepage: https://github.com/SkelterLabsInc/JaQuAD
 """
-from .jsquad import JSQuAD
+from .jsquad import (
+    JSQuAD, 
+    JSQuADForFintan
+)
 
 
 _CITATION = """
@@ -36,7 +39,6 @@ class JaQuAD(JSQuAD):
     def validation_docs(self):
         return self.dataset["validation"]
     
-
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of submetrics and values are the values of
@@ -51,3 +53,20 @@ class JaQuAD(JSQuAD):
             doc["answers"].pop("answer_type")
         return JSQuAD.process_results(self, doc, results)
 
+
+class JaQuADForFintan(JSQuADForFintan, JaQuAD):
+    VERSION = 0.2
+
+
+
+VERSIONS = [
+    JaQuAD,
+    JaQuADForFintan,
+]
+
+
+def construct_tasks():
+    tasks = {}
+    for version_class in VERSIONS:
+        tasks[f"jaquad_{version_class.VERSION}"] = version_class
+    return tasks

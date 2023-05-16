@@ -315,8 +315,11 @@ TASK_REGISTRY = {
     # "sat": sat.SATAnalogies,
     # JGLUE
     "jsquad": jsquad.JSQuAD,
+    **jsquad.construct_tasks(),
     "jaquad": jaquad.JaQuAD,
+    **jaquad.construct_tasks(),
     "jcommonsenseqa": jcommonsenseqa.JCommonsenseQA,
+    **jcommonsenseqa.construct_tasks(),
 }
 
 
