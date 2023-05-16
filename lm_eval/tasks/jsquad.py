@@ -9,7 +9,7 @@ Homepage: https://github.com/yahoojapan/JGLUE
 """
 import datasets
 from math import exp
-from lm_eval.base import rf, Task, MultipleChoiceTask
+from lm_eval.base import rf, Task
 from functools import partial
 
 
@@ -197,88 +197,3 @@ class JSQuAD(Task):
             "exact_match": True,  # Exact match (the normalized answer exactly match the gold answer)
             "f1": True,  # The F-score of predicted tokens versus the gold answer
         }
-
-
-class JaQuAD(JSQuAD):
-    VERSION = 0.1
-    DATASET_PATH = "SkelterLabsInc/JaQuAD"
-    DATASET_NAME = None
-
-    def training_docs(self):
-        return self.dataset["train"]
-
-    def validation_docs(self):
-        return self.dataset["validation"]
-    
-
-    def process_results(self, doc, results):
-        """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of submetrics and values are the values of
-        the metric for that one document
-
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
-        """
-        if "answer_type" in doc["answers"]:
-            doc["answers"].pop("answer_type")
-        return JSQuAD.process_results(self, doc, results)
-
-
-class JCommonsenseQA(MultipleChoiceTask):
-    """
-    prompt format refered to [日本語に特化した60億パラメータ規模のGPTモデルの構築と評価](https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/H9-4.pdf)
-    """
-    VERSION = 1.1
-    DATASET_PATH = "shunk031/JGLUE"
-    DATASET_NAME = "JCommonsenseQA"
-    DESCRIPTION = "[問題]に対する[答え]を[選択肢]の中から選んでください。\n\n"
-
-    def has_training_docs(self):
-        return True
-
-    def has_validation_docs(self):
-        return True
-
-    def has_test_docs(self):
-        return False
-
-    def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(map(self._process_doc, self.dataset["train"]))
-        return self._training_docs
-
-    def validation_docs(self):
-        return map(self._process_doc, self.dataset["validation"])
-
-    def _process_doc(self, doc):
-        return {
-            "goal": doc["question"],
-            "choices": [doc[f"choice{i}"] for i in range(5)],
-            "gold": doc["label"], 
-        }
-
-    def doc_to_text(self, doc):
-        """
-        [問題]: goal
-        [選択肢]:
-        0. choice0
-        1. choice1
-        ...
-        4. choice4
-        [答え]:
-        """
-        # return f"質問: {doc['goal']}\n\n回答:"
-        # flat_choices = "".join([f"{idx}. {c}\n"for idx, c in enumerate(doc["choices"])])
-        return (
-            f"[問題]: {doc['goal']}\n"
-            f"[選択肢]: [{', '.join(doc['choices'])}]\n"
-            "[答え]:"
-        )
-    
-    def should_decontaminate(self):
-        return True
-
-    def doc_to_decontamination_query(self, doc):
-        return doc["goal"]

@@ -52,7 +52,9 @@ from . import gsm8k
 from . import storycloze
 from . import toxigen
 from . import crowspairs
-from . import jglue
+from . import jsquad
+from . import jaquad
+from . import jcommonsenseqa
 
 ########################################
 # Translation tasks
@@ -312,9 +314,9 @@ TASK_REGISTRY = {
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
     # JGLUE
-    "jsquad": jglue.JSQuAD,
-    "jaquad": jglue.JaQuAD,
-    "jcommonsenseqa": jglue.JCommonsenseQA,
+    "jsquad": jsquad.JSQuAD,
+    "jaquad": jaquad.JaQuAD,
+    "jcommonsenseqa": jcommonsenseqa.JCommonsenseQA,
 }
 
 
