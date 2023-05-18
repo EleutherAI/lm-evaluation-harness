@@ -1,8 +1,5 @@
 # Language Model Evaluation Harness
 
-![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Build/badge.svg)
-[![codecov](https://codecov.io/gh/EleutherAI/lm-evaluation-harness/branch/master/graph/badge.svg?token=JSG3O2427J)](https://codecov.io/gh/EleutherAI/lm-evaluation-harness)
-
 ## Overview
 
 This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
