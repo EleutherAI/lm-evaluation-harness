@@ -117,15 +117,6 @@ TASK_REGISTRY = {
     "record": superglue.ReCoRD,
     "wic": superglue.WordsInContext,
     "wsc": superglue.SGWinogradSchemaChallenge,
-<<<<<<< HEAD
-
-    # Order by benchmark/genre?
-    "coqa": coqa.CoQA,
-    "drop": drop.DROP,
-    "lambada": lambada.LAMBADA,
-    "lambada_cloze": lambada_cloze.LAMBADA_cloze,
-
-=======
     # Order by benchmark/genre?
     "coqa": coqa.CoQA,
     "drop": drop.DROP,
@@ -133,7 +124,6 @@ TASK_REGISTRY = {
     "lambada_standard": lambada.LambadaStandard,
     "lambada_openai_cloze": lambada_cloze.LambadaOpenAICloze,
     "lambada_standard_cloze": lambada_cloze.LambadaStandardCloze,
->>>>>>> d145167959c2b1826d900524912cb99c44d5fb30
     # multilingual lambada
     **lambada_multilingual.construct_tasks(),
     "wikitext": wikitext.WikiText,
@@ -239,10 +229,6 @@ TASK_REGISTRY = {
     "pile_ubuntu-irc": pile.PileUbuntuIrc,
     "pile_wikipedia": pile.PileWikipedia,
     "pile_youtubesubtitles": pile.PileYoutubeSubtitles,
-<<<<<<< HEAD
-
-=======
->>>>>>> d145167959c2b1826d900524912cb99c44d5fb30
     # BLiMP
     "blimp_adjunct_island": blimp.BlimpAdjunctIsland,
     "blimp_anaphor_gender_agreement": blimp.BlimpAnaphorGenderAgreement,
@@ -311,8 +297,6 @@ TASK_REGISTRY = {
     "blimp_wh_vs_that_no_gap_long_distance": blimp.BlimpWhVsThatNoGapLongDistance,
     "blimp_wh_vs_that_with_gap": blimp.BlimpWhVsThatWithGap,
     "blimp_wh_vs_that_with_gap_long_distance": blimp.BlimpWhVsThatWithGapLongDistance,
-<<<<<<< HEAD
-=======
     "toxigen": toxigen.ToxiGen,
     "crows_pairs_english": crowspairs.CrowsPairsEnglish,
     "crows_pairs_english_race_color": crowspairs.CrowsPairsEnglishRaceColor,
@@ -336,13 +320,10 @@ TASK_REGISTRY = {
     "crows_pairs_french_nationality": crowspairs.CrowsPairsFrenchNationality,
     "crows_pairs_french_physical_appearance": crowspairs.CrowsPairsFrenchPhysicalAppearance,
     "crows_pairs_french_autre": crowspairs.CrowsPairsFrenchAutre,
->>>>>>> d145167959c2b1826d900524912cb99c44d5fb30
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
-<<<<<<< HEAD
-  
     "klue_sts": klue.STS,
     "klue_ynat": klue.YNAT,
     "klue_nli": klue.NLI,
@@ -359,7 +340,6 @@ TASK_REGISTRY = {
     "kohatespeech":kohatespeech.HateSpeech,
     "kohatespeech_gen_bias":kohatespeech.GenderBias,
     "kohatespeech_apeach":kohatespeech.Apeach
-=======
     **xcopa.construct_tasks(),
     **bigbench.create_all_tasks(),
     **xstorycloze.create_all_tasks(),
@@ -367,7 +347,6 @@ TASK_REGISTRY = {
     **pawsx.construct_tasks(),
     **xnli.construct_tasks(),
     **mgsm.construct_tasks(),
->>>>>>> d145167959c2b1826d900524912cb99c44d5fb30
 }
 
 ALL_TASKS = sorted(list(TASK_REGISTRY))
