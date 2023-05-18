@@ -79,7 +79,6 @@ def simple_evaluate(
     results = evaluate(
         lm=lm,
         task_dict=task_dict,
-        num_fewshot=num_fewshot,
         limit=limit,
         bootstrap_iters=bootstrap_iters,
         decontamination_ngrams_path=decontamination_ngrams_path,
@@ -108,7 +107,6 @@ decontaminate_suffix = "_decontaminate"
 def evaluate(
     lm,
     task_dict,
-    num_fewshot=0,
     limit=None,
     bootstrap_iters=100000,
     decontamination_ngrams_path=None,
@@ -176,7 +174,6 @@ def evaluate(
     for task_name, task in task_dict.items():
         task.apply_filters()
 
-
     ### Collect values of metrics on all datapoints ###
     # TODO: make metric configurable, add metric registry 
     vals = collections.defaultdict(list)
@@ -193,8 +190,6 @@ def evaluate(
                 metrics = task.process_results(doc, [req.filtered_resps[key] for req in requests])
                 for metric, value in metrics.items():
                     vals[(task_name, key, metric)].append(value)
-    
-
 
     ### Aggregate results over all datapoints ###
     # aggregate results ; run bootstrap CIs
