@@ -19,7 +19,7 @@ import datasets
 
 _CITATION = """\
 @misc{liu2020logiqa,
-    title={LogiQA: A Challenge Dataset for Machine Reading Comprehension with Logical Reasoning}, 
+    title={LogiQA: A Challenge Dataset for Machine Reading Comprehension with Logical Reasoning},
     author={Jian Liu and Leyang Cui and Hanmeng Liu and Dandan Huang and Yile Wang and Yue Zhang},
     year={2020},
     eprint={2007.08124},
@@ -54,7 +54,9 @@ class Logiqa(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.0.1")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="logiqa", version=VERSION, description="The LogiQA dataset."),
+        datasets.BuilderConfig(
+            name="logiqa", version=VERSION, description="The LogiQA dataset."
+        ),
     ]
 
     def _info(self):
@@ -63,9 +65,7 @@ class Logiqa(datasets.GeneratorBasedBuilder):
                 "label": datasets.Value("string"),
                 "context": datasets.Value("string"),
                 "question": datasets.Value("string"),
-                "options": datasets.features.Sequence(
-                    datasets.Value("string")
-                ),
+                "options": datasets.features.Sequence(datasets.Value("string")),
             }
         )
         return datasets.DatasetInfo(
@@ -77,7 +77,11 @@ class Logiqa(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        urls = {"train": _URLS["train"], "test": _URLS["test"], "validation": _URLS["validation"]}
+        urls = {
+            "train": _URLS["train"],
+            "test": _URLS["test"],
+            "validation": _URLS["validation"],
+        }
         data_dir = dl_manager.download_and_extract(urls)
         return [
             datasets.SplitGenerator(
@@ -91,10 +95,7 @@ class Logiqa(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": data_dir["test"],
-                    "split": "test"
-                },
+                gen_kwargs={"filepath": data_dir["test"], "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
@@ -110,6 +111,7 @@ class Logiqa(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         def normalize(text):
             return text.replace(".", ". ").strip()
+
         with open(filepath, encoding="utf-8") as f:
             data = f.read().strip().split("\n\n")
             for key, row in enumerate(data):

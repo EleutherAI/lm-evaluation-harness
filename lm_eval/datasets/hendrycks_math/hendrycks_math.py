@@ -44,13 +44,13 @@ _LICENSE = ""
 _URLS = "https://people.eecs.berkeley.edu/~hendrycks/MATH.tar"
 
 _NAMES = [
-    'algebra',
-    'counting_and_probability',
-    'geometry',
-    'intermediate_algebra',
-    'number_theory',
-    'prealgebra',
-    'precalculus',
+    "algebra",
+    "counting_and_probability",
+    "geometry",
+    "intermediate_algebra",
+    "number_theory",
+    "prealgebra",
+    "precalculus",
 ]
 
 
@@ -89,7 +89,9 @@ class HendrycksMath(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "basepath": os.path.join(data_dir, "MATH", "train", self.config.name),
+                    "basepath": os.path.join(
+                        data_dir, "MATH", "train", self.config.name
+                    ),
                     "split": "train",
                 },
             ),
@@ -97,8 +99,10 @@ class HendrycksMath(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "basepath": os.path.join(data_dir, "MATH", "test", self.config.name),
-                    "split": "test"
+                    "basepath": os.path.join(
+                        data_dir, "MATH", "test", self.config.name
+                    ),
+                    "split": "test",
                 },
             ),
         ]
@@ -107,7 +111,7 @@ class HendrycksMath(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, basepath, split):
         key = 0
         for file in sorted(pathlib.Path(basepath).iterdir()):
-            with open(file, "r", encoding='utf-8') as f:
+            with open(file, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 yield key, {
                     "problem": data["problem"],

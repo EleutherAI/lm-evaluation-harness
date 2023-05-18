@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 # Custom TriviaQA because HF version sanitizes the dataset differently.
+# https://github.com/huggingface/datasets/blob/9977ade72191ff0b6907ec63935448c6269a91a1/datasets/trivia_qa/trivia_qa.py#L285
 """TriviaQA (Unfiltered Raw) dataset."""
 
 
@@ -43,32 +44,44 @@ high quality distant supervision for answering the questions.
 
 _HOMEPAGE = "https://nlp.cs.washington.edu/triviaqa/"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "Apache License 2.0"
 
-_URLS = "http://eaidata.bmk.sh/data/triviaqa-unfiltered.tar.gz"
+_URLS = "https://nlp.cs.washington.edu/triviaqa/data/triviaqa-unfiltered.tar.gz"
 
 
-class TriviaQa(datasets.GeneratorBasedBuilder):
-    """ TriviaQA is a reading comprehension dataset containing over 650K question-answer-evidence triples """
+class Triviaqa(datasets.GeneratorBasedBuilder):
+    """TriviaQA is a reading comprehension dataset containing over 650K question-answer-evidence triples"""
 
-    VERSION = datasets.Version("0.0.1")
+    VERSION = datasets.Version("0.0.2")
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="triviaqa", version=VERSION, description="The TriviaQA dataset"),
+            name="triviaqa", version=VERSION, description="The TriviaQA dataset"
+        ),
     ]
 
     def _info(self):
         features = datasets.Features(
             {
+                "question_id": datasets.Value("string"),
+                "question_source": datasets.Value("string"),
                 "question": datasets.Value("string"),
                 "answer": {
-                    "aliases":  datasets.features.Sequence(
+                    "aliases": datasets.features.Sequence(
                         datasets.Value("string"),
                     ),
-                    "value": datasets.Value("string")
-                }
+                    "value": datasets.Value("string"),
+                },
+                "search_results": datasets.features.Sequence(
+                    {
+                        "description": datasets.Value("string"),
+                        "filename": datasets.Value("string"),
+                        "rank": datasets.Value("int32"),
+                        "title": datasets.Value("string"),
+                        "url": datasets.Value("string"),
+                        "search_context": datasets.Value("string"),
+                    }
+                ),
             }
         )
         return datasets.DatasetInfo(
@@ -87,29 +100,58 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "unfiltered-web-train.jsonl"),
-                    "split": "train",
+                    "filepath": os.path.join(
+                        data_dir, "triviaqa-unfiltered", "unfiltered-web-train.json"
+                    ),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "unfiltered-web-dev.jsonl"),
-                    "split": "dev",
+                    "filepath": os.path.join(
+                        data_dir, "triviaqa-unfiltered", "unfiltered-web-dev.json"
+                    ),
                 },
             ),
         ]
 
     # method parameters are unpacked from `gen_kwargs` as given in `_split_generators`
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath):
         with open(filepath, encoding="utf-8") as f:
-            for key, row in enumerate(f):
-                data = json.loads(row)
+            json_data = json.load(f)["Data"]
+            for key, data in enumerate(json_data):
+                search_results = []
+                for search_result in data["SearchResults"]:
+                    search_results.append(
+                        {
+                            "description": search_result["Description"]
+                            if "Description" in search_result
+                            else "",
+                            "filename": search_result["Filename"]
+                            if "Filename" in search_result
+                            else "",
+                            "rank": search_result["Rank"]
+                            if "Rank" in search_result
+                            else -1,
+                            "title": search_result["Title"]
+                            if "Title" in search_result
+                            else "",
+                            "url": search_result["Url"]
+                            if "Url" in search_result
+                            else "",
+                            "search_context": search_result["SearchContext"]
+                            if "SearchContext" in search_result
+                            else "",
+                        }
+                    )
                 yield key, {
+                    "question_id": data["QuestionId"],
+                    "question_source": data["QuestionSource"],
                     "question": data["Question"],
                     "answer": {
                         "aliases": data["Answer"]["Aliases"],
                         "value": data["Answer"]["Value"],
-                    }
+                    },
+                    "search_results": search_results,
                 }

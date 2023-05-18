@@ -1,8 +1,8 @@
 """
-The LAMBADA dataset: Word prediction requiring a broad discourse context∗
+The LAMBADA (OpenAI) dataset: Word prediction requiring a broad discourse context∗
 https://arxiv.org/pdf/1606.06031.pdf
 
-The LAMBADA dataset machine-translated to other languages.
+The LAMBADA OpenAI dataset machine-translated to other languages.
 LAMBADA is a dataset to evaluate the capabilities of computational models for text
 understanding by means of a word prediction task. LAMBADA is a collection of narrative
 passages sharing the characteristic that human subjects are able to guess their last
@@ -12,13 +12,15 @@ cannot simply rely on local context, but must be able to keep track of informati
 in the broader discourse.
 
 Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
+
+Reference (OpenAI): https://github.com/openai/gpt-2/issues/131#issuecomment-497136199
 """
-from . import lambada
+from .lambada import LambadaOpenAI
 
 
 _CITATION = """
 @misc{
-    author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel}, 
+    author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel},
     title={The LAMBADA dataset},
     DOI={10.5281/zenodo.2630551},
     publisher={Zenodo},
@@ -28,37 +30,42 @@ _CITATION = """
 """
 
 
-class MultilingualLAMBADA(lambada.LAMBADA):
+class LambadaOpenAIMultilingualEnglish(LambadaOpenAI):
     VERSION = 0
+    DATASET_NAME = "en"
 
 
-class MultilingualLAMBADAEN(MultilingualLAMBADA):
-    DATASET_NAME = 'en'
+class LambadaOpenAIMultilingualFrench(LambadaOpenAI):
+    VERSION = 0
+    DATASET_NAME = "fr"
 
 
-class MultilingualLAMBADAFR(MultilingualLAMBADA):
-    DATASET_NAME = 'fr'
+class LambadaOpenAIMultilingualGerman(LambadaOpenAI):
+    VERSION = 0
+    DATASET_NAME = "de"
 
 
-class MultilingualLAMBADADE(MultilingualLAMBADA):
-    DATASET_NAME = 'de'
+class LambadaOpenAIMultilingualItalian(LambadaOpenAI):
+    VERSION = 0
+    DATASET_NAME = "it"
 
 
-class MultilingualLAMBADAIT(MultilingualLAMBADA):
-    DATASET_NAME = 'it'
+class LambadaOpenAIMultilingualSpanish(LambadaOpenAI):
+    VERSION = 0
+    DATASET_NAME = "es"
 
 
-class MultilingualLAMBADAES(MultilingualLAMBADA):
-    DATASET_NAME = 'es'
-
-
-LANG_CLASSES = [MultilingualLAMBADAEN, MultilingualLAMBADAFR,
-                MultilingualLAMBADADE, MultilingualLAMBADAIT,
-                MultilingualLAMBADAES]
+LANG_CLASSES = [
+    LambadaOpenAIMultilingualEnglish,
+    LambadaOpenAIMultilingualFrench,
+    LambadaOpenAIMultilingualGerman,
+    LambadaOpenAIMultilingualItalian,
+    LambadaOpenAIMultilingualSpanish,
+]
 
 
 def construct_tasks():
     tasks = {}
     for lang_class in LANG_CLASSES:
-        tasks[f"lambada_mt_{lang_class.DATASET_NAME}"] = lang_class
+        tasks[f"lambada_openai_mt_{lang_class.DATASET_NAME}"] = lang_class
     return tasks

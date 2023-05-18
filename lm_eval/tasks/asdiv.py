@@ -54,42 +54,41 @@ class Asdiv(Task):
     def test_docs(self):
         raise NotImplementedError("This dataset has no test docs")
 
-    def fewshot_context(self, doc, num_fewshot, provide_description=None, rnd=None, description=None):
+    def fewshot_context(
+        self, doc, num_fewshot, provide_description=None, rnd=None, description=None
+    ):
         assert num_fewshot == 0, "ASDiv is intended only for the zero-shot setting."
         return super().fewshot_context(
-            doc=doc,
-            num_fewshot=num_fewshot,
-            rnd=rnd,
-            description=description
+            doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
         )
 
     def doc_to_text(self, doc):
         # TODO: add solution-type
-        return doc['body'] + '\n' + 'Question:' + doc['question'] + '\n' + 'Answer:'
+        return doc["body"] + "\n" + "Question:" + doc["question"] + "\n" + "Answer:"
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["body"] + " " + doc["question"]
 
     def doc_to_target(self, doc):
         # TODO: add formula
 
-        answer = doc['answer'].split(' (')[0]
+        answer = doc["answer"].split(" (")[0]
         return " " + answer
 
     def construct_requests(self, doc, ctx):
         ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
         return ll, is_greedy
-    
+
     def process_results(self, doc, results):
         ll, is_greedy = results
 
-        return {
-            'acc': int(is_greedy)
-        }
-        
+        return {"acc": int(is_greedy)}
+
     def aggregation(self):
-        return {
-            'acc': mean
-        }
+        return {"acc": mean}
 
     def higher_is_better(self):
-        return {
-            'acc': True
-        }
+        return {"acc": True}
