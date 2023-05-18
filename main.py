@@ -80,24 +80,7 @@ def main():
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
-
-    #     # Tas
-    #     if args.config:
-    #         task_names = []
-    #         for config_files in args.config.split(","):
-    #             config = utils.get_yaml_config(config_files)
-
-    #             if args.num_fewshot != 0:
-    #                 config["num_fewshot"] = args.num_fewshot
-
-    #             if args.batch_size != None:
-    #                 config["batch_size"] = args.batch_size
-
-    #             task_names.append(config)
-    #     else:
-    #         task_names = ALL_TASKS
-    # else:
-        
+     
     eval_logger.info(f"Selected Tasks: {task_names}")
 
     results = evaluator.simple_evaluate(
