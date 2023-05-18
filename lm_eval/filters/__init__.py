@@ -21,11 +21,14 @@ def build_filter_ensemble(filter_name, components):
     """
     Create a filtering pipeline.
     """
+
     filters = []
     for (function, kwargs) in components:
-        # create a filter given its name in the registry
-        f = get_filter(function)(**kwargs) # TODO: pass kwargs to filters properly
-
+        if kwargs == None:
+            f = get_filter(function)()
+        else:
+            # create a filter given its name in the registry
+            f = get_filter(function)(**kwargs) # TODO: pass kwargs to filters properly
         # add the filter as a pipeline step
         filters.append(f)
 
