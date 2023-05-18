@@ -289,7 +289,7 @@ class Task(abc.ABC):
                 doc, self._config.num_fewshot, rnd=random.Random()
             )
             # TODO: hardcoded for now: # of runs on each input to be 2. # TODO: we should override this if doing greedy gen so users don't waste time+compute
-            inst = self.construct_requests(doc=doc, ctx=fewshot_ctx, metadata=(self._config["task_name"], doc_id, 1))
+            inst = self.construct_requests(doc=doc, ctx=fewshot_ctx, metadata=(self._config["task_name"], doc_id, self._config.repeats))
 
             if not isinstance(inst, list):
                 inst = [inst]
@@ -507,8 +507,18 @@ class ConfigurableTask(Task):
                             kwargs
                         ])
 
-                    filter_pipeline = build_filter_ensemble(filter_name, components)
+                    filter_pipeline = build_filter_ensemble(
+                        filter_name,
+                        components
+                        )
             self._filters.append(filter_pipeline)
+        else:
+            self._filters = [
+                build_filter_ensemble(
+                    "take_first",
+                    [["take_first", None]]
+                )
+            ]
         
         if self.fewshot_docs() != None:
             self.sampler = samplers.Sampler(list(self.fewshot_docs()), self, rnd=random.Random()) # TODO: pass the correct docs in here
@@ -546,12 +556,12 @@ class ConfigurableTask(Task):
     def fewshot_docs(self):
         if (self._config.num_fewshot > 0) and (self._config.fewshot_split == None):
             eval_logger.warning(
-                "num_fewshot > 0 but fewshot_split is None",
+                "num_fewshot > 0 but fewshot_split is None. "
                 "using preconfigured rule."
                 )
             return super().fewshot_docs()
-        
-        if self._config.fewshot_split:
+
+        elif self._config.fewshot_split != None:
             return self.dataset[self._config.fewshot_split]
 
     def should_decontaminate(self):
