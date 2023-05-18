@@ -43,8 +43,8 @@ for root, subdirs, file_list in os.walk(task_dir):
                     if 'group' in config:
                         for group in config['group']:
                             register_group(group)(SubClass)
-                except:
-                    pass
+                except Exception as err:
+                    print(f"Unexpected {err=}, {type(err)=}")
 
 TASK_REGISTRY = task_registry
 GROUP_REGISTRY = group_registry
@@ -52,7 +52,7 @@ ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
 
 def get_task(task_name, config):
     try:
-        return TASK_REGISTRY[task_name](config)
+        return TASK_REGISTRY[task_name](config=config)
     except KeyError:
         eval_logger.info("Available tasks:")
         eval_logger.info(TASK_REGISTRY)
