@@ -1,0 +1,67 @@
+{
+  "results": {
+    "arithmetic_3ds": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "arithmetic_1dc": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "arithmetic_2da": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "arithmetic_4ds": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "arithmetic_3da": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "arithmetic_2ds": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "arithmetic_4da": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "arithmetic_5ds": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "arithmetic_2dm": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "arithmetic_5da": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    }
+  },
+  "versions": {
+    "arithmetic_3ds": 0,
+    "arithmetic_1dc": 0,
+    "arithmetic_2da": 0,
+    "arithmetic_4ds": 0,
+    "arithmetic_3da": 0,
+    "arithmetic_2ds": 0,
+    "arithmetic_4da": 0,
+    "arithmetic_5ds": 0,
+    "arithmetic_2dm": 0,
+    "arithmetic_5da": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/7B,use_accelerate=True",
+    "num_fewshot": 5,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": false,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

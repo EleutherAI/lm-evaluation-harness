@@ -1,0 +1,80 @@
+{
+  "results": {
+    "lambada_openai": {
+      "ppl": 3.8685393479651173,
+      "ppl_stderr": 0.08079962928213236,
+      "acc": 0.6834853483407723,
+      "acc_stderr": 0.006479978824925181
+    },
+    "lambada_openai_cloze": {
+      "ppl": 26.557641771948866,
+      "ppl_stderr": 0.7040059319391023,
+      "acc": 0.3964680768484378,
+      "acc_stderr": 0.006815007030417622
+    },
+    "lambada_openai_mt_de": {
+      "ppl": 70.11746381055114,
+      "ppl_stderr": 4.044349022196945,
+      "acc": 0.33766737822627596,
+      "acc_stderr": 0.006588623616680426
+    },
+    "lambada_openai_mt_en": {
+      "ppl": 3.8685393479651173,
+      "ppl_stderr": 0.08079962928213236,
+      "acc": 0.6834853483407723,
+      "acc_stderr": 0.006479978824925181
+    },
+    "lambada_openai_mt_es": {
+      "ppl": 67.22873557270539,
+      "ppl_stderr": 3.6853291413042055,
+      "acc": 0.3694934989326606,
+      "acc_stderr": 0.006724504027913079
+    },
+    "lambada_openai_mt_fr": {
+      "ppl": 42.93424455960906,
+      "ppl_stderr": 2.3689294613751506,
+      "acc": 0.4302348146710654,
+      "acc_stderr": 0.006897835015074962
+    },
+    "lambada_openai_mt_it": {
+      "ppl": 65.76277239773485,
+      "ppl_stderr": 3.8678074045404967,
+      "acc": 0.392004657481079,
+      "acc_stderr": 0.006801548708056975
+    },
+    "lambada_standard": {
+      "ppl": 4.922814417244969,
+      "ppl_stderr": 0.10844800336124351,
+      "acc": 0.619056860081506,
+      "acc_stderr": 0.006765617200231529
+    },
+    "lambada_standard_cloze": {
+      "ppl": 109.09886744922697,
+      "ppl_stderr": 3.0351063735026287,
+      "acc": 0.1674752571317679,
+      "acc_stderr": 0.005202187177767864
+    }
+  },
+  "versions": {
+    "lambada_openai": 0,
+    "lambada_openai_cloze": 0,
+    "lambada_openai_mt_de": 0,
+    "lambada_openai_mt_en": 0,
+    "lambada_openai_mt_es": 0,
+    "lambada_openai_mt_fr": 0,
+    "lambada_openai_mt_it": 0,
+    "lambada_standard": 0,
+    "lambada_standard_cloze": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=mosaicml/mpt-7b,trust_remote_code=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}
