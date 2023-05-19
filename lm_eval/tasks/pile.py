@@ -35,7 +35,7 @@ class PilePerplexityTask(PerplexityTask):
     def test_docs(self):
         for doc in self.dataset["train"].select(range(100)):
             yield doc
-    
+
     def has_validation_docs(self):
         return False
 

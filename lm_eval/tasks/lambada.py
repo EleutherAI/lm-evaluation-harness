@@ -60,11 +60,18 @@ class LambadaBase(Task):
         return " " + doc["text"].rsplit(" ", 1)[1]
 
     def construct_requests(self, doc, ctx, **kwargs):
-        return Instance(request_type=self.OUTPUT_TYPE, doc=doc, arguments=(ctx, self.doc_to_target(doc)), **kwargs)
+        return Instance(
+            request_type=self.OUTPUT_TYPE,
+            doc=doc,
+            arguments=(ctx, self.doc_to_target(doc)),
+            **kwargs
+        )
 
     def process_results(self, doc, results):
         # TODO: this ^ is a hack. filters should make it so that we only have one response per request that we score
-        results = results[0] # TODO: recheck this. currently a list of [(ll, is_greedy)] is passed in
+        results = results[
+            0
+        ]  # TODO: recheck this. currently a list of [(ll, is_greedy)] is passed in
         ll, is_greedy = results
 
         return {"ppl": ll, "acc": int(is_greedy)}

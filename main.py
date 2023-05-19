@@ -7,7 +7,8 @@ from lm_eval import evaluator, utils
 from lm_eval.tasks import ALL_TASKS
 from lm_eval.logger import eval_logger
 
-os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 
 class MultiChoice:
     def __init__(self, choices):
@@ -65,9 +66,10 @@ def main():
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
 
-    if args.tasks != None:
+    if args.tasks is not None:
         if os.path.isdir(args.tasks):
             import glob
+
             task_names = []
             yaml_path = os.path.join(args.tasks, "*.yaml")
             for yaml_file in glob.glob(yaml_path):
@@ -80,7 +82,7 @@ def main():
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
-     
+
     eval_logger.info(f"Selected Tasks: {task_names}")
 
     results = evaluator.simple_evaluate(

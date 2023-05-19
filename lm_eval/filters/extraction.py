@@ -4,10 +4,7 @@ from lm_eval.api.filter import Filter
 
 
 class RegexFilter(Filter):
-    """
-
-
-    """
+    """ """
 
     def __init__(self, regex_pattern=r"#### (\-?[0-9\.\,]+)", fallback="[invalid]"):
         """
@@ -20,7 +17,7 @@ class RegexFilter(Filter):
 
     def apply(self, resps):
         # here, we assume we have a list, in which each element is
-        # a list of model responses for some particular input/target pair. 
+        # a list of model responses for some particular input/target pair.
         # so we process each of these (same input/target response sets)
         # independently (and keep them a list.)
         def filter_set(inst):
