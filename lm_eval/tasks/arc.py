@@ -12,6 +12,7 @@ a co-occurrence method fail to answer correctly) and an Easy Set of 5,197 questi
 
 Homepage: https://allenai.org/data/arc
 """
+from lm_eval import utils
 from lm_eval.prompts import get_prompt
 from lm_eval.api.task import MultipleChoiceTask
 
@@ -26,6 +27,7 @@ _CITATION = """
   volume={abs/1803.05457}
 }
 """
+
 
 @register_group("arc")
 @register_task("arc_easy")

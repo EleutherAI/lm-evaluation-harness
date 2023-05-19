@@ -111,7 +111,11 @@ class HFLM(LM):
 
     def _model_generate(self, context, max_length, eos_token_id):
         return self.gpt2.generate(
-            context, max_length=max_length, pad_token_id=eos_token_id, eos_token_id=eos_token_id, do_sample=False
+            context,
+            max_length=max_length,
+            pad_token_id=eos_token_id,
+            eos_token_id=eos_token_id,
+            do_sample=False,
         )
 
     def loglikelihood(self, requests):

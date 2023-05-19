@@ -10,8 +10,8 @@ from lm_eval.api.register import (
     register_task,
     register_group,
     task_registry,
-    group_registry
-    )
+    group_registry,
+)
 
 
 def get_task_name_from_config(task_config):
@@ -28,20 +28,19 @@ for root, subdirs, file_list in os.walk(task_dir):
                     config = utils.load_yaml_config(yaml_path)
 
                     SubClass = type(
-                        config['task']+'ConfigurableTask',
+                        config["task"] + "ConfigurableTask",
                         (ConfigurableTask,),
-                        {'CONFIG': TaskConfig(**config)}
+                        {"CONFIG": TaskConfig(**config)},
                     )
 
-                    if 'task' in config:
+                    if "task" in config:
                         task_name = "{}:{}".format(
-                            get_task_name_from_config(config),
-                            config['task']
-                            )
+                            get_task_name_from_config(config), config["task"]
+                        )
                         register_task(task_name)(SubClass)
 
-                    if 'group' in config:
-                        for group in config['group']:
+                    if "group" in config:
+                        for group in config["group"]:
                             register_group(group)(SubClass)
                 except Exception as err:
                     print(f"Unexpected {err=}, {type(err)=}")
@@ -49,6 +48,7 @@ for root, subdirs, file_list in os.walk(task_dir):
 TASK_REGISTRY = task_registry
 GROUP_REGISTRY = group_registry
 ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
+
 
 def get_task(task_name, config):
     try:
@@ -90,19 +90,15 @@ def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
                     if task_name not in task_name_from_registry_dict:
                         task_name_from_registry_dict = {
                             **task_name_from_registry_dict,
-                            task_name: get_task(
-                                task_name=task_name, config=config
-                                )
-                            }
+                            task_name: get_task(task_name=task_name, config=config),
+                        }
             else:
                 task_name = task_element
                 if task_name not in task_name_from_registry_dict:
                     task_name_from_registry_dict = {
                         **task_name_from_registry_dict,
-                        task_name: get_task(
-                            task_name=task_element, config=config
-                            )
-                        }
+                        task_name: get_task(task_name=task_element, config=config),
+                    }
 
         elif isinstance(task_element, dict):
             task_element.update(config)
@@ -110,22 +106,22 @@ def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
                 **task_name_from_config_dict,
                 get_task_name_from_config(task_element): ConfigurableTask(
                     config=task_element
-                )
+                ),
             }
 
         elif isinstance(task_element, Task):
 
             task_name_from_object_dict = {
                 **task_name_from_object_dict,
-                get_task_name_from_object(task_element): task_element
+                get_task_name_from_object(task_element): task_element,
             }
-                
+
     # task_name_from_registry_dict = {
     #     task_name: get_task(
     #         task_name=task_name,
     #         task_config=config
     #     )
-    #     for group_name in task_name_list for task_name in GROUP_REGISTRY[group_name] 
+    #     for group_name in task_name_list for task_name in GROUP_REGISTRY[group_name]
     #     if (isinstance(group_name, str)) and (group_name in GROUP_REGISTRY)
     # }
     # task_name_from_config_dict = {
@@ -142,11 +138,11 @@ def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
     #     if isinstance(task_object, Task)
     # }
 
-    assert set(task_name_from_registry_dict.keys()).isdisjoint(set(task_name_from_object_dict.keys()))
+    assert set(task_name_from_registry_dict.keys()).isdisjoint(
+        set(task_name_from_object_dict.keys())
+    )
     return {
         **task_name_from_registry_dict,
         **task_name_from_config_dict,
         **task_name_from_object_dict,
     }
-
-

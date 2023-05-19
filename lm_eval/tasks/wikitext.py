@@ -60,6 +60,7 @@ def wikitext_detokenizer(string):
 
     return string
 
+
 @register_task("wikitext")
 class WikiText(PerplexityTask):
     VERSION = "2.0"

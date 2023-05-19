@@ -5,6 +5,7 @@ group_registry = {}
 task2func_index = {}
 func2task_index = {}
 
+
 def register_task(name):
     def wrapper(func):
 
@@ -15,16 +16,16 @@ def register_task(name):
 
     return wrapper
 
+
 def register_group(name):
     def wrapper(func):
 
         func_name = func2task_index[func.__name__]
 
         if name in group_registry:
-            group_registry[name].append(
-                func_name
-                )
+            group_registry[name].append(func_name)
         else:
             group_registry[name] = [func_name]
         return func
+
     return wrapper
