@@ -31,8 +31,8 @@ dataset_path: gsm8k
 dataset_name: main
 training_split: train
 test_split: test
-doc_to_target: "{{answer.split('### ')[-1]}}"
 use_prompt: "qa-basic:question-newline-answer"
+doc_to_target: "{{answer.split('### ')[-1]}}"
 metric_list:
   - metric: exact_match
     aggregation: mean
