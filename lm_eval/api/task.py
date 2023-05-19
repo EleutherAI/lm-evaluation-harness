@@ -584,23 +584,41 @@ class ConfigurableTask(Task):
 
     def doc_to_text(self, doc):
         if self._config.use_prompt is not None:
-            doc_to_text = get_prompt(self._config.use_prompt)
+            doc_to_text = get_prompt(
+                self._config.use_prompt,
+                self.DATASET_NAME,
+                self.DATASET_PATH
+                )
         else:
             doc_to_text = self._config.doc_to_text
         
         if type(doc_to_text) == str:
             return utils.apply_template(doc_to_text, doc)
         elif callable(doc_to_text):
-            return doc_to_text(doc)
+            if hasattr(doc_to_text, "apply"):
+                return doc_to_text.apply(doc)[0]
+            else:
+                return doc_to_text(doc)
         else:
             raise TypeError
 
     def doc_to_target(self, doc):
-        doc_to_target = self._config.doc_to_target
+        if self._config.use_prompt is not None:
+            doc_to_target = get_prompt(
+                self._config.use_prompt,
+                self.DATASET_NAME,
+                self.DATASET_PATH
+                )
+        else:
+            doc_to_target = self._config.doc_to_target
+
         if type(doc_to_target) == str:
             return utils.apply_template(doc_to_target, doc)
         elif callable(doc_to_target):
-            return doc_to_target(doc)
+            if hasattr(doc_to_target, "apply"):
+                return doc_to_target.apply(doc)[1]
+            else:
+                return doc_to_target(doc)
         else:
             raise TypeError
 
