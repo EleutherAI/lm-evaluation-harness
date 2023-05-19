@@ -228,7 +228,7 @@ class Task(abc.ABC):
             return self.validation_docs()
         else:
             eval_logger.warning(
-                "has_training_docs and has_validation_docs are False",
+                "has_training_docs and has_validation_docs are False"
                 "using test_docs but this is not recommended."
                 )
             return self.test_docs()
@@ -519,7 +519,19 @@ class ConfigurableTask(Task):
                     [["take_first", None]]
                 )
             ]
-        
+
+        if self._config.use_prompt is not None:
+            eval_logger.info(
+                f"loading prompt {self._config.use_prompt}"
+                )
+            self.prompt = get_prompt(
+                self._config.use_prompt,
+                self.DATASET_PATH,
+                self.DATASET_NAME
+                )
+        else:
+            self.prompt = None
+
         if self.fewshot_docs() != None:
             self.sampler = samplers.Sampler(list(self.fewshot_docs()), self, rnd=random.Random()) # TODO: pass the correct docs in here
 
@@ -583,42 +595,35 @@ class ConfigurableTask(Task):
         return doc
 
     def doc_to_text(self, doc):
-        if self._config.use_prompt is not None:
-            doc_to_text = get_prompt(
-                self._config.use_prompt,
-                self.DATASET_NAME,
-                self.DATASET_PATH
-                )
+
+        if self.prompt is not None:
+            doc_to_text = self.prompt
         else:
             doc_to_text = self._config.doc_to_text
         
         if type(doc_to_text) == str:
             return utils.apply_template(doc_to_text, doc)
         elif callable(doc_to_text):
-            if hasattr(doc_to_text, "apply"):
-                return doc_to_text.apply(doc)[0]
-            else:
-                return doc_to_text(doc)
+            return doc_to_text(doc)
+        if hasattr(doc_to_text, "apply"):
+            return doc_to_text.apply(doc)[0]
         else:
+            print(type(doc_to_text))
             raise TypeError
 
     def doc_to_target(self, doc):
-        if self._config.use_prompt is not None:
-            doc_to_target = get_prompt(
-                self._config.use_prompt,
-                self.DATASET_NAME,
-                self.DATASET_PATH
-                )
+
+        if self.prompt is not None:
+            doc_to_target = self.prompt
         else:
             doc_to_target = self._config.doc_to_target
 
         if type(doc_to_target) == str:
             return utils.apply_template(doc_to_target, doc)
         elif callable(doc_to_target):
-            if hasattr(doc_to_target, "apply"):
-                return doc_to_target.apply(doc)[1]
-            else:
-                return doc_to_target(doc)
+            return doc_to_target(doc)
+        elif hasattr(doc_to_target, "apply"):
+            return doc_to_target.apply(doc)[1]
         else:
             raise TypeError
 
