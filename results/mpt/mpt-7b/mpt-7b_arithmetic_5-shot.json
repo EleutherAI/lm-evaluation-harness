@@ -1,0 +1,67 @@
+{
+  "results": {
+    "arithmetic_1dc": {
+      "acc": 0.081,
+      "acc_stderr": 0.006102304405675846
+    },
+    "arithmetic_2da": {
+      "acc": 0.918,
+      "acc_stderr": 0.006136515983374211
+    },
+    "arithmetic_2dm": {
+      "acc": 0.256,
+      "acc_stderr": 0.009761129023832868
+    },
+    "arithmetic_2ds": {
+      "acc": 0.7875,
+      "acc_stderr": 0.009149520854445372
+    },
+    "arithmetic_3da": {
+      "acc": 0.2915,
+      "acc_stderr": 0.010164424861564223
+    },
+    "arithmetic_3ds": {
+      "acc": 0.428,
+      "acc_stderr": 0.011066581884995264
+    },
+    "arithmetic_4da": {
+      "acc": 0.026,
+      "acc_stderr": 0.0035592603398856676
+    },
+    "arithmetic_4ds": {
+      "acc": 0.026,
+      "acc_stderr": 0.003559260339885677
+    },
+    "arithmetic_5da": {
+      "acc": 0.0045,
+      "acc_stderr": 0.0014969954902233202
+    },
+    "arithmetic_5ds": {
+      "acc": 0.002,
+      "acc_stderr": 0.0009992493430694993
+    }
+  },
+  "versions": {
+    "arithmetic_1dc": 0,
+    "arithmetic_2da": 0,
+    "arithmetic_2dm": 0,
+    "arithmetic_2ds": 0,
+    "arithmetic_3da": 0,
+    "arithmetic_3ds": 0,
+    "arithmetic_4da": 0,
+    "arithmetic_4ds": 0,
+    "arithmetic_5da": 0,
+    "arithmetic_5ds": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=mosaicml/mpt-7b,trust_remote_code=True",
+    "num_fewshot": 5,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}
