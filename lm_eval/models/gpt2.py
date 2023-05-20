@@ -103,7 +103,10 @@ class HFLM(LM):
             return self.gpt2.config.n_ctx
         except AttributeError:
             # gptneoconfig doesn't have n_ctx apparently
-            return self.gpt2.config.max_position_embeddings
+            if hasattr(self, 'accelerator'):
+                return self.accelerator.unwrap_model(self.gpt2).config.max_position_embeddings
+            else:
+                return self.gpt2.config.max_position_embeddings
 
     @property
     def max_gen_toks(self):
