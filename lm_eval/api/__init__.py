@@ -25,6 +25,7 @@ HIGHER_IS_BETTER_REGISTRY = {
 
     "acc": True,
     "acc_norm": True,
+    "acc_mutual_info": True,
     "word_perplexity": False,
     "byte_perplexity": False,
     "bits_per_byte": False,
