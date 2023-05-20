@@ -1,5 +1,5 @@
 """
-Much copied from https://github.com/stanford-crfm/helm/blob/0eaaa62a2263ddb94e9850ee629423b010f57e4a/src/helm/benchmark/scenarios/babi_qa_scenario.py
+Inspired by https://github.com/stanford-crfm/helm/blob/0eaaa62a2263ddb94e9850ee629423b010f57e4a/src/helm/benchmark/scenarios/babi_qa_scenario.py
 """
 import numpy as np
 from collections import defaultdict
@@ -8,6 +8,12 @@ from lm_eval.metrics import mean
 
 
 _CITATION = """
+@article{weston2015towards,
+  title={Towards ai-complete question answering: A set of prerequisite toy tasks},
+  author={Weston, Jason and Bordes, Antoine and Chopra, Sumit and Rush, Alexander M and Van Merri{\"e}nboer, Bart and Joulin, Armand and Mikolov, Tomas},
+  journal={arXiv preprint arXiv:1502.05698},
+  year={2015}
+}
 """
 
 class Babi(Task):
