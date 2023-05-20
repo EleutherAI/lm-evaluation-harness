@@ -1,4 +1,5 @@
-"""
+# ARC
+
 Think you have Solved Question Answering? Try ARC, the AI2 Reasoning Challenge
 https://arxiv.org/pdf/1803.05457.pdf
 
@@ -11,9 +12,9 @@ into a Challenge Set of 2,590 “hard” questions (those that both a retrieval 
 a co-occurrence method fail to answer correctly) and an Easy Set of 5,197 questions.
 
 Homepage: https://allenai.org/data/arc
-"""
 
-_CITATION = """
+### Citation
+```
 @article{Clark2018ThinkYH,
   title={Think you have Solved Question Answering? Try ARC, the AI2 Reasoning Challenge},
   author={Peter Clark and Isaac Cowhey and Oren Etzioni and Tushar Khot and Ashish Sabharwal and Carissa Schoenick and Oyvind Tafjord},
@@ -21,4 +22,4 @@ _CITATION = """
   year={2018},
   volume={abs/1803.05457}
 }
-"""
+```
