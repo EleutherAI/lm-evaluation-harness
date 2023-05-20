@@ -104,6 +104,19 @@ python write_out.py \
 
 This will write out one text file for each task.
 
+## Multi-GPU Evaluation
+
+Multi-GPU evaluation is supported through [accelerate](https://github.com/huggingface/accelerate). To initialize the distributed environment, run ```accelerate config``` in terminal and follow the prompts. Once the environment is configured, evaluations can be launched with:
+
+```bash
+accelerate launch main.py \
+    --model hf-causal \
+    --tasks lambada_openai,arc_easy \
+    --batch_size 16 \
+```
+
+**Warning**: Distributed evaluation requires launching multiple processes of the evaluation script. Running ```python main.py *args*``` instead of ```accelerate launch main.py *args*``` on machine with multiple GPUs will only run the evaluations on a single device.
+
 ## Implementing new tasks
 
 To implement a new task in the eval harness, see [this guide](./docs/task_guide.md).
