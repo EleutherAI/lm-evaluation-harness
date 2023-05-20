@@ -72,13 +72,13 @@ class HFLM(LM):
         if gpus > 1:
             accelerator = Accelerator(device_placement=False)
             if gpus > accelerator.num_processes:
-                warning = ("WARNING: The number of total GPUs does not match the number of spawned processes. " 
+                warning = ("WARNING: The number of total system GPUs does not match the number of spawned processes. " 
                       "If you would like to use data parallelism, please launch the script "
                       "with 'accelerate launch *script*'. " 
-                        "Current run will proceed with single device.")
+                        f"Current run will proceed with {accelerator.num_processes} devices.")
                 print(warning)
-                self._rank = 0
-                self._world_size = 1
+                self._rank = self.accelerator.local_process_index
+                self._world_size = self.accelerator.num_processes
             
             else:
                 self.gpt2 = accelerator.prepare(self.gpt2)
