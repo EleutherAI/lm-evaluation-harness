@@ -6,13 +6,8 @@ import lm_eval.api.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.api
-<<<<<<< HEAD
 from lm_eval.utils import positional_deprecated, run_task_tests, make_table, create_iterator
 import torch 
-=======
-from lm_eval.utils import positional_deprecated, run_task_tests, make_table, get_git_commit_hash
-
->>>>>>> upstream/big-refactor
 
 @positional_deprecated
 def simple_evaluate(
@@ -84,7 +79,6 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
     )
 
-<<<<<<< HEAD
     if lm.rank == 0:
         # add info about the model and few shot config
         results["config"] = {
@@ -101,20 +95,6 @@ def simple_evaluate(
         return results
     else:
         return None
-=======
-    # add info about the model and few shot config
-    results["config"] = {
-        "model": model,
-        "model_args": model_args,
-        "num_fewshot": num_fewshot,
-        "batch_size": batch_size,
-        "device": device,
-        "no_cache": no_cache,
-        "limit": limit,
-        "bootstrap_iters": bootstrap_iters,
-    }
-    results["git_hash"] = get_git_commit_hash()
->>>>>>> upstream/big-refactor
 
 
 
