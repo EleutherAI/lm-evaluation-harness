@@ -6,6 +6,7 @@ from tqdm import tqdm
 import torch.nn.functional as F
 
 from lm_eval import utils
+from lm_eval.logger import eval_logger
 from lm_eval.api.model import LM, register_model
 
 
@@ -31,10 +32,10 @@ class HFLM(LM):
             if device not in ["cuda", "cpu"]:
                 device = int(device)
             self._device = torch.device(device)
-            print(f"Using device '{device}'")
+            eval_logger.info(f"Using device '{device}'")
         else:
-            print("Device not specified")
-            print(f"Cuda Available? {torch.cuda.is_available()}")
+            eval_logger.warning("Device not specified")
+            eval_logger.info(f"Cuda Available? {torch.cuda.is_available()}")
             self._device = (
                 torch.device("cuda")
                 if torch.cuda.is_available()
@@ -110,7 +111,11 @@ class HFLM(LM):
 
     def _model_generate(self, context, max_length, eos_token_id):
         return self.gpt2.generate(
-            context, max_length=max_length, pad_token_id=eos_token_id, eos_token_id=eos_token_id, do_sample=False
+            context,
+            max_length=max_length,
+            pad_token_id=eos_token_id,
+            eos_token_id=eos_token_id,
+            do_sample=False,
         )
 
     def loglikelihood(self, requests):

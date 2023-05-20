@@ -1,12 +1,23 @@
-import collections
-import itertools
-import numpy as np
 import random
-import lm_eval.api.metrics
-import lm_eval.models
-import lm_eval.tasks
+import itertools
+import collections
+
+import numpy as np
+
 import lm_eval.api
-from lm_eval.utils import positional_deprecated, run_task_tests, make_table, get_git_commit_hash
+import lm_eval.api.metrics
+
+import lm_eval.tasks
+import lm_eval.models
+
+from lm_eval.utils import (
+    positional_deprecated,
+    run_task_tests,
+    make_table,
+    get_git_commit_hash,
+)
+
+from lm_eval.logger import eval_logger
 
 
 @positional_deprecated
@@ -65,7 +76,7 @@ def simple_evaluate(
         assert isinstance(model, lm_eval.api.model.LM)
         lm = model
 
-    task_dict = lm_eval.api.task.get_task_dict(tasks, num_fewshot=num_fewshot)
+    task_dict = lm_eval.tasks.get_task_dict(tasks, num_fewshot=num_fewshot)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -73,7 +84,6 @@ def simple_evaluate(
     results = evaluate(
         lm=lm,
         task_dict=task_dict,
-        num_fewshot=num_fewshot,
         limit=limit,
         bootstrap_iters=bootstrap_iters,
         decontamination_ngrams_path=decontamination_ngrams_path,
@@ -102,7 +112,6 @@ decontaminate_suffix = "_decontaminate"
 def evaluate(
     lm,
     task_dict,
-    num_fewshot=0,
     limit=None,
     bootstrap_iters=100000,
     decontamination_ngrams_path=None,
@@ -123,20 +132,20 @@ def evaluate(
         Dictionary of results
     """
 
-    decontaminate = decontamination_ngrams_path is not None
+    # decontaminate = decontamination_ngrams_path is not None
 
     results = collections.defaultdict(dict)
     versions = collections.defaultdict(dict)
 
     requests = collections.defaultdict(list)
-    requests_origin = collections.defaultdict(list)
+    # requests_origin = collections.defaultdict(list)
 
-    docs = {}
+    # docs = {}
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
         versions[task_name] = task.VERSION
-    
+
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
         # task_docs = list(task_doc_func())
         # rnd = random.Random()
@@ -146,18 +155,22 @@ def evaluate(
         # for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
         task.build_all_requests(limit=limit)
         # aggregate Instances by LM method requested to get output.
-        reqtype = "loglikelihood" if task.OUTPUT_TYPE == "multiple_choice" else task.OUTPUT_TYPE #TODO: this is hacky, fix in task.py
-        requests[reqtype].extend(task.instances) 
-    
+        reqtype = (
+            "loglikelihood"
+            if task.OUTPUT_TYPE == "multiple_choice"
+            else task.OUTPUT_TYPE
+        )  # TODO: this is hacky, fix in task.py
+        requests[reqtype].extend(task.instances)
+
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
     for reqtype, reqs in requests.items():
-        print("Running", reqtype, "requests")
+        eval_logger.info("Running {} requests".format(reqtype))
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []
         for req in reqs:
             cloned_reqs.extend([req] * req.repeats)
-        
+
         # run requests through model
         resps = getattr(lm, reqtype)(cloned_reqs)
 
@@ -170,9 +183,8 @@ def evaluate(
     for task_name, task in task_dict.items():
         task.apply_filters()
 
-
     ### Collect values of metrics on all datapoints ###
-    # TODO: make metric configurable, add metric registry 
+    # TODO: make metric configurable, add metric registry
     vals = collections.defaultdict(list)
 
     # unpack results and sort back in order and return control to Task
@@ -180,21 +192,27 @@ def evaluate(
         # calculate values for each filter setup (TODO: make getting list of keys cleaner)
         # TODO: make it possible to use a different metric per key
         for key in task.instances[0].filtered_resps.keys():
-            for doc_id, doc in enumerate(itertools.islice(task.test_docs(), 0, limit) if task.has_test_docs() else task.validation_docs()):
+            for doc_id, doc in enumerate(
+                itertools.islice(task.test_docs(), 0, limit)
+                if task.has_test_docs()
+                else task.validation_docs()
+            ):
                 # subset instances to only this document id ; sort by idx
                 requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
                 requests.sort(key=lambda x: x.idx)
-                metrics = task.process_results(doc, [req.filtered_resps[key] for req in requests])
+                metrics = task.process_results(
+                    doc, [req.filtered_resps[key] for req in requests]
+                )
                 for metric, value in metrics.items():
                     vals[(task_name, key, metric)].append(value)
-    
-
 
     ### Aggregate results over all datapoints ###
     # aggregate results ; run bootstrap CIs
     for (task_name, key, metric), items in vals.items():
         task = task_dict[task_name]
-        results[task_name][metric + " - filter=" + key] = task.aggregation()[metric](items)
+        results[task_name][metric + " - filter=" + key] = task.aggregation()[metric](
+            items
+        )
 
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
         # so we run them less iterations. still looking for a cleaner way to do this
