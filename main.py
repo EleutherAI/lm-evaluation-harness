@@ -3,14 +3,15 @@ import json
 import logging
 import fnmatch
 import yaml
+import os
 
-from lm_eval import tasks, evaluator
-# import lm_eval.api.task
+from lm_eval import evaluator, tasks
 from lm_eval.api.task import ConfigurableTask, TASK_REGISTRY
 
 logging.getLogger("openai").setLevel(logging.WARNING)
-
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 ALL_TASKS = sorted(list(TASK_REGISTRY))
+
 
 class MultiChoice:
     def __init__(self, choices):
