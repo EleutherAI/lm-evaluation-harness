@@ -100,7 +100,10 @@ class HFLM(LM):
     @property
     def max_length(self):
         try:
-            return self.gpt2.config.n_ctx
+            if hasattr(self, 'accelerator'):
+                return self.accelerator.unwrap_model(self.gpt2).config.n_ctx
+            else:
+                return self.gpt2.config.n_ctx
         except AttributeError:
             # gptneoconfig doesn't have n_ctx apparently
             if hasattr(self, 'accelerator'):
