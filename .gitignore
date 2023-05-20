@@ -3,3 +3,5 @@ env
 data/
 lm_cache
 .idea
+
+*.egg-info/

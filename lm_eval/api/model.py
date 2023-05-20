@@ -6,14 +6,15 @@ from lm_eval import utils
 
 MODEL_REGISTRY = {}
 
+
 def register_model(*names):
     # either pass a list or a single alias.
     # function receives them as a tuple of strings
-    
+
     def decorate(cls):
-        for name in names: 
-            assert (
-                issubclass(cls, LM)
+        for name in names:
+            assert issubclass(
+                cls, LM
             ), f"Model '{name}' ({cls.__name__}) must extend LM class"
 
             assert (
@@ -22,7 +23,7 @@ def register_model(*names):
 
             MODEL_REGISTRY[name] = cls
         return cls
-    
+
     return decorate
 
 
