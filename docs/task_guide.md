@@ -271,6 +271,19 @@ python main.py \
 	--num_fewshot K
 ```
 
+### Checking the Model Outputs
+The `--write_out.py` script mentioned previously can be used to verify that the prompts look as intended. If you also want to save model outputs, you can use the `--write_out` parameter in `main.py` to dump JSON with prompts and completions. The output path can be chosen with `--output_base_path`. It is helpful for debugging and for exploring model outputs.
+
+```sh
+python main.py \
+	--model gpt2 \
+	--model_args device=<device-name> \
+	--tasks <task-name> \
+	--num_fewshot K \
+    --write_out \
+    --output_base_path <path>
+```
+
 ### Running Unit Tests
 
 To run the entire test suite, use:
