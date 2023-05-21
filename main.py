@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import fnmatch
+import os
 
 from lm_eval import tasks, evaluator
 
@@ -38,14 +39,19 @@ def parse_args():
     parser.add_argument("--tasks", default=None, choices=MultiChoice(tasks.ALL_TASKS))
     parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--num_fewshot", type=int, default=0)
-    parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument("--batch_size", type=str, default=None)
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--output_path", default=None)
-    parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--limit", type=float, default=None,
+                        help="Limit the number of examples per task. "
+                             "If <1, limit is a percentage of the total number of examples.")
+    parser.add_argument("--data_sampling", type=float, default=None)
     parser.add_argument("--no_cache", action="store_true")
     parser.add_argument("--decontamination_ngrams_path", default=None)
     parser.add_argument("--description_dict_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
+    parser.add_argument("--write_out", action="store_true", default=False)
+    parser.add_argument("--output_base_path", type=str, default=None)
 
     return parser.parse_args()
 
@@ -60,7 +66,7 @@ def pattern_match(patterns, source_list):
 
         for matching in fnmatch.filter(source_list, pattern):
             task_names.add(matching)
-    return list(task_names)
+    return sorted(list(task_names))
 
 
 def main():
@@ -97,12 +103,15 @@ def main():
         description_dict=description_dict,
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
+        write_out=args.write_out,
+        output_base_path=args.output_base_path,
     )
 
     dumped = json.dumps(results, indent=2)
     print(dumped)
 
     if args.output_path:
+        os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
         with open(args.output_path, "w") as f:
             f.write(dumped)
 
