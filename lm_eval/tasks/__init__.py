@@ -53,6 +53,13 @@ from . import storycloze
 from . import toxigen
 from . import crowspairs
 from . import json
+from . import xcopa
+from . import bigbench
+from . import xstorycloze
+from . import xwinograd
+from . import pawsx
+from . import xnli
+from . import mgsm
 
 ########################################
 # Translation tasks
@@ -311,6 +318,13 @@ TASK_REGISTRY = {
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
+    **xcopa.construct_tasks(),
+    **bigbench.create_all_tasks(),
+    **xstorycloze.create_all_tasks(),
+    **xwinograd.create_all_tasks(),
+    **pawsx.construct_tasks(),
+    **xnli.construct_tasks(),
+    **mgsm.construct_tasks(),
 }
 
 

@@ -1,0 +1,91 @@
+{
+  "results": {
+    "copa": {
+      "acc": 0.72,
+      "acc_stderr": 0.04512608598542127
+    },
+    "winogrande": {
+      "acc": 0.6432517758484609,
+      "acc_stderr": 0.013463393958028726
+    },
+    "piqa": {
+      "acc": 0.7274211099020674,
+      "acc_stderr": 0.010389256803296021,
+      "acc_norm": 0.7366702937976061,
+      "acc_norm_stderr": 0.010276185322196764
+    },
+    "arc_challenge": {
+      "acc": 0.3037542662116041,
+      "acc_stderr": 0.013438909184778757,
+      "acc_norm": 0.33532423208191126,
+      "acc_norm_stderr": 0.013796182947785564
+    },
+    "arc_easy": {
+      "acc": 0.6494107744107744,
+      "acc_stderr": 0.009791003829831557,
+      "acc_norm": 0.5732323232323232,
+      "acc_norm_stderr": 0.010149141043955626
+    },
+    "boolq": {
+      "acc": 0.6287461773700306,
+      "acc_stderr": 0.008450174658715903
+    },
+    "wsc273": {
+      "acc": 0.8131868131868132,
+      "acc_stderr": 0.023632761722644544
+    },
+    "openbookqa": {
+      "acc": 0.252,
+      "acc_stderr": 0.019435727282249536,
+      "acc_norm": 0.358,
+      "acc_norm_stderr": 0.021461434862859122
+    },
+    "prost": {
+      "acc": 0.26184884713919726,
+      "acc_stderr": 0.003211967450351038,
+      "acc_norm": 0.30572160546541416,
+      "acc_norm_stderr": 0.003365914208405272
+    },
+    "mc_taco": {
+      "em": 0.13588588588588588,
+      "f1": 0.5052611696967991
+    },
+    "hellaswag": {
+      "acc": 0.4623580959968134,
+      "acc_stderr": 0.0049756211474061025,
+      "acc_norm": 0.5967934674367655,
+      "acc_norm_stderr": 0.0048953903414456264
+    },
+    "swag": {
+      "acc": 0.5024992502249325,
+      "acc_stderr": 0.0035350478846161142,
+      "acc_norm": 0.6825952214335699,
+      "acc_norm_stderr": 0.0032909332559412758
+    }
+  },
+  "versions": {
+    "copa": 0,
+    "winogrande": 0,
+    "piqa": 0,
+    "arc_challenge": 0,
+    "arc_easy": 0,
+    "boolq": 1,
+    "wsc273": 0,
+    "openbookqa": 0,
+    "prost": 0,
+    "mc_taco": 0,
+    "hellaswag": 0,
+    "swag": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=bigscience/bloom-7b1,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

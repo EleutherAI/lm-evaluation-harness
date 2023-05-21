@@ -1,0 +1,71 @@
+{
+  "results": {
+    "gsm8k": {
+      "acc": 0.008339651250947688,
+      "acc_stderr": 0.0025049422268605386
+    },
+    "math_prealgebra": {
+      "acc": 0.002296211251435132,
+      "acc_stderr": 0.001622733136934626
+    },
+    "math_precalc": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "math_geometry": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "math_num_theory": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "drop": {
+      "em": 0.0037751677852348995,
+      "em_stderr": 0.0006280387809484274,
+      "f1": 0.03062604865771817,
+      "f1_stderr": 0.0011423873658349746
+    },
+    "math_algebra": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "math_intermediate_algebra": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "math_counting_and_prob": {
+      "acc": 0.002109704641350211,
+      "acc_stderr": 0.002109704641350211
+    },
+    "mathqa": {
+      "acc": 0.21105527638190955,
+      "acc_stderr": 0.007470023801451704,
+      "acc_norm": 0.2117252931323283,
+      "acc_norm_stderr": 0.007478693896187993
+    }
+  },
+  "versions": {
+    "gsm8k": 0,
+    "math_prealgebra": 1,
+    "math_precalc": 1,
+    "math_geometry": 1,
+    "math_num_theory": 1,
+    "drop": 1,
+    "math_algebra": 1,
+    "math_intermediate_algebra": 1,
+    "mathqa": 0,
+    "math_counting_and_prob": 1
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=facebook/xglm-564M,use_accelerate=True",
+    "num_fewshot": 5,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

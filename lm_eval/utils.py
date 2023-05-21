@@ -5,7 +5,11 @@ import collections
 import functools
 import inspect
 import sys
-from typing import List
+from typing import List, Union
+
+import torch
+
+from omegaconf import OmegaConf
 
 
 class ExitCodeError(Exception):
@@ -50,10 +54,7 @@ def simple_parse_args_string(args_string):
     if not args_string:
         return {}
     arg_list = args_string.split(",")
-    args_dict = {}
-    for arg in arg_list:
-        k, v = arg.split("=")
-        args_dict[k] = v
+    args_dict = OmegaConf.to_object(OmegaConf.from_dotlist(arg_list))
     return args_dict
 
 
@@ -138,6 +139,26 @@ def make_disjoint_window(pair):
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b
+
+
+def select_continuation_from_batch_left_padding(
+    generations: Union[List[List[int]], torch.Tensor], max_context_size: int
+):
+    """Select the continuation from the batch, removing prompts of different lengths.
+    Args:
+        generations (Union[List[List[int]], torch.Tensor]):
+            A tensor or list-of-lists of shape [batch_size, sequence length].
+        max_context_size (int):
+            The size of the biggest context; generations will proceed from that
+            index.
+    Example:
+        PAD     PAD Continue : The dog chased the cat  [every       day of the week]
+        Riddle  me    this   : The  dog chased the  cat [yesterday] PAD PAD PAD PAD
+    Output:
+        [every day of the week]
+        [yesterday]  PAD PAD PAD PAD
+    """
+    return generations[:, max_context_size:]
 
 
 class Reorderer:

@@ -19,12 +19,14 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.9",
     install_requires=[
         "datasets>=2.0.0",
         "jsonlines",
         "numexpr",
         "openai>=0.6.4",
+        "omegaconf>=2.2",
+        "peft>=0.2.0",
         "pybind11>=2.6.2",
         "pycountry",
         "pytablewriter",
@@ -36,9 +38,11 @@ setuptools.setup(
         "tqdm-multiprocess",
         "transformers>=4.1",
         "zstandard",
+        "accelerate>=0.17.1",
     ],
     extras_require={
         "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],
         "multilingual": ["nagisa>=0.2.7", "jieba>=0.42.1"],
+        "sentencepiece": ["sentencepiece>=0.1.98", "protobuf>=4.22.1"],
     },
 )
