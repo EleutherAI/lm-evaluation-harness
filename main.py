@@ -9,6 +9,10 @@ from lm_eval import tasks, evaluator
 logging.getLogger("openai").setLevel(logging.WARNING)
 
 
+def _is_json_task(task_name):
+    return task_name == "json" or task_name.startswith("json=")
+
+
 class MultiChoice:
     def __init__(self, choices):
         self.choices = choices
@@ -16,7 +20,9 @@ class MultiChoice:
     # Simple wildcard support (linux filename patterns)
     def __contains__(self, values):
         for value in values.split(","):
-            if len(fnmatch.filter(self.choices, value)) == 0:
+            if len(fnmatch.filter(self.choices, value)) == 0 and not _is_json_task(
+                value
+            ):
                 return False
 
         return True
@@ -55,6 +61,9 @@ def parse_args():
 def pattern_match(patterns, source_list):
     task_names = set()
     for pattern in patterns:
+        if _is_json_task(pattern):
+            task_names.add(pattern)
+
         for matching in fnmatch.filter(source_list, pattern):
             task_names.add(matching)
     return sorted(list(task_names))
