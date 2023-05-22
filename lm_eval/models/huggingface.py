@@ -468,7 +468,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
                         vector.size(0), max_length - vector.size(1),
                         dtype=vector.dtype,
                         device=vector.device
-                    ).fill(self.tokenizer.pad_token_id)], dim=1
+                    ).fill_(self.tokenizer.pad_token_id)], dim=1
                 )
             padded_vectors.append(vector)
         return torch.cat(padded_vectors, dim=0)
