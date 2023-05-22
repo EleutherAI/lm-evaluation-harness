@@ -53,6 +53,7 @@ from . import storycloze
 from . import toxigen
 from . import crowspairs
 from . import lila
+from . import proofnet
 
 ########################################
 # Translation tasks
@@ -357,7 +358,11 @@ TASK_REGISTRY = {
     "lila_simuleq": lila.LilaSimulEq,
     "lila_singleop": lila.LilaSingleOp,
     "lila_singleq": lila.LilaSinglEq,
-    "lila_svamp_structured": lila.LilaSvampStructured
+    "lila_svamp_structured": lila.LilaSvampStructured,
+    # ProofNet
+    "proofnet_autoformalize_statements": proofnet.ProofNetAutoformalizeStatements,
+    "proofnet_informalize_statements": proofnet.ProofNetInformalizeStatements,
+    #
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
