@@ -56,8 +56,12 @@ from . import nsmc
 from . import klue
 from . import ko_translation
 from . import korquad
+<<<<<<< Updated upstream
 from . import korunsmile
 from . import kohatespeech
+=======
+from . import kold
+>>>>>>> Stashed changes
 
 ########################################
 # Translation tasks
@@ -308,7 +312,8 @@ TASK_REGISTRY = {
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
-  
+    "kold_level_a": kold.KoldLevelA,
+    "kold_level_b": kold.KoldLevelB,
     "klue_sts": klue.STS,
     "klue_ynat": klue.YNAT,
     "klue_nli": klue.NLI,
