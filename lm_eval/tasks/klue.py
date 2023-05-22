@@ -19,8 +19,6 @@ from lm_eval.base import Task, MultipleChoiceTask, rf
 from lm_eval.metrics import macro_f1_score, mean, matthews_corrcoef, f1_score, yesno
 from lm_eval.utils import general_detokenize
 from functools import partial
-from sys import exit
-from lm_eval.tasks.datasets.metrics.squad_v2.squad_v2 import SquadV2 as squad_metric
 
 _CITATION = """
 @misc{park2021klue,
@@ -35,10 +33,9 @@ _CITATION = """
 
 
 def _squad_metric(predictions, references):
-    # squad_metric = datasets.load_metric("squad_v2")
+    squad_metric = datasets.load_metric("squad_v2")
 
-    # return squad_metric.compute(predictions=predictions, references=references)
-    return squad_metric._compute(squad_metric, predictions=predictions, references=references)
+    return squad_metric.compute(predictions=predictions, references=references)
 
 
 def _squad_agg(key, items):
