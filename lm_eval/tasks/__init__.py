@@ -56,12 +56,9 @@ from . import nsmc
 from . import klue
 from . import ko_translation
 from . import korquad
-<<<<<<< Updated upstream
 from . import korunsmile
 from . import kohatespeech
-=======
 from . import kold
->>>>>>> Stashed changes
 
 ########################################
 # Translation tasks
