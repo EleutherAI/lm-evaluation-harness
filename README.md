@@ -1,3 +1,134 @@
+# [Math] Language Model Evaluation Harness
+
+This section contains documentation related to changes/additions made to the lm-evaluation-harness.
+The original readme for the evaluation harness is in the subsequent section.
+ 
+## Example scripts
+
+See `eval_scripts` for example scripts. We will walk through two different cases. 
+
+### LILA with Huggingface accelerate
+Example command to evaluate Pythia-1.4b-deduped on the `lila_addsub` task:
+```bash
+MODEL_PREFIX="EleutherAI/"
+MODEL="pythia-1.4b-deduped"
+OUTPUT_DIR="output/lila"
+mkdir -p ${OUTPUT_DIR}
+
+FEWSHOT=5
+BATCH_SIZE=1
+
+
+TASKS="lila_addsub"
+
+python main.py --model_args pretrained=${MODEL_PREFIX}${MODEL} \
+	--num_fewshot ${FEWSHOT} \
+	--model hf-causal \
+	--use_accelerate \
+	--accelerate_dtype float32 \
+	--tasks ${TASKS} \
+	--output_path ${OUTPUT_DIR}/${MODEL}.json \
+	--batch_size ${BATCH_SIZE} 
+
+```
+
+You can see a full example script that runs multiple Lila tasks at:
+```bash
+bash eval_scripts/eval_lila_accelerate.sh
+```
+
+**NOTE:** the `--accelerate_dtype float32` flag is needed to match the performance of the non-`accelerate` code.
+
+
+### MATH with Huggingface accelerate and majority voting
+In this example we'll pass in a `config` file to enable majority voting (and a custom prompt) on the MATH task.
+
+The key difference with the LILA example above is the `--description_dict_path` argument that passes in the config.
+
+```bash
+BASE_DIR="./"
+OUTPUT_DIR="output/math_algebra_easy"
+mkdir -p ${OUTPUT_DIR}
+
+MODEL_PREFIX="EleutherAI/"
+MODEL="pythia-1.4b-deduped"
+
+FEWSHOT=5
+BATCH_SIZE=1
+
+TASKS="math_algebra_easy"
+
+python main.py --description_dict_path ${BASE_DIR}/configs/config.json \
+	--model_args pretrained=${MODEL_PREFIX}${MODEL} \
+	--num_fewshot ${FEWSHOT} \
+	--model hf-causal \
+	--use_accelerate \
+	--accelerate_dtype float32 \
+	--tasks ${TASKS} \
+	--batch_size ${BATCH_SIZE} \
+	--output_path ${OUTPUT_DIR}/${MODEL}.json
+```
+
+You can see a full example script at:
+```bash
+bash eval_scripts/eval_math_accelerate.sh
+```
+
+
+
+## New features
+
+### Majority voting, generation hyperparameters
+
+Additional generation options can be specified through a configuration file and the `--description_dict_path` argument.
+For example, to enable majority voting with temperature 0.3 on the `math_algebra` task, we create a `config.json` file containing a `params` field:
+```json
+{
+    "math_algebra": {
+        "params": {"majority_voting": 16, "sampling_temperature":0.5, "eval_batch_size":4},
+    }
+}
+```
+then pass the file through the `--description_dict_path` argument:
+```bash
+python main.py --model gpt2 \
+    --tasks math_algebra 
+    --description_dict_path config.json 
+    --device cuda 
+    --num_fewshot 3 
+```
+**Warning:** Currently only the tasks defined in `hendrycks_math.py` support these options. If you are interested in adding this functionality to other tasks, see [this guide](./docs/task_guide.md).
+
+### Prepending a task description in the prompt
+In the `config` file, you can add a `description` field containing a string. The string will be prepended to each prompt during evaluation.
+Continuing the example from above, we have a `config.json` file containing:
+```json
+{
+    "math_algebra": {
+        "params": {"majority_voting": 16, "sampling_temperature":0.5, "eval_batch_size":4},
+        "description": "You will solve a mathematical problem. Here are some examples:", 
+    }
+}
+```
+
+### Accelerate
+You can use the HuggingFace `accelerate` library. To do so, use the `--use_accelerate` flag along with a `hf-causal` model. 
+Here is an example command:
+```bash
+python main.py \
+    --model hf-causal \
+    --use_accelerate \
+    --model_args pretrained=EleutherAI/pythia-2.8b-deduped \
+    --num_fewshot 5 \
+    --tasks lila_addsub
+```
+NOTE: With default settings, `--model hf-causal` may have different performance than `--model gpt2`. One known discrepancy is that `hf-causal` may use `float16` by default, while `--model gpt2` uses `float32`. Add the command-line argument `--accelerate_dtype float32` to prevent this discrepancy.
+
+NOTE: we do not yet support `hf-seq2seq`.
+
+
+
+
 # Language Model Evaluation Harness
 
 ![](https://github.com/EleutherAI/lm-evaluation-harness/workflows/Build/badge.svg)
@@ -93,54 +224,6 @@ This will write out one text file for each task.
 
 
 ## Advanced features
-
-### Majority voting, generation hyperparameters
-
-Additional generation options can be specified through a configuration file and the `--description_dict_path` argument.
-For example, to enable majority voting with temperature 0.3 on the `math_algebra` task, we create a `config.json` file containing a `params` field:
-```json
-{
-    "math_algebra": {
-        "params": {"majority_voting": 16, "sampling_temperature":0.5, "eval_batch_size":4},
-    }
-}
-```
-then pass the file through the `--description_dict_path` argument:
-```bash
-python main.py --model gpt2 \
-    --tasks math_algebra 
-    --description_dict_path config.json 
-    --device cuda 
-    --num_fewshot 3 
-```
-**Warning:** Currently only the tasks defined in `hendrycks_math.py` support these options. If you are interested in adding this functionality to other tasks, see [this guide](./docs/task_guide.md).
-
-### Prepending a task description in the prompt
-In the `config` file, you can add a `description` field containing a string. The string will be prepended to each prompt during evaluation.
-Continuing the example from above, we have a `config.json` file containing:
-```json
-{
-    "math_algebra": {
-        "params": {"majority_voting": 16, "sampling_temperature":0.5, "eval_batch_size":4},
-        "description": "You will solve a mathematical problem. Here are some examples:", 
-    }
-}
-```
-
-### Accelerate
-You can use the HuggingFace `accelerate` library. To do so, use the `--use_accelerate` flag along with a `hf-causal` model. 
-Here is an example command:
-```bash
-python main.py \
-    --model hf-causal \
-    --use_accelerate \
-    --model_args pretrained=EleutherAI/pythia-2.8b-deduped \
-    --num_fewshot 5 \
-    --tasks lila_addsub
-```
-NOTE: With default settings, `--model hf-causal` may have different performance than `--model gpt2`. One known discrepancy is that `hf-causal` may use `float16` by default, while `--model gpt2` uses `float32`. Add the command-line argument `--accelerate_dtype float32` to prevent this discrepancy.
-
-NOTE: we do not yet support `hf-seq2seq`.
 
 ## Implementing new tasks
 
