@@ -177,7 +177,7 @@ class WiC(Task):
         return self.dataset["test"]
 
     def doc_to_text(self, doc):
-        return "다음 두 문장에서 단어 '{}'가 다른 의미로 쓰였으면 아니, 같은 의미로 쓰였으면 예로 답하시오.\n\n문장1: {}\n문장2: {}\n정답:".format(doc["context_1"], doc["context_2"], doc["word"])
+        return "다음 두 문장에서 단어 '{}'가 다른 의미로 쓰였으면 아니, 같은 의미로 쓰였으면 예로 답하시오.\n\n문장1: {}\n문장2: {}\n정답:".format(doc["word"], doc["context_1"], doc["context_2"])
 
     def doc_to_target(self, doc):
         return " {}".format({0: " 아니", 1: " 예"}[doc["label"]])
@@ -246,23 +246,35 @@ class HellaSwag(MultipleChoiceTask):
         return doc["query"]
 
     def process_results(self, doc, results):
-        pred = np.argmax(results)
         gold = doc["gold"]
+
+        completion_len = np.array([float(len(i)) for i in doc["choices"]])
+        pred = np.argmax(results)
+        pred_norm = np.argmax(results / completion_len)
+        acc = 1.0 if pred == gold else 0.0
+        acc_norm = 1.0 if pred_norm == gold else 0.0
+        
         return {
-            "acc": pred == gold,
-            "macro_f1": (gold, pred)
+            "acc": acc,
+            "acc_norm": acc_norm,
+            "macro_f1": (gold, pred),
+            "macro_f1_norm": (gold, pred_norm),
         }
 
     def higher_is_better(self):
         return {
             "acc": True,
-            "macro_f1": True
+            "acc_norm": True,
+            "macro_f1": True,
+            "macro_f1_norm": True,
         }
 
     def aggregation(self):
         return {
             "acc": mean,
-            "macro_f1": macro_f1_score
+            "acc_norm": mean,
+            "macro_f1": macro_f1_score,
+            "macro_f1_norm": macro_f1_score,
         }
 
 

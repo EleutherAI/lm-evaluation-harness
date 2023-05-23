@@ -339,7 +339,7 @@ TASK_REGISTRY = {
     "korunsmile": korunsmile.KorUnSmile,
     "kohatespeech":kohatespeech.HateSpeech,
     "kohatespeech_gen_bias":kohatespeech.GenderBias,
-    "kohatespeech_apeach":kohatespeech.Apeach
+    "kohatespeech_apeach":kohatespeech.Apeach,
     **xcopa.construct_tasks(),
     **bigbench.create_all_tasks(),
     **xstorycloze.create_all_tasks(),
