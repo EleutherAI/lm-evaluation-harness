@@ -1,11 +1,11 @@
 group:
-  - t0-eval
-task: "by p they mean"
+  - super-glue-promptsource
+task: "GPT-3 style"
 dataset_path: super_glue
-dataset_name: wsc.fixed
+dataset_name: cb
 training_split: train
 validation_split: validation
-use_prompt: "promptsource:by p they mean"
+use_prompt: "promptsource:GPT-3 style"
 metric_list:
   - metric: exact_match
     aggregation: mean

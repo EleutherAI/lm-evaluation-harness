@@ -1,7 +1,0 @@
-group:
-  - super-glue-cb
-include: based_on_previous_passage.yaml
-task: can we infer
-reference: Webson & Pavlick 2021
-doc_to_text: "Suppose {{premise}} Can we infer that \"{{hypothesis}}\"? Yes, no, or maybe?"
-doc_to_target: "{% set answer_choices = ['Yes', 'No', 'Maybe'] %}{{answer_choices[label]}}"
