@@ -1,27 +1,25 @@
-import argparse
+import os
 import json
-import logging
 import fnmatch
-import yaml
+import argparse
 
-from lm_eval import tasks, evaluator
-# import lm_eval.api.task
-from lm_eval.api.task import ConfigurableTask, TASK_REGISTRY
+from lm_eval import evaluator, utils
+from lm_eval.tasks import ALL_TASKS
+from lm_eval.logger import eval_logger
 
-logging.getLogger("openai").setLevel(logging.WARNING)
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-ALL_TASKS = sorted(list(TASK_REGISTRY))
 
 class MultiChoice:
     def __init__(self, choices):
         self.choices = choices
-        print(f"{ALL_TASKS} is this")
 
     # Simple wildcard support (linux filename patterns)
     def __contains__(self, values):
         for value in values.split(","):
             if len(fnmatch.filter(self.choices, value)) == 0:
-                return False
+                eval_logger.warning("{} is not in task list.".format(value))
+                # eval_logger.info(f"{choices} is this")
 
         return True
 
@@ -46,7 +44,6 @@ def parse_args():
     parser.add_argument("--decontamination_ngrams_path", default=None)
     parser.add_argument("--description_dict_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
-
     return parser.parse_args()
 
 
@@ -64,30 +61,29 @@ def main():
     args = parse_args()
 
     if args.limit:
-        print(
-            "WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
+        eval_logger.warning(
+            " --limit SHOULD ONLY BE USED FOR TESTING."
+            "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
 
-    if args.tasks is None:
-        if args.config:
+    if args.tasks is not None:
+        if os.path.isdir(args.tasks):
+            import glob
+
             task_names = []
-            for config_files in args.config.split(","):
-                with open(config_files, "r") as f:
-                    config = yaml.load(f, yaml.Loader)
-
-                if args.num_fewshot != 0:
-                    config["num_fewshot"] = args.num_fewshot
-
-                if args.batch_size != None:
-                    config["batch_size"] = args.batch_size
-
+            yaml_path = os.path.join(args.tasks, "*.yaml")
+            for yaml_file in glob.glob(yaml_path):
+                config = utils.load_yaml_config(yaml_file)
                 task_names.append(config)
         else:
-            task_names = ALL_TASKS
-    else:
-        task_names = pattern_match(args.tasks.split(","), ALL_TASKS)
+            tasks_list = args.tasks.split(",")
+            task_names = pattern_match(tasks_list, ALL_TASKS)
+            for task in [task for task in tasks_list if task not in task_names]:
+                if os.path.isfile(task):
+                    config = utils.load_yaml_config(task)
+                    task_names.append(config)
 
-    print(f"Selected Tasks: {task_names}")
+    eval_logger.info(f"Selected Tasks: {task_names}")
 
     results = evaluator.simple_evaluate(
         model=args.model,
