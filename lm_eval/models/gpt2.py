@@ -9,6 +9,9 @@ from lm_eval import utils
 from lm_eval.logger import eval_logger
 from lm_eval.api.model import LM, register_model
 
+from accelerate import Accelerator
+from itertools import islice
+
 
 @register_model("hf-causal", "gpt2")
 class HFLM(LM):
@@ -28,19 +31,26 @@ class HFLM(LM):
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
 
-        if device:
-            if device not in ["cuda", "cpu"]:
-                device = int(device)
-            self._device = torch.device(device)
-            eval_logger.info(f"Using device '{device}'")
+        gpus = torch.cuda.device_count()
+        if gpus <= 1:
+            if device:
+                if device not in ["cuda", "cpu"]:
+                    device = int(device)
+                self._device = torch.device(device)
+                print(f"Using device '{device}'")
+            else:
+                print("Device not specified")
+                print(f"Cuda Available? {torch.cuda.is_available()}")
+                self._device = (
+                    torch.device("cuda")
+                    if torch.cuda.is_available()
+                    else torch.device("cpu")
+                )
+            self._rank = 0
+            self._world_size = 1
+
         else:
-            eval_logger.warning("Device not specified")
-            eval_logger.info(f"Cuda Available? {torch.cuda.is_available()}")
-            self._device = (
-                torch.device("cuda")
-                if torch.cuda.is_available()
-                else torch.device("cpu")
-            )
+            self._device = "cpu"
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
@@ -60,10 +70,30 @@ class HFLM(LM):
         # multithreading and batching
         self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
 
-        # TODO: fix multi-gpu
-        # gpus = torch.cuda.device_count()
-        # if gpus > 1:
-        #     self.gpt2 = nn.DataParallel(self.gpt2)
+        # multigpu support with accelerate
+        if gpus > 1:
+            accelerator = Accelerator()
+            if gpus > accelerator.num_processes:
+                warning = (
+                    "WARNING: The number of total system GPUs does not match the number of spawned processes. "
+                    "If you would like to use data parallelism, please launch the script "
+                    "with 'accelerate launch *script*'. "
+                    f"Current run will proceed with {accelerator.num_processes} devices."
+                )
+                print(warning)
+                self._rank = accelerator.local_process_index
+                self._world_size = accelerator.num_processes
+            
+            else:
+                self.gpt2 = accelerator.prepare(self.gpt2)
+                self._device = torch.device(f"cuda:{accelerator.local_process_index}")
+                self.accelerator = accelerator
+
+                if self.accelerator.is_local_main_process:
+                    print(f"Using {gpus} devices with data parallelism")
+
+                self._rank = self.accelerator.local_process_index
+                self._world_size = self.accelerator.num_processes
 
     @property
     def eot_token_id(self):
@@ -73,10 +103,18 @@ class HFLM(LM):
     @property
     def max_length(self):
         try:
-            return self.gpt2.config.n_ctx
+            if hasattr(self, "accelerator"):
+                return self.accelerator.unwrap_model(self.gpt2).config.n_ctx
+            else:
+                return self.gpt2.config.n_ctx
         except AttributeError:
             # gptneoconfig doesn't have n_ctx apparently
-            return self.gpt2.config.max_position_embeddings
+            if hasattr(self, "accelerator"):
+                return self.accelerator.unwrap_model(
+                    self.gpt2
+                ).config.max_position_embeddings
+            else:
+                return self.gpt2.config.max_position_embeddings
 
     @property
     def max_gen_toks(self):
@@ -84,13 +122,19 @@ class HFLM(LM):
 
     @property
     def batch_size(self):
-        # TODO: fix multi-gpu
-        return self.batch_size_per_gpu  # * gpus
+        return self.batch_size_per_gpu
 
     @property
     def device(self):
-        # TODO: fix multi-gpu
         return self._device
+
+    @property
+    def rank(self):
+        return self._rank
+
+    @property
+    def world_size(self):
+        return self._world_size
 
     def tok_encode(self, string: str):
         return self.tokenizer.encode(string, add_special_tokens=False)
@@ -138,7 +182,7 @@ class HFLM(LM):
         # TODO: automatic batch size detection for vectorization
 
         loglikelihoods = []
-        for (string,) in tqdm([req.args for req in requests]):
+        for (string,) in tqdm([req.args for req in requests], disable=(self.rank != 0)):
             rolling_token_windows = list(
                 map(
                     utils.make_disjoint_window,
@@ -155,12 +199,28 @@ class HFLM(LM):
 
             # TODO: extract out this call so it only gets called once and also somehow figure out partial caching for
             # that
+
+            pad_amnt = 0
+            if self.world_size > 1:
+                # TODO: Comment on what we do here
+                mytensor = torch.tensor(len(rolling_token_windows), device=self.device)
+                gathered = (
+                    self.accelerator.gather(mytensor).cpu().detach().numpy().tolist()
+                )
+
+                pad_amnt = max(gathered) - gathered[self.rank]
+                if pad_amnt > 0:
+                    rolling_token_windows += pad_amnt * [rolling_token_windows[0]]
+
             string_nll = self._loglikelihood_tokens(
                 rolling_token_windows, disable_tqdm=True
             )
 
-            # discard is_greedy
-            string_nll = [x[0] for x in string_nll]
+            if (self.world_size > 1) and (pad_amnt > 0):
+                string_nll = [x[0] for x in string_nll[:-pad_amnt]]
+            else:
+                # discard is_greedy
+                string_nll = [x[0] for x in string_nll]
 
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
@@ -185,8 +245,10 @@ class HFLM(LM):
         # TODO: automatic (variable) batch size detection for vectorization
         re_ord = utils.Reorderer(requests, _collate)
         for chunk in utils.chunks(
-            tqdm(re_ord.get_reordered(), disable=disable_tqdm), self.batch_size
+            tqdm(re_ord.get_reordered(), disable=(disable_tqdm or (self.rank != 0))),
+            self.batch_size,
         ):
+
             inps = []
             cont_toks_list = []
             inplens = []

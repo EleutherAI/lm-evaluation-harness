@@ -21,6 +21,7 @@ setuptools.setup(
     ],
     python_requires=">=3.6",
     install_requires=[
+        "accelerate>=0.18.0",
         "datasets>=2.0.0",
         "jsonlines",
         "numexpr",

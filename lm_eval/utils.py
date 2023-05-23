@@ -13,6 +13,7 @@ from typing import List
 
 from omegaconf import OmegaConf
 from jinja2 import BaseLoader, Environment, StrictUndefined
+from itertools import islice
 
 
 class ExitCodeError(Exception):
@@ -317,3 +318,12 @@ env = Environment(loader=BaseLoader, undefined=StrictUndefined)
 def apply_template(template, doc):
     rtemplate = env.from_string(template)
     return rtemplate.render(**doc)
+
+
+def create_iterator(raw_iterator, rank, world_size, limit=None):
+    """
+    Method for creating a (potentially) sliced and limited
+    iterator from a raw document iterator. Used for splitting data
+    among ranks in multigpu setting or only pulling a sample of documents
+    """
+    return islice(raw_iterator, rank, limit, world_size)
