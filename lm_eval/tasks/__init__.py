@@ -55,7 +55,7 @@ def get_task(task_name, config):
         return TASK_REGISTRY[task_name](config=config)
     except KeyError:
         eval_logger.info("Available tasks:")
-        eval_logger.info(TASK_REGISTRY)
+        eval_logger.info(ALL_TASKS)
         raise KeyError(f"Missing task {task_name}")
 
 

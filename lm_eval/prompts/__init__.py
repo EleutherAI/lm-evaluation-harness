@@ -17,10 +17,13 @@ PROMPT_REGISTRY = {
 def get_prompt(prompt_id: str, dataset_name=None, subset_name=None):
     # unpack prompt name
     category_name, prompt_name = prompt_id.split(":")
-    eval_logger.info(f"Loading prompt from {category_name}")
+    if subset_name is None:
+        dataset_full_name = dataset_name
+    else:
+        dataset_full_name = f"{dataset_name}-{subset_name}"
+    eval_logger.info(f"Loading prompt from {category_name} for {dataset_full_name}")
     if category_name == "promptsource":
         try:
-            # prompts = DatasetTemplates(dataset_name, dataset_path)
             if subset_name is None:
                 prompts = DatasetTemplates(dataset_name=dataset_name)
             else:
