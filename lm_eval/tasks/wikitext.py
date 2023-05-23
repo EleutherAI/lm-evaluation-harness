@@ -10,8 +10,10 @@ NOTE: This `Task` is based on WikiText-2.
 Homepage: https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/
 """
 import re
-from lm_eval.api.task import PerplexityTask, register_task
 
+from lm_eval.api.task import PerplexityTask
+
+from lm_eval.api.register import register_task, register_group
 
 _CITATION = """
 @misc{merity2016pointer,
@@ -57,6 +59,7 @@ def wikitext_detokenizer(string):
     string = string.replace(" 's", "'s")
 
     return string
+
 
 @register_task("wikitext")
 class WikiText(PerplexityTask):

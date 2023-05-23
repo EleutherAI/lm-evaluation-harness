@@ -1,7 +1,4 @@
-
-
 class Sampler:
-
     def __init__(self, docs, task, fewshot_indices=None, rnd=None):
 
         self.rnd = rnd
@@ -12,15 +9,18 @@ class Sampler:
 
         self.delimiter = self.config.delimiter
 
-        self.docs = docs # HF dataset split, provided by task._fewshot_docs()
-        if fewshot_indices: # subset few-shot docs from 
+        self.docs = docs  # HF dataset split, provided by task._fewshot_docs()
+        if fewshot_indices:  # subset few-shot docs from
             self.docs = self.docs.select(fewshot_indices)
-
 
     def get_context(self, doc, num_fewshot):
 
-        # draw an extra fewshot sample if using same split as evaluting on
-        n_samples = num_fewshot + 1 if self.config.fewshot_split == self.config.test_split else num_fewshot 
+        # draw an extra fewshot sample if using same split as evaluating on
+        n_samples = (
+            num_fewshot + 1
+            if self.config.fewshot_split == self.config.test_split
+            else num_fewshot
+        )
 
         # draw `n_samples` docs from fewshot_docs
         fewshotex = self.sample(n_samples)
@@ -28,16 +28,16 @@ class Sampler:
         # get rid of the doc that's the one we're evaluating, if it's in the fewshot
         # TODO: should we just stop people from using fewshot from same split as evaluating?
         selected_docs = [x for x in fewshotex if x != doc][:num_fewshot]
-        
+
         labeled_examples = (
-                self.delimiter.join(
-                    [
-                        self.task.doc_to_text(doc) + self.task.doc_to_target(doc)
-                        for doc in selected_docs
-                    ]
-                )
-                + self.delimiter
+            self.delimiter.join(
+                [
+                    self.task.doc_to_text(doc) + self.task.doc_to_target(doc)
+                    for doc in selected_docs
+                ]
             )
+            + self.delimiter
+        )
 
         # only returns the fewshot context! Does not append the document, do this outside the object
         return labeled_examples
@@ -51,25 +51,22 @@ class Sampler:
 
 
 class BalancedSampler(Sampler):
-
     def sample(self, n):
         """
-        TODO: this should return approximately class-balanced samples from our fewshot examples. 
+        TODO: this should return approximately class-balanced samples from our fewshot examples.
         TODO: what order should they be in? maybe random?
         """
 
         pass
 
+
 class ManualSampler(Sampler):
-
     def sample(self, n):
-        """
-
-        """
-        pass 
+        """ """
+        pass
 
 
-# TODO: how should we do design here? might be better to have a single sampler and pass more kwargs at init. 
+# TODO: how should we do design here? might be better to have a single sampler and pass more kwargs at init.
 # Depends what's easier for new user to add own functionality on top of
 
 # types of sampler:

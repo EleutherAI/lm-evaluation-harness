@@ -45,7 +45,7 @@ python main.py \
     --device cuda:0
 ```
 
-Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partialy trained checkpoints:
+Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partially trained checkpoints:
 
 ```bash
 python main.py \
@@ -64,8 +64,8 @@ To use with [PEFT](https://github.com/huggingface/peft), take the call you would
 python main.py \
     --model hf-causal \
     --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
-    --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \ 
-    --device cuda:0 
+    --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
+    --device cuda:0
 ```
 
 Our library also supports the OpenAI API:
@@ -78,7 +78,7 @@ python main.py \
     --tasks lambada_openai,hellaswag
 ```
 
-While this functionality is only officially mantained for the official OpenAI API, it tends to also work for other hosting services that use the same API such as [goose.ai](goose.ai) with minor modification. We also have an implementation for the [TextSynth](https://textsynth.com/index.html) API, using `--model textsynth`.
+While this functionality is only officially maintained for the official OpenAI API, it tends to also work for other hosting services that use the same API such as [goose.ai](goose.ai) with minor modification. We also have an implementation for the [TextSynth](https://textsynth.com/index.html) API, using `--model textsynth`.
 
 To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
 
@@ -129,7 +129,7 @@ When reporting eval harness results, please also report the version of each task
 
 ## Test Set Decontamination
 
-To address concerns about train / test contamination, we provide utilities for comparing results on a benchmark using only the data points nto found in the model trainign set. Unfortunately, outside of models trained on the Pile ans C4, its very rare that people who train models disclose the contents of the training data. However this utility can be useful to evaluate models you have trained on private data, provided you are willing to pre-compute the necessary indices. We provide computed indices for 13-gram exact match deduplication against the Pile, and plan to add additional precomputed dataset indices in the future (including C4 and min-hash LSH deduplication).
+To address concerns about train / test contamination, we provide utilities for comparing results on a benchmark using only the data points nto found in the model trainign set. Unfortunately, outside of models trained on the Pile and C4, its very rare that people who train models disclose the contents of the training data. However this utility can be useful to evaluate models you have trained on private data, provided you are willing to pre-compute the necessary indices. We provide computed indices for 13-gram exact match deduplication against the Pile, and plan to add additional precomputed dataset indices in the future (including C4 and min-hash LSH deduplication).
 
 For details on text decontamination, see the [decontamination guide](./docs/decontamination.md).
 
