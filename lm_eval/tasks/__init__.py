@@ -50,7 +50,6 @@ from . import blimp
 from . import asdiv
 from . import gsm8k
 from . import storycloze
-<<<<<<< HEAD
 from . import kobest
 from . import nsmc
 from . import klue
@@ -58,7 +57,6 @@ from . import ko_translation
 from . import korquad
 from . import korunsmile
 from . import kohatespeech
-=======
 from . import toxigen
 from . import crowspairs
 from . import json
@@ -69,7 +67,6 @@ from . import xwinograd
 from . import pawsx
 from . import xnli
 from . import mgsm
->>>>>>> 84ef60eeb3c04bcabd11adfaed26a88a33a5ad9c
 
 ########################################
 # Translation tasks
