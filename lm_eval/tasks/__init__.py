@@ -42,8 +42,12 @@ for root, subdirs, file_list in os.walk(task_dir):
                     if "group" in config:
                         for group in config["group"]:
                             register_group(group)(SubClass)
-                except Exception as err:
-                    print(f"Unexpected {err=}, {type(err)=}")
+                except Exception:
+                    eval_logger.warning(
+                        "Failed to load config at in\n"
+                        f"                                 {yaml_path}\n"
+                        "                                 Config will not be added to registry"
+                    )
 
 TASK_REGISTRY = task_registry
 GROUP_REGISTRY = group_registry
