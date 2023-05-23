@@ -6,10 +6,12 @@ from tqdm import tqdm
 import torch.nn.functional as F
 
 from lm_eval import utils
+from lm_eval.logger import eval_logger
 from lm_eval.api.model import LM, register_model
 
 from accelerate import Accelerator
 from itertools import islice
+
 
 @register_model("hf-causal", "gpt2")
 class HFLM(LM):
@@ -28,10 +30,10 @@ class HFLM(LM):
         assert isinstance(device, str)
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
-        
+
         gpus = torch.cuda.device_count()
         if gpus <= 1:
-            if device:  
+            if device:
                 if device not in ["cuda", "cpu"]:
                     device = int(device)
                 self._device = torch.device(device)
@@ -48,7 +50,7 @@ class HFLM(LM):
             self._world_size = 1
 
         else:
-            self._device = 'cpu'
+            self._device = "cpu"
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
@@ -72,10 +74,12 @@ class HFLM(LM):
         if gpus > 1:
             accelerator = Accelerator()
             if gpus > accelerator.num_processes:
-                warning = ("WARNING: The number of total system GPUs does not match the number of spawned processes. " 
-                      "If you would like to use data parallelism, please launch the script "
-                      "with 'accelerate launch *script*'. " 
-                        f"Current run will proceed with {accelerator.num_processes} devices.")
+                warning = (
+                    "WARNING: The number of total system GPUs does not match the number of spawned processes. "
+                    "If you would like to use data parallelism, please launch the script "
+                    "with 'accelerate launch *script*'. "
+                    f"Current run will proceed with {accelerator.num_processes} devices."
+                )
                 print(warning)
                 self._rank = accelerator.local_process_index
                 self._world_size = accelerator.num_processes
@@ -90,7 +94,6 @@ class HFLM(LM):
 
                 self._rank = self.accelerator.local_process_index
                 self._world_size = self.accelerator.num_processes
-            
 
     @property
     def eot_token_id(self):
@@ -100,14 +103,16 @@ class HFLM(LM):
     @property
     def max_length(self):
         try:
-            if hasattr(self, 'accelerator'):
+            if hasattr(self, "accelerator"):
                 return self.accelerator.unwrap_model(self.gpt2).config.n_ctx
             else:
                 return self.gpt2.config.n_ctx
         except AttributeError:
             # gptneoconfig doesn't have n_ctx apparently
-            if hasattr(self, 'accelerator'):
-                return self.accelerator.unwrap_model(self.gpt2).config.max_position_embeddings
+            if hasattr(self, "accelerator"):
+                return self.accelerator.unwrap_model(
+                    self.gpt2
+                ).config.max_position_embeddings
             else:
                 return self.gpt2.config.max_position_embeddings
 
@@ -122,7 +127,7 @@ class HFLM(LM):
     @property
     def device(self):
         return self._device
-    
+
     @property
     def rank(self):
         return self._rank
@@ -150,7 +155,11 @@ class HFLM(LM):
 
     def _model_generate(self, context, max_length, eos_token_id):
         return self.gpt2.generate(
-            context, max_length=max_length, pad_token_id=eos_token_id, eos_token_id=eos_token_id, do_sample=False
+            context,
+            max_length=max_length,
+            pad_token_id=eos_token_id,
+            eos_token_id=eos_token_id,
+            do_sample=False,
         )
 
     def loglikelihood(self, requests):
@@ -173,7 +182,7 @@ class HFLM(LM):
         # TODO: automatic batch size detection for vectorization
 
         loglikelihoods = []
-        for (string,) in tqdm([req.args for req in requests],disable=(self.rank != 0)):
+        for (string,) in tqdm([req.args for req in requests], disable=(self.rank != 0)):
             rolling_token_windows = list(
                 map(
                     utils.make_disjoint_window,
@@ -185,22 +194,24 @@ class HFLM(LM):
                     ),
                 )
             )
-            
+
             rolling_token_windows = [(None,) + x for x in rolling_token_windows]
 
             # TODO: extract out this call so it only gets called once and also somehow figure out partial caching for
             # that
-            
-            pad_amnt = 0 
+
+            pad_amnt = 0
             if self.world_size > 1:
-                #TODO: Comment on what we do here
-                mytensor = torch.tensor(len(rolling_token_windows), device = self.device)
-                gathered = self.accelerator.gather(mytensor).cpu().detach().numpy().tolist()
+                # TODO: Comment on what we do here
+                mytensor = torch.tensor(len(rolling_token_windows), device=self.device)
+                gathered = (
+                    self.accelerator.gather(mytensor).cpu().detach().numpy().tolist()
+                )
 
                 pad_amnt = max(gathered) - gathered[self.rank]
                 if pad_amnt > 0:
-                    rolling_token_windows += pad_amnt*[rolling_token_windows[0]]
-            
+                    rolling_token_windows += pad_amnt * [rolling_token_windows[0]]
+
             string_nll = self._loglikelihood_tokens(
                 rolling_token_windows, disable_tqdm=True
             )
@@ -210,10 +221,9 @@ class HFLM(LM):
             else:
                 # discard is_greedy
                 string_nll = [x[0] for x in string_nll]
-                
+
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
-        
 
         return loglikelihoods
 
@@ -235,9 +245,10 @@ class HFLM(LM):
         # TODO: automatic (variable) batch size detection for vectorization
         re_ord = utils.Reorderer(requests, _collate)
         for chunk in utils.chunks(
-            tqdm(re_ord.get_reordered(), disable=(disable_tqdm or (self.rank != 0))), self.batch_size
-        ): 
-            
+            tqdm(re_ord.get_reordered(), disable=(disable_tqdm or (self.rank != 0))),
+            self.batch_size,
+        ):
+
             inps = []
             cont_toks_list = []
             inplens = []

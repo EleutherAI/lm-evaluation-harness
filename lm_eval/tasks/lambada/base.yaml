@@ -1,5 +1,4 @@
-names:
-  - lambada_openai_yaml
+task: lambada_openai_yaml
 dataset_path: EleutherAI/lambada_openai
 dataset_name: default
 output_type: loglikelihood

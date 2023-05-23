@@ -10,12 +10,28 @@ import evaluate
 
 
 AGGREGATION_REGISTRY = {}
+
 METRIC_REGISTRY = {
     "acc": None,
     "acc_norm": None,
     "acc_mutual_info": None,
     "word_perplexity": None,
     "byte_perplexity": None,
+}
+
+HIGHER_IS_BETTER_REGISTRY = {
+    "matthews_corrcoef": True,
+    "f1_score": True,
+    "perplexity": False,
+    "bleu": True,
+    "chrf": True,
+    "ter": False,
+    "acc": True,
+    "acc_norm": True,
+    "acc_mutual_info": True,
+    "word_perplexity": False,
+    "byte_perplexity": False,
+    "bits_per_byte": False,
 }
 
 
@@ -28,7 +44,7 @@ def register_metric(name):
 
         METRIC_REGISTRY[name] = fn
         return fn
-    
+
     return decorate
 
 
@@ -38,12 +54,14 @@ def get_metric(name):
         return METRIC_REGISTRY[name]
     except KeyError:
         # TODO: change this print to logging?
-        print(f"Could not find registered metric '{name}' in lm-eval, \
-searching in HF Evaluate library...")
+        print(
+            f"Could not find registered metric '{name}' in lm-eval, \
+searching in HF Evaluate library..."
+        )
         try:
             metric_object = evaluate.load(name)
             return metric_object.compute
-        except:
+        except Exception:
             raise Warning(
                 "{} not found in the evaluate library!".format(name),
                 "Please check https://huggingface.co/evaluate-metric",
@@ -59,7 +77,7 @@ def register_aggregation(name):
 
         AGGREGATION_REGISTRY[name] = fn
         return fn
-    
+
     return decorate
 
 

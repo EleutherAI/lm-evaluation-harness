@@ -12,6 +12,7 @@ repos:
       - id: check-merge-conflict
       - id: check-symlinks
       - id: check-yaml
+        args: ['--unsafe']
       - id: destroyed-symlinks
       - id: detect-private-key
       - id: end-of-file-fixer

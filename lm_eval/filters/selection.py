@@ -1,7 +1,7 @@
 from lm_eval.api.filter import Filter
 
-class TakeFirstFilter:
 
+class TakeFirstFilter:
     def __init__(self):
         """
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
