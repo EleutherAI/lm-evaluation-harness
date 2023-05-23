@@ -42,8 +42,8 @@ _HOMEPAGE = "https://pile.eleuther.ai/"
 _LICENSE = ""
 
 _URLS = {
-    "validation": "http://eaidata.bmk.sh/data/pile/val.jsonl.zst",
-    "test": "http://eaidata.bmk.sh/data/pile/test.jsonl.zst",
+    "validation": "https://the-eye.eu/public/AI/pile/val.jsonl.zst",
+    "test": "https://the-eye.eu/public/AI/pile/test.jsonl.zst",
 }
 
 _NAMES = {
@@ -103,10 +103,7 @@ class Pile(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": data_dir["test"],
-                    "split": "test"
-                },
+                gen_kwargs={"filepath": data_dir["test"], "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,

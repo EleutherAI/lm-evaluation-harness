@@ -7,8 +7,6 @@ problem in natural language.
 
 Homepage: https://github.com/openai/gpt-3/tree/master/data
 """
-import inspect
-import lm_eval.datasets.arithmetic.arithmetic
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 
@@ -30,7 +28,7 @@ _CITATION = """
 
 class Arithmetic(Task):
     VERSION = 0
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.arithmetic.arithmetic)
+    DATASET_PATH = "EleutherAI/arithmetic"
 
     def has_training_docs(self):
         return False
@@ -49,8 +47,14 @@ class Arithmetic(Task):
 
     def test_docs(self):
         return NotImplemented
-    
+
     def doc_to_text(self, doc):
+        return doc["context"]
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
         return doc["context"]
 
     def doc_to_target(self, doc):
@@ -61,10 +65,8 @@ class Arithmetic(Task):
         return is_prediction
 
     def process_results(self, doc, results):
-        is_prediction, = results
-        return {
-            "acc": is_prediction
-        }
+        (is_prediction,) = results
+        return {"acc": is_prediction}
 
     def aggregation(self):
         return {
@@ -72,9 +74,7 @@ class Arithmetic(Task):
         }
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}
 
 
 class Arithmetic2DPlus(Arithmetic):

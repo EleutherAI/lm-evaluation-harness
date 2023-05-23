@@ -1,0 +1,47 @@
+{
+  "results": {
+    "xwinograd_fr": {
+      "acc": 0.5903614457831325,
+      "acc_stderr": 0.05430658329539147
+    },
+    "xwinograd_en": {
+      "acc": 0.7561290322580645,
+      "acc_stderr": 0.008907584394182084
+    },
+    "xwinograd_zh": {
+      "acc": 0.7162698412698413,
+      "acc_stderr": 0.02010051064884106
+    },
+    "xwinograd_ru": {
+      "acc": 0.6285714285714286,
+      "acc_stderr": 0.027267803028895015
+    },
+    "xwinograd_jp": {
+      "acc": 0.6465067778936392,
+      "acc_stderr": 0.015445228301221376
+    },
+    "xwinograd_pt": {
+      "acc": 0.6615969581749049,
+      "acc_stderr": 0.02923231657730264
+    }
+  },
+  "versions": {
+    "xwinograd_fr": 0,
+    "xwinograd_en": 0,
+    "xwinograd_zh": 0,
+    "xwinograd_ru": 0,
+    "xwinograd_jp": 0,
+    "xwinograd_pt": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=facebook/xglm-2.9B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}
