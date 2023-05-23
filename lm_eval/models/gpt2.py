@@ -6,10 +6,12 @@ from tqdm import tqdm
 import torch.nn.functional as F
 
 from lm_eval import utils
+from lm_eval.logger import eval_logger
 from lm_eval.api.model import LM, register_model
 
 from accelerate import Accelerator
 from itertools import islice
+
 
 @register_model("hf-causal", "gpt2")
 class HFLM(LM):
@@ -28,10 +30,10 @@ class HFLM(LM):
         assert isinstance(device, str)
         assert isinstance(pretrained, str)
         assert isinstance(batch_size, int)
-        
+
         gpus = torch.cuda.device_count()
         if gpus <= 1:
-            if device:  
+            if device:
                 if device not in ["cuda", "cpu"]:
                     device = int(device)
                 self._device = torch.device(device)
@@ -48,7 +50,7 @@ class HFLM(LM):
             self._world_size = 1
 
         else:
-            self._device = 'cpu'
+            self._device = "cpu"
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
@@ -72,14 +74,16 @@ class HFLM(LM):
         if gpus > 1:
             accelerator = Accelerator(device_placement=False)
             if gpus > accelerator.num_processes:
-                warning = ("WARNING: The number of total GPUs does not match the number of spawned processes. " 
-                      "If you would like to use data parallelism, please launch the script "
-                      "with 'accelerate launch *script*'. " 
-                        "Current run will proceed with single device.")
+                warning = (
+                    "WARNING: The number of total GPUs does not match the number of spawned processes. "
+                    "If you would like to use data parallelism, please launch the script "
+                    "with 'accelerate launch *script*'. "
+                    "Current run will proceed with single device."
+                )
                 print(warning)
                 self._rank = 0
                 self._world_size = 1
-            
+
             else:
                 self.gpt2 = accelerator.prepare(self.gpt2)
                 self._device = torch.device(f"cuda:{accelerator.local_process_index}")
@@ -90,7 +94,6 @@ class HFLM(LM):
 
                 self._rank = self.accelerator.local_process_index
                 self._world_size = self.accelerator.num_processes
-            
 
     @property
     def eot_token_id(self):
@@ -116,7 +119,7 @@ class HFLM(LM):
     @property
     def device(self):
         return self._device
-    
+
     @property
     def rank(self):
         return self._rank
@@ -144,7 +147,11 @@ class HFLM(LM):
 
     def _model_generate(self, context, max_length, eos_token_id):
         return self.gpt2.generate(
-            context, max_length=max_length, pad_token_id=eos_token_id, eos_token_id=eos_token_id, do_sample=False
+            context,
+            max_length=max_length,
+            pad_token_id=eos_token_id,
+            eos_token_id=eos_token_id,
+            do_sample=False,
         )
 
     def loglikelihood(self, requests):
@@ -168,11 +175,11 @@ class HFLM(LM):
 
         extra_pad = []
         numpad_batches = 0
-        
+
         if self.world_size > 1:
             cumulative_batches = 0  # balance token batches among iterators
-            # compute cumlative batches seen per host
-            for (string,) in tqdm([req.args for req in requests],disable=True):
+            # compute cumulative batches seen per host
+            for (string,) in tqdm([req.args for req in requests], disable=True):
                 rolling_token_windows = list(
                     map(
                         utils.make_disjoint_window,
@@ -188,30 +195,42 @@ class HFLM(LM):
                 rolling_token_windows = [(None,) + x for x in rolling_token_windows]
                 cumulative_batches += len(rolling_token_windows)
 
-            cumul_batches_ranks = torch.tensor(cumulative_batches, device = self.device)
-            gathered_item = self.accelerator.gather(cumul_batches_ranks).cpu().detach().numpy().tolist()
+            cumul_batches_ranks = torch.tensor(cumulative_batches, device=self.device)
+            gathered_item = (
+                self.accelerator.gather(cumul_batches_ranks)
+                .cpu()
+                .detach()
+                .numpy()
+                .tolist()
+            )
 
             # compute number of pseudobatches to pad with (FSDP/DDP require even batches among ranks)
             numpad_batches = max(gathered_item) - gathered_item[self.rank]
 
-            # pad iterators with a pseudodocument 
-            extra_pad = [('pad',)] if max(gathered_item) - min(gathered_item) > 0 else []
+            # pad iterators with a pseudodocument
+            extra_pad = (
+                [("pad",)] if max(gathered_item) - min(gathered_item) > 0 else []
+            )
 
         loglikelihoods = []
-        for (string,) in tqdm(extra_pad + [req.args for req in requests],disable=(self.rank != 0)):
+        for (string,) in tqdm(
+            extra_pad + [req.args for req in requests], disable=(self.rank != 0)
+        ):
             if numpad_batches > 0:
                 rolling_token_windows = list(
                     map(
                         utils.make_disjoint_window,
                         utils.get_rolling_token_windows(
-                            token_list=[self.eot_token_id]*self.max_length*numpad_batches,
+                            token_list=[self.eot_token_id]
+                            * self.max_length
+                            * numpad_batches,
                             prefix_token=self.eot_token_id,
                             max_seq_len=self.max_length,
                             context_len=1,
                         ),
                     )
                 )
-                
+
             else:
                 rolling_token_windows = list(
                     map(
@@ -233,8 +252,8 @@ class HFLM(LM):
                 rolling_token_windows, disable_tqdm=True
             )
 
-            if (numpad_batches > 0) or (string == 'pad'):
-                numpad_batches = 0 
+            if (numpad_batches > 0) or (string == "pad"):
+                numpad_batches = 0
 
             else:
                 # discard is_greedy
@@ -242,7 +261,6 @@ class HFLM(LM):
 
                 string_nll = sum(string_nll)
                 loglikelihoods.append(string_nll)
-        
 
         return loglikelihoods
 
@@ -264,7 +282,8 @@ class HFLM(LM):
         # TODO: automatic (variable) batch size detection for vectorization
         re_ord = utils.Reorderer(requests, _collate)
         for chunk in utils.chunks(
-            tqdm(re_ord.get_reordered(), disable=(disable_tqdm or (self.rank != 0))), self.batch_size
+            tqdm(re_ord.get_reordered(), disable=(disable_tqdm or (self.rank != 0))),
+            self.batch_size,
         ):
             inps = []
             cont_toks_list = []

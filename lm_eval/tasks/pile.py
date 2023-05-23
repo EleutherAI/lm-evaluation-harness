@@ -10,8 +10,9 @@ math, computer science, and philosophy papers.
 Homepage: https://pile.eleuther.ai/
 """
 
-from lm_eval.api.task import PerplexityTask, register_task
+from lm_eval.api.task import PerplexityTask
 
+from lm_eval.api.register import register_task, register_group
 
 _CITATION = """
 @article{pile,
@@ -34,7 +35,7 @@ class PilePerplexityTask(PerplexityTask):
     def test_docs(self):
         for doc in self.dataset["train"].select(range(100)):
             yield doc
-    
+
     def has_validation_docs(self):
         return False
 
