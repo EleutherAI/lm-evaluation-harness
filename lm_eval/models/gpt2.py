@@ -72,7 +72,6 @@ class HFLM(LM):
 
         # multigpu support with accelerate
         if gpus > 1:
-            # accelerator = Accelerator(device_placement=False)
             accelerator = Accelerator()
             if gpus > accelerator.num_processes:
                 warning = (
@@ -82,9 +81,9 @@ class HFLM(LM):
                     f"Current run will proceed with {accelerator.num_processes} devices."
                 )
                 print(warning)
-                self._rank = self.accelerator.local_process_index
-                self._world_size = self.accelerator.num_processes
-
+                self._rank = accelerator.local_process_index
+                self._world_size = accelerator.num_processes
+            
             else:
                 self.gpt2 = accelerator.prepare(self.gpt2)
                 self._device = torch.device(f"cuda:{accelerator.local_process_index}")
