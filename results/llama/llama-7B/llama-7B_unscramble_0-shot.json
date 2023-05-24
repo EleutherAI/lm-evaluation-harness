@@ -1,0 +1,42 @@
+{
+  "results": {
+    "anagrams1": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "anagrams2": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "cycle_letters": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "random_insertion": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "reversed_words": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    }
+  },
+  "versions": {
+    "anagrams1": 0,
+    "anagrams2": 0,
+    "cycle_letters": 0,
+    "random_insertion": 0,
+    "reversed_words": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/7B",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

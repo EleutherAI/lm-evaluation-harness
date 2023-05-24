@@ -54,14 +54,20 @@ class WebQs(Task):
         return self.dataset["test"]
 
     def doc_to_text(self, doc):
-        return "Question: " + doc['question'] + '\nAnswer:'
+        return "Question: " + doc["question"] + "\nAnswer:"
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["question"]
 
     def doc_to_target(self, doc):
-        # this picks one answer to be the "correct" one, despite sometimes 
+        # this picks one answer to be the "correct" one, despite sometimes
         # multiple correct answers being possible.
         # TODO: make sure we're actually handling multi-answer correctly
-        return " " + doc['answers'][0]
-        
+        return " " + doc["answers"][0]
+
     def _remove_prefixes(self, aliases):
         # Optimization: Remove any alias that has a strict prefix elsewhere in the list
         # we can do this because if the prefix is acceptable by isgreedy, we can stop looking
@@ -75,15 +81,13 @@ class WebQs(Task):
 
     def construct_requests(self, doc, ctx):
         ret = []
-        for alias in self._remove_prefixes(doc['answers']):
+        for alias in self._remove_prefixes(doc["answers"]):
             _, is_prediction = rf.loglikelihood(ctx, " " + alias)
             ret.append(is_prediction)
         return ret
 
     def process_results(self, doc, results):
-        return {
-            "acc": float(any(results))
-        }
+        return {"acc": float(any(results))}
 
     def aggregation(self):
         return {
@@ -91,6 +95,4 @@ class WebQs(Task):
         }
 
     def higher_is_better(self):
-        return {
-            "acc": True
-        }
+        return {"acc": True}

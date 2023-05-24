@@ -27,25 +27,33 @@ from scripts.clean_training_data.archiver import TextReader, TextArchive
 
 import logging
 from tqdm_multiprocess.logger import setup_logger_tqdm
+
 logger = logging.getLogger(__name__)
 
-# Multiprocessed
-def process_bucket(bucket_file_path, processed_directory, move_dir, tqdm_func, global_tqdm):  
 
-    bucket_id = re.sub("\D", "", os.path.basename(bucket_file_path))
-    done_file = os.path.join(processed_directory, f"ngram_bucket_processing_{bucket_id}.done")
+# Multiprocessed
+def process_bucket(
+    bucket_file_path, processed_directory, move_dir, tqdm_func, global_tqdm
+):
+
+    bucket_id = re.sub("\D", "", os.path.basename(bucket_file_path))  # noqa: W605
+    done_file = os.path.join(
+        processed_directory, f"ngram_bucket_processing_{bucket_id}.done"
+    )
     if os.path.exists(done_file):
         logger.info(f"bucket {bucket_id} already processed, skipping")
         return
 
     # For managing tqdm
     file_size = os.path.getsize(bucket_file_path)
-    bucket_progress = tqdm_func(total=file_size, dynamic_ncols=True, unit="byte", unit_scale=1)
+    bucket_progress = tqdm_func(
+        total=file_size, dynamic_ncols=True, unit="byte", unit_scale=1
+    )
     current_file_position = 0
-    update_frequency = 100 * 1000000 # 100mb
+    update_frequency = 100 * 1000000  # 100mb
     update_counter = 0
 
-    # Iterate through and output ngrams which occur in more then 10 documents 
+    # Iterate through and output ngrams which occur in more then 10 documents
     bucket = TextReader(bucket_file_path)
 
     output_file_path = bucket_file_path + ".processed"
@@ -56,10 +64,12 @@ def process_bucket(bucket_file_path, processed_directory, move_dir, tqdm_func, g
     for line in bucket.read():
         [ngram, document_id] = line.rsplit(" ", 1)
 
-        # Write ngram if more then 10 unique document occurences
+        # Write ngram if more then 10 unique document occurrences
         if ngram != current_ngram:
             if len(current_ngram_document_ids) > 10:
-                output_archive.add_data(f"{current_ngram} {len(current_ngram_document_ids)}")
+                output_archive.add_data(
+                    f"{current_ngram} {len(current_ngram_document_ids)}"
+                )
             current_ngram = ngram
             current_ngram_document_ids = set()
 
@@ -84,25 +94,35 @@ def process_bucket(bucket_file_path, processed_directory, move_dir, tqdm_func, g
 
     global_tqdm.update()
 
+
 def process_sorted_buckets(working_directory, move_dir, process_count):
     bucket_file_paths = glob.glob(os.path.join(working_directory, f"*.bkt.txt.sorted"))
     processed_directory = os.path.join(working_directory, "processed")
     os.makedirs(processed_directory, exist_ok=True)
 
-    pool = TqdmMultiProcessPool(process_count) 
-    tasks = [(process_bucket, (bucket_file, processed_directory, move_dir)) for bucket_file in bucket_file_paths]
+    pool = TqdmMultiProcessPool(process_count)
+    tasks = [
+        (process_bucket, (bucket_file, processed_directory, move_dir))
+        for bucket_file in bucket_file_paths
+    ]
 
     global_tqdm = tqdm(total=len(bucket_file_paths), dynamic_ncols=True, unit="bucket")
-    on_done = lambda _ : None
-    on_error = lambda _ : None
+
+    def on_done(_):
+        return None
+
+    def on_error(_):
+        return None
+
     _ = pool.map(global_tqdm, tasks, on_error, on_done)
 
-parser = argparse.ArgumentParser(description='Process 13 grams from sorted buckets.')
+
+parser = argparse.ArgumentParser(description="Process 13 grams from sorted buckets.")
 parser.add_argument("-dir", "--working_directory", default="")
 parser.add_argument("-move", "--move_dir", default="")
 parser.add_argument("-procs", "--process_count", type=int, default=4)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     logfile_path = "process13grams.log"
     setup_logger_tqdm(logfile_path)

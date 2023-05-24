@@ -17,7 +17,7 @@ from lm_eval.base import MultipleChoiceTask
 
 _CITATION = """
 @misc{liu2020logiqa,
-    title={LogiQA: A Challenge Dataset for Machine Reading Comprehension with Logical Reasoning}, 
+    title={LogiQA: A Challenge Dataset for Machine Reading Comprehension with Logical Reasoning},
     author={Jian Liu and Leyang Cui and Hanmeng Liu and Dandan Huang and Yile Wang and Yue Zhang},
     year={2020},
     eprint={2007.08124},
@@ -55,14 +55,14 @@ class LogiQA(MultipleChoiceTask):
     def _process_doc(self, doc):
         def format_example(doc, choices):
             """
-                Passage: <passage>
-                Question: <question>
-                Choices:
-                A. <choice1>
-                B. <choice2>
-                C. <choice3>
-                D. <choice4>
-                Answer:
+            Passage: <passage>
+            Question: <question>
+            Choices:
+            A. <choice1>
+            B. <choice2>
+            C. <choice3>
+            D. <choice4>
+            Answer:
             """
             prompt = "Passage: " + doc["context"] + "\n"
             prompt += "Question: " + doc["question"] + "\nChoices:\n"
@@ -70,12 +70,20 @@ class LogiQA(MultipleChoiceTask):
                 prompt += f"{choice.upper()}. {option}\n"
             prompt += "Answer:"
             return prompt
-        choices = ['a', 'b', 'c', 'd']
+
+        choices = ["a", "b", "c", "d"]
         return {
+            "passage": doc["context"],  # Used for decontamination
             "query": format_example(doc, choices),
             "choices": doc["options"],
-            "gold": choices.index(doc["label"])
+            "gold": choices.index(doc["label"]),
         }
 
     def doc_to_text(self, doc):
         return doc["query"]
+
+    def should_decontaminate(self):
+        return True
+
+    def doc_to_decontamination_query(self, doc):
+        return doc["passage"]
