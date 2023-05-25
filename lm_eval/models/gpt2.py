@@ -1,7 +1,19 @@
 import torch
 import transformers
-from typing import Optional
+from typing import Optional, Union
 from lm_eval.base import BaseLM
+
+
+def _get_dtype(
+    dtype: Union[str, torch.dtype]
+) -> torch.dtype:
+    """Converts `dtype` from `str` to torch.dtype when possible. Does not use an instantiated HF AutoConfig"""
+    if isinstance(dtype, str) and dtype != "auto":
+        # Convert `str` args torch dtype: `float16` -> `torch.float16`
+        _torch_dtype = getattr(torch, dtype)
+    else:
+        _torch_dtype = dtype
+    return _torch_dtype
 
 
 class HFLM(BaseLM):
@@ -16,6 +28,7 @@ class HFLM(BaseLM):
         batch_size=1,
         load_in_8bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = False,
+        dtype: Optional[Union[str, torch.dtype]]="auto",
     ):
         super().__init__()
 
@@ -46,6 +59,7 @@ class HFLM(BaseLM):
             load_in_8bit=load_in_8bit,
             low_cpu_mem_usage=low_cpu_mem_usage,
             revision=revision,
+            torch_dtype=_get_dtype(dtype),
             trust_remote_code=trust_remote_code,
         ).to(self.device)
         self.gpt2.eval()
