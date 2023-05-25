@@ -70,7 +70,7 @@ class HuggingFaceAutoLM(BaseLM):
     def __init__(
         self,
         pretrained: str,
-        quantized: Optional[str] = None,
+        quantized: Optional[Union[True, str]] = None,
         tokenizer: Optional[str] = None,
         subfolder: Optional[str] = None,
         revision: Optional[str] = "main",
@@ -95,8 +95,9 @@ class HuggingFaceAutoLM(BaseLM):
                 The HuggingFace Hub model ID name or the path to a pre-trained
                 model to load. This is effectively the `pretrained_model_name_or_path`
                 argument of `from_pretrained` in the HuggingFace `transformers` API.
-            quantized (str, optional, defaults to None):
-                File name of a GPTQ model to load.
+            quantized (str or True, optional, defaults to None):
+                File name of a GPTQ quantized model to load. Set to `True` to use the
+                default name of the quantized model.
             add_special_tokens (bool, optional, defaults to True):
                 Whether to add special tokens to the input sequences. If `None`, the
                 default value will be set to `True` for seq2seq models (e.g. T5) and
@@ -229,7 +230,7 @@ class HuggingFaceAutoLM(BaseLM):
         self,
         *,
         pretrained: str,
-        quantized: Optional[str] = None,
+        quantized: Optional[Union[True, str]] = None,
         revision: str,
         subfolder: str,
         device_map: Optional[Union[str, _DeviceMapping]] = None,
@@ -255,11 +256,11 @@ class HuggingFaceAutoLM(BaseLM):
             from auto_gptq import AutoGPTQForCausalLM
             model = AutoGPTQForCausalLM.from_quantized(
                 pretrained,
-                model_basename=Path(quantized).stem,
+                model_basename=None if quantized == True else Path(quantized).stem,
                 device_map=device_map,
                 max_memory=max_memory,
                 trust_remote_code=trust_remote_code,
-                use_safetensors=quantized.endswith('.safetensors'),
+                use_safetensors=True if quantized == True else quantized.endswith('.safetensors'),
                 use_triton=True,
             )
         return model
