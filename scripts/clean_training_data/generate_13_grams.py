@@ -40,23 +40,27 @@ logger = logging.getLogger(__name__)
 pile_document_count = 210607728
 
 terminate = False
+
 def handler(signal_received, frame):
     global terminate
     terminate = True
 
 def get_pile(directory):
-    reader = Reader()
-    for file in glob.glob(os.path.join(directory, f"*.jsonl.zst*")):
-        for document in reader.read(file):
-            yield document
+    # reader = Reader()
+    # for file in glob.glob(os.path.join(directory, f"*.jsonl.zst*")):
+    for dir in os.listdir(directory):
+        for file in glob.glob(os.path.join(directory + dir, f"*.jsonl")):
+            for document in open(file).read():
+            # for document in reader.read(file):
+                yield document
 
 def close_buckets(buckets):
     for bucket in buckets:
         bucket.commit()
 
-def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
+def do_ngrams_in_buckets(n_value, working_directory, sdir, bucket_count):
 
-    output_directory = os.path.join(working_directory, "output")
+    output_directory = os.path.join(sdir, "output")
     os.makedirs(output_directory, exist_ok=True)
 
     logger.info(f"Generating {n_value}-grams and bucketing.")
@@ -116,6 +120,7 @@ def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
 
 parser = argparse.ArgumentParser(description='Generate 13 grams from Pile.')
 parser.add_argument("-dir", "--working_directory", default="")
+parser.add_argument("-sdir", "--save_directory", default="")
 parser.add_argument("-n", "--n_value", type=int, default=13)
 parser.add_argument("-buckets", "--bucket_count", type=int, default=500)
 
@@ -128,4 +133,4 @@ if __name__ == '__main__':
     setup_logger_tqdm(logfile_path)
 
     args = parser.parse_args()
-    do_ngrams_in_buckets(args.n_value, args.working_directory, args.bucket_count)
+    do_ngrams_in_buckets(args.n_value, args.working_directory, args.save_directory , args.bucket_count)
