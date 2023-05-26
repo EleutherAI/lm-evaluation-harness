@@ -29,6 +29,12 @@ To install additional multilingual tokenization and text segmentation packages, 
 pip install -e ".[multilingual]"
 ```
 
+To support loading GPTQ quantized models, install the package with the `auto-gptq` extra:
+
+```bash
+pip install -e ".[auto-gptq]"
+```
+
 ## Basic Usage
 
 > **Note**: When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility. This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](#task-versioning) section for more info.
@@ -111,12 +117,12 @@ python main.py \
     --device cuda:0
 ```
 
-GPTQ quantized models can be loaded by installing [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ) with `pip install auto-gptq[triton]` and specifying their file names in `,quantized=NAME` (or `,quantized=True` for default names) in the `model_args` argument:
+GPTQ quantized models can be loaded by specifying their file names in `,quantized=NAME` (or `,quantized=True` for default names) in the `model_args` argument:
 
 ```bash
 python main.py \
     --model hf-causal-experimental \
-    --model_args pretrained=model-name-or-path,quantized=model.safetensors \
+    --model_args pretrained=model-name-or-path,quantized=model.safetensors,gptq_use_triton=True \
     --tasks hellaswag
 ```
 
