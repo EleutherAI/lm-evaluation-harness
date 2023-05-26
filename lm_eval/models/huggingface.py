@@ -88,6 +88,7 @@ class HuggingFaceAutoLM(BaseLM):
         peft: str = None,
         load_in_8bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = False,
+        gptq_use_triton: Optional[bool] = False,
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -144,6 +145,8 @@ class HuggingFaceAutoLM(BaseLM):
                 https://huggingface.co/docs/transformers/main/en/main_classes/model#transformers.PreTrainedModel.from_pretrained.load_in_8bit
             trust_remote_code (bool, optional, defaults to False):
                 If True, will trust the remote code when loading the model.
+            gptq_use_triton (bool, optional, defaults to False):
+                Use Triton for GPTQ inference.
         """
         super().__init__()
 
@@ -202,6 +205,7 @@ class HuggingFaceAutoLM(BaseLM):
             revision=revision,
             subfolder=subfolder,
             torch_dtype=_get_dtype(dtype, self._config),
+            gptq_use_triton=gptq_use_triton,
             **model_kwargs,
         )
         # note: peft_path can be different than pretrained model path
@@ -239,6 +243,7 @@ class HuggingFaceAutoLM(BaseLM):
         load_in_8bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = False,
         torch_dtype: Optional[Union[str, torch.dtype]] = None,
+        gptq_use_triton: Optional[bool] = False,
     ) -> transformers.AutoModel:
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
         if quantized is None:
@@ -261,7 +266,8 @@ class HuggingFaceAutoLM(BaseLM):
                 max_memory=max_memory,
                 trust_remote_code=trust_remote_code,
                 use_safetensors=True if quantized == True else quantized.endswith('.safetensors'),
-                use_triton=True,
+                use_triton=gptq_use_triton,
+                warmup_triton=gptq_use_triton,
             )
         return model
 
