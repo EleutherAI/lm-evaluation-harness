@@ -44,5 +44,6 @@ setuptools.setup(
         "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],
         "multilingual": ["nagisa>=0.2.7", "jieba>=0.42.1"],
         "sentencepiece": ["sentencepiece>=0.1.98", "protobuf>=4.22.1"],
+        "auto-gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
     },
 )

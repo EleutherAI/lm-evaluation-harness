@@ -7,7 +7,7 @@ This project provides a unified framework to test generative language models on 
 Features:
 
 - 200+ tasks implemented. See the [task-table](./docs/task_table.md) for a complete list.
-- Support for models loaded via [transformers](https://github.com/huggingface/transformers/), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
+- Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for commercial APIs including [OpenAI](https://openai.com), [goose.ai](https://goose.ai), and [TextSynth](https://textsynth.com/).
 - Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
 - Evaluating with publicly available prompts ensures reproducibility and comparability between papers.
@@ -27,6 +27,12 @@ To install additional multilingual tokenization and text segmentation packages, 
 
 ```bash
 pip install -e ".[multilingual]"
+```
+
+To support loading GPTQ quantized models, install the package with the `auto-gptq` extra:
+
+```bash
+pip install -e ".[auto-gptq]"
 ```
 
 ## Basic Usage
@@ -111,6 +117,14 @@ python main.py \
     --device cuda:0
 ```
 
+GPTQ quantized models can be loaded by specifying their file names in `,quantized=NAME` (or `,quantized=True` for default names) in the `model_args` argument:
+
+```bash
+python main.py \
+    --model hf-causal-experimental \
+    --model_args pretrained=model-name-or-path,quantized=model.safetensors,gptq_use_triton=True \
+    --tasks hellaswag
+```
 
 We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
 
