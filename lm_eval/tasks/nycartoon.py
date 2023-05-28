@@ -49,7 +49,11 @@ class NYCartoon(MultipleChoiceTask):
 
     def _process_doc(self, doc):
         out_doc = {
-            "query": "Cartoon description: " + doc["image_description"] + "\nCaption:",
+            "query": f"""In this task, you will see a description of an uncanny situation. Then, you will see five jokes — only one of which was written about the described situation. Pick which of the five choices truly corresponds to the
+described scene.
+###
+This scene takes place in the following location: {doc["image_location"]}. {doc["image_description"]}.
+This caption is most clever, funny, or relevant to the scene:""",
             "choices": doc["caption_choices"],
             "gold": ["A", "B", "C", "D", "E"].index(doc["label"]),
         }
