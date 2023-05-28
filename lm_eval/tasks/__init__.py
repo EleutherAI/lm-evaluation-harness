@@ -60,6 +60,7 @@ from . import xwinograd
 from . import pawsx
 from . import xnli
 from . import mgsm
+from . import nycartoon
 
 ########################################
 # Translation tasks
@@ -162,6 +163,7 @@ TASK_REGISTRY = {
     "ethics_virtue": hendrycks_ethics.EthicsVirtue,
     "truthfulqa_mc": truthfulqa.TruthfulQAMultipleChoice,
     "truthfulqa_gen": truthfulqa.TruthfulQAGeneration,
+    "nycartoon": nycartoon.NYCartoon,
     # dialogue
     "mutual": mutual.MuTual,
     "mutual_plus": mutual.MuTualPlus,

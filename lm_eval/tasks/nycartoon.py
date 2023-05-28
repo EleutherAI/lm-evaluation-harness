@@ -22,7 +22,7 @@ _CITATION = """
 """
 
 
-class NYCaption(MultipleChoiceTask):
+class NYCartoon(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "jmhessel/newyorker_caption_contest"
     DATASET_NAME = "matching"
