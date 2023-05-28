@@ -70,7 +70,7 @@ class HuggingFaceAutoLM(BaseLM):
     def __init__(
         self,
         pretrained: str,
-        quantized: Optional[Union[True, str]] = None,
+        quantized: Optional[Union[bool, str]] = None,
         tokenizer: Optional[str] = None,
         subfolder: Optional[str] = None,
         revision: Optional[str] = "main",
@@ -234,7 +234,7 @@ class HuggingFaceAutoLM(BaseLM):
         self,
         *,
         pretrained: str,
-        quantized: Optional[Union[True, str]] = None,
+        quantized: Optional[Union[bool, str]] = None,
         revision: str,
         subfolder: str,
         device_map: Optional[Union[str, _DeviceMapping]] = None,
