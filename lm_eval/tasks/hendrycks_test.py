@@ -102,7 +102,7 @@ def create_task(subject):
 
 
 class GeneralHendrycksTest(MultipleChoiceTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "cais/mmlu"
     DATASET_NAME = None
 
