@@ -23,7 +23,7 @@ _CITATION = """
 
 
 class NYCartoon(MultipleChoiceTask):
-    VERSION = 0
+    VERSION = 1
     DATASET_PATH = "jmhessel/newyorker_caption_contest"
     DATASET_NAME = "matching"
 
@@ -43,6 +43,9 @@ class NYCartoon(MultipleChoiceTask):
 
     def validation_docs(self):
         return map(self._process_doc, self.dataset["validation"])
+
+    def test_docs(self):
+        return map(self._process_doc, self.dataset["test"])
 
     def _process_doc(self, doc):
         out_doc = {
