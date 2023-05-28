@@ -10,7 +10,7 @@ associated caption from five options.
 Homepage: https://www.capcon.dev/
 """
 from lm_eval.base import MultipleChoiceTask
-
+from typing import List
 
 _CITATION = """
 @article{hessel2022androids,
@@ -20,6 +20,8 @@ _CITATION = """
   year={2022}
 }
 """
+
+LETTER_ANSWERS = ["A", "B", "C", "D", "E"]
 
 
 class NYCartoon(MultipleChoiceTask):
@@ -48,14 +50,20 @@ class NYCartoon(MultipleChoiceTask):
         return map(self._process_doc, self.dataset["test"])
 
     def _process_doc(self, doc):
+        answer_key: List[str] = []
+        for idx, letter in enumerate(LETTER_ANSWERS):
+            answer_key.append(letter + ") " + doc["caption_choices"][idx] + "\n")
         out_doc = {
             "query": f"""In this task, you will see a description of an uncanny situation. Then, you will see five jokes — only one of which was written about the described situation. Pick which of the five choices truly corresponds to the
 described scene.
 ###
 This scene takes place in the following location: {doc["image_location"]}. {doc["image_description"]}.
-This caption is most clever, funny, or relevant to the scene:""",
-            "choices": doc["caption_choices"],
-            "gold": ["A", "B", "C", "D", "E"].index(doc["label"]),
+This caption is most clever, funny, or relevant to the scene:
+
+{''.join(answer_key)}
+the funny caption that matches the scene is:""",
+            "choices": LETTER_ANSWERS,
+            "gold": LETTER_ANSWERS.index(doc["label"]),
         }
         return out_doc
 
