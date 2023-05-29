@@ -34,6 +34,7 @@ def sort_13_gram_buckets(working_directory):
     for bucket_file_path in tqdm(bucket_file_paths, dynamic_ncols=True):
         bucket_id = re.sub("\D", "", os.path.basename(bucket_file_path))
         done_file = os.path.join(working_directory, f"ngram_bucket_sorting_{bucket_id}.done")
+        
         if os.path.exists(done_file):
             logger.info(f"bucket {bucket_id} already processed, skipping")
             return
