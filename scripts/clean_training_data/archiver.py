@@ -39,9 +39,12 @@ class Reader:
     def read(self, file, get_meta=False, autojoin_paragraphs=True, para_joiner='\n\n'):
         with open(file, 'rb') as fh:
             self.fh = fh
-            cctx = zstandard.ZstdDecompressor()
-            reader = io.BufferedReader(cctx.stream_reader(fh))
+            
+            #cctx = zstandard.ZstdDecompressor()
+            # reader = io.BufferedReader(cctx.stream_reader(fh))
+            reader = io.BufferedReader(fh)
             rdr = jsonlines.Reader(reader)
+            
             for ob in rdr:
                 # naive jsonl where each object is just the string itself, with no meta. For legacy compatibility.
                 if isinstance(ob, str):

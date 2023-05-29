@@ -46,12 +46,14 @@ def handler(signal_received, frame):
     terminate = True
 
 def get_pile(directory):
-    # reader = Reader()
+    reader = Reader()
     # for file in glob.glob(os.path.join(directory, f"*.jsonl.zst*")):
     for dir in os.listdir(directory):
-        for file in glob.glob(os.path.join(directory + dir, f"*.jsonl")):
-            for document in open(file).read():
-            # for document in reader.read(file):
+        print(os.path.join(directory + dir, f".jsonl"))
+        for file in glob.glob(os.path.join(directory + dir)):
+
+            # for document in open(file).read():
+            for document in reader.read(file):
                 yield document
 
 def close_buckets(buckets):
@@ -96,7 +98,7 @@ def do_ngrams_in_buckets(n_value, working_directory, sdir, bucket_count):
                 current_id += 1
                 progress.update()
                 continue
-
+            
             # Save checkpoint every "batch_size", only allow terminate after checkpoint
             if batch_counter == batch_size:
                 progress.update(batch_size)
