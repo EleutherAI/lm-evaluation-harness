@@ -49,10 +49,7 @@ def get_pile(directory):
     reader = Reader()
     # for file in glob.glob(os.path.join(directory, f"*.jsonl.zst*")):
     for dir in os.listdir(directory):
-        print(os.path.join(directory + dir, f".jsonl"))
-        for file in glob.glob(os.path.join(directory + dir)):
-
-            # for document in open(file).read():
+        for file in glob.glob(os.path.join(directory + dir, "*.jsonl")):
             for document in reader.read(file):
                 yield document
 
