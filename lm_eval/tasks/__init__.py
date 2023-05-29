@@ -57,6 +57,7 @@ from . import ko_translation
 from . import korquad
 from . import korunsmile
 from . import kohatespeech
+from . import kold
 from . import toxigen
 from . import crowspairs
 from . import json
@@ -325,6 +326,8 @@ TASK_REGISTRY = {
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
+    "kold_level_a": kold.KoldLevelA,
+    "kold_level_b": kold.KoldLevelB,
     "klue_sts": klue.STS,
     "klue_ynat": klue.YNAT,
     "klue_nli": klue.NLI,
