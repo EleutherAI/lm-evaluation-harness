@@ -1,0 +1,18 @@
+{
+  "proofnet_autoformalize_statements" : {
+    "description": "",
+    "params": {}
+  },
+  "proofnet_informalize_statements" : {
+    "description": "",
+    "params": {
+      "gpt_eval" : {
+        "enabled": true,
+        "settings": {
+          "engine": "gpt-3.5-turbo",
+          "max_tokens": 512
+        }
+      }
+    }
+  }
+}
