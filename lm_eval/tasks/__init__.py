@@ -60,6 +60,7 @@ from . import xwinograd
 from . import pawsx
 from . import xnli
 from . import mgsm
+from . import jcqa
 
 ########################################
 # Translation tasks
@@ -92,6 +93,8 @@ all_translation_benchmarks = {
 
 
 TASK_REGISTRY = {
+    # JGlue
+    "jcqa": jcqa.JCommonsenseQA,
     # GLUE
     "cola": glue.CoLA,
     "mnli": glue.MNLI,
