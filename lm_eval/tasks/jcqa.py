@@ -89,6 +89,3 @@ class JCommonsenseQA(MultipleChoiceTask):
 
         kwargs["description"] = description
         return super().fewshot_context(doc=doc, num_fewshot=num_fewshot, **kwargs)
-
-    # def doc_to_target(self, doc):
-    #     return " " + doc["gold"]
