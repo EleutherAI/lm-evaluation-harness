@@ -10,69 +10,39 @@ See `eval_scripts` for example scripts. We will walk through two different cases
 ### LILA with Huggingface accelerate
 Example command to evaluate Pythia-1.4b-deduped on the `lila_addsub` task:
 ```bash
-MODEL_PREFIX="EleutherAI/"
-MODEL="pythia-1.4b-deduped"
-OUTPUT_DIR="output/lila"
+MODEL="EleutherAI/pythia-1.4b-deduped"
+NAME="pythia-1.4b-deduped"
+
+BASE_DIR="./"
+OUTPUT_DIR="./output/lila"
 mkdir -p ${OUTPUT_DIR}
 
 FEWSHOT=5
 BATCH_SIZE=1
 
-
 TASKS="lila_addsub"
 
-python main.py --model_args pretrained=${MODEL_PREFIX}${MODEL} \
+python ${BASE_DIR}/main.py --model_args pretrained=${MODEL} \
+	--description_dict_path ${BASE_DIR}/configs/config_lila.json \
 	--num_fewshot ${FEWSHOT} \
 	--model hf-causal \
 	--use_accelerate \
 	--accelerate_dtype float32 \
 	--tasks ${TASKS} \
-	--output_path ${OUTPUT_DIR}/${MODEL}.json \
+	--output_path ${OUTPUT_DIR}/${NAME}.json \
 	--batch_size ${BATCH_SIZE} 
-
 ```
 
-You can see a full example script that runs multiple Lila tasks at:
+You can see a full example script at:
 ```bash
 bash eval_scripts/eval_lila_accelerate.sh
 ```
 
 **NOTE:** the `--accelerate_dtype float32` flag is needed to match the performance of the non-`accelerate` code.
 
+**NOTE:** the `--description_dict_path` flag provides a config file (`configs/config_lila.json`) file. \
+See `configs/config_math.json` for a non-trivial config file that enables a custom prompt and majority voting.
 
-### MATH with Huggingface accelerate and majority voting
-In this example we'll pass in a `config` file to enable majority voting (and a custom prompt) on the MATH task.
-
-The key difference with the LILA example above is the `--description_dict_path` argument that passes in the config.
-
-```bash
-BASE_DIR="./"
-OUTPUT_DIR="output/math_algebra_easy"
-mkdir -p ${OUTPUT_DIR}
-
-MODEL_PREFIX="EleutherAI/"
-MODEL="pythia-1.4b-deduped"
-
-FEWSHOT=5
-BATCH_SIZE=1
-
-TASKS="math_algebra_easy"
-
-python main.py --description_dict_path ${BASE_DIR}/configs/config.json \
-	--model_args pretrained=${MODEL_PREFIX}${MODEL} \
-	--num_fewshot ${FEWSHOT} \
-	--model hf-causal \
-	--use_accelerate \
-	--accelerate_dtype float32 \
-	--tasks ${TASKS} \
-	--batch_size ${BATCH_SIZE} \
-	--output_path ${OUTPUT_DIR}/${MODEL}.json
-```
-
-You can see a full example script at:
-```bash
-bash eval_scripts/eval_math_accelerate.sh
-```
 
 
 
