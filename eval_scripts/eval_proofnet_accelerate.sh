@@ -1,6 +1,9 @@
 export HF_DATASETS_CACHE="/net/nfs/mosaic/seanw/.cache"
 export TRANSFORMERS_CACHE="/net/nfs/mosaic/seanw/.cache"
 
+# To use the (optional) GPT-based evaluation, set your openai key
+# You can disable GPT-based evaluation in configs/config_proofnet.json.
+export OPENAI_API_KEY=""
 
 BASE_DIR="./"
 OUTPUT_DIR="./output/proofnet"
@@ -25,4 +28,3 @@ python ${BASE_DIR}/main.py --description_dict_path ${BASE_DIR}/configs/config_pr
 	--output_path ${OUTPUT_DIR}/${NAME}.json  >& ${OUTPUT_DIR}/${NAME}.out &
 
 tail -f ${OUTPUT_DIR}/${NAME}.out
-#
