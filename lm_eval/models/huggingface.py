@@ -70,7 +70,7 @@ class HuggingFaceAutoLM(BaseLM):
     def __init__(
         self,
         pretrained: str,
-        quantized: Optional[Union[True, str]] = None,
+        quantized: Optional[Union[bool, str]] = False,
         tokenizer: Optional[str] = None,
         subfolder: Optional[str] = None,
         revision: Optional[str] = "main",
@@ -96,7 +96,7 @@ class HuggingFaceAutoLM(BaseLM):
                 The HuggingFace Hub model ID name or the path to a pre-trained
                 model to load. This is effectively the `pretrained_model_name_or_path`
                 argument of `from_pretrained` in the HuggingFace `transformers` API.
-            quantized (str or True, optional, defaults to None):
+            quantized (str or bool, optional, defaults to False):
                 File name of a GPTQ quantized model to load. Set to `True` to use the
                 default name of the quantized model.
             add_special_tokens (bool, optional, defaults to True):
@@ -234,7 +234,7 @@ class HuggingFaceAutoLM(BaseLM):
         self,
         *,
         pretrained: str,
-        quantized: Optional[Union[True, str]] = None,
+        quantized: Optional[Union[bool, str]] = False,
         revision: str,
         subfolder: str,
         device_map: Optional[Union[str, _DeviceMapping]] = None,
@@ -246,7 +246,7 @@ class HuggingFaceAutoLM(BaseLM):
         gptq_use_triton: Optional[bool] = False,
     ) -> transformers.AutoModel:
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
-        if quantized is None:
+        if not quantized:
             model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
