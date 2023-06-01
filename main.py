@@ -1,42 +1,18 @@
 import argparse
 import json
 import logging
-import fnmatch
 import os
 
-from lm_eval import tasks, evaluator
+from lm_eval import tasks, evaluator, utils
 
 logging.getLogger("openai").setLevel(logging.WARNING)
-
-
-def _is_json_task(task_name):
-    return task_name == "json" or task_name.startswith("json=")
-
-
-class MultiChoice:
-    def __init__(self, choices):
-        self.choices = choices
-
-    # Simple wildcard support (linux filename patterns)
-    def __contains__(self, values):
-        for value in values.split(","):
-            if len(fnmatch.filter(self.choices, value)) == 0 and not _is_json_task(
-                value
-            ):
-                return False
-
-        return True
-
-    def __iter__(self):
-        for choice in self.choices:
-            yield choice
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True)
     parser.add_argument("--model_args", default="")
-    parser.add_argument("--tasks", default=None, choices=MultiChoice(tasks.ALL_TASKS))
+    parser.add_argument("--tasks", default=None, choices=utils.MultiChoice(tasks.ALL_TASKS))
     parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--num_fewshot", type=int, default=0)
     parser.add_argument("--batch_size", type=str, default=None)
@@ -56,19 +32,6 @@ def parse_args():
     return parser.parse_args()
 
 
-# Returns a list containing all values of the source_list that
-# match at least one of the patterns
-def pattern_match(patterns, source_list):
-    task_names = set()
-    for pattern in patterns:
-        if _is_json_task(pattern):
-            task_names.add(pattern)
-
-        for matching in fnmatch.filter(source_list, pattern):
-            task_names.add(matching)
-    return sorted(list(task_names))
-
-
 def main():
     args = parse_args()
 
@@ -82,7 +45,7 @@ def main():
     if args.tasks is None:
         task_names = tasks.ALL_TASKS
     else:
-        task_names = pattern_match(args.tasks.split(","), tasks.ALL_TASKS)
+        task_names = utils.pattern_match(args.tasks.split(","), tasks.ALL_TASKS)
 
     print(f"Selected Tasks: {task_names}")
 
