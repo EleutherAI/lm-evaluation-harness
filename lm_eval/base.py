@@ -180,7 +180,7 @@ class BaseLM(LM):
         else:
             continuation_enc = self.tok_encode(continuation)
             continuation_enc_len = len(continuation_enc)
-            context_enc = whole_enc[:continuation_enc_len]
+            context_enc = whole_enc[:-continuation_enc_len]
         return context_enc, continuation_enc
 
     def loglikelihood(self, requests):
