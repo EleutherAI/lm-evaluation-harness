@@ -22,10 +22,12 @@ def get_prompt(prompt_id: str, dataset_name=None, subset_name=None):
     eval_logger.info(f"Loading prompt from {category_name} for {dataset_full_name}")
     if category_name == "promptsource":
         try:
-            from promptsource.templates import DatasetTemplates 
+            from promptsource.templates import DatasetTemplates
         except ModuleNotFoundError:
-            raise Exception("Tried to load a Promptsource template, but promptsource is not installed ", 
-            "please install promptsource via pip install lm-eval[promptsource] or pip install -e .[promptsource]")
+            raise Exception(
+                "Tried to load a Promptsource template, but promptsource is not installed ",
+                "please install promptsource via pip install lm-eval[promptsource] or pip install -e .[promptsource]",
+            )
         try:
             if subset_name is None:
                 prompts = DatasetTemplates(dataset_name=dataset_name)
