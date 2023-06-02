@@ -83,7 +83,6 @@ class HFLM(LM):
                 print(warning)
                 self._rank = accelerator.local_process_index
                 self._world_size = accelerator.num_processes
-            
             else:
                 self.gpt2 = accelerator.prepare(self.gpt2)
                 self._device = torch.device(f"cuda:{accelerator.local_process_index}")
