@@ -64,7 +64,7 @@ class MuTualBase(Task):
     def construct_requests(self, doc, ctx):
         lls = []
         for option in doc["options"]:
-            lls.append(rf.loglikelihood(ctx, f" {self.detokenize(option)}")[0])
+            lls.append(rf.loglikelihood(ctx, f" {self.detokenize(option)}")["log_prob"])
         return lls
 
     def detokenize(self, text):

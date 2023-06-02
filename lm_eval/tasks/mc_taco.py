@@ -80,8 +80,8 @@ class MCTACO(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        ll_no, _ = rf.loglikelihood(ctx, " no")
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
+        ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
+        ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
         return ll_no, ll_yes
 
     def process_results(self, doc, results):

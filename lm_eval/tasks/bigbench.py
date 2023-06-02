@@ -86,7 +86,7 @@ class BigBenchJsonTask(Task):
         if self._has_multi_choice:
             queries = self._doc_to_queries(doc)
             requests += [
-                rf.loglikelihood(ctx, continuation)[0] for continuation in queries
+                rf.loglikelihood(ctx, continuation)["log_prob"] for continuation in queries
             ]
         if self._has_generative:
             requests.append(

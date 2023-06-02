@@ -79,7 +79,8 @@ class Asdiv(Task):
         return " " + answer
 
     def construct_requests(self, doc, ctx):
-        ll, is_greedy = rf.loglikelihood(ctx, self.doc_to_target(doc))
+        result = rf.loglikelihood(ctx, self.doc_to_target(doc))
+        ll, is_greedy = result["log_prob"], result["is_exact_match"]
         return ll, is_greedy
 
     def process_results(self, doc, results):

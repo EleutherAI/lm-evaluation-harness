@@ -82,8 +82,8 @@ class CoLA(Task):
         return " {}".format({1: "yes", 0: "no"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " yes")
-        ll_false, _ = rf.loglikelihood(ctx, " no")
+        ll_true = rf.loglikelihood(ctx, " yes")["log_prob"]
+        ll_false = rf.loglikelihood(ctx, " no")["log_prob"]
         return ll_true, ll_false
 
     def process_results(self, doc, results):
@@ -130,8 +130,8 @@ class SST(Task):
         return " {}".format({1: "positive", 0: "negative"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_positive, _ = rf.loglikelihood(ctx, " positive")
-        ll_negative, _ = rf.loglikelihood(ctx, " negative")
+        ll_positive = rf.loglikelihood(ctx, " positive")["log_prob"]
+        ll_negative = rf.loglikelihood(ctx, " negative")["log_prob"]
         return ll_positive, ll_negative
 
     def process_results(self, doc, results):
@@ -191,9 +191,9 @@ class MNLI(Task):
         return " {}".format({0: "True", 1: "Neither", 2: "False"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
+        ll_true = rf.loglikelihood(ctx, " True")["log_prob"]
+        ll_neither = rf.loglikelihood(ctx, " Neither")["log_prob"]
+        ll_false = rf.loglikelihood(ctx, " False")["log_prob"]
         return ll_true, ll_neither, ll_false
 
     def process_results(self, doc, results):
@@ -256,8 +256,8 @@ class QNLI(Task):
         return " {}".format({0: "yes", 1: "no"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
+        ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
+        ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
         return ll_yes, ll_no
 
     def process_results(self, doc, results):
@@ -307,8 +307,8 @@ class WNLI(Task):
         return " {}".format({0: "False", 1: "True"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
+        ll_true = rf.loglikelihood(ctx, " True")["log_prob"]
+        ll_false = rf.loglikelihood(ctx, " False")["log_prob"]
         return ll_true, ll_false
 
     def process_results(self, doc, results):
@@ -358,8 +358,8 @@ class RTE(Task):
         return " {}".format({0: "True", 1: "False"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
+        ll_true = rf.loglikelihood(ctx, " True")["log_prob"]
+        ll_false = rf.loglikelihood(ctx, " False")["log_prob"]
         return ll_true, ll_false
 
     def process_results(self, doc, results):
@@ -410,8 +410,8 @@ class MRPC(Task):
         return " {}".format(yesno(doc["label"]))
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
+        ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
+        ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
         return ll_yes, ll_no
 
     def process_results(self, doc, results):
@@ -462,8 +462,8 @@ class QQP(Task):
         return " {}".format(yesno(doc["label"]))
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
+        ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
+        ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
         return ll_yes, ll_no
 
     def process_results(self, doc, results):

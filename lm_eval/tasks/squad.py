@@ -108,8 +108,8 @@ class SQuAD2(Task):
             part of the document for `doc`.
         """
         continuation = rf.greedy_until(ctx, {"until": ["\n"]})
-        is_unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
-        return continuation, is_unanswerable
+        logprob_unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")["log_prob"]
+        return continuation, logprob_unanswerable
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
@@ -121,7 +121,7 @@ class SQuAD2(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        continuation, (logprob_unanswerable, _) = results
+        continuation, logprob_unanswerable = results
 
         no_answer_probability = exp(logprob_unanswerable)
 

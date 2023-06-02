@@ -68,8 +68,8 @@ class BoolQ(Task):
 
     def construct_requests(self, doc, ctx):
 
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
+        ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
+        ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
 
         return ll_yes, ll_no
 
@@ -123,9 +123,9 @@ class CommitmentBank(Task):
         return " {}".format({0: "True", 1: "False", 2: "Neither"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
-        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
+        ll_true = rf.loglikelihood(ctx, " True")["log_prob"]
+        ll_false = rf.loglikelihood(ctx, " False")["log_prob"]
+        ll_neither = rf.loglikelihood(ctx, " Neither")["log_prob"]
 
         return ll_true, ll_false, ll_neither
 
@@ -196,8 +196,8 @@ class Copa(Task):
         choice1 = " " + self.convert_choice(doc["choice1"])
         choice2 = " " + self.convert_choice(doc["choice2"])
 
-        ll_choice1, _ = rf.loglikelihood(ctx, choice1)
-        ll_choice2, _ = rf.loglikelihood(ctx, choice2)
+        ll_choice1 = rf.loglikelihood(ctx, choice1)["log_prob"]
+        ll_choice2 = rf.loglikelihood(ctx, choice2)["log_prob"]
 
         return ll_choice1, ll_choice2
 
@@ -256,8 +256,8 @@ class MultiRC(Task):
         true_choice = self.format_answer(answer=doc["answer"], label=True)
         false_choice = self.format_answer(answer=doc["answer"], label=False)
 
-        ll_true_choice, _ = rf.loglikelihood(ctx, f" {true_choice}")
-        ll_false_choice, _ = rf.loglikelihood(ctx, f" {false_choice}")
+        ll_true_choice = rf.loglikelihood(ctx, f" {true_choice}")["log_prob"]
+        ll_false_choice = rf.loglikelihood(ctx, f" {false_choice}")["log_prob"]
 
         return ll_true_choice, ll_false_choice
 
@@ -337,7 +337,7 @@ class ReCoRD(Task):
         # - Pick the maximum likelihood prediction entity
         # - Evaluate the accuracy and token F1 PER EXAMPLE
         # - Average over all examples
-        max_idx = np.argmax(np.array([result[0] for result in results]))
+        max_idx = np.argmax(np.array([result["log_prob"] for result in results]))
 
         prediction = doc["entities"][max_idx]
         gold_label_set = doc["answers"]
@@ -402,8 +402,8 @@ class WordsInContext(Task):
         return " {}".format({0: "no", 1: "yes"}[doc["label"]])
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
+        ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
+        ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
 
         return ll_yes, ll_no
 
@@ -470,8 +470,8 @@ class SGWinogradSchemaChallenge(Task):
 
     def construct_requests(self, doc, ctx):
 
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
+        ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
+        ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
 
         return ll_yes, ll_no
 

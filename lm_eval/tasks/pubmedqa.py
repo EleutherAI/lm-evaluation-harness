@@ -69,9 +69,9 @@ class Pubmed_QA(Task):
         """Uses RequestFactory to construct Requests and returns
         an iterable of Requests which will be sent to the LM.
         """
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
-        ll_maybe, _ = rf.loglikelihood(ctx, " maybe")
+        ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
+        ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
+        ll_maybe = rf.loglikelihood(ctx, " maybe")["log_prob"]
         return ll_yes, ll_no, ll_maybe
 
     def process_results(self, doc, results):

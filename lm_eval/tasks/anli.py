@@ -94,9 +94,9 @@ class ANLIBase(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        ll_true, _ = rf.loglikelihood(ctx, " True")
-        ll_neither, _ = rf.loglikelihood(ctx, " Neither")
-        ll_false, _ = rf.loglikelihood(ctx, " False")
+        ll_true = rf.loglikelihood(ctx, " True")["log_prob"]
+        ll_neither = rf.loglikelihood(ctx, " Neither")["log_prob"]
+        ll_false = rf.loglikelihood(ctx, " False")["log_prob"]
         return ll_true, ll_neither, ll_false
 
     def process_results(self, doc, results):
