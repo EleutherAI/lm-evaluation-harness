@@ -85,6 +85,9 @@ class TaskConfig(dict):
             if type(self.doc_to_target) == str:
                 self.doc_to_target = self.template_aliases + self.doc_to_target
 
+            if type(self.gold_alias) == str:
+                self.gold_alias = self.template_aliases + self.doc_to_target
+
         # set "task_name" metadata field based on the "primary" name set
         if self.names:
             self.task_name = self.names[0]
@@ -639,6 +642,23 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
+    def gold_alias(self, doc):
+        # TODO: reevaluate if we need this. implemented to have a 
+        # processed version of answer to put into gsm8k exact_match scoring as ref.
+        if self._config.gold_alias:
+            doc_to_target = self._config.gold_alias
+        else:
+            doc_to_target = self._config.doc_to_target
+
+        if type(doc_to_target) == str:
+            return utils.apply_template(doc_to_target, doc)
+        elif callable(doc_to_target):
+            return doc_to_target(doc)
+        elif hasattr(doc_to_target, "apply"):
+            return doc_to_target.apply(doc)[1]
+        else:
+            raise TypeError
+
     def construct_requests(self, doc, ctx, **kwargs):
 
         if self.OUTPUT_TYPE == "loglikelihood":
@@ -759,7 +779,7 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "greedy_until":
 
             if self._config.gold_alias is not None:
-                gold = doc[self._config.gold_alias]
+                gold = self.gold_alias(doc)
             else:
                 gold = self.doc_to_target(doc)
 

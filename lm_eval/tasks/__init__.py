@@ -1,6 +1,7 @@
 import os
 from typing import List, Union
 
+from .gsm8k import *
 
 from lm_eval import utils
 from lm_eval.logger import eval_logger
@@ -41,7 +42,8 @@ for root, subdirs, file_list in os.walk(task_dir):
                     if "group" in config:
                         for group in config["group"]:
                             register_group(group)(SubClass)
-                except Exception:
+                except Exception as e:
+                    raise e
                     eval_logger.warning(
                         "Failed to load config at in\n"
                         f"                                 {yaml_path}\n"
