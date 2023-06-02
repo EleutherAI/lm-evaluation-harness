@@ -153,7 +153,7 @@ class Task(abc.ABC):
         if not hasattr(self, "_filters"):
             self._filters = []
             for name, components in self._config.get(
-                "filters", [["none", ["take_first"]]]
+                "filters", [["none", [["take_first", None]]]]
             ):
                 filter_pipeline = build_filter_ensemble(name, components)
                 self._filters.append(filter_pipeline)
