@@ -718,7 +718,7 @@ class MultipleChoiceTask(Task):
 
     def construct_requests(self, doc, ctx):
         lls = [
-            rf.loglikelihood(ctx, " {}".format(choice))[0] for choice in doc["choices"]
+            rf.loglikelihood(ctx, " {}".format(choice))["log_prob"] for choice in doc["choices"]
         ]
 
         return lls
