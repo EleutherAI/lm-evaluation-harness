@@ -90,8 +90,8 @@ class BlimpTask(Task):
         # Calculate the loglikelihood for the good and the bad sentence.
         # Note that loglikelihood translates the "" prefix to the "<|endoftext|>" token
         return [
-            rf.loglikelihood("", doc["sentence_good"]),
-            rf.loglikelihood("", doc["sentence_bad"]),
+            rf.loglikelihood("", doc["sentence_good"])["log_prob"],
+            rf.loglikelihood("", doc["sentence_bad"])["log_prob"],
         ]
 
     def process_results(self, doc, results):

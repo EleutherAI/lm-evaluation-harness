@@ -94,7 +94,7 @@ class Winogrande(Task):
         for option in [doc["option1"], doc["option2"]]:
             partial_ctx = self.partial_context(doc, option)
             full_ctx = self.append_context(ctx, partial_ctx)
-            lls.append(rf.loglikelihood(full_ctx, target)[0])
+            lls.append(rf.loglikelihood(full_ctx, target)["log_prob"])
         return lls
 
     @classmethod

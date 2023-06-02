@@ -107,7 +107,7 @@ class CBTBase(Task):
             # Following Section 4.4 "Recurrent Language Models" in the CBT paper:
             # "we rank candidate [option] c based on p(q1 . . . qk−1, c, qk+1 . . . ql)
             # rather than simply p(q1 . . . qk−1, c)."
-            lls.append(rf.loglikelihood("", ctx.replace("XXXXX", option))[0])
+            lls.append(rf.loglikelihood("", ctx.replace("XXXXX", option))["log_prob"])
         return lls
 
     def process_results(self, doc, results):

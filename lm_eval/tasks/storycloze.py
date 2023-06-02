@@ -104,7 +104,7 @@ class StoryCloze(Task):
             part of the document for `doc`.
         """
         clozes = [doc["sentence_quiz1"], doc["sentence_quiz2"]]
-        lls = [rf.loglikelihood(ctx, " {}".format(choice))[0] for choice in clozes]
+        lls = [rf.loglikelihood(ctx, " {}".format(choice))["log_prob"] for choice in clozes]
         return lls
 
     def process_results(self, doc, results):

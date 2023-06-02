@@ -216,8 +216,8 @@ class QASPER(Task):
         if doc["answer_type"] in ("free form answer"):
             return [rf.greedy_until(ctx, {"until": ["\n"]})]
         elif doc["answer_type"] in ("bool"):
-            ll_yes, _ = rf.loglikelihood(ctx, " yes")
-            ll_no, _ = rf.loglikelihood(ctx, " no")
+            ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
+            ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
             return [ll_yes, ll_no]
         else:
             return []

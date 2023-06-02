@@ -138,7 +138,7 @@ class RACE(Task):
         """
         problem = self.last_problem(doc)
         ll_choices = [
-            rf.loglikelihood(ctx, " " + problem["options"][i])[0] for i in range(4)
+            rf.loglikelihood(ctx, " " + problem["options"][i])["log_prob"] for i in range(4)
         ]
         return ll_choices
 

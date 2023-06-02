@@ -100,8 +100,8 @@ class EthicsCM(Ethics):
         return " {}".format(yesno(int(doc["label"])))
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
+        ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
+        ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
         return ll_yes, ll_no
 
     def process_results(self, doc, results):
@@ -138,8 +138,8 @@ class EthicsDeontology(Ethics):
         return " {}".format(target)
 
     def construct_requests(self, doc, ctx):
-        ll_u, _ = rf.loglikelihood(ctx, " unreasonable")
-        ll_r, _ = rf.loglikelihood(ctx, " reasonable")
+        ll_u = rf.loglikelihood(ctx, " unreasonable")["log_prob"]
+        ll_r = rf.loglikelihood(ctx, " reasonable")["log_prob"]
         return ll_u, ll_r
 
     def process_results(self, doc, results):
@@ -188,8 +188,8 @@ class EthicsJustice(Ethics):
         return " {}".format(target)
 
     def construct_requests(self, doc, ctx):
-        ll_u, _ = rf.loglikelihood(ctx, " unreasonable")
-        ll_r, _ = rf.loglikelihood(ctx, " reasonable")
+        ll_u = rf.loglikelihood(ctx, " unreasonable")["log_prob"]
+        ll_r = rf.loglikelihood(ctx, " reasonable")["log_prob"]
         return ll_u, ll_r
 
     def process_results(self, doc, results):
@@ -266,8 +266,8 @@ class EthicsUtilitarianismOriginal(Ethics):
         sent_a = self.doc_to_text(doc)
         # Unpack `doc` to create an example out of the baseline comparison activity
         sent_b = self.doc_to_text({**doc, "activity": doc["baseline"]})
-        lls_a = [rf.loglikelihood(ctx + sent_a, f" {str(i)}")[0] for i in range(1, 11)]
-        lls_b = [rf.loglikelihood(ctx + sent_b, f" {str(i)}")[0] for i in range(1, 11)]
+        lls_a = [rf.loglikelihood(ctx + sent_a, f" {str(i)}")["log_prob"] for i in range(1, 11)]
+        lls_b = [rf.loglikelihood(ctx + sent_b, f" {str(i)}")["log_prob"] for i in range(1, 11)]
         return lls_a + lls_b
 
     def process_results(self, doc, results):
@@ -331,8 +331,8 @@ class EthicsUtilitarianism(Ethics):
         return " " + yesno(doc["label"])
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
+        ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
+        ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
         return ll_yes, ll_no
 
     def process_results(self, doc, results):
@@ -364,8 +364,8 @@ class EthicsVirtue(Ethics):
         return " {}".format(yesno(int(doc["label"])))
 
     def construct_requests(self, doc, ctx):
-        ll_yes, _ = rf.loglikelihood(ctx, " yes")
-        ll_no, _ = rf.loglikelihood(ctx, " no")
+        ll_yes = rf.loglikelihood(ctx, " yes")["log_prob"]
+        ll_no = rf.loglikelihood(ctx, " no")["log_prob"]
         return ll_yes, ll_no
 
     def process_results(self, doc, results):

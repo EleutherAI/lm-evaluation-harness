@@ -122,7 +122,7 @@ class TruthfulQAMultipleChoice(Task):
         """
 
         def get_lls(targets):
-            return [rf.loglikelihood(ctx, " " + t)[0] for t in targets]
+            return [rf.loglikelihood(ctx, " " + t)["log_prob"] for t in targets]
 
         # MC1 and MC2 targets are not always the same set of strings so we collect
         # likelihoods separately for simpler processing.

@@ -244,8 +244,8 @@ class BaseLM(LM):
                 override_bs=adaptive_batch_size,
             )
 
-            # discard is_greedy
-            string_nll = [x[0] for x in string_nll]
+            # extract the log prob of the last token in each window
+            string_nll = [x["log_prob"] for x in string_nll]
 
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
@@ -378,8 +378,11 @@ class BaseLM(LM):
                     -1
                 )  # [1, seq]
 
-                # Answer: (log prob, is-exact-match)
-                answer = (float(logits.sum()), bool(max_equal))
+                # Answer: {"log_prob": log prob, "is_exact_match": is-exact-match}
+                answer = {
+                    "log_prob": float(logits.sum()), 
+                    "is_exact_match":  bool(max_equal),
+                }
 
                 # partial caching
                 if cache_key is not None:
@@ -797,11 +800,11 @@ class PerplexityTask(Task, abc.ABC):
 
     def construct_requests(self, doc, ctx):
         assert not ctx
-        req = rf.loglikelihood_rolling(self.doc_to_target(doc))
-        return req
+        ll = rf.loglikelihood_rolling(self.doc_to_target(doc))
+        return ll
 
     def process_results(self, doc, results):
-        (loglikelihood,) = results
+        loglikelihood = results
         words = self.count_words(doc)
         bytes_ = self.count_bytes(doc)
         return {

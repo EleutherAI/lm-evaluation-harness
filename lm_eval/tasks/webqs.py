@@ -82,7 +82,7 @@ class WebQs(Task):
     def construct_requests(self, doc, ctx):
         ret = []
         for alias in self._remove_prefixes(doc["answers"]):
-            _, is_prediction = rf.loglikelihood(ctx, " " + alias)
+            is_prediction = rf.loglikelihood(ctx, " " + alias)["is_exact_match"]
             ret.append(is_prediction)
         return ret
 
