@@ -1,7 +1,5 @@
 from lm_eval.logger import eval_logger
-from promptsource.templates import DatasetTemplates
 
-# TODO: decide whether we want jinja2 or f-string prompts. would it be cursed to support both?
 # Prompt library.
 # Stores prompts in a dictionary indexed by 2 levels:
 # prompt category name, and prompt name.
@@ -23,6 +21,13 @@ def get_prompt(prompt_id: str, dataset_name=None, subset_name=None):
         dataset_full_name = f"{dataset_name}-{subset_name}"
     eval_logger.info(f"Loading prompt from {category_name} for {dataset_full_name}")
     if category_name == "promptsource":
+        try:
+            from promptsource.templates import DatasetTemplates
+        except ModuleNotFoundError:
+            raise Exception(
+                "Tried to load a Promptsource template, but promptsource is not installed ",
+                "please install promptsource via pip install lm-eval[promptsource] or pip install -e .[promptsource]",
+            )
         try:
             if subset_name is None:
                 prompts = DatasetTemplates(dataset_name=dataset_name)
