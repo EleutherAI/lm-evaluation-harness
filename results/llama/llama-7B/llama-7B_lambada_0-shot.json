@@ -1,0 +1,80 @@
+{
+  "results": {
+    "lambada_openai_mt_it": {
+      "ppl": 3653680.5734235523,
+      "ppl_stderr": 197082.9860932525,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_standard": {
+      "ppl": 2460346.8572795168,
+      "ppl_stderr": 81216.56551688322,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_openai_mt_es": {
+      "ppl": 3818890.4545065593,
+      "ppl_stderr": 197999.05318216747,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_openai": {
+      "ppl": 2817465.092468485,
+      "ppl_stderr": 138319.08822004002,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_openai_mt_fr": {
+      "ppl": 2111186.115467981,
+      "ppl_stderr": 111724.42842108487,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_openai_mt_de": {
+      "ppl": 1805613.6770583114,
+      "ppl_stderr": 97892.78908113715,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_standard_cloze": {
+      "ppl": 6710057.2411258025,
+      "ppl_stderr": 169833.90998542923,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_openai_mt_en": {
+      "ppl": 2817465.092468485,
+      "ppl_stderr": 138319.08822004002,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_openai_cloze": {
+      "ppl": 255777.71115985065,
+      "ppl_stderr": 11345.7709705634,
+      "acc": 0.00038812342324859306,
+      "acc_stderr": 0.00027441806845051746
+    }
+  },
+  "versions": {
+    "lambada_openai_mt_it": 0,
+    "lambada_standard": 0,
+    "lambada_openai_mt_es": 0,
+    "lambada_openai": 0,
+    "lambada_openai_mt_fr": 0,
+    "lambada_openai_mt_de": 0,
+    "lambada_standard_cloze": 0,
+    "lambada_openai_mt_en": 0,
+    "lambada_openai_cloze": 0
+  },
+  "config": {
+    "model": "hf-causal",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/7B",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}
