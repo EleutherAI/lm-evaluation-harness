@@ -6,11 +6,8 @@ from itertools import islice
 
 @pytest.mark.parametrize("taskname,task_class", tasks.TASK_REGISTRY.items())
 def test_basic_interface(taskname, task_class):
-    print('Evaluating task', taskname)
-    # dl = task_class.download
-    # task_class.download = MagicMock()
+    print("Evaluating task", taskname)
     task = task_class()
-    # task_class.download = dl
 
     assert task.has_training_docs() in [True, False]
     assert task.has_validation_docs() in [True, False]
@@ -42,7 +39,7 @@ def test_basic_interface(taskname, task_class):
 
         reqs = [task.construct_requests(doc, task.doc_to_text(doc)) for doc in arr]
         reqs2 = [task2.construct_requests(doc, task2.doc_to_text(doc)) for doc in arr2]
-        
+
         assert reqs == reqs2
 
     if task.has_test_docs():
@@ -53,7 +50,7 @@ def test_basic_interface(taskname, task_class):
 
         reqs = [task.construct_requests(doc, task.doc_to_text(doc)) for doc in arr]
         reqs2 = [task2.construct_requests(doc, task2.doc_to_text(doc)) for doc in arr2]
-        
+
         assert reqs == reqs2
 
     if task.has_training_docs():
@@ -64,13 +61,13 @@ def test_basic_interface(taskname, task_class):
 
         reqs = [task.construct_requests(doc, task.doc_to_text(doc)) for doc in arr]
         reqs2 = [task2.construct_requests(doc, task2.doc_to_text(doc)) for doc in arr2]
-        
+
         assert reqs == reqs2
 
 
 @pytest.mark.parametrize("taskname,task_class", tasks.TASK_REGISTRY.items())
 def test_documents_and_requests(taskname, task_class):
-    print('Evaluating task', taskname)
+    print("Evaluating task", taskname)
     task = task_class()
     fns = []
     if task.has_training_docs():
@@ -83,21 +80,21 @@ def test_documents_and_requests(taskname, task_class):
     for fn in fns:
         # print(list(islice(fn(), 10)))
         for doc in islice(fn(), 10):
-            
+
             txt = task.doc_to_text(doc)
             tgt = task.doc_to_target(doc)
 
             assert isinstance(txt, str)
             assert isinstance(tgt, str)
-            
+
             # space convention
             # allow txt to have length 0 for perplexity-like tasks since the model tacks an <|endoftext|> on
             if len(txt) != 0:
-                assert txt[-1] != ' '
-                assert tgt[0] == ' ' or txt[-1] == '\n'
+                assert txt[-1] != " "
+                assert tgt[0] == " " or txt[-1] == "\n"
 
             reqs = task.construct_requests(doc, txt)
-            
+
             # construct_requests can return just one request
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]
