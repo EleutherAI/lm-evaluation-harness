@@ -25,6 +25,7 @@ def simple_evaluate(
     decontamination_ngrams_path=None,
     write_out=False,
     output_base_path=None,
+    task_init_args=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -83,7 +84,7 @@ def simple_evaluate(
             + ".db",
         )
 
-    task_dict = lm_eval.tasks.get_task_dict(tasks)
+    task_dict = lm_eval.tasks.get_task_dict(tasks, task_init_args=task_init_args)
 
     if check_integrity:
         run_task_tests(task_list=tasks)

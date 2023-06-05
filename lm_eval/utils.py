@@ -121,6 +121,28 @@ def pattern_match(patterns, source_list):
     return sorted(list(task_names))
 
 
+def extract_args(source_list: List[str]):
+    """extract task names and associated argument values
+
+    This is useful for processing lists such as `["<TASK_A>=<VALUE_A>", "<TASK_B>=<VALUE_B>", ...]`
+    into dictionaries such as `{"<TASK_A>": "<VALUE_A>", "<TASK_B>": "<VALUE_B>", ...}` and is
+    primarily intended for CLI argument processing.
+
+    :param source_list: list
+        List of strings in format <TASK>=<VALUE>, where <TASK> is the task name and <VALUE> is the
+        value for that task
+    :return: dict
+        Dictionary with task name keys and string argument values as values
+    """
+    regexp = re.compile(r'(?P<task>\w+)=(?P<arg>\S+)')
+    args = dict()
+    for src in source_list:
+        match = regexp.search(src)
+        if match:
+            args[match.group("task")] = match.group("arg")
+    return args
+
+
 def general_detokenize(string):
     string = string.replace(" n't", "n't")
     string = string.replace(" )", ")")

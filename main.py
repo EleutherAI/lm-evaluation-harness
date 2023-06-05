@@ -28,6 +28,15 @@ def parse_args():
     parser.add_argument("--check_integrity", action="store_true")
     parser.add_argument("--write_out", action="store_true", default=False)
     parser.add_argument("--output_base_path", type=str, default=None)
+    parser.add_argument("--data_dirs", default="",
+            help="comma-delimited list of task_name=data_dir arguments used for loading task"
+                "datasets with datasets.load_dataset()")
+    parser.add_argument("--cache_dirs", default="",
+            help="comma-delimited list of task_name=cache_dir arguments used for loading task"
+                "datasets with datasets.load_dataset()")
+    parser.add_argument("--download_modes", default="",
+            help="comma-delimited list of task_name=download_mode arguments used for loading"
+                "task datasets with datasets.load_dataset()")
 
     return parser.parse_args()
 
@@ -49,6 +58,23 @@ def main():
 
     print(f"Selected Tasks: {task_names}")
 
+    # Get named arguments to Task constructor, which are used for setting data_dir, cache_dir, and
+    # download_mode for the Task constructor.
+    data_dirs = utils.extract_args(args.data_dirs.split(","))
+    cache_dirs = utils.extract_args(args.cache_dirs.split(","))
+    download_modes = utils.extract_args(args.download_modes.split(","))
+    task_init_args = {k: dict() for k in data_dirs.keys() | cache_dirs.keys() | download_modes.keys()}
+    for k in task_init_args.keys():
+        if k in data_dirs:
+            task_init_args[k] = {**task_init_args[k], **{"data_dir": data_dirs[k]}}
+        if k in cache_dirs:
+            task_init_args[k] = {**task_init_args[k], **{"cache_dir": cache_dirs[k]}}
+        if k in download_modes:
+            task_init_args[k] = {**task_init_args[k], **{"download_mode": download_modes[k]}}
+    print(f"Data directories: {data_dirs}")
+    print(f"Cache directories: {cache_dirs}")
+    print(f"Download modes: {download_modes}")
+
     description_dict = {}
     if args.description_dict_path:
         with open(args.description_dict_path, "r") as f:
@@ -68,6 +94,7 @@ def main():
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         output_base_path=args.output_base_path,
+        task_init_args=task_init_args,
     )
 
     dumped = json.dumps(results, indent=2)

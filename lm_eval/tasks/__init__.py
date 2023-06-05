@@ -1,5 +1,5 @@
 from pprint import pprint
-from typing import List, Union
+from typing import Dict, List, Optional, Union
 
 import sacrebleu
 import lm_eval.base
@@ -60,6 +60,7 @@ from . import xwinograd
 from . import pawsx
 from . import xnli
 from . import mgsm
+from . import club
 
 ########################################
 # Translation tasks
@@ -314,6 +315,7 @@ TASK_REGISTRY = {
     "crows_pairs_french_nationality": crowspairs.CrowsPairsFrenchNationality,
     "crows_pairs_french_physical_appearance": crowspairs.CrowsPairsFrenchPhysicalAppearance,
     "crows_pairs_french_autre": crowspairs.CrowsPairsFrenchAutre,
+    "club_promise": club.Promise,
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
@@ -386,9 +388,16 @@ def get_task_name_from_object(task_object):
     )
 
 
-def get_task_dict(task_name_list: List[Union[str, lm_eval.base.Task]]):
+def get_task_init_args(task_name, task_init_arg_list):
+    try:
+        return task_init_arg_list[task_name]
+    except (KeyError, TypeError):
+        return dict()
+
+
+def get_task_dict(task_name_list: List[Union[str, lm_eval.base.Task]], task_init_args: Optional[Dict[str, Dict[str, str]]]=None):
     task_name_dict = {
-        task_name: get_task(task_name)()
+        task_name: get_task(task_name)(**get_task_init_args(task_name, task_init_args))
         for task_name in task_name_list
         if isinstance(task_name, str)
     }
