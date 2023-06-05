@@ -17,10 +17,15 @@ To evaluate on the above benchmark, use the `--tasks simba` command.
 
 ## Usage
 
+Download model to be evaluated from s3
+```
+aws s3 sync s3://bucket_name/path_to_saved_model .
+```
+
 ```bash
 python main.py \
     --model hf-causal \
-    --model_args pretrained=EleutherAI/gpt-j-6B \
+    --model_args pretrained={model_name OR ./path_to_saved/model} \
     --tasks simba \
     --device cuda:0
 ```
