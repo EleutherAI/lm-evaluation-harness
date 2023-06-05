@@ -564,7 +564,9 @@ class ConfigurableTask(Task):
                     filter_pipeline = build_filter_ensemble(filter_name, components)
                 self._filters.append(filter_pipeline)
         else:
-            self._filters = [build_filter_ensemble("none", [("none", None)])]
+            self._filters = [
+                build_filter_ensemble("take_first", [["take_first", None]])
+            ]
 
         if self._config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self._config.use_prompt}")
