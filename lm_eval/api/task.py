@@ -486,29 +486,7 @@ class ConfigurableTask(Task):
             self._aggregation_list = {}
             self._higher_is_better = {}
 
-            if self._config.output_type != "greedy_util":
-                eval_logger.warning(
-                    f"Output Type set as {self._config.output_type} which does not use metric_list"
-                    "metric list will be unused."
-                )
-
-                if self._config.output_type == "loglikelihood":
-                    metric_list = ["perplexity", "acc"]
-                elif self._config.output_type == "loglikelihood_rolling":
-                    metric_list = [
-                        "word_perplexity",
-                        "byte_perplexity",
-                        "bits_per_byte",
-                    ]
-                elif self._config.output_type == "multiple_choice":
-                    metric_list = ["acc", "acc_norm"]
-
-                for metric_name in metric_list:
-                    self._aggregation_list[metric_name] = AGGREGATION_REGISTRY["mean"]
-                    self._higher_is_better[metric_name] = HIGHER_IS_BETTER_REGISTRY[
-                        metric_name
-                    ]
-            else:
+            if self._config.output_type == "greedy_until":
                 for metric_config in self._config.metric_list:
 
                     metric_name = metric_config["metric"]
@@ -543,6 +521,28 @@ class ConfigurableTask(Task):
                                 ),
                                 "Please check https://huggingface.co/evaluate-metric",
                             )
+            else:
+                eval_logger.warning(
+                    f"Output Type set as {self._config.output_type} which does not use metric_list"
+                    "metric list will be unused."
+                )
+
+                if self._config.output_type == "loglikelihood":
+                    metric_list = ["perplexity", "acc"]
+                elif self._config.output_type == "loglikelihood_rolling":
+                    metric_list = [
+                        "word_perplexity",
+                        "byte_perplexity",
+                        "bits_per_byte",
+                    ]
+                elif self._config.output_type == "multiple_choice":
+                    metric_list = ["acc", "acc_norm"]
+
+                for metric_name in metric_list:
+                    self._aggregation_list[metric_name] = AGGREGATION_REGISTRY["mean"]
+                    self._higher_is_better[metric_name] = HIGHER_IS_BETTER_REGISTRY[
+                        metric_name
+                    ]
 
         self.download(self._config.dataset_kwargs)
         self._training_docs = None
