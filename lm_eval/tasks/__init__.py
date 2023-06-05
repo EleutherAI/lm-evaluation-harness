@@ -15,7 +15,7 @@ from lm_eval.api.register import (
 
 
 def get_task_name_from_config(task_config):
-    return "configurable_{dataset_path}_{dataset_name}".format(**task_config)
+    return "{dataset_path}_{dataset_name}".format(**task_config)
 
 
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
