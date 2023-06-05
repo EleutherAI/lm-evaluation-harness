@@ -4,6 +4,8 @@
 
 This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
 
+Huggingface Open Leaderboard: https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard
+
 Features:
 
 - 200+ tasks implemented. See the [task-table](./docs/task_table.md) for a complete list.
