@@ -54,14 +54,17 @@ class HFLM(BaseLM):
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
-        self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
-            pretrained,
-            load_in_8bit=load_in_8bit,
-            low_cpu_mem_usage=low_cpu_mem_usage,
-            revision=revision,
-            torch_dtype=_get_dtype(dtype),
-            trust_remote_code=trust_remote_code,
-        ).to(self.device)
+        try:
+            self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
+                pretrained,
+                load_in_8bit=load_in_8bit,
+                low_cpu_mem_usage=low_cpu_mem_usage,
+                revision=revision,
+                torch_dtype=_get_dtype(dtype),
+                trust_remote_code=trust_remote_code,
+            ).to(self.device)
+        except:
+            None
         self.gpt2.eval()
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
