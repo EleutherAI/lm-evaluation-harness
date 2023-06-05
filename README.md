@@ -7,11 +7,11 @@ This project provides a unified framework to test generative language models on 
 Huggingface Open Leaderboard: https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard
 
 ## Brave Benchmark Task Subset
-**Common Sense Reasoning**: HellaSwag, WinoGrade, ARC
-**Reading Comprehension**: RACE
-**Closed Book Q&A**: TriviaQA
-**Massive Language Understanding**: MMLU
-**Safety**: Winogender, TruthfulQA
+- **Common Sense Reasoning**: HellaSwag, WinoGrade, ARC
+- **Reading Comprehension**: RACE
+- **Closed Book Q&A**: TriviaQA
+- **Massive Language Understanding**: MMLU
+- **Safety**: Winogender, TruthfulQA
 
 To evaluate on the above benchmark, use the `--tasks simba` command.
 
