@@ -1,7 +1,6 @@
 import os
 from typing import List, Union
 
-from .arc import *
 
 from lm_eval import utils
 from lm_eval.logger import eval_logger

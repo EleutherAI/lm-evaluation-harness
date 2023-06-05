@@ -1,8 +1,8 @@
 group:
   - pile
-task: pile_enron
+task: pile_books3
 dataset_path: EleutherAI/the_pile
-dataset_name: enron_emails
+dataset_name: pile_books3
 output_type: loglikelihood_rolling
 test_split: train
 template_aliases: ""
