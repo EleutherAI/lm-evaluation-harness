@@ -171,16 +171,14 @@ class BaseLM(LM):
     # TODO: enforce this somehow
 
     def _encode_pair(self, context, continuation):
+        n_spaces = len(context) - len(context.rstrip())
+        if n_spaces > 0:
+            continuation = context[-n_spaces:] + continuation
+            context = context[:-n_spaces]
         whole_enc = self.tok_encode(context + continuation)
-        whole_enc_len = len(whole_enc)
         context_enc = self.tok_encode(context)
         context_enc_len = len(context_enc)
-        if context_enc_len < whole_enc_len:
-            continuation_enc = whole_enc[context_enc_len:]
-        else:
-            continuation_enc = self.tok_encode(continuation)
-            continuation_enc_len = len(continuation_enc)
-            context_enc = whole_enc[:-continuation_enc_len]
+        continuation_enc = whole_enc[context_enc_len:]
         return context_enc, continuation_enc
 
     def loglikelihood(self, requests):
