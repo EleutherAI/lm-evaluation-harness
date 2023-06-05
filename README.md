@@ -15,14 +15,15 @@ Huggingface Open Leaderboard: https://huggingface.co/spaces/HuggingFaceH4/open_l
 
 To evaluate on the above benchmark, use the `--tasks simba` command.
 
-Features:
+## Usage
 
-- 200+ tasks implemented. See the [task-table](./docs/task_table.md) for a complete list.
-- Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
-- Support for commercial APIs including [OpenAI](https://openai.com), [goose.ai](https://goose.ai), and [TextSynth](https://textsynth.com/).
-- Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
-- Evaluating with publicly available prompts ensures reproducibility and comparability between papers.
-- Task versioning to ensure reproducibility when tasks are updated.
+```bash
+python main.py \
+    --model hf-causal \
+    --model_args pretrained=EleutherAI/gpt-j-6B \
+    --tasks simba \
+    --device cuda:0
+```
 
 ## Install
 
