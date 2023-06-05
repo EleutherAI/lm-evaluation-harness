@@ -37,10 +37,10 @@ class HFLM(LM):
                 if device not in ["cuda", "cpu"]:
                     device = int(device)
                 self._device = torch.device(device)
-                print(f"Using device '{device}'")
+                eval_logger.info(f"Using device '{device}'")
             else:
-                print("Device not specified")
-                print(f"Cuda Available? {torch.cuda.is_available()}")
+                eval_logger.info("Device not specified")
+                eval_logger.info(f"Cuda Available? {torch.cuda.is_available()}")
                 self._device = (
                     torch.device("cuda")
                     if torch.cuda.is_available()
@@ -74,13 +74,12 @@ class HFLM(LM):
         if gpus > 1:
             accelerator = Accelerator()
             if gpus > accelerator.num_processes:
-                warning = (
+                eval_logger.warning(
                     "WARNING: The number of total system GPUs does not match the number of spawned processes. "
                     "If you would like to use data parallelism, please launch the script "
                     "with 'accelerate launch *script*'. "
                     f"Current run will proceed with {accelerator.num_processes} devices."
                 )
-                print(warning)
                 self._rank = accelerator.local_process_index
                 self._world_size = accelerator.num_processes
             else:
@@ -89,7 +88,7 @@ class HFLM(LM):
                 self.accelerator = accelerator
 
                 if self.accelerator.is_local_main_process:
-                    print(f"Using {gpus} devices with data parallelism")
+                    eval_logger.info(f"Using {gpus} devices with data parallelism")
 
                 self._rank = self.accelerator.local_process_index
                 self._world_size = self.accelerator.num_processes
