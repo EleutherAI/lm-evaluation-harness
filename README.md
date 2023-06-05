@@ -13,6 +13,8 @@ Huggingface Open Leaderboard: https://huggingface.co/spaces/HuggingFaceH4/open_l
 **Massive Language Understanding**: MMLU
 **Safety**: Winogender, TruthfulQA
 
+To evaluate on the above benchmark, use the `--tasks simba` command.
+
 Features:
 
 - 200+ tasks implemented. See the [task-table](./docs/task_table.md) for a complete list.
