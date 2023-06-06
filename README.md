@@ -142,7 +142,7 @@ When reporting eval harness results, please also report the version of each task
 
 ## Test Set Decontamination
 
-To address concerns about train / test contamination, we provide utilities for comparing results on a benchmark using only the data points nto found in the model training set. Unfortunately, outside of models trained on the Pile and C4, its very rare that people who train models disclose the contents of the training data. However this utility can be useful to evaluate models you have trained on private data, provided you are willing to pre-compute the necessary indices. We provide computed indices for 13-gram exact match deduplication against the Pile, and plan to add additional precomputed dataset indices in the future (including C4 and min-hash LSH deduplication).
+To address concerns about train / test contamination, we provide utilities for comparing results on a benchmark using only the data points not found in the model training set. Unfortunately, outside of models trained on the Pile and C4, its very rare that people who train models disclose the contents of the training data. However this utility can be useful to evaluate models you have trained on private data, provided you are willing to pre-compute the necessary indices. We provide computed indices for 13-gram exact match deduplication against the Pile, and plan to add additional precomputed dataset indices in the future (including C4 and min-hash LSH deduplication).
 
 For details on text decontamination, see the [decontamination guide](./docs/decontamination.md).
 
