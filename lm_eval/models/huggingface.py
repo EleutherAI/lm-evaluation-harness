@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Mapping, NewType, Optional, Tuple, Union
 from tqdm import tqdm
 
+from transformers.models.auto.modeling_auto import MODEL_FOR_CAUSAL_LM_MAPPING_NAMES # MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES
 from transformers import BatchEncoding
 from accelerate import find_executable_batch_size
 
@@ -62,7 +63,7 @@ class HuggingFaceAutoLM(BaseLM):
     AUTO_CONFIG_CLASS: transformers.AutoConfig = transformers.AutoConfig
     AUTO_TOKENIZER_CLASS: transformers.AutoTokenizer = transformers.AutoTokenizer
     AUTO_MODEL_CLASS: transformers.AutoModel = None
-    AUTO_PEFT_CLASS: peft.PeftModel = None
+    AUTO_PEFT_CLASS: peft.PeftModel = peft.PeftModel
 
     # Default max sequence length setting for when no `max_length` is provided
     # or no max length config setting is found in the model or tokenizer.
@@ -158,6 +159,21 @@ class HuggingFaceAutoLM(BaseLM):
         assert isinstance(pretrained, str)
         assert isinstance(device, str)
         assert isinstance(batch_size, (int, str))
+
+        self._config = self.AUTO_CONFIG_CLASS.from_pretrained(
+            pretrained,
+            trust_remote_code=trust_remote_code,
+            revision=revision + ("/" + subfolder if subfolder is not None else ""),
+        )
+
+        if not self.AUTO_MODEL_CLASS:
+            if getattr(self._config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
+                self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
+                self.__class__ = AutoCausalLM
+            else:
+                self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
+                self.__class__ = AutoSeq2SeqLM
+
         if (
             add_special_tokens is not None
             and self.AUTO_MODEL_CLASS is transformers.AutoModelForCausalLM
@@ -179,12 +195,6 @@ class HuggingFaceAutoLM(BaseLM):
 
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
-        self._config = self.AUTO_CONFIG_CLASS.from_pretrained(
-            pretrained,
-            trust_remote_code=trust_remote_code,
-            revision=revision + ("/" + subfolder if subfolder is not None else ""),
-        )
-
         self._add_special_tokens = add_special_tokens
         self.tokenizer = self._create_auto_tokenizer(
             pretrained=pretrained,
@@ -277,7 +287,7 @@ class HuggingFaceAutoLM(BaseLM):
                 device_map=device_map,
                 max_memory=max_memory,
                 trust_remote_code=trust_remote_code,
-                use_safetensors=True if quantized == True else quantized.endswith('.safetensors'),
+                use_safetensors=True if quantized == True else quantized.endswith(".safetensors"),
                 use_triton=gptq_use_triton,
                 warmup_triton=gptq_use_triton,
             )
@@ -471,6 +481,12 @@ class HuggingFaceAutoLM(BaseLM):
                 results.append(response)
         return reorder.get_original(results)
 
+    def _model_generate(self, context, max_length, eos_token_id):
+        assert False, "Calling _model_generate on HuggingFaceAutoLM"
+
+    def _model_call(self, inps):
+        assert False, "Calling _model_call on HuggingFaceAutoLM"
+
 
 class AutoCausalLM(HuggingFaceAutoLM):
     """Causal language modeling.
@@ -479,7 +495,6 @@ class AutoCausalLM(HuggingFaceAutoLM):
     """
 
     AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
-    AUTO_PEFT_CLASS = peft.PeftModel
 
     def _create_auto_tokenizer(
         self,
@@ -544,7 +559,6 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
     """
 
     AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
-    AUTO_PEFT_CLASS = peft.PeftModel
 
     def loglikelihood(
         self, requests: List[Tuple[str, str]]

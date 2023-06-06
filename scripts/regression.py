@@ -27,12 +27,8 @@ def parse_args():
     parser.add_argument("--tasks", default=task_names)
     parser.add_argument("--acc_norm", type=bool, default=False)
     parser.add_argument("--perplexity", default=None)
-    # TODO: implement num_fewshot and limit per task, e.g. task1:5,task2:1:100,task3::1000
     parser.add_argument("--num_fewshot", type=int, default=0)
     parser.add_argument("--limit", type=float, default=None)
-    # TODO: implement hf-auto to pick between causal and seq2seq models so we don't need this
-    parser.add_argument("--model", default="hf-causal-experimental")
-    # Use whatever is faster here
     parser.add_argument("--model_args", default="use_accelerate=True,load_in_8bit=True")
     parser.add_argument("--batch_size", default="auto")
     return parser.parse_args()
@@ -50,22 +46,14 @@ def eval_models(args, branch=None):
     results = {}
 
     for model in args.models:
-        model_type = "hf-causal-experimental" if model in causal_models \
-            else "hf-seq2seq" if model in seq2seq_models else args.model
         model_args = f"pretrained={model},{args.model_args}"
-        # TODO: split_and_pad_windows in AutoSeq2SeqLM doesn"t exist, #527
-        tasks = args.tasks if model in causal_models or model_type == "hf-causal-experimental" \
-            else list(filter(lambda task: task not in perplexity_tasks, args.tasks))
-        # TODO: OOM with auto for seq2seq models, also can OOM with llama
-        batch_size = args.batch_size if model in causal_models or model_type == "hf-causal-experimental" \
-            else 64 if args.batch_size == "auto" else args.batch_size
         output_path = f"data/regression/{int(start_time)}-{branch}-{Path(model).name}.json"
 
-        command = f"python3 main.py --model {model_type} --model_args {model_args} --tasks {','.join(tasks)} " \
+        command = f"python3 main.py --model_args {model_args} --tasks {','.join(args.tasks)} " \
                   f"--num_fewshot {args.num_fewshot}{'' if args.limit is None else f' --limit {args.limit}'} " \
-                  f"--batch_size {batch_size} --no_cache --output_path {output_path}"
+                  f"--batch_size {args.batch_size} --no_cache --output_path {output_path}"
 
-        print(f"{'=' * 80}\nEvaluating {model} on {', '.join(tasks)} at {branch} with:\n\n{command}\n{'=' * 80}")
+        print(f"{'=' * 80}\nEvaluating {model} on {', '.join(args.tasks)} at {branch} with:\n\n{command}\n{'=' * 80}")
 
         ret = os.system(command)
 
@@ -111,7 +99,7 @@ def main():
     args.branches = args.branches.split(",") if type(args.branches) == str else args.branches
     args.models = args.models.split(",") if type(args.models) == str else args.models
     args.tasks = tasks.ALL_TASKS if args.tasks == "all_tasks" \
-        else utils.pattern_match(args.tasks.split(",") if type(args.tasks) == str else args.tasks, tasks.ALL_TASKS)
+        else utils.pattern_match(args.tasks.split(","), tasks.ALL_TASKS) if type(args.tasks) == str else args.tasks
 
     global initial_branch
     initial_branch = subprocess.check_output("git branch --show-current", shell=True).decode("ascii").strip()

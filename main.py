@@ -4,13 +4,14 @@ import logging
 import os
 
 from lm_eval import tasks, evaluator, utils
+from lm_eval.models import MODEL_REGISTRY
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", required=True)
+    parser.add_argument("--model", default="hf-auto", choices=utils.MultiChoice(MODEL_REGISTRY.keys()))
     parser.add_argument("--model_args", default="")
     parser.add_argument("--tasks", default=None, choices=utils.MultiChoice(tasks.ALL_TASKS))
     parser.add_argument("--provide_description", action="store_true")
