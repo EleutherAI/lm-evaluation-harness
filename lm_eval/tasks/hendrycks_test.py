@@ -125,9 +125,13 @@ class GeneralHendrycksTest(MultipleChoiceTask):
     def test_docs(self):
         return map(self._process_doc, self.dataset["test"])
 
+    def _format_subject(self, subject):
+        words = subject.split("_")
+        return " ".join(words)
+
     def fewshot_context(self, doc, num_fewshot, **kwargs):
         subject = self.DATASET_NAME
-        description = f"The following are multiple choice questions (with answers) about {subject}."
+        description = f"The following are multiple choice questions (with answers) about {self._format_subject(subject)}."
         kwargs["description"] = description
         return super().fewshot_context(doc=doc, num_fewshot=num_fewshot, **kwargs)
 
@@ -142,7 +146,7 @@ class GeneralHendrycksTest(MultipleChoiceTask):
             Answer:
             """
 
-            question = doc["question"]
+            question = doc["question"].strip()
             choices = "".join(
                 [f"{key}. {choice}\n" for key, choice in zip(keys, doc["choices"])]
             )
