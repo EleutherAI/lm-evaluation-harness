@@ -7,10 +7,9 @@ import torch
 import numpy as np
 
 import lm_eval.api
-import lm_eval.api.metrics
-
 import lm_eval.tasks
 import lm_eval.models
+import lm_eval.metrics
 
 from lm_eval.utils import (
     positional_deprecated,
@@ -281,7 +280,7 @@ def evaluate(
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
 
-            stderr = lm_eval.api.metrics.stderr_for_metric(
+            stderr = lm_eval.metrics.stderr_for_metric(
                 metric=task.aggregation()[metric],
                 bootstrap_iters=min(bootstrap_iters, 1000)
                 if metric in ["bleu", "chrf", "ter"]
