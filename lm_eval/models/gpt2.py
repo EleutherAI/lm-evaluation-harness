@@ -99,7 +99,10 @@ class HFLM(BaseLM):
             return self.gpt2.config.n_ctx
         except AttributeError:
             # gptneoconfig doesn't have n_ctx apparently
-            return self.gpt2.config.max_position_embeddings
+            try:
+                return self.gpt2.config.max_position_embeddings
+            except:
+                return 2048
 
     @property
     def max_gen_toks(self):
