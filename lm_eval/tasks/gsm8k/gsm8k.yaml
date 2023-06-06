@@ -5,7 +5,6 @@ output_type: greedy_until
 training_split: train
 fewshot_split: train
 test_split: test
-# use_prompt: "qa-basic:question-newline-answer"
 doc_to_text: "Question: {{question}}\nAnswer:"
 doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
 gold_alias: "{{answer.split('### ')[-1].rstrip()}}" # this post-processes the reference that we'll score against
