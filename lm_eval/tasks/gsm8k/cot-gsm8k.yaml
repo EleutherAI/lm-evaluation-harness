@@ -26,7 +26,7 @@
 # }
 # """
 
-task: gsm8k_yaml
+task: gsm8k_cot
 dataset_path: gsm8k
 dataset_name: main
 training_split: train
@@ -39,10 +39,10 @@ metric_list:
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
-delimiter: "\n"
+delimiter: "\n\n"
 repeats: 4
-# filter_list:
-#   - name: "get-answer"
-#     filter:
-#       - function: "regex"
-#         regex_pattern: "#### (\-?[0-9\.\,]+)"
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        regex_pattern: "#### (\\-?[0-9\\.\\,]+)" # yaml

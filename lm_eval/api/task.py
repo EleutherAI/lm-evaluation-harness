@@ -1,5 +1,5 @@
 import abc
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import re
 import ast
@@ -39,7 +39,6 @@ class TaskConfig(dict):
 
     task: str = None
     group: str = None
-    names: str = None
     reference: str = None
     task_name: str = (
         None  # TODO: deprecate this, it'll be set in __post_init__ to be names[0]
@@ -63,6 +62,7 @@ class TaskConfig(dict):
     metric_list: str = None
     gold_alias: str = None
     output_type: str = "greedy_until"
+    generation_kwargs: dict = None
     delimiter: str = "\n\n"
     filter_list: Union[str, list] = None
     normalization: str = (
@@ -87,10 +87,10 @@ class TaskConfig(dict):
 
             if type(self.gold_alias) == str:
                 self.gold_alias = self.template_aliases + self.doc_to_target
-
-        # set "task_name" metadata field based on the "primary" name set
-        if self.names:
-            self.task_name = self.names[0]
+        
+        if not self.generation_kwargs:
+            # ensure that we greedily generate in absence of explicit arguments otherwise
+            self.generation_kwargs = {"do_sample": False, "temperature": 0.0}
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -311,7 +311,7 @@ class Task(abc.ABC):
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
-                metadata=(self._config["task_name"], doc_id, self._config.repeats),
+                metadata=(self._config["task"], doc_id, self._config.repeats),
             )
 
             if not isinstance(inst, list):
@@ -706,7 +706,7 @@ class ConfigurableTask(Task):
             return request_list
 
         elif self.OUTPUT_TYPE == "greedy_until":
-            arguments = (ctx, self._config.delimiter)
+            arguments = (ctx, self._config.generation_kwargs)
 
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
