@@ -8,6 +8,7 @@ from lm_eval import tasks, evaluator, utils
 logging.getLogger("openai").setLevel(logging.WARNING)
 
 SIMBA_TASK_SET = ["hellaswag", "winograde", "arc", "race", "triviaqa", "mmlu", "winogender", "truthfulqa"]
+tasks.ALL_TASKS.append('simba')
 
 def parse_args():
     parser = argparse.ArgumentParser()
