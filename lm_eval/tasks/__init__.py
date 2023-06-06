@@ -52,21 +52,8 @@ from . import gsm8k
 from . import storycloze
 from . import toxigen
 from . import crowspairs
-from . import xnli
-from . import xquad
-from . import pawsx
-from . import x_stance
-from . import stereoset
-from . import mlqa
-from . import gnad10
-from . import mlsum
-from . import germeval_2018
-from . import germanquad
-from . import germeval2017
-from . import german_ler_ppl
-from . import german_europarl_ppl
-from . import oscar_ppl
 from .aam.all_tasks_registry import TASK_REGISTRY as AAM_TASK_REGISTRY
+from .opengptx.all_tasks_registry import TASK_REGISTRY as OPENGPTX_TASK_REGISTRY
 
 ########################################
 # Translation tasks
@@ -325,27 +312,12 @@ TASK_REGISTRY = {
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
-    "x_stance_de": x_stance.XStanceDE,
-    "x_stance_fr": x_stance.XStanceFR,
-    **xquad.construct_tasks(),
-    **xnli.construct_tasks(),
-    **pawsx.construct_tasks(),
-    "gnad10": gnad10.GNAD10,
-    **stereoset.construct_tasks(),
-    **mlqa.construct_tasks(),
-    **mlsum.construct_tasks(),
-    "germeval2018_coarse": germeval_2018.GermEval2018,
-    "germeval2018_fine": germeval_2018.GermEval2018_fine,
-    "germanquad": germanquad.GermanQuAD,
-    "germeval2017": germeval2017.GermEval2017,
-    "german_ler_ppl": german_ler_ppl.GermanLERPerplexity,
-    "german_europarl_ppl": german_europarl_ppl.GermanEuroparlPerplexity,
-    "oscar_ppl_de": oscar_ppl.OscarPerplexityGerman,
 }
 
 
 # append the multilingual tasks to the registry
 TASK_REGISTRY.update(AAM_TASK_REGISTRY)
+TASK_REGISTRY.update(OPENGPTX_TASK_REGISTRY)
 
 ALL_TASKS = sorted(list(TASK_REGISTRY))
 

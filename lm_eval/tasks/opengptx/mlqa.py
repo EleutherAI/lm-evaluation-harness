@@ -7,8 +7,7 @@ import unicodedata
 import string
 import re
 from collections import Counter
-from lm_eval.base import rf
-from ..base import Task
+from lm_eval.base import rf, Task
 
 """
 MLQA: Evaluating Cross-lingual Extractive Question Answering
@@ -436,5 +435,5 @@ LANG_CLASSES = [
 def construct_tasks():
     tasks = {}
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
-        tasks[f"mlqa_{lang}"] = lang_class
+        tasks[f"ogptx_mlqa_{lang}"] = lang_class
     return tasks

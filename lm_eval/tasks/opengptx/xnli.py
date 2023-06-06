@@ -16,7 +16,7 @@ and may differ from the ones used by mGPT and XGLM (they do not provide their pr
 """
 import numpy as np
 from lm_eval.base import rf, Task
-from ..metrics import mean
+from lm_eval.metrics import mean
 
 _CITATIONS = """
 @InProceedings{conneau2018xnli,
@@ -363,5 +363,5 @@ LANG_CLASSES = [
 def construct_tasks():
     tasks = {}
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
-        tasks[f"xnli_{lang}"] = lang_class
+        tasks[f"ogptx_xnli_{lang}"] = lang_class
     return tasks

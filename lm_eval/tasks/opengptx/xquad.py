@@ -15,7 +15,7 @@ See https://github.com/EleutherAI/lm-evaluation-harness/pull/200
 
 """
 
-from .squad import SQuAD2
+from lm_eval.tasks.squad import SQuAD2
 from math import exp
 from functools import partial
 import datasets
@@ -282,5 +282,5 @@ LANG_CLASSES = [
 def construct_tasks():
     tasks = {}
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
-        tasks[f"xquad_{lang}"] = lang_class
+        tasks[f"ogptx_xquad_{lang}"] = lang_class
     return tasks

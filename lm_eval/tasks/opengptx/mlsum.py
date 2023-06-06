@@ -168,5 +168,5 @@ LANG_CLASSES = [MLSumDE, MLSumES, MLSumFR, MLSumRU, MLSumTU]
 def construct_tasks():
     tasks = {}
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
-        tasks[f"mlsum_{lang}"] = lang_class
+        tasks[f"ogptx_mlsum_{lang}"] = lang_class
     return tasks

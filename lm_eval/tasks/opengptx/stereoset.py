@@ -162,8 +162,8 @@ class StereoSetInterSentenceDe(StereoSetInterSentenceEn):
 def construct_tasks():
 
     return {
-        "stereoset_intrasentence_en": StereoSetIntraSentenceEn,
-        "stereoset_intersentence_en": StereoSetInterSentenceEn,
-        "stereoset_intrasentence_de": StereoSetIntraSentenceDe,
-        "stereoset_intersentence_de": StereoSetInterSentenceDe,
+        "ogptx_stereoset_intrasentence_en": StereoSetIntraSentenceEn,
+        "ogptx_stereoset_intersentence_en": StereoSetInterSentenceEn,
+        "ogptx_stereoset_intrasentence_de": StereoSetIntraSentenceDe,
+        "ogptx_stereoset_intersentence_de": StereoSetInterSentenceDe,
     }
