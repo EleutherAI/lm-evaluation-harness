@@ -1,6 +1,6 @@
 group:
   - wikitext_group
-task: wikitext_yaml
+task: default
 dataset_path: EleutherAI/wikitext_document_level
 dataset_name: wikitext-2-raw-v1
 output_type: loglikelihood_rolling
@@ -14,11 +14,5 @@ should_decontaminate: true
 doc_to_decontamination_query: "{{page}}"
 metric_list:
   - metric: word_perplexity
-    aggregation: weighted_perplexity
-    higher_is_better: false
   - metric: byte_perplexity
-    aggregation: weighted_perplexity
-    higher_is_better: false
   - metric: bits_per_byte
-    aggregation: bits_per_byte
-    higher_is_better: false

@@ -5,11 +5,11 @@ from typing import List, Union
 from lm_eval import utils
 from lm_eval.logger import eval_logger
 from lm_eval.api.task import TaskConfig, Task, ConfigurableTask
-from lm_eval.api.register import (
+from lm_eval.api.registry import (
     register_task,
     register_group,
-    task_registry,
-    group_registry,
+    TASK_REGISTRY,
+    GROUP_REGISTRY,
 )
 
 
@@ -48,8 +48,6 @@ for root, subdirs, file_list in os.walk(task_dir):
                         "                                 Config will not be added to registry"
                     )
 
-TASK_REGISTRY = task_registry
-GROUP_REGISTRY = group_registry
 ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
 
 
