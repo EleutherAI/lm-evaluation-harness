@@ -7,7 +7,8 @@ import torch.nn.functional as F
 
 from lm_eval import utils
 from lm_eval.logger import eval_logger
-from lm_eval.api.model import LM, register_model
+from lm_eval.api.model import LM
+from lm_eval.api.registry import register_model
 
 from accelerate import Accelerator
 from itertools import islice
