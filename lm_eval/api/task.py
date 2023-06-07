@@ -246,7 +246,7 @@ class Task(abc.ABC):
         else:
             eval_logger.warning(
                 "has_training_docs and has_validation_docs are False"
-                "using test_docs but this is not recommended."
+                ", using test_docs but this is not recommended."
             )
             return self.test_docs()
 
@@ -530,8 +530,8 @@ class ConfigurableTask(Task):
                         }
                         components.append([function["function"], kwargs])
 
-                    filter_pipeline = build_filter_ensemble(filter_name, components)
-            self._filters.append(filter_pipeline)
+                    filter_pipeline = build_filter_ensemble(filter_name, components)      
+                self._filters.append(filter_pipeline)
         else:
             self._filters = [
                 build_filter_ensemble("take_first", [["take_first", None]])

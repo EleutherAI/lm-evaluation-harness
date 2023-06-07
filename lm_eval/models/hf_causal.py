@@ -1,6 +1,7 @@
 import torch
 import transformers
 
+import copy
 from tqdm import tqdm
 
 import torch.nn.functional as F
@@ -353,6 +354,7 @@ class HFLM(LM):
 
         for context, gen_kwargs in tqdm(re_ord.get_reordered()):
             if isinstance(gen_kwargs, dict):
+                gen_kwargs = copy.deepcopy(gen_kwargs) # edge case for repeats > 1 
                 if "until" in gen_kwargs.keys():
                     until = gen_kwargs.pop("until")
                     if isinstance(until, str):
@@ -365,16 +367,25 @@ class HFLM(LM):
                 raise ValueError(f"Expected `gen_kwargs` to be of type `dict` but got {gen_kwargs}")    
             if not until:
                 until = [self.tok_decode(self.eot_token_id)]
+            if "max_gen_toks" in gen_kwargs.keys():
+                max_gen_toks = gen_kwargs.pop("max_gen_toks")
+            else:
+                max_gen_toks = self.max_gen_toks
 
-            (primary_until,) = self.tok_encode(until[0])
+            try:
+                (primary_until,) = self.tok_encode(until[0])
+            except: 
+                # if our primary until would be multiple tokens long, we'll have errors.
+                # TODO: handling this better will let us stop generating earlier + often.
+                primary_until = self.eot_token_id
 
             context_enc = torch.tensor(
-                [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
+                [self.tok_encode(context)[max_gen_toks - self.max_length :]]
             ).to(self.device)
 
             cont = self._model_generate(
                 context=context_enc, 
-                max_length=context_enc.shape[1] + self.max_gen_toks, 
+                max_length=context_enc.shape[1] + max_gen_toks, 
                 eos_token_id=primary_until,
                 **gen_kwargs,
             )

@@ -1,6 +1,6 @@
 group:
   - chain_of_thought
-task: gsm8k_cot
+task: gsm8k_cot_self_consistency
 dataset_path: gsm8k
 dataset_name: main
 output_type: greedy_until
@@ -14,7 +14,7 @@ Q: There were nine computers in the server room. Five more computers were instal
 Q: Michael had 58 golf balls. On tuesday, he lost 23 golf balls. On wednesday, he lost 2 more. How many golf balls did he have at the end of wednesday?\n\nA: Michael started with 58 golf balls. After losing 23 on tuesday, he had 58 - 23 = 35. After losing 2 more, he had 35 - 2 = 33 golf balls. The answer is 33.\n\n\
 Q: Olivia has $23. She bought five bagels for $3 each. How much money does she have left?\n\nA: Olivia had 23 dollars. 5 bagels for 3 dollars each will be 5 x 3 = 15 dollars. So she has 23 - 15 dollars left. 23 - 15 is 8. The answer is 8.\n\n\
 Q: {{question}}\n\nA:"
-doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
+#doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
 gold_alias: "{{answer.split('### ')[-1].rstrip()}}" # this post-processes the reference that we'll score against
 metric_list:
   - metric: exact_match
@@ -28,15 +28,31 @@ metric_list:
 delimiter: "\n\n"
 generation_kwargs:
   until:
+    - "\n"
     - "Q:"
     - "\n\n"
-  do_sample: false
-  temperature: 0.0
-repeats: 1
+  do_sample: true
+  temperature: 0.2
+  max_gen_toks: 128
+repeats: 8
 num_fewshot: 0
 filter_list:
-  - name: "get-answer"
+  - name: "score-first" # pick only the first response, and report metrics on that
     filter:
       - function: "regex"
-        regex_pattern: "The answer is (\\-?[0-9\\.\\,]+)"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "take_first"
+  - name: "maj@64"
+    filter:
+      - function: "regex"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "majority_vote"
+      - function: "take_first"
+  - name: "maj@8" # get Maj@8 , via selecting the first 8 responses. Using a better estimator would be optimal.
+    filter:
+      - function: "take_k"
+        k: 8
+      - function: "regex"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "majority_vote"
       - function: "take_first"

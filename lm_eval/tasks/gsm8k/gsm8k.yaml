@@ -20,11 +20,11 @@ metric_list:
       - ".*### "
 delimiter: "\n\n"
 generation_kwargs:
-  - until:
+  until:
     - "\n\n"
     - "Question:"
-  - do_sample: false
-  - temperature: 0.0
+  do_sample: false
+  temperature: 0.0
 repeats: 2
 num_fewshot: 5
 # filter_list:
