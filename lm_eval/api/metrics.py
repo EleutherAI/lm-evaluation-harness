@@ -118,7 +118,7 @@ def matthews_corrcoef(items):
 
 
 @register_metric(
-    metric="f1_score",
+    metric="f1",
     higher_is_better=True,
     output_type="multiple_choice",
     aggregation="mean",
