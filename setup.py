@@ -21,6 +21,7 @@ setuptools.setup(
     ],
     python_requires=">=3.9",
     install_requires=[
+        "anthropic",
         "datasets>=2.0.0",
         "jsonlines",
         "numexpr",
