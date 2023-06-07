@@ -10,6 +10,7 @@ import lm_eval.api
 import lm_eval.tasks
 import lm_eval.models
 import lm_eval.api.metrics
+import lm_eval.api.registry
 
 from lm_eval.utils import (
     positional_deprecated,
@@ -71,7 +72,7 @@ def simple_evaluate(
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
-        lm = lm_eval.api.model.get_model(model).create_from_arg_string(
+        lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
             model_args, {"batch_size": batch_size, "device": device}
         )
     else:
