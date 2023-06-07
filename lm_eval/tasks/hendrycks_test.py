@@ -159,7 +159,6 @@ class GeneralHendrycksTest(MultipleChoiceTask):
             "choices": keys,
             "gold": doc["answer"],
         }
-        return result
 
     def fewshot_examples(self, k, rnd):
         # fewshot_examples is not just sampling from train_docs because dev is
@@ -167,9 +166,9 @@ class GeneralHendrycksTest(MultipleChoiceTask):
         if self._fewshot_docs is None:
             self._fewshot_docs = list(map(self._process_doc, self.dataset["dev"]))
 
-        # use the unchanged order of the dev set without sampling, 
+        # use the unchanged order of the dev set without sampling,
         # just as in the original code https://github.com/hendrycks/test/blob/master/evaluate.py#L28
-        return self._fewshot_docs[:k]  
+        return self._fewshot_docs[:k]
 
     def doc_to_text(self, doc):
         return doc["query"]
