@@ -33,7 +33,7 @@ _CITATION = """
 class ANLIDE(Task):
     VERSION = 0
     DATASET_PATH = "MoritzLaurer/multilingual-NLI-26lang-2mil7"
-    DATASET_NAME= 'de_anli'
+    DATASET_NAME = "de_anli"
 
     def has_training_docs(self):
         return True
@@ -43,7 +43,7 @@ class ANLIDE(Task):
 
     def has_test_docs(self):
         return False
-   
+
     def training_docs(self):
         if self.has_training_docs():
             # We cache training documents in `self._training_docs` for faster
@@ -58,13 +58,13 @@ class ANLIDE(Task):
                 # named differently than the default `"train"`.
                 self._training_docs = map(self._process_doc, self.dataset["de_anli"])
             return self._training_docs
-        #return self.dataset["de_anli"]
+        # return self.dataset["de_anli"]
         # if self.has_training_docs():
         #     return self.dataset["de_anli" + str(self.SPLIT)]
-        #if self.has_training_docs():
-            #if self._training_docs is None:
-                #self._training_docs = list(self.dataset["de_anli"])
-            #return self._training_docs
+        # if self.has_training_docs():
+        # if self._training_docs is None:
+        # self._training_docs = list(self.dataset["de_anli"])
+        # return self._training_docs
 
     # def doc_to_text(self, doc):
     #     # OA does this a bit weirdly: they prepend "anli 1:  anli 1:  " to the beginning
@@ -87,7 +87,7 @@ class ANLIDE(Task):
             )
         )
 
-    #def doc_to_decontamination_query(self, doc):
+    # def doc_to_decontamination_query(self, doc):
     #    return doc["premise"]
 
     # def doc_to_target(self, doc):
@@ -95,16 +95,16 @@ class ANLIDE(Task):
     #     # False = contradiction
     #     # Neither = neutral
     #     return (" " + ["Richtig", "Keins von beiden", "Falsch"][str(doc["label"])])
-    
+
     # def doc_to_target(self, doc):
     #     return " {}".format({0: "Richtig", 1: "Keins von beiden", 2:"Falsch"}[doc["label"]])
-    
+
     def doc_to_target(self, doc):
         # True = entailment
         # False = contradiction
         # Neither = neutral
         return " {}".format({0: "Wahr", 1: "Neutral", 2: "Falsch"}[doc["label"]])
-    
+
     # def construct_requests(self, doc, ctx):
     #     """Uses RequestFactory to construct Requests and returns an iterable of
     #     Requests which will be sent to the LM.
@@ -120,7 +120,7 @@ class ANLIDE(Task):
     #     ll_neither, _ = rf.loglikelihood(ctx, " Keins von beiden")
     #     ll_false, _ = rf.loglikelihood(ctx, " Falsch")
     #     return ll_true, ll_neither, ll_false
-    
+
     def construct_requests(self, doc, ctx):
         ll_true, _ = rf.loglikelihood(ctx, " Wahr")
         ll_neither, _ = rf.loglikelihood(ctx, " Neutral")
@@ -139,8 +139,8 @@ class ANLIDE(Task):
         """
         gold = str(doc["label"])
         pred = np.argmax(results)
-        #pred = ["Richtig", "Keins von beiden", "Falsch"][pred_label]
-        #print(pred, gold)
+        # pred = ["Richtig", "Keins von beiden", "Falsch"][pred_label]
+        # print(pred, gold)
         return {"acc": pred == gold}
 
     def aggregation(self):
