@@ -435,5 +435,5 @@ LANG_CLASSES = [
 def construct_tasks():
     tasks = {}
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
-        tasks[f"ogptx_mlqa_{lang}"] = lang_class
+        tasks[f"mlqa_{lang}"] = lang_class
     return tasks

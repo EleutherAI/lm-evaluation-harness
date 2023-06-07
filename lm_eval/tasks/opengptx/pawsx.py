@@ -195,8 +195,8 @@ class PAWSX_de(PAWSXBase):
 class PAWSX_fr(PAWSXBase):
     DATASET_NAME = "fr"
     YES = "Oui"
-    NO = "No"
-    QUESTION_WORD = "right"
+    NO = "Non"
+    QUESTION_WORD = "correct"
 
 
 LANGS = [
@@ -215,5 +215,5 @@ LANG_CLASSES = [
 def construct_tasks():
     tasks = {}
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
-        tasks[f"ogptx_pawsx_{lang}"] = lang_class
+        tasks[f"pawsx_{lang}"] = lang_class
     return tasks

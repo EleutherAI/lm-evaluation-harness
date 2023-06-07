@@ -16,7 +16,12 @@ Dataset: https://huggingface.co/datasets/mlsum
 
 Prompts are translated with Google Translate.
 
+CHANGES: 2023-03-12: 
+  - changed version from None to 1
+  - fixed some prompts (spaces) and translations
+  - removed spanish training docs
 """
+
 import datasets
 from lm_eval.base import rf, Task
 from functools import partial
@@ -168,5 +173,5 @@ LANG_CLASSES = [MLSumDE, MLSumES, MLSumFR, MLSumRU, MLSumTU]
 def construct_tasks():
     tasks = {}
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
-        tasks[f"ogptx_mlsum_{lang}"] = lang_class
+        tasks[f"mlsum_{lang}"] = lang_class
     return tasks
