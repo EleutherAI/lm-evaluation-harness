@@ -13,7 +13,7 @@ class Filter:
 
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
