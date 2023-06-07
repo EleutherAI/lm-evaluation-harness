@@ -14,8 +14,19 @@ The current implementation progress is tracked under [GitHub issues](https://git
 - GNAD10 (de)
 - StereoSet (en,de)
 - GermEval 2017 (de)
+- GermEval 2018 (de)
 - German LER PPL (de)
 - German Europarl PPL (de)
+- Germanquad (de)
+- PIAF (fr)
+- Fquad (fr)
+- Squad (it)
+- Xcopa (it)
+- Xl-Wic (de,it)
+- Wino_x (de)
+- X-CSQA (ar,de, en, es, fr, hi, it, jap, nl, pt, ru, sw, ur, vi, zh)
+- X-CODAH (ar,de, en, es, fr, hi, it, jap, nl, pl, pt, ru, sw, ur, vi, zh)
+
 
 ## Install
 

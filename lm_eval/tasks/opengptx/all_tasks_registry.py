@@ -13,6 +13,9 @@ from . import germeval2017
 from . import german_ler_ppl
 from . import german_europarl_ppl
 from . import oscar_ppl
+from . import xcsr
+from . import wino_x
+from . import xlwic
 
 
 TASK_REGISTRY = {
@@ -32,4 +35,8 @@ TASK_REGISTRY = {
     "ogptx_german_ler_ppl": german_ler_ppl.GermanLERPerplexity,
     "ogptx_german_europarl_ppl": german_europarl_ppl.GermanEuroparlPerplexity,
     "ogptx_oscar_ppl_de": oscar_ppl.OscarPerplexityGerman,
+    **xcsr.construct_tasks(),
+    "ogptx_wino_de": wino_x.WinograndeXDe,
+    "ogptx_xlwic_de": xlwic.WordsInContextDe,
+    "ogptx_xlwic_it": xlwic.WordsInContextIt,
 }
