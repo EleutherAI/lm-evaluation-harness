@@ -41,11 +41,12 @@ for root, subdirs, file_list in os.walk(task_dir):
                     if "group" in config:
                         for group in config["group"]:
                             register_group(group)(SubClass)
-                except Exception:
+                except Exception as error:
                     eval_logger.warning(
                         "Failed to load config at in\n"
                         f"                                 {yaml_path}\n"
                         "                                 Config will not be added to registry"
+                        f"                                 Error: {error}"
                     )
 
 ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
