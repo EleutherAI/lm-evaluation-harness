@@ -514,7 +514,6 @@ class ConfigurableTask(Task):
                 ]
         else:
             for metric_config in self._config.metric_list:
-
                 assert "metric" in metric_config
                 metric_name = metric_config["metric"]
                 kwargs = {
@@ -547,9 +546,8 @@ class ConfigurableTask(Task):
                         f"metric {metric_name} is defined, but aggregation is not"
                         f"using default aggregation for {metric_name}"
                     )
-                    aggregation = DEFAULT_AGGREGATION_REGISTRY[metric_name]
-                    self._aggregation_list[metric_name] = AGGREGATION_REGISTRY[
-                        aggregation
+                    self._aggregation_list[metric_name] = DEFAULT_AGGREGATION_REGISTRY[
+                        metric_name
                     ]
 
                 if "higher_is_better" in metric_config:
