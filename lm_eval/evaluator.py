@@ -1,6 +1,9 @@
 import random
 import itertools
+import json
 import collections
+import logging
+import sys
 
 import torch
 
@@ -21,6 +24,10 @@ from lm_eval.utils import (
 )
 
 from lm_eval.logger import eval_logger
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 @positional_deprecated
@@ -222,6 +229,7 @@ def evaluate(
                     enumerate(task.validation_docs()), lm.rank, limit, lm.world_size
                 )
             )
+            example_logger = logging.getLogger("examples")
             for doc_id, doc in doc_iterator:
                 # subset instances to only this document id ; sort by idx
                 requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
@@ -229,6 +237,10 @@ def evaluate(
                 metrics = task.process_results(
                     doc, [req.filtered_resps[key] for req in requests]
                 )
+                target = task.doc_to_target(doc)
+                example = {"doc_id": doc_id, "doc": doc['text'], "target": target}
+                example.update(metrics)
+                example_logger.info(json.dumps(example))
                 for metric, value in metrics.items():
                     vals[(task_name, key, metric)].append(value)
 

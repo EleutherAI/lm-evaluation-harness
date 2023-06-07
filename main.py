@@ -2,13 +2,14 @@ import os
 import json
 import fnmatch
 import argparse
+import logging
 
 from lm_eval import evaluator, utils
 from lm_eval.tasks import ALL_TASKS
 from lm_eval.logger import eval_logger
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
+logger = logging.getLogger("main")
 
 class MultiChoice:
     def __init__(self, choices):
@@ -56,15 +57,30 @@ def pattern_match(patterns, source_list):
             task_names.add(matching)
     return sorted(list(task_names))
 
+def setup_example_logger(output_path, separator):
+    """Sets up a logger that will save each example and prediction."""
+    example_logger = logging.getLogger("examples")
+    filename = f"./outputs/examples{separator}{output_path}.jsonl"
+    formatter = logging.Formatter("%(message)s")
+    handler = logging.FileHandler(filename)
+    handler.setFormatter(formatter)
+    example_logger.addHandler(handler)
+    example_logger.setLevel(logging.INFO)
+
 
 def main():
-    args = parse_args()
+    os.makedirs("./outputs", exist_ok=True)
+    args = parse_args()    
 
     if args.limit:
         eval_logger.warning(
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
+
+    path_separator = "."
+    output_path = args.output_path if args.output_path is not None else ""
+    setup_example_logger(output_path, path_separator)
 
     if args.tasks is not None:
         if os.path.isdir(args.tasks):
