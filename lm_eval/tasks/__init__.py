@@ -35,8 +35,8 @@ for root, subdirs, file_list in os.walk(task_dir):
                     )
 
                     if "task" in config:
-                        task_name = "{}:{}".format(
-                            get_task_name_from_config(config), config["task"]
+                        task_name = "{}".format(
+                            config["task"]
                         )
                         register_task(task_name)(SubClass)
 
@@ -46,7 +46,7 @@ for root, subdirs, file_list in os.walk(task_dir):
                 except Exception as e:
                     raise e
                     eval_logger.warning(
-                        "Failed to load config at in\n"
+                        "Failed to load config in\n"
                         f"                                 {yaml_path}\n"
                         "                                 Config will not be added to registry"
                     )
