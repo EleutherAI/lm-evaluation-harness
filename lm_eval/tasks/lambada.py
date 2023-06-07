@@ -16,7 +16,7 @@ from lm_eval.api.task import Task
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean, perplexity
 
-from lm_eval.api.register import register_task, register_group
+from lm_eval.api.registry import register_task, register_group
 
 _CITATION = """
 @misc{

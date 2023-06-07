@@ -13,7 +13,7 @@ import re
 
 from lm_eval.api.task import PerplexityTask
 
-from lm_eval.api.register import register_task, register_group
+from lm_eval.api.registry import register_task, register_group
 
 _CITATION = """
 @misc{merity2016pointer,
