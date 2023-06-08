@@ -274,7 +274,7 @@ def evaluate(
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
-            results[task_name][metric + " - filter=" + key] = task.aggregation()[
+            results[task_name][metric + "," + key] = task.aggregation()[
                 metric
             ](items)
 
@@ -289,7 +289,7 @@ def evaluate(
             )
 
             if stderr is not None:
-                results[task_name][metric + " - filter=" + key + "_stderr"] = stderr(
+                results[task_name][metric + "_stderr" + "," + key] = stderr(
                     items
                 )
 

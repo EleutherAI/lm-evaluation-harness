@@ -26,8 +26,6 @@ class RegexFilter(Filter):
                 match = self.regex.search(resp)
                 if match:
                     match = match.group(1).strip()
-                    match.replace(",", "")
-                    # TODO: should we assume any other filtering is performed?
                 else:
                     match = self.fallback
                 filtered.append(match)
