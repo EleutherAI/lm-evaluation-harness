@@ -1,6 +1,7 @@
 import torch
 import transformers
 
+import copy
 from tqdm import tqdm
 
 import torch.nn.functional as F
@@ -56,10 +57,10 @@ class HFLM(LM):
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
-        self.gpt2 = transformers.AutoModelForCausalLM.from_pretrained(
+        self.model = transformers.AutoModelForCausalLM.from_pretrained(
             pretrained, revision=revision, low_cpu_mem_usage=low_cpu_mem_usage
         ).to(self.device)
-        self.gpt2.eval()
+        self.model.eval()
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
@@ -84,7 +85,7 @@ class HFLM(LM):
                 self._rank = accelerator.local_process_index
                 self._world_size = accelerator.num_processes
             else:
-                self.gpt2 = accelerator.prepare(self.gpt2)
+                self.model = accelerator.prepare(self.model)
                 self._device = torch.device(f"cuda:{accelerator.local_process_index}")
                 self.accelerator = accelerator
 
@@ -103,17 +104,17 @@ class HFLM(LM):
     def max_length(self):
         try:
             if hasattr(self, "accelerator"):
-                return self.accelerator.unwrap_model(self.gpt2).config.n_ctx
+                return self.accelerator.unwrap_model(self.model).config.n_ctx
             else:
-                return self.gpt2.config.n_ctx
+                return self.model.config.n_ctx
         except AttributeError:
             # gptneoconfig doesn't have n_ctx apparently
             if hasattr(self, "accelerator"):
                 return self.accelerator.unwrap_model(
-                    self.gpt2
+                    self.model
                 ).config.max_position_embeddings
             else:
-                return self.gpt2.config.max_position_embeddings
+                return self.model.config.max_position_embeddings
 
     @property
     def max_gen_toks(self):
@@ -150,25 +151,28 @@ class HFLM(LM):
         logits returned from the model
         """
         with torch.no_grad():
-            return self.gpt2(inps)[0]
+            return self.model(inps)[0]
 
-    def _model_generate(self, context, max_length, eos_token_id):
-
+    def _model_generate(self, context, max_length, eos_token_id, **generation_kwargs):
+        # we require users to pass do_sample=True explicitly
+        # for non-greedy gen. This should be reevaluated when considering beam search.
+        if "do_sample" not in generation_kwargs.keys():
+            generation_kwargs["do_sample"] = False
         if hasattr(self, "accelerator"):
-            return self.accelerator.unwrap_model(self.gpt2).generate(
+            return self.accelerator.unwrap_model(self.model).generate(
                 context,
                 max_length=max_length,
                 pad_token_id=eos_token_id,
                 eos_token_id=eos_token_id,
-                do_sample=False,
+                **generation_kwargs,
             )
         else:
-            return self.gpt2.generate(
+            return self.model.generate(
                 context,
                 max_length=max_length,
                 pad_token_id=eos_token_id,
                 eos_token_id=eos_token_id,
-                do_sample=False,
+                **generation_kwargs,
             )
 
     def loglikelihood(self, requests):
@@ -277,7 +281,7 @@ class HFLM(LM):
                 # how this all works:
                 #          CTX      CONT
                 # inp    0 1 2 3|4 5 6 7 8 9   <- last token is deleted by inp[:, :-1]
-                # gpt2    \               \
+                # model  \               \
                 # logits   1 2 3|4 5 6 7 8 9   <- the ctx half gets tossed out by the
                 # cont_toks      4 5 6 7 8 9      [:, -len(continuation_enc):, :self.vocab_size] slice
 
@@ -357,18 +361,44 @@ class HFLM(LM):
 
         re_ord = utils.Reorderer([req.args for req in requests], _collate)
 
-        for context, until in tqdm(re_ord.get_reordered()):
-            if isinstance(until, str):
-                until = [until]
+        for context, gen_kwargs in tqdm(re_ord.get_reordered()):
+            if isinstance(gen_kwargs, dict):
+                gen_kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                if "until" in gen_kwargs.keys():
+                    until = gen_kwargs.pop("until")
+                    if isinstance(until, str):
+                        until = [gen_kwargs]
+                    elif not isinstance(until, list):
+                        raise ValueError(
+                            f"Expected `gen_kwargs['until']` to be of type Union[str,list] but got {until}"
+                        )
+            else:
+                raise ValueError(
+                    f"Expected `gen_kwargs` to be of type `dict` but got {gen_kwargs}"
+                )
+            if not until:
+                until = [self.tok_decode(self.eot_token_id)]
+            if "max_gen_toks" in gen_kwargs.keys():
+                max_gen_toks = gen_kwargs.pop("max_gen_toks")
+            else:
+                max_gen_toks = self.max_gen_toks
 
-            (primary_until,) = self.tok_encode(until[0])
+            try:
+                (primary_until,) = self.tok_encode(until[0])
+            except Exception:
+                # if our primary until would be multiple tokens long, we'll have errors.
+                # TODO: handling this better will let us stop generating earlier + often.
+                primary_until = self.eot_token_id
 
             context_enc = torch.tensor(
-                [self.tok_encode(context)[self.max_gen_toks - self.max_length :]]
+                [self.tok_encode(context)[max_gen_toks - self.max_length :]]
             ).to(self.device)
 
             cont = self._model_generate(
-                context_enc, context_enc.shape[1] + self.max_gen_toks, primary_until
+                context=context_enc,
+                max_length=context_enc.shape[1] + max_gen_toks,
+                eos_token_id=primary_until,
+                **gen_kwargs,
             )
 
             s = self.tok_decode(cont[0].tolist()[context_enc.shape[1] :])

@@ -1,6 +1,8 @@
 import os
 from typing import List, Union
 
+from .gsm8k import *
+from .triviaqa import *
 
 from lm_eval import utils
 from lm_eval.logger import eval_logger
@@ -33,9 +35,7 @@ for root, subdirs, file_list in os.walk(task_dir):
                     )
 
                     if "task" in config:
-                        task_name = "{}:{}".format(
-                            get_task_name_from_config(config), config["task"]
-                        )
+                        task_name = "{}".format(config["task"])
                         register_task(task_name)(SubClass)
 
                     if "group" in config:
@@ -43,7 +43,7 @@ for root, subdirs, file_list in os.walk(task_dir):
                             register_group(group)(SubClass)
                 except Exception as error:
                     eval_logger.warning(
-                        "Failed to load config at in\n"
+                        "Failed to load config in\n"
                         f"                                 {yaml_path}\n"
                         "                                 Config will not be added to registry"
                         f"                                 Error: {error}"

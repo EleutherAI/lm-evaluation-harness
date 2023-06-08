@@ -13,7 +13,7 @@ class Filter:
 
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
@@ -47,10 +47,7 @@ class FilterEnsemble:
         ]  # operate just on the model responses
         for f in self.filters:
             # apply filters in sequence
-            out = f.apply(resps)
-            resps = (
-                out  # TODO: handle the case where a filter returns multiple "buckets"
-            )
+            resps = f.apply(resps)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
         # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.
