@@ -25,7 +25,7 @@ graph LR;
     I[Input]
     F[Filter]
     M[Model]
-    O[Ouput]:::empty
+    O[Output]:::empty
     P[Prompt]
     Me[Metric]
     R[Result]
