@@ -6,7 +6,8 @@ import numpy as np
 
 from tqdm import tqdm
 from lm_eval import utils
-from lm_eval.api.model import LM, register_model
+from lm_eval.api.model import LM
+from lm_eval.api.registry import register_model
 
 
 def get_result(response, ctxlen):

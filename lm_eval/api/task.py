@@ -18,20 +18,33 @@ from collections.abc import Callable
 from lm_eval import utils
 from lm_eval.api import samplers
 from lm_eval.api.instance import Instance
-from lm_eval.api.metrics import (
-    METRIC_REGISTRY,
-    AGGREGATION_REGISTRY,
-    HIGHER_IS_BETTER_REGISTRY,
-    get_metric,
-    get_aggregation,
-    mean,
-    weighted_perplexity,
-    bits_per_byte,
-)
+from lm_eval.api.filter import FilterEnsemble
 
 from lm_eval.logger import eval_logger
 from lm_eval.prompts import get_prompt
 from lm_eval.filters import build_filter_ensemble
+from lm_eval.api.metrics import (
+    # get_metric,
+    # get_aggregation,
+    mean,
+    weighted_perplexity,
+    bits_per_byte,
+)
+from lm_eval.api.registry import (
+    METRIC_REGISTRY,
+    DEFAULT_METRIC_REGISTRY,
+    OUTPUT_TYPE_REGISTRY,
+    AGGREGATION_REGISTRY,
+    HIGHER_IS_BETTER_REGISTRY,
+    DEFAULT_AGGREGATION_REGISTRY,
+)
+
+ALL_OUTPUT_TYPES = [
+    "loglikelihood",
+    "multiple_choice",
+    "loglikelihood_rolling",
+    "greedy_until",
+]
 
 
 @dataclass
@@ -43,15 +56,16 @@ class TaskConfig(dict):
     task_name: str = (
         None  # TODO: deprecate this, it'll be set in __post_init__ to be names[0]
     )
-    base_task: str = None
     dataset_path: str = None
     dataset_name: str = None
+    dataset_kwargs: dict = None
     training_split: str = None
     validation_split: str = None
     test_split: str = None
     fewshot_split: str = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
 
     template_aliases: str = None
+    aliases: Union[str, list] = None
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
 
@@ -87,7 +101,7 @@ class TaskConfig(dict):
 
             if type(self.gold_alias) == str:
                 self.gold_alias = self.template_aliases + self.doc_to_target
-        
+
         if not self.generation_kwargs:
             # ensure that we greedily generate in absence of explicit arguments otherwise
             self.generation_kwargs = {"do_sample": False, "temperature": 0.0}
@@ -439,8 +453,12 @@ class Task(abc.ABC):
 
     def apply_filters(self):
 
-        for f in self._filters:
-            f.apply(self._instances)
+        if hasattr(self, "_filters"):
+            for f in self._filters:
+                f.apply(self._instances)
+        else:
+            eval_logger.warning("No filter defined, passing through instances")
+            return self._instances
 
 
 class ConfigurableTask(Task):
@@ -469,6 +487,7 @@ class ConfigurableTask(Task):
             )
 
         if self._config.output_type is not None:
+            assert self._config.output_type in ALL_OUTPUT_TYPES
             self.OUTPUT_TYPE = self._config.output_type
 
         if self._config.dataset_path is not None:
@@ -477,35 +496,42 @@ class ConfigurableTask(Task):
         if self._config.dataset_name is not None:
             self.DATASET_NAME = self._config.dataset_name
 
-        if self._config.metric_list is not None:
-            self._metric_list = {}
-            self._metric_kwargs = {}
-            self._aggregation_list = {}
-            self._higher_is_better = {}
-            for metric_config in self._config.metric_list:
+        self._metric_fn_list = {}
+        self._metric_fn_kwargs = {}
+        self._aggregation_list = {}
+        self._higher_is_better = {}
 
+        _metric_list = DEFAULT_METRIC_REGISTRY[self._config.output_type]
+        if self._config.metric_list is None:
+
+            for metric_name in _metric_list:
+                self._metric_fn_list[metric_name] = METRIC_REGISTRY[metric_name]
+                self._aggregation_list[metric_name] = DEFAULT_AGGREGATION_REGISTRY[
+                    metric_name
+                ]
+                self._higher_is_better[metric_name] = HIGHER_IS_BETTER_REGISTRY[
+                    metric_name
+                ]
+        else:
+            for metric_config in self._config.metric_list:
+                assert "metric" in metric_config
                 metric_name = metric_config["metric"]
-                aggregation = metric_config["aggregation"]
-                higher_is_better = metric_config["higher_is_better"]
                 kwargs = {
                     key: metric_config[key]
                     for key in metric_config
                     if key not in ["metric", "aggregation", "higher_is_better"]
                 }
-
-                self._aggregation_list[metric_name] = AGGREGATION_REGISTRY[aggregation]
-
-                if metric_name in METRIC_REGISTRY.keys():
-                    self._metric_list[metric_name] = METRIC_REGISTRY[metric_name]
-                    self._higher_is_better[metric_name] = HIGHER_IS_BETTER_REGISTRY[
-                        metric_name
-                    ]
+                if metric_name in _metric_list:
+                    self._metric_fn_list[metric_name] = METRIC_REGISTRY[metric_name]
                 else:
-                    self._higher_is_better[metric_name] = higher_is_better
+                    eval_logger.warning(
+                        f"Metric {metric_name} not found, "
+                        "Searching from https://huggingface.co/evaluate-metric"
+                    )
                     try:
                         metric_object = evaluate.load(metric_name)
-                        self._metric_list[metric_name] = metric_object
-                        self._metric_kwargs[metric_name] = kwargs
+                        self._metric_fn_list[metric_name] = metric_object
+                        self._metric_fn_kwargs[metric_name] = kwargs
 
                     except Exception:
                         raise Warning(
@@ -513,12 +539,36 @@ class ConfigurableTask(Task):
                             "Please check https://huggingface.co/evaluate-metric",
                         )
 
-        self.download(data_dir, cache_dir, download_mode)
+                if "aggregation" in metric_config:
+                    self._aggregation_list[metric_name] = metric_config["aggregation"]
+                else:
+                    eval_logger.warning(
+                        f"metric {metric_name} is defined, but aggregation is not"
+                        f"using default aggregation for {metric_name}"
+                    )
+                    self._aggregation_list[metric_name] = DEFAULT_AGGREGATION_REGISTRY[
+                        metric_name
+                    ]
+
+                if "higher_is_better" in metric_config:
+                    self._higher_is_better[metric_name] = metric_config[
+                        "higher_is_better"
+                    ]
+                else:
+                    eval_logger.warning(
+                        f"metric {metric_name} is defined, but higher_is_better is not"
+                        f"using default higher_is_better for {metric_name}"
+                    )
+                    self._higher_is_better[metric_name] = HIGHER_IS_BETTER_REGISTRY[
+                        metric_name
+                    ]
+
+        self.download(self._config.dataset_kwargs)
         self._training_docs = None
         self._fewshot_docs = None
 
-        self._filters = []
         if self._config.filter_list is not None:
+            self._filters = []
             for filter_config in self._config.filter_list:
                 for filter_pipeline in filter_config:
                     filter_name = filter_config["name"]
@@ -530,7 +580,7 @@ class ConfigurableTask(Task):
                         }
                         components.append([function["function"], kwargs])
 
-                    filter_pipeline = build_filter_ensemble(filter_name, components)      
+                    filter_pipeline = build_filter_ensemble(filter_name, components)
                 self._filters.append(filter_pipeline)
         else:
             self._filters = [
@@ -549,6 +599,14 @@ class ConfigurableTask(Task):
             self.sampler = samplers.Sampler(
                 list(self.fewshot_docs()), self, rnd=random.Random()
             )  # TODO: pass the correct docs in here
+
+    def download(self, dataset_kwargs=None):
+
+        self.dataset = datasets.load_dataset(
+            path=self.DATASET_PATH,
+            name=self.DATASET_NAME,
+            **dataset_kwargs if dataset_kwargs is not None else {},
+        )
 
     def has_training_docs(self):
         if self._config.training_split is not None:
@@ -643,7 +701,7 @@ class ConfigurableTask(Task):
             raise TypeError
 
     def gold_alias(self, doc):
-        # TODO: reevaluate if we need this. implemented to have a 
+        # TODO: reevaluate if we need this. implemented to have a
         # processed version of answer to put into gsm8k exact_match scoring as ref.
         if self._config.gold_alias:
             doc_to_target = self._config.gold_alias
@@ -684,7 +742,7 @@ class ConfigurableTask(Task):
                 for i, choice in enumerate(choices)
             ]
             # TODO: we should raise a warning telling users this will at most ~2x runtime.
-            if "acc_mutual_info" in self._metric_list.keys():
+            if "acc_mutual_info" in self._metric_fn_list.keys():
                 # if we are calculating multiple choice accuracy
                 # using mutual information instead of raw loglikelihood as metric, need unconditional lls.
 
@@ -714,25 +772,44 @@ class ConfigurableTask(Task):
 
     def process_results(self, doc, results):
 
+        # if callable(self._config.process_results):
+        #     return self._config.process_results(doc, results)
+
         result_dict = {}
+        use_metric = list(self._metric_fn_list.keys())
         if self.OUTPUT_TYPE == "loglikelihood":
             results = results[0]
             ll, is_greedy = results
-            result_dict = {"perplexity": ll, "accuracy": int(is_greedy)}
+            return {
+                **({"perplexity": ll} if "perplexity" in use_metric else {}),
+                **({"acc": int(is_greedy)} if "acc" in use_metric else {}),
+            }
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
             (loglikelihood,) = results
-            words = self.count_words(self.doc_to_target(doc))
-            bytes_ = self.count_bytes(self.doc_to_target(doc))
+            _words = self.count_words(self.doc_to_target(doc))
+            _bytes = self.count_bytes(self.doc_to_target(doc))
             return {
-                "word_perplexity": (loglikelihood, words),
-                "byte_perplexity": (loglikelihood, bytes_),
-                "bits_per_byte": (loglikelihood, bytes_),
+                **(
+                    {"word_perplexity": (loglikelihood, _words)}
+                    if "word_perplexity" in use_metric
+                    else {}
+                ),
+                **(
+                    {"byte_perplexity": (loglikelihood, _bytes)}
+                    if "byte_perplexity" in use_metric
+                    else {}
+                ),
+                **(
+                    {"bits_per_byte": (loglikelihood, _bytes)}
+                    if "bits_per_byte" in use_metric
+                    else {}
+                ),
             }
         elif self.OUTPUT_TYPE == "multiple_choice":
-            lls = [
-                res[0] for res in results
-            ]  # only retain loglikelihoods, discard is_greedy
+
+            lls, is_greedy = zip(*results)
             gold = int(self.doc_to_target(doc))
+            pred = np.argmax(lls)
             # retrieve choices in List[str] form, to compute choice lengths, etc.
             choices = ast.literal_eval(
                 utils.apply_template(
@@ -755,21 +832,18 @@ class ConfigurableTask(Task):
             acc_norm = 1.0 if np.argmax(lls / completion_len) == gold else 0.0
 
             result_dict = {
-                "acc": acc,
-                "acc_norm": acc_norm,
+                **({"acc": acc} if "acc" in use_metric else {}),
+                **({"f1": (pred, gold)} if "f1" in use_metric else {}),
+                **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
             }
 
             # TODO: set which normalization metrics should be reported, and calculate them
-
-            if "exact_match" in self._metric_list.keys():
+            if "exact_match" in self._metric_fn_list.keys():
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
-                is_greedy = [
-                    res[1] for res in results
-                ]  # take only the `is_greedy` results
                 is_greedy = is_greedy[gold]  # take value for the gold answer
                 result_dict["exact_match"] = int(is_greedy)
 
-            if "acc_mutual_info" in self._metric_list.keys():
+            if "acc_mutual_info" in use_metric:
                 lls_mutual_info = [
                     ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)
                 ]
@@ -783,16 +857,16 @@ class ConfigurableTask(Task):
             else:
                 gold = self.doc_to_target(doc)
 
-            for key, result in zip(self._metric_list.keys(), results):
-                _dict = self._metric_list[key].compute(
+            for key, result in zip(self._metric_fn_list.keys(), results):
+                _dict = self._metric_fn_list[key].compute(
                     references=[gold], predictions=[result], **self._metric_kwargs[key]
                 )
 
-                result_dict[key] = _dict[key]
+                result_dict = {**result_dict, **_dict}
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
-                "'loglikelihood', 'loglikelihood_rolling', 'greedy_until'",
+                "'loglikelihood', 'loglikelihood_rolling', 'greedy_until', or 'multiple_choice'",
             )
 
         return result_dict

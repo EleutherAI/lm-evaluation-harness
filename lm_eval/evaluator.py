@@ -7,10 +7,10 @@ import torch
 import numpy as np
 
 import lm_eval.api
-import lm_eval.api.metrics
-
 import lm_eval.tasks
 import lm_eval.models
+import lm_eval.api.metrics
+import lm_eval.api.registry
 
 from lm_eval.utils import (
     positional_deprecated,
@@ -72,7 +72,7 @@ def simple_evaluate(
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
-        lm = lm_eval.api.model.get_model(model).create_from_arg_string(
+        lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
             model_args, {"batch_size": batch_size, "device": device}
         )
     else:
@@ -274,9 +274,7 @@ def evaluate(
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
-            results[task_name][metric + "," + key] = task.aggregation()[
-                metric
-            ](items)
+            results[task_name][metric + "," + key] = task.aggregation()[metric](items)
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
@@ -289,9 +287,7 @@ def evaluate(
             )
 
             if stderr is not None:
-                results[task_name][metric + "_stderr" + "," + key] = stderr(
-                    items
-                )
+                results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
         return {"results": dict(results), "versions": dict(versions)}
 
