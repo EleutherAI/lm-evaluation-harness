@@ -29,7 +29,7 @@ graph LR;
     P[Prompt]
     Me[Metric]
     R[Result]
-    
+
     T --- I:::empty
     P --- I
     I --> M

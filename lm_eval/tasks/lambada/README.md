@@ -1,7 +1,7 @@
 # LAMBADA
 
 ### Paper
-The LAMBADA dataset: Word prediction requiring a broad discourse context 
+The LAMBADA dataset: Word prediction requiring a broad discourse context
 https://arxiv.org/pdf/1606.06031.pdf
 
 LAMBADA is a dataset to evaluate the capabilities of computational models for text
