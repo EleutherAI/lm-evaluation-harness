@@ -92,7 +92,7 @@ class GradeSchoolMath8K(Task):
         return Instance(
             request_type=self.OUTPUT_TYPE,
             doc=doc,
-            arguments=(ctx, ["\n"]),
+            arguments=(ctx, ["\n\n"]),
             idx=0,
             **kwargs
         )
@@ -113,7 +113,7 @@ class GradeSchoolMath8K(Task):
         assert gold != INVALID_ANS, "No ground truth answer found in the document."
         # return self._extract_answer(completion) == gold
         # print(completion)
-        return completion == gold
+        return self._extract_answer(completion) == gold
 
     def process_results(self, doc, results):
         """Take a single document and the LM results and evaluates, returning a
