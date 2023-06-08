@@ -8,7 +8,8 @@ import torch.nn.functional as F
 
 from lm_eval import utils
 from lm_eval.logger import eval_logger
-from lm_eval.api.model import LM, register_model
+from lm_eval.api.model import LM
+from lm_eval.api.registry import register_model
 
 from accelerate import Accelerator
 from itertools import islice
@@ -38,10 +39,10 @@ class HFLM(LM):
                 if device not in ["cuda", "cpu"]:
                     device = int(device)
                 self._device = torch.device(device)
-                print(f"Using device '{device}'")
+                eval_logger.info(f"Using device '{device}'")
             else:
-                print("Device not specified")
-                print(f"Cuda Available? {torch.cuda.is_available()}")
+                eval_logger.info("Device not specified")
+                eval_logger.info(f"Cuda Available? {torch.cuda.is_available()}")
                 self._device = (
                     torch.device("cuda")
                     if torch.cuda.is_available()
@@ -75,13 +76,12 @@ class HFLM(LM):
         if gpus > 1:
             accelerator = Accelerator()
             if gpus > accelerator.num_processes:
-                warning = (
+                eval_logger.warning(
                     "WARNING: The number of total system GPUs does not match the number of spawned processes. "
                     "If you would like to use data parallelism, please launch the script "
                     "with 'accelerate launch *script*'. "
                     f"Current run will proceed with {accelerator.num_processes} devices."
                 )
-                print(warning)
                 self._rank = accelerator.local_process_index
                 self._world_size = accelerator.num_processes
             else:
@@ -90,7 +90,7 @@ class HFLM(LM):
                 self.accelerator = accelerator
 
                 if self.accelerator.is_local_main_process:
-                    print(f"Using {gpus} devices with data parallelism")
+                    eval_logger.info(f"Using {gpus} devices with data parallelism")
 
                 self._rank = self.accelerator.local_process_index
                 self._world_size = self.accelerator.num_processes
@@ -154,17 +154,26 @@ class HFLM(LM):
             return self.model(inps)[0]
 
     def _model_generate(self, context, max_length, eos_token_id, **generation_kwargs):
-        # we require users to pass do_sample=True explicitly 
+        # we require users to pass do_sample=True explicitly
         # for non-greedy gen. This should be reevaluated when considering beam search.
         if "do_sample" not in generation_kwargs.keys():
             generation_kwargs["do_sample"] = False
-        return self.model.generate(
-            context,
-            max_length=max_length,
-            pad_token_id=eos_token_id,
-            eos_token_id=eos_token_id,
-            **generation_kwargs,
-        )
+        if hasattr(self, "accelerator"):
+            return self.accelerator.unwrap_model(self.model).generate(
+                context,
+                max_length=max_length,
+                pad_token_id=eos_token_id,
+                eos_token_id=eos_token_id,
+                **generation_kwargs,
+            )
+        else:
+            return self.model.generate(
+                context,
+                max_length=max_length,
+                pad_token_id=eos_token_id,
+                eos_token_id=eos_token_id,
+                **generation_kwargs,
+            )
 
     def loglikelihood(self, requests):
         new_reqs = []
@@ -354,7 +363,7 @@ class HFLM(LM):
 
         for context, gen_kwargs in tqdm(re_ord.get_reordered()):
             if isinstance(gen_kwargs, dict):
-                gen_kwargs = copy.deepcopy(gen_kwargs) # edge case for repeats > 1 
+                gen_kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
                 if "until" in gen_kwargs.keys():
                     until = gen_kwargs.pop("until")
                     if isinstance(until, str):
@@ -362,9 +371,11 @@ class HFLM(LM):
                     elif not isinstance(until, list):
                         raise ValueError(
                             f"Expected `gen_kwargs['until']` to be of type Union[str,list] but got {until}"
-                            )
+                        )
             else:
-                raise ValueError(f"Expected `gen_kwargs` to be of type `dict` but got {gen_kwargs}")    
+                raise ValueError(
+                    f"Expected `gen_kwargs` to be of type `dict` but got {gen_kwargs}"
+                )
             if not until:
                 until = [self.tok_decode(self.eot_token_id)]
             if "max_gen_toks" in gen_kwargs.keys():
@@ -374,7 +385,7 @@ class HFLM(LM):
 
             try:
                 (primary_until,) = self.tok_encode(until[0])
-            except: 
+            except Exception:
                 # if our primary until would be multiple tokens long, we'll have errors.
                 # TODO: handling this better will let us stop generating earlier + often.
                 primary_until = self.eot_token_id
@@ -384,8 +395,8 @@ class HFLM(LM):
             ).to(self.device)
 
             cont = self._model_generate(
-                context=context_enc, 
-                max_length=context_enc.shape[1] + max_gen_toks, 
+                context=context_enc,
+                max_length=context_enc.shape[1] + max_gen_toks,
                 eos_token_id=primary_until,
                 **gen_kwargs,
             )
