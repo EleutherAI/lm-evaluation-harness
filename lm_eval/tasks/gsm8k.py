@@ -24,7 +24,7 @@ from lm_eval.api.instance import Instance
 
 from lm_eval.prompts import get_prompt
 
-from lm_eval.api.register import register_task, register_group
+from lm_eval.api.registry import register_task, register_group
 
 _CITATION = """
 @misc{cobbe2021training,

@@ -6,7 +6,7 @@ from . import extraction
 FILTER_REGISTRY = {
     "take_first": selection.TakeFirstFilter,
     "regex": extraction.RegexFilter,
-    "majority_vote": selection.MajorityVoteFilter, 
+    "majority_vote": selection.MajorityVoteFilter,
     "take_first_k": selection.TakeKFilter,
     # TODO: implement this filter. either it should take in an arbitrary "scoring"/reward function
     # that takes an input and returns a scalar and then should select the max reward,
