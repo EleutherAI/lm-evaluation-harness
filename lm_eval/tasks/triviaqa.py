@@ -10,11 +10,12 @@ high quality distant supervision for answering the questions.
 Homepage: https://nlp.cs.washington.edu/triviaqa/
 """
 import inspect
+
 # import lm_eval.datasets.triviaqa.triviaqa
 import string
 from lm_eval.api.task import Task
 from lm_eval.api.instance import Instance
-from lm_eval.api.register import register_task
+from lm_eval.api.registry import register_task
 from lm_eval.api.metrics import mean
 
 _CITATION = """
@@ -29,10 +30,11 @@ _CITATION = """
 }
 """
 
+
 @register_task("triviaqa")
 class TriviaQA(Task):
     VERSION = 1
-    DATASET_PATH = "trivia_qa" #inspect.getfile(lm_eval.datasets.triviaqa.triviaqa)
+    DATASET_PATH = "trivia_qa"  # inspect.getfile(lm_eval.datasets.triviaqa.triviaqa)
     DATASET_NAME = "unfiltered.nocontext"
 
     OUTPUT_TYPE = "greedy_until"
@@ -90,18 +92,29 @@ class TriviaQA(Task):
         continuation = Instance(
             request_type=self.OUTPUT_TYPE,
             doc=doc,
-            arguments=(ctx, {
-                "until": ["\n", ".", ","], 
-                "do_sample": False, 
-            }),
+            arguments=(
+                ctx,
+                {
+                    "until": ["\n", ".", ","],
+                    "do_sample": False,
+                },
+            ),
             idx=0,
             **kwargs,
         )
         return continuation
 
     def process_results(self, doc, results):
-        continuation = results[0].strip().lower().translate(str.maketrans('', '', string.punctuation))
-        list_of_candidates = [alias.lower().translate(str.maketrans('', '', string.punctuation)) for alias in self._remove_prefixes(doc["answer"]["aliases"])]
+        continuation = (
+            results[0]
+            .strip()
+            .lower()
+            .translate(str.maketrans("", "", string.punctuation))
+        )
+        list_of_candidates = [
+            alias.lower().translate(str.maketrans("", "", string.punctuation))
+            for alias in self._remove_prefixes(doc["answer"]["aliases"])
+        ]
         return {"em": float(continuation in list_of_candidates)}
 
     def aggregation(self):
