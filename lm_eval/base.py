@@ -743,6 +743,20 @@ class MultipleChoiceTask(Task):
         }
 
 
+class MultipleChoiceExactTask(MultipleChoiceTask):
+    def construct_requests(self, doc, ctx):
+        return rf.loglikelihood(ctx, self.doc_to_target(doc))[1]
+
+    def process_results(self, doc, results):
+        return {"acc": 1.0 if results[0] else 0.0}
+
+    def higher_is_better(self):
+        return {"acc": True}
+
+    def aggregation(self):
+        return {"acc": mean}
+
+
 class PerplexityTask(Task, abc.ABC):
     def should_decontaminate(self):
         """Whether this task supports decontamination against model training set."""
