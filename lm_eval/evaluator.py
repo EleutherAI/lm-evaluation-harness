@@ -274,9 +274,7 @@ def evaluate(
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
-            results[task_name][metric + " - filter=" + key] = task.aggregation()[
-                metric
-            ](items)
+            results[task_name][metric + "," + key] = task.aggregation()[metric](items)
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
@@ -289,9 +287,7 @@ def evaluate(
             )
 
             if stderr is not None:
-                results[task_name][metric + " - filter=" + key + "_stderr"] = stderr(
-                    items
-                )
+                results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
         return {"results": dict(results), "versions": dict(versions)}
 
