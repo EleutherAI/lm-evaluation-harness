@@ -1,5 +1,5 @@
 import abc
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 
 import re
 import ast
@@ -102,12 +102,15 @@ class TaskConfig(dict):
             if type(self.gold_alias) == str:
                 self.gold_alias = self.template_aliases + self.doc_to_target
 
-        if not self.generation_kwargs:
+        if not self.generation_kwargs and self.output_type == "greedy_until":
             # ensure that we greedily generate in absence of explicit arguments otherwise
             self.generation_kwargs = {"do_sample": False, "temperature": 0.0}
 
     def __getitem__(self, item):
         return getattr(self, item)
+
+    def to_dict(self):
+        return asdict(self)
 
 
 class Task(abc.ABC):
@@ -460,10 +463,20 @@ class Task(abc.ABC):
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
 
+    def dump_config(self):
+        """Returns a dictionary representing the task's config. 
+
+        :returns: str
+            The fewshot context.
+        """
+        # TODO: this should only return the overrides applied to a non-YAML task's configuration.
+        # (batch size, num_fewshot)
+        return self._config.to_dict()
+
 
 class ConfigurableTask(Task):
 
-    VERSION = "2.0"
+    VERSION = "Yaml"
     OUTPUT_TYPE = None
     CONFIG = None
 
@@ -503,7 +516,7 @@ class ConfigurableTask(Task):
 
         _metric_list = DEFAULT_METRIC_REGISTRY[self._config.output_type]
         if self._config.metric_list is None:
-
+            # TODO: handle this in TaskConfig.__post_init__ ?
             for metric_name in _metric_list:
                 self._metric_fn_list[metric_name] = METRIC_REGISTRY[metric_name]
                 self._aggregation_list[metric_name] = DEFAULT_AGGREGATION_REGISTRY[
@@ -521,9 +534,9 @@ class ConfigurableTask(Task):
                     for key in metric_config
                     if key not in ["metric", "aggregation", "higher_is_better"]
                 }
-                if metric_name in _metric_list:
+                try:
                     self._metric_fn_list[metric_name] = METRIC_REGISTRY[metric_name]
-                else:
+                except:
                     eval_logger.warning(
                         f"Metric {metric_name} not found, "
                         "Searching from https://huggingface.co/evaluate-metric"
@@ -540,7 +553,8 @@ class ConfigurableTask(Task):
                         )
 
                 if "aggregation" in metric_config:
-                    self._aggregation_list[metric_name] = metric_config["aggregation"]
+                    agg_name = metric_config["aggregation"]
+                    self._aggregation_list[metric_name] = AGGREGATION_REGISTRY[agg_name]
                 else:
                     eval_logger.warning(
                         f"metric {metric_name} is defined, but aggregation is not"
@@ -817,7 +831,7 @@ class ConfigurableTask(Task):
             )
             if (
                 2 * len(choices) == len(lls)
-                and "acc_mutual_info" in self._metric_list.keys()
+                and "acc_mutual_info" in self._metric_fn_list.keys()
             ):
                 # then we are doing mutual info.
                 # this stores the "dryrun" / unconditional answer loglikelihoods

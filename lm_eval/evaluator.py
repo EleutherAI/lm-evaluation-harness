@@ -141,15 +141,16 @@ def evaluate(
 
     results = collections.defaultdict(dict)
     versions = collections.defaultdict(dict)
+    configs = collections.defaultdict(dict)
 
     requests = collections.defaultdict(list)
-    # requests_origin = collections.defaultdict(list)
 
     # docs = {}
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
         versions[task_name] = task.VERSION
+        configs[task_name] = dict(task.dump_config()) # TODO: don't access a private attribute here ; for non-YAML tasks handle this case
 
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
         # task_docs = list(task_doc_func())
@@ -289,7 +290,7 @@ def evaluate(
             if stderr is not None:
                 results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
-        return {"results": dict(results), "versions": dict(versions)}
+        return {"results": dict(results), "configs": dict(configs), "versions": dict(versions)}
 
     else:
         return None
