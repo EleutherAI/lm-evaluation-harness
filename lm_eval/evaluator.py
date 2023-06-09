@@ -238,7 +238,13 @@ def evaluate(
                     doc, [req.filtered_resps[key] for req in requests]
                 )
                 target = task.doc_to_target(doc)
-                example = {"doc_id": doc_id, "doc": doc['text'], "target": target}
+                example = {
+                    "doc_id": doc_id, 
+                    "doc": doc, 
+                    "target": target, 
+                    "resps": [req.resps for req in requests],
+                    "filtered_resps": [req.filtered_resps[key] for req in requests]
+                    }
                 example.update(metrics)
                 example_logger.info(json.dumps(example))
                 for metric, value in metrics.items():
