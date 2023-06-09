@@ -46,7 +46,7 @@ For other details on how to use the evaluation framework, please see the origina
 
 ---
 
-The `READMD.md` from [EleutherAI's original repository](https://github.com/EleutherAI/lm-evaluation-harness):
+The `README.md` from [EleutherAI's original repository](https://github.com/EleutherAI/lm-evaluation-harness):
 
 # Language Model Evaluation Harness
 
@@ -55,53 +55,73 @@ The `READMD.md` from [EleutherAI's original repository](https://github.com/Eleut
 
 ## Overview
 
-This project provides a unified framework to test autoregressive language models (GPT-2, GPT-3, GPTNeo, etc) on a large number of different evaluation tasks.
+This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
 
 Features:
 
 - 200+ tasks implemented. See the [task-table](./docs/task_table.md) for a complete list.
-- Support for GPT-2, GPT-3, GPT-Neo, GPT-NeoX, and GPT-J, with flexible tokenization-agnostic interface.
-- Task versioning to ensure reproducibility.
+- Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
+- Support for commercial APIs including [OpenAI](https://openai.com), [goose.ai](https://goose.ai), and [TextSynth](https://textsynth.com/).
+- Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
+- Evaluating with publicly available prompts ensures reproducibility and comparability between papers.
+- Task versioning to ensure reproducibility when tasks are updated.
 
 ## Install
 
+To install `lm-eval` from the github repository main branch, run:
+
 ```bash
-pip install lm-eval
+git clone https://github.com/EleutherAI/lm-evaluation-harness
+cd lm-evaluation-harness
+pip install -e .
 ```
 
-To install additional multlingual tokenization and text segmenation packages, you must install the package with the `multilingual` extra:
+To install additional multilingual tokenization and text segmentation packages, you must install the package with the `multilingual` extra:
 
 ```bash
-pip install "lm-eval[multilingual]"
+pip install -e ".[multilingual]"
+```
+
+To support loading GPTQ quantized models, install the package with the `auto-gptq` extra:
+
+```bash
+pip install -e ".[auto-gptq]"
 ```
 
 ## Basic Usage
 
 > **Note**: When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility. This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](#task-versioning) section for more info.
 
-To evaluate a model (e.g. GPT-2) on NLP tasks such as SuperGLUE WiC, you can run the following command:
+### Hugging Face `transformers`
+
+To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command:
 
 
 ```bash
 python main.py \
-    --model gpt2 \
-    --tasks lambada_openai,hellaswag \
-    --device 0
+    --model hf-causal \
+    --model_args pretrained=EleutherAI/gpt-j-6B \
+    --tasks hellaswag \
+    --device cuda:0
 ```
 
-This example uses gpt2-117M by default as per HF defaults.
-
-Additional arguments can be provided to the model constructor using the `--model_args` flag. Most importantly, the `gpt2` model can be used to load an arbitrary HuggingFace CausalLM. For example, to run GPTNeo use the following:
+Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partially trained checkpoints, or to specify the datatype for running a model:
 
 ```bash
 python main.py \
-    --model gpt2 \
-    --model_args pretrained=EleutherAI/gpt-neo-2.7B \
+    --model hf-causal \
+    --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
     --tasks lambada_openai,hellaswag \
-    --device 0
+    --device cuda:0
 ```
 
-If you have access to the OpenAI API, you can also evaluate GPT-3:
+To evaluate models that are loaded via `AutoSeq2SeqLM` in Huggingface, you instead use `hf-seq2seq`. *To evaluate (causal) models across multiple GPUs, use `--model hf-causal-experimental`*
+
+> **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
+
+### Commercial APIs
+
+Our library also supports language models served via the OpenAI API:
 
 ```bash
 export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
@@ -111,7 +131,9 @@ python main.py \
     --tasks lambada_openai,hellaswag
 ```
 
-And if you want to verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
+While this functionality is only officially maintained for the official OpenAI API, it tends to also work for other hosting services that use the same API such as [goose.ai](goose.ai) with minor modification. We also have an implementation for the [TextSynth](https://textsynth.com/index.html) API, using `--model textsynth`.
+
+To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
 
 ```bash
 python main.py \
@@ -121,7 +143,9 @@ python main.py \
     --check_integrity
 ```
 
-To evaluate mesh-transformer-jax models that are not available on HF, please invoke eval harness through [this script](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
+### Other Frameworks
+
+A number of other libraries contain scripts for calling the eval harness through their library. These include [GPT-NeoX](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py), [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/blob/main/examples/MoE/readme_evalharness.md), and [mesh-transformer-jax](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
 
 💡 **Tip**: You can inspect what the LM inputs look like by running the following command:
 
@@ -135,6 +159,30 @@ python write_out.py \
 
 This will write out one text file for each task.
 
+## Advanced Usage
+
+For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
+```bash
+python main.py \
+    --model hf-causal-experimental \
+    --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
+    --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
+    --device cuda:0
+```
+
+GPTQ quantized models can be loaded by specifying their file names in `,quantized=NAME` (or `,quantized=True` for default names) in the `model_args` argument:
+
+```bash
+python main.py \
+    --model hf-causal-experimental \
+    --model_args pretrained=model-name-or-path,quantized=model.safetensors,gptq_use_triton=True \
+    --tasks hellaswag
+```
+
+We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
+
+We currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, check out the [BigScience fork](https://github.com/bigscience-workshop/lm-evaluation-harness) of this repo. We are currently working on upstreaming this capability to `main`.
+
 ## Implementing new tasks
 
 To implement a new task in the eval harness, see [this guide](./docs/task_guide.md).
@@ -147,6 +195,8 @@ When reporting eval harness results, please also report the version of each task
 
 ## Test Set Decontamination
 
+To address concerns about train / test contamination, we provide utilities for comparing results on a benchmark using only the data points not found in the model training set. Unfortunately, outside of models trained on the Pile and C4, its very rare that people who train models disclose the contents of the training data. However this utility can be useful to evaluate models you have trained on private data, provided you are willing to pre-compute the necessary indices. We provide computed indices for 13-gram exact match deduplication against the Pile, and plan to add additional precomputed dataset indices in the future (including C4 and min-hash LSH deduplication).
+
 For details on text decontamination, see the [decontamination guide](./docs/decontamination.md).
 
 Note that the directory provided to the `--decontamination_ngrams_path` argument should contain the ngram files and info.json. See the above guide for ngram generation for the pile, this could be adapted for other training sets.
@@ -156,7 +206,7 @@ python main.py \
     --model gpt2 \
     --tasks sciq \
     --decontamination_ngrams_path path/containing/training/set/ngrams \
-    --device 0
+    --device cuda:0
 ```
 
 ## Cite as
