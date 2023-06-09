@@ -46,6 +46,16 @@ def acc_fn(items):  # This is a passthrough function
 
 
 @register_metric(
+    metric="acc_norm",
+    higher_is_better=True,
+    output_type=["loglikelihood", "multiple_choice"],
+    aggregation="mean",
+)
+def acc_norm_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
     metric="acc_mutual_info",
     higher_is_better=True,
     output_type="multiple_choice",

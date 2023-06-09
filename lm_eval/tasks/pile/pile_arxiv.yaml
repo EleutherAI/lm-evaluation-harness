@@ -1,5 +1,6 @@
 group:
   - pile
+  - perplexity
 task: pile_arxiv
 dataset_path: EleutherAI/the_pile
 dataset_name: pile_arxiv

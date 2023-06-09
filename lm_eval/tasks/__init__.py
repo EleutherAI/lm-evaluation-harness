@@ -45,7 +45,7 @@ for root, subdirs, file_list in os.walk(task_dir):
                     eval_logger.warning(
                         "Failed to load config in\n"
                         f"                                 {yaml_path}\n"
-                        "                                 Config will not be added to registry"
+                        "                                 Config will not be added to registry\n"
                         f"                                 Error: {error}"
                     )
 

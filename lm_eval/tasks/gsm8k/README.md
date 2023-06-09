@@ -30,3 +30,17 @@ Homepage: https://github.com/openai/grade-school-math
       primaryClass={cs.LG}
 }
 ```
+
+
+### Checklist
+
+- [x] Is in Eval-harness v1.0 ?
+- [ ] Has been checked for regression from v1.0?
+- [ ] Has been checked for equivalence with original paper methodology?
+- [ ] "Main" checked variant clearly denoted?
+
+### Variant Wishlist
+
+- [ ] Variant with Calculator (see https://github.com/openai/grade-school-math/blob/master/grade_school_math/calculator.py for example implementation)
+- [ ] Using Verifiers
+- [ ] Majority voting "without CoT"
