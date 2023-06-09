@@ -10,6 +10,7 @@ import functools
 import numpy as np
 import re
 import importlib.resources
+import importlib_resources
 from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
 
@@ -229,7 +230,10 @@ def create_task_from_path(json_path):
 
 
 def create_all_tasks():
-    resources_dir = importlib.resources.files("lm_eval.datasets") / "bigbench_resources"
+    try:
+        resources_dir = importlib.resources.files("lm_eval.datasets") / "bigbench_resources"
+    except:
+        resources_dir = importlib_resources.files("lm_eval.datasets") / "bigbench_resources"
     supported_tasks = [os.path.splitext(x)[0] for x in os.listdir(resources_dir)]
     res = {}
     for task_name in supported_tasks:
