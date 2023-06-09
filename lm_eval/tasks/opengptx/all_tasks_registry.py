@@ -36,7 +36,7 @@ TASK_REGISTRY_TMP = {
 }
 
 # add a prefix to tasks implemented by OpenGPT-X
-PREFIX = "ogptx_"
+PREFIX = "ogx_"
 TASK_REGISTRY = {}
 for task in TASK_REGISTRY_TMP:
     TASK_REGISTRY[PREFIX + task] = TASK_REGISTRY_TMP[task]

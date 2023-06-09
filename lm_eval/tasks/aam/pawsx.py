@@ -12,14 +12,12 @@ https://arxiv.org/abs/1908.11828
 }
 """
 
-import numpy as np
-from .common import HFTask, yesno
-from ..metrics import mean, f1_score
-from lm_eval.base import rf
-from ..utils import general_detokenize
+from lm_eval.base import rf, Task
+from lm_eval.metrics import mean, f1_score
+from lm_eval.utils import general_detokenize
 
 
-class PAWSXBase(HFTask):
+class PAWSXBase(Task):
     VERSION = 0
     DATASET_PATH = "paws-x"
 
@@ -31,6 +29,17 @@ class PAWSXBase(HFTask):
 
     def has_test_docs(self):
         return True
+
+    def training_docs(self):
+        if self._training_docs is None:
+            self._training_docs = list(self.dataset["train"])
+        return self._training_docs
+
+    def validation_docs(self):
+        return self.dataset["validation"]
+
+    def test_docs(self):
+        return self.dataset["test"]
 
     def process_results(self, doc, results):
         ll_yes, ll_no = results
