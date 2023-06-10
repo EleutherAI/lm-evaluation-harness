@@ -84,12 +84,13 @@ To set a mapping of verbalizer to label, you can define that in the jinja string
 
 ## Including a Base YAML
 
-You can base a yaml based on a template, if you like the original yaml but just want to change the prompt, you can do that. To do that, use !include and write the name of the template you want to base from. This assumes that the base temeplate is in the same directiry. Otherwise. You will need to define the full path
-
+You can base a YAML on another YAML file as a template. This can be handy when you need to just change the prompt for `doc_to_text` but keep the rest the same or change `filters` to compare which is better. Simply use `include` in the YAML file and write the name of the template you want to base from. This assumes that the base temeplate is in the same directory. Otherwise, You will need to define the full path.
 ```
-include: <name or full path to yaml file>
+include: <YAML file or with full path>
 ...
 ```
+You can find an example of how to use this feature at [gsm8k-cot-self-consistency.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml) where it is based of [gsm8k-cot.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot.yaml)
+
 
 ## Listing Metrics
 
