@@ -2,6 +2,41 @@
 
 While adding a standard evaluation task on a new dataset can be occasionally as simple as swapping out a dataset path, with more specialized evaluation setups
 
+## Configurations
+
+
+Parameters
+
+- **task** (`str`, defaults to None) — name of the task.
+- **group** (`str`, *optional*) —
+- **reference** (`str`, *optional*) —
+- **task_name** (`str`, *optional*) —
+- **dataset_path** (`str`) —
+- **dataset_name**  (`str`) —
+- **dataset_kwargs** (`dict`, *optional*)
+- **training_split** (`str`, *optional*) —
+- **validation_split** (`str`, *optional*) —
+- **test_split** (`str`, *optional*) —
+- **fewshot_split** (`str`, *optional*) — assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+- **template_aliases** (`str`, *optional*) —
+- **aliases**: (`Union[str, list]`, *optional*) —
+- **doc_to_text** (`Union[Callable, str]`, *optional*) —
+- **doc_to_target** (`Union[Callable, str]`, *optional*) —
+- **num_fewshot** (`int`, *optional*, defaults to 0) —
+- **batch_size** (`int`, *optional*, defaults to 1) —
+- **repeats** (`int`, *optional*, defaults to 1) —
+- **metric_list** (`str`, *optional*, defaults to None) —
+- **gold_alias** (`str`, *optional*, defaults to None) —
+- **output_type** (`str`, *optional*, defaults to "greedy_until") —
+- **generation_kwargs** (`dict`, *optional*) —
+- **delimiter** (`str`, *optional*, defaults to "\n\n") —
+- **filter_list** (`Union[str, list]`, *optional*) —
+- **normalization** (`str`, *optional*) —
+- **should_decontaminate** (`bool`, *optional*, defaults to False)
+- **doc_to_decontamination_query** (`str`, *optional*) —
+- **use_prompt** (`str`, *optional*) —
+- **metadata** (`str`, *optional*) —
+
 ## Filters
 
 Explain: What are filters? What is their place in the pipeline?
