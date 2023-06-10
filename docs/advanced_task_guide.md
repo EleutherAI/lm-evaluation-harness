@@ -5,36 +5,36 @@ While adding a standard evaluation task on a new dataset can be occasionally as 
 ## Configurations
 
 
-Parameters
+### Parameters
 
 - **task** (`str`, defaults to None) — name of the task.
 - **group** (`str`, *optional*) —
 - **reference** (`str`, *optional*) —
 - **task_name** (`str`, *optional*) —
-- **dataset_path** (`str`) —
-- **dataset_name**  (`str`) —
-- **dataset_kwargs** (`dict`, *optional*)
-- **training_split** (`str`, *optional*) —
-- **validation_split** (`str`, *optional*) —
-- **test_split** (`str`, *optional*) —
+- **dataset_path** (`str`) — The name of the dataset as listed by HF in the datasets Hub. 
+- **dataset_name**  (`str`, *optional*, defaults to None) — The name of, what HF calls, a “data instance” or sub-task of the benchmark. If your task does not contain any data instances, just leave this to default to None. (If you're familiar with the HF `datasets.load_dataset` function, these are just the first 2 arguments to it.)
+- **dataset_kwargs** (`dict`, *optional*) — Auxillary arguments that `datasets.load_dataset` accepts. This can be used to specify arguments such as `data_files` or `data_dir` if you want to use local datafiles such as json or csv.
+- **training_split** (`str`, *optional*) — Split in the dataset to use as the training split.
+- **validation_split** (`str`, *optional*) — Split in the dataset to use as the validation split.
+- **test_split** (`str`, *optional*) — Split in the dataset to use as the test split.
 - **fewshot_split** (`str`, *optional*) — assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
-- **template_aliases** (`str`, *optional*) —
+- **template_aliases** (`str`, *optional*) — 
 - **aliases**: (`Union[str, list]`, *optional*) —
-- **doc_to_text** (`Union[Callable, str]`, *optional*) —
-- **doc_to_target** (`Union[Callable, str]`, *optional*) —
-- **num_fewshot** (`int`, *optional*, defaults to 0) —
-- **batch_size** (`int`, *optional*, defaults to 1) —
-- **repeats** (`int`, *optional*, defaults to 1) —
-- **metric_list** (`str`, *optional*, defaults to None) —
-- **gold_alias** (`str`, *optional*, defaults to None) —
-- **output_type** (`str`, *optional*, defaults to "greedy_until") —
-- **generation_kwargs** (`dict`, *optional*) —
-- **delimiter** (`str`, *optional*, defaults to "\n\n") —
-- **filter_list** (`Union[str, list]`, *optional*) —
+- **doc_to_text** (`Union[Callable, str]`, *optional*) — Jinja2, f-string, or function to process a sample into the appropriate input for the model
+- **doc_to_target** (`Union[Callable, str]`, *optional*) — Jinja2, f-string, or function to process a sample into the appropriate target output for the model
+- **num_fewshot** (`int`, *optional*, defaults to 0) — Number of few-shot examples before the input.
+- **batch_size** (`int`, *optional*, defaults to 1) — Batch size.
+- **repeats** (`int`, *optional*, defaults to 1) — Number of repeated runs for a sample, can be used for cases such as self-consistency.
+- **metric_list** (`str`, *optional*, defaults to None) — A list of metrics to use for evaluation.
+- **gold_alias** (`str`, *optional*, defaults to None) — 
+- **output_type** (`str`, *optional*, defaults to "greedy_until") — Selects the type of model output for the given task. Options are `greedy_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
+- **generation_kwargs** (`dict`, *optional*) — Auxillary arguments for the `generate` function from HF transformers library.
+- **delimiter** (`str`, *optional*, defaults to "\n\n") — String to insert between few-shot examples.
+- **filter_list** (`Union[str, list]`, *optional*) — List of filters to postprocess model outputs. 
 - **normalization** (`str`, *optional*) —
 - **should_decontaminate** (`bool`, *optional*, defaults to False)
 - **doc_to_decontamination_query** (`str`, *optional*) —
-- **use_prompt** (`str`, *optional*) —
+- **use_prompt** (`str`, *optional*) — Name of prompt in promptsource to use, if defined will overwrite doc_to_text.
 - **metadata** (`str`, *optional*) —
 
 ## Filters
