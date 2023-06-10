@@ -87,8 +87,8 @@ To set a mapping of verbalizer to label, you can define that in the jinja string
 You can base a yaml based on a template, if you like the original yaml but just want to change the prompt, you can do that. To do that, use !include and write the name of the template you want to base from. This assumes that the base temeplate is in the same directiry. Otherwise. You will need to define the full path
 
 ```
-!include: <name or full path to yaml file>
-
+include: <name or full path to yaml file>
+...
 ```
 
 ## Listing Metrics
