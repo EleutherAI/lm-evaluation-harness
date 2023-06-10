@@ -93,9 +93,11 @@ You can base a yaml based on a template, if you like the original yaml but just 
 
 ## Listing Metrics
 
-For example, setting a `exact_match` (TODO: Add url to metric), auxilarry arguments such as `ignore_case`, `ignore_punctuation`, `regexes_to_ignore` can be listed as well. They will be added to the metric function as `kwargs`.
+Metrics can be defined in the `metric_list` argument when building the YAML config. Multiple metrics can be listed along with any auxillary arguments. For example, setting a `exact_match` (TODO: Add url to metric), auxilarry arguments such as `ignore_case`, `ignore_punctuation`, `regexes_to_ignore` can be listed as well. They will be added to the metric function as `kwargs`. Some metrics have predefined values for `aggregation` and `higher_is_better` so listing the metric name only can be sufficient.
+
 ```
 metric_list:
+  - metric: acc
   - metric: exact_match
     aggregation: mean
     higher_is_better: true
