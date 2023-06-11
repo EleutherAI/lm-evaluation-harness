@@ -30,7 +30,6 @@ def simple_evaluate(
     write_detailed_eval_info=False,
     detailed_eval_info_path=None,
 ):
-
     """Instantiate and evaluate a model on a list of tasks.
 
     :param model: Union[str, LM]
@@ -244,7 +243,6 @@ def evaluate(
         )
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
-
             if decontaminate and task.should_decontaminate():
                 docs_for_decontamination[(task_name, task_set)].append(
                     task.doc_to_decontamination_query(doc)
@@ -316,6 +314,10 @@ def evaluate(
                 if isinstance(task, lm_eval.base.MultipleChoiceTask):
                     detailed_eval_info[task_name][doc_id]["truth"] = doc["gold"]
                 elif isinstance(task, lm_eval.tasks.winogrande.Winogrande):
+                    detailed_eval_info[task_name][doc_id]["truth"] = task.answer_to_num[
+                        doc["answer"]
+                    ]
+                elif isinstance(task, lm_eval.tasks.wino_x.WinograndeXDe):
                     detailed_eval_info[task_name][doc_id]["truth"] = task.answer_to_num[
                         doc["answer"]
                     ]

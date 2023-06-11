@@ -46,7 +46,7 @@ class WordsInContextBase(Task):
         return True
 
     def has_test_docs(self):
-        return False
+        return True
 
     def training_docs(self):
         if self._training_docs is None:
@@ -55,6 +55,9 @@ class WordsInContextBase(Task):
 
     def validation_docs(self):
         return self.dataset["validation"]
+
+    def test_docs(self):
+        return self.dataset["test"]
 
     def process_results(self, doc, results):
         ll_yes, ll_no = results
@@ -100,7 +103,7 @@ class WordsInContextDe(WordsInContextBase):
     def doc_to_text(self, doc):
         return (
             "Satz 1: {}\nSatz 2: {}\nFrage: Wird das Wort '{}' in den beiden obigen Sätzen auf dieselbe Weise verwendet?"
-            "\nAntowrt:".format(
+            "\nAntwort:".format(
                 doc["context_1"],
                 doc["context_2"],
                 doc["target_word"],

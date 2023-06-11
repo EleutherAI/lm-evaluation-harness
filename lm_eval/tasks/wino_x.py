@@ -54,11 +54,6 @@ class WinograndeXDe(Task):
     def has_test_docs(self):
         return True
 
-    def training_docs(self):
-        if self._training_docs is None:
-            self._training_docs = list(self.dataset["train"])
-        return self._training_docs
-
     def test_docs(self):
         return self.dataset["test"]
 

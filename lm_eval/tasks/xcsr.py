@@ -42,9 +42,6 @@ class XCSQABase(MultipleChoiceTask):
     def validation_docs(self):
         return map(self._process_doc, self.dataset["validation"])
 
-    def test_docs(self):
-        return map(self._process_doc, self.dataset["test"])
-
     def _process_doc(self, doc):
         out_doc = {
             "query": doc["question"]["stem"],
@@ -79,9 +76,6 @@ class XCODAHBase(MultipleChoiceTask):
 
     def validation_docs(self):
         return map(self._process_doc, self.dataset["validation"])
-
-    def test_docs(self):
-        return map(self._process_doc, self.dataset["test"])
 
     def _process_doc(self, doc):
         out_doc = {
@@ -229,7 +223,7 @@ class XCODAH_zh(XCODAHBase):  # Chinese
     DATASET_NAME = "X-CODAH-zh"
 
 
-LANGS = [
+LANGS_XCSQA = [
     "ar",
     "de",
     "en",
@@ -248,7 +242,7 @@ LANGS = [
     "zh",
 ]
 
-LANG_CLASSES = [
+LANG_CLASSES_XCSQA = [
     XCSQA_ar,
     XCSQA_de,
     XCSQA_en,
@@ -267,7 +261,7 @@ LANG_CLASSES = [
     XCSQA_zh,
 ]
 
-LANGS_CODAH = [
+LANGS_XCODAH = [
     "ar",
     "de",
     "en",
@@ -285,7 +279,7 @@ LANGS_CODAH = [
     "vi",
     "zh",
 ]
-LANG_CLASSES_CODAH = [
+LANG_CLASSES_XCODAH = [
     XCODAH_ar,
     XCODAH_de,
     XCODAH_en,
@@ -307,8 +301,8 @@ LANG_CLASSES_CODAH = [
 
 def construct_tasks():
     tasks = {}
-    for lang, lang_class in zip(LANGS, LANG_CLASSES):
+    for lang, lang_class in zip(LANGS_XCSQA, LANG_CLASSES_XCSQA):
         tasks[f"xcsqa_{lang}"] = lang_class
-    for lang, lang_class in zip(LANGS_CODAH, LANG_CLASSES_CODAH):
+    for lang, lang_class in zip(LANGS_XCODAH, LANG_CLASSES_XCODAH):
         tasks[f"xcodah_{lang}"] = lang_class
     return tasks
