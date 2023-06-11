@@ -607,7 +607,7 @@ class ConfigurableTask(Task):
         if self.fewshot_docs() is not None:
             self.sampler = samplers.Sampler(
                 list(self.fewshot_docs()), self, rnd=random.Random()
-            )  # TODO: pass the correct docs in here
+            )
 
     def download(self, dataset_kwargs=None):
 
@@ -648,15 +648,15 @@ class ConfigurableTask(Task):
             return self.dataset[self._config.test_split]
 
     def fewshot_docs(self):
-        if (self._config.num_fewshot > 0) and (self._config.fewshot_split is None):
-            eval_logger.warning(
-                "num_fewshot > 0 but fewshot_split is None. "
-                "using preconfigured rule."
-            )
-            return super().fewshot_docs()
-
-        elif self._config.fewshot_split is not None:
+        if self._config.fewshot_split is not None:
             return self.dataset[self._config.fewshot_split]
+        else:
+            if self._config.num_fewshot > 0:
+                eval_logger.warning(
+                    "num_fewshot > 0 but fewshot_split is None. "
+                    "using preconfigured rule."
+                )
+            return super().fewshot_docs()
 
     def should_decontaminate(self):
         return self._config.should_decontaminate
