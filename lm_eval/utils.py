@@ -8,6 +8,7 @@ import sys
 import fnmatch
 from typing import List, Union
 
+import gc
 import torch
 
 from omegaconf import OmegaConf
@@ -64,11 +65,11 @@ def join_iters(iters):
         yield from iter
 
 
-def chunks(iter, n):
+def chunks(iter, n=0, fn=None):
     arr = []
-    for x in iter:
+    for i, x in enumerate(iter):
         arr.append(x)
-        if len(arr) == n:
+        if len(arr) == (fn(i) if fn else n):
             yield arr
             arr = []
 
@@ -283,3 +284,8 @@ def run_task_tests(task_list: List[str]):
         raise ValueError(
             f"Not all tests for the specified tasks ({task_list}) ran successfully! Error code: {pytest_return_val}"
         )
+
+
+def clear_torch_cache():
+    gc.collect()
+    torch.cuda.empty_cache()
