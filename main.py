@@ -19,7 +19,9 @@ class MultiChoice:
         for value in values.split(","):
             if len(fnmatch.filter(self.choices, value)) == 0:
                 eval_logger.warning("{} is not in task list.".format(value))
-                # eval_logger.info(f"{choices} is this")
+                eval_logger.info(f"Available tasks to choose:")
+                for choice in self.choices:
+                    eval_logger.info(f"    {choice}")
 
         return True
 

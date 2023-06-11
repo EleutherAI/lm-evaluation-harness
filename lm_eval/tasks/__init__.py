@@ -1,20 +1,22 @@
 import os
 from typing import List, Union
 
+from .gsm8k import *
+from .triviaqa import *
 
 from lm_eval import utils
 from lm_eval.logger import eval_logger
 from lm_eval.api.task import TaskConfig, Task, ConfigurableTask
-from lm_eval.api.register import (
+from lm_eval.api.registry import (
     register_task,
     register_group,
-    task_registry,
-    group_registry,
+    TASK_REGISTRY,
+    GROUP_REGISTRY,
 )
 
 
 def get_task_name_from_config(task_config):
-    return "configurable_{dataset_path}_{dataset_name}".format(**task_config)
+    return "{dataset_path}_{dataset_name}".format(**task_config)
 
 
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
@@ -33,23 +35,20 @@ for root, subdirs, file_list in os.walk(task_dir):
                     )
 
                     if "task" in config:
-                        task_name = "{}:{}".format(
-                            get_task_name_from_config(config), config["task"]
-                        )
+                        task_name = "{}".format(config["task"])
                         register_task(task_name)(SubClass)
 
                     if "group" in config:
                         for group in config["group"]:
                             register_group(group)(SubClass)
-                except Exception:
+                except Exception as error:
                     eval_logger.warning(
-                        "Failed to load config at in\n"
+                        "Failed to load config in\n"
                         f"                                 {yaml_path}\n"
                         "                                 Config will not be added to registry"
+                        f"                                 Error: {error}"
                     )
 
-TASK_REGISTRY = task_registry
-GROUP_REGISTRY = group_registry
 ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
 
 
