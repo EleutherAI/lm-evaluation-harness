@@ -2,12 +2,48 @@
 
 While adding a standard evaluation task on a new dataset can be occasionally as simple as swapping out a dataset path, with more specialized evaluation setups
 
+## Configurations
+
+
+### Parameters
+
+- **task** (`str`, defaults to None) — name of the task.
+- **group** (`str`, *optional*) —
+- **reference** (`str`, *optional*) —
+- **task_name** (`str`, *optional*) —
+- **dataset_path** (`str`) — The name of the dataset as listed by HF in the datasets Hub. 
+- **dataset_name**  (`str`, *optional*, defaults to None) — The name of, what HF calls, a “data instance” or sub-task of the benchmark. If your task does not contain any data instances, just leave this to default to None. (If you're familiar with the HF `datasets.load_dataset` function, these are just the first 2 arguments to it.)
+- **dataset_kwargs** (`dict`, *optional*) — Auxillary arguments that `datasets.load_dataset` accepts. This can be used to specify arguments such as `data_files` or `data_dir` if you want to use local datafiles such as json or csv.
+- **training_split** (`str`, *optional*) — Split in the dataset to use as the training split.
+- **validation_split** (`str`, *optional*) — Split in the dataset to use as the validation split.
+- **test_split** (`str`, *optional*) — Split in the dataset to use as the test split.
+- **fewshot_split** (`str`, *optional*) — assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+- **template_aliases** (`str`, *optional*) — 
+- **aliases**: (`Union[str, list]`, *optional*) —
+- **doc_to_text** (`Union[Callable, str]`, *optional*) — Jinja2, f-string, or function to process a sample into the appropriate input for the model
+- **doc_to_target** (`Union[Callable, str]`, *optional*) — Jinja2, f-string, or function to process a sample into the appropriate target output for the model
+- **num_fewshot** (`int`, *optional*, defaults to 0) — Number of few-shot examples before the input.
+- **batch_size** (`int`, *optional*, defaults to 1) — Batch size.
+- **repeats** (`int`, *optional*, defaults to 1) — Number of repeated runs for a sample, can be used for cases such as self-consistency.
+- **metric_list** (`str`, *optional*, defaults to None) — A list of metrics to use for evaluation.
+- **gold_alias** (`str`, *optional*, defaults to None) — 
+- **output_type** (`str`, *optional*, defaults to "greedy_until") — Selects the type of model output for the given task. Options are `greedy_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
+- **generation_kwargs** (`dict`, *optional*) — Auxillary arguments for the `generate` function from HF transformers library.
+- **delimiter** (`str`, *optional*, defaults to "\n\n") — String to insert between few-shot examples.
+- **filter_list** (`Union[str, list]`, *optional*) — List of filters to postprocess model outputs. 
+- **normalization** (`str`, *optional*) —
+- **should_decontaminate** (`bool`, *optional*, defaults to False)
+- **doc_to_decontamination_query** (`str`, *optional*) —
+- **use_prompt** (`str`, *optional*) — Name of prompt in promptsource to use, if defined will overwrite doc_to_text.
+- **metadata** (`str`, *optional*) —
+
 ## Filters
 
 Explain: What are filters? What is their place in the pipeline?
 
 Format of the `resps` object, and what needs to happen to yield proper scorable results
 TODO: triviaqa is implementable if we don't use `take_first` and implement a multi-alias exact_match_any metric
+TODO: Filters might warrant a separate doc.
 
 ### Multiple Filter Pipelines
 
@@ -21,10 +57,11 @@ TODO: either allow for pipelines that "split" and report multiple keys, or somet
 
 ## Embedded Python Code
 
-For tasks requiring preprocessing of the HuggingFace dataset columns that are beyond the complexity of Jinja 2 prompt templating language we use, we additionally support the importing of Python helper functions.
+There could be cases where Jinja 2 or simple f-string format won't cut it. For tasks like these, we additionally support the importing of Python helper functions that can be injected directly to the yaml. It should be noted that the function script must be in the same directory as the yaml.
 
 TODO: document the `!function filename.pythonfunctionname` syntax here.
 
+TODO: add permannent link to wikitext.yaml and super_glue_cb.yml
 ```
 wikitext.yaml and helper fn go here
 ```
@@ -34,3 +71,44 @@ wikitext.yaml and helper fn go here
 The prior implementation method of new tasks was to subclass `Task`. While we intend to migrate all tasks to the new YAML implementation option going forward, it remains possible to subclass
 
 {Insert a sample custom `Task` subclass code block here}
+
+## Configuring Tasks with YAMLs
+
+You can easily make a task evaluation using yamls, this is to allow faster and easier experience.
+
+Doc to text
+Jinja,
+You can use Jinja or f-strings to make a prompt template.
+To set a mapping of verbalizer to label, you can define that in the jinja string dorectly.
+
+
+## Including a Base YAML
+
+You can base a YAML on another YAML file as a template. This can be handy when you need to just change the prompt for `doc_to_text` but keep the rest the same or change `filters` to compare which is better. Simply use `include` in the YAML file and write the name of the template you want to base from. This assumes that the base temeplate is in the same directory. Otherwise, You will need to define the full path.
+```
+include: <YAML file or with full path>
+...
+```
+You can find an example of how to use this feature at [gsm8k-cot-self-consistency.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml) where it is based of [gsm8k-cot.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot.yaml)
+
+
+## Listing Metrics
+
+Metrics can be defined in the `metric_list` argument when building the YAML config. Multiple metrics can be listed along with any auxillary arguments. For example, setting a `exact_match` (TODO: Add url to metric), auxilarry arguments such as `ignore_case`, `ignore_punctuation`, `regexes_to_ignore` can be listed as well. They will be added to the metric function as `kwargs`. Some metrics have predefined values for `aggregation` and `higher_is_better` so listing the metric name only can be sufficient.
+
+```
+metric_list:
+  - metric: acc
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: false
+    regexes_to_ignore:
+      - ","
+      - "\\$"
+```
+
+## Using Promptsource
+
+- load prompt from promptsource
