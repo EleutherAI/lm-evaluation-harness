@@ -2,7 +2,7 @@ import argparse
 import json
 import logging
 import fnmatch
-
+import pickle
 from lm_eval import tasks, evaluator
 
 logging.getLogger("openai").setLevel(logging.WARNING)
@@ -91,12 +91,13 @@ def main():
         check_integrity=args.check_integrity,
     )
 
-    dumped = json.dumps(results, indent=2)
-    print(dumped)
+    pickle.dump(results, open(args.output_path, "wb"))
+    # dumped = json.dumps(results, indent=2)
+    # print(dumped)
 
-    if args.output_path:
-        with open(args.output_path, "w") as f:
-            f.write(dumped)
+    # if args.output_path:
+    #     with open(args.output_path, "w") as f:
+    #         f.write(dumped)
 
     print(
         f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, "

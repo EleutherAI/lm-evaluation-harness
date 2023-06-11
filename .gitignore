@@ -7,3 +7,4 @@ lm_cache
 build/
 *.json
 *egg-info*
+*.pkl
