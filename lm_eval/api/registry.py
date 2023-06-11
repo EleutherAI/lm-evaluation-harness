@@ -31,6 +31,7 @@ def get_model(model_name):
 
 TASK_REGISTRY = {}
 GROUP_REGISTRY = {}
+ALL_TASKS = []
 func2task_index = {}
 
 
@@ -49,10 +50,6 @@ def register_task(name):
 
 def register_group(name):
     def decorate(fn):
-        # assert (
-        #     name not in GROUP_REGISTRY
-        # ), f"group named '{name}' conflicts with existing registered group!"
-
         func_name = func2task_index[fn.__name__]
         if name in GROUP_REGISTRY:
             GROUP_REGISTRY[name].append(func_name)
