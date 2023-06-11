@@ -597,7 +597,7 @@ class ConfigurableTask(Task):
                 self._filters.append(filter_pipeline)
         else:
             self._filters = [
-                build_filter_ensemble("take_first", [["take_first", None]])
+                build_filter_ensemble("none", [["take_first", None]])
             ]
 
         if self._config.use_prompt is not None:
