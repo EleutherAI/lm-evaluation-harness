@@ -25,6 +25,8 @@ setuptools.setup(
         "jsonlines",
         "numexpr",
         "openai>=0.6.4",
+        "omegaconf>=2.2",
+        # "peft>=0.2.0", # used by huggingface model (commented out)
         "pybind11>=2.6.2",
         "pycountry",
         "pytablewriter",
@@ -36,9 +38,12 @@ setuptools.setup(
         "tqdm-multiprocess",
         "transformers>=4.1",
         "zstandard",
+        # "accelerate>=0.17.1", # used by huggingface model (commented out)
     ],
     extras_require={
         "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],
         "multilingual": ["nagisa>=0.2.7", "jieba>=0.42.1"],
+        "sentencepiece": ["sentencepiece>=0.1.98", "protobuf>=4.22.1"],
+        # "auto-gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
     },
 )

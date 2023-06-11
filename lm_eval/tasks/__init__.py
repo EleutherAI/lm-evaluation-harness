@@ -52,8 +52,17 @@ from . import gsm8k
 from . import storycloze
 from . import toxigen
 from . import crowspairs
+from . import json
+# from . import xcopa
+from . import bigbench
+from . import xstorycloze
+from . import xwinograd
+# from . import pawsx
+# from . import xnli
+from . import mgsm
+
 from .aam.all_tasks_registry import TASK_REGISTRY as AAM_TASK_REGISTRY
-from .opengptx.all_tasks_registry import TASK_REGISTRY as OPENGPTX_TASK_REGISTRY
+from .opengptx.all_tasks_registry import TASK_REGISTRY as OGX_TASK_REGISTRY
 
 ########################################
 # Translation tasks
@@ -312,18 +321,59 @@ TASK_REGISTRY = {
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
+    # **xcopa.construct_tasks(),
+    **bigbench.create_all_tasks(),
+    **xstorycloze.create_all_tasks(),
+    **xwinograd.create_all_tasks(),
+    # **pawsx.construct_tasks(),
+    # **xnli.construct_tasks(),
+    **mgsm.construct_tasks(),
 }
 
-
-# append the multilingual tasks to the registry
+# append the luminous (eg. Aleph-Alpha implemented) tasks to the whole registry
 TASK_REGISTRY.update(AAM_TASK_REGISTRY)
-TASK_REGISTRY.update(OPENGPTX_TASK_REGISTRY)
+
+# append the OpenGPT-X tasks to the whole registry
+TASK_REGISTRY.update(OGX_TASK_REGISTRY)
 
 ALL_TASKS = sorted(list(TASK_REGISTRY))
+
+_EXAMPLE_JSON_PATH = "split:key:/absolute/path/to/data.json"
+
+
+def add_json_task(task_name):
+    """Add a JSON perplexity task if the given task name matches the
+    JSON task specification.
+
+    See `json.JsonPerplexity`.
+    """
+    if not task_name.startswith("json"):
+        return
+
+    def create_json_task():
+        splits = task_name.split("=", 1)
+        if len(splits) != 2 or not splits[1]:
+            raise ValueError(
+                "json tasks need a path argument pointing to the local "
+                "dataset, specified like this: json="
+                + _EXAMPLE_JSON_PATH
+                + ' (if there are no splits, use "train")'
+            )
+
+        json_path = splits[1]
+        if json_path == _EXAMPLE_JSON_PATH:
+            raise ValueError(
+                "please do not copy the example path directly, but substitute "
+                "it with a path to your local dataset"
+            )
+        return lambda: json.JsonPerplexity(json_path)
+
+    TASK_REGISTRY[task_name] = create_json_task()
 
 
 def get_task(task_name):
     try:
+        add_json_task(task_name)
         return TASK_REGISTRY[task_name]
     except KeyError:
         print("Available tasks:")

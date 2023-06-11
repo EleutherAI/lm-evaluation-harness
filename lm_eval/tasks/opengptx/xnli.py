@@ -363,5 +363,5 @@ LANG_CLASSES = [
 def construct_tasks():
     tasks = {}
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
-        tasks[f"ogptx_xnli_{lang}"] = lang_class
+        tasks[f"xnli_{lang}"] = lang_class
     return tasks

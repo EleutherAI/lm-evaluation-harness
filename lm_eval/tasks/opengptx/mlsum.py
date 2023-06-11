@@ -16,7 +16,12 @@ Dataset: https://huggingface.co/datasets/mlsum
 
 Prompts are translated with Google Translate.
 
+CHANGES: 2023-03-12: 
+  - changed version from None to 1
+  - fixed some prompts (spaces) and translations
+  - removed spanish training docs
 """
+
 import datasets
 from lm_eval.base import rf, Task
 from functools import partial
@@ -35,7 +40,7 @@ def _mlsum_agg(key, items):
 
 
 class MLSumBase(Task):
-    VERSION = None
+    VERSION = 1
     DATASET_PATH = "mlsum"
     DATASET_NAME = None
     PROMPT_INSTRUCTION = "Article: "
@@ -77,7 +82,7 @@ class MLSumBase(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        continuation = rf.greedy_until(ctx, ["\n"])
+        continuation = rf.greedy_until(ctx, {'until': ["\n"]})
         return continuation
 
     def process_results(self, doc, results):
@@ -133,31 +138,31 @@ class MLSumBase(Task):
 class MLSumDE(MLSumBase):
     DATASET_NAME = "de"
     PROMPT_INSTRUCTION = "Artikel: "
-    PROMPT_END = "Zusammenfassung: "
+    PROMPT_END = "Zusammenfassung:"
 
 
 class MLSumES(MLSumBase):
     DATASET_NAME = "es"
     PROMPT_INSTRUCTION = "Artículo: "
-    PROMPT_END = "Resumen: "
+    PROMPT_END = "Resumen:"
 
 
 class MLSumFR(MLSumBase):
     DATASET_NAME = "fr"
     PROMPT_INSTRUCTION = "Article: "
-    PROMPT_END = "Sommaire: "
+    PROMPT_END = "Résumé:"
 
 
 class MLSumRU(MLSumBase):
     DATASET_NAME = "ru"
     PROMPT_INSTRUCTION = "Статья: "
-    PROMPT_END = "Резюме: "
+    PROMPT_END = "Резюме:"
 
 
 class MLSumTU(MLSumBase):
     DATASET_NAME = "tu"
     PROMPT_INSTRUCTION = "Madde: "
-    PROMPT_END = "Özet: "
+    PROMPT_END = "Özet:"
 
 
 LANGS = ["de", "es", "fr", "ru", "tu"]
@@ -168,5 +173,5 @@ LANG_CLASSES = [MLSumDE, MLSumES, MLSumFR, MLSumRU, MLSumTU]
 def construct_tasks():
     tasks = {}
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
-        tasks[f"ogptx_mlsum_{lang}"] = lang_class
+        tasks[f"mlsum_{lang}"] = lang_class
     return tasks

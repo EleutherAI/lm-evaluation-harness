@@ -1,42 +1,49 @@
-# Added tasks from OpenGPT-X
-from . import xnli
-from . import xquad
-from . import pawsx
-from . import x_stance
-from . import stereoset
-from . import mlqa
-from . import gnad10
-from . import mlsum
-from . import germeval2018
+# OpenGPT-X tasks
+from . import german_europarl_ppl
+from . import german_ler_ppl
 from . import germanquad
 from . import germeval2017
-from . import german_ler_ppl
-from . import german_europarl_ppl
+from . import germeval2018
+from . import gnad10
+from . import mlqa
+from . import mlsum
 from . import oscar_ppl
-from . import xcsr
+from . import pawsx
+from . import stereoset
 from . import wino_x
+from . import xcsr
 from . import xlwic
+from . import x_stance
+from . import xquad
+from . import xnli
 
 
-TASK_REGISTRY = {
-    "ogptx_xstance_de": x_stance.XStanceDE,
-    "ogptx_xstance_fr": x_stance.XStanceFR,
-    **xquad.construct_tasks(),
-    **xnli.construct_tasks(),
-    **pawsx.construct_tasks(),
-    "ogptx_gnad10": gnad10.GNAD10,
-    **stereoset.construct_tasks(),
+TASK_REGISTRY_TMP = {
+    # OpenGPT-X tasks
+    "german_europarl_ppl": german_europarl_ppl.GermanEuroparlPerplexity,
+    "german_ler_ppl": german_ler_ppl.GermanLERPerplexity,
+    "germanquad": germanquad.GermanQuAD,
+    "germeval2017": germeval2017.GermEval2017,
+    "germeval2018_coarse": germeval2018.GermEval2018,
+    "germeval2018_fine": germeval2018.GermEval2018_fine,
+    "gnad10": gnad10.GNAD10,
     **mlqa.construct_tasks(),
     **mlsum.construct_tasks(),
-    "ogptx_germeval2018_coarse": germeval2018.GermEval2018,
-    "ogptx_germeval2018_fine": germeval2018.GermEval2018_fine,
-    "ogptx_germanquad": germanquad.GermanQuAD,
-    "ogptx_germeval2017": germeval2017.GermEval2017,
-    "ogptx_german_ler_ppl": german_ler_ppl.GermanLERPerplexity,
-    "ogptx_german_europarl_ppl": german_europarl_ppl.GermanEuroparlPerplexity,
-    "ogptx_oscar_ppl_de": oscar_ppl.OscarPerplexityGerman,
+    "oscar_ppl_de": oscar_ppl.OscarPerplexityGerman,
+    **pawsx.construct_tasks(),
+    **stereoset.construct_tasks(),
     **xcsr.construct_tasks(),
-    "ogptx_wino_de": wino_x.WinograndeXDe,
-    "ogptx_xlwic_de": xlwic.WordsInContextDe,
-    "ogptx_xlwic_it": xlwic.WordsInContextIt,
+    "wino_de": wino_x.WinograndeXDe,
+    "xlwic_de": xlwic.WordsInContextDe,
+    "xlwic_it": xlwic.WordsInContextIt,
+    "xstance_de": x_stance.XStanceDE,
+    "xstance_fr": x_stance.XStanceFR,
+    **xquad.construct_tasks(),
+    **xnli.construct_tasks(),
 }
+
+# add a prefix to tasks implemented by OpenGPT-X
+PREFIX = "ogx_"
+TASK_REGISTRY = {}
+for task in TASK_REGISTRY_TMP:
+    TASK_REGISTRY[PREFIX + task] = TASK_REGISTRY_TMP[task]

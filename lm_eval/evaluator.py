@@ -1,9 +1,7 @@
 import collections
-import datetime
 import itertools
-import json
 import numpy as np
-import pathlib
+from pathlib import Path
 import random
 import lm_eval.metrics
 import lm_eval.models
@@ -27,8 +25,8 @@ def simple_evaluate(
     check_integrity=False,
     decontamination_ngrams_path=None,
     no_tokenizer_check=False,
-    write_detailed_eval_info=False,
-    detailed_eval_info_path=None,
+    write_out=False,
+    output_base_path=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -47,17 +45,17 @@ def simple_evaluate(
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
     :param no_cache: bool
         Whether or not to cache
-    :param limit: int, optional
-        Limit the number of examples per task (only use this for testing)
+    :param limit: int or float, optional
+        Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
     :param description_dict: dict[str, str]
         Dictionary of custom task descriptions of the form: `task_name: description`
     :param check_integrity: bool
         Whether to run the relevant part of the test suite for the tasks
-    :param write_detailed_eval_info: bool
+    :param write_out: bool
         If True, write details about prompts and logits to json for all tasks
-    :param detailed_eval_info_path: str, optional
+    :param output_base_path: str, optional
         Directory to which detailed eval info will be written. Defaults to present working dir.
     :return
         Dictionary of results
@@ -105,8 +103,8 @@ def simple_evaluate(
         bootstrap_iters=bootstrap_iters,
         description_dict=description_dict,
         decontamination_ngrams_path=decontamination_ngrams_path,
-        write_detailed_eval_info=write_detailed_eval_info,
-        detailed_eval_info_path=detailed_eval_info_path,
+        write_out=write_out,
+        output_base_path=output_base_path,
     )
 
     # add info about the model and few shot config
@@ -138,8 +136,8 @@ def evaluate(
     bootstrap_iters=100000,
     description_dict=None,
     decontamination_ngrams_path=None,
-    write_detailed_eval_info=False,
-    detailed_eval_info_path=None,
+    write_out=False,
+    output_base_path=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -157,10 +155,10 @@ def evaluate(
         Number of iterations for bootstrap statistics
     :param description_dict: dict[str, str]
         Dictionary of custom task descriptions of the form: `task_name: description`
-    :param write_detailed_eval_info: bool
+    :param write_out: bool
         If True, write all prompts, logits and metrics to json for offline analysis
-    :param detailed_eval_info_path: str, optional
-        Directory to which detailed eval info will be written. Defaults to present working dir.
+    :param output_base_path: str, optional
+        Directory to which detailed eval info will be written. Defaults to present working dir
     :return
         Dictionary of results
     """
@@ -173,17 +171,6 @@ def evaluate(
         print(
             "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
         )
-
-    if write_detailed_eval_info:
-        detailed_eval_info_path = (
-            pathlib.Path(detailed_eval_info_path)
-            if detailed_eval_info_path is not None
-            else pathlib.Path(".")
-        )
-        try:
-            detailed_eval_info_path.mkdir(parents=True, exist_ok=False)
-        except FileExistsError:
-            pass
 
     decontaminate = decontamination_ngrams_path is not None
 
@@ -208,7 +195,7 @@ def evaluate(
 
     # TODO: we need unit tests & sanity checks or something to ensure that the return of `validation_docs` is stable
     docs = {}
-    detailed_eval_info = {}
+    write_out_info = {}
 
     docs_for_decontamination = collections.defaultdict(list)
 
@@ -233,7 +220,7 @@ def evaluate(
         rnd.shuffle(task_docs)
         print(f"Task: {task_name}; number of docs: {len(task_docs)}")
 
-        if write_detailed_eval_info:
+        if write_out:
             prompt_details = []
 
         description = (
@@ -241,6 +228,8 @@ def evaluate(
             if description_dict and task_name in description_dict
             else ""
         )
+        if limit is not None:
+            limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
             if decontaminate and task.should_decontaminate():
@@ -254,7 +243,7 @@ def evaluate(
             )
             reqs = task.construct_requests(doc, ctx)
 
-            if write_detailed_eval_info:
+            if write_out:
                 prompt_details.append({"doc_id": doc_id})
 
             # print the prompt for the first few documents
@@ -272,13 +261,13 @@ def evaluate(
                 # doc_id: unique id that we can get back to a doc using `docs`
                 requests_origin[req.request_type].append((i, task_name, doc, doc_id))
 
-                if write_detailed_eval_info:
+                if write_out:
                     prompt_details[-1][f"prompt_{i}"] = "".join(
                         (map(lambda x: "".join(x), req.args))
                     )
 
-        if write_detailed_eval_info:
-            detailed_eval_info[task_name] = prompt_details
+        if write_out:
+            write_out_info[task_name] = prompt_details
 
     # Compare all tasks/sets at once to ensure a single training set scan
     if decontaminate:
@@ -308,23 +297,21 @@ def evaluate(
         for resp, (i, task_name, doc, doc_id) in zip(resps, requests_origin[reqtype]):
             process_res_queue[(task_name, doc_id)].append((i, resp))
 
-            if write_detailed_eval_info:
-                detailed_eval_info[task_name][doc_id][f"logit_{i}"] = resp
+            if write_out:
+                write_out_info[task_name][doc_id][f"logit_{i}"] = resp
                 task = task_dict[task_name]
                 if isinstance(task, lm_eval.base.MultipleChoiceTask):
-                    detailed_eval_info[task_name][doc_id]["truth"] = doc["gold"]
+                    write_out_info[task_name][doc_id]["truth"] = doc["gold"]
                 elif isinstance(task, lm_eval.tasks.winogrande.Winogrande):
-                    detailed_eval_info[task_name][doc_id]["truth"] = task.answer_to_num[
+                    write_out_info[task_name][doc_id]["truth"] = task.answer_to_num[
                         doc["answer"]
                     ]
-                elif isinstance(task, lm_eval.tasks.wino_x.WinograndeXDe):
-                    detailed_eval_info[task_name][doc_id]["truth"] = task.answer_to_num[
+                elif isinstance(task, lm_eval.tasks.opengptx.wino_x.WinograndeXDe):
+                    write_out_info[task_name][doc_id]["truth"] = task.answer_to_num[
                         doc["answer"]
                     ]
                 else:
-                    detailed_eval_info[task_name][doc_id]["truth"] = task.doc_to_target(
-                        doc
-                    )
+                    write_out_info[task_name][doc_id]["truth"] = task.doc_to_target(doc)
 
     vals = collections.defaultdict(list)
 
@@ -340,8 +327,8 @@ def evaluate(
         for metric, value in metrics.items():
             vals[(task_name, metric)].append(value)
 
-            if write_detailed_eval_info:
-                detailed_eval_info[task_name][doc_id][metric] = str(value)
+            if write_out:
+                write_out_info[task_name][doc_id][metric] = str(value)
 
             # Re-use the evaluation for the decontaminated set by just ignoring the overlaps
             if decontaminate and task_name in overlaps:
@@ -371,20 +358,32 @@ def evaluate(
         if stderr is not None:
             results[task_name][metric + "_stderr"] = stderr(items)
 
-    if write_detailed_eval_info:
+    if write_out:
+        import json
+        import datetime
+        import pathlib
+
+        output_base_path = (
+            pathlib.Path(output_base_path)
+            if output_base_path is not None
+            else pathlib.Path(".")
+        )
+        try:
+            output_base_path.mkdir(parents=True, exist_ok=False)
+        except FileExistsError:
+            pass
+
         timestamp = datetime.datetime.utcnow().strftime("%d%m%Y-%H:%M:%S")
 
         for task_name, _ in task_dict_items:
             with open(
-                detailed_eval_info_path.joinpath(
+                output_base_path.joinpath(
                     f"{task_name}_detailed_eval_info_{timestamp}.json"
                 ),
                 "w",
                 encoding="utf8",
             ) as fp:
-                json.dump(
-                    detailed_eval_info[task_name], fp, indent=4, ensure_ascii=False
-                )
+                json.dump(write_out_info[task_name], fp, indent=4, ensure_ascii=False)
 
     return {"results": dict(results), "versions": dict(versions)}
 

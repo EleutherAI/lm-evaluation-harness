@@ -241,6 +241,7 @@ class MLQABase(Task):
             + doc["context"]
             + "\n\n"
             + self.QUESTION
+            + " "
             + doc["question"]
             + "\n\n"
             + self.ANSWER
@@ -266,7 +267,7 @@ class MLQABase(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        continuation = rf.greedy_until(ctx, ["\n"])
+        continuation = rf.greedy_until(ctx, {'until': ["\n"]})
         return continuation
 
     def process_results(self, doc, results):
@@ -435,5 +436,5 @@ LANG_CLASSES = [
 def construct_tasks():
     tasks = {}
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
-        tasks[f"ogptx_mlqa_{lang}"] = lang_class
+        tasks[f"mlqa_{lang}"] = lang_class
     return tasks

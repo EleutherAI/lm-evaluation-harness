@@ -68,7 +68,7 @@ class XQuADBase(SQuAD2):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        continuation = rf.greedy_until(ctx, ["\n"])
+        continuation = rf.greedy_until(ctx, {'until': ["\n"]})
         return continuation
 
     def doc_to_text(self, doc):
@@ -282,5 +282,5 @@ LANG_CLASSES = [
 def construct_tasks():
     tasks = {}
     for lang, lang_class in zip(LANGS, LANG_CLASSES):
-        tasks[f"ogptx_xquad_{lang}"] = lang_class
+        tasks[f"xquad_{lang}"] = lang_class
     return tasks

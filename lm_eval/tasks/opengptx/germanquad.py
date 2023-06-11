@@ -85,7 +85,7 @@ class GermanQuAD(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        continuation = rf.greedy_until(ctx, ["\n"])
+        continuation = rf.greedy_until(ctx, {'until': ["\n"]})
         # there are no unanswerable questions in GermanQuAD
         # is_unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
         return continuation  # , is_unanswerable
