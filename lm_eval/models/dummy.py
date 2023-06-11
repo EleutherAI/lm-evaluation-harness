@@ -1,5 +1,6 @@
 import random
-from lm_eval.api.model import LM, register_model
+from lm_eval.api.model import LM
+from lm_eval.api.registry import register_model
 
 
 @register_model("dummy")

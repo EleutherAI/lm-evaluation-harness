@@ -16,7 +16,7 @@ from lm_eval import utils
 from lm_eval.prompts import get_prompt
 from lm_eval.api.task import MultipleChoiceTask
 
-from lm_eval.api.register import register_task, register_group
+from lm_eval.api.registry import register_task, register_group
 
 _CITATION = """
 @article{Clark2018ThinkYH,
