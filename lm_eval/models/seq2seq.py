@@ -186,11 +186,12 @@ class Seq2SeqHFLM(LM):
                 )
             )
             
+            #TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder
             rolling_token_windows = [(None,) + x for x in rolling_token_windows]
 
             pad_amnt = 0
             if self.world_size > 1:
-                # TODO: Comment on what we do here
+                # We pad out the external document-level iterator so the inner iterator doesn't hang
                 mytensor = torch.tensor(len(rolling_token_windows), device=self.device)
                 gathered = (
                     self.accelerator.gather(mytensor).cpu().detach().numpy().tolist()
