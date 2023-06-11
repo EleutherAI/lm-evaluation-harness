@@ -8,9 +8,8 @@ While adding a standard evaluation task on a new dataset can be occasionally as 
 ### Parameters
 
 - **task** (`str`, defaults to None) — name of the task.
-- **group** (`str`, *optional*) —
+- **group** (`str`, *optional*) — name of the task group(s) a task belongs to. Enables one to run all tasks with a specified tag or group name at once.
 - **reference** (`str`, *optional*) —
-- **task_name** (`str`, *optional*) —
 - **dataset_path** (`str`) — The name of the dataset as listed by HF in the datasets Hub. 
 - **dataset_name**  (`str`, *optional*, defaults to None) — The name of, what HF calls, a “data instance” or sub-task of the benchmark. If your task does not contain any data instances, just leave this to default to None. (If you're familiar with the HF `datasets.load_dataset` function, these are just the first 2 arguments to it.)
 - **dataset_kwargs** (`dict`, *optional*) — Auxillary arguments that `datasets.load_dataset` accepts. This can be used to specify arguments such as `data_files` or `data_dir` if you want to use local datafiles such as json or csv.
@@ -24,18 +23,17 @@ While adding a standard evaluation task on a new dataset can be occasionally as 
 - **doc_to_target** (`Union[Callable, str]`, *optional*) — Jinja2, f-string, or function to process a sample into the appropriate target output for the model
 - **num_fewshot** (`int`, *optional*, defaults to 0) — Number of few-shot examples before the input.
 - **batch_size** (`int`, *optional*, defaults to 1) — Batch size.
-- **repeats** (`int`, *optional*, defaults to 1) — Number of repeated runs for a sample, can be used for cases such as self-consistency.
-- **metric_list** (`str`, *optional*, defaults to None) — A list of metrics to use for evaluation.
-- **gold_alias** (`str`, *optional*, defaults to None) — 
+- **repeats** (`int`, *optional*, defaults to 1) — Number of repeated runs for each sample. can be used for cases such as self-consistency.
+- **metric_list** (`str`, *optional*, defaults to None) — A list of metrics to use for evaluation. See docs for expected format.
+- **gold_alias** (`str`, *optional*, defaults to None) — if provided, used to generate the reference answer that is scored against. Used in cases where `doc_to_target` should be the "target string" format appended to each example's input for a fewshot exemplar, so doc_to_target is used for fewshot examples, but the input to the metric function as `gold` is from `gold_alias`. 
 - **output_type** (`str`, *optional*, defaults to "greedy_until") — Selects the type of model output for the given task. Options are `greedy_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
-- **generation_kwargs** (`dict`, *optional*) — Auxillary arguments for the `generate` function from HF transformers library.
+- **generation_kwargs** (`dict`, *optional*) — Auxiliary arguments for the `generate` function from HF transformers library. Advanced keyword arguments may not be supported for non-HF LM classes.
 - **delimiter** (`str`, *optional*, defaults to "\n\n") — String to insert between few-shot examples.
-- **filter_list** (`Union[str, list]`, *optional*) — List of filters to postprocess model outputs. 
-- **normalization** (`str`, *optional*) —
-- **should_decontaminate** (`bool`, *optional*, defaults to False)
+- **filter_list** (`Union[str, list]`, *optional*) — List of filters to postprocess model outputs. See below for further detail on the filter API.
+- **should_decontaminate** (`bool`, *optional*, defaults to False) - 
 - **doc_to_decontamination_query** (`str`, *optional*) —
-- **use_prompt** (`str`, *optional*) — Name of prompt in promptsource to use, if defined will overwrite doc_to_text.
-- **metadata** (`str`, *optional*) —
+- **use_prompt** (`str`, *optional*) — Name of prompt in promptsource to use, if defined will overwrite doc_to_text and doc_to_target.
+- **metadata** (`str`, *optional*) — An optional field where arbitrary metadata can be passed. 
 
 ## Filters
 
@@ -89,12 +87,12 @@ You can base a YAML on another YAML file as a template. This can be handy when y
 include: <YAML file or with full path>
 ...
 ```
-You can find an example of how to use this feature at [gsm8k-cot-self-consistency.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml) where it is based of [gsm8k-cot.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot.yaml)
+You can find an example of how to use this feature at [gsm8k-cot-self-consistency.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml) where it is based off [gsm8k-cot.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot.yaml)
 
 
 ## Listing Metrics
 
-Metrics can be defined in the `metric_list` argument when building the YAML config. Multiple metrics can be listed along with any auxillary arguments. For example, setting a `exact_match` (TODO: Add url to metric), auxilarry arguments such as `ignore_case`, `ignore_punctuation`, `regexes_to_ignore` can be listed as well. They will be added to the metric function as `kwargs`. Some metrics have predefined values for `aggregation` and `higher_is_better` so listing the metric name only can be sufficient.
+Metrics can be defined in the `metric_list` argument when building the YAML config. Multiple metrics can be listed along with any auxillary arguments. For example, setting a `exact_match` (TODO: Add url to metric), auxiliary arguments such as `ignore_case`, `ignore_punctuation`, `regexes_to_ignore` can be listed as well. They will be added to the metric function as `kwargs`. Some metrics have predefined values for `aggregation` and `higher_is_better` so listing the metric name only can be sufficient.
 
 ```
 metric_list:

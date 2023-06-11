@@ -51,11 +51,9 @@ ALL_OUTPUT_TYPES = [
 class TaskConfig(dict):
 
     task: str = None
-    group: str = None
+    group: Union[str, list] = None
     reference: str = None
-    task_name: str = (
-        None  # TODO: deprecate this, it'll be set in __post_init__ to be names[0]
-    )
+
     dataset_path: str = None
     dataset_name: str = None
     dataset_kwargs: dict = None
@@ -68,6 +66,7 @@ class TaskConfig(dict):
     aliases: Union[str, list] = None
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
+    use_prompt: str = None
 
     num_fewshot: int = 0
     batch_size: int = 1
@@ -79,12 +78,8 @@ class TaskConfig(dict):
     generation_kwargs: dict = None
     delimiter: str = "\n\n"
     filter_list: Union[str, list] = None
-    normalization: str = (
-        None  # TODO: add length-normalization of various types, mutual info
-    )
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
-    use_prompt: str = None
 
     metadata: str = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
@@ -102,7 +97,8 @@ class TaskConfig(dict):
             if type(self.gold_alias) == str:
                 self.gold_alias = self.template_aliases + self.doc_to_target
 
-        if not self.generation_kwargs and self.output_type == "greedy_until":
+        if self.generation_kwargs or self.output_type == "greedy_until":
+            assert self.output_type == "greedy_until", "passed `generation_kwargs`, but not using a generation request type!"
             # ensure that we greedily generate in absence of explicit arguments otherwise
             self.generation_kwargs = {"do_sample": False, "temperature": 0.0}
 
