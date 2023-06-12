@@ -117,7 +117,12 @@ doc_to_target: !function preprocess_wikitext.wikitext_detokenizer
 
 ### Importing a Prompt from Promptsource
 
-Promptsource is a great repository for crowdsourced prompts for many datasets. We can load these prompts easily by
+[Promptsource](https://github.com/bigscience-workshop/promptsource/tree/main/promptsource) is a great repository for crowdsourced prompts for many datasets. We can load these prompts easily by using the `use_prompt` argument and filling it with the format `"promptsource:<name of prompt template>"`. To use this, `doc_to_text` and `doc_to_target` should be left undefined. This will fetch the template of the dataset defined in the YAML file.
+
+For example, For Super Glue BoolQ, if we want to use the prompt template `GPT-3 Style` we can add this to the YAML file.
+```
+use_prompt: "promptsource:GPT-3 Style"
+```
 
 TODO: mention promptsource here, or reserve it for advanced guide
 
