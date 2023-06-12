@@ -26,6 +26,11 @@ To implement a new standard task, we'll need to write a YAML file which configur
 ```sh
 touch lm_eval/tasks/<dataset_name>/<my_new_task_name>.yaml
 ```
+Or, copy the template subfolder we provide from `templates/new_yaml_task`:
+```sh
+cp -r templates/new_yaml_task lm_eval/tasks/
+```
+and rename the folders and YAML file(s) as desired.
 
 ### Selecting and configuring a dataset
 
