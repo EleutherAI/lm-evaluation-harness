@@ -15,7 +15,7 @@ from accelerate import Accelerator
 from itertools import islice
 
 
-@register_model("hf-causal", "gpt2")
+@register_model("hf-causal")
 class HFLM(LM):
     def __init__(
         self,
