@@ -1,6 +1,6 @@
 group:
-  - piqa_yaml_grp
-task: piqa_yaml
+  - multiple_choice
+task: piqa
 dataset_path: piqa
 dataset_name: null
 output_type: multiple_choice

@@ -19,37 +19,42 @@ def get_task_name_from_config(task_config):
     return "{dataset_path}_{dataset_name}".format(**task_config)
 
 
+def include_task_folder(task_dir):
+    """
+    Calling this function
+    """
+    for root, subdirs, file_list in os.walk(task_dir):
+        if (subdirs == []) and (len(file_list) > 0):
+            for f in file_list:
+                if f.endswith(".yaml"):
+                    yaml_path = os.path.join(root, f)
+                    try:
+                        config = utils.load_yaml_config(yaml_path)
+
+                        SubClass = type(
+                            config["task"] + "ConfigurableTask",
+                            (ConfigurableTask,),
+                            {"CONFIG": TaskConfig(**config)},
+                        )
+
+                        if "task" in config:
+                            task_name = "{}".format(config["task"])
+                            register_task(task_name)(SubClass)
+
+                        if "group" in config:
+                            for group in config["group"]:
+                                register_group(group)(SubClass)
+                    except Exception as error:
+                        eval_logger.warning(
+                            "Failed to load config in\n"
+                            f"                                 {yaml_path}\n"
+                            "                                 Config will not be added to registry\n"
+                            f"                                 Error: {error}"
+                        )
+
+
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
-for root, subdirs, file_list in os.walk(task_dir):
-    if (subdirs == []) and (len(file_list) > 0):
-        for file in file_list:
-            if "yaml" in file:
-                yaml_path = os.path.join(root, file)
-                try:
-                    config = utils.load_yaml_config(yaml_path)
-
-                    SubClass = type(
-                        config["task"] + "ConfigurableTask",
-                        (ConfigurableTask,),
-                        {"CONFIG": TaskConfig(**config)},
-                    )
-
-                    if "task" in config:
-                        task_name = "{}".format(config["task"])
-                        register_task(task_name)(SubClass)
-
-                    if "group" in config:
-                        for group in config["group"]:
-                            register_group(group)(SubClass)
-                except Exception as error:
-                    eval_logger.warning(
-                        "Failed to load config in\n"
-                        f"                                 {yaml_path}\n"
-                        "                                 Config will not be added to registry"
-                        f"                                 Error: {error}"
-                    )
-
-ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
+include_task_folder(task_dir)
 
 
 def get_task(task_name, config):

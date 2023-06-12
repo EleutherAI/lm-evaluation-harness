@@ -174,7 +174,6 @@ def make_table(result_dict):
         version = result_dict["versions"][k]
         for (mf), v in dic.items():
             m, _, f = mf.partition(",")
-            print(m, f)
             if m.endswith("_stderr"):
                 continue
 

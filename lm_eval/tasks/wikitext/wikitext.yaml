@@ -1,6 +1,7 @@
 group:
-  - wikitext_group
-task: default
+  - perplexity
+  - loglikelihood_rolling
+task: wikitext
 dataset_path: EleutherAI/wikitext_document_level
 dataset_name: wikitext-2-raw-v1
 output_type: loglikelihood_rolling
