@@ -77,7 +77,7 @@ def simple_evaluate(
         lm = lm_eval.base.CachingLM(
             lm,
             "lm_cache/"
-            + model
+            + (model if isinstance(model, str) else model.config._name_or_path)
             + "_"
             + model_args.replace("=", "-").replace(",", "_").replace("/", "-")
             + ".db",
