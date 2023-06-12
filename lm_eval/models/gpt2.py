@@ -71,18 +71,18 @@ class HFLM(BaseLM):
             trust_remote_code=trust_remote_code,
         )
 
-        assert isinstance(
-            self.tokenizer,
-            (
-                transformers.GPT2Tokenizer,
-                transformers.GPT2TokenizerFast,
-                transformers.T5Tokenizer,
-                transformers.T5TokenizerFast,
-                transformers.XGLMTokenizer,
-                transformers.XGLMTokenizerFast,
-                transformers.BloomTokenizerFast,
-            ),
-        ), "this tokenizer has not been checked for compatibility yet!"
+        # assert isinstance(
+        #     self.tokenizer,
+        #     (
+        #         transformers.GPT2Tokenizer,
+        #         transformers.GPT2TokenizerFast,
+        #         transformers.T5Tokenizer,
+        #         transformers.T5TokenizerFast,
+        #         transformers.XGLMTokenizer,
+        #         transformers.XGLMTokenizerFast,
+        #         transformers.BloomTokenizerFast,
+        #     ),
+        # ), "this tokenizer has not been checked for compatibility yet!"
 
         self.vocab_size = self.tokenizer.vocab_size
 
