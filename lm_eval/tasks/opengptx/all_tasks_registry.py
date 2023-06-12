@@ -10,6 +10,9 @@ from . import mlsum
 from . import oscar_ppl
 from . import pawsx
 from . import stereoset
+from . import wino_x
+from . import xcsr
+from . import xlwic
 from . import x_stance
 from . import xquad
 from . import xnli
@@ -29,6 +32,10 @@ TASK_REGISTRY_TMP = {
     "oscar_ppl_de": oscar_ppl.OscarPerplexityGerman,
     **pawsx.construct_tasks(),
     **stereoset.construct_tasks(),
+    **xcsr.construct_tasks(),
+    "wino_de": wino_x.WinograndeXDe,
+    "xlwic_de": xlwic.WordsInContextDe,
+    "xlwic_it": xlwic.WordsInContextIt,
     "xstance_de": x_stance.XStanceDE,
     "xstance_fr": x_stance.XStanceFR,
     **xquad.construct_tasks(),

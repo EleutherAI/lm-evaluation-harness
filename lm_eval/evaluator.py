@@ -305,6 +305,10 @@ def evaluate(
                     write_out_info[task_name][doc_id]["truth"] = task.answer_to_num[
                         doc["answer"]
                     ]
+                elif isinstance(task, lm_eval.tasks.opengptx.wino_x.WinograndeXDe):
+                    write_out_info[task_name][doc_id]["truth"] = task.answer_to_num[
+                        doc["answer"]
+                    ]
                 else:
                     write_out_info[task_name][doc_id]["truth"] = task.doc_to_target(doc)
 
