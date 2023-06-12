@@ -8,23 +8,6 @@ from lm_eval import tasks, evaluator, utils
 logging.getLogger("openai").setLevel(logging.WARNING)
 
 
-class MultiChoice:
-    def __init__(self, choices):
-        self.choices = choices
-
-    # Simple wildcard support (linux filename patterns)
-    def __contains__(self, values):
-        for value in values.split(","):
-            if len(fnmatch.filter(self.choices, value)) == 0:
-                return False
-
-        return True
-
-    def __iter__(self):
-        for choice in self.choices:
-            yield choice
-
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True)

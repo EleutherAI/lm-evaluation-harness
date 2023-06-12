@@ -10,7 +10,7 @@ from typing import List, Union
 
 import torch
 
-# from omegaconf import OmegaConf
+from omegaconf import OmegaConf
 
 
 class ExitCodeError(Exception):
@@ -55,11 +55,7 @@ def simple_parse_args_string(args_string):
     if not args_string:
         return {}
     arg_list = args_string.split(",")
-    # args_dict = OmegaConf.to_object(OmegaConf.from_dotlist(arg_list))
-    args_dict = {}
-    for arg in arg_list:
-        k, v = arg.split("=")
-        args_dict[k] = v
+    args_dict = OmegaConf.to_object(OmegaConf.from_dotlist(arg_list))
     return args_dict
 
 
@@ -287,4 +283,3 @@ def run_task_tests(task_list: List[str]):
         raise ValueError(
             f"Not all tests for the specified tasks ({task_list}) ran successfully! Error code: {pytest_return_val}"
         )
-
