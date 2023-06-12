@@ -10,6 +10,7 @@ If your intended task relies on features beyond what are described in this guide
 
 ## Configurations
 
+Tasks are configured via the `TaskConfig` object. Below, we describe all fields usable within the object, and their role in defining a task.
 
 ### Parameters
 
@@ -45,60 +46,130 @@ If your intended task relies on features beyond what are described in this guide
 
 Explain: What are filters? What is their place in the pipeline?
 
-Format of the `resps` object, and what needs to happen to yield proper scorable results
-TODO: triviaqa is implementable if we don't use `take_first` and implement a multi-alias exact_match_any metric
-TODO: Filters might warrant a separate doc.
+A key component of the `lm-evaluation-harness` library is the `Filter` object. In a typical evaluation run of the harness, we take the formatted inputs and run them through our LM, with the appropriate output type (greedy or free-form generation, or loglikelihood-based comparative scoring).
+
+After getting scores or output text from our LM on each `Instance` or document in the dataset, we then need to feed these responses into a metric or scoring function to return scores to a user.
+
+However, certain tasks may require more complex behavior than directly turning over model outputs to a metric function. For example, we may want to post-process our output text by truncating it or extracting a model's answer, we may want to ensemble over multiple "takes" on a different document, et cetera.
+
+**Detailed Aside**: 
+We do such post-processing by operating on *responses*, which are stored after running an LM on an `Instance` from the task in `Instance.resps`. 
+
+`resps` is a `List[str]` for each instance, and we pass a `List[List[<expected return type from model>]]` to our filters that is a list of `[instance.resps for instance in instances]`. 
+
+Our filters, after completing a pipeline, must return a `List[<expected return type from model>]` which we then unpack and store each element of in `Instance.filtered_resps` for the corresponding instance. Thus, we take as input a list of returns from our model for each doc, and must return a return from our model *without it being wrapped in a list* for each doc.
+
+**End Aside**
+
+
+A full list of supported filter operations can be found in `lm_eval/filters/__init__.py`. Contributions of new filter types are welcome!
 
 ### Multiple Filter Pipelines
 
-On the same model outputs, we can perform multiple distinct filtering setups in parallel
+Tasks need not be limited to a single filter pipeline. We enable users to run multiple, distinct, filter pipelines on *the same model outputs* generated in one run on a task.
 
-Case study: gsm8k-CoT-self-consistency
+As a case study, let's look at an implementation of solving the Gsm8k math word problem benchmark in `lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml`. Here, we are emulating the setup used by [Self-Consistency Improves Chain of Thought Prompting](https://arxiv.org/abs/2203.11171), in which evaluation is performed by generating N chain-of-thought outputs from a model via temperature-based sampling, then selecting the answers output by the model at the end of the chains of thought, then majority voting across all those numeric answers.
 
-### "Splitting" Pipelines
+Within our YAML file:
 
-TODO: either allow for pipelines that "split" and report multiple keys, or something different. We in particular want to support not re-running reward /scoring models on every different filter pipeline if can be shared.
+```yaml
+...
+repeats: 64
+filter_list:
+  - name: "score-first"
+    filter:
+      - function: "regex"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "take_first"
+  - name: "maj@64"
+    filter:
+      - function: "regex"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "majority_vote"
+      - function: "take_first"
+  - name: "maj@8" 
+    filter:
+      - function: "take_first_k"
+        k: 8
+      - function: "regex"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "majority_vote"
+      - function: "take_first"
+```
+
+We are able to provide multiple different filter pipelines, each with their own name and list of filters to apply in sequence. 
+
+Our first filter pipeline implements 
+- applying a regex to the model generations (extracting the number within the phrase "The answer is (number)")
+- selecting only the first out of the 64 model answers
+
+Then scoring this single answer.
+
+```yaml
+- name: "score-first"
+  filter:
+    - function: "regex"
+      regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+    - function: "take_first"
+```
+
+Our second filter pipeline, "maj@64", does majority voting across all 64 answers via:
+- applying the same regex to all responses, to get the numerical answer from the model for each of the 64 responses per problem
+- applying majority voting to all responses, which then returns a length-1 `[<majority answer>]` list for each
+- taking the first element of this length-1 list, to then score the sole response `<majority answer>` for each document.
+
+```yaml
+- name: "maj@64"
+  filter:
+    - function: "regex"
+      regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+    - function: "majority_vote"
+    - function: "take_first"
+```
+
+Our final filter pipeline, "maj@8", does majority voting across the first 8 of the model's responses per document via: 
+- subsetting the len-64 list of responses `[answer1, answer2, ..., answer64]` to `[answer1, answer2, ..., answer8]` for each document
+- performing the same sequence of filters on these new sets of 8 responses, for each document.
+```yaml
+- name: "maj@8"
+    filter:
+    - function: "take_first_k"
+      k: 8
+    - function: "regex"
+      regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+    - function: "majority_vote"
+    - function: "take_first"
+```
+
+Thus, given the 64 responses from our LM on each document, we can report metrics on these responses in these 3 different ways, as defined by our filter pipelines. 
+
 
 ## Embedded Python Code
 
-There could be cases where Jinja 2 or simple f-string format won't cut it. For tasks like these, we additionally support the importing of Python helper functions that can be injected directly to the yaml. It should be noted that the function script must be in the same directory as the yaml.
-
-TODO: document the `!function filename.pythonfunctionname` syntax here.
-
-TODO: add permannent link to wikitext.yaml and super_glue_cb.yml
-```
-wikitext.yaml and helper fn go here
-```
+Use can use python functions for certain arguments by using the `!function` operator after the argument name followed by `<filename>.<pythonfunctionname>`. This feature can be used for the following arguments:
+1. `doc_to_text`
+2. `doc_to_target`
+3. `gold_alias`
+4. `aggregation` for a `metric` in `metric_list`
 
 ## (No Longer Recommended) Direct `Task` Subclassing
 
-The prior implementation method of new tasks was to subclass `Task`. While we intend to migrate all tasks to the new YAML implementation option going forward, it remains possible to subclass
-
-{Insert a sample custom `Task` subclass code block here}
-
-## Configuring Tasks with YAMLs
-
-You can easily make a task evaluation using yamls, this is to allow faster and easier experience.
-
-Doc to text
-Jinja,
-You can use Jinja or f-strings to make a prompt template.
-To set a mapping of verbalizer to label, you can define that in the jinja string dorectly.
+The prior implementation method of new tasks was to subclass `Task`. While we intend to migrate all tasks to the new YAML implementation option going forward, it remains possible to subclass the Task class and implement custom logic. For more information, see `docs/task_guide.md` in v0.3.0 of the `lm-evaluation-harness`.
 
 
 ## Including a Base YAML
 
 You can base a YAML on another YAML file as a template. This can be handy when you need to just change the prompt for `doc_to_text` but keep the rest the same or change `filters` to compare which is better. Simply use `include` in the YAML file and write the name of the template you want to base from. This assumes that the base temeplate is in the same directory. Otherwise, You will need to define the full path.
 ```
-include: <YAML file or with full path>
+include: <YAML filename or with full path>
 ...
 ```
 You can find an example of how to use this feature at [gsm8k-cot-self-consistency.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml) where it is based off [gsm8k-cot.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot.yaml)
 
 
-## Listing Metrics
+## Passing Arguments to Metrics
 
-Metrics can be defined in the `metric_list` argument when building the YAML config. Multiple metrics can be listed along with any auxillary arguments. For example, setting a `exact_match` (TODO: Add url to metric), auxiliary arguments such as `ignore_case`, `ignore_punctuation`, `regexes_to_ignore` can be listed as well. They will be added to the metric function as `kwargs`. Some metrics have predefined values for `aggregation` and `higher_is_better` so listing the metric name only can be sufficient.
+Metrics can be defined in the `metric_list` argument when building the YAML config. Multiple metrics can be listed along with any auxillary arguments. For example, setting the [`exact_match` metric](https://github.com/huggingface/evaluate/tree/main/metrics/exact_match), auxiliary arguments such as `ignore_case`, `ignore_punctuation`, `regexes_to_ignore` can be listed as well. They will be added to the metric function as `kwargs`. Some metrics have predefined values for `aggregation` and `higher_is_better` so listing the metric name only can be sufficient.
 
 ```
 metric_list:
@@ -113,11 +184,45 @@ metric_list:
       - "\\$"
 ```
 
-## Using Promptsource
+### Natively Supported Metrics
 
-- load prompt from promptsource
+Here we list all metrics currently supported natively in `lm-eval`:
+
+Metrics:
+* `acc` (accuracy)
+* `acc_norm` (length-normalized accuracy)
+* `acc_mutual_info` (baseline loglikelihood - normalized accuracy)
+* `perplexity`
+* `word_perplexity` (perplexity per word)
+* `byte_perplexity` (perplexity per byte)
+* `bits_per_byte`
+* `matthews_corrcoef` (Matthews correlation coefficient)
+* `f1` (F1 score)
+* `bleu`
+* `chrf`
+* `ter`
+
+Aggregation functions:
+* `mean`
+* `median`
+* `perplexity`
+* `weighted_perplexity`
+* `bits_per_byte`
 
 
 ## Good Reference Tasks
 
-- This section should list some "canonized" task examples for different use cases / subcategories, as suggestions from which to build new tasks off of.
+Contributing a new task can be daunting! Luckily, much of the work has often been done for you in a different, similarly evaluated task. Good examples of task implementations to study include: 
+
+Multiple choice tasks: 
+- SciQ (`lm_eval/tasks/sciq/sciq.yaml`)
+
+Corpus perplexity evaluations:
+- Wikitext (`lm_eval/tasks/wikitext/wikitext.yaml`)
+
+Generative tasks:
+- GSM8k (`lm_eval/tasks/gsm8k/gsm8k.yaml`)
+
+Tasks using complex filtering:
+- GSM8k with CoT (+ with Self-Consistency): (`lm_eval/tasks/gsm8k/gsm8k-cot.yaml` ; `lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml`)
+
