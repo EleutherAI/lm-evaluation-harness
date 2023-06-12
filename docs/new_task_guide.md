@@ -130,6 +130,7 @@ metric_list:
     aggregation: ...
     higher_is_better: ...
 ```
+`aggregation` and `higher_is_better` can optionally be left out to default to the manually-set defaults, if using a natively supported metric.
 
 For a full list of natively supported metrics and aggregation functions see `TODO: we should list out all supported metrics, aggregations, models, somewhere in the docs.` All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval`.
 
