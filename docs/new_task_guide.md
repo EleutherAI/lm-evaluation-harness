@@ -2,7 +2,7 @@
 
 `lm-evaluation-harness` is a framework that strives to support a wide range of zero- and few-shot evaluation tasks on autoregressive language models (LMs).
 
-This documentation page provides a walkthrough to get started creating your own task.
+This documentation page provides a walkthrough to get started creating your own task, on the `big-refactor` branch of the repository (which will be v0.5.0 in the future.)
 
 ## Setup
 
@@ -12,6 +12,7 @@ If you haven't already, go ahead and fork the main repo, clone it, create a bran
 # After forking...
 git clone https://github.com/<YOUR-USERNAME>/lm-evaluation-harness.git
 cd lm-evaluation-harness
+git checkout big-refactor
 git checkout -b <task-name>
 pip install -e ".[dev]"
 ```
@@ -93,6 +94,9 @@ doc_to_target: "{{answer}}"
 
 **Important**: We always add one whitespace between the input and output, such that the full input-output string is `doc_to_target(doc) + " " + doc_to_text(doc)`. doc_to_text and doc_to_target should not contain trailing right or left whitespace, respectively.
 
+Users can also fill out the optional `template_aliases` YAML field, which is added ahead of both the `doc_to_text` and `doc_to_target` fields. This field should not contain any test, but only Jinja variable definitions (`{% ... %}` clauses). This can be used to perform more involved string manipulations and renamings of dataset columns while the main prompt fields remain easy to parse visually.
+
+
 ### Using Python Functions for Prompts
 
 There may be cases where the prompt we want to implement is easier expressed in Python instead of Jinja 2. For this, we can use Python helper functions that are defined in the YAML config. It should be noted that the function script must be in the same directory as the yaml.
@@ -124,19 +128,28 @@ For example, For Super Glue BoolQ, if we want to use the prompt template `GPT-3 
 use_prompt: "promptsource:GPT-3 Style"
 ```
 
-TODO: mention promptsource here, or reserve it for advanced guide
 
 #### Multiple choice format
 
-- template_aliases
+For tasks which are multiple choice (a fixed, finite set of label words per each document) and evaluated via comparing loglikelihoods of all label words (the `multiple_choice` task output type) we enforce a particular convention on prompt format.
 
-- expected mcqa setup
+An annotated example in the case of SciQ is as follows:
+
+```yaml
+template_aliases: "{% set answer_choices = [distractor1, distractor2, distractor3, correct_answer] %}{% set gold = 3 %}" # `template_aliases` must set the list of possible answer choices to the jinja variable `answer_choices` (List[str]), and set what the index within `answer_choices` of this doc's gold label (correct answer choice).
+doc_to_text: "{{support.lstrip()}}\nQuestion: {{question}}\nAnswer:" # This is the input portion of the prompt for this doc. It will have " {{choice}}" appended to it as target for each choice in answer_choices.
+doc_to_target: "{{gold}}" # this must be castable to an integer. It must output only the index within `answer_choices` that is the correct label.
+```
+Task implementers are thus able to decide what the answer choices should be for a document, and what prompt format to use.
+
+
 
 ### Setting metrics
 
 You're almost done! Now we need to choose how to score our task.
 - *If this is a multiple choice task:* do you just want to check your model's accuracy in choosing the correct answer choice?
 - *If this is a generation task:* do you just want to check how often your model outputs *exactly the ground-truth output string provided*?
+
 
 If the answer to the above is no: you'll need to record what scoring metrics to use! Metrics can be listed in the following format:
 
@@ -149,10 +162,11 @@ metric_list:
     aggregation: ...
     higher_is_better: ...
 ```
+`aggregation` and `higher_is_better` can optionally be left out to default to the manually-set defaults, if using a natively supported metric.
 
-For a full list of natively supported metrics and aggregation functions see `TODO: we should list out all supported metrics, aggregations, models, somewhere in the docs.` All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval`.
+For a full list of natively supported metrics and aggregation functions see `docs/advanced_task_guide.md`. All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval`.
 
-### Optional, more advanced setup
+### Optional, More Advanced Setup
 
 Some tasks may require more advanced processing logic than is described in this guide.
 
@@ -201,16 +215,42 @@ Passing `--tasks /path/to/yaml/file` is also accepted.
 
 ## Checking validity
 
-- write_out
+After registering your task, you can now check on your data downloading and verify that the few-shot samples look as intended. Run the following command with your desired args:
 
-## Checking performance ; implementation equivalence
+```bash
+python -m scripts.write_out \
+    --output_base_path <path> \
+    --tasks <your-task-name> \
+    --sets <train | val | test> \
+    --num_fewshot K \
+    --num_examples N \
+```
 
-## Task impl. checklist
+Open the file specified at the `--output_base_path <path>` and ensure it passes
+a simple eye test.
 
-- turn this into a GH PR template too
+## Checking performance + equivalence
 
-- README.md in task dir
+It's now time to check models' performance on your task! In the evaluation harness, we intend to support a wide range of evaluation tasks and setups, but prioritize the inclusion of already-proven benchmarks following the precise evaluation setups in the literature where possible. 
+
+To enable this, we provide a checklist that should be completed when contributing a new task, to enable accurate book-keeping and to ensure that tasks added to the library are well-tested and, where applicable, precedented.
+
+### Task impl. checklist
+
+The checklist is the following: 
+
+For adding novel benchmarks/datasets to the library:
+* [ ] Is the task an existing benchmark in the literature?
+  * [ ] Has the task been checked for equivalence with the original paper's methodology?
+  * [ ] Is the task in Eval-harness v0.3.0 or earlier?
+    * [ ] If so, has it been checked for regression from earlier versions? If there is a change in results, is it justified by matching the original authors' intended setup?
+
+If other tasks on this dataset are already supported:
+* [ ] Is the "Main" variant of this task clearly denoted?
+* [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
+* [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 ## Submitting your task
 
-You're all set! Now push your work and make a pull request! Thanks for the contribution 👍. If there are any questions, please leave a message in the `#lm-thunderdome` channel on the EAI discord!
+You're all set! Now push your work and make a pull request to the `big-refactor` branch! Thanks for the contribution :). If there are any questions, please leave a message in the `#lm-thunderdome` channel on the EAI discord!
+
