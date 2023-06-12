@@ -1,6 +1,6 @@
 # New Task Guide
 
-`lm-evaluation-harness` is a framework that strives to support a wide range of zero- and few-shot evaluation tasks on autoregressive language models (LMs). 
+`lm-evaluation-harness` is a framework that strives to support a wide range of zero- and few-shot evaluation tasks on autoregressive language models (LMs).
 
 This documentation page provides a walkthrough to get started creating your own task.
 
@@ -64,7 +64,7 @@ fewshot_split: <split name to draw fewshot examples from, or `null`>
 ```
 though if this is not set, we will default to train/validation/test sets, in that order.
 
-### Writing a prompt
+### Writing a prompt with Jinja 2
 
 The next thing we need to do is decide what format to use when presenting the data to the LM. This is our **prompt**, where we'll define both an input and output format.
 
@@ -80,7 +80,7 @@ Suppose our dataset has a `"question"` field, and an `"answer"` field, which are
 Question: {document[question]}
 Answer:
 ```
-We do this by writing 
+We do this by writing
 ```yaml
 doc_to_text: "Question: {{question}}\nAnswer:"
 ```
@@ -93,6 +93,32 @@ doc_to_target: "{{answer}}"
 
 **Important**: We always add one whitespace between the input and output, such that the full input-output string is `doc_to_target(doc) + " " + doc_to_text(doc)`. doc_to_text and doc_to_target should not contain trailing right or left whitespace, respectively.
 
+### Using Python Functions for Prompts
+
+There may be cases where the prompt we want to implement is easier expressed in Python instead of Jinja 2. For this, we can use Python helper functions that are defined in the YAML config. It should be noted that the function script must be in the same directory as the yaml.
+
+A good example is WikiText that requires a lot of regex rules to clean the samples.
+```
+def wikitext_detokenizer(doc):
+    string = doc["page"]
+    # contractions
+    string = string.replace("s '", "s'")
+    string = re.sub(r"/' [0-9]/", r"/'[0-9]/", string)
+    ...
+    string = string.replace(" 's", "'s")
+
+    return string
+```
+
+We can load this function in `doc_to_target` by using a `!function` operator after `doc_to_target` and followed by `<file name>.<function name>`. In the file [wikitext.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/6ae376e3a43caa58b95bb8aa73054a94827bf560/lm_eval/tasks/wikitext/wikitext.yaml) we write:
+```
+doc_to_target: !function preprocess_wikitext.wikitext_detokenizer
+```
+
+### Importing a Prompt from Promptsource
+
+Promptsource is a great repository for crowdsourced prompts for many datasets. We can load these prompts easily by
+
 TODO: mention promptsource here, or reserve it for advanced guide
 
 #### Multiple choice format
@@ -104,7 +130,7 @@ TODO: mention promptsource here, or reserve it for advanced guide
 ### Setting metrics
 
 You're almost done! Now we need to choose how to score our task.
-- *If this is a multiple choice task:* do you just want to check your model's accuracy in choosing the correct answer choice? 
+- *If this is a multiple choice task:* do you just want to check your model's accuracy in choosing the correct answer choice?
 - *If this is a generation task:* do you just want to check how often your model outputs *exactly the ground-truth output string provided*?
 
 If the answer to the above is no: you'll need to record what scoring metrics to use! Metrics can be listed in the following format:
@@ -130,7 +156,7 @@ As a heuristic check:
 * Does your task require complex, multi-step post-processing of generated model outputs?
 * Does your task require subsetting documents on the fly based on their content?
 * Do you expect to compute metrics after applying multiple such processing steps on your model outputs?
-* Does your task rely on metrics that need a custom implementation? 
+* Does your task rely on metrics that need a custom implementation?
 
 For more detail on the task system and advanced features, see `docs/advanced_task_guide.md` . If none of the above sound like they apply to your task, it's time to continue onto checking your task performance!
 
@@ -157,7 +183,7 @@ This will add your task to the `group1` and `group2` groups, enabling people to 
 
 If your task is not in the `lm_eval/tasks` folder, you'll need to tell the Eval Harness where to look for YAML files.
 
-You can do this via adding the Python snippet 
+You can do this via adding the Python snippet
 
 ```python
 from lm_eval.tasks import include_task_folder
