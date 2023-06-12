@@ -10,6 +10,7 @@ If your intended task relies on features beyond what are described in this guide
 
 ## Configurations
 
+Tasks are configured via the `TaskConfig` object. Below, we describe all fields usable within the object, and their role in defining a task.
 
 ### Parameters
 
@@ -51,9 +52,50 @@ TODO: Filters might warrant a separate doc.
 
 ### Multiple Filter Pipelines
 
-On the same model outputs, we can perform multiple distinct filtering setups in parallel
+Tasks need not be limited to a single filter pipeline. We enable users to run multiple, distinct, filter pipelines on *the same model outputs* generated in one run on a task.
 
-Case study: gsm8k-CoT-self-consistency
+As a case study, let's look at an implementation of solving the Gsm8k math word problem benchmark in `lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml`. Here, we are emulating the setup used by [Self-Consistency Improves Chain of Thought Prompting](https://arxiv.org/abs/2203.11171), in which evaluation is performed by generating N chain-of-thought outputs from a model via temperature-based sampling, then selecting the answers output by the model at the end of the chains of thought, then majority voting across all those numeric answers.
+
+Within our YAML file:
+
+```yaml
+...
+repeats: 64
+filter_list:
+  - name: "score-first" # pick only the first response, and report metrics on that
+    filter:
+      - function: "regex"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "take_first"
+  - name: "maj@64"
+    filter:
+      - function: "regex"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "majority_vote"
+      - function: "take_first"
+  - name: "maj@8" # get Maj@8 , via selecting the first 8 responses. Using a better estimator would be optimal.
+    filter:
+      - function: "take_first_k"
+        k: 8
+      - function: "regex"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+      - function: "majority_vote"
+      - function: "take_first"
+```
+
+We are able to provide multiple different filter pipelines, each with their own name and list of filters to apply in sequence. 
+
+Our first filter pipeline implements 
+- applying a regex to the model generations (extracting the number within the phrase "The answer is (number)")
+- 
+
+```yaml
+- name: "score-first"
+  filter:
+    - function: "regex"
+      regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
+    - function: "take_first"
+```
 
 ### "Splitting" Pipelines
 
@@ -75,15 +117,6 @@ wikitext.yaml and helper fn go here
 The prior implementation method of new tasks was to subclass `Task`. While we intend to migrate all tasks to the new YAML implementation option going forward, it remains possible to subclass
 
 {Insert a sample custom `Task` subclass code block here}
-
-## Configuring Tasks with YAMLs
-
-You can easily make a task evaluation using yamls, this is to allow faster and easier experience.
-
-Doc to text
-Jinja,
-You can use Jinja or f-strings to make a prompt template.
-To set a mapping of verbalizer to label, you can define that in the jinja string dorectly.
 
 
 ## Including a Base YAML
