@@ -146,14 +146,10 @@ Thus, given the 64 responses from our LM on each document, we can report metrics
 
 ## Embedded Python Code
 
-There could be cases where Jinja 2 or simple f-string format won't cut it. For tasks like these, we additionally support the importing of Python helper functions that can be injected directly to the yaml. It should be noted that the function script must be in the same directory as the yaml.
-
-TODO: document the `!function filename.pythonfunctionname` syntax here.
-
-TODO: add permannent link to wikitext.yaml and super_glue_cb.yml
-```
-wikitext.yaml and helper fn go here
-```
+Use can use python functions for certain arguments by using the `!function` operator after the argument name followed by `<filename>.<pythonfunctionname>`. This feature can be used for the following arguments:
+1. `doc_to_text`
+2. `doc_to_target`
+3. `aggregation` for a `metric` in `metric_list`
 
 ## (No Longer Recommended) Direct `Task` Subclassing
 
