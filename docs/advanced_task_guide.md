@@ -149,13 +149,12 @@ Thus, given the 64 responses from our LM on each document, we can report metrics
 Use can use python functions for certain arguments by using the `!function` operator after the argument name followed by `<filename>.<pythonfunctionname>`. This feature can be used for the following arguments:
 1. `doc_to_text`
 2. `doc_to_target`
-3. `aggregation` for a `metric` in `metric_list`
+3. `gold_alias`
+4. `aggregation` for a `metric` in `metric_list`
 
 ## (No Longer Recommended) Direct `Task` Subclassing
 
-The prior implementation method of new tasks was to subclass `Task`. While we intend to migrate all tasks to the new YAML implementation option going forward, it remains possible to subclass
-
-{Insert a sample custom `Task` subclass code block here}
+The prior implementation method of new tasks was to subclass `Task`. While we intend to migrate all tasks to the new YAML implementation option going forward, it remains possible to subclass the Task class and implement custom logic. For more information, see `docs/task_guide.md` in v0.3.0 of the `lm-evaluation-harness`.
 
 
 ## Including a Base YAML
@@ -168,9 +167,9 @@ include: <YAML filename or with full path>
 You can find an example of how to use this feature at [gsm8k-cot-self-consistency.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml) where it is based off [gsm8k-cot.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/3c07cc04a92fc467d7c9a94894aeddd58c93a5da/lm_eval/tasks/gsm8k/gsm8k-cot.yaml)
 
 
-## Listing Metrics
+## Passing Arguments to Metrics
 
-Metrics can be defined in the `metric_list` argument when building the YAML config. Multiple metrics can be listed along with any auxillary arguments. For example, setting a `exact_match` (TODO: Add url to metric), auxiliary arguments such as `ignore_case`, `ignore_punctuation`, `regexes_to_ignore` can be listed as well. They will be added to the metric function as `kwargs`. Some metrics have predefined values for `aggregation` and `higher_is_better` so listing the metric name only can be sufficient.
+Metrics can be defined in the `metric_list` argument when building the YAML config. Multiple metrics can be listed along with any auxillary arguments. For example, setting the [`exact_match` metric](https://github.com/huggingface/evaluate/tree/main/metrics/exact_match), auxiliary arguments such as `ignore_case`, `ignore_punctuation`, `regexes_to_ignore` can be listed as well. They will be added to the metric function as `kwargs`. Some metrics have predefined values for `aggregation` and `higher_is_better` so listing the metric name only can be sufficient.
 
 ```
 metric_list:
@@ -185,9 +184,30 @@ metric_list:
       - "\\$"
 ```
 
-## Using Promptsource
+### Natively Supported Metrics
 
-- load prompt from promptsource
+Here we list all metrics currently supported natively in `lm-eval`:
+
+Metrics:
+* `acc` (accuracy)
+* `acc_norm` (length-normalized accuracy)
+* `acc_mutual_info` (baseline loglikelihood - normalized accuracy)
+* `perplexity`
+* `word_perplexity` (perplexity per word)
+* `byte_perplexity` (perplexity per byte)
+* `bits_per_byte`
+* `matthews_corrcoef` (Matthews correlation coefficient)
+* `f1` (F1 score)
+* `bleu`
+* `chrf`
+* `ter`
+
+Aggregation functions:
+* `mean`
+* `median`
+* `perplexity`
+* `weighted_perplexity`
+* `bits_per_byte`
 
 
 ## Good Reference Tasks
