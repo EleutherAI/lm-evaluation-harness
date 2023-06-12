@@ -1,7 +1,6 @@
 import collections
 import itertools
 import numpy as np
-from pathlib import Path
 import random
 import lm_eval.metrics
 import lm_eval.models
