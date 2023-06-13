@@ -5,11 +5,11 @@ import argparse
 import logging
 
 from lm_eval import evaluator, utils
-from lm_eval.tasks import ALL_TASKS
+from lm_eval.api.registry import GROUP_REGISTRY, TASK_REGISTRY
 from lm_eval.logger import eval_logger
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-logger = logging.getLogger("main")
+ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
 
 class MultiChoice:
     def __init__(self, choices):
@@ -20,8 +20,10 @@ class MultiChoice:
         for value in values.split(","):
             if len(fnmatch.filter(self.choices, value)) == 0:
                 eval_logger.warning("{} is not in task list.".format(value))
-                # eval_logger.info(f"{choices} is this")
-
+                eval_logger.info(f"Available tasks to choose:")
+                # for choice in self.choices:
+                    # eval_logger.info(f"    {choice}")
+                eval_logger.info(ALL_TASKS)
         return True
 
     def __iter__(self):
