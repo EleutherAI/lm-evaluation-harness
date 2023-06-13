@@ -235,8 +235,11 @@ class HuggingFaceAutoLM(BaseLM):
             # the user specified one so we force `self._device` to be the same as
             # `lm_head`'s.
             self._device = self.model.hf_device_map["lm_head"]
-        if not use_accelerate:
-            self.model.to(self._device)
+        if not use_accelerate and not (load_in_4bit or load_in_8bit):
+            try:
+                self.model.to(self._device)
+            except:
+                print("Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore.")
 
     def _create_auto_model(
         self,
