@@ -1,5 +1,7 @@
 group:
   - pile
+  - perplexity
+  - loglikelihood_rolling
 task: pile_arxiv
 dataset_path: EleutherAI/the_pile
 dataset_name: pile_arxiv

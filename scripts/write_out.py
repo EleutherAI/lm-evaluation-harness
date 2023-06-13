@@ -72,7 +72,7 @@ def main():
                     doc=doc,
                     num_fewshot=args.num_fewshot,
                     rnd=rnd,
-                    description=description,
+                    # description=description,
                 )
                 f.write(ctx + "\n")
 
