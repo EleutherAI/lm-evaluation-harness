@@ -234,7 +234,6 @@ def evaluate(
         )
         task_to_description[task_name] = task_config.get("description", "")
         task_to_params[task_name] = task_config.get("params", {})
-
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
 
             if decontaminate and task.should_decontaminate():

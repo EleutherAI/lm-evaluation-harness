@@ -5,7 +5,7 @@ The original readme for the evaluation harness is in the subsequent section.
  
 ## Example scripts
 
-See `eval_scripts` for example scripts. We will walk through two different cases. 
+See `eval_scripts` for example scripts. We will walk through a simple case: 
 
 ### LILA with Huggingface accelerate
 Example command to evaluate Pythia-1.4b-deduped on the `lila_addsub` task:
@@ -46,9 +46,9 @@ See `configs/config_math.json` for a non-trivial config file that enables a cust
 
 
 
-## New features
+# New features
 
-### Majority voting, generation hyperparameters
+## Majority voting, generation hyperparameters
 
 Additional generation options can be specified through a configuration file and the `--description_dict_path` argument.
 For example, to enable majority voting with temperature 0.3 on the `math_algebra` task, we create a `config.json` file containing a `params` field:
@@ -69,7 +69,7 @@ python main.py --model gpt2 \
 ```
 **Warning:** Currently only the tasks defined in `hendrycks_math.py` support these options. If you are interested in adding this functionality to other tasks, see [this guide](./docs/task_guide.md).
 
-### Prepending a task description in the prompt
+## Prepending a task description in the prompt
 In the `config` file, you can add a `description` field containing a string. The string will be prepended to each prompt during evaluation.
 Continuing the example from above, we have a `config.json` file containing:
 ```json
@@ -81,7 +81,7 @@ Continuing the example from above, we have a `config.json` file containing:
 }
 ```
 
-### Accelerate
+## Accelerate
 You can use the HuggingFace `accelerate` library. To do so, use the `--use_accelerate` flag along with a `hf-causal` model. 
 Here is an example command:
 ```bash
@@ -96,8 +96,46 @@ NOTE: With default settings, `--model hf-causal` may have different performance 
 
 NOTE: we do not yet support `hf-seq2seq`.
 
+## Experimental gpt-based evaluation for ProofNet informalization
+The ProofNet informalization task (`proofnet_informalize_statements`) consists of mapping a formal theorem statement to an informal statement.
+We provide an experiment GPT-based evaluation as a proxy of correctness.
+
+Given a `(formal theorem statement, gold informal statement, generated informal statement)` triple, a `gpt-3.5-turbo` or `gpt-4` model is prompted to decide whether the generated informal statement is correct, and to provide a reason for the decision.
+
+To enable:
+- Set your openai api key as an environment variable:
+```bash
+export OPENAI_API_KEY="..."
+```
+- Enable it in the config file (e.g. `configs/config_proofnet.json`):
+```json
+{
+  "proofnet_autoformalize_statements" : {
+    "description": "",
+    "params": {}
+  },
+  "proofnet_informalize_statements" : {
+    "description": "",
+    "params": {
+      "gpt_eval" : {
+        "enabled": true,
+        "settings": {
+          "engine": "gpt-3.5-turbo",
+          "max_tokens": 512
+        }
+      }
+    }
+  }
+}
+```
 
 
+A full example script is in `eval_scripts/eval_proofnet_accelerate.sh`. 
+
+### Important considerations about experimental gpt-based evaluation:
+- This evaluation costs money, since it calls the openai api.
+- This evaluation is not fully reproducible since it depends on the openai api.
+- This evaluation has not been extensively validated as an evaluation methodology. We hypothesize that it may serve as a proxy of correctness that is useful for relative comparison of models.
 
 # Language Model Evaluation Harness
 
