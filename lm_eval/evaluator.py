@@ -77,7 +77,7 @@ def simple_evaluate(
         lm = lm_eval.base.CachingLM(
             lm,
             "lm_cache/"
-            + model
+            + (model if isinstance(model, str) else model.model.config._name_or_path)
             + "_"
             + model_args.replace("=", "-").replace(",", "_").replace("/", "-")
             + ".db",
@@ -102,7 +102,7 @@ def simple_evaluate(
 
     # add info about the model and few shot config
     results["config"] = {
-        "model": model,
+        "model": (model if isinstance(model, str) else model.model.config._name_or_path),
         "model_args": model_args,
         "num_fewshot": num_fewshot,
         "batch_size": batch_size,
