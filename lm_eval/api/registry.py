@@ -26,7 +26,10 @@ def register_model(*names):
 
 
 def get_model(model_name):
-    return MODEL_REGISTRY[model_name]
+    try:
+        return MODEL_REGISTRY[model_name]
+    except KeyError:
+        raise ValueError(f"Attempted to load model '{model_name}', but no model for this name found! Supported model names: {', '.join(MODEL_REGISTRY.keys())}")
 
 
 TASK_REGISTRY = {}
@@ -133,7 +136,7 @@ searching in HF Evaluate library..."
 
 
 def register_aggregation(name):
-    # TODO: should we enforce a specific interface to aggregation metrics?
+
     def decorate(fn):
         assert (
             name not in AGGREGATION_REGISTRY
