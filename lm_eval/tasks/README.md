@@ -64,4 +64,4 @@ Tasks added in the revamped harness that were not previously available. Again, a
 - [ ] Chain of Thought
 - [ ] Self-consistency ; Least-to-Most prompting, etc.
 - [ ] Summarization Tasks
-- [ ] Anthropic Model-Written Evals 
+- [ ] Anthropic Model-Written Evals

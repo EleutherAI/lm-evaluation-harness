@@ -7,12 +7,37 @@
 
 This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
 
-Features:
+**Features:**
 
 - 200+ tasks implemented. See the [task-table](./docs/task_table.md) for a complete list.
 - Support for the Hugging Face `transformers` library, GPT-NeoX, Megatron-DeepSpeed, and the OpenAI API, with flexible tokenization-agnostic interface.
 - Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
 - Task versioning to ensure reproducibility.
+
+**Evaluation Overview**
+
+`Task` and `Prompt` classes contain information that, when combined, produces the input to the language model. The language model is then queried to obtain an output. One or more `Filters` can then be applied to perform arbitrary operations on the model's raw output, such as selecting the final answer (for chain of thought) or calling an external API. This final output is then evaluated using a `Metric` to obtain the final result.
+
+```mermaid
+graph LR;
+    classDef empty width:0px,height:0px;
+    T[Task]
+    I[Input]
+    F[Filter]
+    M[Model]
+    O[Output]:::empty
+    P[Prompt]
+    Me[Metric]
+    R[Result]
+
+    T --- I:::empty
+    P --- I
+    I --> M
+    M --> O
+    O --> F
+    Me --> R:::empty
+    F --> R
+ ```
 
 ## Install
 

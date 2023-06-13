@@ -1,5 +1,6 @@
 import re
 
+
 def wikitext_detokenizer(doc):
     string = doc["page"]
     # contractions
