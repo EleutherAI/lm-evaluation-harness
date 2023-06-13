@@ -17,6 +17,9 @@ def _get_dtype(
 
 
 class HFLM(BaseLM):
+
+    _DEFAULT_MAX_LENGTH = 2048
+
     def __init__(
         self,
         device="cuda",
@@ -26,6 +29,7 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
+	max_length=None,
         load_in_8bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = False,
         dtype: Optional[Union[str, torch.dtype]]="auto",
@@ -72,21 +76,13 @@ class HFLM(BaseLM):
 
         self.vocab_size = self.tokenizer.vocab_size
 
-        if isinstance(
-            self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
-        ):
-            assert self.tokenizer.encode("hello\n\nhello") == [
-                31373,
-                198,
-                198,
-                31373,
-            ], self.tokenizer.encode("hello\n\nhello")
-
         # setup for automatic batch size detection
         if batch_size == "auto":
             self.batch_size_per_gpu = batch_size
         else:
             self.batch_size_per_gpu = int(batch_size)
+
+        self._max_length = max_length
 
     @property
     def eot_token_id(self):
@@ -95,11 +91,18 @@ class HFLM(BaseLM):
 
     @property
     def max_length(self):
-        try:
-            return self.gpt2.config.n_ctx
-        except AttributeError:
-            # gptneoconfig doesn't have n_ctx apparently
-            return self.gpt2.config.max_position_embeddings
+        if self._max_length: # if max length manually set, return it
+            return self._max_length
+        seqlen_config_attrs = ("n_positions", "max_position_embeddings", "n_ctx")
+        for attr in seqlen_config_attrs:
+            if hasattr(self.gpt2.config, attr):
+                return getattr(self.gpt2.config, attr)
+        if hasattr(self.tokenizer, "model_max_length"):
+            if self.tokenizer.model_max_length == 1000000000000000019884624838656:
+                return self._DEFAULT_MAX_LENGTH
+            return self.tokenizer.model_max_length
+        return self._DEFAULT_MAX_LENGTH
+
 
     @property
     def max_gen_toks(self):
