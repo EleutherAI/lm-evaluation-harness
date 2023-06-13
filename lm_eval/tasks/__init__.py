@@ -38,7 +38,9 @@ def include_task_folder(task_dir):
                         )
 
                         if "task" in config:
-                            task_name = "{}".format(config["task"])
+                            task_name = "{}:{}".format(
+                                get_task_name_from_config(config), config["task"]
+                            )
                             register_task(task_name)(SubClass)
 
                         if "group" in config:
@@ -55,6 +57,8 @@ def include_task_folder(task_dir):
 
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
 include_task_folder(task_dir)
+
+ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
 
 
 def get_task(task_name, config):
