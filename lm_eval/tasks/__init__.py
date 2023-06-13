@@ -58,7 +58,7 @@ def include_task_folder(task_dir):
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
 include_task_folder(task_dir)
 
-ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
+# ALL_TASKS = set(sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys())))
 
 
 def get_task(task_name, config):

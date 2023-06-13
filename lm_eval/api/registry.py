@@ -31,7 +31,7 @@ def get_model(model_name):
 
 TASK_REGISTRY = {}
 GROUP_REGISTRY = {}
-ALL_TASKS = []
+ALL_TASKS = set()
 func2task_index = {}
 
 
@@ -42,6 +42,7 @@ def register_task(name):
         ), f"task named '{name}' conflicts with existing registered task!"
 
         TASK_REGISTRY[name] = fn
+        ALL_TASKS.add(name)
         func2task_index[fn.__name__] = name
         return fn
 
@@ -55,6 +56,7 @@ def register_group(name):
             GROUP_REGISTRY[name].append(func_name)
         else:
             GROUP_REGISTRY[name] = [func_name]
+            ALL_TASKS.add(name)
         return fn
 
     return decorate
