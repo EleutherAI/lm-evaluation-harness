@@ -868,6 +868,10 @@ class CachingLM:
         lm.set_cache_hook(self.get_cache_hook())
 
     def __getattr__(self, attr):
+        lm_attr = getattr(self.lm, attr)
+        if not callable(lm_attr):
+            return lm_attr
+
         def fn(requests):
             res = []
             remaining_reqs = []
