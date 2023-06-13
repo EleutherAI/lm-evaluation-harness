@@ -4,12 +4,10 @@ import fnmatch
 import argparse
 
 from lm_eval import evaluator, utils
-from lm_eval.api.registry import GROUP_REGISTRY, TASK_REGISTRY
+from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
-
 
 class MultiChoice:
     def __init__(self, choices):
@@ -34,7 +32,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True)
     parser.add_argument("--model_args", default="")
-    parser.add_argument("--tasks", default=None, choices=MultiChoice(ALL_TASKS))
+    parser.add_argument("--tasks", default=None, choices=MultiChoice(sorted(ALL_TASKS)))
     parser.add_argument("--config", default=None)
     parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--num_fewshot", type=int, default=0)
