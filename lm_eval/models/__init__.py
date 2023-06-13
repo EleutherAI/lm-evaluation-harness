@@ -1,5 +1,5 @@
-from . import gpt2
-from . import gpt3
+from . import hf_causal
+from . import openai_completions
 from . import textsynth
 from . import dummy
 
