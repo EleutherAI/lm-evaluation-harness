@@ -1,10 +1,25 @@
 import torch
 import transformers
-from typing import Optional
+from typing import Optional, Union
 from lm_eval.base import BaseLM
 
 
+def _get_dtype(
+    dtype: Union[str, torch.dtype]
+) -> torch.dtype:
+    """Converts `dtype` from `str` to torch.dtype when possible. Does not use an instantiated HF AutoConfig"""
+    if isinstance(dtype, str) and dtype != "auto":
+        # Convert `str` args torch dtype: `float16` -> `torch.float16`
+        _torch_dtype = getattr(torch, dtype)
+    else:
+        _torch_dtype = dtype
+    return _torch_dtype
+
+
 class HFLM(BaseLM):
+
+    _DEFAULT_MAX_LENGTH = 2048
+
     def __init__(
         self,
         device="cuda",
@@ -14,8 +29,10 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
+	max_length=None,
         load_in_8bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = False,
+        dtype: Optional[Union[str, torch.dtype]]="auto",
     ):
         super().__init__()
 
@@ -46,10 +63,14 @@ class HFLM(BaseLM):
             load_in_8bit=load_in_8bit,
             low_cpu_mem_usage=low_cpu_mem_usage,
             revision=revision,
+            torch_dtype=_get_dtype(dtype),
             trust_remote_code=trust_remote_code,
-        ).to(self.device)
-        self.gpt2.eval()
-
+        ).eval()
+        if not load_in_8bit:
+            try:
+                self.gpt2.to(self.device)
+            except:
+                print("Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore.")
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision,
@@ -58,21 +79,13 @@ class HFLM(BaseLM):
 
         self.vocab_size = self.tokenizer.vocab_size
 
-        if isinstance(
-            self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
-        ):
-            assert self.tokenizer.encode("hello\n\nhello") == [
-                31373,
-                198,
-                198,
-                31373,
-            ], self.tokenizer.encode("hello\n\nhello")
-
         # setup for automatic batch size detection
         if batch_size == "auto":
             self.batch_size_per_gpu = batch_size
         else:
             self.batch_size_per_gpu = int(batch_size)
+
+        self._max_length = max_length
 
     @property
     def eot_token_id(self):
@@ -81,11 +94,18 @@ class HFLM(BaseLM):
 
     @property
     def max_length(self):
-        try:
-            return self.gpt2.config.n_ctx
-        except AttributeError:
-            # gptneoconfig doesn't have n_ctx apparently
-            return self.gpt2.config.max_position_embeddings
+        if self._max_length: # if max length manually set, return it
+            return self._max_length
+        seqlen_config_attrs = ("n_positions", "max_position_embeddings", "n_ctx")
+        for attr in seqlen_config_attrs:
+            if hasattr(self.gpt2.config, attr):
+                return getattr(self.gpt2.config, attr)
+        if hasattr(self.tokenizer, "model_max_length"):
+            if self.tokenizer.model_max_length == 1000000000000000019884624838656:
+                return self._DEFAULT_MAX_LENGTH
+            return self.tokenizer.model_max_length
+        return self._DEFAULT_MAX_LENGTH
+
 
     @property
     def max_gen_toks(self):
