@@ -119,6 +119,12 @@ class LM(abc.ABC):
 
 
 class BaseLM(LM):
+    def __init__(self):
+        super().__init__()
+        self.batch_schedule = 1
+        self.batch_sizes = {}
+        self.max_batch_size = 512
+
     @property
     @abstractmethod
     def eot_token_id(self):
@@ -167,6 +173,26 @@ class BaseLM(LM):
         """
         pass
 
+    def _detect_batch_size(self, requests=None, pos=0):
+        if requests:
+            _, context_enc, continuation_enc = requests[pos]
+            max_length = len((context_enc + continuation_enc)[-(self.max_length + 1) :][:-1])
+        else:
+            max_length = self.max_length
+
+        # if OOM, then halves batch_size and tries again
+        @find_executable_batch_size(starting_batch_size=self.max_batch_size)
+        def forward_batch(batch_size):
+            test_batch = torch.ones((batch_size, max_length), device=self.device).long()
+            for _ in range(5):
+                _ = F.log_softmax(self._model_call(test_batch), dim=-1).cpu()
+            return batch_size
+
+        batch_size = forward_batch()
+        utils.clear_torch_cache()
+
+        return batch_size
+
     # subclass must implement properties vocab_size, eot_token_id, max_gen_toks, batch_size, device, max_length.
     # TODO: enforce this somehow
 
@@ -202,19 +228,7 @@ class BaseLM(LM):
         if self.batch_size == "auto":
             # using rolling window with maximum context
             print("Passed argument batch_size = auto. Detecting largest batch size")
-
-            @find_executable_batch_size(
-                starting_batch_size=512
-            )  # if OOM, then halves batch_size and tries again
-            def forward_batch(batch_size):
-                test_batch = torch.ones(
-                    (batch_size, self.max_length), device=self.device
-                ).long()
-                for _ in range(5):
-                    _ = F.log_softmax(self._model_call(test_batch), dim=-1).cpu()
-                return batch_size
-
-            batch_size = forward_batch()
+            batch_size = self._detect_batch_size()
             print(f"Determined Largest batch size: {batch_size}")
             adaptive_batch_size = batch_size
 
@@ -267,34 +281,24 @@ class BaseLM(LM):
 
         re_ord = utils.Reorderer(requests, _collate)
 
+        reordered_requests = re_ord.get_reordered()
+        n_reordered_requests = len(reordered_requests)
+
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
-        if len(re_ord.get_reordered()) > 0:
-            _, context_enc, continuation_enc = re_ord.get_reordered()[0]
-            max_context = len((context_enc + continuation_enc)[-(self.max_length + 1) :][:-1])
-            if (self.batch_size == 'auto'):
-
-                if override_bs is None:
-                    print('Passed argument batch_size = auto. Detecting largest batch size')
-                    @find_executable_batch_size(starting_batch_size=512) # if OOM, then halves batch_size and tries again
-                    def forward_batch(batch_size):
-                        test_batch = torch.ones((batch_size, max_context), device=self.device).long()
-                        for _ in range(5):
-                            out = F.log_softmax(self._model_call(test_batch), dim = -1).cpu()
-                        return batch_size
-
-                    batch_size = forward_batch()
-                    print(f"Determined largest batch size: {batch_size}")
-                    adaptive_batch_size = batch_size
-
-                else:
-                    adaptive_batch_size = override_bs
-        else:
-            adaptive_batch_size = 0 if override_bs is None else override_bs
+        def _batch_scheduler(pos):
+            sched = pos // int(n_reordered_requests / self.batch_schedule)
+            if sched in self.batch_sizes:
+                return self.batch_sizes[sched]
+            print(f"Passed argument batch_size = auto:{self.batch_schedule}. Detecting largest batch size")
+            self.batch_sizes[sched] = self._detect_batch_size(reordered_requests, pos)
+            print(f"Determined largest batch size: {self.batch_sizes[sched]}")
+            return self.batch_sizes[sched]
 
         for chunk in utils.chunks(
-            tqdm(re_ord.get_reordered(), disable=disable_tqdm),
-            self.batch_size if self.batch_size != "auto" else adaptive_batch_size,
+            tqdm(reordered_requests, disable=disable_tqdm),
+            n=self.batch_size if self.batch_size != "auto" else override_bs if override_bs is not None else 0,
+            fn=_batch_scheduler if self.batch_size == "auto" and n_reordered_requests > 0 else None,
         ):
             inps = []
             cont_toks_list = []
