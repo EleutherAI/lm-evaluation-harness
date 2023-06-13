@@ -109,7 +109,7 @@ def simple_evaluate(
         "model_args": model_args,
         "num_fewshot": num_fewshot,
         "batch_size": batch_size,
-        "batch_sizes": list(lm.batch_sizes.values()),
+        "batch_sizes": list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else [],
         "device": device,
         "no_cache": no_cache,
         "limit": limit,
