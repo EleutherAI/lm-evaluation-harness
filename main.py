@@ -10,6 +10,7 @@ from lm_eval.logger import eval_logger
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
+print("ALL tasks: ", ALL_TASKS)
 
 class MultiChoice:
     def __init__(self, choices):
@@ -59,19 +60,19 @@ def pattern_match(patterns, source_list):
             task_names.add(matching)
     return sorted(list(task_names))
 
-def setup_example_logger(output_path, separator):
+def setup_example_logger(output_path):
     """Sets up a logger that will save each example and prediction."""
     example_logger = logging.getLogger("examples")
-    filename = f"./outputs/examples{separator}{output_path}.jsonl"
-    formatter = logging.Formatter("%(message)s")
-    handler = logging.FileHandler(filename)
-    handler.setFormatter(formatter)
-    example_logger.addHandler(handler)
+    if output_path:
+        filename = f"./{os.path.dirname(output_path)}/examples.jsonl"
+        formatter = logging.Formatter("%(message)s")
+        handler = logging.FileHandler(filename)
+        handler.setFormatter(formatter)
+        example_logger.addHandler(handler)
     example_logger.setLevel(logging.INFO)
 
 
 def main():
-    os.makedirs("./outputs", exist_ok=True)
     args = parse_args()    
 
     if args.limit:
@@ -80,9 +81,10 @@ def main():
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
 
-    path_separator = "."
-    output_path = args.output_path if args.output_path is not None else ""
-    setup_example_logger(output_path, path_separator)
+    if args.output_path:
+        os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
+
+    setup_example_logger(args.output_path)
 
     if args.tasks is not None:
         if os.path.isdir(args.tasks):
