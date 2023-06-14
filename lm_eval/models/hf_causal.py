@@ -372,6 +372,8 @@ class HFLM(LM):
                         raise ValueError(
                             f"Expected `gen_kwargs['until']` to be of type Union[str,list] but got {until}"
                         )
+                else:
+                    until = None
             else:
                 raise ValueError(
                     f"Expected `gen_kwargs` to be of type `dict` but got {gen_kwargs}"
