@@ -15,6 +15,9 @@ from lm_eval.api.registry import (
 )
 
 
+ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
+
+
 def get_task_name_from_config(task_config):
     return "{dataset_path}_{dataset_name}".format(**task_config)
 
