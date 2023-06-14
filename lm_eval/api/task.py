@@ -419,7 +419,7 @@ class Task(abc.ABC):
         if num_fewshot == 0:
             labeled_examples = ""
         else:
-            labeled_examples = self.sampler.get_context(doc, self._config.num_fewshot)
+            labeled_examples = self.sampler.get_context(doc, num_fewshot)
 
             # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
             # if self.has_training_docs():
