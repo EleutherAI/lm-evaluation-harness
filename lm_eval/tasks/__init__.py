@@ -39,9 +39,10 @@ def include_task_folder(task_dir):
                         )
 
                         if "task" in config:
-                            task_name = "{}:{}".format(
-                                get_task_name_from_config(config), config["task"]
-                            )
+                            # task_name = "{}:{}".format(
+                            #     get_task_name_from_config(config), config["task"]
+                            # )
+                            task_name = "{}".format(config["task"])
                             register_task(task_name)(SubClass)
 
                         if "group" in config:
