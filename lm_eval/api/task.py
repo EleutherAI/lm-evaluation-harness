@@ -460,7 +460,7 @@ class Task(abc.ABC):
             return self._instances
 
     def dump_config(self):
-        """Returns a dictionary representing the task's config. 
+        """Returns a dictionary representing the task's config.
 
         :returns: str
             The fewshot context.

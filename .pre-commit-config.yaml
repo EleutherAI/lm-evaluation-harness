@@ -12,7 +12,7 @@ repos:
       - id: check-merge-conflict
       - id: check-symlinks
       - id: check-yaml
-        args: ['--unsafe']
+        args: ["--unsafe"]
       - id: destroyed-symlinks
       - id: detect-private-key
       - id: end-of-file-fixer
@@ -33,7 +33,7 @@ repos:
     rev: 22.3.0
     hooks:
       - id: black
-        language_version: python3.8
+        language_version: python3.9
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0
     hooks:

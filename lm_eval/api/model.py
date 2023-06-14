@@ -1,7 +1,5 @@
 import abc
 
-from typing import Union
-
 from lm_eval import utils
 
 
