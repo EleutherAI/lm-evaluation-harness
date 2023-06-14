@@ -46,15 +46,12 @@ class MedQA_USMLE(MultipleChoiceTask):
 
     def _process_doc(self, doc):
         return {
-            "query": doc["question"],
-            "choices": [
-                doc["options"]["A"],
-                doc["options"]["B"],
-                doc["options"]["C"],
-                doc["options"]["D"]
-                ],
+            "query": doc["question"] + "\n" + \
+                    "".join([f" ({k}) {v}" if i else f"({k}) {v}" \
+                    for i, (k, v) in enumerate(doc["options"].items())]),
+            "choices": list(doc["options"].values()),
             "gold": ord(doc["answer_idx"])-ord("A"),
         }
 
     def doc_to_text(self, doc):
-        return doc["query"]
+        return f"Question: {doc['query']}\nAnswer:"
