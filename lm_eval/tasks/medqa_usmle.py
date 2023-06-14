@@ -27,7 +27,7 @@ class MedQA_USMLE(MultipleChoiceTask):
     DATASET_NAME = None
 
     def has_training_docs(self):
-        return False
+        return True
 
     def has_validation_docs(self):
         return False
@@ -36,14 +36,13 @@ class MedQA_USMLE(MultipleChoiceTask):
         return True
 
     def training_docs(self):
-        return []
+        return map(self._process_doc, self.dataset["train"])
 
     def validation_docs(self):
         return []
 
     def test_docs(self):
-        return list(map(self._process_doc, self.dataset["train"])) + \
-                list(map(self._process_doc, self.dataset["test"]))
+        return map(self._process_doc, self.dataset["test"])
 
     def _process_doc(self, doc):
         return {
