@@ -28,7 +28,7 @@ _CITATION = """
 
 
 class TriviaQA(Task):
-    VERSION = 1
+    VERSION = 2
     DATASET_PATH = "trivia_qa"
     DATASET_NAME = "rc.nocontext"
 
