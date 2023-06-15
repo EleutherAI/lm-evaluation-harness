@@ -30,11 +30,12 @@ Features:
 
 ## Install
 
-To install `lm-eval` from the github repository main branch, run:
+To install the `lm-eval` refactor branch from the github repository, run:
 
 ```bash
 git clone https://github.com/EleutherAI/lm-evaluation-harness
 cd lm-evaluation-harness
+git checkout big-refactor
 pip install -e .
 ```
 
@@ -52,8 +53,6 @@ pip install -e ".[auto-gptq]"
 
 ## Basic Usage
 
-> **Note**: When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility. This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](#task-versioning) section for more info.
-
 ### Hugging Face `transformers`
 
 To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command:
@@ -64,7 +63,8 @@ python main.py \
     --model hf-causal \
     --model_args pretrained=EleutherAI/gpt-j-6B \
     --tasks hellaswag \
-    --device cuda:0
+    --device cuda:0 \
+    --batch_size 8
 ```
 
 Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partially trained checkpoints, or to specify the datatype for running a model:
@@ -74,10 +74,24 @@ python main.py \
     --model hf-causal \
     --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
     --tasks lambada_openai,hellaswag \
-    --device cuda:0
+    --device cuda:0 \
+    --batch_size 8
 ```
 
-To evaluate models that are loaded via `AutoSeq2SeqLM` in Huggingface, you instead use `hf-seq2seq`. *To evaluate (causal) models across multiple GPUs, use `--model hf-causal-experimental`*
+### Multi-GPU Evaluation with Hugging Face `transformers`
+
+To parallelize evaluation across multiple GPUs, we allow for launching evaluation via the `accelerate` library as follows:
+
+```
+accelerate launch main.py \
+    --model hf-causal \
+    --tasks lambada_openai,arc_easy \
+    --batch_size 16 \
+```
+
+### Evaluation of Seq2Seq Models
+
+To evaluate models that are loaded via `AutoSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface, you instead use `--model hf-seq2seq`. Support for this model type is currently pending.
 
 > **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
 
@@ -88,7 +102,7 @@ Our library also supports language models served via the OpenAI API:
 ```bash
 export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
 python main.py \
-    --model gpt3 \
+    --model openai \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag
 ```
@@ -99,7 +113,7 @@ To verify the data integrity of the tasks you're performing in addition to runni
 
 ```bash
 python main.py \
-    --model gpt3 \
+    --model openai \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag \
     --check_integrity
@@ -126,7 +140,7 @@ This will write out one text file for each task.
 For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
 ```bash
 python main.py \
-    --model hf-causal-experimental \
+    --model hf-causal \
     --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
     --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
     --device cuda:0
@@ -136,7 +150,7 @@ GPTQ quantized models can be loaded by specifying their file names in `,quantize
 
 ```bash
 python main.py \
-    --model hf-causal-experimental \
+    --model hf-causal \
     --model_args pretrained=model-name-or-path,quantized=model.safetensors,gptq_use_triton=True \
     --tasks hellaswag
 ```
@@ -147,29 +161,7 @@ We currently only support one prompt per task, which we strive to make the "stan
 
 ## Implementing new tasks
 
-To implement a new task in the eval harness, see [this guide](./docs/task_guide.md).
-
-## Task Versioning
-
-To help improve reproducibility, all tasks have a `VERSION` field. When run from the command line, this is reported in a column in the table, or in the "version" field in the evaluator return dict. The purpose of the version is so that if the task definition changes (i.e to fix a bug), then we can know exactly which metrics were computed using the old buggy implementation to avoid unfair comparisons. To enforce this, there are unit tests that make sure the behavior of all tests remains the same as when they were first implemented. Task versions start at 0, and each time a breaking change is made, the version is incremented by one.
-
-When reporting eval harness results, please also report the version of each task. This can be done either with a separate column in the table, or by reporting the task name with the version appended as such: taskname-v0.
-
-## Test Set Decontamination
-
-To address concerns about train / test contamination, we provide utilities for comparing results on a benchmark using only the data points not found in the model training set. Unfortunately, outside of models trained on the Pile and C4, its very rare that people who train models disclose the contents of the training data. However this utility can be useful to evaluate models you have trained on private data, provided you are willing to pre-compute the necessary indices. We provide computed indices for 13-gram exact match deduplication against the Pile, and plan to add additional precomputed dataset indices in the future (including C4 and min-hash LSH deduplication).
-
-For details on text decontamination, see the [decontamination guide](./docs/decontamination.md).
-
-Note that the directory provided to the `--decontamination_ngrams_path` argument should contain the ngram files and info.json. See the above guide for ngram generation for the pile, this could be adapted for other training sets.
-
-```bash
-python main.py \
-    --model gpt2 \
-    --tasks sciq \
-    --decontamination_ngrams_path path/containing/training/set/ngrams \
-    --device cuda:0
-```
+To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
 
 ## Cite as
 
