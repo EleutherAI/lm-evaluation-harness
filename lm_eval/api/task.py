@@ -435,7 +435,7 @@ class Task(abc.ABC):
         if num_fewshot == 0:
             labeled_examples = ""
         else:
-            labeled_examples = self.sampler.get_context(doc, self._config.num_fewshot)
+            labeled_examples = self.sampler.get_context(doc, num_fewshot)
 
             # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
             # if self.has_training_docs():
@@ -566,15 +566,24 @@ class ConfigurableTask(Task):
 
                 if "aggregation" in metric_config:
                     agg_name = metric_config["aggregation"]
-                    self._aggregation_list[metric_name] = AGGREGATION_REGISTRY[agg_name]
+                    if type(agg_name) == str:
+                        self._aggregation_list[metric_name] = AGGREGATION_REGISTRY[
+                            agg_name
+                        ]
+                    elif callable(agg_name):
+                        self._aggregation_list[metric_name] = metric_config[
+                            "aggregation"
+                        ]
                 else:
+
+                    INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
+                    metric_agg = DEFAULT_AGGREGATION_REGISTRY[metric_name]
                     eval_logger.warning(
-                        f"metric {metric_name} is defined, but aggregation is not"
-                        f"using default aggregation for {metric_name}"
+                        f"metric {metric_name} is defined, but aggregation is not. "
+                        f"using default "
+                        f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
                     )
-                    self._aggregation_list[metric_name] = DEFAULT_AGGREGATION_REGISTRY[
-                        metric_name
-                    ]
+                    self._aggregation_list[metric_name] = metric_agg
 
                 if "higher_is_better" in metric_config:
                     self._higher_is_better[metric_name] = metric_config[
@@ -582,8 +591,9 @@ class ConfigurableTask(Task):
                     ]
                 else:
                     eval_logger.warning(
-                        f"metric {metric_name} is defined, but higher_is_better is not"
-                        f"using default higher_is_better for {metric_name}"
+                        f"metric {metric_name} is defined, but higher_is_better is not. "
+                        f"using default "
+                        f"higher_is_better={HIGHER_IS_BETTER_REGISTRY[metric_name]}"
                     )
                     self._higher_is_better[metric_name] = HIGHER_IS_BETTER_REGISTRY[
                         metric_name
