@@ -16,7 +16,7 @@ def parse_args():
     parser.add_argument("--tasks", default=None, choices=utils.MultiChoice(sorted(ALL_TASKS)))
     parser.add_argument("--config", default=None)
     parser.add_argument("--num_fewshot", type=int, default=0)
-    parser.add_argument("--batch_size", type=str, default=None)
+    parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--max_batch_size", type=int, default=None,
                         help="Maximal batch size to try with --batch_size auto")
     parser.add_argument("--device", type=str, default=None)

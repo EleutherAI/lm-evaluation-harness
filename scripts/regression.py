@@ -5,7 +5,8 @@ import subprocess
 import time
 from pathlib import Path
 
-from lm_eval import tasks, utils
+from lm_eval import evaluator, utils
+from lm_eval.api.registry import ALL_TASKS
 
 
 seq2seq_models = ["google/flan-t5-small"]
@@ -31,7 +32,7 @@ def parse_args():
     parser.add_argument("--num_fewshot", type=int, default=0)
     parser.add_argument("--limit", type=float, default=None)
     # TODO: implement hf-auto to pick between causal and seq2seq models so we don't need this
-    parser.add_argument("--model", default="hf-causal-experimental")
+    parser.add_argument("--model", default="hf-causal")
     # Use whatever is faster here
     parser.add_argument("--model_args", default="use_accelerate=True,load_in_8bit=True")
     parser.add_argument("--batch_size", default="auto")
@@ -50,14 +51,14 @@ def eval_models(args, branch=None):
     results = {}
 
     for model in args.models:
-        model_type = "hf-causal-experimental" if model in causal_models \
+        model_type = "hf-causal" if model in causal_models \
             else "hf-seq2seq" if model in seq2seq_models else args.model
         model_args = f"pretrained={model},{args.model_args}"
         # TODO: split_and_pad_windows in AutoSeq2SeqLM doesn"t exist, #527
-        tasks = args.tasks if model in causal_models or model_type == "hf-causal-experimental" \
+        tasks = args.tasks if model in causal_models or model_type == "hf-causal" \
             else list(filter(lambda task: task not in perplexity_tasks, args.tasks))
         # TODO: OOM with auto for seq2seq models, also can OOM with llama
-        batch_size = args.batch_size if model in causal_models or model_type == "hf-causal-experimental" \
+        batch_size = args.batch_size if model in causal_models or model_type == "hf-causal" \
             else 64 if args.batch_size == "auto" else args.batch_size
         output_path = f"data/regression/{int(start_time)}-{branch}-{Path(model).name}.json"
 
@@ -83,12 +84,12 @@ def extract_value(args, results, model, task, err=False):
     if task not in results:
         return 0
     results = results[task]
-    if args.acc_norm and "acc_norm" in results:
-        return results["acc_norm"] if not err else results["acc_norm_stderr"]
-    if "acc" in results:
-        return results["acc"] if not err else results["acc_stderr"]
-    if (args.perplexity or "word_perplexity") in results:
-        return results[args.perplexity or "word_perplexity"] if not err else 0
+    if args.acc_norm and "acc_norm,none" in results:
+        return results["acc_norm,none"] if not err else results["acc_norm_stderr,none"]
+    if "acc,none" in results:
+        return results["acc,none"] if not err else results["acc_stderr,none"]
+    if (args.perplexity or "word_perplexity") + ",none" in results:
+        return results[(args.perplexity or "word_perplexity") + ",none"] if not err else 0
     return 0
 
 
@@ -110,8 +111,8 @@ def main():
 
     args.branches = args.branches.split(",") if type(args.branches) == str else args.branches
     args.models = args.models.split(",") if type(args.models) == str else args.models
-    args.tasks = tasks.ALL_TASKS if args.tasks == "all_tasks" \
-        else utils.pattern_match(args.tasks.split(",") if type(args.tasks) == str else args.tasks, tasks.ALL_TASKS)
+    args.tasks = ALL_TASKS if args.tasks == "all_tasks" \
+        else utils.pattern_match(args.tasks.split(","), ALL_TASKS) if type(args.tasks) == str else args.tasks
 
     global initial_branch
     initial_branch = subprocess.check_output("git branch --show-current", shell=True).decode("ascii").strip()

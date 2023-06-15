@@ -3,7 +3,6 @@ Usage:
    python make_table_tasks.py --output <markdown_filename>
 """
 import logging
-from lm_eval import tasks
 from pytablewriter import MarkdownTableWriter, LatexTableWriter
 import os
 import json
@@ -54,8 +53,6 @@ def make_table(result_dict):
 
 
 if __name__ == "__main__":
-    task_names = tasks.ALL_TASKS
-
     # loop dirs and subdirs in results dir
     # for each dir, load json files
     for dirpath, dirnames, filenames in os.walk("../results"):
