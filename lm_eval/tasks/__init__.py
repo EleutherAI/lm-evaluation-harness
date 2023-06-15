@@ -13,6 +13,7 @@ from lm_eval.api.registry import (
     register_group,
     TASK_REGISTRY,
     GROUP_REGISTRY,
+    ALL_TASKS,
 )
 
 
@@ -39,6 +40,9 @@ def include_task_folder(task_dir):
                         )
 
                         if "task" in config:
+                            # task_name = "{}:{}".format(
+                            #     get_task_name_from_config(config), config["task"]
+                            # )
                             task_name = "{}".format(config["task"])
                             register_task(task_name)(SubClass)
 
