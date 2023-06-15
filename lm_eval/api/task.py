@@ -108,7 +108,21 @@ class TaskConfig(dict):
         return getattr(self, item)
 
     def to_dict(self):
-        return asdict(self)
+        """dumps the current config as a dictionary object, as a printable format.
+        null fields will not be printed.
+        Used for dumping results alongside full task configuration
+
+        :return: dict
+            A printable dictionary version of the TaskConfig object.
+
+        # TODO: should any default value in the TaskConfig not be printed?
+        """
+        cfg_dict = asdict(self)
+        # remove values that are `None`
+        for k, v in list(cfg_dict.items()):
+            if v is None:
+                cfg_dict.pop(k)
+        return cfg_dict
 
 
 class Task(abc.ABC):
@@ -663,6 +677,7 @@ class ConfigurableTask(Task):
         else:
             if self._config.num_fewshot > 0:
                 eval_logger.warning(
+                    f"Task '{self._config.task}': "
                     "num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
@@ -852,7 +867,8 @@ class ConfigurableTask(Task):
 
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
-                **({"f1": (pred, gold)} if "f1" in use_metric else {}),
+                **({"f1": (gold, pred)} if "f1" in use_metric else {}),
+                **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
             }
 
