@@ -32,10 +32,10 @@ def main():
         task_names = args.tasks.split(",")
     task_dict = tasks.get_task_dict(task_names)
 
-    description_dict = {}
-    if args.description_dict_path:
-        with open(args.description_dict_path, "r") as f:
-            description_dict = json.load(f)
+    # description_dict = {}
+    # if args.description_dict_path:
+    #     with open(args.description_dict_path, "r") as f:
+    #         description_dict = json.load(f)
 
     os.makedirs(args.output_base_path, exist_ok=True)
     for task_name, task in task_dict.items():
@@ -55,11 +55,11 @@ def main():
 
         docs = join_iters(iters)
 
-        description = (
-            description_dict[task_name]
-            if description_dict and task_name in description_dict
-            else ""
-        )
+        # description = (
+        #     description_dict[task_name]
+        #     if description_dict and task_name in description_dict
+        #     else ""
+        # )
 
         with open(os.path.join(args.output_base_path, task_name), "w") as f:
             for i, doc in (

@@ -98,7 +98,9 @@ class TaskConfig(dict):
                 self.gold_alias = self.template_aliases + self.doc_to_target
 
         if self.generation_kwargs or self.output_type == "greedy_until":
-            assert self.output_type == "greedy_until", "passed `generation_kwargs`, but not using a generation request type!"
+            assert (
+                self.output_type == "greedy_until"
+            ), "passed `generation_kwargs`, but not using a generation request type!"
             # ensure that we greedily generate in absence of explicit arguments otherwise
             self.generation_kwargs = {"do_sample": False, "temperature": 0.0}
 
@@ -106,7 +108,21 @@ class TaskConfig(dict):
         return getattr(self, item)
 
     def to_dict(self):
-        return asdict(self)
+        """dumps the current config as a dictionary object, as a printable format.
+        null fields will not be printed.
+        Used for dumping results alongside full task configuration
+
+        :return: dict
+            A printable dictionary version of the TaskConfig object.
+
+        # TODO: should any default value in the TaskConfig not be printed?
+        """
+        cfg_dict = asdict(self)
+        # remove values that are `None`
+        for k, v in list(cfg_dict.items()):
+            if v is None:
+                cfg_dict.pop(k)
+        return cfg_dict
 
 
 class Task(abc.ABC):
@@ -419,7 +435,7 @@ class Task(abc.ABC):
         if num_fewshot == 0:
             labeled_examples = ""
         else:
-            labeled_examples = self.sampler.get_context(doc, self._config.num_fewshot)
+            labeled_examples = self.sampler.get_context(doc, num_fewshot)
 
             # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
             # if self.has_training_docs():
@@ -460,7 +476,7 @@ class Task(abc.ABC):
             return self._instances
 
     def dump_config(self):
-        """Returns a dictionary representing the task's config. 
+        """Returns a dictionary representing the task's config.
 
         :returns: str
             The fewshot context.
@@ -532,7 +548,7 @@ class ConfigurableTask(Task):
                 }
                 try:
                     self._metric_fn_list[metric_name] = METRIC_REGISTRY[metric_name]
-                except:
+                except Exception:
                     eval_logger.warning(
                         f"Metric {metric_name} not found, "
                         "Searching from https://huggingface.co/evaluate-metric"
@@ -550,15 +566,24 @@ class ConfigurableTask(Task):
 
                 if "aggregation" in metric_config:
                     agg_name = metric_config["aggregation"]
-                    self._aggregation_list[metric_name] = AGGREGATION_REGISTRY[agg_name]
+                    if type(agg_name) == str:
+                        self._aggregation_list[metric_name] = AGGREGATION_REGISTRY[
+                            agg_name
+                        ]
+                    elif callable(agg_name):
+                        self._aggregation_list[metric_name] = metric_config[
+                            "aggregation"
+                        ]
                 else:
+
+                    INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
+                    metric_agg = DEFAULT_AGGREGATION_REGISTRY[metric_name]
                     eval_logger.warning(
-                        f"metric {metric_name} is defined, but aggregation is not"
-                        f"using default aggregation for {metric_name}"
+                        f"metric {metric_name} is defined, but aggregation is not. "
+                        f"using default "
+                        f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
                     )
-                    self._aggregation_list[metric_name] = DEFAULT_AGGREGATION_REGISTRY[
-                        metric_name
-                    ]
+                    self._aggregation_list[metric_name] = metric_agg
 
                 if "higher_is_better" in metric_config:
                     self._higher_is_better[metric_name] = metric_config[
@@ -566,8 +591,9 @@ class ConfigurableTask(Task):
                     ]
                 else:
                     eval_logger.warning(
-                        f"metric {metric_name} is defined, but higher_is_better is not"
-                        f"using default higher_is_better for {metric_name}"
+                        f"metric {metric_name} is defined, but higher_is_better is not. "
+                        f"using default "
+                        f"higher_is_better={HIGHER_IS_BETTER_REGISTRY[metric_name]}"
                     )
                     self._higher_is_better[metric_name] = HIGHER_IS_BETTER_REGISTRY[
                         metric_name
@@ -592,9 +618,7 @@ class ConfigurableTask(Task):
                     filter_pipeline = build_filter_ensemble(filter_name, components)
                 self._filters.append(filter_pipeline)
         else:
-            self._filters = [
-                build_filter_ensemble("none", [["take_first", None]])
-            ]
+            self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self._config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self._config.use_prompt}")
@@ -653,6 +677,7 @@ class ConfigurableTask(Task):
         else:
             if self._config.num_fewshot > 0:
                 eval_logger.warning(
+                    f"Task '{self._config.task}': "
                     "num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
@@ -842,7 +867,8 @@ class ConfigurableTask(Task):
 
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
-                **({"f1": (pred, gold)} if "f1" in use_metric else {}),
+                **({"f1": (gold, pred)} if "f1" in use_metric else {}),
+                **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
             }
 
