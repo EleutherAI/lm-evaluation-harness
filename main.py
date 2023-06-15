@@ -9,6 +9,7 @@ from lm_eval.logger import eval_logger
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+
 class MultiChoice:
     def __init__(self, choices):
         self.choices = choices

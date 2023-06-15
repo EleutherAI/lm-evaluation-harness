@@ -1,10 +1,10 @@
 # v1.0 Tasks
 This list keeps track of which tasks' implementations have been ported to YAML / v2.0 of the Eval Harness.
 
-Boxes should be checked iff tasks are implemented in v2.0 and tested for regression. Tasks should be struck through if checked *against original introducing paper* implementation or popularizing implementation.
+Boxes should be checked iff tasks are implemented in the refactor and tested for regression. Tasks should be struck through if checked *against original introducing paper* implementation or popularizing implementation.
 
 - [ ] Glue
-- [ ] SuperGlue
+- [x] SuperGlue
 - [ ] CoQA
 - [ ] DROP
 - [x] ~~Lambada~~
@@ -31,7 +31,7 @@ Boxes should be checked iff tasks are implemented in v2.0 and tested for regress
 - [ ] WebQs
 - [ ] WSC273
 - [ ] Winogrande
-- [ ] ANLI
+- [x] ANLI
 - [ ] Hendrycks Ethics
 - [ ] TruthfulQA
 - [ ] MuTual

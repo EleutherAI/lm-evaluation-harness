@@ -57,7 +57,7 @@ def oa_completion(**kwargs):
             backoff_time *= 1.5
 
 
-@register_model("openai", "gooseai")
+@register_model("openai", "openai-completions", "gooseai")
 class GPT3LM(LM):
     REQ_CHUNK_SIZE = 20
 
