@@ -19,7 +19,6 @@ from omegaconf import OmegaConf
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
 
-from lm_eval import tasks
 from lm_eval.logger import eval_logger
 
 

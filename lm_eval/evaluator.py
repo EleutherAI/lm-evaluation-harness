@@ -167,13 +167,22 @@ def evaluate(
     # get lists of each type of request
     for task_name, task in task_dict.items():
         versions[task_name] = task.VERSION
-        configs[task_name] = dict(task.dump_config()) # TODO: don't access a private attribute here ; for non-YAML tasks handle this case
+        # TODO: don't access a private attribute here ; for non-YAML tasks handle this case
+        configs[task_name] = dict(task.dump_config())
 
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
         # task_docs = list(task_doc_func())
         # rnd = random.Random()
         # rnd.seed(42)
         # rnd.shuffle(task_docs)
+        if limit is not None:
+            if task.has_test_docs():
+                task_docs = task.test_docs()
+            elif task.has_validation_docs():
+                task_docs = task.validation_docs()
+            else:
+                raise RuntimeError("Task has neither test_docs nor validation_docs")
+            limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
 
         task.build_all_requests(limit=limit, rank=lm.rank, world_size=lm.world_size)
 
