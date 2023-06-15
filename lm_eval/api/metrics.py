@@ -20,7 +20,7 @@ def median(arr):
     return arr[len(arr) // 2]
 
 
-# Certain metrics must be calculated across all documents in a benchmark. 
+# Certain metrics must be calculated across all documents in a benchmark.
 # We use them as aggregation metrics, paired with no-op passthrough metric fns.
 @register_aggregation("perplexity")
 def perplexity(items):
@@ -156,7 +156,7 @@ def mcc_fn(items):  # This is a passthrough function
     output_type="multiple_choice",
     aggregation="f1",
 )
-def f1_fn(items): # This is a passthrough function
+def f1_fn(items):  # This is a passthrough function
     return items
 
 

@@ -35,7 +35,7 @@ Homepage: https://www.salesforce.com/products/einstein/ai-research/the-wikitext-
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
   * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-  
+
 
 If other tasks on this dataset are already supported:
 * [x] Is the "Main" variant of this task clearly denoted?

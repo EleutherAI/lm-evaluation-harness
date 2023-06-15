@@ -226,19 +226,19 @@ a simple eye test.
 
 ## Checking performance + equivalence
 
-It's now time to check models' performance on your task! In the evaluation harness, we intend to support a wide range of evaluation tasks and setups, but prioritize the inclusion of already-proven benchmarks following the precise evaluation setups in the literature where possible. 
+It's now time to check models' performance on your task! In the evaluation harness, we intend to support a wide range of evaluation tasks and setups, but prioritize the inclusion of already-proven benchmarks following the precise evaluation setups in the literature where possible.
 
 To enable this, we provide a checklist that should be completed when contributing a new task, to enable accurate book-keeping and to ensure that tasks added to the library are well-tested and, where applicable, precedented.
 
 ### Task impl. checklist
 
-The checklist is the following: 
+The checklist is the following:
 
 For adding novel benchmarks/datasets to the library:
 * [ ] Is the task an existing benchmark in the literature?
   * [ ] Have you referenced the original paper that introduced the task?
   * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-  
+
 
 If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
@@ -250,4 +250,3 @@ It is recommended to include a filled-out copy of this checklist in the README.m
 ## Submitting your task
 
 You're all set! Now push your work and make a pull request to the `big-refactor` branch! Thanks for the contribution :). If there are any questions, please leave a message in the `#lm-thunderdome` channel on the EAI discord!
-

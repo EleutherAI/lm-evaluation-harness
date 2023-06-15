@@ -98,7 +98,9 @@ class TaskConfig(dict):
                 self.gold_alias = self.template_aliases + self.doc_to_target
 
         if self.generation_kwargs or self.output_type == "greedy_until":
-            assert self.output_type == "greedy_until", "passed `generation_kwargs`, but not using a generation request type!"
+            assert (
+                self.output_type == "greedy_until"
+            ), "passed `generation_kwargs`, but not using a generation request type!"
             # ensure that we greedily generate in absence of explicit arguments otherwise
             self.generation_kwargs = {"do_sample": False, "temperature": 0.0}
 
@@ -106,10 +108,10 @@ class TaskConfig(dict):
         return getattr(self, item)
 
     def to_dict(self):
-        """dumps the current config as a dictionary object, as a printable format. 
-        null fields will not be printed. 
+        """dumps the current config as a dictionary object, as a printable format.
+        null fields will not be printed.
         Used for dumping results alongside full task configuration
-        
+
         :return: dict
             A printable dictionary version of the TaskConfig object.
 
@@ -474,7 +476,7 @@ class Task(abc.ABC):
             return self._instances
 
     def dump_config(self):
-        """Returns a dictionary representing the task's config. 
+        """Returns a dictionary representing the task's config.
 
         :returns: str
             The fewshot context.
@@ -546,7 +548,7 @@ class ConfigurableTask(Task):
                 }
                 try:
                     self._metric_fn_list[metric_name] = METRIC_REGISTRY[metric_name]
-                except:
+                except Exception:
                     eval_logger.warning(
                         f"Metric {metric_name} not found, "
                         "Searching from https://huggingface.co/evaluate-metric"
@@ -606,9 +608,7 @@ class ConfigurableTask(Task):
                     filter_pipeline = build_filter_ensemble(filter_name, components)
                 self._filters.append(filter_pipeline)
         else:
-            self._filters = [
-                build_filter_ensemble("none", [["take_first", None]])
-            ]
+            self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
         if self._config.use_prompt is not None:
             eval_logger.info(f"loading prompt {self._config.use_prompt}")
