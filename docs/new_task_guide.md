@@ -21,21 +21,16 @@ As a concrete example, we'll walk through reimplementing the `gsm8k` benchmark (
 
 ## Creating a YAML file
 
-- Tasks in eval harness are largely implemented via YAML files.
-
-- mention the tasks worth "forking"/building off of
-
-- Step through the different args all tasks will need
-
-To implement a new standard task, we'll need to write a YAML file which configures our task logic. We start by making a new empty YAML file:
+To implement a new standard task, we'll need to write a YAML file which configures our task logic. We start by making a new empty YAML file. This file can have any name, but we recommend placing it in a subfolder of `lm_eval/tasks` titled by the dataset or task's shorthand name: for example,
 
 ```sh
-touch lm_eval/tasks/new_mcqa.yaml
+touch lm_eval/tasks/<dataset_name>/<my_new_task_name>.yaml
 ```
-or
+Or, copy the template subfolder we provide from `templates/new_yaml_task`:
 ```sh
-touch lm_eval/tasks/new_generative_task.yaml
+cp -r templates/new_yaml_task lm_eval/tasks/
 ```
+and rename the folders and YAML file(s) as desired.
 
 ### Selecting and configuring a dataset
 
@@ -231,26 +226,27 @@ a simple eye test.
 
 ## Checking performance + equivalence
 
-It's now time to check models' performance on your task! In the evaluation harness, we intend to support a wide range of evaluation tasks and setups, but prioritize the inclusion of already-proven benchmarks following the precise evaluation setups in the literature where possible. 
+It's now time to check models' performance on your task! In the evaluation harness, we intend to support a wide range of evaluation tasks and setups, but prioritize the inclusion of already-proven benchmarks following the precise evaluation setups in the literature where possible.
 
 To enable this, we provide a checklist that should be completed when contributing a new task, to enable accurate book-keeping and to ensure that tasks added to the library are well-tested and, where applicable, precedented.
 
 ### Task impl. checklist
 
-The checklist is the following: 
+The checklist is the following:
 
 For adding novel benchmarks/datasets to the library:
 * [ ] Is the task an existing benchmark in the literature?
-  * [ ] Has the task been checked for equivalence with the original paper's methodology?
-  * [ ] Is the task in Eval-harness v0.3.0 or earlier?
-    * [ ] If so, has it been checked for regression from earlier versions? If there is a change in results, is it justified by matching the original authors' intended setup?
+  * [ ] Have you referenced the original paper that introduced the task?
+  * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
+
 
 If other tasks on this dataset are already supported:
 * [ ] Is the "Main" variant of this task clearly denoted?
 * [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
 
+It is recommended to include a filled-out copy of this checklist in the README.md for the subfolder you are creating, if you have created a new subfolder in `lm_eval/tasks`.
+
 ## Submitting your task
 
 You're all set! Now push your work and make a pull request to the `big-refactor` branch! Thanks for the contribution :). If there are any questions, please leave a message in the `#lm-thunderdome` channel on the EAI discord!
-
