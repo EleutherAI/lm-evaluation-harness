@@ -1,4 +1,4 @@
-This folder is meant to contain instructions and task setups required to evaluate certain papers which may perform non-standard evaluation setups. 
+This folder is meant to contain instructions and task setups required to evaluate certain papers which may perform non-standard evaluation setups.
 
 Tasks can be supported already in the library under `lm_eval/tasks`, or if highly paper-specific, may remain as YAMLs in the respective `examples/paper-title` folder.
 
