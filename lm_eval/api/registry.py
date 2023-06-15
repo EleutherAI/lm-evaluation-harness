@@ -29,7 +29,9 @@ def get_model(model_name):
     try:
         return MODEL_REGISTRY[model_name]
     except KeyError:
-        raise ValueError(f"Attempted to load model '{model_name}', but no model for this name found! Supported model names: {', '.join(MODEL_REGISTRY.keys())}")
+        raise ValueError(
+            f"Attempted to load model '{model_name}', but no model for this name found! Supported model names: {', '.join(MODEL_REGISTRY.keys())}"
+        )
 
 
 TASK_REGISTRY = {}
@@ -75,10 +77,7 @@ DEFAULT_METRIC_REGISTRY = {
         "acc",
     ],
     "loglikelihood_rolling": ["word_perplexity", "byte_perplexity", "bits_per_byte"],
-    "multiple_choice": [
-        "acc",
-        "acc_norm"
-    ],
+    "multiple_choice": ["acc", "acc_norm"],
     "greedy_until": ["exact_match"],
 }
 
@@ -136,7 +135,6 @@ searching in HF Evaluate library..."
 
 
 def register_aggregation(name):
-
     def decorate(fn):
         assert (
             name not in AGGREGATION_REGISTRY

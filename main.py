@@ -10,6 +10,7 @@ from lm_eval.logger import eval_logger
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
 
+
 class MultiChoice:
     def __init__(self, choices):
         self.choices = choices
@@ -21,7 +22,7 @@ class MultiChoice:
                 eval_logger.warning("{} is not in task list.".format(value))
                 eval_logger.info(f"Available tasks to choose:")
                 # for choice in self.choices:
-                    # eval_logger.info(f"    {choice}")
+                # eval_logger.info(f"    {choice}")
                 eval_logger.info(ALL_TASKS)
         return True
 
