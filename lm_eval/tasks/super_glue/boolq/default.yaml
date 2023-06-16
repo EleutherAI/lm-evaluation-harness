@@ -7,5 +7,6 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 doc_to_text: "{{passage}}\nQuestion: {{question}}\nAnswer:"
-doc_to_target: "{{label}}" # this will be cast to an int.
+doc_to_target: "{{answer_choices[labe]}}"
+gold_alias: "{{label}}" # this will be cast to an int.
 template_aliases: "{% set answer_choices = ['no', 'yes'] %}"
