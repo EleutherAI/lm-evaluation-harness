@@ -132,7 +132,7 @@ class XNLIFr(XNLIBase):
     DATASET_NAME = "fr"
 
     def doc_to_text(self, doc):
-        return "Prémisse: {}\Hypothèse: {} Vrai, Faux or Neutre?\nRéponse:".format(
+        return "Prémisse: {}\nHypothèse: {} Vrai, Faux or Neutre?\nRéponse:".format(
             doc["premise"],
             doc["hypothesis"].strip()
             + ("" if doc["hypothesis"].strip().endswith(".") else "."),
