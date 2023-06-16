@@ -1,12 +1,16 @@
 import collections
 import itertools
-import numpy as np
 import random
+
 import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
 from lm_eval.utils import positional_deprecated, run_task_tests
+from lm_eval.models.gpt2 import HFLM
+
+import numpy as np
+import transformers
 
 
 @positional_deprecated
@@ -69,6 +73,11 @@ def simple_evaluate(
         lm = lm_eval.models.get_model(model).create_from_arg_string(
             model_args, {"batch_size": batch_size, "device": device}
         )
+    elif isinstance(model, transformers.PreTrainedModel):
+        lm = HFLM(
+                pretrained=model,
+                )
+        no_cache = True
     else:
         assert isinstance(model, lm_eval.base.LM)
         lm = model
