@@ -1,16 +1,16 @@
 import os
+import re
 import json
 import fnmatch
+import jsonlines
 import argparse
 import logging
 
 from lm_eval import evaluator, utils
-from lm_eval.api.registry import GROUP_REGISTRY, TASK_REGISTRY
+from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-# logger = logging.getLogger("main")
-ALL_TASKS = sorted(list(TASK_REGISTRY.keys()) + list(GROUP_REGISTRY.keys()))
 
 
 class MultiChoice:
@@ -23,9 +23,8 @@ class MultiChoice:
             if len(fnmatch.filter(self.choices, value)) == 0:
                 eval_logger.warning("{} is not in task list.".format(value))
                 eval_logger.info(f"Available tasks to choose:")
-                # for choice in self.choices:
-                # eval_logger.info(f"    {choice}")
-                eval_logger.info(ALL_TASKS)
+                for choice in self.choices:
+                    eval_logger.info(f"  - {choice}")
         return True
 
     def __iter__(self):
@@ -37,7 +36,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True)
     parser.add_argument("--model_args", default="")
-    parser.add_argument("--tasks", default=None, choices=MultiChoice(ALL_TASKS))
+    parser.add_argument("--tasks", default=None, choices=MultiChoice(sorted(ALL_TASKS)))
     parser.add_argument("--config", default=None)
     parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--num_fewshot", type=int, default=0)
@@ -62,19 +61,7 @@ def pattern_match(patterns, source_list):
     return sorted(list(task_names))
 
 
-def setup_example_logger(output_path, separator):
-    """Sets up a logger that will save each example and prediction."""
-    example_logger = logging.getLogger("examples")
-    filename = f"./outputs/examples{separator}{output_path}.jsonl"
-    formatter = logging.Formatter("%(message)s")
-    handler = logging.FileHandler(filename)
-    handler.setFormatter(formatter)
-    example_logger.addHandler(handler)
-    example_logger.setLevel(logging.INFO)
-
-
 def main():
-    os.makedirs("./outputs", exist_ok=True)
     args = parse_args()
 
     if args.limit:
@@ -82,10 +69,6 @@ def main():
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
-
-    path_separator = "."
-    output_path = args.output_path if args.output_path is not None else ""
-    setup_example_logger(output_path, path_separator)
 
     if args.tasks is not None:
         if os.path.isdir(args.tasks):
@@ -118,12 +101,30 @@ def main():
         check_integrity=args.check_integrity,
     )
     if results is not None:
+        samples = results.pop("samples")
+
         dumped = json.dumps(results, indent=2)
         print(dumped)
 
         if args.output_path:
+            os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
+
             with open(args.output_path, "w") as f:
                 f.write(dumped)
+
+            for task_name, config in results["configs"].items():
+                output_name = "{}_{}".format(
+                    re.sub("/", "__", args.model_args), task_name
+                )
+                if os.path.isdir(args.output_path):
+                    filename = f"./{args.output_path}/{output_name}.jsonl"
+                elif os.path.isfile(args.output_path):
+                    filename = (
+                        f"./{os.path.dirname(args.output_path)}/{output_name}.jsonl"
+                    )
+
+                with jsonlines.open(filename, "w") as f:
+                    f.write_all(samples[task_name])
 
         print(
             f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, "
