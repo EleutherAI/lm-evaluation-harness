@@ -1,0 +1,66 @@
+{
+  "results": {
+    "cola": {
+      "mcc": -0.044109532013985,
+      "mcc_stderr": 0.031207420387242075
+    },
+    "mnli": {
+      "acc": 0.3782985226693836,
+      "acc_stderr": 0.0048953668826959605
+    },
+    "mnli_mismatched": {
+      "acc": 0.37489829129373475,
+      "acc_stderr": 0.004882398521925481
+    },
+    "mrpc": {
+      "acc": 0.6299019607843137,
+      "acc_stderr": 0.023933029030729185,
+      "f1": 0.7560581583198709,
+      "f1_stderr": 0.019295620717095126
+    },
+    "qnli": {
+      "acc": 0.513454146073586,
+      "acc_stderr": 0.006762960839582666
+    },
+    "qqp": {
+      "acc": 0.5035864457086322,
+      "acc_stderr": 0.002486636660034357,
+      "f1": 0.5414038936111873,
+      "f1_stderr": 0.0028706161186533327
+    },
+    "rte": {
+      "acc": 0.6389891696750902,
+      "acc_stderr": 0.028910281676964168
+    },
+    "sst": {
+      "acc": 0.768348623853211,
+      "acc_stderr": 0.014295110726150017
+    },
+    "wnli": {
+      "acc": 0.4788732394366197,
+      "acc_stderr": 0.05970805879899505
+    }
+  },
+  "versions": {
+    "cola": 0,
+    "mnli": 0,
+    "mnli_mismatched": 0,
+    "mrpc": 0,
+    "qnli": 0,
+    "qqp": 0,
+    "rte": 0,
+    "sst": 0,
+    "wnli": 1
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=mosaicml/mpt-7b,trust_remote_code=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

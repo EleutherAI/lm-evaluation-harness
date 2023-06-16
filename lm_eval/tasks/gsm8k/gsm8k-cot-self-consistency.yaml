@@ -9,7 +9,7 @@ generation_kwargs:
     - "\n\n"
   do_sample: true
   temperature: 0.2
-repeats: 8
+repeats: 64
 filter_list:
   - name: "score-first" # pick only the first response, and report metrics on that
     filter:

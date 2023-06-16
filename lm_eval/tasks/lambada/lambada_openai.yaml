@@ -1,6 +1,8 @@
 group:
   - lambada
-task: lambada_openai_yaml
+  - loglikelihood
+  - perplexity
+task: lambada_openai
 dataset_path: EleutherAI/lambada_openai
 dataset_name: default
 output_type: loglikelihood
