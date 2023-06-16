@@ -1,0 +1,36 @@
+{
+  "results": {
+    "coqa": {
+      "f1": 0.752079907334399,
+      "f1_stderr": 0.01529202913294504,
+      "em": 0.6266666666666667,
+      "em_stderr": 0.01881953816383566
+    },
+    "drop": {
+      "em": 0.035864093959731544,
+      "em_stderr": 0.001904314663911949,
+      "f1": 0.11349412751677862,
+      "f1_stderr": 0.002340148712955784
+    },
+    "race": {
+      "acc": 0.3990430622009569,
+      "acc_stderr": 0.015155885289809327
+    }
+  },
+  "versions": {
+    "coqa": 1,
+    "drop": 1,
+    "race": 1
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/7B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": false,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

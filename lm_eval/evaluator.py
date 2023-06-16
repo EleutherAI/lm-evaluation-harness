@@ -1,6 +1,9 @@
 import random
 import itertools
+import json
 import collections
+import logging
+import sys
 
 import torch
 
@@ -22,6 +25,10 @@ from lm_eval.utils import (
 
 from lm_eval.logger import eval_logger
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+
 
 @positional_deprecated
 def simple_evaluate(
@@ -30,14 +37,16 @@ def simple_evaluate(
     tasks=[],
     num_fewshot=0,
     batch_size=None,
+    max_batch_size=None,
     device=None,
     no_cache=False,
     limit=None,
     bootstrap_iters=100000,
     check_integrity=False,
     decontamination_ngrams_path=None,
+    write_out=False,
+    output_base_path=None,
 ):
-
     """Instantiate and evaluate a model on a list of tasks.
 
     :param model: Union[str, LM]
@@ -49,18 +58,24 @@ def simple_evaluate(
         List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param num_fewshot: int
         Number of examples in few-shot context
-    :param batch_size: int, optional
+    :param batch_size: int or str, optional
         Batch size for model
+    :param max_batch_size: int, optional
+        Maximal batch size to try with automatic batch size detection
     :param device: str, optional
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
     :param no_cache: bool
         Whether or not to cache
-    :param limit: int, optional
-        Limit the number of examples per task (only use this for testing)
+    :param limit: int or float, optional
+        Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
     :param check_integrity: bool
         Whether to run the relevant part of the test suite for the tasks
+    :param write_out: bool
+        If True, write details about prompts and logits to json for all tasks
+    :param output_base_path: str, optional
+        Directory to which detailed eval info will be written. Defaults to present working dir.
     :return
         Dictionary of results
     """
@@ -73,7 +88,12 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
         lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device}
+            model_args,
+            {
+                "batch_size": batch_size,
+                "max_batch_size": max_batch_size,
+                "device": device,
+            },
         )
     else:
         assert isinstance(model, lm_eval.api.model.LM)
@@ -90,15 +110,22 @@ def simple_evaluate(
         limit=limit,
         bootstrap_iters=bootstrap_iters,
         decontamination_ngrams_path=decontamination_ngrams_path,
+        write_out=write_out,
+        output_base_path=output_base_path,
     )
 
     if lm.rank == 0:
         # add info about the model and few shot config
         results["config"] = {
-            "model": model,
+            "model": model
+            if isinstance(model, str)
+            else model.model.config._name_or_path,
             "model_args": model_args,
             "num_fewshot": num_fewshot,
             "batch_size": batch_size,
+            "batch_sizes": list(lm.batch_sizes.values())
+            if hasattr(lm, "batch_sizes")
+            else [],
             "device": device,
             "no_cache": no_cache,
             "limit": limit,
@@ -120,6 +147,8 @@ def evaluate(
     limit=None,
     bootstrap_iters=100000,
     decontamination_ngrams_path=None,
+    write_out=False,
+    output_base_path=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -133,6 +162,10 @@ def evaluate(
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
+    :param write_out: bool
+        If True, write all prompts, logits and metrics to json for offline analysis
+    :param output_base_path: str, optional
+        Directory to which detailed eval info will be written. Defaults to present working dir
     :return
         Dictionary of results
     """
@@ -141,21 +174,32 @@ def evaluate(
 
     results = collections.defaultdict(dict)
     versions = collections.defaultdict(dict)
-
+    configs = collections.defaultdict(dict)
+    samples = collections.defaultdict(list)
     requests = collections.defaultdict(list)
-    # requests_origin = collections.defaultdict(list)
 
     # docs = {}
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
         versions[task_name] = task.VERSION
+        configs[task_name] = dict(
+            task.dump_config()
+        )  # TODO: don't access a private attribute here ; for non-YAML tasks handle this case
 
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
         # task_docs = list(task_doc_func())
         # rnd = random.Random()
         # rnd.seed(42)
         # rnd.shuffle(task_docs)
+        if limit is not None:
+            if task.has_test_docs():
+                task_docs = task.test_docs()
+            elif task.has_validation_docs():
+                task_docs = task.validation_docs()
+            else:
+                raise RuntimeError("Task has neither test_docs nor validation_docs")
+            limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
 
         task.build_all_requests(limit=limit, rank=lm.rank, world_size=lm.world_size)
 
@@ -222,6 +266,7 @@ def evaluate(
                     enumerate(task.validation_docs()), lm.rank, limit, lm.world_size
                 )
             )
+
             for doc_id, doc in doc_iterator:
                 # subset instances to only this document id ; sort by idx
                 requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
@@ -229,6 +274,16 @@ def evaluate(
                 metrics = task.process_results(
                     doc, [req.filtered_resps[key] for req in requests]
                 )
+                target = task.doc_to_target(doc)
+                example = {
+                    "doc_id": doc_id,
+                    "doc": doc,
+                    "target": target,
+                    "resps": [req.resps for req in requests],
+                    "filtered_resps": [req.filtered_resps[key] for req in requests],
+                }
+                example.update(metrics)
+                samples[task_name].append(example)
                 for metric, value in metrics.items():
                     vals[(task_name, key, metric)].append(value)
 
@@ -289,7 +344,12 @@ def evaluate(
             if stderr is not None:
                 results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
-        return {"results": dict(results), "versions": dict(versions)}
+        return {
+            "results": dict(results),
+            "configs": dict(configs),
+            "versions": dict(versions),
+            "samples": samples,
+        }
 
     else:
         return None

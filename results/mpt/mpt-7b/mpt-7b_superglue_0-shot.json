@@ -1,0 +1,55 @@
+{
+  "results": {
+    "boolq": {
+      "acc": 0.7382262996941896,
+      "acc_stderr": 0.007688653730439849
+    },
+    "cb": {
+      "acc": 0.4107142857142857,
+      "acc_stderr": 0.0663363415035954,
+      "f1": 0.2126984126984127
+    },
+    "copa": {
+      "acc": 0.84,
+      "acc_stderr": 0.036845294917747115
+    },
+    "multirc": {
+      "acc": 0.008394543546694649,
+      "acc_stderr": 0.002956987733350658
+    },
+    "record": {
+      "f1": 0.900992857142857,
+      "f1_stderr": 0.0029401923751195343,
+      "em": 0.893,
+      "em_stderr": 0.0030912870467751773
+    },
+    "wic": {
+      "acc": 0.4843260188087774,
+      "acc_stderr": 0.01980098495534785
+    },
+    "wsc": {
+      "acc": 0.6346153846153846,
+      "acc_stderr": 0.0474473339327792
+    }
+  },
+  "versions": {
+    "boolq": 1,
+    "cb": 1,
+    "copa": 0,
+    "multirc": 1,
+    "record": 0,
+    "wic": 0,
+    "wsc": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=mosaicml/mpt-7b,trust_remote_code=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

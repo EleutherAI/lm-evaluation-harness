@@ -1,5 +1,6 @@
 group:
   - lambada_cloze
+  - loglikelihood
 task: lambada_standard_cloze_yaml
 dataset_path: lambada
 dataset_name: null
@@ -15,6 +16,6 @@ metric_list:
   - metric: perplexity
     aggregation: perplexity
     higher_is_better: false
-  - metric: accuracy
+  - metric: acc
     aggregation: mean
     higher_is_better: true

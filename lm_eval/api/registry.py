@@ -26,11 +26,17 @@ def register_model(*names):
 
 
 def get_model(model_name):
-    return MODEL_REGISTRY[model_name]
+    try:
+        return MODEL_REGISTRY[model_name]
+    except KeyError:
+        raise ValueError(
+            f"Attempted to load model '{model_name}', but no model for this name found! Supported model names: {', '.join(MODEL_REGISTRY.keys())}"
+        )
 
 
 TASK_REGISTRY = {}
 GROUP_REGISTRY = {}
+ALL_TASKS = set()
 func2task_index = {}
 
 
@@ -41,6 +47,7 @@ def register_task(name):
         ), f"task named '{name}' conflicts with existing registered task!"
 
         TASK_REGISTRY[name] = fn
+        ALL_TASKS.add(name)
         func2task_index[fn.__name__] = name
         return fn
 
@@ -49,15 +56,12 @@ def register_task(name):
 
 def register_group(name):
     def decorate(fn):
-        # assert (
-        #     name not in GROUP_REGISTRY
-        # ), f"group named '{name}' conflicts with existing registered group!"
-
         func_name = func2task_index[fn.__name__]
         if name in GROUP_REGISTRY:
             GROUP_REGISTRY[name].append(func_name)
         else:
             GROUP_REGISTRY[name] = [func_name]
+            ALL_TASKS.add(name)
         return fn
 
     return decorate
@@ -75,9 +79,7 @@ DEFAULT_METRIC_REGISTRY = {
         "acc",
     ],
     "loglikelihood_rolling": ["word_perplexity", "byte_perplexity", "bits_per_byte"],
-    "multiple_choice": [
-        "acc",
-    ],
+    "multiple_choice": ["acc", "acc_norm"],
     "greedy_until": ["exact_match"],
 }
 
@@ -135,7 +137,6 @@ searching in HF Evaluate library..."
 
 
 def register_aggregation(name):
-    # TODO: should we enforce a specific interface to aggregation metrics?
     def decorate(fn):
         assert (
             name not in AGGREGATION_REGISTRY

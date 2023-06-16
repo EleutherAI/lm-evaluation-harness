@@ -1,6 +1,7 @@
 group:
-  - arc_yaml
-task: arc_challenge_yaml
+  - ai2_arc
+  - multiple_choice
+task: arc_challenge
 dataset_path: ai2_arc
 dataset_name: ARC-Challenge
 output_type: multiple_choice
