@@ -38,7 +38,8 @@ setuptools.setup(
         "tqdm-multiprocess",
         "transformers>=4.1",
         "zstandard",
-        "accelerate>=0.17.1", # used by huggingface model (commented out)
+        "accelerate>=0.17.1", # used by huggingface model (commented out),
+        "importlib_resources"
     ],
     extras_require={
         "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],
