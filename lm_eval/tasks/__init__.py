@@ -1,10 +1,6 @@
 import os
 from typing import List, Union
 
-from .gsm8k import *
-from .triviaqa import *
-from .glue import *
-
 from lm_eval import utils
 from lm_eval.logger import eval_logger
 from lm_eval.api.task import TaskConfig, Task, ConfigurableTask
