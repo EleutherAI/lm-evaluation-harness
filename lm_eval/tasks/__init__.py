@@ -53,12 +53,12 @@ from . import storycloze
 from . import toxigen
 from . import crowspairs
 from . import json
-# from . import xcopa
+from . import tmp_new_xcopa
 from . import bigbench
 from . import xstorycloze
 from . import xwinograd
-# from . import pawsx
-# from . import xnli
+from . import tmp_new_pawsx
+from . import tmp_new_xnli
 from . import mgsm
 
 from .aam.all_tasks_registry import TASK_REGISTRY as AAM_TASK_REGISTRY
@@ -321,12 +321,12 @@ TASK_REGISTRY = {
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
-    # **xcopa.construct_tasks(),
+    **tmp_new_xcopa.construct_tasks(),
     **bigbench.create_all_tasks(),
     **xstorycloze.create_all_tasks(),
     **xwinograd.create_all_tasks(),
-    # **pawsx.construct_tasks(),
-    # **xnli.construct_tasks(),
+    **tmp_new_pawsx.construct_tasks(),
+    **tmp_new_xnli.construct_tasks(),
     **mgsm.construct_tasks(),
 }
 
