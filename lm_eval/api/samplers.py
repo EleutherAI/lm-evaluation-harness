@@ -32,7 +32,8 @@ class Sampler:
         labeled_examples = (
             self.delimiter.join(
                 [
-                    self.task.doc_to_text(doc) + self.task.doc_to_target(doc)
+                    # TODO: is separating doc_to_text and doc_to_target by one space always desired?
+                    self.task.doc_to_text(doc) + " " + self.task.doc_to_target(doc)
                     for doc in selected_docs
                 ]
             )
