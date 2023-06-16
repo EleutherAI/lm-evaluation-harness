@@ -1,0 +1,91 @@
+{
+  "results": {
+    "piqa": {
+      "acc": 0.7127312295973884,
+      "acc_stderr": 0.010557291761528637,
+      "acc_norm": 0.7301414581066377,
+      "acc_norm_stderr": 0.010356595421852193
+    },
+    "openbookqa": {
+      "acc": 0.216,
+      "acc_stderr": 0.01842190906141194,
+      "acc_norm": 0.332,
+      "acc_norm_stderr": 0.021081766571222856
+    },
+    "arc_challenge": {
+      "acc": 0.23464163822525597,
+      "acc_stderr": 0.01238387356076868,
+      "acc_norm": 0.2738907849829352,
+      "acc_norm_stderr": 0.013032004972989505
+    },
+    "arc_easy": {
+      "acc": 0.5664983164983165,
+      "acc_stderr": 0.010168640625454107,
+      "acc_norm": 0.5336700336700336,
+      "acc_norm_stderr": 0.010236494647406476
+    },
+    "boolq": {
+      "acc": 0.6143730886850153,
+      "acc_stderr": 0.008513189460768057
+    },
+    "wsc273": {
+      "acc": 0.7106227106227107,
+      "acc_stderr": 0.027495860234525278
+    },
+    "copa": {
+      "acc": 0.74,
+      "acc_stderr": 0.04408440022768077
+    },
+    "hellaswag": {
+      "acc": 0.4091814379605656,
+      "acc_stderr": 0.004906779523192668,
+      "acc_norm": 0.5370444134634534,
+      "acc_norm_stderr": 0.004976067726432559
+    },
+    "prost": {
+      "acc": 0.21920367207514946,
+      "acc_stderr": 0.003022497462586152,
+      "acc_norm": 0.2664389410760034,
+      "acc_norm_stderr": 0.0032299078734217036
+    },
+    "swag": {
+      "acc": 0.4849045286414076,
+      "acc_stderr": 0.0035334805738792946,
+      "acc_norm": 0.6578026592022393,
+      "acc_norm_stderr": 0.0033544154500719224
+    },
+    "mc_taco": {
+      "em": 0.11936936936936937,
+      "f1": 0.4779548809969738
+    },
+    "winogrande": {
+      "acc": 0.5461720599842147,
+      "acc_stderr": 0.013992441563707058
+    }
+  },
+  "versions": {
+    "piqa": 0,
+    "openbookqa": 0,
+    "arc_challenge": 0,
+    "arc_easy": 0,
+    "boolq": 1,
+    "wsc273": 0,
+    "copa": 0,
+    "hellaswag": 0,
+    "prost": 0,
+    "swag": 0,
+    "mc_taco": 0,
+    "winogrande": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=facebook/xglm-2.9B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

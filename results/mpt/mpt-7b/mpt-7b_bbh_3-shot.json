@@ -1,0 +1,124 @@
+{
+  "results": {
+    "bigbench_causal_judgement": {
+      "multiple_choice_grade": 0.5631578947368421,
+      "multiple_choice_grade_stderr": 0.036078330444807245
+    },
+    "bigbench_date_understanding": {
+      "multiple_choice_grade": 0.5826558265582655,
+      "multiple_choice_grade_stderr": 0.025705692903559226
+    },
+    "bigbench_disambiguation_qa": {
+      "multiple_choice_grade": 0.3643410852713178,
+      "multiple_choice_grade_stderr": 0.03001923241206336
+    },
+    "bigbench_dyck_languages": {
+      "multiple_choice_grade": 0.123,
+      "multiple_choice_grade_stderr": 0.010391293421849874
+    },
+    "bigbench_formal_fallacies_syllogisms_negation": {
+      "multiple_choice_grade": 0.49915492957746477,
+      "multiple_choice_grade_stderr": 0.0041960485493055645
+    },
+    "bigbench_geometric_shapes": {
+      "multiple_choice_grade": 0.20334261838440112,
+      "multiple_choice_grade_stderr": 0.021272007856536258,
+      "exact_str_match": 0.12256267409470752,
+      "exact_str_match_stderr": 0.017331879192703025
+    },
+    "bigbench_hyperbaton": {
+      "multiple_choice_grade": 0.4936,
+      "multiple_choice_grade_stderr": 0.002235907150490653
+    },
+    "bigbench_logical_deduction_five_objects": {
+      "multiple_choice_grade": 0.24,
+      "multiple_choice_grade_stderr": 0.01911886665375975
+    },
+    "bigbench_logical_deduction_seven_objects": {
+      "multiple_choice_grade": 0.1657142857142857,
+      "multiple_choice_grade_stderr": 0.014063673984033173
+    },
+    "bigbench_logical_deduction_three_objects": {
+      "multiple_choice_grade": 0.38666666666666666,
+      "multiple_choice_grade_stderr": 0.028163138908196852
+    },
+    "bigbench_movie_recommendation": {
+      "multiple_choice_grade": 0.438,
+      "multiple_choice_grade_stderr": 0.022210326363977417
+    },
+    "bigbench_navigate": {
+      "multiple_choice_grade": 0.486,
+      "multiple_choice_grade_stderr": 0.01581309754773099
+    },
+    "bigbench_reasoning_about_colored_objects": {
+      "multiple_choice_grade": 0.2985,
+      "multiple_choice_grade_stderr": 0.010234805842091589
+    },
+    "bigbench_ruin_names": {
+      "multiple_choice_grade": 0.296875,
+      "multiple_choice_grade_stderr": 0.021609729061250887
+    },
+    "bigbench_salient_translation_error_detection": {
+      "multiple_choice_grade": 0.17935871743486975,
+      "multiple_choice_grade_stderr": 0.012150393578288319
+    },
+    "bigbench_snarks": {
+      "multiple_choice_grade": 0.5303867403314917,
+      "multiple_choice_grade_stderr": 0.03719891321680327
+    },
+    "bigbench_sports_understanding": {
+      "multiple_choice_grade": 0.4949290060851927,
+      "multiple_choice_grade_stderr": 0.015930505328489487
+    },
+    "bigbench_temporal_sequences": {
+      "multiple_choice_grade": 0.296,
+      "multiple_choice_grade_stderr": 0.014442734941575016
+    },
+    "bigbench_tracking_shuffled_objects_five_objects": {
+      "multiple_choice_grade": 0.1944,
+      "multiple_choice_grade_stderr": 0.011197643581460408
+    },
+    "bigbench_tracking_shuffled_objects_seven_objects": {
+      "multiple_choice_grade": 0.13428571428571429,
+      "multiple_choice_grade_stderr": 0.008152809490408933
+    },
+    "bigbench_tracking_shuffled_objects_three_objects": {
+      "multiple_choice_grade": 0.38666666666666666,
+      "multiple_choice_grade_stderr": 0.028163138908196852
+    }
+  },
+  "versions": {
+    "bigbench_causal_judgement": 0,
+    "bigbench_date_understanding": 0,
+    "bigbench_disambiguation_qa": 0,
+    "bigbench_dyck_languages": 0,
+    "bigbench_formal_fallacies_syllogisms_negation": 0,
+    "bigbench_geometric_shapes": 0,
+    "bigbench_hyperbaton": 0,
+    "bigbench_logical_deduction_five_objects": 0,
+    "bigbench_logical_deduction_seven_objects": 0,
+    "bigbench_logical_deduction_three_objects": 0,
+    "bigbench_movie_recommendation": 0,
+    "bigbench_navigate": 0,
+    "bigbench_reasoning_about_colored_objects": 0,
+    "bigbench_ruin_names": 0,
+    "bigbench_salient_translation_error_detection": 0,
+    "bigbench_snarks": 0,
+    "bigbench_sports_understanding": 0,
+    "bigbench_temporal_sequences": 0,
+    "bigbench_tracking_shuffled_objects_five_objects": 0,
+    "bigbench_tracking_shuffled_objects_seven_objects": 0,
+    "bigbench_tracking_shuffled_objects_three_objects": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=mosaicml/mpt-7b,trust_remote_code=True",
+    "num_fewshot": 3,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "results": {
+    "xcopa_vi": {
+      "acc": 0.524,
+      "acc_stderr": 0.0223572738810164
+    },
+    "xcopa_id": {
+      "acc": 0.606,
+      "acc_stderr": 0.021874299301689253
+    },
+    "xcopa_it": {
+      "acc": 0.714,
+      "acc_stderr": 0.020229346329177524
+    },
+    "xcopa_ht": {
+      "acc": 0.518,
+      "acc_stderr": 0.02236856511738799
+    },
+    "xcopa_zh": {
+      "acc": 0.622,
+      "acc_stderr": 0.021706550824518184
+    },
+    "xcopa_sw": {
+      "acc": 0.524,
+      "acc_stderr": 0.0223572738810164
+    },
+    "xcopa_et": {
+      "acc": 0.472,
+      "acc_stderr": 0.02234794983266809
+    },
+    "xcopa_qu": {
+      "acc": 0.494,
+      "acc_stderr": 0.022381462412439324
+    },
+    "xcopa_th": {
+      "acc": 0.546,
+      "acc_stderr": 0.02228814759117695
+    },
+    "xcopa_tr": {
+      "acc": 0.522,
+      "acc_stderr": 0.022361396739207888
+    },
+    "xcopa_ta": {
+      "acc": 0.532,
+      "acc_stderr": 0.022337186479044292
+    }
+  },
+  "versions": {
+    "xcopa_vi": 0,
+    "xcopa_id": 0,
+    "xcopa_it": 0,
+    "xcopa_ht": 0,
+    "xcopa_zh": 0,
+    "xcopa_sw": 0,
+    "xcopa_et": 0,
+    "xcopa_qu": 0,
+    "xcopa_th": 0,
+    "xcopa_tr": 0,
+    "xcopa_ta": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/30B",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

@@ -19,7 +19,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.9",
     install_requires=[
         "accelerate>=0.18.0",
         "datasets>=2.0.0",
@@ -47,5 +47,7 @@ setuptools.setup(
         "promptsource": [
             "promptsource @ git+https://github.com/bigscience-workshop/promptsource.git#egg=promptsource"
         ],
+        "auto-gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
+        "anthropic": ["anthropic"],
     },
 )

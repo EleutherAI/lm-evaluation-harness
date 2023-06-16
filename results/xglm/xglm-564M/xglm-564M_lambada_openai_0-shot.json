@@ -1,0 +1,31 @@
+{
+  "results": {
+    "lambada_openai": {
+      "ppl": 28.56712020387803,
+      "ppl_stderr": 1.029833227972257,
+      "acc": 0.35940228992819717,
+      "acc_stderr": 0.006684904136033
+    },
+    "lambada_openai_cloze": {
+      "ppl": 6898.435163550819,
+      "ppl_stderr": 322.9340159515305,
+      "acc": 0.00038812342324859306,
+      "acc_stderr": 0.00027441806845050347
+    }
+  },
+  "versions": {
+    "lambada_openai": 0,
+    "lambada_openai_cloze": 0
+  },
+  "config": {
+    "model": "hf-causal",
+    "model_args": "pretrained=facebook/xglm-564M",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

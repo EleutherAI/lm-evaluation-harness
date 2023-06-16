@@ -1,0 +1,32 @@
+{
+  "results": {
+    "anli_r1": {
+      "acc": 0.332,
+      "acc_stderr": 0.014899597242811485
+    },
+    "anli_r2": {
+      "acc": 0.336,
+      "acc_stderr": 0.014944140233795027
+    },
+    "anli_r3": {
+      "acc": 0.345,
+      "acc_stderr": 0.013728421539454881
+    }
+  },
+  "versions": {
+    "anli_r1": 0,
+    "anli_r2": 0,
+    "anli_r3": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=mosaicml/mpt-7b,trust_remote_code=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}
