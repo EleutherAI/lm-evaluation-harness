@@ -88,7 +88,12 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
         lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "max_batch_size": max_batch_size, "device": device}
+            model_args,
+            {
+                "batch_size": batch_size,
+                "max_batch_size": max_batch_size,
+                "device": device,
+            },
         )
     else:
         assert isinstance(model, lm_eval.api.model.LM)
@@ -112,11 +117,15 @@ def simple_evaluate(
     if lm.rank == 0:
         # add info about the model and few shot config
         results["config"] = {
-            "model": model if isinstance(model, str) else model.model.config._name_or_path,
+            "model": model
+            if isinstance(model, str)
+            else model.model.config._name_or_path,
             "model_args": model_args,
             "num_fewshot": num_fewshot,
             "batch_size": batch_size,
-            "batch_sizes": list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else [],
+            "batch_sizes": list(lm.batch_sizes.values())
+            if hasattr(lm, "batch_sizes")
+            else [],
             "device": device,
             "no_cache": no_cache,
             "limit": limit,
