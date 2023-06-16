@@ -168,8 +168,8 @@ def get_rolling_token_windows(token_list, prefix_token, max_seq_len, context_len
         window_end = predicted + window_pred_len
 
         yield (
-            token_list[window_end - max_seq_len - 1: window_end - 1],
-            token_list[window_end - window_pred_len: window_end],
+            token_list[window_end - max_seq_len - 1 : window_end - 1],
+            token_list[window_end - window_pred_len : window_end],
         )
         predicted += window_pred_len
 
