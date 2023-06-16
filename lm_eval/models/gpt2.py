@@ -4,9 +4,7 @@ from typing import Optional, Union
 from lm_eval.base import BaseLM
 
 
-def _get_dtype(
-    dtype: Union[str, torch.dtype]
-) -> torch.dtype:
+def _get_dtype(dtype: Union[str, torch.dtype]) -> torch.dtype:
     """Converts `dtype` from `str` to torch.dtype when possible. Does not use an instantiated HF AutoConfig"""
     if isinstance(dtype, str) and dtype != "auto":
         # Convert `str` args torch dtype: `float16` -> `torch.float16`
@@ -29,7 +27,7 @@ class HFLM(BaseLM):
         no_tokenizer_check=False,
         load_in_8bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = False,
-        dtype: Optional[Union[str, torch.dtype]]="auto",
+        dtype: Optional[Union[str, torch.dtype]] = "auto",
     ):
         super().__init__()
 
@@ -92,7 +90,8 @@ class HFLM(BaseLM):
             )
         else:
             if isinstance(
-                self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
+                self.tokenizer,
+                (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast),
             ):
                 assert self.tokenizer.encode("hello\n\nhello") == [
                     31373,
@@ -163,8 +162,10 @@ class HFLM(BaseLM):
     def _model_generate(self, context, max_length, eos_token_id):
         generation_kwargs = {"do_sample": False, "max_length": max_length}
         if eos_token_id is not None:
-            generation_kwargs['eos_token_id'] = eos_token_id
-            generation_kwargs['pad_token_id'] = eos_token_id # setting eos_token_id as pad token
+            generation_kwargs["eos_token_id"] = eos_token_id
+            generation_kwargs[
+                "pad_token_id"
+            ] = eos_token_id  # setting eos_token_id as pad token
         return self.gpt2.generate(context, **generation_kwargs)
 
 

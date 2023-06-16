@@ -68,7 +68,7 @@ class XQuADBase(SQuAD2):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        continuation = rf.greedy_until(ctx, {'until': ["\n"]})
+        continuation = rf.greedy_until(ctx, {"until": ["\n"]})
         return continuation
 
     def doc_to_text(self, doc):

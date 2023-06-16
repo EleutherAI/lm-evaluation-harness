@@ -16,7 +16,7 @@ Dataset: https://huggingface.co/datasets/mlsum
 
 Prompts are translated with Google Translate.
 
-CHANGES: 2023-03-12: 
+CHANGES: 2023-03-12:
   - changed version from None to 1
   - fixed some prompts (spaces) and translations
   - removed spanish training docs
@@ -82,7 +82,7 @@ class MLSumBase(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        continuation = rf.greedy_until(ctx, {'until': ["\n"]})
+        continuation = rf.greedy_until(ctx, {"until": ["\n"]})
         return continuation
 
     def process_results(self, doc, results):

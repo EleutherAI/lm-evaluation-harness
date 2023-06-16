@@ -4,7 +4,9 @@ from tqdm import tqdm
 import time
 
 
-def anthropic_completion(client, model, prompt, max_tokens_to_sample, temperature, stop):
+def anthropic_completion(
+    client, model, prompt, max_tokens_to_sample, temperature, stop
+):
     """Query Anthropic API for completion.
 
     Retry with back-off until they respond
@@ -46,8 +48,9 @@ class AnthropicLM(BaseLM):
         """
         super().__init__()
         import anthropic
+
         self.model = model
-        self.client = anthropic.Client(os.environ['ANTHROPIC_API_KEY'])
+        self.client = anthropic.Client(os.environ["ANTHROPIC_API_KEY"])
 
     @property
     def eot_token_id(self):

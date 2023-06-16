@@ -9,7 +9,12 @@ from lm_eval import tasks, utils
 
 
 seq2seq_models = ["google/flan-t5-small"]
-causal_models = ["gpt2", "facebook/opt-125m", "EleutherAI/gpt-neo-125m", "EleutherAI/pythia-160m"]
+causal_models = [
+    "gpt2",
+    "facebook/opt-125m",
+    "EleutherAI/gpt-neo-125m",
+    "EleutherAI/pythia-160m",
+]
 model_names = seq2seq_models + causal_models
 
 
@@ -50,22 +55,41 @@ def eval_models(args, branch=None):
     results = {}
 
     for model in args.models:
-        model_type = "hf-causal-experimental" if model in causal_models \
-            else "hf-seq2seq" if model in seq2seq_models else args.model
+        model_type = (
+            "hf-causal-experimental"
+            if model in causal_models
+            else "hf-seq2seq"
+            if model in seq2seq_models
+            else args.model
+        )
         model_args = f"pretrained={model},{args.model_args}"
         # TODO: split_and_pad_windows in AutoSeq2SeqLM doesn"t exist, #527
-        tasks = args.tasks if model in causal_models or model_type == "hf-causal-experimental" \
+        tasks = (
+            args.tasks
+            if model in causal_models or model_type == "hf-causal-experimental"
             else list(filter(lambda task: task not in perplexity_tasks, args.tasks))
+        )
         # TODO: OOM with auto for seq2seq models, also can OOM with llama
-        batch_size = args.batch_size if model in causal_models or model_type == "hf-causal-experimental" \
-            else 64 if args.batch_size == "auto" else args.batch_size
-        output_path = f"data/regression/{int(start_time)}-{branch}-{Path(model).name}.json"
+        batch_size = (
+            args.batch_size
+            if model in causal_models or model_type == "hf-causal-experimental"
+            else 64
+            if args.batch_size == "auto"
+            else args.batch_size
+        )
+        output_path = (
+            f"data/regression/{int(start_time)}-{branch}-{Path(model).name}.json"
+        )
 
-        command = f"python3 main.py --model {model_type} --model_args {model_args} --tasks {','.join(tasks)} " \
-                  f"--num_fewshot {args.num_fewshot}{'' if args.limit is None else f' --limit {args.limit}'} " \
-                  f"--batch_size {batch_size} --no_cache --output_path {output_path}"
+        command = (
+            f"python3 main.py --model {model_type} --model_args {model_args} --tasks {','.join(tasks)} "
+            f"--num_fewshot {args.num_fewshot}{'' if args.limit is None else f' --limit {args.limit}'} "
+            f"--batch_size {batch_size} --no_cache --output_path {output_path}"
+        )
 
-        print(f"{'=' * 80}\nEvaluating {model} on {', '.join(tasks)} at {branch} with:\n\n{command}\n{'=' * 80}")
+        print(
+            f"{'=' * 80}\nEvaluating {model} on {', '.join(tasks)} at {branch} with:\n\n{command}\n{'=' * 80}"
+        )
 
         ret = os.system(command)
 
@@ -108,13 +132,25 @@ def format_diff(args, results1, results2, model, task):
 def main():
     args = parse_args()
 
-    args.branches = args.branches.split(",") if type(args.branches) == str else args.branches
+    args.branches = (
+        args.branches.split(",") if type(args.branches) == str else args.branches
+    )
     args.models = args.models.split(",") if type(args.models) == str else args.models
-    args.tasks = tasks.ALL_TASKS if args.tasks == "all_tasks" \
-        else utils.pattern_match(args.tasks.split(",") if type(args.tasks) == str else args.tasks, tasks.ALL_TASKS)
+    args.tasks = (
+        tasks.ALL_TASKS
+        if args.tasks == "all_tasks"
+        else utils.pattern_match(
+            args.tasks.split(",") if type(args.tasks) == str else args.tasks,
+            tasks.ALL_TASKS,
+        )
+    )
 
     global initial_branch
-    initial_branch = subprocess.check_output("git branch --show-current", shell=True).decode("ascii").strip()
+    initial_branch = (
+        subprocess.check_output("git branch --show-current", shell=True)
+        .decode("ascii")
+        .strip()
+    )
 
     # TODO: implement proper timing for each task
     # TODO: reduce IO by sharing tasks between models?
@@ -132,10 +168,16 @@ def main():
     print(f"|task|{'|'.join(map(lambda model: Path(model).name, args.models))}|")
     print(f"|--|{'--|' * len(args.models)}")
     for task in args.tasks:
-        print(f"|{task} ({initial_branch})|{'|'.join(map(lambda model: format_value(args, results, model, task), args.models))}|")
+        print(
+            f"|{task} ({initial_branch})|{'|'.join(map(lambda model: format_value(args, results, model, task), args.models))}|"
+        )
         for branch, branch_results, branch_runtime in runs:
-            print(f"|{task} ({branch})|{'|'.join(map(lambda model: format_value(args, branch_results, model, task), args.models))}|")
-            print(f"|{task} (diff)|{'|'.join(map(lambda model: format_diff(args, results, branch_results, model, task), args.models))}|")
+            print(
+                f"|{task} ({branch})|{'|'.join(map(lambda model: format_value(args, branch_results, model, task), args.models))}|"
+            )
+            print(
+                f"|{task} (diff)|{'|'.join(map(lambda model: format_diff(args, results, branch_results, model, task), args.models))}|"
+            )
 
     print("")
     print("|branch|runtime|%|")
