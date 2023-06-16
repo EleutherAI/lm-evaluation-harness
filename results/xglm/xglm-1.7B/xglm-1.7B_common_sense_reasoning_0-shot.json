@@ -1,0 +1,91 @@
+{
+  "results": {
+    "copa": {
+      "acc": 0.68,
+      "acc_stderr": 0.046882617226215034
+    },
+    "piqa": {
+      "acc": 0.6969532100108814,
+      "acc_stderr": 0.010722648689531515,
+      "acc_norm": 0.7034820457018498,
+      "acc_norm_stderr": 0.010656078922661134
+    },
+    "prost": {
+      "acc": 0.22694278394534587,
+      "acc_stderr": 0.003060110855833208,
+      "acc_norm": 0.27209649871904357,
+      "acc_norm_stderr": 0.0032514084657504338
+    },
+    "arc_easy": {
+      "acc": 0.5361952861952862,
+      "acc_stderr": 0.01023286555034672,
+      "acc_norm": 0.47895622895622897,
+      "acc_norm_stderr": 0.01025069260202258
+    },
+    "hellaswag": {
+      "acc": 0.3617805218084047,
+      "acc_stderr": 0.004795337009118189,
+      "acc_norm": 0.45797649870543716,
+      "acc_norm_stderr": 0.004972126523031943
+    },
+    "mc_taco": {
+      "em": 0.12912912912912913,
+      "f1": 0.34519977153598014
+    },
+    "winogrande": {
+      "acc": 0.5493291239147593,
+      "acc_stderr": 0.013983928869040239
+    },
+    "wsc273": {
+      "acc": 0.6813186813186813,
+      "acc_stderr": 0.02825328818739863
+    },
+    "swag": {
+      "acc": 0.4596621013695891,
+      "acc_stderr": 0.0035235690445916223,
+      "acc_norm": 0.6219134259722083,
+      "acc_norm_stderr": 0.003428398656668824
+    },
+    "boolq": {
+      "acc": 0.5856269113149847,
+      "acc_stderr": 0.00861586377642113
+    },
+    "openbookqa": {
+      "acc": 0.17,
+      "acc_stderr": 0.016815633531393426,
+      "acc_norm": 0.298,
+      "acc_norm_stderr": 0.02047511809298897
+    },
+    "arc_challenge": {
+      "acc": 0.2098976109215017,
+      "acc_stderr": 0.011900548748047446,
+      "acc_norm": 0.2431740614334471,
+      "acc_norm_stderr": 0.012536554144587089
+    }
+  },
+  "versions": {
+    "copa": 0,
+    "piqa": 0,
+    "prost": 0,
+    "arc_easy": 0,
+    "hellaswag": 0,
+    "mc_taco": 0,
+    "winogrande": 0,
+    "wsc273": 0,
+    "swag": 0,
+    "boolq": 1,
+    "openbookqa": 0,
+    "arc_challenge": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=facebook/xglm-1.7B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

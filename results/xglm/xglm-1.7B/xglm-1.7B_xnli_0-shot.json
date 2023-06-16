@@ -1,0 +1,92 @@
+{
+  "results": {
+    "xnli_bg": {
+      "acc": 0.4473053892215569,
+      "acc_stderr": 0.0070253693946827935
+    },
+    "xnli_hi": {
+      "acc": 0.42614770459081835,
+      "acc_stderr": 0.006987223294820979
+    },
+    "xnli_el": {
+      "acc": 0.40099800399201596,
+      "acc_stderr": 0.006924839696959944
+    },
+    "xnli_en": {
+      "acc": 0.49680638722554893,
+      "acc_stderr": 0.00706456831954508
+    },
+    "xnli_ar": {
+      "acc": 0.33512974051896205,
+      "acc_stderr": 0.006669594382503631
+    },
+    "xnli_ru": {
+      "acc": 0.4596806387225549,
+      "acc_stderr": 0.00704170545485625
+    },
+    "xnli_fr": {
+      "acc": 0.45728542914171655,
+      "acc_stderr": 0.007038885597058048
+    },
+    "xnli_tr": {
+      "acc": 0.4295409181636727,
+      "acc_stderr": 0.006994215414803208
+    },
+    "xnli_th": {
+      "acc": 0.4169660678642715,
+      "acc_stderr": 0.006966614137458995
+    },
+    "xnli_vi": {
+      "acc": 0.4502994011976048,
+      "acc_stderr": 0.007029723996054755
+    },
+    "xnli_de": {
+      "acc": 0.4532934131736527,
+      "acc_stderr": 0.0070338214783393326
+    },
+    "xnli_sw": {
+      "acc": 0.41996007984031936,
+      "acc_stderr": 0.006973606391328806
+    },
+    "xnli_zh": {
+      "acc": 0.3377245508982036,
+      "acc_stderr": 0.006682287063203171
+    },
+    "xnli_es": {
+      "acc": 0.436127744510978,
+      "acc_stderr": 0.007006832004922492
+    },
+    "xnli_ur": {
+      "acc": 0.39500998003992016,
+      "acc_stderr": 0.0069072094196003676
+    }
+  },
+  "versions": {
+    "xnli_bg": 0,
+    "xnli_hi": 0,
+    "xnli_el": 0,
+    "xnli_en": 0,
+    "xnli_ar": 0,
+    "xnli_ru": 0,
+    "xnli_fr": 0,
+    "xnli_tr": 0,
+    "xnli_th": 0,
+    "xnli_vi": 0,
+    "xnli_de": 0,
+    "xnli_sw": 0,
+    "xnli_zh": 0,
+    "xnli_es": 0,
+    "xnli_ur": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=facebook/xglm-1.7B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

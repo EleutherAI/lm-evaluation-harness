@@ -125,7 +125,8 @@ class TextSynthLM(LM):
         res = []
         for request in tqdm(requests):
             inp = request[0]
-            until = request[1]
+            request_args = request[1]
+            until = request_args["until"]
             response = textsynth_completion(
                 url=self.api_url + "/v1/engines/" + self.engine + "/completions",
                 headers={"Authorization": "Bearer " + self.api_key},
