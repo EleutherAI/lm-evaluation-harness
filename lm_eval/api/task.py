@@ -73,7 +73,7 @@ class TaskConfig(dict):
     repeats: int = 1
 
     metric_list: str = None
-    gold_alias: str = None
+    gold_alias: Union[Callable, str] = None
     output_type: str = "greedy_until"
     generation_kwargs: dict = None
     delimiter: str = "\n\n"
@@ -95,7 +95,7 @@ class TaskConfig(dict):
                 self.doc_to_target = self.template_aliases + self.doc_to_target
 
             if type(self.gold_alias) == str:
-                self.gold_alias = self.template_aliases + self.doc_to_target
+                self.gold_alias = self.template_aliases + self.gold_alias
 
         if self.generation_kwargs or self.output_type == "greedy_until":
             assert (
@@ -737,10 +737,11 @@ class ConfigurableTask(Task):
     def gold_alias(self, doc):
         # TODO: reevaluate if we need this. implemented to have a
         # processed version of answer to put into gsm8k exact_match scoring as ref.
-        if self._config.gold_alias:
+        if self._config.gold_alias is not None:
             doc_to_target = self._config.gold_alias
         else:
-            doc_to_target = self._config.doc_to_target
+            # doc_to_target = self._config.doc_to_target
+            return self.doc_to_target(doc)
 
         if type(doc_to_target) == str:
             return utils.apply_template(doc_to_target, doc)
@@ -842,7 +843,11 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
 
             lls, is_greedy = zip(*results)
-            gold = int(self.doc_to_target(doc))
+            if self._config.gold_alias is not None:
+                gold = int(self.gold_alias(doc))
+            else:
+                gold = int(self.doc_to_target(doc))
+
             pred = np.argmax(lls)
             # retrieve choices in List[str] form, to compute choice lengths, etc.
             choices = ast.literal_eval(
