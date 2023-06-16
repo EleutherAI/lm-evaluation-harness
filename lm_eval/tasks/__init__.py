@@ -3,6 +3,7 @@ from typing import List, Union
 
 from .gsm8k import *
 from .triviaqa import *
+from .glue import *
 
 from lm_eval import utils
 from lm_eval.logger import eval_logger
@@ -12,6 +13,7 @@ from lm_eval.api.registry import (
     register_group,
     TASK_REGISTRY,
     GROUP_REGISTRY,
+    ALL_TASKS,
 )
 
 
@@ -38,6 +40,9 @@ def include_task_folder(task_dir):
                         )
 
                         if "task" in config:
+                            # task_name = "{}:{}".format(
+                            #     get_task_name_from_config(config), config["task"]
+                            # )
                             task_name = "{}".format(config["task"])
                             register_task(task_name)(SubClass)
 
@@ -62,7 +67,7 @@ def get_task(task_name, config):
         return TASK_REGISTRY[task_name](config=config)
     except KeyError:
         eval_logger.info("Available tasks:")
-        eval_logger.info(ALL_TASKS)
+        eval_logger.info(list(TASK_REGISTRY) + list(GROUP_REGISTRY))
         raise KeyError(f"Missing task {task_name}")
 
 

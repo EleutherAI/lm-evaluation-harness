@@ -149,7 +149,7 @@ def evaluate(
     results = collections.defaultdict(dict)
     versions = collections.defaultdict(dict)
     configs = collections.defaultdict(dict)
-
+    samples = collections.defaultdict(list)
     requests = collections.defaultdict(list)
 
     # docs = {}
@@ -232,7 +232,7 @@ def evaluate(
                     enumerate(task.validation_docs()), lm.rank, limit, lm.world_size
                 )
             )
-            example_logger = logging.getLogger("examples")
+
             for doc_id, doc in doc_iterator:
                 # subset instances to only this document id ; sort by idx
                 requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
@@ -249,7 +249,7 @@ def evaluate(
                     "filtered_resps": [req.filtered_resps[key] for req in requests],
                 }
                 example.update(metrics)
-                example_logger.info(json.dumps(example))
+                samples[task_name].append(example)
                 for metric, value in metrics.items():
                     vals[(task_name, key, metric)].append(value)
 
@@ -314,6 +314,7 @@ def evaluate(
             "results": dict(results),
             "configs": dict(configs),
             "versions": dict(versions),
+            "samples": samples,
         }
 
     else:
