@@ -20,6 +20,8 @@ def median(arr):
     return arr[len(arr) // 2]
 
 
+# Certain metrics must be calculated across all documents in a benchmark.
+# We use them as aggregation metrics, paired with no-op passthrough metric fns.
 @register_aggregation("perplexity")
 def perplexity(items):
     return math.exp(-mean(items))
@@ -33,6 +35,25 @@ def weighted_perplexity(items):
 @register_aggregation("bits_per_byte")
 def bits_per_byte(items):
     return -weighted_mean(items) / math.log(2)
+
+
+@register_aggregation("f1")
+def f1_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = sklearn.metrics.f1_score(golds, preds)
+
+    return np.max(fscore)
+
+
+@register_aggregation("matthews_corrcoef")
+def matthews_corrcoef(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    # print(preds)
+    return sklearn.metrics.matthews_corrcoef(golds, preds)
 
 
 @register_metric(
@@ -119,27 +140,24 @@ def mean_stderr(arr):
     return sample_stddev(arr) / math.sqrt(len(arr))
 
 
-@register_metric(metric="matthews_corrcoef", higher_is_better=True, aggregation="mean")
-def matthews_corrcoef(items):
-    unzipped_list = list(zip(*items))
-    golds = unzipped_list[0]
-    preds = unzipped_list[1]
-    return sklearn.metrics.matthews_corrcoef(golds, preds)
+@register_metric(
+    metric="mcc",
+    higher_is_better=True,
+    output_type="multiple_choice",
+    aggregation="matthews_corrcoef",
+)
+def mcc_fn(items):  # This is a passthrough function
+    return items
 
 
 @register_metric(
     metric="f1",
     higher_is_better=True,
     output_type="multiple_choice",
-    aggregation="mean",
+    aggregation="f1",
 )
-def f1_score(items):
-    unzipped_list = list(zip(*items))
-    golds = unzipped_list[0]
-    preds = unzipped_list[1]
-    fscore = sklearn.metrics.f1_score(golds, preds)
-
-    return np.max(fscore)
+def f1_fn(items):  # This is a passthrough function
+    return items
 
 
 @register_metric(

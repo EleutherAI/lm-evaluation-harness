@@ -28,9 +28,16 @@ Homepage: https://www.salesforce.com/products/einstein/ai-research/the-wikitext-
 
 ### Subtasks
 
+* `wikitext`: measure perplexity on the Wikitext dataset, via rolling loglikelihoods.
+
 ### Checklist
 
-- [x] Is in Eval-harness v1.0 ?
-- [x] Has been checked for regression from v1.0?
-- [ ] Has been checked for equivalence with original paper methodology?
-- [ ] "Main" checked variant clearly denoted?
+* [x] Is the task an existing benchmark in the literature?
+  * [x] Have you referenced the original paper that introduced the task?
+  * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
+
+
+If other tasks on this dataset are already supported:
+* [x] Is the "Main" variant of this task clearly denoted?
+* [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
+* [ ] Have you noted which, if any, published evaluation setups are matched by this variant?

@@ -1,0 +1,91 @@
+{
+  "results": {
+    "mc_taco": {
+      "em": 0.12537537537537538,
+      "f1": 0.47458014393437276
+    },
+    "arc_easy": {
+      "acc": 0.5631313131313131,
+      "acc_stderr": 0.010177672928157678,
+      "acc_norm": 0.4810606060606061,
+      "acc_norm_stderr": 0.010252420496894487
+    },
+    "boolq": {
+      "acc": 0.617737003058104,
+      "acc_stderr": 0.008499149690449272
+    },
+    "piqa": {
+      "acc": 0.6877040261153428,
+      "acc_stderr": 0.010812581599154424,
+      "acc_norm": 0.7007616974972797,
+      "acc_norm_stderr": 0.010684130673134581
+    },
+    "copa": {
+      "acc": 0.7,
+      "acc_stderr": 0.046056618647183814
+    },
+    "prost": {
+      "acc": 0.23521562766865928,
+      "acc_stderr": 0.003098672944164254,
+      "acc_norm": 0.2669726729291204,
+      "acc_norm_stderr": 0.00323196492387981
+    },
+    "hellaswag": {
+      "acc": 0.37621987651862177,
+      "acc_stderr": 0.004834461997944872,
+      "acc_norm": 0.46564429396534557,
+      "acc_norm_stderr": 0.004977988452502641
+    },
+    "swag": {
+      "acc": 0.4532140357892632,
+      "acc_stderr": 0.0035195819088979174,
+      "acc_norm": 0.6114665600319904,
+      "acc_norm_stderr": 0.003446127007510879
+    },
+    "openbookqa": {
+      "acc": 0.214,
+      "acc_stderr": 0.01835979750238702,
+      "acc_norm": 0.3,
+      "acc_norm_stderr": 0.020514426225628046
+    },
+    "wsc273": {
+      "acc": 0.7289377289377289,
+      "acc_stderr": 0.02695226692070332
+    },
+    "arc_challenge": {
+      "acc": 0.2354948805460751,
+      "acc_stderr": 0.012399451855004752,
+      "acc_norm": 0.26791808873720135,
+      "acc_norm_stderr": 0.012942030195136423
+    },
+    "winogrande": {
+      "acc": 0.5714285714285714,
+      "acc_stderr": 0.013908353814606709
+    }
+  },
+  "versions": {
+    "mc_taco": 0,
+    "arc_easy": 0,
+    "boolq": 1,
+    "piqa": 0,
+    "copa": 0,
+    "prost": 0,
+    "hellaswag": 0,
+    "swag": 0,
+    "openbookqa": 0,
+    "wsc273": 0,
+    "arc_challenge": 0,
+    "winogrande": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=bigscience/bloom-1b7,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

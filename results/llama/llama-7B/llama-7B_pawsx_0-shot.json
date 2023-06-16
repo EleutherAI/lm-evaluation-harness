@@ -1,0 +1,52 @@
+{
+  "results": {
+    "pawsx_en": {
+      "acc": 0.6185,
+      "acc_stderr": 0.010864524561478635
+    },
+    "pawsx_es": {
+      "acc": 0.561,
+      "acc_stderr": 0.011099599116647334
+    },
+    "pawsx_zh": {
+      "acc": 0.491,
+      "acc_stderr": 0.01118132420626029
+    },
+    "pawsx_fr": {
+      "acc": 0.5295,
+      "acc_stderr": 0.01116365480451166
+    },
+    "pawsx_de": {
+      "acc": 0.5465,
+      "acc_stderr": 0.011134669525078668
+    },
+    "pawsx_ko": {
+      "acc": 0.497,
+      "acc_stderr": 0.011182934722804558
+    },
+    "pawsx_ja": {
+      "acc": 0.567,
+      "acc_stderr": 0.011082279027990133
+    }
+  },
+  "versions": {
+    "pawsx_en": 0,
+    "pawsx_es": 0,
+    "pawsx_zh": 0,
+    "pawsx_fr": 0,
+    "pawsx_de": 0,
+    "pawsx_ko": 0,
+    "pawsx_ja": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/7B",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

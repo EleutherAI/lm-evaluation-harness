@@ -1,0 +1,66 @@
+{
+  "results": {
+    "mnli_mismatched": {
+      "acc": 0.45351912123677784,
+      "acc_stderr": 0.005020956265665617
+    },
+    "wnli": {
+      "acc": 0.4647887323943662,
+      "acc_stderr": 0.0596130578497224
+    },
+    "sst": {
+      "acc": 0.6536697247706422,
+      "acc_stderr": 0.01612186710508361
+    },
+    "cola": {
+      "mcc": 0.0,
+      "mcc_stderr": 0.0
+    },
+    "mnli": {
+      "acc": 0.43555781966377993,
+      "acc_stderr": 0.005005063722742048
+    },
+    "qnli": {
+      "acc": 0.4995423759838916,
+      "acc_stderr": 0.006765407718154766
+    },
+    "mrpc": {
+      "acc": 0.6862745098039216,
+      "acc_stderr": 0.022999936277943434,
+      "f1": 0.8134110787172011,
+      "f1_stderr": 0.01621238238910757
+    },
+    "rte": {
+      "acc": 0.6534296028880866,
+      "acc_stderr": 0.02864445699455754
+    },
+    "qqp": {
+      "acc": 0.3679198614889933,
+      "acc_stderr": 0.0023983700314094665,
+      "f1": 0.5365853658536586,
+      "f1_stderr": 0.0025607085094365924
+    }
+  },
+  "versions": {
+    "mnli_mismatched": 0,
+    "wnli": 1,
+    "sst": 0,
+    "cola": 0,
+    "mnli": 0,
+    "qnli": 0,
+    "mrpc": 0,
+    "rte": 0,
+    "qqp": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/13B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": false,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}
