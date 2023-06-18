@@ -7,3 +7,4 @@ build/
 logs/
 output/
 lm_eval.egg-info/
+shell/

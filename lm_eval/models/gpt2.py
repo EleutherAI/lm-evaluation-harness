@@ -1,7 +1,19 @@
 import torch
 import transformers
-from typing import Optional
+from typing import Optional, Union
 from lm_eval.base import BaseLM
+
+
+def _get_dtype(
+    dtype: Union[str, torch.dtype]
+) -> torch.dtype:
+    """Converts `dtype` from `str` to torch.dtype when possible. Does not use an instantiated HF AutoConfig"""
+    if isinstance(dtype, str) and dtype != "auto":
+        # Convert `str` args torch dtype: `float16` -> `torch.float16`
+        _torch_dtype = getattr(torch, dtype)
+    else:
+        _torch_dtype = dtype
+    return _torch_dtype
 
 
 class HFLM(BaseLM):
@@ -16,6 +28,7 @@ class HFLM(BaseLM):
         batch_size=1,
         load_in_8bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = False,
+        dtype: Optional[Union[str, torch.dtype]]="auto",
     ):
         super().__init__()
 
@@ -46,37 +59,13 @@ class HFLM(BaseLM):
             load_in_8bit=load_in_8bit,
             low_cpu_mem_usage=low_cpu_mem_usage,
             revision=revision,
+            torch_dtype=_get_dtype(dtype),
             trust_remote_code=trust_remote_code,
         ).to(self.device)
         self.gpt2.eval()
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
-<<<<<<< HEAD
-<<<<<<< HEAD
-            revision=revision + ("/" + subfolder if subfolder is not None else ""))
-
-        # assert isinstance(self.tokenizer, (
-        #     transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast,
-        #     transformers.T5Tokenizer, transformers.T5TokenizerFast,
-        # )), "this tokenizer has not been checked for compatibility yet!"
-
-        self.vocab_size = self.tokenizer.vocab_size
-
-        # if isinstance(self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)):
-        #     assert self.tokenizer.encode('hello\n\nhello') == [31373, 198, 198, 31373], \
-        #         self.tokenizer.encode('hello\n\nhello')
-
-        # multithreading and batching
-        self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
-
-        # TODO: fix multi-gpu
-        # gpus = torch.cuda.device_count()
-        # if gpus > 1:
-        #     self.gpt2 = nn.DataParallel(self.gpt2)
-=======
-=======
->>>>>>> e8f38aee79569d51bd6c84f23f4227771291a816
             revision=revision,
             trust_remote_code=trust_remote_code,
         )
@@ -97,12 +86,7 @@ class HFLM(BaseLM):
         if batch_size == "auto":
             self.batch_size_per_gpu = batch_size
         else:
-<<<<<<< HEAD
-            self.batch_size_per_gpu = int(batch_size) 
->>>>>>> 0542d35d5e56768dd9041ef9b88b90256970d843
-=======
             self.batch_size_per_gpu = int(batch_size)
->>>>>>> e8f38aee79569d51bd6c84f23f4227771291a816
 
     @property
     def eot_token_id(self):

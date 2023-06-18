@@ -194,8 +194,6 @@ def _sacreformat(refs, preds):
 
 
 # stderr stuff
-
-
 class _bootstrap_internal:
     def __init__(self, f, n):
         self.f = f

@@ -248,6 +248,7 @@ def evaluate(
 
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]
+                
             for i, req in enumerate(reqs):
                 requests[req.request_type].append(req)
                 # i: index in requests for a single task instance
