@@ -23,7 +23,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] LogiQA
 - [ ] HellaSwag
 - [ ] SWAG
-- [ ] OpenBookQA
+- [x] OpenBookQA
 - [ ] SQuADv2
 - [ ] RACE
 - [ ] HeadQA
