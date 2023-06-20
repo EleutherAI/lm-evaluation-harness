@@ -27,6 +27,7 @@ class HFLM(LM):
     """
 
     AUTO_MODEL_CLASS = None
+
     def __init__(
         self,
         device="cuda",
@@ -44,7 +45,7 @@ class HFLM(LM):
         assert isinstance(batch_size, int)
 
         gpus = torch.cuda.device_count()
-        
+
         if gpus <= 1:
             if device:
                 if device not in ["cuda", "cpu"]:
@@ -68,7 +69,7 @@ class HFLM(LM):
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
-        # get config 
+        # get config
         self._config = transformers.AutoConfig.from_pretrained(
             pretrained,
             revision=revision,
@@ -77,9 +78,12 @@ class HFLM(LM):
         if getattr(self._config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
             self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
         else:
-            self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM 
+            self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
 
-        assert self.AUTO_MODEL_CLASS in [transformers.AutoModelForCausalLM, transformers.AutoModelForSeq2SeqLM]
+        assert self.AUTO_MODEL_CLASS in [
+            transformers.AutoModelForCausalLM,
+            transformers.AutoModelForSeq2SeqLM,
+        ]
 
         self._model = self.AUTO_MODEL_CLASS.from_pretrained(
             pretrained, revision=revision, low_cpu_mem_usage=low_cpu_mem_usage
@@ -127,7 +131,7 @@ class HFLM(LM):
 
                 self._rank = self.accelerator.local_process_index
                 self._world_size = self.accelerator.num_processes
-        
+
     @property
     def config(self):
         # return the associated transformers.AutoConfig for the given pretrained model.
@@ -175,20 +179,18 @@ class HFLM(LM):
         return self._world_size
 
     def tok_encode(self, string: str, left_truncate_len=None):
-        """
-
-        """
+        """ """
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
             add_special_tokens = False
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
             add_special_tokens = True
 
         encoding = self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
-        
+
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
         if left_truncate_len:
             encoding = encoding[-left_truncate_len:]
-        
+
         return encoding
 
     def tok_decode(self, tokens):
@@ -197,23 +199,9 @@ class HFLM(LM):
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
             return self.tokenizer.decode(tokens, skip_special_tokens=True)
 
-    def _model_call(self, inps, attn_mask = None ,labels = None):
-        """
-        inps: a torch tensor of shape [batch, sequence_ctx]
-        the size of sequence may vary from call to call
-
-        labels: a torch tensor of shape [batch, sequence_cont]
-        the size of sequence may vary from call to call
-
-        returns: a torch tensor of shape [batch, sequence, vocab] with the
-        logits returned from the model
-        """
-        with torch.no_grad():
-            return self.model(input_ids = inps, attention_mask = attn_mask, labels = labels).logits
-        
     def _model_call(self, inps, attn_mask=None, labels=None):
         """
-        inps: torch.Tensor
+        :param inps: torch.Tensor
             A torch tensor of shape [batch, (sequence_ctx + sequence_cont)] or of shape
             [batch, sequence_ctx]. the size of sequence may vary from call to call
         :param attn_mask: torch.Tensor, optional
@@ -229,7 +217,9 @@ class HFLM(LM):
         with torch.no_grad():
             if attn_mask or labels:
                 assert self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM
-                return self.model(input_ids = inps, attention_mask = attn_mask, labels = labels).logits
+                return self.model(
+                    input_ids=inps, attention_mask=attn_mask, labels=labels
+                ).logits
             else:
                 assert self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
                 return self.model(inps).logits
@@ -254,16 +244,20 @@ class HFLM(LM):
 
     def _select_cont_toks(self, logits, contlen=None, inplen=None):
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            assert (contlen and inplen), "Must pass input len and cont. len to select scored logits for causal LM" 
+            assert (
+                contlen and inplen
+            ), "Must pass input len and cont. len to select scored logits for causal LM"
             # discard right-padding.
             # also discard the input/context tokens. we'll only score continuations.
             logits = logits[inplen - contlen : inplen]
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
-            assert (contlen and not inplen), "Selecting scored logits for Seq2SeqLM requires only cont. len"
-            # only discard right-padding. 
+            assert (
+                contlen and not inplen
+            ), "Selecting scored logits for Seq2SeqLM requires only cont. len"
+            # only discard right-padding.
             # the logits input to this fn only contain decoder-side tokens.
-            logits = logits[: contlen]
-        
+            logits = logits[:contlen]
+
         return logits
 
     def loglikelihood(self, requests):
@@ -289,14 +283,14 @@ class HFLM(LM):
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.eot_token_id, 
+                        prefix_token=self.eot_token_id,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),
                 )
             )
-            
-            #TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder, in seq2seq case
+
+            # TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder, in seq2seq case
             rolling_token_windows = [(None,) + x for x in rolling_token_windows]
 
             pad_amnt = 0
@@ -386,11 +380,11 @@ class HFLM(LM):
                     inp = torch.tensor(
                         (context_enc)[-self.max_length :],
                         dtype=torch.long,
-                        device=self.device
+                        device=self.device,
                     )
                     (inplen,) = inp.shape
                     cont = torch.tensor(
-                        (continuation_enc)[-self.max_length :], 
+                        (continuation_enc)[-self.max_length :],
                         # TODO: left-shift these?
                         # TODO: our code assumes we never end up truncating conts for either model type
                         dtype=torch.long,
@@ -400,24 +394,43 @@ class HFLM(LM):
 
                     conts.append(cont)
 
-                    padding_len_cont = max(padding_len_cont, contlen) if padding_len_cont is not None else contlen
+                    padding_len_cont = (
+                        max(padding_len_cont, contlen)
+                        if padding_len_cont is not None
+                        else contlen
+                    )
 
-                padding_len_inp = max(padding_len_inp, inplen) if padding_len_inp is not None else inplen
+                padding_len_inp = (
+                    max(padding_len_inp, inplen)
+                    if padding_len_inp is not None
+                    else inplen
+                )
 
                 inps.append(inp)  # [1, inp_length]
                 cont_toks_list.append(continuation_enc)
                 inplens.append(inplen)
-            
+
             # create encoder attn mask and batched conts, if seq2seq
             call_kwargs = {}
             if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-                batched_inps = utils.pad_and_concat(padding_len_inp, inps, padding_side="right") # [batch, padding_len_inp]
+                batched_inps = utils.pad_and_concat(
+                    padding_len_inp, inps, padding_side="right"
+                )  # [batch, padding_len_inp]
             elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
                 # TODO: left-pad encoder inps and mask?
-                batched_inps = utils.pad_and_concat(padding_len_inp, inps) # [batch, padding_len_inp]
-                batched_conts = utils.pad_and_concat(padding_len_cont, conts) # [batch, padding_len_cont]
-                batched_encoder_mask = utils.pad_and_concat(padding_len_inp, encoder_attns) # [batch, padding_len_inp]
-                call_kwargs = {"attn_mask": batched_encoder_mask, "labels": batched_conts}
+                batched_inps = utils.pad_and_concat(
+                    padding_len_inp, inps
+                )  # [batch, padding_len_inp]
+                batched_conts = utils.pad_and_concat(
+                    padding_len_cont, conts
+                )  # [batch, padding_len_cont]
+                batched_encoder_mask = utils.pad_and_concat(
+                    padding_len_inp, encoder_attns
+                )  # [batch, padding_len_inp]
+                call_kwargs = {
+                    "attn_mask": batched_encoder_mask,
+                    "labels": batched_conts,
+                }
 
             multi_logits = F.log_softmax(
                 self._model_call(batched_inps, **call_kwargs), dim=-1
@@ -429,13 +442,15 @@ class HFLM(LM):
 
                 # Slice to original seq length
                 contlen = len(cont_toks)
-                # take only logits in the continuation 
+                # take only logits in the continuation
                 # (discard context toks if decoder-only ; discard right-padding)
-                ctx_len = inplen if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM else None
+                ctx_len = (
+                    inplen
+                    if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
+                    else None
+                )
                 logits = self._select_cont_toks(logits, contlen=contlen, inplen=ctx_len)
-                logits = logits.unsqueeze(
-                    0
-                )  # [1, seq, vocab]
+                logits = logits.unsqueeze(0)  # [1, seq, vocab]
 
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
@@ -506,8 +521,8 @@ class HFLM(LM):
             ).to(self.device)
 
             cont = self._model_generate(
-                context=context_enc, 
-                max_length=context_enc.shape[1] + max_gen_toks, 
+                context=context_enc,
+                max_length=context_enc.shape[1] + max_gen_toks,
                 stop=primary_until,
                 **gen_kwargs,
             )
