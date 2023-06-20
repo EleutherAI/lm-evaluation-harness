@@ -35,7 +35,7 @@ class HFCausalLM(LM):
         assert isinstance(batch_size, int)
 
         gpus = torch.cuda.device_count()
-        
+
         if gpus <= 1:
             if device:
                 if device not in ["cuda", "cpu"]:
@@ -63,7 +63,7 @@ class HFCausalLM(LM):
             pretrained, revision=revision, low_cpu_mem_usage=low_cpu_mem_usage
         ).to(self.device)
         self.model.eval()
-         
+
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision,
@@ -104,7 +104,7 @@ class HFCausalLM(LM):
 
                 self._rank = self.accelerator.local_process_index
                 self._world_size = self.accelerator.num_processes
-        
+
     @property
     def eot_token_id(self):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*

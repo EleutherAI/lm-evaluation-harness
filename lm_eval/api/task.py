@@ -101,7 +101,7 @@ class TaskConfig(dict):
             assert (
                 self.output_type == "greedy_until"
             ), "passed `generation_kwargs`, but not using a generation request type!"
-        elif self.output_type == "greedy_until":    
+        elif self.output_type == "greedy_until":
             # ensure that we greedily generate in absence of explicit arguments otherwise
             self.generation_kwargs = {"do_sample": False, "temperature": 0.0}
 
@@ -905,7 +905,9 @@ class ConfigurableTask(Task):
 
             for key, result in zip(self._metric_fn_list.keys(), results):
                 _dict = self._metric_fn_list[key].compute(
-                    references=[gold], predictions=[result], **self._metric_fn_kwargs[key]
+                    references=[gold],
+                    predictions=[result],
+                    **self._metric_fn_kwargs[key],
                 )
 
                 result_dict = {**result_dict, **_dict}
