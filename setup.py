@@ -29,6 +29,7 @@ setuptools.setup(
     install_requires=[
         "accelerate>=0.18.0",
         "datasets>=2.0.0",
+        "evaluate>=0.4.0",
         "jsonlines",
         "numexpr",
         "openai>=0.6.4",
