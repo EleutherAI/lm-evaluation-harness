@@ -421,9 +421,7 @@ def clear_torch_cache():
     torch.cuda.empty_cache()
 
 
-def get_dtype(
-    dtype: Union[str, torch.dtype]
-) -> torch.dtype:
+def get_dtype(dtype: Union[str, torch.dtype]) -> torch.dtype:
     """Converts `dtype` from `str` to torch.dtype when possible. Does not use an instantiated HF AutoConfig"""
     if isinstance(dtype, str) and dtype != "auto":
         # Convert `str` args torch dtype: `float16` -> `torch.float16`

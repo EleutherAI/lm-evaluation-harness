@@ -23,7 +23,7 @@ class HFLM(LM):
         pretrained="gpt2",
         revision="main",
         low_cpu_mem_usage=None,
-        dtype: Optional[Union[str, torch.dtype]]="auto",
+        dtype: Optional[Union[str, torch.dtype]] = "auto",
         subfolder=None,
         tokenizer=None,
         batch_size=1,
@@ -59,8 +59,8 @@ class HFLM(LM):
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
         self.model = transformers.AutoModelForCausalLM.from_pretrained(
-            pretrained, 
-            revision=revision, 
+            pretrained,
+            revision=revision,
             low_cpu_mem_usage=low_cpu_mem_usage,
             torch_dtype=utils.get_dtype(dtype),
         ).to(self.device)
