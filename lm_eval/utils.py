@@ -432,8 +432,10 @@ def pad_and_concat(max_length:int, tensors: List[torch.Tensor], padding_side="ri
                 tensors[i] = torch.cat(
                         [
                             tensor,  # [seq]
-                            torch.zeros(max_length - tensor_len, dtype=torch.long).to(
-                                tensor.device
+                            torch.zeros(
+                                max_length - tensor_len, 
+                                dtype=torch.long,
+                                device=tensor.device,
                             ),  # [padding_length - seq]
                         ],
                         dim=0,
@@ -442,8 +444,10 @@ def pad_and_concat(max_length:int, tensors: List[torch.Tensor], padding_side="ri
                 # left-pad
                 tensors[i] = torch.cat(
                     [
-                        torch.zeros(max_length - tensor_len, dtype=torch.long).to(
-                            tensor.device
+                        torch.zeros(
+                            max_length - tensor_len, 
+                            dtype=torch.long,
+                            device=tensor.device,
                         ),  # [padding_length - seq]
                         tensor, # [seq]
                     ],
