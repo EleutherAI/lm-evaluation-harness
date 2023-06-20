@@ -39,7 +39,7 @@ def anthropic_completion(
 
 
 @register_model("anthropic")
-class AnthropicLM(BaseLM):
+class AnthropicLM(LM):
     REQ_CHUNK_SIZE = 20
 
     def __init__(self, model):
