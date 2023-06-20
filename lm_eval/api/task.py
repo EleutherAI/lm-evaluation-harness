@@ -436,7 +436,9 @@ class Task(abc.ABC):
             # always prepend the (possibly empty) task description
             labeled_examples = self._config.description
         else:
-            labeled_examples = self._config.description + self.sampler.get_context(doc, num_fewshot)
+            labeled_examples = self._config.description + self.sampler.get_context(
+                doc, num_fewshot
+            )
 
         example = self.doc_to_text(doc)
         return labeled_examples + example
