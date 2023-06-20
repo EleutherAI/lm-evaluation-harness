@@ -19,6 +19,13 @@ from accelerate import Accelerator
 
 @register_model("hf-auto")
 class HFLM(LM):
+    """
+    An abstracted Huggingface model class. Enables usage with both models of
+    `transformers.AutoModelForCausalLM` and `transformers.AutoModelForSeq2SeqLM` classes.
+
+    Supports data-parallel multi-GPU with HF Accelerate.
+    """
+
     AUTO_MODEL_CLASS = None
     def __init__(
         self,
