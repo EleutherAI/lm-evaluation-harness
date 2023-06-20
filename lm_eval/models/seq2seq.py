@@ -19,6 +19,7 @@ from accelerate import Accelerator
 @register_model("hf-seq2seq", "seq2seq")
 class Seq2SeqHFLM(LM):
     _DEFAULT_MAX_LENGTH: int = 2048
+
     def __init__(
         self,
         device="cuda",
@@ -111,7 +112,8 @@ class Seq2SeqHFLM(LM):
 
     @property
     def max_length(self):
-        return self._DEFAULT_MAX_LENGTH #TODO: Is this a good default?
+        return self._DEFAULT_MAX_LENGTH  # TODO: Is this a good default?
+
     @property
     def max_gen_toks(self):
         return 256
@@ -131,14 +133,14 @@ class Seq2SeqHFLM(LM):
     @property
     def world_size(self):
         return self._world_size
-    
+
     def tok_encode(self, string: str):
         return self.tokenizer.encode(string, add_special_tokens=True)
 
     def tok_decode(self, tokens):
         return self.tokenizer.decode(tokens, skip_special_tokens=True)
-    
-    def _model_call(self, inps, attn_mask = None ,labels = None):
+
+    def _model_call(self, inps, attn_mask=None, labels=None):
         """
         inps: a torch tensor of shape [batch, sequence_ctx]
         the size of sequence may vary from call to call
@@ -150,8 +152,10 @@ class Seq2SeqHFLM(LM):
         logits returned from the model
         """
         with torch.no_grad():
-            return self.model(input_ids = inps, attention_mask = attn_mask, labels = labels).logits
-        
+            return self.model(
+                input_ids=inps, attention_mask=attn_mask, labels=labels
+            ).logits
+
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
         # we require users to pass do_sample=True explicitly
         # for non-greedy gen. This should be reevaluated when considering beam search.
@@ -176,8 +180,8 @@ class Seq2SeqHFLM(LM):
                 stopping_criteria=stopping_criteria,
                 pad_token_id=self.eot_token_id,
                 **generation_kwargs,
-        )
-    
+            )
+
     def loglikelihood(self, requests):
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
@@ -192,7 +196,7 @@ class Seq2SeqHFLM(LM):
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
         return self._loglikelihood_tokens(new_reqs)
-    
+
     def loglikelihood_rolling(self, requests):
         loglikelihoods = []
         for (string,) in tqdm([req.args for req in requests], disable=(self.rank != 0)):
@@ -201,14 +205,14 @@ class Seq2SeqHFLM(LM):
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.eot_token_id, 
+                        prefix_token=self.eot_token_id,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),
                 )
             )
-            
-            #TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder
+
+            # TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder
             rolling_token_windows = [(None,) + x for x in rolling_token_windows]
 
             pad_amnt = 0
@@ -237,7 +241,7 @@ class Seq2SeqHFLM(LM):
             loglikelihoods.append(string_nll)
 
         return loglikelihoods
-    
+
     def _loglikelihood_tokens(self, requests, disable_tqdm=False):
         res = []
 
@@ -251,7 +255,7 @@ class Seq2SeqHFLM(LM):
 
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
-        
+
         re_ord = utils.Reorderer(requests, _collate)
         for chunk in utils.chunks(
             tqdm(re_ord.get_reordered(), disable=(disable_tqdm or (self.rank != 0))),
@@ -261,7 +265,7 @@ class Seq2SeqHFLM(LM):
             conts = []
             encoder_attns = []
             cont_toks_list = []
-            
+
             max_batch_length_inp = None
             max_batch_length_cont = None
 
@@ -283,33 +287,48 @@ class Seq2SeqHFLM(LM):
                 ).to(self.device)
                 (contlen,) = cont.shape
 
-                max_batch_length_inp = max(max_batch_length_inp, inplen) if max_batch_length_inp is not None else inplen
-                max_batch_length_cont = max(max_batch_length_cont, contlen) if max_batch_length_cont is not None else contlen
+                max_batch_length_inp = (
+                    max(max_batch_length_inp, inplen)
+                    if max_batch_length_inp is not None
+                    else inplen
+                )
+                max_batch_length_cont = (
+                    max(max_batch_length_cont, contlen)
+                    if max_batch_length_cont is not None
+                    else contlen
+                )
 
                 inps.append(inp)  # [1, inp_len]
-                conts.append(cont) # [1, cont_len]
+                conts.append(cont)  # [1, cont_len]
                 encoder_attns.append(torch.ones_like(inp))
 
                 cont_toks_list.append(continuation_enc)
 
-            batched_inps = utils.pad_and_concat(max_batch_length_inp, inps) # [batch, padding_length]
-            batched_conts = utils.pad_and_concat(max_batch_length_cont, conts) # [batch, padding_length]
-            batched_encoder_mask = utils.pad_and_concat(max_batch_length_inp, encoder_attns)
+            batched_inps = utils.pad_and_concat(
+                max_batch_length_inp, inps
+            )  # [batch, padding_length]
+            batched_conts = utils.pad_and_concat(
+                max_batch_length_cont, conts
+            )  # [batch, padding_length]
+            batched_encoder_mask = utils.pad_and_concat(
+                max_batch_length_inp, encoder_attns
+            )
             # need to make attention mask here too
 
             multi_logits = F.log_softmax(
-                self._model_call(batched_inps, attn_mask = batched_encoder_mask, labels = batched_conts), dim=-1
+                self._model_call(
+                    batched_inps, attn_mask=batched_encoder_mask, labels=batched_conts
+                ),
+                dim=-1,
             ).cpu()  # [batch, padding_length, vocab]
 
             for (cache_key, _, _), logits, cont_toks in zip(
                 chunk, multi_logits, cont_toks_list
             ):
 
-                # Slice to original seq length 
+                # Slice to original seq length
                 contlen = len(cont_toks)
-                logits = logits[: contlen].unsqueeze(
-                    0
-                )  # [1, seq, vocab]
+                logits = logits[:contlen].unsqueeze(0)  # [1, seq, vocab]
 
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
@@ -329,7 +348,7 @@ class Seq2SeqHFLM(LM):
                 res.append(answer)
 
         return re_ord.get_original(res)
-    
+
     def greedy_until(self, requests):
         res = []
 
@@ -370,8 +389,8 @@ class Seq2SeqHFLM(LM):
             ).to(self.device)
 
             cont = self._model_generate(
-                context=context_enc, 
-                max_length=context_enc.shape[1] + max_gen_toks, 
+                context=context_enc,
+                max_length=context_enc.shape[1] + max_gen_toks,
                 stop=primary_until,
                 **gen_kwargs,
             )
@@ -383,4 +402,3 @@ class Seq2SeqHFLM(LM):
             res.append(s)
 
         return re_ord.get_original(res)
-    

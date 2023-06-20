@@ -18,10 +18,11 @@ import torch
 from omegaconf import OmegaConf
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
-import torch 
+
 import transformers
 
 from lm_eval.logger import eval_logger
+
 
 class ExitCodeError(Exception):
     pass
@@ -416,13 +417,16 @@ def create_iterator(raw_iterator, rank, world_size, limit=None):
     """
     return islice(raw_iterator, rank, limit, world_size)
 
-def pad_and_concat(max_length:int, tensors: List[torch.Tensor], padding_side="right"):
-    """ 
-    Method for padding a list of tensors given the maximum tensor 
-    length in the batch. Used for batching inputs and continuations in 
-    seq2seq models. 
+
+def pad_and_concat(max_length: int, tensors: List[torch.Tensor], padding_side="right"):
     """
-    assert padding_side == "left" or padding_side == "right", f"Unrecognized padding type: '{padding_side}' not 'left' or 'right'"
+    Method for padding a list of tensors given the maximum tensor
+    length in the batch. Used for batching inputs and continuations in
+    seq2seq models.
+    """
+    assert (
+        padding_side == "left" or padding_side == "right"
+    ), f"Unrecognized padding type: '{padding_side}' not 'left' or 'right'"
 
     for i, tensor in enumerate(tensors):
         tensor_len = tensor.shape[0]
@@ -430,33 +434,33 @@ def pad_and_concat(max_length:int, tensors: List[torch.Tensor], padding_side="ri
             if padding_side == "right":
                 # right-pad
                 tensors[i] = torch.cat(
-                        [
-                            tensor,  # [seq]
-                            torch.zeros(
-                                max_length - tensor_len, 
-                                dtype=torch.long,
-                                device=tensor.device,
-                            ),  # [padding_length - seq]
-                        ],
-                        dim=0,
-                    ).unsqueeze(0)
+                    [
+                        tensor,  # [seq]
+                        torch.zeros(
+                            max_length - tensor_len,
+                            dtype=torch.long,
+                            device=tensor.device,
+                        ),  # [padding_length - seq]
+                    ],
+                    dim=0,
+                ).unsqueeze(0)
             else:
                 # left-pad
                 tensors[i] = torch.cat(
                     [
                         torch.zeros(
-                            max_length - tensor_len, 
+                            max_length - tensor_len,
                             dtype=torch.long,
                             device=tensor.device,
                         ),  # [padding_length - seq]
-                        tensor, # [seq]
+                        tensor,  # [seq]
                     ],
                     dim=0,
                 ).unsqueeze(0)
         else:
             tensors[i] = tensor.unsqueeze(0)
 
-    return torch.cat(tensors, dim = 0)
+    return torch.cat(tensors, dim=0)
 
 
 def clear_torch_cache():
@@ -464,7 +468,7 @@ def clear_torch_cache():
     torch.cuda.empty_cache()
 
 
-# Multi-token stopping criteria 
+# Multi-token stopping criteria
 class MultiTokenEOSCriteria(transformers.StoppingCriteria):
     """Criteria to stop on the specified multi-token sequence."""
 

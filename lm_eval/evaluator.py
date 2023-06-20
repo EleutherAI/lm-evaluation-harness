@@ -183,10 +183,8 @@ def evaluate(
     # get lists of each type of request
     for task_name, task in task_dict.items():
         versions[task_name] = task.VERSION
-        configs[task_name] = dict(
-            task.dump_config()
-        )
-        
+        configs[task_name] = dict(task.dump_config())
+
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
         # task_docs = list(task_doc_func())
         # rnd = random.Random()
