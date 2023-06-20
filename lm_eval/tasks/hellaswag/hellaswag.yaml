@@ -1,0 +1,19 @@
+group:
+  - multiple_choice
+task: hellaswag
+dataset_path: hellaswag
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: null
+template_aliases: "{% set answer_choices = endings %}{% set gold = label %}"
+doc_to_text: !function preprocess_hellaswag.doc_to_text
+doc_to_target: "{{gold}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
