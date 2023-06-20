@@ -336,7 +336,7 @@ class Task(abc.ABC):
             fewshot_ctx = self.fewshot_context(
                 doc, self._config.num_fewshot, rnd=random.Random()
             )
-            # TODO: hardcoded for now: # of runs on each input to be 2. # TODO: we should override this if doing greedy gen so users don't waste time+compute
+            # TODO: we should override self._config.repeats if doing greedy gen so users don't waste time+compute
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
