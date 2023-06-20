@@ -1,6 +1,6 @@
 # Eval Harness Documentation
 
-Welcome to the docs for the LM Evaluation Harness! 
+Welcome to the docs for the LM Evaluation Harness!
 
 ## Table of Contents
 
