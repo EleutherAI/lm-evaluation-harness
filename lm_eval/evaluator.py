@@ -185,8 +185,8 @@ def evaluate(
         versions[task_name] = task.VERSION
         configs[task_name] = dict(
             task.dump_config()
-        )  # TODO: don't access a private attribute here ; for non-YAML tasks handle this case
-
+        )
+        
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
         # task_docs = list(task_doc_func())
         # rnd = random.Random()
