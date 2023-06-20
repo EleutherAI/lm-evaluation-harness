@@ -379,14 +379,16 @@ class HFLM(LM):
                     inp = torch.tensor(
                         (context_enc)[-self.max_length :],
                         dtype=torch.long,
-                    ).to(self.device)
+                        device=self.device
+                    )
                     (inplen,) = inp.shape
                     cont = torch.tensor(
                         (continuation_enc)[-self.max_length :], 
                         # TODO: left-shift these?
                         # TODO: our code assumes we never end up truncating conts for either model type
                         dtype=torch.long,
-                    ).to(self.device)
+                        device=self.device,
+                    )
                     (contlen,) = cont.shape
 
                     conts.append(cont)
