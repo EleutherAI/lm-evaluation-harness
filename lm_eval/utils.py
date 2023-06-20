@@ -22,15 +22,6 @@ from itertools import islice
 from lm_eval.logger import eval_logger
 
 
-class ExitCodeError(Exception):
-    pass
-
-
-def sh(x):
-    if os.system(x):
-        raise ExitCodeError()
-
-
 def escaped_split(text, sep_char, maxsplit=-1):
     """Split text into a list on occurrences of the given separation
     character `sep_char`. The separation character may be escaped by a
