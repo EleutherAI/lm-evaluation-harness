@@ -103,8 +103,7 @@ def main():
 
     if results is not None:
         samples = results.pop("samples")
-
-        dumped = json.dumps(results, indent=2)
+        dumped = json.dumps(results, indent=2, default=lambda o: str(o))
         print(dumped)
 
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
