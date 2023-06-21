@@ -83,6 +83,14 @@ class CohereLM(BaseLM):
         return 2048
 
     @property
+    def max_encoding_text_char_num(self):
+        # max length of text given to cohere API
+        # to encode to tokens
+        # in number of characters
+        # (number is from prior API errors)
+        return 65536
+
+    @property
     def max_gen_toks(self):
         return 256
 
@@ -97,6 +105,9 @@ class CohereLM(BaseLM):
         raise NotImplementedError()
 
     def tok_encode(self, string: str):
+        if len(string) > self.max_encoding_text_char_num:
+            string = string[self.max_encoding_text_char_num :]
+            print("Attempted to encode too long string. Truncated string.")
         return self.cohere_client.tokenize(text=string).tokens
 
     def tok_decode(self, tokens):
@@ -112,7 +123,6 @@ class CohereLM(BaseLM):
         return self._loglikelihood_tokens(new_reqs)
 
     def loglikelihood_rolling(self, requests):
-
         loglikelihoods = []
         for (string,) in tqdm(requests):
             rolling_token_windows = list(
@@ -120,8 +130,9 @@ class CohereLM(BaseLM):
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.prefix_token,  # only difference to standard base LM class
-                        max_seq_len=self.max_length,
+                        prefix_token=self.prefix_token,  # changed from standard base LM class
+                        max_seq_len=self.max_length
+                        - 1,  # since we add prefix, token subtract one
                         context_len=1,
                     ),
                 )
@@ -208,7 +219,6 @@ class CohereLM(BaseLM):
             disable=disable_tqdm,
         ):
             for decoded_request, context_enc, contin_enc in chunk:
-
                 if decoded_request is not None:
                     (context, continuation) = decoded_request
                 else:
