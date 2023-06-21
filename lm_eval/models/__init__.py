@@ -2,7 +2,6 @@ from . import hf_causal
 from . import openai_completions
 from . import textsynth
 from . import dummy
-from . import seq2seq
-from . import hf_merged
+from . import huggingface
 
 # TODO: implement __all__
