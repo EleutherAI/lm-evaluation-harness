@@ -41,7 +41,6 @@ def parse_args():
     parser.add_argument("--data_sampling", type=float, default=None)
     parser.add_argument("--no_cache", action="store_true")
     parser.add_argument("--decontamination_ngrams_path", default=None)
-    parser.add_argument("--description_dict_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
     parser.add_argument("--write_out", action="store_true", default=False)
     parser.add_argument("--output_base_path", type=str, default=None)
@@ -78,12 +77,6 @@ def main():
 
     eval_logger.info(f"Selected Tasks: {task_names}")
 
-    # TODO: description_dict?
-    # description_dict = {}
-    # if args.description_dict_path:
-    #     with open(args.description_dict_path, "r") as f:
-    #         description_dict = json.load(f)
-
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
@@ -94,7 +87,6 @@ def main():
         device=args.device,
         no_cache=args.no_cache,
         limit=args.limit,
-        # description_dict=description_dict,
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
         write_out=args.write_out,

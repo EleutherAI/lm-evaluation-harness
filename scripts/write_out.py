@@ -13,12 +13,10 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_base_path", required=True)
     parser.add_argument("--tasks", default="all_tasks")
-    parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--sets", type=str, default="val")  # example: val,test
     parser.add_argument("--num_fewshot", type=int, default=1)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--num_examples", type=int, default=1)
-    parser.add_argument("--description_dict_path", default=None)
     return parser.parse_args()
 
 
@@ -31,11 +29,6 @@ def main():
     else:
         task_names = args.tasks.split(",")
     task_dict = tasks.get_task_dict(task_names)
-
-    # description_dict = {}
-    # if args.description_dict_path:
-    #     with open(args.description_dict_path, "r") as f:
-    #         description_dict = json.load(f)
 
     os.makedirs(args.output_base_path, exist_ok=True)
     for task_name, task in task_dict.items():
@@ -55,12 +48,6 @@ def main():
 
         docs = join_iters(iters)
 
-        # description = (
-        #     description_dict[task_name]
-        #     if description_dict and task_name in description_dict
-        #     else ""
-        # )
-
         with open(os.path.join(args.output_base_path, task_name), "w") as f:
             for i, doc in (
                 zip(range(args.num_examples), docs)
@@ -72,7 +59,6 @@ def main():
                     doc=doc,
                     num_fewshot=args.num_fewshot,
                     rnd=rnd,
-                    # description=description,
                 )
                 f.write(ctx + "\n")
 

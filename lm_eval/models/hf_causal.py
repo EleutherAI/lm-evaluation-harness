@@ -12,7 +12,7 @@ from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 
 from accelerate import Accelerator
-from itertools import islice
+from typing import Optional, Union
 
 
 @register_model("hf-causal")
@@ -23,6 +23,7 @@ class HFLM(LM):
         pretrained="gpt2",
         revision="main",
         low_cpu_mem_usage=None,
+        dtype: Optional[Union[str, torch.dtype]] = "auto",
         subfolder=None,
         tokenizer=None,
         batch_size=1,
@@ -58,9 +59,14 @@ class HFLM(LM):
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
         self.model = transformers.AutoModelForCausalLM.from_pretrained(
-            pretrained, revision=revision, low_cpu_mem_usage=low_cpu_mem_usage
+            pretrained,
+            revision=revision,
+            low_cpu_mem_usage=low_cpu_mem_usage,
+            torch_dtype=utils.get_dtype(dtype),
         ).to(self.device)
         self.model.eval()
+
+        print(self.model.dtype)
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
