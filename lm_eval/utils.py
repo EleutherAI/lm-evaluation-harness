@@ -399,7 +399,13 @@ def load_yaml_config(yaml_path):
         return yaml_config
 
 
+def regex_replace(string, pattern, repl, count=0):
+    """Implements the `re.sub` function as a custom Jinja filter."""
+    return re.sub(pattern, repl, string, count=count)
+
+
 env = Environment(loader=BaseLoader, undefined=StrictUndefined)
+env.filters["regex_replace"] = regex_replace
 
 
 def apply_template(template, doc):
