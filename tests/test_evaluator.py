@@ -1,7 +1,11 @@
 import os
-import lm_eval.base as base
+
+# import lm_eval.base as base
+import lm_eval.api.registry as registry
 import lm_eval.tasks as tasks
-import lm_eval.models as models
+
+# import lm_eval.models as models
+
 import lm_eval.evaluator as evaluator
 import random
 import pytest
@@ -15,8 +19,10 @@ import pytest
 def test_evaluator(taskname, task_class):
     task_dict = tasks.get_task_dict([taskname])
 
-    os.system("rm test_cache.db")
-    lm = base.CachingLM(models.get_model("dummy")(), "test_cache.db")
+    # TODO: re-add cachingLM
+    # os.system("rm test_cache.db")
+    # lm = base.CachingLM(models.get_model("dummy")(), "test_cache.db")
+    lm = registry.get_model("dummy")()
 
     def ll_fn(reqs):
         for ctx, cont in reqs:
