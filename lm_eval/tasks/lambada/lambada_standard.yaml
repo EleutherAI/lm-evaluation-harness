@@ -17,6 +17,6 @@ metric_list:
   - metric: perplexity
     aggregation: perplexity
     higher_is_better: false
-  - metric: accuracy
+  - metric: acc
     aggregation: mean
     higher_is_better: true
