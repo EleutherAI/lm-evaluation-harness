@@ -85,11 +85,29 @@ Such that {{question}} will be replaced by `doc["question"]` when rendering the 
 Our intended output is for the model to predict a single whitespace, and then the answer to the question. We do this via:
 ```yaml
 doc_to_target: "{{answer}}"
+gold_alias: "{{answer}}"
 ```
+where `doc_to_target` is *the string that will be appended to inputs for each few-shot example*, and `gold_alias` is *what is passed to our metric function as reference or gold answer to score against*. For example, for GSM8k word problems, `doc_to_target` should be the reference text reasoning chain given in the dataset culminating in the answer, and `gold_alias` should be **only the numeric answer** to the word problem that is given at the end of the reasoning chain, and which the evaluated model's answer will be compared against.
 
 **Important**: We always add one whitespace between the input and output, such that the full input-output string is `doc_to_target(doc) + " " + doc_to_text(doc)`. doc_to_text and doc_to_target should not contain trailing right or left whitespace, respectively.
 
 Users can also fill out the optional `template_aliases` YAML field, which is added ahead of both the `doc_to_text` and `doc_to_target` fields. This field should not contain any test, but only Jinja variable definitions (`{% ... %}` clauses). This can be used to perform more involved string manipulations and renamings of dataset columns while the main prompt fields remain easy to parse visually.
+
+
+#### Multiple choice format
+
+For tasks which are multiple choice (a fixed, finite set of label words per each document) and evaluated via comparing loglikelihoods of all label words (the `multiple_choice` task output type) we enforce a particular convention on prompt format.
+
+An annotated example in the case of SciQ is as follows:
+
+```yaml
+template_aliases: "{% set answer_choices = [distractor1, distractor2, distractor3, correct_answer] %}{% set gold = 3 %}" # `template_aliases` must set the list of possible answer choices to the jinja variable `answer_choices` (List[str]), and set what the index within `answer_choices` of this doc's gold label (correct answer choice).
+doc_to_text: "{{support.lstrip()}}\nQuestion: {{question}}\nAnswer:" # This is the input portion of the prompt for this doc. It will have " {{choice}}" appended to it as target for each choice in answer_choices.
+doc_to_target: "{{answer_choices[gold]}}" # this contains the gold-standard answer choice, selected via indexing to index `gold` in the answer choice list.
+gold_alias: "{{gold}}" # this must be castable to an integer. It must output only the index within `answer_choices` that is the correct label.
+```
+Task implementers are thus able to decide what the answer choices should be for a document, and what prompt format to use.
+
 
 
 ### Using Python Functions for Prompts
@@ -122,21 +140,6 @@ For example, For Super Glue BoolQ, if we want to use the prompt template `GPT-3 
 ```
 use_prompt: "promptsource:GPT-3 Style"
 ```
-
-
-#### Multiple choice format
-
-For tasks which are multiple choice (a fixed, finite set of label words per each document) and evaluated via comparing loglikelihoods of all label words (the `multiple_choice` task output type) we enforce a particular convention on prompt format.
-
-An annotated example in the case of SciQ is as follows:
-
-```yaml
-template_aliases: "{% set answer_choices = [distractor1, distractor2, distractor3, correct_answer] %}{% set gold = 3 %}" # `template_aliases` must set the list of possible answer choices to the jinja variable `answer_choices` (List[str]), and set what the index within `answer_choices` of this doc's gold label (correct answer choice).
-doc_to_text: "{{support.lstrip()}}\nQuestion: {{question}}\nAnswer:" # This is the input portion of the prompt for this doc. It will have " {{choice}}" appended to it as target for each choice in answer_choices.
-doc_to_target: "{{gold}}" # this must be castable to an integer. It must output only the index within `answer_choices` that is the correct label.
-```
-Task implementers are thus able to decide what the answer choices should be for a document, and what prompt format to use.
-
 
 
 ### Setting metrics

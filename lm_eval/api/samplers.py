@@ -7,7 +7,8 @@ class Sampler:
         self.task = task
         self.config = task._config
 
-        self.delimiter = self.config.delimiter
+        self.target_delimiter = self.config.target_delimiter
+        self.fewshot_delimiter = self.config.fewshot_delimiter
 
         self.docs = docs  # HF dataset split, provided by task._fewshot_docs()
         if fewshot_indices:  # subset few-shot docs from
@@ -30,9 +31,12 @@ class Sampler:
         selected_docs = [x for x in fewshotex if x != doc][:num_fewshot]
 
         labeled_examples = (
-            self.delimiter.join(
+            self.fewshot_delimiter.join(
                 [
-                    self.task.doc_to_text(doc) + self.task.doc_to_target(doc)
+                    # TODO: is separating doc_to_text and doc_to_target by one space always desired?
+                    self.task.doc_to_text(doc)
+                    + self.target_delimiter
+                    + self.task.doc_to_target(doc)
                     for doc in selected_docs
                 ]
             )
