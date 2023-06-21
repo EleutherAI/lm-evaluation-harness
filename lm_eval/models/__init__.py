@@ -3,5 +3,6 @@ from . import openai_completions
 from . import textsynth
 from . import dummy
 from . import seq2seq
+from . import hf_merged
 
 # TODO: implement __all__
