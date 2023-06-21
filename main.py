@@ -9,6 +9,7 @@ import logging
 from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger
+from lm_eval.tasks import include_task_folder
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -30,6 +31,7 @@ def parse_args():
         help="Maximal batch size to try with --batch_size auto",
     )
     parser.add_argument("--device", type=str, default=None)
+    parser.add_argument("--include_path", default=None)
     parser.add_argument("--output_path", default=None)
     parser.add_argument(
         "--limit",
@@ -55,6 +57,10 @@ def main():
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
+
+    if args.include_path is not None:
+        eval_logger.info(f"Including path: {args.include_path}")
+        include_task_folder(args.include_path)
 
     if args.tasks is None:
         task_names = ALL_TASKS
