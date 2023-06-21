@@ -1,6 +1,6 @@
 group:
   - super-glue-lm-eval-v1
-task: "boolq"
+task: boolq
 dataset_path: super_glue
 dataset_name: boolq
 output_type: multiple_choice
