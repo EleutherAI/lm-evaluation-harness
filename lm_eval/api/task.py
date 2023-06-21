@@ -70,6 +70,7 @@ class TaskConfig(dict):
     doc_to_target: Union[Callable, str] = None
     doc_to_choice: Union[Callable, str, dict, list] = None
     gold_alias: Union[Callable, str] = None
+    process_results: Union[Callable, str] = None
     use_prompt: str = None
     description: str = ""
     target_delimiter: str = " "
@@ -884,8 +885,8 @@ class ConfigurableTask(Task):
 
     def process_results(self, doc, results):
 
-        # if callable(self._config.process_results):
-        #     return self._config.process_results(doc, results)
+        if callable(self._config.process_results):
+            return self._config.process_results(doc, results)
 
         result_dict = {}
         use_metric = list(self._metric_fn_list.keys())
