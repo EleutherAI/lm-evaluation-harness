@@ -1,0 +1,53 @@
+{
+  "results": {
+    "boolq": {
+      "acc,none": 0.5859327217125382,
+      "acc_stderr,none": 0.008614932353134956
+    }
+  },
+  "configs": {
+    "boolq": {
+      "task": "boolq",
+      "group": [
+        "super-glue-lm-eval-v1"
+      ],
+      "dataset_path": "super_glue",
+      "dataset_name": "boolq",
+      "training_split": "train",
+      "validation_split": "validation",
+      "doc_to_text": "{{passage}}\nQuestion: {{question}}\nAnswer:",
+      "doc_to_target": "label",
+      "doc_to_choice": {
+        "0": "no",
+        "1": "yes"
+      },
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false
+    }
+  },
+  "versions": {
+    "boolq": "Yaml"
+  },
+  "config": {
+    "model": "hf",
+    "model_args": "pretrained=facebook/xglm-1.7B",
+    "num_fewshot": 0,
+    "batch_size": 4,
+    "batch_sizes": [],
+    "device": null,
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000
+  },
+  "git_hash": "c37ad6e"
+}
