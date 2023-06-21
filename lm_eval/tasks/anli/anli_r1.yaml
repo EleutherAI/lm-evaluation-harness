@@ -1,0 +1,15 @@
+group:
+  - anli
+task: anli_r1
+dataset_path: anli
+output_type: multiple_choice
+training_split: train_r1
+validation_split: dev_r1
+test_split: test_r1
+doc_to_text: "{{premise}}\nQuestion: {{hypothesis}}. True, False, or Neither?\nAnswer:"
+doc_to_target: " {{label}}" # this will be cast to an int.
+template_aliases: "{% set answer_choices = ['True', 'False', 'Neither'] %}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
