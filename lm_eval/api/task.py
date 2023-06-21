@@ -73,7 +73,7 @@ class TaskConfig(dict):
     repeats: int = 1
 
     metric_list: str = None
-    gold_alias: str = None
+    gold_alias: Union[Callable, str] = None
     output_type: str = "greedy_until"
     generation_kwargs: dict = None
     delimiter: str = "\n\n"
@@ -95,14 +95,17 @@ class TaskConfig(dict):
                 self.doc_to_target = self.template_aliases + self.doc_to_target
 
             if type(self.gold_alias) == str:
-                self.gold_alias = self.template_aliases + self.doc_to_target
+                self.gold_alias = self.template_aliases + self.gold_alias
 
-        if self.generation_kwargs or self.output_type == "greedy_until":
+        if self.generation_kwargs:
             assert (
                 self.output_type == "greedy_until"
             ), "passed `generation_kwargs`, but not using a generation request type!"
+        elif self.output_type == "greedy_until":
             # ensure that we greedily generate in absence of explicit arguments otherwise
             self.generation_kwargs = {"do_sample": False, "temperature": 0.0}
+
+        # TODO: how to make TaskConfigs be de- and re-serializable, even when using the !function constructor?
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -122,6 +125,9 @@ class TaskConfig(dict):
         for k, v in list(cfg_dict.items()):
             if v is None:
                 cfg_dict.pop(k)
+            elif isinstance(v, Callable):
+                # TODO: this should handle Promptsource template objects as a separate case?
+                cfg_dict[k] = str(v)
         return cfg_dict
 
 
@@ -737,10 +743,11 @@ class ConfigurableTask(Task):
     def gold_alias(self, doc):
         # TODO: reevaluate if we need this. implemented to have a
         # processed version of answer to put into gsm8k exact_match scoring as ref.
-        if self._config.gold_alias:
+        if self._config.gold_alias is not None:
             doc_to_target = self._config.gold_alias
         else:
-            doc_to_target = self._config.doc_to_target
+            # doc_to_target = self._config.doc_to_target
+            return self.doc_to_target(doc)
 
         if type(doc_to_target) == str:
             return utils.apply_template(doc_to_target, doc)
@@ -842,7 +849,11 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
 
             lls, is_greedy = zip(*results)
-            gold = int(self.doc_to_target(doc))
+            if self._config.gold_alias is not None:
+                gold = int(self.gold_alias(doc))
+            else:
+                gold = int(self.doc_to_target(doc))
+
             pred = np.argmax(lls)
             # retrieve choices in List[str] form, to compute choice lengths, etc.
             choices = ast.literal_eval(
@@ -894,7 +905,9 @@ class ConfigurableTask(Task):
 
             for key, result in zip(self._metric_fn_list.keys(), results):
                 _dict = self._metric_fn_list[key].compute(
-                    references=[gold], predictions=[result], **self._metric_kwargs[key]
+                    references=[gold],
+                    predictions=[result],
+                    **self._metric_fn_kwargs[key],
                 )
 
                 result_dict = {**result_dict, **_dict}
