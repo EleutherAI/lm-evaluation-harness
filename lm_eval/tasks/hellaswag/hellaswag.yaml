@@ -9,7 +9,8 @@ validation_split: validation
 test_split: null
 template_aliases: "{% set gold = label %}{% set answer_choices = endings|map('regex_replace', '\\[.*?\\]', '')|map('replace', ' [title]', '. ')|map('replace', '  ', ' ')|list %}" 
 doc_to_text: "{% set text = activity_label ~ ': ' ~ ctx_a ~ ' ' ~ ctx_b.capitalize() %}{{text|regex_replace('\\[.*?\\]', '')|replace(' [title]', '. ')|replace('  ', ' ')}}"
-doc_to_target: "{{gold}}"
+doc_to_target: "{{answer_choices[gold]}}"
+gold_alias: "{{gold}}"
 metric_list:
   - metric: acc
     aggregation: mean
