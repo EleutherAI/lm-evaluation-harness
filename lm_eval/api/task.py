@@ -76,7 +76,8 @@ class TaskConfig(dict):
     gold_alias: Union[Callable, str] = None
     output_type: str = "greedy_until"
     generation_kwargs: dict = None
-    delimiter: str = "\n\n"
+    target_delimiter: str = "\n\n"
+    sample_delimiter: str = " "
     filter_list: Union[str, list] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
