@@ -7,7 +7,7 @@ class Sampler:
         self.task = task
         self.config = task._config
 
-        self.delimiter = self.config.delimiter
+        self.delimiter = self.config.target_delimiter
 
         self.docs = docs  # HF dataset split, provided by task._fewshot_docs()
         if fewshot_indices:  # subset few-shot docs from
