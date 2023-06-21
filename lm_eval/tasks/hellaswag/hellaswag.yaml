@@ -7,8 +7,8 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: null
-template_aliases: "{% set answer_choices = endings %}{% set gold = label %}"
-doc_to_text: !function preprocess_hellaswag.doc_to_text
+template_aliases: "{% set gold = label %}{% set answer_choices = endings|map('regex_replace', '\\[.*?\\]', '')|map('replace', ' [title]', '. ')|map('replace', '  ', ' ')|list %}" 
+doc_to_text: "{% set text = activity_label ~ ': ' ~ ctx_a ~ ' ' ~ ctx_b.capitalize() %}{{text|regex_replace('\\[.*?\\]', '')|replace(' [title]', '. ')|replace('  ', ' ')}}"
 doc_to_target: "{{gold}}"
 metric_list:
   - metric: acc
