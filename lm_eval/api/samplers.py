@@ -31,11 +31,11 @@ class Sampler:
         selected_docs = [x for x in fewshotex if x != doc][:num_fewshot]
 
         labeled_examples = (
-            self.delimiter.join(
+            self.fewshot_delimiter.join(
                 [
                     # TODO: is separating doc_to_text and doc_to_target by one space always desired?
                     self.task.doc_to_text(doc)
-                    + self.fewshot_delimiter
+                    + self.target_delimiter
                     + self.task.doc_to_target(doc)
                     for doc in selected_docs
                 ]
