@@ -398,9 +398,11 @@ def load_yaml_config(yaml_path):
             return final_yaml_config
         return yaml_config
 
+
 def regex_replace(string, pattern, repl, count=0):
     """Implements the `re.sub` function as a custom Jinja filter."""
     return re.sub(pattern, repl, string, count=count)
+
 
 env = Environment(loader=BaseLoader, undefined=StrictUndefined)
 env.filters["regex_replace"] = regex_replace
@@ -423,3 +425,13 @@ def create_iterator(raw_iterator, rank, world_size, limit=None):
 def clear_torch_cache():
     gc.collect()
     torch.cuda.empty_cache()
+
+
+def get_dtype(dtype: Union[str, torch.dtype]) -> torch.dtype:
+    """Converts `dtype` from `str` to torch.dtype when possible. Does not use an instantiated HF AutoConfig"""
+    if isinstance(dtype, str) and dtype != "auto":
+        # Convert `str` args torch dtype: `float16` -> `torch.float16`
+        _torch_dtype = getattr(torch, dtype)
+    else:
+        _torch_dtype = dtype
+    return _torch_dtype

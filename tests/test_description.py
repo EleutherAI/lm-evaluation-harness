@@ -3,7 +3,7 @@ import lm_eval.tasks
 import lm_eval.models
 
 
-def test_description_dict():
+def test_description():
     seed = 42
     num_examples = 1
     task_names = ["hellaswag", "winogrande"]
@@ -37,6 +37,5 @@ def test_description_dict():
                 doc=doc,
                 num_fewshot=1,
                 rnd=rnd,
-                description=description,
             )
             assert description in ctx

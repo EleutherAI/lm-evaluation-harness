@@ -1,5 +1,6 @@
 import os
-from lm_eval.base import BaseLM
+from lm_eval.api.model import LM
+from lm_eval.api.registry import register_model
 from tqdm import tqdm
 import time
 
@@ -37,7 +38,8 @@ def anthropic_completion(
             backoff_time *= 1.5
 
 
-class AnthropicLM(BaseLM):
+@register_model("anthropic")
+class AnthropicLM(LM):
     REQ_CHUNK_SIZE = 20
 
     def __init__(self, model):
