@@ -226,7 +226,8 @@ class HFLM(LM):
         logits returned from the model's decoder
         """
         with torch.no_grad():
-            if attn_mask or labels:
+            if attn_mask is not None or labels is not None:
+                assert attn_mask is not None and labels is not None
                 assert self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM
                 return self.model(
                     input_ids=inps, attention_mask=attn_mask, labels=labels
@@ -394,6 +395,10 @@ class HFLM(LM):
                         device=self.device,
                     )
                     (inplen,) = inp.shape
+
+                    # build encoder attn masks
+                    encoder_attns.append(torch.ones_like(inp))
+
                     cont = torch.tensor(
                         (continuation_enc)[-self.max_length :],
                         # TODO: left-shift these?
