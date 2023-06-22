@@ -64,16 +64,22 @@ def simple_evaluate(
 
     assert tasks != [], "No tasks specified"
 
+    # this is just a temporary fix
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
+
+        additional_args = {
+            "batch_size": batch_size,
+            "device": device,
+        }
+
+        if model in ("hf", "gpt2"):
+            additional_args["no_tokenizer_check"] = no_tokenizer_check
+
         lm = lm_eval.models.get_model(model).create_from_arg_string(
             model_args,
-            {
-                "batch_size": batch_size,
-                "device": device,
-                "no_tokenizer_check": no_tokenizer_check,
-            },
+            additional_args,
         )
     else:
         assert isinstance(model, lm_eval.base.LM)
