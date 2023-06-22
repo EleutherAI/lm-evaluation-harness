@@ -26,7 +26,6 @@ def anthropic_completion(
                 max_tokens_to_sample=max_tokens_to_sample,
                 temperature=temperature,
             )
-            print(response)
             return response["completion"]
         except RuntimeError:
             # TODO: I don't actually know what error Anthropic raises when it times out
@@ -99,7 +98,7 @@ class AnthropicLM(LM):
                 model=self.model,
                 prompt=inp,
                 max_tokens_to_sample=self.max_gen_toks,
-                temperature=0.0,
+                temperature=0.0,  # TODO: implement non-greedy sampling for Anthropic
                 stop=until,
             )
             res.append(response)
