@@ -1,12 +1,18 @@
 group:
   - super-glue-lm-eval-v1
-task: "default"
+task: "boolq"
 dataset_path: super_glue
 dataset_name: boolq
 output_type: multiple_choice
 training_split: train
 validation_split: validation
 doc_to_text: "{{passage}}\nQuestion: {{question}}\nAnswer:"
-doc_to_target: "{{answer_choices[labe]}}"
+doc_to_target: "{{answer_choices[label]}}"
 gold_alias: "{{label}}" # this will be cast to an int.
 template_aliases: "{% set answer_choices = ['no', 'yes'] %}"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
