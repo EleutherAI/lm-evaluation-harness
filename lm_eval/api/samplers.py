@@ -40,7 +40,7 @@ class Sampler:
                     for doc in selected_docs
                 ]
             )
-            + self.delimiter
+            + self.fewshot_delimiter
         )
 
         # only returns the fewshot context! Does not append the document, do this outside the object
