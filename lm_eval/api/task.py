@@ -275,7 +275,7 @@ class Task(abc.ABC):
         else:
             eval_logger.warning(
                 "has_training_docs and has_validation_docs are False"
-                ", using test_docs but this is not recommended."
+                ", using test_docs as fewshot_docs but this is not recommended."
             )
             return self.test_docs()
 
