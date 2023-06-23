@@ -58,7 +58,7 @@ def oa_completion(**kwargs):
 
 
 @register_model("openai", "openai-completions", "gooseai")
-class GPT3LM(LM):
+class OpenaiCompletionsLM(LM):
     REQ_CHUNK_SIZE = 20
 
     def __init__(self, engine, truncate=False):

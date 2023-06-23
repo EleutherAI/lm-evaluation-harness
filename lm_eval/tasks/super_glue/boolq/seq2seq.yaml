@@ -1,9 +1,9 @@
 group:
   - super-glue-lm-eval-v1
-task: "boolq"
+task: "boolq-seq2seq"
 dataset_path: super_glue
 dataset_name: boolq
-output_type: multiple_choice
+output_type: greedy_until
 training_split: train
 validation_split: validation
 doc_to_text: "{{passage}}\nQuestion: {{question}}\nAnswer:"

@@ -22,7 +22,7 @@ def include_task_folder(task_dir):
     Calling this function
     """
     for root, subdirs, file_list in os.walk(task_dir):
-        if (subdirs == []) and (len(file_list) > 0):
+        if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
