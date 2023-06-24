@@ -571,18 +571,12 @@ class HFLM(LM):
                 # max len for inputs = encoder's whole max_length
                 max_ctx_len = self.max_length
 
+            # encode, pad, and truncate contexts
             context_enc, attn_masks = self.tok_batch_encode(
                 contexts, left_truncate_len=max_ctx_len
             )
             context_enc = context_enc.to(self.device)
             attn_masks = attn_masks.to(self.device)
-            #     [self.tok_encode(context, left_truncate_len=max_ctx_len)],
-            #     device=self.device,
-            # ) for context in contexts]
-
-            # padding_len = max([context.shape[1] for context in context_enc])
-            # self.tokenizer.batch_encod
-            # context_enc = utils.pad_and_concat(padding_len, context_enc, padding_side="left")
 
             cont = self._model_generate(
                 context=context_enc,
