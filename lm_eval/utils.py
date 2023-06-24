@@ -434,6 +434,7 @@ def pad_and_concat(max_length: int, tensors: List[torch.Tensor], padding_side="r
     ), f"Unrecognized padding type: '{padding_side}' not 'left' or 'right'"
 
     for i, tensor in enumerate(tensors):
+        tensor = tensor.squeeze(0)  # squeeze, in case passed [1, seq] size
         tensor_len = tensor.shape[0]
         if tensor_len < max_length:
             if padding_side == "right":
