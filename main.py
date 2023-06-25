@@ -69,7 +69,7 @@ def pattern_match(patterns, source_list):
     return sorted(list(task_names))
 
 
-def main():
+def main():    
     args = parse_args()
 
     assert not args.provide_description  # not implemented
