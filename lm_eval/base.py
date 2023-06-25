@@ -399,8 +399,15 @@ class BaseLM(LM):
         res = []
 
         def _collate(x):
+            # the negative sign on len(toks) sorts descending - this has a few advantages:
+            # - time estimates will always be over not underestimates, which is more useful for planning
+            # - to know the size of a batch when going through the list, you know the first one is always the batch
+            #   padded context length. this is useful to simplify the batching logic and more importantly to make
+            #   automatic adaptive batches much much easier to implement
+            # - any OOMs will happen right away rather than near the end
+
             toks = self.tok_encode(x[0])
-            return len(toks), x[0]
+            return -len(toks), x[0]
 
         re_ord = utils.Reorderer(requests, _collate)
 
