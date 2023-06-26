@@ -95,7 +95,7 @@ def process_bucket(
 
 
 def process_sorted_buckets(working_directory, move_dir, process_count):
-    bucket_file_paths = glob.glob(os.path.join(working_directory, f"*.bkt.txt.sorted"))
+    bucket_file_paths = glob.glob(os.path.join(working_directory, "*.bkt.txt.sorted"))
     processed_directory = os.path.join(working_directory, "processed")
     os.makedirs(processed_directory, exist_ok=True)
 

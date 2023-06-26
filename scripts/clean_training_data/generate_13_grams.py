@@ -89,7 +89,7 @@ class Buckets:
             os.path.join(directory, f"ngrams_{i}.bkt.txt") for i in range(num_buckets)
         ]
         self.buckets = list(map(TextArchive, self.bucket_files))
-        self.checkpoint_file = os.path.join(directory, f"bucket_offsets.ckpt")
+        self.checkpoint_file = os.path.join(directory, "bucket_offsets.ckpt")
 
         if os.path.exists(self.checkpoint_file):
             self.bucket_offsets = pickle.load(open(self.checkpoint_file, "rb"))
@@ -129,13 +129,13 @@ def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
     logger.info(f"Generating {n_value}-grams and bucketing.")
 
     # Done file
-    done_file = os.path.join(output_directory, f"ngram_buckets.done")
+    done_file = os.path.join(output_directory, "ngram_buckets.done")
     if os.path.exists(done_file):
         logger.info("ngrams already generated and bucketed, skipping")
         return
 
     # Checkpoint
-    checkpoint_file = os.path.join(working_directory, f"pile_offset.ckpt")
+    checkpoint_file = os.path.join(working_directory, "pile_offset.ckpt")
     if os.path.exists(checkpoint_file):
         checkpoint_offset = pickle.load(open(checkpoint_file, "rb"))
         iterate = True

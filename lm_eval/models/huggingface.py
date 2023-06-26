@@ -277,13 +277,11 @@ class HuggingFaceAutoLM(BaseLM):
 
             model = AutoGPTQForCausalLM.from_quantized(
                 pretrained,
-                model_basename=None if quantized == True else Path(quantized).stem,
+                model_basename=None if quantized is True else Path(quantized).stem,
                 device_map=device_map,
                 max_memory=max_memory,
                 trust_remote_code=trust_remote_code,
-                use_safetensors=True
-                if quantized == True
-                else quantized.endswith(".safetensors"),
+                use_safetensors=True if quantized is True else quantized.endswith(".safetensors"),
                 use_triton=gptq_use_triton,
                 warmup_triton=gptq_use_triton,
             )

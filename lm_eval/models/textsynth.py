@@ -141,7 +141,7 @@ class TextSynthLM(BaseLM):
                 res.append(s)
             else:
                 logger.error(
-                    f"The following response does not contain generated `text`. "
+                    "The following response does not contain generated `text`. "
                     "Got:\n{resp}"
                 )
                 assert False
