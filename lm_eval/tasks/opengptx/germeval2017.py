@@ -118,7 +118,6 @@ class GermEval2017(Task):
         return doc["text"] + "\n\nBewertung:"
 
     def doc_to_target(self, doc):
-
         if doc["sentiment"] == "positive":
             return " gut"
         elif doc["sentiment"] == "negative":

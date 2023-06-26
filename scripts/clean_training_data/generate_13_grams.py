@@ -119,7 +119,6 @@ class Buckets:
 
 
 def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
-
     pile_statistics = json.load(open("pile_statistics.json", "r"))
     pile_document_count = pile_statistics["Document Count"]
     start_offsets = pile_statistics["File Start Offsets"]

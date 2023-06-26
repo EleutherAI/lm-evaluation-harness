@@ -5,7 +5,6 @@ from lm_eval.utils import escaped_split
 
 
 class JsonPerplexity(PerplexityTask):
-
     VERSION = 0
     DATASET_NAME = "json"
 

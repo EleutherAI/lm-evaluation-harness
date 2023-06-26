@@ -49,7 +49,6 @@ parser = argparse.ArgumentParser(description="sort 13gram buckets")
 parser.add_argument("-dir", "--working_directory", default="")
 
 if __name__ == "__main__":
-
     version = 1.00
     print(f"Running version {version}")
 

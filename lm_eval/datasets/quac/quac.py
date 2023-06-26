@@ -105,7 +105,7 @@ class Quac(datasets.GeneratorBasedBuilder):
                 paragraph = row["paragraphs"][0]["context"].replace("CANNOTANSWER", "")
                 qas = row["paragraphs"][0]["qas"]
                 qa_pairs = [(qa["question"], qa["answers"][0]["text"]) for qa in qas]
-                for (question, answer) in qa_pairs:
+                for question, answer in qa_pairs:
                     # Yields examples as (key, example) tuples
                     yield key, {
                         "title": row["title"],

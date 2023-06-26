@@ -24,6 +24,7 @@ _CITATION = """
 }
 """
 
+
 class XCSQABase(MultipleChoiceTask):
     VERSION = 0
     DATASET_PATH = "xcsr"
@@ -40,18 +41,18 @@ class XCSQABase(MultipleChoiceTask):
 
     # def validation_docs(self):
     #     return map(self._process_doc, self.dataset["validation"])
-    
+
     def validation_docs(self):
         # exclude the rows where there is a missing choice
         filtered_docs = []
         for doc in self.dataset["validation"]:
             question = doc["question"]
             choices_text = question["choices"]["text"]
-            
+
             # Check if any value in choices_text is empty
             if all(choices_text):
                 filtered_docs.append(self._process_doc(doc))
-    
+
         return filtered_docs
 
     def _process_doc(self, doc):
@@ -88,7 +89,7 @@ class XCODAHBase(MultipleChoiceTask):
 
     # def validation_docs(self):
     #     return map(self._process_doc, self.dataset["validation"])
-    
+
     def validation_docs(self):
         # exclude the datasets where there is only one sentence as an option
         filtered_docs = []
@@ -103,7 +104,7 @@ class XCODAHBase(MultipleChoiceTask):
 
     def _process_doc(self, doc):
         out_doc = {
-            "query": doc["question"]["choices"]["text"][0].split(".")[0].strip()+ ".",
+            "query": doc["question"]["choices"]["text"][0].split(".")[0].strip() + ".",
             "choices": doc["question"]["choices"]["text"],
             "gold": ["A", "B", "C", "D"].index(doc["answerKey"].strip()),
         }
@@ -111,16 +112,17 @@ class XCODAHBase(MultipleChoiceTask):
 
     def doc_to_text(self, doc):
         return doc["query"]
-    
+
     def doc_to_target(self, doc):
-        # adapted function for doc_to_target to exclude the first sentence of doc["choices"] as this is the context 
-        index=doc["choices"][doc["gold"]].find(".") + 1
+        # adapted function for doc_to_target to exclude the first sentence of doc["choices"] as this is the context
+        index = doc["choices"][doc["gold"]].find(".") + 1
         return " " + doc["choices"][doc["gold"]][index:]
 
     def construct_requests(self, doc, ctx):
-        # adapted function for construct_requests to exclude the first sentence of doc["choices"] as this is the context 
+        # adapted function for construct_requests to exclude the first sentence of doc["choices"] as this is the context
         lls = [
-            rf.loglikelihood(ctx, " {}".format(choice[choice.find(".")+2:]))[0] for choice in doc["choices"]
+            rf.loglikelihood(ctx, " {}".format(choice[choice.find(".") + 2 :]))[0]
+            for choice in doc["choices"]
         ]
         return lls
 

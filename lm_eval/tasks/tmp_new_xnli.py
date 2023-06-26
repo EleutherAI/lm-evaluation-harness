@@ -91,7 +91,6 @@ class XNLIBase(Task):
         )
 
     def doc_to_fewshot_prompt(self, doc):
-
         prompt = self.doc_to_text(doc)
         return prompt.replace("[MASK]", self.doc_to_target(doc)[1:])
 

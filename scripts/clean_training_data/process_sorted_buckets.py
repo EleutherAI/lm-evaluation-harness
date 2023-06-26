@@ -35,7 +35,6 @@ logger = logging.getLogger(__name__)
 def process_bucket(
     bucket_file_path, processed_directory, move_dir, tqdm_func, global_tqdm
 ):
-
     bucket_id = re.sub("\D", "", os.path.basename(bucket_file_path))  # noqa: W605
     done_file = os.path.join(
         processed_directory, f"ngram_bucket_processing_{bucket_id}.done"
@@ -123,7 +122,6 @@ parser.add_argument("-move", "--move_dir", default="")
 parser.add_argument("-procs", "--process_count", type=int, default=4)
 
 if __name__ == "__main__":
-
     logfile_path = "process13grams.log"
     setup_logger_tqdm(logfile_path)
 

@@ -115,7 +115,6 @@ class Math(Task):
         return s[len(left) : -1]
 
     def last_boxed_only_string(self, string):
-
         idx = string.rfind("\\boxed")
         if "\\boxed " in string:
             return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]

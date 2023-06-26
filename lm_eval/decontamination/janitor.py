@@ -104,7 +104,6 @@ def word_ngrams_indices(s, n):
 
 
 class Janitor:
-
     # FIXME delete_chars: Should anything else go here? Special chars?
     def __init__(
         self,

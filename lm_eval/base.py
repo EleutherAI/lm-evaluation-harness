@@ -298,7 +298,6 @@ class BaseLM(LM):
             for (cache_key, _, _), logits, inp, inplen, cont_toks in zip(
                 chunk, multi_logits, inps, inplens, cont_toks_list
             ):
-
                 # Slice to original seq length
                 contlen = len(cont_toks)
                 logits = logits[inplen - contlen : inplen].unsqueeze(
