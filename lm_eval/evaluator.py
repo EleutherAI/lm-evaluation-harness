@@ -378,7 +378,7 @@ def evaluate(
         except FileExistsError:
             pass
 
-        timestamp = datetime.datetime.utcnow().strftime("%d%m%Y-%H:%M:%S")
+        timestamp = datetime.datetime.utcnow().strftime("%d%m%Y-%H-%M-%S")
 
         for task_name, _ in task_dict_items:
             with open(
