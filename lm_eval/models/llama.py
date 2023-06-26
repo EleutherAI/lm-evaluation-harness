@@ -1,8 +1,13 @@
 import requests
 import json
+import logging
+
+from lm_eval.base import BaseLM
 from tqdm import tqdm
 from requests.exceptions import RequestException
 import time
+
+logger = logging.getLogger(__name__)
 
 def llama_completion(base_url, prompt, **kwargs):
     try:
@@ -23,12 +28,15 @@ class LlamaLM(BaseLM):
         res = []
         for context, continuation in tqdm(requests):
             response = llama_completion(self.base_url, context, continuation=continuation)
-            if response and "logprob" in response:
-                logprob = response["logprob"]
-                is_greedy = response["is_greedy"]
+            print(f"Loglikelihood response: {response}")
+            if response and "choices" in response and response["choices"]:
+                choice = response["choices"][0]
+                logprobs = choice.get("logprobs")
+                logprob = logprobs["token_logprobs"][0] if logprobs and logprobs["token_logprobs"] else -1.2345
+                is_greedy = choice["finish_reason"] == "length"
                 res.append((logprob, is_greedy))
             else:
-                logger.error("Invalid response for loglikelihood")
+                logger.error(f"Invalid response for loglikelihood. Response: {response}")
                 assert False
         return res
 
@@ -41,11 +49,53 @@ class LlamaLM(BaseLM):
             inp = request[0]
             request_args = request[1]
             until = request_args["until"]
-            response = llama_completion(self.base_url, inp, stop=until)
+            response = self.llama_completion(inp, context=res, stop=until)  # Pass the context
+            print(f"Greedy_until response: {response}")
             if response and "text" in response:
-                s = response["text"]
-                res.append(s)
+                generated_text = response["text"].strip()
+                res.append(generated_text)
             else:
-                logger.error("Invalid response for greedy_until")
-                assert False
+                logger.error(f"Invalid response for greedy_until. Response: {response}")
+                continue
         return res
+    
+    def _model_call(self, inps):
+        # Placeholder implementation
+        raise NotImplementedError()
+
+    def _model_generate(self, context, max_length, eos_token_id):
+        # Placeholder implementation
+        raise NotImplementedError()
+
+    @property
+    def batch_size(self):
+        # Placeholder implementation
+        raise NotImplementedError()
+
+    @property
+    def device(self):
+        # Placeholder implementation
+        raise NotImplementedError()
+
+    @property
+    def eot_token_id(self):
+        # Placeholder implementation
+        raise NotImplementedError()
+
+    @property
+    def max_length(self):
+        # Placeholder implementation
+        raise NotImplementedError()
+
+    @property
+    def max_gen_toks(self):
+        # Placeholder implementation
+        raise NotImplementedError()
+
+    def tok_encode(self, string: str):
+        # Placeholder implementation
+        raise NotImplementedError()
+
+    def tok_decode(self, tokens):
+        # Placeholder implementation
+        raise NotImplementedError()
