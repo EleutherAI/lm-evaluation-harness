@@ -18,7 +18,7 @@ def llama_completion(base_url, prompt, **kwargs):
         print(f"RequestException: {e}")
         return None
 
-class LlamaLM(BaseLM):
+class LlamaCppLM(BaseLM):
     def __init__(self, base_url, truncate=False):
         super().__init__()
         self.base_url = base_url

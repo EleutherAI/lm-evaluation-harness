@@ -1,11 +1,11 @@
 import unittest
 from unittest.mock import MagicMock
-from lm_eval.models.llama import LlamaLM
+from lm_eval.models.llama import LlamaCppLM
 
-class LlamaLMTest(unittest.TestCase):
+class LlamaCppLMTest(unittest.TestCase):
     def test_loglikelihood(self):
         base_url = "https://matthoffner-ggml-llm-api.hf.space"
-        lm = LlamaLM(base_url)
+        lm = LlamaCppLM(base_url)
 
         # Create a MagicMock object to mock llama_completion
         llama_completion_mock = MagicMock()
@@ -29,7 +29,7 @@ class LlamaLMTest(unittest.TestCase):
 
     def test_greedy_until(self):
         base_url = "https://matthoffner-ggml-llm-api.hf.space"
-        lm = LlamaLM(base_url)
+        lm = LlamaCppLM(base_url)
 
         # Define the llama_completion method with the desired behavior
         def llama_completion_mock(url, context, stop=None):
@@ -47,9 +47,6 @@ class LlamaLMTest(unittest.TestCase):
         # Assert the greedy_until response is correct
         expected_res = ["generated_text1", "generated_text2"]
         self.assertEqual(res, expected_res)
-
-
-
 
 if __name__ == "__main__":
     unittest.main()
