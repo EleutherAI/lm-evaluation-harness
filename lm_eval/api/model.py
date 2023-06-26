@@ -104,3 +104,17 @@ class LM(abc.ABC):
         args = utils.simple_parse_args_string(arg_string)
         args2 = {k: v for k, v in additional_config.items() if v is not None}
         return cls(**args, **args2)
+
+    @property
+    def rank(self):
+        # used in the case of parallelism. Hardcoded to
+        # ensure no errors arise using API models which do
+        # not support multi-device parallelism nor expect it.
+        return 0
+
+    @property
+    def world_size(self):
+        # used in the case of parallelism. Hardcoded to
+        # ensure no errors arise using API models which do
+        # not support multi-device parallelism nor expect it.
+        return 1
