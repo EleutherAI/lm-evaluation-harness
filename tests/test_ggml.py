@@ -1,23 +1,23 @@
 import unittest
 from unittest.mock import MagicMock
-from lm_eval.models.llama import LlamaCppLM
+from lm_eval.models.ggml import GGMLLM
 
-class LlamaCppLMTest(unittest.TestCase):
+class GGMLLMTest(unittest.TestCase):
     def test_loglikelihood(self):
         base_url = "https://matthoffner-ggml-llm-api.hf.space"
-        lm = LlamaCppLM(base_url)
+        lm = GGMLLM(base_url)
 
-        # Create a MagicMock object to mock llama_completion
-        llama_completion_mock = MagicMock()
+        # Create a MagicMock object to mock ggml_completion
+        ggml_completion_mock = MagicMock()
 
         # Set the return value for the mocked function
-        llama_completion_mock.return_value = {
+        ggml_completion_mock.return_value = {
             "logprob": -1.2345,
             "is_greedy": True
         }
 
-        # Patch the llama_completion function with the mocked function
-        lm.llama_completion = llama_completion_mock
+        # Patch the ggml_completion function with the mocked function
+        lm.ggml_completion = ggml_completion_mock
 
         # Test loglikelihood
         requests = [("context1", "continuation1"), ("context2", "continuation2")]
@@ -29,16 +29,16 @@ class LlamaCppLMTest(unittest.TestCase):
 
     def test_greedy_until(self):
         base_url = "https://matthoffner-ggml-llm-api.hf.space"
-        lm = LlamaCppLM(base_url)
+        lm = GGMLLM(base_url)
 
-        # Define the llama_completion method with the desired behavior
-        def llama_completion_mock(url, context, stop=None):
+        # Define the ggml_completion method with the desired behavior
+        def ggml_completion_mock(url, context, stop=None):
             if stop is not None:
                 return {"text": f"generated_text{stop[-1]}"}
             return {"text": "generated_text"}
 
-        # Set the llama_completion method to the defined mock
-        lm.llama_completion = llama_completion_mock
+        # Set the ggml_completion method to the defined mock
+        lm.ggml_completion = ggml_completion_mock
 
         # Test greedy_until
         requests = [("input1", {"until": "stop1"}), ("input2", {"until": "stop2"})]

@@ -9,7 +9,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
-def llama_completion(base_url, prompt, **kwargs):
+def ggml_completion(base_url, prompt, **kwargs):
     try:
         response = requests.post(f"{base_url}/v1/completions", json=kwargs)
         response.raise_for_status()
@@ -18,7 +18,7 @@ def llama_completion(base_url, prompt, **kwargs):
         print(f"RequestException: {e}")
         return None
 
-class LlamaCppLM(BaseLM):
+class GGMLLM(BaseLM):
     def __init__(self, base_url, truncate=False):
         super().__init__()
         self.base_url = base_url
@@ -27,7 +27,7 @@ class LlamaCppLM(BaseLM):
     def loglikelihood(self, requests):
         res = []
         for context, continuation in tqdm(requests):
-            response = llama_completion(self.base_url, context, continuation=continuation)
+            response = ggml_completion(self.base_url, context, continuation=continuation)
             print(f"Loglikelihood response: {response}")
             if response and "choices" in response and response["choices"]:
                 choice = response["choices"][0]
@@ -49,7 +49,7 @@ class LlamaCppLM(BaseLM):
             inp = request[0]
             request_args = request[1]
             until = request_args["until"]
-            response = self.llama_completion(inp, context=res, stop=until)  # Pass the context
+            response = self.ggml_completion(inp, context=res, stop=until)  # Pass the context
             print(f"Greedy_until response: {response}")
             if response and "text" in response:
                 generated_text = response["text"].strip()
