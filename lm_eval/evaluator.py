@@ -185,7 +185,7 @@ def evaluate(
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
-    if limit is not None:
+        if limit is not None:
             if task.has_test_docs():
                 task_docs = task.test_docs()
             elif task.has_validation_docs():
