@@ -1,7 +1,7 @@
-from . import hf_causal
+from . import huggingface
 from . import openai_completions
+from . import anthropic_llms
 from . import textsynth
 from . import dummy
-from . import huggingface
 
 # TODO: implement __all__
