@@ -28,7 +28,7 @@ _CITATION = """
 
 
 class TriviaQA(Task):
-    VERSION = 3
+    VERSION = 2
     DATASET_PATH = "trivia_qa"
     DATASET_NAME = "rc.nocontext"
 
@@ -86,11 +86,9 @@ class TriviaQA(Task):
         return continuation
 
     def process_results(self, doc, results):
-        generated = results[0].strip().lower().translate(str.maketrans('', '', string.punctuation))
-        list_of_truth_candidates = [alias.lower().translate(str.maketrans('', '', string.punctuation)) for alias in self._remove_prefixes(doc["answer"]["aliases"])]
-        def match(candidate):
-            return candidate in generated
-        return {"em": float(any(match(candidate) for candidate in list_of_truth_candidates))}
+        continuation = results[0].strip().lower().translate(str.maketrans('', '', string.punctuation))
+        list_of_candidates = [alias.lower().translate(str.maketrans('', '', string.punctuation)) for alias in self._remove_prefixes(doc["answer"]["aliases"])]
+        return {"em": float(continuation in list_of_candidates)}
 
     def aggregation(self):
         return {
