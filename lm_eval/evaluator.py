@@ -77,7 +77,7 @@ def simple_evaluate(
             model_args, {"batch_size": batch_size, "max_batch_size": max_batch_size, "device": device}
         )
     elif isinstance(model, transformers.PreTrainedModel):
-        lm = HFLM(
+        lm = lm_eval.models.get_model("hf-causal")(
                 pretrained=model,
                 batch_size=batch_size,
                 )
