@@ -1,10 +1,11 @@
 import requests
 import logging
 import time
-from lm_eval.utils import Reorderer
-from lm_eval.base import BaseLM
 from tqdm import tqdm
 from requests.exceptions import RequestException
+
+from lm_eval.utils import Reorderer
+from lm_eval.base import BaseLM
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +75,20 @@ class GGMLLM(BaseLM):
                 res.append(None)  # Add default value in case of error
         return reorderer.get_original(res)
 
+    def loglikelihood_rolling(self, requests):
+        results = []
+
+        for request in requests:
+            logprobs = []
+            for i in range(0, len(request), self.max_length):
+                chunk = request[i:i+self.max_length]
+                chunk_loglikelihood = self.loglikelihood([(chunk, request[i+1:i+self.max_length+1])])
+                logprobs.extend(chunk_loglikelihood)
+            
+            avg_loglikelihood = sum([logprob for logprob, _ in logprobs]) / len(logprobs)
+            results.append((avg_loglikelihood, True))
+
+        return results
 
     
     def _model_call(self, inps):
@@ -100,9 +115,8 @@ class GGMLLM(BaseLM):
         raise NotImplementedError()
 
     @property
-    def max_length(self):
-        # Placeholder implementation
-        raise NotImplementedError()
+    def max_length(self):        
+        return 1024
 
     @property
     def max_gen_toks(self):

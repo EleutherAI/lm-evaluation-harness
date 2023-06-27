@@ -62,5 +62,18 @@ class GGMLLMTest(unittest.TestCase):
         expected_res = ["generated text until stop1", "generated text until stop1"]
         self.assertEqual(res, expected_res)
 
+    @patch('lm_eval.models.ggml.ggml_completion', side_effect=ggml_completion_mock)
+    def test_loglikelihood_rolling(self, ggml_completion_mock):
+        lm = GGMLLM(base_url)
+
+        # Test loglikelihood_rolling
+        requests = ["input1", "input2"]
+        res = lm.loglikelihood_rolling(requests)
+
+        # Assert the loglikelihood_rolling response is correct
+        expected_res = [(-1.2345, True), (-1.2345, True)]
+        self.assertEqual(res, expected_res)
+
+
 if __name__ == "__main__":
     unittest.main()
