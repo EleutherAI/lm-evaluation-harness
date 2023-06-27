@@ -1,15 +1,12 @@
 import requests
-import json
 import logging
-
 from lm_eval.base import BaseLM
 from tqdm import tqdm
 from requests.exceptions import RequestException
-import time
 
 logger = logging.getLogger(__name__)
 
-def ggml_completion(base_url, prompt, **kwargs):
+def ggml_completion(base_url, **kwargs):
     try:
         response = requests.post(f"{base_url}/v1/completions", json=kwargs)
         response.raise_for_status()
@@ -27,8 +24,7 @@ class GGMLLM(BaseLM):
     def loglikelihood(self, requests):
         res = []
         for context, continuation in tqdm(requests):
-            response = ggml_completion(self.base_url, context, continuation=continuation)
-            print(f"Loglikelihood response: {response}")
+            response = ggml_completion(self.base_url, context=context, continuation=continuation)
             if response and "choices" in response and response["choices"]:
                 choice = response["choices"][0]
                 logprobs = choice.get("logprobs")
@@ -49,8 +45,7 @@ class GGMLLM(BaseLM):
             inp = request[0]
             request_args = request[1]
             until = request_args["until"]
-            response = self.ggml_completion(inp, context=res, stop=until)  # Pass the context
-            print(f"Greedy_until response: {response}")
+            response = ggml_completion(self.base_url, context=inp, stop=until)
             if response and "text" in response:
                 generated_text = response["text"].strip()
                 res.append(generated_text)
