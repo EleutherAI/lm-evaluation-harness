@@ -21,7 +21,7 @@ def ggml_completion_mock(base_url, **kwargs):
     else:
         print("The file does not exist, attempting to write...")  
         if 'stop' in kwargs:
-            result = {"choices": [{"logprobs": {"token_logprobs": [-1.2345]}, "finish_reason": "length"}]}
+            result = {"choices": [{"text": f"generated text until {kwargs['stop']}", "logprobs": {"token_logprobs": [-1.2345]}, "finish_reason": "length"}]}
         else:
             result = {"choices": [{"logprobs": {"token_logprobs": [-1.2345]}, "finish_reason": "length"}]}
 
@@ -36,12 +36,11 @@ def ggml_completion_mock(base_url, **kwargs):
 
         return result
 
-class GGMLLMTest(unittest.TestCase):
-    @patch('lm_eval.models.ggml.ggml_completion', new=ggml_completion_mock)
-    def test_loglikelihood(self):
-        lm = GGMLLM(base_url)
 
-        lm.ggml_completion = ggml_completion_mock
+class GGMLLMTest(unittest.TestCase):
+    @patch('lm_eval.models.ggml.ggml_completion', side_effect=ggml_completion_mock)
+    def test_loglikelihood(self, ggml_completion_mock):
+        lm = GGMLLM(base_url)
 
         # Test loglikelihood
         requests = [("context1", "continuation1"), ("context2", "continuation2")]
@@ -51,19 +50,16 @@ class GGMLLMTest(unittest.TestCase):
         expected_res = [(logprob, True) for logprob in [-1.2345, -1.2345]]
         self.assertEqual(res, expected_res)
 
-    @patch('lm_eval.models.ggml.ggml_completion', new=ggml_completion_mock)
-    def test_greedy_until(self):
+    @patch('lm_eval.models.ggml.ggml_completion', side_effect=ggml_completion_mock)
+    def test_greedy_until(self, ggml_completion_mock):
         lm = GGMLLM(base_url)
-
-        # Set the ggml_completion method to the defined mock
-        lm.ggml_completion = ggml_completion_mock
 
         # Test greedy_until
         requests = [("input1", {"until": "stop1"}), ("input2", {"until": "stop2"})]
         res = lm.greedy_until(requests)
 
         # Assert the greedy_until response is correct
-        expected_res = []
+        expected_res = ["generated text until stop1", "generated text until stop1"]
         self.assertEqual(res, expected_res)
 
 if __name__ == "__main__":
