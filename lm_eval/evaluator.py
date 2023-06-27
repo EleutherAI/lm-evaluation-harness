@@ -113,8 +113,13 @@ def simple_evaluate(
     )
 
     # add info about the model and few shot config
+    model_name = None
+    if isinstance(model, str):
+        model_name = model
+    elif isinstance(model, transformers.PreTrainedModel):
+        model_name = "pretrained=" + model.config._name_or_path
     results["config"] = {
-        "model": (model if isinstance(model, str) else model.model.config._name_or_path),
+        "model": model_name,
         "model_args": model_args,
         "num_fewshot": num_fewshot,
         "batch_size": batch_size,
