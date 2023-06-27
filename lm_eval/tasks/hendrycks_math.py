@@ -63,7 +63,7 @@ class Math(Task):
         return " " + doc["solution"]
 
     def construct_requests(self, doc, ctx):
-        return rf.greedy_until(ctx, ["\n"])
+        return rf.greedy_until(ctx, {"until": ["\n"]})
 
     def process_results(self, doc, results):
         retval = 0
@@ -115,7 +115,6 @@ class Math(Task):
         return s[len(left) : -1]
 
     def last_boxed_only_string(self, string):
-
         idx = string.rfind("\\boxed")
         if "\\boxed " in string:
             return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]

@@ -55,7 +55,7 @@ class CoQA(Task):
         # Given a passage p, the conversation history {q1, a1, . . . qi−1, ai−1}
         # and a question qi, the task is to predict the answer ai
         doc_text = doc["story"] + "\n\n"
-        for (q, a) in zip_longest(
+        for q, a in zip_longest(
             doc["questions"]["input_text"], doc["answers"]["input_text"][:-1]
         ):  # omit target answer ai
             question = f"Q: {q}\n\n"
@@ -141,7 +141,7 @@ class CoQA(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        cont_request = rf.greedy_until(ctx, ["\nQ:"])
+        cont_request = rf.greedy_until(ctx, {"until": ["\nQ:"]})
         return cont_request
 
     def process_results(self, doc, results):

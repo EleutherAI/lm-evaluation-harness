@@ -123,7 +123,8 @@ class TextSynthLM(BaseLM):
         res = []
         for request in tqdm(requests):
             inp = request[0]
-            until = request[1]
+            request_args = request[1]
+            until = request_args["until"]
             response = textsynth_completion(
                 url=self.api_url + "/v1/engines/" + self.engine + "/completions",
                 headers={"Authorization": "Bearer " + self.api_key},
@@ -140,7 +141,7 @@ class TextSynthLM(BaseLM):
                 res.append(s)
             else:
                 logger.error(
-                    f"The following response does not contain generated `text`. "
+                    "The following response does not contain generated `text`. "
                     "Got:\n{resp}"
                 )
                 assert False

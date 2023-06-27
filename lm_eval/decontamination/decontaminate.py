@@ -25,6 +25,7 @@ def get_train_overlap_stub(docs, ngrams_path, ngrams_n_size):
 # scripts are an info.json file containing the n_gram_size (13) and a bunch of "ngrams_{x}.bkt.txt.sorted.zst"
 # files. These should exist in the "ngrams_path" provided to this function.
 
+
 # Algorithm:
 # 1. Build lookups for each dataset {ngram: list(document_ids)}
 # 2. Merge into an overall lookup {ngram: [(task_name, task_set, doc_ids),]}
@@ -108,7 +109,7 @@ def get_train_overlap(docs_by_task_set, ngrams_path, limit):
         print(f"Merging lookups took {elapsed:0.5f} seconds.")
 
         print(f"{ngrams_n_size} grams files found in {ngrams_path}:")
-        files = glob.glob(os.path.join(ngrams_path, f"*.sorted.zst"))
+        files = glob.glob(os.path.join(ngrams_path, "*.sorted.zst"))
         print(files)
 
         for file in files:

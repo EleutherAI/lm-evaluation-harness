@@ -57,7 +57,7 @@ def test_generate_13_grams_1(caplog):
     print("rebuild")
     rebuilt_ngrams = []
     bucket_file_paths = glob.glob(
-        os.path.join(test_working_directory, "output", f"*.bkt.txt")
+        os.path.join(test_working_directory, "output", "*.bkt.txt")
     )
     for bucket_file_path in bucket_file_paths:
         reader = TextReader(bucket_file_path)

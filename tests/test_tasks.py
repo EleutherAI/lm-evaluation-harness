@@ -80,7 +80,6 @@ def test_documents_and_requests(taskname, task_class):
     for fn in fns:
         # print(list(islice(fn(), 10)))
         for doc in islice(fn(), 10):
-
             txt = task.doc_to_text(doc)
             tgt = task.doc_to_target(doc)
 

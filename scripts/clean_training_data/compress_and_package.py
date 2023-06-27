@@ -35,7 +35,7 @@ def compress_and_move(working_directory, output_directory, process_count):
 
     tasks = []
     bucket_file_paths = glob.glob(
-        os.path.join(working_directory, "output", f"*.bkt.txt.sorted")
+        os.path.join(working_directory, "output", "*.bkt.txt.sorted")
     )
     for bucket_file_path in bucket_file_paths:
         task = (process_task, (working_directory, output_directory, bucket_file_path))

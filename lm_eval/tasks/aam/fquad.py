@@ -86,7 +86,7 @@ class FQuAD(Task):
         return " " + answer
 
     def construct_requests(self, doc, ctx):
-        continuation = rf.greedy_until(ctx, ["\n"])
+        continuation = rf.greedy_until(ctx, {"until": ["\n"]})
         is_unanswerable = rf.loglikelihood(ctx, " " + "unanswerable")
         return continuation, is_unanswerable
 

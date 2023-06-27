@@ -3,3 +3,6 @@ rouge
 nin
 oder
 ist
+maka
+mor
+te
