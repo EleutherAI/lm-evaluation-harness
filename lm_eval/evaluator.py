@@ -79,6 +79,7 @@ def simple_evaluate(
     elif isinstance(model, transformers.PreTrainedModel):
         lm = HFLM(
                 pretrained=model,
+                batch_size=batch_size,
                 )
         no_cache = True
     else:
