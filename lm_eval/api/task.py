@@ -718,12 +718,14 @@ class ConfigurableTask(Task):
             raise TypeError
 
     def gold_alias(self, doc):
-        # TODO: reevaluate if we need this. implemented to have a
-        # processed version of answer to put into gsm8k exact_match scoring as ref.
+        # returns a version of the gold target answer to a document,
+        # which should be passed into metric for scoring as the ground truth.
+
+        # in multiple_choice tasks, this should be castable to an int corresponding to the index
+        # within the answer choices, while doc_to_target is the string version of {{answer_choices[gold]}}.
         if self._config.gold_alias is not None:
             doc_to_target = self._config.gold_alias
         else:
-            # doc_to_target = self._config.doc_to_target
             return self.doc_to_target(doc)
 
         if type(doc_to_target) == str:
@@ -772,7 +774,7 @@ class ConfigurableTask(Task):
                         Instance(
                             request_type="loglikelihood",
                             doc=doc,
-                            arguments=("", " {}".format(choice)),
+                            arguments=("", "{}".format(choice)),
                             idx=i,
                             **kwargs,
                         )
