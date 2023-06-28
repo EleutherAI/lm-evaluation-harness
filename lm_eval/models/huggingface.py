@@ -67,7 +67,8 @@ class HFLM(LM):
         batch_size=1,
         dtype: Optional[Union[str, torch.dtype]] = "auto",
         # arguments used for splitting a model across GPUs naively.
-        use_accelerate: Optional[bool] = False,
+        # only used if `parallelize=True`.
+        parallelize: Optional[bool] = False,
         device_map_option: Optional[str] = "auto",
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
@@ -81,7 +82,8 @@ class HFLM(LM):
 
         gpus = torch.cuda.device_count()
 
-        if gpus <= 1:
+        if gpus <= 1 and not parallelize:
+            # use user-passed device
             if device:
                 if device not in ["cuda", "cpu"]:
                     device = int(device)
@@ -95,23 +97,21 @@ class HFLM(LM):
                     if torch.cuda.is_available()
                     else torch.device("cpu")
                 )
-            self._rank = 0
-            self._world_size = 1
-
-        elif not use_accelerate:
-            self._device = "cpu"
         else:
+            eval_logger.info(
+                f"Passed device '{device}', but using `accelerate launch` or `parallelize=True`. This will be overridden when placing model."
+            )
+            # TODO: include in warning that `load_in_8bit` etc. affect this too
             self._device = device
 
         model_kwargs = {}
-        if use_accelerate:
+        if parallelize:
             model_kwargs = _get_accelerate_args(
                 device_map_option,
                 max_memory_per_gpu,
                 max_cpu_memory,
                 offload_folder,
             )
-        print(model_kwargs)
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
@@ -138,11 +138,14 @@ class HFLM(LM):
             low_cpu_mem_usage=low_cpu_mem_usage,
             **model_kwargs,
             torch_dtype=utils.get_dtype(dtype),
-        )  # .to(self.device)
+        )
         # forever after, access self._model through self.model property
         self.model.eval()
-        # TODO: call self.model.tie_weights() here
-
+        self.model.tie_weights()
+        if gpus <= 1 and not parallelize:
+            # place model onto device, if not using HF Accelerate in any form
+            self.model.to(self.device)
+        print(self.model.hf_device_map)
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision,
@@ -153,19 +156,19 @@ class HFLM(LM):
         self._max_length = max_length
 
         # multithreading and batching
-        self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
+        self.batch_size_per_gpu = batch_size
 
-        # if use_accelerate:
-        #     if "lm_head" in self.model.hf_device_map:
-        #         # `accelerate` can place `lm_head` weights on a different device than
-        #         # the user specified one so we force `self._device` to be the same as
-        #         # `lm_head`'s.
-        #         self._device = self.model.hf_device_map["lm_head"]
-        print(self._device, self.model.hf_device_map)
-        # multigpu support with accelerate
-        if gpus > 1 and not use_accelerate:
+        # multigpu data-parallel support when launched with accelerate
+        if gpus > 1:
             accelerator = Accelerator()
-            if gpus > accelerator.num_processes:
+            if parallelize:
+                if accelerator.num_processes > 1:
+                    raise RuntimeError(
+                        "Attempted to use both a HF Accelerate `device_map` and to launch via `accelerate launch`. If this is the case, please either remove `parallelize=True` from --model_args or launch outside of the Accelerate launcher."
+                    )
+                else:
+                    pass
+            elif gpus > accelerator.num_processes:
                 # TODO: make sure there's still never an edge case where we unintentionally default to CPU
                 eval_logger.warning(
                     "WARNING: The number of total system GPUs does not match the number of spawned processes. "
