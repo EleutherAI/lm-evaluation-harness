@@ -180,7 +180,7 @@ class CachingLM:
             remaining_reqs = []
             warned = False
             # figure out which ones are cached and which ones are new
-            print(f"Loading responses from cache '{self.cache_db}' where possible")
+            print(f"Loading '{attr}' responses from cache '{self.cache_db}' where possible")
             for req in tqdm(requests):
                 hsh = hash_args(attr, req.args)
                 if attr == "greedy_until" and req.args[1].get("do_sample", False):
