@@ -12,6 +12,9 @@ class LM(abc.ABC):
         (inputs/outputs should be tokenization-agnostic.)
 
         """
+        # set rank and world size to a single process, by default.
+        self._rank = 0
+        self._world_size = 1
 
     @abc.abstractmethod
     def loglikelihood(self, requests):
@@ -110,11 +113,11 @@ class LM(abc.ABC):
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
-        return 0
+        return self._rank
 
     @property
     def world_size(self):
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
-        return 1
+        return self._world_size
