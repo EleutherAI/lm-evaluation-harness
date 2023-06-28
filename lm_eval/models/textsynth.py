@@ -101,6 +101,10 @@ class TextSynthLM(LM):
                 logprob = resp["logprob"]
                 is_greedy = resp["is_greedy"]
                 res.append((logprob, is_greedy))
+
+                self.cache_hook.add_partial(
+                    "loglikelihood", (context, continuation), (logprob, is_greedy)
+                )
             else:
                 logger.error(
                     f"The following response does not contain `logprobs`. Got:\n{resp}"
@@ -141,6 +145,8 @@ class TextSynthLM(LM):
             if "text" in resp:
                 s = resp["text"]
                 res.append(s)
+
+                self.cache_hook.add_partial("greedy_until", (inp, request_args), s)
             else:
                 logger.error(
                     f"The following response does not contain generated `text`. "
