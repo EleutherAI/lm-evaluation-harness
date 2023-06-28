@@ -6,6 +6,8 @@ from sqlitedict import SqliteDict
 import json
 import hashlib
 
+from tqdm import tqdm
+
 from lm_eval import utils
 from lm_eval.logger import eval_logger
 
@@ -178,14 +180,17 @@ class CachingLM:
             remaining_reqs = []
             warned = False
             # figure out which ones are cached and which ones are new
-            for req in requests:
+            eval_logger.info(
+                f"Loading '{attr}' responses from cache '{self.cache_db}' where possible..."
+            )
+            for req in tqdm(requests):
                 hsh = hash_args(attr, req.args)
                 if attr == "greedy_until" and req.args[1].get("do_sample", False):
                     # when we are doing non-greedy generation, don't use the cache
                     # (else every "randomly sampled" generation would be identical for repeats > 1).
                     if not warned:
                         eval_logger.warning(
-                            f"Arguments to lm.greedy_until() '{req.args[1]}' include non-deterministic sampling. Caching will not be performed."
+                            f"Arguments to lm.greedy_until() '{req.args[1]}' include non-deterministic sampling. Caching will not be performed for such requests."
                         )
                         warned = True
                     res.append(None)

@@ -88,6 +88,8 @@ class AnthropicLM(LM):
         if not requests:
             return []
 
+        requests = [req.args for req in requests]
+
         res = []
         for request in tqdm(requests):
             inp = request[0]
@@ -102,6 +104,9 @@ class AnthropicLM(LM):
                 stop=until,
             )
             res.append(response)
+
+            self.cache_hook.add_partial("greedy_until", request, response)
+
         return res
 
     def _model_call(self, inps):

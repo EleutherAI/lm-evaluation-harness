@@ -564,11 +564,11 @@ class HFLM(LM):
                             until = [kwargs]
                         elif not isinstance(until, list):
                             raise ValueError(
-                                f"Expected `generation_kwargs['until']` to be of type Union[str,list] but got {until}"
+                                f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
                             )
                 else:
                     raise ValueError(
-                        f"Expected `generation_kwargs` to be of type `dict` but got {kwargs}"
+                        f"Expected `kwargs` to be of type `dict` but got {kwargs}"
                     )
                 if not until:
                     until = [self.tok_decode(self.eot_token_id)]
