@@ -6,6 +6,8 @@ from sqlitedict import SqliteDict
 import json
 import hashlib
 
+from tqdm import tqdm
+
 from lm_eval import utils
 from lm_eval.logger import eval_logger
 
@@ -178,7 +180,8 @@ class CachingLM:
             remaining_reqs = []
             warned = False
             # figure out which ones are cached and which ones are new
-            for req in requests:
+            print(f"Loading responses from cache '{self.cache_db}' where possible")
+            for req in tqdm(requests):
                 hsh = hash_args(attr, req.args)
                 if attr == "greedy_until" and req.args[1].get("do_sample", False):
                     # when we are doing non-greedy generation, don't use the cache
