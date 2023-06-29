@@ -16,7 +16,32 @@ from lm_eval.api.registry import register_model
 from lm_eval.utils import MultiTokenEOSCriteria, stop_sequences_criteria
 
 from accelerate import Accelerator
-from typing import List, Union
+from typing import List, Optional, Union
+
+
+def _get_accelerate_args(
+    device_map_option: Optional[str] = "auto",
+    max_memory_per_gpu: Optional[Union[int, str]] = None,
+    max_cpu_memory: Optional[Union[int, str]] = None,
+    offload_folder: Optional[str] = "./offload",
+) -> dict:
+    """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
+    max_memory = {}
+    if max_memory_per_gpu is not None:
+        max_memory_per_gpu_map = {
+            device_idx: max_memory_per_gpu
+            for device_idx in range(torch.cuda.device_count())
+        }
+        max_memory.update(max_memory_per_gpu_map)
+    if max_cpu_memory is not None:
+        max_memory["cpu"] = max_cpu_memory
+
+    args = {}
+    if max_memory:
+        args["max_memory"] = max_memory
+    args["device_map"] = device_map_option
+    args["offload_folder"] = offload_folder
+    return args
 
 
 @register_model("hf-auto", "hf", "huggingface")
@@ -41,6 +66,14 @@ class HFLM(LM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
+        dtype: Optional[Union[str, torch.dtype]] = "auto",
+        # arguments used for splitting a model across GPUs naively.
+        # only used if `parallelize=True`.
+        parallelize: Optional[bool] = False,
+        device_map_option: Optional[str] = "auto",
+        max_memory_per_gpu: Optional[Union[int, str]] = None,
+        max_cpu_memory: Optional[Union[int, str]] = None,
+        offload_folder: Optional[str] = "./offload",
     ):
         super().__init__()
 
@@ -50,7 +83,8 @@ class HFLM(LM):
 
         gpus = torch.cuda.device_count()
 
-        if gpus <= 1:
+        if gpus <= 1 and not parallelize:
+            # use user-passed device
             if device:
                 if device not in ["cuda", "cpu"]:
                     device = int(device)
@@ -64,11 +98,21 @@ class HFLM(LM):
                     if torch.cuda.is_available()
                     else torch.device("cpu")
                 )
-            self._rank = 0
-            self._world_size = 1
-
         else:
-            self._device = "cpu"
+            eval_logger.info(
+                f"Passed device '{device}', but using `accelerate launch` or `parallelize=True`. This will be overridden when placing model."
+            )
+            # TODO: include in warning that `load_in_8bit` etc. affect this too
+            self._device = device
+
+        model_kwargs = {}
+        if parallelize:
+            model_kwargs = _get_accelerate_args(
+                device_map_option,
+                max_memory_per_gpu,
+                max_cpu_memory,
+                offload_folder,
+            )
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
@@ -90,10 +134,18 @@ class HFLM(LM):
         ]
 
         self._model = self.AUTO_MODEL_CLASS.from_pretrained(
-            pretrained, revision=revision, low_cpu_mem_usage=low_cpu_mem_usage
-        ).to(self.device)
+            pretrained,
+            revision=revision,
+            low_cpu_mem_usage=low_cpu_mem_usage,
+            **model_kwargs,
+            torch_dtype=utils.get_dtype(dtype),
+        )
         # forever after, access self._model through self.model property
         self.model.eval()
+        self.model.tie_weights()
+        if gpus <= 1 and not parallelize:
+            # place model onto device, if not using HF Accelerate in any form
+            self.model.to(self.device)
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
@@ -106,12 +158,19 @@ class HFLM(LM):
         self._max_length = max_length
 
         # multithreading and batching
-        self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
+        self.batch_size_per_gpu = batch_size
 
-        # multigpu support with accelerate
+        # multigpu data-parallel support when launched with accelerate
         if gpus > 1:
             accelerator = Accelerator()
-            if gpus > accelerator.num_processes:
+            if parallelize:
+                if accelerator.num_processes > 1:
+                    raise RuntimeError(
+                        "Attempted to use both a HF Accelerate `device_map` and to launch via `accelerate launch`. If this is the case, please either remove `parallelize=True` from --model_args or launch outside of the Accelerate launcher."
+                    )
+                else:
+                    pass
+            elif gpus > accelerator.num_processes:
                 # TODO: make sure there's still never an edge case where we unintentionally default to CPU
                 eval_logger.warning(
                     "WARNING: The number of total system GPUs does not match the number of spawned processes. "
@@ -480,7 +539,7 @@ class HFLM(LM):
 
             multi_logits = F.log_softmax(
                 self._model_call(batched_inps, **call_kwargs), dim=-1
-            ).cpu()  # [batch, padding_length (inp or cont), vocab]
+            )  # [batch, padding_length (inp or cont), vocab]
 
             for (cache_key, _, _), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
@@ -500,7 +559,9 @@ class HFLM(LM):
 
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
-                cont_toks = torch.tensor(cont_toks, dtype=torch.long).unsqueeze(
+                cont_toks = torch.tensor(
+                    cont_toks, dtype=torch.long, device=self.device
+                ).unsqueeze(
                     0
                 )  # [1, seq]
                 max_equal = (greedy_tokens == cont_toks).all()

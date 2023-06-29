@@ -94,6 +94,23 @@ accelerate launch main.py \
 
 This will perform *data-parallel evaluation*: that is, placing a **single full copy** of your model onto each available GPU and *splitting batches across GPUs* to evaluate on K GPUs K times faster than on one.
 
+However, if your model *is too large to be run on a single one of your GPUs*, then we provide an alternative method to run these large models.
+
+```
+python main.py \
+    --model hf \
+    --model_args pretrained=EleutherAI/pythia-12b,parallelize=True
+    --tasks lambada_openai,arc_easy \
+    --batch_size 16
+```
+
+To pass even more advanced keyword arguments to `accelerate`, we allow for the following arguments as well:
+- `device_map_option`: How to split model weights across available GPUs. defaults to "auto".
+- `max_memory_per_gpu`: the max GPU memory to use per GPU in loading the model.
+- `max_cpu_memory`: the max amount of CPU memory to use when offloading the model weights to RAM.
+- `offload_folder`: a folder where model weights will be offloaded to disk if needed.
+
+**Note that this option requires launching evaluation via `python main.py` rather than `accelerate launch main.py`.**
 
 ### Commercial APIs
 
