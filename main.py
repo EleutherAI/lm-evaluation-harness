@@ -39,7 +39,7 @@ def parse_args():
         "If <1, limit is a percentage of the total number of examples.",
     )
     parser.add_argument("--data_sampling", type=float, default=None)
-    parser.add_argument("--no_cache", action="store_true")
+    parser.add_argument("--use_cache", type=str, default=None)
     parser.add_argument("--decontamination_ngrams_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
     parser.add_argument("--write_out", action="store_true", default=False)
@@ -85,7 +85,7 @@ def main():
         batch_size=args.batch_size,
         max_batch_size=args.max_batch_size,
         device=args.device,
-        no_cache=args.no_cache,
+        use_cache=args.use_cache,
         limit=args.limit,
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
