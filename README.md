@@ -92,7 +92,23 @@ accelerate launch main.py \
 
 To evaluate models that are loaded via `AutoSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface, you instead use `--model hf-seq2seq`. Support for this model type is currently pending.
 
-> **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
+However, if your model *is too large to be run on a single one of your GPUs*, then we provide an alternative method to run these large models.
+
+```
+python main.py \
+    --model hf \
+    --model_args pretrained=EleutherAI/pythia-12b,parallelize=True
+    --tasks lambada_openai,arc_easy \
+    --batch_size 16
+```
+
+To pass even more advanced keyword arguments to `accelerate`, we allow for the following arguments as well:
+- `device_map_option`: How to split model weights across available GPUs. defaults to "auto".
+- `max_memory_per_gpu`: the max GPU memory to use per GPU in loading the model.
+- `max_cpu_memory`: the max amount of CPU memory to use when offloading the model weights to RAM.
+- `offload_folder`: a folder where model weights will be offloaded to disk if needed.
+
+**Note that this option requires launching evaluation via `python main.py` rather than `accelerate launch main.py`.**
 
 ### Commercial APIs
 
