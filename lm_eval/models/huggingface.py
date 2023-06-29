@@ -145,7 +145,7 @@ class HFLM(LM):
         if gpus <= 1 and not parallelize:
             # place model onto device, if not using HF Accelerate in any form
             self.model.to(self.device)
-        print(self.model.hf_device_map)
+
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision,
