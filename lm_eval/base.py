@@ -1,7 +1,6 @@
 import abc
 from typing import Iterable
 import numpy as np
-import random
 import re
 import os
 import json
@@ -265,44 +264,99 @@ class BaseLM(LM):
         return loglikelihoods
 
     def _loglikelihood_tokens(self, requests, disable_tqdm=False, override_bs=None):
-        # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 
-        def _collate(x):
+        # TODO: extend logits cache to more tokens? currently only used when len(continuation_enc) == 1
+        logits_cache = {}
+        cached_indexes = {}
+        unique_requests = 0
+
+        def _collate(req, index=None, group_mode=False):
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
             # - to know the size of a batch when going through the list, you know the first one is always the batch
             #   padded context length. this is useful to simplify the batching logic and more importantly to make
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
+            nonlocal unique_requests
 
-            toks = x[1] + x[2]
-            return -len(toks), tuple(toks)
+            context, context_enc, continuation_enc = req
+
+            cached = False
+            if context:
+                context = context[0]
+                if group_mode:
+                    cached_indexes[index] = False
+                    if context in logits_cache:
+                        if len(continuation_enc) == 1:
+                            cached_indexes[index] = True
+                            logits_cache[context]["continuations"][continuation_enc[0]] = True
+                    else:
+                        logits_cache[context] = {"continuations": {}, "tokens": None, "logits": None}
+                        logits_cache[context]["continuations"][continuation_enc[0]] = True
+                else:
+                    cached = all(cached_indexes[i] for i in index)
+                    if not cached:
+                        unique_requests += 1
+
+            toks = context_enc + continuation_enc
+
+            return cached, -len(toks), tuple(toks)
 
         re_ord = utils.Reorderer(requests, _collate)
 
         reordered_requests = re_ord.get_reordered()
         n_reordered_requests = len(reordered_requests)
 
-        # automatic (variable) batch size detection for vectorization
-        # pull longest context sample from request
-        def _batch_scheduler(pos):
-            sched = pos // int(n_reordered_requests / self.batch_schedule)
-            if sched in self.batch_sizes:
-                return self.batch_sizes[sched]
-            print(f"Passed argument batch_size = auto:{self.batch_schedule}. Detecting largest batch size")
-            self.batch_sizes[sched] = self._detect_batch_size(reordered_requests, pos)
-            print(f"Determined largest batch size: {self.batch_sizes[sched]}")
-            return self.batch_sizes[sched]
+        if n_reordered_requests != unique_requests:
+            print(f"Found {n_reordered_requests} requests with {unique_requests} unique requests")
 
-        for chunk in utils.chunks(
-            tqdm(reordered_requests, disable=disable_tqdm),
-            n=self.batch_size if self.batch_size != "auto" else override_bs if override_bs is not None else 0,
-            fn=_batch_scheduler if self.batch_size == "auto" and n_reordered_requests > 0 else None,
-        ):
+        # batch size scheduler: fixed, automatic, variable, cache-truncated batch sizes
+        def _batch_scheduler(pos):
+            if pos >= unique_requests:
+                return 1
+
+            sched = pos // int(n_reordered_requests / self.batch_schedule)
+
+            if isinstance(self.batch_size, int):
+                detected_batch_size = self.batch_size
+            elif override_bs:
+                detected_batch_size = override_bs
+            elif sched in self.batch_sizes:
+                detected_batch_size = self.batch_sizes[sched]
+            else:
+                print(f"Passed argument batch_size = auto:{self.batch_schedule}. Detecting largest batch size")
+                detected_batch_size = self.batch_sizes[sched] = self._detect_batch_size(reordered_requests, pos)
+                print(f"Determined largest batch size: {self.batch_sizes[sched]}")
+
+            if pos + detected_batch_size > unique_requests:
+                return 1
+
+            return detected_batch_size
+
+        pos = 0
+
+        for chunk in utils.chunks(tqdm(reordered_requests, disable=disable_tqdm, total=unique_requests), fn=_batch_scheduler):
+            # use cached logits
+            if pos >= unique_requests:
+                for (context, _), _, continuation_enc in chunk:
+                    assert len(continuation_enc) == 1
+                    logits = logits_cache[context]["logits"]
+                    tokens = logits_cache[context]["tokens"]
+                    greedy_tokens = tokens[logits.argmax()].unsqueeze(0)
+                    cont_toks = torch.tensor(continuation_enc, dtype=torch.long)
+                    max_equal = (greedy_tokens == cont_toks).all()
+                    logits = logits[(tokens == cont_toks[0]).nonzero().squeeze()]
+                    answer = (float(logits), bool(max_equal))
+                    res.append(answer)
+                continue
+
+            pos = pos + len(chunk)
+
             inps = []
             cont_toks_list = []
             inplens = []
+            contexts = []
 
             padding_length = None
 
@@ -310,7 +364,7 @@ class BaseLM(LM):
             # tensors, then we pack them together into a batch, call the model, and then pick it all apart
             # again because vectorizing is annoying
 
-            for _, context_enc, continuation_enc in chunk:
+            for context, context_enc, continuation_enc in chunk:
                 # sanity check
                 assert len(context_enc) > 0
                 assert len(continuation_enc) > 0
@@ -351,14 +405,15 @@ class BaseLM(LM):
                 inps.append(inp.unsqueeze(0))  # [1, padding_length]
                 cont_toks_list.append(cont)
                 inplens.append(inplen)
+                contexts.append(context[0] if context else None)
 
             batched_inps = torch.cat(inps, dim=0)  # [batch, padding_length
             multi_logits = F.log_softmax(
                 self._model_call(batched_inps), dim=-1
             ).cpu()  # [batch, padding_length, vocab]
 
-            for (cache_key, _, _), logits, inp, inplen, cont_toks in zip(
-                chunk, multi_logits, inps, inplens, cont_toks_list
+            for (cache_key, _, _), logits, inp, inplen, cont_toks, context in zip(
+                chunk, multi_logits, inps, inplens, cont_toks_list, contexts
             ):
 
                 # Slice to original seq length
@@ -373,6 +428,16 @@ class BaseLM(LM):
                     0
                 )  # [1, seq]
                 max_equal = (greedy_tokens == cont_toks).all()
+
+                # cache logits for unique requests
+                if context in logits_cache and logits_cache[context]["logits"] is None:
+                    cached_tokens = []
+                    cached_logits = []
+                    for token in sorted(logits_cache[context]["continuations"]):
+                        cached_tokens.append(token)
+                        cached_logits.append(logits[0][0][token])
+                    logits_cache[context]["tokens"] = torch.tensor(cached_tokens)
+                    logits_cache[context]["logits"] = torch.tensor(cached_logits)
 
                 # Obtain log-probs at the corresponding continuation token indices
                 # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
@@ -398,7 +463,7 @@ class BaseLM(LM):
         # TODO: extract to TokenizedLM?
         res = []
 
-        def _collate(x):
+        def _collate(x, index=None, group_mode=False):
             toks = self.tok_encode(x[0])
             return len(toks), x[0]
 

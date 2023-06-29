@@ -14,7 +14,7 @@ model_names = seq2seq_models + causal_models
 
 
 completion_tasks = ["boolq", "lambada_openai", "winogrande"]
-choice_tasks = ["hellaswag", "openbookqa", "piqa"]
+choice_tasks = ["hellaswag", "openbookqa", "piqa", "hendrycksTest-world_religions"]
 perplexity_tasks = ["wikitext"]
 generation_tasks = []
 task_names = completion_tasks + choice_tasks + perplexity_tasks + generation_tasks
@@ -102,7 +102,7 @@ def format_diff(args, results1, results2, model, task):
     val1 = 100 * extract_value(args, results1, model, task)
     val2 = 100 * extract_value(args, results2, model, task)
     diff = val2 - val1
-    return f"**+{diff:.2f}**" if diff > 0 else f"{diff:.2f}"
+    return f"**+{diff:.2f}**" if diff > 0 else f"**{diff:.2f}**" if diff < 0 else f"{diff:.2f}"
 
 
 def main():
@@ -111,7 +111,7 @@ def main():
     args.branches = args.branches.split(",") if type(args.branches) == str else args.branches
     args.models = args.models.split(",") if type(args.models) == str else args.models
     args.tasks = tasks.ALL_TASKS if args.tasks == "all_tasks" \
-        else utils.pattern_match(args.tasks.split(",") if type(args.tasks) == str else args.tasks, tasks.ALL_TASKS)
+        else utils.pattern_match(args.tasks.split(","), tasks.ALL_TASKS) if isinstance(args.tasks, str) else args.tasks
 
     global initial_branch
     initial_branch = subprocess.check_output("git branch --show-current", shell=True).decode("ascii").strip()

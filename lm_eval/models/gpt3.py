@@ -117,7 +117,7 @@ class GPT3LM(BaseLM):
     def _loglikelihood_tokens(self, requests, disable_tqdm=False):
         res = []
 
-        def _collate(x):
+        def _collate(x, index=None, group_mode=False):
             # this doesn't efficiently handle last-token differences yet, but those are kinda annoying because
             # it's not guaranteed that the 100 or so logprobs we get to see actually contain all the continuations
             # we care about and so we need some kind of backup for when it isn't
@@ -170,7 +170,7 @@ class GPT3LM(BaseLM):
             return []
         res = []
 
-        def _collate(x):
+        def _collate(x, index=None, group_mode=False):
             toks = self.tok_encode(x[0])
             return len(toks), x[0]
 

@@ -69,7 +69,7 @@ def chunks(iter, n=0, fn=None):
     arr = []
     for i, x in enumerate(iter):
         arr.append(x)
-        if len(arr) == (fn(i) if fn else n):
+        if len(arr) >= (fn(i) if fn else n):
             yield arr
             arr = []
 
@@ -203,9 +203,9 @@ class Reorderer:
     def __init__(self, arr, fn):
         self.size = len(arr)
         arr = list(enumerate(arr))
-        arr = group(arr, lambda x: fn(x[1]))
+        arr = group(arr, lambda x: fn(x[1], index=x[0], group_mode=True))
         arr = [([y[0] for y in x], x[0][1]) for x in arr]
-        arr.sort(key=lambda x: fn(x[1]))
+        arr.sort(key=lambda x: fn(x[1], index=x[0], group_mode=False))
 
         self.arr = arr
 

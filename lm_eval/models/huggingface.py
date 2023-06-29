@@ -154,7 +154,7 @@ class HuggingFaceAutoLM(BaseLM):
                 If True, will trust the remote code when loading the model.
             gptq_use_triton (bool, optional, defaults to False):
                 Use Triton for GPTQ inference.
-            bnb_4bit_quant_type (str, optional, defaults to None): 
+            bnb_4bit_quant_type (str, optional, defaults to None):
                 The quantization type to use for BnB 4bit quantization. See:
                 https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L77
             bnb_4bit_compute_dtype (Union[str, torch.dtype], optional, defaults to None):
@@ -279,7 +279,7 @@ class HuggingFaceAutoLM(BaseLM):
                 model_kwargs["load_in_4bit"] = load_in_4bit
                 if load_in_4bit:
                     model_kwargs["bnb_4bit_quant_type"] = bnb_4bit_quant_type
-                    model_kwargs["bnb_4bit_compute_dtype"] = getattr(torch, bnb_4bit_compute_dtype)
+                    model_kwargs["bnb_4bit_compute_dtype"] = _get_dtype(bnb_4bit_compute_dtype)
             model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
@@ -422,7 +422,7 @@ class HuggingFaceAutoLM(BaseLM):
     def greedy_until(
         self, requests: List[Tuple[str, Union[List[str], str]]]
     ) -> List[str]:
-        def _collate(x):
+        def _collate(x, index=None, group_mode=False):
             tokens = self.tok_encode(x[0])
             return len(tokens), x[0]
 
