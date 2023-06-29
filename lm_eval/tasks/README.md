@@ -38,7 +38,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Hendrycks Math
 - [ ] Asdiv
 - [ ] GSM8k
-- [ ] Arithmetic
+- [x] Arithmetic
 - [ ] MMMLU
 - [ ] Translation (WMT) suite
 - [ ] Unscramble
