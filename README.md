@@ -9,8 +9,8 @@ We’d like your help to test it out! you can help by:
 2. Porting tasks supported in the previous version of the harness to the new YAML configuration format. Please check out our [task implementation guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/new_task_guide.md) for more information.
 
 If you choose to port a task not yet completed according to [our checklist](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/tasks/README.md), then you can contribute it by opening a PR containing [Refactor] in the name with:
-- A command of the form `python main.py --model hf-causal --model_args ..... --tasks <task name> ...` which will run the task in the `master` branch, and what the score is
-- A command of the form `python main.py --model hf-causal --model_args ..... --tasks <task name> ...` to run the task in your PR branch to `big-refactor`, and what the resulting score is, to show that we achieve equality between the two implementations.
+- A command of the form `python main.py --model hf --model_args ..... --tasks <task name> ...` which will run the task in the `master` branch, and what the score is
+- A command of the form `python main.py --model hf --model_args ..... --tasks <task name> ...` to run the task in your PR branch to `big-refactor`, and what the resulting score is, to show that we achieve equality between the two implementations.
 
 Lastly, we'll no longer be accepting new feature requests beyond those that are already open to the master branch as we carry out this switch to the new version over the next week, though we will be accepting bugfixes to `master` branch and PRs to `big-refactor`. Feel free to reach out in the #lm-thunderdome channel of the EAI discord for more information.
 
@@ -59,7 +59,7 @@ To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/model
 
 ```bash
 python main.py \
-    --model hf-causal \
+    --model hf \
     --model_args pretrained=EleutherAI/gpt-j-6B \
     --tasks hellaswag \
     --device cuda:0 \
@@ -70,27 +70,29 @@ Additional arguments can be provided to the model constructor using the `--model
 
 ```bash
 python main.py \
-    --model hf-causal \
+    --model hf \
     --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
     --tasks lambada_openai,hellaswag \
     --device cuda:0 \
     --batch_size 8
 ```
 
-### Multi-GPU Evaluation with Hugging Face `transformers`
+Models that are loaded via either `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) or `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface are supported via  Support for this model type is currently pending.
 
-To parallelize evaluation across multiple GPUs, we allow for launching evaluation via the `accelerate` library as follows:
+### Multi-GPU Evaluation with Hugging Face `accelerate`
+
+To parallelize evaluation of HuggingFace models across multiple GPUs, we allow for two different types of multi-GPU evaluation.
+
+The first is performed by launching evaluation via the `accelerate` library as follows:
 
 ```
 accelerate launch main.py \
-    --model hf-causal \
+    --model hf \
     --tasks lambada_openai,arc_easy \
     --batch_size 16 \
 ```
 
-### Evaluation of Seq2Seq Models
-
-To evaluate models that are loaded via `AutoSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface, you instead use `--model hf-seq2seq`. Support for this model type is currently pending.
+This will perform *data-parallel evaluation*: that is, placing a **single full copy** of your model onto each available GPU and *splitting batches across GPUs* to evaluate on K GPUs K times faster than on one.
 
 However, if your model *is too large to be run on a single one of your GPUs*, then we provide an alternative method to run these large models.
 
@@ -155,7 +157,7 @@ This will write out one text file for each task.
 For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
 ```bash
 python main.py \
-    --model hf-causal \
+    --model hf \
     --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
     --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
     --device cuda:0
@@ -165,7 +167,7 @@ GPTQ quantized models can be loaded by specifying their file names in `,quantize
 
 ```bash
 python main.py \
-    --model hf-causal \
+    --model hf \
     --model_args pretrained=model-name-or-path,quantized=model.safetensors,gptq_use_triton=True \
     --tasks hellaswag
 ```
