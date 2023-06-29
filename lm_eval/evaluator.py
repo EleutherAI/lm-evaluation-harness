@@ -281,6 +281,7 @@ def evaluate(
                     "doc_id": doc_id,
                     "doc": doc,
                     "target": target,
+                    "arguments": req.args,
                     "resps": [req.resps for req in requests],
                     "filtered_resps": [req.filtered_resps[key] for req in requests],
                 }
