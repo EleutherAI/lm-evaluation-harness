@@ -172,26 +172,6 @@ def make_disjoint_window(pair):
     return a[: len(a) - (len(b) - 1)], b
 
 
-def select_continuation_from_batch_left_padding(
-    generations: Union[List[List[int]], torch.Tensor], max_context_size: int
-):
-    """Select the continuation from the batch, removing prompts of different lengths.
-    Args:
-        generations (Union[List[List[int]], torch.Tensor]):
-            A tensor or list-of-lists of shape [batch_size, sequence length].
-        max_context_size (int):
-            The size of the biggest context; generations will proceed from that
-            index.
-    Example:
-        PAD     PAD Continue : The dog chased the cat  [every       day of the week]
-        Riddle  me    this   : The  dog chased the  cat [yesterday] PAD PAD PAD PAD
-    Output:
-        [every day of the week]
-        [yesterday]  PAD PAD PAD PAD
-    """
-    return generations[:, max_context_size:]
-
-
 class Reorderer:
     def __init__(self, arr, fn):
         self.size = len(arr)
