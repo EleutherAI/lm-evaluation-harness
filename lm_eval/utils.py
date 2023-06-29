@@ -23,15 +23,6 @@ from itertools import islice
 from lm_eval.logger import eval_logger
 
 
-class ExitCodeError(Exception):
-    pass
-
-
-def sh(x):
-    if os.system(x):
-        raise ExitCodeError()
-
-
 def escaped_split(text, sep_char, maxsplit=-1):
     """Split text into a list on occurrences of the given separation
     character `sep_char`. The separation character may be escaped by a
@@ -179,26 +170,6 @@ def make_disjoint_window(pair):
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b
-
-
-def select_continuation_from_batch_left_padding(
-    generations: Union[List[List[int]], torch.Tensor], max_context_size: int
-):
-    """Select the continuation from the batch, removing prompts of different lengths.
-    Args:
-        generations (Union[List[List[int]], torch.Tensor]):
-            A tensor or list-of-lists of shape [batch_size, sequence length].
-        max_context_size (int):
-            The size of the biggest context; generations will proceed from that
-            index.
-    Example:
-        PAD     PAD Continue : The dog chased the cat  [every       day of the week]
-        Riddle  me    this   : The  dog chased the  cat [yesterday] PAD PAD PAD PAD
-    Output:
-        [every day of the week]
-        [yesterday]  PAD PAD PAD PAD
-    """
-    return generations[:, max_context_size:]
 
 
 class Reorderer:
@@ -396,9 +367,10 @@ def get_git_commit_hash():
     Source: https://github.com/EleutherAI/gpt-neox/blob/b608043be541602170bfcfb8ec9bf85e8a0799e0/megatron/neox_arguments/neox_args.py#L42
     """
     try:
-        git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()
+        git_hash = subprocess.check_output(["gt", "describe", "--always"]).strip()
         git_hash = git_hash.decode()
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError or FileNotFoundError:
+        # FileNotFoundError occurs when git not installed on system
         git_hash = None
     return git_hash
 
