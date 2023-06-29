@@ -39,7 +39,7 @@ def simple_evaluate(
     batch_size=None,
     max_batch_size=None,
     device=None,
-    no_cache=False,
+    use_cache=None,
     limit=None,
     bootstrap_iters=100000,
     check_integrity=False,
@@ -64,8 +64,8 @@ def simple_evaluate(
         Maximal batch size to try with automatic batch size detection
     :param device: str, optional
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
-    :param no_cache: bool
-        Whether or not to cache
+    :param use_cache: str, optional
+        A path to a sqlite db file for caching model responses. `None` if not caching.
     :param limit: int or float, optional
         Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param bootstrap_iters:
@@ -99,6 +99,16 @@ def simple_evaluate(
         assert isinstance(model, lm_eval.api.model.LM)
         lm = model
 
+    if use_cache is not None:
+        print(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
+        lm = lm_eval.api.model.CachingLM(
+            lm,
+            use_cache
+            # each rank receives a different cache db.
+            # necessary to avoid multiple writes to cache at once
+            + "_rank" + str(lm.rank) + ".db",
+        )
+
     task_dict = lm_eval.tasks.get_task_dict(tasks, num_fewshot=num_fewshot)
 
     if check_integrity:
@@ -127,7 +137,7 @@ def simple_evaluate(
             if hasattr(lm, "batch_sizes")
             else [],
             "device": device,
-            "no_cache": no_cache,
+            "use_cache": use_cache,
             "limit": limit,
             "bootstrap_iters": bootstrap_iters,
         }
