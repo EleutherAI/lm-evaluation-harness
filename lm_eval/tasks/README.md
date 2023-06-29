@@ -1,7 +1,7 @@
 # v1.0 Tasks
 This list keeps track of which tasks' implementations have been ported to YAML / v2.0 of the Eval Harness.
 
-Boxes should be checked iff tasks are implemented in the refactor and tested for regression. Tasks should be struck through if checked *against original introducing paper* implementation or popularizing implementation.
+Boxes should be checked iff tasks are implemented in the refactor and tested for regression. Tasks should be struck through if checked *against original introducing paper* implementation or popularizing implementation. (WIP) Denotes that there exists a PR or person working on this task already.
 
 - [ ] Glue (WIP)
 - [x] SuperGlue
@@ -14,23 +14,23 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] PiQA
 - [ ] PROST
 - [ ] MCTACO
-- [ ] Pubmed QA
+- [ ] Pubmed QA (WIP)
 - [x] SciQ
 - [ ] QASPER
 - [ ] QA4MRE
 - [ ] TriviaQA
 - [x] AI2 ARC
 - [ ] LogiQA
-- [ ] HellaSwag
-- [ ] SWAG
+- [x] HellaSwag
+- [ ] SWAG (WIP)
 - [x] OpenBookQA
 - [ ] SQuADv2
-- [ ] RACE
+- [ ] RACE (WIP)
 - [ ] HeadQA
 - [ ] MathQA
 - [ ] WebQs
 - [ ] WSC273
-- [ ] Winogrande
+- [ ] Winogrande (WIP)
 - [x] ANLI
 - [ ] Hendrycks Ethics
 - [ ] TruthfulQA
@@ -38,7 +38,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Hendrycks Math
 - [ ] Asdiv
 - [ ] GSM8k
-- [ ] Arithmetic
+- [ ] Arithmetic (WIP)
 - [ ] MMMLU
 - [ ] Translation (WMT) suite
 - [ ] Unscramble
