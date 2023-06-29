@@ -175,7 +175,9 @@ class BaseLM(LM):
     def _detect_batch_size(self, requests=None, pos=0):
         if requests:
             _, context_enc, continuation_enc = requests[pos]
-            max_length = len((context_enc + continuation_enc)[-(self.max_length + 1) :][:-1])
+            max_length = len(
+                (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1]
+            )
         else:
             max_length = self.max_length
 
@@ -211,7 +213,9 @@ class BaseLM(LM):
         for context, continuation in requests:
             if context == "":
                 # end of text as context
-                context_enc, continuation_enc = [self.eot_token_id], self.tok_encode(continuation)
+                context_enc, continuation_enc = [self.eot_token_id], self.tok_encode(
+                    continuation
+                )
             else:
                 context_enc, continuation_enc = self._encode_pair(context, continuation)
 
@@ -336,7 +340,10 @@ class BaseLM(LM):
 
         pos = 0
 
-        for chunk in utils.chunks(tqdm(reordered_requests, disable=disable_tqdm, total=unique_requests), fn=_batch_scheduler):
+        for chunk in utils.chunks(
+            tqdm(reordered_requests, disable=disable_tqdm, total=unique_requests),
+            fn=_batch_scheduler
+        ):
             # use cached logits
             if pos >= unique_requests:
                 for (context, _), _, continuation_enc in chunk:
@@ -464,18 +471,34 @@ class BaseLM(LM):
         res = []
 
         def _collate(x, index=None, group_mode=False):
+            # the negative sign on len(toks) sorts descending - this has a few advantages:
+            # - time estimates will always be over not underestimates, which is more useful for planning
+            # - to know the size of a batch when going through the list, you know the first one is always the batch
+            #   padded context length. this is useful to simplify the batching logic and more importantly to make
+            #   automatic adaptive batches much much easier to implement
+            # - any OOMs will happen right away rather than near the end
+
             toks = self.tok_encode(x[0])
-            return len(toks), x[0]
+            return -len(toks), x[0]
 
         re_ord = utils.Reorderer(requests, _collate)
 
+        warn_stop_seq = False
         for context, request_args in tqdm(re_ord.get_reordered()):
             until = request_args["until"]
             if isinstance(until, str):
                 until = [until]
 
             if until:
-                (primary_until,) = self.tok_encode(until[0])
+                try:
+                    (primary_until,) = self.tok_encode(until[0])
+                except ValueError:
+                    if not warn_stop_seq:
+                        print(
+                            "Warning: a primary stop sequence is multi-token! Will default to EOS token for this tokenizer. Consider using `hf-causal-experimental` for multi-token stop sequence support for the time being."
+                        )
+                        warn_stop_seq = True
+                    primary_until = self.eot_token_id
             else:
                 primary_until = None
 

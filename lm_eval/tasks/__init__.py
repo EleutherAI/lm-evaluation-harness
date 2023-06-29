@@ -60,6 +60,7 @@ from . import xwinograd
 from . import pawsx
 from . import xnli
 from . import mgsm
+from . import scrolls
 
 ########################################
 # Translation tasks
@@ -325,6 +326,7 @@ TASK_REGISTRY = {
     **pawsx.construct_tasks(),
     **xnli.construct_tasks(),
     **mgsm.construct_tasks(),
+    **scrolls.construct_tasks()
 }
 
 
