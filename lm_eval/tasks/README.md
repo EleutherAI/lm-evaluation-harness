@@ -14,7 +14,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] PiQA
 - [ ] PROST
 - [ ] MCTACO
-- [ ] Pubmed QA
+- [x] Pubmed QA
 - [x] SciQ
 - [ ] QASPER
 - [ ] QA4MRE
