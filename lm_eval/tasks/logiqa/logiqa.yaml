@@ -1,0 +1,23 @@
+group:
+  - multiple_choice
+task: logiqa
+dataset_path: lucasmccabe/logiqa
+dataset_name: default
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+template_aliases: "{% set answer_choices = [options] %}{% set gold = correct_option %}"
+doc_to_text: "Passage: {{context.strip()}}\nQuestion: {{query}}\nAnswer:"
+doc_to_target: "{{options[gold]}}"
+gold_alias: "{{gold}}" # this will be cast to an int.
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_mutual_info
+    aggregation: mean
+    higher_is_better: true
