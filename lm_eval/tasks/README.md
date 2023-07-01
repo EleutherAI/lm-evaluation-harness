@@ -12,7 +12,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Lambada (Multilingual)
 - [x] Wikitext
 - [x] PiQA
-- [ ] PROST
+- [ ] PROST (WIP)
 - [ ] MCTACO
 - [ ] Pubmed QA (WIP)
 - [x] SciQ
