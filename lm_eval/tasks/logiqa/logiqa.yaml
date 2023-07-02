@@ -9,7 +9,7 @@ validation_split: validation
 test_split: test
 template_aliases: "{% set answer_choices = [options] %}{% set gold = correct_option %}"
 doc_to_text: "Passage: {{context}}\nQuestion: {{query}}\nAnswer:"
-doc_to_target: "{{options[gold]}}"
+doc_to_target: "{{answer_choices[gold]}}"
 gold_alias: "{{gold}}"
 metric_list:
   - metric: acc
