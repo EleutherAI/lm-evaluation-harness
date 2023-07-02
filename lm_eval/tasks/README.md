@@ -30,7 +30,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] MathQA
 - [ ] WebQs
 - [ ] WSC273
-- [ ] Winogrande
+- [x] Winogrande
 - [x] ANLI
 - [ ] Hendrycks Ethics
 - [ ] TruthfulQA
