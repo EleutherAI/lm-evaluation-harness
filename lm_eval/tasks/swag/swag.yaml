@@ -1,0 +1,11 @@
+group:
+  - multiple_choice
+task: swag
+dataset_path: swag
+dataset_name: regular
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+template_aliases: "{% set answer_choices = [ending0, ending1, ending2, ending3] %}{% set gold = label %}" # set the list of possible answer choices, and set what this doc's gold answer is (set what ds column used, and what)
+doc_to_text: "{{startphrase}}"
+doc_to_target: "{{gold}}" # this will be cast to an int.
