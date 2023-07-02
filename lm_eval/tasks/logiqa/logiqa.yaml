@@ -10,7 +10,7 @@ test_split: test
 template_aliases: "{% set answer_choices = [options] %}{% set gold = correct_option %}"
 doc_to_text: "Passage: {{context}}\nQuestion: {{query}}\nAnswer:"
 doc_to_target: "{{options[gold]}}"
-gold_alias: "{{gold}}" # this will be cast to an int.
+gold_alias: "{{gold}}"
 metric_list:
   - metric: acc
     aggregation: mean
