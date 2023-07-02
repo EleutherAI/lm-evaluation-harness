@@ -214,7 +214,7 @@ def evaluate(
         # aggregate Instances by LM method requested to get output.
         reqtype = (
             "loglikelihood"
-            if task.OUTPUT_TYPE == "multiple_choice"
+            if (task.OUTPUT_TYPE == "multiple_choice" or task.OUTPUT_TYPE == "winograd_schema") 
             else task.OUTPUT_TYPE
         )  # TODO: this is hacky, fix in task.py
         requests[reqtype].extend(task.instances)
@@ -274,7 +274,6 @@ def evaluate(
                     enumerate(task.validation_docs()), lm.rank, limit, lm.world_size
                 )
             )
-
             for doc_id, doc in doc_iterator:
                 # subset instances to only this document id ; sort by idx
                 requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
