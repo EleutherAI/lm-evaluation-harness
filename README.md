@@ -160,17 +160,17 @@ For models loaded with the HuggingFace  `transformers` library, any arguments pr
 ```bash
 python main.py \
     --model hf \
-    --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
+    --model_args pretrained=EleutherAI/gpt-j-6b,parallelize=True,load_in_4bit=True,peft=nomic-ai/gpt4all-j-lora \
     --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
     --device cuda:0
 ```
 
-GPTQ quantized models can be loaded by specifying their file names in `,quantized=NAME` (or `,quantized=True` for default names) in the `model_args` argument:
+[GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,gptq=NAME` (or `,gptq=True` for default names) in the `model_args` argument:
 
 ```bash
 python main.py \
     --model hf \
-    --model_args pretrained=model-name-or-path,quantized=model.safetensors,gptq_use_triton=True \
+    --model_args pretrained=model-name-or-path,gptq=model.safetensors,gptq_use_triton=True \
     --tasks hellaswag
 ```
 
