@@ -20,7 +20,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] QA4MRE
 - [ ] TriviaQA
 - [x] AI2 ARC
-- [ ] LogiQA
+- [ ] LogiQA (WIP)
 - [x] HellaSwag
 - [ ] SWAG (WIP)
 - [x] OpenBookQA
@@ -57,6 +57,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] MGSM
 - [ ] SCROLLS
 - [ ] JSON Task (reference: https://github.com/EleutherAI/lm-evaluation-harness/pull/481)
+- [ ] Babi
 
 # Novel Tasks
 Tasks added in the revamped harness that were not previously available. Again, a strikethrough denotes checking performed *against the original task's implementation or published results introducing the task*.
