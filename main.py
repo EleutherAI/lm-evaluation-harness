@@ -43,7 +43,6 @@ def parse_args():
     parser.add_argument("--decontamination_ngrams_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
     parser.add_argument("--write_out", action="store_true", default=False)
-    parser.add_argument("--output_base_path", type=str, default=None)
     return parser.parse_args()
 
 
@@ -90,7 +89,6 @@ def main():
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
         write_out=args.write_out,
-        output_base_path=args.output_base_path,
     )
 
     if results is not None:
