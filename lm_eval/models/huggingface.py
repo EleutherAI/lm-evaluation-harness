@@ -174,39 +174,34 @@ class HFLM(LM):
                     )
                 else:
                     pass
-            else:
-                if gpus > accelerator.num_processes:
-                    # TODO: make sure there's still never an edge case where we unintentionally default to CPU
-                    eval_logger.warning(
-                        "WARNING: The number of total system GPUs does not match the number of spawned processes. "
-                        "If you would like to use data parallelism, please launch the script "
-                        "with 'accelerate launch *script*'. "
-                        f"Current run will proceed with {accelerator.num_processes} devices."
-                    )
+            elif gpus > accelerator.num_processes:
+                # TODO: make sure there's still never an edge case where we unintentionally default to CPU
+                eval_logger.warning(
+                    "WARNING: The number of total system GPUs does not match the number of spawned processes. "
+                    "If you would like to use data parallelism, please launch the script "
+                    "with 'accelerate launch *script*'. "
+                    f"Current run will proceed with {accelerator.num_processes} devices."
+                )
                 self._rank = accelerator.local_process_index
                 self._world_size = accelerator.num_processes
-
+                # manually set model to use gpu, for case where many GPUs available but
+                # only seek to use one
+                self._device = (
+                    torch.device(f"cuda:{accelerator.local_process_index}")
+                    if torch.cuda.is_available()
+                    else torch.device("cpu")
+                )
+                self.model.to(self.device)
+            else:
                 self._model = accelerator.prepare(self.model)
                 self._device = torch.device(f"cuda:{accelerator.local_process_index}")
                 self.accelerator = accelerator
 
                 if self.accelerator.is_local_main_process:
                     eval_logger.info(f"Using {gpus} devices with data parallelism")
-                # manually set model to use gpu, for case where many GPUs available but
-                # only seek to use one
-                # self._device = (
-                #     torch.device(f"cuda:{accelerator.local_process_index}")
-                #     if torch.cuda.is_available()
-                #     else torch.device("cpu")
-                # )
-                # self.model.to(self.device)
-            # else:
-            #     self._model = accelerator.prepare(self.model)
-            #     self._device = torch.device(f"cuda:{accelerator.local_process_index}")
-            #     self.accelerator = accelerator
 
-            #     self._rank = self.accelerator.local_process_index
-            #     self._world_size = self.accelerator.num_processes
+                self._rank = self.accelerator.local_process_index
+                self._world_size = self.accelerator.num_processes
 
     @property
     def config(self):
