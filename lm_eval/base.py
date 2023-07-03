@@ -309,7 +309,7 @@ class BaseLM(LM):
             if override_bs is not None
             else 0,
             fn=_batch_scheduler
-            if self.batch_size == "auto" and n_reordered_requests > 0
+            if self.batch_size == "auto" and n_reordered_requests > 0 and not override_bs
             else None,
         ):
             inps = []
