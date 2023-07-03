@@ -49,10 +49,12 @@ ALL_OUTPUT_TYPES = [
 
 @dataclass
 class TaskConfig(dict):
-
+    # task naming/registry
     task: str = None
     group: Union[str, list] = None
-
+    # HF dataset options.
+    # which dataset to use,
+    # and what splits for what purpose
     dataset_path: str = None
     dataset_name: str = None
     dataset_kwargs: dict = None
@@ -60,23 +62,24 @@ class TaskConfig(dict):
     validation_split: str = None
     test_split: str = None
     fewshot_split: str = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
-
+    # formatting / prompting options.
+    # see docs/advanced_task_guide.md for more info
     template_aliases: str = None
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
+    gold_alias: Union[Callable, str] = None
     use_prompt: str = None
     description: str = ""
     target_delimiter: str = " "
     fewshot_delimiter: str = "\n\n"
-
+    # runtime configuration options
     num_fewshot: int = 0
     batch_size: int = 1
-    repeats: int = 1
-
+    # scoring options
     metric_list: str = None
-    gold_alias: Union[Callable, str] = None
     output_type: str = "greedy_until"
     generation_kwargs: dict = None
+    repeats: int = 1
     filter_list: Union[str, list] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
