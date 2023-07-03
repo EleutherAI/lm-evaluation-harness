@@ -350,7 +350,7 @@ class BaseLM(LM):
 
                 # Slice to original seq length
                 contlen = len(cont_toks)
-                inplen = inplen + (logits.shape[0] - padding_length)
+                inplen = inplen + (logits.shape[0] - padding_length) # if "virtual tokens" (from prompt tuning) are added, inplen is larger
                 logits = logits[inplen - contlen : inplen].unsqueeze(
                     0
                 )  # [1, seq, vocab]
