@@ -13,7 +13,7 @@ curl -Ss https://bootstrap.pypa.io/get-pip.py | python3.10 && \
 apt-get clean && rm -rf /var/lib/apt/lists/
 
 
-### COpy files 
+### Copy files 
 COPY . /lm-evaluation-harness/
 
 ### Set working directory
