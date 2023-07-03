@@ -1,0 +1,16 @@
+- dataset_path: "super_glue" # Coreference Resolution
+  dataset_name: "wsc.fixed"
+- dataset_path: "winogrande" # Coreference Resolution
+  dataset_name: "winogrande_xl"
+- dataset_path: "super_glue" # Natural Language Inference
+  dataset_name: "cb"
+- dataset_path: "super_glue" # Natural Language Inference
+  dataset_name: "rte"
+- dataset_path: "anli" # Natural Language Inference
+  dataset_name: null
+- dataset_path: "super_glue" # Sentence Completion
+  dataset_name: "copa"
+- dataset_path: "hellaswag" # Natural Language Inference
+  dataset_name: null
+- dataset_path: "super_glue"  # Word Sense Disambiguation
+  dataset_name: "wic"
