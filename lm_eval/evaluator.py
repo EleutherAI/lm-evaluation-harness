@@ -281,7 +281,7 @@ def evaluate(
                     "doc_id": doc_id,
                     "doc": doc,
                     "target": target,
-                    "arguments": req.args,
+                    "arguments": requests[0].args,
                     "resps": [req.resps for req in requests],
                     "filtered_resps": [req.filtered_resps[key] for req in requests],
                 }
@@ -292,6 +292,15 @@ def evaluate(
 
     if lm.world_size > 1:
         # if multigpu, then gather data across all ranks
+        # first gather logged samples across all ranks
+        for task_name, task_samples in list(samples.items()):
+
+            full_samples = [None] * lm.world_size
+            torch.distributed.all_gather_object(full_samples, task_samples)
+
+            samples[task_name] = list(itertools.chain.from_iterable(full_samples))
+
+        # then collect metrics across all ranks
         vals_torch = collections.defaultdict(list)
         for (task_name, key, metric), items in vals.items():
 
