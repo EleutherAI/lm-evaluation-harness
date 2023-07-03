@@ -51,7 +51,7 @@ class Babi(Task):
         return False # TODO Necessary?
 
     def doc_to_decontamination_query(self, doc):
-        return doc['passage'] + doc['question']
+        return f"Passage: {doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
 
     def doc_to_target(self, doc):
         return " " + doc['answer']
