@@ -4,6 +4,7 @@ from typing import List, Union
 import sacrebleu
 import lm_eval.base
 
+from . import babi
 from . import superglue
 from . import glue
 from . import arc
@@ -93,6 +94,7 @@ all_translation_benchmarks = {
 
 
 TASK_REGISTRY = {
+    "babi": babi.Babi,
     # GLUE
     "cola": glue.CoLA,
     "mnli": glue.MNLI,
