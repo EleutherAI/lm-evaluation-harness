@@ -44,10 +44,10 @@ To install additional multilingual tokenization and text segmentation packages, 
 pip install -e ".[multilingual]"
 ```
 
-To support loading GPTQ quantized models, install the package with the `auto-gptq` extra:
+To support loading GPTQ quantized models, install the package with the `gptq` extra:
 
 ```bash
-pip install -e ".[auto-gptq]"
+pip install -e ".[gptq]"
 ```
 
 ## Basic Usage
