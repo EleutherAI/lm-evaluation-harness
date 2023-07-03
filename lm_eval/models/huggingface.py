@@ -168,7 +168,13 @@ class HFLM(LM):
                 **model_kwargs,
             )
         else:
-            from auto_gptq import AutoGPTQForCausalLM
+            try:
+                from auto_gptq import AutoGPTQForCausalLM
+            except ModuleNotFoundError:
+                raise Exception(
+                    "Tried to load auto_gptq, but auto-gptq is not installed ",
+                    "please install auto-gptq via pip install lm-eval[gptq] or pip install -e .[gptq]",
+                )
 
             self._model = AutoGPTQForCausalLM.from_quantized(
                 pretrained,
