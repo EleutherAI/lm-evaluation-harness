@@ -55,7 +55,7 @@ setuptools.setup(
         "promptsource": [
             "promptsource @ git+https://github.com/bigscience-workshop/promptsource.git#egg=promptsource"
         ],
-        "auto-gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
+        "gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
         "anthropic": ["anthropic"],
     },
 )
