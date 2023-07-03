@@ -58,7 +58,7 @@ class HFLM(LM):
 
     def __init__(
         self,
-        device: Optional[Union[str, int]] = "cuda",
+        device="cuda",
         pretrained="gpt2",
         revision="main",
         low_cpu_mem_usage=None,
