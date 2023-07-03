@@ -93,11 +93,16 @@ class HFLM(LM):
         assert isinstance(batch_size, int)
 
         gpus = torch.cuda.device_count()
+        accelerator = Accelerator()
 
-        if gpus <= 1 and not parallelize:
+        if not (parallelize or accelerator.num_processes > 1):
             # use user-passed device
+            device_list = set(
+                ["cuda", "cpu"]
+                + [f"cuda:{i}" for i in range(torch.cuda.device_count())]
+            )
             if device:
-                if device not in ["cuda", "cpu"]:
+                if device not in device_list:
                     device = int(device)
                 self._device = torch.device(device)
                 eval_logger.info(f"Using device '{device}'")
@@ -111,7 +116,7 @@ class HFLM(LM):
                 )
         else:
             eval_logger.info(
-                f"Passed device '{device}', but using `accelerate launch` or `parallelize=True`. This will be overridden when placing model."
+                f"Using `accelerate launch` or `parallelize=True`, device '{device}' will be overridden when placing model."
             )
             # TODO: include in warning that `load_in_8bit` etc. affect this too
             self._device = device
@@ -217,7 +222,6 @@ class HFLM(LM):
 
         # multigpu data-parallel support when launched with accelerate
         if gpus > 1:
-            accelerator = Accelerator()
             if parallelize:
                 if accelerator.num_processes > 1:
                     raise RuntimeError(
