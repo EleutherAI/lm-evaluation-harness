@@ -834,7 +834,6 @@ class ConfigurableTask(Task):
             else:
                 gold = int(self.doc_to_target(doc))
 
-            pred = np.argmax(lls)
             # retrieve choices in List[str] form, to compute choice lengths, etc.
             choices = ast.literal_eval(
                 utils.apply_template(
@@ -852,6 +851,8 @@ class ConfigurableTask(Task):
                 # and this stores our "regular" conditional loglikelihoods
                 lls = lls[::2]
 
+            pred = np.argmax(lls)
+
             acc = 1.0 if np.argmax(lls) == gold else 0.0
             completion_len = np.array([float(len(i)) for i in choices])
             acc_norm = 1.0 if np.argmax(lls / completion_len) == gold else 0.0
@@ -863,7 +864,6 @@ class ConfigurableTask(Task):
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
             }
 
-            # TODO: set which normalization metrics should be reported, and calculate them
             if "exact_match" in self._metric_fn_list.keys():
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
                 is_greedy = is_greedy[gold]  # take value for the gold answer
