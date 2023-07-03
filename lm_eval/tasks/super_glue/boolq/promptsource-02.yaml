@@ -1,5 +1,0 @@
-include: promptsource-00.yaml
-group:
-  - super-glue-promptsource
-task: "based on the following passage"
-use_prompt: "promptsource:based on the following passage"
