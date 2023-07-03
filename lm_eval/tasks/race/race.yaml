@@ -1,11 +1,9 @@
 group:
   - multiple_choice
 task: race
-dataset_path: bfattori/race_grouped
+dataset_path: bfattori/race
 dataset_name: high
 output_type: multiple_choice
-training_split: train
-validation_split: validation
 test_split: test
 create_choices: !function preprocess_race.create_choices
 doc_to_text: !function preprocess_race.doc_to_text
