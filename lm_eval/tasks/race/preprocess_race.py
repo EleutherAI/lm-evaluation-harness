@@ -1,5 +1,10 @@
+import ast 
+
+def process_ast(string):
+    return ast.literal_eval(string)
+
 def last_problem(doc):
-    return doc["problems"][-1]
+    return process_ast(doc["problems"])[-1]
 
 def get_answer_option(problem):
     letter_to_num = {"A": 0, "B": 1, "C": 2, "D": 3}
@@ -13,7 +18,7 @@ def create_choices(doc):
 
 def doc_to_text(doc):
     text = "Article: " + doc["article"] + "\n\n"
-    for problem in doc["problems"][:-1]:
+    for problem in process_ast(doc["problems"])[:-1]:
         if problem["question"][-6:] == "  _  .":
             text += (
                 problem["question"][-5:] + get_answer_option(problem) + "\n"
