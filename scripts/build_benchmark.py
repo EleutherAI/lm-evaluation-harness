@@ -33,17 +33,12 @@ if __name__ == "__main__":
             dataset_name = task["dataset_path"]
             if "dataset_name" in task:
                 subset_name = task["dataset_name"]
+                file_subdir = f"{dataset_name}/{subset_name}"
             else:
                 subset_name = None
+                file_subdir = f"{dataset_name}"
 
-            if subset_name is None:
-                file_name = f"promptsource_{dataset_name}"
-                file_path = os.path.join(args.task_save_path, f"{dataset_name}")
-            else:
-                file_name = f"promptsource_{dataset_name}_{subset_name}"
-                file_path = os.path.join(
-                    args.task_save_path, f"{dataset_name}/{subset_name}"
-                )
+            file_path = os.path.join(args.task_save_path, file_subdir, "promptsource/")
 
             os.makedirs(file_path, exist_ok=True)
 
@@ -55,9 +50,7 @@ if __name__ == "__main__":
                 )
 
             for idx, prompt_name in enumerate(prompts.all_template_names):
-                full_file_name = (
-                    file_name + f"_{idx}.yml"
-                )  # .format(prompt_name.replace(" ", "_").lower())
+                full_file_name = f"promptsource_{idx}.yaml"
                 config_dict = {
                     "group": args.benchmark_name,
                     "include": "promptsource_template.yaml",
@@ -68,5 +61,3 @@ if __name__ == "__main__":
                 eval_logger.info(f"Save to {file_save_path}")
                 with open(file_save_path, "w") as yaml_file:
                     yaml.dump(config_dict, yaml_file)
-
-                # return config_dict
