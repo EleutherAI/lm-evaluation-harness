@@ -1,5 +1,6 @@
 import os
-from lm_eval.base import BaseLM
+from lm_eval.api.model import LM
+from lm_eval.api.registry import register_model
 from tqdm import tqdm
 import time
 
@@ -25,7 +26,6 @@ def anthropic_completion(
                 max_tokens_to_sample=max_tokens_to_sample,
                 temperature=temperature,
             )
-            print(response)
             return response["completion"]
         except RuntimeError:
             # TODO: I don't actually know what error Anthropic raises when it times out
@@ -37,7 +37,8 @@ def anthropic_completion(
             backoff_time *= 1.5
 
 
-class AnthropicLM(BaseLM):
+@register_model("anthropic")
+class AnthropicLM(LM):
     REQ_CHUNK_SIZE = 20
 
     def __init__(self, model):
@@ -87,6 +88,8 @@ class AnthropicLM(BaseLM):
         if not requests:
             return []
 
+        requests = [req.args for req in requests]
+
         res = []
         for request in tqdm(requests):
             inp = request[0]
@@ -97,10 +100,13 @@ class AnthropicLM(BaseLM):
                 model=self.model,
                 prompt=inp,
                 max_tokens_to_sample=self.max_gen_toks,
-                temperature=0.0,
+                temperature=0.0,  # TODO: implement non-greedy sampling for Anthropic
                 stop=until,
             )
             res.append(response)
+
+            self.cache_hook.add_partial("greedy_until", request, response)
+
         return res
 
     def _model_call(self, inps):

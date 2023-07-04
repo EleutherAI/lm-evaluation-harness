@@ -52,7 +52,6 @@ class TaskConfig(dict):
 
     task: str = None
     group: Union[str, list] = None
-    reference: str = None
 
     dataset_path: str = None
     dataset_name: str = None
@@ -63,10 +62,12 @@ class TaskConfig(dict):
     fewshot_split: str = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
 
     template_aliases: str = None
-    aliases: Union[str, list] = None
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
     use_prompt: str = None
+    description: str = ""
+    target_delimiter: str = " "
+    fewshot_delimiter: str = "\n\n"
 
     num_fewshot: int = 0
     batch_size: int = 1
@@ -76,7 +77,6 @@ class TaskConfig(dict):
     gold_alias: Union[Callable, str] = None
     output_type: str = "greedy_until"
     generation_kwargs: dict = None
-    delimiter: str = "\n\n"
     filter_list: Union[str, list] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
@@ -97,12 +97,15 @@ class TaskConfig(dict):
             if type(self.gold_alias) == str:
                 self.gold_alias = self.template_aliases + self.gold_alias
 
-        if self.generation_kwargs or self.output_type == "greedy_until":
+        if self.generation_kwargs:
             assert (
                 self.output_type == "greedy_until"
             ), "passed `generation_kwargs`, but not using a generation request type!"
+        elif self.output_type == "greedy_until":
             # ensure that we greedily generate in absence of explicit arguments otherwise
             self.generation_kwargs = {"do_sample": False, "temperature": 0.0}
+
+        # TODO: how to make TaskConfigs be de- and re-serializable, even when using the !function constructor?
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -122,6 +125,9 @@ class TaskConfig(dict):
         for k, v in list(cfg_dict.items()):
             if v is None:
                 cfg_dict.pop(k)
+            elif isinstance(v, Callable):
+                # TODO: this should handle Promptsource template objects as a separate case?
+                cfg_dict[k] = str(v)
         return cfg_dict
 
 
@@ -275,7 +281,7 @@ class Task(abc.ABC):
         else:
             eval_logger.warning(
                 "has_training_docs and has_validation_docs are False"
-                ", using test_docs but this is not recommended."
+                ", using test_docs as fewshot_docs but this is not recommended."
             )
             return self.test_docs()
 
@@ -336,7 +342,8 @@ class Task(abc.ABC):
             fewshot_ctx = self.fewshot_context(
                 doc, self._config.num_fewshot, rnd=random.Random()
             )
-            # TODO: hardcoded for now: # of runs on each input to be 2. # TODO: we should override this if doing greedy gen so users don't waste time+compute
+
+            # TODO: we should override self._config.repeats if doing greedy gen so users don't waste time+compute
             inst = self.construct_requests(
                 doc=doc,
                 ctx=fewshot_ctx,
@@ -433,35 +440,12 @@ class Task(abc.ABC):
         ), "A `random.Random` generator argument must be provided to `rnd`"
 
         if num_fewshot == 0:
-            labeled_examples = ""
+            # always prepend the (possibly empty) task description
+            labeled_examples = self._config.description
         else:
-            labeled_examples = self.sampler.get_context(doc, num_fewshot)
-
-            # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
-            # if self.has_training_docs():
-            #     fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
-            # else:
-            #     if self._fewshot_docs is None:
-            #         self._fewshot_docs = list(
-            #             self.validation_docs()
-            #             if self.has_validation_docs()
-            #             else self.test_docs()
-            #         )
-
-            #     fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
-
-            #     # get rid of the doc that's the one we're evaluating, if it's in the fewshot
-            #     fewshotex = [x for x in fewshotex if x != doc][:num_fewshot]
-
-            # labeled_examples = (
-            #     "\n\n".join(
-            #         [
-            #             self.doc_to_text(doc) + self.doc_to_target(doc)
-            #             for doc in fewshotex
-            #         ]
-            #     )
-            #     + "\n\n"
-            # )
+            labeled_examples = self._config.description + self.sampler.get_context(
+                doc, num_fewshot
+            )
 
         example = self.doc_to_text(doc)
         return labeled_examples + example
@@ -735,12 +719,14 @@ class ConfigurableTask(Task):
             raise TypeError
 
     def gold_alias(self, doc):
-        # TODO: reevaluate if we need this. implemented to have a
-        # processed version of answer to put into gsm8k exact_match scoring as ref.
+        # returns a version of the gold target answer to a document,
+        # which should be passed into metric for scoring as the ground truth.
+
+        # in multiple_choice tasks, this should be castable to an int corresponding to the index
+        # within the answer choices, while doc_to_target is the string version of {{answer_choices[gold]}}.
         if self._config.gold_alias is not None:
             doc_to_target = self._config.gold_alias
         else:
-            # doc_to_target = self._config.doc_to_target
             return self.doc_to_target(doc)
 
         if type(doc_to_target) == str:
@@ -899,7 +885,9 @@ class ConfigurableTask(Task):
 
             for key, result in zip(self._metric_fn_list.keys(), results):
                 _dict = self._metric_fn_list[key].compute(
-                    references=[gold], predictions=[result], **self._metric_kwargs[key]
+                    references=[gold],
+                    predictions=[result],
+                    **self._metric_fn_kwargs[key],
                 )
 
                 result_dict = {**result_dict, **_dict}

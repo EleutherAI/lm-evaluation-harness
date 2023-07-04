@@ -1,5 +1,5 @@
 import pytest
-import lm_eval.metrics as metrics
+import lm_eval.api.metrics as metrics
 import random
 
 
