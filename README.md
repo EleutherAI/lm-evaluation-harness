@@ -44,10 +44,10 @@ To install additional multilingual tokenization and text segmentation packages, 
 pip install -e ".[multilingual]"
 ```
 
-To support loading GPTQ quantized models, install the package with the `auto-gptq` extra:
+To support loading GPTQ quantized models, install the package with the `gptq` extra:
 
 ```bash
-pip install -e ".[auto-gptq]"
+pip install -e ".[gptq]"
 ```
 
 ## Basic Usage
@@ -94,7 +94,7 @@ accelerate launch main.py \
 
 This will perform *data-parallel evaluation*: that is, placing a **single full copy** of your model onto each available GPU and *splitting batches across GPUs* to evaluate on K GPUs K times faster than on one.
 
-However, if your model *is too large to be run on a single one of your GPUs*, then we provide an alternative method to run these large models.
+However, if your model *is too large to be run on a single one of your GPUs*, then we provide an alternative method to run these large models: use of the `parallelize` argument.
 
 ```
 python main.py \
@@ -109,6 +109,8 @@ To pass even more advanced keyword arguments to `accelerate`, we allow for the f
 - `max_memory_per_gpu`: the max GPU memory to use per GPU in loading the model.
 - `max_cpu_memory`: the max amount of CPU memory to use when offloading the model weights to RAM.
 - `offload_folder`: a folder where model weights will be offloaded to disk if needed.
+
+Using this setting helps for massive models like BLOOM which require, or to avoid exceeding your total system RAM (by default, with `accelerate launch` one copy of the model for each GPU is initialized in RAM before moving it to GPU, resulting in large RAM usage spikes around the start of the script that may cause errors such as `Killed`.) However, it naively splits models across GPUs, resulting in only a single GPU performing work at any point in time, and so is much slower than launching with `accelerate launch`, possibly by a factor of the total # of GPUs.
 
 **Note that this option requires launching evaluation via `python main.py` rather than `accelerate launch main.py`.**
 
@@ -158,17 +160,17 @@ For models loaded with the HuggingFace  `transformers` library, any arguments pr
 ```bash
 python main.py \
     --model hf \
-    --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
+    --model_args pretrained=EleutherAI/gpt-j-6b,parallelize=True,load_in_4bit=True,peft=nomic-ai/gpt4all-j-lora \
     --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
     --device cuda:0
 ```
 
-GPTQ quantized models can be loaded by specifying their file names in `,quantized=NAME` (or `,quantized=True` for default names) in the `model_args` argument:
+[GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,gptq=NAME` (or `,gptq=True` for default names) in the `model_args` argument:
 
 ```bash
 python main.py \
     --model hf \
-    --model_args pretrained=model-name-or-path,quantized=model.safetensors,gptq_use_triton=True \
+    --model_args pretrained=model-name-or-path,gptq=model.safetensors,gptq_use_triton=True \
     --tasks hellaswag
 ```
 
