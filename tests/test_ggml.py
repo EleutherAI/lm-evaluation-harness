@@ -38,7 +38,7 @@ def ggml_completion_mock(base_url, **kwargs):
 
 
 class GGMLLMTest(unittest.TestCase):
-    @patch('lm_eval.models.ggml.ggml_completion', side_effect=ggml_completion_mock)
+    @patch('lm_eval.models.ggml.GGMLLM.ggml_completion', side_effect=ggml_completion_mock)
     def test_loglikelihood(self, ggml_completion_mock):
         lm = GGMLLM(base_url)
 
@@ -50,7 +50,7 @@ class GGMLLMTest(unittest.TestCase):
         expected_res = [(logprob, True) for logprob in [-1.2345, -1.2345]]
         self.assertEqual(res, expected_res)
 
-    @patch('lm_eval.models.ggml.ggml_completion', side_effect=ggml_completion_mock)
+    @patch('lm_eval.models.ggml.GGMLLM.ggml_completion', side_effect=ggml_completion_mock)
     def test_greedy_until(self, ggml_completion_mock):
         lm = GGMLLM(base_url)
 
@@ -62,7 +62,7 @@ class GGMLLMTest(unittest.TestCase):
         expected_res = ["generated text until stop1", "generated text until stop1"]
         self.assertEqual(res, expected_res)
 
-    @patch('lm_eval.models.ggml.ggml_completion', side_effect=ggml_completion_mock)
+    @patch('lm_eval.models.ggml.GGMLLM.ggml_completion', side_effect=ggml_completion_mock)
     def test_loglikelihood_rolling(self, ggml_completion_mock):
         lm = GGMLLM(base_url)
 
