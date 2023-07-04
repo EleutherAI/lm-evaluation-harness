@@ -1,12 +1,16 @@
 import collections
 import itertools
-import numpy as np
 import random
+
 import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
 from lm_eval.utils import positional_deprecated, run_task_tests
+from lm_eval.models.gpt2 import HFLM
+
+import numpy as np
+import transformers
 
 
 @positional_deprecated
@@ -16,6 +20,7 @@ def simple_evaluate(
     tasks=[],
     num_fewshot=0,
     batch_size=None,
+    max_batch_size=None,
     device=None,
     no_cache=False,
     limit=None,
@@ -29,7 +34,7 @@ def simple_evaluate(
     """Instantiate and evaluate a model on a list of tasks.
 
     :param model: Union[str, LM]
-        Name of model or LM object, see lm_eval.models.get_model
+        Name of model, transformers.PreTrainedModel object, or LM object, see lm_eval.models.get_model
     :param model_args: Optional[str]
         String arguments for each model class, see LM.create_from_arg_string.
         Ignored if `model` argument is a LM object.
@@ -37,8 +42,10 @@ def simple_evaluate(
         List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param num_fewshot: int
         Number of examples in few-shot context
-    :param batch_size: int, optional
+    :param batch_size: int or str, optional
         Batch size for model
+    :param max_batch_size: int, optional
+        Maximal batch size to try with automatic batch size detection
     :param device: str, optional
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
     :param no_cache: bool
@@ -67,8 +74,15 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
         lm = lm_eval.models.get_model(model).create_from_arg_string(
-            model_args, {"batch_size": batch_size, "device": device}
+            model_args, {"batch_size": batch_size, "max_batch_size": max_batch_size, "device": device}
         )
+    elif isinstance(model, transformers.PreTrainedModel):
+        lm = lm_eval.models.get_model("hf-causal")(
+                pretrained=model,
+                batch_size=batch_size,
+                max_batch_size=max_batch_size,
+                )
+        no_cache = True
     else:
         assert isinstance(model, lm_eval.base.LM)
         lm = model
@@ -77,7 +91,7 @@ def simple_evaluate(
         lm = lm_eval.base.CachingLM(
             lm,
             "lm_cache/"
-            + model
+            + (model if isinstance(model, str) else model.model.config._name_or_path)
             + "_"
             + model_args.replace("=", "-").replace(",", "_").replace("/", "-")
             + ".db",
@@ -101,11 +115,17 @@ def simple_evaluate(
     )
 
     # add info about the model and few shot config
+    model_name = None
+    if isinstance(model, str):
+        model_name = model
+    elif isinstance(model, transformers.PreTrainedModel):
+        model_name = "pretrained=" + model.config._name_or_path
     results["config"] = {
-        "model": model,
+        "model": model_name,
         "model_args": model_args,
         "num_fewshot": num_fewshot,
         "batch_size": batch_size,
+        "batch_sizes": list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else [],
         "device": device,
         "no_cache": no_cache,
         "limit": limit,
