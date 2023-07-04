@@ -1,0 +1,19 @@
+group:
+  - multiple_choice
+task: qa4mre_2013
+dataset_path: qa4mre
+dataset_name: 2013.main.EN
+output_type: multiple_choice
+test_split: train
+template_aliases: "{% set answer_choices = answer_options['answer_str'] %}"
+doc_to_text: "{{document_str.strip()}}\nQuestion: {{question_str}}\nAnswer:"
+doc_to_target: !function preprocess_qa4mre.qa4mre_process
+should_decontaminate: true
+doc_to_decontamination_query: "{{document_str.strip()}} + ' ' + {{question_str}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
