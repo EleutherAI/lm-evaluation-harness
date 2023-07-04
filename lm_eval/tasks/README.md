@@ -1,7 +1,7 @@
 # v1.0 Tasks
 This list keeps track of which tasks' implementations have been ported to YAML / v2.0 of the Eval Harness.
 
-Boxes should be checked iff tasks are implemented in the refactor and tested for regression. Tasks should be struck through if checked *against original introducing paper* implementation or popularizing implementation.
+Boxes should be checked iff tasks are implemented in the refactor and tested for regression. Tasks should be struck through if checked *against original introducing paper* implementation or popularizing implementation. (WIP) Denotes that there exists a PR or person working on this task already.
 
 - [ ] Glue (WIP)
 - [x] SuperGlue
@@ -12,7 +12,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Lambada (Multilingual)
 - [x] Wikitext
 - [x] PiQA
-- [ ] PROST
+- [ ] PROST (WIP)
 - [ ] MCTACO
 - [x] Pubmed QA
 - [x] SciQ
@@ -21,11 +21,16 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] TriviaQA
 - [x] AI2 ARC
 - [ ] LogiQA
-- [ ] HellaSwag
+- [x] HellaSwag
 - [x] SWAG
 - [x] OpenBookQA
 - [ ] SQuADv2
 - [x] RACE
+- [ ] LogiQA (WIP)
+- [x] HellaSwag
+- [ ] SWAG (WIP)
+- [x] OpenBookQA
+- [ ] SQuADv2 (WIP)
 - [ ] HeadQA
 - [ ] MathQA
 - [ ] WebQs
@@ -35,7 +40,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Hendrycks Ethics
 - [ ] TruthfulQA
 - [ ] MuTual
-- [ ] Hendrycks Math
+- [ ] Hendrycks Math (WIP)
 - [ ] Asdiv
 - [ ] GSM8k
 - [x] Arithmetic
@@ -45,6 +50,8 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] ~~Pile (perplexity)~~
 - [ ] BLiMP
 - [ ] ToxiGen
+- [ ] StoryCloze
+- [ ] NaturalQs
 - [ ] CrowS-Pairs
 - [ ] XCopa
 - [ ] BIG-Bench
@@ -53,6 +60,9 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] PAWS-X
 - [ ] XNLI
 - [ ] MGSM
+- [ ] SCROLLS
+- [ ] JSON Task (reference: https://github.com/EleutherAI/lm-evaluation-harness/pull/481)
+- [ ] Babi
 
 # Novel Tasks
 Tasks added in the revamped harness that were not previously available. Again, a strikethrough denotes checking performed *against the original task's implementation or published results introducing the task*.

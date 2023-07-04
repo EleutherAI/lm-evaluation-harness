@@ -124,28 +124,6 @@ def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
                 get_task_name_from_object(task_element): task_element,
             }
 
-    # task_name_from_registry_dict = {
-    #     task_name: get_task(
-    #         task_name=task_name,
-    #         task_config=config
-    #     )
-    #     for group_name in task_name_list for task_name in GROUP_REGISTRY[group_name]
-    #     if (isinstance(group_name, str)) and (group_name in GROUP_REGISTRY)
-    # }
-    # task_name_from_config_dict = {
-    #     get_task_name_from_config(task_config): ConfigurableTask(
-    #         config=task_config
-    #     )
-    #     for task_config in task_name_list
-    #     if isinstance(task_config, dict)
-    # }
-    # # TODO: Do we still need this?
-    # task_name_from_object_dict = {
-    #     get_task_name_from_object(task_object): task_object
-    #     for task_object in task_name_list
-    #     if isinstance(task_object, Task)
-    # }
-
     assert set(task_name_from_registry_dict.keys()).isdisjoint(
         set(task_name_from_object_dict.keys())
     )

@@ -1,7 +1,6 @@
 group:
   - super-glue-t5-prompt
-task: t5-prompt
-reference: "From Raffel et. al. 2019"
+task: super_glue-copa-t5-prompt
 dataset_path: super_glue
 dataset_name: copa
 training_split: train
