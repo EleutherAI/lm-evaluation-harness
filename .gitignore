@@ -5,4 +5,4 @@ lm_cache
 .idea
 
 *.egg-info/
-.vscode
+.vscode/
