@@ -10,7 +10,7 @@ import collections
 import importlib.util
 import fnmatch
 
-from typing import List, Union
+from typing import List, Literal, Union
 
 import gc
 import torch
@@ -21,15 +21,6 @@ from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
 
 from lm_eval.logger import eval_logger
-
-
-class ExitCodeError(Exception):
-    pass
-
-
-def sh(x):
-    if os.system(x):
-        raise ExitCodeError()
 
 
 def escaped_split(text, sep_char, maxsplit=-1):
@@ -179,26 +170,6 @@ def make_disjoint_window(pair):
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b
-
-
-def select_continuation_from_batch_left_padding(
-    generations: Union[List[List[int]], torch.Tensor], max_context_size: int
-):
-    """Select the continuation from the batch, removing prompts of different lengths.
-    Args:
-        generations (Union[List[List[int]], torch.Tensor]):
-            A tensor or list-of-lists of shape [batch_size, sequence length].
-        max_context_size (int):
-            The size of the biggest context; generations will proceed from that
-            index.
-    Example:
-        PAD     PAD Continue : The dog chased the cat  [every       day of the week]
-        Riddle  me    this   : The  dog chased the  cat [yesterday] PAD PAD PAD PAD
-    Output:
-        [every day of the week]
-        [yesterday]  PAD PAD PAD PAD
-    """
-    return generations[:, max_context_size:]
 
 
 class Reorderer:
@@ -398,7 +369,8 @@ def get_git_commit_hash():
     try:
         git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()
         git_hash = git_hash.decode()
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError or FileNotFoundError:
+        # FileNotFoundError occurs when git not installed on system
         git_hash = None
     return git_hash
 
@@ -481,7 +453,11 @@ def create_iterator(raw_iterator, rank, world_size, limit=None):
     return islice(raw_iterator, rank, limit, world_size)
 
 
-def pad_and_concat(max_length: int, tensors: List[torch.Tensor], padding_side="right"):
+def pad_and_concat(
+    max_length: int,
+    tensors: List[torch.Tensor],
+    padding_side: Literal["right", "left"] = "right",
+):
     """
     Method for padding a list of tensors given the maximum tensor
     length in the batch. Used for batching inputs and continuations in

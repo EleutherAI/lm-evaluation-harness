@@ -1,10 +1,12 @@
 import torch
 import transformers
 from transformers.models.auto.modeling_auto import MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
+from peft import __version__ as PEFT_VERSION, PeftModel
 
 import copy
 from collections import defaultdict
 from tqdm import tqdm
+from pathlib import Path
 
 import torch.nn.functional as F
 
@@ -16,7 +18,32 @@ from lm_eval.api.registry import register_model
 from lm_eval.utils import MultiTokenEOSCriteria, stop_sequences_criteria
 
 from accelerate import Accelerator
-from typing import List, Union
+from typing import List, Optional, Union
+
+
+def _get_accelerate_args(
+    device_map_option: Optional[str] = "auto",
+    max_memory_per_gpu: Optional[Union[int, str]] = None,
+    max_cpu_memory: Optional[Union[int, str]] = None,
+    offload_folder: Optional[str] = "./offload",
+) -> dict:
+    """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
+    max_memory = {}
+    if max_memory_per_gpu is not None:
+        max_memory_per_gpu_map = {
+            device_idx: max_memory_per_gpu
+            for device_idx in range(torch.cuda.device_count())
+        }
+        max_memory.update(max_memory_per_gpu_map)
+    if max_cpu_memory is not None:
+        max_memory["cpu"] = max_cpu_memory
+
+    args = {}
+    if max_memory:
+        args["max_memory"] = max_memory
+    args["device_map"] = device_map_option
+    args["offload_folder"] = offload_folder
+    return args
 
 
 @register_model("hf-auto", "hf", "huggingface")
@@ -33,14 +60,31 @@ class HFLM(LM):
 
     def __init__(
         self,
-        device="cuda",
-        pretrained="gpt2",
-        revision="main",
-        low_cpu_mem_usage=None,
-        max_length=None,
-        subfolder=None,
-        tokenizer=None,
-        batch_size=1,
+        pretrained: Optional[str] = "gpt2",
+        revision: Optional[str] = "main",
+        subfolder: Optional[str] = None,
+        tokenizer: Optional[str] = None,
+        max_length: Optional[int] = None,
+        device: Optional[str] = "cuda",
+        dtype: Optional[Union[str, torch.dtype]] = "auto",
+        batch_size: Optional[int] = 1,
+        low_cpu_mem_usage: Optional[bool] = True,
+        trust_remote_code: Optional[bool] = False,
+        # arguments used for splitting a model across GPUs naively.
+        # only used if `parallelize=True`.
+        parallelize: Optional[bool] = False,
+        device_map_option: Optional[str] = "auto",
+        max_memory_per_gpu: Optional[Union[int, str]] = None,
+        max_cpu_memory: Optional[Union[int, str]] = None,
+        offload_folder: Optional[str] = "./offload",
+        # PEFT and quantization options
+        peft: Optional[str] = None,
+        load_in_8bit: Optional[bool] = False,
+        load_in_4bit: Optional[bool] = False,
+        bnb_4bit_quant_type: Optional[str] = None,
+        bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        gptq: Optional[Union[bool, str]] = False,
+        gptq_use_triton: Optional[bool] = False,
     ):
         super().__init__()
 
@@ -49,10 +93,16 @@ class HFLM(LM):
         assert isinstance(batch_size, int)
 
         gpus = torch.cuda.device_count()
+        accelerator = Accelerator()
 
-        if gpus <= 1:
+        if not (parallelize or accelerator.num_processes > 1):
+            # use user-passed device
+            device_list = set(
+                ["cuda", "cpu"]
+                + [f"cuda:{i}" for i in range(torch.cuda.device_count())]
+            )
             if device:
-                if device not in ["cuda", "cpu"]:
+                if device not in device_list:
                     device = int(device)
                 self._device = torch.device(device)
                 eval_logger.info(f"Using device '{device}'")
@@ -64,19 +114,29 @@ class HFLM(LM):
                     if torch.cuda.is_available()
                     else torch.device("cpu")
                 )
-            self._rank = 0
-            self._world_size = 1
-
         else:
-            self._device = "cpu"
+            eval_logger.info(
+                f"Using `accelerate launch` or `parallelize=True`, device '{device}' will be overridden when placing model."
+            )
+            # TODO: include in warning that `load_in_8bit` etc. affect this too
+            self._device = device
+
+        model_kwargs = {}
+        if parallelize:
+            model_kwargs = _get_accelerate_args(
+                device_map_option,
+                max_memory_per_gpu,
+                max_cpu_memory,
+                offload_folder,
+            )
 
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
-        # get config
         self._config = transformers.AutoConfig.from_pretrained(
             pretrained,
             revision=revision,
+            trust_remote_code=trust_remote_code,
         )
 
         if getattr(self._config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
@@ -89,15 +149,67 @@ class HFLM(LM):
             transformers.AutoModelForSeq2SeqLM,
         ]
 
-        self._model = self.AUTO_MODEL_CLASS.from_pretrained(
-            pretrained, revision=revision, low_cpu_mem_usage=low_cpu_mem_usage
-        ).to(self.device)
+        if not gptq:
+            if load_in_4bit:
+                assert (
+                    transformers.__version__ >= "4.30.0"
+                ), "load_in_4bit requires transformers >= 4.30.0"
+            if transformers.__version__ >= "4.30.0":
+                model_kwargs["load_in_4bit"] = load_in_4bit
+                if load_in_4bit:
+                    if bnb_4bit_quant_type:
+                        model_kwargs["bnb_4bit_quant_type"] = bnb_4bit_quant_type
+                    if bnb_4bit_compute_dtype:
+                        model_kwargs["bnb_4bit_compute_dtype"] = utils.get_dtype(
+                            bnb_4bit_compute_dtype
+                        )
+            self._model = self.AUTO_MODEL_CLASS.from_pretrained(
+                pretrained,
+                revision=revision,
+                torch_dtype=utils.get_dtype(dtype),
+                low_cpu_mem_usage=low_cpu_mem_usage,
+                trust_remote_code=trust_remote_code,
+                load_in_8bit=load_in_8bit,
+                **model_kwargs,
+            )
+        else:
+            try:
+                from auto_gptq import AutoGPTQForCausalLM
+            except ModuleNotFoundError:
+                raise Exception(
+                    "Tried to load auto_gptq, but auto-gptq is not installed ",
+                    "please install auto-gptq via pip install lm-eval[gptq] or pip install -e .[gptq]",
+                )
+
+            self._model = AutoGPTQForCausalLM.from_quantized(
+                pretrained,
+                model_basename=None if gptq is True else Path(gptq).stem,
+                low_cpu_mem_usage=low_cpu_mem_usage,
+                trust_remote_code=trust_remote_code,
+                use_safetensors=True if gptq is True else gptq.endswith(".safetensors"),
+                use_triton=gptq_use_triton,
+                warmup_triton=gptq_use_triton,
+                **model_kwargs,
+            )
+
+        if peft:
+            if load_in_4bit:
+                assert PEFT_VERSION >= "0.4.0", "load_in_4bit requires peft >= 0.4.0"
+            self._model = PeftModel.from_pretrained(
+                self._model, peft, revision=revision
+            )
+
         # forever after, access self._model through self.model property
         self.model.eval()
+        self.model.tie_weights()
+        if gpus <= 1 and not parallelize:
+            # place model onto device, if not using HF Accelerate in any form
+            self.model.to(self.device)
 
         self.tokenizer = transformers.AutoTokenizer.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision,
+            trust_remote_code=trust_remote_code,
         )
 
         self.vocab_size = self.tokenizer.vocab_size
@@ -106,12 +218,18 @@ class HFLM(LM):
         self._max_length = max_length
 
         # multithreading and batching
-        self.batch_size_per_gpu = batch_size  # todo: adaptive batch size
+        self.batch_size_per_gpu = batch_size
 
-        # multigpu support with accelerate
+        # multigpu data-parallel support when launched with accelerate
         if gpus > 1:
-            accelerator = Accelerator()
-            if gpus > accelerator.num_processes:
+            if parallelize:
+                if accelerator.num_processes > 1:
+                    raise RuntimeError(
+                        "Attempted to use both a HF Accelerate `device_map` and to launch via `accelerate launch`. If this is the case, please either remove `parallelize=True` from --model_args or launch outside of the Accelerate launcher."
+                    )
+                else:
+                    pass
+            elif gpus > accelerator.num_processes:
                 # TODO: make sure there's still never an edge case where we unintentionally default to CPU
                 eval_logger.warning(
                     "WARNING: The number of total system GPUs does not match the number of spawned processes. "
@@ -302,16 +420,27 @@ class HFLM(LM):
 
         return logits
 
+    def _encode_pair(self, context, continuation):
+        n_spaces = len(context) - len(context.rstrip())
+        if n_spaces > 0:
+            continuation = context[-n_spaces:] + continuation
+            context = context[:-n_spaces]
+        whole_enc = self.tok_encode(context + continuation)
+        context_enc = self.tok_encode(context)
+        context_enc_len = len(context_enc)
+        continuation_enc = whole_enc[context_enc_len:]
+        return context_enc, continuation_enc
+
     def loglikelihood(self, requests):
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
                 # end of text as context
-                context_enc = [self.eot_token_id]
+                context_enc, continuation_enc = [self.eot_token_id], self.tok_encode(
+                    continuation
+                )
             else:
-                context_enc = self.tok_encode(context)
-
-            continuation_enc = self.tok_encode(continuation)
+                context_enc, continuation_enc = self._encode_pair(context, continuation)
 
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
@@ -383,7 +512,6 @@ class HFLM(LM):
             tqdm(re_ord.get_reordered(), disable=(disable_tqdm or (self.rank != 0))),
             self.batch_size,
         ):
-
             inps = []
             cont_toks_list = []
             inplens = []
@@ -480,12 +608,11 @@ class HFLM(LM):
 
             multi_logits = F.log_softmax(
                 self._model_call(batched_inps, **call_kwargs), dim=-1
-            ).cpu()  # [batch, padding_length (inp or cont), vocab]
+            )  # [batch, padding_length (inp or cont), vocab]
 
             for (cache_key, _, _), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
             ):
-
                 # Slice to original seq length
                 contlen = len(cont_toks)
                 # take only logits in the continuation
@@ -500,7 +627,9 @@ class HFLM(LM):
 
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
-                cont_toks = torch.tensor(cont_toks, dtype=torch.long).unsqueeze(
+                cont_toks = torch.tensor(
+                    cont_toks, dtype=torch.long, device=self.device
+                ).unsqueeze(
                     0
                 )  # [1, seq]
                 max_equal = (greedy_tokens == cont_toks).all()

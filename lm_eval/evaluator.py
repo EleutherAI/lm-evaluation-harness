@@ -195,11 +195,6 @@ def evaluate(
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
-        # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
-        # task_docs = list(task_doc_func())
-        # rnd = random.Random()
-        # rnd.seed(42)
-        # rnd.shuffle(task_docs)
         if limit is not None:
             if task.has_test_docs():
                 task_docs = task.test_docs()
@@ -257,13 +252,12 @@ def evaluate(
         task.apply_filters()
 
     ### Collect values of metrics on all datapoints ###
-    # TODO: make metric configurable, add metric registry
     vals = collections.defaultdict(list)
 
     # unpack results and sort back in order and return control to Task
     for task_name, task in task_dict.items():
-        # calculate values for each filter setup (TODO: make getting list of keys cleaner)
-        # TODO: make it possible to use a different metric per key
+        # TODO: make it possible to use a different metric per filter
+        # iterate over different filters used
         for key in task.instances[0].filtered_resps.keys():
             doc_iterator = (
                 itertools.islice(
@@ -286,6 +280,7 @@ def evaluate(
                     "doc_id": doc_id,
                     "doc": doc,
                     "target": target,
+                    "arguments": requests[0].args,
                     "resps": [req.resps for req in requests],
                     "filtered_resps": [req.filtered_resps[key] for req in requests],
                 }
@@ -296,6 +291,15 @@ def evaluate(
 
     if lm.world_size > 1:
         # if multigpu, then gather data across all ranks
+        # first gather logged samples across all ranks
+        for task_name, task_samples in list(samples.items()):
+
+            full_samples = [None] * lm.world_size
+            torch.distributed.all_gather_object(full_samples, task_samples)
+
+            samples[task_name] = list(itertools.chain.from_iterable(full_samples))
+
+        # then collect metrics across all ranks
         vals_torch = collections.defaultdict(list)
         for (task_name, key, metric), items in vals.items():
 

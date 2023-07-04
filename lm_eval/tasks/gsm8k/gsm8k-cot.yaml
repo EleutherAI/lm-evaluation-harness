@@ -25,7 +25,7 @@ metric_list:
     regexes_to_ignore:
       - ","
       - "\\$"
-delimiter: "\n\n"
+fewshot_delimiter: "\n\n"
 generation_kwargs:
   until:
     - "Q:"
