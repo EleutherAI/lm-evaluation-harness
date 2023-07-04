@@ -14,7 +14,10 @@ from lm_eval.api.registry import (
 
 
 def get_task_name_from_config(task_config):
-    return "{dataset_path}_{dataset_name}".format(**task_config)
+    if "dataset_name" not in task_config:
+        return "{dataset_path}_{dataset_name}".format(**task_config)
+    else:
+        return "{dataset_path}".format(**task_config)
 
 
 def include_task_folder(task_dir):
