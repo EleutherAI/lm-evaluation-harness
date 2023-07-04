@@ -1,5 +1,6 @@
-from . import hf_causal
+from . import huggingface
 from . import openai_completions
+from . import anthropic_llms
 from . import textsynth
 from . import dummy
 

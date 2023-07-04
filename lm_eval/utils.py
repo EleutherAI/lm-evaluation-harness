@@ -10,25 +10,17 @@ import collections
 import importlib.util
 import fnmatch
 
-from typing import List, Union
+from typing import List, Literal, Union
 
 import gc
 import torch
+import transformers
 
 from omegaconf import OmegaConf
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
 
 from lm_eval.logger import eval_logger
-
-
-class ExitCodeError(Exception):
-    pass
-
-
-def sh(x):
-    if os.system(x):
-        raise ExitCodeError()
 
 
 def escaped_split(text, sep_char, maxsplit=-1):
@@ -180,26 +172,6 @@ def make_disjoint_window(pair):
     return a[: len(a) - (len(b) - 1)], b
 
 
-def select_continuation_from_batch_left_padding(
-    generations: Union[List[List[int]], torch.Tensor], max_context_size: int
-):
-    """Select the continuation from the batch, removing prompts of different lengths.
-    Args:
-        generations (Union[List[List[int]], torch.Tensor]):
-            A tensor or list-of-lists of shape [batch_size, sequence length].
-        max_context_size (int):
-            The size of the biggest context; generations will proceed from that
-            index.
-    Example:
-        PAD     PAD Continue : The dog chased the cat  [every       day of the week]
-        Riddle  me    this   : The  dog chased the  cat [yesterday] PAD PAD PAD PAD
-    Output:
-        [every day of the week]
-        [yesterday]  PAD PAD PAD PAD
-    """
-    return generations[:, max_context_size:]
-
-
 class Reorderer:
     def __init__(self, arr, fn):
         self.size = len(arr)
@@ -225,6 +197,64 @@ class Reorderer:
                 cov[ind] = True
 
         assert all(cov)
+
+        return res
+
+
+class Grouper:
+    """
+    takes an array `arr` and function `fn` and returns a dictionary
+    with keys fn(ob) for each ob in `arr` and with values `self.arr[key]` a list of all
+    objects in `arr` satisfying `key == fn(ob)`.
+    """
+
+    def __init__(self, arr, fn):
+        # self.orig_arr = arr
+        self.size = len(arr)
+        arr = list(enumerate(arr))
+
+        def group_return_dict(arr, fn):
+            res = collections.defaultdict(list)
+
+            for ob in arr:
+                res[fn(ob)].append(ob)
+            return res
+
+        arr = group_return_dict(arr, lambda x: fn(x[1]))
+
+        # self.arr has format Dict[Tuple[int, <entry from orig. arr>]]
+        self.arr = arr
+        self._grouped = None
+
+    def get_grouped(self):
+        # return the contents but not indices for our grouped dict.
+        if self._grouped:
+            return self._grouped
+        grouped = {}
+        for key in self.arr.keys():
+            # drop the index from each element of self.arr
+            grouped[key] = [y[1] for y in self.arr[key]]
+        self._grouped = grouped
+        return grouped
+
+    def get_original(self, grouped_dict):
+        # take in a grouped dictionary with e.g. results for each key listed
+        # in the same order as the instances in `self.arr`, and
+        # return the results in the same (single list) order as `self.orig_arr`.
+        res = [None] * self.size
+        cov = [False] * self.size
+        # orig = [None] * self.size
+
+        assert grouped_dict.keys() == self.arr.keys()
+
+        for key in grouped_dict.keys():
+            for (ind, _), v in zip(self.arr[key], grouped_dict[key]):
+                res[ind] = v
+                cov[ind] = True
+                # orig[ind] = _
+
+        assert all(cov)
+        # assert orig == self.orig_arr
 
         return res
 
@@ -339,7 +369,8 @@ def get_git_commit_hash():
     try:
         git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()
         git_hash = git_hash.decode()
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError or FileNotFoundError:
+        # FileNotFoundError occurs when git not installed on system
         git_hash = None
     return git_hash
 
@@ -399,7 +430,13 @@ def load_yaml_config(yaml_path):
         return yaml_config
 
 
+def regex_replace(string, pattern, repl, count=0):
+    """Implements the `re.sub` function as a custom Jinja filter."""
+    return re.sub(pattern, repl, string, count=count)
+
+
 env = Environment(loader=BaseLoader, undefined=StrictUndefined)
+env.filters["regex_replace"] = regex_replace
 
 
 def apply_template(template, doc):
@@ -416,6 +453,116 @@ def create_iterator(raw_iterator, rank, world_size, limit=None):
     return islice(raw_iterator, rank, limit, world_size)
 
 
+def pad_and_concat(
+    max_length: int,
+    tensors: List[torch.Tensor],
+    padding_side: Literal["right", "left"] = "right",
+):
+    """
+    Method for padding a list of tensors given the maximum tensor
+    length in the batch. Used for batching inputs and continuations in
+    seq2seq models.
+    """
+    assert (
+        padding_side == "left" or padding_side == "right"
+    ), f"Unrecognized padding type: '{padding_side}' not 'left' or 'right'"
+
+    for i, tensor in enumerate(tensors):
+        tensor = tensor.squeeze(0)  # squeeze, in case passed [1, seq] size
+        tensor_len = tensor.shape[0]
+        if tensor_len < max_length:
+            if padding_side == "right":
+                # right-pad
+                tensors[i] = torch.cat(
+                    [
+                        tensor,  # [seq]
+                        torch.zeros(
+                            max_length - tensor_len,
+                            dtype=torch.long,
+                            device=tensor.device,
+                        ),  # [padding_length - seq]
+                    ],
+                    dim=0,
+                ).unsqueeze(0)
+            else:
+                # left-pad
+                tensors[i] = torch.cat(
+                    [
+                        torch.zeros(
+                            max_length - tensor_len,
+                            dtype=torch.long,
+                            device=tensor.device,
+                        ),  # [padding_length - seq]
+                        tensor,  # [seq]
+                    ],
+                    dim=0,
+                ).unsqueeze(0)
+        else:
+            tensors[i] = tensor.unsqueeze(0)
+
+    return torch.cat(tensors, dim=0)
+
+
 def clear_torch_cache():
     gc.collect()
     torch.cuda.empty_cache()
+
+
+def get_dtype(dtype: Union[str, torch.dtype]) -> torch.dtype:
+    """Converts `dtype` from `str` to torch.dtype when possible. Does not use an instantiated HF AutoConfig"""
+    if isinstance(dtype, str) and dtype != "auto":
+        # Convert `str` args torch dtype: `float16` -> `torch.float16`
+        _torch_dtype = getattr(torch, dtype)
+    else:
+        _torch_dtype = dtype
+    return _torch_dtype
+
+
+# Multi-token stopping criteria
+class MultiTokenEOSCriteria(transformers.StoppingCriteria):
+    """Criteria to stop on the specified multi-token sequence."""
+
+    def __init__(
+        self,
+        sequence: str,
+        tokenizer: transformers.PreTrainedTokenizer,
+        initial_decoder_input_length: int,
+        batch_size: int,
+    ):
+        self.initial_decoder_input_length = initial_decoder_input_length
+        self.done_tracker = [False] * batch_size
+        self.sequence = sequence
+        self.sequence_ids = tokenizer.encode(sequence, add_special_tokens=False)
+        self.sequence_id_len = len(self.sequence_ids)
+        self.tokenizer = tokenizer
+
+    def __call__(self, input_ids, scores, **kwargs) -> bool:
+        # For efficiency, we compare the last n tokens where n is the number of tokens in the stop_sequence
+        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length :][
+            :, -self.sequence_id_len :
+        ]
+
+        lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
+
+        for i, done in enumerate(self.done_tracker):
+            if not done:
+                self.done_tracker[i] = self.sequence in lookback_tokens_batch[i]
+        return False not in self.done_tracker
+
+
+def stop_sequences_criteria(
+    tokenizer: transformers.PreTrainedTokenizer,
+    stop_sequences: List[str],
+    initial_decoder_input_length: int,
+    batch_size: int,
+) -> transformers.StoppingCriteriaList:
+    return transformers.StoppingCriteriaList(
+        [
+            *[
+                MultiTokenEOSCriteria(
+                    sequence, tokenizer, initial_decoder_input_length, batch_size
+                )
+                for sequence in stop_sequences
+            ],
+        ]
+    )

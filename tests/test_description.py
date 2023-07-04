@@ -3,17 +3,21 @@ import lm_eval.tasks
 import lm_eval.models
 
 
-def test_description_dict():
+def test_description():
     seed = 42
     num_examples = 1
-    task_names = ["hellaswag", "winogrande"]
+    task_names = ["arc_challenge", "lambada"]
     description_dict = {
-        "hellaswag": "Label for the relevant action:\nSentences describing context, with an incomplete sentence trailing answer that plausibly completes the situation.",
-        "winogrande": "Winograd schema sentence including a either a ___ blank with a missing word, making the pronoun ambiguous, or the same with the word filled in.",
+        "arc_challenge": "Label for the relevant action:\nSentences describing context, with an incomplete sentence trailing answer that plausibly completes the situation.",
+        "lambada": "Winograd schema sentence including a either a ___ blank with a missing word, making the pronoun ambiguous, or the same with the word filled in.",
     }
 
     task_dict = lm_eval.tasks.get_task_dict(task_names)
     for task_name, task in task_dict.items():
+
+        # patch description field in task (# TODO: make this much more cleaned up)
+        task._config.description = description_dict[task_name]
+
         rnd = random.Random()
         rnd.seed(seed)
 
@@ -37,6 +41,5 @@ def test_description_dict():
                 doc=doc,
                 num_fewshot=1,
                 rnd=rnd,
-                description=description,
             )
             assert description in ctx

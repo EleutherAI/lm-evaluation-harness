@@ -1,5 +1,0 @@
-include: promptsource-00.yaml
-group:
-  - super-glue-promptsource
-task: "GPT-3-prompt-with-label"
-use_prompt: "promptsource:GPT-3-prompt-with-label"

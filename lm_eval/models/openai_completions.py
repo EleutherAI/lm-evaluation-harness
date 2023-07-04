@@ -58,7 +58,7 @@ def oa_completion(**kwargs):
 
 
 @register_model("openai", "openai-completions", "gooseai")
-class GPT3LM(LM):
+class OpenaiCompletionsLM(LM):
     REQ_CHUNK_SIZE = 20
 
     def __init__(self, engine, truncate=False):
@@ -194,7 +194,7 @@ class GPT3LM(LM):
                 yield ret, lastuntil
 
         # todo: more intelligent batching for heterogeneous `until`
-        for chunk, until in tqdm(
+        for chunk, request_args in tqdm(
             list(sameuntil_chunks(re_ord.get_reordered(), self.REQ_CHUNK_SIZE))
         ):
             inps = []
@@ -202,6 +202,13 @@ class GPT3LM(LM):
                 context_enc = self.tok_encode(context)
                 inp = context_enc[-(self.max_length - self.max_gen_toks) :]
                 inps.append(inp)
+
+            try:
+                until = request_args["until"][
+                    0
+                ]  # TODO: does this handle a list of stop seqs correctly?
+            except KeyError:
+                until = "<|endoftext|>"
 
             response = oa_completion(
                 engine=self.engine,
@@ -212,14 +219,19 @@ class GPT3LM(LM):
                 stop=until,
             )
 
-            for resp, (context, until_) in zip(response.choices, chunk):
+            for resp, (context, args_) in zip(response.choices, chunk):
                 s = resp["text"]
 
+                until_ = args_.get(["until"], [])
+
                 for term in until_:
-                    s = s.split(term)[0]
+                    if len(term) > 0:
+                        s = s.split(term)[0]
 
                 # partial caching
-                self.cache_hook.add_partial("greedy_until", (context, until_), s)
+                self.cache_hook.add_partial(
+                    "greedy_until", (context, {"until": until_}), s
+                )
 
                 res.append(s)
 

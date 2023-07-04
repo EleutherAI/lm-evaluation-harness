@@ -28,7 +28,9 @@ setuptools.setup(
     python_requires=">=3.9",
     install_requires=[
         "accelerate>=0.18.0",
+        "evaluate",
         "datasets>=2.0.0",
+        "evaluate>=0.4.0",
         "jsonlines",
         "numexpr",
         "openai>=0.6.4",
@@ -53,7 +55,7 @@ setuptools.setup(
         "promptsource": [
             "promptsource @ git+https://github.com/bigscience-workshop/promptsource.git#egg=promptsource"
         ],
-        "auto-gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
+        "gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
         "anthropic": ["anthropic"],
     },
 )
