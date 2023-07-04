@@ -12,7 +12,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Lambada (Multilingual)
 - [x] Wikitext
 - [x] PiQA
-- [ ] PROST
+- [ ] PROST (WIP)
 - [ ] MCTACO
 - [ ] Pubmed QA (WIP)
 - [x] SciQ
@@ -20,11 +20,11 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] QA4MRE
 - [ ] TriviaQA
 - [x] AI2 ARC
-- [ ] LogiQA
+- [ ] LogiQA (WIP)
 - [x] HellaSwag
 - [ ] SWAG (WIP)
 - [x] OpenBookQA
-- [ ] SQuADv2
+- [ ] SQuADv2 (WIP)
 - [ ] RACE (WIP)
 - [ ] HeadQA
 - [ ] MathQA
@@ -35,7 +35,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Hendrycks Ethics
 - [ ] TruthfulQA
 - [ ] MuTual
-- [ ] Hendrycks Math
+- [ ] Hendrycks Math (WIP)
 - [ ] Asdiv
 - [ ] GSM8k
 - [ ] Arithmetic (WIP)
@@ -45,6 +45,8 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] ~~Pile (perplexity)~~
 - [ ] BLiMP
 - [ ] ToxiGen
+- [ ] StoryCloze
+- [ ] NaturalQs
 - [ ] CrowS-Pairs
 - [ ] XCopa
 - [ ] BIG-Bench
@@ -55,6 +57,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] MGSM
 - [ ] SCROLLS
 - [ ] JSON Task (reference: https://github.com/EleutherAI/lm-evaluation-harness/pull/481)
+- [ ] Babi
 
 # Novel Tasks
 Tasks added in the revamped harness that were not previously available. Again, a strikethrough denotes checking performed *against the original task's implementation or published results introducing the task*.

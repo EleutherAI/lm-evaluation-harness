@@ -7,7 +7,7 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: null
-template_aliases: "{% set gold = label %}{% set answer_choices = endings|map('trim')|map('replace', ' [title]', '. ')|map('regex_replace', '\\[.*?\\]', '')|map('replace', '  ', ' ')|list %}"
+template_aliases: "{% set gold = label | int %}{% set answer_choices = endings|map('trim')|map('replace', ' [title]', '. ')|map('regex_replace', '\\[.*?\\]', '')|map('replace', '  ', ' ')|list %}"
 doc_to_text: "{% set text = activity_label ~ ': ' ~ ctx_a ~ ' ' ~ ctx_b.capitalize() %}{{text|trim|replace(' [title]', '. ')|regex_replace('\\[.*?\\]', '')|replace('  ', ' ')}}"
 doc_to_target: "{{answer_choices[gold]}}"
 gold_alias: "{{gold}}"
