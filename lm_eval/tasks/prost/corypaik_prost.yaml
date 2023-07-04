@@ -6,10 +6,10 @@ dataset_name: null
 output_type: multiple_choice
 test_split: test
 template_aliases: "{% set answer_choices = [A, B, C, D] %}{% set gold = label %}" # set the list of possible answer choices, and set what this doc's gold answer is (set what ds column used, and what)
-doc_to_text: "{{context}}\nQuestion:{{ex_question}}\nAnswer:"
+doc_to_text: "{{context}}\nQuestion: {{ex_question}}\nAnswer:"
 doc_to_target: "{{gold}}" # this will be cast to an int.
 should_decontaminate: true
-doc_to_decontamination_query: "{{context}}\nQuestion:{{ex_question}}\nAnswer:"
+doc_to_decontamination_query: "{{context}}\nQuestion: {{ex_question}}\nAnswer:"
 metric_list:
   - metric: acc
     aggregation: mean
