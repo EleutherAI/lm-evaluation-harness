@@ -94,10 +94,10 @@ class MultiChoice:
     def __contains__(self, values):
         for value in values.split(","):
             if len(fnmatch.filter(self.choices, value)) == 0:
-                eval_logger.warning("{} is not in task list.".format(value))
                 eval_logger.info(f"Available tasks to choose:")
                 for choice in self.choices:
                     eval_logger.info(f"  - {choice}")
+                raise ValueError("'{}' is not in task list".format(value))
         return True
 
     def __iter__(self):
