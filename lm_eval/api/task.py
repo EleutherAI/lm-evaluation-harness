@@ -116,7 +116,9 @@ class TaskConfig(dict):
             if self.output_type == "greedy_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
                 self.generation_kwargs = {
-                    "until": None if self.target_delimiter is None else [self.target_delimiter],
+                    "until": None
+                    if self.target_delimiter is None
+                    else [self.target_delimiter],
                     "do_sample": False,
                     "temperature": 0.0,
                 }
