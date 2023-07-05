@@ -32,7 +32,7 @@ class FQuAD(Task):
     def download(self, data_dir=None, cache_dir=None, download_mode=None):
         # access to the dataset has to be requested with the fquad authors
         # and this folder has to be manually created from the provided files
-        self.data_file_path = "data/fquad_1.0/"
+        self.data_file_path = os.environ["PATH_TO_FQUAD"]
 
         assert os.path.exists(
             self.data_file_path + "valid.json"

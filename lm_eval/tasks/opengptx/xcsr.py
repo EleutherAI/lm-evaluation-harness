@@ -97,7 +97,10 @@ class XCODAHBase(MultipleChoiceTask):
             choices_text = doc["question"]["choices"]["text"]
 
             # Check if the text has more than one sentence
-            if any(len(choice.split(". ")) > 1 for choice in choices_text):
+            # if any(len(choice.split(". ")) > 1 for choice in choices_text):
+            #     filtered_docs.append(self._process_doc(doc))
+
+            if not any(len(choice.split(". ")) <= 1 for choice in choices_text):
                 filtered_docs.append(self._process_doc(doc))
 
         return filtered_docs
