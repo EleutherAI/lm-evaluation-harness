@@ -530,8 +530,31 @@ class ConfigurableTask(Task):
                     for key in metric_config
                     if key not in ["metric", "aggregation", "higher_is_better"]
                 }
-                self._metric_fn_list[metric_name] = get_metric(metric_name)
                 self._metric_fn_kwargs[metric_name] = kwargs
+
+                if "fn" in metric_config:
+                    self._metric_fn_list[metric_name] = metric_config["fn"]
+                else:
+                    try:
+                        self._metric_fn_list[metric_name] = METRIC_REGISTRY[metric_name]
+                    except Exception:
+                        eval_logger.warning(
+                            f"Metric {metric_name} not found, "
+                            "Searching from https://huggingface.co/evaluate-metric"
+                        )
+                        try:
+                            metric_object = evaluate.load(metric_name)
+                            self._metric_fn_list[metric_name] = metric_object
+                            self._metric_fn_kwargs[metric_name] = kwargs
+
+                        except Exception:
+                            raise Warning(
+                                "{} not found in the evaluate library!".format(
+                                    metric_name
+                                ),
+                                "Please check https://huggingface.co/evaluate-metric",
+                            )
+                
 
                 if "aggregation" in metric_config:
                     agg_name = metric_config["aggregation"]
