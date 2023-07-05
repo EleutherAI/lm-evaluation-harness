@@ -9,7 +9,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] DROP
 - [x] ~~Lambada~~
 - [x] Lambada (Cloze variants)
-- [ ] Lambada (Multilingual)
+- [x] ~~Lambada (Multilingual)~~
 - [x] Wikitext
 - [x] PiQA
 - [ ] PROST (WIP)
