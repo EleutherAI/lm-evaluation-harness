@@ -45,7 +45,6 @@ def simple_evaluate(
     check_integrity=False,
     decontamination_ngrams_path=None,
     write_out=False,
-    output_base_path=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -74,8 +73,6 @@ def simple_evaluate(
         Whether to run the relevant part of the test suite for the tasks
     :param write_out: bool
         If True, write details about prompts and logits to json for all tasks
-    :param output_base_path: str, optional
-        Directory to which detailed eval info will be written. Defaults to present working dir.
     :return
         Dictionary of results
     """
@@ -121,7 +118,6 @@ def simple_evaluate(
         bootstrap_iters=bootstrap_iters,
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
-        output_base_path=output_base_path,
     )
 
     if lm.rank == 0:
@@ -158,7 +154,6 @@ def evaluate(
     bootstrap_iters=100000,
     decontamination_ngrams_path=None,
     write_out=False,
-    output_base_path=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -174,8 +169,6 @@ def evaluate(
         Number of iterations for bootstrap statistics
     :param write_out: bool
         If True, write all prompts, logits and metrics to json for offline analysis
-    :param output_base_path: str, optional
-        Directory to which detailed eval info will be written. Defaults to present working dir
     :return
         Dictionary of results
     """
