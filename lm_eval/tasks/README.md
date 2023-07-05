@@ -17,7 +17,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Pubmed QA (WIP)
 - [x] SciQ
 - [ ] QASPER
-- [ ] QA4MRE
+- [ ] QA4MRE (WIP)
 - [ ] TriviaQA
 - [x] AI2 ARC
 - [ ] LogiQA (WIP)
