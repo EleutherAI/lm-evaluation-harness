@@ -5,7 +5,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 
 - [ ] Glue (WIP)
 - [x] SuperGlue
-- [ ] CoQA (WIP)
+- [ ] CoQA
 - [ ] DROP
 - [x] ~~Lambada~~
 - [x] Lambada (Cloze variants)
