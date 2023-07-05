@@ -353,6 +353,8 @@ def evaluate(
 
         vals = vals_torch
 
+        # Add Aggregation Here
+
     if lm.rank == 0:
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
