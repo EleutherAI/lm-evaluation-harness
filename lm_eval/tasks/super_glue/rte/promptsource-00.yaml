@@ -1,11 +1,15 @@
 group:
   - super-glue-promptsource
-task: "GPT-3 style"
+task: "rte"
 dataset_path: super_glue
 dataset_name: rte
 training_split: train
 validation_split: validation
 use_prompt: "promptsource:GPT-3 style"
+generation_kwargs:
+    until:
+    - "\n"
+    - "\n\n"
 metric_list:
   - metric: exact_match
     aggregation: mean
