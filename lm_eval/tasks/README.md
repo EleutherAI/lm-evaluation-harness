@@ -5,7 +5,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 
 - [ ] Glue (WIP)
 - [x] SuperGlue
-- [ ] CoQA
+- [ ] CoQA (WIP)
 - [ ] DROP
 - [x] ~~Lambada~~
 - [x] Lambada (Cloze variants)
@@ -26,7 +26,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] OpenBookQA
 - [ ] SQuADv2 (WIP)
 - [ ] RACE (WIP)
-- [ ] HeadQA
+- [ ] HeadQA (WIP)
 - [ ] MathQA
 - [ ] WebQs
 - [ ] WSC273
