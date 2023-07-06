@@ -8,7 +8,13 @@ training_split: train
 validation_split: validation
 doc_to_text: "{{passage}}\nQuestion: {{question}}\nAnswer:"
 doc_to_target: "{{answer_choices[label]}}"
-gold_alias: "{{label}}" # this will be cast to an int.
+gold_alias: " {{answer_choices[label]}}" # this will be cast to an int.
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "\n"
+  do_sample: false
+  temperature: 0.0
 template_aliases: "{% set answer_choices = ['no', 'yes'] %}"
 metric_list:
   - metric: exact_match
