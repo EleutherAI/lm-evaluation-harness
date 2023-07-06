@@ -43,7 +43,7 @@ ALL_OUTPUT_TYPES = [
     "multiple_choice",
     "loglikelihood_rolling",
     "greedy_until",
-    "winograd_schema"
+    "winograd_schema",
 ]
 
 
@@ -91,7 +91,7 @@ class TaskConfig(dict):
         # allow user-specified aliases so that users can
         # force prompt-compatibility for some prompt regardless of
         # field names in prompt
-        if type(self.template_aliases) == str:
+        if self.template_aliases:
             if type(self.doc_to_text) == str:
                 self.doc_to_text = self.template_aliases + self.doc_to_text
 
@@ -299,14 +299,14 @@ class Task(abc.ABC):
             The processed version of the specified `doc`.
         """
         return doc
-    
+
     def create_choices(self, doc):
         if self._config.create_choices is None:
             return ast.literal_eval(
-                    utils.apply_template(
-                        self._config.template_aliases + "{{answer_choices}}", doc
-                        )
-                    )
+                utils.apply_template(
+                    self._config.template_aliases + "{{answer_choices}}", doc
+                )
+            )
         elif type(self._config.create_choices) == str:
             return utils.apply_template(self._config.create_choices, doc)
         else:
@@ -743,7 +743,7 @@ class ConfigurableTask(Task):
             # we pass the user-defined answer_choices var (in aliases) and translate the result to a Python list.
             # TODO: any cleaner way to do this?
             choices = self.create_choices(doc)
-            
+
             request_list = [
                 Instance(
                     request_type="loglikelihood",
@@ -785,7 +785,7 @@ class ConfigurableTask(Task):
 
             contexts = self.create_choices(doc)
             choice = self.doc_to_target(doc)
-            
+
             request_list = [
                 Instance(
                     request_type="loglikelihood",
@@ -796,7 +796,7 @@ class ConfigurableTask(Task):
                 )
                 for i, context in enumerate(contexts)
             ]
-            
+
             return request_list
 
         return Instance(
