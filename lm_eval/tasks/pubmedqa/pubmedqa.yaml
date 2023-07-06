@@ -1,0 +1,17 @@
+group:
+  - multiple_choice
+task: pubmed_qa
+dataset_path: pubmed_qa
+dataset_name: pqa_labeled
+output_type: multiple_choice
+training_split: null
+validation_split: null
+test_split: train
+template_aliases: "{% set answer_choices = ['yes', 'no', 'maybe'] %}{% set gold = final_decision %}"
+doc_to_text: !function preprocess_pubmedqa.doc_to_text
+doc_to_target: !function preprocess_pubmedqa.doc_to_target
+gold_alias: !function preprocess_pubmedqa.gold_alias
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
