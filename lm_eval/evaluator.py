@@ -181,8 +181,6 @@ def evaluate(
     samples = collections.defaultdict(list)
     requests = collections.defaultdict(list)
 
-    # docs = {}
-
     # get lists of each type of request
     for task_name, task in task_dict.items():
         versions[task_name] = task.VERSION

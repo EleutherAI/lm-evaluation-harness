@@ -73,7 +73,6 @@ class TaskConfig(dict):
     fewshot_delimiter: str = "\n\n"
     # runtime configuration options
     num_fewshot: int = 0
-    batch_size: int = 1
     # scoring options
     metric_list: str = None
     output_type: str = "greedy_until"
@@ -468,7 +467,7 @@ class Task(abc.ABC):
             The fewshot context.
         """
         # TODO: this should only return the overrides applied to a non-YAML task's configuration.
-        # (batch size, num_fewshot)
+        # (num_fewshot)
         return self._config.to_dict()
 
 
