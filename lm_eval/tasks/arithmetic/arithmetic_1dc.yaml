@@ -1,0 +1,15 @@
+group:
+  - arithmetic
+task: arithmetic_1dc
+dataset_path: EleutherAI/arithmetic
+dataset_name: arithmetic_1dc
+output_type: loglikelihood
+validation_split: validation
+test_split: null
+template_aliases: ""
+doc_to_text: "{{context}}"
+doc_to_target: "{{completion}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
