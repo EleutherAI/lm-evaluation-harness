@@ -63,7 +63,7 @@ class TaskConfig(dict):
     fewshot_split: str = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
-    template_aliases: str = None
+    template_aliases: str = ""
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
     gold_alias: Union[Callable, str] = None
@@ -89,7 +89,7 @@ class TaskConfig(dict):
         # allow user-specified aliases so that users can
         # force prompt-compatibility for some prompt regardless of
         # field names in prompt
-        if self.template_aliases is not None:
+        if type(self.template_aliases) == str:
             if type(self.doc_to_text) == str:
                 self.doc_to_text = self.template_aliases + self.doc_to_text
 
