@@ -1,0 +1,19 @@
+group:
+  - multiple_choice
+task: mathqa
+dataset_path: math_qa
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+create_choices: !function utils.create_choices # create list of answer choices
+doc_to_text: "Question: {{Problem}}\nAnswer:"
+doc_to_target: !function utils.doc_to_target
+gold_alias: "{{['a', 'b', 'c', 'd', 'e'].index(correct)}}" # this will be cast to an int.
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
