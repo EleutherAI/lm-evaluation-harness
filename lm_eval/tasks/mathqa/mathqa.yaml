@@ -1,5 +1,6 @@
 group:
   - multiple_choice
+  - math_word_problems
 task: mathqa
 dataset_path: math_qa
 output_type: multiple_choice
