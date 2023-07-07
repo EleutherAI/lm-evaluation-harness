@@ -24,7 +24,6 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] HellaSwag
 - [x] SWAG
 - [x] OpenBookQA
-- [ ] SQuADv2
 - [x] RACE
 - [ ] LogiQA (WIP)
 - [x] HellaSwag
@@ -42,15 +41,15 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] TruthfulQA
 - [ ] MuTual
 - [ ] Hendrycks Math (WIP)
-- [ ] Asdiv
+- [ ] Asdiv (WIP)
 - [ ] GSM8k
 - [x] Arithmetic
 - [ ] MMMLU
 - [ ] Translation (WMT) suite
-- [ ] Unscramble
+- [ ] Unscramble (WIP)
 - [x] ~~Pile (perplexity)~~
 - [ ] BLiMP
-- [ ] ToxiGen
+- [ ] ToxiGen (WIP)
 - [ ] StoryCloze
 - [ ] NaturalQs
 - [ ] CrowS-Pairs
