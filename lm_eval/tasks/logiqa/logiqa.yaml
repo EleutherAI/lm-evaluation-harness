@@ -1,8 +1,8 @@
 group:
   - multiple_choice
 task: logiqa
-dataset_path: lucasmccabe/logiqa
-dataset_name: default
+dataset_path: lm_eval/tasks/logiqa/logiqa_dataset.py
+dataset_name: logiqa
 output_type: multiple_choice
 training_split: train
 validation_split: validation
