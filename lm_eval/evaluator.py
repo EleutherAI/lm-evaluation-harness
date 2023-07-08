@@ -81,7 +81,7 @@ def simple_evaluate(
                     "max_memory_per_gpu": accelerate_max_memory_per_gpu,
                     "max_cpu_memory": accelerate_max_cpu_memory,
                     "offload_folder": accelerate_offload_folder,
-                    "dtype": accelerate_dtype
+                    "dtype": accelerate_dtype,
                 }
             )
         else:

@@ -80,6 +80,7 @@ class HuggingFaceAutoLM(BaseLM):
         offload_folder: Optional[str] = "./offload",
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[Union[int, str]] = "cuda",
+        trust_remote_code: Optional[bool] = False,
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -146,9 +147,11 @@ class HuggingFaceAutoLM(BaseLM):
         self._batch_size = batch_size  # TODO: Adaptive batch size
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
+        self._trust_remote_code = trust_remote_code
         self._config = self.AUTO_CONFIG_CLASS.from_pretrained(
             pretrained,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            trust_remote_code=self._trust_remote_code,
         )
 
         self._add_special_tokens = add_special_tokens
@@ -206,6 +209,7 @@ class HuggingFaceAutoLM(BaseLM):
             max_memory=max_memory,
             offload_folder=offload_folder,
             torch_dtype=torch_dtype,
+            trust_remote_code=self._trust_remote_code,
         )
         return model
 
@@ -221,6 +225,7 @@ class HuggingFaceAutoLM(BaseLM):
         tokenizer = self.AUTO_TOKENIZER_CLASS.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            trust_remote_code=self._trust_remote_code,
         )
         tokenizer.pad_token = tokenizer.eos_token
         return tokenizer
@@ -447,6 +452,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
             cache = (context, until, tuple(_model_generate_kwargs))
             self.cache_hook.add_partial("generate", cache, generated_texts)
             res.append(generated_texts)
+        print(re_ord.get_original(res))
         return re_ord.get_original(res)
 
     def postprocess(self, generated_tokens, prefix_length, until, is_greedy):
