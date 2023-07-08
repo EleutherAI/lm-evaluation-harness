@@ -108,9 +108,8 @@ class GradeSchoolMath8K(Task):
         """
         completion = results[0]
         answer = doc["answer"]
-        print('Completion: ', completion, '\n\n')
-        print('Answer: ', answer, '\n\n')
-        return {"acc": self._is_correct(completion, answer)}
+        return {"acc": self._is_correct(completion, answer),
+                "metadata": {"completion": completion}}
     
     def aggregation(self):
         """

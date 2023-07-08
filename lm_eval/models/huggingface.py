@@ -452,7 +452,6 @@ class AutoCausalLM(HuggingFaceAutoLM):
             cache = (context, until, tuple(_model_generate_kwargs))
             self.cache_hook.add_partial("generate", cache, generated_texts)
             res.append(generated_texts)
-        print(re_ord.get_original(res))
         return re_ord.get_original(res)
 
     def postprocess(self, generated_tokens, prefix_length, until, is_greedy):
