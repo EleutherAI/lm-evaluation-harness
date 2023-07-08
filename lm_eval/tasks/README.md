@@ -39,7 +39,9 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] Winogrande
 - [x] ANLI
 - [ ] Hendrycks Ethics
-- [ ] TruthfulQA
+- [x] TruthfulQA (mc1)
+- [ ] TruthfulQA (mc2)
+- [ ] TruthfulQA (gen)
 - [ ] MuTual
 - [ ] Hendrycks Math (WIP)
 - [ ] Asdiv
