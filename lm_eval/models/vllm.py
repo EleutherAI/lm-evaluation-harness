@@ -26,6 +26,7 @@ class VLLM(BaseLM):
         max_length: Optional[int] = None,
         trust_remote_code: Optional[bool] = False,
         tensor_parallel_size: Optional[int] = 1,
+        dtype: Optional[Union[str, torch.dtype]] = 'auto',
     ):
         super().__init__()
         self._max_gen_toks = max_gen_toks
@@ -38,7 +39,9 @@ class VLLM(BaseLM):
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
             trust_remote_code=self._trust_remote_code,
         )
-        self.llm = LLM(model=pretrained, tensor_parallel_size=tensor_parallel_size)
+        self.llm = LLM(model=pretrained, 
+                       tensor_parallel_size=tensor_parallel_size,
+                       dtype=dtype)
         self.tokenizer = self._create_auto_tokenizer(
             pretrained=pretrained,
             revision=revision,
@@ -63,6 +66,7 @@ class VLLM(BaseLM):
             inputs=token_context,
             max_tokens=max_tokens,
             stop=until,
+            temperature=0.0,
         )
         for text in generated_texts:
             self.cache_hook.add_partial("greedy_until", (context, until), text)
@@ -84,7 +88,9 @@ class VLLM(BaseLM):
 
         input_ids = inputs["input_ids"][:, self.max_gen_toks-self.max_length:]
 
-        input_ids = input_ids.numpy().tolist()
+        # Decode each back to a string
+        contexts = self.tok_decode(input_ids)
+
         bsz = len(input_ids)
 
         output_texts = []
@@ -92,12 +98,12 @@ class VLLM(BaseLM):
                                          temperature=temperature, 
                                          stop=stop, 
                                          n=num_return_sequences)
-        outputs = self.llm.generate(prompt_token_ids=input_ids, 
+        outputs = self.llm.generate(prompts=contexts, 
                                     sampling_params=sampling_params,
                                     use_tqdm=bsz > 1)
         
         # Sort by request_id
-        outputs = sorted(outputs, key=lambda x: x.request_id)
+        outputs = sorted(outputs, key=lambda x: int(x.request_id))
         for output in outputs:
             generations = [gen.text for gen in output.outputs]
             if len(generations) == 1:
