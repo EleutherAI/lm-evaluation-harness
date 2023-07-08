@@ -7,12 +7,9 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: test
-template_aliases: "{% set answer_choices = [options] %}{% set gold = correct_option %}"
-doc_to_text: "Passage: {{context.strip()}}\nQuestion: {{query}}\nAnswer:"
-doc_to_target: "{{options[gold]}}"
-gold_alias: "{{gold}}" # this will be cast to an int.
-should_decontaminate: true
-doc_to_decontamination_query: "{{query}}"
+doc_to_text: !function preprocess_logiqa.doc_to_text
+doc_to_target: !function preprocess_logiqa.doc_to_target
+should_decontaminate: false
 metric_list:
   - metric: acc
     aggregation: mean
