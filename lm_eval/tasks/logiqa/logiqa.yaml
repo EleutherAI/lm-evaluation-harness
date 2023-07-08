@@ -7,6 +7,9 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: test
+template_aliases: "{% set answer_choices = [options] %}"
+gold: !function preprocess_logiqa.gold
+gold_alias: "{{gold}}"
 doc_to_text: !function preprocess_logiqa.doc_to_text
 doc_to_target: !function preprocess_logiqa.doc_to_target
 should_decontaminate: false
