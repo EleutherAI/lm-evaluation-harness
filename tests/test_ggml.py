@@ -59,7 +59,7 @@ class GGMLLMTest(unittest.TestCase):
         res = lm.greedy_until(requests)
 
         # Assert the greedy_until response is correct
-        expected_res = ["generated text until stop1", "generated text until stop1"]
+        expected_res = ["generated text until stop1", "generated text until stop2"]
         self.assertEqual(res, expected_res)
 
     @patch('lm_eval.models.ggml.GGMLLM.ggml_completion', side_effect=ggml_completion_mock)
