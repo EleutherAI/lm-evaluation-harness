@@ -3,9 +3,3 @@ env
 data/
 lm_cache
 .idea
-/scripts/Ceval-advanced_mathematics_5shot
-/scripts/Ceval-advanced_mathematics_0shot
-/scripts/Ceval-advanced_mathematics
-/Ceval-computer_network_write_out_info_2shot_text_davinci_003.json
-/Ceval-computer_network_write_out_info_0shot_text_davinci-003.json
-/Ceval-computer_network_write_out_info.json
