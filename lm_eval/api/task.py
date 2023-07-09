@@ -628,15 +628,31 @@ class ConfigurableTask(Task):
                 list(self.fewshot_docs()), self, rnd=random.Random()
             )
 
+
+    def __post_init__(self):
+
+        if self.has_test_docs():
+            docs = self.test_docs()
+        elif self.has_validation_docs():
+            docs = self.validation_docs()
+        else:
+            assert (
+                False
+            ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+
         # Test One Doc
-        text_output = self.doc_to_text()
-        if type(text_output) is list:
-            self.multiple_input = True
-        else
-            self.multiple_input = False
+        test_doc = docs[0]
+        test_text = self.doc_to_text(test_doc)
+
+        if OUTPUT_TYPE == "multiple_choice":
+            if type(test_text) is list:
+                self.multiple_input = True
+            elif type(test_text) is str:
+                self.multiple_input = False
+                test_choice = self.doc_choice(test_doc)
         
-        doc_to_target_output = self.doc_to_target()
-        doc_to_choice_output = self.doc_choice()
+        test_target = self.doc_to_target(test_doc)
+        
 
     def download(self, dataset_kwargs=None):
 
