@@ -772,19 +772,25 @@ class ConfigurableTask(Task):
             # TODO: any cleaner way to do this?            
             if self.multiple_input:
                 choices = self.doc_to_text(doc)
-                continuation = self.doc_to_target(doc)
+                cont = self.doc_to_target(doc)
+                arguments = [
+                    (ctx, " {}".format(cont)) for ctx in choices
+                ]
             else:
-                continuation = self.create_choices(doc)
+                cont = self.create_choices(doc)
+                arguments = [
+                    (ctx, " {}".format(cont)) for cont in choices
+                ]
 
             request_list = [
                 Instance(
                     request_type="loglikelihood",
                     doc=doc,
-                    arguments=(ctx, " {}".format(choice)),
+                    arguments=arguments,
                     idx=i,
                     **kwargs,
                 )
-                for i, choice in enumerate(choices)
+                for i, arg in enumerate(arguments)
             ]
             # TODO: we should raise a warning telling users this will at most ~2x runtime.
             if "acc_mutual_info" in self._metric_fn_list.keys():
