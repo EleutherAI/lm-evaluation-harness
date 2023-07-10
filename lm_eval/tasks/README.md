@@ -31,8 +31,8 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] OpenBookQA
 - [ ] SQuADv2 (WIP)
 - [x] RACE
-- [ ] HeadQA (WIP)
-- [ ] MathQA
+- [x] HeadQA (WIP)
+- [ ] MathQA (WIP)
 - [ ] WebQs
 - [ ] WSC273
 - [x] Winogrande
