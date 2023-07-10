@@ -9,42 +9,47 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] DROP
 - [x] ~~Lambada~~
 - [x] Lambada (Cloze variants)
-- [ ] Lambada (Multilingual)
+- [x] ~~Lambada (Multilingual)~~
 - [x] Wikitext
 - [x] PiQA
-- [ ] PROST (WIP)
+- [x] PROST
 - [ ] MCTACO
-- [ ] Pubmed QA (WIP)
+- [x] Pubmed QA
 - [x] SciQ
 - [ ] QASPER
-- [ ] QA4MRE (WIP)
+- [x] QA4MRE
 - [ ] TriviaQA
 - [x] AI2 ARC
 - [ ] LogiQA (WIP)
 - [x] HellaSwag
-- [ ] SWAG (WIP)
+- [x] SWAG
+- [x] OpenBookQA
+- [x] RACE
+- [ ] LogiQA (WIP)
+- [x] HellaSwag
+- [x] SWAG
 - [x] OpenBookQA
 - [ ] SQuADv2 (WIP)
-- [ ] RACE (WIP)
-- [x] HeadQA
-- [ ] MathQA
+- [x] RACE
+- [x] HeadQA (WIP)
+- [ ] MathQA (WIP)
 - [ ] WebQs
 - [ ] WSC273
-- [ ] Winogrande (WIP)
+- [x] Winogrande
 - [x] ANLI
 - [ ] Hendrycks Ethics
 - [ ] TruthfulQA
 - [ ] MuTual
 - [ ] Hendrycks Math (WIP)
-- [ ] Asdiv
+- [ ] Asdiv (WIP)
 - [ ] GSM8k
-- [ ] Arithmetic (WIP)
+- [x] Arithmetic
 - [ ] MMMLU
 - [ ] Translation (WMT) suite
-- [ ] Unscramble
+- [ ] Unscramble (WIP)
 - [x] ~~Pile (perplexity)~~
 - [ ] BLiMP
-- [ ] ToxiGen
+- [ ] ToxiGen (WIP)
 - [ ] StoryCloze
 - [ ] NaturalQs
 - [ ] CrowS-Pairs

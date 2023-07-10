@@ -1,0 +1,14 @@
+group:
+  - multiple_choice
+task: race
+dataset_path: EleutherAI/race
+dataset_name: high
+output_type: multiple_choice
+test_split: test
+create_choices: !function preprocess_race.create_choices
+doc_to_text: !function preprocess_race.doc_to_text
+doc_to_target: !function preprocess_race.doc_to_target
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

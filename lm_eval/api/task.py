@@ -43,6 +43,7 @@ ALL_OUTPUT_TYPES = [
     "multiple_choice",
     "loglikelihood_rolling",
     "greedy_until",
+    "winograd_schema"
 ]
 
 
@@ -73,9 +74,10 @@ class TaskConfig(dict):
     fewshot_delimiter: str = "\n\n"
     # runtime configuration options
     num_fewshot: int = 0
-    batch_size: int = 1
     # scoring options
     metric_list: str = None
+    gold_alias: Union[Callable, str] = None
+    create_choices: Union[Callable, str] = None
     output_type: str = "greedy_until"
     generation_kwargs: dict = None
     repeats: int = 1
@@ -99,13 +101,29 @@ class TaskConfig(dict):
             if type(self.gold_alias) == str:
                 self.gold_alias = self.template_aliases + self.gold_alias
 
-        if self.generation_kwargs:
-            assert (
-                self.output_type == "greedy_until"
-            ), "passed `generation_kwargs`, but not using a generation request type!"
-        elif self.output_type == "greedy_until":
-            # ensure that we greedily generate in absence of explicit arguments otherwise
-            self.generation_kwargs = {"do_sample": False, "temperature": 0.0}
+        if self.generation_kwargs is not None:
+            if self.output_type != "greedy_until":
+                eval_logger.warning(
+                    "passed `generation_kwargs`, but not using a generation request type!"
+                )
+
+            if "temperature" in self.generation_kwargs:
+                self.generation_kwargs["temperature"] = float(
+                    self.generation_kwargs["temperature"]
+                )
+
+            if "until" not in self.generation_kwargs:
+                self.generation_kwargs["until"] = [self.fewshot_delimiter]
+        else:
+            if self.output_type == "greedy_until":
+                # ensure that we greedily generate in absence of explicit arguments otherwise
+                self.generation_kwargs = {
+                    "until": None
+                    if self.fewshot_delimiter is None
+                    else [self.fewshot_delimiter],
+                    "do_sample": False,
+                    "temperature": 0.0,
+                }
 
         # TODO: how to make TaskConfigs be de- and re-serializable, even when using the !function constructor?
 
@@ -297,6 +315,18 @@ class Task(abc.ABC):
             The processed version of the specified `doc`.
         """
         return doc
+    
+    def create_choices(self, doc):
+        if self._config.create_choices is None:
+            return ast.literal_eval(
+                    utils.apply_template(
+                        self._config.template_aliases + "{{answer_choices}}", doc
+                        )
+                    )
+        elif type(self._config.create_choices) == str:
+            return utils.apply_template(self._config.create_choices, doc)
+        else:
+            return self._config.create_choices(doc)
 
     @property
     def instances(self):
@@ -468,7 +498,7 @@ class Task(abc.ABC):
             The fewshot context.
         """
         # TODO: this should only return the overrides applied to a non-YAML task's configuration.
-        # (batch size, num_fewshot)
+        # (num_fewshot)
         return self._config.to_dict()
 
 
@@ -728,11 +758,8 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
             # we pass the user-defined answer_choices var (in aliases) and translate the result to a Python list.
             # TODO: any cleaner way to do this?
-            choices = ast.literal_eval(
-                utils.apply_template(
-                    self._config.template_aliases + "{{answer_choices}}", doc
-                )
-            )
+            choices = self.create_choices(doc)
+            
             request_list = [
                 Instance(
                     request_type="loglikelihood",
@@ -767,6 +794,26 @@ class ConfigurableTask(Task):
 
         elif self.OUTPUT_TYPE == "greedy_until":
             arguments = (ctx, self._config.generation_kwargs)
+
+        elif self.OUTPUT_TYPE == "winograd_schema":
+            # similar to multiple_choice task type except each request contains
+            # multiple differing contexts with the same continuation
+
+            contexts = self.create_choices(doc)
+            choice = self.doc_to_target(doc)
+            
+            request_list = [
+                Instance(
+                    request_type="loglikelihood",
+                    doc=doc,
+                    arguments=(context, " {}".format(choice)),
+                    idx=i,
+                    **kwargs,
+                )
+                for i, context in enumerate(contexts)
+            ]
+            
+            return request_list
 
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
@@ -816,11 +863,7 @@ class ConfigurableTask(Task):
                 gold = int(self.doc_to_target(doc))
 
             # retrieve choices in List[str] form, to compute choice lengths, etc.
-            choices = ast.literal_eval(
-                utils.apply_template(
-                    self._config.template_aliases + "{{answer_choices}}", doc
-                )
-            )
+            choices = self.create_choices(doc)
             if (
                 2 * len(choices) == len(lls)
                 and "acc_mutual_info" in self._metric_fn_list.keys()
@@ -857,6 +900,21 @@ class ConfigurableTask(Task):
                 acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
 
+        elif self.OUTPUT_TYPE == "winograd_schema":
+
+            lls, is_greedy = zip(*results)
+            if self._config.gold_alias is not None:
+                gold = int(self.gold_alias(doc))
+            else:
+                gold = int(self.doc_to_target(doc))
+
+            pred = np.argmax(lls)
+            acc = 1.0 if np.argmax(lls) == gold else 0.0
+
+            result_dict = {
+                **({"acc": acc} if "acc" in use_metric else {}),
+            }
+
         elif self.OUTPUT_TYPE == "greedy_until":
 
             if self._config.gold_alias is not None:
@@ -875,7 +933,7 @@ class ConfigurableTask(Task):
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
-                "'loglikelihood', 'loglikelihood_rolling', 'greedy_until', or 'multiple_choice'",
+                "'loglikelihood', 'loglikelihood_rolling', 'greedy_until', 'multiple_choice' or 'winograd_schema' ",
             )
 
         return result_dict
