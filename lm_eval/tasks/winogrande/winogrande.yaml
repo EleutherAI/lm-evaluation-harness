@@ -5,8 +5,7 @@ output_type: winograd_schema
 training_split: train
 validation_split: validation
 doc_to_target: !function preprocess_winogrande.partial_target
-doc_to_text: "{{sentence}}"
-create_choices: !function preprocess_winogrande.create_choices
+doc_to_text: !function preprocess_winogrande.create_choices
 gold_alias: !function preprocess_winogrande.gold_alias
 metric_list:
   - metric: acc
