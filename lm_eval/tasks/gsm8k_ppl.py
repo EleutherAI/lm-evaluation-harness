@@ -79,8 +79,8 @@ class GradeSchoolMath8K(Task):
         """
         # NOTE: The paper implements "verifiers" that assign a score to multiple
         # solutions and output the highest ranked solution.
-        completion = rf.greedy_until(ctx, ["\n\n"])
-        return completion
+        ll, _ = rf.loglikelihood(ctx, self.doc_to_target(doc))
+        return ll
 
     def _extract_answer(self, completion):
         match = ANS_RE.search(completion)
@@ -106,18 +106,20 @@ class GradeSchoolMath8K(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        completion = results[0]
-        answer = doc["answer"]
-        return {"acc": self._is_correct(completion, answer),
-                "metadata": {"completion": completion}}
+        ll = results[0]
+        bytes_ = self.count_bytes(doc)
+        return {"ppl": (ll, bytes_)}
     
+    def count_bytes(self, doc):
+        return len(self.doc_to_target(doc).encode("utf-8"))
+
     def aggregation(self):
         """
         :returns: {str: [float] -> float}
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {"acc": mean}
+        return {"ppl": weighted_perplexity}
 
     def higher_is_better(self):
         """
@@ -125,4 +127,4 @@ class GradeSchoolMath8K(Task):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {"acc": True}
+        return {"ppl": False}

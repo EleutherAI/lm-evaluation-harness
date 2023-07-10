@@ -49,6 +49,7 @@ from . import truthfulqa
 from . import blimp
 from . import asdiv
 from . import gsm8k
+from . import gsm8k_ppl
 from . import storycloze
 from . import toxigen
 from . import crowspairs
@@ -170,6 +171,7 @@ TASK_REGISTRY = {
     "math_precalc": hendrycks_math.MathPrecalculus,
     "math_asdiv": asdiv.Asdiv,
     "gsm8k": gsm8k.GradeSchoolMath8K,
+    "gsm8k_ppl": gsm8k_ppl.GradeSchoolMath8K,
     # arithmetic
     "arithmetic_2da": arithmetic.Arithmetic2DPlus,
     "arithmetic_2ds": arithmetic.Arithmetic2DMinus,
