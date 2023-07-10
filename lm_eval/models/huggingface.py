@@ -530,7 +530,7 @@ class HFLM(LM):
                     rolling_token_windows += pad_amnt * [rolling_token_windows[0]]
 
             string_nll = self._loglikelihood_tokens(
-                rolling_token_windows, disable_tqdm=True
+                rolling_token_windows, disable_tqdm=True, override_bs=adaptive_batch_size
             )
 
             if (self.world_size > 1) and (pad_amnt > 0):
