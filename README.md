@@ -79,6 +79,17 @@ python main.py \
 
 Models that are loaded via either `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) or `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface are supported via  Support for this model type is currently pending.
 
+Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
+
+```bash
+python main.py \
+    --model hf \
+    --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
+    --tasks lambada_openai,hellaswag \
+    --device cuda:0 \
+    --batch_size auto:4
+```
+
 ### Multi-GPU Evaluation with Hugging Face `accelerate`
 
 To parallelize evaluation of HuggingFace models across multiple GPUs, we allow for two different types of multi-GPU evaluation.
