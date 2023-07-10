@@ -1,3 +1,11 @@
+def doc_to_text(doc):
+    idx = doc["sentence"].index("_")
+    return [doc["sentence"][:idx] + opt for opt in doc["option1"]]
+
+def doc_to_target(doc):
+    idx = doc["sentence"].index("_") + 1
+    return doc["sentence"][idx:].strip()
+
 def partial_context(doc, option):
     # Substitute the pronoun in the sentence with the specified option
     # and ignore everything after.
