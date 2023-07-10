@@ -64,9 +64,10 @@ class TaskConfig(dict):
     fewshot_split: str = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
-    template_aliases: str = None
+    template_aliases: Union[str, list] = None
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
+    doc_to_choice: Union[Callable, str] = None
     gold_alias: Union[Callable, str] = None
     use_prompt: str = None
     description: str = ""
@@ -76,8 +77,6 @@ class TaskConfig(dict):
     num_fewshot: int = 0
     # scoring options
     metric_list: str = None
-    gold_alias: Union[Callable, str] = None
-    create_choices: Union[Callable, str] = None
     output_type: str = "greedy_until"
     generation_kwargs: dict = None
     repeats: int = 1
@@ -627,6 +626,10 @@ class ConfigurableTask(Task):
             self.sampler = samplers.Sampler(
                 list(self.fewshot_docs()), self, rnd=random.Random()
             )
+
+        if self._config.template_aliases is not None:
+            for key, alias in self._config.template_aliases:
+                self.dataset.rename_column(key, alias)
 
 
     def __post_init__(self):
