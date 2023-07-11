@@ -149,6 +149,9 @@ class MinervaCoTMMLU(Task):
     VERSION = 0
     DATASET_PATH = "hendrycks_test"
     DATASET_NAME = None
+    MAJORITY_VOTING = "majority_voting"
+    SAMPLING_TEMPERATURE = "sampling_temperature"
+    EVAL_BATCH_SIZE = "eval_batch_size"
 
     ANS_RE = re.compile(r"Final Answer: The final answer is \([ABCD]\). I hope it is correct.")
     INVALID_ANS = "[not found]"
@@ -199,7 +202,7 @@ class MinervaCoTMMLU(Task):
     def doc_to_text(self, doc):
         return doc["query"]
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, params={}):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
 
@@ -210,10 +213,42 @@ class MinervaCoTMMLU(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        completion = rf.greedy_until(ctx, ["\n\n", "Problem:"])
+        if params == {}:
+            return rf.generate(ctx, ["\n\n", "Problem:"])
+        
+        majority_voting_value = int(params.get(self.MAJORITY_VOTING, 1))
+        sampling_temperature_value = float(params.get(self.SAMPLING_TEMPERATURE, 1.0))
+        eval_batch_size = params.get(self.EVAL_BATCH_SIZE, None)
+        eval_batch_size = int(eval_batch_size) if isinstance(eval_batch_size, str) else eval_batch_size
+        generation_params = {
+            'num_return_sequences': majority_voting_value,
+            'temperature': sampling_temperature_value,
+            'num_return_sequences_batch': eval_batch_size
+        }
+        completion = rf.generate(ctx, ["\n\n", "Problem:"], generation_params)
         return completion
 
-    def process_results(self, doc, results):
+    def get_pure_answer(self, candidate):
+        indices = [pos for pos, char in enumerate(candidate) if char == "$"]
+        if len(indices) <= 1:
+            return candidate
+        return candidate[indices[0] + 1 : indices[-1]]
+
+    def majority_vote(self, candidates):
+        
+        answer_votes = {}
+        for answer in candidates:
+            answer_votes[answer] = answer_votes.get(answer, 0) + 1
+
+        max_vote = 0
+        elected = None
+        for answer, vote in answer_votes.items():
+            if vote > max_vote and answer is not None and answer is not self.INVALID_ANS:
+                elected = answer
+                max_vote = vote
+        return elected
+
+    def process_results(self, doc, results, params={}):
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of submetrics and values are the values of
         the metric for that one document
@@ -223,10 +258,23 @@ class MinervaCoTMMLU(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        completion = results[0]
+        candidates = results[0]
+        assert isinstance(params, dict)
+        if params == {}:
+            completion = candidates
+        elif self.MAJORITY_VOTING in params:
+            completion = self.majority_vote(candidates)
+        else:
+            raise AssertionError
+
         answer = doc["gold"]
-        return {"acc": self._is_correct(completion, answer),
-                "metadata": {"completion": completion}}
+        return {
+            "acc": self._is_correct(completion, answer),
+            "metadata": {
+                "selected_answer": answer,
+                "candidates": candidates
+            }
+        }
         
     def _extract_answer(self, completion):
         match = self.ANS_RE.search(completion)
