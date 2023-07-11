@@ -323,7 +323,9 @@ class Task(abc.ABC):
         elif type(self._config.doc_to_choice) == dict:
             return list(self._config.doc_to_choice.values())
         elif type(self._config.doc_to_choice) == str:
-            return utils.apply_template(self._config.doc_to_choice, doc)
+            return ast.literal_eval(
+                utils.apply_template(self._config.doc_to_choice, doc)
+            )
         else:
             return self._config.doc_to_choice(doc)
 
@@ -720,7 +722,12 @@ class ConfigurableTask(Task):
 
     def doc_to_decontamination_query(self, doc):
         if self._config.should_decontaminate:
-            return utils.apply_template(self._config.doc_to_decontamination_query, doc)
+            if self._config.doc_to_decontamination_query in self.features:
+                return doc[self._config.doc_to_decontamination_query]
+            else:
+                return ast.literal_eval(
+                    utils.apply_template(self._config.doc_to_decontamination_query, doc)
+                )
 
     def _process_doc(self, doc):
         """
@@ -943,7 +950,7 @@ class ConfigurableTask(Task):
                 pred = choices[pred_idx]
                 pred_norm = choices[pred_idx_norm]
                 gold = self.doc_to_target(doc)
-                if self.multiple_output:
+                if self.multiple_output > 0:
                     if type(gold[0]) == int:
                         gold_idx = gold
                         gold = [choices[idx] for idx in gold_idx]
