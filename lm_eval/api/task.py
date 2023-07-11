@@ -648,7 +648,11 @@ class ConfigurableTask(Task):
         self.features = list(test_doc.keys())
         test_text = self.doc_to_text(test_doc)
         test_target = self.doc_to_target(test_doc)
-        # test_choice = self.doc_to_choice(test_doc)
+
+        if self._config.doc_to_choice is not None:
+            test_choice = self.doc_to_choice(test_doc)
+            if type(test_choice) is not list:
+                eval_logger.error("doc_to_choice must return list")
 
         if self._config.output_type == "multiple_choice":
             if type(test_text) is list:
