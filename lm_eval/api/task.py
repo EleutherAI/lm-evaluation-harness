@@ -660,10 +660,10 @@ class ConfigurableTask(Task):
             elif type(test_text) is str:
                 self.multiple_input = 0
 
-            if type(test_target) is list:
-                self.multiple_output = len(test_target)
-            else:
-                self.multiple_output = 0
+        if type(test_target) is list:
+            self.multiple_output = len(test_target)
+        else:
+            self.multiple_output = 0
 
     def download(self, dataset_kwargs=None):
 
@@ -998,7 +998,7 @@ class ConfigurableTask(Task):
 
             for key, result in zip(self._metric_fn_list.keys(), results):
                 _dict = self._metric_fn_list[key](
-                    references=[gold],
+                    references=gold if self.multiple_output else [gold],
                     predictions=[result],
                     **self._metric_fn_kwargs[key],
                 )
