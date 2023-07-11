@@ -228,12 +228,6 @@ class MinervaCoTMMLU(Task):
         completion = rf.generate(ctx, ["\n\n", "Problem:"], generation_params)
         return completion
 
-    def get_pure_answer(self, candidate):
-        indices = [pos for pos, char in enumerate(candidate) if char == "$"]
-        if len(indices) <= 1:
-            return candidate
-        return candidate[indices[0] + 1 : indices[-1]]
-
     def majority_vote(self, candidates):
         
         answer_votes = {}
@@ -261,9 +255,9 @@ class MinervaCoTMMLU(Task):
         candidates = results[0]
         assert isinstance(params, dict)
         if params == {}:
-            completion = candidates
+            completion = self._extract_answer(candidates)
         elif self.MAJORITY_VOTING in params:
-            completion = self.majority_vote(candidates)
+            completion = self.majority_vote([self._extract_answer(c) for c in candidates])
         else:
             raise AssertionError
 
@@ -271,7 +265,7 @@ class MinervaCoTMMLU(Task):
         return {
             "acc": self._is_correct(completion, answer),
             "metadata": {
-                "selected_answer": answer,
+                "selected_answer": completion,
                 "candidates": candidates
             }
         }
@@ -289,7 +283,7 @@ class MinervaCoTMMLU(Task):
     def _is_correct(self, completion, answer):
         gold = answer
         assert gold != self.INVALID_ANS, "No ground truth answer found in the document."
-        return self._extract_answer(completion) == gold
+        return completion == gold
 
     def fewshot_examples(self, k, rnd):
         # fewshot_examples is not just sampling from train_docs because dev is
