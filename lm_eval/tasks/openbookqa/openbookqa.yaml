@@ -7,11 +7,11 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: test
-template_aliases: "{% set answer_choices = choices['text'] %}{% set gold = choices.label.index(answerKey.lstrip()) %}" # set the list of possible answer choices, and set what this doc's gold answer is (set what ds column used, and what)
-doc_to_text: "{{question_stem}}"
-doc_to_target: "{{gold}}" # this will be cast to an int.
+doc_to_text: question_stem
+doc_to_target: "{{choices['text'][choices.label.index(answerKey.lstrip())]}}"
+doc_to_choice: "{{choices.text}}"
 should_decontaminate: true
-doc_to_decontamination_query: "{{question_stem}}"
+doc_to_decontamination_query: question_stem
 metric_list:
   - metric: acc
     aggregation: mean
