@@ -1,0 +1,7 @@
+include: lambada_mt_en.yaml
+group:
+  - lambada_multilingual
+  - loglikelihood
+  - perplexity
+task: lambada_openai_mt_es
+dataset_name: es

@@ -1,4 +1,4 @@
-def doc_to_text(doc):
+def doc_to_text(doc) -> str:
   choices = ["A", "B", "C", "D"]
   prompt = "Passage: " + doc["context"] + "\n"
   prompt += "Question: " + doc["question"] + "\nChoices:\n"
@@ -7,9 +7,13 @@ def doc_to_text(doc):
   prompt += "Answer:"
   return prompt
 
-def doc_to_target(doc):
-  return doc["options"].index(doc["label"])
 
-def gold(doc):
+def doc_to_target(doc) -> str:
+  choices = ["a", "b", "c", "d"]
+  label = choices.index(doc["label"])
+  return doc["options"][label]
+
+
+def gold(doc) -> int:
   choices = ["a", "b", "c", "d"]
   return choices.index(doc["label"])
