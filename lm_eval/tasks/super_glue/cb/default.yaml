@@ -7,9 +7,8 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 doc_to_text: "{{premise}}\nQuestion: {{hypothesis}}. True, False, or Neither?\nAnswer:"
-doc_to_target: "{{answer_choices[label]}}"
-gold_alias: "{{label}}" # this will be cast to an int.
-template_aliases: "{% set answer_choices = ['True', 'False', 'Neither'] %}"
+doc_to_target: label
+doc_to_choice: ['True', 'False', 'Neither']
 metric_list:
   - metric: acc
   - metric: f1
