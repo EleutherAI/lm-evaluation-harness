@@ -67,7 +67,7 @@ class TaskConfig(dict):
     template_aliases: Union[str, list] = None
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
-    doc_to_choice: Union[Callable, str] = None
+    doc_to_choice: Union[Callable, str, dict, list] = None
     gold_alias: Union[Callable, str] = None
     use_prompt: str = None
     description: str = ""
@@ -317,11 +317,9 @@ class Task(abc.ABC):
 
     def doc_to_choice(self, doc):
         if self._config.doc_to_choice is None:
-            return ast.literal_eval(
-                utils.apply_template(
-                    self._config.template_aliases + "{{answer_choices}}", doc
-                )
-            )
+            eval_logger.error("doc_to_choice was callsed but not set in config")
+        elif type(self._config.doc_to_choice) == list:
+            return self._config.doc_to_choice
         elif type(self._config.doc_to_choice) == dict:
             return list(self._config.doc_to_choice.values())
         elif type(self._config.doc_to_choice) == str:
@@ -761,7 +759,10 @@ class ConfigurableTask(Task):
 
         if type(doc_to_target) == str:
             if doc_to_target in self.features:
-                return doc[doc_to_target]
+                if self._config.doc_to_choice is not None:
+                    return self.doc_to_choice(doc)[doc[doc_to_target]]
+                else:
+                    return doc[doc_to_target]
             else:
                 return utils.apply_template(doc_to_target, doc)
         elif callable(doc_to_target):
