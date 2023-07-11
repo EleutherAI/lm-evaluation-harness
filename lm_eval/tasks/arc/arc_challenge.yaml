@@ -1,24 +1,7 @@
+include: arc_easy.yaml
 group:
   - ai2_arc
   - multiple_choice
 task: arc_challenge
 dataset_path: ai2_arc
 dataset_name: ARC-Challenge
-output_type: multiple_choice
-training_split: train
-validation_split: validation
-test_split: test
-template_aliases: "{% set answer_choices = choices['text'] %}{% set gold = choices.label.index(answerKey) %}" # set the list of possible answer choices, and set what this doc's gold answer is (set what ds column used, and what)
-doc_to_text: "Question: {{question}}\nAnswer:"
-doc_to_target: "{{answer_choices[gold]}}"
-gold_alias: "{{gold}}" # this will be cast to an int.
-metric_list:
-  - metric: acc
-    aggregation: mean
-    higher_is_better: true
-  - metric: acc_norm
-    aggregation: mean
-    higher_is_better: true
-  # - metric: acc_mutual_info
-  #   aggregation: mean
-  #   higher_is_better: true
