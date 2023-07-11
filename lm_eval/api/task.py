@@ -317,7 +317,7 @@ class Task(abc.ABC):
 
     def doc_to_choice(self, doc):
         if self._config.doc_to_choice is None:
-            eval_logger.error("doc_to_choice was callsed but not set in config")
+            eval_logger.error("doc_to_choice was called but not set in config")
         elif type(self._config.doc_to_choice) == list:
             return self._config.doc_to_choice
         elif type(self._config.doc_to_choice) == dict:
