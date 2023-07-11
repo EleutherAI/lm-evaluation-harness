@@ -7,7 +7,3 @@ def doc_to_text(doc):
             doc["sentence1"][doc["start1"] : doc["end1"]],
         )
     )
-
-
-def doc_to_target(doc):
-    return " {}".format({0: "no", 1: "yes"}[doc["label"]])
