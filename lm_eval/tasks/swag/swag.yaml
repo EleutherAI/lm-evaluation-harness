@@ -7,10 +7,9 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: null
-template_aliases: "{% set answer_choices = [ending0, ending1, ending2, ending3] %}{% set gold = label %}"
-doc_to_text: "{{startphrase}}"
-doc_to_target: "{{answer_choices[gold]}}"
-gold_alias: "{{gold}}"
+doc_to_text: startphrase
+doc_to_target: label
+doc_to_choice: "{{[ending0, ending1, ending2, ending3]}}"
 metric_list:
   - metric: acc
     aggregation: mean
