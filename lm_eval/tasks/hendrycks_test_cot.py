@@ -38,6 +38,15 @@ _CITATION = """
     journal={Proceedings of the International Conference on Learning Representations (ICLR)},
     year={2021}
 }
+
+@misc{lewkowycz2022solving,
+      title={Solving Quantitative Reasoning Problems with Language Models}, 
+      author={Aitor Lewkowycz and Anders Andreassen and David Dohan and Ethan Dyer and Henryk Michalewski and Vinay Ramasesh and Ambrose Slone and Cem Anil and Imanol Schlag and Theo Gutman-Solo and Yuhuai Wu and Behnam Neyshabur and Guy Gur-Ari and Vedant Misra},
+      year={2022},
+      eprint={2206.14858},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
 """
 
 SUBJECTS_MCQA = [
