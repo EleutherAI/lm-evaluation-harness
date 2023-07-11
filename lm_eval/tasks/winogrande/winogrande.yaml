@@ -6,7 +6,7 @@ training_split: train
 validation_split: validation
 doc_to_target: !function preprocess_winogrande.doc_to_target
 doc_to_text: !function preprocess_winogrande.doc_to_text
-# gold_alias: !function preprocess_winogrande.gold_alias
+gold_alias: !function preprocess_winogrande.gold_alias
 metric_list:
   - metric: acc
     aggregation: mean
