@@ -55,6 +55,7 @@ from . import toxigen
 from . import crowspairs
 from . import lila
 from . import proofnet
+from . import hendrycks_test_cot
 
 ########################################
 # Translation tasks
@@ -364,6 +365,7 @@ TASK_REGISTRY = {
     # ProofNet
     "proofnet_autoformalize_statements": proofnet.ProofNetAutoformalizeStatements,
     "proofnet_informalize_statements": proofnet.ProofNetInformalizeStatements,
+    **hendrycks_test_cot.create_all_mcqa_tasks(),
     #
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
