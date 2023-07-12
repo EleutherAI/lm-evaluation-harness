@@ -224,7 +224,6 @@ class HFLM(LM):
 
         self._max_length = max_length
 
-        #TODO: Where to put this
         self.batch_schedule = 1
         self.batch_sizes = {}
         self.max_batch_size = max_batch_size
@@ -339,7 +338,7 @@ class HFLM(LM):
             )
         else:
             max_length = self.max_length
-
+            
         # if OOM, then halves batch_size and tries again
         @find_executable_batch_size(starting_batch_size=self.max_batch_size)
         def forward_batch(batch_size):
