@@ -46,10 +46,10 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] Arithmetic
 - [ ] MMMLU
 - [ ] Translation (WMT) suite
-- [ ] Unscramble (WIP)
+- [x] Unscramble
 - [x] ~~Pile (perplexity)~~
 - [ ] BLiMP
-- [ ] ToxiGen (WIP)
+- [x] ToxiGen
 - [ ] StoryCloze
 - [ ] NaturalQs
 - [ ] CrowS-Pairs
