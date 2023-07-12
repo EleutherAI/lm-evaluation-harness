@@ -204,11 +204,11 @@ def evaluate(
         if write_out:
             for inst in task.instances:
                 # print the prompt for the first few documents
-                if inst.doc_id < 4:
-                    print(
+                if inst.doc_id < 1:
+                    eval_logger.info(
                         f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\n{inst.args[0]}\n(end of prompt on previous line)"
                     )
-                    print("Request:", inst)
+                    eval_logger.info("Request:", inst)
 
         # aggregate Instances by LM method requested to get output.
         reqtype = (
