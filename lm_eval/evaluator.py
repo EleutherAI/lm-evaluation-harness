@@ -197,6 +197,19 @@ def evaluate(
 
         task.build_all_requests(limit=limit, rank=lm.rank, world_size=lm.world_size)
 
+        eval_logger.info(
+            f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
+        )
+
+        if write_out:
+            for inst in task.instances:
+                # print the prompt for the first few documents
+                if inst.doc_id < 1:
+                    eval_logger.info(
+                        f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\n{inst.args[0]}\n(end of prompt on previous line)"
+                    )
+                    eval_logger.info("Request:", inst)
+
         # aggregate Instances by LM method requested to get output.
         reqtype = (
             "loglikelihood"
@@ -335,16 +348,16 @@ def evaluate(
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
+            if bootstrap_iters > 0:
+                stderr = lm_eval.api.metrics.stderr_for_metric(
+                    metric=task.aggregation()[metric],
+                    bootstrap_iters=min(bootstrap_iters, 1000)
+                    if metric in ["bleu", "chrf", "ter"]
+                    else bootstrap_iters,
+                )
 
-            stderr = lm_eval.api.metrics.stderr_for_metric(
-                metric=task.aggregation()[metric],
-                bootstrap_iters=min(bootstrap_iters, 1000)
-                if metric in ["bleu", "chrf", "ter"]
-                else bootstrap_iters,
-            )
-
-            if stderr is not None:
-                results[task_name][metric + "_stderr" + "," + key] = stderr(items)
+                if stderr is not None:
+                    results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
         return {
             "results": dict(results),

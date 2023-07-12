@@ -1,0 +1,8 @@
+include: deontology.yaml
+group:
+  - hendrycks_ethics
+task: ethics_justice
+dataset_name: justice
+output_type: multiple_choice
+
+# TODO: impl. exact match for this and deontology
