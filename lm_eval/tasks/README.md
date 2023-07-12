@@ -12,28 +12,27 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] ~~Lambada (Multilingual)~~
 - [x] Wikitext
 - [x] PiQA
-- [ ] PROST (WIP)
+- [x] PROST
 - [ ] MCTACO
 - [x] Pubmed QA
 - [x] SciQ
 - [ ] QASPER
-- [ ] QA4MRE (WIP)
+- [x] QA4MRE
 - [ ] TriviaQA
 - [x] AI2 ARC
-- [ ] LogiQA
+- [ ] LogiQA (WIP)
 - [x] HellaSwag
 - [x] SWAG
 - [x] OpenBookQA
-- [ ] SQuADv2
 - [x] RACE
 - [ ] LogiQA (WIP)
 - [x] HellaSwag
-- [ ] SWAG (WIP)
+- [x] SWAG
 - [x] OpenBookQA
 - [ ] SQuADv2 (WIP)
-- [ ] RACE (WIP)
-- [ ] HeadQA (WIP)
-- [ ] MathQA
+- [x] RACE
+- [x] HeadQA (WIP)
+- [ ] MathQA (WIP)
 - [ ] WebQs
 - [ ] WSC273
 - [x] Winogrande
@@ -42,7 +41,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] TruthfulQA
 - [ ] MuTual
 - [ ] Hendrycks Math (WIP)
-- [ ] Asdiv
+- [ ] Asdiv (WIP)
 - [ ] GSM8k
 - [x] Arithmetic
 - [ ] MMMLU

@@ -101,13 +101,29 @@ class TaskConfig(dict):
             if type(self.gold_alias) == str:
                 self.gold_alias = self.template_aliases + self.gold_alias
 
-        if self.generation_kwargs:
-            assert (
-                self.output_type == "greedy_until"
-            ), "passed `generation_kwargs`, but not using a generation request type!"
-        elif self.output_type == "greedy_until":
-            # ensure that we greedily generate in absence of explicit arguments otherwise
-            self.generation_kwargs = {"do_sample": False, "temperature": 0.0}
+        if self.generation_kwargs is not None:
+            if self.output_type != "greedy_until":
+                eval_logger.warning(
+                    "passed `generation_kwargs`, but not using a generation request type!"
+                )
+
+            if "temperature" in self.generation_kwargs:
+                self.generation_kwargs["temperature"] = float(
+                    self.generation_kwargs["temperature"]
+                )
+
+            if "until" not in self.generation_kwargs:
+                self.generation_kwargs["until"] = [self.fewshot_delimiter]
+        else:
+            if self.output_type == "greedy_until":
+                # ensure that we greedily generate in absence of explicit arguments otherwise
+                self.generation_kwargs = {
+                    "until": None
+                    if self.fewshot_delimiter is None
+                    else [self.fewshot_delimiter],
+                    "do_sample": False,
+                    "temperature": 0.0,
+                }
 
         # TODO: how to make TaskConfigs be de- and re-serializable, even when using the !function constructor?
 
