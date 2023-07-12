@@ -37,7 +37,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] WSC273
 - [x] Winogrande
 - [x] ANLI
-- [ ] Hendrycks Ethics
+- [x] Hendrycks Ethics (missing some tasks/metrics, see PR 660: <https://github.com/EleutherAI/lm-evaluation-harness/pull/660> for more info)
 - [ ] TruthfulQA
 - [ ] MuTual
 - [ ] Hendrycks Math (WIP)
@@ -46,10 +46,10 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] Arithmetic
 - [ ] MMMLU
 - [ ] Translation (WMT) suite
-- [ ] Unscramble (WIP)
+- [x] Unscramble
 - [x] ~~Pile (perplexity)~~
 - [ ] BLiMP
-- [ ] ToxiGen (WIP)
+- [x] ToxiGen
 - [ ] StoryCloze
 - [ ] NaturalQs
 - [ ] CrowS-Pairs
