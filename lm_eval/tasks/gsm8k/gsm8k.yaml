@@ -21,7 +21,6 @@ metric_list:
       - ","
       - "\\$"
       - ".*### "
-delimiter: "\n\n"
 generation_kwargs:
   until:
     - "\n\n"
