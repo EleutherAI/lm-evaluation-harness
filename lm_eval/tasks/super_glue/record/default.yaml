@@ -1,0 +1,14 @@
+group:
+  - super-glue-lm-eval-v1
+task: record
+dataset_path: super_glue
+dataset_name: record
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: !function util.doc_to_text
+doc_to_target: "{{answers}}"
+doc_to_choice: "{{entities}}"
+metric_list:
+  - metric: f1
+  - metric: em
