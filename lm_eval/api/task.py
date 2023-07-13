@@ -315,20 +315,6 @@ class Task(abc.ABC):
         """
         return doc
 
-    def doc_to_choice(self, doc):
-        if self._config.doc_to_choice is None:
-            eval_logger.error("doc_to_choice was called but not set in config")
-        elif type(self._config.doc_to_choice) == list:
-            return self._config.doc_to_choice
-        elif type(self._config.doc_to_choice) == dict:
-            return list(self._config.doc_to_choice.values())
-        elif type(self._config.doc_to_choice) == str:
-            return ast.literal_eval(
-                utils.apply_template(self._config.doc_to_choice, doc)
-            )
-        else:
-            return self._config.doc_to_choice(doc)
-
     @property
     def instances(self):
         """After calling `task.build_all_requests()`, tasks
@@ -786,6 +772,28 @@ class ConfigurableTask(Task):
         # Used when applying a Promptsource template
         elif hasattr(doc_to_target, "apply"):
             return doc_to_target.apply(doc)[1]
+        else:
+            raise TypeError
+
+    def doc_to_choice(self, doc):
+
+        if self.prompt is not None:
+            doc_to_choice = self.prompt
+        elif doc_to_choice is None:
+            eval_logger.error("doc_to_choice was called but not set in config")
+        else:
+            doc_to_choice = self._config.doc_to_choice
+
+        if type(doc_to_choice) == str:
+            return ast.literal_eval(utils.apply_template(doc_to_choice, doc))
+        elif type(doc_to_choice) == list:
+            return doc_to_choice
+        elif type(doc_to_choice) == dict:
+            return list(doc_to_choice.values())
+        elif callable(doc_to_choice):
+            return doc_to_choice(doc)
+        elif hasattr(doc_to_choice, "get_answer_choices_list"):
+            return doc_to_choice.get_answer_choices_list(doc)
         else:
             raise TypeError
 
