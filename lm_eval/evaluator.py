@@ -213,7 +213,10 @@ def evaluate(
         # aggregate Instances by LM method requested to get output.
         reqtype = (
             "loglikelihood"
-            if (task.OUTPUT_TYPE == "multiple_choice" or task.OUTPUT_TYPE == "winograd_schema") 
+            if (
+                task.OUTPUT_TYPE == "multiple_choice"
+                or task.OUTPUT_TYPE == "winograd_schema"
+            )
             else task.OUTPUT_TYPE
         )  # TODO: this is hacky, fix in task.py
         requests[reqtype].extend(task.instances)
@@ -284,7 +287,7 @@ def evaluate(
                     "doc_id": doc_id,
                     "doc": doc,
                     "target": target,
-                    "arguments": requests[0].args,
+                    "arguments": [req.args for req in requests],
                     "resps": [req.resps for req in requests],
                     "filtered_resps": [req.filtered_resps[key] for req in requests],
                 }
