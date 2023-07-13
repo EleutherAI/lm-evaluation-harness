@@ -62,6 +62,7 @@ from . import pawsx
 from . import xnli
 from . import mgsm
 from . import scrolls
+from . import ceval
 
 ########################################
 # Translation tasks
@@ -328,7 +329,8 @@ TASK_REGISTRY = {
     **pawsx.construct_tasks(),
     **xnli.construct_tasks(),
     **mgsm.construct_tasks(),
-    **scrolls.construct_tasks()
+    **scrolls.construct_tasks(),
+    **ceval.create_all_tasks(),
 }
 
 
