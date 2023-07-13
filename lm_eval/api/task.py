@@ -990,10 +990,7 @@ class ConfigurableTask(Task):
 
         elif self.OUTPUT_TYPE == "greedy_until":
 
-            if self._config.gold_alias is not None:
-                gold = self.gold_alias(doc)
-            else:
-                gold = self.doc_to_target(doc)
+            gold = self.doc_to_target(doc)
 
             for key, result in zip(self._metric_fn_list.keys(), results):
                 _dict = self._metric_fn_list[key](
