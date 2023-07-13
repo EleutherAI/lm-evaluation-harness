@@ -7,9 +7,11 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: null
-doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_text: "Question: {{goal}}\nAnswer:"
 doc_to_target: label
 doc_to_choice: "{{[sol1, sol2]}}"
+should_decontaminate: true
+doc_to_decontamination_query: goal
 metric_list:
   - metric: acc
     aggregation: mean
