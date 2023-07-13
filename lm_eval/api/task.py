@@ -946,6 +946,8 @@ class ConfigurableTask(Task):
                 gold = self.doc_to_text(doc)
             else:
                 gold = self.doc_to_target(doc)
+                if type(gold) is str:
+                    gold = choices.index(gold)
 
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
