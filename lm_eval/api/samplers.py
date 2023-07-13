@@ -38,7 +38,14 @@ class Sampler:
             self.fewshot_delimiter.join(
                 [
                     # TODO: is separating doc_to_text and doc_to_target by one space always desired?
-                    self.doc_to_text(doc)
+                    (
+                        self.doc_to_text(doc)
+                        if (
+                            self.config.doc_to_choice is None
+                            or type(self.doc_to_text(doc)) is str
+                        )
+                        else self.doc_to_choice(doc)[self.doc_to_text(doc)]
+                    )
                     + self.target_delimiter
                     + (
                         self.doc_to_target(doc)
