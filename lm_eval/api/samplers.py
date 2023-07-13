@@ -10,6 +10,10 @@ class Sampler:
         self.target_delimiter = self.config.target_delimiter
         self.fewshot_delimiter = self.config.fewshot_delimiter
 
+        self.doc_to_text = self.task.doc_to_text
+        self.doc_to_target = self.task.doc_to_target
+        self.doc_to_choice = self.task.doc_to_choice
+
         self.docs = docs  # HF dataset split, provided by task._fewshot_docs()
         if fewshot_indices:  # subset few-shot docs from
             self.docs = self.docs.select(fewshot_indices)
@@ -34,16 +38,19 @@ class Sampler:
             self.fewshot_delimiter.join(
                 [
                     # TODO: is separating doc_to_text and doc_to_target by one space always desired?
-                    self.task.doc_to_text(doc)
+                    self.doc_to_text(doc)
                     + self.target_delimiter
-                    + self.task.doc_to_target(doc)
+                    + (
+                        self.doc_to_target(doc)
+                        if self.config.doc_to_choice is None
+                        else self.doc_to_choice(doc)[self.doc_to_target(doc)]
+                    )
                     for doc in selected_docs
                 ]
             )
             + self.fewshot_delimiter
         )
 
-        # only returns the fewshot context! Does not append the document, do this outside the object
         return labeled_examples
 
     def sample(self, n):
