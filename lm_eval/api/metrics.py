@@ -362,10 +362,3 @@ def stderr_for_metric(metric, bootstrap_iters):
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
     return stderr.get(metric, None)
-
-
-def yesno(x):
-    if x:
-        return "yes"
-    else:
-        return "no"
