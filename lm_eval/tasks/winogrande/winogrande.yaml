@@ -4,9 +4,9 @@ dataset_name: winogrande_xl
 output_type: multiple_choice
 training_split: train
 validation_split: validation
-doc_to_target: !function preprocess_winogrande.doc_to_target
 doc_to_text: !function preprocess_winogrande.doc_to_text
-gold_alias: !function preprocess_winogrande.gold_alias
+doc_to_target: !function preprocess_winogrande.doc_to_target
+doc_to_choice: !function preprocess_winogrande.doc_to_choice
 metric_list:
   - metric: acc
     aggregation: mean
