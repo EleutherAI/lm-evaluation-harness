@@ -3,7 +3,6 @@ def doc_to_text(doc) -> str:
     """
     Passage: <passage>
     Question: <question>
-    Choices:
     A. <choice1>
     B. <choice2>
     C. <choice3>
@@ -12,7 +11,7 @@ def doc_to_text(doc) -> str:
     """
     choices = ["a", "b", "c", "d"]
     prompt = "Passage: " + doc["context"] + "\n"
-    prompt += "Question: " + doc["question"] + "\nChoices:\n"
+    prompt += "Question: " + doc["question"] + "\n"
     for choice, option in zip(choices, doc["options"]):
         prompt += f"{choice.upper()}. {option}\n"
     prompt += "Answer:"
