@@ -81,7 +81,7 @@ def create_all_tasks():
     :return: {task_name: task}
         e.g. {Ceval-computer_network: Task, Ceval-clinical_medicine: Task}
     """
-    return {f"Ceval-{sub}": create_task(sub) for sub in SUBJECTS.keys()}
+    return {f"Ceval-valid-{sub}": create_task(sub) for sub in SUBJECTS.keys()}
 
 
 def create_task(subject):
