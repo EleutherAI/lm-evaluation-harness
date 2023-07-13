@@ -11,9 +11,10 @@ Homepage: https://github.com/hendrycks/math
 import re
 import math
 import code
+import signal
 
 import sympy
-from sympy.parsing.latex.parse import parse_latex
+from sympy.parsing.latex import parse_latex
 
 import inspect
 import lm_eval.datasets.hendrycks_math.hendrycks_math
@@ -97,7 +98,7 @@ class MinervaMath(Task):
     MAJORITY_VOTING = "majority_voting"
     SAMPLING_TEMPERATURE = "sampling_temperature"
     EVAL_BATCH_SIZE = "eval_batch_size"
-    INVALID_ANSWER="[invalid answer]"
+    INVALID_ANSWER="[invalidanswer]"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -120,6 +121,9 @@ class MinervaMath(Task):
 
     def test_docs(self):
         return map(self._process_doc, self.dataset["test"])
+
+    def doc_to_target(self):
+        raise NotImplementedError("MinervaMath has no doc_to_target method.")
 
     def last_boxed_only_string(self, string):
 
@@ -167,6 +171,7 @@ class MinervaMath(Task):
     def _process_doc(self, doc):
         doc["answer"] = self.normalize_final_answer(
                 self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
+        )
         return doc
 
     def doc_to_text(self, doc):
@@ -199,7 +204,6 @@ class MinervaMath(Task):
         example = self.doc_to_text(doc)
         prompt = PROMPT + "\n\n" + example
 
-        code.interact(local=locals())
         return prompt
 
     def get_unnormalized_answer(self, text: str):
@@ -235,7 +239,7 @@ class MinervaMath(Task):
 
         # get and normalize all answers
         answers = [
-                self.normalize_answer(self.get_unnormalized_answer(candidate))
+                self.normalize_final_answer(self.get_unnormalized_answer(candidate))
                 for candidate in candidates
         ]
 
@@ -262,7 +266,7 @@ class MinervaMath(Task):
                         #   two answers' norms diverge, yet
                         #   sympy finds them same"
 
-                        answer_key[ref] += 1
+                        answer_votes[ref] += 1
                         counted=True
 
                 if not counted: 
@@ -276,7 +280,7 @@ class MinervaMath(Task):
 
         pass_rate = pass_num/len(answers)
 
-        return elected_answer, pass_rate
+        return elected_answer, pass_rate, answers
 
     def process_results(self, doc, results, params={}):
         candidates = results[0]
@@ -286,8 +290,9 @@ class MinervaMath(Task):
         if params == {}:
             unnormalized_answer = self.get_unnormalized_answer(candidates)
             answer = self.normalize_final_answer(unnormalized_answer)
+            answers = [answer]
         elif self.MAJORITY_VOTING in params:
-            answer, pass_rate = self.majority_vote(candidates)
+            answer, pass_rate, answers = self.majority_vote(candidates)
         else:
             raise AssertionError
 
@@ -303,11 +308,12 @@ class MinervaMath(Task):
 
         results = {
             "acc": retval,
-            "pass_rate": pass_rate
-            "log_pass_rate": math.log(pass_rate)
+            "pass_rate": pass_rate,
+            "log_pass_rate": math.log(pass_rate),
             "metadata": {
                 "selected_answer": answer,
-                "candidates": candidates
+                "candidates": candidates,
+                "answers": answers,
             }
         }
         return results
@@ -333,7 +339,7 @@ class MinervaMath(Task):
         r'^\circ', r'^{\circ}', r'\;', r',\!', '{,}', '"', '\\dots'
     ]
 
-    def normalize_final_answer(final_answer: str) -> str:
+    def normalize_final_answer(self, final_answer: str) -> str:
       """
       Normalize a final answer to a quantitative reasoning question.
 
@@ -341,9 +347,9 @@ class MinervaMath(Task):
       """
       final_answer = final_answer.split('=')[-1]
       
-      for before, after in SUBSTITUTIONS:
+      for before, after in self.SUBSTITUTIONS:
         final_answer = final_answer.replace(before, after)
-      for expr in REMOVED_EXPRESSIONS:
+      for expr in self.REMOVED_EXPRESSIONS:
         final_answer = final_answer.replace(expr, '')
       
       # Extract answer that is in LaTeX math, is bold, 
