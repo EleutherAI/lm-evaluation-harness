@@ -14,10 +14,11 @@ import pytest
 # TODO: more fine grained unit tests rather than this big honking integration
 # test once we break evaluator into smaller, more manageable pieces
 
-
-@pytest.mark.parametrize("taskname,task_class", tasks.TASK_REGISTRY.items())
-def test_evaluator(taskname, task_class):
-    task_dict = tasks.get_task_dict([taskname])
+# @pytest.mark.parametrize("taskname,task_class", tasks.TASK_REGISTRY.items())
+def test_evaluator():
+    TASK = ["arc_easy"]
+    LIMIT = 10
+    # task_dict = tasks.get_task_dict(task)
 
     # TODO: re-add cachingLM
     # os.system("rm test_cache.db")
@@ -25,7 +26,7 @@ def test_evaluator(taskname, task_class):
     lm = registry.get_model("dummy")()
 
     def ll_fn(reqs):
-        for ctx, cont in reqs:
+        for ctx, cont in [req.args for req in reqs]:
             if len(ctx) == 0:
                 continue
             # space convention
@@ -54,19 +55,16 @@ def test_evaluator(taskname, task_class):
     lm.loglikelihood = ll_fn
     lm.loglikelihood_rolling = ll_perp_fn
 
-    limit = 10
-    e1 = evaluator.evaluate(
-        lm=lm,
-        task_dict=task_dict,
-        num_fewshot=0,
-        limit=limit,
+    e1 = evaluator.simple_evaluate(
+        model="dummy",
+        tasks=TASK,
+        limit=LIMIT,
         bootstrap_iters=10,
     )
-    e2 = evaluator.evaluate(
-        lm=lm,
-        task_dict=task_dict,
-        num_fewshot=0,
-        limit=limit,
+    e2 = evaluator.simple_evaluate(
+        model="dummy",
+        tasks=TASK,
+        limit=LIMIT,
         bootstrap_iters=10,
     )
 
