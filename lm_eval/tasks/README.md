@@ -24,14 +24,9 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] HellaSwag
 - [x] SWAG
 - [x] OpenBookQA
-- [x] RACE
-- [ ] LogiQA (WIP)
-- [x] HellaSwag
-- [x] SWAG
-- [x] OpenBookQA
 - [ ] SQuADv2 (WIP)
 - [x] RACE
-- [x] HeadQA (WIP)
+- [x] HeadQA
 - [ ] MathQA (WIP)
 - [ ] WebQs
 - [ ] WSC273
@@ -53,7 +48,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] BLiMP
 - [x] ToxiGen
 - [ ] StoryCloze
-- [ ] NaturalQs
+- [ ] NaturalQs (WIP)
 - [ ] CrowS-Pairs
 - [ ] XCopa
 - [ ] BIG-Bench
