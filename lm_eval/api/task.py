@@ -90,7 +90,7 @@ class TaskConfig(dict):
         # allow user-specified aliases so that users can
         # force prompt-compatibility for some prompt regardless of
         # field names in prompt
-        if self.template_aliases is not None:
+        if self.template_aliases:
             if type(self.doc_to_text) == str:
                 self.doc_to_text = self.template_aliases + self.doc_to_text
 
