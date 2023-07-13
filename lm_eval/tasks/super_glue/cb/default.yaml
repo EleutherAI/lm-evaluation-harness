@@ -1,6 +1,6 @@
 group:
   - super-glue-lm-eval-v1
-task: "cb"
+task: cb
 dataset_path: super_glue
 dataset_name: cb
 output_type: multiple_choice
