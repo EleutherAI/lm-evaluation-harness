@@ -8,6 +8,7 @@ import evaluate
 import random
 import itertools
 import functools
+from tqdm import tqdm
 
 import datasets
 import numpy as np
@@ -216,8 +217,8 @@ class Task(abc.ABC):
                 self._filters.append(filter_pipeline)
 
         self.sampler = samplers.Sampler(
-            list(self.fewshot_docs()), self, rnd=random.Random()
-        )  # TODO: pass the correct docs in here
+            list(self.fewshot_docs()), self, rnd=random.Random(1234)
+        )
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None):
         """Downloads and returns the task dataset.
@@ -353,13 +354,18 @@ class Task(abc.ABC):
                 False
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
+        eval_logger.info(
+            f"Building contexts for task '{self._config.task}' on rank {rank}..."
+        )
+
         instances = []
         for doc_id, doc in utils.create_iterator(
             enumerate(docs), rank, world_size, limit
         ):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(
-                doc, self._config.num_fewshot, rnd=random.Random()
+                doc,
+                self._config.num_fewshot,
             )
 
             # TODO: we should override self._config.repeats if doing greedy gen so users don't waste time+compute
@@ -440,7 +446,7 @@ class Task(abc.ABC):
         return len(re.split(r"\s+", doc))
 
     @utils.positional_deprecated
-    def fewshot_context(self, doc, num_fewshot, rnd=None):
+    def fewshot_context(self, doc, num_fewshot):
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -448,15 +454,9 @@ class Task(abc.ABC):
             The document as returned from training_docs, validation_docs, or test_docs.
         :param num_fewshot: int
             The number of fewshot examples to provide in the returned context string.
-        :param rnd: random.Random
-            The pseudo-random number generator used to randomly sample examples.
-            WARNING: This is currently a required arg although it's optionalized with a default `None`.
         :returns: str
             The fewshot context.
         """
-        assert (
-            rnd is not None
-        ), "A `random.Random` generator argument must be provided to `rnd`"
 
         if num_fewshot == 0:
             # always prepend the (possibly empty) task description
@@ -615,7 +615,7 @@ class ConfigurableTask(Task):
 
         if self.fewshot_docs() is not None:
             self.sampler = samplers.Sampler(
-                list(self.fewshot_docs()), self, rnd=random.Random()
+                list(self.fewshot_docs()), self, rnd=random.Random(1234)
             )
 
         if self._config.template_aliases is not None:
@@ -1081,13 +1081,10 @@ class PerplexityTask(Task):
         assert k == 0
         return []
 
-    def fewshot_context(self, doc, num_fewshot, rnd=None):
+    def fewshot_context(self, doc, num_fewshot):
         assert (
             num_fewshot == 0
         ), "The number of fewshot examples must be 0 for perplexity tasks."
-        assert (
-            rnd is not None
-        ), "A `random.Random` generator argument must be provided to `rnd`."
 
         return ""
 
