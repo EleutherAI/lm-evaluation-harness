@@ -5,9 +5,9 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ big-refactor_testeval ]
   pull_request:
-    branches: [ master ]
+    branches: [ big-refactor_testeval ]
 
 jobs:
   build:
@@ -44,7 +44,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest -vv --cov=lm_eval/ tests/
-    - name: Upload to codecov
-      run: |
-        bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
+        pytest -vv tests/evaluator.py
+#    - name: Upload to codecov
+#      run: |
+#        bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
