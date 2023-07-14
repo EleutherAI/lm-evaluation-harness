@@ -61,21 +61,30 @@ def include_benchmarks(task_dir, benchmark_dir="benchmarks"):
         if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
             for f in file_list:
                 if f.endswith(".yaml"):
-                    benchmark_path = os.path.join(root, f)
+                    try:
+                        benchmark_path = os.path.join(root, f)
 
-                    with open(benchmark_path, "rb") as file:
-                        yaml_config = yaml.full_load(file)
+                        with open(benchmark_path, "rb") as file:
+                            yaml_config = yaml.full_load(file)
 
-                    assert "group" in yaml_config
-                    group = yaml_config["group"]
-                    task_list = yaml_config["task"]
-                    task_names = utils.pattern_match(task_list, ALL_TASKS)
-                    for task in task_names:
-                        if task in TASK_REGISTRY:
-                            if group in GROUP_REGISTRY:
-                                GROUP_REGISTRY[group].append(task)
-                            else:
-                                GROUP_REGISTRY[group] = [task]
+                        assert "group" in yaml_config
+                        group = yaml_config["group"]
+                        task_list = yaml_config["task"]
+                        task_names = utils.pattern_match(task_list, ALL_TASKS)
+                        for task in task_names:
+                            if task in TASK_REGISTRY:
+                                if group in GROUP_REGISTRY:
+                                    GROUP_REGISTRY[group].append(task)
+                                else:
+                                    GROUP_REGISTRY[group] = [task]
+                                    ALL_TASKS.add(group)
+                    except Exception as error:
+                        eval_logger.warning(
+                            "Failed to load benchmark in\n"
+                            f"                                 {benchmark_path}\n"
+                            "                                 Benchmark will not be added to registry\n"
+                            f"                                 Error: {error}"
+                        )
 
 
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"

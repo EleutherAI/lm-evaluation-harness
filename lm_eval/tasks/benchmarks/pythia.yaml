@@ -8,6 +8,6 @@ task:
   - winogrande
   - arc_challenge
   - arc_easy
-  - logiqa
-  - blimp_*
-  - hendrycksTest*
+  # - logiqa
+  # - blimp_*
+  # - hendrycksTest*
