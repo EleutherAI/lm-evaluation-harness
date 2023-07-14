@@ -70,6 +70,7 @@ class HFLM(LM):
         batch_size: Optional[int] = 1,
         low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
+        use_fast_tokenizer: Optional[bool] = True,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
         parallelize: Optional[bool] = False,
@@ -216,6 +217,7 @@ class HFLM(LM):
             pretrained if tokenizer is None else tokenizer,
             revision=revision,
             trust_remote_code=trust_remote_code,
+            use_fast=use_fast_tokenizer,
         )
 
         self.vocab_size = self.tokenizer.vocab_size
