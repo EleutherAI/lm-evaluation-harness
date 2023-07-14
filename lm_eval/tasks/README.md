@@ -24,21 +24,18 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] HellaSwag
 - [x] SWAG
 - [x] OpenBookQA
-- [x] RACE
-- [ ] LogiQA (WIP)
-- [x] HellaSwag
-- [x] SWAG
-- [x] OpenBookQA
 - [ ] SQuADv2 (WIP)
 - [x] RACE
-- [x] HeadQA (WIP)
+- [x] HeadQA
 - [ ] MathQA (WIP)
 - [ ] WebQs
 - [ ] WSC273
 - [x] Winogrande
 - [x] ANLI
-- [ ] Hendrycks Ethics
-- [ ] TruthfulQA
+- [x] Hendrycks Ethics (missing some tasks/metrics, see PR 660: <https://github.com/EleutherAI/lm-evaluation-harness/pull/660> for more info)
+- [x] TruthfulQA (mc1)
+- [ ] TruthfulQA (mc2)
+- [ ] TruthfulQA (gen)
 - [ ] MuTual
 - [ ] Hendrycks Math (WIP)
 - [ ] Asdiv (WIP)
@@ -46,12 +43,12 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] Arithmetic
 - [ ] MMMLU
 - [ ] Translation (WMT) suite
-- [ ] Unscramble (WIP)
+- [x] Unscramble
 - [x] ~~Pile (perplexity)~~
 - [ ] BLiMP
-- [ ] ToxiGen (WIP)
+- [x] ToxiGen
 - [ ] StoryCloze
-- [ ] NaturalQs
+- [ ] NaturalQs (WIP)
 - [ ] CrowS-Pairs
 - [ ] XCopa
 - [ ] BIG-Bench

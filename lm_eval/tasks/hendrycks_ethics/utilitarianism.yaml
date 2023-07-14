@@ -1,0 +1,14 @@
+group:
+  - hendrycks_ethics
+task: ethics_utilitarianism
+dataset_path: hails/hendrycks_ethics
+dataset_name: utilitarianism
+output_type: multiple_choice
+training_split: train
+test_split: test
+template_aliases: "{% set answer_choices = ['no', 'yes'] %}"
+doc_to_text: !function utils.doc_to_text
+doc_to_target: !function utils.doc_to_target
+gold_alias: !function utils.gold_alias
+metric_list:
+  - metric: acc
