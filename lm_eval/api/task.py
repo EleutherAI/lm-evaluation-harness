@@ -652,9 +652,6 @@ class ConfigurableTask(Task):
         if type(test_target) is list:
             self.multiple_target = len(test_target)
 
-        eval_logger.info(f" Input choices: {self.multiple_input}")
-        eval_logger.info(f"Output choices: {self.multiple_target}")
-
     def download(self, dataset_kwargs=None):
 
         self.dataset = datasets.load_dataset(
