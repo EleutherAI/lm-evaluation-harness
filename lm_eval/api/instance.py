@@ -4,13 +4,13 @@ from typing import Literal, Tuple
 
 @dataclass
 class Instance:
-    request_type: str = Literal[
-        "loglikelihood", "loglikelihood_rolling", "greedy_until"
-    ]
-    doc: dict = None
-    arguments: tuple = None
-    idx: int = None
-    metadata: tuple = Tuple[str, int, int]  # TODO: better typehints here
+    request_type: Literal["loglikelihood", "loglikelihood_rolling", "greedy_until"]
+    doc: dict
+    arguments: tuple
+    idx: int
+    metadata: Tuple[str, int, int] = field(
+        default_factory=lambda: (None, None, None)
+    )  # TODO: better typehints here
     resps: list = field(default_factory=list)
     filtered_resps: dict = field(default_factory=dict)
 
