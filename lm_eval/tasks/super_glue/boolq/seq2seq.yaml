@@ -6,16 +6,14 @@ dataset_name: boolq
 output_type: greedy_until
 training_split: train
 validation_split: validation
-doc_to_text: "{{passage}}\nQuestion: {{question}}\nAnswer:"
-doc_to_target: "{{answer_choices[label]}}"
-gold_alias: " {{answer_choices[label]}}" # this will be cast to an int.
+doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
+doc_to_target: "{{['no', 'yes'][label]}}"
 generation_kwargs:
   until:
     - "\n\n"
     - "\n"
   do_sample: false
   temperature: 0.0
-template_aliases: "{% set answer_choices = ['no', 'yes'] %}"
 metric_list:
   - metric: exact_match
     aggregation: mean
