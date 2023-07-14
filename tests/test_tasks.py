@@ -17,7 +17,7 @@ def limit(limit=10):
 
 def test_download(task_class):
     task_class().download()
-    assert task_class.dataset is not None
+    assert task_class().dataset is not None
 
 
 def test_has_training_docs(task_class):
@@ -37,15 +37,15 @@ def test_check_validation_docs(task_class):
 
 
 def test_has_test_docs(task_class):
-    assert task_class.has_training_docs() in [True, False]
+    assert task_class().has_training_docs() in [True, False]
 
 
 def test_check_test_docs(task_class):
-    assert task_class.has_training_docs()
+    assert task_class().has_training_docs()
 
 
 def test_should_decontaminate(task_class):
-    assert task_class.should_decontaminate() in [True, False]
+    assert task_class().should_decontaminate() in [True, False]
 
 
 def test_doc_to_text(task_class, limit):
