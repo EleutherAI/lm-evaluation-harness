@@ -16,7 +16,7 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    ("task_name,limit,model,model_args"),
+    "task_name,limit,model,model_args",
     [
         (
             ["arc_easy"],
