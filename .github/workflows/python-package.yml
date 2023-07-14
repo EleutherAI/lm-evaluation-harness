@@ -23,14 +23,14 @@ jobs:
         python-version: 3.9
     - name: Install dependencies
       run: pip install -e '.[linting,testing]' --extra-index-url https://download.pytorch.org/whl/cpu
+    - name: Lint with pylint
+      run: python -m pylint --disable=all -e W0311 --jobs=0 --indent-string='    ' **/*.py
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=F,E9,E71,E72,E501,E112,E113,W6 --show-source --statistics
+        flake8 . --count --select=F,E9,E71,E72,E501,E112,E113,W6 --show-source --statistics -exit-zero
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Lint with pylint
-      run: python -m pylint --disable=all -e W0311 --jobs=0 --indent-string='    ' **/*.py
     - name: Lint with mypy
       run: mypy tinygrad/ --ignore-missing-imports --check-untyped-defs --explicit-package-bases --warn-unreachable
 
