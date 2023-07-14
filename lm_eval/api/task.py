@@ -742,7 +742,11 @@ class ConfigurableTask(Task):
                 # else:
                 return doc[doc_to_text]
             else:
-                return utils.apply_template(doc_to_text, doc)
+                text_string = utils.apply_template(doc_to_text, doc)
+                if text_string.isdigit():
+                    return ast.literal_eval(text_string)
+                else:
+                    return text_string
         elif callable(doc_to_text):
             return doc_to_text(doc)
         # Used when applying a Promptsource template
@@ -766,7 +770,11 @@ class ConfigurableTask(Task):
                 # else:
                 return doc[doc_to_target]
             else:
-                return utils.apply_template(doc_to_target, doc)
+                target_string = utils.apply_template(doc_to_target, doc)
+                if target_string.isdigit():
+                    return ast.literal_eval(target_string)
+                else:
+                    return target_string
         elif callable(doc_to_target):
             return doc_to_target(doc)
         # Used when applying a Promptsource template
@@ -779,7 +787,7 @@ class ConfigurableTask(Task):
 
         if self.prompt is not None:
             doc_to_choice = self.prompt
-        elif doc_to_choice is None:
+        elif self._config.doc_to_choice is None:
             eval_logger.error("doc_to_choice was called but not set in config")
         else:
             doc_to_choice = self._config.doc_to_choice
