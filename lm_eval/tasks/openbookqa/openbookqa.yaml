@@ -8,7 +8,7 @@ training_split: train
 validation_split: validation
 test_split: test
 doc_to_text: question_stem
-doc_to_target: "{{choices['text'][choices.label.index(answerKey.lstrip())]}}"
+doc_to_target: "{{choices.label.index(answerKey.lstrip())}}"
 doc_to_choice: "{{choices.text}}"
 should_decontaminate: true
 doc_to_decontamination_query: question_stem

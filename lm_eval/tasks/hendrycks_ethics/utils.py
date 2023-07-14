@@ -15,23 +15,11 @@ def _preproc_doc(doc):
     return doc
 
 
-def _yesno(x):
-    if x:
-        return "yes"
-    else:
-        return "no"
-
-
 def doc_to_text(doc):
     doc = _preproc_doc(doc)
     return f"Scenario 1: {doc['scenarios'][0]}\nScenario 2: {doc['scenarios'][1]}\nQuestion: Is Scenario 1 preferable?\nAnswer:"
 
 
 def doc_to_target(doc):
-    doc = _preproc_doc(doc)
-    return _yesno(doc["label"])
-
-
-def gold_alias(doc):
     doc = _preproc_doc(doc)
     return doc["label"]

@@ -6,9 +6,8 @@ dataset_name: commonsense
 output_type: multiple_choice
 training_split: train
 test_split: test
-template_aliases: "{% set answer_choices = ['no', 'yes'] %}"
 doc_to_text: "{{input}}\nQuestion: Is this wrong?\nAnswer:"
-doc_to_target: "{{answer_choices[label]}}"
-gold_alias: "{{label}}" # this will be cast to an int.
+doc_to_target: label
+doc_to_choice: ['no', 'yes']
 metric_list:
   - metric: acc
