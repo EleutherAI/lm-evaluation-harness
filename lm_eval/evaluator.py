@@ -45,6 +45,7 @@ def simple_evaluate(
     check_integrity=False,
     decontamination_ngrams_path=None,
     write_out=False,
+    log_samples=True,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -72,12 +73,17 @@ def simple_evaluate(
     :param check_integrity: bool
         Whether to run the relevant part of the test suite for the tasks
     :param write_out: bool
-        If True, write details about prompts and logits to json for all tasks
+        If True, write out an example document and model input for checking task integrity
+    :param log_samples: bool
+        If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
     :return
         Dictionary of results
     """
-    random.seed(1234)
+    random.seed(0)
     np.random.seed(1234)
+    torch.manual_seed(
+        1234
+    )  # TODO: this may affect training runs that are run with evaluation mid-run.
 
     assert tasks != [], "No tasks specified"
 
@@ -118,6 +124,7 @@ def simple_evaluate(
         bootstrap_iters=bootstrap_iters,
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
+        log_samples=log_samples,
     )
 
     if lm.rank == 0:
@@ -154,6 +161,7 @@ def evaluate(
     bootstrap_iters=100000,
     decontamination_ngrams_path=None,
     write_out=False,
+    log_samples=True,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -168,7 +176,9 @@ def evaluate(
     :param bootstrap_iters:
         Number of iterations for bootstrap statistics
     :param write_out: bool
-        If True, write all prompts, logits and metrics to json for offline analysis
+        If True, write out an example document and model input for checking task integrity
+    :param log_samples: bool
+        If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
     :return
         Dictionary of results
     """
@@ -197,10 +207,26 @@ def evaluate(
 
         task.build_all_requests(limit=limit, rank=lm.rank, world_size=lm.world_size)
 
+        eval_logger.info(
+            f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
+        )
+
+        if write_out:
+            for inst in task.instances:
+                # print the prompt for the first few documents
+                if inst.doc_id < 1:
+                    eval_logger.info(
+                        f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\n{inst.args[0]}\n(end of prompt on previous line)"
+                    )
+                    eval_logger.info("Request:", inst)
+
         # aggregate Instances by LM method requested to get output.
         reqtype = (
             "loglikelihood"
-            if (task.OUTPUT_TYPE == "multiple_choice" or task.OUTPUT_TYPE == "winograd_schema") 
+            if (
+                task.OUTPUT_TYPE == "multiple_choice"
+                or task.OUTPUT_TYPE == "winograd_schema"
+            )
             else task.OUTPUT_TYPE
         )  # TODO: this is hacky, fix in task.py
         requests[reqtype].extend(task.instances)
@@ -266,17 +292,18 @@ def evaluate(
                 metrics = task.process_results(
                     doc, [req.filtered_resps[key] for req in requests]
                 )
-                target = task.doc_to_target(doc)
-                example = {
-                    "doc_id": doc_id,
-                    "doc": doc,
-                    "target": target,
-                    "arguments": requests[0].args,
-                    "resps": [req.resps for req in requests],
-                    "filtered_resps": [req.filtered_resps[key] for req in requests],
-                }
-                example.update(metrics)
-                samples[task_name].append(example)
+                if log_samples:
+                    target = task.doc_to_target(doc)
+                    example = {
+                        "doc_id": doc_id,
+                        "doc": doc,
+                        "target": target,
+                        "arguments": [req.args for req in requests],
+                        "resps": [req.resps for req in requests],
+                        "filtered_resps": [req.filtered_resps[key] for req in requests],
+                    }
+                    example.update(metrics)
+                    samples[task_name].append(example)
                 for metric, value in metrics.items():
                     vals[(task_name, key, metric)].append(value)
 
@@ -335,23 +362,26 @@ def evaluate(
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
+            if bootstrap_iters > 0:
+                stderr = lm_eval.api.metrics.stderr_for_metric(
+                    metric=task.aggregation()[metric],
+                    bootstrap_iters=min(bootstrap_iters, 1000)
+                    if metric in ["bleu", "chrf", "ter"]
+                    else bootstrap_iters,
+                )
 
-            stderr = lm_eval.api.metrics.stderr_for_metric(
-                metric=task.aggregation()[metric],
-                bootstrap_iters=min(bootstrap_iters, 1000)
-                if metric in ["bleu", "chrf", "ter"]
-                else bootstrap_iters,
-            )
+                if stderr is not None:
+                    results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
-            if stderr is not None:
-                results[task_name][metric + "_stderr" + "," + key] = stderr(items)
-
-        return {
+        results_dict = {
             "results": dict(results),
             "configs": dict(configs),
             "versions": dict(versions),
-            "samples": samples,
         }
+        if log_samples:
+            results_dict["samples"] = dict(samples)
+
+        return results_dict
 
     else:
         return None
