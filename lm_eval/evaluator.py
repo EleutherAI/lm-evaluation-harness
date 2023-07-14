@@ -373,12 +373,15 @@ def evaluate(
                 if stderr is not None:
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
-        return {
+        results_dict = {
             "results": dict(results),
             "configs": dict(configs),
             "versions": dict(versions),
-            "samples": samples if log_samples else {},
         }
+        if log_samples:
+            results_dict["samples"] = dict(samples)
+
+        return results_dict
 
     else:
         return None
