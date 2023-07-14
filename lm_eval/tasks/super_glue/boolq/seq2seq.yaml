@@ -8,6 +8,7 @@ training_split: train
 validation_split: validation
 doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
 doc_to_target: "{{[' no', ' yes'][label]}}"
+target_delimiter: ""
 generation_kwargs:
   until:
     - "\n\n"
