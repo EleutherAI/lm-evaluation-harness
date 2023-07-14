@@ -5,9 +5,8 @@ name: Build
 
 on:
   push:
-    branches: [ big-refactor_testeval ]
   pull_request:
-    branches: [ big-refactor_testeval ]
+  workflow_dispatch:
 
 jobs:
   build:
