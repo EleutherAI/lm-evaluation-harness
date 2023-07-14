@@ -43,6 +43,7 @@ def parse_args():
     parser.add_argument("--decontamination_ngrams_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
     parser.add_argument("--write_out", action="store_true", default=False)
+    parser.add_argument("--log_samples", action="store_true", default=True)
     return parser.parse_args()
 
 
@@ -89,10 +90,12 @@ def main():
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
         write_out=args.write_out,
+        log_samples=args.log_samples,
     )
 
     if results is not None:
-        samples = results.pop("samples")
+        if args.log_samples:
+            samples = results.pop("samples")
         dumped = json.dumps(results, indent=2, default=lambda o: str(o))
         print(dumped)
 
@@ -104,19 +107,20 @@ def main():
             with open(args.output_path, "w") as f:
                 f.write(dumped)
 
-            for task_name, config in results["configs"].items():
-                output_name = "{}_{}".format(
-                    re.sub("/", "__", args.model_args), task_name
-                )
-                if os.path.isdir(args.output_path):
-                    filename = f"./{args.output_path}/{output_name}.jsonl"
-                elif os.path.isfile(args.output_path):
-                    filename = (
-                        f"./{os.path.dirname(args.output_path)}/{output_name}.jsonl"
+            if args.log_samples:
+                for task_name, config in results["configs"].items():
+                    output_name = "{}_{}".format(
+                        re.sub("/", "__", args.model_args), task_name
                     )
+                    if os.path.isdir(args.output_path):
+                        filename = f"./{args.output_path}/{output_name}.jsonl"
+                    elif os.path.isfile(args.output_path):
+                        filename = (
+                            f"./{os.path.dirname(args.output_path)}/{output_name}.jsonl"
+                        )
 
-                with jsonlines.open(filename, "w") as f:
-                    f.write_all(samples[task_name])
+                    with jsonlines.open(filename, "w") as f:
+                        f.write_all(samples[task_name])
 
         print(
             f"{args.model} ({args.model_args}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
