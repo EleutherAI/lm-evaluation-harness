@@ -7,10 +7,11 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: test
-template_aliases: "{% set answer_choices = [distractor1, distractor2, distractor3, correct_answer] %}{% set gold = 3 %}" # set the list of possible answer choices, and set what this doc's gold label idx is
 doc_to_text: "{{support.lstrip()}}\nQuestion: {{question}}\nAnswer:"
-doc_to_target: "{{correct_answer}}"
-gold_alias: "{{gold}}" # this will be cast to an int.
+doc_to_target: 3
+doc_to_choice: "{{[distractor1, distractor2, distractor3, correct_answer]}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{support}} {{question}}"
 metric_list:
   - metric: acc
     aggregation: mean
