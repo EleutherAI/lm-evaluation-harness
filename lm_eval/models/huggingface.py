@@ -443,7 +443,10 @@ class HuggingFaceAutoLM(BaseLM):
             self.batch_size if self.batch_size != "auto" else adaptive_batch_size,
         ):
             context = [c[0] for c in chunk]
-            request_args = chunk[0][1]
+            try:
+                request_args = chunk[0][1]
+            except:
+                request_args = {}
             stop = request_args.get("until", None)
             stop_sequences = stop if isinstance(stop, list) else [stop]
             max_generation_length = request_args.get("max_length", None)
@@ -476,7 +479,10 @@ class HuggingFaceAutoLM(BaseLM):
             for response in responses:
                 # Ensure the generated responses do not contain the stop sequences.
                 for term in until:
-                    response = response.split(term)[0]
+                    if term:
+                        response = response.split(term)[0]
+                    else:
+                        response = response.strip()
                 # partial caching
                 self.cache_hook.add_partial("greedy_until", (context, until), response)
                 results.append(response)
@@ -529,9 +535,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
         input_ids = input_ids.to(self.device)
         attention_mask = attention_mask.to(self.device)
 
-        stopping_criteria = stop_sequences_criteria(
-            self.tokenizer, stop, input_ids.shape[1], input_ids.shape[0]
-        )
+        stopping_criteria = None
 
         generations = self.model.generate(
             input_ids=input_ids,
