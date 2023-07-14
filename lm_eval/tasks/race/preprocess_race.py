@@ -15,7 +15,7 @@ def get_answer_option(problem):
     return problem["options"][answer]
 
 
-def create_choices(doc):
+def doc_to_choice(doc):
     problem = last_problem(doc)
     choices = [problem["options"][i] for i in range(4)]
     return choices

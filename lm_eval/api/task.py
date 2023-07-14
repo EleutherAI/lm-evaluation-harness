@@ -28,6 +28,7 @@ from lm_eval.api.metrics import (
     mean,
     weighted_perplexity,
     bits_per_byte,
+    metric_max_over_ground_truths,
 )
 from lm_eval.api.registry import (
     get_metric,
@@ -44,7 +45,6 @@ ALL_OUTPUT_TYPES = [
     "multiple_choice",
     "loglikelihood_rolling",
     "greedy_until",
-    "winograd_schema",
 ]
 
 
@@ -65,9 +65,10 @@ class TaskConfig(dict):
     fewshot_split: str = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
-    template_aliases: str = ""
+    template_aliases: Union[str, list] = None
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
+    doc_to_choice: Union[Callable, str, dict, list] = None
     gold_alias: Union[Callable, str] = None
     use_prompt: str = None
     description: str = ""
@@ -77,8 +78,6 @@ class TaskConfig(dict):
     num_fewshot: int = 0
     # scoring options
     metric_list: str = None
-    gold_alias: Union[Callable, str] = None
-    create_choices: Union[Callable, str] = None
     output_type: str = "greedy_until"
     generation_kwargs: dict = None
     repeats: int = 1
@@ -317,18 +316,6 @@ class Task(abc.ABC):
         """
         return doc
 
-    def create_choices(self, doc):
-        if self._config.create_choices is None:
-            return ast.literal_eval(
-                utils.apply_template(
-                    self._config.template_aliases + "{{answer_choices}}", doc
-                )
-            )
-        elif type(self._config.create_choices) == str:
-            return utils.apply_template(self._config.create_choices, doc)
-        else:
-            return self._config.create_choices(doc)
-
     @property
     def instances(self):
         """After calling `task.build_all_requests()`, tasks
@@ -480,7 +467,10 @@ class Task(abc.ABC):
             )
 
         example = self.doc_to_text(doc)
-        return labeled_examples + example
+        if type(example) == str:
+            return labeled_examples + example
+        elif type(example) == list:
+            return [labeled_examples + ex for ex in example]
 
     def apply_filters(self):
 
@@ -628,6 +618,40 @@ class ConfigurableTask(Task):
                 list(self.fewshot_docs()), self, rnd=random.Random(1234)
             )
 
+        if self._config.template_aliases is not None:
+            for key, alias in self._config.template_aliases:
+                self.dataset.rename_column(key, alias)
+
+        if self.has_test_docs():
+            docs = self.test_docs()
+        elif self.has_validation_docs():
+            docs = self.validation_docs()
+        else:
+            assert (
+                False
+            ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+
+        # Test One Doc
+        self.features = list(docs.features.keys())
+        self.multiple_input = 0
+        self.multiple_target = 0
+        test_doc = docs[0]
+        test_text = self.doc_to_text(test_doc)
+        test_target = self.doc_to_target(test_doc)
+
+        if self._config.doc_to_choice is not None:
+            test_choice = self.doc_to_choice(test_doc)
+            if type(test_choice) is not list:
+                eval_logger.error("doc_to_choice must return list")
+            else:
+                num_choice = len(test_choice)
+
+            if type(test_text) is int:
+                self.multiple_input = num_choice
+
+        if type(test_target) is list:
+            self.multiple_target = len(test_target)
+
     def download(self, dataset_kwargs=None):
 
         self.dataset = datasets.load_dataset(
@@ -683,7 +707,12 @@ class ConfigurableTask(Task):
 
     def doc_to_decontamination_query(self, doc):
         if self._config.should_decontaminate:
-            return utils.apply_template(self._config.doc_to_decontamination_query, doc)
+            if self._config.doc_to_decontamination_query in self.features:
+                return doc[self._config.doc_to_decontamination_query]
+            else:
+                return ast.literal_eval(
+                    utils.apply_template(self._config.doc_to_decontamination_query, doc)
+                )
 
     def _process_doc(self, doc):
         """
@@ -703,11 +732,24 @@ class ConfigurableTask(Task):
         else:
             doc_to_text = self._config.doc_to_text
 
-        if type(doc_to_text) == str:
-            return utils.apply_template(doc_to_text, doc)
+        if type(doc_to_text) == int:
+            return doc_to_text
+        elif type(doc_to_text) == str:
+            if doc_to_text in self.features:
+                # if self._config.doc_to_choice is not None:
+                #     return self.doc_to_choice(doc)[doc[doc_to_text]]
+                # else:
+                return doc[doc_to_text]
+            else:
+                text_string = utils.apply_template(doc_to_text, doc)
+                if text_string.isdigit():
+                    return ast.literal_eval(text_string)
+                else:
+                    return text_string
         elif callable(doc_to_text):
             return doc_to_text(doc)
-        if hasattr(doc_to_text, "apply"):
+        # Used when applying a Promptsource template
+        elif hasattr(doc_to_text, "apply"):
             return doc_to_text.apply(doc)[0]
         else:
             print(type(doc_to_text))
@@ -720,12 +762,47 @@ class ConfigurableTask(Task):
         else:
             doc_to_target = self._config.doc_to_target
 
-        if type(doc_to_target) == str:
-            return utils.apply_template(doc_to_target, doc)
+        if type(doc_to_target) == int:
+            return doc_to_target
+        elif type(doc_to_target) == str:
+            if doc_to_target in self.features:
+                # if self._config.doc_to_choice is not None:
+                #     return self.doc_to_choice(doc)[doc[doc_to_target]]
+                # else:
+                return doc[doc_to_target]
+            else:
+                target_string = utils.apply_template(doc_to_target, doc)
+                if target_string.isdigit():
+                    return ast.literal_eval(target_string)
+                else:
+                    return target_string
         elif callable(doc_to_target):
             return doc_to_target(doc)
+        # Used when applying a Promptsource template
         elif hasattr(doc_to_target, "apply"):
             return doc_to_target.apply(doc)[1]
+        else:
+            raise TypeError
+
+    def doc_to_choice(self, doc):
+
+        if self.prompt is not None:
+            doc_to_choice = self.prompt
+        elif self._config.doc_to_choice is None:
+            eval_logger.error("doc_to_choice was called but not set in config")
+        else:
+            doc_to_choice = self._config.doc_to_choice
+
+        if type(doc_to_choice) == str:
+            return ast.literal_eval(utils.apply_template(doc_to_choice, doc))
+        elif type(doc_to_choice) == list:
+            return doc_to_choice
+        elif type(doc_to_choice) == dict:
+            return list(doc_to_choice.values())
+        elif callable(doc_to_choice):
+            return doc_to_choice(doc)
+        elif hasattr(doc_to_choice, "get_answer_choices_list"):
+            return doc_to_choice.get_answer_choices_list(doc)
         else:
             raise TypeError
 
@@ -756,19 +833,25 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
             arguments = (self.doc_to_target(doc),)
         elif self.OUTPUT_TYPE == "multiple_choice":
-            # we pass the user-defined answer_choices var (in aliases) and translate the result to a Python list.
-            # TODO: any cleaner way to do this?
-            choices = self.create_choices(doc)
+
+            choices = self.doc_to_choice(doc)
+            if self.multiple_input:
+                # If there are multiple inputs, choices are placed in the ctx
+                cont = self.doc_to_target(doc)
+                arguments = [(ctx, " {}".format(cont)) for ctx in choices]
+            else:
+                # Otherwise they are placed in the continuation
+                arguments = [(ctx, " {}".format(cont)) for cont in choices]
 
             request_list = [
                 Instance(
                     request_type="loglikelihood",
                     doc=doc,
-                    arguments=(ctx, " {}".format(choice)),
+                    arguments=arg,
                     idx=i,
                     **kwargs,
                 )
-                for i, choice in enumerate(choices)
+                for i, arg in enumerate(arguments)
             ]
             # TODO: we should raise a warning telling users this will at most ~2x runtime.
             if "acc_mutual_info" in self._metric_fn_list.keys():
@@ -794,26 +877,6 @@ class ConfigurableTask(Task):
 
         elif self.OUTPUT_TYPE == "greedy_until":
             arguments = (ctx, self._config.generation_kwargs)
-
-        elif self.OUTPUT_TYPE == "winograd_schema":
-            # similar to multiple_choice task type except each request contains
-            # multiple differing contexts with the same continuation
-
-            contexts = self.create_choices(doc)
-            choice = self.doc_to_target(doc)
-
-            request_list = [
-                Instance(
-                    request_type="loglikelihood",
-                    doc=doc,
-                    arguments=(context, " {}".format(choice)),
-                    idx=i,
-                    **kwargs,
-                )
-                for i, context in enumerate(contexts)
-            ]
-
-            return request_list
 
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
@@ -857,13 +920,11 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
 
             lls, is_greedy = zip(*results)
-            if self._config.gold_alias is not None:
-                gold = int(self.gold_alias(doc))
-            else:
-                gold = int(self.doc_to_target(doc))
 
             # retrieve choices in List[str] form, to compute choice lengths, etc.
-            choices = self.create_choices(doc)
+            choices = self.doc_to_choice(doc)
+            completion_len = np.array([float(len(i)) for i in choices])
+
             if (
                 2 * len(choices) == len(lls)
                 and "acc_mutual_info" in self._metric_fn_list.keys()
@@ -876,10 +937,21 @@ class ConfigurableTask(Task):
                 lls = lls[::2]
 
             pred = np.argmax(lls)
+            pred_norm = np.argmax(lls / completion_len)
 
-            acc = 1.0 if np.argmax(lls) == gold else 0.0
-            completion_len = np.array([float(len(i)) for i in choices])
-            acc_norm = 1.0 if np.argmax(lls / completion_len) == gold else 0.0
+            if self.multiple_input:
+                gold = self.doc_to_text(doc)
+            else:
+                gold = self.doc_to_target(doc)
+                if type(gold) is str:
+                    gold = choices.index(gold)
+
+            if self.multiple_target:
+                acc = 1.0 if pred in gold else 0.0
+                acc_norm = 1.0 if pred_norm in gold else 0.0
+            else:
+                acc = 1.0 if pred == gold else 0.0
+                acc_norm = 1.0 if pred_norm == gold else 0.0
 
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
@@ -900,40 +972,45 @@ class ConfigurableTask(Task):
                 acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
 
-        elif self.OUTPUT_TYPE == "winograd_schema":
-
-            lls, is_greedy = zip(*results)
-            if self._config.gold_alias is not None:
-                gold = int(self.gold_alias(doc))
-            else:
-                gold = int(self.doc_to_target(doc))
-
-            pred = np.argmax(lls)
-            acc = 1.0 if np.argmax(lls) == gold else 0.0
-
-            result_dict = {
-                **({"acc": acc} if "acc" in use_metric else {}),
-            }
-
         elif self.OUTPUT_TYPE == "greedy_until":
 
-            if self._config.gold_alias is not None:
-                gold = self.gold_alias(doc)
-            else:
-                gold = self.doc_to_target(doc)
+            gold = self.doc_to_target(doc)
 
             for key, result in zip(self._metric_fn_list.keys(), results):
-                _dict = self._metric_fn_list[key](
-                    references=[gold],
-                    predictions=[result],
-                    **self._metric_fn_kwargs[key],
-                )
+                if self.multiple_target:
+                    # in the case where we have multiple targets,
+                    # return true if any are true
+                    # TODO: this may break for multipLe_target, non zero-or-1 metrics
+                    scores = []
+                    for gold_option in gold:
+                        res = self._metric_fn_list[key](
+                            references=[gold_option],
+                            predictions=[result],
+                            **self._metric_fn_kwargs[key],
+                        )
+                        if isinstance(res, dict):
+                            # TODO: this handles the case where HF evaluate returns a dict.
+                            res = res[key]
+                        scores.append(res)
+                    if any(scores):
+                        result = 1.0
+                    else:
+                        result = 0.0
+                else:
+                    result = self._metric_fn_list[key](
+                        references=[gold],
+                        predictions=[result],
+                        **self._metric_fn_kwargs[key],
+                    )
 
-                result_dict = {**result_dict, **_dict}
+                if isinstance(result, dict):
+                    result_dict.update(result)
+                else:
+                    result_dict[key] = result
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
-                "'loglikelihood', 'loglikelihood_rolling', 'greedy_until', 'multiple_choice' or 'winograd_schema' ",
+                "'loglikelihood', 'loglikelihood_rolling', 'greedy_until' or 'multiple_choice'",
             )
 
         return result_dict
