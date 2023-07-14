@@ -23,6 +23,7 @@ from lm_eval.api.filter import FilterEnsemble
 from lm_eval.logger import eval_logger
 from lm_eval.prompts import get_prompt
 from lm_eval.filters import build_filter_ensemble
+from lm_eval.metrics import metric_max_over_ground_truths
 from lm_eval.api.metrics import (
     mean,
     weighted_perplexity,
