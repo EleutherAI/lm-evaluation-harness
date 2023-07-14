@@ -43,7 +43,7 @@ def parse_args():
     parser.add_argument("--decontamination_ngrams_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
     parser.add_argument("--write_out", action="store_true", default=False)
-    parser.add_argument("--log_samples", action="store_true", default=True)
+    parser.add_argument("--log_samples", action="store_true", default=False)
     return parser.parse_args()
 
 
