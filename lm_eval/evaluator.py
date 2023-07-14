@@ -191,6 +191,8 @@ def evaluate(
     samples = collections.defaultdict(list)
     requests = collections.defaultdict(list)
 
+    padding_requests = collections.defaultdict(int)
+
     # get lists of each type of request
     for task_name, task in task_dict.items():
         versions[task_name] = task.VERSION
@@ -239,6 +241,7 @@ def evaluate(
 
             # compute number of pseudobatches to pad with (FSDP/DDP require even batches among ranks)
             numpad = max(gathered_item) - gathered_item[lm.rank]
+            padding_requests[task.OUTPUT_TYPE] += numpad
 
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
@@ -249,8 +252,8 @@ def evaluate(
         for req in reqs:
             cloned_reqs.extend([req] * req.repeats)
 
-        if (lm.world_size > 1) and (numpad > 0):
-            for _ in range(numpad):
+        if (lm.world_size > 1) and (padding_requests[reqtype] > 0):
+            for _ in range(padding_requests[reqtype]):
                 cloned_reqs.extend([req] * req.repeats)
 
         # run requests through model
@@ -260,8 +263,8 @@ def evaluate(
         for x, req in zip(resps, cloned_reqs):
             req.resps.append(x)
 
-    if lm.world_size > 1:
-        lm.accelerator.wait_for_everyone()
+        if lm.world_size > 1:
+            lm.accelerator.wait_for_everyone()
 
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
