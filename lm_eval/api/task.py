@@ -977,13 +977,36 @@ class ConfigurableTask(Task):
             gold = self.doc_to_target(doc)
 
             for key, result in zip(self._metric_fn_list.keys(), results):
-                _dict = self._metric_fn_list[key](
-                    references=gold if self.multiple_target else [gold],
-                    predictions=[result],
-                    **self._metric_fn_kwargs[key],
-                )
+                if self.multiple_target:
+                    # in the case where we have multiple targets,
+                    # return true if any are true
+                    # TODO: this may break for multipLe_target, non zero-or-1 metrics
+                    scores = []
+                    for gold_option in gold:
+                        res = self._metric_fn_list[key](
+                            references=[gold_option],
+                            predictions=[result],
+                            **self._metric_fn_kwargs[key],
+                        )
+                        if isinstance(res, dict):
+                            # TODO: this handles the case where HF evaluate returns a dict.
+                            res = res[key]
+                        scores.append(res)
+                    if any(scores):
+                        result = 1.0
+                    else:
+                        result = 0.0
+                else:
+                    result = self._metric_fn_list[key](
+                        references=[gold],
+                        predictions=[result],
+                        **self._metric_fn_kwargs[key],
+                    )
 
-                result_dict = {**result_dict, **_dict}
+                if isinstance(result, dict):
+                    result_dict.update(result)
+                else:
+                    result_dict[key] = result
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
