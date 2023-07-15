@@ -58,7 +58,6 @@ def main():
                 ctx = task.fewshot_context(
                     doc=doc,
                     num_fewshot=args.num_fewshot,
-                    rnd=rnd,
                 )
                 f.write(ctx + "\n")
 

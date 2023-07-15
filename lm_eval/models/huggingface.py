@@ -107,6 +107,10 @@ class HFLM(LM):
                     device = int(device)
                 self._device = torch.device(device)
                 eval_logger.info(f"Using device '{device}'")
+                if device == "mps":
+                    eval_logger.info(
+                        "MPS is still in beta; add ,dtype=float32 to model_args ."
+                    )
             else:
                 eval_logger.info("Device not specified")
                 eval_logger.info(f"Cuda Available? {torch.cuda.is_available()}")
