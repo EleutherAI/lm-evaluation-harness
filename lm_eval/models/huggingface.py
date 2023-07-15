@@ -99,7 +99,7 @@ class HFLM(LM):
         if not (parallelize or accelerator.num_processes > 1):
             # use user-passed device
             device_list = set(
-                ["cuda", "cpu"]
+                ["cuda", "cpu", "mps"]
                 + [f"cuda:{i}" for i in range(torch.cuda.device_count())]
             )
             if device:
