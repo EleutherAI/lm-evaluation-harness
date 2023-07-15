@@ -24,6 +24,10 @@ def doc_to_target(doc) -> str:
     return doc["options"][label]
 
 
+def doc_to_choice(doc) -> str:
+    return doc["options"]
+
+
 def gold(doc) -> int:
     choices = {"a": 0, "b": 1, "c": 2, "d": 3}
     return choices[doc["label"]]
