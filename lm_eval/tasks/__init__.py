@@ -58,6 +58,7 @@ from . import korquad
 from . import korunsmile
 from . import kohatespeech
 from . import kold
+from . import kosbi
 from . import toxigen
 from . import crowspairs
 from . import json
@@ -345,6 +346,7 @@ TASK_REGISTRY = {
     "kohatespeech":kohatespeech.HateSpeech,
     "kohatespeech_gen_bias":kohatespeech.GenderBias,
     "kohatespeech_apeach":kohatespeech.Apeach,
+    "kosbi":kosbi.KoSBi,
     **xcopa.construct_tasks(),
     **bigbench.create_all_tasks(),
     **xstorycloze.create_all_tasks(),
