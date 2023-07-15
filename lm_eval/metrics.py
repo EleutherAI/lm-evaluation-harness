@@ -8,6 +8,7 @@ import random
 
 
 def mean(arr):
+    print(len(arr))
     return sum(arr) / len(arr)
 
 
@@ -41,7 +42,6 @@ def f1_score(items):
     golds = unzipped_list[0]
     preds = unzipped_list[1]
     fscore = sklearn.metrics.f1_score(golds, preds)
-
     return np.max(fscore)
 
 def macro_f1_score(items):
@@ -49,7 +49,6 @@ def macro_f1_score(items):
     golds = unzipped_list[0]
     preds = unzipped_list[1]
     fscore = sklearn.metrics.f1_score(golds, preds, average='macro')
-
     return fscore
 
 def acc_all(items):

@@ -391,6 +391,7 @@ class BaseLM(LM):
 
         re_ord = utils.Reorderer(requests, _collate)
 
+        print(re_ord.arr)
         for context, request_args in tqdm(re_ord.get_reordered()):
             until = request_args["until"]
             if isinstance(until, str):

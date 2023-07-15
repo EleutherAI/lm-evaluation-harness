@@ -108,7 +108,6 @@ def main():
     )
 
     dumped = json.dumps(results, indent=2)
-    print(dumped)
 
     if args.output_path:
         os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
