@@ -1,11 +1,15 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Tests
+name: Unit Tests
 
 on:
   push:
+    branches:
+      - big-refactor
   pull_request:
+    branches:
+      - big-refactor
   workflow_dispatch:
 
 jobs:
@@ -54,4 +58,4 @@ jobs:
 #                pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
 #        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
-      run: python -m pytest -s -v -n=auto tests/test_evaluator.py tests/test_tasks.py
+      run: python -m pytest -s -v -n=auto --ignore=tests/tests_master --ignore=tests/extra
