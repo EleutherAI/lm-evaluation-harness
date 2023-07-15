@@ -1,16 +1,15 @@
 group:
   - multiple_choice
 task: logiqa
-dataset_path: EleutherAI/logiqa
+dataset_path: lm_eval/tasks/logiqa/logiqa2.py
 dataset_name: logiqa
 output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: test
-#template_aliases: "{% set answer_choices = options %}"
-doc_to_choice: !function preprocess_logiqa.doc_to_choice
+doc_to_choice: "{{options}}"
 doc_to_text: !function preprocess_logiqa.doc_to_text
-doc_to_target: !function preprocess_logiqa.doc_to_target
+doc_to_target: "{{answer}}"
 doc_to_decontamination_query: "{{context}}"
 should_decontaminate: true
 metric_list:
