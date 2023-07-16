@@ -109,7 +109,7 @@ class HFLM(LM):
                 eval_logger.info(f"Using device '{device}'")
                 if device == "mps":
                     eval_logger.info(
-                        "MPS is still in beta; add ,dtype=float32 to model_args ."
+                        "MPS is still in beta and only supports float32; setting dtype to float32."
                     )
             else:
                 eval_logger.info("Device not specified")
