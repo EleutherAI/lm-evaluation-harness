@@ -63,6 +63,7 @@ from . import xnli
 from . import mgsm
 from . import scrolls
 from . import ceval
+from . import csatqa
 
 ########################################
 # Translation tasks
@@ -318,6 +319,13 @@ TASK_REGISTRY = {
     "crows_pairs_french_nationality": crowspairs.CrowsPairsFrenchNationality,
     "crows_pairs_french_physical_appearance": crowspairs.CrowsPairsFrenchPhysicalAppearance,
     "crows_pairs_french_autre": crowspairs.CrowsPairsFrenchAutre,
+    "csatqa_wr": csatqa.WR,
+    "csatqa_gr": csatqa.GR,
+    "csatqa_rcs": csatqa.RCS,
+    "csatqa_rcss": csatqa.RCSS,
+    "csatqa_rch": csatqa.RCH,
+    "csatqa_li": csatqa.LI,
+    # Requires manual download
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
