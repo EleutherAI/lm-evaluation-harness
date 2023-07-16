@@ -1,72 +1,49 @@
-
-import os
-
-import datasets
-import json
+from lm_eval.base import MultipleChoiceTask
 
 
-_CITATION = """\
-"""
+class CSATQA(MultipleChoiceTask):
+    VERSION = 0
+    DATASET_PATH = "EleutherAI/csatqa"
 
-_DESCRIPTION = """\
-    CSAT-QA
-"""
+    def has_training_docs(self):
+        return False
 
-_HOMEPAGE = "https://huggingface.co/HAERAE-HUB"
+    def has_validation_docs(self):
+        return False
 
-_LICENSE = "Proprietary"
+    def has_test_docs(self):
+        return True
 
-split_names = ["WR", "GR", "RCS", "RCSS", "RCH", "LI"]
+    def test_docs(self):
+        return map(self._process_doc, self.dataset["test"])
+    
+    def _process_doc(self, doc):
+        choices = [doc["option#1"], doc["option#2"], doc["option#3"], doc["option#4"], doc["option#5"]]
+        out_doc = {
+            "question": doc["question"],
+            "choices": choices,
+            "gold": int(doc['gold']),
+        }
+        return out_doc
 
-class CSATQAConfig(datasets.BuilderConfig):
-    def __init__(self, **kwargs):
-        super().__init__(version=datasets.Version("1.0.0"), **kwargs)
+    def doc_to_text(self, doc):
+        return doc["question"]
 
 
-class CSATQA(datasets.GeneratorBasedBuilder):
-    BUILDER_CONFIGS = [
-        CSATQAConfig(
-            name=name,
-        )
-        for name in split_names
-    ]
+class WR(CSATQA):
+    DATASET_NAME = "WR"
+    
+class GR(CSATQA):
+    DATASET_NAME = "GR"
 
-    def _info(self):
-        features = datasets.Features(
-            {
-                "question": datasets.Value("string"),
-                "option#1": datasets.Value("string"),
-                "option#2": datasets.Value("string"),
-                "option#3": datasets.Value("string"),
-                "option#4": datasets.Value("string"),
-                "option#5": datasets.Value("string"),
-                "gold": datasets.Value("int8"),
-            }
-        )
-        return datasets.DatasetInfo(
-            description=_DESCRIPTION,
-            features=features,
-            homepage=_HOMEPAGE,
-            license=_LICENSE,
-            citation=_CITATION,
-        )
+class RCS(CSATQA):
+    DATASET_NAME = "RCS"
+    
+class RCSS(CSATQA):
+    DATASET_NAME = "RCSS"
+    
+class RCH(CSATQA):
+    DATASET_NAME = "RCH"
 
-    def _split_generators(self, dl_manager):
-        data_dir = "HAERAE-HUB/CSAT-QA"
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "data", "data.jsonl"),
-                },
-            ),
-        ]
-
-    def _generate_examples(self, filepath):
-        with open(filepath, encoding="utf-8") as f:
-            for key, row in enumerate(f):
-                data = json.loads(row)
-                if data["split"] == self.config.name:
-                    data["gold"] = int(data["gold"]) - 1
-                    data.pop("split")
-                    yield key, data
+class LI(CSATQA):
+    DATASET_NAME = "LI"
