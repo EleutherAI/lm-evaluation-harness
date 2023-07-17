@@ -190,7 +190,7 @@ def evaluate(
     configs = collections.defaultdict(dict)
     samples = collections.defaultdict(list)
     requests = collections.defaultdict(list)
-
+    aggregate = collections.defaultdict(dict)
     padding_requests = collections.defaultdict(int)
 
     # get lists of each type of request
@@ -356,14 +356,18 @@ def evaluate(
 
         vals = vals_torch
 
-        # Add Aggregation Here
-
     if lm.rank == 0:
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
-            results[task_name][metric + "," + key] = task.aggregation()[metric](items)
+            task_score = task.aggregation()[metric](items)
+            results[task_name][metric + "," + key] = task_score
+
+            if metric not in aggregate:
+                aggregate[metric] = [task_score]
+            else:
+                aggregate[metric].append(task_score)
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
@@ -378,8 +382,12 @@ def evaluate(
                 if stderr is not None:
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
+        for metric in aggregate.keys():
+            aggregate[metric] = np.average(aggregate[metric])
+
         results_dict = {
             "results": dict(results),
+            "aggregate": dict(aggregate),
             "configs": dict(configs),
             "versions": dict(versions),
         }
