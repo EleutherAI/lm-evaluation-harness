@@ -21,13 +21,20 @@ class CSATQA(MultipleChoiceTask):
         choices = [doc["option#1"], doc["option#2"], doc["option#3"], doc["option#4"], doc["option#5"]]
         out_doc = {
             "question": doc["question"],
+            "context": doc["context"],
             "choices": choices,
             "gold": int(doc['gold']),
         }
         return out_doc
 
     def doc_to_text(self, doc):
-        return doc["question"]
+        instruction = f"""다음을 읽고 정답으로 알맞은 것을 고르시요.
+### Context: {doc["context"]}
+### Question: {doc["question"]}
+### Options:
+(1) {doc['choices'][0]}\n(2) {doc['choices'][1]}\n(3) {doc['choices'][2]}\n(4) {doc['choices'][3]}\n(5) {doc['choices'][4]}
+### Answer: 주어진 문제의 정답은"""
+        return instruction
 
 
 class WR(CSATQA):
