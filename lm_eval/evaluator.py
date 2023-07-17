@@ -191,10 +191,21 @@ def evaluate(
     samples = collections.defaultdict(list)
     requests = collections.defaultdict(list)
     aggregate = collections.defaultdict(dict)
+    task_groups = collections.defaultdict(dict)
     padding_requests = collections.defaultdict(int)
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
+
+        if type(task) == tuple:
+            group, task = task
+
+        # if group in task_groups:
+        #     task_groups[group].append(task_name)
+        # else:
+        #     task_groups[group] = [task_name]
+        task_groups[task_name] = group
+
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
@@ -269,6 +280,8 @@ def evaluate(
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_name, task in task_dict.items():
+        if type(task) == tuple:
+            group, task = task
         task.apply_filters()
 
     ### Collect values of metrics on all datapoints ###
@@ -276,6 +289,8 @@ def evaluate(
 
     # unpack results and sort back in order and return control to Task
     for task_name, task in task_dict.items():
+        if type(task) == tuple:
+            group, task = task
         # TODO: make it possible to use a different metric per filter
         # iterate over different filters used
         for key in task.instances[0].filtered_resps.keys():
@@ -361,6 +376,8 @@ def evaluate(
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
+            if type(task) == tuple:
+                group, task = task
             task_score = task.aggregation()[metric](items)
             results[task_name][metric + "," + key] = task_score
 
@@ -373,10 +390,11 @@ def evaluate(
             #        | word_perplexity
             #        | byte_perplexity
             #        | bits_per_byte
-            if metric not in aggregate:
-                aggregate[metric] = [task_score]
+            group_name = task_groups[task_name]
+            if metric not in aggregate[group_name]:
+                aggregate[group_name][metric] = [task_score]
             else:
-                aggregate[metric].append(task_score)
+                aggregate[group_name][metric].append(task_score)
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
@@ -391,9 +409,10 @@ def evaluate(
                 if stderr is not None:
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
-        for metric in aggregate.keys():
-            results["Aggregate"][metric] = np.average(aggregate[metric])
-            versions["Aggregate"] = "N/A"
+        for group in aggregate.keys():
+            for metric in aggregate[group].keys():
+                aggregate[group][metric] = np.average(aggregate[group][metric])
+                versions[group] = "N/A"
 
         results_dict = {
             "results": dict(results),
