@@ -13,6 +13,7 @@ import math
 import code
 import signal
 
+
 import sympy
 from sympy.parsing.latex import parse_latex
 
@@ -90,7 +91,17 @@ _CITATION = """
       primaryClass={cs.CL}
 }
 """
-
+class timeout:
+    def __init__(self, seconds=1, error_message='Timeout'):
+        self.seconds = seconds
+        self.error_message = error_message
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
 
 class MinervaMath(Task):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
@@ -220,19 +231,31 @@ class MinervaMath(Task):
         """
         x1 and x2 are normalized latex string
         """
-        parsed_x1 = parse_latex(x1)
-        parsed_x2 = parse_latex(x2)
+        try: 
+            with timeout(seconds=5):
+                try:
+                    parsed_x1 = parse_latex(x1)
+                    parsed_x2 = parse_latex(x2)
+                except (sympy.parsing.latex.errors.LaTeXParsingError, sympy.SympifyError, TypeError):
+                    print(f"couldn't parse one of {x1} or {x2}")
+                    return False
+            
+                try: 
+                    diff = parsed_x1 - parsed_x2
+                except TypeError:
+                    print(f"couldn't subtract {x1} and {x2}")
+                    return False
 
-        signal.alarm(5)
-        try:
-            if sympy.simplify(parsed_x1-parsed_x2)==0:
-                return True
-            else: 
-                return False
+                try:
+                    if sympy.simplify(diff)==0:
+                        return True
+                    else: 
+                        return False
+                except ValueError:
+                    print(f"Had some trouble simplifying when comparing {x1} and {x2}")
         except TimeoutError:
+            print(f"Timed out comparing {x1} and {x2}")
             return False
-        finally:
-            signal.alarm(0)
 
 
     def majority_vote(self, candidates):
@@ -255,17 +278,6 @@ class MinervaMath(Task):
                 counted = False
                 for ref in answer_votes:
                     if self.is_equiv(answer, ref) and not counted:
-                        print(
-                            "HIT WEIRD CASE:", 
-                            "where two answers have different normalization", 
-                            "but are sympy equivalent.",
-                            f"They are {answer} and {ref}",
-                        )
-                        # Haiku version:
-                        #   Weird case takes the stage
-                        #   two answers' norms diverge, yet
-                        #   sympy finds them same"
-
                         answer_votes[ref] += 1
                         counted=True
 
@@ -273,7 +285,7 @@ class MinervaMath(Task):
                     answer_votes[answer] = 1
 
         if not answer_votes:
-            return self.INVALID_ANSWER
+            return self.INVALID_ANSWER, 0, answers
 
         # Find the argmax and max 
         elected_answer, pass_num = max(answer_votes.items(), key=lambda x: x[1])
@@ -309,7 +321,7 @@ class MinervaMath(Task):
         results = {
             "acc": retval,
             "pass_rate": pass_rate,
-            "log_pass_rate": math.log(pass_rate),
+            "log_pass_rate": math.log(max(pass_rate, 1e-10)),
             "metadata": {
                 "selected_answer": answer,
                 "candidates": candidates,

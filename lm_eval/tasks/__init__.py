@@ -39,6 +39,7 @@ from . import unscramble
 from . import logiqa
 from . import hendrycks_test
 from . import hendrycks_math
+from . import minerva_math
 from . import cbt
 from . import lambada_cloze
 from . import pile
