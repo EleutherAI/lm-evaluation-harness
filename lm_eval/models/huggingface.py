@@ -634,8 +634,10 @@ class HFLM(LM):
                 contlen = len(cont_toks)
                 # take only logits in the continuation
                 # (discard context toks if decoder-only ; discard right-padding)
+                # also discards + checks for "virtual tokens" in the causal LM's input window
+                # from prompt/prefix tuning tokens, if applicable
                 ctx_len = (
-                    inplen
+                    inplen + (logits.shape[0] - padding_len_inp)
                     if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
                     else None
                 )
