@@ -259,7 +259,7 @@ class Grouper:
         return res
 
 
-def make_table(result_dict):
+def make_table(result_dict, column="results"):
     """Generate table of results."""
     from pytablewriter import MarkdownTableWriter, LatexTableWriter
 
@@ -278,7 +278,7 @@ def make_table(result_dict):
 
     values = []
 
-    for k, dic in result_dict["results"].items():
+    for k, dic in result_dict[column].items():
         version = result_dict["versions"][k]
         for (mf), v in dic.items():
             m, _, f = mf.partition(",")
