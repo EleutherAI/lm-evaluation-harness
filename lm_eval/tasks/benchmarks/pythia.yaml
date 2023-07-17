@@ -6,8 +6,7 @@ task:
   - sciq
   - wsc
   - winogrande
-  - arc_challenge
-  - arc_easy
+  - arc_*
   # - logiqa
   # - blimp_*
   # - hendrycksTest*
