@@ -46,6 +46,7 @@ def parse_args():
     parser.add_argument("--check_integrity", action="store_true")
     parser.add_argument("--write_out", action="store_true", default=False)
     parser.add_argument("--log_samples", action="store_true", default=True)
+    parser.add_argument("--show_config", action="store_true", default=False)
     return parser.parse_args()
 
 
@@ -103,7 +104,8 @@ def main():
         if args.log_samples:
             samples = results.pop("samples")
         dumped = json.dumps(results, indent=2, default=lambda o: str(o))
-        print(dumped)
+        if args.show_config:
+            print(dumped)
 
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
 
