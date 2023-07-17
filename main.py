@@ -25,7 +25,6 @@ def parse_args():
     parser.add_argument(
         "--tasks", default=None, choices=utils.MultiChoice(sorted(ALL_TASKS))
     )
-    parser.add_argument("--config", default=None)  # TODO: not used
     parser.add_argument(
         "--num_fewshot",
         type=int,
@@ -50,7 +49,7 @@ def parse_args():
         default=None,
         type=str,
         metavar="= [dir/file.jsonl] [DIR]",
-        help="The path to the output file where the result metrics will be saved. If the path is a directory and log_samples is true, the results will be saved in a file named after the model and task. Else the parent directory will be used.",
+        help="The path to the output file where the result metrics will be saved. If the path is a directory and log_samples is true, the results will be saved in the directory. Else the parent directory will be used.",
     )
     parser.add_argument(
         "--limit",
@@ -59,7 +58,6 @@ def parse_args():
         help="Limit the number of examples per task. "
         "If <1, limit is a percentage of the total number of examples.",
     )
-    parser.add_argument("--data_sampling", type=float, default=None)  # TODO: not used
     parser.add_argument(
         "--use_cache",
         type=str,
@@ -131,6 +129,8 @@ def main():
         else:
             path.mkdir(parents=True, exist_ok=True)
             output_path_file = path.joinpath("results.json")
+    elif args.log_samples and not args.output_path:
+        assert args.output_path, "Specify --output_path"
 
     eval_logger.info(f"Selected Tasks: {task_names}")
 
