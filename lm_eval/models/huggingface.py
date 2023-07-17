@@ -99,7 +99,7 @@ class HFLM(LM):
         if not (parallelize or accelerator.num_processes > 1):
             # use user-passed device
             device_list = set(
-                ["cuda", "cpu"]
+                ["cuda", "cpu", "mps"]
                 + [f"cuda:{i}" for i in range(torch.cuda.device_count())]
             )
             if device:
@@ -107,6 +107,10 @@ class HFLM(LM):
                     device = int(device)
                 self._device = torch.device(device)
                 eval_logger.info(f"Using device '{device}'")
+                if device == "mps":
+                    eval_logger.info(
+                        "MPS is still in beta and only supports float32; setting dtype to float32."
+                    )
             else:
                 eval_logger.info("Device not specified")
                 eval_logger.info(f"Cuda Available? {torch.cuda.is_available()}")
