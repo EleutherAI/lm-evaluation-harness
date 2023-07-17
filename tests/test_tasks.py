@@ -16,7 +16,7 @@ def new_tasks(any_new_tasks: bool) -> List[str]:
     FILENAME = ".github/outputs/tasks_all_changed_and_modified_files.txt"
     if any_new_tasks and os.path.exists(FILENAME):
         return [parser(load_changed_files(FILENAME))]
-    elif "API" in os.getenv():
+    elif "API" in os.getenv:
         return ["arc_easy", "hellaswag", "piqa", "wikitext"]
     else:
         return ["arc_easy"]
