@@ -263,11 +263,24 @@ def make_table(result_dict, column="results"):
     """Generate table of results."""
     from pytablewriter import MarkdownTableWriter, LatexTableWriter
 
+    if column == "results":
+        column_name = "Task"
+    elif column == "aggregate":
+        column_name = "Benchmark"
+
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
-    md_writer.headers = ["Task", "Version", "Filter", "Metric", "Value", "", "Stderr"]
+    md_writer.headers = [
+        column_name,
+        "Version",
+        "Filter",
+        "Metric",
+        "Value",
+        "",
+        "Stderr",
+    ]
     latex_writer.headers = [
-        "Task",
+        column_name,
         "Version",
         "Filter",
         "Metric",

@@ -205,7 +205,7 @@ def evaluate(
 
     # Stores group related keys and values for group-aggregation
     aggregate = collections.defaultdict(dict)
-    task_groups = collections.defaultdict(dict)    
+    task_groups = collections.defaultdict(dict)
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
