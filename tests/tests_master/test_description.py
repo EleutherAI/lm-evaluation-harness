@@ -6,7 +6,7 @@ import lm_eval.models
 def test_description():
     seed = 42
     num_examples = 1
-    task_names = ["arc_challenge", "lambada"]
+    task_names = ["arc_challenge", "arc_easy"]
     description_dict = {
         "arc_challenge": "Label for the relevant action:\nSentences describing context, with an incomplete sentence trailing answer that plausibly completes the situation.",
         "lambada": "Winograd schema sentence including a either a ___ blank with a missing word, making the pronoun ambiguous, or the same with the word filled in.",
@@ -40,6 +40,5 @@ def test_description():
             ctx = task.fewshot_context(
                 doc=doc,
                 num_fewshot=1,
-                rnd=rnd,
             )
             assert description in ctx
