@@ -200,12 +200,7 @@ def evaluate(
         if type(task) == tuple:
             group, task = task
 
-        # if group in task_groups:
-        #     task_groups[group].append(task_name)
-        # else:
-        #     task_groups[group] = [task_name]
         task_groups[task_name] = group
-
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
