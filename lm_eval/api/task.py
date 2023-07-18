@@ -104,8 +104,9 @@ class TaskConfig(dict):
         if self.generation_kwargs is not None:
             if self.output_type != "greedy_until":
                 eval_logger.warning(
-                    "passed `generation_kwargs`, but not using a generation request type!"
+                    "passed `generation_kwargs`, but not using `output_type: greedy_until`!"
                 )
+                assert self.output_type != "greedy_until"
 
             if "temperature" in self.generation_kwargs:
                 self.generation_kwargs["temperature"] = float(
