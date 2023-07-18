@@ -88,18 +88,6 @@ class TaskConfig(dict):
     metadata: str = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self):
-        # allow user-specified aliases so that users can
-        # force prompt-compatibility for some prompt regardless of
-        # field names in prompt
-        # if self.template_aliases:
-        #     if type(self.doc_to_text) == str:
-        #         self.doc_to_text = self.template_aliases + self.doc_to_text
-
-        #     if type(self.doc_to_target) == str:
-        #         self.doc_to_target = self.template_aliases + self.doc_to_target
-
-        #     if type(self.gold_alias) == str:
-        #         self.gold_alias = self.template_aliases + self.gold_alias
 
         if self.generation_kwargs is not None:
             if self.output_type != "greedy_until":
@@ -618,10 +606,6 @@ class ConfigurableTask(Task):
             self.sampler = samplers.Sampler(
                 list(self.fewshot_docs()), self, rnd=random.Random(1234)
             )
-
-        # if self._config.template_aliases is not None:
-        #     for key, alias in self._config.template_aliases:
-        #         self.dataset.rename_column(key, alias)
 
         if self.has_test_docs():
             docs = self.test_docs()
