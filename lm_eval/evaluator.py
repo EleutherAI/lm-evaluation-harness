@@ -203,12 +203,15 @@ def evaluate(
     # number of fwd passes per distributed rank is equal
     padding_requests = collections.defaultdict(int)
 
+    # Stores group related keys and values for group-aggregation
+    aggregate = collections.defaultdict(dict)
+    task_groups = collections.defaultdict(dict)    
+
     # get lists of each type of request
     for task_name, task in task_dict.items():
 
         if type(task) == tuple:
             group, task = task
-
             task_groups[task_name] = group
 
         versions[task_name] = task.VERSION
