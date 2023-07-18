@@ -9,7 +9,7 @@ FILE_PATH = file_path = ".github/outputs/tasks_all_changed_and_modified_files.tx
 
 def load_changed_files(file_path: str = FILE_PATH) -> List[str]:
     with open(file_path, "r") as f:
-        return [line.strip() for line in f.readlines()]
+        return [l for line in f.readlines() for l in line.strip().split(" ")]
 
 
 def parser(full_path: List[str]) -> List[str]:
