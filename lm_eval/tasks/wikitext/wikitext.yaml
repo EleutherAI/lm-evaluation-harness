@@ -8,7 +8,6 @@ output_type: loglikelihood_rolling
 training_split: train
 validation_split: validation
 test_split: test
-template_aliases: ""
 doc_to_text: ""
 doc_to_target: !function preprocess_wikitext.wikitext_detokenizer
 should_decontaminate: true

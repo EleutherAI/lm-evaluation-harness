@@ -7,7 +7,6 @@ dataset_name: null
 output_type: loglikelihood
 validation_split: validation
 test_split: test
-template_aliases: ""
 doc_to_text: "{{text.split(' ')[:-1]|join(' ')}} ____. ->"
 doc_to_target: "{{' '+text.split(' ')[-1]}}"
 should_decontaminate: true
