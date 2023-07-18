@@ -185,11 +185,22 @@ def evaluate(
 
     # decontaminate = decontamination_ngrams_path is not None
 
+    # stores the final result for each task, for each metric/filter pair.
     results = collections.defaultdict(dict)
+    # Tracks each task's version.
     versions = collections.defaultdict(dict)
+    # Tracks the YAML configs of all chosen tasks.
     configs = collections.defaultdict(dict)
+    # logs info about each document evaluated.
     samples = collections.defaultdict(list)
+    # tracks all Instances/requests a model must generate output on.
     requests = collections.defaultdict(list)
+    # Stores task scores based on task grouping.
+    aggregate = collections.defaultdict(dict)
+    # tracks if a task was chosen via user selecting a group containing it
+    task_groups = collections.defaultdict(dict)
+    # stores the amount to pad out reqs per req. type so that
+    # number of fwd passes per distributed rank is equal
     padding_requests = collections.defaultdict(int)
 
     # Stores group related keys and values for group-aggregation
@@ -201,8 +212,8 @@ def evaluate(
 
         if type(task) == tuple:
             group, task = task
+            task_groups[task_name] = group
 
-        task_groups[task_name] = group
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
