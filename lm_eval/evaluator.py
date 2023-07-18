@@ -195,7 +195,7 @@ def evaluate(
     samples = collections.defaultdict(list)
     # tracks all Instances/requests a model must generate output on.
     requests = collections.defaultdict(list)
-    # ?
+    # Stores task scores based on task grouping.
     aggregate = collections.defaultdict(dict)
     # tracks if a task was chosen via user selecting a group containing it
     task_groups = collections.defaultdict(dict)
