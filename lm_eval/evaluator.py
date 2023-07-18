@@ -190,9 +190,12 @@ def evaluate(
     configs = collections.defaultdict(dict)
     samples = collections.defaultdict(list)
     requests = collections.defaultdict(list)
+    padding_requests = collections.defaultdict(int)
+
+    # Stores group related keys and values for group-aggregation
     aggregate = collections.defaultdict(dict)
     task_groups = collections.defaultdict(dict)
-    padding_requests = collections.defaultdict(int)
+    
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
