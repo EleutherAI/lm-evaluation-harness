@@ -115,7 +115,7 @@ def main():
 
     if args.output_path:
         path = Path(args.output_path)
-        # check if file or 'dir/results.jsonl' exists
+        # check if file or 'dir/results.json' exists
         if path.is_file() or Path(args.output_path).joinpath("results.json").is_file():
             eval_logger.warning(
                 f"File already exists at {path}. Results will be overwritten."
