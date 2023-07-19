@@ -89,6 +89,12 @@ def parse_args():
         default=False,
         help="If True, shows the the full config of all tasks at the end of the evaluation.",
     )
+    parser.add_argument(
+        "--include_path",
+        type=str,
+        default=None,
+        help="Additional path to include if there are external tasks to include.",
+    )
     return parser.parse_args()
 
 
