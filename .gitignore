@@ -1,7 +1,11 @@
 env
 *.pyc
+*.log
 data/
 lm_cache
 .idea
+.vscode
+
+*.egg-info
 
 tests/test_cache.db
