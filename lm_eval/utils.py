@@ -108,6 +108,10 @@ class MultiChoice:
 # Returns a list containing all values of the source_list that
 # match at least one of the patterns
 def pattern_match(patterns, source_list):
+
+    if type(patterns) == str:
+        patterns = [patterns]
+
     task_names = set()
     for pattern in patterns:
         for matching in fnmatch.filter(source_list, pattern):

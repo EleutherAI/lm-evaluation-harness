@@ -3,6 +3,7 @@ import yaml
 from typing import List, Union
 
 from lm_eval import utils
+from lm_eval import prompts
 from lm_eval.logger import eval_logger
 from lm_eval.api.task import TaskConfig, Task, ConfigurableTask
 from lm_eval.api.registry import (
@@ -12,6 +13,59 @@ from lm_eval.api.registry import (
     GROUP_REGISTRY,
     ALL_TASKS,
 )
+
+
+def register_configurable_task(config):
+    SubClass = type(
+        config["task"] + "ConfigurableTask",
+        (ConfigurableTask,),
+        {"CONFIG": TaskConfig(**config)},
+    )
+
+    if "task" in config:
+        task_name = "{}".format(config["task"])
+        register_task(task_name)(SubClass)
+
+    if "group" in config:
+        if type(config["group"]) == str:
+            group_name = [config["group"]]
+        else:
+            group_name = config["group"]
+
+        for group in group_name:
+            register_group(group)(SubClass)
+
+    return 0
+
+
+def check_prompt_config(config):
+    all_configs = []
+    if "use_prompt" in config:
+        prompt_list = prompts.load_prompt_list(
+            use_prompt=config["use_prompt"],
+            dataset_name=config["dataset_path"],
+            subset_name=config["dataset_name"],
+        )
+        for idx, prompt_variation in enumerate(prompt_list):
+            all_configs.append(
+                {
+                    **config,
+                    **{"use_prompt": prompt_variation},
+                    **{
+                        "task": "_".join(
+                            [
+                                get_task_name_from_config(config),
+                                "promptsource",
+                                str(idx).zfill(2),
+                            ]
+                        )
+                    },
+                    **{"output_type": "greedy_until"},
+                }
+            )
+    else:
+        all_configs.append(config)
+    return all_configs
 
 
 def get_task_name_from_config(task_config):
@@ -32,20 +86,10 @@ def include_task_folder(task_dir):
                     yaml_path = os.path.join(root, f)
                     try:
                         config = utils.load_yaml_config(yaml_path)
+                        all_configs = check_prompt_config(config)
+                        for config in all_configs:
+                            register_configurable_task(config)
 
-                        SubClass = type(
-                            config["task"] + "ConfigurableTask",
-                            (ConfigurableTask,),
-                            {"CONFIG": TaskConfig(**config)},
-                        )
-
-                        if "task" in config:
-                            task_name = "{}".format(config["task"])
-                            register_task(task_name)(SubClass)
-
-                        if "group" in config:
-                            for group in config["group"]:
-                                register_group(group)(SubClass)
                     except Exception as error:
                         eval_logger.warning(
                             "Failed to load config in\n"
@@ -69,7 +113,24 @@ def include_benchmarks(task_dir, benchmark_dir="benchmarks"):
 
                         assert "group" in yaml_config
                         group = yaml_config["group"]
-                        task_list = yaml_config["task"]
+                        all_task_list = yaml_config["task"]
+                        config_list = [
+                            task for task in all_task_list if type(task) != str
+                        ]
+                        task_list = [
+                            task for task in all_task_list if type(task) == str
+                        ]
+
+                        for task_config in config_list:
+                            var_configs = check_prompt_config(
+                                {
+                                    **task_config,
+                                    **{"group": group},
+                                }
+                            )
+                            for config in var_configs:
+                                register_configurable_task(config)
+
                         task_names = utils.pattern_match(task_list, ALL_TASKS)
                         for task in task_names:
                             if task in TASK_REGISTRY:

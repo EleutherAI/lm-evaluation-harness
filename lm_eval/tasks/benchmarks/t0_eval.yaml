@@ -1,25 +1,88 @@
-group:
-  - t0_eval
+group: t0_eval
 task:
-  - dataset_path: super_glue # Coreference Resolution
+  # Coreference Resolution
+  - dataset_path: super_glue
     dataset_name: wsc.fixed
-    use_prompt: promptsource
-  - dataset_path: winogrande # Coreference Resolution
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Coreference Resolution
+  - dataset_path: winogrande
     dataset_name: winogrande_xl
-    use_prompt: promptsource
-  - dataset_path: super_glue # Natural Language Inference
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Natural Language Inference
+  - dataset_path: super_glue
     dataset_name: cb
-    use_prompt: promptsource
-  - dataset_path: super_glue # Natural Language Inference
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Natural Language Inference
+  - dataset_path: super_glue
     dataset_name: rte
-    use_prompt: promptsource
-  - dataset_path: anli # Natural Language Inference
-    use_prompt: promptsource
-  - dataset_path: super_glue # Sentence Completion
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Natural Language Inference
+  # - dataset_path: anli
+  #   use_prompt: promptsource:*
+  # Sentence Completion
+  - dataset_path: super_glue
     dataset_name: copa
-    use_prompt: promptsource
-  - dataset_path: hellaswag # Natural Language Inference
-    use_prompt: promptsource
-  - dataset_path: super_glue  # Word Sense Disambiguation
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Natural Language Inference
+  - dataset_path: hellaswag
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Word Sense Disambiguation
+  - dataset_path: super_glue
     dataset_name: wic
-    use_prompt: promptsource
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
