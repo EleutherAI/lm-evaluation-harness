@@ -225,7 +225,6 @@ def evaluate(
             "loglikelihood"
             if (
                 task.OUTPUT_TYPE == "multiple_choice"
-                or task.OUTPUT_TYPE == "winograd_schema"
             )
             else task.OUTPUT_TYPE
         )  # TODO: this is hacky, fix in task.py
