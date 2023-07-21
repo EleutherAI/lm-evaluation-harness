@@ -1,6 +1,9 @@
 import torch
 import transformers
-from transformers.models.auto.modeling_auto import MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
+from transformers.models.auto.modeling_auto import (
+    MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
+    MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES,
+)
 from peft import __version__ as PEFT_VERSION, PeftModel
 
 import copy
@@ -146,6 +149,18 @@ class HFLM(LM):
         )
 
         if getattr(self._config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
+            self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
+        elif (
+            not getattr(self._config, "model_type")
+            in MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES
+        ):
+            if not trust_remote_code:
+                eval_logger.warning(
+                    "HF model type is neither marked as CausalLM or Seq2SeqLM. \
+                This is expected if your model requires `trust_remote_code=True` but may be an error otherwise."
+                )
+            # if model type is neither in HF transformers causal or seq2seq model registries
+            # then we default to AutoModelForCausalLM
             self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
         else:
             self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
