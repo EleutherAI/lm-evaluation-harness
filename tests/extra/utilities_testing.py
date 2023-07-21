@@ -2,14 +2,20 @@ import json
 from typing import List
 from lm_eval.utils import load_yaml_config
 from pathlib import Path
+import sys
 
 # This is the path where the output for the changed files for the tasks folder is stored
-FILE_PATH = file_path = ".github/outputs/tasks_all_changed_and_modified_files.txt"
+# FILE_PATH = file_path = ".github/outputs/tasks_all_changed_and_modified_files.txt"
 
 
-def load_changed_files(file_path: str = FILE_PATH) -> List[str]:
+# reads a text file and returns a list of words
+# used to read the output of the changed txt from tj-actions/changed-files
+def load_changed_files(file_path: str) -> List[str]:
     with open(file_path, "r") as f:
-        return [line.strip() for line in f.readlines()]
+        content = f.read()
+        words_list = [x for x in content.split()]
+        sys.stdout.write(f"list of files: {words_list}")
+    return words_list
 
 
 # checks the txt file for list of changed files.
