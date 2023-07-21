@@ -4,6 +4,7 @@ from typing import List, Union
 import sacrebleu
 import lm_eval.base
 
+from . import babi
 from . import superglue
 from . import glue
 from . import arc
@@ -61,6 +62,8 @@ from . import pawsx
 from . import xnli
 from . import mgsm
 from . import scrolls
+from . import ceval
+from . import csatqa
 
 ########################################
 # Translation tasks
@@ -93,6 +96,7 @@ all_translation_benchmarks = {
 
 
 TASK_REGISTRY = {
+    "babi": babi.Babi,
     # GLUE
     "cola": glue.CoLA,
     "mnli": glue.MNLI,
@@ -315,6 +319,13 @@ TASK_REGISTRY = {
     "crows_pairs_french_nationality": crowspairs.CrowsPairsFrenchNationality,
     "crows_pairs_french_physical_appearance": crowspairs.CrowsPairsFrenchPhysicalAppearance,
     "crows_pairs_french_autre": crowspairs.CrowsPairsFrenchAutre,
+    "csatqa_wr": csatqa.WR,
+    "csatqa_gr": csatqa.GR,
+    "csatqa_rcs": csatqa.RCS,
+    "csatqa_rcss": csatqa.RCSS,
+    "csatqa_rch": csatqa.RCH,
+    "csatqa_li": csatqa.LI,
+    # Requires manual download
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
@@ -326,7 +337,8 @@ TASK_REGISTRY = {
     **pawsx.construct_tasks(),
     **xnli.construct_tasks(),
     **mgsm.construct_tasks(),
-    **scrolls.construct_tasks()
+    **scrolls.construct_tasks(),
+    **ceval.create_all_tasks(),
 }
 
 

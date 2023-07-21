@@ -80,6 +80,7 @@ def simple_evaluate(
         lm = lm_eval.models.get_model("hf-causal")(
                 pretrained=model,
                 batch_size=batch_size,
+                max_batch_size=max_batch_size,
                 )
         no_cache = True
     else:

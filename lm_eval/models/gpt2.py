@@ -29,13 +29,14 @@ class HFLM(BaseLM):
         subfolder=None,
         tokenizer=None,
         batch_size=1,
+        max_batch_size=512,
         max_length=None,
         load_in_8bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = False,
         dtype: Optional[Union[str, torch.dtype]]="auto",
     ):
         super().__init__()
-        
+
 
         # Initialize model
         if isinstance(pretrained, transformers.PreTrainedModel):
@@ -106,10 +107,13 @@ class HFLM(BaseLM):
         assert isinstance(batch_size, (int, str))
 
         # setup for automatic batch size detection
-        if batch_size == "auto":
-            self.batch_size_per_gpu = batch_size
+        if str(batch_size).startswith("auto"):
+            batch_size = batch_size.split(":")
+            self.batch_size_per_gpu = batch_size[0]
+            self.batch_schedule = float(batch_size[1]) if len(batch_size) > 1 else 1
         else:
             self.batch_size_per_gpu = int(batch_size)
+        self.max_batch_size = max_batch_size
 
         self._max_length = max_length
 

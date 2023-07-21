@@ -154,7 +154,7 @@ class HuggingFaceAutoLM(BaseLM):
                 If True, will trust the remote code when loading the model.
             gptq_use_triton (bool, optional, defaults to False):
                 Use Triton for GPTQ inference.
-            bnb_4bit_quant_type (str, optional, defaults to None): 
+            bnb_4bit_quant_type (str, optional, defaults to None):
                 The quantization type to use for BnB 4bit quantization. See:
                 https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L77
             bnb_4bit_compute_dtype (Union[str, torch.dtype], optional, defaults to None):
@@ -203,6 +203,7 @@ class HuggingFaceAutoLM(BaseLM):
             revision=revision,
             subfolder=subfolder,
             tokenizer=tokenizer,
+            trust_remote_code=trust_remote_code,
         )
         self.tokenizer.model_max_length = self.max_length
 
@@ -278,8 +279,10 @@ class HuggingFaceAutoLM(BaseLM):
             if transformers.__version__ >= "4.30.0":
                 model_kwargs["load_in_4bit"] = load_in_4bit
                 if load_in_4bit:
-                    model_kwargs["bnb_4bit_quant_type"] = bnb_4bit_quant_type
-                    model_kwargs["bnb_4bit_compute_dtype"] = getattr(torch, bnb_4bit_compute_dtype)
+                    if bnb_4bit_quant_type:
+                        model_kwargs["bnb_4bit_quant_type"] = bnb_4bit_quant_type
+                    if bnb_4bit_compute_dtype:
+                        model_kwargs["bnb_4bit_compute_dtype"] = _get_dtype(bnb_4bit_compute_dtype)
             model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
@@ -330,11 +333,13 @@ class HuggingFaceAutoLM(BaseLM):
         revision: str,
         subfolder: str,
         tokenizer: Optional[str] = None,
+        trust_remote_code: Optional[bool] = False,
     ) -> transformers.PreTrainedTokenizer:
         """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
         tokenizer = self.AUTO_TOKENIZER_CLASS.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            trust_remote_code=trust_remote_code,
             use_fast=False
         )
         tokenizer.pad_token = tokenizer.eos_token
@@ -505,12 +510,14 @@ class AutoCausalLM(HuggingFaceAutoLM):
         revision: str,
         subfolder: str,
         tokenizer: Optional[str] = None,
+        trust_remote_code: Optional[bool] = False,
     ) -> transformers.PreTrainedTokenizer:
         tokenizer = super()._create_auto_tokenizer(
             pretrained=pretrained,
             revision=revision,
             subfolder=subfolder,
             tokenizer=tokenizer,
+            trust_remote_code=trust_remote_code,
         )
         tokenizer.padding_side = "left"
         return tokenizer
