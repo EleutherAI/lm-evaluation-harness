@@ -4,10 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-
+# comment/edit out the above to stop/change the trigger
 jobs:
   changed_files:
     runs-on: ubuntu-latest  # windows-latest || macos-latest
+    timeout-minutes: 120
     name: Scan for changed tasks
     steps:
       - name: checkout
@@ -17,8 +18,8 @@ jobs:
 
       # Uses the tj-actions/changed-files@v37 action to check for changes.
       # Outputs provided here: https://github.com/tj-actions/changed-files#outputs
-      # The `files_yaml` input optionally takes a yaml string to specify which files to check,
-      # and prepends the name to the standard output names.
+      # The `files_yaml` input optionally takes a yaml string to specify filters,
+      # and prepends the filter name to the standard output names.
       - name: Check task folders
         id: changed-tasks
         uses: tj-actions/changed-files@v37.1.2
@@ -31,14 +32,15 @@ jobs:
               - lm_eval/api/**
           write_output_files: true
 
-        # This is a workaround to get the list of all modified files and save it to an env variable.
-        # The next two echo statements are just for logging.
+    # The next step is optional; the files are written to the workspace by default (above).
+    # so it's just for debugging
       - name: Run Tests
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
         run: |
           echo .github/outputs/tasks_all_changed_and_modified_files.txt >> 'GITHUB_ENV'
           echo "One or more test file(s) has changed."
           echo "List of all the files that have changed: ${{ steps.changed-tasks.outputs.tasks_all_modified_files }}"
+
       - name: Set up Python 3.9
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
         uses: actions/setup-python@v4
@@ -53,7 +55,7 @@ jobs:
     #       pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
     #       if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with pytest
-        # if new tasks are added, run tests on them; pytest file=test_new_tasks
+        # if new tasks are added, run tests on them
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true'
         run: python -m pytest tests/extra/test_new_tasks.py -s -vv -n=auto
         # if api is modified, run tests on it
