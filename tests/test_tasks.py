@@ -6,7 +6,7 @@ from lm_eval.api.task import ConfigurableTask
 
 # Using fixtures to get the task class and limit
 @pytest.fixture()
-def task_class(task_name: List[str]) -> ConfigurableTask:
+def task_class() -> ConfigurableTask:
     task_name = ["arc_easy"]
     x = [cls for name, cls in tasks.TASK_REGISTRY.items() if name in task_name]
     return x[0]
