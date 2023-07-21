@@ -665,7 +665,7 @@ class ConfigurableTask(Task):
 
     def training_docs(self):
         if self.has_training_docs():
-            if self._config.process_docs:
+            if self._config.process_docs is not None:
                 return self._config.process_docs(
                     self.dataset[self._config.training_split]
                 )
@@ -673,7 +673,7 @@ class ConfigurableTask(Task):
 
     def validation_docs(self):
         if self.has_validation_docs():
-            if self._config.process_docs:
+            if self._config.process_docs is not None:
                 return self._config.process_docs(
                     self.dataset[self._config.validation_split]
                 )
@@ -681,7 +681,7 @@ class ConfigurableTask(Task):
 
     def test_docs(self):
         if self.has_test_docs():
-            if self._config.process_docs:
+            if self._config.process_docs is not None:
                 return self._config.process_docs(self.dataset[self._config.test_split])
             return self.dataset[self._config.test_split]
 
