@@ -758,3 +758,8 @@ def stop_sequences_criteria(
             ],
         ]
     )
+
+class AutoLlamaCausalLM(AutoCausalLM):
+    """Causal language modeling supporting Llama
+    """
+    AUTO_TOKENIZER_CLASS: transformers.AutoTokenizer = transformers.LlamaTokenizer
