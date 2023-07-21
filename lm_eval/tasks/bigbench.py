@@ -9,7 +9,15 @@ import hashlib
 import functools
 import numpy as np
 import re
-import importlib.resources
+import platform
+from packaging import version
+
+PY_VERSION = version.parse(platform.python_version())
+if PY_VERSION < version.parse("3.9"):
+    import importlib_resources 
+else:
+    import importlib.resources as importlib_resources
+
 from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
 
@@ -229,7 +237,7 @@ def create_task_from_path(json_path):
 
 
 def create_all_tasks():
-    resources_dir = importlib.resources.files("lm_eval.datasets") / "bigbench_resources"
+    resources_dir = importlib_resources.files("lm_eval.datasets") / "bigbench_resources"
     supported_tasks = [os.path.splitext(x)[0] for x in os.listdir(resources_dir)]
     res = {}
     for task_name in supported_tasks:
