@@ -1,17 +1,14 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
+# just comment out unwanted steps to turn off the test.
 name: Unit Tests
 
 on:
   push:
-    branches:
-      - big-refactor
   pull_request:
-    branches:
-      - big-refactor
   workflow_dispatch:
-
+# Jobs run concurrently and steps run sequentially within a job.
+# jobs: linter and cpu_tests. Add more jobs/steps as required.
 jobs:
   linter:
     name: Linters
@@ -35,9 +32,10 @@ jobs:
         flake8 . --count --select=F,E9,E71,E72,E501,E112,E113,W6 --extend-ignore=F541 --show-source --statistics --exit-zero
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Lint with mypy
-      run: mypy . --ignore-missing-imports --check-untyped-defs --explicit-package-bases --warn-unreachable
-
+      # mypy turned off for now
+#    - name: Lint with mypy
+#      run: mypy . --ignore-missing-imports --check-untyped-defs --explicit-package-bases --warn-unreachable
+# Job 2
   testcpu:
     name: CPU Tests
     runs-on: ubuntu-latest

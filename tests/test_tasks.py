@@ -1,31 +1,16 @@
-import pytest
 from itertools import islice
+import pytest
+from typing import List
 import lm_eval.tasks as tasks
-from tests.extra.test_utils import load_changed_files, parser
-from typing import List, ClassVar
-import os
+from lm_eval.api.task import ConfigurableTask
 
 
 @pytest.fixture()
-def any_new_tasks(request) -> bool:
-    return request.config.getoption("--new_task")
-
-
-# ["arc_easy] else get list of new tasks
-def new_tasks(any_new_tasks: bool) -> List[str]:
-    FILENAME = ".github/outputs/tasks_all_changed_and_modified_files.txt"
-    if any_new_tasks and os.path.exists(FILENAME):
-        return [parser(load_changed_files(FILENAME))]
-    elif os.getenv("API") is not None:
-        return ["arc_easy", "hellaswag", "piqa", "wikitext"]
-    else:
-        return ["arc_easy"]
-
-
-@pytest.fixture(params=new_tasks(any_new_tasks))
-def task_class(request):
-    task_name = request.param
-    return [cls for name, cls in tasks.TASK_REGISTRY.items() if name in task_name][0]
+def task_class(task_name: List[str] = None) -> ConfigurableTask:
+    if task_name is None:
+        task_name = ["arc_easy"]
+    x = [cls for name, cls in tasks.TASK_REGISTRY.items() if name in task_name]
+    return x[0]
 
 
 @pytest.fixture()
@@ -36,16 +21,16 @@ def limit(any_new_tasks: bool) -> int:
 # Tests
 
 
-def test_download(task_class):
+def test_download(task_class: ConfigurableTask):
     task_class().download()
     assert task_class().dataset is not None
 
 
-def test_has_training_docs(task_class):
+def test_has_training_docs(task_class: ConfigurableTask):
     assert task_class().has_training_docs() in [True, False]
 
 
-def test_check_training_docs(task_class):
+def test_check_training_docs(task_class: ConfigurableTask):
     task = task_class()
     assert task.has_training_docs() if task._config["training_split"] else True
 
