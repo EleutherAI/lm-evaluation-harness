@@ -2,11 +2,7 @@ name: Tasks Modified
 
 on:
   push:
-    branches:
-      - big-refactor
   pull_request:
-    branches:
-      - big-refactor
   workflow_dispatch:
 
 jobs:
@@ -19,11 +15,15 @@ jobs:
         with:
           fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
 
-      # Example 1
+      # Uses the tj-actions/changed-files@v37 action to check for changes.
+      # Outputs provided here: https://github.com/tj-actions/changed-files#outputs
+      # The `files_yaml` input optionally takes a yaml string to specify which files to check,
+      # and prepends the name to the standard output names.
       - name: Check task folders
         id: changed-tasks
         uses: tj-actions/changed-files@v37.1.2
         with:
+          # tasks checks the tasks folder and api checks the api folder for changes
           files_yaml: |
             tasks:
               - lm_eval/tasks/**
@@ -31,6 +31,8 @@ jobs:
               - lm_eval/api/**
           write_output_files: true
 
+        # This is a workaround to get the list of all modified files and save it to an env variable.
+        # The next two echo statements are just for logging.
       - name: Run Tests
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
         run: |
@@ -42,20 +44,21 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.9
-          cache: 'pip'
       - name: Install dependencies
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
         run: |
             python -m pip install --upgrade pip
             pip install -e '.[testing]' --extra-index-url https://download.pytorch.org/whl/cpu
-            #         Install optional git dependencies
-    #                pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
-    #        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    #   Install optional git dependencies
+    #       pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
+    #       if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with pytest
+        # if new tasks are added, run tests on them; pytest file=test_new_tasks
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true'
-        run: python -m pytest tests/test_tasks.py -s -vv -n=auto --new_task
+        run: python -m pytest tests/extra/test_new_tasks.py -s -vv -n=auto
+        # if api is modified, run tests on it
       - name: Test more tasks with pytest
         env:
           API: true
         if: steps.changed-tasks.outputs.api_any_modified == 'true'
-        run: python -m pytest tests/test_api.py -s -vv -n=auto --new_task
+        run: python -m pytest tests/extra/test_new_tasks.py -s -vv -n=auto

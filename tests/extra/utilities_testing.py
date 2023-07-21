@@ -3,7 +3,7 @@ from typing import List
 from lm_eval.utils import load_yaml_config
 from pathlib import Path
 
-
+# This is the path where the output for the changed files for the tasks folder is stored
 FILE_PATH = file_path = ".github/outputs/tasks_all_changed_and_modified_files.txt"
 
 
@@ -12,6 +12,9 @@ def load_changed_files(file_path: str = FILE_PATH) -> List[str]:
         return [line.strip() for line in f.readlines()]
 
 
+# checks the txt file for list of changed files.
+# if file ends with .yaml then check yaml for task name
+# if file ends with .py then parse the folder for all yaml files
 def parser(full_path: List[str]) -> List[str]:
     _output = set()
     for x in full_path:
