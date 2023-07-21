@@ -93,6 +93,7 @@ class HuggingFaceAutoLM(BaseLM):
         gptq_use_triton: Optional[bool] = False,
         bnb_4bit_quant_type: Optional[str] = None,
         bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        use_fast: bool = True
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -204,6 +205,7 @@ class HuggingFaceAutoLM(BaseLM):
             subfolder=subfolder,
             tokenizer=tokenizer,
             trust_remote_code=trust_remote_code,
+            use_fast=use_fast
         )
         self.tokenizer.model_max_length = self.max_length
 
@@ -334,15 +336,23 @@ class HuggingFaceAutoLM(BaseLM):
         subfolder: str,
         tokenizer: Optional[str] = None,
         trust_remote_code: Optional[bool] = False,
+        use_fast: bool = True
     ) -> transformers.PreTrainedTokenizer:
         """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
         tokenizer = self.AUTO_TOKENIZER_CLASS.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
             trust_remote_code=trust_remote_code,
-            use_fast=False
+            use_fast=use_fast
         )
-        tokenizer.pad_token = tokenizer.eos_token
+
+        if isinstance(tokenizer, (transformers.LlamaTokenizer, transformers.LlamaTokenizerFast)):
+            tokenizer.eos_token_id = 2
+            tokenizer.bos_token_id = 1
+            tokenizer.pad_token_id = 0
+            tokenizer.pad_token = tokenizer.unk_token
+        else:
+            tokenizer.pad_token = tokenizer.eos_token
         return tokenizer
 
     @property
@@ -511,6 +521,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
         subfolder: str,
         tokenizer: Optional[str] = None,
         trust_remote_code: Optional[bool] = False,
+        use_fast: bool = True
     ) -> transformers.PreTrainedTokenizer:
         tokenizer = super()._create_auto_tokenizer(
             pretrained=pretrained,
@@ -518,6 +529,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
             subfolder=subfolder,
             tokenizer=tokenizer,
             trust_remote_code=trust_remote_code,
+            use_fast=use_fast
         )
         tokenizer.padding_side = "left"
         return tokenizer
