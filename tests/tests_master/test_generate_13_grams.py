@@ -44,9 +44,9 @@ def test_generate_13_grams_1(caplog):
         pass
     os.makedirs(test_working_directory)
 
-    assert not os.path.exists("pile")
-    os.makedirs("pile")
-    archive = Archive(os.path.join("pile", "test.jsonl.zst"))
+    assert not os.path.exists("../pile")
+    os.makedirs("../pile")
+    archive = Archive(os.path.join("../pile", "test.jsonl.zst"))
     archive.add_data(data)
     archive.commit()
 

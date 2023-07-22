@@ -7,10 +7,11 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: test
-create_choices: !function utils.create_choices # create list of answer choices
 doc_to_text: "Question: {{Problem}}\nAnswer:"
-doc_to_target: !function utils.doc_to_target
-gold_alias: "{{['a', 'b', 'c', 'd', 'e'].index(correct)}}" # this will be cast to an int.
+doc_to_target: "{{['a', 'b', 'c', 'd', 'e'].index(correct)}}"
+doc_to_choice: !function utils.doc_to_choice
+should_decontaminate: true
+doc_to_decontamination_query: "Question: {{Problem}}\nAnswer:"
 metric_list:
   - metric: acc
     aggregation: mean

@@ -1,6 +1,6 @@
 group:
   - super-glue-lm-eval-v1
-task: "copa"
+task: copa
 dataset_path: super_glue
 dataset_name: copa
 output_type: multiple_choice
@@ -8,7 +8,6 @@ training_split: train
 validation_split: validation
 doc_to_text: !function utils.doc_to_text
 doc_to_target: !function utils.doc_to_target
-gold_alias: "{{label}}" # this will be cast to an int.
-template_aliases: "{% set answer_choices = [{{doc.choice1}}, 'b'] %} {{answer_choices}}"
+doc_to_choice: !function utils.doc_to_choice
 metric_list:
   - metric: acc
