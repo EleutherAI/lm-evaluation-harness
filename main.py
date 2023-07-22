@@ -31,7 +31,7 @@ def parse_args():
         default=0,
         help="Number of examples in few-shot context",
     )
-    parser.add_argument("--batch_size", type=int, default=1)  # TODO: only integers
+    parser.add_argument("--batch_size", type=str, default=1) 
     parser.add_argument(
         "--max_batch_size",
         type=int,
