@@ -18,5 +18,10 @@ def doc_to_text(doc) -> str:
     return prompt
 
 
-def label_logiqa2_nli(doc):
-    return 0 if doc["label"] == "not entailed" else 1
+# # https://github.com/csitfun/LogiQA2.0/blob/main/logiqa2nli/nli-prompt.py
+# def doc_to_textNLI(doc):
+#     maj_premise = ' '.join(list(doc['major_premise']))
+#     min_premise = ' '.join(list(doc['minor_premise']))
+#     hypo = doc['conclusion']
+#     prompt_input = "Given the fact: " + maj_premise + ' ' + min_premise + " Does it follow that: " + hypo + " Yes or no?"
+#     return prompt_input

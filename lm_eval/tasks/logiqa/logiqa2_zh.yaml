@@ -1,13 +1,12 @@
-group:
-#  - multiple_choice
-  - logiqa2
-task: logiqa2_zh
-dataset_path: lm_eval/tasks/logiqa/logiqa2_loadingscript.py
-dataset_name: logiqa2_zh
-output_type: multiple_choice
-training_split: train
-validation_split: validation
-test_split: test
+#group:
+##  - multiple_choice
+#task: logiqa2_zh
+#dataset_path: lm_eval/tasks/logiqa/logiqa2_loadingscript.py
+#dataset_name: logiqa2_zh
+#output_type: multiple_choice
+#training_split: train
+#validation_split: validation
+#test_split: test
 #doc_to_choice:
 #doc_to_text:
 #doc_to_target:

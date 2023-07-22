@@ -1,6 +1,5 @@
 group:
   - multiple_choice
-  - logiqa2
 task: logiqa2
 dataset_path: lm_eval/tasks/logiqa/logiqa2_loadingscript.py
 dataset_name: logiqa2

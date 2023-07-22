@@ -95,20 +95,8 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
     DEFAULT_CONFIG_NAME = "logiqa2"
 
     def _info(self):
-        if self.config.name == "logiqa2_nli":
-            features = datasets.Features(
-                {
-                    "label": datasets.Value("string"),
-                    "major_premise": datasets.features.Sequence(
-                        datasets.Value("string")
-                    ),
-                    "minor_premise": datasets.features.Sequence(
-                        datasets.Value("string")
-                    ),
-                    "conclusion": datasets.Value("string"),
-                }
-            )
-        elif self.config.name == "logiqa2_zh":
+
+        if self.config.name == "logiqa2_zh":
             features = datasets.Features(
                 {
                     "answer": datasets.Value("int32"),
@@ -118,6 +106,21 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
                     "options": datasets.features.Sequence(datasets.Value("string")),
                 }
             )
+        #  # major_premise (maybe minor) is sometimes str, sometimes list
+        #  # can't get it to work.
+        # elif self.config.name == "logiqa2_nli":
+        #     features = datasets.Features(
+        #         {
+        #             "label": datasets.Value("string"),
+        #             "major_premise": datasets.features.Sequence(
+        #                 datasets.Value("string"),
+        #             ),
+        #             "minor_premise": datasets.features.Sequence(
+        #                 datasets.Value("string"),
+        #             ),
+        #             "conclusion": datasets.Value("string"),
+        #         }
+        #     )
         else:
             features = datasets.Features(
                 {
@@ -171,28 +174,24 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        # TODO: This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
-        # The `key` is for legacy reasons (tfds) and is not important in itself, but must be unique for each example.
         with open(filepath, encoding="utf-8") as f:
             for key, row in enumerate(f):
                 data = json.loads(row)
-                # if self.config.name == "first_domain":
-                # Yields examples as (key, example) tuples
-                if self.config.name == "logiqa2_nli":
-                    yield key, {
-                        "label": data["label"],
-                        "major_premise": data["major_premise"],
-                        "minor_premise": data["minor_premise"],
-                        "conclusion": data["conclusion"],
-                    }
 
-                elif self.config.name == "logiqa2_zh":
+                if self.config.name == "logiqa2_zh":
                     yield key, {
                         "answer": data["answer"],
                         "text": data["text"],
                         "question": data["question"],
                         "options": data["options"],
                     }
+                # elif self.config.name == "logiqa2_nli":
+                #     yield key, {
+                #         "label": data["label"],
+                #         "major_premise": data["major_premise"],
+                #         "minor_premise": data["minor_premise"],
+                #         "conclusion": data["conclusion"],
+                #     }
 
                 else:
                     yield key, {
