@@ -1,7 +1,7 @@
 #group:
 ##  - multiple_choice
 #task: logiqa2_zh
-#dataset_path: lm_eval/tasks/logiqa/logiqa2_loadingscript.py
+#dataset_path: lm_eval/tasks/logiqa/logiqa2.py
 #dataset_name: logiqa2_zh
 #output_type: multiple_choice
 #training_split: train

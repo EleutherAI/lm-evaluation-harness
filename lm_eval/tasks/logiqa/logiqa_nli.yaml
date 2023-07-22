@@ -2,7 +2,7 @@
 #  - multiple_choice
 #  - logiqa2
 #task: logiqa2_nli
-#dataset_path: lm_eval/tasks/logiqa/logiqa2_loadingscript.py
+#dataset_path: lm_eval/tasks/logiqa/logiqa2.py
 #dataset_name: logiqa2_nli
 #output_type: multiple_choice
 #training_split: train
