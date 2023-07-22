@@ -354,8 +354,19 @@ class HFLM(LM):
             return batch_size
 
         batch_size = forward_batch()
-        utils.clear_torch_cache()
 
+        if self.world_size > 1:
+            # if multi-GPU, always take minimum over all selected batch sizes
+            max_rnk_bs = torch.tensor([batch_size], device=self.device)
+            gathered = (
+                self.accelerator.gather(max_rnk_bs).cpu().detach().numpy().tolist()
+            )
+            batch_size = min(gathered)
+            utils.clear_torch_cache()
+            return batch_size
+            
+
+        utils.clear_torch_cache()
         return batch_size
 
 
