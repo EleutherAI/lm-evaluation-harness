@@ -100,7 +100,6 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
                 {
                     "answer": datasets.Value("int32"),
                     "text": datasets.Value("string"),
-                    # "type" is a dict with arbitrary keys and values
                     "question": datasets.Value("string"),
                     "options": datasets.features.Sequence(datasets.Value("string")),
                 }
@@ -110,7 +109,12 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
         elif self.config.name == "logiqa2_nli":
             features = datasets.Features(
                 {
-                    "label": datasets.Value("string"),
+                    "label": datasets.ClassLabel(
+                        num_classes=2,
+                        names=["not entailed", "entailed"],
+                        names_file=None,
+                        id=None,
+                    ),
                     "major_premise": datasets.features.Sequence(
                         datasets.Value("string")
                     ),
@@ -186,10 +190,6 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
                     if isinstance(data["major_premise"], str):
                         data["major_premise"] = [data["major_premise"]]
                     data["minor_premise"] = data["minor_premise"].strip()
-                    #     output = ast.literal_eval(data["major_premise"])
-                    #     " ".join(output)
-                    # except:
-                    #     output = data["major_premise"]
                     yield key, {
                         "label": data["label"],
                         "major_premise": data["major_premise"],
@@ -201,8 +201,8 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
                     yield key, {
                         "id": data["id"],
                         "answer": data["answer"],
-                        "text": data["text"],
+                        "text": data["text"].strip(),
                         "type": data["type"],
-                        "question": data["question"],
-                        "options": data["options"],
+                        "question": data["question"].strip(),
+                        "options": [x.strip() for x in data["options"]],
                     }
