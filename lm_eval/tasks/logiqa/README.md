@@ -1,44 +1,48 @@
-# LogiQA
+# LogiQA 2.0
 
 ### Paper
-LogiQA: A Challenge Dataset for Machine Reading Comprehension with Logical Reasoning
 
-LogiQA is a dataset for testing human logical reasoning. It consists of 8,678 QA\ninstances, covering multiple types of deductive reasoning. Results show that state-of-the-art
-neural models perform by far worse than human ceiling. The dataset can also serve as a benchmark for reinvestigating logical AI under the deep learning NLP setting.
+LogiQA 2.0 — An Improved Dataset for Logical Reasoning in Natural Language Understanding https://ieeexplore.ieee.org/document/10174688
 
-Homepage: https://github.com/lgw863/LogiQA-dataset
+
+The dataset is an amendment and re-annotation of LogiQA in 2020, a large-scale logical reasoning reading comprehension dataset adapted from the Chinese Civil Service Examination. This new version has an increased data size, the texts are refined with manual translation by professionals, and improved by removing items with distinctive cultural features like Chinese idioms.
+
+Furthermore, a two-way natural language inference (NLI) task is introduced, resulting in 35k premise-hypothesis pairs with gold labels, making it the first large-scale NLI dataset for complex logical reasoning
+
+Homepage: https://github.com/csitfun/LogiQA2.0
 
 ### Citation
 
 ```bibtex
-@misc{liuLogiQAChallengeDataset2020,
-  title = {{{LogiQA}}: {{A Challenge Dataset}} for {{Machine Reading Comprehension}} with {{Logical Reasoning}}},
-  shorttitle = {{{LogiQA}}},
-  author = {Liu, Jian and Cui, Leyang and Liu, Hanmeng and Huang, Dandan and Wang, Yile and Zhang, Yue},
-  date = {2020-07-16},
-  number = {arXiv:2007.08124},
-  eprint = {2007.08124},
-  eprinttype = {arxiv},
-  primaryclass = {cs},
-  publisher = {{arXiv}},
-  doi = {10.48550/arXiv.2007.08124},
-  url = {http://arxiv.org/abs/2007.08124},
-}
+@ARTICLE{10174688,
+  author={Liu, Hanmeng and Liu, Jian and Cui, Leyang and Teng, Zhiyang and Duan, Nan and Zhou, Ming and Zhang, Yue},
+  journal={IEEE/ACM Transactions on Audio, Speech, and Language Processing},
+  title={LogiQA 2.0 — An Improved Dataset for Logical Reasoning in Natural Language Understanding},
+  year={2023},
+  volume={},
+  number={},
+  pages={1-16},
+  doi={10.1109/TASLP.2023.3293046}}
 ```
 
-[//]: # (### Subtasks)
+### Subtasks
 
+`logiqa2_zh`: The original dataset in Chinese.
+
+`logiqa2_NLI`: The NLI version of the dataset converted from the MRC version.
+
+The subtasks have not been verified yet.
 
 ### Checklist
 
 * [x] Is the task an existing benchmark in the literature?
-  * [x] Have you referenced the original paper that introduced the task?
-  * [x] If yes, does the original paper provide a reference implementation?
-    * [x] The original paper evaluates on unreleased BERT and RoBERTa models.
+  * [ ] Have you referenced the original paper that introduced the task?
+  * [ ] If yes, does the original paper provide a reference implementation?
+    *
 
 
 If other tasks on this dataset are already supported:
 * [x] Is the "Main" variant of this task clearly denoted?
 * [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
-* [x] Have you noted which, if any, published evaluation setups are matched by this variant?
-  * [x] Same as LM Evaluation Harness v0.3.0 implementation
+* [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+  * [ ]

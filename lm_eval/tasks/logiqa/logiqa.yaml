@@ -1,17 +1,18 @@
 group:
   - multiple_choice
-task: logiqa
-dataset_path: lm_eval/tasks/logiqa/logiqa2.py
-dataset_name: logiqa
+  - logiqa2
+task: logiqa2
+dataset_path: lm_eval/tasks/logiqa/logiqa2_script.py
+dataset_name: logiqa2
 output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: test
 doc_to_choice: "{{options}}"
-doc_to_text: !function preprocess_logiqa.doc_to_text
+doc_to_text: !function utils_logiqa2.doc_to_text
 doc_to_target: "{{answer}}"
 doc_to_decontamination_query: "{{context}}"
-should_decontaminate: true
+should_decontaminate: false
 metric_list:
   - metric: acc
     aggregation: mean

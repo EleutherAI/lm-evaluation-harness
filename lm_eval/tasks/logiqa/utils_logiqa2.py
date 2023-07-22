@@ -18,16 +18,5 @@ def doc_to_text(doc) -> str:
     return prompt
 
 
-# def doc_to_target(doc) -> str:
-#     choices = {"a": 0, "b": 1, "c": 2, "d": 3}
-#     label = choices[doc["label"]]
-#     return doc["options"][label]
-
-
-# def doc_to_choice(doc) -> str:
-#     return doc["options"]
-
-
-# def gold(doc) -> int:
-#     choices = {"a": 0, "b": 1, "c": 2, "d": 3}
-#     return choices[doc["label"]]
+def label_logiqa2_nli(doc):
+    return 0 if doc["label"] == "not entailed" else 1

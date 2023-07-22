@@ -41,17 +41,17 @@ _LICENSE = (
 )
 
 _URLS = {
-    "logiqa": {
+    "logiqa2": {
         "train": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA/train.txt",
         "validation": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA/dev.txt",
         "test": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA/test.txt",
     },
-    "logiqa_zh": {
-        "train": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA2/train_zh.txt",
-        "validation": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA2/dev_zh.txt",
-        "test": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA2/test_zh.txt",
+    "logiqa2_zh": {
+        "train": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA/train_zh.txt",
+        "validation": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA/dev_zh.txt",
+        "test": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa/DATA/LOGIQA/test_zh.txt",
     },
-    "logiqa_NLI": {
+    "logiqa2_nli": {
         "train": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa2nli/DATA/QA2NLI/train.txt",
         "validation": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa2nli/DATA/QA2NLI/dev.txt",
         "test": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa2nli/DATA/QA2NLI/test.txt",
@@ -59,7 +59,7 @@ _URLS = {
 }
 
 
-class LogiQA(datasets.GeneratorBasedBuilder):
+class LogiQA2(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
     VERSION = datasets.Version("2.0.0")
@@ -77,37 +77,36 @@ class LogiQA(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="logiqa",
+            name="logiqa2",
             version=VERSION,
             description="The LogiQA multiple answer dataset translated in English from Chinese.",
         ),
         datasets.BuilderConfig(
-            name="logiqa_zh",
+            name="logiqa2_zh",
             version=VERSION,
             description="The original LogiQA multiple answer dataset in Chinese.",
         ),
         datasets.BuilderConfig(
-            name="logiqa_NLI",
+            name="logiqa2_nli",
             version=VERSION,
             description="The NLI part of LogiQA2.0 dataset",
         ),
     ]
-    DEFAULT_CONFIG_NAME = "logiqa"
+    DEFAULT_CONFIG_NAME = "logiqa2"
 
     def _info(self):
-        if self.config.name == "logiqa_NLI":
+        if self.config.name == "logiqa2_nli":
             features = datasets.Features(
                 {
                     "label": datasets.Value("string"),
                     "major_premise": datasets.Value("string"),
                     "minor_premise": datasets.Value("string"),
-                    "conclusion": datasets.Value("int32"),
+                    "conclusion": datasets.Value("string"),
                 }
             )
-        elif self.config.name == "logiqa_zh":
+        elif self.config.name == "logiqa2_zh":
             features = datasets.Features(
                 {
-                    "id": datasets.Value("int32"),
                     "answer": datasets.Value("int32"),
                     "text": datasets.Value("string"),
                     # "type" is a dict with arbitrary keys and values
@@ -175,7 +174,7 @@ class LogiQA(datasets.GeneratorBasedBuilder):
                 data = json.loads(row)
                 # if self.config.name == "first_domain":
                 # Yields examples as (key, example) tuples
-                if self.config.name == "logiqa_NLI":
+                if self.config.name == "logiqa2_nli":
                     yield key, {
                         "label": data["label"],
                         "major_premise": data["major_premise"],
@@ -183,7 +182,7 @@ class LogiQA(datasets.GeneratorBasedBuilder):
                         "conclusion": data["conclusion"],
                     }
 
-                elif self.config.name == "logiqa_zh":
+                elif self.config.name == "logiqa2_zh":
                     yield key, {
                         "id": data["id"],
                         "answer": data["answer"],
