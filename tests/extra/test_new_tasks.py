@@ -92,10 +92,11 @@ class TestNewTasks:
             if task.has_test_docs()
             else list(islice(task.validation_docs(), limit))
         )
-        _array = [task.doc_to_choice(doc) for doc in arr]
-        # assert all(len(x) == 4 for x in _array)
-        assert all(isinstance(x, list) for x in _array)
-        assert all(isinstance(x[0], str) for x in _array)
+        if "multiple_choice" in task._config.group:
+            _array = [task.doc_to_choice(doc) for doc in arr]
+            # assert all(len(x) == 4 for x in _array)
+            assert all(isinstance(x, list) for x in _array)
+            assert all(isinstance(x[0], str) for x in _array)
 
     def test_doc_to_target(self, task_class, limit):
         task = task_class()
