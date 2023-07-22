@@ -2,7 +2,7 @@ group:
   - multiple_choice
   - logiqa2
 task: logiqa2_nli
-dataset_path: lm_eval/tasks/logiqa/logiqa2_script.py
+dataset_path: lm_eval/tasks/logiqa/logiqa2_loadingscript.py
 dataset_name: logiqa2_zh
 output_type: multiple_choice
 training_split: train
@@ -12,7 +12,7 @@ doc_to_choice:
   - "not entailed"
   - "entailed"
 # doc to text taken from original repo but not verified
-doc_to_text: "Given the fact: {{major_premise}} {{minor_premise}} Does it follow that: {{conclusion}} Yes or no?"
+doc_to_text: "Given the fact: {{major_premise|join(' ')}} {{minor_premise|join(' ')}} Does it follow that: {{conclusion}} Yes or no?"
 doc_to_target: "{{['not entailed', 'entailed'].index(label)}}"
 #doc_to_decontamination_query:
 #should_decontaminate: false

@@ -99,8 +99,12 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "label": datasets.Value("string"),
-                    "major_premise": datasets.Value("string"),
-                    "minor_premise": datasets.Value("string"),
+                    "major_premise": datasets.features.Sequence(
+                        datasets.Value("string")
+                    ),
+                    "minor_premise": datasets.features.Sequence(
+                        datasets.Value("string")
+                    ),
                     "conclusion": datasets.Value("string"),
                 }
             )
@@ -184,7 +188,6 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
 
                 elif self.config.name == "logiqa2_zh":
                     yield key, {
-                        "id": data["id"],
                         "answer": data["answer"],
                         "text": data["text"],
                         "question": data["question"],
