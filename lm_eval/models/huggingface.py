@@ -7,14 +7,15 @@ from peft import __version__ as PEFT_VERSION
 from pathlib import Path
 from typing import List, Mapping, NewType, Optional, Tuple, Union
 from tqdm import tqdm
-
+import logging
 from transformers import BatchEncoding
 
 from lm_eval import utils
 from lm_eval.base import BaseLM
 
-TokenSequence = Union[List[int], torch.LongTensor, torch.Tensor, BatchEncoding]
 
+logger = logging.getLogger(__name__)
+TokenSequence = Union[List[int], torch.LongTensor, torch.Tensor, BatchEncoding]
 _DeviceMapping = NewType("DeviceMapping", Mapping[str, Union[int, str, torch.device]])
 
 
@@ -198,6 +199,12 @@ class HuggingFaceAutoLM(BaseLM):
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
         )
 
+        if self._config.pad_token_id == -1:
+            logger.warning(
+                f"pad_token_id in config.json is -1, this may cause generation error, try to set it to 0."
+            )
+            self._config.pad_token_id = 0
+
         self._add_special_tokens = add_special_tokens
         self.tokenizer = self._create_auto_tokenizer(
             pretrained=pretrained,
@@ -350,6 +357,8 @@ class HuggingFaceAutoLM(BaseLM):
             tokenizer.eos_token_id = 2
             tokenizer.bos_token_id = 1
             tokenizer.pad_token_id = 0
+            tokenizer.unk_token_id = 0
+            tokenizer.add_special_tokens({'unk_token': '<unk>'})
             tokenizer.pad_token = tokenizer.unk_token
         else:
             tokenizer.pad_token = tokenizer.eos_token
@@ -472,7 +481,7 @@ class HuggingFaceAutoLM(BaseLM):
             assert isinstance(stop_sequences, list) or stop_sequences is None
 
             # TODO: Find a better way to handle stop sequences for 0-shot.
-            if stop_sequences is None:
+            if len(stop_sequences) == 1 and stop_sequences[0] is None:
                 until = [self.eot_token]
             else:
                 until = stop_sequences + [self.eot_token]
@@ -566,9 +575,12 @@ class AutoCausalLM(HuggingFaceAutoLM):
             stopping_criteria=stopping_criteria,
             do_sample=False,
         )
-        return utils.select_continuation_from_batch_left_padding(
+        
+        result = utils.select_continuation_from_batch_left_padding(
             generations, max_context_size=inputs["input_ids"].size(1)
         )
+
+        return result
 
 
 class AutoSeq2SeqLM(HuggingFaceAutoLM):
