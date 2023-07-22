@@ -23,6 +23,7 @@ from . import naturalqs
 from . import sat
 from . import arithmetic
 from . import lambada
+from . import siqa
 from . import piqa
 from . import prost
 from . import mc_taco
@@ -123,6 +124,7 @@ TASK_REGISTRY = {
     "lambada_standard": lambada.LambadaStandard,
     "lambada_openai_cloze": lambada_cloze.LambadaOpenAICloze,
     "lambada_standard_cloze": lambada_cloze.LambadaStandardCloze,
+    "siqa": siqa.SIQA,
     # multilingual lambada
     **lambada_multilingual.construct_tasks(),
     "wikitext": wikitext.WikiText,
