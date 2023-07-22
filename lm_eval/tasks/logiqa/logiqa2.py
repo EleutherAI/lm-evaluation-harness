@@ -13,10 +13,9 @@
 # limitations under the License.
 """LogiQA dataset."""
 
-
 import datasets
 import json
-
+import ast
 
 _CITATION = """\
 @ARTICLE{10174688,
@@ -108,19 +107,17 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
             )
         #  # major_premise (maybe minor) is sometimes str, sometimes list
         #  # can't get it to work.
-        # elif self.config.name == "logiqa2_nli":
-        #     features = datasets.Features(
-        #         {
-        #             "label": datasets.Value("string"),
-        #             "major_premise": datasets.features.Sequence(
-        #                 datasets.Value("string"),
-        #             ),
-        #             "minor_premise": datasets.features.Sequence(
-        #                 datasets.Value("string"),
-        #             ),
-        #             "conclusion": datasets.Value("string"),
-        #         }
-        #     )
+        elif self.config.name == "logiqa2_nli":
+            features = datasets.Features(
+                {
+                    "label": datasets.Value("string"),
+                    "major_premise": datasets.features.Sequence(
+                        datasets.Value("string")
+                    ),
+                    "minor_premise": datasets.Value("string"),
+                    "conclusion": datasets.Value("string"),
+                }
+            )
         else:
             features = datasets.Features(
                 {
@@ -185,13 +182,20 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
                         "question": data["question"],
                         "options": data["options"],
                     }
-                # elif self.config.name == "logiqa2_nli":
-                #     yield key, {
-                #         "label": data["label"],
-                #         "major_premise": data["major_premise"],
-                #         "minor_premise": data["minor_premise"],
-                #         "conclusion": data["conclusion"],
-                #     }
+                elif self.config.name == "logiqa2_nli":
+                    if isinstance(data["major_premise"], str):
+                        data["major_premise"] = [data["major_premise"]]
+                    data["minor_premise"] = data["minor_premise"].strip()
+                    #     output = ast.literal_eval(data["major_premise"])
+                    #     " ".join(output)
+                    # except:
+                    #     output = data["major_premise"]
+                    yield key, {
+                        "label": data["label"],
+                        "major_premise": data["major_premise"],
+                        "minor_premise": data["minor_premise"],
+                        "conclusion": data["conclusion"],
+                    }
 
                 else:
                     yield key, {
