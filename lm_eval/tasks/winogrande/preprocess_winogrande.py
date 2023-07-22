@@ -1,21 +1,14 @@
-def partial_context(doc, option):
-    # Substitute the pronoun in the sentence with the specified option
-    # and ignore everything after.
-    pronoun_loc = doc["sentence"].index("_")
-    return doc["sentence"][:pronoun_loc] + option
-
-def partial_target(doc):
-    # The target is everything after the document specified pronoun.
-    pronoun_loc = doc["sentence"].index("_") + 1
-    return doc["sentence"][pronoun_loc:].strip()
-
-def create_choices(doc):
-    choices = []
-    for option in [doc["option1"], doc["option2"]]:
-        partial_ctx = partial_context(doc, option)
-        choices.append(partial_ctx)
-    return choices
-
-def gold_alias(doc):
+def doc_to_text(doc):
     answer_to_num = {"1": 0, "2": 1}
-    return answer_to_num[doc['answer']]
+    return answer_to_num[doc["answer"]]
+
+
+def doc_to_target(doc):
+    idx = doc["sentence"].index("_") + 1
+    return doc["sentence"][idx:].strip()
+
+
+def doc_to_choice(doc):
+    idx = doc["sentence"].index("_")
+    options = [doc["option1"], doc["option2"]]
+    return [doc["sentence"][:idx] + opt for opt in options]
