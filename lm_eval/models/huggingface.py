@@ -723,7 +723,7 @@ class HFLM(LM):
                 else:
                     max_gen_toks = self.max_gen_toks
                 # first stop sequence is used to halt generation upon encountering
-                (primary_until) = until[0]
+                primary_until = [until[0]]
 
                 # set the max length in tokens of inputs ("context_enc")
                 if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
