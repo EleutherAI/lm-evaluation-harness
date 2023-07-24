@@ -265,9 +265,19 @@ def make_table(result_dict):
 
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
-    md_writer.headers = ["Task", "Version", "Filter", "Metric", "Value", "", "Stderr"]
+    md_writer.headers = [
+        "Task",
+        "Fewshot",
+        "Version",
+        "Filter",
+        "Metric",
+        "Value",
+        "",
+        "Stderr",
+    ]
     latex_writer.headers = [
         "Task",
+        "Fewshot",
         "Version",
         "Filter",
         "Metric",
@@ -280,6 +290,7 @@ def make_table(result_dict):
 
     for k, dic in result_dict["results"].items():
         version = result_dict["versions"][k]
+        n = str(result_dict["configs"][k]["num_fewshot"])
         for (mf), v in dic.items():
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
@@ -287,10 +298,11 @@ def make_table(result_dict):
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                values.append([k, version, f, m, "%.4f" % v, "±", "%.4f" % se])
+                values.append([k, n, version, f, m, "%.4f" % v, "±", "%.4f" % se])
             else:
-                values.append([k, version, f, m, "%.4f" % v, "", ""])
+                values.append([k, n, version, f, m, "%.4f" % v, "", ""])
             k = ""
+            n = ""
             version = ""
     md_writer.value_matrix = values
     latex_writer.value_matrix = values
