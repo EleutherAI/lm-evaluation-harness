@@ -1018,7 +1018,6 @@ class ConfigurableTask(Task):
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
 
-            # import sys; sys.exit()
             for key, result in zip(self._metric_fn_list.keys(), results):
                 if not self.multiple_target:
                     result = self._metric_fn_list[key](
