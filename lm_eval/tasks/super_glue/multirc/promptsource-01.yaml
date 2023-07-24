@@ -1,5 +1,0 @@
-include: promptsource-00.yaml
-group:
-  - super-glue-promptsource
-task: "Would it be good to answer…"
-use_prompt: "promptsource:Would it be good to answer…"
