@@ -366,7 +366,6 @@ def evaluate(
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
             results[task_name][metric + "," + key] = task.aggregation()[metric](items)
-            # results[task_name]['num_fewshot'] = configs[task_name]
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
