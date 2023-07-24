@@ -652,6 +652,18 @@ class ConfigurableTask(Task):
 
         if type(test_target) is list:
             self.multiple_target = len(test_target)
+        else:
+            if type(test_target) is int:
+                test_target = self.doc_to_choice(test_target)[test_target]
+
+            if (" " in self._config.target_delimiter) and (" " in test_target):
+                eval_logger.warning("Both target_delimiter and target has whitespace")
+            elif (" " not in self._config.target_delimiter) and (
+                " " not in test_target
+            ):
+                eval_logger.warning(
+                    "Both target_delimiter and target does not have whitespace, ignore if the language you are evaluating on does not require/use whitespace"
+                )
 
     def download(self, dataset_kwargs=None):
 
@@ -1002,8 +1014,20 @@ class ConfigurableTask(Task):
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
 
+            if type(gold) is int:
+                choices = self.doc_to_choice(doc)
+                gold = choices[gold]
+
+            # import sys; sys.exit()
             for key, result in zip(self._metric_fn_list.keys(), results):
-                if self.multiple_target:
+                if not self.multiple_target:
+                    result = self._metric_fn_list[key](
+                        references=[gold],
+                        predictions=[result],
+                        **self._metric_fn_kwargs[key],
+                    )
+                    print("score", result)
+                else:
                     # in the case where we have multiple targets,
                     # return true if any are true
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
@@ -1022,12 +1046,6 @@ class ConfigurableTask(Task):
                         result = 1.0
                     else:
                         result = 0.0
-                else:
-                    result = self._metric_fn_list[key](
-                        references=[gold],
-                        predictions=[result],
-                        **self._metric_fn_kwargs[key],
-                    )
 
                 if isinstance(result, dict):
                     result_dict.update(result)
