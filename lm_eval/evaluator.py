@@ -35,7 +35,7 @@ def simple_evaluate(
     model,
     model_args=None,
     tasks=[],
-    num_fewshot=0,
+    num_fewshot=None,
     batch_size=None,
     max_batch_size=None,
     device=None,
@@ -112,7 +112,17 @@ def simple_evaluate(
             + "_rank" + str(lm.rank) + ".db",
         )
 
-    task_dict = lm_eval.tasks.get_task_dict(tasks, num_fewshot=num_fewshot)
+    task_dict = lm_eval.tasks.get_task_dict(tasks)
+    for task_name in task_dict.keys():
+        config = task_dict[task_name]._config
+        if num_fewshot is not None:
+            if config["num_fewshot"] > 0:
+                default_num_fewshot = config["num_fewshot"]
+                eval_logger.warning(
+                    f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
+                )
+
+            task_dict[task_name]._config.__setitem__("num_fewshot", num_fewshot)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -134,7 +144,6 @@ def simple_evaluate(
             if isinstance(model, str)
             else model.model.config._name_or_path,
             "model_args": model_args,
-            "num_fewshot": num_fewshot,
             "batch_size": batch_size,
             "batch_sizes": list(lm.batch_sizes.values())
             if hasattr(lm, "batch_sizes")
@@ -169,8 +178,6 @@ def evaluate(
         Language Model
     :param task_dict: dict[str, Task]
         Dictionary of tasks. Tasks will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
-    :param num_fewshot: int
-        Number of examples in few-shot context
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
@@ -359,6 +366,7 @@ def evaluate(
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
             results[task_name][metric + "," + key] = task.aggregation()[metric](items)
+            # results[task_name]['num_fewshot'] = configs[task_name]
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this

@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument(
         "--num_fewshot",
         type=int,
-        default=0,
+        default=None,
         help="Number of examples in few-shot context",
     )
     parser.add_argument("--batch_size", type=int, default=1)  # TODO: only integers
