@@ -398,11 +398,12 @@ def evaluate(
             #        | word_perplexity
             #        | byte_perplexity
             #        | bits_per_byte
-            group_name = task_groups[task_name]
-            if metric not in aggregate[group_name]:
-                aggregate[group_name][metric] = [task_score]
-            else:
-                aggregate[group_name][metric].append(task_score)
+            if bool(task_groups):
+                group_name = task_groups[task_name]
+                if metric not in aggregate[group_name]:
+                    aggregate[group_name][metric] = [task_score]
+                else:
+                    aggregate[group_name][metric].append(task_score)
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
@@ -417,14 +418,15 @@ def evaluate(
                 if stderr is not None:
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
-        for group in aggregate.keys():
-            for metric in aggregate[group].keys():
-                aggregate[group][metric] = np.average(aggregate[group][metric])
-                versions[group] = "N/A"
+        if not bool(aggregate):
+            for group in aggregate.keys():
+                for metric in aggregate[group].keys():
+                    aggregate[group][metric] = np.average(aggregate[group][metric])
+                    versions[group] = "N/A"
 
         results_dict = {
             "results": dict(results),
-            "aggregate": dict(aggregate),
+            **({"aggregate": dict(aggregate)} if bool(aggregate) else {}),
             "configs": dict(configs),
             "versions": dict(versions),
         }
