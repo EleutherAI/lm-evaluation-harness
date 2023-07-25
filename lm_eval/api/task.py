@@ -471,6 +471,9 @@ class Task(abc.ABC):
             return labeled_examples + example
         elif type(example) == list:
             return [labeled_examples + ex for ex in example]
+        elif type(example) == int:
+            choices = self.doc_to_choice(doc)
+            return labeled_examples + choices[example]
 
     def apply_filters(self):
 
