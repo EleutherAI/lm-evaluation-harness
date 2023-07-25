@@ -267,8 +267,8 @@ def make_table(result_dict):
     latex_writer = LatexTableWriter()
     md_writer.headers = [
         "Task",
-        "Fewshot",
         "Version",
+        "Fewshot",
         "Filter",
         "Metric",
         "Value",
@@ -277,8 +277,8 @@ def make_table(result_dict):
     ]
     latex_writer.headers = [
         "Task",
-        "Fewshot",
         "Version",
+        "Fewshot",
         "Filter",
         "Metric",
         "Value",
@@ -298,7 +298,7 @@ def make_table(result_dict):
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                values.append([k, n, version, f, m, "%.4f" % v, "±", "%.4f" % se])
+                values.append([k, version, n, f, m, "%.4f" % v, "±", "%.4f" % se])
             else:
                 values.append([k, n, version, f, m, "%.4f" % v, "", ""])
             k = ""
