@@ -300,7 +300,7 @@ def make_table(result_dict):
                 se = dic[m + "_stderr" + "," + f]
                 values.append([k, version, n, f, m, "%.4f" % v, "±", "%.4f" % se])
             else:
-                values.append([k, n, version, f, m, "%.4f" % v, "", ""])
+                values.append([k, version, n, f, m, "%.4f" % v, "", ""])
             k = ""
             n = ""
             version = ""
