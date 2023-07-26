@@ -350,7 +350,7 @@ class HFLM(LM):
         def forward_batch(batch_size):
             test_batch = torch.ones((batch_size, max_length), device=self.device).long()
             for _ in range(5):
-                _ = F.log_softmax(self._model_call(test_batch), dim=-1).cpu()
+                out = F.log_softmax(self._model_call(test_batch), dim=-1)
             return batch_size
 
         batch_size = forward_batch()
