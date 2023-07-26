@@ -794,3 +794,22 @@ class AutoLlamaCausalLM(AutoCausalLM):
     """Causal language modeling supporting Llama
     """
     AUTO_TOKENIZER_CLASS: transformers.AutoTokenizer = transformers.LlamaTokenizer
+
+class AutoGLM(AutoCausalLM):
+
+    AUTO_MODEL_CLASS = transformers.AutoModel
+    AUTO_TOKENIZER_CLASS: transformers.AutoTokenizer = transformers.AutoTokenizer
+
+    def _create_auto_tokenizer(
+        self,
+        *,
+        pretrained: str,
+        revision: str,
+        subfolder: str,
+        """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
+        tokenizer = self.AUTO_TOKENIZER_CLASS.from_pretrained(
+            pretrained if tokenizer is None else tokenizer,
+            revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            use_fast=False, trust_remote_code=True,
+        )
+        return tokenizer
