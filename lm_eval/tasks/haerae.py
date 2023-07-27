@@ -24,7 +24,7 @@ class Haerae(MultipleChoiceTask):
         out_doc = {
             "query": doc["query"],
             "choices": choices,
-            "gold": int(doc['gold']),
+            "gold": int(doc['gold'])-1,
         }
         return out_doc
 
