@@ -24,7 +24,7 @@ def parse_args():
         help="String arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
     )
     parser.add_argument(
-        "--tasks", default=None, choices=utils.MultiChoice(sorted(ALL_TASKS))
+        "--tasks", default=None  # , choices=utils.MultiChoice(sorted(ALL_TASKS))
     )
     parser.add_argument(
         "--num_fewshot",
@@ -137,6 +137,7 @@ def main():
             eval_logger.warning(
                 f"File already exists at {path}. Results will be overwritten."
             )
+            output_path_file = path.joinpath("results.json")
             assert not path.is_file(), "File already exists"
         # if path json then get parent dir
         elif path.suffix in (".json", ".jsonl"):
@@ -182,7 +183,7 @@ def main():
             if args.log_samples:
                 for task_name, config in results["configs"].items():
                     output_name = "{}_{}".format(
-                        re.sub("/", "__", args.model_args), task_name
+                        re.sub("/|=", "__", args.model_args), task_name
                     )
                     filename = path.joinpath(f"{output_name}.jsonl")
 
