@@ -22,14 +22,14 @@ class CSATQA(MultipleChoiceTask):
 ### Context: {doc["context"]}
 ### Question: {doc["question"]}
 ### Options:
-(1) {doc['option#1']}\n(2) {doc["option#2"]}\n(3) {doc["option#3"]}\n(4) {doc['option#4']}\n(5) {doc['option$5']}
+(1) {doc['option#1']}\n(2) {doc["option#2"]}\n(3) {doc["option#3"]}\n(4) {doc['option#4']}\n(5) {doc['option#5']}
 ### Answer: 주어진 문제의 정답은"""
 
         choices = [doc["option#1"], doc["option#2"], doc["option#3"], doc["option#4"], doc["option#5"]]
         out_doc = {
             "question": instruction,
             "choices": ["(1)", "(2)","(3)","(4)","(5)"],
-            "gold": int(doc['gold']),
+            "gold": int(doc['gold'])-1,
         }
         return out_doc
 
