@@ -3,7 +3,7 @@ from lm_eval.base import MultipleChoiceTask
 
 class Haerae(MultipleChoiceTask):
     VERSION = 0
-    DATASET_PATH = "data/haerae/haerae.py"
+    DATASET_PATH = "amphora/HaeRae_Bench"
 
     def has_training_docs(self):
         return False
