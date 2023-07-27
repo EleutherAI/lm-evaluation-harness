@@ -18,6 +18,9 @@ setuptools.setup(
         "lm_eval": ["**/*.yaml"],
         "examples": ["**/*.yaml"],
     },
+    entry_points={
+        "console_scripts": ["lm-eval = main:main", "lm_eval = main:main"],
+    },
     include_package_data=True,
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -50,6 +53,13 @@ setuptools.setup(
     ],
     extras_require={
         "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],
+        "linting": [
+            "flake8",
+            "pylint",
+            "mypy",
+            "pre-commit",
+        ],
+        "testing": ["pytest", "pytest-cov", "pytest-xdist"],
         "multilingual": ["nagisa>=0.2.7", "jieba>=0.42.1"],
         "sentencepiece": ["sentencepiece>=0.1.98", "protobuf>=4.22.1"],
         "promptsource": [
