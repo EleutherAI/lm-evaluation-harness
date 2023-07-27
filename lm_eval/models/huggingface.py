@@ -596,6 +596,10 @@ class HFLM(LM):
             sched = pos // int(n_reordered_requests / self.batch_schedule)
             if sched in self.batch_sizes:
                 return self.batch_sizes[sched]
+            if (len(self.batch_sizes) > 1) and (self.batch_sizes[sched-1] == self.max_batch_size):
+                # if previous batch size is already maximal, skip recomputation
+                self.batch_sizes[sched] = self.max_batch_size
+                return self.batch_sizes[sched]
             print(
                 f"Passed argument batch_size = auto:{self.batch_schedule}. Detecting largest batch size"
             )
