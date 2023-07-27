@@ -3,6 +3,15 @@ env
 data/
 lm_cache
 .idea
-
-*.egg-info/
+build
+dist
+*.egg-info
+venv
 .vscode/
+temp
+__pycache__
+.ipynb_checkpoints
+temp
+# IPython
+profile_default/
+ipython_config.py
