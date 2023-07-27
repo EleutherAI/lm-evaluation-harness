@@ -472,6 +472,9 @@ class Task(abc.ABC):
             return labeled_examples + example
         elif type(example) == list:
             return [labeled_examples + ex for ex in example]
+        elif type(example) == int:
+            choices = self.doc_to_choice(doc)
+            return labeled_examples + choices[example]
 
     def apply_filters(self):
 
@@ -950,21 +953,20 @@ class ConfigurableTask(Task):
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
+                exact_match = int(any([is_greedy[i] for i in gold]))
             else:
                 acc = 1.0 if pred == gold else 0.0
                 acc_norm = 1.0 if pred_norm == gold else 0.0
+                # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
+                exact_match = int(is_greedy[gold])
 
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
                 **({"f1": (gold, pred)} if "f1" in use_metric else {}),
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
+                **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
             }
-
-            if "exact_match" in self._metric_fn_list.keys():
-                # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
-                is_greedy = is_greedy[gold]  # take value for the gold answer
-                result_dict["exact_match"] = int(is_greedy)
 
             if "acc_mutual_info" in use_metric:
                 lls_mutual_info = [
