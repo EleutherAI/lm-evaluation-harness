@@ -64,6 +64,7 @@ from . import mgsm
 from . import scrolls
 from . import ceval
 from . import csatqa
+from . import haerae
 
 ########################################
 # Translation tasks
@@ -325,6 +326,12 @@ TASK_REGISTRY = {
     "csatqa_rcss": csatqa.RCSS,
     "csatqa_rch": csatqa.RCH,
     "csatqa_li": csatqa.LI,
+    "haerae_hi": haerae.HI,
+    "haerae_kgk":haerae.KGK,
+    "haerae_lw":haerae.LW,
+    "haerae_rc":haerae.RC,
+    "haerae_rw":haerae.RW,
+    "haerae_sn":haerae.SN,
     # Requires manual download
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
