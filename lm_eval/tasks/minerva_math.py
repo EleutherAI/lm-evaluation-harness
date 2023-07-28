@@ -397,7 +397,7 @@ class MinervaMathAlgebraEasy(MinervaMath):
         return data
 
     def test_docs(self):
-        data = map(self._process_doc, self.dataset["train"])
+        data = map(self._process_doc, self.dataset["test"])
         data = filter(lambda x: x['level'] == 'Level 1', data)
         return data
 
