@@ -256,6 +256,9 @@ class MinervaMath(Task):
         except TimeoutError:
             print(f"Timed out comparing {x1} and {x2}")
             return False
+        except Exception as e: 
+            print(f"Failed comparing {x1} and {x2} with {e}")
+            return False
 
 
     def majority_vote(self, candidates):
