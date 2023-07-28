@@ -41,12 +41,6 @@ def anthropic_completion(
             )
             time.sleep(backoff_time)
             backoff_time *= 1.5
-        except anthropic.APIConnectionError as e:
-            eval_logger.critical(f"Server unreachable: {e.__cause__}")
-            break
-        except anthropic.APIStatusError as e:
-            eval_logger.critical(f"API error {e.status_code}: {e.message}")
-            break
 
 
 @register_model("anthropic")
@@ -122,21 +116,28 @@ class AnthropicLM(LM):
 
         res = []
         for request in tqdm(requests):
-            inp = request[0]
-            request_args = request[1]
-            until = request_args["until"]
-            response = anthropic_completion(
-                client=self.client,
-                model=self.model,
-                prompt=inp,
-                max_tokens_to_sample=self.max_tokens_to_sample,
-                temperature=self.temperature,  # TODO: implement non-greedy sampling for Anthropic
-                stop=until,
-                **self.kwargs,
-            )
-            res.append(response)
+            try:
+                inp = request[0]
+                request_args = request[1]
+                until = request_args["until"]
+                response = anthropic_completion(
+                    client=self.client,
+                    model=self.model,
+                    prompt=inp,
+                    max_tokens_to_sample=self.max_tokens_to_sample,
+                    temperature=self.temperature,  # TODO: implement non-greedy sampling for Anthropic
+                    stop=until,
+                    **self.kwargs,
+                )
+                res.append(response)
 
-            self.cache_hook.add_partial("greedy_until", request, response)
+                self.cache_hook.add_partial("greedy_until", request, response)
+            except anthropic.APIConnectionError as e:
+                eval_logger.critical(f"Server unreachable: {e.__cause__}")
+                break
+            except anthropic.APIStatusError as e:
+                eval_logger.critical(f"API error {e.status_code}: {e.message}")
+                break
 
         return res
 
