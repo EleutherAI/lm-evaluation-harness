@@ -101,6 +101,8 @@ class MinervaMath(Task):
     EVAL_BATCH_SIZE = "eval_batch_size"
     INVALID_ANSWER="[invalidanswer]"
 
+    end_seq = "I hope it is correct."
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         print("WARNING: Ignores --num-fewshot argument and uses a fixed prompt")
@@ -186,7 +188,7 @@ class MinervaMath(Task):
 
     def construct_requests(self, doc, ctx, params={}):
         if params == {}:
-            return rf.generate(ctx, ["```"])
+            return rf.generate(ctx, [self.end_seq])
         
         majority_voting_value = int(params.get(self.MAJORITY_VOTING, 1))
         sampling_temperature_value = float(params.get(self.SAMPLING_TEMPERATURE, 1.0))
@@ -197,7 +199,7 @@ class MinervaMath(Task):
             'temperature': sampling_temperature_value,
             'num_return_sequences_batch': eval_batch_size
         }
-        return rf.generate(ctx, ["```"], generation_params)
+        return rf.generate(ctx, [self.end_seq], generation_params)
     
     def fewshot_context(
             self, doc, num_fewshot, provide_description=None, rnd=None, description=None
@@ -208,6 +210,7 @@ class MinervaMath(Task):
         return prompt
 
     def get_unnormalized_answer(self, text: str):
+        text += self.end_seq
         match = re.search(
                 r'Final Answer: The final answer is(.*?). I hope it is correct.',
                 text,
