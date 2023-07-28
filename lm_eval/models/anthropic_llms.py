@@ -5,7 +5,7 @@ from tqdm import tqdm
 import time
 import anthropic
 from lm_eval.logger import eval_logger
-from typing import List, Literal
+from typing import List, Literal, Any
 
 
 def anthropic_completion(
@@ -57,6 +57,7 @@ class AnthropicLM(LM):
         model: str = "claude-2.0",
         max_tokens_to_sample: int = 256,
         temperature: float = 0.0,
+        **kwargs: Any,  # api_key, auth_token, etc.
     ):  # TODO: remove batch_size
         """Anthropic API wrapper.
 
@@ -66,7 +67,8 @@ class AnthropicLM(LM):
         super().__init__()
 
         self.model = model
-        self.client = anthropic.Anthropic()
+        # defaults to os.environ.get("ANTHROPIC_API_KEY")
+        self.client = anthropic.Anthropic(**kwargs)
         self.temperature = temperature
         self.max_tokens_to_sample = max_tokens_to_sample
         self.tokenizer = self.client.get_tokenizer()
