@@ -14,3 +14,15 @@ metric_list:
   - metric: exact_match
     aggregation: mean
     higher_is_better: true
+generation_kwargs:
+  do_sample: false
+  temperature: 0.0
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        # starts with A-D excluding leading spaces
+        # original implementation uses a.startswith(b)
+        # https://github.com/openai/evals/blob/305b237cdb3884c7ddb6a5d12cb184a83551fcba/evals/api.py#L84
+        regex_pattern: "^\\s*([A-D])"
+      - function: "take_first"
