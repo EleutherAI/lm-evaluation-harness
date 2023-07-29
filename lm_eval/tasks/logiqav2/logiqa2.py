@@ -55,6 +55,10 @@ _URLS = {
         "validation": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa2nli/DATA/QA2NLI/dev.txt",
         "test": "https://raw.githubusercontent.com/csitfun/LogiQA2.0/main/logiqa2nli/DATA/QA2NLI/test.txt",
     },
+    "logieval": {
+        "train": "https://raw.githubusercontent.com/csitfun/LogiEval/main/Data/logiqa_ood.jsonl",
+        "test": "https://raw.githubusercontent.com/csitfun/LogiEval/main/Data/logiqa.jsonl",
+    },
 }
 
 
@@ -90,6 +94,11 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
             version=VERSION,
             description="The NLI part of LogiQA2.0 dataset",
         ),
+        datasets.BuilderConfig(
+            name="logieval",
+            version=VERSION,
+            description="Instruction based MRC task",
+        ),
     ]
     DEFAULT_CONFIG_NAME = "logiqa2"
 
@@ -122,6 +131,10 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
                     "conclusion": datasets.Value("string"),
                 }
             )
+        elif self.config.name in ("logiqa2_nli", "logieval"):
+            features = datasets.Features(
+                {"content": datasets.Value("string"), "ideal": datasets.Value("string")}
+            )
         else:
             features = datasets.Features(
                 {
@@ -147,10 +160,11 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
         urls = {
             "train": _urls["train"],
             "test": _urls["test"],
-            "validation": _urls["validation"],
         }
+        if "validation" in _urls:
+            urls["validation"] = _urls["validation"]
         data_dir = dl_manager.download_and_extract(urls)
-        return [
+        splits = [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
@@ -164,15 +178,19 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": data_dir["test"], "split": "test"},
             ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": data_dir["validation"],
-                    "split": "validation",
-                },
-            ),
         ]
+        if "validation" in _urls:
+            splits.append(
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    # These kwargs will be passed to _generate_examples
+                    gen_kwargs={
+                        "filepath": data_dir["validation"],
+                        "split": "validation",
+                    },
+                )
+            )
+        return splits
 
     def _generate_examples(self, filepath, split):
         with open(filepath, encoding="utf-8") as f:
@@ -196,7 +214,11 @@ class LogiQA2(datasets.GeneratorBasedBuilder):
                         "minor_premise": data["minor_premise"],
                         "conclusion": data["conclusion"],
                     }
-
+                elif self.config.name == "logieval":
+                    yield key, {
+                        "content": data["input"][1]["content"],
+                        "ideal": data["ideal"],
+                    }
                 else:
                     yield key, {
                         "id": data["id"],

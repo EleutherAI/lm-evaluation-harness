@@ -1,0 +1,16 @@
+#group:
+#  - greedy_until
+task: logieval
+dataset_path: lm_eval/tasks/logiqav2/logiqa2.py
+dataset_name: logieval
+output_type: greedy_until
+training_split: train
+#validation_split: validation
+test_split: test
+# Instructions + {content}
+doc_to_text: "Instructions: You will be presented with a passage and a question about that passage. There are four options to be chosen from, you need to choose the only correct option to answer that question. If the first option is right, you generate the answer 'A', if the second option is right, you generate the answer 'B', if the third option is right, you generate the answer 'C', if the fourth option is right, you generate the answer 'D'. Read the question and options thoroughly and select the correct answer from the four answer labels. Read the passage thoroughly to ensure you know what the passage entails.\n{{content}}"
+doc_to_target: "{{ideal}}"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true

@@ -31,6 +31,8 @@ Homepage: https://github.com/csitfun/LogiQA2.0
 
 `logiqa2_NLI`: The NLI version of the dataset converted from the MRC version.
 
+`logieval`: Prompt based; https://github.com/csitfun/LogiEval
+
 The subtasks have not been verified yet.
 
 ### Checklist
@@ -38,7 +40,7 @@ The subtasks have not been verified yet.
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
   * [x] If yes, does the original paper provide a reference implementation?
-    * [x] The original paper does not. There is another implementation of this task, but it seems to be designed for instruction tuned models: https://github.com/csitfun/LogiEval
+    * [x] The original paper does not. There is another implementation of this task, but it designed for instruction tuned models: https://github.com/csitfun/LogiEval
 
 If other tasks on this dataset are already supported:
 * [x] Is the "Main" variant of this task clearly denoted?
