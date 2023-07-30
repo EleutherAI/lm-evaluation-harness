@@ -35,7 +35,7 @@ class LLMToolsModel(LM):
                 }
                 r = requests.post(url, json=data).json()
                 responses.append(r["response"])
-                self.cache_hook.add_partial("greedy_until", inputs[i], r["response"])
+
             except Exception as e:
                 e = traceback.format_exc(limit=None, chain=True)
                 msg = "Exception from /api/generate\n"
@@ -50,45 +50,27 @@ class LLMToolsModel(LM):
 
     # token probabilities
     def loglikelihood(self, _requests):
-        #"{{['flight', 'airfare', 'ground_service', 'airline', 'flight_time', 'quantity', 'abbreviation', 'aircraft']}}"
-        #print(type(_requests))
-        #print(type(_requests[0]))
-        print(_requests[0])
-        print()
-        print(_requests[12])
-
         inputs = [x.args[0] for x in _requests]
         targets = [x.args[1] for x in _requests]
-        #targets = ['atis_flight', 'atis_flight_time', 'atis_airfare', 'atis_aircraft', 'atis_ground_service', 'atis_airline', 'atis_abbreviation', 'atis_quantity']
          
         scores = []
         for i in range(len(inputs)):
             try:
                 if i%50==0:
                     print(f"single_cond_log_prob {i}/{len(inputs)}")
-                # if i > 50:
-                #     scores.append([0.0]*8) 
-                #     continue   
+
                 url = self.api_url + "/api/single_cond_log_prob"
-                #print(inputs[i])
-                #print("True value is", targets[i])
-                #print()
+
                 data = {
                     "doc": inputs[i],
                     "targets": targets[i]
                 }
                 r = requests.post(url, json=data).json()
-                print(r)
-                # if i%50==0:
-                #     print("Log value computed is ", r["cond_log_prob"])
-                #print(type(r["cond_log_prob"]))
-                #print(r["cond_log_prob"])
+
+                #ToDo: implement is_greedy logic 
                 is_greedy = False;
                 scores.append((r["single_cond_log_prob"], is_greedy))
-                #print(scores)
-                # self.cache_hook.add_partial(
-                #     "loglikelihood", (inputs[i], targets[i]), r["cond_log_prob"]
-                # )
+
             except Exception as e:
                 e = traceback.format_exc(limit=None, chain=True)
                 msg = "Exception from /api/single_cond_log_prob\n"
