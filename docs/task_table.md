@@ -286,6 +286,13 @@
 |reversed_words                                           |     |✓  |    |        10000|acc                                                                                                                                                                              |
 |rte                                                      |✓    |✓  |    |          277|acc                                                                                                                                                                              |
 |sciq                                                     |✓    |✓  |✓   |         1000|acc, acc_norm                                                                                                                                                                    |
+|scrolls_contractnli                                      |✓    |✓  |    |         1037|em, acc, acc_norm                                                                                                                                                                |
+|scrolls_govreport                                        |✓    |✓  |    |          972|rouge1, rouge2, rougeL                                                                                                                                                           |
+|scrolls_narrativeqa                                      |✓    |✓  |    |         3425|f1                                                                                                                                                                               |
+|scrolls_qasper                                           |✓    |✓  |    |          984|f1                                                                                                                                                                               |
+|scrolls_qmsum                                            |✓    |✓  |    |          272|rouge1, rouge2, rougeL                                                                                                                                                           |
+|scrolls_quality                                          |✓    |✓  |    |         2086|em, acc, acc_norm                                                                                                                                                                |
+|scrolls_summscreenfd                                     |✓    |✓  |    |          338|rouge1, rouge2, rougeL                                                                                                                                                           |
 |squad2                                                   |✓    |✓  |    |        11873|exact, f1, HasAns_exact, HasAns_f1, NoAns_exact, NoAns_f1, best_exact, best_f1                                                                                                   |
 |sst                                                      |✓    |✓  |    |          872|acc                                                                                                                                                                              |
 |swag                                                     |✓    |✓  |    |        20006|acc, acc_norm                                                                                                                                                                    |
@@ -371,3 +378,55 @@
 |xwinograd_pt                                             |     |   |✓   |          263|acc                                                                                                                                                                              |
 |xwinograd_ru                                             |     |   |✓   |          315|acc                                                                                                                                                                              |
 |xwinograd_zh                                             |     |   |✓   |          504|acc                                                                                                                                                                              |
+| Ceval-valid-computer_network                         |   | ✓ |   | 19 | acc |
+| Ceval-valid-operating_system                         |   | ✓ |   | 19 | acc |
+| Ceval-valid-computer_architecture                    |   | ✓ |   | 21 | acc |
+| Ceval-valid-college_programming                      |   | ✓ |   | 37 | acc |
+| Ceval-valid-college_physics                          |   | ✓ |   | 19 | acc |
+| Ceval-valid-college_chemistry                        |   | ✓ |   | 24 | acc |
+| Ceval-valid-advanced_mathematics                     |   | ✓ |   | 19 | acc |
+| Ceval-valid-probability_and_statistics               |   | ✓ |   | 18 | acc |
+| Ceval-valid-discrete_mathematics                     |   | ✓ |   | 16 | acc |
+| Ceval-valid-electrical_engineer                      |   | ✓ |   | 37 | acc |
+| Ceval-valid-metrology_engineer                       |   | ✓ |   | 24 | acc |
+| Ceval-valid-high_school_mathematics                  |   | ✓ |   | 18 | acc |
+| Ceval-valid-high_school_physics                      |   | ✓ |   | 19 | acc |
+| Ceval-valid-high_school_chemistry                    |   | ✓ |   | 19 | acc |
+| Ceval-valid-high_school_biology                      |   | ✓ |   | 19 | acc |
+| Ceval-valid-middle_school_mathematics                |   | ✓ |   | 19 | acc |
+| Ceval-valid-middle_school_biology                    |   | ✓ |   | 21 | acc |
+| Ceval-valid-middle_school_physics                    |   | ✓ |   | 19 | acc |
+| Ceval-valid-middle_school_chemistry                  |   | ✓ |   | 20 | acc |
+| Ceval-valid-veterinary_medicine                      |   | ✓ |   | 23 | acc |
+| Ceval-valid-college_economics                        |   | ✓ |   | 55 | acc |
+| Ceval-valid-business_administration                  |   | ✓ |   | 33 | acc |
+| Ceval-valid-marxism                                  |   | ✓ |   | 19 | acc |
+| Ceval-valid-mao_zedong_thought                       |   | ✓ |   | 24 | acc |
+| Ceval-valid-education_science                        |   | ✓ |   | 29 | acc |
+| Ceval-valid-teacher_qualification                    |   | ✓ |   | 44 | acc |
+| Ceval-valid-high_school_politics                     |   | ✓ |   | 19 | acc |
+| Ceval-valid-high_school_geography                    |   | ✓ |   | 19 | acc |
+| Ceval-valid-middle_school_politics                   |   | ✓ |   | 21 | acc |
+| Ceval-valid-middle_school_geography                  |   | ✓ |   | 12 | acc |
+| Ceval-valid-modern_chinese_history                   |   | ✓ |   | 23 | acc |
+| Ceval-valid-ideological_and_moral_cultivation        |   | ✓ |   | 19 | acc |
+| Ceval-valid-logic                                    |   | ✓ |   | 22 | acc |
+| Ceval-valid-law                                      |   | ✓ |   | 24 | acc |
+| Ceval-valid-chinese_language_and_literature          |   | ✓ |   | 23 | acc |
+| Ceval-valid-art_studies                              |   | ✓ |   | 33 | acc |
+| Ceval-valid-professional_tour_guide                  |   | ✓ |   | 29 | acc |
+| Ceval-valid-legal_professional                       |   | ✓ |   | 23 | acc |
+| Ceval-valid-high_school_chinese                      |   | ✓ |   | 19 | acc |
+| Ceval-valid-high_school_history                      |   | ✓ |   | 20 | acc |
+| Ceval-valid-middle_school_history                    |   | ✓ |   | 22 | acc |
+| Ceval-valid-civil_servant                            |   | ✓ |   | 47 | acc |
+| Ceval-valid-sports_science                           |   | ✓ |   | 19 | acc |
+| Ceval-valid-plant_protection                         |   | ✓ |   | 22 | acc |
+| Ceval-valid-basic_medicine                           |   | ✓ |   | 19 | acc |
+| Ceval-valid-clinical_medicine                        |   | ✓ |   | 22 | acc |
+| Ceval-valid-urban_and_rural_planner                  |   | ✓ |   | 46 | acc |
+| Ceval-valid-accountant                               |   | ✓ |   | 49 | acc |
+| Ceval-valid-fire_engineer                            |   | ✓ |   | 31 | acc |
+| Ceval-valid-environmental_impact_assessment_engineer |   | ✓ |   | 31 | acc |
+| Ceval-valid-tax_accountant                           |   | ✓ |   | 49 | acc |
+| Ceval-valid-physician                                |   | ✓ |   | 49 | acc |
