@@ -130,6 +130,9 @@ class TaskConfig(dict):
     def __getitem__(self, item):
         return getattr(self, item)
 
+    def __setitem__(self, item, value):
+        return setattr(self, item, value)
+
     def to_dict(self):
         """dumps the current config as a dictionary object, as a printable format.
         null fields will not be printed.
