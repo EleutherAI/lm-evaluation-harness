@@ -3,7 +3,7 @@ group:
   - perplexity
   - loglikelihood_rolling
 task: pile_arxiv
-dataset_path: EleutherAI/the_pile
+dataset_path: EleutherAI/pile
 dataset_name: pile_arxiv
 output_type: loglikelihood_rolling
 test_split: train
