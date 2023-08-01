@@ -386,9 +386,6 @@ def evaluate(
             task_score = task.aggregation()[metric](items)
             results[task_name][metric + "," + key] = task_score
 
-            # if task_name not in benchmark_agg:
-            #     benchmark[] = [task_score]
-
             # Need to put back in results
             # pythia | acc
             #        | perplexity
@@ -415,7 +412,7 @@ def evaluate(
                 if stderr is not None:
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
-        if not bool(aggregate):
+        if bool(aggregate):
             for group in aggregate.keys():
                 for metric in aggregate[group].keys():
                     aggregate[group][metric] = np.average(aggregate[group][metric])
