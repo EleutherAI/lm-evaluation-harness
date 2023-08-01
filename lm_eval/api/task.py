@@ -555,12 +555,17 @@ class ConfigurableTask(Task):
                     if key not in ["metric", "aggregation", "higher_is_better"]
                 }
 
-                if self._config.process_results is None:
-                    self._metric_fn_list[metric_name] = get_metric(metric_name)
-                    self._metric_fn_kwargs[metric_name] = kwargs
-                else:
+                if self._config.process_results is not None:
                     self._metric_fn_list[metric_name] = None
                     self._metric_fn_kwargs[metric_name] = {}
+                elif callable(metric_name):
+                    metric_fn = metric_name.__call__
+                    metric_name = metric_name.__name__
+                    self._metric_fn_list[metric_name] = metric_fn
+                    self._metric_fn_kwargs[metric_name] = kwargs
+                else:
+                    self._metric_fn_list[metric_name] = get_metric(metric_name)
+                    self._metric_fn_kwargs[metric_name] = kwargs
 
                 if "aggregation" in metric_config:
                     agg_name = metric_config["aggregation"]
@@ -987,6 +992,7 @@ class ConfigurableTask(Task):
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
 
+            print(self._metric_fn_list)
             for key, result in zip(self._metric_fn_list.keys(), results):
                 if self.multiple_target:
                     # in the case where we have multiple targets,
