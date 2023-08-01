@@ -3,7 +3,7 @@ This list keeps track of which tasks' implementations have been ported to YAML /
 
 Boxes should be checked iff tasks are implemented in the refactor and tested for regression. Tasks should be struck through if checked *against original introducing paper* implementation or popularizing implementation. (WIP) Denotes that there exists a PR or person working on this task already.
 
-- [ ] Glue (WIP)
+- [ ] Glue (Lintang)
 - [x] SuperGlue
 - [ ] CoQA
 - [ ] DROP
@@ -20,14 +20,14 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] QA4MRE
 - [ ] TriviaQA
 - [x] AI2 ARC
-- [ ] LogiQA (WIP)
+- [ ] LogiQA [(WIP)](https://github.com/EleutherAI/lm-evaluation-harness/pull/711)
 - [x] HellaSwag
 - [x] SWAG
 - [x] OpenBookQA
-- [ ] SQuADv2 (WIP)
+- [ ] SQuADv2
 - [x] RACE
 - [x] HeadQA
-- [ ] MathQA (WIP)
+- [x] MathQA
 - [ ] WebQs
 - [ ] WSC273
 - [x] Winogrande
@@ -37,28 +37,27 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] TruthfulQA (mc2)
 - [ ] TruthfulQA (gen)
 - [ ] MuTual
-- [ ] Hendrycks Math (WIP)
-- [ ] Asdiv (WIP)
+- [ ] Hendrycks Math
+- [ ] Asdiv
 - [ ] GSM8k
 - [x] Arithmetic
 - [ ] MMMLU
 - [ ] Translation (WMT) suite
 - [x] Unscramble
 - [x] ~~Pile (perplexity)~~
-- [ ] BLiMP
+- [ ] BLiMP (Lintang)
 - [x] ToxiGen
 - [ ] StoryCloze
-- [ ] NaturalQs (WIP)
+- [ ] NaturalQs
 - [ ] CrowS-Pairs
 - [ ] XCopa
 - [ ] BIG-Bench
 - [ ] XStoryCloze
-- [ ] XWinograd
+- [x] XWinograd
 - [ ] PAWS-X
 - [ ] XNLI
 - [ ] MGSM
 - [ ] SCROLLS
-- [ ] JSON Task (reference: https://github.com/EleutherAI/lm-evaluation-harness/pull/481)
 - [ ] Babi
 
 # Novel Tasks
