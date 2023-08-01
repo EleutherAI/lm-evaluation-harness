@@ -10,6 +10,7 @@ from pathlib import Path
 from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger
+from lm_eval.tasks import include_task_folder
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -23,7 +24,7 @@ def parse_args():
         help="String arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
     )
     parser.add_argument(
-        "--tasks", default=None, choices=utils.MultiChoice(sorted(ALL_TASKS))
+        "--tasks", default=None  # , choices=utils.MultiChoice(sorted(ALL_TASKS))
     )
     parser.add_argument(
         "--num_fewshot",
@@ -82,6 +83,18 @@ def parse_args():
         default=False,
         help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis",
     )
+    parser.add_argument(
+        "--show_config",
+        action="store_true",
+        default=False,
+        help="If True, shows the the full config of all tasks at the end of the evaluation.",
+    )
+    parser.add_argument(
+        "--include_path",
+        type=str,
+        default=None,
+        help="Additional path to include if there are external tasks to include.",
+    )
     return parser.parse_args()
 
 
@@ -93,6 +106,10 @@ def main():
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
+
+    if args.include_path is not None:
+        eval_logger.info(f"Including path: {args.include_path}")
+        include_task_folder(args.include_path)
 
     if args.tasks is None:
         task_names = ALL_TASKS
@@ -120,6 +137,7 @@ def main():
             eval_logger.warning(
                 f"File already exists at {path}. Results will be overwritten."
             )
+            output_path_file = path.joinpath("results.json")
             assert not path.is_file(), "File already exists"
         # if path json then get parent dir
         elif path.suffix in (".json", ".jsonl"):
@@ -154,7 +172,8 @@ def main():
         if args.log_samples:
             samples = results.pop("samples")
         dumped = json.dumps(results, indent=2, default=lambda o: str(o))
-        print(dumped)
+        if args.show_config:
+            print(dumped)
 
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
 
@@ -164,7 +183,7 @@ def main():
             if args.log_samples:
                 for task_name, config in results["configs"].items():
                     output_name = "{}_{}".format(
-                        re.sub("/", "__", args.model_args), task_name
+                        re.sub("/|=", "__", args.model_args), task_name
                     )
                     filename = path.joinpath(f"{output_name}.jsonl")
 
@@ -176,6 +195,8 @@ def main():
             f"batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
         )
         print(evaluator.make_table(results))
+        if "aggregate" in results:
+            print(evaluator.make_table(results, "aggregate"))
 
 
 if __name__ == "__main__":

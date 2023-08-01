@@ -5,11 +5,15 @@ dataset_path: super_glue
 dataset_name: cb
 training_split: train
 validation_split: validation
+output_type: greedy_until
 doc_to_text: "cb hypothesis: {{hypothesis}} premise {{premise}}"
-doc_to_target: "{% set answer_choices = ['entailment', 'contradiction', 'neutral'] %}{{answer_choices[label]}}"
+doc_to_target: label
+doc_to_choice: ['entailment', 'contradiction', 'neutral']
 metric_list:
   - metric: exact_match
     aggregation: mean
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
+  - metric: f1
+    aggregation: !function "aggregate.cb_multi_fi"

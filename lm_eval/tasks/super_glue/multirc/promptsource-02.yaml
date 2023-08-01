@@ -1,5 +1,0 @@
-include: promptsource-00.yaml
-group:
-  - super-glue-promptsource
-task: "confirm"
-use_prompt: "promptsource:confirm"
