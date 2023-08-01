@@ -1,5 +1,5 @@
-# group:
-#   - super-glue-lm-eval-v1
+group:
+  - super-glue-lm-eval-v1
 task: record
 dataset_path: super_glue
 dataset_name: record
@@ -9,6 +9,10 @@ validation_split: validation
 doc_to_text: !function util.doc_to_text
 doc_to_target: "{{answers}}"
 doc_to_choice: "{{entities}}"
+process_results: !function util.process_results
 metric_list:
   - metric: f1
+    aggregation: mean
   - metric: em
+    higher_is_better: True
+    aggregation: mean
