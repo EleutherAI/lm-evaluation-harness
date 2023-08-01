@@ -1,7 +1,7 @@
 group:
   - multiple_choice
 task: logiqa2
-dataset_path: lm_eval/tasks/logiqav2/logiqa2.py
+dataset_path: baber/logiqa2
 dataset_name: logiqa2
 output_type: multiple_choice
 training_split: train
