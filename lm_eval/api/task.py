@@ -554,8 +554,13 @@ class ConfigurableTask(Task):
                     for key in metric_config
                     if key not in ["metric", "aggregation", "higher_is_better"]
                 }
-                self._metric_fn_list[metric_name] = get_metric(metric_name)
-                self._metric_fn_kwargs[metric_name] = kwargs
+
+                if self._config.process_results is None:
+                    self._metric_fn_list[metric_name] = get_metric(metric_name)
+                    self._metric_fn_kwargs[metric_name] = kwargs
+                else:
+                    self._metric_fn_list[metric_name] = None
+                    self._metric_fn_kwargs[metric_name] = {}
 
                 if "aggregation" in metric_config:
                     agg_name = metric_config["aggregation"]
