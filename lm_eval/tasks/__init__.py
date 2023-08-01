@@ -56,8 +56,6 @@ def check_prompt_config(config):
                             [
                                 get_task_name_from_config(config),
                                 prompt_variation,
-                                # "promptsource",
-                                # str(idx).zfill(2),
                             ]
                         )
                     },
