@@ -9,7 +9,6 @@ validation_split: validation
 doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
 doc_to_target: label
 doc_to_choice: ['no', 'yes']
-target_delimiter: ""
 generation_kwargs:
   until:
     - "\n\n"
