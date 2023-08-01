@@ -1,3 +1,4 @@
+from lm_eval import utils
 from lm_eval.logger import eval_logger
 
 # Prompt library.
@@ -51,3 +52,17 @@ def get_prompt(prompt_id: str, dataset_name=None, subset_name=None):
                 f"expected only a single `:` as separator between \
                 prompt category and name, but got `{prompt_id}` instead"
             )
+
+
+def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, **kwargs):
+
+    from promptsource.templates import DatasetTemplates
+
+    if subset_name is None:
+        prompts = DatasetTemplates(dataset_name=dataset_name)
+    else:
+        prompts = DatasetTemplates(dataset_name=dataset_name, subset_name=subset_name)
+
+    category_name, prompt_name = use_prompt.split(":")
+    prompt_list = utils.pattern_match(prompt_name, prompts.all_template_names)
+    return [":".join([category_name, prompt]) for prompt in prompt_list]

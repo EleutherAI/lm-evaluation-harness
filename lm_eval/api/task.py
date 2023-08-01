@@ -70,6 +70,7 @@ class TaskConfig(dict):
     doc_to_target: Union[Callable, str] = None
     doc_to_choice: Union[Callable, str, dict, list] = None
     gold_alias: Union[Callable, str] = None
+    process_results: Union[Callable, str] = None
     use_prompt: str = None
     description: str = ""
     target_delimiter: str = " "
@@ -545,8 +546,18 @@ class ConfigurableTask(Task):
                     for key in metric_config
                     if key not in ["metric", "aggregation", "higher_is_better"]
                 }
-                self._metric_fn_list[metric_name] = get_metric(metric_name)
-                self._metric_fn_kwargs[metric_name] = kwargs
+
+                if self._config.process_results is not None:
+                    self._metric_fn_list[metric_name] = None
+                    self._metric_fn_kwargs[metric_name] = {}
+                elif callable(metric_name):
+                    metric_fn = metric_name.__call__
+                    metric_name = metric_name.__name__
+                    self._metric_fn_list[metric_name] = metric_fn
+                    self._metric_fn_kwargs[metric_name] = kwargs
+                else:
+                    self._metric_fn_list[metric_name] = get_metric(metric_name)
+                    self._metric_fn_kwargs[metric_name] = kwargs
 
                 if "aggregation" in metric_config:
                     agg_name = metric_config["aggregation"]
@@ -885,8 +896,8 @@ class ConfigurableTask(Task):
 
     def process_results(self, doc, results):
 
-        # if callable(self._config.process_results):
-        #     return self._config.process_results(doc, results)
+        if callable(self._config.process_results):
+            return self._config.process_results(doc, results)
 
         result_dict = {}
         use_metric = list(self._metric_fn_list.keys())
@@ -975,7 +986,11 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "greedy_until":
 
             gold = self.doc_to_target(doc)
+            if type(gold) == int:
+                choices = self.doc_to_choice(doc)
+                gold = choices[gold]
 
+            print(self._metric_fn_list)
             for key, result in zip(self._metric_fn_list.keys(), results):
                 if self.multiple_target:
                     # in the case where we have multiple targets,
