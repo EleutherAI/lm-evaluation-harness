@@ -6,7 +6,6 @@ dataset_name: arithmetic_1dc
 output_type: loglikelihood
 validation_split: validation
 test_split: null
-template_aliases: ""
 doc_to_text: "{{context}}"
 doc_to_target: "{{completion}}"
 metric_list:
