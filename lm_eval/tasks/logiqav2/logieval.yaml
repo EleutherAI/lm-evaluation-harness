@@ -1,7 +1,7 @@
 #group:
 #  - greedy_until
 task: logieval
-dataset_path: lm_eval/tasks/logiqav2/logiqa2.py
+dataset_path: baber/logiqa2
 dataset_name: logieval
 output_type: greedy_until
 training_split: train
