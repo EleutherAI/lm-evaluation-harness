@@ -419,10 +419,14 @@ def evaluate(
                     versions[group] = "N/A"
 
         results_dict = {
-            "results": dict(results),
-            **({"aggregate": dict(aggregate)} if bool(aggregate) else {}),
-            "configs": dict(configs),
-            "versions": dict(versions),
+            "results": dict(sorted(results.items())),
+            **(
+                {"aggregate": dict(sorted(aggregate.items()))}
+                if bool(aggregate)
+                else {}
+            ),
+            "configs": dict(sorted(configs.items())),
+            "versions": dict(sorted(versions.items())),
         }
         if log_samples:
             results_dict["samples"] = dict(samples)
