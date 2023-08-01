@@ -1,6 +1,7 @@
 import os
 import evaluate
 from lm_eval.api.model import LM
+from lm_eval.logger import eval_logger
 
 MODEL_REGISTRY = {}
 
@@ -131,7 +132,7 @@ searching in HF Evaluate library..."
             metric_object = evaluate.load(name)
             return metric_object.compute
         except Exception:
-            raise Warning(
+            eval_logger.error(
                 "{} not found in the evaluate library!".format(name),
                 "Please check https://huggingface.co/evaluate-metric",
             )
@@ -154,7 +155,7 @@ def get_aggregation(name):
     try:
         return AGGREGATION_REGISTRY[name]
     except KeyError:
-        raise Warning(
+        eval_logger.warning(
             "{} not a registered aggregation metric!".format(name),
         )
 
@@ -163,7 +164,9 @@ def get_default_aggregation(metric_name):
     try:
         return DEFAULT_AGGREGATION_REGISTRY[metric_name]
     except KeyError:
-        raise Warning(f"No default aggregation metric for metric '{metric_name}'!")
+        eval_logger.warning(
+            f"No default aggregation metric for metric '{metric_name}'!"
+        )
 
 
 def is_higher_better(metric_name):
@@ -171,3 +174,6 @@ def is_higher_better(metric_name):
         return HIGHER_IS_BETTER_REGISTRY[metric_name]
     except KeyError:
         raise Warning(f"higher_is_better not specified for metric '{metric_name}'!")
+        eval_logger.warning(
+            f"higher_is_better not specified for metric '{metric_name}'!"
+        )
