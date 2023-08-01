@@ -65,7 +65,7 @@ class TaskConfig(dict):
     fewshot_split: str = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
-    template_aliases: Union[str, list] = None
+    process_docs: Callable = None
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
     doc_to_choice: Union[Callable, str, dict, list] = None
@@ -88,24 +88,13 @@ class TaskConfig(dict):
     metadata: str = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self):
-        # allow user-specified aliases so that users can
-        # force prompt-compatibility for some prompt regardless of
-        # field names in prompt
-        if self.template_aliases:
-            if type(self.doc_to_text) == str:
-                self.doc_to_text = self.template_aliases + self.doc_to_text
-
-            if type(self.doc_to_target) == str:
-                self.doc_to_target = self.template_aliases + self.doc_to_target
-
-            if type(self.gold_alias) == str:
-                self.gold_alias = self.template_aliases + self.gold_alias
 
         if self.generation_kwargs is not None:
             if self.output_type != "greedy_until":
                 eval_logger.warning(
-                    "passed `generation_kwargs`, but not using a generation request type!"
+                    "passed `generation_kwargs`, but not using `output_type: greedy_until`!"
                 )
+                assert self.output_type != "greedy_until"
 
             if "temperature" in self.generation_kwargs:
                 self.generation_kwargs["temperature"] = float(
@@ -624,10 +613,6 @@ class ConfigurableTask(Task):
                 list(self.fewshot_docs()), self, rnd=random.Random(1234)
             )
 
-        if self._config.template_aliases is not None:
-            for key, alias in self._config.template_aliases:
-                self.dataset.rename_column(key, alias)
-
         if self.has_test_docs():
             docs = self.test_docs()
         elif self.has_validation_docs():
@@ -685,15 +670,25 @@ class ConfigurableTask(Task):
             return False
 
     def training_docs(self):
-        if self._config.training_split is not None:
+        if self.has_training_docs():
+            if self._config.process_docs is not None:
+                return self._config.process_docs(
+                    self.dataset[self._config.training_split]
+                )
             return self.dataset[self._config.training_split]
 
     def validation_docs(self):
-        if self._config.validation_split is not None:
+        if self.has_validation_docs():
+            if self._config.process_docs is not None:
+                return self._config.process_docs(
+                    self.dataset[self._config.validation_split]
+                )
             return self.dataset[self._config.validation_split]
 
     def test_docs(self):
-        if self._config.test_split is not None:
+        if self.has_test_docs():
+            if self._config.process_docs is not None:
+                return self._config.process_docs(self.dataset[self._config.test_split])
             return self.dataset[self._config.test_split]
 
     def fewshot_docs(self):

@@ -8,7 +8,6 @@ training_split: null
 validation_split: validation
 test_split: null
 num_fewshot: 0
-template_aliases: "{% set gold = 0 %}{% set answer_choices = mc1_targets['choices'] %}"  # The first answer is always the correct one
 doc_to_text: "\
   {% set prompt_qa = '\
   Q: What is human life expectancy in the United States?\n\
@@ -25,8 +24,8 @@ doc_to_text: "\
   A: The 1992 Olympics were held in Barcelona, Spain.\
   '%}\
   {{prompt_qa + '\n\nQ: ' + question + '\nA:'}}"
-doc_to_target: "{{answer_choices[gold]}}"
-gold_alias: "{{gold}}"
+doc_to_target: 0
+doc_to_choice: "{{mc1_targets.choices}}"
 should_decontaminate: True
 doc_to_decontamination_query: question
 metric_list:
