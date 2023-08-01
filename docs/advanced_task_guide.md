@@ -26,13 +26,13 @@ Dataset configuration options:
 - **validation_split** (`str`, *optional*) — Split in the dataset to use as the validation split.
 - **test_split** (`str`, *optional*) — Split in the dataset to use as the test split.
 - **fewshot_split** (`str`, *optional*) — Split in the dataset to draw few-shot exemplars from. assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+- **process_docs** (`Callable`, *optional*) — Optionally define a function to apply to each HF dataset split, to preprocess all documents before being fed into prompt template rendering or other evaluation steps. Can be used to rename dataset columns, or to process documents into a format closer to the expected format expected by a prompt template.
 
 Prompting / in-context formatting options:
-- **template_aliases** (`str`, *optional*) — A field for inputting additional Jinja2 content. Intended not to render as text after applying a Jinja template, but to instead define variables within Jinja that will be used within the written prompts. (for example, mapping the dataset column `label` to the new name `gold`).
-- **use_prompt** (`str`, *optional*) — Name of prompt in promptsource to use. if defined, will overwrite doc_to_text and doc_to_target and make template_aliases unused.
+- **use_prompt** (`str`, *optional*) — Name of prompt in promptsource to use. if defined, will overwrite doc_to_text, doc_to_target, and doc_to_choice.
 - **doc_to_text** (`Union[Callable, str]`, *optional*) — Jinja2, f-string, or function to process a sample into the appropriate input for the model
-- **doc_to_target** (`Union[Callable, str]`, *optional*) — Jinja2, f-string, or function to process a sample into the appropriate target output for the model.
-- **doc_to_choice** (`Union[Callable, str]`, *optional*) — Jinja2, f-string, or function to process a sample into possible choices for `multiple_choice`
+- **doc_to_target** (`Union[Callable, str]`, *optional*) — Jinja2, f-string, or function to process a sample into the appropriate target output for the model. For multiple choice tasks, this should return an index into
+- **doc_to_choice** (`Union[Callable, str]`, *optional*) — Jinja2, f-string, or function to process a sample into a list of possible string choices for `multiple_choice` tasks. Left undefined for `greedy_until` tasks.
 - **gold_alias** (`str`, *optional*, defaults to None) — if provided, used to generate the reference answer that is scored against. Used in cases where `doc_to_target` should be the "target string" format appended to each example's input for a fewshot exemplar, so doc_to_target is used for fewshot examples, but the input to the metric function as `gold` is from `gold_alias`.
 - **fewshot_delimiter** (`str`, *optional*, defaults to "\n\n") — String to insert between few-shot examples.
 - **target_delimiter** (`str`, *optional*, defaults to `" "`) — String to insert between input and target output for the datapoint being tested.
@@ -160,7 +160,7 @@ Thus, given the 64 responses from our LM on each document, we can report metrics
 Use can use python functions for certain arguments by using the `!function` operator after the argument name followed by `<filename>.<pythonfunctionname>`. This feature can be used for the following arguments:
 1. `doc_to_text`
 2. `doc_to_target`
-3. `gold_alias`
+3. `doc_to_choice`
 4. `aggregation` for a `metric` in `metric_list`
 
 ## (No Longer Recommended) Direct `Task` Subclassing

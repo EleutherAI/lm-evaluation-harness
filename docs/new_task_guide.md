@@ -60,16 +60,44 @@ fewshot_split: <split name to draw fewshot examples from, or `null`>
 ```
 though if this is not set, we will default to train/validation/test sets, in that order.
 
+
+Finally, our dataset may not be already in the exact format we want. Maybe we have to strip whitespace and special characters via a regex from our dataset's "question" field! Or maybe we just want to rename its columns to match a convention we'll be using for our prompts.
+
+Let's create a python file in the directory where we're writing our YAML file:
+```bash
+touch lm_eval/tasks/<dataset_name>/utils.py
+```
+Now, in `utils.py` we'll write a function to process each split of our dataset:
+
+```python
+def process_docs(dataset: datasets.Dataset):
+    def _helper(doc):
+      # modifies the contents of a single
+      # document in our dataset.
+      doc["choices"] = [doc["choice1"], doc["choice2"], doc["wrong_answer"]]
+      doc["gold"] = doc["label"]
+      return doc
+
+    return dataset.map(_helper) # returns back a datasets.Dataset object
+```
+
+Now, in our YAML config file we'll use the `!function` constructor, and tell the config where our imported Python function will come from. At runtime, before doing anything else we will preprocess our dataset according to this function!
+```yaml
+process_docs: !function utils.process_docs
+```
+
+
 ### Writing a prompt with Jinja 2
 
 The next thing we need to do is decide what format to use when presenting the data to the LM. This is our **prompt**, where we'll define both an input and output format.
 
 We support the [Jinja 2](https://jinja.palletsprojects.com/en/3.1.x/) templating language for writing prompts. In practice, this means you can take your dataset's columns and do many basic string manipulations to place each document into prompted format.
 
-To write a prompt, users are required to write two YAML fields in Jinja as strings:
+To write a prompt, users are required to write two or three YAML fields in Jinja as strings:
 ```yaml
 doc_to_text:
 doc_to_target:
+doc_to_choice:
 ```
 Suppose our dataset has a `"question"` field, and an `"answer"` field, which are both strings. We want the model to see, if given a `document` object that is a row of our dataset:
 ```
@@ -101,10 +129,9 @@ For tasks which are multiple choice (a fixed, finite set of label words per each
 An annotated example in the case of SciQ is as follows:
 
 ```yaml
-template_aliases: "{% set answer_choices = [distractor1, distractor2, distractor3, correct_answer] %}{% set gold = 3 %}" # `template_aliases` must set the list of possible answer choices to the jinja variable `answer_choices` (List[str]), and set what the index within `answer_choices` of this doc's gold label (correct answer choice).
 doc_to_text: "{{support.lstrip()}}\nQuestion: {{question}}\nAnswer:" # This is the input portion of the prompt for this doc. It will have " {{choice}}" appended to it as target for each choice in answer_choices.
-doc_to_target: "{{answer_choices[gold]}}" # this contains the gold-standard answer choice, selected via indexing to index `gold` in the answer choice list.
-gold_alias: "{{gold}}" # this must be castable to an integer. It must output only the index within `answer_choices` that is the correct label.
+doc_to_target: 3 # this contains the index into the answer choice list of the correct answer.
+doc_to_choice: "{{[distractor1, distractor2, distractor3, correct_answer]}}"
 ```
 Task implementers are thus able to decide what the answer choices should be for a document, and what prompt format to use.
 
