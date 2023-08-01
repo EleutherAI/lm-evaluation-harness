@@ -18,6 +18,9 @@ setuptools.setup(
         "lm_eval": ["**/*.yaml"],
         "examples": ["**/*.yaml"],
     },
+    entry_points={
+        "console_scripts": ["lm-eval = main:main", "lm_eval = main:main"],
+    },
     include_package_data=True,
     classifiers=[
         "Development Status :: 3 - Alpha",
