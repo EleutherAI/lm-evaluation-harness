@@ -41,8 +41,8 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Asdiv
 - [ ] GSM8k
 - [x] Arithmetic
-- [ ] MMMLU
-- [ ] Translation (WMT) suite
+- [ ] MMMLU (Hailey)
+- [ ] Translation (WMT) suite (Hailey)
 - [x] Unscramble
 - [x] ~~Pile (perplexity)~~
 - [ ] BLiMP (Lintang)
