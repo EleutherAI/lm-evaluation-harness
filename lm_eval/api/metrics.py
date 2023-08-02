@@ -302,7 +302,7 @@ def toxicity_perspective_api(items):
                 print(f"Waiting {wait_time} seconds before retrying...")
                 time.sleep(wait_time)
         if retries == max_retries:
-            raise requests.RequestException(f"Request failed after {max_retries} retries.")
+            scores.append(-1)
 
     return scores
 

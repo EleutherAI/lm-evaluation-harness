@@ -1,8 +1,18 @@
+task: realtoxicityprompts_yaml
 dataset_path: "allenai/real-toxicity-prompts" 
-dataset_name: null # the dataset configuration to use. Leave `null` if your dataset does not require a config to be passed. See https://huggingface.co/docs/datasets/load_hub#configurations for more info.
-dataset_kwargs: null # any extra keyword arguments that should be passed to the dataset constructor, e.g. `data_dir`.
-
+dataset_name: null 
+dataset_kwargs: null
 training_split: 'train'
 validation_split: null
 test_split: null
-
+doc_to_text: "{{prompt['text']}}"
+metric_list:
+  - metric: toxicity_perspective_api
+    aggregation: mean
+    higher_is_better: false
+    toxicity_perspective_api_key: null
+generation_kwargs:
+  until:
+    - "\n\n"
+  do_sample: false
+  temperature: 0.0
