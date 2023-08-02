@@ -19,10 +19,10 @@ _DeviceMapping = NewType("DeviceMapping", Mapping[str, Union[int, str, torch.dev
 
 
 def _get_accelerate_args(
-        device_map_option: Optional[str] = "auto",
-        max_memory_per_gpu: Optional[Union[int, str]] = None,
-        max_cpu_memory: Optional[Union[int, str]] = None,
-        offload_folder: Optional[str] = "./offload",
+    device_map_option: Optional[str] = "auto",
+    max_memory_per_gpu: Optional[Union[int, str]] = None,
+    max_cpu_memory: Optional[Union[int, str]] = None,
+    offload_folder: Optional[str] = "./offload",
 ) -> dict:
     """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
     max_memory = {}
@@ -44,7 +44,7 @@ def _get_accelerate_args(
 
 
 def _get_dtype(
-        dtype: Union[str, torch.dtype], config: Optional[transformers.AutoConfig] = None
+    dtype: Union[str, torch.dtype], config: Optional[transformers.AutoConfig] = None
 ) -> torch.dtype:
     """Converts `dtype` from `str` to torch.dtype when possible."""
     if dtype is None and config is not None:
@@ -68,33 +68,33 @@ class HuggingFaceAutoLM(BaseLM):
     _DEFAULT_MAX_LENGTH: int = 2048
 
     def __init__(
-            self,
-            pretrained: str,
-            quantized: Optional[Union[bool, str]] = False,
-            tokenizer: Optional[str] = None,
-            subfolder: Optional[str] = None,
-            revision: Optional[str] = "main",
-            batch_size: Optional[Union[int, str]] = 1,
-            max_batch_size: Optional[int] = 512,
-            max_gen_toks: Optional[int] = 256,
-            # max_gen_toks: Optional[int] = 20,  # revise
-            max_length: Optional[int] = None,
-            add_special_tokens: Optional[bool] = True,  # add
-            use_accelerate: Optional[bool] = False,
-            device_map_option: Optional[str] = "auto",
-            max_memory_per_gpu: Optional[Union[int, str]] = None,
-            max_cpu_memory: Optional[Union[int, str]] = None,
-            offload_folder: Optional[str] = "./offload",
-            dtype: Optional[Union[str, torch.dtype]] = None,
-            device: Optional[Union[int, str]] = "cuda",
-            peft: str = None,
-            load_in_8bit: Optional[bool] = False,
-            load_in_4bit: Optional[bool] = False,
-            trust_remote_code: Optional[bool] = True,
-            gptq_use_triton: Optional[bool] = False,
-            bnb_4bit_quant_type: Optional[str] = None,
-            bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
-            use_fast: bool = True
+        self,
+        pretrained: str,
+        quantized: Optional[Union[bool, str]] = False,
+        tokenizer: Optional[str] = None,
+        subfolder: Optional[str] = None,
+        revision: Optional[str] = "main",
+        batch_size: Optional[Union[int, str]] = 1,
+        max_batch_size: Optional[int] = 512,
+        max_gen_toks: Optional[int] = 256,
+        # max_gen_toks: Optional[int] = 20,  # revise
+        max_length: Optional[int] = None,
+        add_special_tokens: Optional[bool] = True,  # add
+        use_accelerate: Optional[bool] = False,
+        device_map_option: Optional[str] = "auto",
+        max_memory_per_gpu: Optional[Union[int, str]] = None,
+        max_cpu_memory: Optional[Union[int, str]] = None,
+        offload_folder: Optional[str] = "./offload",
+        dtype: Optional[Union[str, torch.dtype]] = None,
+        device: Optional[Union[int, str]] = "cuda",
+        peft: str = None,
+        load_in_8bit: Optional[bool] = False,
+        load_in_4bit: Optional[bool] = False,
+        trust_remote_code: Optional[bool] = True,
+        gptq_use_triton: Optional[bool] = False,
+        bnb_4bit_quant_type: Optional[str] = None,
+        bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        use_fast: bool = True
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -170,8 +170,8 @@ class HuggingFaceAutoLM(BaseLM):
         assert isinstance(device, str)
         assert isinstance(batch_size, (int, str))
         if (
-                add_special_tokens is not None
-                and self.AUTO_MODEL_CLASS is transformers.AutoModelForCausalLM
+            add_special_tokens is not None
+            and self.AUTO_MODEL_CLASS is transformers.AutoModelForCausalLM
         ):
             # TODO: Support evaluating causal models with special tokens. Currently,
             # this is not possible because the `_loglikelihood_tokens()` method for
@@ -260,26 +260,25 @@ class HuggingFaceAutoLM(BaseLM):
             try:
                 self.model.to(self._device)
             except:
-                print(
-                    "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore.")
+                print("Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore.")
 
     def _create_auto_model(
-            self,
-            *,
-            pretrained: str,
-            quantized: Optional[Union[bool, str]] = False,
-            revision: str,
-            subfolder: str,
-            device_map: Optional[Union[str, _DeviceMapping]] = None,
-            max_memory: Optional[dict] = None,
-            offload_folder: Optional[str] = None,
-            load_in_8bit: Optional[bool] = False,
-            load_in_4bit: Optional[bool] = False,
-            trust_remote_code: Optional[bool] = False,
-            torch_dtype: Optional[Union[str, torch.dtype]] = None,
-            gptq_use_triton: Optional[bool] = False,
-            bnb_4bit_quant_type: Optional[str] = None,
-            bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        self,
+        *,
+        pretrained: str,
+        quantized: Optional[Union[bool, str]] = False,
+        revision: str,
+        subfolder: str,
+        device_map: Optional[Union[str, _DeviceMapping]] = None,
+        max_memory: Optional[dict] = None,
+        offload_folder: Optional[str] = None,
+        load_in_8bit: Optional[bool] = False,
+        load_in_4bit: Optional[bool] = False,
+        trust_remote_code: Optional[bool] = False,
+        torch_dtype: Optional[Union[str, torch.dtype]] = None,
+        gptq_use_triton: Optional[bool] = False,
+        bnb_4bit_quant_type: Optional[str] = None,
+        bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
     ) -> transformers.AutoModel:
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
         if not quantized:
@@ -319,13 +318,13 @@ class HuggingFaceAutoLM(BaseLM):
         return model
 
     def _create_auto_model_peft(
-            self,
-            *,
-            model: transformers.PreTrainedModel,
-            peft: str,
-            revision: str,
-            subfolder: str,
-            load_in_4bit: Optional[bool] = False,
+        self,
+        *,
+        model: transformers.PreTrainedModel,
+        peft: str,
+        revision: str,
+        subfolder: str,
+        load_in_4bit: Optional[bool] = False,
     ):
         if load_in_4bit:
             assert PEFT_VERSION >= "0.4.0", "load_in_4bit requires peft >= 0.4.0"
@@ -337,14 +336,14 @@ class HuggingFaceAutoLM(BaseLM):
         return model
 
     def _create_auto_tokenizer(
-            self,
-            *,
-            pretrained: str,
-            revision: str,
-            subfolder: str,
-            tokenizer: Optional[str] = None,
-            trust_remote_code: Optional[bool] = False,
-            use_fast: bool = True
+        self,
+        *,
+        pretrained: str,
+        revision: str,
+        subfolder: str,
+        tokenizer: Optional[str] = None,
+        trust_remote_code: Optional[bool] = False,
+        use_fast: bool = True
     ) -> transformers.PreTrainedTokenizer:
         """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
         tokenizer = self.AUTO_TOKENIZER_CLASS.from_pretrained(
@@ -446,7 +445,7 @@ class HuggingFaceAutoLM(BaseLM):
         return self.tokenizer.batch_decode(tokens, skip_special_tokens=True)
 
     def greedy_until(
-            self, requests: List[Tuple[str, Union[List[str], str]]]
+        self, requests: List[Tuple[str, Union[List[str], str]]]
     ) -> List[str]:
         def _collate(x):
             tokens = self.tok_encode(x[0])
@@ -464,8 +463,8 @@ class HuggingFaceAutoLM(BaseLM):
             adaptive_batch_size = batch_size
 
         for chunk in utils.chunks(
-                tqdm(reorder.get_reordered(), disable=False),
-                self.batch_size if self.batch_size != "auto" else adaptive_batch_size,
+            tqdm(reorder.get_reordered(), disable=False),
+            self.batch_size if self.batch_size != "auto" else adaptive_batch_size,
         ):
             context = [c[0] for c in chunk]
             try:
@@ -477,7 +476,7 @@ class HuggingFaceAutoLM(BaseLM):
             max_generation_length = request_args.get("max_length", None)
 
             assert (
-                    isinstance(max_generation_length, int) or max_generation_length is None
+                isinstance(max_generation_length, int) or max_generation_length is None
             )
             assert isinstance(stop_sequences, list) or stop_sequences is None
 
@@ -524,14 +523,14 @@ class AutoCausalLM(HuggingFaceAutoLM):
     AUTO_PEFT_CLASS = peft.PeftModel
 
     def _create_auto_tokenizer(
-            self,
-            *,
-            pretrained: str,
-            revision: str,
-            subfolder: str,
-            tokenizer: Optional[str] = None,
-            trust_remote_code: Optional[bool] = False,
-            use_fast: bool = True
+        self,
+        *,
+        pretrained: str,
+        revision: str,
+        subfolder: str,
+        tokenizer: Optional[str] = None,
+        trust_remote_code: Optional[bool] = False,
+        use_fast: bool = True
     ) -> transformers.PreTrainedTokenizer:
         tokenizer = super()._create_auto_tokenizer(
             pretrained=pretrained,
@@ -545,22 +544,22 @@ class AutoCausalLM(HuggingFaceAutoLM):
         return tokenizer
 
     def _model_call(
-            self, inputs: TokenSequence, labels: Optional[TokenSequence] = None
+        self, inputs: TokenSequence, labels: Optional[TokenSequence] = None
     ) -> TokenSequence:
         return self.model(inputs)["logits"]
 
     def _model_generate(
-            self,
-            inputs: transformers.BatchEncoding,
-            max_tokens: int,
-            stop: Optional[List[str]] = None,
+        self,
+        inputs: transformers.BatchEncoding,
+        max_tokens: int,
+        stop: Optional[List[str]] = None,
     ) -> TokenSequence:
         # Ensure that the context does not encroach into the `space`
         # for the generation.
         input_ids = inputs["input_ids"][:, self.max_gen_toks - self.max_length:]
         attention_mask = inputs["attention_mask"][
-                         :, self.max_gen_toks - self.max_length:
-                         ]
+            :, self.max_gen_toks - self.max_length:
+        ]
         input_ids = input_ids.to(self.device)
         attention_mask = attention_mask.to(self.device)
 
@@ -594,7 +593,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
     AUTO_PEFT_CLASS = peft.PeftModel
 
     def loglikelihood(
-            self, requests: List[Tuple[str, str]]
+        self, requests: List[Tuple[str, str]]
     ) -> List[Tuple[float, bool]]:
         new_requests = []
         for chunk in utils.chunks(requests, self.batch_size):
@@ -670,13 +669,13 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         return loglikelihoods
 
     def _loglikelihood_tokens(
-            self,
-            requests: List[Tuple[Tuple[str, str], TokenSequence, TokenSequence]],
-            disable_tqdm: Optional[bool] = False,
+        self,
+        requests: List[Tuple[Tuple[str, str], TokenSequence, TokenSequence]],
+        disable_tqdm: Optional[bool] = False,
     ) -> List[Tuple[float, bool]]:
         results = []
         for chunk in tqdm(
-                requests, total=math.ceil(len(requests)), disable=disable_tqdm
+            requests, total=math.ceil(len(requests)), disable=disable_tqdm
         ):
             cache_keys, inputs_tokens, targets_tokens = chunk
             inputs_tokens = inputs_tokens.to(self.device)
@@ -706,15 +705,15 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         return results
 
     def _model_call(
-            self, inputs: TokenSequence, labels: Optional[TokenSequence] = None
+        self, inputs: TokenSequence, labels: Optional[TokenSequence] = None
     ) -> TokenSequence:
         return self.model(**inputs, labels=labels["input_ids"])
 
     def _model_generate(
-            self,
-            inputs: transformers.BatchEncoding,
-            max_tokens: int,
-            stop: Optional[List[str]] = None,
+        self,
+        inputs: transformers.BatchEncoding,
+        max_tokens: int,
+        stop: Optional[List[str]] = None,
     ) -> TokenSequence:
         input_ids = inputs["input_ids"][:, -self.max_length:].to(self.device)
         attention_mask = inputs["attention_mask"][:, -self.max_length:].to(self.device)
@@ -747,11 +746,11 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
     """Criteria to stop on the specified multi-token sequence."""
 
     def __init__(
-            self,
-            sequence: str,
-            tokenizer: transformers.PreTrainedTokenizer,
-            initial_decoder_input_length: int,
-            batch_size: int,
+        self,
+        sequence: str,
+        tokenizer: transformers.PreTrainedTokenizer,
+        initial_decoder_input_length: int,
+        batch_size: int,
     ):
         self.initial_decoder_input_length = initial_decoder_input_length
         self.done_tracker = [False] * batch_size
@@ -763,8 +762,8 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
     def __call__(self, input_ids, scores, **kwargs) -> bool:
         # For efficiency, we compare the last n tokens where n is the number of tokens in the stop_sequence
         lookback_ids_batch = input_ids[:, self.initial_decoder_input_length:][
-                             :, -self.sequence_id_len:
-                             ]
+            :, -self.sequence_id_len:
+        ]
 
         lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
 
@@ -775,10 +774,10 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
 
 
 def stop_sequences_criteria(
-        tokenizer: transformers.PreTrainedTokenizer,
-        stop_sequences: List[str],
-        initial_decoder_input_length: int,
-        batch_size: int,
+    tokenizer: transformers.PreTrainedTokenizer,
+    stop_sequences: List[str],
+    initial_decoder_input_length: int,
+    batch_size: int,
 ) -> transformers.StoppingCriteriaList:
     return transformers.StoppingCriteriaList(
         [
@@ -803,14 +802,14 @@ class AutoGLM(AutoCausalLM):
     AUTO_TOKENIZER_CLASS: transformers.AutoTokenizer = transformers.AutoTokenizer
 
     def _create_auto_tokenizer(
-            self,
-            *,
-            pretrained: str,
-            revision: str,
-            subfolder: str,
-            tokenizer: Optional[str] = None,
-            trust_remote_code=True,
-            use_fast=False
+        self,
+        *,
+        pretrained: str,
+        revision: str,
+        subfolder: str,
+        tokenizer: Optional[str] = None,
+        trust_remote_code=True,
+        use_fast=False
     ):
         """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
         """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
