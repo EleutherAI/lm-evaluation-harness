@@ -13,7 +13,6 @@ from transformers import BatchEncoding
 from lm_eval import utils
 from lm_eval.base import BaseLM
 
-
 logger = logging.getLogger(__name__)
 TokenSequence = Union[List[int], torch.LongTensor, torch.Tensor, BatchEncoding]
 _DeviceMapping = NewType("DeviceMapping", Mapping[str, Union[int, str, torch.device]])
@@ -78,8 +77,9 @@ class HuggingFaceAutoLM(BaseLM):
         batch_size: Optional[Union[int, str]] = 1,
         max_batch_size: Optional[int] = 512,
         max_gen_toks: Optional[int] = 256,
+        # max_gen_toks: Optional[int] = 20,  # revise
         max_length: Optional[int] = None,
-        add_special_tokens: Optional[bool] = None,
+        add_special_tokens: Optional[bool] = True,  # add
         use_accelerate: Optional[bool] = False,
         device_map_option: Optional[str] = "auto",
         max_memory_per_gpu: Optional[Union[int, str]] = None,
@@ -90,7 +90,7 @@ class HuggingFaceAutoLM(BaseLM):
         peft: str = None,
         load_in_8bit: Optional[bool] = False,
         load_in_4bit: Optional[bool] = False,
-        trust_remote_code: Optional[bool] = False,
+        trust_remote_code: Optional[bool] = True,
         gptq_use_triton: Optional[bool] = False,
         bnb_4bit_quant_type: Optional[str] = None,
         bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
@@ -556,9 +556,9 @@ class AutoCausalLM(HuggingFaceAutoLM):
     ) -> TokenSequence:
         # Ensure that the context does not encroach into the `space`
         # for the generation.
-        input_ids = inputs["input_ids"][:, self.max_gen_toks - self.max_length :]
+        input_ids = inputs["input_ids"][:, self.max_gen_toks - self.max_length:]
         attention_mask = inputs["attention_mask"][
-            :, self.max_gen_toks - self.max_length :
+            :, self.max_gen_toks - self.max_length:
         ]
         input_ids = input_ids.to(self.device)
         attention_mask = attention_mask.to(self.device)
@@ -575,7 +575,7 @@ class AutoCausalLM(HuggingFaceAutoLM):
             stopping_criteria=stopping_criteria,
             do_sample=False,
         )
-        
+
         result = utils.select_continuation_from_batch_left_padding(
             generations, max_context_size=inputs["input_ids"].size(1)
         )
@@ -605,7 +605,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             ]
             context_enc = self.tok_encode_batch(context)
             for key in context_enc:
-                context_enc[key] = context_enc[key][:, -self.max_length :]
+                context_enc[key] = context_enc[key][:, -self.max_length:]
 
             # Remove leading whitespace introduced by the default
             # `text_target_separator` since the context and continuation
@@ -613,7 +613,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             continuation = [text.lstrip() for text in continuation]
             continuation_enc = self.tok_encode_batch(list(continuation))
             for key in continuation_enc:
-                continuation_enc[key] = continuation_enc[key][:, -self.max_length :]
+                continuation_enc[key] = continuation_enc[key][:, -self.max_length:]
 
             new_requests.append(
                 ((context, continuation), context_enc, continuation_enc)
@@ -715,8 +715,8 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         max_tokens: int,
         stop: Optional[List[str]] = None,
     ) -> TokenSequence:
-        input_ids = inputs["input_ids"][:, -self.max_length :].to(self.device)
-        attention_mask = inputs["attention_mask"][:, -self.max_length :].to(self.device)
+        input_ids = inputs["input_ids"][:, -self.max_length:].to(self.device)
+        attention_mask = inputs["attention_mask"][:, -self.max_length:].to(self.device)
 
         # Generate one token to calculate the number of start tokens prepended to decoder_input_ids
         # (leaving this here in case the below assumption is violated in the future)
@@ -761,8 +761,8 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
 
     def __call__(self, input_ids, scores, **kwargs) -> bool:
         # For efficiency, we compare the last n tokens where n is the number of tokens in the stop_sequence
-        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length :][
-            :, -self.sequence_id_len :
+        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length:][
+            :, -self.sequence_id_len:
         ]
 
         lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
@@ -790,13 +790,14 @@ def stop_sequences_criteria(
         ]
     )
 
+
 class AutoLlamaCausalLM(AutoCausalLM):
     """Causal language modeling supporting Llama
     """
     AUTO_TOKENIZER_CLASS: transformers.AutoTokenizer = transformers.LlamaTokenizer
 
-class AutoGLM(AutoCausalLM):
 
+class AutoGLM(AutoCausalLM):
     AUTO_MODEL_CLASS = transformers.AutoModel
     AUTO_TOKENIZER_CLASS: transformers.AutoTokenizer = transformers.AutoTokenizer
 
@@ -806,10 +807,16 @@ class AutoGLM(AutoCausalLM):
         pretrained: str,
         revision: str,
         subfolder: str,
+        tokenizer: Optional[str] = None,
+        trust_remote_code=True,
+        use_fast=False
+    ):
+        """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
         """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
         tokenizer = self.AUTO_TOKENIZER_CLASS.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
-            use_fast=False, trust_remote_code=True,
+            use_fast=False, trust_remote_code=True
         )
+
         return tokenizer
