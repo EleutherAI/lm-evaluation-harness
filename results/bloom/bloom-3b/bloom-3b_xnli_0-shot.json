@@ -1,0 +1,92 @@
+{
+  "results": {
+    "xnli_ar": {
+      "acc": 0.3343313373253493,
+      "acc_stderr": 0.006665643509474758
+    },
+    "xnli_bg": {
+      "acc": 0.3790419161676647,
+      "acc_stderr": 0.006854870366766951
+    },
+    "xnli_de": {
+      "acc": 0.4039920159680639,
+      "acc_stderr": 0.00693325085793088
+    },
+    "xnli_el": {
+      "acc": 0.3321357285429142,
+      "acc_stderr": 0.006654667909419873
+    },
+    "xnli_en": {
+      "acc": 0.5341317365269461,
+      "acc_stderr": 0.007048232775587604
+    },
+    "xnli_es": {
+      "acc": 0.4908183632734531,
+      "acc_stderr": 0.007063521183707481
+    },
+    "xnli_fr": {
+      "acc": 0.49181636726546907,
+      "acc_stderr": 0.007063766092285604
+    },
+    "xnli_hi": {
+      "acc": 0.4554890219560878,
+      "acc_stderr": 0.007036663146398998
+    },
+    "xnli_ru": {
+      "acc": 0.41397205588822356,
+      "acc_stderr": 0.006959357713092714
+    },
+    "xnli_sw": {
+      "acc": 0.3582834331337325,
+      "acc_stderr": 0.006775002711732832
+    },
+    "xnli_th": {
+      "acc": 0.3339321357285429,
+      "acc_stderr": 0.006663660032909966
+    },
+    "xnli_tr": {
+      "acc": 0.33812375249501,
+      "acc_stderr": 0.006684219795088851
+    },
+    "xnli_ur": {
+      "acc": 0.4,
+      "acc_stderr": 0.006921976252528393
+    },
+    "xnli_vi": {
+      "acc": 0.46506986027944114,
+      "acc_stderr": 0.0070474518252208835
+    },
+    "xnli_zh": {
+      "acc": 0.37425149700598803,
+      "acc_stderr": 0.006837638981887555
+    }
+  },
+  "versions": {
+    "xnli_ar": 0,
+    "xnli_bg": 0,
+    "xnli_de": 0,
+    "xnli_el": 0,
+    "xnli_en": 0,
+    "xnli_es": 0,
+    "xnli_fr": 0,
+    "xnli_hi": 0,
+    "xnli_ru": 0,
+    "xnli_sw": 0,
+    "xnli_th": 0,
+    "xnli_tr": 0,
+    "xnli_ur": 0,
+    "xnli_vi": 0,
+    "xnli_zh": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=bigscience/bloom-3b",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "results": {
+    "pawsx_fr": {
+      "acc": 0.4735,
+      "acc_stderr": 0.011167418260963935
+    },
+    "pawsx_de": {
+      "acc": 0.5755,
+      "acc_stderr": 0.011054907529701135
+    },
+    "pawsx_ko": {
+      "acc": 0.514,
+      "acc_stderr": 0.011178751372184865
+    },
+    "pawsx_ja": {
+      "acc": 0.461,
+      "acc_stderr": 0.011149065020234333
+    },
+    "pawsx_en": {
+      "acc": 0.5265,
+      "acc_stderr": 0.011167418260963933
+    },
+    "pawsx_es": {
+      "acc": 0.538,
+      "acc_stderr": 0.011150792352341666
+    },
+    "pawsx_zh": {
+      "acc": 0.481,
+      "acc_stderr": 0.011175058879956061
+    }
+  },
+  "versions": {
+    "pawsx_fr": 0,
+    "pawsx_de": 0,
+    "pawsx_ko": 0,
+    "pawsx_ja": 0,
+    "pawsx_en": 0,
+    "pawsx_es": 0,
+    "pawsx_zh": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=facebook/xglm-1.7B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

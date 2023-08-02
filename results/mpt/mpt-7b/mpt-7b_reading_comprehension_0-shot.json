@@ -1,0 +1,36 @@
+{
+  "results": {
+    "coqa": {
+      "f1": 0.7650867255895625,
+      "f1_stderr": 0.01481717694356494,
+      "em": 0.6301666666666667,
+      "em_stderr": 0.018680205213012713
+    },
+    "drop": {
+      "em": 0.03429110738255033,
+      "em_stderr": 0.0018636035184959787,
+      "f1": 0.1338569630872482,
+      "f1_stderr": 0.0025165760673094154
+    },
+    "race": {
+      "acc": 0.3866028708133971,
+      "acc_stderr": 0.01507138477304713
+    }
+  },
+  "versions": {
+    "coqa": 1,
+    "drop": 1,
+    "race": 1
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=mosaicml/mpt-7b,trust_remote_code=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

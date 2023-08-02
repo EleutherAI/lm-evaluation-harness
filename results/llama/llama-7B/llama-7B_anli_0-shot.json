@@ -1,0 +1,32 @@
+{
+  "results": {
+    "anli_r1": {
+      "acc": 0.348,
+      "acc_stderr": 0.015070604603768408
+    },
+    "anli_r2": {
+      "acc": 0.337,
+      "acc_stderr": 0.014955087918653593
+    },
+    "anli_r3": {
+      "acc": 0.36583333333333334,
+      "acc_stderr": 0.01391021206270117
+    }
+  },
+  "versions": {
+    "anli_r1": 0,
+    "anli_r2": 0,
+    "anli_r3": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/7B",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

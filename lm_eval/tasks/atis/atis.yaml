@@ -1,0 +1,14 @@
+group:
+  - multiple_choice
+task: atis
+dataset_path: fathyshalab/atis_intents
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+test_split: test
+doc_to_text: "Predict the intent of the utterance. The possible choices for the intent are: atis_flight, atis_flight_time, atis_airfare, atis_aircraft, atis_ground_service, atis_airline, atis_abbreviation, atis_quantity.\nUtterance:{{text}}.\nIntent:" # This is the input portion of the prompt for this doc. It will have " {{choice}}" appended to it as target for each choice in answer_choices.
+doc_to_target: "{{label}}"
+gold_alias: "{{label}}"
+doc_to_choice: ['atis_flight', 'atis_flight_time', 'atis_airfare', 'atis_aircraft', 'atis_ground_service', 'atis_airline', 'atis_abbreviation', 'atis_quantity']
+metric_list:
+  - metric: acc

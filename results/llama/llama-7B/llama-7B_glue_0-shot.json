@@ -1,0 +1,66 @@
+{
+  "results": {
+    "mrpc": {
+      "acc": 0.6838235294117647,
+      "acc_stderr": 0.023048336668420204,
+      "f1": 0.8122270742358079,
+      "f1_stderr": 0.01624762253426993
+    },
+    "sst": {
+      "acc": 0.5298165137614679,
+      "acc_stderr": 0.016911703415318852
+    },
+    "wnli": {
+      "acc": 0.5633802816901409,
+      "acc_stderr": 0.0592793555841297
+    },
+    "mnli_mismatched": {
+      "acc": 0.3572009764035802,
+      "acc_stderr": 0.0048327582938812235
+    },
+    "qnli": {
+      "acc": 0.49569833424858134,
+      "acc_stderr": 0.006765160168388141
+    },
+    "rte": {
+      "acc": 0.5306859205776173,
+      "acc_stderr": 0.03003973059219781
+    },
+    "qqp": {
+      "acc": 0.3683650754390304,
+      "acc_stderr": 0.002398975385820536,
+      "f1": 0.5380844713755992,
+      "f1_stderr": 0.0025560675394743124
+    },
+    "mnli": {
+      "acc": 0.34396332144676517,
+      "acc_stderr": 0.0047950937299233165
+    },
+    "cola": {
+      "mcc": 0.0,
+      "mcc_stderr": 0.0
+    }
+  },
+  "versions": {
+    "mrpc": 0,
+    "sst": 0,
+    "wnli": 1,
+    "mnli_mismatched": 0,
+    "qnli": 0,
+    "rte": 0,
+    "qqp": 0,
+    "mnli": 0,
+    "cola": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/7B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": false,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

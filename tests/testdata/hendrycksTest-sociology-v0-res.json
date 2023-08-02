@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-sociology": {"acc": 0.23383084577114427, "acc_norm": 0.24875621890547264, "acc_norm_stderr": 0.030567675938916707, "acc_stderr": 0.02992941540834838}}, "versions": {"hendrycksTest-sociology": 0}}

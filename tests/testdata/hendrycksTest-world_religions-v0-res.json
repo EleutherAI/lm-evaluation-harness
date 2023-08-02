@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-world_religions": {"acc": 0.21637426900584794, "acc_norm": 0.22807017543859648, "acc_norm_stderr": 0.03218093795602357, "acc_stderr": 0.03158149539338734}}, "versions": {"hendrycksTest-world_religions": 0}}

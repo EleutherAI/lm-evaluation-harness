@@ -1,0 +1,66 @@
+{
+  "results": {
+    "logiqa": {
+      "acc": 0.22580645161290322,
+      "acc_stderr": 0.01639971378844507,
+      "acc_norm": 0.271889400921659,
+      "acc_norm_stderr": 0.01745171600943683
+    },
+    "webqs": {
+      "acc": 0.008366141732283465,
+      "acc_stderr": 0.002021079144496907
+    },
+    "triviaqa": {
+      "acc": 0.014408202952355696,
+      "acc_stderr": 0.001120427476389321
+    },
+    "truthfulqa_mc": {
+      "mc1": 0.24479804161566707,
+      "mc1_stderr": 0.01505186948671501,
+      "mc2": 0.42431454034377986,
+      "mc2_stderr": 0.015119647586282134
+    },
+    "headqa_en": {
+      "acc": 0.2567469000729395,
+      "acc_stderr": 0.008343849291869198,
+      "acc_norm": 0.29576951130561635,
+      "acc_norm_stderr": 0.008717251898361426
+    },
+    "headqa_es": {
+      "acc": 0.23960612691466082,
+      "acc_stderr": 0.008152930613263032,
+      "acc_norm": 0.27169948942377825,
+      "acc_norm_stderr": 0.00849660053640109
+    },
+    "squad2": {
+      "exact": 0.4295460288048513,
+      "f1": 1.8591225589833205,
+      "HasAns_exact": 0.7591093117408907,
+      "HasAns_f1": 3.622362034886802,
+      "NoAns_exact": 0.10092514718250631,
+      "NoAns_f1": 0.10092514718250631,
+      "best_exact": 50.07159100480081,
+      "best_f1": 50.07159100480081
+    }
+  },
+  "versions": {
+    "logiqa": 0,
+    "webqs": 0,
+    "triviaqa": 1,
+    "truthfulqa_mc": 1,
+    "headqa_en": 0,
+    "headqa_es": 0,
+    "squad2": 1
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=bigscience/bloom-560m,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-machine_learning": {"acc": 0.23214285714285715, "acc_norm": 0.22321428571428573, "acc_norm_stderr": 0.039523019677025116, "acc_stderr": 0.04007341809755806}}, "versions": {"hendrycksTest-machine_learning": 0}}

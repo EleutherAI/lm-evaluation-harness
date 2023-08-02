@@ -1,0 +1,3 @@
+include: pile_arxiv.yaml
+task: pile_pile-cc
+dataset_name: pile_pile-cc

@@ -1,0 +1,76 @@
+{
+  "results": {
+    "math_prealgebra": {
+      "acc": 0.02870264064293915,
+      "acc_stderr": 0.0056607946989983855
+    },
+    "math_num_theory": {
+      "acc": 0.014814814814814815,
+      "acc_stderr": 0.005203704987512651
+    },
+    "drop": {
+      "em": 0.0388003355704698,
+      "em_stderr": 0.0019777172311177993,
+      "f1": 0.13990771812080444,
+      "f1_stderr": 0.002512880034517493
+    },
+    "gsm8k": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "math_intermediate_algebra": {
+      "acc": 0.012181616832779624,
+      "acc_stderr": 0.0036524791938863576
+    },
+    "math_algebra": {
+      "acc": 0.018534119629317607,
+      "acc_stderr": 0.003916347676363957
+    },
+    "math_counting_and_prob": {
+      "acc": 0.014767932489451477,
+      "acc_stderr": 0.0055462385896684775
+    },
+    "math_geometry": {
+      "acc": 0.012526096033402923,
+      "acc_stderr": 0.005086941389677977
+    },
+    "math_precalc": {
+      "acc": 0.01098901098901099,
+      "acc_stderr": 0.004465618427331416
+    },
+    "mathqa": {
+      "acc": 0.28442211055276384,
+      "acc_stderr": 0.008258681628795297,
+      "acc_norm": 0.28676716917922945,
+      "acc_norm_stderr": 0.00827905882129993
+    },
+    "math_asdiv": {
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    }
+  },
+  "versions": {
+    "math_prealgebra": 1,
+    "math_num_theory": 1,
+    "drop": 1,
+    "mathqa": 0,
+    "gsm8k": 0,
+    "math_intermediate_algebra": 1,
+    "math_algebra": 1,
+    "math_counting_and_prob": 1,
+    "math_geometry": 1,
+    "math_precalc": 1,
+    "math_asdiv": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/13B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

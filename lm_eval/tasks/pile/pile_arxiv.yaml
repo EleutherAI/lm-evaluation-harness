@@ -1,0 +1,24 @@
+group:
+  - pile
+  - perplexity
+  - loglikelihood_rolling
+task: pile_arxiv
+dataset_path: EleutherAI/the_pile
+dataset_name: pile_arxiv
+output_type: loglikelihood_rolling
+test_split: train
+template_aliases: ""
+doc_to_text: ""
+doc_to_target: "{{text}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{text}}"
+metric_list:
+  - metric: word_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    aggregation: bits_per_byte
+    higher_is_better: false

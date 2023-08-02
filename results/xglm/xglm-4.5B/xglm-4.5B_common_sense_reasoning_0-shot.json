@@ -1,0 +1,91 @@
+{
+  "results": {
+    "copa": {
+      "acc": 0.81,
+      "acc_stderr": 0.03942772444036623
+    },
+    "arc_challenge": {
+      "acc": 0.2713310580204778,
+      "acc_stderr": 0.012993807727545796,
+      "acc_norm": 0.2815699658703072,
+      "acc_norm_stderr": 0.01314337673500902
+    },
+    "mc_taco": {
+      "em": 0.1539039039039039,
+      "f1": 0.435083658174568
+    },
+    "prost": {
+      "acc": 0.26430401366353545,
+      "acc_stderr": 0.003221619340165698,
+      "acc_norm": 0.2627561912894962,
+      "acc_norm_stderr": 0.003215549484247182
+    },
+    "piqa": {
+      "acc": 0.7274211099020674,
+      "acc_stderr": 0.01038925680329602,
+      "acc_norm": 0.7295973884657236,
+      "acc_norm_stderr": 0.010363167031620785
+    },
+    "wsc273": {
+      "acc": 0.717948717948718,
+      "acc_stderr": 0.027285147081637318
+    },
+    "winogrande": {
+      "acc": 0.5611681136543015,
+      "acc_stderr": 0.013946933444507032
+    },
+    "boolq": {
+      "acc": 0.6119266055045871,
+      "acc_stderr": 0.008523130584760844
+    },
+    "openbookqa": {
+      "acc": 0.232,
+      "acc_stderr": 0.018896193591952045,
+      "acc_norm": 0.344,
+      "acc_norm_stderr": 0.02126575803797874
+    },
+    "arc_easy": {
+      "acc": 0.6031144781144782,
+      "acc_stderr": 0.010039236800583206,
+      "acc_norm": 0.5723905723905723,
+      "acc_norm_stderr": 0.010151683397430673
+    },
+    "hellaswag": {
+      "acc": 0.43766182035451107,
+      "acc_stderr": 0.004950848456984543,
+      "acc_norm": 0.5823541127265485,
+      "acc_norm_stderr": 0.004921632645102376
+    },
+    "swag": {
+      "acc": 0.49650104968509445,
+      "acc_stderr": 0.0035350054881690377,
+      "acc_norm": 0.6786963910826752,
+      "acc_norm_stderr": 0.0033016139730438565
+    }
+  },
+  "versions": {
+    "copa": 0,
+    "arc_challenge": 0,
+    "mc_taco": 0,
+    "prost": 0,
+    "piqa": 0,
+    "wsc273": 0,
+    "winogrande": 0,
+    "boolq": 1,
+    "openbookqa": 0,
+    "arc_easy": 0,
+    "hellaswag": 0,
+    "swag": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=facebook/xglm-4.5B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

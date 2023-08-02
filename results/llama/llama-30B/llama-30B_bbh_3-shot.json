@@ -1,0 +1,124 @@
+{
+  "results": {
+    "bigbench_hyperbaton": {
+      "multiple_choice_grade": 0.51524,
+      "multiple_choice_grade_stderr": 0.0022350513992069
+    },
+    "bigbench_salient_translation_error_detection": {
+      "multiple_choice_grade": 0.19839679358717435,
+      "multiple_choice_grade_stderr": 0.012629887094728112
+    },
+    "bigbench_geometric_shapes": {
+      "multiple_choice_grade": 0.2785515320334262,
+      "multiple_choice_grade_stderr": 0.023692665345206258,
+      "exact_str_match": 0.0,
+      "exact_str_match_stderr": 0.0
+    },
+    "bigbench_navigate": {
+      "multiple_choice_grade": 0.49,
+      "multiple_choice_grade_stderr": 0.015816135752773193
+    },
+    "bigbench_date_understanding": {
+      "multiple_choice_grade": 0.6991869918699187,
+      "multiple_choice_grade_stderr": 0.023906779002093273
+    },
+    "bigbench_disambiguation_qa": {
+      "multiple_choice_grade": 0.5426356589147286,
+      "multiple_choice_grade_stderr": 0.031075544990472662
+    },
+    "bigbench_tracking_shuffled_objects_three_objects": {
+      "multiple_choice_grade": 0.53,
+      "multiple_choice_grade_stderr": 0.02886365132641709
+    },
+    "bigbench_dyck_languages": {
+      "multiple_choice_grade": 0.212,
+      "multiple_choice_grade_stderr": 0.01293148186493804
+    },
+    "bigbench_formal_fallacies_syllogisms_negation": {
+      "multiple_choice_grade": 0.5058450704225352,
+      "multiple_choice_grade_stderr": 0.004195767817554208
+    },
+    "bigbench_tracking_shuffled_objects_seven_objects": {
+      "multiple_choice_grade": 0.15485714285714286,
+      "multiple_choice_grade_stderr": 0.00865039181414196
+    },
+    "bigbench_causal_judgement": {
+      "multiple_choice_grade": 0.5736842105263158,
+      "multiple_choice_grade_stderr": 0.03597255252302466
+    },
+    "bigbench_movie_recommendation": {
+      "multiple_choice_grade": 0.632,
+      "multiple_choice_grade_stderr": 0.02158898256835354
+    },
+    "bigbench_tracking_shuffled_objects_five_objects": {
+      "multiple_choice_grade": 0.2128,
+      "multiple_choice_grade_stderr": 0.01158102863217863
+    },
+    "bigbench_snarks": {
+      "multiple_choice_grade": 0.4696132596685083,
+      "multiple_choice_grade_stderr": 0.03719891321680327
+    },
+    "bigbench_sports_understanding": {
+      "multiple_choice_grade": 0.6237322515212982,
+      "multiple_choice_grade_stderr": 0.01543581207286162
+    },
+    "bigbench_logical_deduction_seven_objects": {
+      "multiple_choice_grade": 0.25285714285714284,
+      "multiple_choice_grade_stderr": 0.01643996352811702
+    },
+    "bigbench_temporal_sequences": {
+      "multiple_choice_grade": 0.146,
+      "multiple_choice_grade_stderr": 0.011171786285496496
+    },
+    "bigbench_logical_deduction_five_objects": {
+      "multiple_choice_grade": 0.368,
+      "multiple_choice_grade_stderr": 0.021588982568353548
+    },
+    "bigbench_ruin_names": {
+      "multiple_choice_grade": 0.39732142857142855,
+      "multiple_choice_grade_stderr": 0.023145155753004788
+    },
+    "bigbench_logical_deduction_three_objects": {
+      "multiple_choice_grade": 0.53,
+      "multiple_choice_grade_stderr": 0.02886365132641709
+    },
+    "bigbench_reasoning_about_colored_objects": {
+      "multiple_choice_grade": 0.5565,
+      "multiple_choice_grade_stderr": 0.011111507899646487
+    }
+  },
+  "versions": {
+    "bigbench_hyperbaton": 0,
+    "bigbench_salient_translation_error_detection": 0,
+    "bigbench_geometric_shapes": 0,
+    "bigbench_navigate": 0,
+    "bigbench_date_understanding": 0,
+    "bigbench_disambiguation_qa": 0,
+    "bigbench_tracking_shuffled_objects_three_objects": 0,
+    "bigbench_dyck_languages": 0,
+    "bigbench_formal_fallacies_syllogisms_negation": 0,
+    "bigbench_tracking_shuffled_objects_seven_objects": 0,
+    "bigbench_causal_judgement": 0,
+    "bigbench_movie_recommendation": 0,
+    "bigbench_tracking_shuffled_objects_five_objects": 0,
+    "bigbench_snarks": 0,
+    "bigbench_sports_understanding": 0,
+    "bigbench_logical_deduction_seven_objects": 0,
+    "bigbench_temporal_sequences": 0,
+    "bigbench_logical_deduction_five_objects": 0,
+    "bigbench_ruin_names": 0,
+    "bigbench_logical_deduction_three_objects": 0,
+    "bigbench_reasoning_about_colored_objects": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/30B,use_accelerate=True",
+    "num_fewshot": 3,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

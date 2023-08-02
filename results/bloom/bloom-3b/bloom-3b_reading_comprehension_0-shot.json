@@ -1,0 +1,36 @@
+{
+  "results": {
+    "race": {
+      "acc": 0.3521531100478469,
+      "acc_stderr": 0.014782629897202266
+    },
+    "coqa": {
+      "f1": 0.6149953283852732,
+      "f1_stderr": 0.017671101287646335,
+      "em": 0.4606666666666665,
+      "em_stderr": 0.020185214533701167
+    },
+    "drop": {
+      "em": 0.0194001677852349,
+      "em_stderr": 0.0014124994962717904,
+      "f1": 0.08879089765100667,
+      "f1_stderr": 0.002002230574295575
+    }
+  },
+  "versions": {
+    "race": 1,
+    "coqa": 1,
+    "drop": 1
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=bigscience/bloom-3b,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "results": {
+    "xwinograd_en": {
+      "acc": 0.7909677419354839,
+      "acc_stderr": 0.008434667753827384
+    },
+    "xwinograd_pt": {
+      "acc": 0.7034220532319392,
+      "acc_stderr": 0.028218035233491295
+    },
+    "xwinograd_jp": {
+      "acc": 0.5662148070907195,
+      "acc_stderr": 0.016011986615263228
+    },
+    "xwinograd_fr": {
+      "acc": 0.7108433734939759,
+      "acc_stderr": 0.050066428050419186
+    },
+    "xwinograd_zh": {
+      "acc": 0.7361111111111112,
+      "acc_stderr": 0.019651614961528674
+    },
+    "xwinograd_ru": {
+      "acc": 0.5365079365079365,
+      "acc_stderr": 0.028141315964997568
+    }
+  },
+  "versions": {
+    "xwinograd_en": 0,
+    "xwinograd_pt": 0,
+    "xwinograd_jp": 0,
+    "xwinograd_fr": 0,
+    "xwinograd_zh": 0,
+    "xwinograd_ru": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=bigscience/bloom-3b",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

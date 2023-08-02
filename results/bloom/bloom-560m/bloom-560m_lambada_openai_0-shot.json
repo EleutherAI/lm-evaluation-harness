@@ -1,0 +1,31 @@
+{
+  "results": {
+    "lambada_openai_cloze": {
+      "ppl": 6212.811566448059,
+      "ppl_stderr": 267.17480839849884,
+      "acc": 0.00446341936735882,
+      "acc_stderr": 0.0009286980441682362
+    },
+    "lambada_openai": {
+      "ppl": 28.67792043529687,
+      "ppl_stderr": 1.0838905590384336,
+      "acc": 0.35396856200271687,
+      "acc_stderr": 0.006662254900290991
+    }
+  },
+  "versions": {
+    "lambada_openai_cloze": 0,
+    "lambada_openai": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=bigscience/bloom-560m,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

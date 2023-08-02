@@ -1,0 +1,80 @@
+{
+  "results": {
+    "lambada_openai": {
+      "ppl": 1279051.053451683,
+      "ppl_stderr": 60995.62964377304,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_openai_mt_de": {
+      "ppl": 1310285.4433720284,
+      "ppl_stderr": 71395.90633942866,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_openai_mt_it": {
+      "ppl": 4091504.352954044,
+      "ppl_stderr": 218020.965277226,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_standard": {
+      "ppl": 1409047.9981006894,
+      "ppl_stderr": 47832.883755899915,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_standard_cloze": {
+      "ppl": 4235345.031433833,
+      "ppl_stderr": 132892.5654001927,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_openai_mt_fr": {
+      "ppl": 2461448.491005768,
+      "ppl_stderr": 128013.98724687536,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_openai_cloze": {
+      "ppl": 204515.38946166556,
+      "ppl_stderr": 9705.341358126625,
+      "acc": 0.00019406171162429653,
+      "acc_stderr": 0.00019406171162430135
+    },
+    "lambada_openai_mt_en": {
+      "ppl": 1279051.053451683,
+      "ppl_stderr": 60995.62964377304,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    },
+    "lambada_openai_mt_es": {
+      "ppl": 1980241.7718905837,
+      "ppl_stderr": 101614.2034914904,
+      "acc": 0.0,
+      "acc_stderr": 0.0
+    }
+  },
+  "versions": {
+    "lambada_openai": 0,
+    "lambada_openai_mt_de": 0,
+    "lambada_openai_mt_it": 0,
+    "lambada_standard": 0,
+    "lambada_standard_cloze": 0,
+    "lambada_openai_mt_fr": 0,
+    "lambada_openai_cloze": 0,
+    "lambada_openai_mt_en": 0,
+    "lambada_openai_mt_es": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/13B",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

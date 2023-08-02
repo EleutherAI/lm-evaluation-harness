@@ -1,0 +1,15 @@
+group:
+  - super-glue-lm-eval-v1
+task: cb
+dataset_path: super_glue
+dataset_name: cb
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: "{{premise}}\nQuestion: {{hypothesis}}. True, False, or Neither?\nAnswer:"
+doc_to_target: label
+doc_to_choice: ['True', 'False', 'Neither']
+metric_list:
+  - metric: acc
+  - metric: f1
+    aggregation: !function "aggregate.cb_multi_fi"

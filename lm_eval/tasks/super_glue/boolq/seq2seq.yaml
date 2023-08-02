@@ -1,0 +1,23 @@
+group:
+  - super-glue-lm-eval-v1-seq2seq
+task: "boolq-seq2seq"
+dataset_path: super_glue
+dataset_name: boolq
+output_type: greedy_until
+training_split: train
+validation_split: validation
+doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
+doc_to_target: "{{[' no', ' yes'][label]}}"
+target_delimiter: ""
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true

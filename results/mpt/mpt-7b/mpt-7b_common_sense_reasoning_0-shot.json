@@ -1,0 +1,91 @@
+{
+  "results": {
+    "arc_challenge": {
+      "acc": 0.4061433447098976,
+      "acc_stderr": 0.014351656690097862,
+      "acc_norm": 0.4180887372013652,
+      "acc_norm_stderr": 0.01441398839699608
+    },
+    "arc_easy": {
+      "acc": 0.7487373737373737,
+      "acc_stderr": 0.008900141191221648,
+      "acc_norm": 0.7028619528619529,
+      "acc_norm_stderr": 0.009377397867796849
+    },
+    "boolq": {
+      "acc": 0.7351681957186544,
+      "acc_stderr": 0.007717399182659714
+    },
+    "copa": {
+      "acc": 0.85,
+      "acc_stderr": 0.03588702812826373
+    },
+    "hellaswag": {
+      "acc": 0.5723959370643298,
+      "acc_stderr": 0.004937199759947679,
+      "acc_norm": 0.761202947619996,
+      "acc_norm_stderr": 0.004254771367531344
+    },
+    "mc_taco": {
+      "em": 0.13513513513513514,
+      "f1": 0.45480193909643063
+    },
+    "openbookqa": {
+      "acc": 0.32,
+      "acc_stderr": 0.020882340488761805,
+      "acc_norm": 0.426,
+      "acc_norm_stderr": 0.022136577335085637
+    },
+    "piqa": {
+      "acc": 0.7916213275299239,
+      "acc_stderr": 0.009476125383049457,
+      "acc_norm": 0.8041349292709467,
+      "acc_norm_stderr": 0.009259518041395765
+    },
+    "prost": {
+      "acc": 0.25731212638770284,
+      "acc_stderr": 0.0031937906462958443,
+      "acc_norm": 0.30118488471391974,
+      "acc_norm_stderr": 0.003351744324251047
+    },
+    "swag": {
+      "acc": 0.5616814955513346,
+      "acc_stderr": 0.0035080896485241934,
+      "acc_norm": 0.7579726082175348,
+      "acc_norm_stderr": 0.003028236139561354
+    },
+    "winogrande": {
+      "acc": 0.6866614048934491,
+      "acc_stderr": 0.013036512096747986
+    },
+    "wsc273": {
+      "acc": 0.8571428571428571,
+      "acc_stderr": 0.021217447349500165
+    }
+  },
+  "versions": {
+    "arc_challenge": 0,
+    "arc_easy": 0,
+    "boolq": 1,
+    "copa": 0,
+    "hellaswag": 0,
+    "mc_taco": 0,
+    "openbookqa": 0,
+    "piqa": 0,
+    "prost": 0,
+    "swag": 0,
+    "winogrande": 0,
+    "wsc273": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=mosaicml/mpt-7b,trust_remote_code=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

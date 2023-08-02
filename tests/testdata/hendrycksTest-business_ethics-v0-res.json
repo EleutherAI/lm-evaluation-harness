@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-business_ethics": {"acc": 0.29, "acc_norm": 0.27, "acc_norm_stderr": 0.044619604333847394, "acc_stderr": 0.045604802157206845}}, "versions": {"hendrycksTest-business_ethics": 0}}

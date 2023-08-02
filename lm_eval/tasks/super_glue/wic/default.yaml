@@ -1,0 +1,13 @@
+group:
+  - super-glue-lm-eval-v1
+task: "wic"
+dataset_path: super_glue
+dataset_name: wic
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: "Sentence 1: {{sentence1}}\nSentence 2: {{sentence2}}\nQuestion: Is the word '{{sentence1[start1:end1]}}' used in the same way in the two sentences above?\nAnswer:"
+doc_to_target: label
+doc_to_choice: ['no', 'yes']
+metric_list:
+  - metric: acc

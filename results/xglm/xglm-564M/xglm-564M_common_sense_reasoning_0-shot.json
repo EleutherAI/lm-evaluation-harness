@@ -1,0 +1,91 @@
+{
+  "results": {
+    "copa": {
+      "acc": 0.69,
+      "acc_stderr": 0.04648231987117316
+    },
+    "mc_taco": {
+      "em": 0.1403903903903904,
+      "f1": 0.40416372323956457
+    },
+    "prost": {
+      "acc": 0.24044619982920581,
+      "acc_stderr": 0.003122204753095043,
+      "acc_norm": 0.3104718189581554,
+      "acc_norm_stderr": 0.0033803389886508614
+    },
+    "piqa": {
+      "acc": 0.6512513601741022,
+      "acc_stderr": 0.011119263056159583,
+      "acc_norm": 0.6485310119695321,
+      "acc_norm_stderr": 0.011139207691931193
+    },
+    "wsc273": {
+      "acc": 0.5860805860805861,
+      "acc_stderr": 0.029864284486117058
+    },
+    "winogrande": {
+      "acc": 0.5248618784530387,
+      "acc_stderr": 0.01403510288362775
+    },
+    "swag": {
+      "acc": 0.4111266620013996,
+      "acc_stderr": 0.0034788002208961154,
+      "acc_norm": 0.5425872238328502,
+      "acc_norm_stderr": 0.003522245713261821
+    },
+    "boolq": {
+      "acc": 0.5333333333333333,
+      "acc_stderr": 0.008725599880049204
+    },
+    "hellaswag": {
+      "acc": 0.30780720971917946,
+      "acc_stderr": 0.004606429684604547,
+      "acc_norm": 0.3520215096594304,
+      "acc_norm_stderr": 0.004766245539606642
+    },
+    "arc_challenge": {
+      "acc": 0.19965870307167236,
+      "acc_stderr": 0.011681625756888688,
+      "acc_norm": 0.24232081911262798,
+      "acc_norm_stderr": 0.012521593295800113
+    },
+    "arc_easy": {
+      "acc": 0.45707070707070707,
+      "acc_stderr": 0.010221897564256037,
+      "acc_norm": 0.41203703703703703,
+      "acc_norm_stderr": 0.010099765857562767
+    },
+    "openbookqa": {
+      "acc": 0.15,
+      "acc_stderr": 0.015984712135164926,
+      "acc_norm": 0.288,
+      "acc_norm_stderr": 0.020271503835075214
+    }
+  },
+  "versions": {
+    "copa": 0,
+    "mc_taco": 0,
+    "prost": 0,
+    "piqa": 0,
+    "wsc273": 0,
+    "winogrande": 0,
+    "swag": 0,
+    "boolq": 1,
+    "hellaswag": 0,
+    "arc_challenge": 0,
+    "arc_easy": 0,
+    "openbookqa": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=facebook/xglm-564M,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

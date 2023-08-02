@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-philosophy": {"acc": 0.26366559485530544, "acc_norm": 0.2733118971061093, "acc_norm_stderr": 0.02531176597542612, "acc_stderr": 0.02502553850053234}}, "versions": {"hendrycksTest-philosophy": 0}}

@@ -1,0 +1,91 @@
+{
+  "results": {
+    "hellaswag": {
+      "acc": 0.6264688309101772,
+      "acc_stderr": 0.00482752658488968,
+      "acc_norm": 0.7923720374427405,
+      "acc_norm_stderr": 0.00404779964623464
+    },
+    "copa": {
+      "acc": 0.9,
+      "acc_stderr": 0.030151134457776348
+    },
+    "prost": {
+      "acc": 0.2598740392826644,
+      "acc_stderr": 0.003204110008963041,
+      "acc_norm": 0.2910973526900085,
+      "acc_norm_stderr": 0.003318834364612203
+    },
+    "boolq": {
+      "acc": 0.6840978593272171,
+      "acc_stderr": 0.008130700051380873
+    },
+    "mc_taco": {
+      "em": 0.11411411411411411,
+      "f1": 0.48361974757894227
+    },
+    "winogrande": {
+      "acc": 0.7277032359905288,
+      "acc_stderr": 0.012510697991453936
+    },
+    "arc_challenge": {
+      "acc": 0.46757679180887374,
+      "acc_stderr": 0.014580637569995423,
+      "acc_norm": 0.454778156996587,
+      "acc_norm_stderr": 0.014551507060836352
+    },
+    "wsc273": {
+      "acc": 0.8681318681318682,
+      "acc_stderr": 0.020515321360773595
+    },
+    "openbookqa": {
+      "acc": 0.294,
+      "acc_stderr": 0.020395095484936603,
+      "acc_norm": 0.42,
+      "acc_norm_stderr": 0.02209471322976178
+    },
+    "swag": {
+      "acc": 0.5861241627511746,
+      "acc_stderr": 0.0034822550028030703,
+      "acc_norm": 0.7036389083275018,
+      "acc_norm_stderr": 0.0032286148364766096
+    },
+    "arc_easy": {
+      "acc": 0.7533670033670034,
+      "acc_stderr": 0.008844984581934908,
+      "acc_norm": 0.5896464646464646,
+      "acc_norm_stderr": 0.01009353125576545
+    },
+    "piqa": {
+      "acc": 0.809575625680087,
+      "acc_stderr": 0.009160842206469637,
+      "acc_norm": 0.8008705114254625,
+      "acc_norm_stderr": 0.009317391893706834
+    }
+  },
+  "versions": {
+    "hellaswag": 0,
+    "copa": 0,
+    "prost": 0,
+    "boolq": 1,
+    "mc_taco": 0,
+    "winogrande": 0,
+    "arc_challenge": 0,
+    "wsc273": 0,
+    "openbookqa": 0,
+    "swag": 0,
+    "arc_easy": 0,
+    "piqa": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/gaueko1/hizkuntza-ereduak/LLaMA/lm/huggingface/30B,use_accelerate=True",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda:0",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

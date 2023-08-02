@@ -1,0 +1,47 @@
+{
+  "results": {
+    "xwinograd_en": {
+      "acc": 0.8666666666666667,
+      "acc_stderr": 0.0070514325016347275
+    },
+    "xwinograd_fr": {
+      "acc": 0.6626506024096386,
+      "acc_stderr": 0.05221260262032129
+    },
+    "xwinograd_jp": {
+      "acc": 0.602711157455683,
+      "acc_stderr": 0.015809751560314552
+    },
+    "xwinograd_pt": {
+      "acc": 0.6692015209125475,
+      "acc_stderr": 0.02906762615931534
+    },
+    "xwinograd_ru": {
+      "acc": 0.6952380952380952,
+      "acc_stderr": 0.025976599352305375
+    },
+    "xwinograd_zh": {
+      "acc": 0.7162698412698413,
+      "acc_stderr": 0.02010051064884106
+    }
+  },
+  "versions": {
+    "xwinograd_en": 0,
+    "xwinograd_fr": 0,
+    "xwinograd_jp": 0,
+    "xwinograd_pt": 0,
+    "xwinograd_ru": 0,
+    "xwinograd_zh": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=mosaicml/mpt-7b,trust_remote_code=True,dtype=bfloat16",
+    "num_fewshot": 0,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "results": {
+    "gsm8k": {
+      "acc": 0.00530705079605762,
+      "acc_stderr": 0.002001305720948044
+    }
+  },
+  "versions": {
+    "gsm8k": 0
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=bigscience/bloom-560m,use_accelerate=True",
+    "num_fewshot": 8,
+    "batch_size": "auto",
+    "device": "cuda",
+    "no_cache": true,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}

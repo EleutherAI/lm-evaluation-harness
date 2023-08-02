@@ -1,0 +1,1 @@
+{"results": {"hendrycksTest-professional_psychology": {"acc": 0.27124183006535946, "acc_norm": 0.2826797385620915, "acc_norm_stderr": 0.01821726955205344, "acc_stderr": 0.01798661530403031}}, "versions": {"hendrycksTest-professional_psychology": 0}}
