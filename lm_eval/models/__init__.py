@@ -7,6 +7,6 @@ try:
     import anthropic
     from . import anthropic_llms
 except:
-    pass
+    raise "anthropic library is not yet installed"
 
 # TODO: implement __all__
