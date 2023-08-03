@@ -57,10 +57,10 @@ class SIQA(MultipleChoiceTask):
 
     def _process_doc(self, doc):
         return {
-            "query": f"{doc['context']}\nQuestion: {doc['question']}",
+            "query": f"{doc['context']} {doc['question']}",
             "choices": [doc['answerA'], doc['answerB'], doc['answerC']],
             "gold": int(doc['label']) - 1,  # `-1` because the labels are 1-indexed.
         }
 
     def doc_to_text(self, doc):
-        return doc["query"] + "\nAnswer:"
+        return doc["query"]
