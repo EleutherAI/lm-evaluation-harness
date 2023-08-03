@@ -59,6 +59,7 @@ from . import korunsmile
 from . import kohatespeech
 from . import legal_test
 from . import kold
+from . import kosbi
 from . import toxigen
 from . import crowspairs
 from . import json
@@ -349,6 +350,8 @@ TASK_REGISTRY = {
     "kolegal_legalcase":legal_test.LegalBinary,
     "kolegal_civilcase":legal_test.LJPCivil,
     "kolegal_criminalcase":legal_test.LJPCriminal,
+=======
+    "kosbi":kosbi.KoSBi,
     **xcopa.construct_tasks(),
     **bigbench.create_all_tasks(),
     **xstorycloze.create_all_tasks(),
