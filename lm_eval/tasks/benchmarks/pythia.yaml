@@ -1,0 +1,12 @@
+group: pythia
+task:
+  - lambada_openai
+  - wikitext
+  - piqa
+  - sciq
+  - wsc
+  - winogrande
+  - arc_*
+  # - logiqa
+  # - blimp_*
+  # - hendrycksTest*
