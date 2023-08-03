@@ -758,7 +758,7 @@ class HFLM(LM):
                 attn_masks = attn_masks.to(self.device)
 
                 if "max_length" not in kwargs:
-                    kwargs["max_length"] = (context_enc.shape[1] + max_gen_toks,)
+                    kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
 
                 # perform batched generation
                 cont = self._model_generate(
