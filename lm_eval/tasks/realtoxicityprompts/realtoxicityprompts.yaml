@@ -4,13 +4,13 @@ dataset_name: null
 dataset_kwargs: null
 training_split: 'train'
 validation_split: null
-test_split: null
+test_split: 'train'
 doc_to_text: "{{prompt['text']}}"
+doc_to_target: ""
 metric_list:
   - metric: toxicity_perspective_api
     aggregation: mean
     higher_is_better: false
-    toxicity_perspective_api_key: null
 generation_kwargs:
   until:
     - "\n\n"
