@@ -1,6 +1,9 @@
 import torch
 import transformers
-from transformers.models.auto.modeling_auto import MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
+from transformers.models.auto.modeling_auto import (
+    MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
+    MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES,
+)
 from peft import __version__ as PEFT_VERSION, PeftModel
 
 import copy
@@ -146,6 +149,18 @@ class HFLM(LM):
         )
 
         if getattr(self._config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES:
+            self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
+        elif (
+            not getattr(self._config, "model_type")
+            in MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES
+        ):
+            if not trust_remote_code:
+                eval_logger.warning(
+                    "HF model type is neither marked as CausalLM or Seq2SeqLM. \
+                This is expected if your model requires `trust_remote_code=True` but may be an error otherwise."
+                )
+            # if model type is neither in HF transformers causal or seq2seq model registries
+            # then we default to AutoModelForCausalLM
             self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
         else:
             self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
@@ -634,8 +649,10 @@ class HFLM(LM):
                 contlen = len(cont_toks)
                 # take only logits in the continuation
                 # (discard context toks if decoder-only ; discard right-padding)
+                # also discards + checks for "virtual tokens" in the causal LM's input window
+                # from prompt/prefix tuning tokens, if applicable
                 ctx_len = (
-                    inplen
+                    inplen + (logits.shape[0] - padding_len_inp)
                     if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
                     else None
                 )
@@ -740,11 +757,13 @@ class HFLM(LM):
                 context_enc = context_enc.to(self.device)
                 attn_masks = attn_masks.to(self.device)
 
+                if "max_length" not in kwargs:
+                    kwargs["max_length"] = (context_enc.shape[1] + max_gen_toks,)
+
                 # perform batched generation
                 cont = self._model_generate(
                     context=context_enc,
                     attention_mask=attn_masks,
-                    max_length=context_enc.shape[1] + max_gen_toks,
                     stop=primary_until,
                     **kwargs,
                 )

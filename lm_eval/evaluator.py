@@ -192,14 +192,35 @@ def evaluate(
 
     # decontaminate = decontamination_ngrams_path is not None
 
+    # stores the final result for each task, for each metric/filter pair.
     results = collections.defaultdict(dict)
+    # Tracks each task's version.
     versions = collections.defaultdict(dict)
+    # Tracks the YAML configs of all chosen tasks.
     configs = collections.defaultdict(dict)
+    # logs info about each document evaluated.
     samples = collections.defaultdict(list)
+    # tracks all Instances/requests a model must generate output on.
     requests = collections.defaultdict(list)
+    # Stores task scores based on task grouping.
+    aggregate = collections.defaultdict(dict)
+    # tracks if a task was chosen via user selecting a group containing it
+    task_groups = collections.defaultdict(dict)
+    # stores the amount to pad out reqs per req. type so that
+    # number of fwd passes per distributed rank is equal
+    padding_requests = collections.defaultdict(int)
+
+    # Stores group related keys and values for group-aggregation
+    aggregate = collections.defaultdict(dict)
+    task_groups = collections.defaultdict(dict)
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
+
+        if type(task) == tuple:
+            group, task = task
+            task_groups[task_name] = group
+
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
@@ -243,6 +264,7 @@ def evaluate(
 
             # compute number of pseudobatches to pad with (FSDP/DDP require even batches among ranks)
             numpad = max(gathered_item) - gathered_item[lm.rank]
+            padding_requests[task.OUTPUT_TYPE] += numpad
 
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
@@ -253,8 +275,8 @@ def evaluate(
         for req in reqs:
             cloned_reqs.extend([req] * req.repeats)
 
-        if (lm.world_size > 1) and (numpad > 0):
-            for _ in range(numpad):
+        if (lm.world_size > 1) and (padding_requests[reqtype] > 0):
+            for _ in range(padding_requests[reqtype]):
                 cloned_reqs.extend([req] * req.repeats)
 
         # run requests through model
@@ -264,12 +286,14 @@ def evaluate(
         for x, req in zip(resps, cloned_reqs):
             req.resps.append(x)
 
-    if lm.world_size > 1:
-        lm.accelerator.wait_for_everyone()
+        if lm.world_size > 1:
+            lm.accelerator.wait_for_everyone()
 
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_name, task in task_dict.items():
+        if type(task) == tuple:
+            group, task = task
         task.apply_filters()
 
     ### Collect values of metrics on all datapoints ###
@@ -277,6 +301,8 @@ def evaluate(
 
     # unpack results and sort back in order and return control to Task
     for task_name, task in task_dict.items():
+        if type(task) == tuple:
+            group, task = task
         # TODO: make it possible to use a different metric per filter
         # iterate over different filters used
         for key in task.instances[0].filtered_resps.keys():
@@ -362,7 +388,23 @@ def evaluate(
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
-            results[task_name][metric + "," + key] = task.aggregation()[metric](items)
+            if type(task) == tuple:
+                group, task = task
+            task_score = task.aggregation()[metric](items)
+            results[task_name][metric + "," + key] = task_score
+
+            # Need to put back in results
+            # pythia | acc
+            #        | perplexity
+            #        | word_perplexity
+            #        | byte_perplexity
+            #        | bits_per_byte
+            if bool(task_groups):
+                group_name = task_groups[task_name]
+                if metric not in aggregate[group_name]:
+                    aggregate[group_name][metric] = [task_score]
+                else:
+                    aggregate[group_name][metric].append(task_score)
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
@@ -377,10 +419,21 @@ def evaluate(
                 if stderr is not None:
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
+        if bool(aggregate):
+            for group in aggregate.keys():
+                for metric in aggregate[group].keys():
+                    aggregate[group][metric] = np.average(aggregate[group][metric])
+                    versions[group] = "N/A"
+
         results_dict = {
-            "results": dict(results),
-            "configs": dict(configs),
-            "versions": dict(versions),
+            "results": dict(sorted(results.items())),
+            **(
+                {"aggregate": dict(sorted(aggregate.items()))}
+                if bool(aggregate)
+                else {}
+            ),
+            "configs": dict(sorted(configs.items())),
+            "versions": dict(sorted(versions.items())),
         }
         if log_samples:
             results_dict["samples"] = dict(samples)

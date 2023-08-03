@@ -1,15 +1,13 @@
 group:
   - super-glue-lm-eval-v1
-task: boolq
+task: rte
 dataset_path: super_glue
-dataset_name: boolq
+dataset_name: rte
 output_type: multiple_choice
 training_split: train
 validation_split: validation
-doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
+doc_to_text: "{{premise}}\nQuestion: {{hypothesis}} True or False?\nAnswer:"
 doc_to_target: label
-doc_to_choice: ["no", "yes"]
-should_decontaminate: true
-doc_to_decontamination_query: passage
+doc_to_choice: ['True', 'False']
 metric_list:
   - metric: acc

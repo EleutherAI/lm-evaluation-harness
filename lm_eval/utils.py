@@ -108,6 +108,10 @@ class MultiChoice:
 # Returns a list containing all values of the source_list that
 # match at least one of the patterns
 def pattern_match(patterns, source_list):
+
+    if type(patterns) == str:
+        patterns = [patterns]
+
     task_names = set()
     for pattern in patterns:
         for matching in fnmatch.filter(source_list, pattern):
@@ -259,16 +263,20 @@ class Grouper:
         return res
 
 
-def make_table(result_dict):
+def make_table(result_dict, column="results"):
     """Generate table of results."""
     from pytablewriter import MarkdownTableWriter, LatexTableWriter
+
+    if column == "results":
+        column_name = "Task"
+    elif column == "aggregate":
+        column_name = "Benchmark"
 
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
     md_writer.headers = [
-        "Task",
+        column_name,
         "Version",
-        "Fewshot",
         "Filter",
         "Metric",
         "Value",
@@ -276,7 +284,7 @@ def make_table(result_dict):
         "Stderr",
     ]
     latex_writer.headers = [
-        "Task",
+        column_name,
         "Version",
         "Fewshot",
         "Filter",
@@ -288,7 +296,7 @@ def make_table(result_dict):
 
     values = []
 
-    for k, dic in result_dict["results"].items():
+    for k, dic in result_dict[column].items():
         version = result_dict["versions"][k]
         n = str(result_dict["configs"][k]["num_fewshot"])
         for (mf), v in dic.items():
