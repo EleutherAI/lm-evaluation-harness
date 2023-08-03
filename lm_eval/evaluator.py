@@ -30,6 +30,7 @@ def simple_evaluate(
     decontamination_ngrams_path=None,
     write_out=False,
     output_base_path=None,
+    data_dir=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -96,6 +97,8 @@ def simple_evaluate(
             + model_args.replace("=", "-").replace(",", "_").replace("/", "-")
             + ".db",
         )
+
+    lm_eval.base.Task.DATA_LOCAL_PATH = data_dir
 
     task_dict = lm_eval.tasks.get_task_dict(tasks)
 

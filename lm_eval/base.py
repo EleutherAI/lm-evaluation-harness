@@ -484,6 +484,8 @@ class Task(abc.ABC):
     # The name of a subset within `DATASET_PATH`.
     DATASET_NAME: str = None
 
+    DATA_LOCAL_PATH: str = None
+
     def __init__(self, data_dir=None, cache_dir=None, download_mode=None):
         """
         :param data_dir: str
@@ -536,8 +538,12 @@ class Task(abc.ABC):
             - `datasets.DownloadMode.FORCE_REDOWNLOAD`
                 Fresh download and fresh dataset.
         """
+        data_path = self.DATASET_PATH
+        if self.DATA_LOCAL_PATH is not None:
+            data_path = os.path.join(self.DATA_LOCAL_PATH, self.DATASET_PATH)
+        print("dataset path:", data_path)
         self.dataset = datasets.load_dataset(
-            path=self.DATASET_PATH,
+            path=data_path,
             name=self.DATASET_NAME,
             data_dir=data_dir,
             cache_dir=cache_dir,
