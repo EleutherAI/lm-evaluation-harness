@@ -57,6 +57,7 @@ from . import ko_translation
 from . import korquad
 from . import korunsmile
 from . import kohatespeech
+from . import legal_test
 from . import kold
 from . import kosbi
 from . import toxigen
@@ -346,6 +347,10 @@ TASK_REGISTRY = {
     "kohatespeech":kohatespeech.HateSpeech,
     "kohatespeech_gen_bias":kohatespeech.GenderBias,
     "kohatespeech_apeach":kohatespeech.Apeach,
+    "kolegal_legalcase":legal_test.LegalBinary,
+    "kolegal_civilcase":legal_test.LJPCivil,
+    "kolegal_criminalcase":legal_test.LJPCriminal,
+=======
     "kosbi":kosbi.KoSBi,
     **xcopa.construct_tasks(),
     **bigbench.create_all_tasks(),
