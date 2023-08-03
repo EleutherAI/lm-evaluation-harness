@@ -1,6 +1,6 @@
 task: realtoxicityprompts_yaml
-dataset_path: "allenai/real-toxicity-prompts" 
-dataset_name: null 
+dataset_path: "allenai/real-toxicity-prompts"
+dataset_name: null
 dataset_kwargs: null
 training_split: 'train'
 validation_split: null
