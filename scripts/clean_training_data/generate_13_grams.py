@@ -41,88 +41,21 @@ from tqdm_multiprocess.logger import setup_logger_tqdm
 logger = logging.getLogger(__name__)
 
 terminate = False
-
-
 def handler(signal_received, frame):
     global terminate
     terminate = True
 
-
-def yield_pile(start_offsets=None, checkpoint_offset=None):
-    directory = "pile"
-
-    if not os.path.exists(directory):
-        print(
-            "We expect the pile archives to be in the 'pile' directory, but this was not found."
-        )
-        raise Exception("Pile directory not found.")
-
-    files = list(sorted(glob.glob(os.path.join(directory, "*.jsonl.zst*"))))
-
-    pile_global_offset = 0
-    start_file = 0
-    if checkpoint_offset:
-        for file_i, start_offset in enumerate(start_offsets):
-            if start_offset > checkpoint_offset:
-                break
-
-            start_file = file_i
-            pile_global_offset = start_offset
-
-    for file_i, file in enumerate(files):
-        if file_i < start_file:
-            logger.info(f"Skipping file {file}")
-            continue
-        logger.info(f"Reading from pile file: {file}")
-        reader = Reader()
+def get_pile(directory):
+    reader = Reader()
+    for file in glob.glob(os.path.join(directory, f"*.jsonl.zst*")):
         for document in reader.read(file):
-            yield (pile_global_offset, document)
-            pile_global_offset += 1
-
-
-# Hash buckets > disk backed files. Supports file position checkpointing and resuming
-# Allows you to write continuously and checkpoint intermittently. If a failure occurs
-# the buckets are simply truncated at your last checkpoint.
-class Buckets:
-    def __init__(self, directory, num_buckets):
-        self.bucket_files = [
-            os.path.join(directory, f"ngrams_{i}.bkt.txt") for i in range(num_buckets)
-        ]
-        self.buckets = list(map(TextArchive, self.bucket_files))
-        self.checkpoint_file = os.path.join(directory, f"bucket_offsets.ckpt")
-
-        if os.path.exists(self.checkpoint_file):
-            self.bucket_offsets = pickle.load(open(self.checkpoint_file, "rb"))
-        else:
-            self.bucket_offsets = [0 for i in range(len(self.buckets))]
-
-        for i, offset in enumerate(self.bucket_offsets):
-            bucket = self.buckets[i]
-            bucket.fh.seek(offset)
-            bucket.fh.truncate()
-
-    def add_data(self, key, value):
-        i = hash(key) % len(self.buckets)
-        bucket = self.buckets[i]
-        bucket.add_data(value)
-
-    def save_checkpoint(self):
-        for bucket in self.buckets:
-            bucket.fh.flush()
-
-        bucket_offsets = [bucket.fh.tell() for bucket in self.buckets]
-        pickle.dump(bucket_offsets, open(self.checkpoint_file, "wb"))
+            yield document
 
     def close_buckets(self):
         for bucket in self.buckets:
             bucket.commit()
 
-
 def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
-
-    pile_statistics = json.load(open("pile_statistics.json", "r"))
-    pile_document_count = pile_statistics["Document Count"]
-    start_offsets = pile_statistics["File Start Offsets"]
 
     output_directory = os.path.join(working_directory, "output")
     os.makedirs(output_directory, exist_ok=True)
@@ -165,10 +98,6 @@ def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
                     return
                 continue
 
-            if offset == checkpoint_offset:
-                progress.reset(total=pile_document_count)
-                progress.update(checkpoint_offset)
-
             # Save checkpoint every "batch_size", only allow terminate after checkpoint
             if batch_counter == batch_size:
                 progress.update(batch_size)
@@ -191,6 +120,7 @@ def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
 
 parser = argparse.ArgumentParser(description="Generate 13 grams from Pile.")
 parser.add_argument("-dir", "--working_directory", default="")
+parser.add_argument("-sdir", "--save_directory", default="")
 parser.add_argument("-n", "--n_value", type=int, default=13)
 parser.add_argument("-buckets", "--bucket_count", type=int, default=500)
 
@@ -210,7 +140,3 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     do_ngrams_in_buckets(args.n_value, args.working_directory, args.bucket_count)
-
-    info_dict = {"title": "dataset ngrams", "ngram_size": 13}
-    info_dict_path = os.path.join(args.working_directory, "info.json")
-    json.dump(info_dict, open(info_dict_path, "w"))

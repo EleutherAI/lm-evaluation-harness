@@ -69,7 +69,7 @@ def pattern_match(patterns, source_list):
     return sorted(list(task_names))
 
 
-def main():
+def main():    
     args = parse_args()
 
     assert not args.provide_description  # not implemented
@@ -108,7 +108,6 @@ def main():
     )
 
     dumped = json.dumps(results, indent=2)
-    print(dumped)
 
     if args.output_path:
         os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
