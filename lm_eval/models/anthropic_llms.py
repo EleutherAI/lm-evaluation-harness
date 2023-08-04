@@ -3,13 +3,12 @@ from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from tqdm import tqdm
 import time
-import anthropic
 from lm_eval.logger import eval_logger
 from typing import List, Literal, Any
 
 
 def anthropic_completion(
-    client: anthropic.Anthropic,
+    client,  #: anthropic.Anthropic,
     model: str,
     prompt: str,
     max_tokens_to_sample: int,
@@ -21,6 +20,15 @@ def anthropic_completion(
 
     Retry with back-off until they respond
     """
+
+    try:
+        import anthropic
+    except ModuleNotFoundError:
+        raise Exception(
+            "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
+please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+        )
+
     backoff_time = 3
     while True:
         try:
@@ -67,6 +75,14 @@ class AnthropicLM(LM):
             Additional model_args to pass to the API client
         """
         super().__init__()
+
+        try:
+            import anthropic
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
+please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+            )
 
         self.model = model
         # defaults to os.environ.get("ANTHROPIC_API_KEY")
@@ -135,10 +151,10 @@ class AnthropicLM(LM):
                 res.append(response)
 
                 self.cache_hook.add_partial("greedy_until", request, response)
-            except anthropic.APIConnectionError as e:
+            except anthropic.APIConnectionError as e:  # noqa: F821
                 eval_logger.critical(f"Server unreachable: {e.__cause__}")
                 break
-            except anthropic.APIStatusError as e:
+            except anthropic.APIStatusError as e:  # noqa: F821
                 eval_logger.critical(f"API error {e.status_code}: {e.message}")
                 break
 
