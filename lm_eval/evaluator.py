@@ -114,7 +114,12 @@ def simple_evaluate(
 
     task_dict = lm_eval.tasks.get_task_dict(tasks)
     for task_name in task_dict.keys():
-        config = task_dict[task_name]._config
+
+        task_obj = task_dict[task_name]
+        if type(task_obj) == tuple:
+            group, task_obj = task_obj
+
+        config = task_obj._config
         if num_fewshot is not None:
             if config["num_fewshot"] > 0:
                 default_num_fewshot = config["num_fewshot"]

@@ -6,7 +6,7 @@ from . import dummy
 try:
     import anthropic
     from . import anthropic_llms
-except Exception as err:
+except Exception:
     raise "anthropic library is not yet installed"
 
 # TODO: implement __all__
