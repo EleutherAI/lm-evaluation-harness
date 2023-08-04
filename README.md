@@ -14,14 +14,13 @@ If you choose to port a task not yet completed according to [our checklist](http
 
 Lastly, we'll no longer be accepting new feature requests beyond those that are already open to the master branch as we carry out this switch to the new version over the next week, though we will be accepting bugfixes to `master` branch and PRs to `big-refactor`. Feel free to reach out in the #lm-thunderdome channel of the EAI discord for more information.
 
-
 ## Overview
 
 This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
 
 Features:
 
-- Many tasks implemented, 200+ tasks implemented in the old framework which require porting to the new setup as described in https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/new_task_guide.md.
+- Many tasks implemented, 200+ tasks [implemented in the old framework](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/docs/task_table.md) which require porting to the new setup as described in [the new task guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/new_task_guide.md).
 - Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for commercial APIs including [OpenAI](https://openai.com), [goose.ai](https://goose.ai), and [TextSynth](https://textsynth.com/).
 - Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
@@ -49,6 +48,10 @@ To support loading GPTQ quantized models, install the package with the `gptq` ex
 ```bash
 pip install -e ".[gptq]"
 ```
+
+## Support
+
+The best way to get support is to open an issue on this repo or join the EleutherAI discord server](discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for recieving support for our releases.
 
 ## Basic Usage
 
@@ -78,6 +81,17 @@ python main.py \
 ```
 
 Models that are loaded via either `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) or `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface are supported via  Support for this model type is currently pending.
+
+Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
+
+```bash
+python main.py \
+    --model hf \
+    --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
+    --tasks lambada_openai,hellaswag \
+    --device cuda:0 \
+    --batch_size auto:4
+```
 
 ### Multi-GPU Evaluation with Hugging Face `accelerate`
 
@@ -141,6 +155,10 @@ python main.py \
 ### Other Frameworks
 
 A number of other libraries contain scripts for calling the eval harness through their library. These include [GPT-NeoX](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py), [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/blob/main/examples/MoE/readme_evalharness.md), and [mesh-transformer-jax](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
+
+### Additional Features
+
+If you have a CUDA-compatible Mac GPU, you can run the eval harness using the MPS back-end by replaicng `--device cuda:0` with `--device mps:0`. PyTorch does not currently support automatic mixed precision (AMP) for MPS, so we forcibly cast all weights to fp32 regardless of how they're stored. This is slower and has a larger memory footprint than we can achieve on Linux systems, but as PyTorch continues to improve its MPS support we hope to continue to improve it.
 
 💡 **Tip**: You can inspect what the LM inputs look like by running the following command:
 
