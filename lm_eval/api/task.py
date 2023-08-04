@@ -990,7 +990,6 @@ class ConfigurableTask(Task):
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
 
-            print(self._metric_fn_list)
             for key, result in zip(self._metric_fn_list.keys(), results):
                 if self.multiple_target:
                     # in the case where we have multiple targets,

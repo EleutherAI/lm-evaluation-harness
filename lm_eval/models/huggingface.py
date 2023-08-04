@@ -20,7 +20,7 @@ from lm_eval.api.registry import register_model
 
 from lm_eval.utils import MultiTokenEOSCriteria, stop_sequences_criteria
 
-from accelerate import Accelerator
+from accelerate import Accelerator, find_executable_batch_size
 from typing import List, Optional, Union
 
 
@@ -70,7 +70,8 @@ class HFLM(LM):
         max_length: Optional[int] = None,
         device: Optional[str] = "cuda",
         dtype: Optional[Union[str, torch.dtype]] = "auto",
-        batch_size: Optional[int] = 1,
+        batch_size: Optional[Union[int, str]] = 1,
+        max_batch_size: Optional[int] = 64,
         low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
@@ -94,7 +95,7 @@ class HFLM(LM):
 
         assert isinstance(device, str)
         assert isinstance(pretrained, str)
-        assert isinstance(batch_size, int)
+        assert isinstance(batch_size, (int, str))
 
         gpus = torch.cuda.device_count()
         accelerator = Accelerator()
@@ -244,8 +245,16 @@ class HFLM(LM):
 
         self._max_length = max_length
 
-        # multithreading and batching
-        self.batch_size_per_gpu = batch_size
+        self.batch_schedule = 1
+        self.batch_sizes = {}
+        self.max_batch_size = max_batch_size
+
+        if str(batch_size).startswith("auto"):
+            batch_size = batch_size.split(":")
+            self.batch_size_per_gpu = batch_size[0]
+            self.batch_schedule = float(batch_size[1]) if len(batch_size) > 1 else 1
+        else:
+            self.batch_size_per_gpu = int(batch_size)
 
         # multigpu data-parallel support when launched with accelerate
         if gpus > 1:
@@ -341,6 +350,52 @@ class HFLM(LM):
     @property
     def world_size(self):
         return self._world_size
+
+    def _detect_batch_size(self, requests=None, pos=0):
+        if requests:
+            _, context_enc, continuation_enc = requests[pos]
+            max_length = len(
+                (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1]
+            )
+            max_context_enc = len(context_enc[-(self.max_length + 1) :])
+            max_cont_enc = len(continuation_enc[-(self.max_length + 1) :])
+        else:
+            max_length = self.max_length
+        
+        # if OOM, then halves batch_size and tries again
+        @find_executable_batch_size(starting_batch_size=self.max_batch_size)
+        def forward_batch(batch_size):
+            if self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
+                length = max(max_context_enc, max_cont_enc)
+                batched_conts = torch.ones((batch_size, length), device=self.device).long()
+                test_batch = torch.ones((batch_size, length), device=self.device).long()
+                call_kwargs = {
+                        "attn_mask": test_batch,
+                        "labels": batched_conts,
+                    }
+            else:
+                call_kwargs = {}
+                test_batch = torch.ones((batch_size, max_length), device=self.device).long()
+            for _ in range(5):
+                out = F.log_softmax(self._model_call(test_batch, **call_kwargs), dim=-1)
+            return batch_size
+
+        batch_size = forward_batch()
+
+        if self.world_size > 1:
+            # if multi-GPU, always take minimum over all selected batch sizes
+            max_rnk_bs = torch.tensor([batch_size], device=self.device)
+            gathered = (
+                self.accelerator.gather(max_rnk_bs).cpu().detach().numpy().tolist()
+            )
+            batch_size = min(gathered)
+            utils.clear_torch_cache()
+            return batch_size
+            
+
+        utils.clear_torch_cache()
+        return batch_size
+
 
     def tok_encode(self, string: str, left_truncate_len=None):
         """ """
@@ -480,6 +535,15 @@ class HFLM(LM):
 
     def loglikelihood_rolling(self, requests):
         loglikelihoods = []
+
+        adaptive_batch_size = None
+        if self.batch_size == "auto":
+            # using rolling window with maximum context
+            print("Passed argument batch_size = auto. Detecting largest batch size")
+            batch_size = self._detect_batch_size()
+            print(f"Determined Largest batch size: {batch_size}")
+            adaptive_batch_size = batch_size
+
         for (string,) in tqdm([req.args for req in requests], disable=(self.rank != 0)):
             rolling_token_windows = list(
                 map(
@@ -509,7 +573,7 @@ class HFLM(LM):
                     rolling_token_windows += pad_amnt * [rolling_token_windows[0]]
 
             string_nll = self._loglikelihood_tokens(
-                rolling_token_windows, disable_tqdm=True
+                rolling_token_windows, disable_tqdm=True, override_bs=adaptive_batch_size
             )
 
             if (self.world_size > 1) and (pad_amnt > 0):
@@ -523,7 +587,7 @@ class HFLM(LM):
 
         return loglikelihoods
 
-    def _loglikelihood_tokens(self, requests, disable_tqdm=False):
+    def _loglikelihood_tokens(self, requests, disable_tqdm=False, override_bs=None):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 
@@ -537,12 +601,37 @@ class HFLM(LM):
 
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
-
-        # TODO: automatic (variable) batch size detection for vectorization
+    
         re_ord = utils.Reorderer(requests, _collate)
+
+        n_reordered_requests = len(re_ord.get_reordered())
+        # automatic (variable) batch size detection for vectorization
+        # pull longest context sample from request
+        def _batch_scheduler(pos):
+            sched = pos // int(n_reordered_requests / self.batch_schedule)
+            if sched in self.batch_sizes:
+                return self.batch_sizes[sched]
+            if (len(self.batch_sizes) > 1) and (self.batch_sizes[sched-1] == self.max_batch_size):
+                # if previous batch size is already maximal, skip recomputation
+                self.batch_sizes[sched] = self.max_batch_size
+                return self.batch_sizes[sched]
+            print(
+                f"Passed argument batch_size = auto:{self.batch_schedule}. Detecting largest batch size"
+            )
+            self.batch_sizes[sched] = self._detect_batch_size(re_ord.get_reordered(), pos)
+            print(f"Determined largest batch size: {self.batch_sizes[sched]}")
+            return self.batch_sizes[sched]    
+
         for chunk in utils.chunks(
             tqdm(re_ord.get_reordered(), disable=(disable_tqdm or (self.rank != 0))),
-            self.batch_size,
+            n=self.batch_size
+            if self.batch_size != "auto"
+            else override_bs
+            if override_bs is not None
+            else 0,
+            fn=_batch_scheduler
+            if self.batch_size == "auto" and n_reordered_requests > 0 and not override_bs
+            else None,
         ):
             inps = []
             cont_toks_list = []
@@ -757,11 +846,13 @@ class HFLM(LM):
                 context_enc = context_enc.to(self.device)
                 attn_masks = attn_masks.to(self.device)
 
+                if "max_length" not in kwargs:
+                    kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
+
                 # perform batched generation
                 cont = self._model_generate(
                     context=context_enc,
                     attention_mask=attn_masks,
-                    max_length=context_enc.shape[1] + max_gen_toks,
                     stop=primary_until,
                     **kwargs,
                 )
