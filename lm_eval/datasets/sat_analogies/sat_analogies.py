@@ -39,7 +39,6 @@ multiple-choice analogy questions; 5 choices per question.
 
 _HOMEPAGE = "https://aclweb.org/aclwiki/SAT_Analogy_Questions_(State_of_the_art)"
 
-# TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
 

@@ -38,8 +38,7 @@ math, computer science, and philosophy papers.
 
 _HOMEPAGE = "https://pile.eleuther.ai/"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "MIT License"
 
 _URLS = {
     "validation": "https://the-eye.eu/public/AI/pile/val.jsonl.zst",

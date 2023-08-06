@@ -42,7 +42,6 @@ addition, or deletion of characters, and asking it to recover the original word.
 
 _HOMEPAGE = "https://github.com/openai/gpt-3/tree/master/data"
 
-# TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
 _BASE_URL = "https://raw.githubusercontent.com/openai/gpt-3/master/data"

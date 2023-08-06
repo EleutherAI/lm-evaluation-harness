@@ -38,7 +38,6 @@ NLP setting.
 
 _HOMEPAGE = "https://github.com/lgw863/LogiQA-dataset"
 
-# TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
 _URLS = {
