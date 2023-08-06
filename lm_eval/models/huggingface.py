@@ -19,6 +19,7 @@ _DeviceMapping = NewType("DeviceMapping", Mapping[str, Union[int, str, torch.dev
 
 
 def _get_accelerate_args(
+    low_cpu_mem_usage: Optional[bool] = True,
     device_map_option: Optional[str] = "auto",
     max_memory_per_gpu: Optional[Union[int, str]] = None,
     max_cpu_memory: Optional[Union[int, str]] = None,
@@ -38,6 +39,7 @@ def _get_accelerate_args(
     args = {}
     if max_memory:
         args["max_memory"] = max_memory
+    args["low_cpu_mem_usage"] = low_cpu_mem_usage
     args["device_map"] = device_map_option
     args["offload_folder"] = offload_folder
     return args
@@ -77,10 +79,10 @@ class HuggingFaceAutoLM(BaseLM):
         batch_size: Optional[Union[int, str]] = 1,
         max_batch_size: Optional[int] = 512,
         max_gen_toks: Optional[int] = 256,
-        # max_gen_toks: Optional[int] = 20,  # revise
         max_length: Optional[int] = None,
-        add_special_tokens: Optional[bool] = True,  # add
+        add_special_tokens: Optional[bool] = None,
         use_accelerate: Optional[bool] = False,
+        low_cpu_mem_usage: Optional[bool] = True,
         device_map_option: Optional[str] = "auto",
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
@@ -90,10 +92,11 @@ class HuggingFaceAutoLM(BaseLM):
         peft: str = None,
         load_in_8bit: Optional[bool] = False,
         load_in_4bit: Optional[bool] = False,
-        trust_remote_code: Optional[bool] = True,
+        trust_remote_code: Optional[bool] = False,
         gptq_use_triton: Optional[bool] = False,
         bnb_4bit_quant_type: Optional[str] = None,
         bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        bnb_4bit_use_double_quant: Optional[bool] = False,
         use_fast: bool = True
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
@@ -115,6 +118,8 @@ class HuggingFaceAutoLM(BaseLM):
             use_accelerate (bool, optional, defaults to False):
                 If True, uses the `accelerate` library to load a large model across
                 multiple devices.
+            low_cpu_mem_usage (bool, optional, defaults to True):
+                It True, uses the `accelerate` library to accelerate loading the model.
             device_map_option (str, optional, defaults to "auto"):
                 The device map option to use when loading the model with
                 `accelerate`.
@@ -162,6 +167,9 @@ class HuggingFaceAutoLM(BaseLM):
             bnb_4bit_compute_dtype (Union[str, torch.dtype], optional, defaults to None):
                 The compute dtype to use for BnB 4bit quantization. See:
                 https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L74
+            bnb_4bit_use_double_quant (bool, optional, defaults to False):
+                Whether or not to use double quant to quantize the absmax.
+                https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L80
 
         """
         super().__init__()
@@ -219,6 +227,7 @@ class HuggingFaceAutoLM(BaseLM):
         model_kwargs = {}
         if use_accelerate:
             model_kwargs = _get_accelerate_args(
+                low_cpu_mem_usage,
                 device_map_option,
                 max_memory_per_gpu,
                 max_cpu_memory,
@@ -236,6 +245,7 @@ class HuggingFaceAutoLM(BaseLM):
             load_in_4bit=load_in_4bit,
             bnb_4bit_quant_type=bnb_4bit_quant_type,
             bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
+            bnb_4bit_use_double_quant=bnb_4bit_use_double_quant,
             **model_kwargs,
         )
         # note: peft_path can be different than pretrained model path
@@ -269,6 +279,7 @@ class HuggingFaceAutoLM(BaseLM):
         quantized: Optional[Union[bool, str]] = False,
         revision: str,
         subfolder: str,
+        low_cpu_mem_usage: Optional[bool] = True,
         device_map: Optional[Union[str, _DeviceMapping]] = None,
         max_memory: Optional[dict] = None,
         offload_folder: Optional[str] = None,
@@ -279,6 +290,7 @@ class HuggingFaceAutoLM(BaseLM):
         gptq_use_triton: Optional[bool] = False,
         bnb_4bit_quant_type: Optional[str] = None,
         bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        bnb_4bit_use_double_quant: Optional[bool] = False,
     ) -> transformers.AutoModel:
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
         if not quantized:
@@ -292,9 +304,12 @@ class HuggingFaceAutoLM(BaseLM):
                         model_kwargs["bnb_4bit_quant_type"] = bnb_4bit_quant_type
                     if bnb_4bit_compute_dtype:
                         model_kwargs["bnb_4bit_compute_dtype"] = _get_dtype(bnb_4bit_compute_dtype)
+                    if bnb_4bit_use_double_quant:
+                        model_kwargs["bnb_4bit_use_double_quant"] = bnb_4bit_use_double_quant
             model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
+                low_cpu_mem_usage=low_cpu_mem_usage,
                 device_map=device_map,
                 max_memory=max_memory,
                 offload_folder=offload_folder,
@@ -352,6 +367,7 @@ class HuggingFaceAutoLM(BaseLM):
             trust_remote_code=trust_remote_code,
             use_fast=use_fast
         )
+        tokenizer.pad_token = tokenizer.eos_token
         return tokenizer
 
     @property
@@ -457,10 +473,7 @@ class HuggingFaceAutoLM(BaseLM):
             self.batch_size if self.batch_size != "auto" else adaptive_batch_size,
         ):
             context = [c[0] for c in chunk]
-            try:
-                request_args = chunk[0][1]
-            except:
-                request_args = {}
+            request_args = chunk[0][1]
             stop = request_args.get("until", None)
             stop_sequences = stop if isinstance(stop, list) else [stop]
             max_generation_length = request_args.get("max_length", None)
@@ -493,10 +506,7 @@ class HuggingFaceAutoLM(BaseLM):
             for response in responses:
                 # Ensure the generated responses do not contain the stop sequences.
                 for term in until:
-                    if term:
-                        response = response.split(term)[0]
-                    else:
-                        response = response.strip()
+                    response = response.split(term)[0]
                 # partial caching
                 self.cache_hook.add_partial("greedy_until", (context, until), response)
                 results.append(response)
@@ -546,14 +556,16 @@ class AutoCausalLM(HuggingFaceAutoLM):
     ) -> TokenSequence:
         # Ensure that the context does not encroach into the `space`
         # for the generation.
-        input_ids = inputs["input_ids"][:, self.max_gen_toks - self.max_length:]
+        input_ids = inputs["input_ids"][:, self.max_gen_toks - self.max_length :]
         attention_mask = inputs["attention_mask"][
-            :, self.max_gen_toks - self.max_length:
+            :, self.max_gen_toks - self.max_length :
         ]
         input_ids = input_ids.to(self.device)
         attention_mask = attention_mask.to(self.device)
 
-        stopping_criteria = None
+        stopping_criteria = stop_sequences_criteria(
+            self.tokenizer, stop, input_ids.shape[1], input_ids.shape[0]
+        )
 
         generations = self.model.generate(
             input_ids=input_ids,
@@ -565,12 +577,9 @@ class AutoCausalLM(HuggingFaceAutoLM):
             stopping_criteria=stopping_criteria,
             do_sample=False,
         )
-
-        result = utils.select_continuation_from_batch_left_padding(
+        return utils.select_continuation_from_batch_left_padding(
             generations, max_context_size=inputs["input_ids"].size(1)
         )
-
-        return result
 
 
 class AutoSeq2SeqLM(HuggingFaceAutoLM):
@@ -595,7 +604,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             ]
             context_enc = self.tok_encode_batch(context)
             for key in context_enc:
-                context_enc[key] = context_enc[key][:, -self.max_length:]
+                context_enc[key] = context_enc[key][:, -self.max_length :]
 
             # Remove leading whitespace introduced by the default
             # `text_target_separator` since the context and continuation
@@ -603,7 +612,7 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
             continuation = [text.lstrip() for text in continuation]
             continuation_enc = self.tok_encode_batch(list(continuation))
             for key in continuation_enc:
-                continuation_enc[key] = continuation_enc[key][:, -self.max_length:]
+                continuation_enc[key] = continuation_enc[key][:, -self.max_length :]
 
             new_requests.append(
                 ((context, continuation), context_enc, continuation_enc)
@@ -705,8 +714,8 @@ class AutoSeq2SeqLM(HuggingFaceAutoLM):
         max_tokens: int,
         stop: Optional[List[str]] = None,
     ) -> TokenSequence:
-        input_ids = inputs["input_ids"][:, -self.max_length:].to(self.device)
-        attention_mask = inputs["attention_mask"][:, -self.max_length:].to(self.device)
+        input_ids = inputs["input_ids"][:, -self.max_length :].to(self.device)
+        attention_mask = inputs["attention_mask"][:, -self.max_length :].to(self.device)
 
         # Generate one token to calculate the number of start tokens prepended to decoder_input_ids
         # (leaving this here in case the below assumption is violated in the future)
@@ -751,8 +760,8 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
 
     def __call__(self, input_ids, scores, **kwargs) -> bool:
         # For efficiency, we compare the last n tokens where n is the number of tokens in the stop_sequence
-        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length:][
-            :, -self.sequence_id_len:
+        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length :][
+            :, -self.sequence_id_len :
         ]
 
         lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
