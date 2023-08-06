@@ -352,16 +352,6 @@ class HuggingFaceAutoLM(BaseLM):
             trust_remote_code=trust_remote_code,
             use_fast=use_fast
         )
-
-        if isinstance(tokenizer, (transformers.LlamaTokenizer, transformers.LlamaTokenizerFast)):
-            tokenizer.eos_token_id = 2
-            tokenizer.bos_token_id = 1
-            tokenizer.pad_token_id = 0
-            tokenizer.unk_token_id = 0
-            tokenizer.add_special_tokens({'unk_token': '<unk>'})
-            tokenizer.pad_token = tokenizer.unk_token
-        else:
-            tokenizer.pad_token = tokenizer.eos_token
         return tokenizer
 
     @property
@@ -795,6 +785,33 @@ class AutoLlamaCausalLM(AutoCausalLM):
     """Causal language modeling supporting Llama
     """
     AUTO_TOKENIZER_CLASS: transformers.AutoTokenizer = transformers.LlamaTokenizer
+
+    def _create_auto_tokenizer(
+        self,
+        *,
+        pretrained: str,
+        revision: str,
+        subfolder: str,
+        tokenizer: Optional[str] = None,
+        trust_remote_code: Optional[bool] = False,
+        use_fast: bool = True
+    ) -> transformers.PreTrainedTokenizer:
+        tokenizer = super()._create_auto_tokenizer(
+            pretrained=pretrained,
+            revision=revision,
+            subfolder=subfolder,
+            tokenizer=tokenizer,
+            trust_remote_code=trust_remote_code,
+            use_fast=use_fast
+        )
+        tokenizer.eos_token_id = 2
+        tokenizer.bos_token_id = 1
+        tokenizer.pad_token_id = 0
+        tokenizer.unk_token_id = 0
+        tokenizer.add_special_tokens({'unk_token': '<unk>'})
+        tokenizer.pad_token = tokenizer.unk_token
+        tokenizer.padding_side = "left"
+        return tokenizer
 
 
 class AutoGLM(AutoCausalLM):
