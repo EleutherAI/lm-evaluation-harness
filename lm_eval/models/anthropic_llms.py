@@ -3,7 +3,7 @@ from lm_eval.api.registry import register_model
 from tqdm import tqdm
 import time
 from lm_eval.logger import eval_logger
-from typing import List, Literal, Any, Tuple, Optional
+from typing import List, Any, Tuple
 
 
 def anthropic_completion(
