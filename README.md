@@ -49,10 +49,6 @@ To support loading GPTQ quantized models, install the package with the `gptq` ex
 pip install -e ".[gptq]"
 ```
 
-## Support
-
-The best way to get support is to open an issue on this repo or join the EleutherAI discord server](discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
-
 ## Basic Usage
 
 ### Hugging Face `transformers`
@@ -128,6 +124,10 @@ Using this setting helps for massive models like BLOOM which require, or to avoi
 
 **Note that this option requires launching evaluation via `python main.py` rather than `accelerate launch main.py`.**
 
+### Other Frameworks
+
+A number of other libraries contain scripts for calling the eval harness through their library. These include [GPT-NeoX](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py), [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/blob/main/examples/MoE/readme_evalharness.md), and [mesh-transformer-jax](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
+
 ### Commercial APIs
 
 Our library also supports language models served via the OpenAI API:
@@ -142,6 +142,10 @@ python main.py \
 
 While this functionality is only officially maintained for the official OpenAI API, it tends to also work for other hosting services that use the same API such as [goose.ai](goose.ai) with minor modification. We also have an implementation for the [TextSynth](https://textsynth.com/index.html) API, using `--model textsynth`.
 
+### Additional Features
+
+If you have a CUDA-compatible Mac GPU, you can run the eval harness using the MPS back-end by replaicng `--device cuda:0` with `--device mps:0`. PyTorch does not currently support automatic mixed precision (AMP) for MPS, so we forcibly cast all weights to fp32 regardless of how they're stored. This is slower and has a larger memory footprint than we can achieve on Linux systems, but as PyTorch continues to improve its MPS support we hope to continue to improve it.
+
 To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
 
 ```bash
@@ -151,14 +155,6 @@ python main.py \
     --tasks lambada_openai,hellaswag \
     --check_integrity
 ```
-
-### Other Frameworks
-
-A number of other libraries contain scripts for calling the eval harness through their library. These include [GPT-NeoX](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py), [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/blob/main/examples/MoE/readme_evalharness.md), and [mesh-transformer-jax](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
-
-### Additional Features
-
-If you have a CUDA-compatible Mac GPU, you can run the eval harness using the MPS back-end by replaicng `--device cuda:0` with `--device mps:0`. PyTorch does not currently support automatic mixed precision (AMP) for MPS, so we forcibly cast all weights to fp32 regardless of how they're stored. This is slower and has a larger memory footprint than we can achieve on Linux systems, but as PyTorch continues to improve its MPS support we hope to continue to improve it.
 
 💡 **Tip**: You can inspect what the LM inputs look like by running the following command:
 
@@ -194,12 +190,24 @@ python main.py \
 
 We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
 
-## Implementing new tasks
 
-To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
+## Contributing
 
+If you are interested in contributing to the evaluation harness, there are a variety of ways to do so.
 
-As a start, we currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, we support prompts authored in the [Promptsource Library](https://github.com/bigscience-workshop/promptsource/tree/main) as described further in https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/new_task_guide.md and https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/advanced_task_guide.md and welcome contributions of novel task templates and task variants.
+### Implementing new tasks
+
+If you wish to contribute a new task in the eval harness, see the [Task Guide](./docs/task_guide.md). We welcome new task implementations, but ask that you include in your PR reproductions of results from the official implementation (if possible) so we can ensure the tasks are implemented correctly. In particular, there are many tasks that are currently only implemented in version 1 of this library and need to be converted to the new configuration set-up for version 2. You can find a list of such tasks [here](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/lm_eval/tasks).
+
+If you wish to implement a complicated or non-standard task, see the [Advanced Task Guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/advanced_task_guide.md) for more detailed information about configuring tasks.
+
+### Implementing new frameworks
+
+If you wish to contribute support for a new library, API, or model type to the library, see the [Model Guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/model_guide.md).
+
+### Support
+
+The best way to get support is to open an issue on this repo or join the [EleutherAI discord server](discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for recieving support for our releases.
 
 ## Cite as
 
