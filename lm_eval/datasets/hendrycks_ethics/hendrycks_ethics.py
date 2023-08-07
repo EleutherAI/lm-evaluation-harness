@@ -41,6 +41,7 @@ learning agents.
 
 _HOMEPAGE = "https://github.com/hendrycks/ethics"
 
+# License available at https://github.com/hendrycks/ethics/blob/master/LICENSE
 _LICENSE = "MIT License"
 
 _URLS = "https://people.eecs.berkeley.edu/~hendrycks/ethics.tar"

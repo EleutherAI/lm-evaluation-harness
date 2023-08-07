@@ -43,6 +43,7 @@ and perform discrete operations over them (such as addition, counting, or sortin
 
 _HOMEPAGE = "https://allenai.org/data/drop"
 
+# License available at https://allenai.org/data/drop
 _LICENSE = "CC BY"
 
 _URLS = {

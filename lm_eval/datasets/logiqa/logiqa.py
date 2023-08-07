@@ -38,7 +38,7 @@ NLP setting.
 
 _HOMEPAGE = "https://github.com/lgw863/LogiQA-dataset"
 
-_LICENSE = ""
+_LICENSE = "No license found"
 
 _URLS = {
     "train": "https://raw.githubusercontent.com/lgw863/LogiQA-dataset/master/Train.txt",

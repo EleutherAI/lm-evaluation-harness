@@ -38,6 +38,7 @@ models to generate answer derivations and explanations.
 
 _HOMEPAGE = "https://github.com/hendrycks/math"
 
+# License available at https://github.com/hendrycks/math/blob/main/LICENSE
 _LICENSE = "MIT License"
 
 _URLS = "https://people.eecs.berkeley.edu/~hendrycks/MATH.tar"

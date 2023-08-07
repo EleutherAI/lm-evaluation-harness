@@ -51,6 +51,7 @@ The dataset contains questions about the following topics: medicine, nursing, ps
 
 _HOMEPAGE = "https://aghie.github.io/head-qa/"
 
+# License available at https://github.com/aghie/head-qa/blob/master/LICENSE
 _LICENSE = "MIT License"
 
 _URL = "https://drive.google.com/uc?export=download&confirm=t&id=1a_95N5zQQoUCq8IBNVZgziHbeM-QxG2t"

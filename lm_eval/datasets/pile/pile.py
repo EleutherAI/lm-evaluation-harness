@@ -38,6 +38,7 @@ math, computer science, and philosophy papers.
 
 _HOMEPAGE = "https://pile.eleuther.ai/"
 
+# License available at https://github.com/EleutherAI/the-pile/blob/master/LICENSE
 _LICENSE = "MIT License"
 
 _URLS = {
