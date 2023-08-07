@@ -207,12 +207,6 @@ class HuggingFaceAutoLM(BaseLM):
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
         )
 
-        if self._config.pad_token_id == -1:
-            logger.warning(
-                f"pad_token_id in config.json is -1, this may cause generation error, try to set it to 0."
-            )
-            self._config.pad_token_id = 0
-
         self._add_special_tokens = add_special_tokens
         self.tokenizer = self._create_auto_tokenizer(
             pretrained=pretrained,
@@ -248,6 +242,8 @@ class HuggingFaceAutoLM(BaseLM):
             bnb_4bit_use_double_quant=bnb_4bit_use_double_quant,
             **model_kwargs,
         )
+        self._config = self.model.config
+
         # note: peft_path can be different than pretrained model path
         if peft is not None:
             self.model = self._create_auto_model_peft(
@@ -257,12 +253,6 @@ class HuggingFaceAutoLM(BaseLM):
                 subfolder=subfolder,
                 load_in_4bit=load_in_4bit,
             )
-
-        if getattr(self.model.config, "pad_token_id", 0) == -1:
-            logger.warning(
-                f"pad_token_id in config.json is -1, this may cause generation error, try to set it to 0."
-            )
-            self.model.config.pad_token_id = 0
 
         self.model.eval()
         torch.set_grad_enabled(False)
@@ -823,7 +813,20 @@ class AutoLlamaCausalLM(AutoCausalLM):
         tokenizer.add_special_tokens({'bos_token': '<s>', 'eos_token': '</s>', 'unk_token': '<unk>', 'pad_token': '<unk>'})
         tokenizer.padding_side = "left"
         return tokenizer
-
+    
+    def _create_auto_model(
+        self,
+        *args,
+        **kwargs
+    ) -> transformers.AutoModel:
+        """Returns a pre-trained pytorch model from a pre-trained model configuration."""
+        model = super()._create_auto_model(*args, **kwargs)
+        model.config.pad_token_id = 0
+        model.config.eos_token_id = 2
+        model.generation_config.pad_token_id = 0
+        model.generation_config.eos_token_id = 2
+        return model
+    
 
 class AutoGLM(AutoCausalLM):
     AUTO_MODEL_CLASS = transformers.AutoModel
