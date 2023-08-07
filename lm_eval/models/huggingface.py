@@ -1,3 +1,5 @@
+import os
+
 import torch
 import transformers
 from transformers.models.auto.modeling_auto import (
@@ -74,6 +76,7 @@ class HFLM(LM):
         low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
+        cache_dir: Optional[Union[str,os.PathLike]] = None,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
         parallelize: Optional[bool] = False,
