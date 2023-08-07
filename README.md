@@ -49,11 +49,9 @@ To support loading GPTQ quantized models, install the package with the `gptq` ex
 pip install -e ".[gptq]"
 ```
 
-## Support
-
-The best way to get support is to open an issue on this repo or join the EleutherAI discord server](discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
-
 ## Basic Usage
+
+> **Note**: When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility. This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](#task-versioning) section for more info.
 
 ### Hugging Face `transformers`
 
@@ -62,71 +60,25 @@ To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/model
 
 ```bash
 python main.py \
-    --model hf \
+    --model hf-causal \
     --model_args pretrained=EleutherAI/gpt-j-6B \
     --tasks hellaswag \
-    --device cuda:0 \
-    --batch_size 8
+    --device cuda:0
 ```
 
 Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partially trained checkpoints, or to specify the datatype for running a model:
 
 ```bash
 python main.py \
-    --model hf \
+    --model hf-causal \
     --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
     --tasks lambada_openai,hellaswag \
-    --device cuda:0 \
-    --batch_size 8
+    --device cuda:0
 ```
 
-Models that are loaded via either `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) or `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface are supported via  Support for this model type is currently pending.
+To evaluate models that are loaded via `AutoSeq2SeqLM` in Huggingface, you instead use `hf-seq2seq`. *To evaluate (causal) models across multiple GPUs, use `--model hf-causal-experimental`*
 
-Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
-
-```bash
-python main.py \
-    --model hf \
-    --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
-    --tasks lambada_openai,hellaswag \
-    --device cuda:0 \
-    --batch_size auto:4
-```
-
-### Multi-GPU Evaluation with Hugging Face `accelerate`
-
-To parallelize evaluation of HuggingFace models across multiple GPUs, we allow for two different types of multi-GPU evaluation.
-
-The first is performed by launching evaluation via the `accelerate` library as follows:
-
-```
-accelerate launch main.py \
-    --model hf \
-    --tasks lambada_openai,arc_easy \
-    --batch_size 16 \
-```
-
-This will perform *data-parallel evaluation*: that is, placing a **single full copy** of your model onto each available GPU and *splitting batches across GPUs* to evaluate on K GPUs K times faster than on one.
-
-However, if your model *is too large to be run on a single one of your GPUs*, then we provide an alternative method to run these large models: use of the `parallelize` argument.
-
-```
-python main.py \
-    --model hf \
-    --model_args pretrained=EleutherAI/pythia-12b,parallelize=True
-    --tasks lambada_openai,arc_easy \
-    --batch_size 16
-```
-
-To pass even more advanced keyword arguments to `accelerate`, we allow for the following arguments as well:
-- `device_map_option`: How to split model weights across available GPUs. defaults to "auto".
-- `max_memory_per_gpu`: the max GPU memory to use per GPU in loading the model.
-- `max_cpu_memory`: the max amount of CPU memory to use when offloading the model weights to RAM.
-- `offload_folder`: a folder where model weights will be offloaded to disk if needed.
-
-Using this setting helps for massive models like BLOOM which require, or to avoid exceeding your total system RAM (by default, with `accelerate launch` one copy of the model for each GPU is initialized in RAM before moving it to GPU, resulting in large RAM usage spikes around the start of the script that may cause errors such as `Killed`.) However, it naively splits models across GPUs, resulting in only a single GPU performing work at any point in time, and so is much slower than launching with `accelerate launch`, possibly by a factor of the total # of GPUs.
-
-**Note that this option requires launching evaluation via `python main.py` rather than `accelerate launch main.py`.**
+> **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
 
 ### Commercial APIs
 
@@ -135,7 +87,7 @@ Our library also supports language models served via the OpenAI API:
 ```bash
 export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
 python main.py \
-    --model openai \
+    --model gpt3 \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag
 ```
@@ -146,7 +98,7 @@ To verify the data integrity of the tasks you're performing in addition to runni
 
 ```bash
 python main.py \
-    --model openai \
+    --model gpt3 \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag \
     --check_integrity
@@ -155,10 +107,6 @@ python main.py \
 ### Other Frameworks
 
 A number of other libraries contain scripts for calling the eval harness through their library. These include [GPT-NeoX](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py), [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/blob/main/examples/MoE/readme_evalharness.md), and [mesh-transformer-jax](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
-
-### Additional Features
-
-If you have a CUDA-compatible Mac GPU, you can run the eval harness using the MPS back-end by replaicng `--device cuda:0` with `--device mps:0`. PyTorch does not currently support automatic mixed precision (AMP) for MPS, so we forcibly cast all weights to fp32 regardless of how they're stored. This is slower and has a larger memory footprint than we can achieve on Linux systems, but as PyTorch continues to improve its MPS support we hope to continue to improve it.
 
 💡 **Tip**: You can inspect what the LM inputs look like by running the following command:
 
@@ -174,32 +122,71 @@ This will write out one text file for each task.
 
 ## Advanced Usage
 
+### Models
+
 For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
 ```bash
 python main.py \
-    --model hf \
-    --model_args pretrained=EleutherAI/gpt-j-6b,parallelize=True,load_in_4bit=True,peft=nomic-ai/gpt4all-j-lora \
+    --model hf-causal-experimental \
+    --model_args pretrained=EleutherAI/gpt-j-6b,peft=nomic-ai/gpt4all-j-lora \
     --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
     --device cuda:0
 ```
 
-[GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,gptq=NAME` (or `,gptq=True` for default names) in the `model_args` argument:
+GPTQ quantized models can be loaded by specifying their file names in `,quantized=NAME` (or `,quantized=True` for default names) in the `model_args` argument:
 
 ```bash
 python main.py \
-    --model hf \
-    --model_args pretrained=model-name-or-path,gptq=model.safetensors,gptq_use_triton=True \
+    --model hf-causal-experimental \
+    --model_args pretrained=model-name-or-path,quantized=model.safetensors,gptq_use_triton=True \
     --tasks hellaswag
 ```
 
+### Tasks
+
 We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
 
-## Implementing new tasks
+We currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, check out the [BigScience fork](https://github.com/bigscience-workshop/lm-evaluation-harness) of this repo. We are currently working on upstreaming this capability to `main`.
 
-To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
+## Task Versioning
 
+To help improve reproducibility, all tasks have a `VERSION` field. When run from the command line, this is reported in a column in the table, or in the "version" field in the evaluator return dict. The purpose of the version is so that if the task definition changes (i.e to fix a bug), then we can know exactly which metrics were computed using the old buggy implementation to avoid unfair comparisons. To enforce this, there are unit tests that make sure the behavior of all tests remains the same as when they were first implemented. Task versions start at 0, and each time a breaking change is made, the version is incremented by one.
 
-As a start, we currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, we support prompts authored in the [Promptsource Library](https://github.com/bigscience-workshop/promptsource/tree/main) as described further in https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/new_task_guide.md and https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/advanced_task_guide.md and welcome contributions of novel task templates and task variants.
+When reporting eval harness results, please also report the version of each task. This can be done either with a separate column in the table, or by reporting the task name with the version appended as such: taskname-v0.
+
+## Test Set Decontamination
+
+To address concerns about train / test contamination, we provide utilities for comparing results on a benchmark using only the data points not found in the model training set. Unfortunately, outside of models trained on the Pile and C4, its very rare that people who train models disclose the contents of the training data. However this utility can be useful to evaluate models you have trained on private data, provided you are willing to pre-compute the necessary indices. We provide computed indices for 13-gram exact match deduplication against the Pile, and plan to add additional precomputed dataset indices in the future (including C4 and min-hash LSH deduplication).
+
+For details on text decontamination, see the [decontamination guide](./docs/decontamination.md).
+
+Note that the directory provided to the `--decontamination_ngrams_path` argument should contain the ngram files and info.json. See the above guide for ngram generation for the pile, this could be adapted for other training sets.
+
+```bash
+python main.py \
+    --model gpt2 \
+    --tasks sciq \
+    --decontamination_ngrams_path path/containing/training/set/ngrams \
+    --device cuda:0
+```
+
+## Contributing
+
+If you are interested in contributing to the evaluation harness, there are a variety of ways to do so.
+
+### Implementing new tasks
+
+If you wish to contribute a new task in the eval harness, see the [Task Guide](./docs/task_guide.md). We welcome new task implementations, but ask that you include in your PR reproductions of results from the official implementation (if possible) so we can ensure the tasks are implemented correctly. In particular, there are many tasks that are currently only implemented in version 1 of this library and need to be converted to the new configuration set-up for version 2. You can find a list of such tasks [here](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/lm_eval/tasks).
+
+If you wish to implement a complicated or non-standard task, see the [Advanced Task Guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/advanced_task_guide.md) for more detailed information about configuring tasks.
+
+### Implementing new frameworks
+
+If you wish to contribute support for a new library, API, or model type to the library, see the [Model Guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/model_guide.md).
+
+### Support
+
+The best way to get support is to open an issue on this repo or join the [EleutherAI discord server](discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for recieving support for our releases.
 
 ## Cite as
 
