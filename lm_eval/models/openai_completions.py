@@ -1,16 +1,13 @@
 import os
 import time
-import transformers
-
-import numpy as np
-
+from typing import List, Tuple
 from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 
 
-def get_result(response, ctxlen):
+def get_result(response: dict, ctxlen: int) -> Tuple[float, bool]:
     """Process results from OpenAI API response.
 
     :param response: dict
@@ -43,7 +40,13 @@ def oa_completion(**kwargs):
 
     Retry with back-off until they respond
     """
-    import openai
+    try:
+        import openai, tiktoken  # noqa: E401
+    except ModuleNotFoundError:
+        raise Exception(
+            "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
+please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
+        )
 
     backoff_time = 3
     while True:
@@ -61,7 +64,12 @@ def oa_completion(**kwargs):
 class OpenaiCompletionsLM(LM):
     REQ_CHUNK_SIZE = 20
 
-    def __init__(self, engine, truncate=False):
+    def __init__(
+        self,
+        engine: str = "text-davinci-003",
+        truncate: bool = False,
+        batch_size: int = 1,
+    ):
         """
 
         :param engine: str
@@ -70,28 +78,25 @@ class OpenaiCompletionsLM(LM):
             Truncate input if too long (if False and input is too long, throw error)
         """
         super().__init__()
-
-        import openai
-
+        try:
+            import openai, tiktoken  # noqa: E401
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
+    please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
+            )
         self.engine = engine
-        self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained("gpt2")
-
-        self.vocab_size = self.tokenizer.vocab_size
-
-        # to make the annoying "Using pad_token, but it is not set yet." error go away
-        self.tokenizer.pad_token = "<|endoftext|>"
-        assert self.tokenizer.encode("hello\n\nhello") == [31373, 198, 198, 31373]
+        self.tokenizer = tiktoken.encoding_for_model(self.engine)
+        self.vocab_size = self.tokenizer.n_vocab
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.convert_tokens_to_ids(
-            ["<|endoftext|>"]
-        )[0]
+        self.end_of_text_token_id = self.tokenizer.eot_token
 
         # Read from environment variable OPENAI_API_SECRET_KEY
         openai.api_key = os.environ["OPENAI_API_SECRET_KEY"]
 
     @property
     def eot_token_id(self):
-        return self.tokenizer.eos_token_id
+        return self.end_of_text_token_id
 
     @property
     def max_length(self):
@@ -112,19 +117,49 @@ class OpenaiCompletionsLM(LM):
         # Isn't used because we override _loglikelihood_tokens
         raise NotImplementedError()
 
-    def tok_encode(self, string: str):
-        return self.tokenizer.encode(string, add_special_tokens=False)
+    def tok_encode(self, string: str) -> List[int]:
+        return self.tokenizer.encode(string)
 
-    def tok_decode(self, tokens):
+    def tok_decode(self, tokens: List[int]) -> str:
         return self.tokenizer.decode(tokens)
 
-    def _loglikelihood_tokens(self, requests, disable_tqdm=False):
+    def _encode_pair(
+        self, context: str, continuation: str
+    ) -> Tuple[List[int], List[int]]:
+        n_spaces = len(context) - len(context.rstrip())
+        if n_spaces > 0:
+            continuation = context[-n_spaces:] + continuation
+            context = context[:-n_spaces]
+        whole_enc = self.tok_encode(context + continuation)
+        context_enc = self.tok_encode(context)
+        context_enc_len = len(context_enc)
+        continuation_enc = whole_enc[context_enc_len:]
+        return context_enc, continuation_enc
+
+    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
+        new_reqs = []
+        for context, continuation in [req.args for req in requests]:
+            if context == "":
+                # end of text as context
+                context_enc, continuation_enc = [self.eot_token_id], self.tok_encode(
+                    continuation
+                )
+            else:
+                context_enc, continuation_enc = self._encode_pair(context, continuation)
+
+            new_reqs.append(((context, continuation), context_enc, continuation_enc))
+
+        return self._loglikelihood_tokens(new_reqs)
+
+    def _loglikelihood_tokens(
+        self, requests, disable_tqdm=False
+    ) -> List[Tuple[float, bool]]:
         res = []
 
         def _collate(x):
             # this doesn't efficiently handle last-token differences yet, but those are kinda annoying because
             # it's not guaranteed that the 100 or so logprobs we get to see actually contain all the continuations
-            # we care about and so we need some kind of backup for when it isn't
+            # we care about, and so we need some kind of backup for when it isn't
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
@@ -166,13 +201,13 @@ class OpenaiCompletionsLM(LM):
                 # partial caching
                 if cache_key is not None:
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
-
         return re_ord.get_original(res)
 
-    def greedy_until(self, requests):
+    def greedy_until(self, requests) -> List[str]:
         if not requests:
             return []
         res = []
+        requests = [req.args for req in requests]
 
         def _collate(x):
             toks = self.tok_encode(x[0])
@@ -203,12 +238,7 @@ class OpenaiCompletionsLM(LM):
                 inp = context_enc[-(self.max_length - self.max_gen_toks) :]
                 inps.append(inp)
 
-            try:
-                until = request_args["until"][
-                    0
-                ]  # TODO: does this handle a list of stop seqs correctly?
-            except KeyError:
-                until = "<|endoftext|>"
+            until = request_args.get("until", ["<|endoftext|>"])
 
             response = oa_completion(
                 engine=self.engine,
@@ -222,7 +252,7 @@ class OpenaiCompletionsLM(LM):
             for resp, (context, args_) in zip(response.choices, chunk):
                 s = resp["text"]
 
-                until_ = args_.get(["until"], [])
+                until_ = args_.get("until", ["<|endoftext|>"])
 
                 for term in until_:
                     if len(term) > 0:
@@ -234,7 +264,6 @@ class OpenaiCompletionsLM(LM):
                 )
 
                 res.append(s)
-
         return re_ord.get_original(res)
 
     def _model_call(self, inps):
@@ -244,3 +273,34 @@ class OpenaiCompletionsLM(LM):
     def _model_generate(self, context, max_length, eos_token_id):
         # Isn't used because we override greedy_until
         raise NotImplementedError()
+
+    def loglikelihood_rolling(self, requests) -> List[float]:
+        loglikelihoods = []
+
+        for (string,) in tqdm([req.args for req in requests]):
+            rolling_token_windows = list(
+                map(
+                    utils.make_disjoint_window,
+                    utils.get_rolling_token_windows(
+                        token_list=self.tok_encode(string),
+                        prefix_token=self.eot_token_id,
+                        max_seq_len=self.max_length,
+                        context_len=1,
+                    ),
+                )
+            )
+
+            # TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder, in seq2seq case
+            rolling_token_windows = [(None,) + x for x in rolling_token_windows]
+
+            string_nll = self._loglikelihood_tokens(
+                rolling_token_windows,
+                disable_tqdm=True,
+            )
+
+            # discard is_greedy
+            string_nll = [x[0] for x in string_nll]
+
+            string_nll = sum(string_nll)
+            loglikelihoods.append(string_nll)
+        return loglikelihoods
