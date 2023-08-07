@@ -49,11 +49,6 @@ To support loading GPTQ quantized models, install the package with the `gptq` ex
 pip install -e ".[gptq]"
 ```
 
-## Support
-
-The best way to get support is to open an issue on this repo or join the [EleutherAI discord server](discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for recieving support for our releases.
-
-
 ## Basic Usage
 
 > **Note**: When reporting results from eval harness, please include the task versions (shown in `results["versions"]`) for reproducibility. This allows bug fixes to tasks while also ensuring that previously reported scores are reproducible. See the [Task Versioning](#task-versioning) section for more info.
@@ -127,6 +122,8 @@ This will write out one text file for each task.
 
 ## Advanced Usage
 
+### Models
+
 For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
 ```bash
 python main.py \
@@ -145,13 +142,11 @@ python main.py \
     --tasks hellaswag
 ```
 
+### Tasks
+
 We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
 
 We currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, check out the [BigScience fork](https://github.com/bigscience-workshop/lm-evaluation-harness) of this repo. We are currently working on upstreaming this capability to `main`.
-
-## Implementing new tasks
-
-To implement a new task in the eval harness, see [this guide](./docs/task_guide.md).
 
 ## Task Versioning
 
@@ -174,6 +169,24 @@ python main.py \
     --decontamination_ngrams_path path/containing/training/set/ngrams \
     --device cuda:0
 ```
+
+## Contributing
+
+If you are interested in contributing to the evaluation harness, there are a variety of ways to do so.
+
+### Implementing new tasks
+
+If you wish to contribute a new task in the eval harness, see the [Task Guide](./docs/task_guide.md). We welcome new task implementations, but ask that you include in your PR reproductions of results from the official implementation (if possible) so we can ensure the tasks are implemented correctly. In particular, there are many tasks that are currently only implemented in version 1 of this library and need to be converted to the new configuration set-up for version 2. You can find a list of such tasks [here](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/lm_eval/tasks).
+
+If you wish to implement a complicated or non-standard task, see the [Advanced Task Guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/advanced_task_guide.md) for more detailed information about configuring tasks.
+
+### Implementing new frameworks
+
+If you wish to contribute support for a new library, API, or model type to the library, see the [Model Guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/model_guide.md).
+
+### Support
+
+The best way to get support is to open an issue on this repo or join the [EleutherAI discord server](discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for recieving support for our releases.
 
 ## Cite as
 
