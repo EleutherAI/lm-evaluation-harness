@@ -257,6 +257,13 @@ class HuggingFaceAutoLM(BaseLM):
                 subfolder=subfolder,
                 load_in_4bit=load_in_4bit,
             )
+
+        if getattr(self.model.config, "pad_token_id", 0) == -1:
+            logger.warning(
+                f"pad_token_id in config.json is -1, this may cause generation error, try to set it to 0."
+            )
+            self.model.config.pad_token_id = 0
+
         self.model.eval()
         torch.set_grad_enabled(False)
 
@@ -813,12 +820,7 @@ class AutoLlamaCausalLM(AutoCausalLM):
             trust_remote_code=trust_remote_code,
             use_fast=use_fast
         )
-        tokenizer.eos_token_id = 2
-        tokenizer.bos_token_id = 1
-        tokenizer.pad_token_id = 0
-        tokenizer.unk_token_id = 0
-        tokenizer.add_special_tokens({'unk_token': '<unk>'})
-        tokenizer.pad_token = tokenizer.unk_token
+        tokenizer.add_special_tokens({'bos_token': '<s>', 'eos_token': '</s>', 'unk_token': '<unk>', 'pad_token': '<unk>'})
         tokenizer.padding_side = "left"
         return tokenizer
 
