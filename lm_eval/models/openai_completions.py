@@ -1,6 +1,5 @@
 import os
 import time
-import transformers  # type: ignore
 from typing import List, Tuple
 from tqdm import tqdm
 from lm_eval import utils
@@ -41,7 +40,13 @@ def oa_completion(**kwargs):
 
     Retry with back-off until they respond
     """
-    import openai
+    try:
+        import openai, tiktoken  # noqa: E401
+    except ModuleNotFoundError:
+        raise Exception(
+            "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
+please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
+        )
 
     backoff_time = 3
     while True:
@@ -73,28 +78,25 @@ class OpenaiCompletionsLM(LM):
             Truncate input if too long (if False and input is too long, throw error)
         """
         super().__init__()
-
-        import openai
-
+        try:
+            import openai, tiktoken  # noqa: E401
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
+    please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
+            )
         self.engine = engine
-        self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained("gpt2")
-
-        self.vocab_size = self.tokenizer.vocab_size
-
-        # to make the annoying "Using pad_token, but it is not set yet." error go away
-        self.tokenizer.pad_token = "<|endoftext|>"
-        assert self.tokenizer.encode("hello\n\nhello") == [31373, 198, 198, 31373]
+        self.tokenizer = tiktoken.encoding_for_model(self.engine)
+        self.vocab_size = self.tokenizer.n_vocab
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.convert_tokens_to_ids(
-            ["<|endoftext|>"]
-        )[0]
+        self.end_of_text_token_id = self.tokenizer.eot_token
 
         # Read from environment variable OPENAI_API_SECRET_KEY
         openai.api_key = os.environ["OPENAI_API_SECRET_KEY"]
 
     @property
     def eot_token_id(self):
-        return self.tokenizer.eos_token_id
+        return self.end_of_text_token_id
 
     @property
     def max_length(self):
@@ -116,7 +118,7 @@ class OpenaiCompletionsLM(LM):
         raise NotImplementedError()
 
     def tok_encode(self, string: str) -> List[int]:
-        return self.tokenizer.encode(string, add_special_tokens=False)
+        return self.tokenizer.encode(string)
 
     def tok_decode(self, tokens: List[int]) -> str:
         return self.tokenizer.decode(tokens)
@@ -236,12 +238,7 @@ class OpenaiCompletionsLM(LM):
                 inp = context_enc[-(self.max_length - self.max_gen_toks) :]
                 inps.append(inp)
 
-            try:
-                until = request_args["until"][
-                    0
-                ]  # TODO: does this handle a list of stop seqs correctly?
-            except KeyError:
-                until = "<|endoftext|>"
+            until = request_args.get("until", ["<|endoftext|>"])
 
             response = oa_completion(
                 engine=self.engine,
@@ -255,7 +252,7 @@ class OpenaiCompletionsLM(LM):
             for resp, (context, args_) in zip(response.choices, chunk):
                 s = resp["text"]
 
-                until_ = args_.get("until", [])
+                until_ = args_.get("until", ["<|endoftext|>"])
 
                 for term in until_:
                     if len(term) > 0:
