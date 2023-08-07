@@ -85,7 +85,9 @@ def simple_evaluate(
         1234
     )  # TODO: this may affect training runs that are run with evaluation mid-run.
 
-    assert tasks != [], "No tasks specified"
+    assert (
+        tasks != []
+    ), "No tasks specified, or no tasks found. Please verify the task names."
 
     if isinstance(model, str):
         if model_args is None:
