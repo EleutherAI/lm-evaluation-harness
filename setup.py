@@ -15,7 +15,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     # required to include yaml files in pip installation
     package_data={
-        "lm_eval": ["**/*.yaml"],
+        "lm_eval": ["**/*.yaml", "tasks/**/*"],
         "examples": ["**/*.yaml"],
     },
     entry_points={
