@@ -113,13 +113,11 @@ Such that {{question}} will be replaced by `doc["question"]` when rendering the 
 Our intended output is for the model to predict a single whitespace, and then the answer to the question. We do this via:
 ```yaml
 doc_to_target: "{{answer}}"
-gold_alias: "{{answer}}"
 ```
-where `doc_to_target` is *the string that will be appended to inputs for each few-shot example*, and `gold_alias` is *what is passed to our metric function as reference or gold answer to score against*. For example, for GSM8k word problems, `doc_to_target` should be the reference text reasoning chain given in the dataset culminating in the answer, and `gold_alias` should be **only the numeric answer** to the word problem that is given at the end of the reasoning chain, and which the evaluated model's answer will be compared against.
+
+`doc_to_target` can output either a string or a integer that corresponds to an index that will point to the correct option from `doc_to_choice`. If `doc_to_target` is an index, the fewshot samples generated will still be a string that is sourced from `doc_to_choice` using that index.
 
 **Important**: We always add one whitespace between the input and output, such that the full input-output string is `doc_to_target(doc) + " " + doc_to_text(doc)`. doc_to_text and doc_to_target should not contain trailing right or left whitespace, respectively.
-
-Users can also fill out the optional `template_aliases` YAML field, which is added ahead of both the `doc_to_text` and `doc_to_target` fields. This field should not contain any test, but only Jinja variable definitions (`{% ... %}` clauses). This can be used to perform more involved string manipulations and renamings of dataset columns while the main prompt fields remain easy to parse visually.
 
 
 #### Multiple choice format
@@ -135,7 +133,13 @@ doc_to_choice: "{{[distractor1, distractor2, distractor3, correct_answer]}}"
 ```
 Task implementers are thus able to decide what the answer choices should be for a document, and what prompt format to use.
 
+The label index can also be sourced from a feature directly. For example in `superglue/boolq`, the label index if defined in the feature `label`. We can set `doc_to_target` as simply `label`. The options or verbalizers can be written in a the form of a list `["no", "yes"]` that will correspond to the label index.
 
+```yaml
+doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
+doc_to_target: label
+doc_to_choice: ["no", "yes"]
+```
 
 ### Using Python Functions for Prompts
 
@@ -168,6 +172,10 @@ For example, For Super Glue BoolQ, if we want to use the prompt template `GPT-3 
 use_prompt: "promptsource:GPT-3 Style"
 ```
 
+If you would like to run evaluation on all prompt templates, you can simply call it this way.
+```
+use_prompt: "promptsource:*"
+```
 
 ### Setting metrics
 
@@ -183,11 +191,11 @@ metric_list:
   - metric: <name of the metric here>
     aggregation: <name of the aggregation fn here>
     higher_is_better: <true or false>
-  - metric: ...
+  - metric: !function script.function
     aggregation: ...
     higher_is_better: ...
 ```
-`aggregation` and `higher_is_better` can optionally be left out to default to the manually-set defaults, if using a natively supported metric.
+`aggregation` and `higher_is_better` can optionally be left out to default to the manually-set defaults if using a natively supported metric, otherwise it must be defined explicitly (for example, when using a custom metric implemented as a function).
 
 For a full list of natively supported metrics and aggregation functions see `docs/advanced_task_guide.md`. All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval`.
 
