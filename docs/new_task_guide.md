@@ -69,6 +69,8 @@ touch lm_eval/tasks/<dataset_name>/utils.py
 ```
 Now, in `utils.py` we'll write a function to process each split of our dataset:
 
+TODO: Change the example to one that's in the tasks/
+
 ```python
 def process_docs(dataset: datasets.Dataset):
     def _helper(doc):
@@ -86,19 +88,35 @@ Now, in our YAML config file we'll use the `!function` constructor, and tell the
 process_docs: !function utils.process_docs
 ```
 
-
-### Writing a prompt with Jinja 2
+## Writing a Prompt Template
 
 The next thing we need to do is decide what format to use when presenting the data to the LM. This is our **prompt**, where we'll define both an input and output format.
 
+To write a prompt, users will use `doc_to_text`, `doc_to_target`, and `doc_to_choice` (Optional when certain conditions are met).
+
+`doc_to_text` defines the input string a model will be given while `doc_to_target` and `doc_to_choice` will be used to generate the target text. `doc_to_target` can be either a text string that refers to the target string or an integer that refers to the index of the correct label. When it is set as an index, `doc_to_choice` must be also be set with the appropriate list of possible choice strings.
+
+### Basic prompts
+ 
+If a dataset is straightforward enough, users can enter the feature name directly. This assumes that no preprocessing is required. For example in [Swag](https://github.com/EleutherAI/lm-evaluation-harness/blob/1710b42d52d0f327cb0eb3cb1bfbbeca992836ca/lm_eval/tasks/swag/swag.yaml#L10-L11), `doc_to_text` and `doc_to_target` given the name of one of the feature each.
+```yaml
+doc_to_text: startphrase
+doc_to_target: label
+```
+Hard-coding is also possible as is the case in [SciQ](https://github.com/EleutherAI/lm-evaluation-harness/blob/1710b42d52d0f327cb0eb3cb1bfbbeca992836ca/lm_eval/tasks/sciq/sciq.yaml#L11).
+```yaml
+doc_to_target: 3
+```
+`doc_to_choice` can be directly given a list of text as option (See [Toxigen](https://github.com/EleutherAI/lm-evaluation-harness/blob/1710b42d52d0f327cb0eb3cb1bfbbeca992836ca/lm_eval/tasks/toxigen/toxigen.yaml#L11))
+```yaml
+doc_to_choice: ['No', 'Yes']
+```
+
+### Writing a prompt with Jinja 2
+
 We support the [Jinja 2](https://jinja.palletsprojects.com/en/3.1.x/) templating language for writing prompts. In practice, this means you can take your dataset's columns and do many basic string manipulations to place each document into prompted format.
 
-To write a prompt, users are required to write two or three YAML fields in Jinja as strings:
-```yaml
-doc_to_text:
-doc_to_target:
-doc_to_choice:
-```
+
 Suppose our dataset has a `"question"` field, and an `"answer"` field, which are both strings. We want the model to see, if given a `document` object that is a row of our dataset:
 ```
 Question: {document[question]}
