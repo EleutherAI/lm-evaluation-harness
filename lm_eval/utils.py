@@ -456,7 +456,7 @@ env = Environment(loader=BaseLoader, undefined=StrictUndefined)
 env.filters["regex_replace"] = regex_replace
 
 
-def apply_template(template, doc):
+def apply_template(template: str, doc: dict) -> str:
     rtemplate = env.from_string(template)
     return rtemplate.render(**doc)
 
