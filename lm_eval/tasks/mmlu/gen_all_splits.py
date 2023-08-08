@@ -97,6 +97,7 @@ if __name__ == "__main__":
             "include": base_yaml_name,
             "task": base_yaml["task"].strip("abstract_algebra") + "subject",
             "dataset_name": subject,
+            "description": f"The following are multiple choice questions (with answers) about {' '.join(subject.split('_'))}.\n\n",
         }
 
         file_save_path = args.task_save_path + f"_{subject}.yaml"
