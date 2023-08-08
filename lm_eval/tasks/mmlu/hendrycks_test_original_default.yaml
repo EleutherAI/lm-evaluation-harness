@@ -10,7 +10,7 @@ validation_split: validation
 test_split: test
 description: "The following are multiple choice questions (with answers) about abstract algebra.\n\n"
 doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:"
-doc_to_choice: "{{choices}}"
+doc_to_choice: ["A", "B", "C", "D"]
 doc_to_target: "{{answer}}"
 metric_list:
   - metric: acc
