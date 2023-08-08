@@ -20,7 +20,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] QA4MRE
 - [ ] TriviaQA
 - [x] AI2 ARC
-- [ ] LogiQA [(WIP)](https://github.com/EleutherAI/lm-evaluation-harness/pull/711)
+- [x] LogiQA
 - [x] HellaSwag
 - [x] SWAG
 - [x] OpenBookQA
