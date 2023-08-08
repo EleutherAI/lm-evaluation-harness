@@ -1,0 +1,22 @@
+group:
+  - crows_pairs
+  - social_bias
+  - loglikelihood
+task: crows_pairs_english
+dataset_path: BigScienceBiasEval/crows_pairs_multilingual
+dataset_name: english
+test_split: test
+output_type: multiple_choice
+# template_aliases: "{% set answer_choices = [sent_more, sent_less] %}"
+doc_to_text: ""
+doc_to_target: 0 #"{{sent_more}}"
+doc_to_choice: !function utils.doc_to_choice
+target_delimiter: ""
+process_results: !function utils.process_results
+metric_list:
+  - metric: likelihood_diff
+    aggregation: mean
+    higher_is_better: false
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
