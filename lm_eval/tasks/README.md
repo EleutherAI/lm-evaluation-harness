@@ -28,7 +28,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] RACE
 - [x] HeadQA
 - [x] MathQA
-- [ ] WebQs
+- [x] WebQs
 - [ ] WSC273
 - [x] Winogrande
 - [x] ANLI
