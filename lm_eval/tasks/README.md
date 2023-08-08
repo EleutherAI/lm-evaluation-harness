@@ -18,7 +18,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] SciQ
 - [ ] QASPER
 - [x] QA4MRE
-- [ ] TriviaQA
+- [ ] TriviaQA (Lintang)
 - [x] AI2 ARC
 - [x] LogiQA
 - [x] HellaSwag
@@ -50,12 +50,12 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] StoryCloze
 - [ ] NaturalQs
 - [ ] CrowS-Pairs (Hailey?)
-- [ ] XCopa
+- [ ] XCopa (Lintang)
 - [ ] BIG-Bench (Hailey)
-- [ ] XStoryCloze
+- [ ] XStoryCloze (Lintang)
 - [x] XWinograd
-- [ ] PAWS-X
-- [ ] XNLI
+- [ ] PAWS-X (Lintang)
+- [ ] XNLI (Lintang)
 - [ ] MGSM
 - [ ] SCROLLS
 - [ ] Babi (Hailey)
