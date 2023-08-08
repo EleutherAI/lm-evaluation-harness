@@ -1,0 +1,21 @@
+group:
+  - mmlu
+  - mmlu_original
+  - multiple_choice
+task: mmlu_original_
+dataset_path: cais/mmlu
+dataset_name: abstract_algebra
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_target: "{{choices.label.index(answerKey)}}"
+doc_to_choice: "{{choices.text}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
