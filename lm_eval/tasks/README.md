@@ -49,7 +49,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] ToxiGen
 - [ ] StoryCloze
 - [ ] NaturalQs
-- [ ] CrowS-Pairs
+- [x] CrowS-Pairs
 - [ ] XCopa
 - [ ] BIG-Bench
 - [ ] XStoryCloze
