@@ -130,6 +130,22 @@ Using this setting helps for massive models like BLOOM which require, or to avoi
 
 ### Commercial APIs
 
+Our library also supports the evaluation of models served via several commercial APIs. 
+
+
+It is on our roadmap to create task variants designed to enable models which do not serve logprobs/loglikelihoods to be compared with generation performance of open-source models.
+
+| API or Inference Server     | Implemented?            | Models supported:                    | Request Types:                                           |
+|-----------------------------|-------------------------|--------------------------------------|----------------------------------------------------------|
+| OpenAI Completions          | :heavy_check_mark:      | up to `code-davinci-002`             | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| OpenAI ChatCompletions      | :heavy_check_mark:      | (link here?)                         | `greedy_until` (no logprobs)                             |
+| Anthropic                   | :heavy_check_mark:      | (link to supported engines?)         | `greedy_until` (no logprobs)                             |
+| Textsynth                   | Needs testing           | ???                                  | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Cohere                      | WIP - needs help (link) | TODO: link to list of Cohere engines | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| GGML                        | WIP                     | ???                                  | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| vLLM                        | No                      | All HF models                        | `greedy_until`                                           |
+| Your inference server here! | ...                     | ...                                  | ...                                                      |
+
 Our library also supports language models served via the OpenAI API:
 
 ```bash
