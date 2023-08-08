@@ -253,7 +253,7 @@ def evaluate(
                     eval_logger.info(
                         f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\n{inst.args[0]}\n(end of prompt on previous line)"
                     )
-                    eval_logger.info("Request:", inst)
+                    eval_logger.info(f"Request: {str(inst)}")
 
         # aggregate Instances by LM method requested to get output.
         reqtype = (
