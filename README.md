@@ -130,43 +130,35 @@ Using this setting helps for massive models like BLOOM which require, or to avoi
 
 ### Commercial APIs
 
-Our library also supports the evaluation of models served via several commercial APIs. 
+Our library also supports the evaluation of models served via several commercial APIs, and hope to implement support for common performant local/self-hosted inference servers. 
 
+A full accounting of the supported and planned libraries + APIs can be seen below: 
+
+| API or Inference Server     | Implemented?                    | `--model <xxx>` name                                                             | Models supported:                    | Request Types:                                           |
+|-----------------------------|---------------------------------|----------------------------------------------------------------------------------|--------------------------------------|----------------------------------------------------------|
+| OpenAI Completions          | :heavy_check_mark:              | `openai`, `openai-completions`, `gooseai`                                        | up to `code-davinci-002`             | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| OpenAI ChatCompletions      | :x: Not yet - needs help!       | N/A                                                                              | (link here?)                         | `greedy_until` (no logprobs)                             |
+| Anthropic                   | :heavy_check_mark:              | `anthropic`                                                                      | (link to supported engines?)         | `greedy_until` (no logprobs)                             |
+| GooseAI                     | :heavy_check_mark: (not separately maintained)  | `openai`, `openai-completions`, `gooseai` (same interface as OpenAI Completions) |                                      | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Textsynth                   | Needs testing                   | `textsynth`                                                                      | ???                                  | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Cohere                      | :hourglass: - needs help (link) | N/A                                                                              | TODO: link to list of Cohere engines | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| GGML                        | :hourglass: (link)              | N/A                                                                              | ???                                  | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| vLLM                        | :x: Not yet - needs help!       | N/A                                                                              | All HF models                        | `greedy_until` (no logprobs)                             |
+| Your inference server here! | ...                             | ...                                                                              | ...                                  | ...                                                      |                                | ...                                                      |
 
 It is on our roadmap to create task variants designed to enable models which do not serve logprobs/loglikelihoods to be compared with generation performance of open-source models.
 
-| API or Inference Server     | Implemented?            | Models supported:                    | Request Types:                                           |
-|-----------------------------|-------------------------|--------------------------------------|----------------------------------------------------------|
-| OpenAI Completions          | :heavy_check_mark:      | up to `code-davinci-002`             | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
-| OpenAI ChatCompletions      | :heavy_check_mark:      | (link here?)                         | `greedy_until` (no logprobs)                             |
-| Anthropic                   | :heavy_check_mark:      | (link to supported engines?)         | `greedy_until` (no logprobs)                             |
-| Textsynth                   | Needs testing           | ???                                  | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Cohere                      | WIP - needs help (link) | TODO: link to list of Cohere engines | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
-| GGML                        | WIP                     | ???                                  | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
-| vLLM                        | No                      | All HF models                        | `greedy_until`                                           |
-| Your inference server here! | ...                     | ...                                  | ...                                                      |
-
-Our library also supports language models served via the OpenAI API:
+Our library supports language models served via the OpenAI Completions API as follows:
 
 ```bash
 export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
 python main.py \
-    --model openai \
+    --model openai-completions \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag
 ```
 
 While this functionality is only officially maintained for the official OpenAI API, it tends to also work for other hosting services that use the same API such as [goose.ai](goose.ai) with minor modification. We also have an implementation for the [TextSynth](https://textsynth.com/index.html) API, using `--model textsynth`.
-
-To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
-
-```bash
-python main.py \
-    --model openai \
-    --model_args engine=davinci \
-    --tasks lambada_openai,hellaswag \
-    --check_integrity
-```
 
 ### Other Frameworks
 
@@ -187,6 +179,16 @@ python write_out.py \
 ```
 
 This will write out one text file for each task.
+
+To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
+
+```bash
+python main.py \
+    --model openai \
+    --model_args engine=davinci \
+    --tasks lambada_openai,hellaswag \
+    --check_integrity
+```
 
 ## Advanced Usage
 
@@ -216,6 +218,14 @@ To implement a new task in the eval harness, see [this guide](./docs/new_task_gu
 
 
 As a start, we currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, we support prompts authored in the [Promptsource Library](https://github.com/bigscience-workshop/promptsource/tree/main) as described further in https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/new_task_guide.md and https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/advanced_task_guide.md and welcome contributions of novel task templates and task variants.
+
+## How to Contribute or Learn More?
+
+For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
+
+
+You can also ask for help, or discuss new features with the maintainers in the #lm-thunderdome channel of the EleutherAI discord! If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
+
 
 ## Cite as
 
