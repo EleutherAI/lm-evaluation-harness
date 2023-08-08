@@ -350,7 +350,6 @@ TASK_REGISTRY = {
     "kolegal_legalcase":legal_test.LegalBinary,
     "kolegal_civilcase":legal_test.LJPCivil,
     "kolegal_criminalcase":legal_test.LJPCriminal,
-=======
     "kosbi":kosbi.KoSBi,
     **xcopa.construct_tasks(),
     **bigbench.create_all_tasks(),
