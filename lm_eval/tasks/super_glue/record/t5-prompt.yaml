@@ -6,7 +6,7 @@ dataset_name: record
 training_split: train
 validation_split: validation
 output_type: greedy_until
-doc_to_text: "record query: {{query}} entities: {{entities}} passage: {{passage}}"
+doc_to_text: "record query: {{query}} entities: {{entities|join(\", \")}} passage: {{passage}}"
 doc_to_target: "{{answers}}"
 metric_list:
   - metric: exact_match
