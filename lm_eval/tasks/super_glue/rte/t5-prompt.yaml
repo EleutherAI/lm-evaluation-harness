@@ -6,7 +6,7 @@ dataset_name: rte
 training_split: train
 validation_split: validation
 output_type: greedy_until
-doc_to_text: "rte premise: {{premise}} hypothesis: {{hypothesis}}"
+doc_to_text: "rte hypothesis: {{hypothesis}} premise: {{premise}}"
 doc_to_target: label
 doc_to_choice: ['entailment', 'not_entailment']
 metric_list:
