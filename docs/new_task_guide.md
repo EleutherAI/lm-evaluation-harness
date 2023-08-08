@@ -116,24 +116,23 @@ doc_to_choice: ['No', 'Yes']
 
 We support the [Jinja 2](https://jinja.palletsprojects.com/en/3.1.x/) templating language for writing prompts. In practice, this means you can take your dataset's columns and do many basic string manipulations to place each document into prompted format.
 
-
-Suppose our dataset has a `"question"` field, and an `"answer"` field, which are both strings. We want the model to see, if given a `document` object that is a row of our dataset:
+Take for example `super_glue/boolq`, as input, we'd like to use the features `passage` and `question` and string them together so that for a a sample line `doc`, the model sees something the format of:
 ```
-Question: {document[question]}
+doc["passage"]
+Question: doc["question"]?
 Answer:
 ```
-We do this by writing
+We do this by [writing](https://github.com/EleutherAI/lm-evaluation-harness/blob/1710b42d52d0f327cb0eb3cb1bfbbeca992836ca/lm_eval/tasks/super_glue/boolq/default.yaml#L9C1-L9C61)
 ```yaml
-doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
 ```
-Such that {{question}} will be replaced by `doc["question"]` when rendering the prompt template.
+Such that `{{passage}}` will be replaced by `doc["passage"]` and `{{question}}` with `doc["question"]` when rendering the prompt template.
 
 Our intended output is for the model to predict a single whitespace, and then the answer to the question. We do this via:
 ```yaml
 doc_to_target: "{{answer}}"
 ```
 
-`doc_to_target` can output either a string or a integer that corresponds to an index that will point to the correct option from `doc_to_choice`. If `doc_to_target` is an index, the fewshot samples generated will still be a string that is sourced from `doc_to_choice` using that index.
 
 **Important**: We always add one whitespace between the input and output, such that the full input-output string is `doc_to_target(doc) + " " + doc_to_text(doc)`. doc_to_text and doc_to_target should not contain trailing right or left whitespace, respectively.
 
