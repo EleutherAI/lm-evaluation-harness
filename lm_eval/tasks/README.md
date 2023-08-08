@@ -49,16 +49,16 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] ToxiGen
 - [ ] StoryCloze
 - [ ] NaturalQs
-- [ ] CrowS-Pairs
+- [ ] CrowS-Pairs (Hailey?)
 - [ ] XCopa
-- [ ] BIG-Bench
+- [ ] BIG-Bench (Hailey)
 - [ ] XStoryCloze
 - [x] XWinograd
 - [ ] PAWS-X
 - [ ] XNLI
 - [ ] MGSM
 - [ ] SCROLLS
-- [ ] Babi
+- [ ] Babi (Hailey)
 
 # Novel Tasks
 Tasks added in the revamped harness that were not previously available. Again, a strikethrough denotes checking performed *against the original task's implementation or published results introducing the task*.
