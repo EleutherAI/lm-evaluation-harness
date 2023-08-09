@@ -997,7 +997,6 @@ class ConfigurableTask(Task):
                 gold = choices[gold]
 
             for key, result in zip(self._metric_fn_list.keys(), results):
-                print(result)
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
