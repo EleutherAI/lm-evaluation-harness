@@ -1,0 +1,24 @@
+task: triviaqa
+dataset_path: trivia_qa
+dataset_name: rc.nocontext
+output_type: greedy_until
+training_split: train
+validation_split: validation
+doc_to_text: "Question: {{question}}?\nAnswer:"
+doc_to_target: "{{answer.aliases}}"
+should_decontaminate: true
+doc_to_decontamination_query: question
+target_delimiter: " "
+generation_kwargs:
+  until:
+    - "\n"
+    - "." 
+    - ","
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
