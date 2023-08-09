@@ -58,7 +58,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] XNLI
 - [ ] MGSM
 - [ ] SCROLLS
-- [ ] Babi
+- [x] Babi
 
 # Novel Tasks
 Tasks added in the revamped harness that were not previously available. Again, a strikethrough denotes checking performed *against the original task's implementation or published results introducing the task*.
