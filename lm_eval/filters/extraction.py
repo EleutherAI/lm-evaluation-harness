@@ -45,7 +45,6 @@ class WhitespaceFilter(Filter):
         pass
 
     def apply(self, resps):
-
         def filter_set(inst):
 
             filtered_resp = []
