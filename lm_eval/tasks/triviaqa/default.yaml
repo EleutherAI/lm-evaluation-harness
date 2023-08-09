@@ -12,13 +12,13 @@ target_delimiter: ""
 generation_kwargs:
   until:
     - "\n"
-    - "." 
+    - "."
     - ","
   do_sample: false
   temperature: 0.0
 filter_list:
   - name: remove_whitespace
-    filter: 
+    filter:
       - function: remove_whitespace
       - function: take_first
 metric_list:
