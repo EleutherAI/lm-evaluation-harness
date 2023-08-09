@@ -341,7 +341,10 @@ class HuggingFaceAutoLM(BaseLM):
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
             trust_remote_code=trust_remote_code,
         )
-        tokenizer.pad_token = tokenizer.eos_token
+        try:
+            tokenizer.pad_token = tokenizer.eos_token
+        except AttributeError:
+            print("tokenizer.pad_token is readonly")
         return tokenizer
 
     @property
@@ -553,6 +556,8 @@ class AutoCausalLM(HuggingFaceAutoLM):
             generations, max_context_size=inputs["input_ids"].size(1)
         )
 
+class AutoModelForChatglm(AutoCausalLM):
+    AUTO_MODEL_CLASS = transformers.AutoModel
 
 class AutoSeq2SeqLM(HuggingFaceAutoLM):
     """Seq2Seq language modeling.
