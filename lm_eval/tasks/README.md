@@ -50,7 +50,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] StoryCloze
 - [ ] NaturalQs
 - [x] CrowS-Pairs
-- [ ] XCopa (Lintang)
+- [x] XCopa
 - [ ] BIG-Bench (Hailey)
 - [ ] XStoryCloze (Lintang)
 - [x] XWinograd
