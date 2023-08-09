@@ -18,9 +18,9 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] SciQ
 - [ ] QASPER
 - [x] QA4MRE
-- [ ] TriviaQA
+- [ ] TriviaQA (Lintang)
 - [x] AI2 ARC
-- [ ] LogiQA [(WIP)](https://github.com/EleutherAI/lm-evaluation-harness/pull/711)
+- [x] LogiQA
 - [x] HellaSwag
 - [x] SWAG
 - [x] OpenBookQA
@@ -28,7 +28,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] RACE
 - [x] HeadQA
 - [x] MathQA
-- [ ] WebQs
+- [x] WebQs
 - [ ] WSC273
 - [x] Winogrande
 - [x] ANLI
@@ -49,16 +49,16 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] ToxiGen
 - [ ] StoryCloze
 - [ ] NaturalQs
-- [ ] CrowS-Pairs
+- [x] CrowS-Pairs
 - [x] XCopa
-- [ ] BIG-Bench
-- [ ] XStoryCloze
+- [ ] BIG-Bench (Hailey)
+- [ ] XStoryCloze (Lintang)
 - [x] XWinograd
-- [ ] PAWS-X
-- [ ] XNLI
+- [ ] PAWS-X (Lintang)
+- [ ] XNLI (Lintang)
 - [ ] MGSM
 - [ ] SCROLLS
-- [ ] Babi
+- [x] Babi
 
 # Novel Tasks
 Tasks added in the revamped harness that were not previously available. Again, a strikethrough denotes checking performed *against the original task's implementation or published results introducing the task*.

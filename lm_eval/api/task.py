@@ -848,13 +848,14 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
 
             choices = self.doc_to_choice(doc)
+            target_delimiter = self._config.target_delimiter
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)
-                arguments = [(ctx, " {}".format(cont)) for ctx in choices]
+                arguments = [(ctx, f"{target_delimiter}{cont}") for ctx in choices]
             else:
                 # Otherwise they are placed in the continuation
-                arguments = [(ctx, " {}".format(cont)) for cont in choices]
+                arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
             request_list = [
                 Instance(
