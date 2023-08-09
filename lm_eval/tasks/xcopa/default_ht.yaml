@@ -1,0 +1,4 @@
+include: default_et.yaml
+task: xcopa_ht
+dataset_name: ht
+doc_to_text: !function utils.doc_to_text_ht
