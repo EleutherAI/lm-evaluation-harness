@@ -1,7 +1,6 @@
-# ARC
+# [Think you have Solved Question Answering? Try ARC, the AI2 Reasoning Challenge](https://arxiv.org/abs/1803.05457)
 
-Think you have Solved Question Answering? Try ARC, the AI2 Reasoning Challenge
-https://arxiv.org/pdf/1803.05457.pdf
+## Abstract
 
 The ARC dataset consists of 7,787 science exam questions drawn from a variety
 of sources, including science questions provided under license by a research
@@ -11,9 +10,7 @@ multiple choice structure (typically 4 answer options). The questions are sorted
 into a Challenge Set of 2,590 “hard” questions (those that both a retrieval and
 a co-occurrence method fail to answer correctly) and an Easy Set of 5,197 questions.
 
-Homepage: https://allenai.org/data/arc
-
-### Citation
+## Citation
 ```
 @article{Clark2018ThinkYH,
   title={Think you have Solved Question Answering? Try ARC, the AI2 Reasoning Challenge},
@@ -23,3 +20,6 @@ Homepage: https://allenai.org/data/arc
   volume={abs/1803.05457}
 }
 ```
+## Links
+
+Homepage: https://allenai.org/data/arc
