@@ -1,0 +1,3 @@
+include: ar.yaml
+task: xstorycloze_id
+dataset_name: id
