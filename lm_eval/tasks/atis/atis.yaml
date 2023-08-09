@@ -12,3 +12,5 @@ gold_alias: "{{label}}"
 doc_to_choice: ['atis_flight', 'atis_flight_time', 'atis_airfare', 'atis_aircraft', 'atis_ground_service', 'atis_airline', 'atis_abbreviation', 'atis_quantity']
 metric_list:
   - metric: acc
+  - metric: f1
+    aggregation: !function "aggregate.atis_multi_f1"
