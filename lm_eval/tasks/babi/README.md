@@ -4,14 +4,14 @@ One long-term goal of machine learning research is to produce methods that are a
 
 ## CITATIONS
 
-"""
+```
 @article{weston2015towards,
   title={Towards ai-complete question answering: A set of prerequisite toy tasks},
   author={Weston, Jason and Bordes, Antoine and Chopra, Sumit and Rush, Alexander M and Van Merri{\"e}nboer, Bart and Joulin, Armand and Mikolov, Tomas},
   journal={arXiv preprint arXiv:1502.05698},
   year={2015}
 }
-"""
+```
 
 ## Links
 
