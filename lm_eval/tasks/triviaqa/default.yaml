@@ -8,7 +8,7 @@ doc_to_text: "Question: {{question}}?\nAnswer:"
 doc_to_target: "{{answer.aliases}}"
 should_decontaminate: true
 doc_to_decontamination_query: question
-target_delimiter: " "
+target_delimiter: ""
 generation_kwargs:
   until:
     - "\n"
@@ -16,6 +16,11 @@ generation_kwargs:
     - ","
   do_sample: false
   temperature: 0.0
+filter_list:
+  - name: remove_whitespace
+    filter: 
+      - function: remove_whitespace
+      - function: take_first
 metric_list:
   - metric: exact_match
     aggregation: mean
