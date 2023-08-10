@@ -36,15 +36,19 @@ The LM class enforces a common interface via which we can extract responses from
 ```python
 class MyCustomLM(LM):
     #...
-    def loglikelihood(self, requests):
+    def loglikelihood(self, requests: list[Instance]) -> list[tuple[float, bool]]:
+        #...
 
 
-    def loglikelihood_rolling(self, requests):
+    def loglikelihood_rolling(self, requests: list[Instance]) -> list[tuple[float, bool]]:
+        #...
 
 
-    def greedy_until(self, requests):
+    def greedy_until(self, requests: list[Instance]) -> list[str]:
+        #...
     #...
 ```
+Where `Instance` is a dataclass defined in [`lm_eval.api.instance`](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/api/instance.py) with property `args` which returns a tuple of (context, continuation).
 
 We support
 

@@ -15,7 +15,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     # required to include yaml files in pip installation
     package_data={
-        "lm_eval": ["**/*.yaml"],
+        "lm_eval": ["**/*.yaml", "tasks/**/*"],
         "examples": ["**/*.yaml"],
     },
     entry_points={
@@ -36,7 +36,6 @@ setuptools.setup(
         "evaluate>=0.4.0",
         "jsonlines",
         "numexpr",
-        "openai>=0.6.4",
         "omegaconf>=2.2",
         "peft>=0.2.0",
         "pybind11>=2.6.2",
@@ -67,5 +66,6 @@ setuptools.setup(
         ],
         "gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
         "anthropic": ["anthropic"],
+        "openai": ["openai", "tiktoken"],
     },
 )
