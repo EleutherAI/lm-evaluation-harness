@@ -45,14 +45,14 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Translation (WMT) suite (Hailey)
 - [x] Unscramble
 - [x] ~~Pile (perplexity)~~
-- [ ] BLiMP (Lintang)
+- [x] BLiMP
 - [x] ToxiGen
 - [ ] StoryCloze (Lintang)
 - [ ] NaturalQs (Hailey)
 - [x] CrowS-Pairs
 - [x] XCopa
 - [ ] BIG-Bench (Hailey)
-- [ ] XStoryCloze (Lintang)
+- [x] XStoryCloze
 - [x] XWinograd
 - [ ] PAWS-X (Lintang)
 - [ ] XNLI (Lintang)
