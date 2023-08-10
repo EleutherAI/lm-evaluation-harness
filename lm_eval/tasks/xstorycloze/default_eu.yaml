@@ -1,3 +1,0 @@
-include: ar.yaml
-task: xstorycloze_eu
-dataset_name: eu
