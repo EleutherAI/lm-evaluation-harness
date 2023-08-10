@@ -1,3 +1,0 @@
-include: ar.yaml
-task: xstorycloze_my
-dataset_name: my
