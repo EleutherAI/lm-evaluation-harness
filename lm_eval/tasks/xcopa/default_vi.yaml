@@ -1,0 +1,4 @@
+include: default_et.yaml
+task: xcopa_vi
+dataset_name: vi
+doc_to_text: !function utils.doc_to_text_vi
