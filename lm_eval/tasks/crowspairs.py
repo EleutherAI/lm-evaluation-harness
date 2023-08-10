@@ -132,7 +132,7 @@ class CrowsPairsMutilingual(Task):
 
     def higher_is_better(self):
         # For all metrics lower is better
-        return {"likelihood_difference": False, "pct_stereotype": True}
+        return {"likelihood_difference": False, "pct_stereotype": False}
 
     def aggregation(self):
         return {"likelihood_difference": mean, "pct_stereotype": mean}
