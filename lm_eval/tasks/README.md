@@ -47,7 +47,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] ~~Pile (perplexity)~~
 - [x] BLiMP
 - [x] ToxiGen
-- [ ] StoryCloze (Lintang)
+- [x] StoryCloze
 - [ ] NaturalQs (Hailey)
 - [x] CrowS-Pairs
 - [x] XCopa
