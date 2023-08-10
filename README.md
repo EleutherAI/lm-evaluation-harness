@@ -130,19 +130,19 @@ Using this setting helps for massive models like BLOOM which require, or to avoi
 
 ### Commercial APIs
 
-Our library also supports the evaluation of models served via several commercial APIs, and hope to implement support for common performant local/self-hosted inference servers. 
+Our library also supports the evaluation of models served via several commercial APIs, and hope to implement support for common performant local/self-hosted inference servers.
 
-A full accounting of the supported and planned libraries + APIs can be seen below: 
+A full accounting of the supported and planned libraries + APIs can be seen below:
 
 | API or Inference Server     | Implemented?                    | `--model <xxx>` name                                                             | Models supported:                    | Request Types:                                           |
 |-----------------------------|---------------------------------|----------------------------------------------------------------------------------|--------------------------------------|----------------------------------------------------------|
 | OpenAI Completions          | :heavy_check_mark:              | `openai`, `openai-completions`, `gooseai`                                        | up to `code-davinci-002`             | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
 | OpenAI ChatCompletions      | :x: Not yet - needs help!       | N/A                                                                              | (link here?)                         | `greedy_until` (no logprobs)                             |
-| Anthropic                   | :heavy_check_mark:              | `anthropic`                                                                      | (link to supported engines?)         | `greedy_until` (no logprobs)                             |
+| Anthropic                   | :heavy_check_mark:              | `anthropic`                                                                      | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)         | `greedy_until` (no logprobs)                             |
 | GooseAI                     | :heavy_check_mark: (not separately maintained)  | `openai`, `openai-completions`, `gooseai` (same interface as OpenAI Completions) |                                      | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
 | Textsynth                   | Needs testing                   | `textsynth`                                                                      | ???                                  | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Cohere                      | :hourglass: - needs help (link) | N/A                                                                              | TODO: link to list of Cohere engines | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
-| GGML                        | :hourglass: (link)              | N/A                                                                              | ???                                  | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Cohere                      | :hourglass: - blocked on Cohere API bug | N/A                                                                              | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models) | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| GGML                        | :hourglass: [PR](https://github.com/EleutherAI/lm-evaluation-harness/pull/617)              | N/A                                                                              | ???                                  | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
 | vLLM                        | :x: Not yet - needs help!       | N/A                                                                              | All HF models                        | `greedy_until` (no logprobs)                             |
 | Your inference server here! | ...                             | ...                                                                              | ...                                  | ...                                                      |                                | ...                                                      |
 
