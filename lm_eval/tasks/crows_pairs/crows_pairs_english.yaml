@@ -16,6 +16,6 @@ metric_list:
   - metric: likelihood_diff
     aggregation: mean
     higher_is_better: false
-  - metric: acc
+  - metric: pct_stereotype
     aggregation: mean
     higher_is_better: false
