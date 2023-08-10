@@ -33,7 +33,6 @@ To install the `lm-eval` refactor branch from the github repository, run:
 ```bash
 git clone https://github.com/EleutherAI/lm-evaluation-harness
 cd lm-evaluation-harness
-git checkout big-refactor
 pip install -e .
 ```
 
@@ -48,6 +47,13 @@ To support loading GPTQ quantized models, install the package with the `gptq` ex
 ```bash
 pip install -e ".[gptq]"
 ```
+
+
+To install the package with all extras, run
+```bash
+pip install -e ".[all]"
+```
+
 
 ## Support
 
