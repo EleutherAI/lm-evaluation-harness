@@ -999,11 +999,14 @@ class ConfigurableTask(Task):
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
                     scores = []
                     for gold_option in gold:
-                        res = self._metric_fn_list[key](
-                            references=[gold_option],
-                            predictions=[result],
-                            **self._metric_fn_kwargs[key],
-                        )
+                        try:
+                            res = self._metric_fn_list[key](
+                                references=[gold_option],
+                                predictions=[result],
+                                **self._metric_fn_kwargs[key],
+                            )
+                        except TypeError:  # TODO: this is hacky and I don't want to do it
+                            result = self._metric_fn_list[key]([gold_option, result])
                         if isinstance(res, dict):
                             # TODO: this handles the case where HF evaluate returns a dict.
                             res = res[key]
@@ -1013,12 +1016,14 @@ class ConfigurableTask(Task):
                     else:
                         result = 0.0
                 else:
-                    result = self._metric_fn_list[key](
-                        references=[gold],
-                        predictions=[result],
-                        **self._metric_fn_kwargs[key],
-                    )
-
+                    try:
+                        result = self._metric_fn_list[key](
+                            references=[gold],
+                            predictions=[result],
+                            **self._metric_fn_kwargs[key],
+                        )
+                    except TypeError:
+                        result = self._metric_fn_list[key]([gold, result])
                 if isinstance(result, dict):
                     result_dict.update(result)
                 else:
