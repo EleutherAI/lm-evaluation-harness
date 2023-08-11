@@ -254,7 +254,7 @@ class LlamaHFLM(HFLM):
                     torch_dtype=_get_dtype(dtype),
                     trust_remote_code=trust_remote_code,
                     ).to(self.device)
-            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            self.tokenizer = transformers.LlamaTokenizer.from_pretrained(
                     tokenizer if tokenizer else pretrained,
                     revision=revision,
                     trust_remote_code=trust_remote_code,
