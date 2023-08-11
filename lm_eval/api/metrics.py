@@ -56,6 +56,24 @@ def matthews_corrcoef(items):
     return sklearn.metrics.matthews_corrcoef(golds, preds)
 
 
+@register_aggregation("bleu")
+def bleu(items):
+    """The Bilingual Evaluation Understudy Score, or BLEU for short, is a metric
+    for evaluating a generated sentence to a reference sentence. It counts matching
+    n-grams in the candidate translation to n-grams in the reference text, where
+    1-gram or unigram would be each token and a bigram comparison would be each
+    word pair. The comparison is made regardless of word order
+    Source: https://machinelearningmastery.com/calculate-bleu-score-for-text-python/
+    Paper: https://www.aclweb.org/anthology/P02-1040/
+
+    Higher is better
+    """
+    refs = list(zip(*items))[0]
+    preds = list(zip(*items))[1]
+    refs, preds = _sacreformat(refs, preds)
+    return sacrebleu.corpus_bleu(preds, refs).score
+
+
 @register_metric(
     metric="acc",
     higher_is_better=True,
@@ -161,6 +179,16 @@ def f1_fn(items):  # This is a passthrough function
 
 
 @register_metric(
+    metric="bleu",
+    higher_is_better=True,
+    output_type="greedy_until",
+    aggregation="bleu",
+)
+def bleu_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
     metric="acc_all",
     higher_is_better=True,
     output_type="loglikelihood",
@@ -215,24 +243,6 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
 def weighted_mean(items):
     a, b = zip(*items)
     return sum(a) / sum(b)
-
-
-@register_metric(metric="bleu", higher_is_better=True, aggregation="mean")
-def bleu(items):
-    """The Bilingual Evaluation Understudy Score, or BLEU for short, is a metric
-    for evaluating a generated sentence to a reference sentence. It counts matching
-    n-grams in the candidate translation to n-grams in the reference text, where
-    1-gram or unigram would be each token and a bigram comparison would be each
-    word pair. The comparison is made regardless of word order
-    Source: https://machinelearningmastery.com/calculate-bleu-score-for-text-python/
-    Paper: https://www.aclweb.org/anthology/P02-1040/
-
-    Higher is better
-    """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
-    refs, preds = _sacreformat(refs, preds)
-    return sacrebleu.corpus_bleu(preds, refs).score
 
 
 @register_metric(metric="chrf", higher_is_better=True, aggregation="mean")
