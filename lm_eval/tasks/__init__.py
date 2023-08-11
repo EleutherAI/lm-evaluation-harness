@@ -66,6 +66,9 @@ from . import ceval
 from . import csatqa
 from . import haerae
 
+
+from .pt import faquad
+
 ########################################
 # Translation tasks
 ########################################
@@ -332,6 +335,9 @@ TASK_REGISTRY = {
     "haerae_rc":haerae.RC,
     "haerae_rw":haerae.RW,
     "haerae_sn":haerae.SN,
+
+    "faquad": faquad.FaQuAD,
+
     # Requires manual download
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
