@@ -13,7 +13,7 @@ from tqdm import tqdm
 import datasets
 import numpy as np
 
-from typing import Union, List, Any, Tuple, Literal
+from typing import Union, List, Any, Tuple, Literal, Optional
 from collections.abc import Callable
 
 from lm_eval import utils
@@ -351,9 +351,24 @@ class Task(abc.ABC):
             f"Building contexts for task '{self._config.task}' on rank {rank}..."
         )
 
+        total: Optional[int] = None
+        if isinstance(docs, datasets.Dataset):
+            total = docs.num_rows
+            if limit is not None:
+                total = min(total, limit)
+        else:
+            # may be an overshoot (if our limit is larger than our dataset). better than nothing.
+            total = limit
+        if total is not None:
+            total //= world_size
+
         instances = []
-        for doc_id, doc in utils.create_iterator(
-            enumerate(docs), rank, world_size, limit
+        for doc_id, doc in tqdm(
+            utils.create_iterator(enumerate(docs), rank, world_size, limit),
+            total=total,
+            unit="ctx",
+            position=rank,
+            desc=f"r{rank} build_ctx",
         ):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(

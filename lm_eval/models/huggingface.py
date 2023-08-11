@@ -561,7 +561,11 @@ class HFLM(LM):
             print(f"Determined Largest batch size: {batch_size}")
             adaptive_batch_size = batch_size
 
-        for (string,) in tqdm([req.args for req in requests], disable=(self.rank != 0)):
+        for (string,) in tqdm(
+            [req.args for req in requests],
+            position=self.rank,
+            desc=f"r{self.rank} ll_roll",
+        ):
             rolling_token_windows = list(
                 map(
                     utils.make_disjoint_window,
@@ -647,7 +651,12 @@ class HFLM(LM):
             return self.batch_sizes[sched]
 
         for chunk in utils.chunks(
-            tqdm(re_ord.get_reordered(), disable=(disable_tqdm or (self.rank != 0))),
+            tqdm(
+                re_ord.get_reordered(),
+                disable=disable_tqdm,
+                position=self.rank,
+                desc=f"r{self.rank} ll_tokens",
+            ),
             n=self.batch_size
             if self.batch_size != "auto"
             else override_bs

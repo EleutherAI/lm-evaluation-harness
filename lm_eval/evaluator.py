@@ -277,7 +277,7 @@ def evaluate(
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
     for reqtype, reqs in requests.items():
-        eval_logger.info("Running {} requests".format(reqtype))
+        eval_logger.info("r{}: Running {} requests".format(lm.rank, reqtype))
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []
         for req in reqs:
