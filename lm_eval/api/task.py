@@ -78,7 +78,7 @@ class TaskConfig(dict):
     # runtime configuration options
     num_fewshot: int = 0
     # scoring options
-    metric_list: str = None
+    metric_list: list = None
     output_type: str = "greedy_until"
     generation_kwargs: dict = None
     repeats: int = 1
@@ -992,7 +992,8 @@ class ConfigurableTask(Task):
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
 
-            for key, result in zip(self._metric_fn_list.keys(), results):
+            for key in self._metric_fn_list.keys():
+                result = results[0]
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
