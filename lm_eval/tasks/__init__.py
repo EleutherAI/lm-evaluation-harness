@@ -68,6 +68,7 @@ from . import haerae
 
 
 from .pt import faquad
+from .pt import superglue_pt
 
 ########################################
 # Translation tasks
@@ -337,6 +338,7 @@ TASK_REGISTRY = {
     "haerae_sn":haerae.SN,
 
     "faquad": faquad.FaQuAD,
+    "boolq_pt": superglue_pt.BoolQ,
 
     # Requires manual download
     # Requires manual download of data.

@@ -257,3 +257,9 @@ def yesno(x):
         return "yes"
     else:
         return "no"
+
+def simnao(x):
+    if x:
+        return "sim"
+    else:
+        return "não"
