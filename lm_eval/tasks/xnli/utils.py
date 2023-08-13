@@ -124,8 +124,12 @@ def gen_lang_yamls(output_dir: str, overwrite: bool) -> None:
                         "include": "xnli_common_yaml",
                         "dataset_name": lang,
                         "task": f"xnli_{lang}",
-                        "doc_to_text": f"{{{{premise}}}}, {QUESTION_WORD}?",
-                        "doc_to_choice": f"{{[\"{ENTAILMENT_LABEL}, {{{{hypothesis}}}}\", \"{NEUTRAL_LABEL}, {{{{hypothesis}}}}\", \"{CONTRADICTION_LABEL}, {{{{hypothesis}}}}\"]}}"
+                        "doc_to_text": "",
+                        "doc_to_choice": f"{{{{["
+                            f"""premise+\", {QUESTION_WORD}? {ENTAILMENT_LABEL}, \"+hypothesis,"""
+                            f"""premise+\", {QUESTION_WORD}? {NEUTRAL_LABEL}, \"+hypothesis,"""
+                            f"""premise+\", {QUESTION_WORD}? {CONTRADICTION_LABEL}, \"+hypothesis"""
+                            f"]}}}}"
                     },
                     f,
                     allow_unicode=True
