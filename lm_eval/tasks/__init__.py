@@ -54,7 +54,8 @@ def check_prompt_config(config):
                     **{"use_prompt": prompt_variation},
                     **{
                         "task": "_".join(
-                            task_name + [
+                            task_name
+                            + [
                                 get_task_name_from_config(config),
                                 prompt_variation,
                             ]
