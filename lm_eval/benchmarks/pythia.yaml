@@ -6,7 +6,7 @@ task:
   - sciq
   - wsc
   - winogrande
-  - arc_*
-  # - logiqa
-  # - blimp_*
-  # - hendrycksTest*
+  - arc
+  - logiqa
+  - blimp
+  - hendrycksTest*
