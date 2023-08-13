@@ -59,5 +59,6 @@ def include_benchmarks(task_dir):
                             f"                                 Error: {error}"
                         )
 
+
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
 include_benchmarks(task_dir)

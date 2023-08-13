@@ -240,7 +240,7 @@ Tasks using complex filtering:
 
 ## Benchmarks
 
-When evaluating a language model, it's is not unusual to test accross a number of tasks that may not be related to one another in order to assess a variety of capabilities. To this end, it may be combursome to have to list the set of tasks or add a new group name to each yaml of each individual task.
+When evaluating a language model, it's is not unusual to test across a number of tasks that may not be related to one another in order to assess a variety of capabilities. To this end, it may be combursome to have to list the set of tasks or add a new group name to each yaml of each individual task.
 
 To solve this, we can create a benchmark yaml config. This is a config that contains the names of the tasks that should be included in a particular benchmark. The config consists of two main keys `group` which denotes the name of the benchmark and `task` which is where we can list the tasks.
 
