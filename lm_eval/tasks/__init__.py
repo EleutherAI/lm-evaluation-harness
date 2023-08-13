@@ -44,16 +44,17 @@ def check_prompt_config(config):
         prompt_list = prompts.load_prompt_list(
             use_prompt=config["use_prompt"],
             dataset_name=config["dataset_path"],
-            subset_name=config["dataset_name"],
+            subset_name=config["dataset_name"] if "dataset_name" in config else None,
         )
         for idx, prompt_variation in enumerate(prompt_list):
+            task_name = [config["task"]] if "task" in config else []
             all_configs.append(
                 {
                     **config,
                     **{"use_prompt": prompt_variation},
                     **{
                         "task": "_".join(
-                            [
+                            task_name + [
                                 get_task_name_from_config(config),
                                 prompt_variation,
                             ]
