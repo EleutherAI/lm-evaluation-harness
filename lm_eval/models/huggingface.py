@@ -559,6 +559,49 @@ class AutoCausalLM(HuggingFaceAutoLM):
 class AutoModelForChatglm(AutoCausalLM):
     AUTO_MODEL_CLASS = transformers.AutoModel
 
+    def __init__(
+        self,
+        pretrained: str,
+        quantized: bool  = False,
+        tokenizer: str  = None,
+        subfolder: str  = None,
+        revision: str  = "main",
+        batch_size: int   = 1,
+        max_batch_size: int  = 512,
+        max_gen_toks: int  = 256,
+        max_length: int  = None,
+        add_special_tokens: bool  = None,
+        use_accelerate: bool  = False,
+        device_map_option: str  = "auto",
+        max_memory_per_gpu: int   = None,
+        max_cpu_memory: int   = None,
+        offload_folder: str  = "./offload",
+        dtype: str  = None,
+        device: int  = "cuda",
+        peft: str = None, load_in_8bit: bool  = False,
+        load_in_4bit: bool  = False,
+        trust_remote_code: bool  = False,
+        gptq_use_triton: bool = False,
+        bnb_4bit_quant_type: str = None,
+        bnb_4bit_compute_dtype: str  = None):
+        super().__init__(pretrained, quantized,
+        tokenizer, subfolder, revision, batch_size, max_batch_size, max_gen_toks, max_length, add_special_tokens, use_accelerate, device_map_option, max_memory_per_gpu, max_cpu_memory, offload_folder, dtype, device, peft, load_in_8bit, load_in_4bit, trust_remote_code, gptq_use_triton, bnb_4bit_quant_type, bnb_4bit_compute_dtype)
+
+        self.add_special_tokens_length = len(self.tok_encode(""))
+
+
+    def _encode_pair(self, context, continuation):
+        n_spaces = len(context) - len(context.rstrip())
+        if n_spaces > 0:
+            continuation = context[-n_spaces:] + continuation
+            context = context[:-n_spaces]
+        whole_enc = self.tok_encode(context + continuation)
+
+        context_enc = self.tok_encode(context)
+        context_enc_len = len(context_enc)
+        continuation_enc = whole_enc[context_enc_len-self.add_special_tokens_length:]
+        return context_enc, continuation_enc
+
 class AutoSeq2SeqLM(HuggingFaceAutoLM):
     """Seq2Seq language modeling.
     You can find a set of supported models in the following documentation:
