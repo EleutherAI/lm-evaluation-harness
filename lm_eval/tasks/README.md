@@ -55,7 +55,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] XStoryCloze (Lintang)
 - [x] XWinograd
 - [ ] PAWS-X (Lintang)
-- [ ] XNLI (Lintang)
+- [x] XNLI
 - [ ] MGSM (Lintang)
 - [ ] SCROLLS
 - [x] Babi
