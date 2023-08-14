@@ -24,7 +24,13 @@ Homepage: `https://rowanzellers.com/hellaswag/`
 }
 ```
 
-### Subtasks
+### Groups and Tasks
+
+#### Groups
+
+- Not part of a group yet
+
+#### Tasks
 
 - `hellaswag`
 
