@@ -1,5 +1,3 @@
-group:
-  - multiple_choice
 task: swag
 dataset_path: swag
 dataset_name: regular
