@@ -22,7 +22,12 @@ Homepage: https://allenai.org/data/open-book-qa
 ### Citation
 
 ```
-BibTeX-formatted citation goes here
+@inproceedings{OpenBookQA2018,
+    title={Can a Suit of Armor Conduct Electricity? A New Dataset for Open Book Question Answering},
+    author={Todor Mihaylov and Peter Clark and Tushar Khot and Ashish Sabharwal},
+    booktitle={EMNLP},
+    year={2018}
+}
 ```
 
 ### Groups and Tasks
