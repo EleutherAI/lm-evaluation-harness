@@ -31,18 +31,19 @@ Homepage: https://github.com/openai/grade-school-math
 }
 ```
 
-### Subtasks
+### Groups and Tasks
+
+#### Groups
+
+- `math_word_problems`
+- `chain_of_thought`
+- `self_consistency`
+
+#### Tasks
 
 - `gsm8k_yaml`
 - `gsm8k_cot`: GSM8K with Chain-of-Thought
 - `gsm8k_cot_self_consistency`: GSM8K with Chain-of-Thought and Self-Consistency
-
-### Groups
-
-- `greedy_until`
-- `math_word_problems`
-- `chain_of_thought`
-- `self_consistency`
 
 ### Checklist
 
