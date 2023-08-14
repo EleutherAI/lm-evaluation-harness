@@ -30,19 +30,17 @@ Homepage: https://github.com/facebookresearch/anli
 }
 ```
 
-### Subtasks
+### Groups and Tasks
 
-List or describe tasks defined in this folder, and their names here:
+#### Groups
+
+* `anli`: Evaluates `anli_r1`, `anli_r2`, and `anli_r3`
+
+#### Tasks
 * `anli_r1`: The data collected adversarially in the first round.
 * `anli_r2`: The data collected adversarially in the second round, after training on the previous round's data.
 * `anli_r3`: The data collected adversarially in the third round, after training on the previous multiple rounds of data.
 
-### Groups
-
-  - `multiple_choice`
-  - `natural_language_inference`
-  - `nli`
-  - `adverserial`
 
 ### Checklist
 
