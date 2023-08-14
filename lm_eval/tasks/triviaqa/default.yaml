@@ -8,7 +8,6 @@ doc_to_text: "Question: {{question}}?\nAnswer:"
 doc_to_target: "{{answer.aliases}}"
 should_decontaminate: true
 doc_to_decontamination_query: question
-target_delimiter: ""
 generation_kwargs:
   until:
     - "\n"
