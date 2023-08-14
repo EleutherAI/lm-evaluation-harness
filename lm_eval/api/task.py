@@ -761,7 +761,11 @@ class ConfigurableTask(Task):
             return doc_to_text(doc)
         # Used when applying a Promptsource template
         elif hasattr(doc_to_text, "apply"):
-            return doc_to_text.apply(doc)[0]
+            applied_prompt = doc_to_text.apply(doc)
+            if len(applied_prompt) == 2:
+                return applied_prompt[0]
+            else:
+                eval_logger.warning("Applied prompt returns empty string")
         else:
             print(type(doc_to_text))
             raise TypeError
@@ -791,7 +795,11 @@ class ConfigurableTask(Task):
             return doc_to_target(doc)
         # Used when applying a Promptsource template
         elif hasattr(doc_to_target, "apply"):
-            return doc_to_target.apply(doc)[1]
+            applied_prompt = doc_to_text.apply(doc)
+            if len(applied_prompt) == 2:
+                return applied_prompt[1]
+            else:
+                eval_logger.warning("Applied prompt returns empty string")
         else:
             raise TypeError
 
