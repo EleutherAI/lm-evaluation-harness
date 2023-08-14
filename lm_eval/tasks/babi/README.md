@@ -21,13 +21,15 @@ Homepage: https://github.com/facebookarchive/bAbI-tasks
 }
 ```
 
-### Subtasks
+### Groups and Tasks
+
+#### Groups
+
+* Not part of a group yet
+
+#### Tasks
 
 * `babi`
-
-### Groups
-
-* `greedy_until`
 
 ### Checklist
 
