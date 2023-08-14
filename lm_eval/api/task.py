@@ -795,7 +795,7 @@ class ConfigurableTask(Task):
             return doc_to_target(doc)
         # Used when applying a Promptsource template
         elif hasattr(doc_to_target, "apply"):
-            applied_prompt = doc_to_text.apply(doc)
+            applied_prompt = doc_to_target.apply(doc)
             if len(applied_prompt) == 2:
                 return applied_prompt[1]
             else:
