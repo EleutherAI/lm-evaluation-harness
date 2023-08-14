@@ -1,5 +1,3 @@
-group:
-  - multiple_choice
 task: pubmed_qa
 dataset_path: pubmed_qa
 dataset_name: pqa_labeled
