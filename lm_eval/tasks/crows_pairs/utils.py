@@ -13,7 +13,7 @@ def process_results(doc, results):
     # then treat this as predicting stereotyped sentence
     acc = 1.0 if likelihood1 > likelihood2 else 0.0
 
-    return {"likelihood_diff": diff, "acc": acc}
+    return {"likelihood_diff": diff, "pct_stereotype": acc}
 
 
 def doc_to_choice(doc):

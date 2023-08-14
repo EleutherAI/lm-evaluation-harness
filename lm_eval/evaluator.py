@@ -11,6 +11,7 @@ import numpy as np
 
 import lm_eval.api
 import lm_eval.tasks
+import lm_eval.benchmarks
 import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry

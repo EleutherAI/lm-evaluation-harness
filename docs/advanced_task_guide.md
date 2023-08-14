@@ -236,3 +236,89 @@ Generative tasks:
 
 Tasks using complex filtering:
 - GSM8k with CoT (+ with Self-Consistency): (`lm_eval/tasks/gsm8k/gsm8k-cot.yaml` ; `lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml`)
+
+
+## Benchmarks
+
+When evaluating a language model, it's is not unusual to test across a number of tasks that may not be related to one another in order to assess a variety of capabilities. To this end, it may be combursome to have to list the set of tasks or add a new group name to each yaml of each individual task.
+
+To solve this, we can create a benchmark yaml config. This is a config that contains the names of the tasks that should be included in a particular benchmark. The config consists of two main keys `group` which denotes the name of the benchmark and `task` which is where we can list the tasks. The tasks listed in `task` are the task names that have been registered. A good example would be the list of tasks used to evaluate the Pythia Suite.
+
+```yaml
+group: pythia
+task:
+  - lambada_openai
+  - wikitext
+  - piqa
+  - sciq
+  - wsc
+  - winogrande
+  - arc
+  - logiqa
+  - blimp
+  - hendrycksTest*
+```
+
+Alternatively, benchmarks can have tasks that are customizable for each task. They can be defined like how a yaml task is usually set.
+
+```yaml
+group: t0_eval
+task:
+  # Coreference Resolution
+  - dataset_path: super_glue
+    dataset_name: wsc.fixed
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Coreference Resolution
+  - dataset_path: winogrande
+    dataset_name: winogrande_xl
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  ...
+```
+
+If the benchmark contains the same dataset but with different configurations, use `task` to differentiate between them. For example, T0-Eval evaluates on 3 versions of ANLI but the huggingface dataset collects them in one dataset.
+
+```YAML
+group: t0_eval
+task:
+  ...
+  - task: anli_r1
+    dataset_path: anli
+    use_prompt: promptsource:*
+    training_split: train_r1
+    validation_split: dev_r1
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  - task: anli_r2
+    dataset_path: anli
+    use_prompt: promptsource:*
+    training_split: train_r2
+    validation_split: dev_r2
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+```
+
+Calling the benchmark is done the same way we would call any task with `--tasks`. Benchmarks can be added in `lm_eval/benchmarks/`
