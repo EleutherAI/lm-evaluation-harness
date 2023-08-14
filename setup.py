@@ -1,7 +1,30 @@
 import setuptools
+import itertools
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
+
+
+extras_require = {
+    "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],
+    "linting": [
+        "flake8",
+        "pylint",
+        "mypy",
+        "pre-commit",
+    ],
+    "testing": ["pytest", "pytest-cov", "pytest-xdist"],
+    "multilingual": ["nagisa>=0.2.7", "jieba>=0.42.1"],
+    "sentencepiece": ["sentencepiece>=0.1.98", "protobuf>=4.22.1"],
+    "promptsource": [
+        "promptsource @ git+https://github.com/bigscience-workshop/promptsource.git#egg=promptsource"
+    ],
+    "gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
+    "anthropic": ["anthropic"],
+    "openai": ["openai", "tiktoken"],
+}
+extras_require["all"] = list(itertools.chain.from_iterable(extras_require.values()))
+
 
 setuptools.setup(
     name="lm_eval",
@@ -50,22 +73,5 @@ setuptools.setup(
         "transformers>=4.1",
         "zstandard",
     ],
-    extras_require={
-        "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],
-        "linting": [
-            "flake8",
-            "pylint",
-            "mypy",
-            "pre-commit",
-        ],
-        "testing": ["pytest", "pytest-cov", "pytest-xdist"],
-        "multilingual": ["nagisa>=0.2.7", "jieba>=0.42.1"],
-        "sentencepiece": ["sentencepiece>=0.1.98", "protobuf>=4.22.1"],
-        "promptsource": [
-            "promptsource @ git+https://github.com/bigscience-workshop/promptsource.git#egg=promptsource"
-        ],
-        "gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
-        "anthropic": ["anthropic"],
-        "openai": ["openai", "tiktoken"],
-    },
+    extras_require=extras_require,
 )
