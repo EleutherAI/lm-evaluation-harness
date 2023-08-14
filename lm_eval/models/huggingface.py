@@ -229,6 +229,14 @@ class HuggingFaceAutoLM(BaseLM):
             bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
             **model_kwargs,
         )
+        if tokenizer is not None:
+            model_vocab_size = self.model.get_input_embeddings().weight.size(0)
+            tokenzier_vocab_size = len(self.tokenizer)
+            print(f"Vocab of the base model: {model_vocab_size}")
+            print(f"Vocab of the tokenizer: {tokenzier_vocab_size}")
+            if tokenzier_vocab_size > model_vocab_size:
+                print("Resize model embeddings to fit tokenizer")
+                self.model.resize_token_embeddings(tokenzier_vocab_size)
         # note: peft_path can be different than pretrained model path
         if peft is not None:
             self.model = self._create_auto_model_peft(
