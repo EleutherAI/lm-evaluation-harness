@@ -27,10 +27,17 @@ Homepage: https://github.com/openai/gpt-3/tree/master/data
 }
 ```
 
-### Subtasks
+### Groups and Tasks
+
+#### Groups
+
+* `arithmetic`: Evaluates `1dc` to `5ds`
+
+#### Tasks
 
 * `arithmetic_1dc`
 * `arithmetic_2da`
+* `arithmetic_2dm`
 * `arithmetic_2ds`
 * `arithmetic_3da`
 * `arithmetic_3ds`
@@ -38,12 +45,6 @@ Homepage: https://github.com/openai/gpt-3/tree/master/data
 * `arithmetic_4ds`
 * `arithmetic_5da`
 * `arithmetic_5ds`
-* `arithmetic_2dm`
-
-### Groups
-
-- `arithmetic`
-
 
 ### Checklist
 
