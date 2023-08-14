@@ -1,5 +1,3 @@
-group:
-  - multiple_choice
 task: logiqa2
 dataset_path: baber/logiqa2
 dataset_name: logiqa2
