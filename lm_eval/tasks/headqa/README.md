@@ -32,7 +32,13 @@ Homepage: https://aghie.github.io/head-qa/
 }
 ```
 
-### Subtasks
+### Groups and Tasks
+
+#### Groups
+
+- `headqa`: Evaluates `headqa_en` and `headqa_es`
+
+#### Tasks
 
 * `headqa_en` - English variant of HEAD-QA
 * `headqa_es` - Spanish variant of HEAD-QA
