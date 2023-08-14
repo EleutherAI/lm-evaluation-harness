@@ -31,8 +31,12 @@ Homepage: https://allenai.org/data/arc
 
 ### Subtasks
 
-* `arc_easy`: `1-sentence description of what this particular task does`
-* `arc_challange`: .....
+* `arc_easy`
+* `arc_challange`
+
+### Groups
+* `ai2_arc`
+* `multiple_choice`
 
 ### Checklist
 
