@@ -215,6 +215,16 @@ class HuggingFaceAutoLM(BaseLM):
                 max_cpu_memory,
                 offload_folder,
             )
+        elif load_in_8bit:
+            if device.upper() == "CUDA":
+                model_kwargs = {
+                    "device_map":{ "" : 0}
+                    }
+            else :
+                device_index = device.upper().replace("CUDA:", "").split(",")
+                model_kwargs = {
+                    "device_map":{"" : int(device_index[0])}
+                    }
         self.model = self._create_auto_model(
             pretrained=pretrained,
             quantized=quantized,
