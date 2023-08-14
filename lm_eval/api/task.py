@@ -766,6 +766,7 @@ class ConfigurableTask(Task):
                 return applied_prompt[0]
             else:
                 eval_logger.warning("Applied prompt returns empty string")
+                return applied_prompt[0]
         else:
             print(type(doc_to_text))
             raise TypeError
@@ -800,6 +801,7 @@ class ConfigurableTask(Task):
                 return applied_prompt[1]
             else:
                 eval_logger.warning("Applied prompt returns empty string")
+                return applied_prompt[0]
         else:
             raise TypeError
 
