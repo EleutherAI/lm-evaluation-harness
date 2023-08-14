@@ -37,6 +37,13 @@ List or describe tasks defined in this folder, and their names here:
 * `anli_r2`: The data collected adversarially in the second round, after training on the previous round's data.
 * `anli_r3`: The data collected adversarially in the third round, after training on the previous multiple rounds of data.
 
+### Groups
+
+  - `multiple_choice`
+  - `natural_language_inference`
+  - `nli`
+  - `adverserial`
+
 ### Checklist
 
 For adding novel benchmarks/datasets to the library:
