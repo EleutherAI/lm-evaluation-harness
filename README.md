@@ -99,6 +99,8 @@ python main.py \
     --batch_size auto:4
 ```
 
+Alternatively, you can use `lm-eval` instead of `python main.py` to call lm eval from anywhere.
+
 ### Multi-GPU Evaluation with Hugging Face `accelerate`
 
 To parallelize evaluation of HuggingFace models across multiple GPUs, we allow for two different types of multi-GPU evaluation.
@@ -133,6 +135,11 @@ To pass even more advanced keyword arguments to `accelerate`, we allow for the f
 Using this setting helps for massive models like BLOOM which require, or to avoid exceeding your total system RAM (by default, with `accelerate launch` one copy of the model for each GPU is initialized in RAM before moving it to GPU, resulting in large RAM usage spikes around the start of the script that may cause errors such as `Killed`.) However, it naively splits models across GPUs, resulting in only a single GPU performing work at any point in time, and so is much slower than launching with `accelerate launch`, possibly by a factor of the total # of GPUs.
 
 **Note that this option requires launching evaluation via `python main.py` rather than `accelerate launch main.py`.**
+
+To use `accelerate` with the `lm-eval` command, use 
+```
+accelerate launch --no_python lm-eval --model ...
+```
 
 ### Commercial APIs
 
