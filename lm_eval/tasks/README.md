@@ -18,7 +18,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] SciQ
 - [ ] QASPER
 - [x] QA4MRE
-- [ ] TriviaQA (Lintang)
+- [x] TriviaQA
 - [x] AI2 ARC
 - [x] LogiQA
 - [x] HellaSwag
