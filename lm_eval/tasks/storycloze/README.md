@@ -48,11 +48,16 @@ Homepage: https://github.com/facebookresearch/fairseq/pull/4820
 }
 ```
 
-### Subtasks
+### Groups and Tasks
 
-List or describe tasks defined in this folder, and their names here:
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: .....
+#### Groups
+
+* `storycloze`
+
+#### Tasks
+
+* `storycloze_2016`
+* `storycloze_2018`
 
 ### Checklist
 
