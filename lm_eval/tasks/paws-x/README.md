@@ -48,11 +48,22 @@ Homepage: https://github.com/google-research-datasets/paws/tree/master/pawsx
 }
 ```
 
-### Subtasks
+### Groups and Tasks
 
-List or describe tasks defined in this folder, and their names here:
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: .....
+#### Groups
+
+* `pawsx`
+
+#### Tasks
+
+* `paws_de`: German
+* `paws_en`: English
+* `paws_es`: Spanish
+* `paws_fr`: French
+* `paws_ja`: Japanese
+* `paws_ko`: Korean
+* `paws_zh`: Chinese
+
 
 ### Checklist
 

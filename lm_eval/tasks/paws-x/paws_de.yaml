@@ -4,4 +4,4 @@ doc_to_choice: '{{[sentence1+", richtig? Ja, "+sentence2, sentence1+", richtig? 
   "+sentence2]}}'
 doc_to_text: ''
 include: pawsx_template_yaml
-task: paws-de
+task: paws_de
