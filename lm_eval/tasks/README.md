@@ -54,7 +54,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] BIG-Bench (Hailey)
 - [ ] XStoryCloze (Lintang)
 - [x] XWinograd
-- [ ] PAWS-X (Lintang)
+- [x] PAWS-X
 - [x] XNLI
 - [ ] MGSM (Lintang)
 - [ ] SCROLLS
