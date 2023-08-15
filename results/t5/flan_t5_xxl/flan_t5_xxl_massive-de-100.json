@@ -1,0 +1,119 @@
+{
+  "results": {
+    "massive-de": {
+      "acc,none": 0.07,
+      "acc_stderr,none": 0.02564323999762429,
+      "f1,none": 0.49098522167487685
+    }
+  },
+  "configs": {
+    "massive-de": {
+      "task": "massive-de",
+      "group": [
+        "multiple_choice"
+      ],
+      "dataset_path": "AmazonScience/massive",
+      "dataset_name": "de-DE",
+      "training_split": "train",
+      "validation_split": "validation",
+      "test_split": "test",
+      "doc_to_text": "Predict the intent of the utterance. The possible choices for the intent are: 'datetime_query', 'iot_hue_lightchange', 'transport_ticket', 'takeaway_query', 'qa_stock', 'general_greet', 'recommendation_events', 'music_dislikeness', 'iot_wemo_off', 'cooking_recipe', 'qa_currency', 'transport_traffic', 'general_quirky', 'weather_query', 'audio_volume_up', 'email_addcontact', 'takeaway_order', 'email_querycontact', 'iot_hue_lightup', 'recommendation_locations', 'play_audiobook', 'lists_createoradd', 'news_query', 'alarm_query', 'iot_wemo_on', 'general_joke', 'qa_definition', 'social_query', 'music_settings', 'audio_volume_other', 'calendar_remove', 'iot_hue_lightdim', 'calendar_query', 'email_sendemail', 'iot_cleaning', 'audio_volume_down', 'play_radio', 'cooking_query', 'datetime_convert', 'qa_maths', 'iot_hue_lightoff', 'iot_hue_lighton', 'transport_query', 'music_likeness', 'email_query', 'play_music', 'audio_volume_mute', 'social_post', 'alarm_set', 'qa_factoid', 'calendar_set', 'play_game', 'alarm_remove', 'lists_remove', 'transport_taxi', 'recommendation_movies', 'iot_coffee', 'music_query', 'play_podcasts', 'lists_query'. \nUtterance:{{utt}}.\nIntent:",
+      "doc_to_target": "{{intent}}",
+      "doc_to_choice": [
+        "datetime_query",
+        "iot_hue_lightchange",
+        "transport_ticket",
+        "takeaway_query",
+        "qa_stock",
+        "general_greet",
+        "recommendation_events",
+        "music_dislikeness",
+        "iot_wemo_off",
+        "cooking_recipe",
+        "qa_currency",
+        "transport_traffic",
+        "general_quirky",
+        "weather_query",
+        "audio_volume_up",
+        "email_addcontact",
+        "takeaway_order",
+        "email_querycontact",
+        "iot_hue_lightup",
+        "recommendation_locations",
+        "play_audiobook",
+        "lists_createoradd",
+        "news_query",
+        "alarm_query",
+        "iot_wemo_on",
+        "general_joke",
+        "qa_definition",
+        "social_query",
+        "music_settings",
+        "audio_volume_other",
+        "calendar_remove",
+        "iot_hue_lightdim",
+        "calendar_query",
+        "email_sendemail",
+        "iot_cleaning",
+        "audio_volume_down",
+        "play_radio",
+        "cooking_query",
+        "datetime_convert",
+        "qa_maths",
+        "iot_hue_lightoff",
+        "iot_hue_lighton",
+        "transport_query",
+        "music_likeness",
+        "email_query",
+        "play_music",
+        "audio_volume_mute",
+        "social_post",
+        "alarm_set",
+        "qa_factoid",
+        "calendar_set",
+        "play_game",
+        "alarm_remove",
+        "lists_remove",
+        "transport_taxi",
+        "recommendation_movies",
+        "iot_coffee",
+        "music_query",
+        "play_podcasts",
+        "lists_query"
+      ],
+      "gold_alias": "{{intent}}",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc"
+        },
+        {
+          "metric": "f1",
+          "aggregation": "<function massive_multi_f1 at 0x7f1a69259c60>"
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false
+    }
+  },
+  "versions": {
+    "massive-de": "Yaml"
+  },
+  "config": {
+    "model": "llm-tools",
+    "model_args": "",
+    "num_fewshot": 0,
+    "batch_size": 1,
+    "batch_sizes": [],
+    "device": null,
+    "use_cache": null,
+    "limit": 100.0,
+    "bootstrap_iters": 100000
+  },
+  "git_hash": "271319b",
+  "duration": 2523.79478931427
+}

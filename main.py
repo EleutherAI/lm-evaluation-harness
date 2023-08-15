@@ -6,6 +6,7 @@ import jsonlines
 import argparse
 import logging
 from pathlib import Path
+import time
 
 from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
@@ -134,6 +135,7 @@ def main():
 
     eval_logger.info(f"Selected Tasks: {task_names}")
 
+    starttime = time.time()
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
@@ -149,6 +151,11 @@ def main():
         write_out=args.write_out,
         log_samples=args.log_samples,
     )
+
+    results["duration"] = time.time() - starttime
+    
+    dumped = json.dumps(results, indent=2, default=lambda o: str(o))
+    print(dumped)
 
     if results is not None:
         if args.log_samples:

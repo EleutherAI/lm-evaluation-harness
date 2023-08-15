@@ -19,8 +19,8 @@ class LLMToolsModel(LM):
     def greedy_until(
             self, _requests
     ):
-        inputs = [x[0] for x in _requests]
-        until = [x[1] for x in _requests]
+        inputs = [x.args[0] for x in _requests]
+        until = [x.args[1] for x in _requests]
 
         responses = []
         for i in range(len(inputs)):
