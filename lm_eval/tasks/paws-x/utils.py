@@ -69,7 +69,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool) -> None:
                     {
                         "include": "pawsx_template_yaml",
                         "dataset_name": lang,
-                        "task": f"paws-{lang}",
+                        "task": f"paws_{lang}",
                         "doc_to_text": "",
                         "doc_to_choice": f"{{{{["
                         f"""sentence1+\", {QUESTION_WORD}? {YES}, \"+sentence2,"""
