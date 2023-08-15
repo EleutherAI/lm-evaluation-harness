@@ -3,7 +3,7 @@ This list keeps track of which tasks' implementations have been ported to YAML /
 
 Boxes should be checked iff tasks are implemented in the refactor and tested for regression. Tasks should be struck through if checked *against original introducing paper* implementation or popularizing implementation. (WIP) Denotes that there exists a PR or person working on this task already.
 
-- [ ] Glue (Lintang)
+- [x] Glue
 - [x] SuperGlue
 - [ ] CoQA (Lintang)
 - [ ] DROP (Lintang)
@@ -18,7 +18,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] SciQ
 - [ ] QASPER
 - [x] QA4MRE
-- [ ] TriviaQA (Lintang)
+- [x] TriviaQA
 - [x] AI2 ARC
 - [x] LogiQA
 - [x] HellaSwag
@@ -45,16 +45,16 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Translation (WMT) suite (Hailey)
 - [x] Unscramble
 - [x] ~~Pile (perplexity)~~
-- [ ] BLiMP (Lintang)
+- [x] BLiMP
 - [x] ToxiGen
-- [ ] StoryCloze (Lintang)
+- [x] StoryCloze
 - [ ] NaturalQs (Hailey)
 - [x] CrowS-Pairs
 - [x] XCopa
 - [ ] BIG-Bench (Hailey)
-- [ ] XStoryCloze (Lintang)
+- [x] XStoryCloze
 - [x] XWinograd
-- [ ] PAWS-X (Lintang)
+- [x] PAWS-X
 - [x] XNLI
 - [ ] MGSM (Lintang)
 - [ ] SCROLLS

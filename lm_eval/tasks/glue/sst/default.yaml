@@ -1,0 +1,12 @@
+group: glue
+task: sst
+dataset_path: glue
+dataset_name: sst
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: "{{sentence}}\nQuestion: Is this sentence positive or negative?\nAnswer:"
+doc_to_target: label
+doc_to_choice: ["negative", "positive"]
+metric_list:
+  - metric: acc

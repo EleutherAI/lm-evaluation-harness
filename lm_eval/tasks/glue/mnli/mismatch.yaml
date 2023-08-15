@@ -1,0 +1,4 @@
+include: default.yaml
+task: mnli_mismatch
+validation_split: validation_mismatched
+test_split: test_mismatched
