@@ -4,6 +4,7 @@ import numpy as np
 
 from rouge_score import rouge_scorer, scoring
 
+
 def process_results_mc2(doc, results):
 
     lls, is_greedy = zip(*results)
@@ -24,7 +25,6 @@ def process_docs_gen(dataset: datasets.Dataset) -> datasets.Dataset:
 
 
 def preprocess_function(examples):
-
     def _format_answers(answers):
         formatted_answers = []
         for answer in answers:
@@ -121,26 +121,27 @@ def process_results_gen(doc, results):
 
 
 def bleu(refs, preds):
-        """
-        Returns `t5` style BLEU scores. See the related implementation:
-        https://github.com/google-research/text-to-text-transfer-transformer/blob/3d10afd51ba97ac29eb66ae701eca274488202f7/t5/evaluation/metrics.py#L41
+    """
+    Returns `t5` style BLEU scores. See the related implementation:
+    https://github.com/google-research/text-to-text-transfer-transformer/blob/3d10afd51ba97ac29eb66ae701eca274488202f7/t5/evaluation/metrics.py#L41
 
-        :param refs:
-            A `list` of `list` of reference `str`s.
-        :param preds:
-            A `list` of predicted `str`s.
-        """
-        score = sacrebleu.corpus_bleu(
-            preds,
-            refs,
-            smooth_method="exp",
-            smooth_value=0.0,
-            force=False,
-            lowercase=False,
-            tokenize="intl",
-            use_effective_order=False,
-        ).score
-        return score
+    :param refs:
+        A `list` of `list` of reference `str`s.
+    :param preds:
+        A `list` of predicted `str`s.
+    """
+    score = sacrebleu.corpus_bleu(
+        preds,
+        refs,
+        smooth_method="exp",
+        smooth_value=0.0,
+        force=False,
+        lowercase=False,
+        tokenize="intl",
+        use_effective_order=False,
+    ).score
+    return score
+
 
 def rouge(refs, preds):
     """
@@ -168,6 +169,7 @@ def rouge(refs, preds):
         aggregator.add_scores(scorer.score(ref, pred))
     result = aggregator.aggregate()
     return {type: result[type].mid.fmeasure * 100 for type in rouge_types}
+
 
 # def bleurt_max(predictions, references):
 #     pass
