@@ -1,27 +1,49 @@
-import os
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from tqdm import tqdm
 import time
-import anthropic
 from lm_eval.logger import eval_logger
-from typing import List, Literal, Any
+from typing import List, Any, Tuple
 
 
 def anthropic_completion(
-    client: anthropic.Anthropic,
+    client,  #: anthropic.Anthropic,
     model: str,
     prompt: str,
     max_tokens_to_sample: int,
     temperature: float,
     stop: List[str],
     **kwargs: Any,
-):
-    """Query Anthropic API for completion.
+) -> str:
+    """Wrapper function around the Anthropic completion API client with exponential back-off
+    in case of RateLimitError.
 
-    Retry with back-off until they respond
+    params:
+        client: anthropic.Anthropic
+            Anthropic API client
+        model: str
+            Anthropic model e.g. 'claude-instant-v1', 'claude-2'
+        prompt: str
+            Prompt to feed to the model
+        max_tokens_to_sample: int
+            Maximum number of tokens to sample from the model
+        temperature: float
+            Sampling temperature
+        stop: List[str]
+            List of stop sequences
+        kwargs: Any
+            Additional model_args to pass to the API client
     """
-    backoff_time = 3
+
+    try:
+        import anthropic
+    except ModuleNotFoundError:
+        raise Exception(
+            "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
+please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+        )
+
+    backoff_time: float = 3
     while True:
         try:
             response = client.completions.create(
@@ -68,6 +90,14 @@ class AnthropicLM(LM):
         """
         super().__init__()
 
+        try:
+            import anthropic
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
+please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+            )
+
         self.model = model
         # defaults to os.environ.get("ANTHROPIC_API_KEY")
         self.client = anthropic.Anthropic()
@@ -78,15 +108,15 @@ class AnthropicLM(LM):
 
     @property
     def eot_token_id(self):
-        # Not sure but anthropic.AI_PROMPT -> [203, 203, 50803, 30]
+        # Not sure but anthropic.HUMAN_PROMPT ?
         raise NotImplementedError("No idea about anthropic tokenization.")
 
     @property
-    def max_length(self):
+    def max_length(self) -> int:
         return 2048
 
     @property
-    def max_gen_toks(self):
+    def max_gen_toks(self) -> int:
         return self.max_tokens_to_sample
 
     @property
@@ -108,14 +138,15 @@ class AnthropicLM(LM):
     def _loglikelihood_tokens(self, requests, disable_tqdm=False):
         raise NotImplementedError("No support for logits.")
 
-    def greedy_until(self, requests):
+    def greedy_until(self, requests) -> List[str]:
+
         if not requests:
             return []
 
-        requests = [req.args for req in requests]
+        _requests: List[Tuple[str, dict]] = [req.args for req in requests]
 
         res = []
-        for request in tqdm(requests):
+        for request in tqdm(_requests):
             try:
                 inp = request[0]
                 request_args = request[1]
@@ -129,16 +160,16 @@ class AnthropicLM(LM):
                     prompt=inp,
                     max_tokens_to_sample=max_gen_toks,
                     temperature=temperature,  # TODO: implement non-greedy sampling for Anthropic
-                    stop=until,
+                    stop=until,  # type: ignore
                     **self.kwargs,
                 )
                 res.append(response)
 
                 self.cache_hook.add_partial("greedy_until", request, response)
-            except anthropic.APIConnectionError as e:
+            except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
                 eval_logger.critical(f"Server unreachable: {e.__cause__}")
                 break
-            except anthropic.APIStatusError as e:
+            except anthropic.APIStatusError as e:  # type: ignore # noqa: F821
                 eval_logger.critical(f"API error {e.status_code}: {e.message}")
                 break
 
