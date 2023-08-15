@@ -1,13 +1,25 @@
-# Task-name
+# MC Taco
 
 ### Paper
 
-Title: `paper title goes here`
-Abstract: `link to paper PDF or arXiv abstract goes here`
+Title: `"Going on a vacation" takes longer than "Going for a walk": A Study of Temporal Commonsense Understanding`
+Abstract: https://arxiv.org/abs/1909.03065
 
-`Short description of paper / benchmark goes here:`
+MC-TACO is a dataset of 13k question-answer pairs that require temporal commonsense
+comprehension. The dataset contains five temporal properties, (1) duration (how long
+an event takes), (2) temporal ordering (typical order of events), (3) typical time
+(when an event occurs), (4) frequency (how often an event occurs), and (5) stationarity
+(whether a state is maintained for a very long time or indefinitely).
 
-Homepage: `homepage to the benchmark's website goes here, if applicable`
+WARNING: Running this task with a `--limit` arg will give misleading results! The
+corresponding dataset is structured such that each multiple-choice-question gathered
+by the authors is split into question-option pairs, where each such pair gets
+siloed into an individual document for plausibility testing. Because the harness
+shuffles these documents, setting `--limit` will likely "cut off" certain candidate
+answers. This is a problem because the task's metrics require an exhaustive evaluation
+of a question's options. See section 4 of the paper for details.
+
+Homepage: https://leaderboard.allenai.org/mctaco/submissions/public
 
 
 ### Citation
@@ -16,11 +28,16 @@ Homepage: `homepage to the benchmark's website goes here, if applicable`
 BibTeX-formatted citation goes here
 ```
 
-### Subtasks
+### Groups and Tasks
 
-List or describe tasks defined in this folder, and their names here:
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: .....
+#### Groups
+
+* Not part of a group yet.
+
+#### Tasks
+
+* `mc_taco`
+
 
 ### Checklist
 

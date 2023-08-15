@@ -13,7 +13,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] Wikitext
 - [x] PiQA
 - [x] PROST
-- [ ] MCTACO (Lintang)
+- [x] MCTACO
 - [x] Pubmed QA
 - [x] SciQ
 - [ ] QASPER
