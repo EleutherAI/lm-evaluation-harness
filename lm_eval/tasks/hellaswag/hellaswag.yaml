@@ -7,9 +7,10 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: null
-doc_to_text: "{% set text = activity_label ~ ': ' ~ ctx_a ~ ' ' ~ ctx_b.capitalize() %}{{text|trim|replace(' [title]', '. ')|regex_replace('\\[.*?\\]', '')|replace('  ', ' ')}}"
+process_docs: !function utils.process_docs
+doc_to_text: "{{query}}"
 doc_to_target: "{{label}}"
-doc_to_choice: "{{endings|map('trim')|map('replace', ' [title]', '. ')|map('regex_replace', '\\[.*?\\]', '')|map('replace', '  ', ' ')|list}}"
+doc_to_choice: "{{choices}}"
 metric_list:
   - metric: acc
     aggregation: mean

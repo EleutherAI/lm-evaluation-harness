@@ -1,0 +1,11 @@
+group: blimp
+dataset_path: blimp
+output_type: multiple_choice
+validation_split: train
+doc_to_text: ""
+doc_to_target: 0
+doc_to_choice: "{{[sentence_good, sentence_bad]}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{sentence_good}} {{sentence_bad}}"
+metric_list:
+  - metric: acc
