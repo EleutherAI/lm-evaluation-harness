@@ -14,14 +14,13 @@ If you choose to port a task not yet completed according to [our checklist](http
 
 Lastly, we'll no longer be accepting new feature requests beyond those that are already open to the master branch as we carry out this switch to the new version over the next week, though we will be accepting bugfixes to `master` branch and PRs to `big-refactor`. Feel free to reach out in the #lm-thunderdome channel of the EAI discord for more information.
 
-
 ## Overview
 
 This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
 
 Features:
 
-- Many tasks implemented, 200+ tasks implemented in the old framework which require porting to the new setup as described in https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/new_task_guide.md.
+- Many tasks implemented, 200+ tasks [implemented in the old framework](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/docs/task_table.md) which require porting to the new setup as described in [the new task guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/new_task_guide.md).
 - Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for commercial APIs including [OpenAI](https://openai.com), [goose.ai](https://goose.ai), and [TextSynth](https://textsynth.com/).
 - Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
@@ -34,7 +33,6 @@ To install the `lm-eval` refactor branch from the github repository, run:
 ```bash
 git clone https://github.com/EleutherAI/lm-evaluation-harness
 cd lm-evaluation-harness
-git checkout big-refactor
 pip install -e .
 ```
 
@@ -49,6 +47,17 @@ To support loading GPTQ quantized models, install the package with the `gptq` ex
 ```bash
 pip install -e ".[gptq]"
 ```
+
+
+To install the package with all extras, run
+```bash
+pip install -e ".[all]"
+```
+
+
+## Support
+
+The best way to get support is to open an issue on this repo or join the EleutherAI discord server](discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
 
 ## Basic Usage
 
@@ -78,6 +87,19 @@ python main.py \
 ```
 
 Models that are loaded via either `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) or `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface are supported via  Support for this model type is currently pending.
+
+Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
+
+```bash
+python main.py \
+    --model hf \
+    --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
+    --tasks lambada_openai,hellaswag \
+    --device cuda:0 \
+    --batch_size auto:4
+```
+
+Alternatively, you can use `lm-eval` instead of `python main.py` to call lm eval from anywhere.
 
 ### Multi-GPU Evaluation with Hugging Face `accelerate`
 
@@ -114,29 +136,42 @@ Using this setting helps for massive models like BLOOM which require, or to avoi
 
 **Note that this option requires launching evaluation via `python main.py` rather than `accelerate launch main.py`.**
 
+To use `accelerate` with the `lm-eval` command, use 
+```
+accelerate launch --no_python lm-eval --model ...
+```
+
 ### Commercial APIs
 
-Our library also supports language models served via the OpenAI API:
+Our library also supports the evaluation of models served via several commercial APIs, and hope to implement support for common performant local/self-hosted inference servers.
+
+A full accounting of the supported and planned libraries + APIs can be seen below:
+
+| API or Inference Server     | Implemented?                    | `--model <xxx>` name                                                             | Models supported:                    | Request Types:                                           |
+|-----------------------------|---------------------------------|----------------------------------------------------------------------------------|--------------------------------------|----------------------------------------------------------|
+| OpenAI Completions          | :heavy_check_mark:              | `openai`, `openai-completions`, `gooseai`                                        | up to `code-davinci-002`             | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| OpenAI ChatCompletions      | :x: Not yet - needs help!       | N/A                                                                              | (link here?)                         | `greedy_until` (no logprobs)                             |
+| Anthropic                   | :heavy_check_mark:              | `anthropic`                                                                      | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)         | `greedy_until` (no logprobs)                             |
+| GooseAI                     | :heavy_check_mark: (not separately maintained)  | `openai`, `openai-completions`, `gooseai` (same interface as OpenAI Completions) |                                      | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Textsynth                   | Needs testing                   | `textsynth`                                                                      | ???                                  | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Cohere                      | :hourglass: - blocked on Cohere API bug | N/A                                                                              | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models) | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| GGML                        | :hourglass: [PR](https://github.com/EleutherAI/lm-evaluation-harness/pull/617)              | N/A                                                                              | ???                                  | `greedy_until`, `loglikelihood`, `loglikelihood_rolling` |
+| vLLM                        | :x: Not yet - needs help!       | N/A                                                                              | All HF models                        | `greedy_until` (no logprobs)                             |
+| Your inference server here! | ...                             | ...                                                                              | ...                                  | ...                                                      |                                | ...                                                      |
+
+It is on our roadmap to create task variants designed to enable models which do not serve logprobs/loglikelihoods to be compared with generation performance of open-source models.
+
+Our library supports language models served via the OpenAI Completions API as follows:
 
 ```bash
 export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
 python main.py \
-    --model openai \
+    --model openai-completions \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag
 ```
 
 While this functionality is only officially maintained for the official OpenAI API, it tends to also work for other hosting services that use the same API such as [goose.ai](goose.ai) with minor modification. We also have an implementation for the [TextSynth](https://textsynth.com/index.html) API, using `--model textsynth`.
-
-To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
-
-```bash
-python main.py \
-    --model openai \
-    --model_args engine=davinci \
-    --tasks lambada_openai,hellaswag \
-    --check_integrity
-```
 
 ### Other Frameworks
 
@@ -157,6 +192,16 @@ python write_out.py \
 ```
 
 This will write out one text file for each task.
+
+To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
+
+```bash
+python main.py \
+    --model openai \
+    --model_args engine=davinci \
+    --tasks lambada_openai,hellaswag \
+    --check_integrity
+```
 
 ## Advanced Usage
 
@@ -186,6 +231,14 @@ To implement a new task in the eval harness, see [this guide](./docs/new_task_gu
 
 
 As a start, we currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, we support prompts authored in the [Promptsource Library](https://github.com/bigscience-workshop/promptsource/tree/main) as described further in https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/new_task_guide.md and https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/advanced_task_guide.md and welcome contributions of novel task templates and task variants.
+
+## How to Contribute or Learn More?
+
+For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
+
+
+You can also ask for help, or discuss new features with the maintainers in the #lm-thunderdome channel of the EleutherAI discord! If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
+
 
 ## Cite as
 

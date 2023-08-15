@@ -286,7 +286,6 @@ def make_table(result_dict, column="results"):
     latex_writer.headers = [
         column_name,
         "Version",
-        "Fewshot",
         "Filter",
         "Metric",
         "Value",
@@ -298,7 +297,6 @@ def make_table(result_dict, column="results"):
 
     for k, dic in result_dict[column].items():
         version = result_dict["versions"][k]
-        n = str(result_dict["configs"][k]["num_fewshot"])
         for (mf), v in dic.items():
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
@@ -306,11 +304,10 @@ def make_table(result_dict, column="results"):
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                values.append([k, version, n, f, m, "%.4f" % v, "±", "%.4f" % se])
+                values.append([k, version, f, m, "%.4f" % v, "±", "%.4f" % se])
             else:
-                values.append([k, version, n, f, m, "%.4f" % v, "", ""])
+                values.append([k, version, f, m, "%.4f" % v, "", ""])
             k = ""
-            n = ""
             version = ""
     md_writer.value_matrix = values
     latex_writer.value_matrix = values
@@ -459,7 +456,7 @@ env = Environment(loader=BaseLoader, undefined=StrictUndefined)
 env.filters["regex_replace"] = regex_replace
 
 
-def apply_template(template, doc):
+def apply_template(template: str, doc: dict) -> str:
     rtemplate = env.from_string(template)
     return rtemplate.render(**doc)
 

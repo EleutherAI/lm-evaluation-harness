@@ -1,0 +1,4 @@
+include: crows_pairs_english.yaml
+task: crows_pairs_english_disability
+dataset_name: english
+process_docs: !function utils.filter_disability

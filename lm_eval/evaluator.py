@@ -11,6 +11,7 @@ import numpy as np
 
 import lm_eval.api
 import lm_eval.tasks
+import lm_eval.benchmarks
 import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry
@@ -85,7 +86,9 @@ def simple_evaluate(
         1234
     )  # TODO: this may affect training runs that are run with evaluation mid-run.
 
-    assert tasks != [], "No tasks specified"
+    assert (
+        tasks != []
+    ), "No tasks specified, or no tasks found. Please verify the task names."
 
     if isinstance(model, str):
         if model_args is None:
@@ -114,7 +117,12 @@ def simple_evaluate(
 
     task_dict = lm_eval.tasks.get_task_dict(tasks)
     for task_name in task_dict.keys():
-        config = task_dict[task_name]._config
+
+        task_obj = task_dict[task_name]
+        if type(task_obj) == tuple:
+            group, task_obj = task_obj
+
+        config = task_obj._config
         if num_fewshot is not None:
             if config["num_fewshot"] > 0:
                 default_num_fewshot = config["num_fewshot"]
@@ -122,7 +130,7 @@ def simple_evaluate(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
 
-            task_dict[task_name]._config["num_fewshot"] = num_fewshot
+            task_obj._config["num_fewshot"] = num_fewshot
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -246,7 +254,7 @@ def evaluate(
                     eval_logger.info(
                         f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\n{inst.args[0]}\n(end of prompt on previous line)"
                     )
-                    eval_logger.info("Request:", inst)
+                    eval_logger.info(f"Request: {str(inst)}")
 
         # aggregate Instances by LM method requested to get output.
         reqtype = (

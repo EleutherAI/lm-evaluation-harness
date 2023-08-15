@@ -13,7 +13,7 @@ from tqdm import tqdm
 import datasets
 import numpy as np
 
-from typing import Union
+from typing import Union, List, Any, Tuple, Literal
 from collections.abc import Callable
 
 from lm_eval import utils
@@ -477,7 +477,7 @@ class Task(abc.ABC):
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
 
-    def dump_config(self):
+    def dump_config(self) -> dict:
         """Returns a dictionary representing the task's config.
 
         :returns: str
@@ -489,14 +489,13 @@ class Task(abc.ABC):
 
 
 class ConfigurableTask(Task):
-
     VERSION = "Yaml"
     OUTPUT_TYPE = None
     CONFIG = None
 
     def __init__(
         self, data_dir=None, cache_dir=None, download_mode=None, config: dict = None
-    ):
+    ):  # TODO no super() call here
         # Get pre-configured attributes
         self._config = self.CONFIG
 
@@ -662,25 +661,25 @@ class ConfigurableTask(Task):
             **dataset_kwargs if dataset_kwargs is not None else {},
         )
 
-    def has_training_docs(self):
+    def has_training_docs(self) -> bool:
         if self._config.training_split is not None:
             return True
         else:
             return False
 
-    def has_validation_docs(self):
+    def has_validation_docs(self) -> bool:
         if self._config.validation_split is not None:
             return True
         else:
             return False
 
-    def has_test_docs(self):
+    def has_test_docs(self) -> bool:
         if self._config.test_split is not None:
             return True
         else:
             return False
 
-    def training_docs(self):
+    def training_docs(self) -> datasets.Dataset:
         if self.has_training_docs():
             if self._config.process_docs is not None:
                 return self._config.process_docs(
@@ -688,7 +687,7 @@ class ConfigurableTask(Task):
                 )
             return self.dataset[self._config.training_split]
 
-    def validation_docs(self):
+    def validation_docs(self) -> datasets.Dataset:
         if self.has_validation_docs():
             if self._config.process_docs is not None:
                 return self._config.process_docs(
@@ -696,7 +695,7 @@ class ConfigurableTask(Task):
                 )
             return self.dataset[self._config.validation_split]
 
-    def test_docs(self):
+    def test_docs(self) -> datasets.Dataset:
         if self.has_test_docs():
             if self._config.process_docs is not None:
                 return self._config.process_docs(self.dataset[self._config.test_split])
@@ -762,12 +761,17 @@ class ConfigurableTask(Task):
             return doc_to_text(doc)
         # Used when applying a Promptsource template
         elif hasattr(doc_to_text, "apply"):
-            return doc_to_text.apply(doc)[0]
+            applied_prompt = doc_to_text.apply(doc)
+            if len(applied_prompt) == 2:
+                return applied_prompt[0]
+            else:
+                eval_logger.warning("Applied prompt returns empty string")
+                return self._config.fewshot_delimiter
         else:
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc):
+    def doc_to_target(self, doc: dict) -> Union[int, str]:
 
         if self.prompt is not None:
             doc_to_target = self.prompt
@@ -792,11 +796,16 @@ class ConfigurableTask(Task):
             return doc_to_target(doc)
         # Used when applying a Promptsource template
         elif hasattr(doc_to_target, "apply"):
-            return doc_to_target.apply(doc)[1]
+            applied_prompt = doc_to_target.apply(doc)
+            if len(applied_prompt) == 2:
+                return applied_prompt[1]
+            else:
+                eval_logger.warning("Applied prompt returns empty string")
+                return self._config.fewshot_delimiter
         else:
             raise TypeError
 
-    def doc_to_choice(self, doc):
+    def doc_to_choice(self, doc: Any) -> List[str]:
 
         if self.prompt is not None:
             doc_to_choice = self.prompt
@@ -838,7 +847,9 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def construct_requests(self, doc, ctx, **kwargs):
+    def construct_requests(
+        self, doc: dict, ctx: str, **kwargs
+    ) -> Union[List[Instance], Instance]:
 
         if self.OUTPUT_TYPE == "loglikelihood":
             arguments = (ctx, self.doc_to_target(doc))
@@ -847,13 +858,14 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "multiple_choice":
 
             choices = self.doc_to_choice(doc)
+            target_delimiter = self._config.target_delimiter
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)
-                arguments = [(ctx, " {}".format(cont)) for ctx in choices]
+                arguments = [(ctx, f"{target_delimiter}{cont}") for ctx in choices]
             else:
                 # Otherwise they are placed in the continuation
-                arguments = [(ctx, " {}".format(cont)) for cont in choices]
+                arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
 
             request_list = [
                 Instance(
@@ -1037,13 +1049,12 @@ class ConfigurableTask(Task):
 
 
 class MultipleChoiceTask(Task):
-
     OUTPUT_TYPE: str = "loglikelihood"
 
-    def doc_to_target(self, doc):
+    def doc_to_target(self, doc: dict) -> str:
         return " " + doc["choices"][doc["gold"]]
 
-    def construct_requests(self, doc, ctx, **kwargs):
+    def construct_requests(self, doc: dict, ctx: str, **kwargs) -> List[Instance]:
         # TODO: add mutual info here?
         return [
             Instance(
@@ -1056,7 +1067,7 @@ class MultipleChoiceTask(Task):
             for i, choice in enumerate(doc["choices"])
         ]
 
-    def process_results(self, doc, results):
+    def process_results(self, doc: dict, results: List[Tuple[float, bool]]) -> dict:
         results = [
             res[0] for res in results
         ]  # only retain loglikelihoods, discard is_greedy TODO: do we need is_greedy anywhere?
@@ -1071,13 +1082,13 @@ class MultipleChoiceTask(Task):
             "acc_norm": acc_norm,
         }
 
-    def higher_is_better(self):
+    def higher_is_better(self) -> dict:
         return {
             "acc": True,
             "acc_norm": True,
         }
 
-    def aggregation(self):
+    def aggregation(self) -> dict:
         return {
             "acc": mean,
             "acc_norm": mean,
@@ -1085,24 +1096,23 @@ class MultipleChoiceTask(Task):
 
 
 class PerplexityTask(Task):
-
     OUTPUT_TYPE = "loglikelihood_rolling"
 
-    def has_training_docs(self):
+    def has_training_docs(self) -> bool:
         return False
 
-    def fewshot_examples(self, k, rnd):
+    def fewshot_examples(self, k: int, rnd) -> List:
         assert k == 0
         return []
 
-    def fewshot_context(self, doc, num_fewshot):
+    def fewshot_context(self, doc: dict, num_fewshot: int) -> Literal[""]:
         assert (
             num_fewshot == 0
         ), "The number of fewshot examples must be 0 for perplexity tasks."
 
         return ""
 
-    def higher_is_better(self):
+    def higher_is_better(self) -> dict:
         return {
             "word_perplexity": False,
             "byte_perplexity": False,
@@ -1118,7 +1128,7 @@ class PerplexityTask(Task):
     def doc_to_target(self, doc):
         return doc
 
-    def construct_requests(self, doc, ctx, **kwargs):
+    def construct_requests(self, doc: dict, ctx: Union[str, None], **kwargs):
         assert not ctx
 
         return Instance(
@@ -1129,7 +1139,7 @@ class PerplexityTask(Task):
             **kwargs,
         )
 
-    def process_results(self, doc, results):
+    def process_results(self, doc: dict, results: float) -> dict:
         (loglikelihood,) = results
         words = self.count_words(self.doc_to_target(doc))
         bytes_ = self.count_bytes(self.doc_to_target(doc))
@@ -1139,7 +1149,7 @@ class PerplexityTask(Task):
             "bits_per_byte": (loglikelihood, bytes_),
         }
 
-    def aggregation(self):
+    def aggregation(self) -> dict:
         return {
             "word_perplexity": weighted_perplexity,
             "byte_perplexity": weighted_perplexity,
@@ -1147,10 +1157,10 @@ class PerplexityTask(Task):
         }
 
     @classmethod
-    def count_bytes(cls, doc):
+    def count_bytes(cls, doc) -> int:
         return len(doc.encode("utf-8"))
 
     @classmethod
-    def count_words(cls, doc):
+    def count_words(cls, doc) -> int:
         """Downstream tasks with custom word boundaries should override this!"""
         return len(re.split(r"\s+", doc))
