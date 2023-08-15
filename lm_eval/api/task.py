@@ -1029,18 +1029,8 @@ class ConfigurableTask(Task):
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
 
-            if type(gold) is int:
-                choices = self.doc_to_choice(doc)
-                gold = choices[gold]
-
             for key, result in zip(self._metric_fn_list.keys(), results):
-                if not self.multiple_target:
-                    result = self._metric_fn_list[key](
-                        references=[gold],
-                        predictions=[result],
-                        **self._metric_fn_kwargs[key],
-                    )
-                else:
+                if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
@@ -1059,6 +1049,12 @@ class ConfigurableTask(Task):
                         result = 1.0
                     else:
                         result = 0.0
+                else:
+                    result = self._metric_fn_list[key](
+                        references=[gold],
+                        predictions=[result],
+                        **self._metric_fn_kwargs[key],
+                    )
 
                 if isinstance(result, dict):
                     result_dict.update(result)
