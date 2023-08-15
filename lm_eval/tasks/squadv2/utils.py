@@ -20,8 +20,12 @@ def process_results(doc, results):
         "answers": doc["answers"],
     }
 
-    print(_squad_metric(predictions, references))
-    return _squad_metric(predictions, references)
+    return {
+        "predictions": predictions,
+        "reference": references
+    }
+    # return _squad_metric([predictions], [references])
+    # return {key: value if key in metrics for key, value in score.items()}
 
 
 def _squad_metric(predictions, references):
@@ -29,33 +33,36 @@ def _squad_metric(predictions, references):
     return squad_metric.compute(predictions=predictions, references=references)
 
 # Exact match (the normalized answer exactly match the gold answer)
-def exact(predictions, references):
-    return _squad_metric(predictions=predictions, references=references).get("exact", 0)
+def exact(items):
+    print(items)
+    import sys; sys.exit()
+    predictions, references = zip(*items)
+    return _squad_metric(predictions=predictions, references=references)["exact"]
 
 # The F-score of predicted tokens versus the gold answer
 def f1(predictions, references):
-    return _squad_metric(predictions=predictions, references=references).get("f1", 0)
+    return _squad_metric(predictions=predictions, references=references)["f1"]
 
 # Exact match (the normalized answer exactly match the gold answer)
 def HasAns_exact(predictions, references):
-    return _squad_metric(predictions=predictions, references=references).get("HasAns_exact", 0)
+    return _squad_metric(predictions=predictions, references=references)["HasAns_exact"]
 
 # The F-score of predicted tokens versus the gold answer
 def HasAns_f1(predictions, references):
-    return _squad_metric(predictions=predictions, references=references).get("HasAns_f1", 0)
+    return _squad_metric(predictions=predictions, references=references)["HasAns_f1"]
 
 # Exact match (the normalized answer exactly match the gold answer)
 def NoAns_exact(predictions, references):
-    return _squad_metric(predictions=predictions, references=references).get("NoAns_exact", 0)
+    return _squad_metric(predictions=predictions, references=references)["NoAns_exact"]
 
 # The F-score of predicted tokens versus the gold answer
 def NoAns_f1(predictions, references):
-    return _squad_metric(predictions=predictions, references=references).get("NoAns_f1", 0)
+    return _squad_metric(predictions=predictions, references=references)["NoAns_f1"]
 
 # Best exact match (with varying threshold)
 def best_exact(predictions, references):
-    return _squad_metric(predictions=predictions, references=references).get("best_exact", 0)
+    return _squad_metric(predictions=predictions, references=references)["best_exact"]
 
 # Best F1 (with varying threshold)
 def best_f1(predictions, references):
-    return _squad_metric(predictions=predictions, references=references).get("best_f1", 0)
+    return _squad_metric(predictions=predictions, references=references)["best_f1"]
