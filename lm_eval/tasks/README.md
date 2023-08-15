@@ -3,41 +3,41 @@ This list keeps track of which tasks' implementations have been ported to YAML /
 
 Boxes should be checked iff tasks are implemented in the refactor and tested for regression. Tasks should be struck through if checked *against original introducing paper* implementation or popularizing implementation. (WIP) Denotes that there exists a PR or person working on this task already.
 
-- [ ] Glue (Lintang)
+- [x] Glue
 - [x] SuperGlue
-- [ ] CoQA
-- [ ] DROP
+- [ ] CoQA (Lintang)
+- [ ] DROP (Lintang)
 - [x] ~~Lambada~~
 - [x] Lambada (Cloze variants)
 - [x] ~~Lambada (Multilingual)~~
 - [x] Wikitext
 - [x] PiQA
 - [x] PROST
-- [ ] MCTACO
+- [ ] MCTACO (Lintang)
 - [x] Pubmed QA
 - [x] SciQ
 - [ ] QASPER
 - [x] QA4MRE
-- [ ] TriviaQA (Lintang)
+- [x] TriviaQA
 - [x] AI2 ARC
 - [x] LogiQA
 - [x] HellaSwag
 - [x] SWAG
 - [x] OpenBookQA
-- [ ] SQuADv2
+- [ ] SQuADv2 (Lintang)
 - [x] RACE
 - [x] HeadQA
 - [x] MathQA
 - [x] WebQs
-- [ ] WSC273
+- [ ] WSC273 (Lintang)
 - [x] Winogrande
 - [x] ANLI
 - [x] Hendrycks Ethics (missing some tasks/metrics, see PR 660: <https://github.com/EleutherAI/lm-evaluation-harness/pull/660> for more info)
-- [x] TruthfulQA (mc1)
-- [ ] TruthfulQA (mc2)
-- [ ] TruthfulQA (gen)
+- [x] TruthfulQA (mc1) (Lintang)
+- [ ] TruthfulQA (mc2) (Lintang)
+- [ ] TruthfulQA (gen) (Lintang)
 - [ ] MuTual
-- [ ] Hendrycks Math
+- [ ] Hendrycks Math (Hailey)
 - [ ] Asdiv
 - [ ] GSM8k
 - [x] Arithmetic
@@ -45,18 +45,18 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Translation (WMT) suite (Hailey)
 - [x] Unscramble
 - [x] ~~Pile (perplexity)~~
-- [ ] BLiMP (Lintang)
+- [x] BLiMP
 - [x] ToxiGen
-- [ ] StoryCloze
-- [ ] NaturalQs
+- [x] StoryCloze
+- [ ] NaturalQs (Hailey)
 - [x] CrowS-Pairs
 - [x] XCopa
 - [ ] BIG-Bench (Hailey)
-- [ ] XStoryCloze (Lintang)
+- [x] XStoryCloze
 - [x] XWinograd
 - [ ] PAWS-X (Lintang)
-- [ ] XNLI (Lintang)
-- [ ] MGSM
+- [x] XNLI
+- [ ] MGSM (Lintang)
 - [ ] SCROLLS
 - [x] Babi
 
