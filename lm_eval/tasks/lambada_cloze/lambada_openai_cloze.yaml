@@ -1,6 +1,5 @@
 group:
   - lambada_cloze
-  - loglikelihood
 task: lambada_openai_cloze_yaml
 dataset_path: EleutherAI/lambada_openai
 dataset_name: default

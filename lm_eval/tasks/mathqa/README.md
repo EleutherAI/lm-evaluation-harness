@@ -25,7 +25,13 @@ Homepage: https://math-qa.github.io/math-QA/
 }
 ```
 
-### Subtasks
+### Groups and Tasks
+
+#### Groups
+
+* `math_word_problems`
+
+#### Tasks
 
 * `mathqa`: The MathQA dataset, as a multiple choice dataset where the answer choices are not in context.
 

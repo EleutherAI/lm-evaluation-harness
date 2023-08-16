@@ -3,41 +3,41 @@ This list keeps track of which tasks' implementations have been ported to YAML /
 
 Boxes should be checked iff tasks are implemented in the refactor and tested for regression. Tasks should be struck through if checked *against original introducing paper* implementation or popularizing implementation. (WIP) Denotes that there exists a PR or person working on this task already.
 
-- [ ] Glue (Lintang)
+- [x] Glue
 - [x] SuperGlue
-- [ ] CoQA
-- [ ] DROP
+- [ ] CoQA (Lintang)
+- [ ] DROP (Lintang)
 - [x] ~~Lambada~~
 - [x] Lambada (Cloze variants)
 - [x] ~~Lambada (Multilingual)~~
 - [x] Wikitext
 - [x] PiQA
 - [x] PROST
-- [ ] MCTACO
+- [x] MCTACO
 - [x] Pubmed QA
 - [x] SciQ
 - [ ] QASPER
 - [x] QA4MRE
-- [ ] TriviaQA
+- [x] TriviaQA
 - [x] AI2 ARC
-- [ ] LogiQA [(WIP)](https://github.com/EleutherAI/lm-evaluation-harness/pull/711)
+- [x] LogiQA
 - [x] HellaSwag
 - [x] SWAG
 - [x] OpenBookQA
-- [ ] SQuADv2
+- [ ] SQuADv2 (Lintang)
 - [x] RACE
 - [x] HeadQA
 - [x] MathQA
-- [ ] WebQs
-- [ ] WSC273
+- [x] WebQs
+- [ ] WSC273 (Lintang)
 - [x] Winogrande
 - [x] ANLI
 - [x] Hendrycks Ethics (missing some tasks/metrics, see PR 660: <https://github.com/EleutherAI/lm-evaluation-harness/pull/660> for more info)
 - [x] TruthfulQA (mc1)
-- [ ] TruthfulQA (mc2)
-- [ ] TruthfulQA (gen)
+- [x] TruthfulQA (mc2)
+- [x] TruthfulQA (gen)
 - [ ] MuTual
-- [ ] Hendrycks Math
+- [ ] Hendrycks Math (Hailey)
 - [ ] Asdiv
 - [ ] GSM8k
 - [x] Arithmetic
@@ -45,20 +45,20 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Translation (WMT) suite (Hailey)
 - [x] Unscramble
 - [x] ~~Pile (perplexity)~~
-- [ ] BLiMP (Lintang)
+- [x] BLiMP
 - [x] ToxiGen
-- [ ] StoryCloze
-- [ ] NaturalQs
-- [ ] CrowS-Pairs
-- [ ] XCopa
-- [ ] BIG-Bench
-- [ ] XStoryCloze
+- [x] StoryCloze
+- [ ] NaturalQs (Hailey)
+- [x] CrowS-Pairs
+- [x] XCopa
+- [ ] BIG-Bench (Hailey)
+- [x] XStoryCloze
 - [x] XWinograd
-- [ ] PAWS-X
-- [ ] XNLI
-- [ ] MGSM
+- [x] PAWS-X
+- [x] XNLI
+- [ ] MGSM (Lintang)
 - [ ] SCROLLS
-- [ ] Babi
+- [x] Babi
 
 # Novel Tasks
 Tasks added in the revamped harness that were not previously available. Again, a strikethrough denotes checking performed *against the original task's implementation or published results introducing the task*.
