@@ -173,7 +173,3 @@ class MathPrealgebra(Math):
 class MathPrecalculus(Math):
     VERSION = 1
     DATASET_NAME = "precalculus"
-
-class MathAll(Math):
-    VERSION = 1
-    DATASET_NAME = "all"
