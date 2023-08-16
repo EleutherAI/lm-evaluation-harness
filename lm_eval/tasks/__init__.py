@@ -170,7 +170,6 @@ TASK_REGISTRY = {
     "math_num_theory_ppl": hendrycks_math_ppl.MathNumberTheory,
     "math_prealgebra_ppl": hendrycks_math_ppl.MathPrealgebra,
     "math_precalc_ppl": hendrycks_math_ppl.MathPrecalculus,
-    "math_all_ppl": hendrycks_math_ppl.MathAll,
     "math_algebra": hendrycks_math.MathAlgebra,
     "math_algebra_easy": hendrycks_math.MathAlgebraEasy,
     "math_counting_and_prob": hendrycks_math.MathCountingAndProbability,
