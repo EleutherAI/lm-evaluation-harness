@@ -16,6 +16,8 @@ section in the paper). Of these, this evaluation harness supports:
 
 Homepage: https://github.com/zhangir-azerbayev/ProofNet
 """
+import sys
+import requests
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 
 from lm_eval.metrics import mean
@@ -131,24 +133,35 @@ class ProofNetAutoformalizeStatements(Task):
         result = 'theorem ' + result
         return result
 
+def get_informalize_prompt():
+    response = requests.get('https://raw.githubusercontent.com/zhangir-azerbayev/ProofNet/main/eval/prompts/6shot_informalize.txt')
+    response.raise_for_status()
+    return response.text.strip()
 
 class ProofNetInformalizeStatements(ProofNetAutoformalizeStatements):
     VERSION = 0
     DATASET_PATH = "hoskinson-center/proofnet"
 
-    BEFORE_EXAMPLE = "Lean mathlib version:\n"
-    AFTER_EXAMPLE = '\nTranslate the Lean mathlib version to a natural language version:\n```'
     IN_KEY = "formal_statement"
-    OUT_KEY = "gpt_nl_statement"
+    OUT_KEY = "generated_nl_statement"
     REF_KEY = "nl_statement"
-    STOP = '```'
+    STOP = '\n'
+
+    prompt = get_informalize_prompt()
+
+    def construct_requests(self, doc, ctx):
+        output = rf.greedy_until(ctx, self.STOP)
+        return output
+
+    def doc_to_text(self, doc):
+        formal = doc[self.IN_KEY]
+        return f'Lean matlib version:\n{formal}\nTranslate the Lean mathlib version to a natural language version:'
 
     def fewshot_context(
         self, doc, num_fewshot, provide_description=None, rnd=None, description=None
     ):
-        ctx = Task.fewshot_context(
-            self, doc, num_fewshot, provide_description, rnd, description
-        )
+        example = self.doc_to_text(doc)
+        ctx = self.prompt + "\n\n" + example
         return ctx
 
     def process_results(self, doc, results, params={}):
@@ -196,10 +209,6 @@ class ProofNetInformalizeStatements(ProofNetAutoformalizeStatements):
             "gpt-eval-correct": True
         }
 
-    def doc_to_target(self, doc):
-        target = doc[self.REF_KEY] + "```"
-        return target
-
     def _parse_result(self, result):
         return result
 
@@ -216,28 +225,30 @@ class GPTEvaluator(object):
         openai.api_key = os.environ['OPENAI_API_KEY']
 
     def eval_informalization_prompt(self, formal_statement, informal_statement_gold, informal_statement_generated):
-        prompt = """Evaluate whether the informal statement is a correct informalization of the given formal statement. 
-    To help you evaluate, you are also given a ground-truth informal statement. 
+        prompt = """Evaluate whether the natural language theorem statement is a correct informalization of the given Lean 3 formal statement. 
+    To help you decide, you are given a ground-truth natural language statement. 
     Note that a statement can be a correct informalization without matching the ground-truth informal statement.
+    If a candidate informalization still contains any Lean syntax, mark it incorrect.
+
 
     Format your evaluation as:
-    Correct: Yes/No/Unsure
     Reason: justification for Yes/No/Unsure
+    Correct: Yes/No/Unsure
 
     Example:
     Formal statement in Lean: theorem exercise_1_6_11 {A B : Type*} [group A] [group B] : \n  A × B ≃* B × A :=
     Ground-truth informal statement: Let $A$ and $B$ be groups. Prove that $A \\times B \\cong B \\times A$.
     Informal statement: Let $A$ and $B$ be groups. Prove that $A + B$ is isomorphic to $B × A$.
 
-    Correct: No
     Reason: The informal statement uses the wrong operation symbol for the product of groups.
+    Correct: No
 
 
     Formal statement in Lean: %s
     Ground-truth informal statement: %s
     Informal statement: %s
 
-    Correct:""" % (formal_statement, informal_statement_gold, informal_statement_generated)
+    Reason:""" % (formal_statement, informal_statement_gold, informal_statement_generated)
         return prompt
 
     def _call_api(self, prompt, engine, max_tokens, max_retries=10, retry_wait=2):
@@ -246,7 +257,7 @@ class GPTEvaluator(object):
                 return self.openai.ChatCompletion.create(
                     model=engine,
                     messages=[
-                        {"role": "system", "content": "You are a helpful assistant with knowledge of the Lean theorem prover."},
+                        {"role": "system", "content": "You are a helpful assistant who is an expert in the Lean theorem prover."},
                         {"role": "user", "content": prompt}
                     ],
                     max_tokens=max_tokens,
@@ -266,10 +277,10 @@ class GPTEvaluator(object):
         }
         try:
             content = msg['choices'][0]['message']['content']
-            correct = content.strip().split('\n')[0]
-            correct_float = 1.0 if correct == 'Yes' else 0.0
+            correct = content.strip().split('\n')[1]
+            correct_float = 1.0 if 'Yes' in correct else 0.0
             parsed['correct'] = correct_float
-            parsed['reason'] = content.strip().split('\n')[1].strip().replace("Reason: ", "")
+            parsed['reason'] = content.strip().split('\n')[0].strip().replace("Reason: ", "")
         except (IndexError, KeyError):
             # NOTE: setting correct to 0.0 here may yield a false negative.
             parsed['correct'] = 0.0
