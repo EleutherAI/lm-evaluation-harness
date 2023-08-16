@@ -1,7 +1,5 @@
-import argparse
-from typing import Dict, List
-
 import yaml
+import argparse
 
 
 LANGUAGES = {
@@ -51,18 +49,6 @@ LANGUAGES = {
     },
 }
 
-def doc_to_text(doc, QUESTION, ANSWER):
-    if doc["answer"] is not None:
-        return doc["question"] + "\n" + ANSWER
-    else:
-        return QUESTION + " " + doc["question"] + "\n" + ANSWER
-
-def doc_to_target(doc, QUESTION, ANSWER):
-    if doc["answer"] is not None:
-        return " " + doc["answer"][len(ANSWER) + 1 :]
-    else:
-        return " " + str(doc["answer_number"])
-
 
 def gen_lang_yamls(output_dir: str, overwrite: bool) -> None:
     """
@@ -86,8 +72,16 @@ def gen_lang_yamls(output_dir: str, overwrite: bool) -> None:
                         "include": "common_template_yaml",
                         "dataset_name": lang,
                         "task": f"mgsm_{lang}",
-                        "doc_to_text": doc_to_text(doc, QUESTION, ANSWER),
-                        "doc_to_target": doc_to_target(doc, QUESTION, ANSWER),
+                        "doc_to_text": f"""{{% if answer is not none %}}""" \
+                                       f"""{{{{question+"\\n{ANSWER}"}}}}""" \
+                                       f"""{{% else %}}""" \
+                                       f"""{{{{"{QUESTION} "+question+"\\n{ANSWER}"}}}}""" \
+                                       f"""{{% endif %}}""",
+                        "doc_to_target": f"""{{% if answer is not none %}}""" \
+                                         f"""{{{{answer[{len(ANSWER)}+1]}}}}""" \
+                                         f"""{{% else %}}""" \
+                                         f"""{{{{answer_number|string}}}}""" \
+                                         f"""{{% endif %}}""",
                     },
                     f,
                     allow_unicode=True,
