@@ -1,7 +1,5 @@
 group:
   - lambada_multilingual
-  - loglikelihood
-  - perplexity
 task: lambada_openai_mt_en
 dataset_path: EleutherAI/lambada_openai
 dataset_name: en

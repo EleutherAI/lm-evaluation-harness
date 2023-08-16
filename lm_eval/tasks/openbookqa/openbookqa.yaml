@@ -1,5 +1,3 @@
-group:
-  - multiple_choice
 task: openbookqa
 dataset_path: openbookqa
 dataset_name: main

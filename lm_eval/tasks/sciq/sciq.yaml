@@ -1,5 +1,3 @@
-group:
-  - multiple_choice
 task: sciq
 dataset_path: sciq
 dataset_name: null

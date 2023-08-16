@@ -28,7 +28,13 @@ Homepage: https://github.com/openai/gpt-3/tree/master/data
 }
 ```
 
-### Subtasks
+### Groups and Tasks
+
+#### Groups
+
+* `unscramble`
+
+#### Tasks
 
 * `anagrams1` - Anagrams of all but the first and last letter.
 * `anagrams2` - Anagrams of all but the first and last 2 letters.

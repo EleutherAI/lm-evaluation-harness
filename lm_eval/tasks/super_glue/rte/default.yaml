@@ -1,6 +1,6 @@
 group:
   - super-glue-lm-eval-v1
-task: rte
+task: sglue_rte
 dataset_path: super_glue
 dataset_name: rte
 output_type: multiple_choice

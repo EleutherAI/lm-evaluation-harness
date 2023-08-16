@@ -1,0 +1,12 @@
+group: xcopa
+task: xcopa_et
+dataset_path: xcopa
+dataset_name: et
+output_type: multiple_choice
+validation_split: validation
+test_split: test
+doc_to_text: !function utils.doc_to_text_et
+doc_to_target: label
+doc_to_choice: !function utils.doc_to_choice
+metric_list:
+  - metric: acc
