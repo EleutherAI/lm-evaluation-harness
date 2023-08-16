@@ -793,7 +793,11 @@ class ConfigurableTask(Task):
                 target_string = utils.apply_template(doc_to_target, doc)
                 if target_string.isdigit():
                     return ast.literal_eval(target_string)
-                elif len(target_string) >= 2 and (target_string[0] == "[") and (target_string[-1] == "]"):
+                elif (
+                    len(target_string) >= 2
+                    and (target_string[0] == "[")
+                    and (target_string[-1] == "]")
+                ):
                     return ast.literal_eval(target_string)
                 else:
                     return target_string
@@ -1006,7 +1010,7 @@ class ConfigurableTask(Task):
 
             gold = self.doc_to_target(doc)
             if self._config.doc_to_choice is not None:
-                # If you set doc_to_choice, 
+                # If you set doc_to_choice,
                 # it assumes that doc_to_target returns a number.
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
