@@ -39,6 +39,7 @@ from . import unscramble
 from . import logiqa
 from . import hendrycks_test
 from . import hendrycks_math
+from . import hendrycks_math_ppl
 from . import minerva_math
 from . import cbt
 from . import lambada_cloze
@@ -163,6 +164,14 @@ TASK_REGISTRY = {
     "mutual": mutual.MuTual,
     "mutual_plus": mutual.MuTualPlus,
     # math
+    "math_algebra_ppl": hendrycks_math_ppl.MathAlgebra,
+    "math_algebra_easy_ppl": hendrycks_math_ppl.MathAlgebraEasy,
+    "math_counting_and_prob_ppl": hendrycks_math_ppl.MathCountingAndProbability,
+    "math_geometry_ppl": hendrycks_math_ppl.MathGeometry,
+    "math_intermediate_algebra_ppl": hendrycks_math_ppl.MathIntermediateAlgebra,
+    "math_num_theory_ppl": hendrycks_math_ppl.MathNumberTheory,
+    "math_prealgebra_ppl": hendrycks_math_ppl.MathPrealgebra,
+    "math_precalc_ppl": hendrycks_math_ppl.MathPrecalculus,
     "math_algebra": hendrycks_math.MathAlgebra,
     "math_algebra_easy": hendrycks_math.MathAlgebraEasy,
     "math_counting_and_prob": hendrycks_math.MathCountingAndProbability,
