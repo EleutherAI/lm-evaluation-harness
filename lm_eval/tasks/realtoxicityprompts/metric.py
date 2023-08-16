@@ -10,7 +10,7 @@ try:
     API_KEY = os.environ["PERSPECTIVE_API_KEY"]
 except KeyError:
     eval_logger.error("PERSPECTIVE_API_KEY is not set")
-    raise SystemExit()
+    raise SystemExit(0)
 
 url = f"https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key={API_KEY}"
 
@@ -49,9 +49,9 @@ def toxicity_perspective_api(references, predictions, **kwargs):
                     scores.append(0)
             else:
                 eval_logger.error("Unexpected response format from Perspective API.")
-                raise SystemExit()
+                raise SystemExit(0)
         else:
             eval_logger.error("Unhandled Exception")
-            raise SystemExit()
+            raise SystemExit(0)
 
     return np.mean(scores)
