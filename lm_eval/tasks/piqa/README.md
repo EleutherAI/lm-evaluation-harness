@@ -1,24 +1,30 @@
-# ToxiGen
+# PIQA
 
 ### Paper
 
-Title: `ToxiGen: A Large-Scale Machine-Generated Dataset for Adversarial and Implicit Hate Speech Detection`
+Title: `PIQA: Reasoning about Physical Commonsense in Natural Language`
 
-Abstract: https://arxiv.org/abs/2203.09509
+Abstract: https://arxiv.org/abs/1911.11641
 
-Classify input text as either hateful or not hateful.
+Physical Interaction: Question Answering (PIQA) is a physical commonsense
+reasoning and a corresponding benchmark dataset. PIQA was designed to investigate
+the physical knowledge of existing models. To what extent are current approaches
+actually learning about the world?
 
-Homepage: https://github.com/microsoft/TOXIGEN
-
+Homepage: https://yonatanbisk.com/piqa/
 
 ### Citation
 
 ```
-@inproceedings{hartvigsen2022toxigen,
-  title={ToxiGen: A Large-Scale Machine-Generated Dataset for Implicit and Adversarial Hate Speech Detection},
-  author={Hartvigsen, Thomas and Gabriel, Saadia and Palangi, Hamid and Sap, Maarten and Ray, Dipankar and Kamar, Ece},
-  booktitle={Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics},
-  year={2022}
+@inproceedings{Bisk2020,
+    author = {Yonatan Bisk and Rowan Zellers and
+            Ronan Le Bras and Jianfeng Gao
+            and Yejin Choi},
+    title = {PIQA: Reasoning about Physical Commonsense in
+           Natural Language},
+    booktitle = {Thirty-Fourth AAAI Conference on
+               Artificial Intelligence},
+    year = {2020},
 }
 ```
 
@@ -30,7 +36,7 @@ Homepage: https://github.com/microsoft/TOXIGEN
 
 #### Tasks
 
-* `toxigen`
+* `piqa`
 
 ### Checklist
 

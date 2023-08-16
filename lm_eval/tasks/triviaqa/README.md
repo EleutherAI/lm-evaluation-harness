@@ -27,9 +27,14 @@ Homepage: https://nlp.cs.washington.edu/triviaqa/
 }
 ```
 
-### Subtasks
+### Groups and Tasks
 
-List or describe tasks defined in this folder, and their names here:
+#### Groups
+
+* Not part of a group yet.
+
+#### Tasks
+
 * `triviaqa`: `Generate and answer based on the question.`
 
 ### Checklist

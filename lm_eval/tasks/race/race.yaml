@@ -1,5 +1,3 @@
-group:
-  - multiple_choice
 task: race
 dataset_path: EleutherAI/race
 dataset_name: high

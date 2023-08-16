@@ -1,14 +1,17 @@
-# Task-name
+# RACE
 
 ### Paper
 
-Title: `paper titles goes here`
+Title: `RACE: Large-scale ReAding Comprehension Dataset From Examinations`
 
-Abstract: `link to paper PDF or arXiv abstract goes here`
+Abstract: https://arxiv.org/abs/1704.04683
 
-`Short description of paper / benchmark goes here:`
+RACE is a large-scale reading comprehension dataset with more than 28,000 passages
+and nearly 100,000 questions. The dataset is collected from English examinations
+in China, which are designed for middle school and high school students. The dataset
+can be served as the training and test sets for machine comprehension.
 
-Homepage: `homepage to the benchmark's website goes here, if applicable`
+Homepage: https://www.cs.cmu.edu/~glai1/data/race/
 
 
 ### Citation
@@ -21,12 +24,11 @@ BibTeX-formatted citation goes here
 
 #### Groups
 
-* `group_name`: `Short description`
+* Not part of a group yet.
 
 #### Tasks
 
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: ...
+* `race`
 
 ### Checklist
 

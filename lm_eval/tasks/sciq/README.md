@@ -1,32 +1,39 @@
-# Task-name
+# SciQ
 
 ### Paper
 
-Title: `paper titles goes here`
+Title: `Crowdsourcing Multiple Choice Science Questions`
 
-Abstract: `link to paper PDF or arXiv abstract goes here`
+Abstract: https://aclanthology.org/W17-4413.pdf
 
-`Short description of paper / benchmark goes here:`
+The SciQ dataset contains 13,679 crowdsourced science exam questions about Physics,
+Chemistry and Biology, among others. The questions are in multiple-choice format
+with 4 answer options each. For the majority of the questions, an additional paragraph
+with supporting evidence for the correct answer is provided.
 
-Homepage: `homepage to the benchmark's website goes here, if applicable`
+Homepage: https://allenai.org/data/sciq
 
 
 ### Citation
 
 ```
-BibTeX-formatted citation goes here
+@inproceedings{Welbl2017CrowdsourcingMC,
+    title={Crowdsourcing Multiple Choice Science Questions},
+    author={Johannes Welbl and Nelson F. Liu and Matt Gardner},
+    booktitle={NUT@EMNLP},
+    year={2017}
+}
 ```
 
 ### Groups and Tasks
 
 #### Groups
 
-* `group_name`: `Short description`
+* Not part of a group yet.
 
 #### Tasks
 
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: ...
+* `sciq`
 
 ### Checklist
 
