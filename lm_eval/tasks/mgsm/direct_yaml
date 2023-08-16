@@ -19,7 +19,6 @@ filter_list:
     filter:
       - function: remove_whitespace
       - function: take_first
-target_delimiter: " "
 metric_list:
   - metric: exact_match
     aggregation: mean
