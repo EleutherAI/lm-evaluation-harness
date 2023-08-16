@@ -1,6 +1,8 @@
 import collections
+import datetime
 import itertools
 import random
+import time
 
 import lm_eval.metrics
 import lm_eval.models
@@ -66,6 +68,7 @@ def simple_evaluate(
     :return
         Dictionary of results
     """
+    start_time = time.time()
     random.seed(1234)
     np.random.seed(1234)
 
@@ -116,7 +119,8 @@ def simple_evaluate(
         write_out=write_out,
         output_base_path=output_base_path,
     )
-
+    end_time = time.time()
+    delta_time = datetime.timedelta(seconds=(end_time-start_time))
     # add info about the model and few shot config
     model_name = None
     if isinstance(model, str):
@@ -134,6 +138,7 @@ def simple_evaluate(
         "limit": limit,
         "bootstrap_iters": bootstrap_iters,
         "description_dict": description_dict,
+        "cost_time": str(delta_time),
     }
 
     return results
