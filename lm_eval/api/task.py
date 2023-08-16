@@ -1010,7 +1010,7 @@ class ConfigurableTask(Task):
 
             gold = self.doc_to_target(doc)
             if self._config.doc_to_choice is not None:
-                # If you set doc_to_choice, 
+                # If you set doc_to_choice,
                 # it assumes that doc_to_target returns a number.
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]

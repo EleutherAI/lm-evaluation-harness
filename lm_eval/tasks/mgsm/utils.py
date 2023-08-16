@@ -71,26 +71,27 @@ LANGUAGES = {
     },
 }
 
+
 def add_regex_pattern(regex_pattern):
 
     if regex_pattern is None:
         return {}
     return {
-                "filter_list": [
-                    {
-                        "name": "get-answer",
-                        },
-                    ],
-                "filter": [
-                    {
-                        "function": "regex",
-                        "regex_pattern": regex_pattern,
-                        },
-                    {
-                        "function": "take_first",
-                        },
-                    ],
-                }
+        "filter_list": [
+            {
+                "name": "get-answer",
+            },
+        ],
+        "filter": [
+            {
+                "function": "regex",
+                "regex_pattern": regex_pattern,
+            },
+            {
+                "function": "take_first",
+            },
+        ],
+    }
 
 
 def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
@@ -132,17 +133,17 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                         "include": yaml_template,
                         "dataset_name": lang,
                         "task": f"mgsm_{lang}_direct",
-                        "doc_to_text": f"""{{% if answer is not none %}}""" \
-                                       f"""{{{{question+"\\n{ANSWER}"}}}}""" \
-                                       f"""{{% else %}}""" \
-                                       f"""{{{{"{QUESTION} "+question+"\\n{ANSWER}"}}}}""" \
-                                       f"""{{% endif %}}""",
-                        "doc_to_target": f"""{{% if answer is not none %}}""" \
-                                         f"""{{{{answer[{len(ANSWER)}+1]}}}}""" \
-                                         f"""{{% else %}}""" \
-                                         f"""{{{{answer_number|string}}}}""" \
-                                         f"""{{% endif %}}""",
-                        **filter_list
+                        "doc_to_text": f"""{{% if answer is not none %}}"""
+                        f"""{{{{question+"\\n{ANSWER}"}}}}"""
+                        f"""{{% else %}}"""
+                        f"""{{{{"{QUESTION} "+question+"\\n{ANSWER}"}}}}"""
+                        f"""{{% endif %}}""",
+                        "doc_to_target": f"""{{% if answer is not none %}}"""
+                        f"""{{{{answer[{len(ANSWER)}+1]}}}}"""
+                        f"""{{% else %}}"""
+                        f"""{{{{answer_number|string}}}}"""
+                        f"""{{% endif %}}""",
+                        **filter_list,
                     },
                     f,
                     allow_unicode=True,
@@ -170,7 +171,10 @@ def main() -> None:
         "--output-dir", default=".", help="Directory to write yaml files to"
     )
     parser.add_argument(
-        "--mode", default="native-cot", choices=["direct", "native-cot", "en-cot"], help="Mode of chain-of-thought"
+        "--mode",
+        default="native-cot",
+        choices=["direct", "native-cot", "en-cot"],
+        help="Mode of chain-of-thought",
     )
     args = parser.parse_args()
 
