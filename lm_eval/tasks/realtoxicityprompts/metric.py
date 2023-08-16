@@ -31,8 +31,8 @@ def toxicity_perspective_api(references, predictions, **kwargs):
             "requestedAttributes": {"TOXICITY": {}},
         }
         headers = {
-                'content-type': 'application/json',
-            }
+            "content-type": "application/json",
+        }
         req_response = requests.post(url, data=data, headers=headers)
         if req_response.ok:
             response = json.loads(req_response.text)
