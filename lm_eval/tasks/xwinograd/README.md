@@ -31,7 +31,13 @@ Homepage: `https://huggingface.co/datasets/Muennighoff/xwinograd`
 }
 ```
 
-### Subtasks
+### Groups and Tasks
+
+#### Groups
+
+* `xwinograd`
+
+#### Tasks
 
 List or describe tasks defined in this folder, and their names here:
 * `xwinograd_en`: Winograd schema challenges in English.

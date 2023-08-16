@@ -1,7 +1,3 @@
 include: arc_easy.yaml
-group:
-  - ai2_arc
-  - multiple_choice
 task: arc_challenge
-dataset_path: ai2_arc
 dataset_name: ARC-Challenge

@@ -1,9 +1,12 @@
-# LAMBADA
+# LAMBADA Cloze
 
 ### Paper
-The LAMBADA dataset: Word prediction requiring a broad discourse context
-https://arxiv.org/pdf/1606.06031.pdf
 
+Title: `The LAMBADA dataset: Word prediction requiring a broad discourse context`
+
+Abstract: https://arxiv.org/abs/1606.06031
+
+Cloze-style LAMBADA dataset.
 LAMBADA is a dataset to evaluate the capabilities of computational models for text
 understanding by means of a word prediction task. LAMBADA is a collection of narrative
 passages sharing the characteristic that human subjects are able to guess their last
@@ -14,8 +17,10 @@ in the broader discourse.
 
 Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
 
+
 ### Citation
 
+```
 @misc{
     author={Paperno, Denis and Kruszewski, Germán and Lazaridou, Angeliki and Pham, Quan Ngoc and Bernardi, Raffaella and Pezzelle, Sandro and Baroni, Marco and Boleda, Gemma and Fernández, Raquel},
     title={The LAMBADA dataset},
@@ -24,26 +29,28 @@ Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
     year={2016},
     month={Aug}
 }
+```
 
 ### Groups and Tasks
 
 #### Groups
 
-* `lambada_multilingual`: Evaluates all `lambada_mt_X` tasks
+* `lambada_cloze`
 
 #### Tasks
 
-* `lambada_mt_{en, fr, de, it, es}`: Machine-translated versions of OpenAI's Lambada variant.
+* `lambada_openai_cloze_yaml`
+* `lambada_standard_cloze_yaml`
 
 ### Checklist
 
-* [x] Is the task an existing benchmark in the literature?
-  * [x] Have you referenced the original paper that introduced the task?
-  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-(This task is novel to the Evaluation Harness, and has been checked against v0.3.0 of the harness.)
+For adding novel benchmarks/datasets to the library:
+* [ ] Is the task an existing benchmark in the literature?
+  * [ ] Have you referenced the original paper that introduced the task?
+  * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
 
 
 If other tasks on this dataset are already supported:
-* [x] Is the "Main" variant of this task clearly denoted?
-* [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
-* [x] Have you noted which, if any, published evaluation setups are matched by this variant?
+* [ ] Is the "Main" variant of this task clearly denoted?
+* [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
+* [ ] Have you noted which, if any, published evaluation setups are matched by this variant?

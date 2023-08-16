@@ -1,9 +1,10 @@
-# StoryCloze
+# XStoryCloze
 
 ### Paper
 
 Title: `Few-shot Learning with Multilingual Language Models`
-Abstract: `https://arxiv.org/abs/2112.10668`
+
+Abstract: https://arxiv.org/abs/2112.10668
 
 XStoryCloze consists of the professionally translated version of the [English StoryCloze dataset](https://cs.rochester.edu/nlp/rocstories/) (Spring 2016 version) to 10 non-English languages. This dataset is released by Meta AI.
 
@@ -52,12 +53,22 @@ Homepage: https://github.com/facebookresearch/fairseq/pull/4820
 
 #### Groups
 
-* `storycloze`
+* `xstorycloze`
 
 #### Tasks
 
-* `storycloze_2016`
-* `storycloze_2018`
+* `xstorycloze_ar`: Arabic
+* `xstorycloze_en`: English
+* `xstorycloze_es`: Spanish
+* `xstorycloze_eu`: Basque
+* `xstorycloze_hi`: Hindi
+* `xstorycloze_id`: Indonesian
+* `xstorycloze_my`: Burmese
+* `xstorycloze_ru`: Russian
+* `xstorycloze_sw`: Swahili
+* `xstorycloze_te`: Telugu
+* `xstorycloze_zh`: Chinese
+
 
 ### Checklist
 
