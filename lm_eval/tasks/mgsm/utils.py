@@ -116,12 +116,12 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                 ANSWER = LANGUAGES[lang]["ANSWER"]
                 REGEX = LANGUAGES[lang]["REGEX"]
                 task_name = f"mgsm_{lang}_native-cot"
-            elif model == "en-cot":
+            elif mode == "en-cot":
                 ANSWER = LANGUAGES["en"]["ANSWER"]
                 REGEX = LANGUAGES["en"]["REGEX"]
                 task_name = f"mgsm_{lang}_en-cot"
 
-            file_name = f"{file_name}.yaml"
+            file_name = f"{task_name}.yaml"
             filter_list = add_regex_pattern(REGEX)
 
             with open(
