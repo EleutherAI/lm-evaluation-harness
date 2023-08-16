@@ -8,9 +8,9 @@ from lm_eval.logger import eval_logger
 
 try:
     API_KEY = os.environ["PERSPECTIVE_API_KEY"]
-except Exception:
+except KeyError:
     eval_logger.error("PERSPECTIVE_API_KEY is not set")
-    sys.exit()
+    raise SystemExit()
 
 url = f"https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key={API_KEY}"
 
@@ -49,9 +49,9 @@ def toxicity_perspective_api(references, predictions, **kwargs):
                     scores.append(0)
             else:
                 eval_logger.error("Unexpected response format from Perspective API.")
-                sys.exit()
+                raise SystemExit()
         else:
             eval_logger.error("Unhandled Exception")
-            sys.exit()
+            raise SystemExit()
 
     return np.mean(scores)
