@@ -798,7 +798,7 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: dict) -> Union[int, str]:
+    def doc_to_target(self, doc: dict) -> Union[int, str, list]:
 
         if self.prompt is not None:
             doc_to_target = self.prompt
@@ -817,8 +817,12 @@ class ConfigurableTask(Task):
                 target_string = utils.apply_template(doc_to_target, doc)
                 if target_string.isdigit():
                     return ast.literal_eval(target_string)
+                elif (target_string[0] == "[") and (target_string[-1] == "]"):
+                    return ast.literal_eval(target_string)
                 else:
                     return target_string
+        elif type(doc_to_target) == list:
+            return doc_to_target
         elif callable(doc_to_target):
             return doc_to_target(doc)
         # Used when applying a Promptsource template
@@ -1046,20 +1050,20 @@ class ConfigurableTask(Task):
                             res = res[key]
                         scores.append(res)
                     if any(scores):
-                        result = 1.0
+                        result_score = 1.0
                     else:
-                        result = 0.0
+                        result_score = 0.0
                 else:
-                    result = self._metric_fn_list[key](
+                    result_score = self._metric_fn_list[key](
                         references=[gold],
                         predictions=[result],
                         **self._metric_fn_kwargs[key],
                     )
 
-                if isinstance(result, dict):
-                    result_dict.update(result)
+                if isinstance(result_score, dict):
+                    result_dict.update(result_score)
                 else:
-                    result_dict[key] = result
+                    result_dict[key] = result_score
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
