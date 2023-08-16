@@ -465,8 +465,11 @@ class Task(abc.ABC):
         elif type(example) == list:
             return [labeled_examples + ex for ex in example]
         elif type(example) == int:
-            choices = self.doc_to_choice(doc)
-            return labeled_examples + choices[example]
+            if self._config.doc_to_choice is not None:
+                choices = self.doc_to_choice(doc)
+                return labeled_examples + choices[example]
+            else:
+                return labeled_examples + str(example)
 
     def apply_filters(self):
 
@@ -790,7 +793,7 @@ class ConfigurableTask(Task):
                 target_string = utils.apply_template(doc_to_target, doc)
                 if target_string.isdigit():
                     return ast.literal_eval(target_string)
-                elif (target_string[0] == "[") and (target_string[-1] == "]"):
+                elif len(target_string) >= 2 and (target_string[0] == "[") and (target_string[-1] == "]"):
                     return ast.literal_eval(target_string)
                 else:
                     return target_string
@@ -1002,9 +1005,13 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "greedy_until":
 
             gold = self.doc_to_target(doc)
-            if type(gold) == int:
+            if self._config.doc_to_choice is not None:
+                # If you set doc_to_choice, 
+                # it assumes that doc_to_target returns a number.
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
+            else:
+                gold = str(gold)
 
             for key, result in zip(self._metric_fn_list.keys(), results):
                 if self.multiple_target:
