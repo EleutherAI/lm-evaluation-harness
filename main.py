@@ -24,7 +24,7 @@ def parse_args():
         help="String arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
     )
     parser.add_argument(
-        "--tasks", default=None  # , choices=utils.MultiChoice(sorted(ALL_TASKS))
+        "--tasks", default=None, choices=utils.MultiChoice(sorted(ALL_TASKS))
     )
     parser.add_argument(
         "--num_fewshot",
