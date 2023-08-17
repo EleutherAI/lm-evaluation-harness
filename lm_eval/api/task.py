@@ -771,7 +771,7 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: dict) -> Union[int, str]:
+    def doc_to_target(self, doc: dict) -> Union[int, str, list]:
 
         if self.prompt is not None:
             doc_to_target = self.prompt
@@ -790,8 +790,12 @@ class ConfigurableTask(Task):
                 target_string = utils.apply_template(doc_to_target, doc)
                 if target_string.isdigit():
                     return ast.literal_eval(target_string)
+                elif (target_string[0] == "[") and (target_string[-1] == "]"):
+                    return ast.literal_eval(target_string)
                 else:
                     return target_string
+        elif type(doc_to_target) == list:
+            return doc_to_target
         elif callable(doc_to_target):
             return doc_to_target(doc)
         # Used when applying a Promptsource template
@@ -1002,7 +1006,7 @@ class ConfigurableTask(Task):
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
 
-            for key in self._metric_fn_list.keys():
+            for metric in self._metric_fn_list.keys():
                 result = results[0]
                 if self.multiple_target:
                     # in the case where we have multiple targets,
@@ -1011,18 +1015,18 @@ class ConfigurableTask(Task):
                     scores = []
                     for gold_option in gold:
                         try:
-                            result_score = self._metric_fn_list[key](
+                            result_score = self._metric_fn_list[metric](
                                 references=[gold_option],
                                 predictions=[result],
-                                **self._metric_fn_kwargs[key],
+                                **self._metric_fn_kwargs[metric],
                             )
                         except TypeError:  # TODO: this is hacky and I don't want to do it
-                            result_score = self._metric_fn_list[key](
+                            result_score = self._metric_fn_list[metric](
                                 [gold_option, result]
                             )
                         if isinstance(result_score, dict):
                             # TODO: this handles the case where HF evaluate returns a dict.
-                            result_score = result_score[key]
+                            result_score = result_score[metric]
                         scores.append(result_score)
                     if any(scores):
                         result_score = 1.0
@@ -1030,17 +1034,17 @@ class ConfigurableTask(Task):
                         result_score = 0.0
                 else:
                     try:
-                        result_score = self._metric_fn_list[key](
+                        result_score = self._metric_fn_list[metric](
                             references=[gold],
                             predictions=[result],
-                            **self._metric_fn_kwargs[key],
+                            **self._metric_fn_kwargs[metric],
                         )
-                    except TypeError:
-                        result_score = self._metric_fn_list[key]([gold, result])
+                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                        result_score = self._metric_fn_list[metric]([gold, result])
                 if isinstance(result_score, dict):
                     result_dict.update(result_score)
                 else:
-                    result_dict[key] = result_score
+                    result_dict[metric] = result_score
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
