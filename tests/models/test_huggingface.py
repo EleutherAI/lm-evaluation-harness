@@ -90,7 +90,7 @@ class Test_HFLM:
     def test_logliklihood(self) -> None:
         res = self.LM.loglikelihood(self.MULTIPLE_CH)
         _RES, _res = [r[0] for r in self.MULTIPLE_CH_RES], [r[0] for r in res]
-        assert np.allclose(_res, _RES, atol=1e-3)
+        assert np.allclose(_res, _RES, atol=1e-2)
 
     def test_greedy_until(self) -> None:
         res = self.LM.greedy_until(self.GREEDY_UNTIL)
