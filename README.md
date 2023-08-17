@@ -136,7 +136,7 @@ Using this setting helps for massive models like BLOOM which require, or to avoi
 
 **Note that this option requires launching evaluation via `python main.py` rather than `accelerate launch main.py`.**
 
-To use `accelerate` with the `lm-eval` command, use 
+To use `accelerate` with the `lm-eval` command, use
 ```
 accelerate launch --no_python lm-eval --model ...
 ```
