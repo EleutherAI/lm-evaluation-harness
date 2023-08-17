@@ -20,6 +20,7 @@ from . import swag
 from . import openbookqa
 from . import squad
 from . import naturalqs
+from . import nqopen
 from . import sat
 from . import arithmetic
 from . import lambada
@@ -150,6 +151,7 @@ TASK_REGISTRY = {
     "squad2": squad.SQuAD2,
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
+    "nq_open": nqopen.NQOpen,
     "headqa": headqa.HeadQAEsDeprecated,  # for backwards compat - headqa used to default to es
     "headqa_es": headqa.HeadQAEs,
     "headqa_en": headqa.HeadQAEn,
