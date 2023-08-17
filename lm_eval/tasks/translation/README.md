@@ -18,7 +18,7 @@
 * `wmt14`
 * `wmt16`
 * `wmt20`
-* `iwslt17`
+* `iwslt2017`
 
 #### Tasks
 
