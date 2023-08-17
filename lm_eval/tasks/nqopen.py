@@ -98,7 +98,7 @@ class NQOpen(Task):
         answers = [answer.lower().translate(str.maketrans('', '', string.punctuation)) for answer in doc["answer"]]
         
         # remove duplicate whitespace
-        continuation = re.sub(' +', ' ', continuation)
+        continuation = " ".join(continuation.split())
         
         # remove articles
         continuation = re.sub('(\s+)(a|an|the)(\s+)', ' ', continuation)
