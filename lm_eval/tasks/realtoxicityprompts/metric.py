@@ -9,8 +9,10 @@ from lm_eval.logger import eval_logger
 try:
     API_KEY = os.environ["PERSPECTIVE_API_KEY"]
 except KeyError:
-    eval_logger.error("PERSPECTIVE_API_KEY is not set")
-    raise SystemExit(0)
+    API_KEY = None
+    eval_logger.warning(
+        "PERSPECTIVE_API_KEY is not set. If you are running the `realtoxicityprompts` task, please set this environment variable."
+    )
 
 url = f"https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key={API_KEY}"
 
