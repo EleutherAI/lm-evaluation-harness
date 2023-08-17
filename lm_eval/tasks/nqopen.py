@@ -1,32 +1,37 @@
 """
+Latent Retrieval for Weakly Supervised Open Domain Question Answering
+https://arxiv.org/pdf/1906.00300.pdf
+
 Natural Questions: a Benchmark for Question Answering Research
 https://storage.googleapis.com/pub-tools-public-publication-data/pdf/1f7b46b5378d757553d3e92ead36bda2e4254244.pdf
 
-The Natural Questions (NQ) corpus is a question-answering dataset that contains
-questions from real users and requires QA systems to read and comprehend an entire
-Wikipedia article that may or may not contain the answer to the question. The
-inclusion of real user questions, and the requirement that solutions should read
-an entire page to find the answer, cause NQ to be a more realistic and challenging
-task than prior QA datasets.
+The NQ-Open task, introduced by Lee et. al. 2019, is an open-domain question
+answering benchmark that is derived from Natural Questions. The goal is to predict
+an English answer string for an input English question. All questions can be
+answered using the contents of English Wikipedia.
 
-TODO: NaturalQS has a *really* large train set that huggingface just automatically
-downloads even if you dont use it. we should try and only download the val set and
-not even bother with the train set.
-
-Homepage: https://ai.google.com/research/NaturalQuestions
+Homepage: https://github.com/google-research-datasets/natural-questions/tree/master/nq_open
 """
 import re
 import string
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 
-
 _CITATION = """
-@article{47761,
-    title={Natural Questions: a Benchmark for Question Answering Research},
-    author={Tom Kwiatkowski and Jennimaria Palomaki and Olivia Redfield and Michael Collins and Ankur Parikh and Chris Alberti and Danielle Epstein and Illia Polosukhin and Matthew Kelcey and Jacob Devlin and Kenton Lee and Kristina N. Toutanova and Llion Jones and Ming-Wei Chang and Andrew Dai and Jakob Uszkoreit and Quoc Le and Slav Petrov},
-    year={2019},
-    journal={Transactions of the Association of Computational Linguistics}
+@inproceedings{lee-etal-2019-latent,
+    title = "Latent Retrieval for Weakly Supervised Open Domain Question Answering",
+    author = "Lee, Kenton  and
+      Chang, Ming-Wei  and
+      Toutanova, Kristina",
+    booktitle = "Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics",
+    month = jul,
+    year = "2019",
+    address = "Florence, Italy",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/P19-1612",
+    doi = "10.18653/v1/P19-1612",
+    pages = "6086--6096",
+    abstract = "Recent work on open domain question answering (QA) assumes strong supervision of the supporting evidence and/or assumes a blackbox information retrieval (IR) system to retrieve evidence candidates. We argue that both are suboptimal, since gold evidence is not always available, and QA is fundamentally different from IR. We show for the first time that it is possible to jointly learn the retriever and reader from question-answer string pairs and without any IR system. In this setting, evidence retrieval from all of Wikipedia is treated as a latent variable. Since this is impractical to learn from scratch, we pre-train the retriever with an Inverse Cloze Task. We evaluate on open versions of five QA datasets. On datasets where the questioner already knows the answer, a traditional IR system such as BM25 is sufficient. On datasets where a user is genuinely seeking an answer, we show that learned retrieval is crucial, outperforming BM25 by up to 19 points in exact match.",
 }
 """
 
@@ -89,7 +94,6 @@ class NQOpen(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        print("raw results:", results)
         continuation = results[0].strip().lower().translate(str.maketrans('', '', string.punctuation))
         answers = [answer.lower().translate(str.maketrans('', '', string.punctuation)) for answer in doc["answer"]]
         
@@ -100,7 +104,6 @@ class NQOpen(Task):
         continuation = re.sub('(\s+)(a|an|the)(\s+)', ' ', continuation)
         answers = [re.sub('(\s+)(a|an|the)(\s+)', ' ', cand) for cand in answers]
  
-        print(float(continuation in answers), continuation, answers)
         return {
             "em": float(continuation in answers)
         }
