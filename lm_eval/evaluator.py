@@ -1,30 +1,28 @@
-import random
+import collections
 import itertools
 import json
-import collections
 import logging
+import random
 import sys
 
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 
-import numpy as np
-
 import lm_eval.api
-import lm_eval.tasks
-import lm_eval.benchmarks
-import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry
-
+import lm_eval.benchmarks
+import lm_eval.models
+import lm_eval.tasks
+from lm_eval.logger import eval_logger
 from lm_eval.utils import (
-    positional_deprecated,
-    run_task_tests,
-    make_table,
     create_iterator,
     get_git_commit_hash,
+    make_table,
+    positional_deprecated,
+    run_task_tests,
 )
-
-from lm_eval.logger import eval_logger
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -117,7 +115,6 @@ def simple_evaluate(
 
     task_dict = lm_eval.tasks.get_task_dict(tasks)
     for task_name in task_dict.keys():
-
         task_obj = task_dict[task_name]
         if type(task_obj) == tuple:
             group, task_obj = task_obj
@@ -224,7 +221,6 @@ def evaluate(
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
-
         if type(task) == tuple:
             group, task = task
             task_groups[task_name] = group
@@ -345,11 +341,36 @@ def evaluate(
                 for metric, value in metrics.items():
                     vals[(task_name, key, metric)].append(value)
 
+    calibs = sorted(task.calibrations, key=lambda x: x[0])
+
+    def bin_list_into_subsets(input_list, num_subsets=10):
+        subset_size = len(input_list) // num_subsets
+        remainder = len(input_list) % num_subsets
+        subsets = []
+        start = 0
+        for _ in range(num_subsets):
+            subset_end = start + subset_size + (1 if remainder > 0 else 0)
+            subsets.append(input_list[start:subset_end])
+            start = subset_end
+            remainder -= 1
+        return subsets
+
+    subsets = bin_list_into_subsets(calibs, 10)
+    x_coords = [np.mean([x[0] for x in subset]) for subset in subsets]
+    y_coords = [np.mean([x[1] for x in subset]) for subset in subsets]
+    model_name = lm.config._name_or_path.split("/")[1]
+    plt.plot(x_coords, y_coords, label=model_name)
+    plt.plot([0, 1], [0, 1], linestyle="--", color="black")
+    plt.xlabel("Probabilities")
+    plt.ylabel("Frequences")
+    plt.title("Calibration")
+    plt.legend()
+    plt.savefig(f"{model_name}-long.png")
+
     if lm.world_size > 1:
         # if multigpu, then gather data across all ranks
         # first gather logged samples across all ranks
         for task_name, task_samples in list(samples.items()):
-
             full_samples = [None] * lm.world_size
             torch.distributed.all_gather_object(full_samples, task_samples)
 
@@ -358,7 +379,6 @@ def evaluate(
         # then collect metrics across all ranks
         vals_torch = collections.defaultdict(list)
         for (task_name, key, metric), items in vals.items():
-
             numitem = 0
             if type(items[0]) == tuple:
                 numitem = len(items[0])
