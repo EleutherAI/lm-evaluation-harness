@@ -1,3 +1,3 @@
 include: math_algebra.yaml
-dataset_name: precalcululas
+dataset_name: precalculus
 task: math_precalc
