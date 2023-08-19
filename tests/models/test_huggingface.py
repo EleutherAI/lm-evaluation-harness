@@ -90,6 +90,7 @@ class Test_HFLM:
     def test_logliklihood(self) -> None:
         res = self.LM.loglikelihood(self.MULTIPLE_CH)
         _RES, _res = [r[0] for r in self.MULTIPLE_CH_RES], [r[0] for r in res]
+        print(_res)
         assert np.allclose(_res, _RES, atol=1e-2)
         # check indices for Multiple Choice
         argmax_RES, argmax_res = np.argmax(
