@@ -966,14 +966,14 @@ class ConfigurableTask(Task):
 
             if "ece" in use_metric:
                 # Convert lls from log-probabilities to normalized probabilities
-                norm_probs: np.ndarray = np.exp(lls - sp.logsumexp(lls))
-                calib_scores: np.ndarray = np.zeros(len(choices))
+                norm_probs: list[float] = np.exp(lls - sp.logsumexp(lls)).tolist()
+                calib_scores: list[float] = [0.0] * len(choices)
                 if isinstance(gold, list):
                     for g in gold:
                         calib_scores[g] = 1.0
                 else:
                     calib_scores[gold] = 1.0
-                calibration_probs: dict[str, np.ndarray] = {
+                calibration_probs: dict[str, list[float]] = {
                     "probs": norm_probs,
                     "scores": calib_scores,
                 }

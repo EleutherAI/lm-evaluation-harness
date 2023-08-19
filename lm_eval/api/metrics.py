@@ -130,7 +130,6 @@ def ece_fn(items):  # This is a passthrough function
     This consists of the average absolute difference between the fraction of
     model predictions which are correct and the mean of the model's normalized
     probability for those predictions (after binning), for multiple choice questions.
-    Lower is better.
 
     Paper: https://arxiv.org/abs/2207.05221
     """
