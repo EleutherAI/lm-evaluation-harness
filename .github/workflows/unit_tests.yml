@@ -6,10 +6,10 @@ name: Unit Tests
 on:
   push:
     branches:
-      - big-refactor
+      - 'big-refactor*'
   pull_request:
     branches:
-      - big-refactor
+      - 'big-refactor*'
   workflow_dispatch:
 # Jobs run concurrently and steps run sequentially within a job.
 # jobs: linter and cpu_tests. Add more jobs/steps as required.
@@ -64,4 +64,4 @@ jobs:
 #                pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
 #        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
-      run: python -m pytest -s -v -n=auto --ignore=tests/tests_master --ignore=tests/extra
+      run: python -m pytest --showlocals -s -v -n=auto --ignore=tests/tests_master --ignore=tests/extra
