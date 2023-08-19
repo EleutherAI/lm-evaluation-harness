@@ -1,3 +1,6 @@
+from lm_eval.logger import eval_logger
+
+
 def strip_string(string):
     # linebreaks
     string = string.replace("\n", "")
@@ -196,11 +199,16 @@ def fix_sqrt(string):
 
 def process_results(doc, results):
     retval = 0
+    eval_logger.info("raw_prompt: {}".format(results))
     indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
     if len(indices) <= 1:
         answer = results[0]
     else:
         answer = results[0][indices[0] + 1 : indices[-1]]
+    eval_logger.info("answer: {}".format(answer))
+    eval_logger.info(
+        "solution: {}".format(remove_boxed(last_boxed_only_string(doc["solution"])))
+    )
 
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
