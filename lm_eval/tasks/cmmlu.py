@@ -264,7 +264,7 @@ def create_task(subject):
 
 class GeneralCmmluTest(MultipleChoiceTask):
     VERSION = 1
-    DATASET_PATH =  os.path.join("haonanli/cmmlu/")
+    DATASET_PATH =  os.path.join("haonan-li/cmmlu/")
     DATASET_NAME = None
 
     def __init__(self, subject):
