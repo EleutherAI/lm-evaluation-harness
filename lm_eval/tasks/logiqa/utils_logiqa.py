@@ -24,5 +24,5 @@ def doc_to_target(doc) -> int:
     return choices.index(doc["label"].strip())
 
 
-def doc_to_choice(doc):
+def doc_to_choice(doc) -> list:
     return ["(A)", "(B)", "(C)", "(D)"]

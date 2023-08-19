@@ -651,8 +651,6 @@ class ConfigurableTask(Task):
         if type(test_target) is list:
             self.multiple_target = len(test_target)
 
-        self.calibrations: list = []
-
     def download(self, dataset_kwargs=None):
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
@@ -948,10 +946,7 @@ class ConfigurableTask(Task):
             choices = self.doc_to_choice(doc)
             completion_len = np.array([float(len(i)) for i in choices])
 
-            if (
-                2 * len(choices) == len(lls)
-                and "acc_mutual_info" in self._metric_fn_list.keys()
-            ):
+            if 2 * len(choices) == len(lls) and "acc_mutual_info" in use_metric:
                 # then we are doing mutual info.
                 # this stores the "dryrun" / unconditional answer loglikelihoods
                 lls_unconditional = lls[1::2]
@@ -968,18 +963,27 @@ class ConfigurableTask(Task):
                 gold = self.doc_to_target(doc)
                 if type(gold) is str:
                     gold = choices.index(gold)
-            # Convert lls from log-probabilities to normalized probabilities
-            norm_probs = np.exp(lls - sp.logsumexp(lls))
-            print(norm_probs)
+
+            if "ece" in use_metric:
+                # Convert lls from log-probabilities to normalized probabilities
+                norm_probs: np.ndarray = np.exp(lls - sp.logsumexp(lls))
+                calib_scores: np.ndarray = np.zeros(len(choices))
+                if isinstance(gold, list):
+                    for g in gold:
+                        calib_scores[g] = 1.0
+                else:
+                    calib_scores[gold] = 1.0
+                calibration_probs: dict[str, np.ndarray] = {
+                    "probs": norm_probs,
+                    "scores": calib_scores,
+                }
+
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
                 exact_match = int(any([is_greedy[i] for i in gold]))
             else:
                 acc = 1.0 if pred == gold else 0.0
-                for i, choice in enumerate(choices):
-                    calib_score = 1.0 if i == gold else 0.0
-                    self.calibrations.append((norm_probs[i], calib_score))
                 acc_norm = 1.0 if pred_norm == gold else 0.0
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
                 exact_match = int(is_greedy[gold])
@@ -990,6 +994,7 @@ class ConfigurableTask(Task):
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
+                **({"ece": calibration_probs} if "ece" in use_metric else {}),
             }
 
             if "acc_mutual_info" in use_metric:

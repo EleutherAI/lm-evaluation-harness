@@ -341,32 +341,6 @@ def evaluate(
                 for metric, value in metrics.items():
                     vals[(task_name, key, metric)].append(value)
 
-    calibs = sorted(task.calibrations, key=lambda x: x[0])
-
-    def bin_list_into_subsets(input_list, num_subsets=10):
-        subset_size = len(input_list) // num_subsets
-        remainder = len(input_list) % num_subsets
-        subsets = []
-        start = 0
-        for _ in range(num_subsets):
-            subset_end = start + subset_size + (1 if remainder > 0 else 0)
-            subsets.append(input_list[start:subset_end])
-            start = subset_end
-            remainder -= 1
-        return subsets
-
-    subsets = bin_list_into_subsets(calibs, 10)
-    x_coords = [np.mean([x[0] for x in subset]) for subset in subsets]
-    y_coords = [np.mean([x[1] for x in subset]) for subset in subsets]
-    model_name = lm.config._name_or_path.split("/")[1]
-    plt.plot(x_coords, y_coords, label=model_name)
-    plt.plot([0, 1], [0, 1], linestyle="--", color="black")
-    plt.xlabel("Probabilities")
-    plt.ylabel("Frequences")
-    plt.title("Calibration")
-    plt.legend()
-    plt.savefig(f"{model_name}-long.png")
-
     if lm.world_size > 1:
         # if multigpu, then gather data across all ranks
         # first gather logged samples across all ranks
