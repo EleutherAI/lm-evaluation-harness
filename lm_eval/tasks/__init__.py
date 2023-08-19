@@ -1,5 +1,4 @@
 import os
-import yaml
 from typing import List, Union
 
 from lm_eval import utils

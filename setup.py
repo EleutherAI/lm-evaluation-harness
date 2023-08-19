@@ -53,7 +53,6 @@ setuptools.setup(
     ],
     python_requires=">=3.9",
     install_requires=[
-        "yaml",
         "accelerate>=0.18.0",
         "evaluate",
         "datasets>=2.0.0",
