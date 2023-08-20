@@ -202,9 +202,9 @@ def process_results(doc, results):
     eval_logger.info("raw_prompt: {}".format(results))
     indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
     if len(indices) <= 1:
-        answer = results[0]
+        answer = results[0].strip()
     else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
+        answer = results[0][indices[0] + 1 : indices[-1]].strip()
     eval_logger.info("answer: {}".format(answer))
     eval_logger.info(
         "solution: {}".format(remove_boxed(last_boxed_only_string(doc["solution"])))
@@ -213,3 +213,39 @@ def process_results(doc, results):
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
     return {"acc": retval}
+
+
+def doc_to_text(doc):
+    train_prompt = (
+        "Given a mathematics problem, determine the answer. Simplify your answer as much as possible."
+        + "\n"
+        + "Problem: What is $\left(\\frac{7}{8}\\right)^3 \cdot \left(\\frac{7}{8}\\right)^{-3}$?"  # noqa: W605
+        + "\n"
+        + "Answer: $1$"
+    )
+    train_prompt += (
+        "\n"
+        + "###"
+        + "\n"
+        + "Problem: In how many ways can 4 books be selected from a shelf of 6 books if the order in which the books are selected does not matter?"
+        + "\n"
+        + "Answer: $15$"
+    )
+    train_prompt += (
+        "\n"
+        + "###"
+        + "\n"
+        + "Problem: Find the distance between the points $(2,1,-4)$ and $(5,8,-3).$"
+        + "\n"
+        + "Answer: $\sqrt{59}$"  # noqa: W605
+    )
+    train_prompt += (
+        "\n"
+        + "###"
+        + "\n"
+        + "Problem: The faces of an octahedral die are labeled with digits $1$ through $8$. What is the probability, expressed as a common fraction, of rolling a sum of $15$ with a pair of such octahedral dice?"
+        + "\n"
+        + "Answer: $\\frac{1}{32}$"
+    )
+    prompt = train_prompt + "\n" + doc["problem"] + "\n" + "Answer: $"
+    return prompt

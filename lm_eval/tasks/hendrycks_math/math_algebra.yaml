@@ -6,8 +6,9 @@ dataset_name: algebra
 output_type: greedy_until
 training_split: train
 test_split: test
-doc_to_text: "Problem: {{problem}}\nAnswer:"
+doc_to_text:  !function utils_hendrycks_math.doc_to_text
 process_results: !function utils_hendrycks_math.process_results
+few_shot: 0
 doc_to_target: "{{solution}}"
 generation_kwargs:
   until:
