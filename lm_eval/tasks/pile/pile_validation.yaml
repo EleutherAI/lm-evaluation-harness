@@ -1,0 +1,8 @@
+include: pile_arxiv.yaml
+task: pile_validation
+dataset_kwargs:
+  streaming: true
+dataset_name: all
+training_split: null
+validation_split: null
+test_split: validation
