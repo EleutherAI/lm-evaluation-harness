@@ -9,8 +9,5 @@ test_split: test
 doc_to_text: "Problem: {{problem}}\nAnswer:"
 process_results: !function utils_hendrycks_math.process_results
 doc_to_target: "{{solution}}"
-generation_kwargs:
-  until:
-    - "\n"
 metric_list:
   - metric: acc
