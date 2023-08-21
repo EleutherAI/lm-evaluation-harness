@@ -465,8 +465,11 @@ class Task(abc.ABC):
         elif type(example) == list:
             return [labeled_examples + ex for ex in example]
         elif type(example) == int:
-            choices = self.doc_to_choice(doc)
-            return labeled_examples + choices[example]
+            if self._config.doc_to_choice is not None:
+                choices = self.doc_to_choice(doc)
+                return labeled_examples + choices[example]
+            else:
+                return labeled_examples + str(example)
 
     def apply_filters(self):
 
@@ -649,9 +652,36 @@ class ConfigurableTask(Task):
 
             if type(test_text) is int:
                 self.multiple_input = num_choice
+        else:
+            test_choice = None
 
         if type(test_target) is list:
             self.multiple_target = len(test_target)
+        else:
+            if (type(test_target) is int) and (test_choice is not None):
+                test_target = [self.doc_to_choice(test_target)[test_target]]
+            else:
+                test_target = [test_target]
+
+        if test_choice is not None:
+            check_choices = test_choice
+        else:
+            check_choices = test_target
+
+        for choice in check_choices:
+            choice_has_whitespace = True if " " in choice else False
+            delimiter_has_whitespace = (
+                True if " " in self._config.target_delimiter else False
+            )
+
+            if delimiter_has_whitespace and choice_has_whitespace:
+                eval_logger.warning(
+                    f'Both target_delimiter and target choice: "{choice}" have whitespace'
+                )
+            elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
+                eval_logger.warning(
+                    f'Both target_delimiter and target choice: "{choice}" does not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
+                )
 
     def download(self, dataset_kwargs=None):
 
@@ -761,12 +791,17 @@ class ConfigurableTask(Task):
             return doc_to_text(doc)
         # Used when applying a Promptsource template
         elif hasattr(doc_to_text, "apply"):
-            return doc_to_text.apply(doc)[0]
+            applied_prompt = doc_to_text.apply(doc)
+            if len(applied_prompt) == 2:
+                return applied_prompt[0]
+            else:
+                eval_logger.warning("Applied prompt returns empty string")
+                return self._config.fewshot_delimiter
         else:
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: dict) -> Union[int, str]:
+    def doc_to_target(self, doc: dict) -> Union[int, str, list]:
 
         if self.prompt is not None:
             doc_to_target = self.prompt
@@ -785,13 +820,26 @@ class ConfigurableTask(Task):
                 target_string = utils.apply_template(doc_to_target, doc)
                 if target_string.isdigit():
                     return ast.literal_eval(target_string)
+                elif (
+                    len(target_string) >= 2
+                    and (target_string[0] == "[")
+                    and (target_string[-1] == "]")
+                ):
+                    return ast.literal_eval(target_string)
                 else:
                     return target_string
+        elif type(doc_to_target) == list:
+            return doc_to_target
         elif callable(doc_to_target):
             return doc_to_target(doc)
         # Used when applying a Promptsource template
         elif hasattr(doc_to_target, "apply"):
-            return doc_to_target.apply(doc)[1]
+            applied_prompt = doc_to_target.apply(doc)
+            if len(applied_prompt) == 2:
+                return applied_prompt[1]
+            else:
+                eval_logger.warning("Applied prompt returns empty string")
+                return self._config.fewshot_delimiter
         else:
             raise TypeError
 
@@ -988,9 +1036,13 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "greedy_until":
 
             gold = self.doc_to_target(doc)
-            if type(gold) == int:
+            if self._config.doc_to_choice is not None:
+                # If you set doc_to_choice,
+                # it assumes that doc_to_target returns a number.
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
+            else:
+                gold = str(gold)
 
             for key, result in zip(self._metric_fn_list.keys(), results):
                 if self.multiple_target:
@@ -1009,20 +1061,20 @@ class ConfigurableTask(Task):
                             res = res[key]
                         scores.append(res)
                     if any(scores):
-                        result = 1.0
+                        result_score = 1.0
                     else:
-                        result = 0.0
+                        result_score = 0.0
                 else:
-                    result = self._metric_fn_list[key](
+                    result_score = self._metric_fn_list[key](
                         references=[gold],
                         predictions=[result],
                         **self._metric_fn_kwargs[key],
                     )
 
-                if isinstance(result, dict):
-                    result_dict.update(result)
+                if isinstance(result_score, dict):
+                    result_dict.update(result_score)
                 else:
-                    result_dict[key] = result
+                    result_dict[key] = result_score
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",

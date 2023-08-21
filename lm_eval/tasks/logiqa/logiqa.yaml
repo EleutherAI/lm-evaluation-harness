@@ -1,5 +1,3 @@
-group:
-  - multiple_choice
 task: logiqa
 dataset_path: EleutherAI/logiqa
 dataset_name: logiqa
