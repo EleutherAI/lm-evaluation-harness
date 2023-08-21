@@ -465,8 +465,11 @@ class Task(abc.ABC):
         elif type(example) == list:
             return [labeled_examples + ex for ex in example]
         elif type(example) == int:
-            choices = self.doc_to_choice(doc)
-            return labeled_examples + choices[example]
+            if self._config.doc_to_choice is not None:
+                choices = self.doc_to_choice(doc)
+                return labeled_examples + choices[example]
+            else:
+                return labeled_examples + str(example)
 
     def apply_filters(self):
 
@@ -771,7 +774,7 @@ class ConfigurableTask(Task):
             print(type(doc_to_text))
             raise TypeError
 
-    def doc_to_target(self, doc: dict) -> Union[int, str]:
+    def doc_to_target(self, doc: dict) -> Union[int, str, list]:
 
         if self.prompt is not None:
             doc_to_target = self.prompt
@@ -790,8 +793,16 @@ class ConfigurableTask(Task):
                 target_string = utils.apply_template(doc_to_target, doc)
                 if target_string.isdigit():
                     return ast.literal_eval(target_string)
+                elif (
+                    len(target_string) >= 2
+                    and (target_string[0] == "[")
+                    and (target_string[-1] == "]")
+                ):
+                    return ast.literal_eval(target_string)
                 else:
                     return target_string
+        elif type(doc_to_target) == list:
+            return doc_to_target
         elif callable(doc_to_target):
             return doc_to_target(doc)
         # Used when applying a Promptsource template
@@ -998,9 +1009,13 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "greedy_until":
 
             gold = self.doc_to_target(doc)
-            if type(gold) == int:
+            if self._config.doc_to_choice is not None:
+                # If you set doc_to_choice,
+                # it assumes that doc_to_target returns a number.
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
+            else:
+                gold = str(gold)
 
             for metric in self._metric_fn_list.keys():
                 for result in results:
@@ -1020,20 +1035,19 @@ class ConfigurableTask(Task):
                                 res = res[metric]
                             scores.append(res)
                         if any(scores):
-                            result = 1.0
+                            result_score = 1.0
                         else:
-                            result = 0.0
+                            result_score = 0.0
                     else:
-                        result = self._metric_fn_list[metric](
+                        result_score = self._metric_fn_list[metric](
                             references=[gold],
                             predictions=[result],
                             **self._metric_fn_kwargs[metric],
                         )
-
-                if isinstance(result, dict):
-                    result_dict.update(result)
-                else:
-                    result_dict[metric] = result
+                        if isinstance(result_score, dict):
+                            # TODO: this handles the case where HF evaluate returns a dict.
+                            result_score = result_score[metric]
+                    result_dict[metric] = result_score
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",

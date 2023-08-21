@@ -52,9 +52,15 @@ Homepage: https://github.com/nyu-mll/crows-pairs, https://gitlab.inria.fr/french
 }
 ```
 
-### Subtasks
+### Groups and Tasks
+
+#### Groups
 
 - `crows_pairs_english`: The entire English subset of the CrowS-Pairs dataset.
+- `crows_pairs_french`: The entire French subset of the CrowS-Pairs dataset.
+
+#### Tasks
+
 
 The following tasks evaluate sub-areas of bias in the English CrowS-Pairs dataset:
 - `crows_pairs_english_age`
@@ -67,8 +73,6 @@ The following tasks evaluate sub-areas of bias in the English CrowS-Pairs datase
 - `crows_pairs_english_religion`
 - `crows_pairs_english_sexual_orientation`
 - `crows_pairs_english_socioeconomic`
-
-- `crows_pairs_french`: The entire French subset of the CrowS-Pairs dataset.
 
 The following tasks evaluate sub-areas of bias in the French CrowS-Pairs dataset:
 - `crows_pairs_french_age`

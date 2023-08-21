@@ -3,7 +3,7 @@ This list keeps track of which tasks' implementations have been ported to YAML /
 
 Boxes should be checked iff tasks are implemented in the refactor and tested for regression. Tasks should be struck through if checked *against original introducing paper* implementation or popularizing implementation. (WIP) Denotes that there exists a PR or person working on this task already.
 
-- [ ] Glue (Lintang)
+- [x] Glue
 - [x] SuperGlue
 - [ ] CoQA (Lintang)
 - [ ] DROP (Lintang)
@@ -13,12 +13,12 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] Wikitext
 - [x] PiQA
 - [x] PROST
-- [ ] MCTACO (Lintang)
+- [x] MCTACO
 - [x] Pubmed QA
 - [x] SciQ
 - [ ] QASPER
 - [x] QA4MRE
-- [ ] TriviaQA (Lintang)
+- [x] TriviaQA
 - [x] AI2 ARC
 - [x] LogiQA
 - [x] HellaSwag
@@ -33,9 +33,9 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] Winogrande
 - [x] ANLI
 - [x] Hendrycks Ethics (missing some tasks/metrics, see PR 660: <https://github.com/EleutherAI/lm-evaluation-harness/pull/660> for more info)
-- [x] TruthfulQA (mc1) (Lintang)
-- [ ] TruthfulQA (mc2) (Lintang)
-- [ ] TruthfulQA (gen) (Lintang)
+- [x] TruthfulQA (mc1)
+- [x] TruthfulQA (mc2)
+- [x] TruthfulQA (gen)
 - [ ] MuTual
 - [ ] Hendrycks Math (Hailey)
 - [ ] Asdiv
@@ -45,16 +45,16 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] Translation (WMT) suite (Hailey)
 - [x] Unscramble
 - [x] ~~Pile (perplexity)~~
-- [ ] BLiMP (Lintang)
+- [x] BLiMP
 - [x] ToxiGen
-- [ ] StoryCloze (Lintang)
+- [x] StoryCloze
 - [ ] NaturalQs (Hailey)
 - [x] CrowS-Pairs
 - [x] XCopa
 - [ ] BIG-Bench (Hailey)
-- [ ] XStoryCloze (Lintang)
+- [x] XStoryCloze
 - [x] XWinograd
-- [ ] PAWS-X (Lintang)
+- [x] PAWS-X
 - [x] XNLI
 - [ ] MGSM (Lintang)
 - [ ] SCROLLS

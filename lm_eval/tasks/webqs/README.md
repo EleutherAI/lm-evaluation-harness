@@ -1,4 +1,4 @@
-# Task-name
+# WEBQs
 
 ### Paper
 
@@ -33,9 +33,14 @@ Homepage: `https://worksheets.codalab.org/worksheets/0xba659fe363cb46e7a505c5b6a
 }
 ```
 
-### Subtasks
+### Groups and Tasks
 
-List or describe tasks defined in this folder, and their names here:
+#### Groups
+
+* `freebase`
+
+#### Tasks
+
 * `webqs`: `Questions with multiple accepted answers.`
 
 ### Checklist
