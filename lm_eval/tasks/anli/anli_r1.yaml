@@ -1,8 +1,5 @@
 group:
-  - multiple_choice
-  - natural_language_inference
-  - nli
-  - adverserial
+  - anli
 task: anli_r1
 dataset_path: anli
 dataset_name: null

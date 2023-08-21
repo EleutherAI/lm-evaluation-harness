@@ -1,5 +1,3 @@
-group:
-  - greedy_until
 task: logieval
 dataset_path: baber/logiqa2
 dataset_name: logieval

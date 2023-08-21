@@ -1,5 +1,5 @@
 group:
-  - multiple_choice
+  - truthfulqa
 task: truthfulqa_mc1
 dataset_path: truthful_qa
 dataset_name: multiple_choice
