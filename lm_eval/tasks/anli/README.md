@@ -1,18 +1,17 @@
-# Task-name
+# ANLI
 
 ### Paper
 
 Title: `Adversarial NLI: A New Benchmark for Natural Language Understanding`
 
-Abstract: `https://arxiv.org/pdf/1910.14599.pdf`
+Paper Link: https://arxiv.org/abs/1910.14599
 
 Adversarial NLI (ANLI) is a dataset collected via an iterative, adversarial
 human-and-model-in-the-loop procedure. It consists of three rounds that progressively
 increase in difficulty and complexity, and each question-answer includes annotator-
 provided explanations.
 
-Homepage: `https://github.com/facebookresearch/anli`
-
+Homepage: https://github.com/facebookresearch/anli
 
 ### Citation
 
@@ -31,12 +30,17 @@ Homepage: `https://github.com/facebookresearch/anli`
 }
 ```
 
-### Subtasks
+### Groups and Tasks
 
-List or describe tasks defined in this folder, and their names here:
+#### Groups
+
+* `anli`: Evaluates `anli_r1`, `anli_r2`, and `anli_r3`
+
+#### Tasks
 * `anli_r1`: The data collected adversarially in the first round.
 * `anli_r2`: The data collected adversarially in the second round, after training on the previous round's data.
 * `anli_r3`: The data collected adversarially in the third round, after training on the previous multiple rounds of data.
+
 
 ### Checklist
 

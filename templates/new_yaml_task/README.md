@@ -2,7 +2,8 @@
 
 ### Paper
 
-Title: `paper title goes here`
+Title: `paper titles goes here`
+
 Abstract: `link to paper PDF or arXiv abstract goes here`
 
 `Short description of paper / benchmark goes here:`
@@ -16,11 +17,16 @@ Homepage: `homepage to the benchmark's website goes here, if applicable`
 BibTeX-formatted citation goes here
 ```
 
-### Subtasks
+### Groups and Tasks
 
-List or describe tasks defined in this folder, and their names here:
+#### Groups
+
+* `group_name`: `Short description`
+
+#### Tasks
+
 * `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: .....
+* `task_name2`: ...
 
 ### Checklist
 

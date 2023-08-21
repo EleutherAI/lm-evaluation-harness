@@ -1,6 +1,5 @@
 group:
   - ai2_arc
-  - multiple_choice
 task: arc_easy
 dataset_path: ai2_arc
 dataset_name: ARC-Easy

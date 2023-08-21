@@ -1,5 +1,5 @@
 group:
-  - greedy_until
+  - unscramble
 task: random_insertion
 dataset_path: EleutherAI/unscramble
 dataset_name: random_insertion_in_word
