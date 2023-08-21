@@ -31,7 +31,8 @@ def strip_string(string):
 
     # remove percentage
     string = string.replace("\\%", "")
-    string = string.replace("\%", "")  # noqa: W605
+    # changed from original
+    string = string.replace(r"\%", "")  # noqa: W605
 
     # " 0." equivalent to " ." and "{0." equivalent to "{." Alternatively, add "0" if "." is the start of the string
     string = string.replace(" .", " 0.")
