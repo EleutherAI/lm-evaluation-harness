@@ -1,3 +1,6 @@
+from lm_eval.logger import eval_logger
+
+
 def strip_string(string):
     # linebreaks
     string = string.replace("\n", "")
@@ -195,6 +198,7 @@ def fix_sqrt(string):
 
 
 def process_results(doc, results):
+    eval_logger.log(results)
     retval = 0
     indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
     if len(indices) <= 1:
