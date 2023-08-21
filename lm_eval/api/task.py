@@ -655,7 +655,7 @@ class ConfigurableTask(Task):
         if type(test_target) is list:
             self.multiple_target = len(test_target)
         else:
-            if type(test_target) is int:
+            if (type(test_target) is int) and (test_choice is not None):
                 test_target = [self.doc_to_choice(test_target)[test_target]]
             else:
                 test_target = [test_target]
