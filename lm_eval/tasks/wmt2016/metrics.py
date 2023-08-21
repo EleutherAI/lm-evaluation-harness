@@ -1,6 +1,5 @@
 import evaluate
 
-def bleu(predictions, references):
-    rouge_fn = evaluate.load('bleu')
-    results = rouge_fn.compute(predictions=predictions, references=references)
-    return results['bleu']
+def bleu(references, predictions):
+    bleu_fn = evaluate.load('bleu')
+    return bleu_fn.compute(predictions=predictions, references=references)
