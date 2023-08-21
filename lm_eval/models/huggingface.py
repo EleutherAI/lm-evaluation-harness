@@ -253,7 +253,6 @@ class HuggingFaceAutoLM(BaseLM):
                 subfolder=subfolder,
                 load_in_4bit=load_in_4bit,
             )
-
         self.model.eval()
         torch.set_grad_enabled(False)
 
