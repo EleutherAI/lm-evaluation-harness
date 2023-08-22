@@ -669,9 +669,9 @@ class ConfigurableTask(Task):
             check_choices = test_target
 
         for choice in check_choices:
-            choice_has_whitespace = True if " " in choice else False
+            choice_has_whitespace = True if choice.startswith(" ") else False
             delimiter_has_whitespace = (
-                True if " " in self._config.target_delimiter else False
+                True if self._config.target_delimiter.startswith(" ") else False
             )
 
             if delimiter_has_whitespace and choice_has_whitespace:
@@ -1050,6 +1050,10 @@ class ConfigurableTask(Task):
                     # return true if any are true
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
                     scores = []
+                    if not isinstance(gold, list):
+                        # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
+                        # print(gold)
+                        gold = [gold]
                     for gold_option in gold:
                         res = self._metric_fn_list[key](
                             references=[gold_option],
