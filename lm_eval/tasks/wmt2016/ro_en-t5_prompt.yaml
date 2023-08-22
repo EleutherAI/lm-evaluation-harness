@@ -13,5 +13,5 @@ metric_list:
     aggregation: mean
     higher_is_better: false
   - metric: !function metrics.bleu
-    aggregation: mean
+    aggregation: !function metrics.agg_bleu
     higher_is_better: true
