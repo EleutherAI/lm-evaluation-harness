@@ -9,9 +9,12 @@ output_type: greedy_until
 doc_to_text: "multirc question: {{question}} answer: {{answer}} paragraph: {{paragraph}}"
 doc_to_target: label
 doc_to_choice: ['False', 'True']
+generation_kwargs:
+  until:
+    - "</s>"
+  do_sample: false
+  temperature: 0.5
 metric_list:
-  - metric: exact_match
-    aggregation: mean
+  - metric: !function t5_utils.f1
+    aggregation: !function t5_utils.agg_f1
     higher_is_better: true
-    ignore_case: true
-    ignore_punctuation: true
