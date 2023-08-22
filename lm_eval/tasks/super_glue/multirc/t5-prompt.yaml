@@ -8,7 +8,7 @@ validation_split: validation
 output_type: greedy_until
 doc_to_text: "multirc question: {{question}} answer: {{answer}} paragraph: {{paragraph}}"
 doc_to_target: label
-doc_to_choice: ['False', 'True']
+doc_to_choice: "{% set group_id = idx.question|string %}{{[group_id+'_False', group_id+'_True']}}"
 generation_kwargs:
   until:
     - "</s>"
@@ -17,4 +17,7 @@ generation_kwargs:
 metric_list:
   - metric: !function t5_utils.f1
     aggregation: !function t5_utils.agg_f1
+    higher_is_better: true
+  - metric: !function t5_utils.em
+    aggregation: !function t5_utils.agg_em
     higher_is_better: true
