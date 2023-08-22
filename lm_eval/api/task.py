@@ -1017,7 +1017,7 @@ class ConfigurableTask(Task):
             else:
                 gold = str(gold)
 
-            result, _ = results
+            result = results[0]
             for metric in self._metric_fn_list.keys():
                 if self.multiple_target:
                     # in the case where we have multiple targets,
