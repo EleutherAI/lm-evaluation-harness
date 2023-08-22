@@ -1044,37 +1044,37 @@ class ConfigurableTask(Task):
             else:
                 gold = str(gold)
 
-            result = results[0]
-            for metric in self._metric_fn_list.keys():
+            for key, result in zip(self._metric_fn_list.keys(), results):
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
                     scores = []
                     for gold_option in gold:
-                        res = self._metric_fn_list[metric](
+                        res = self._metric_fn_list[key](
                             references=[gold_option],
                             predictions=[result],
-                            **self._metric_fn_kwargs[metric],
+                            **self._metric_fn_kwargs[key],
                         )
                         if isinstance(res, dict):
                             # TODO: this handles the case where HF evaluate returns a dict.
-                            res = res[metric]
+                            res = res[key]
                         scores.append(res)
                     if any(scores):
                         result_score = 1.0
                     else:
                         result_score = 0.0
                 else:
-                    result_score = self._metric_fn_list[metric](
+                    result_score = self._metric_fn_list[key](
                         references=[gold],
                         predictions=[result],
-                        **self._metric_fn_kwargs[metric],
+                        **self._metric_fn_kwargs[key],
                     )
-                    if isinstance(result_score, dict):
-                        # TODO: this handles the case where HF evaluate returns a dict.
-                        result_score = result_score[metric]
-                result_dict[metric] = result_score
+
+                if isinstance(result_score, dict):
+                    result_dict.update(result_score)
+                else:
+                    result_dict[key] = result_score
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
