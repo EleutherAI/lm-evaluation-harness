@@ -7,7 +7,7 @@ training_split: train
 validation_split: validation
 output_type: greedy_until
 doc_to_text: !function "t5_utils.t5_prompt_doc_to_text"
-doc_to_target: span1_text
+doc_to_target: "{{[span1_text, span2_text][label]}}"
 metric_list:
   - metric: exact_match
     aggregation: mean
