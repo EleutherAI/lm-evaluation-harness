@@ -663,6 +663,26 @@ class ConfigurableTask(Task):
             else:
                 test_target = str(test_target)
 
+        if test_choice is not None:
+            check_choices = test_choice
+        else:
+            check_choices = test_target
+
+        for choice in check_choices:
+            choice_has_whitespace = True if " " in choice else False
+            delimiter_has_whitespace = (
+                True if " " in self._config.target_delimiter else False
+            )
+
+            if delimiter_has_whitespace and choice_has_whitespace:
+                eval_logger.warning(
+                    f'Both target_delimiter and target choice: "{choice}" have whitespace'
+                )
+            elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
+                eval_logger.warning(
+                    f'Both target_delimiter and target choice: "{choice}" does not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
+                )
+
     def download(self, dataset_kwargs=None):
 
         self.dataset = datasets.load_dataset(
