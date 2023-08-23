@@ -162,7 +162,7 @@ class HuggingFaceAutoLM(BaseLM):
             gptq_use_triton (bool, optional, defaults to False):
                 Use Triton for GPTQ inference.
             inject_fused_attention (bool, optional, defaults to True):
-                Inject fused attention.
+                Inject fused attention into GPTQ model.
             bnb_4bit_quant_type (str, optional, defaults to None):
                 The quantization type to use for BnB 4bit quantization. See:
                 https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L77
