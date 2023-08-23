@@ -652,9 +652,16 @@ class ConfigurableTask(Task):
 
             if type(test_text) is int:
                 self.multiple_input = num_choice
+        else:
+            test_choice = None
 
         if type(test_target) is list:
             self.multiple_target = len(test_target)
+        else:
+            if (type(test_target) is int) and (test_choice is not None):
+                test_target = test_choice[test_target]
+            else:
+                test_target = str(test_target)
 
     def download(self, dataset_kwargs=None):
 
