@@ -666,7 +666,7 @@ class ConfigurableTask(Task):
         if test_choice is not None:
             check_choices = test_choice
         else:
-            check_choices = test_target
+            check_choices = [test_target]
 
         for choice in check_choices:
             choice_has_whitespace = True if " " in choice else False
