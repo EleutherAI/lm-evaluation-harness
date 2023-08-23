@@ -7,8 +7,8 @@ output_type: greedy_until
 training_split: train
 validation_split: validation
 doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
-doc_to_target: "{{[' no', ' yes'][label]}}"
-target_delimiter: ""
+doc_to_target: label
+doc_to_choice: ['no', 'yes']
 generation_kwargs:
   until:
     - "\n\n"
