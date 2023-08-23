@@ -659,14 +659,14 @@ class ConfigurableTask(Task):
             self.multiple_target = len(test_target)
         else:
             if (type(test_target) is int) and (test_choice is not None):
-                test_target = [self.doc_to_choice(test_target)[test_target]]
+                test_target = test_choice[test_target]
             else:
-                test_target = [test_target]
+                test_target = str(test_target)
 
         if test_choice is not None:
             check_choices = test_choice
         else:
-            check_choices = test_target
+            check_choices = [test_target]
 
         for choice in check_choices:
             choice_has_whitespace = True if " " in choice else False
