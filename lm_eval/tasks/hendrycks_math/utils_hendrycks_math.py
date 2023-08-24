@@ -1,4 +1,5 @@
 from lm_eval.logger import eval_logger
+import re
 
 
 def strip_string(string):
@@ -199,15 +200,50 @@ def fix_sqrt(string):
 
 
 def process_results(doc, results):
-    #  TODO: Remove
-    eval_logger.info("results: {}".format(results))
     retval = 0
     indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
     if len(indices) <= 1:
-        answer = results[0]
+        answer = results[0][:-1]
     else:
-        answer = results[0][indices[0] + 1 : indices[-1]]
-
+        matches = re.findall(r"\$(.*?)\$", results[0])
+        answer = matches[-1] if matches else results[0]
+    eval_logger.info("answer: {}".format(answer))
     if is_equiv(answer, remove_boxed(last_boxed_only_string(doc["solution"]))):
         retval = 1
     return {"acc": retval}
+
+
+def doc_to_text(doc):
+    train_prompt = (
+        "Given a mathematics problem, determine the answer. Simplify your answer as much as possible."
+        + "\n"
+        + r"Problem: What is $\left(\\frac{7}{8}\\right)^3 \cdot \left(\\frac{7}{8}\\right)^{-3}$?"
+        + "\n"
+        + "Answer: $1$"
+    )
+    train_prompt += (
+        "\n"
+        + "###"
+        + "\n"
+        + "Problem: In how many ways can 4 books be selected from a shelf of 6 books if the order in which the books are selected does not matter?"
+        + "\n"
+        + "Answer: $15$"
+    )
+    train_prompt += (
+        "\n"
+        + "###"
+        + "\n"
+        + "Problem: Find the distance between the points $(2,1,-4)$ and $(5,8,-3).$"
+        + "\n"
+        + r"Answer: $\sqrt{59}$"
+    )
+    train_prompt += (
+        "\n"
+        + "###"
+        + "\n"
+        + "Problem: Calculate $6 \\cdot 8\\frac{1}{3}"
+        + "\n"
+        + "Answer: $50$"
+    )
+    test_question = "\n" + doc["problem"] + "\n" + "Answer: $"
+    return train_prompt + test_question
