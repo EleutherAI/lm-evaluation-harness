@@ -2,15 +2,17 @@ group:
   - super-glue-t5-prompt
 task: super_glue-wsc-t5-prompt
 dataset_path: super_glue
-dataset_name: wsc
+dataset_name: wsc.fixed
 training_split: train
 validation_split: validation
 output_type: greedy_until
-doc_to_text: !function "t5_utils.t5_prompt_doc_to_text"
-doc_to_target: "{{[span1_text, span2_text][label]}}"
+doc_to_text: !function "t5_utils.doc_to_text"
+doc_to_target: label
 metric_list:
-  - metric: exact_match
+  - metric: accuracy
     aggregation: mean
     higher_is_better: true
-    ignore_case: true
-    ignore_punctuation: true
+filter_list:
+  - name: "wsc_postprocessor"
+    filter:
+      - function: !function t5_utils.WSCPostprocess
