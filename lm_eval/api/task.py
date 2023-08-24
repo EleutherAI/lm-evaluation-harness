@@ -627,19 +627,19 @@ class ConfigurableTask(Task):
             )
 
         if self.has_test_docs():
-            docs = self.test_docs()
+            self.task_docs = self.test_docs()
         elif self.has_validation_docs():
-            docs = self.validation_docs()
+            self.task_docs = self.validation_docs()
         else:
             assert (
                 False
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
         # Test One Doc
-        self.features = list(docs.features.keys())
+        self.features = list(self.task_docs.features.keys())
         self.multiple_input = 0
         self.multiple_target = 0
-        test_doc = docs[0]
+        test_doc = self.task_docs[0]
         test_text = self.doc_to_text(test_doc)
         test_target = self.doc_to_target(test_doc)
 
@@ -742,6 +742,15 @@ class ConfigurableTask(Task):
                     "using preconfigured rule."
                 )
             return super().fewshot_docs()
+
+    def apply_filters(self):
+
+        if hasattr(self, "_filters"):
+            for f in self._filters:
+                f.apply(self._instances, self.task_docs)
+        else:
+            eval_logger.warning("No filter defined, passing through instances")
+            return self._instances
 
     def should_decontaminate(self):
         return self._config.should_decontaminate
