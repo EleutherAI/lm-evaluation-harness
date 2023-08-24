@@ -9,7 +9,7 @@ class TakeFirstFilter(Filter):
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
-    def apply(self, resps):
+    def apply(self, resps, docs):
         """
         Assuming each entry of `resps` is a list of model responses, we discard all but the first response.
         """
