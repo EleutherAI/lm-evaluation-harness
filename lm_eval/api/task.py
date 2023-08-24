@@ -659,14 +659,14 @@ class ConfigurableTask(Task):
             self.multiple_target = len(test_target)
         else:
             if (type(test_target) is int) and (test_choice is not None):
-                test_target = [self.doc_to_choice(test_target)[test_target]]
+                test_target = test_choice[test_target]
             else:
-                test_target = [test_target]
+                test_target = str(test_target)
 
         if test_choice is not None:
             check_choices = test_choice
         else:
-            check_choices = test_target
+            check_choices = [test_target]
 
         for choice in check_choices:
             choice_has_whitespace = True if " " in choice else False
@@ -1044,37 +1044,37 @@ class ConfigurableTask(Task):
             else:
                 gold = str(gold)
 
-            for key, result in zip(self._metric_fn_list.keys(), results):
+            result = results[0]
+            for metric in self._metric_fn_list.keys():
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
                     scores = []
                     for gold_option in gold:
-                        res = self._metric_fn_list[key](
+                        res = self._metric_fn_list[metric](
                             references=[gold_option],
                             predictions=[result],
-                            **self._metric_fn_kwargs[key],
+                            **self._metric_fn_kwargs[metric],
                         )
                         if isinstance(res, dict):
                             # TODO: this handles the case where HF evaluate returns a dict.
-                            res = res[key]
+                            res = res[metric]
                         scores.append(res)
                     if any(scores):
                         result_score = 1.0
                     else:
                         result_score = 0.0
                 else:
-                    result_score = self._metric_fn_list[key](
+                    result_score = self._metric_fn_list[metric](
                         references=[gold],
                         predictions=[result],
-                        **self._metric_fn_kwargs[key],
+                        **self._metric_fn_kwargs[metric],
                     )
-
-                if isinstance(result_score, dict):
-                    result_dict.update(result_score)
-                else:
-                    result_dict[key] = result_score
+                    if isinstance(result_score, dict):
+                        # TODO: this handles the case where HF evaluate returns a dict.
+                        result_score = result_score[metric]
+                result_dict[metric] = result_score
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
