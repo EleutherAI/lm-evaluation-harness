@@ -825,7 +825,10 @@ class ConfigurableTask(Task):
                     and (target_string[0] == "[")
                     and (target_string[-1] == "]")
                 ):
-                    return ast.literal_eval(target_string)
+                    try:
+                        return ast.literal_eval(target_string)
+                    except SyntaxError:
+                        return target_string
                 else:
                     return target_string
         elif type(doc_to_target) == list:
