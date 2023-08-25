@@ -66,6 +66,7 @@ from . import ceval
 from . import csatqa
 from . import haerae
 from . import cmmlu
+from . import gaokao
 
 ########################################
 # Translation tasks
@@ -348,6 +349,7 @@ TASK_REGISTRY = {
     **scrolls.construct_tasks(),
     **ceval.create_all_tasks(),
     **cmmlu.create_all_tasks(),
+    **gaokao.create_all_tasks(),
 }
 
 
