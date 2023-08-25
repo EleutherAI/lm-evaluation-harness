@@ -1,6 +1,5 @@
 class Sampler:
-    def __init__(self, docs, task, fewshot_indices=None, rnd=None):
-
+    def __init__(self, docs, task, fewshot_indices=None, rnd=None) -> None:
         self.rnd = rnd
         assert self.rnd, "must pass rnd to FewShotSampler!"
 
@@ -19,7 +18,6 @@ class Sampler:
             self.docs = self.docs.select(fewshot_indices)
 
     def get_context(self, doc, num_fewshot):
-
         # draw an extra fewshot sample if using same split as evaluating on
         n_samples = (
             num_fewshot + 1
@@ -74,7 +72,7 @@ class Sampler:
 
 
 class BalancedSampler(Sampler):
-    def sample(self, n):
+    def sample(self, n) -> None:
         """
         TODO: this should return approximately class-balanced samples from our fewshot examples.
         TODO: what order should they be in? maybe random?
@@ -84,7 +82,7 @@ class BalancedSampler(Sampler):
 
 
 class ManualSampler(Sampler):
-    def sample(self, n):
+    def sample(self, n) -> None:
         """ """
         pass
 
