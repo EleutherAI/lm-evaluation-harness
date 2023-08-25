@@ -134,7 +134,7 @@ doc_to_target: "{{answer}}"
 ```
 
 
-**Important**: We always add one whitespace between the input and output, such that the full input-output string is `doc_to_target(doc) + " " + doc_to_text(doc)`. doc_to_text and doc_to_target should not contain trailing right or left whitespace, respectively.
+**Important**: we now add `target_delimiter` between input and target which defaults to " ", such that the full input-output string is `doc_to_target(doc) + target_delimiter + doc_to_text(doc)`. doc_to_text and doc_to_target should not contain trailing right or left whitespace, respectively.
 
 
 #### Multiple choice format
