@@ -1,12 +1,14 @@
 import sklearn.metrics
 
+
 def mean_3class_f1(predictions, references):  # This is a passthrough function
 
-    string_label = ['entailment', 'contradiction', 'neutral']
+    string_label = ["entailment", "contradiction", "neutral"]
     predictions = string_label.index(predictions[0])
     references = string_label.index(references[0])
 
     return (predictions, references)
+
 
 def agg_mean_3class_f1(items):
 

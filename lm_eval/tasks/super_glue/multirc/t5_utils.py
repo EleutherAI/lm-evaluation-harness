@@ -3,15 +3,21 @@ import collections
 import numpy as np
 import sklearn.metrics
 
+
 def f1(predictions, references):  # This is a passthrough function
 
     _prediction = predictions[0]
     _reference = references[0].split("_")[-1]
-    string_label = ['False', 'True']
+    string_label = ["False", "True"]
     reference = string_label.index(_reference)
-    prediction = string_label.index(_prediction) if _prediction in string_label else not bool(reference)
+    prediction = (
+        string_label.index(_prediction)
+        if _prediction in string_label
+        else not bool(reference)
+    )
 
     return (prediction, reference)
+
 
 def agg_f1(items):
 
@@ -25,9 +31,13 @@ def em(predictions, references):  # This is a passthrough function
 
     _prediction = predictions[0]
     _group, _reference = references[0].split("_")
-    string_label = ['False', 'True']
+    string_label = ["False", "True"]
     reference = string_label.index(_reference)
-    prediction = string_label.index(_prediction) if _prediction in string_label else not bool(reference)
+    prediction = (
+        string_label.index(_prediction)
+        if _prediction in string_label
+        else not bool(reference)
+    )
 
     return (_group, prediction, reference)
 

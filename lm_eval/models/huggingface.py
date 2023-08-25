@@ -78,7 +78,7 @@ class HFLM(LM):
         low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
-        cache_dir: Optional[Union[str,os.PathLike]] = None,
+        cache_dir: Optional[Union[str, os.PathLike]] = None,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
         parallelize: Optional[bool] = False,
@@ -425,7 +425,11 @@ class HFLM(LM):
         return encoding
 
     def tok_batch_encode(
-        self, strings: List[str], padding_side="left", left_truncate_len=None, truncation=False
+        self,
+        strings: List[str],
+        padding_side="left",
+        left_truncate_len=None,
+        truncation=False,
     ):
         # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
         old_padding_side = self.tokenizer.padding_side
@@ -863,7 +867,9 @@ class HFLM(LM):
 
                 # encode, pad, and truncate contexts for this batch
                 context_enc, attn_masks = self.tok_batch_encode(
-                    contexts, left_truncate_len=max_ctx_len, truncation=self.truncation,
+                    contexts,
+                    left_truncate_len=max_ctx_len,
+                    truncation=self.truncation,
                 )
                 context_enc = context_enc.to(self.device)
                 attn_masks = attn_masks.to(self.device)

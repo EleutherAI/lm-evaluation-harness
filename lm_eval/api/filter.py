@@ -4,6 +4,7 @@ from typing import List
 from lm_eval.api.instance import Instance
 from datasets import Dataset
 
+
 class Filter:
     """
     Filter classes operate on a per-task level.
