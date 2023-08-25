@@ -39,11 +39,10 @@ def em(predictions, references):  # This is a passthrough function
         else not bool(reference)
     )
 
-    return (_group, prediction, reference)
+    return (int(_group), prediction, reference)
 
 
 def agg_em(items):
-
     grouped_values = collections.defaultdict(lambda: ([], []))
     for group, prediction, reference in items:
         grouped_values[group][0].append(reference)
