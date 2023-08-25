@@ -90,7 +90,7 @@ class HFLM(LM):
         bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
         gptq: Optional[Union[bool, str]] = False,
         gptq_use_triton: Optional[bool] = False,
-    ):
+    ) -> None:
         super().__init__()
 
         assert isinstance(device, str)
@@ -334,7 +334,7 @@ class HFLM(LM):
         return self._DEFAULT_MAX_LENGTH
 
     @property
-    def max_gen_toks(self):
+    def max_gen_toks(self) -> int:
         return 256
 
     @property
@@ -353,7 +353,7 @@ class HFLM(LM):
     def world_size(self):
         return self._world_size
 
-    def _detect_batch_size(self, requests=None, pos=0):
+    def _detect_batch_size(self, requests=None, pos: int = 0):
         if requests:
             _, context_enc, continuation_enc = requests[pos]
             max_length = len(
@@ -419,7 +419,7 @@ class HFLM(LM):
         return encoding
 
     def tok_batch_encode(
-        self, strings: List[str], padding_side="left", left_truncate_len=None
+        self, strings: List[str], padding_side: str = "left", left_truncate_len=None
     ):
         # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
         old_padding_side = self.tokenizer.padding_side
@@ -595,7 +595,9 @@ class HFLM(LM):
 
         return loglikelihoods
 
-    def _loglikelihood_tokens(self, requests, disable_tqdm=False, override_bs=None):
+    def _loglikelihood_tokens(
+        self, requests, disable_tqdm: bool = False, override_bs=None
+    ):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 

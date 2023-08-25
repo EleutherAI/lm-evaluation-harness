@@ -6,7 +6,9 @@ from lm_eval.api.filter import Filter
 class RegexFilter(Filter):
     """ """
 
-    def __init__(self, regex_pattern=r"#### (\-?[0-9\.\,]+)", fallback="[invalid]"):
+    def __init__(
+        self, regex_pattern: str = r"#### (\-?[0-9\.\,]+)", fallback: str = "[invalid]"
+    ) -> None:
         """
         pass a string `regex` to run `re.compile(r"regex")` on.
         `fallback` defines the output returned if no matches for the regex are located.
@@ -41,12 +43,11 @@ class RegexFilter(Filter):
 class WhitespaceFilter(Filter):
     """ """
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     def apply(self, resps):
         def filter_set(inst):
-
             filtered_resp = []
             for resp in inst:
                 if resp.startswith(" "):
