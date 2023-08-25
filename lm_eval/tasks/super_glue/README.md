@@ -35,6 +35,14 @@ Homepage: https://super.gluebenchmark.com/
 
 #### Tasks
 
+Comparison between validation split score on T5x and LM-Eval (T5x models converted to HF)
+| T5V1.1 Base | SGLUE | BoolQ | CB        | Copa | MultiRC | ReCoRD | RTE | WiC | WSC |
+| ----------- | ------| ----- | --------- | ---- | ------- | ------ | --- | --- | --- |
+| T5x | 69.47 | 78.47(acc) | 83.93(f1) 87.5(acc) | 50(acc) | 73.81(f1) 33.26(em) | 70.09(em) 71.34(f1) | 78.7(acc) | 63.64(acc) | 75(acc) |
+| LM-Eval | 71.35 | 79.36(acc) | 83.63(f1) 87.5(acc) | 63(acc) | 73.45(f1) 33.26(em) | 69.85(em) 68.86(f1) | 78.34(acc) | 65.83(acc) | 75.96(acc) |
+
+
+
 * `super-glue-lm-eval-v1`
     -  `boolq`
     - `cb`
