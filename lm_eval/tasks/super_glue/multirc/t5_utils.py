@@ -39,7 +39,7 @@ def em(predictions, references):  # This is a passthrough function
         else not bool(reference)
     )
 
-    return (int(_group), prediction, reference)
+    return (_group, prediction, reference)
 
 
 def agg_em(items):
