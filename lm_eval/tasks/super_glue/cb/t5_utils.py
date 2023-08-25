@@ -16,7 +16,6 @@ def agg_mean_3class_f1(items):
 
     """Computes the unweighted average of the F1 per class."""
     metric_str = "fbeta_score"
-    metric_post_process_fn = lambda x: x
     metric_fn_kwargs = {
         "beta": 1,
         "labels": range(3),
@@ -26,8 +25,6 @@ def agg_mean_3class_f1(items):
     def _fn(predictions, references):
         metric_fn = getattr(sklearn.metrics, metric_str)
         metric_val = metric_fn(references, predictions, **metric_fn_kwargs)
-        if metric_post_process_fn is not None:
-            metric_val = metric_post_process_fn(metric_val)
         return metric_val
 
     return _fn(predictions, references)
