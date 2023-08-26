@@ -18,6 +18,7 @@ except Exception:
 
 T = TypeVar("T")
 
+
 # Implementation from nltk source
 # https://www.nltk.org/_modules/nltk/util.html
 def form_ngrams(sequence: Iterator[T], n: int) -> Iterator[tuple[T, ...]]:
@@ -166,7 +167,9 @@ class Janitor:
             print("WARNING: Janitor running in python mode")
             return self.clean_python(dirty_string)
 
-    def _split_chunks(self, dirty_string: str, dirty_parts: Sequence[tuple]) -> list[str]:
+    def _split_chunks(
+        self, dirty_string: str, dirty_parts: Sequence[tuple]
+    ) -> list[str]:
         clean_chunks = []
         splice_idx = 0
         end = -1
