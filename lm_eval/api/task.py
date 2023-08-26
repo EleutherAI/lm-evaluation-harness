@@ -90,6 +90,11 @@ class TaskConfig(dict):
 
     def __post_init__(self):
 
+        if "." in self.dataset_path:
+            import inspect
+            from importlib import import_module
+            self.dataset_path = inspect.getfile(import_module(self.dataset_path))
+
         if self.generation_kwargs is not None:
             if self.output_type != "greedy_until":
                 eval_logger.warning(
@@ -783,7 +788,7 @@ class ConfigurableTask(Task):
                 return doc[doc_to_text]
             else:
                 text_string = utils.apply_template(doc_to_text, doc)
-                if text_string.isdigit():
+                if text_string.isdigit() and self._config.doc_to_choice is not None:
                     return ast.literal_eval(text_string)
                 else:
                     return text_string
@@ -818,7 +823,7 @@ class ConfigurableTask(Task):
                 return doc[doc_to_target]
             else:
                 target_string = utils.apply_template(doc_to_target, doc)
-                if target_string.isdigit():
+                if target_string.isdigit() and self._config.doc_to_choice is not None:
                     return ast.literal_eval(target_string)
                 elif (
                     len(target_string) >= 2
