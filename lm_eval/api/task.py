@@ -93,6 +93,7 @@ class TaskConfig(dict):
         if "." in self.dataset_path:
             import inspect
             from importlib import import_module
+
             self.dataset_path = inspect.getfile(import_module(self.dataset_path))
 
         if self.generation_kwargs is not None:
