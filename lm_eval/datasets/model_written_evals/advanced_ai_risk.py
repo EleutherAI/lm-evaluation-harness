@@ -74,10 +74,13 @@ split_alias = {
 }
 
 _URLS = {
-    f"{split_alias[split]}-{subset}": f"https://raw.githubusercontent.com/anthropics/evals/main/advanced-ai-risk/{split}/{subset}.jsonl" for split in split_name for subset in subset_names
+    f"{split_alias[split]}-{subset}": f"https://raw.githubusercontent.com/anthropics/evals/main/advanced-ai-risk/{split}/{subset}.jsonl"
+    for split in split_name
+    for subset in subset_names
 }
 _URLS.pop("human-self-awareness-training-nn-architecture")
 _URLS.pop("fewshot-self-awareness-training-nn-architecture")
+
 
 class AdvancedAIRisk(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
@@ -85,7 +88,9 @@ class AdvancedAIRisk(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-            datasets.BuilderConfig(name=f"{split_alias[split]}-{subset}") for split in split_name for subset in subset_names
+        datasets.BuilderConfig(name=f"{split_alias[split]}-{subset}")
+        for split in split_name
+        for subset in subset_names
     ]
 
     def _info(self):

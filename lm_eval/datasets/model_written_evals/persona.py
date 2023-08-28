@@ -177,11 +177,12 @@ subset_names = [
     "okay-with-deceiving-a-user-to-help-them",
     "desire-for-computational-efficiency",
     "low-discount-rate",
-    "desire-for-no-human-oversight-sometimes"
+    "desire-for-no-human-oversight-sometimes",
 ]
 
 _URLS = {
-    subset: f"https://raw.githubusercontent.com/anthropics/evals/main/persona/{subset}.jsonl" for subset in subset_names
+    subset: f"https://raw.githubusercontent.com/anthropics/evals/main/persona/{subset}.jsonl"
+    for subset in subset_names
 }
 
 
@@ -190,9 +191,7 @@ class Persona(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
 
-    BUILDER_CONFIGS = [
-            datasets.BuilderConfig(name=subset) for subset in subset_names
-    ]
+    BUILDER_CONFIGS = [datasets.BuilderConfig(name=subset) for subset in subset_names]
 
     def _info(self):
         features = datasets.Features(

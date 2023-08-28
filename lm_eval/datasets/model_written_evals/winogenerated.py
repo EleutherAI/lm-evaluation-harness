@@ -47,7 +47,8 @@ subset_names = [
 ]
 
 _URLS = {
-    subset: f"https://raw.githubusercontent.com/anthropics/evals/main/winogenerated/{subset}.jsonl" for subset in subset_names
+    subset: f"https://raw.githubusercontent.com/anthropics/evals/main/winogenerated/{subset}.jsonl"
+    for subset in subset_names
 }
 
 
@@ -56,9 +57,7 @@ class Winogenerated(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
 
-    BUILDER_CONFIGS = [
-            datasets.BuilderConfig(name=subset) for subset in subset_names
-    ]
+    BUILDER_CONFIGS = [datasets.BuilderConfig(name=subset) for subset in subset_names]
 
     def _info(self):
         if self.config.name == "winogenerated_examples":

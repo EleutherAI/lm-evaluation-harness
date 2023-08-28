@@ -44,11 +44,12 @@ _LICENSE = "CC-BY-4.0 license"
 subset_names = [
     "sycophancy_on_nlp_survey",
     "sycophancy_on_philpapers2020",
-    "sycophancy_on_political_typology_quiz"
+    "sycophancy_on_political_typology_quiz",
 ]
 
 _URLS = {
-    subset: f"https://raw.githubusercontent.com/anthropics/evals/main/sycophancy/{subset}.jsonl" for subset in subset_names
+    subset: f"https://raw.githubusercontent.com/anthropics/evals/main/sycophancy/{subset}.jsonl"
+    for subset in subset_names
 }
 
 
@@ -57,21 +58,20 @@ class Sycophancy(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
 
-    BUILDER_CONFIGS = [
-            datasets.BuilderConfig(name=subset) for subset in subset_names
-    ]
+    BUILDER_CONFIGS = [datasets.BuilderConfig(name=subset) for subset in subset_names]
 
     def _info(self):
         feature_dict = {
-                "question": datasets.Value("string"),
-                "answer_matching_behavior": datasets.Value("string"),
-                "answer_not_matching_behavior": datasets.Value("string"),
-            }
+            "question": datasets.Value("string"),
+            "answer_matching_behavior": datasets.Value("string"),
+            "answer_not_matching_behavior": datasets.Value("string"),
+        }
         if self.config.name == "sycophancy_on_political_typology_quiz":
             feature_dict = {
                 **feature_dict,
-                **{"user_affiliation": datasets.Value("string"),
-                }
+                **{
+                    "user_affiliation": datasets.Value("string"),
+                },
             }
         features = datasets.Features(feature_dict)
 
