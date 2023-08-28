@@ -1,4 +1,3 @@
-
 upper_pronouns = [
     "A",
     "An",
@@ -13,16 +12,17 @@ upper_pronouns = [
     "Their",
 ]
 
-def process_doc(dataset):
 
+def process_doc(dataset):
     def process_fn(doc):
         # The HF implementation of `wsc273` is not `partial evaluation` friendly.
         doc["text"] = doc["text"].replace("  ", " ")
         doc["options"][0] = __normalize_option(doc, doc["options"][0])
         doc["options"][1] = __normalize_option(doc, doc["options"][1])
         return doc
-    
+
     return dataset.map(process_fn)
+
 
 def __normalize_option(doc, option):
     # Append `'s` to possessive determiner based options.
