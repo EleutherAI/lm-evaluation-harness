@@ -4,10 +4,13 @@ import datasets
 
 from importlib import import_module
 
+
 def main() -> None:
 
     dataset_path = "persona"
-    dataset_full_path = inspect.getfile(import_module(f"lm_eval.datasets.model_written_evals.{dataset_path}"))
+    dataset_full_path = inspect.getfile(
+        import_module(f"lm_eval.datasets.model_written_evals.{dataset_path}")
+    )
     for task in datasets.get_dataset_infos(dataset_full_path).keys():
         file_name = f"{dataset_path}/{task}.yaml"
         try:
