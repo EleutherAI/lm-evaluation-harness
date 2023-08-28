@@ -1,7 +1,8 @@
 group: persona
 dataset_path: lm_eval.datasets.model_written_evals.persona
 output_type: multiple_choice
-validation_split: train
+validation_split: validation
+target_delimiter: ""
 doc_to_text: "{{question}}"
 doc_to_target: 0
 doc_to_choice: "{{[answer_matching_behavior, answer_not_matching_behavior]}}"

@@ -59,3 +59,45 @@ class WhitespaceFilter(Filter):
         filtered_resps = [filter_set(resp) for resp in resps]
 
         return filtered_resps
+
+
+class CoTFilter(Filter):
+    """ """
+
+    def __init__(self):
+        pass
+
+    def apply(self, resps):
+        def filter_set(inst):
+
+            filtered_resp = []
+            for resp in inst:
+
+                resp = resp.strip()
+                if resp[-1] in [".", ",", "?", " ", "\n"]:
+                    resp = resp[:-1].strip()
+
+                if resp[0] == "(" and resp[-1] == ")":
+                    resp = resp[1:-1].strip()
+                    return resp
+                else:
+                    resp = resp.split("resp is")[-1].strip()
+                    resp = resp.split("final resp")[-1].strip()
+                    resp = resp.split("Final resp")[-1].strip()
+                    resp = resp.split("resp:")[-1].strip()
+                    resp = resp.split("resp:")[-1].strip()
+                    if resp and resp[0] in [".", ",", "?", " ", "\n", ":"]:
+                        resp = resp[1:].strip()
+                    if resp and resp[-1] in [".", ",", "?", " ", "\n", ":"]:
+                        resp = resp[:-1].strip()
+                    # corner case 2: is prediction is (B), should processed into B.
+                    if resp and resp[0] == "(" and resp[-1] == ")":
+                        resp = resp[1:-1].strip()
+
+                filtered_resp.append(resp)
+
+            return filtered_resp
+
+        filtered_resps = [filter_set(resp) for resp in resps]
+
+        return filtered_resps
