@@ -10,21 +10,21 @@ task:
     dataset_name: rte
     use_prompt: prompt_templates/flan_rte.yaml:*
     validation_split: validation
-  # - include: held_in_template_yaml
-  #   task: anli_r1
-  #   dataset_path: anli
-  #   use_prompt: local:*
-  #   validation_split: dev_r1
-  # - include: held_in_template_yaml
-  #   task: anli_r2
-  #   dataset_path: anli
-  #   use_prompt: local:*
-  #   validation_split: dev_r2
-  # - include: held_in_template_yaml
-  #   task: anli_r3
-  #   dataset_path: anli
-  #   use_prompt: local:*
-  #   validation_split: dev_r3
+  - include: held_in_template_yaml
+    task: anli_r1
+    dataset_path: anli
+    use_prompt: prompt_templates/flan_anli.yaml:*
+    validation_split: dev_r1
+  - include: held_in_template_yaml
+    task: anli_r2
+    dataset_path: anli
+    use_prompt: prompt_templates/flan_anli.yaml:*
+    validation_split: dev_r2
+  - include: held_in_template_yaml
+    task: anli_r3
+    dataset_path: anli
+    use_prompt: prompt_templates/flan_anli.yaml:*
+    validation_split: dev_r3
   # - include: held_in_template_yaml
   #   task: ai2_arc
   #   dataset_path: ARC-Easy
