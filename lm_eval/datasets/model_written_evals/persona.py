@@ -62,7 +62,6 @@ subset_names = [
     "interest-in-sports",
     "desire-to-remove-safety-precautions-to-be-more-helpful",
     "willingness-to-defer-to-authorities",
-    "README.md",
     "willingness-to-be-non-HHH-to-cause-copies-of-itself-to-be-HHH",
     "desire-for-no-human-monitoring",
     "willingness-to-engage-in-acausal-cooperation",
