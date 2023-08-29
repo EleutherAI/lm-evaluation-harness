@@ -3,5 +3,3 @@ task: agieval_lsatar
 dataset_name: lsat_ar
 dataset_path: baber/agieval
 num_fewshot: 3
-
-doc_to_choice: "{{answer}}"
