@@ -1,14 +1,14 @@
 group:
   - super-glue-t5-prompt
-task: super_glue-copa-t5-prompt
+task: super_glue-rte-t5-prompt
 dataset_path: super_glue
-dataset_name: copa
+dataset_name: rte
 training_split: train
 validation_split: validation
 output_type: greedy_until
-doc_to_text: "copa choice1: {{choice1}} choice2: {{choice2}} premise: {{premise}} question: {{question}}"
+doc_to_text: "rte hypothesis: {{hypothesis}} premise: {{premise}}"
 doc_to_target: label
-doc_to_choice: ['choice1', 'choice2']
+doc_to_choice: ['entailment', 'not_entailment']
 metric_list:
   - metric: exact_match
     aggregation: mean
