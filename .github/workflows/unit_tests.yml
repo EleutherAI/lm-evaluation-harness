@@ -6,10 +6,10 @@ name: Unit Tests
 on:
   push:
     branches:
-      - big-refactor
+      - 'big-refactor*'
   pull_request:
     branches:
-      - big-refactor
+      - 'big-refactor*'
   workflow_dispatch:
 # Jobs run concurrently and steps run sequentially within a job.
 # jobs: linter and cpu_tests. Add more jobs/steps as required.
@@ -26,8 +26,11 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: 3.9
+        cache: 'pip'
     - name: Install dependencies
       run: pip install -e '.[linting,testing]' --extra-index-url https://download.pytorch.org/whl/cpu
+    - name: Pre-Commit
+      uses: pre-commit/action@v3.0.0
     - name: Lint with pylint
       run: python -m pylint --disable=all -e W0311 --jobs=0 --indent-string='    ' **/*.py
     - name: Lint with flake8
@@ -52,6 +55,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: 3.9
+        cache: 'pip'
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -60,4 +64,4 @@ jobs:
 #                pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
 #        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
-      run: python -m pytest -s -v -n=auto --ignore=tests/tests_master --ignore=tests/extra
+      run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/tests_master --ignore=tests/extra

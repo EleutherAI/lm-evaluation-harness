@@ -1,5 +1,3 @@
-group:
-  - multiple_choice
 task: piqa
 dataset_path: piqa
 dataset_name: null

@@ -13,7 +13,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] Wikitext
 - [x] PiQA
 - [x] PROST
-- [ ] MCTACO (Lintang)
+- [x] MCTACO
 - [x] Pubmed QA
 - [x] SciQ
 - [ ] QASPER
@@ -33,9 +33,9 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] Winogrande
 - [x] ANLI
 - [x] Hendrycks Ethics (missing some tasks/metrics, see PR 660: <https://github.com/EleutherAI/lm-evaluation-harness/pull/660> for more info)
-- [x] TruthfulQA (mc1) (Lintang)
-- [ ] TruthfulQA (mc2) (Lintang)
-- [ ] TruthfulQA (gen) (Lintang)
+- [x] TruthfulQA (mc1)
+- [x] TruthfulQA (mc2)
+- [x] TruthfulQA (gen)
 - [ ] MuTual
 - [ ] Hendrycks Math (Hailey)
 - [ ] Asdiv
@@ -54,7 +54,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] BIG-Bench (Hailey)
 - [x] XStoryCloze
 - [x] XWinograd
-- [ ] PAWS-X (Lintang)
+- [x] PAWS-X
 - [x] XNLI
 - [ ] MGSM (Lintang)
 - [ ] SCROLLS

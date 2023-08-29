@@ -25,15 +25,19 @@ Homepage: https://github.com/csitfun/LogiQA2.0
   doi={10.1109/TASLP.2023.3293046}}
 ```
 
-### Subtasks
+### Groups and Tasks
 
-`logiqa2_zh`: The original dataset in Chinese.
+#### Groups
 
-`logiqa2_NLI`: The NLI version of the dataset converted from the MRC version.
+* Not part of a group yet
 
-`logieval`: Prompt based; https://github.com/csitfun/LogiEval
+#### Tasks
 
-The subtasks have not been verified yet.
+* `logiqa2_zh`: The original dataset in Chinese.
+* `logiqa2_NLI`: The NLI version of the dataset converted from the MRC version.
+* `logieval`: Prompt based; https://github.com/csitfun/LogiEval
+
+NOTE! The subtasks have not been verified yet.
 
 ### Checklist
 

@@ -1,8 +1,9 @@
 # LAMBADA
 
 ### Paper
-The LAMBADA dataset: Word prediction requiring a broad discourse context
-https://arxiv.org/pdf/1606.06031.pdf
+Title: `The LAMBADA dataset: Word prediction requiring a broad discourse context`
+
+Abstract: https://arxiv.org/pdf/1606.06031.pdf
 
 LAMBADA is a dataset to evaluate the capabilities of computational models for text
 understanding by means of a word prediction task. LAMBADA is a collection of narrative
@@ -13,6 +14,18 @@ cannot simply rely on local context, but must be able to keep track of informati
 in the broader discourse.
 
 Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
+
+### Groups and Tasks
+
+#### Groups
+
+- `lambada`
+
+#### Tasks
+
+- `lambada_openai`
+- `lambada_standard`
+
 
 ### Citation
 
