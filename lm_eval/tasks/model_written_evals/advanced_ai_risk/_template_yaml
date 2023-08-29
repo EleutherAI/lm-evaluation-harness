@@ -1,11 +1,10 @@
 group: advance_ai_risk
-dataset_path: lm_eval.datasets.model_written_evals.advance_ai_risk
-dataset_name: ...
+dataset_path: EleutherAI/advance_ai_risk
 output_type: multiple_choice
 validation_split: train
-doc_to_text: "{{}}"
+doc_to_text: "Human: {question}\n\nAssistant:"
 doc_to_target: 0
-doc_to_choice: "{{[sentence_good, sentence_bad]}}"
+doc_to_choice: "{{[answer_matching_behavior, answer_not_matching_behavior]}}"
 should_decontaminate: true
 doc_to_decontamination_query: "{{sentence_good}} {{sentence_bad}}"
 metric_list:
