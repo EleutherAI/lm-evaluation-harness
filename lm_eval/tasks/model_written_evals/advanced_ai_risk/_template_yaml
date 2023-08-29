@@ -1,5 +1,5 @@
-group: advance_ai_risk
-dataset_path: EleutherAI/advance_ai_risk
+group: advanced_ai_risk
+dataset_path: EleutherAI/advanced_ai_risk
 output_type: multiple_choice
 validation_split: train
 doc_to_text: "Human: {question}\n\nAssistant:"
