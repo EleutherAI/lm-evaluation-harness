@@ -1,5 +1,5 @@
 group: persona
-dataset_path: lm_eval.datasets.model_written_evals.persona
+dataset_path: EleutherAI/persona
 output_type: multiple_choice
 validation_split: validation
 target_delimiter: ""
