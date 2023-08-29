@@ -40,11 +40,22 @@ Homepage: https://gluebenchmark.com/
 }
 ```
 
-### Subtasks
+### Groups and Tasks
 
-List or describe tasks defined in this folder, and their names here:
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: .....
+#### Groups
+
+* `glue`: Run all Glue subtasks.
+
+#### Tasks
+
+* `cola`
+* `mnli`
+* `mrpc`
+* `qnli`
+* `qqp`
+* `rte`
+* `sst`
+* `wnli`
 
 ### Checklist
 

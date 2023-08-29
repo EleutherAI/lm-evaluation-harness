@@ -25,7 +25,13 @@ Homepage: https://zenodo.org/record/2630551#.X4Xzn5NKjUI
     month={Aug}
 }
 
-### Subtasks
+### Groups and Tasks
+
+#### Groups
+
+* `lambada_multilingual`: Evaluates all `lambada_mt_X` tasks
+
+#### Tasks
 
 * `lambada_mt_{en, fr, de, it, es}`: Machine-translated versions of OpenAI's Lambada variant.
 

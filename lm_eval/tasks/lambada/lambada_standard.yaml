@@ -1,7 +1,5 @@
 group:
   - lambada
-  - loglikelihood
-  - perplexity
 task: lambada_standard
 dataset_path: lambada
 dataset_name: null

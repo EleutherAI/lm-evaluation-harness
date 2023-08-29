@@ -1,5 +1,3 @@
-group:
-  - greedy_until
 task: babi
 dataset_path: Muennighoff/babi
 dataset_name: null
