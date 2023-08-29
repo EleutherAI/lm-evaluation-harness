@@ -3,13 +3,13 @@ task:
   - include: held_in_template_yaml
     dataset_path: super_glue
     dataset_name: boolq
-    use_prompt: flan_boolq.yaml:*
+    use_prompt: prompt_templates/flan_boolq.yaml:*
     validation_split: validation
-  # - include: held_in_template_yaml
-  #   dataset_path: super_glue
-  #   dataset_name: rte
-  #   use_prompt: local:*
-  #   validation_split: validation
+  - include: held_in_template_yaml
+    dataset_path: super_glue
+    dataset_name: rte
+    use_prompt: prompt_templates/flan_rte.yaml:*
+    validation_split: validation
   # - include: held_in_template_yaml
   #   task: anli_r1
   #   dataset_path: anli

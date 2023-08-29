@@ -92,7 +92,7 @@ def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, **kwa
 
 
 class PromptString:
-    def __init__(prompt_string):
+    def __init__(self, prompt_string):
         self.prompt_string = prompt_string
 
     def apply(self, doc):
