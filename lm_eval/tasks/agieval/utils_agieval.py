@@ -1,6 +1,27 @@
 import datasets
 
 
+def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
+    def _process_doc(doc):
+        passage = doc.get("passage", None)
+        if passage is None:
+            out_doc = {
+                "question": doc["question"],
+                "options": [x.replace(")", ") ") for x in doc["options"]],
+                "label": doc["label"],
+            }
+        else:
+            out_doc = {
+                "passage": doc["passage"],
+                "question": doc["question"],
+                "options": [x.replace(")", ") ") for x in doc["options"]],
+                "label": doc["label"],
+            }
+        return out_doc
+
+    return dataset.map(_process_doc)
+
+
 def _doc_to_text_all(doc: dict) -> str:
     all_choices = " ".join(doc["options"])
     passage = doc.get("passage", None)
