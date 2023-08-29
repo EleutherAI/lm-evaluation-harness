@@ -1,4 +1,4 @@
-group: zero-shot-cot
+group: flan-cot
 output_type: greedy_until
 validation_split: validation
 doc_to_target: "{{answer}}"
