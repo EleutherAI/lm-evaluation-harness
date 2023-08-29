@@ -1044,20 +1044,14 @@ class ConfigurableTask(Task):
             else:
                 gold = str(gold)
 
-<<<<<<< HEAD
-            for metric in self._metric_fn_list.keys():
-                result = results[0]
-=======
             result = results[0]
             for metric in self._metric_fn_list.keys():
->>>>>>> 4cda3a1c476fce0d721d12da049ab9758b780650
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
                     scores = []
                     for gold_option in gold:
-<<<<<<< HEAD
                         try:
                             result_score = self._metric_fn_list[metric](
                                 references=[gold_option],
@@ -1072,23 +1066,11 @@ class ConfigurableTask(Task):
                             # TODO: this handles the case where HF evaluate returns a dict.
                             result_score = result_score[metric]
                         scores.append(result_score)
-=======
-                        res = self._metric_fn_list[metric](
-                            references=[gold_option],
-                            predictions=[result],
-                            **self._metric_fn_kwargs[metric],
-                        )
-                        if isinstance(res, dict):
-                            # TODO: this handles the case where HF evaluate returns a dict.
-                            res = res[metric]
-                        scores.append(res)
->>>>>>> 4cda3a1c476fce0d721d12da049ab9758b780650
                     if any(scores):
                         result_score = 1.0
                     else:
                         result_score = 0.0
                 else:
-<<<<<<< HEAD
                     try:
                         result_score = self._metric_fn_list[metric](
                             references=[gold],
@@ -1097,21 +1079,10 @@ class ConfigurableTask(Task):
                         )
                     except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
-                if isinstance(result_score, dict):
-                    result_dict.update(result_score)
-                else:
-                    result_dict[metric] = result_score
-=======
-                    result_score = self._metric_fn_list[metric](
-                        references=[gold],
-                        predictions=[result],
-                        **self._metric_fn_kwargs[metric],
-                    )
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.
                         result_score = result_score[metric]
                 result_dict[metric] = result_score
->>>>>>> 4cda3a1c476fce0d721d12da049ab9758b780650
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
