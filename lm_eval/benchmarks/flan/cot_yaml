@@ -1,0 +1,37 @@
+group: flan_cot
+task:
+  - include: cot_template_yaml
+    dataset_path: super_glue
+    dataset_name: boolq
+    use_prompt: promptsource:*
+    validation_split: validation
+  - include: cot_template_yaml
+    dataset_path: super_glue
+    dataset_name: rte
+    use_prompt: promptsource:*
+    validation_split: validation
+  - include: cot_template_yaml
+    task: anli_r1
+    dataset_path: anli
+    use_prompt: promptsource:*
+    validation_split: dev_r1
+  - include: cot_template_yaml
+    task: anli_r2
+    dataset_path: anli
+    use_prompt: promptsource:*
+    validation_split: dev_r2
+  - include: cot_template_yaml
+    task: anli_r3
+    dataset_path: anli
+    use_prompt: promptsource:*
+    validation_split: dev_r3
+  - include: cot_template_yaml
+    task: ai2_arc
+    dataset_path: ARC-Easy
+    use_prompt: promptsource:*
+    validation_split: validation
+  - include: cot_template_yaml
+    task: ai2_arc
+    dataset_path: ARC-Challange
+    use_prompt: promptsource:*
+    validation_split: validation

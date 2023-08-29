@@ -1,0 +1,37 @@
+group: flan_held_in
+task:
+  - include: held_in_template_yaml
+    dataset_path: super_glue
+    dataset_name: boolq
+    use_prompt: flan_boolq.yaml:*
+    validation_split: validation
+  # - include: held_in_template_yaml
+  #   dataset_path: super_glue
+  #   dataset_name: rte
+  #   use_prompt: local:*
+  #   validation_split: validation
+  # - include: held_in_template_yaml
+  #   task: anli_r1
+  #   dataset_path: anli
+  #   use_prompt: local:*
+  #   validation_split: dev_r1
+  # - include: held_in_template_yaml
+  #   task: anli_r2
+  #   dataset_path: anli
+  #   use_prompt: local:*
+  #   validation_split: dev_r2
+  # - include: held_in_template_yaml
+  #   task: anli_r3
+  #   dataset_path: anli
+  #   use_prompt: local:*
+  #   validation_split: dev_r3
+  # - include: held_in_template_yaml
+  #   task: ai2_arc
+  #   dataset_path: ARC-Easy
+  #   use_prompt: local:*
+  #   validation_split: validation
+  # - include: held_in_template_yaml
+  #   task: ai2_arc
+  #   dataset_path: ARC-Challange
+  #   use_prompt: local:*
+  #   validation_split: validation

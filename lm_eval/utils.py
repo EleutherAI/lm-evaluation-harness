@@ -412,39 +412,43 @@ def import_function(loader, node):
 yaml.add_constructor("!function", import_function)
 
 
-def load_yaml_config(yaml_path):
-    with open(yaml_path, "rb") as file:
-        yaml_config = yaml.full_load(file)
-        yaml_dir = os.path.dirname(yaml_path)
+def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
 
-        if "include" in yaml_config:
-            include_path = yaml_config["include"]
-            del yaml_config["include"]
+    if yaml_config is None:
+        with open(yaml_path, "rb") as file:
+            yaml_config = yaml.full_load(file)
+            yaml_dir = os.path.dirname(yaml_path)
 
-            if type(include_path) == str:
-                include_path = [include_path]
+    assert yaml_dir is not None
 
-            # Load from the last one first
-            include_path.reverse()
-            final_yaml_config = {}
-            for path in include_path:
+    if "include" in yaml_config:
+        include_path = yaml_config["include"]
+        del yaml_config["include"]
 
-                # Assumes that path is a full path.
-                # If not found, assume the included yaml
-                # is in the same dir as the original yaml
-                if not os.path.isfile(path):
-                    path = os.path.join(yaml_dir, path)
+        if type(include_path) == str:
+            include_path = [include_path]
 
-                try:
-                    included_yaml_config = load_yaml_config(path)
-                    final_yaml_config.update(included_yaml_config)
-                except Exception as ex:
-                    # If failed to load, ignore
-                    raise ex
+        # Load from the last one first
+        include_path.reverse()
+        final_yaml_config = {}
+        for path in include_path:
 
-            final_yaml_config.update(yaml_config)
-            return final_yaml_config
-        return yaml_config
+            # Assumes that path is a full path.
+            # If not found, assume the included yaml
+            # is in the same dir as the original yaml
+            if not os.path.isfile(path):
+                path = os.path.join(yaml_dir, path)
+
+            try:
+                included_yaml_config = load_yaml_config(path)
+                final_yaml_config.update(included_yaml_config)
+            except Exception as ex:
+                # If failed to load, ignore
+                raise ex
+
+        final_yaml_config.update(yaml_config)
+        return final_yaml_config
+    return yaml_config
 
 
 def regex_replace(string, pattern, repl, count=0):

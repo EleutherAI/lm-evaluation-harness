@@ -14,7 +14,7 @@ from lm_eval.api.registry import (
 def include_benchmarks(task_dir):
 
     for root, subdirs, file_list in os.walk(task_dir):
-        if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
+        if (subdirs == [] or "__pycache__" in subdirs) and (len(file_list) > 0):
             for f in file_list:
                 if f.endswith(".yaml"):
                     try:
@@ -22,6 +22,9 @@ def include_benchmarks(task_dir):
 
                         with open(benchmark_path, "rb") as file:
                             yaml_config = yaml.full_load(file)
+
+                        if "prompts" in yaml_config:
+                            continue  # Skip it
 
                         assert "group" in yaml_config
                         group = yaml_config["group"]
@@ -34,6 +37,16 @@ def include_benchmarks(task_dir):
                         ]
 
                         for task_config in config_list:
+                            yaml_dir = os.path.dirname(benchmark_path)
+                            task_config = utils.load_yaml_config(
+                                yaml_config=task_config, yaml_dir=yaml_dir
+                            )
+                            if "use_prompt" in task_config:
+                                if "yaml" in task_config["use_prompt"]:
+                                    task_config["use_prompt"] = os.path.join(
+                                        root, task_config["use_prompt"]
+                                    )
+
                             var_configs = check_prompt_config(
                                 {
                                     **task_config,

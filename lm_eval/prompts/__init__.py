@@ -44,6 +44,14 @@ def get_prompt(prompt_id: str, dataset_name=None, subset_name=None):
             raise ValueError(
                 f"{prompt_name} not in prompt list {prompts.all_template_names}"
             )
+    elif ".yaml" in category_name:
+        import yaml
+
+        with open(category_name, "rb") as file:
+            prompt_yaml_file = yaml.full_load(file)
+
+        prompt_string = prompt_yaml_file["prompts"][prompt_name]
+        return PromptString(prompt_string)
     else:
         try:
             return PROMPT_REGISTRY[category_name][prompt_name]
@@ -56,13 +64,42 @@ def get_prompt(prompt_id: str, dataset_name=None, subset_name=None):
 
 def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, **kwargs):
 
-    from promptsource.templates import DatasetTemplates
-
-    if subset_name is None:
-        prompts = DatasetTemplates(dataset_name=dataset_name)
-    else:
-        prompts = DatasetTemplates(dataset_name=dataset_name, subset_name=subset_name)
-
     category_name, prompt_name = use_prompt.split(":")
-    prompt_list = utils.pattern_match(prompt_name, prompts.all_template_names)
+
+    if category_name == "promptsource":
+        from promptsource.templates import DatasetTemplates
+
+        if subset_name is None:
+            prompts = DatasetTemplates(dataset_name=dataset_name)
+        else:
+            prompts = DatasetTemplates(
+                dataset_name=dataset_name, subset_name=subset_name
+            )
+
+        prompt_list = utils.pattern_match(prompt_name, prompts.all_template_names)
+
+    elif ".yaml" in category_name:
+        import yaml
+
+        with open(category_name, "rb") as file:
+            prompt_yaml_file = yaml.full_load(file)
+
+        prompt_list = utils.pattern_match(
+            prompt_name, prompt_yaml_file["prompts"].keys()
+        )
+
     return [":".join([category_name, prompt]) for prompt in prompt_list]
+
+
+class PromptString:
+    def __init__(prompt_string):
+        self.prompt_string = prompt_string
+
+    def apply(self, doc):
+
+        doc_to_text = self.prompt_string["doc_to_text"]
+        doc_to_target = self.prompt_string["doc_to_target"]
+        text_string = utils.apply_template(doc_to_text, doc)
+        target_string = utils.apply_template(doc_to_target, doc)
+
+        return [text_string, target_string]
