@@ -1,6 +1,5 @@
 group:
   - freebase
-  - question_answer
 task: webqs
 dataset_path: web_questions
 dataset_name: null

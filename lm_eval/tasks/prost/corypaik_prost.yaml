@@ -1,5 +1,3 @@
-group:
-  - multiple_choice
 task: prost
 dataset_path: corypaik/prost
 dataset_name: null
