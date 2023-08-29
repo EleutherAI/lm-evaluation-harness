@@ -36,7 +36,7 @@ class GGMLLM(BaseLM):
                 logger.error(f"RequestException: {e}")
                 time.sleep(delay)  # wait before retrying
         else:
-            raise Exception(f"Failed to get a valid response after {retries} retries. Last exception: {e}")
+            raise Exception(f"Failed to get a valid response after {retries} retries.")
 
 
     def loglikelihood(self, requests):
@@ -44,11 +44,11 @@ class GGMLLM(BaseLM):
             return []
         res = []
         for context, continuation in tqdm(requests):
-            response = self.ggml_completion(self.base_url, context=context, continuation=continuation)
+            response = self.ggml_completion(context=context, continuation=continuation)
             if response and "choices" in response and response["choices"]:
                 choice = response["choices"][0]
                 logprobs = choice.get("logprobs")
-                if logprobs and "token_logprobs" in logprobs:
+                if logprobs and "token_logprobs" in logprobs and logprobs["token_logprobs"]:
                     logprob = logprobs["token_logprobs"][0]
                     is_greedy = choice["finish_reason"] == "length"
                     res.append((logprob, is_greedy))
@@ -69,7 +69,7 @@ class GGMLLM(BaseLM):
             inp = request[0]
             request_args = request[1]
             until = request_args["until"]
-            response = self.ggml_completion(self.base_url, context=inp, stop=until)
+            response = self.ggml_completion(context=inp, stop=until)
             if response and "choices" in response and response["choices"]:
                 choice = response["choices"][0]
                 if "text" in choice:
