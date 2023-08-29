@@ -30,6 +30,11 @@ def _doc_to_text_all(doc: dict) -> str:
     return f"Problem: {passage}\n{doc['question']}\n{all_choices}\nAnswer:"
 
 
+def _doc_to_text_satwo(doc: dict) -> str:
+    all_choices = " ".join(doc["options"])
+    return f"Problem: {doc['question']}\n{all_choices}\nAnswer:"
+
+
 # taken from
 # https://github.com/microsoft/AGIEval/blob/19b2c5daed87e3463fe6a29f0c342bfc31e98234/src/dataset_loader.py#L25
 # Used for all AGI datasets except MATH.

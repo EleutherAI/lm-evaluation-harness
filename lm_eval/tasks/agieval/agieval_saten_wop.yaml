@@ -3,3 +3,4 @@ task: agieval_saten_wop
 dataset_name: sat_en
 dataset_path: baber/agieval
 num_fewshot: 3
+doc_to_text: !function utils_agieval._doc_to_text_satwo
