@@ -1,0 +1,5 @@
+include: agieval_aquarat.yaml
+task: agieval_lsatlr
+dataset_name: lsat_lr
+dataset_path: baber/agieval
+num_fewshot: 3

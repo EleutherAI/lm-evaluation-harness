@@ -1,0 +1,5 @@
+include: agieval_aquarat.yaml
+task: agieval_logiqa
+dataset_name: logiqa
+dataset_path: baber/agieval
+num_fewshot: 3

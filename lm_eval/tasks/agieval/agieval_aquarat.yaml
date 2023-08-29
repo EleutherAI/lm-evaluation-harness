@@ -1,0 +1,20 @@
+group:
+  - agieval
+task: agieval_aquarat
+dataset_path: baber/agieval
+dataset_name: aqua_rat
+
+output_type: multiple_choice
+training_split: null
+validation_split: few_shot
+test_split: test
+num_fewshot: 5
+
+doc_to_text: !function utils_agieval._doc_to_text_all
+doc_to_target: "{{label}}"
+doc_to_choice: "{{options}}"
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
