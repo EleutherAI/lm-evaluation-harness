@@ -1,5 +1,4 @@
 group:
-  - greedy_until
   - math_word_problems
 task: gsm8k_yaml
 dataset_path: gsm8k

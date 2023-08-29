@@ -25,13 +25,20 @@ Homepage: https://github.com/hendrycks/ethics
 }
 ```
 
-### Subtasks
+### Groups and Tasks
 
-* `ethics_cm`:
-*
+#### Groups
 
-Missing:
-* `ethics_utilitarianism_original`:
+- `hendrycks_ethics`
+
+#### Tasks
+
+* `ethics_cm`
+* `ethics_deontology`
+* `ethics_justice`
+* `ethics_utilitarianism`
+* (MISSING) `ethics_utilitarianism_original`
+* `ethics_virtue`
 
 ### Checklist
 
