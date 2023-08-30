@@ -19,19 +19,25 @@ https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_r
 ### Citation
 
 ```
-BibTeX-formatted citation goes here
+@misc{dua2019drop,
+    title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs},
+    author={Dheeru Dua and Yizhong Wang and Pradeep Dasigi and Gabriel Stanovsky and Sameer Singh and Matt Gardner},
+    year={2019},
+    eprint={1903.00161},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
 ```
 
 ### Groups and Tasks
 
 #### Groups
 
-* `group_name`: `Short description`
+* Not part of a group yet.
 
 #### Tasks
 
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: ...
+* `drop`
 
 ### Checklist
 
