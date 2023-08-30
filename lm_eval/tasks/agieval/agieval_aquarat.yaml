@@ -1,21 +1,23 @@
 group:
+  - multiple_choice
   - agi_eval
 task: agieval_aquarat
 dataset_path: baber/agieval
 dataset_name: aqua_rat
-
 output_type: multiple_choice
 training_split: null
-validation_split: few_shot
+validation_split: null
+fewshot_split: few_shot
 test_split: test
 num_fewshot: 5
-
 doc_to_text: !function utils_agieval._doc_to_text_all
-process_docs: !function utils_agieval.process_docs
 doc_to_target: "{{label}}"
 doc_to_choice: "{{options}}"
 
 metric_list:
   - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
     aggregation: mean
     higher_is_better: true
