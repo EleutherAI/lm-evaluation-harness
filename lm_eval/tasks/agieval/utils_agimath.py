@@ -1,7 +1,6 @@
-from lm_eval.logger import eval_logger
+import re
 
 
-# Based on Hendrycks math dataset.
 # taken from https://github.com/microsoft/AGIEval/blob/main/src/dataset_loader.py
 def doc_to_text_math_fewshot(doc: dict) -> str:
     """
@@ -16,14 +15,23 @@ def doc_to_text_math_fewshot(doc: dict) -> str:
 
     _fewshot = [
         "Here are the answers for the problems in the exam.\n",
-        "Problem 1.   Find the domain of the expression $\\frac{\\sqrt{x-2}}{\\sqrt{5-x}}$.\nThe answer is therefore [2,5)\n",
-        "Problem 2.   If $\\det \\mathbf{A} = 5,$ then find $\\det (\\mathbf{A^3}).$\nThe answer is therefore 125\n",
-        "Problem 3.   Terrell usually lifts two 20-pound weights 12 times. If he uses two 15-pound weights instead, how many times must Terrell lift them in order to lift the same total weight?\nThe answer is therefore 16\n",
-        "Problem 4.   If the system of equations  \\begin{align*}\n3x+y&=a,\\\\\n2x+5y&=2a,\n\\end{align*} has a solution $(x,y)$ when $x=2$, compute $a$.\nThe answer is therefore \\frac{26}{3}\n",
+        "Problem 1.   Find the domain of the expression $\\frac{\\sqrt{x-2}}{\\sqrt{5-x}}$.\nThe answer is therefore [2,5)",
+        "Problem 2.   If $\\det \\mathbf{A} = 5,$ then find $\\det (\\mathbf{A^3}).$\nThe answer is therefore 125",
+        "Problem 3.   Terrell usually lifts two 20-pound weights 12 times. If he uses two 15-pound weights instead, how many times must Terrell lift them in order to lift the same total weight?\nThe answer is therefore 16",
+        "Problem 4.   If the system of equations  \\begin{align*}\n3x+y&=a,\\\\\n2x+5y&=2a,\n\\end{align*} has a solution $(x,y)$ when $x=2$, compute $a$.\nThe answer is therefore \\frac{26}{3}",
     ]
-    _fewshot = "\n".join(_fewshot)
+    _fewshot = "\n\n".join(_fewshot)
     question_input = "Problem {}.   ".format(5) + doc["question"]
     return _fewshot + question_input
+
+
+def process_results_math(doc, results):
+    completions = results[0]
+    processed_answer = parse_math_answer(completions)
+    if is_equiv(processed_answer, str(doc["answer"])):
+        return {"acc": 1}
+    else:
+        return {"acc": 0}
 
 
 # taken from https://github.com/microsoft/AGIEval/blob/main/src/post_process.py
@@ -44,15 +52,6 @@ def remove_few_shot_prefix(string: str):
 def parse_math_answer(raw_string: str) -> str:
     raw_string = remove_few_shot_prefix(raw_string)
     return raw_string
-
-
-def process_results_math(doc, results):
-    completions = results[0]
-    processed_answer = parse_math_answer(completions)
-    if is_equiv(processed_answer, doc["answer"]):
-        return {"acc": 1}
-    else:
-        return {"acc": 0}
 
 
 def _fix_fracs(string):
@@ -198,7 +197,6 @@ def _strip_string(string):
 
 
 def is_equiv(str1, str2, verbose=False):
-    eval_logger.info(f"str1: {str1}, str2: {str2}")
     if str1 is None and str2 is None:
         # print("WARNING: Both None")
         return True
@@ -208,7 +206,6 @@ def is_equiv(str1, str2, verbose=False):
     try:
         ss1 = _strip_string(str1)
         ss2 = _strip_string(str2)
-        eval_logger.info(f"stripped1: {str1}, stripped2: {str2}")
         return ss1 == ss2
     except:  # noqa: E722
         return str1 == str2
