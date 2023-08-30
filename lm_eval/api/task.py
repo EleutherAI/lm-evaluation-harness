@@ -1022,28 +1022,30 @@ class ConfigurableTask(Task):
                     gold_index_error = True
             else:
                 if type(gold) is int:
-                    gold = gold if i < len(choice) else -1000
+                    gold = gold if gold < len(choices) else -1000
                 elif type(gold) is str:
-                    gold = choices.index(gold) if gold in choices else -1000                    
-                
+                    gold = choices.index(gold) if gold in choices else -1000
+
                 if gold == -1000:
                     gold_index_error = True
 
             if gold_index_error:
                 eval_logger.warning(
-                    f"Label index was not in within range of availabel choices,"
+                    f"Label index was not in within range of available choices,"
                     f"Sample:\n\n{doc}\n\n"
                 )
 
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
-                exact_match = int(any([is_greedy[i] if i != -1000 else 0 for i in gold]))
+                exact_match = int(
+                    any([is_greedy[i] if i != -1000 else 0 for i in gold])
+                )
             else:
                 acc = 1.0 if pred == gold else 0.0
                 acc_norm = 1.0 if pred_norm == gold else 0.0
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
-                exact_match = int(is_greedy[gold]) if i != -1000 else 0 
+                exact_match = int(is_greedy[gold]) if gold != -1000 else 0
 
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
