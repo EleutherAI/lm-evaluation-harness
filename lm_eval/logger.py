@@ -7,4 +7,4 @@ logging.basicConfig(
 )
 eval_logger = logging.getLogger("lm-eval")
 
-SPACING = " "*47
+SPACING = " " * 47

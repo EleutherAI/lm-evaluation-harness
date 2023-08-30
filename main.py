@@ -131,12 +131,12 @@ def main():
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
-        
+
         if task_names == []:
             eval_logger.error(
                 "No tasks were detected,\n"
                 f"{SPACING}Try `lm-eval -h` for list of available tasks",
-            )            
+            )
 
     if args.output_path:
         path = Path(args.output_path)
