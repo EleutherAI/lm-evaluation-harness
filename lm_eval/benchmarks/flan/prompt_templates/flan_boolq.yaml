@@ -25,7 +25,8 @@ prompts:
     doc_to_text: "{{passage}}\n\nIs the following statement correct based on the text\n\n{{question}}\n\nOPTIONS:\n- no\n- yes"
     doc_to_target: "{{['no', 'yes'][label]}}"
   "template-8":
-    doc_to_text: "{{title}}\n\n{{passage}}\n\nIs this statement correct \"{{question}}\"?\n\nOPTIONS:\n- no\n- yes"
+    # doc_to_text: "{{title}}\n\n{{passage}}\n\nIs this statement correct \"{{question}}\"?\n\nOPTIONS:\n- no\n- yes"
+    doc_to_text: "{{passage}}\n\nIs this statement correct \"{{question}}\"?\n\nOPTIONS:\n- no\n- yes"
     doc_to_target: "{{['no', 'yes'][label]}}"
   "template-9":
     doc_to_text: "Is it true that {{question}} based on the following text?\n\n{{passage}}\n\nOPTIONS:\n- no\n- yes"
