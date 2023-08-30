@@ -9,7 +9,7 @@ from pathlib import Path
 
 from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
-from lm_eval.logger import eval_logger
+from lm_eval.logger import eval_logger, SPACING
 from lm_eval.tasks import include_task_folder
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -131,6 +131,12 @@ def main():
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
+        
+        if task_names == []:
+            eval_logger.error(
+                "No tasks were detected,\n"
+                f"{SPACING}Try `lm-eval -h` for list of available tasks",
+            )            
 
     if args.output_path:
         path = Path(args.output_path)
