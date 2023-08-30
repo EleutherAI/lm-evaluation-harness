@@ -1038,9 +1038,7 @@ class ConfigurableTask(Task):
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
-                exact_match = int(
-                    any([is_greedy[i] if i != -100 else 0 for i in gold])
-                )
+                exact_match = int(any([is_greedy[i] if i != -100 else 0 for i in gold]))
             else:
                 acc = 1.0 if pred == gold else 0.0
                 acc_norm = 1.0 if pred_norm == gold else 0.0
