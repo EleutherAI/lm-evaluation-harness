@@ -1,0 +1,9 @@
+task: drop
+dataset_path: EleutherAI/drop
+output_type: greedy_until
+training_split: train
+validation_split: test
+doc_to_text: "Passage: {{passage}}\nQuestion: {{question}}\nAnswer:"
+doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{passage}} {{question}}"
