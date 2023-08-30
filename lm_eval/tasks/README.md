@@ -5,8 +5,8 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 
 - [x] Glue
 - [x] SuperGlue
-- [ ] CoQA (Lintang)
-- [ ] DROP (Lintang)
+- [x] CoQA
+- [x] DROP
 - [x] ~~Lambada~~
 - [x] Lambada (Cloze variants)
 - [x] ~~Lambada (Multilingual)~~
@@ -38,7 +38,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] TruthfulQA (gen)
 - [ ] MuTual
 - [ ] Hendrycks Math (Hailey)
-- [ ] Asdiv
+- [x] Asdiv
 - [ ] GSM8k
 - [x] Arithmetic
 - [ ] MMMLU (Hailey)
