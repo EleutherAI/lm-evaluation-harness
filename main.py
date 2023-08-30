@@ -16,15 +16,17 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 def parse_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--model", required=True, help="Name of model e.g. `hf`")
+    parser.add_argument(
+        "--tasks",
+        default=None,
+        help="Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS))),
+    )
     parser.add_argument(
         "--model_args",
         default="",
         help="String arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
-    )
-    parser.add_argument(
-        "--tasks", default=None, choices=utils.MultiChoice(sorted(ALL_TASKS))
     )
     parser.add_argument(
         "--num_fewshot",
