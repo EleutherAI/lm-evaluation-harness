@@ -136,7 +136,7 @@ def main():
                     task_missing.append(task)
 
         if task_missing != []:
-            missing = ", ".join(task_missing),
+            missing = ", ".join(task_missing)
             eval_logger.error(
                 f"Tasks were not found: {missing}\n"
                 f"{SPACING}Try `lm-eval -h` for list of available tasks",
