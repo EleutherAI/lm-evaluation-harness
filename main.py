@@ -143,7 +143,6 @@ def main():
             )
             raise ValueError(f"Tasks {missing} were not found.")
 
-
     if args.output_path:
         path = Path(args.output_path)
         # check if file or 'dir/results.json' exists
