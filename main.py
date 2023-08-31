@@ -127,15 +127,18 @@ def main():
         else:
             tasks_list = args.tasks.split(",")
             task_names = utils.pattern_match(tasks_list, ALL_TASKS)
+            task_missing = []
             for task in [task for task in tasks_list if task not in task_names]:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
+                else:
+                    task_missing.append(task)
 
-        if task_names == []:
+        if task_missing != []:
             eval_logger.error(
-                "No tasks were detected,\n"
-                f"{SPACING}Try `lm-eval -h` for list of available tasks",
+                "Tasks were not found: {}\n"
+                "{}Try `lm-eval -h` for list of available tasks".format(", ".join(task_missing), SPACING)
             )
 
     if args.output_path:
