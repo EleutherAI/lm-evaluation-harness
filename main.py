@@ -136,10 +136,13 @@ def main():
                     task_missing.append(task)
 
         if task_missing != []:
+            missing = ", ".join(task_missing),
             eval_logger.error(
-                "Tasks were not found: {}\n"
-                "{}Try `lm-eval -h` for list of available tasks".format(", ".join(task_missing), SPACING)
+                f"Tasks were not found: {missing}\n"
+                f"{SPACING}Try `lm-eval -h` for list of available tasks",
             )
+            raise ValueError(f"Tasks {missing} were not found.")
+
 
     if args.output_path:
         path = Path(args.output_path)
