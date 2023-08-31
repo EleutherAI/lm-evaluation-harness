@@ -1,7 +1,7 @@
 group: agieval
 task:
   - agieval_aquarat
-  - aqieval_logiqa
+  - agieval_logiqa
   - agieval_lsatar
   - agieval_lsatlr
   - agieval_lsatrc
