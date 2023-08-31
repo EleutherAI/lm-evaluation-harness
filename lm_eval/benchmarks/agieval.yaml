@@ -1,0 +1,10 @@
+group: agieval
+task:
+  - agieval_aquarat
+  - aqieval_logiqa
+  - agieval_lsatar
+  - agieval_lsatlr
+  - agieval_lsatrc
+  - agieval_saten
+  - agieval_saten_wop
+  - agieval_satm

@@ -1,6 +1,5 @@
 group:
   - multiple_choice
-  - agi_eval
 task: agieval_aquarat
 dataset_path: baber/agieval
 dataset_name: aqua_rat
