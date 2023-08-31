@@ -1,15 +1,16 @@
 import abc
 import os
-
-from typing import Union, List, Tuple
+import torch
+from typing import Union, List, Tuple, TypeVar, Type
 from sqlitedict import SqliteDict
 import json
 import hashlib
-
 from tqdm import tqdm
-
+from lm_eval.api.instance import Instance
 from lm_eval import utils
 from lm_eval.logger import eval_logger
+
+T = TypeVar("T", bound="LM")
 
 
 class LM(abc.ABC):
@@ -25,7 +26,7 @@ class LM(abc.ABC):
         self.cache_hook = CacheHook(None)
 
     @abc.abstractmethod
-    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests: list[Instance]) -> List[Tuple[float, bool]]:
         """Compute log-likelihood of generating a continuation from a context.
         Downstream tasks should attempt to use loglikelihood instead of other
         LM calls whenever possible.
@@ -50,7 +51,9 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def loglikelihood_rolling(self, requests) -> List[Tuple[float, bool]]:
+    def loglikelihood_rolling(
+        self, requests: list[Instance]
+    ) -> List[Tuple[float, bool]]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation
         - We will use the full max context length of the model.
         - For inputs that exceed the max context length, we divide the tokenized string into chunks of up to
@@ -93,7 +96,7 @@ class LM(abc.ABC):
 
     # TODO: Add an optional max length
     @abc.abstractmethod
-    def greedy_until(self, requests) -> List[str]:
+    def greedy_until(self, requests: list[Instance]) -> List[str]:
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
@@ -111,25 +114,33 @@ class LM(abc.ABC):
         pass
 
     @classmethod
-    def create_from_arg_string(cls, arg_string, additional_config=None):
+    def create_from_arg_string(
+        cls: Type[T], arg_string: str, additional_config: dict = None
+    ) -> T:
+        """Create a model instance from an arg_string of the form `key=value,key1=value1`."""
         additional_config = {} if additional_config is None else additional_config
         args = utils.simple_parse_args_string(arg_string)
         args2 = {k: v for k, v in additional_config.items() if v is not None}
-        if args2.get("device") == "mps" or args.get("device") == "mps":
-            args["dtype"] = "float32"
+        # TODO: remove this hack once mps is fixed in torch stable
+        if args2.get("device") in ("mps", "mps:0") or args.get("device") in (
+            "mps",
+            "mps:0",
+        ):
+            if "dev" not in torch.__version__:
+                args["dtype"] = "float32"
         # if trailing comma, remove empty key
         args.pop("", None)
         return cls(**args, **args2)
 
     @property
-    def rank(self):
+    def rank(self) -> int:
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
         return self._rank
 
     @property
-    def world_size(self):
+    def world_size(self) -> int:
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
