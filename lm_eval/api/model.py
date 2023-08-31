@@ -117,6 +117,8 @@ class LM(abc.ABC):
         args2 = {k: v for k, v in additional_config.items() if v is not None}
         if args2.get("device") == "mps" or args.get("device") == "mps":
             args["dtype"] = "float32"
+        # if trailing comma, remove empty key
+        args.pop("", None)
         return cls(**args, **args2)
 
     @property
