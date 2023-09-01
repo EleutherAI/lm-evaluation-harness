@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 import json
 import logging
@@ -36,6 +37,7 @@ def parse_args():
         "--write_detailed_eval_info", action="store_true", default=False
     )
     parser.add_argument("--detailed_eval_info_path", type=str, default=None)
+    parser.add_argument("--bootstrap_iters", type=int, default=100000)
 
     return parser.parse_args()
 
@@ -77,6 +79,7 @@ def main():
         no_tokenizer_check=args.no_tokenizer_check,
         write_out=args.write_detailed_eval_info,
         output_base_path=args.detailed_eval_info_path,
+        bootstrap_iters=args.bootstrap_iters,
     )
 
     dumped = json.dumps(results, indent=2)
