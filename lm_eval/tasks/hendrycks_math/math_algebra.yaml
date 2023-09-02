@@ -12,6 +12,9 @@ process_results: !function utils_hendrycks_math.process_results
 doc_to_target: "{{solution}}"
 generation_kwargs:
   until:
+    - "$"
     - "\n"
+  temperature: 0
+  top_p: None
 metric_list:
   - metric: acc
