@@ -7,11 +7,14 @@ dataset_name: algebra
 output_type: greedy_until
 training_split: train
 test_split: test
-doc_to_text:  !function utils_hendrycks_math.doc_to_text
+doc_to_text:  "QUESTION:\n{{problem}}\nFINAL ANSWER: $"
 process_results: !function utils_hendrycks_math.process_results
 doc_to_target: "{{solution}}"
 generation_kwargs:
   until:
+    - "$"
     - "\n"
+  temperature: 0
+  top_p: None
 metric_list:
   - metric: acc

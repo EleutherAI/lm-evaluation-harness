@@ -17,7 +17,7 @@ def process_results(doc, results):
     retval = 0
     indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
     if len(indices) <= 1:
-        answer = results[0].replace("$", "").strip()
+        answer = results[0].strip()
     else:
         answer = results[0][indices[0] + 1 : indices[-1]].strip()
     if is_equiv(answer, doc["solution"]):
