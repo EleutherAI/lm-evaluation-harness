@@ -25,6 +25,7 @@ def process_results(doc, results):
     return {"acc": retval}
 
 
+# GPT3 prompt from https://github.com/hendrycks/math/blob/main/modeling/evaluate_gpt3.py
 def doc_to_text(doc):
     train_prompt = (
         "Given a mathematics problem, determine the answer. Simplify your answer as much as possible."
@@ -57,7 +58,7 @@ def doc_to_text(doc):
         + "\n"
         + "Answer: $\\frac{1}{32}$"
     )
-    prompt = train_prompt + "\n" + doc["problem"] + "\n" + "Answer: $"
+    prompt = train_prompt + "\n" + "###" + "\n" + doc["problem"] + "\n" + "Answer: $"
     return prompt
 
 
@@ -74,7 +75,7 @@ def _fix_fracs(string):
             else:
                 try:
                     assert len(substr) >= 2
-                except AssertionError:
+                except:  # noqa: E722
                     return string
                 a = substr[0]
                 b = substr[1]

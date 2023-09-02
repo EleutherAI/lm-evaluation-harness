@@ -792,7 +792,10 @@ class ConfigurableTask(Task):
             else:
                 target_string = utils.apply_template(doc_to_target, doc)
                 if target_string.isdigit():
-                    return ast.literal_eval(target_string)
+                    try:
+                        return ast.literal_eval(target_string)
+                    except SyntaxError:
+                        return target_string
                 # TODO: this might break if target string is e.g '[0,1]' for a math task.
                 elif (
                     len(target_string) >= 2
