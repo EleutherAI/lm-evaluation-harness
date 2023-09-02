@@ -90,6 +90,12 @@ class TaskConfig(dict):
 
     def __post_init__(self):
 
+        if "." in self.dataset_path:
+            import inspect
+            from importlib import import_module
+
+            self.dataset_path = inspect.getfile(import_module(self.dataset_path))
+
         if self.generation_kwargs is not None:
             if self.output_type != "greedy_until":
                 eval_logger.warning(
@@ -627,19 +633,19 @@ class ConfigurableTask(Task):
             )
 
         if self.has_test_docs():
-            docs = self.test_docs()
+            self.task_docs = self.test_docs()
         elif self.has_validation_docs():
-            docs = self.validation_docs()
+            self.task_docs = self.validation_docs()
         else:
             assert (
                 False
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
         # Test One Doc
-        self.features = list(docs.features.keys())
+        self.features = list(self.task_docs.features.keys())
         self.multiple_input = 0
         self.multiple_target = 0
-        test_doc = docs[0]
+        test_doc = self.task_docs[0]
         test_text = self.doc_to_text(test_doc)
         test_target = self.doc_to_target(test_doc)
 
@@ -652,9 +658,36 @@ class ConfigurableTask(Task):
 
             if type(test_text) is int:
                 self.multiple_input = num_choice
+        else:
+            test_choice = None
 
         if type(test_target) is list:
             self.multiple_target = len(test_target)
+        else:
+            if (type(test_target) is int) and (test_choice is not None):
+                test_target = test_choice[test_target]
+            else:
+                test_target = str(test_target)
+
+        if test_choice is not None:
+            check_choices = test_choice
+        else:
+            check_choices = [test_target]
+
+        for choice in check_choices:
+            choice_has_whitespace = True if " " in choice else False
+            delimiter_has_whitespace = (
+                True if " " in self._config.target_delimiter else False
+            )
+
+            if delimiter_has_whitespace and choice_has_whitespace:
+                eval_logger.warning(
+                    f'Both target_delimiter and target choice: "{choice}" have whitespace'
+                )
+            elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
+                eval_logger.warning(
+                    f'Both target_delimiter and target choice: "{choice}" does not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
+                )
 
     def download(self, dataset_kwargs=None):
 
@@ -716,6 +749,15 @@ class ConfigurableTask(Task):
                 )
             return super().fewshot_docs()
 
+    def apply_filters(self):
+
+        if hasattr(self, "_filters"):
+            for f in self._filters:
+                f.apply(self._instances, self.task_docs)
+        else:
+            eval_logger.warning("No filter defined, passing through instances")
+            return self._instances
+
     def should_decontaminate(self):
         return self._config.should_decontaminate
 
@@ -756,7 +798,7 @@ class ConfigurableTask(Task):
                 return doc[doc_to_text]
             else:
                 text_string = utils.apply_template(doc_to_text, doc)
-                if text_string.isdigit():
+                if text_string.isdigit() and self._config.doc_to_choice is not None:
                     return ast.literal_eval(text_string)
                 else:
                     return text_string
@@ -791,12 +833,8 @@ class ConfigurableTask(Task):
                 return doc[doc_to_target]
             else:
                 target_string = utils.apply_template(doc_to_target, doc)
-                if target_string.isdigit():
-                    try:
-                        return ast.literal_eval(target_string)
-                    except SyntaxError:
-                        return target_string
-                # TODO: this might break if target string is e.g '[0,1]' for a math task.
+                if target_string.isdigit() and self._config.doc_to_choice is not None:
+                    return ast.literal_eval(target_string)
                 elif (
                     len(target_string) >= 2
                     and (target_string[0] == "[")
@@ -985,18 +1023,36 @@ class ConfigurableTask(Task):
                 gold = self.doc_to_text(doc)
             else:
                 gold = self.doc_to_target(doc)
-                if type(gold) is str:
-                    gold = choices.index(gold)
+
+            gold_index_error = False
+            if type(gold) is list:
+                gold = [i if i < len(choices) else -100 for i in gold]
+                if -100 in gold:
+                    gold_index_error = True
+            else:
+                if type(gold) is int:
+                    gold = gold if gold < len(choices) else -100
+                elif type(gold) is str:
+                    gold = choices.index(gold) if gold in choices else -100
+
+                if gold == -100:
+                    gold_index_error = True
+
+            if gold_index_error:
+                eval_logger.warning(
+                    f"Label index was not in within range of available choices,"
+                    f"Sample:\n\n{doc}\n\n"
+                )
 
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
-                exact_match = int(any([is_greedy[i] for i in gold]))
+                exact_match = int(any([is_greedy[i] if i != -100 else 0 for i in gold]))
             else:
                 acc = 1.0 if pred == gold else 0.0
                 acc_norm = 1.0 if pred_norm == gold else 0.0
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
-                exact_match = int(is_greedy[gold])
+                exact_match = int(is_greedy[gold]) if gold != -100 else 0
 
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
@@ -1024,37 +1080,37 @@ class ConfigurableTask(Task):
             else:
                 gold = str(gold)
 
-            for key, result in zip(self._metric_fn_list.keys(), results):
+            result = results[0]
+            for metric in self._metric_fn_list.keys():
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
                     scores = []
                     for gold_option in gold:
-                        res = self._metric_fn_list[key](
+                        res = self._metric_fn_list[metric](
                             references=[gold_option],
                             predictions=[result],
-                            **self._metric_fn_kwargs[key],
+                            **self._metric_fn_kwargs[metric],
                         )
                         if isinstance(res, dict):
                             # TODO: this handles the case where HF evaluate returns a dict.
-                            res = res[key]
+                            res = res[metric]
                         scores.append(res)
                     if any(scores):
                         result_score = 1.0
                     else:
                         result_score = 0.0
                 else:
-                    result_score = self._metric_fn_list[key](
+                    result_score = self._metric_fn_list[metric](
                         references=[gold],
                         predictions=[result],
-                        **self._metric_fn_kwargs[key],
+                        **self._metric_fn_kwargs[metric],
                     )
-
-                if isinstance(result_score, dict):
-                    result_dict.update(result_score)
-                else:
-                    result_dict[key] = result_score
+                    if isinstance(result_score, dict):
+                        # TODO: this handles the case where HF evaluate returns a dict.
+                        result_score = result_score[metric]
+                result_dict[metric] = result_score
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",

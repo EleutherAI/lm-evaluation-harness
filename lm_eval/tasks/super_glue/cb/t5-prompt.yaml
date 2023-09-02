@@ -6,7 +6,7 @@ dataset_name: cb
 training_split: train
 validation_split: validation
 output_type: greedy_until
-doc_to_text: "cb hypothesis: {{hypothesis}} premise {{premise}}"
+doc_to_text: "cb hypothesis: {{hypothesis}} premise: {{premise}}"
 doc_to_target: label
 doc_to_choice: ['entailment', 'contradiction', 'neutral']
 metric_list:
@@ -15,5 +15,6 @@ metric_list:
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
-  - metric: f1
-    aggregation: !function "aggregate.cb_multi_fi"
+  - metric: !function "t5_utils.mean_3class_f1"
+    aggregation: !function "t5_utils.agg_mean_3class_f1"
+    higher_is_better: true
