@@ -842,7 +842,7 @@ class ConfigurableTask(Task):
                 ):
                     try:
                         return ast.literal_eval(target_string)
-                    except SyntaxError:
+                    except (SyntaxError, ValueError):
                         return target_string
                 else:
                     return target_string
