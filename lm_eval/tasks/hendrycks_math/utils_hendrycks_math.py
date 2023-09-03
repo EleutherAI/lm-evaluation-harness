@@ -14,15 +14,15 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
 
 def process_results(doc, results):
-    retval = 0
+    retval = 0.0
     indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
     if len(indices) <= 1:
         answer = results[0].strip()
     else:
         answer = results[0][indices[0] + 1 : indices[-1]].strip()
     if is_equiv(answer, doc["solution"]):
-        retval = 1
-    return {"acc": retval}
+        retval = 1.0
+    return {"exact_match": retval}
 
 
 # GPT3 prompt from https://github.com/hendrycks/math/blob/main/modeling/evaluate_gpt3.py
