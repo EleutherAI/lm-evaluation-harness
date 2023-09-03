@@ -90,6 +90,12 @@ class TaskConfig(dict):
 
     def __post_init__(self):
 
+        if "." in self.dataset_path:
+            import inspect
+            from importlib import import_module
+
+            self.dataset_path = inspect.getfile(import_module(self.dataset_path))
+
         if self.generation_kwargs is not None:
             if self.output_type != "greedy_until":
                 eval_logger.warning(
@@ -627,19 +633,19 @@ class ConfigurableTask(Task):
             )
 
         if self.has_test_docs():
-            docs = self.test_docs()
+            self.task_docs = self.test_docs()
         elif self.has_validation_docs():
-            docs = self.validation_docs()
+            self.task_docs = self.validation_docs()
         else:
             assert (
                 False
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
         # Test One Doc
-        self.features = list(docs.features.keys())
+        self.features = list(self.task_docs.features.keys())
         self.multiple_input = 0
         self.multiple_target = 0
-        test_doc = docs[0]
+        test_doc = self.task_docs[0]
         test_text = self.doc_to_text(test_doc)
         test_target = self.doc_to_target(test_doc)
 
@@ -743,6 +749,15 @@ class ConfigurableTask(Task):
                 )
             return super().fewshot_docs()
 
+    def apply_filters(self):
+
+        if hasattr(self, "_filters"):
+            for f in self._filters:
+                f.apply(self._instances, self.task_docs)
+        else:
+            eval_logger.warning("No filter defined, passing through instances")
+            return self._instances
+
     def should_decontaminate(self):
         return self._config.should_decontaminate
 
@@ -783,7 +798,7 @@ class ConfigurableTask(Task):
                 return doc[doc_to_text]
             else:
                 text_string = utils.apply_template(doc_to_text, doc)
-                if text_string.isdigit():
+                if text_string.isdigit() and self._config.doc_to_choice is not None:
                     return ast.literal_eval(text_string)
                 else:
                     return text_string
@@ -818,7 +833,7 @@ class ConfigurableTask(Task):
                 return doc[doc_to_target]
             else:
                 target_string = utils.apply_template(doc_to_target, doc)
-                if target_string.isdigit():
+                if target_string.isdigit() and self._config.doc_to_choice is not None:
                     return ast.literal_eval(target_string)
                 elif (
                     len(target_string) >= 2
@@ -1005,18 +1020,36 @@ class ConfigurableTask(Task):
                 gold = self.doc_to_text(doc)
             else:
                 gold = self.doc_to_target(doc)
-                if type(gold) is str:
-                    gold = choices.index(gold)
+
+            gold_index_error = False
+            if type(gold) is list:
+                gold = [i if i < len(choices) else -100 for i in gold]
+                if -100 in gold:
+                    gold_index_error = True
+            else:
+                if type(gold) is int:
+                    gold = gold if gold < len(choices) else -100
+                elif type(gold) is str:
+                    gold = choices.index(gold) if gold in choices else -100
+
+                if gold == -100:
+                    gold_index_error = True
+
+            if gold_index_error:
+                eval_logger.warning(
+                    f"Label index was not in within range of available choices,"
+                    f"Sample:\n\n{doc}\n\n"
+                )
 
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
-                exact_match = int(any([is_greedy[i] for i in gold]))
+                exact_match = int(any([is_greedy[i] if i != -100 else 0 for i in gold]))
             else:
                 acc = 1.0 if pred == gold else 0.0
                 acc_norm = 1.0 if pred_norm == gold else 0.0
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
-                exact_match = int(is_greedy[gold])
+                exact_match = int(is_greedy[gold]) if gold != -100 else 0
 
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
