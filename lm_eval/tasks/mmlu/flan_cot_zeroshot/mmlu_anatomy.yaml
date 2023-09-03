@@ -1,0 +1,7 @@
+dataset_name: anatomy
+description: 'The following are multiple choice questions (with answers) about anatomy.
+
+
+  '
+include: _mmlu_flan_generative_template_yaml
+task: mmlu_flan_cot_zeroshot_anatomy

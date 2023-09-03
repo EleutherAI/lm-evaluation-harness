@@ -11,7 +11,7 @@ from lm_eval import utils
 from lm_eval.logger import eval_logger
 
 SUBJECTS = [
-    # "abstract_algebra",
+    "abstract_algebra",
     "anatomy",
     "astronomy",
     "business_ethics",
@@ -73,11 +73,14 @@ SUBJECTS = [
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--benchmark_name", required=True)
     parser.add_argument("--base_yaml_path", required=True)
     parser.add_argument(
-        "--task_save_path", default="lm_eval/tasks/mmlu/hendrycks_test_original"
+        "--save_prefix_path", default="flan"
     )
+    parser.add_argument(
+        "--cot_prompt_path", default=None
+    )
+    parser.add_argument("--task_prefix", default="")
     return parser.parse_args()
 
 
@@ -91,16 +94,25 @@ if __name__ == "__main__":
         base_yaml = yaml.full_load(f)
     print(base_yaml)
 
+    if args.cot_prompt_path is not None:
+        import json
+        with open(args.cot_prompt_path) as f:
+            cot_file = json.load(f)
+
     for subject in tqdm(SUBJECTS):
+        if args.cot_prompt_path is not None:
+            description = cot_file[subject]
+        else:
+            description = f"The following are multiple choice questions (with answers) about {' '.join(subject.split('_'))}.\n\n"
 
         yaml_dict = {
             "include": base_yaml_name,
-            "task": base_yaml["task"].strip("abstract_algebra") + "subject",
+            "task": f"mmlu_{args.task_prefix}_{subject}",
             "dataset_name": subject,
-            "description": f"The following are multiple choice questions (with answers) about {' '.join(subject.split('_'))}.\n\n",
+            "description": description,
         }
 
-        file_save_path = args.task_save_path + f"_{subject}.yaml"
+        file_save_path = args.save_prefix_path + f"_{subject}.yaml"
         eval_logger.info(f"Saving yaml for subset {subject} to {file_save_path}")
         with open(file_save_path, "w") as yaml_file:
             yaml.dump(yaml_dict, yaml_file)

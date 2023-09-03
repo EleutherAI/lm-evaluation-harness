@@ -1,0 +1,12 @@
+group: mmlu_flan_loglikelihood
+dataset_path: cais/mmlu
+validation_split: validation
+fewshot_split: dev
+doc_to_text: "Q: {{question.strip()}}\n(A) {{choices[0]}} (B) {{choices[1]}} (C) {{choices[2]}} (D) {{choices[3]}}\nA:"
+output_type: multiple_choice
+doc_to_choice: ['(A)', '(B)', '(C)', '(D)']
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
