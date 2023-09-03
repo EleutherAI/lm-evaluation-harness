@@ -1,14 +1,14 @@
 group:
   - super-glue-t5-prompt
-task: super_glue-copa-t5-prompt
+task: super_glue-wic-t5-prompt
 dataset_path: super_glue
-dataset_name: copa
+dataset_name: wic
 training_split: train
 validation_split: validation
 output_type: greedy_until
-doc_to_text: "copa choice1: {{choice1}} choice2: {{choice2}} premise: {{premise}} question: {{question}}"
+doc_to_text: "wic sentence1: {{sentence1}} sentence2: {{sentence2}} word: {{word}}"
 doc_to_target: label
-doc_to_choice: ['choice1', 'choice2']
+doc_to_choice: ['False', 'True']
 metric_list:
   - metric: exact_match
     aggregation: mean
