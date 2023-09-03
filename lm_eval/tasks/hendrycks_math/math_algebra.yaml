@@ -17,4 +17,6 @@ generation_kwargs:
   temperature: 0
   top_p: None
 metric_list:
-  - metric: acc
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
