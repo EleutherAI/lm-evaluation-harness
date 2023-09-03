@@ -1,0 +1,8 @@
+dataset_name: security_studies
+description: 'The following are multiple choice questions (with answers) about security
+  studies.
+
+
+  '
+include: _mmlu_flan_generative_template_yaml
+task: mmlu_flan_cot_zeroshot_security_studies
