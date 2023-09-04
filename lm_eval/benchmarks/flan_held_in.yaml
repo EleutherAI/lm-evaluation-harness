@@ -25,13 +25,13 @@ task:
     dataset_path: anli
     use_prompt: flan/prompt_templates/flan_anli.yaml:*
     validation_split: dev_r3
-  # - include: flan/yaml_templates/held_in_template_yaml
-  #   task: ai2_arc
-  #   dataset_path: ARC-Easy
-  #   use_prompt: local:*
-  #   validation_split: validation
-  # - include: flan/yaml_templates/held_in_template_yaml
-  #   task: ai2_arc
-  #   dataset_path: ARC-Challange
-  #   use_prompt: local:*
-  #   validation_split: validation
+  - include: flan/yaml_templates/held_in_template_yaml
+    task: ai2_arc
+    dataset_path: ARC-Easy
+    use_prompt: local:*
+    validation_split: validation
+  - include: flan/yaml_templates/held_in_template_yaml
+    task: ai2_arc
+    dataset_path: ARC-Challange
+    use_prompt: local:*
+    validation_split: validation

@@ -27,3 +27,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# https://raw.githubusercontent.com/suzgunmirac/BIG-Bench-Hard/main/cot-prompts/boolean_expressions.txt

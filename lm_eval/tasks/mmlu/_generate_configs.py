@@ -115,4 +115,4 @@ if __name__ == "__main__":
         file_save_path = args.save_prefix_path + f"_{subject}.yaml"
         eval_logger.info(f"Saving yaml for subset {subject} to {file_save_path}")
         with open(file_save_path, "w") as yaml_file:
-            yaml.dump(yaml_dict, yaml_file)
+            yaml.dump(yaml_dict, yaml_file, width=float("inf"))

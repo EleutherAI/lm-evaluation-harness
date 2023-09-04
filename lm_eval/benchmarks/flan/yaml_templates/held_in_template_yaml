@@ -8,6 +8,6 @@ metric_list:
     ignore_punctuation: true
 generation_kwargs:
   until:
-    - "\n\n"
+    - "</s>"
   do_sample: false
   temperature: 0.0
