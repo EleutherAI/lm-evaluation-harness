@@ -26,12 +26,14 @@ task:
     use_prompt: flan/prompt_templates/flan_anli.yaml:*
     validation_split: dev_r3
   - include: flan/yaml_templates/held_in_template_yaml
-    task: ai2_arc
-    dataset_path: ARC-Easy
-    use_prompt: local:*
+    task: arc_easy
+    dataset_path: ai2_arc
+    dataset_name: ARC-Easy
+    use_prompt: flan/prompt_templates/flan_arc.yaml:*
     validation_split: validation
   - include: flan/yaml_templates/held_in_template_yaml
-    task: ai2_arc
-    dataset_path: ARC-Challange
-    use_prompt: local:*
+    task: arc_challenge
+    dataset_path: ai2_arc
+    dataset_name: ARC-Challenge
+    use_prompt: flan/prompt_templates/flan_arc.yaml:*
     validation_split: validation
