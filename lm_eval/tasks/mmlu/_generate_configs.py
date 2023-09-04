@@ -92,7 +92,6 @@ if __name__ == "__main__":
     base_yaml_name = os.path.split(args.base_yaml_path)[-1]
     with open(args.base_yaml_path) as f:
         base_yaml = yaml.full_load(f)
-    print(base_yaml)
 
     if args.cot_prompt_path is not None:
         import json
@@ -115,4 +114,4 @@ if __name__ == "__main__":
         file_save_path = args.save_prefix_path + f"_{subject}.yaml"
         eval_logger.info(f"Saving yaml for subset {subject} to {file_save_path}")
         with open(file_save_path, "w") as yaml_file:
-            yaml.dump(yaml_dict, yaml_file, width=float("inf"))
+            yaml.dump(yaml_dict, yaml_file, width=float("inf"), allow_unicode=True, default_style='"')

@@ -1,7 +1,0 @@
-dataset_name: elementary_mathematics
-description: 'The following are multiple choice questions (with answers) about elementary mathematics.
-
-
-  '
-include: _mmlu_flan_generative_template_yaml
-task: mmlu_flan_n_shot_elementary_mathematics
