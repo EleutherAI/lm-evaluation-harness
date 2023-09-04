@@ -1,0 +1,5 @@
+"dataset_name": "snarks"
+"description": "Determine which of two sentences is sarcastic.\n\n"
+"doc_to_text": "Q: {{input}}\nA:"
+"include": "_template_yaml"
+"task": "bbh_flan_zeroshot_snarks"
