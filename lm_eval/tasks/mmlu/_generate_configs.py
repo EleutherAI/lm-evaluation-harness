@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
         yaml_dict = {
             "include": base_yaml_name,
-            "task": f"mmlu_{args.task_prefix}_{subject}",
+            "task": f"mmlu_{args.task_prefix}_{subject}" if args.task_prefix != "" else f"mmlu_{subject}",
             "dataset_name": subject,
             "description": description,
         }
