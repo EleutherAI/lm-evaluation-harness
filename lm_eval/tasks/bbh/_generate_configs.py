@@ -68,7 +68,7 @@ if __name__ == "__main__":
             doc_to_text = doc_to_text + " Let's think step by step.\n"
 
         yaml_dict = {
-                "include": "_template_yaml",
+                "include": base_yaml_name,
                 "task": f"bbh_{args.task_prefix}_{task}",
                 "dataset_name": task,
                 "description": description+"\n\n",
