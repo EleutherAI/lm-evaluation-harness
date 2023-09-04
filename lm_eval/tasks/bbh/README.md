@@ -25,7 +25,7 @@ Homepage: https://github.com/suzgunmirac/BIG-Bench-Hard
 
 #### Groups
 
-- `bbh`
+- `bbh_flan_zeroshot`
 
 #### Tasks
 
