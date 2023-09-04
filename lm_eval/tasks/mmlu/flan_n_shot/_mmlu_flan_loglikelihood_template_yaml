@@ -1,4 +1,4 @@
-group: mmlu_flan_loglikelihood
+group: mmlu_flan_n_shot_loglikelihood
 dataset_path: cais/mmlu
 # validation_split: validation
 test_split: test
