@@ -1,4 +1,4 @@
-group: bbh_flan_fewshot
+group: bbh_flan_cot_fewshot
 dataset_path: lukaemon/bbh
 output_type: greedy_until
 test_split: test

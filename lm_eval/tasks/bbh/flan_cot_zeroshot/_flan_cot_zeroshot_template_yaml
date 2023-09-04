@@ -1,4 +1,4 @@
-group: bbh_flan_zeroshot
+group: bbh_flan_cot_zeroshot
 dataset_path: lukaemon/bbh
 output_type: greedy_until
 test_split: test
