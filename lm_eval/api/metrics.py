@@ -332,7 +332,7 @@ def _sacreformat(refs, preds):
 
 
 class _bootstrap_internal:
-    def __init__(self, f, n):
+    def __init__(self, f, n) -> None:
         self.f = f
         self.n = n
 
