@@ -22,6 +22,7 @@ extras_require = {
     "gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
     "anthropic": ["anthropic"],
     "openai": ["openai", "tiktoken"],
+    "litellm": ["litellm"],
 }
 extras_require["all"] = list(itertools.chain.from_iterable(extras_require.values()))
 
