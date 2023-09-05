@@ -16,7 +16,7 @@ from lm_eval.benchmarks import include_benchmarks
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True, help="Name of model e.g. `hf`")
     parser.add_argument(
@@ -99,7 +99,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     if args.limit:
