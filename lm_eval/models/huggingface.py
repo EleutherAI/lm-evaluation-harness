@@ -296,14 +296,14 @@ class HFLM(LM):
                     )
             else:
                 assert accelerator.distributed_type in [
-                    DistributedType.FSDP, 
-                    DistributedType.MULTI_GPU
+                    DistributedType.FSDP,
+                    DistributedType.MULTI_GPU,
                 ], "Unsupported distributed type provided. Only DDP and FSDP are supported."
                 if accelerator.distributed_type == DistributedType.FSDP:
                     self._model = accelerator.prepare(self.model)
                 else:
                     self._model = accelerator.prepare_model(
-                        self.model, evaluation_mode=True 
+                        self.model, evaluation_mode=True
                     )
                 self._device = torch.device(f"cuda:{accelerator.local_process_index}")
                 self.accelerator = accelerator
