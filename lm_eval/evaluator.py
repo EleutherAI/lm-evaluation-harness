@@ -218,7 +218,6 @@ def evaluate(
     padding_requests = collections.defaultdict(int)
 
     # Stores group related keys and values for group-aggregation
-    aggregate = collections.defaultdict(dict)
     task_groups = collections.defaultdict(dict)
 
     # get lists of each type of request
@@ -226,6 +225,7 @@ def evaluate(
         if type(task) == tuple:
             group, task = task
             task_groups[task_name] = group
+            aggregate[task_name] = {}
 
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
@@ -403,12 +403,12 @@ def evaluate(
             #        | word_perplexity
             #        | byte_perplexity
             #        | bits_per_byte
-            if bool(task_groups):
+            if task_name in task_groups:
                 group_name = task_groups[task_name]
-                if metric not in aggregate[group_name]:
-                    aggregate[group_name][metric] = [task_score]
-                else:
+                if metric in list(aggregate[group_name].keys()):
                     aggregate[group_name][metric].append(task_score)
+                else:
+                    aggregate[group_name][metric] = [task_score]
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
