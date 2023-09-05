@@ -11,7 +11,7 @@ from .archiver import ZStdTextReader
 
 
 # Was used for testing the evaluator decoupled from the full logic below
-def get_train_overlap_stub(docs, ngrams_path, ngrams_n_size):
+def get_train_overlap_stub(docs: dict, ngrams_path: str, ngrams_n_size: str):
     simulated_overlap = 0.1
     contaminated = int(len(docs) * simulated_overlap)
     return random.sample(range(len(docs)), contaminated)
@@ -25,6 +25,7 @@ def get_train_overlap_stub(docs, ngrams_path, ngrams_n_size):
 # scripts are an info.json file containing the n_gram_size (13) and a bunch of "ngrams_{x}.bkt.txt.sorted.zst"
 # files. These should exist in the "ngrams_path" provided to this function.
 
+
 # Algorithm:
 # 1. Build lookups for each dataset {ngram: list(document_ids)}
 # 2. Merge into an overall lookup {ngram: [(task_name, task_set, doc_ids),]}
@@ -33,7 +34,7 @@ def get_train_overlap_stub(docs, ngrams_path, ngrams_n_size):
 # 4. Strip the task_set from the dictionary keys and return
 #
 # We cache the task+set lookups as well as the overlaps.
-def get_train_overlap(docs_by_task_set, ngrams_path, limit):
+def get_train_overlap(docs_by_task_set: dict, ngrams_path: str, limit: int) -> dict:
     # return get_train_overlap_stub(docs, ngrams_path, ngrams_n_size)
 
     info_dict_path = os.path.join(ngrams_path, "info.json")
@@ -46,7 +47,7 @@ def get_train_overlap(docs_by_task_set, ngrams_path, limit):
     print("Building Lookups...")
     start = time.perf_counter()
 
-    def get_overlaps_dump_path(task_name, task_set, ngrams_n_size, limit):
+    def get_overlaps_dump_path(task_name, task_set, ngrams_n_size, limit) -> str:
         return f"data/{task_name}/{task_set}_{ngrams_n_size}grams_limit{limit}.overlaps"
 
     lookups = {}

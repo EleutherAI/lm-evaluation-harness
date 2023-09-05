@@ -42,11 +42,11 @@ def simple_evaluate(
     device=None,
     use_cache=None,
     limit=None,
-    bootstrap_iters=100000,
-    check_integrity=False,
+    bootstrap_iters: int = 100000,
+    check_integrity: bool = False,
     decontamination_ngrams_path=None,
-    write_out=False,
-    log_samples=True,
+    write_out: bool = False,
+    log_samples: bool = True,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -117,7 +117,6 @@ def simple_evaluate(
 
     task_dict = lm_eval.tasks.get_task_dict(tasks)
     for task_name in task_dict.keys():
-
         task_obj = task_dict[task_name]
         if type(task_obj) == tuple:
             group, task_obj = task_obj
@@ -175,10 +174,10 @@ def evaluate(
     lm,
     task_dict,
     limit=None,
-    bootstrap_iters=100000,
+    bootstrap_iters: int = 100000,
     decontamination_ngrams_path=None,
-    write_out=False,
-    log_samples=True,
+    write_out: bool = False,
+    log_samples: bool = True,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -223,7 +222,6 @@ def evaluate(
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
-
         if type(task) == tuple:
             group, task = task
             task_groups[task_name] = group
@@ -350,7 +348,6 @@ def evaluate(
         # if multigpu, then gather data across all ranks
         # first gather logged samples across all ranks
         for task_name, task_samples in list(samples.items()):
-
             full_samples = [None] * lm.world_size
             torch.distributed.all_gather_object(full_samples, task_samples)
 
@@ -359,7 +356,6 @@ def evaluate(
         # then collect metrics across all ranks
         vals_torch = collections.defaultdict(list)
         for (task_name, key, metric), items in vals.items():
-
             numitem = 0
             if type(items[0]) == tuple:
                 numitem = len(items[0])
