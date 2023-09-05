@@ -1,0 +1,15 @@
+task: medqa_usmle
+dataset_path: augtoma/medqa_usmle
+output_type: multiple_choice
+training_split: null
+validation_split: null
+test_split: test
+process_docs: !function utils.process_docs
+doc_to_text: !function utils.doc_to_text
+doc_to_target: answer_idx
+target_delimiter: ""
+doc_to_choice: ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
