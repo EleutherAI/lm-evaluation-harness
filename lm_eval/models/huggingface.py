@@ -432,9 +432,9 @@ class HFLM(LM):
         return encoding
 
     def tok_batch_encode(
-        self, 
-        strings: List[str], 
-        padding_side: str = "left", 
+        self,
+        strings: List[str],
+        padding_side: str = "left",
         left_truncate_len: int = None,
         truncation: bool = False,
     ):

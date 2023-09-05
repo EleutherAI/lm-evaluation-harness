@@ -88,7 +88,6 @@ class TaskConfig(dict):
 
     metadata: str = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
-
     def __post_init__(self) -> None:
         if "." in self.dataset_path:
             import inspect
