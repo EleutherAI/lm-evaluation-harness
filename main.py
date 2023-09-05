@@ -9,7 +9,7 @@ from pathlib import Path
 
 from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
-from lm_eval.logger import eval_logger
+from lm_eval.logger import eval_logger, SPACING
 from lm_eval.tasks import include_task_folder
 from lm_eval.benchmarks import include_benchmarks
 
@@ -17,15 +17,17 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--model", required=True, help="Name of model e.g. `hf`")
+    parser.add_argument(
+        "--tasks",
+        default=None,
+        help="Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS))),
+    )
     parser.add_argument(
         "--model_args",
         default="",
         help="String arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
-    )
-    parser.add_argument(
-        "--tasks", default=None  # , choices=utils.MultiChoice(sorted(ALL_TASKS))
     )
     parser.add_argument(
         "--num_fewshot",
@@ -126,10 +128,21 @@ def main() -> None:
         else:
             tasks_list = args.tasks.split(",")
             task_names = utils.pattern_match(tasks_list, ALL_TASKS)
+            task_missing = []
             for task in [task for task in tasks_list if task not in task_names]:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
+                else:
+                    task_missing.append(task)
+
+        if task_missing != []:
+            missing = ", ".join(task_missing)
+            eval_logger.error(
+                f"Tasks were not found: {missing}\n"
+                f"{SPACING}Try `lm-eval -h` for list of available tasks",
+            )
+            raise ValueError(f"Tasks {missing} were not found.")
 
     if args.output_path:
         path = Path(args.output_path)

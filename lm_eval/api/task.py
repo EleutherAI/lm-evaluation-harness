@@ -78,7 +78,7 @@ class TaskConfig(dict):
     # runtime configuration options
     num_fewshot: int = 0
     # scoring options
-    metric_list: str = None
+    metric_list: list = None
     output_type: str = "greedy_until"
     generation_kwargs: dict = None
     repeats: int = 1
@@ -87,7 +87,6 @@ class TaskConfig(dict):
     doc_to_decontamination_query: str = None
 
     metadata: str = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
-
 
     def __post_init__(self) -> None:
         if "." in self.dataset_path:
@@ -1073,25 +1072,33 @@ class ConfigurableTask(Task):
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
                     scores = []
                     for gold_option in gold:
-                        res = self._metric_fn_list[metric](
-                            references=[gold_option],
-                            predictions=[result],
-                            **self._metric_fn_kwargs[metric],
-                        )
-                        if isinstance(res, dict):
+                        try:
+                            result_score = self._metric_fn_list[metric](
+                                references=[gold_option],
+                                predictions=[result],
+                                **self._metric_fn_kwargs[metric],
+                            )
+                        except TypeError:  # TODO: this is hacky and I don't want to do it
+                            result_score = self._metric_fn_list[metric](
+                                [gold_option, result]
+                            )
+                        if isinstance(result_score, dict):
                             # TODO: this handles the case where HF evaluate returns a dict.
-                            res = res[metric]
-                        scores.append(res)
+                            result_score = result_score[metric]
+                        scores.append(result_score)
                     if any(scores):
                         result_score = 1.0
                     else:
                         result_score = 0.0
                 else:
-                    result_score = self._metric_fn_list[metric](
-                        references=[gold],
-                        predictions=[result],
-                        **self._metric_fn_kwargs[metric],
-                    )
+                    try:
+                        result_score = self._metric_fn_list[metric](
+                            references=[gold],
+                            predictions=[result],
+                            **self._metric_fn_kwargs[metric],
+                        )
+                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                        result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.
                         result_score = result_score[metric]
