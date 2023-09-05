@@ -4,10 +4,11 @@ import numpy as np
 from lm_eval.models.huggingface import HFLM
 from lm_eval.api.instance import Instance
 import lm_eval.tasks as tasks
+import torch
 
 
 class Test_HFLM:
-
+    torch.use_deterministic_algorithms(True)
     multiple_choice_task = tasks.TASK_REGISTRY.get("arc_easy")()  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
