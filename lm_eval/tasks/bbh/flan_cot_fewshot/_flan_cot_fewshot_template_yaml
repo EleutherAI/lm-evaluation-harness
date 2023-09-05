@@ -18,5 +18,5 @@ filter_list:
   - name: "get-answer"
     filter:
       - function: "regex"
-        regex_pattern: "(?<=The answer is )(.*)(?=.)"
+        regex_pattern: "(?<=the answer is )(.*)(?=.)"
       - function: "take_first"
