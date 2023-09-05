@@ -19,7 +19,7 @@ class Instance:
     doc_id: str = None
     repeats: str = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # unpack metadata field
         self.task_name, self.doc_id, self.repeats = self.metadata
 

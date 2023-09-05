@@ -1,4 +1,5 @@
 import os
+from typing import Any
 import zstandard
 import json
 import jsonlines
@@ -9,7 +10,7 @@ import tqdm
 from pathlib import Path
 
 
-def json_serial(obj):
+def json_serial(obj: Any) -> str:
     """JSON serializer for objects not serializable by default json code"""
 
     if isinstance(obj, (datetime.datetime,)):
@@ -19,7 +20,7 @@ def json_serial(obj):
 
 # Modified version of lm_dataformat Archive for single file.
 class Archive:
-    def __init__(self, file_path, compression_level=3):
+    def __init__(self, file_path: str, compression_level: int = 3) -> None:
         self.file_path = file_path
         dir_name = os.path.dirname(file_path)
         if dir_name:
@@ -28,7 +29,7 @@ class Archive:
         self.cctx = zstandard.ZstdCompressor(level=compression_level)
         self.compressor = self.cctx.stream_writer(self.fh)
 
-    def add_data(self, data, meta={}):
+    def add_data(self, data, meta={}) -> None:
         self.compressor.write(
             json.dumps({"text": data, "meta": meta}, default=json_serial).encode(
                 "UTF-8"
@@ -36,7 +37,7 @@ class Archive:
             + b"\n"
         )
 
-    def commit(self):
+    def commit(self) -> None:
         self.compressor.flush(zstandard.FLUSH_FRAME)
         self.fh.flush()
         self.fh.close()
@@ -44,10 +45,16 @@ class Archive:
 
 # Modified version of lm_dataformat Reader with self.fh set, allowing peeking for tqdm.
 class Reader:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def read(self, file, get_meta=False, autojoin_paragraphs=True, para_joiner="\n\n"):
+    def read(
+        self,
+        file,
+        get_meta: bool = False,
+        autojoin_paragraphs: bool = True,
+        para_joiner: str = "\n\n",
+    ):
         with open(file, "rb") as fh:
             self.fh = fh
             cctx = zstandard.ZstdDecompressor()
@@ -72,7 +79,7 @@ class Reader:
 
 
 class TextArchive:
-    def __init__(self, file_path, mode="rb+"):
+    def __init__(self, file_path, mode: str = "rb+") -> None:
         self.file_path = file_path
         dir_name = os.path.dirname(file_path)
         if dir_name:
@@ -83,21 +90,21 @@ class TextArchive:
 
         self.fh = open(self.file_path, mode)
 
-    def add_data(self, data):
+    def add_data(self, data) -> None:
         self.fh.write(data.encode("UTF-8") + b"\n")
 
-    def commit(self):
+    def commit(self) -> None:
         self.fh.flush()
         self.fh.close()
 
 
 class TextReader:
-    def __init__(self, file_path):
+    def __init__(self, file_path) -> None:
         self.file_path = file_path
 
     # Optimized mmap read with infrequent tqdm updates to maintain speed
     # Tested up to 250MB/s.
-    def read_tqdm(self, update_frequency=10000):
+    def read_tqdm(self, update_frequency: int = 10000):
         current_file_position = 0
         line_counter = 0
         with open(self.file_path, "r") as fh, tqdm.tqdm(
@@ -149,7 +156,7 @@ class TextReader:
 # Optimized for speed. Decompresses the archive in shell before
 # using the mmap'd TextReader.
 class ZStdTextReader:
-    def __init__(self, file):
+    def __init__(self, file) -> None:
         self.file = file
 
     def read_tqdm(self):
