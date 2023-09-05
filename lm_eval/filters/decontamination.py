@@ -17,7 +17,7 @@ class DecontaminationFilter(Filter):
         """
         self._decontam_results = None
 
-    def apply(self, reps) -> None:
+    def apply(self, resps, docs) -> None:
         """
         Return {"no_contamination", "only_contamination"} keys for the 2 different subsets
         """

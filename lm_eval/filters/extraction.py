@@ -17,7 +17,7 @@ class RegexFilter(Filter):
         self.regex = re.compile(regex_pattern)
         self.fallback = fallback
 
-    def apply(self, resps):
+    def apply(self, resps, docs):
         # here, we assume we have a list, in which each element is
         # a list of model responses for some particular input/target pair.
         # so we process each of these (same input/target response sets)
@@ -46,7 +46,7 @@ class WhitespaceFilter(Filter):
     def __init__(self) -> None:
         pass
 
-    def apply(self, resps):
+    def apply(self, resps, docs):
         def filter_set(inst):
             filtered_resp = []
             for resp in inst:

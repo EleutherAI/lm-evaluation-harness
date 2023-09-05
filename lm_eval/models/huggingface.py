@@ -1,3 +1,5 @@
+import os
+
 import torch
 import transformers
 from transformers.models.auto.modeling_auto import (
@@ -20,7 +22,7 @@ from lm_eval.api.registry import register_model
 
 from lm_eval.utils import MultiTokenEOSCriteria, stop_sequences_criteria
 
-from accelerate import Accelerator, find_executable_batch_size
+from accelerate import Accelerator, find_executable_batch_size, DistributedType
 from typing import List, Optional, Union
 
 
@@ -67,6 +69,7 @@ class HFLM(LM):
         revision: Optional[str] = "main",
         subfolder: Optional[str] = None,
         tokenizer: Optional[str] = None,
+        truncation: Optional[bool] = False,
         max_length: Optional[int] = None,
         device: Optional[str] = "cuda",
         dtype: Optional[Union[str, torch.dtype]] = "auto",
@@ -75,6 +78,7 @@ class HFLM(LM):
         low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
+        cache_dir: Optional[Union[str, os.PathLike]] = None,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
         parallelize: Optional[bool] = False,
@@ -240,6 +244,8 @@ class HFLM(LM):
             use_fast=use_fast_tokenizer,
         )
 
+        self.truncation = truncation
+
         self.vocab_size = self.tokenizer.vocab_size
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
 
@@ -289,9 +295,16 @@ class HFLM(LM):
                         "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
                     )
             else:
-                self._model = accelerator.prepare_model(
-                    self.model, evaluation_mode=True
-                )
+                assert accelerator.distributed_type in [
+                    DistributedType.FSDP, 
+                    DistributedType.MULTI_GPU
+                ], "Unsupported distributed type provided. Only DDP and FSDP are supported."
+                if accelerator.distributed_type == DistributedType.FSDP:
+                    self._model = accelerator.prepare(self.model)
+                else:
+                    self._model = accelerator.prepare_model(
+                        self.model, evaluation_mode=True 
+                    )
                 self._device = torch.device(f"cuda:{accelerator.local_process_index}")
                 self.accelerator = accelerator
 
@@ -419,7 +432,11 @@ class HFLM(LM):
         return encoding
 
     def tok_batch_encode(
-        self, strings: List[str], padding_side: str = "left", left_truncate_len=None
+        self, 
+        strings: List[str], 
+        padding_side: str = "left", 
+        left_truncate_len: int = None,
+        truncation: bool = False,
     ):
         # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
         old_padding_side = self.tokenizer.padding_side
@@ -432,6 +449,7 @@ class HFLM(LM):
 
         encoding = self.tokenizer(
             strings,
+            truncation=truncation,
             padding="longest",
             return_tensors="pt",
             add_special_tokens=add_special_tokens,
@@ -858,7 +876,9 @@ class HFLM(LM):
 
                 # encode, pad, and truncate contexts for this batch
                 context_enc, attn_masks = self.tok_batch_encode(
-                    contexts, left_truncate_len=max_ctx_len
+                    contexts,
+                    left_truncate_len=max_ctx_len,
+                    truncation=self.truncation,
                 )
                 context_enc = context_enc.to(self.device)
                 attn_masks = attn_masks.to(self.device)
