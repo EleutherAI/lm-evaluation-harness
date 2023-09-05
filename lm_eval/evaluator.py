@@ -250,7 +250,8 @@ def evaluate(
                 # print the prompt for the first few documents
                 if inst.doc_id < 1:
                     eval_logger.info(
-                        f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\n{inst.args[0]}\n(end of prompt on previous line)"
+                        f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\
+\n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
                     )
                     eval_logger.info(f"Request: {str(inst)}")
 
@@ -359,28 +360,35 @@ def evaluate(
             if type(items[0]) == tuple:
                 numitem = len(items[0])
 
-            # distributed gather requires all ranks to have same dimensions
-            # so we pad out with float32 min value
-            pad_value = torch.finfo(torch.float32).min
-            metrics_tensor = torch.tensor(items, device=lm.device)
+            if isinstance(items[0], (str, list)):
+                # handle the string case
+                gathered_items = [None] * lm.accelerator.num_processes
+                torch.distributed.all_gather_object(gathered_items, items)
 
-            original_dtype = metrics_tensor.dtype  # store original dtype
-            torch_device_tensor = lm.accelerator.pad_across_processes(
-                metrics_tensor.to(torch.float32), pad_index=pad_value
-            )
-            gathered_item = lm.accelerator.gather(torch_device_tensor)
-
-            if numitem > 0:
-                gathered_filtered = gathered_item[gathered_item[:, 0] != pad_value]
+                gathered_item = list(itertools.chain.from_iterable(gathered_items))
             else:
-                gathered_filtered = gathered_item[gathered_item != pad_value]
+                # distributed gather requires all ranks to have same dimensions
+                # so we pad out with float32 min value
+                pad_value = torch.finfo(torch.float32).min
+                metrics_tensor = torch.tensor(items, device=lm.device)
 
-            gathered_item = (
-                gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
-            )
-            # reconvert if we were passed a tuple of values
-            if numitem > 0:
-                gathered_item = [tuple(g) for g in gathered_item]
+                original_dtype = metrics_tensor.dtype  # store original dtype
+                torch_device_tensor = lm.accelerator.pad_across_processes(
+                    metrics_tensor.to(torch.float32), pad_index=pad_value
+                )
+                gathered_item = lm.accelerator.gather(torch_device_tensor)
+
+                if numitem > 0:
+                    gathered_filtered = gathered_item[gathered_item[:, 0] != pad_value]
+                else:
+                    gathered_filtered = gathered_item[gathered_item != pad_value]
+
+                gathered_item = (
+                    gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
+                )
+                # reconvert if we were passed a tuple of values
+                if numitem > 0:
+                    gathered_item = [tuple(g) for g in gathered_item]
 
             if lm.rank == 0:
                 vals_torch[(task_name, key, metric)] = gathered_item
@@ -412,7 +420,7 @@ def evaluate(
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
-            if bootstrap_iters > 0:
+            if False:  # bootstrap_iters > 0:
                 stderr = lm_eval.api.metrics.stderr_for_metric(
                     metric=task.aggregation()[metric],
                     bootstrap_iters=min(bootstrap_iters, 1000)
