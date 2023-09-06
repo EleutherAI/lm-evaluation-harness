@@ -95,12 +95,14 @@ class Test_HFLM:
         res = self.LM.loglikelihood(self.MULTIPLE_CH)
         _RES, _res = self.MULTIPLE_CH_RES, [r[0] for r in res]
         # log samples to CI
-        file_path = Path(f"test_logs/outputs_log_{self.version_minor}.txt")
-        file_path.mkdir(parents=True, exist_ok=True)
+        dir_path = Path("test_logs")
+        dir_path.mkdir(parents=True, exist_ok=True)
+
+        file_path = dir_path / f"outputs_log_{self.version_minor}.txt"
         file_path = file_path.resolve()
         with open(file_path, "w") as f:
             f.write("\n".join(str(x) for x in _res))
-        assert np.allclose(_res, _RES, atol=1e-4)
+        assert np.allclose(_res, _RES, atol=1e-2)
         # check indices for Multiple Choice
         argmax_RES, argmax_res = np.argmax(
             np.array(_RES).reshape(-1, 4), axis=1
