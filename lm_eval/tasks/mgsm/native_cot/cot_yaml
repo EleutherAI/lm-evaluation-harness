@@ -1,7 +1,7 @@
 # This file will be included in the generated language-specific task configs.
 # It doesn't have a yaml file extension as it is not meant to be imported directly
 # by the harness.
-group: mgsm
+group: mgsm_cot_native
 dataset_path: juletxara/mgsm
 dataset_name: null  # Overridden by language-specific config.
 output_type: greedy_until
@@ -14,11 +14,7 @@ generation_kwargs:
     - "\n"
   do_sample: false
   temperature: 0.0
-filter_list:
-  - name: remove_whitespace
-    filter:
-      - function: remove_whitespace
-      - function: take_first
+target_delimiter: " "
 metric_list:
   - metric: exact_match
     aggregation: mean

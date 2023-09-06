@@ -5,4 +5,4 @@ doc_to_target: '{% if answer is not none %}{{answer[6+1]}}{% else %}{{answer_num
 doc_to_text: '{% if answer is not none %}{{question+"\nAnswer"}}{% else %}{{"Question
   : "+question+"\nAnswer"}}{% endif %}'
 include: direct_yaml
-task: mgsm_fr_direct
+task: mgsm_direct_fr

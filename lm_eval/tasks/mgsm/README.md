@@ -53,12 +53,32 @@ Homepage: https://github.com/google-research/url-nlp/tree/main/mgsm
 
 #### Groups
 
-* `mgsm`
+* `mgsm_direct`: Direct question
+  * `mgsm_direct_bn`: Bengali
+  * `mgsm_direct_de`: German
+  * `mgsm_direct_en`: English
+  * `mgsm_direct_es`: Spanish
+  * `mgsm_direct_fr`: French
+  * `mgsm_direct_ja`: Japanese
+  * `mgsm_direct_ru`: Russian
+  * `mgsm_direct_sw`: Swahili
+  * `mgsm_direct_te`: Telugu
+  * `mgsm_direct_th`: Thai
+  * `mgsm_direct_zh`: Chinese
+* `mgsm_cot_native`: Question with Answer followed by CoT prompt in the same language as the dataset.
+  * `mgsm_cot_native_bn`: Bengali
+  * `mgsm_cot_native_de`: German
+  * `mgsm_cot_native_en`: English
+  * `mgsm_cot_native_es`: Spanish
+  * `mgsm_cot_native_fr`: French
+  * `mgsm_cot_native_ja`: Japanese
+  * `mgsm_cot_native_ru`: Russian
+  * `mgsm_cot_native_sw`: Swahili
+  * `mgsm_cot_native_te`: Telugu
+  * `mgsm_cot_native_th`: Thai
+  * `mgsm_cot_native_zh`: Chinese
 
-#### Tasks
-
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: ...
+Examplar Samples: https://github.com/google-research/url-nlp/blob/main/mgsm/exemplars.py
 
 ### Checklist
 
