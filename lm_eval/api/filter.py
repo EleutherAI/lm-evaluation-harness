@@ -14,7 +14,7 @@ class Filter:
 
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
@@ -41,7 +41,7 @@ class FilterEnsemble:
     name: str
     filters: List[Filter]
 
-    def apply(self, instances: List[Instance], docs: List[Dataset]):
+    def apply(self, instances: List[Instance], docs: List[Dataset]) -> None:
 
         resps = [
             inst.resps for inst in instances
