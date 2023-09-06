@@ -11,8 +11,7 @@ from lm_eval.api.registry import (
 )
 
 
-def include_benchmarks(task_dir):
-
+def include_benchmarks(task_dir: str) -> None:
     for root, subdirs, file_list in os.walk(task_dir):
         if (subdirs == [] or "__pycache__" in subdirs) and (len(file_list) > 0):
             for f in file_list:
