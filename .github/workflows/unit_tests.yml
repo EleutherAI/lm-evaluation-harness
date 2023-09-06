@@ -70,3 +70,9 @@ jobs:
 #        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
       run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/tests_master --ignore=tests/extra
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: output_results
+        path: |
+          test_logs/*
