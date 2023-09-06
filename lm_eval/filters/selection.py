@@ -4,7 +4,7 @@ from lm_eval.api.filter import Filter
 
 
 class TakeFirstFilter(Filter):
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
@@ -17,8 +17,7 @@ class TakeFirstFilter(Filter):
 
 
 class TakeKFilter(Filter):
-    def __init__(self, *args, **kwargs):
-
+    def __init__(self, *args, **kwargs) -> None:
         self.k = kwargs.pop("k")
 
         super().__init__(*args, **kwargs)
@@ -32,7 +31,7 @@ class TakeKFilter(Filter):
 
 
 class MajorityVoteFilter(Filter):
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """

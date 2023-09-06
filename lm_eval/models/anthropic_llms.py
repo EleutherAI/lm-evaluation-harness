@@ -76,7 +76,7 @@ class AnthropicLM(LM):
         max_tokens_to_sample: int = 256,
         temperature: float = 0,  # defaults to 1
         **kwargs,  # top_p, top_k, etc.
-    ):
+    ) -> None:
         """Anthropic API wrapper.
 
         :param model: str
@@ -135,11 +135,10 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
     def tok_decode(self, tokens: List[int]) -> str:
         return self.tokenizer.decode(tokens)
 
-    def _loglikelihood_tokens(self, requests, disable_tqdm=False):
+    def _loglikelihood_tokens(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
 
     def greedy_until(self, requests) -> List[str]:
-
         if not requests:
             return []
 
