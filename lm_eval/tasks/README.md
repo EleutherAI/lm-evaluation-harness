@@ -42,7 +42,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [ ] GSM8k
 - [x] Arithmetic
 - [ ] MMMLU (Hailey)
-- [ ] Translation (WMT) suite (Hailey)
+- [x] Translation (WMT) suite
 - [x] Unscramble
 - [x] ~~Pile (perplexity)~~
 - [x] BLiMP
