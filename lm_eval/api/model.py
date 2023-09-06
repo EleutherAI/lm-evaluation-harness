@@ -13,7 +13,7 @@ from lm_eval.logger import eval_logger
 
 
 class LM(abc.ABC):
-    def __init__(self):
+    def __init__(self) -> None:
         """Defines the interface that should be implemented by all LM subclasses.
         LMs are assumed to take text (strings) as input and yield strings as output
         (inputs/outputs should be tokenization-agnostic.)
@@ -133,7 +133,7 @@ class LM(abc.ABC):
         # not support multi-device parallelism nor expect it.
         return self._world_size
 
-    def set_cache_hook(self, cache_hook):
+    def set_cache_hook(self, cache_hook) -> None:
         self.cache_hook = cache_hook
 
 
@@ -144,14 +144,14 @@ def hash_args(attr, args):
 
 
 class CacheHook:
-    def __init__(self, cachinglm):
+    def __init__(self, cachinglm) -> None:
         if cachinglm is None:
             self.dbdict = None
             return
 
         self.dbdict = cachinglm.dbdict
 
-    def add_partial(self, attr, req, res):
+    def add_partial(self, attr, req, res) -> None:
         if self.dbdict is None:
             return
         hsh = hash_args(attr, req)
@@ -159,7 +159,7 @@ class CacheHook:
 
 
 class CachingLM:
-    def __init__(self, lm, cache_db):
+    def __init__(self, lm, cache_db) -> None:
         """LM wrapper that returns cached results if they exist, and uses the underlying LM if not.
 
         :param lm: LM

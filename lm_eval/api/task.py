@@ -78,7 +78,7 @@ class TaskConfig(dict):
     # runtime configuration options
     num_fewshot: int = 0
     # scoring options
-    metric_list: str = None
+    metric_list: list = None
     output_type: str = "greedy_until"
     generation_kwargs: dict = None
     repeats: int = 1
@@ -88,8 +88,7 @@ class TaskConfig(dict):
 
     metadata: str = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
-    def __post_init__(self):
-
+    def __post_init__(self) -> None:
         if "." in self.dataset_path:
             import inspect
             from importlib import import_module
@@ -177,7 +176,7 @@ class Task(abc.ABC):
         cache_dir=None,
         download_mode=None,
         config=None,
-    ):
+    ) -> None:
         """
         :param data_dir: str
             Stores the path to a local folder containing the `Task`'s data files.
@@ -188,7 +187,6 @@ class Task(abc.ABC):
             HuggingFace `datasets` API with the default cache directory located at:
                 `~/.cache/huggingface/datasets`
             NOTE: You can change the cache location globally for a given process
-            by setting the shell environment variable, `HF_DATASETS_CACHE`,
             to another directory:
                 `export HF_DATASETS_CACHE="/path/to/another/directory"`
         :param download_mode: datasets.DownloadMode
@@ -219,7 +217,7 @@ class Task(abc.ABC):
             list(self.fewshot_docs()), self, rnd=random.Random(1234)
         )
 
-    def download(self, data_dir=None, cache_dir=None, download_mode=None):
+    def download(self, data_dir=None, cache_dir=None, download_mode=None) -> None:
         """Downloads and returns the task dataset.
         Override this method to download the dataset from a custom API.
 
@@ -328,7 +326,7 @@ class Task(abc.ABC):
 
         return rnd.sample(self._training_docs, k)
 
-    def doc_to_decontamination_query(self, doc):
+    def doc_to_decontamination_query(self, doc) -> None:
         print(
             "Override doc_to_decontamination_query with document specific decontamination query."
         )
@@ -342,7 +340,7 @@ class Task(abc.ABC):
     def doc_to_target(self, doc):
         pass
 
-    def build_all_requests(self, limit=None, rank=None, world_size=None):
+    def build_all_requests(self, limit=None, rank=None, world_size=None) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
         if self.has_test_docs():
             docs = self.test_docs()
@@ -478,7 +476,6 @@ class Task(abc.ABC):
                 return labeled_examples + str(example)
 
     def apply_filters(self):
-
         if hasattr(self, "_filters"):
             for f in self._filters:
                 f.apply(self._instances)
@@ -504,7 +501,7 @@ class ConfigurableTask(Task):
 
     def __init__(
         self, data_dir=None, cache_dir=None, download_mode=None, config: dict = None
-    ):  # TODO no super() call here
+    ) -> None:  # TODO no super() call here
         # Get pre-configured attributes
         self._config = self.CONFIG
 
@@ -576,7 +573,6 @@ class ConfigurableTask(Task):
                             "aggregation"
                         ]
                 else:
-
                     INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
                     metric_agg = get_default_aggregation(metric_name)
                     eval_logger.warning(
@@ -689,8 +685,7 @@ class ConfigurableTask(Task):
                     f'Both target_delimiter and target choice: "{choice}" does not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                 )
 
-    def download(self, dataset_kwargs=None):
-
+    def download(self, dataset_kwargs=None) -> None:
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
@@ -782,7 +777,6 @@ class ConfigurableTask(Task):
         return doc
 
     def doc_to_text(self, doc):
-
         if self.prompt is not None:
             doc_to_text = self.prompt
         else:
@@ -817,7 +811,6 @@ class ConfigurableTask(Task):
             raise TypeError
 
     def doc_to_target(self, doc: dict) -> Union[int, str, list]:
-
         if self.prompt is not None:
             doc_to_target = self.prompt
         else:
@@ -859,7 +852,6 @@ class ConfigurableTask(Task):
             raise TypeError
 
     def doc_to_choice(self, doc: Any) -> List[str]:
-
         if self.prompt is not None:
             doc_to_choice = self.prompt
         elif self._config.doc_to_choice is None:
@@ -903,13 +895,11 @@ class ConfigurableTask(Task):
     def construct_requests(
         self, doc: dict, ctx: str, **kwargs
     ) -> Union[List[Instance], Instance]:
-
         if self.OUTPUT_TYPE == "loglikelihood":
             arguments = (ctx, self.doc_to_target(doc))
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
             arguments = (self.doc_to_target(doc),)
         elif self.OUTPUT_TYPE == "multiple_choice":
-
             choices = self.doc_to_choice(doc)
             target_delimiter = self._config.target_delimiter
             if self.multiple_input:
@@ -960,7 +950,6 @@ class ConfigurableTask(Task):
         )
 
     def process_results(self, doc, results):
-
         if callable(self._config.process_results):
             return self._config.process_results(doc, results)
 
@@ -995,7 +984,6 @@ class ConfigurableTask(Task):
                 ),
             }
         elif self.OUTPUT_TYPE == "multiple_choice":
-
             lls, is_greedy = zip(*results)
 
             # retrieve choices in List[str] form, to compute choice lengths, etc.
@@ -1067,7 +1055,6 @@ class ConfigurableTask(Task):
                 result_dict["acc_mutual_info"] = acc_mutual_info
 
         elif self.OUTPUT_TYPE == "greedy_until":
-
             gold = self.doc_to_target(doc)
             if self._config.doc_to_choice is not None:
                 # If you set doc_to_choice,
@@ -1085,25 +1072,33 @@ class ConfigurableTask(Task):
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
                     scores = []
                     for gold_option in gold:
-                        res = self._metric_fn_list[metric](
-                            references=[gold_option],
-                            predictions=[result],
-                            **self._metric_fn_kwargs[metric],
-                        )
-                        if isinstance(res, dict):
+                        try:
+                            result_score = self._metric_fn_list[metric](
+                                references=[gold_option],
+                                predictions=[result],
+                                **self._metric_fn_kwargs[metric],
+                            )
+                        except TypeError:  # TODO: this is hacky and I don't want to do it
+                            result_score = self._metric_fn_list[metric](
+                                [gold_option, result]
+                            )
+                        if isinstance(result_score, dict):
                             # TODO: this handles the case where HF evaluate returns a dict.
-                            res = res[metric]
-                        scores.append(res)
+                            result_score = result_score[metric]
+                        scores.append(result_score)
                     if any(scores):
                         result_score = 1.0
                     else:
                         result_score = 0.0
                 else:
-                    result_score = self._metric_fn_list[metric](
-                        references=[gold],
-                        predictions=[result],
-                        **self._metric_fn_kwargs[metric],
-                    )
+                    try:
+                        result_score = self._metric_fn_list[metric](
+                            references=[gold],
+                            predictions=[result],
+                            **self._metric_fn_kwargs[metric],
+                        )
+                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                        result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.
                         result_score = result_score[metric]
@@ -1197,7 +1192,7 @@ class PerplexityTask(Task):
     def doc_to_decontamination_query(self, doc):
         return doc
 
-    def doc_to_text(self, doc):
+    def doc_to_text(self, doc) -> str:
         return ""
 
     def doc_to_target(self, doc):
