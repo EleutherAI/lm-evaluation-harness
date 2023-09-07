@@ -1,0 +1,11 @@
+group: scrolls
+dataset_path: tau/scrolls
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+process_docs: !function ../preprocessors.process_docs
+should_decontaminate: true
+doc_to_decontamination_query: input
+metric_list:
+  - metric: acc
+  - metric: acc_norm
