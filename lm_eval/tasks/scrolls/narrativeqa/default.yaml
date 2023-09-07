@@ -1,0 +1,15 @@
+include: ../scroll_multiplechoice_task_yaml
+task: scrolls_narrativeqa
+dataset_name: narrative_qa
+output_type: greedy_until
+process_docs: !function ../preprocessors.process_docs_prepended_question
+doc_to_text: "{{text}}\n\nHypothesis: {{question}}\nConclusion:"
+doc_to_target: "{{outputs[0]}}"
+doc_to_choice: ["Not mentioned", "Entailment", "Contradiction"]
+should_decontaminate: true
+doc_to_decontamination_query: input
+metric_list:
+  - metric: f1
+generation_kwargs:
+  until:
+    - "\n"
