@@ -395,8 +395,10 @@ def import_function(loader, node):
     function_name = loader.construct_scalar(node)
     yaml_path = os.path.dirname(loader.name)
 
-    module_name, function_name = function_name.split(".")
-    module_path = os.path.join(yaml_path, "{}.py".format(module_name))
+    *module_name, function_name = function_name.split(".")
+    if type(module_name) == list:
+        module_name = ".".join(module_name)
+    module_path = os.path.normpath(os.path.join(yaml_path, "{}.py".format(module_name)))
 
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     module = importlib.util.module_from_spec(spec)
