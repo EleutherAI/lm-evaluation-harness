@@ -42,12 +42,12 @@ Homepage: https://allenai.org/data/qasper
 
 #### Groups
 
-* `qasper`: `Short description`
+* `qasper`: executes both `qasper_bool` and `qasper_freeform`
 
 #### Tasks
 
-* `qasper_bool`: `1-sentence description of what this particular task does`
-* `qasper_freeform`: ...
+* `qasper_bool`: Multiple choice task that evaluates the task with `answer_type="bool"` 
+* `qasper_freeform`: Greedy generation task that evaluates the samples from the task with `answer_type="free form answer"`
 
 ### Checklist
 

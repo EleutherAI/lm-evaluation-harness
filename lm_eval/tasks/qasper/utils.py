@@ -70,4 +70,4 @@ def process_docs(dataset, set_answer_type="bool"):
     return Dataset.from_dict(new_dataset)
 
 process_docs_bool = partial(process_docs, set_answer_type="bool")
-process_docs_freeform = partial(process_docs, set_answer_type="freeform")
+process_docs_freeform = partial(process_docs, set_answer_type="free form answer")
