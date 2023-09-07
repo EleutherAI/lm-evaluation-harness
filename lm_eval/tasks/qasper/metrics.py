@@ -1,3 +1,5 @@
+import string
+
 def normalize_answer(s):
     """
     Taken from the official evaluation script for v1.1 of the SQuAD dataset.
@@ -19,17 +21,17 @@ def normalize_answer(s):
 
     return white_space_fix(remove_articles(remove_punc(lower(s))))
 
-def f1_abstractive(prediction, ground_truth):
+def f1_abstractive(predictions, references):
     """
     Taken from the official evaluation script for v1.1 of the SQuAD dataset.
     """
-    prediction_tokens = normalize_answer(prediction).split()
-    ground_truth_tokens = normalize_answer(ground_truth).split()
-    common = Counter(prediction_tokens) & Counter(ground_truth_tokens)
+    prediction_tokens = normalize_answer(predictions[0]).split()
+    references_tokens = normalize_answer(references[0]).split()
+    common = Counter(prediction_tokens) & Counter(references_tokens)
     num_same = sum(common.values())
     if num_same == 0:
         return 0
     precision = 1.0 * num_same / len(prediction_tokens)
-    recall = 1.0 * num_same / len(ground_truth_tokens)
+    recall = 1.0 * num_same / len(references_tokens)
     f1 = (2 * precision * recall) / (precision + recall)
     return f1
