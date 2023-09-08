@@ -2,7 +2,7 @@ group:
   - hendrycks_math
 task: math_algebra
 dataset_path: baber/hendrycks_math
-process_docs: !function utils_hendrycks_math.process_docs
+process_docs: !function utils.process_docs
 dataset_name: algebra
 output_type: greedy_until
 training_split: train
