@@ -65,7 +65,7 @@ class HuggingFaceAutoLM(BaseLM):
 
     # Default max sequence length setting for when no `max_length` is provided
     # or no max length config setting is found in the model or tokenizer.
-    _DEFAULT_MAX_LENGTH: int = 2048
+    _DEFAULT_MAX_LENGTH: int = 4096
 
     def __init__(
         self,
@@ -358,6 +358,7 @@ class HuggingFaceAutoLM(BaseLM):
             pretrained if tokenizer is None else tokenizer,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
             trust_remote_code=trust_remote_code,
+            use_fast=False
         )
         try:
             tokenizer.pad_token = tokenizer.eos_token
@@ -571,8 +572,10 @@ class AutoCausalLM(HuggingFaceAutoLM):
             do_sample=False,
         )
         return utils.select_continuation_from_batch_left_padding(
-            generations, max_context_size=inputs["input_ids"].size(1)
+            generations, max_context_size=input_ids.size(1)
+            # generations, max_context_size=inputs["input_ids"].size(1)
         )
+        
 
 class AutoModelForChatglm(AutoCausalLM):
     AUTO_MODEL_CLASS = transformers.AutoModel
@@ -607,6 +610,46 @@ class AutoModelForChatglm(AutoCausalLM):
 
         self.add_special_tokens_length = len(self.tok_encode(""))
 
+    def _model_generate(
+        self,
+        inputs: transformers.BatchEncoding,
+        max_tokens: int,
+        stop: Optional[List[str]] = None,
+    ) -> TokenSequence:
+        # Ensure that the context does not encroach into the `space`
+        # for the generation.
+        input_ids = inputs["input_ids"][:, self.max_gen_toks - self.max_length :]
+        if inputs["attention_mask"].dim() == 2:
+            attention_mask = inputs["attention_mask"][
+                :, self.max_gen_toks - self.max_length :
+            ]
+        elif inputs["attention_mask"].dim() == 4:
+            attention_mask = inputs["attention_mask"][
+                :, :, self.max_gen_toks - self.max_length :, self.max_gen_toks - self.max_length :
+            ]
+
+        input_ids = input_ids.to(self.device)
+        attention_mask = attention_mask.to(self.device)
+
+        stopping_criteria = stop_sequences_criteria(
+            self.tokenizer, stop, input_ids.shape[1], input_ids.shape[0]
+        )
+
+        generations = self.model.generate(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            # GPT style models require the `generate` `max_length` arg to include the
+            # context length, so we instead set `max_new_tokens` which is the number
+            # of new tokens to generate, excluding the current number of tokens.
+            max_new_tokens=max_tokens,
+            stopping_criteria=stopping_criteria,
+            do_sample=False,
+        )
+        return utils.select_continuation_from_batch_left_padding(
+            generations, max_context_size=input_ids.size(1)
+            # generations, max_context_size=inputs["input_ids"].size(1)
+        )
+        
 
     def _encode_pair(self, context, continuation):
         n_spaces = len(context) - len(context.rstrip())
