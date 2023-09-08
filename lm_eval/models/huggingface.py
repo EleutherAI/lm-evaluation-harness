@@ -65,7 +65,7 @@ class HuggingFaceAutoLM(BaseLM):
 
     # Default max sequence length setting for when no `max_length` is provided
     # or no max length config setting is found in the model or tokenizer.
-    _DEFAULT_MAX_LENGTH: int = 4096
+    _DEFAULT_MAX_LENGTH: int = 2048
 
     def __init__(
         self,
@@ -579,6 +579,10 @@ class AutoCausalLM(HuggingFaceAutoLM):
 
 class AutoModelForChatglm(AutoCausalLM):
     AUTO_MODEL_CLASS = transformers.AutoModel
+    
+    # Default max sequence length setting for when no `max_length` is provided
+    # or no max length config setting is found in the model or tokenizer.
+    _DEFAULT_MAX_LENGTH: int = 2048
 
     def __init__(
         self,

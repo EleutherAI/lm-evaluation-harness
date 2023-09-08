@@ -109,9 +109,10 @@ SUBJECTS=[
         "type": "multi_question_choice",
         "keyword" : "jec-qa-kd", 
     },
-    # {
-    #     "keyword" : "gaokao-mathqa",
-    # },
+    {
+        "type": "multi_question_choice",
+        "keyword" : "gaokao-mathqa",
+    },
     # "gaokao-mathcloze", # TODO: 包括填空题
     # "math", # TODO: 包括填空题
 ]
