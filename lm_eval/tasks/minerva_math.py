@@ -22,7 +22,7 @@ import lm_eval.datasets.hendrycks_math.hendrycks_math
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
 
-PROMPT=r"""Problem:
+NL_PROMPT=r"""Problem:
 Find the domain of the expression  $\frac{\sqrt{x-2}}{\sqrt{5-x}}$.}
 
 Solution:
@@ -101,6 +101,7 @@ class MinervaMath(Task):
     TOP_P = "top_p"
     EVAL_BATCH_SIZE = "eval_batch_size"
     INVALID_ANSWER="[invalidanswer]"
+    PROMPT = NL_PROMPT
 
     end_seq = "I hope it is correct."
 
@@ -208,7 +209,7 @@ class MinervaMath(Task):
             self, doc, num_fewshot, provide_description=None, rnd=None, description=None
     ):
         example = self.doc_to_text(doc)
-        prompt = PROMPT + "\n\n" + example
+        prompt = self.PROMPT + "\n\n" + example
 
         return prompt
 
