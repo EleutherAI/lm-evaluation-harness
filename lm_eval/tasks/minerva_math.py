@@ -12,6 +12,7 @@ import re
 import math
 import code
 import signal
+from abc import ABC
 
 
 import sympy
@@ -21,8 +22,41 @@ import inspect
 import lm_eval.datasets.hendrycks_math.hendrycks_math
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
+from lm_eval.utils import get_class_dict
 
-PROMPT=r"""Problem:
+def create_math_subclasses(base_class, version=1):
+    """
+    Dynamically creates topic-specific subclasses of MATH
+    
+    Parameters:
+        base_class (type): The base class for which the subclasses will be created.
+        version (int, optional): The version number to be set as an attribute for the subclasses.
+            Default is 1.
+    
+    Usage Example:
+        class MinervaMath:
+            pass
+
+        create_subclasses(MinervaMath)
+        
+    This will create subclasses like MinervaMathAlgebra, MinervaMathGeometry, etc.,
+    each inheriting from MinervaMath and having VERSION and DATASET_NAME attributes.
+    """
+    topics = [
+        "algebra",
+        "counting_and_probability",
+        "geometry",
+        "intermediate_algebra",
+        "number_theory",
+        "prealgebra",
+        "precalculus"
+    ]
+    for topic in topics:
+        class_name = f"{base_class.__name__}{topic.replace('_', ' ').title().replace(' ', '')}"
+        class_attr = {"VERSION": version, "DATASET_NAME": topic}
+        globals()[class_name] = type(class_name, (base_class,), class_attr)
+
+NL_PROMPT=r"""Problem:
 Find the domain of the expression  $\frac{\sqrt{x-2}}{\sqrt{5-x}}$.}
 
 Solution:
@@ -93,13 +127,14 @@ class timeout:
     def __exit__(self, type, value, traceback):
         signal.alarm(0)
 
-class MinervaMath(Task):
+class MinervaMath(Task, ABC):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
     DATASET_NAME = None
     MAJORITY_VOTING = "majority_voting"
     SAMPLING_TEMPERATURE = "sampling_temperature"
     EVAL_BATCH_SIZE = "eval_batch_size"
     INVALID_ANSWER="[invalidanswer]"
+    PROMPT = NL_PROMPT
 
     end_seq = "I hope it is correct."
 
@@ -205,7 +240,7 @@ class MinervaMath(Task):
             self, doc, num_fewshot, provide_description=None, rnd=None, description=None
     ):
         example = self.doc_to_text(doc)
-        prompt = PROMPT + "\n\n" + example
+        prompt = self.PROMPT + "\n\n" + example
 
         return prompt
 
@@ -401,37 +436,6 @@ class MinervaMathAlgebraEasy(MinervaMath):
         data = filter(lambda x: x['level'] == 'Level 1', data)
         return data
 
+create_subclasses(MinervaMath)
 
-class MinervaMathAlgebra(MinervaMath):
-    VERSION = 1
-    DATASET_NAME = "algebra"
-
-
-class MinervaMathCountingAndProbability(MinervaMath):
-    VERSION = 1
-    DATASET_NAME = "counting_and_probability"
-
-
-class MinervaMathGeometry(MinervaMath):
-    VERSION = 1
-    DATASET_NAME = "geometry"
-
-
-class MinervaMathIntermediateAlgebra(MinervaMath):
-    VERSION = 1
-    DATASET_NAME = "intermediate_algebra"
-
-
-class MinervaMathNumberTheory(MinervaMath):
-    VERSION = 1
-    DATASET_NAME = "number_theory"
-
-
-class MinervaMathPrealgebra(MinervaMath):
-    VERSION = 1
-    DATASET_NAME = "prealgebra"
-
-
-class MinervaMathPrecalculus(MinervaMath):
-    VERSION = 1
-    DATASET_NAME = "precalculus"
+minerva_math_task_dict = get_class_dict(MinervaMath)

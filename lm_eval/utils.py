@@ -6,6 +6,7 @@ import functools
 import inspect
 import sys
 from typing import List
+from abc import isabstract
 
 
 class ExitCodeError(Exception):
@@ -16,6 +17,20 @@ def sh(x):
     if os.system(x):
         raise ExitCodeError()
 
+def camel_to_snake(name):
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+def get_class_dict(class_obj):
+    """
+    Creates a dictionary that stores all concrete (i.e non-abstract) subclasses of `class_obj` in the 
+    global scope and indexes them by a snake cased version of the class name.
+    """
+    return {
+        camel_to_snake(cls.__name__): cls
+        for name, cls in globals().items()
+        if isinstance(cls, type) and issubclass(cls, class_obj) and not isabstract(cls)
+    }
 
 def simple_parse_args_string(args_string):
     """
