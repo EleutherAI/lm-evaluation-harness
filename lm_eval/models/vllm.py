@@ -80,7 +80,8 @@ class VLLM(BaseLM):
         stop: Optional[List[str]] = None,
         num_return_sequences: int = 1,
         num_return_sequences_batch: int = -1, # Doesn't do anything. Just here to match the signature of the other models.
-        temperature: float = 0.0
+        temperature: float = 0.0, 
+        top_p: float = 1,
     ) -> TokenSequence:
 
         if isinstance(stop, str):
@@ -96,6 +97,7 @@ class VLLM(BaseLM):
         output_texts = []
         sampling_params = SamplingParams(max_tokens=max_tokens, 
                                          temperature=temperature, 
+                                         top_p=top_p,
                                          stop=stop, 
                                          n=num_return_sequences)
         outputs = self.llm.generate(prompts=contexts, 
