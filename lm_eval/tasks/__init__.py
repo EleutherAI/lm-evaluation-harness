@@ -40,7 +40,7 @@ from . import logiqa
 from . import hendrycks_test
 from . import hendrycks_math
 from . import hendrycks_math_ppl
-from . import minerva_math, minerva_math_task_dict
+from . import minerva_math
 from . import cbt
 from . import lambada_cloze
 from . import pile
@@ -180,6 +180,14 @@ TASK_REGISTRY = {
     "math_num_theory": hendrycks_math.MathNumberTheory,
     "math_prealgebra": hendrycks_math.MathPrealgebra,
     "math_precalc": hendrycks_math.MathPrecalculus,
+    "minerva_math_algebra": minerva_math.MinervaMathAlgebra,
+    "minerva_math_algebra_easy": minerva_math.MinervaMathAlgebraEasy,
+    "minerva_math_counting_and_prob": minerva_math.MinervaMathCountingAndProbability,
+    "minerva_math_geometry": minerva_math.MinervaMathGeometry,
+    "minerva_math_intermediate_algebra": minerva_math.MinervaMathIntermediateAlgebra,
+    "minerva_math_num_theory": minerva_math.MinervaMathNumberTheory,
+    "minerva_math_prealgebra": minerva_math.MinervaMathPrealgebra,
+    "minerva_math_precalc": minerva_math.MinervaMathPrecalculus,
     "math_asdiv": asdiv.Asdiv,
     "gsm8k": gsm8k.GradeSchoolMath8K,
     "gsm8k_ppl": gsm8k_ppl.GradeSchoolMath8K,
@@ -376,13 +384,13 @@ TASK_REGISTRY = {
     "proofnet_autoformalize_statements": proofnet.ProofNetAutoformalizeStatements,
     "proofnet_informalize_statements": proofnet.ProofNetInformalizeStatements,
     **hendrycks_test_cot.create_all_mcqa_tasks(),
-    **minerva_math_task_dict,
     #
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
     # "sat": sat.SATAnalogies,
 }
+
 
 ALL_TASKS = sorted(list(TASK_REGISTRY))
 
