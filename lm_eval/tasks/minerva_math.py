@@ -21,6 +21,8 @@ import inspect
 import lm_eval.datasets.hendrycks_math.hendrycks_math
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
+from lm_eval.utils import SymbolicMathMixin
+
 
 NL_PROMPT=r"""Problem:
 Find the domain of the expression  $\frac{\sqrt{x-2}}{\sqrt{5-x}}$.}
@@ -81,19 +83,8 @@ _CITATION = """
       primaryClass={cs.CL}
 }
 """
-class timeout:
-    def __init__(self, seconds=1, error_message='Timeout'):
-        self.seconds = seconds
-        self.error_message = error_message
-    def handle_timeout(self, signum, frame):
-        raise TimeoutError(self.error_message)
-    def __enter__(self):
-        signal.signal(signal.SIGALRM, self.handle_timeout)
-        signal.alarm(self.seconds)
-    def __exit__(self, type, value, traceback):
-        signal.alarm(0)
 
-class MinervaMath(Task):
+class MinervaMath(Task, SymbolicMathMixin):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
     DATASET_NAME = None
     MAJORITY_VOTING = "majority_voting"
@@ -174,7 +165,7 @@ class MinervaMath(Task):
         return s[len(left) : -1]
 
     def _process_doc(self, doc):
-        doc["answer"] = self.normalize_final_answer(
+        doc["answer"] = self.normalize_tex(
                 self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
         )
         return doc
@@ -224,40 +215,6 @@ class MinervaMath(Task):
         else:
             return self.INVALID_ANSWER
 
-    def is_equiv(self, x1: str, x2: str):
-        """
-        x1 and x2 are normalized latex string
-        """
-        try: 
-            with timeout(seconds=5):
-                try:
-                    parsed_x1 = parse_latex(x1)
-                    parsed_x2 = parse_latex(x2)
-                except (sympy.parsing.latex.errors.LaTeXParsingError, sympy.SympifyError, TypeError):
-                    print(f"couldn't parse one of {x1} or {x2}")
-                    return False
-            
-                try: 
-                    diff = parsed_x1 - parsed_x2
-                except TypeError:
-                    print(f"couldn't subtract {x1} and {x2}")
-                    return False
-
-                try:
-                    if sympy.simplify(diff)==0:
-                        return True
-                    else: 
-                        return False
-                except ValueError:
-                    print(f"Had some trouble simplifying when comparing {x1} and {x2}")
-        except TimeoutError:
-            print(f"Timed out comparing {x1} and {x2}")
-            return False
-        except Exception as e: 
-            print(f"Failed comparing {x1} and {x2} with {e}")
-            return False
-
-
     def majority_vote(self, candidates):
 
         # get and normalize all answers
@@ -277,7 +234,7 @@ class MinervaMath(Task):
             else:
                 counted = False
                 for ref in answer_votes:
-                    if self.is_equiv(answer, ref) and not counted:
+                    if self.is_tex_equiv(answer, ref) and not counted:
                         answer_votes[ref] += 1
                         counted=True
 
@@ -301,12 +258,12 @@ class MinervaMath(Task):
         
         if self.MAJORITY_VOTING not in params:
             unnormalized_answer = self.get_unnormalized_answer(candidates)
-            answer = self.normalize_final_answer(unnormalized_answer)
+            answer = self.normalize_tex(unnormalized_answer)
             answers = [answer]
         else:
             answer, pass_rate, answers = self.majority_vote(candidates)
-
-        if self.is_equiv(
+        
+        if self.is_tex_equiv(
             answer, doc["answer"]
         ):
             retval = 1
@@ -333,60 +290,6 @@ class MinervaMath(Task):
 
     def higher_is_better(self):
         return {"acc": True, "pass_rate": True, "log_pass_rate": mean}
-
-    SUBSTITUTIONS = [
-        ('an ', ''), ('a ', ''), ('.$', '$'), ('\\$', ''), (r'\ ', ''), 
-        (' ', ''), ('mbox', 'text'), (',\\text{and}', ','), 
-        ('\\text{and}', ','), ('\\text{m}', '\\text{}')
-    ]
-    REMOVED_EXPRESSIONS = [
-        'square', 'ways', 'integers', 'dollars', 'mph', 'inches', 'ft', 
-        'hours', 'km', 'units', '\\ldots', 'sue', 'points', 'feet', 
-        'minutes', 'digits', 'cents', 'degrees', 'cm', 'gm', 'pounds', 
-        'meters', 'meals', 'edges', 'students', 'childrentickets', 'multiples',
-        '\\text{s}', '\\text{.}', '\\text{\ns}', '\\text{}^2', 
-        '\\text{}^3', '\\text{\n}', '\\text{}', r'\mathrm{th}', 
-        r'^\circ', r'^{\circ}', r'\;', r',\!', '{,}', '"', '\\dots'
-    ]
-
-    def normalize_final_answer(self, final_answer: str) -> str:
-      """
-      Normalize a final answer to a quantitative reasoning question.
-
-      Copied character for character from appendix D of Lewkowycz et al. (2022)
-      """
-      final_answer = final_answer.split('=')[-1]
-      
-      for before, after in self.SUBSTITUTIONS:
-        final_answer = final_answer.replace(before, after)
-      for expr in self.REMOVED_EXPRESSIONS:
-        final_answer = final_answer.replace(expr, '')
-      
-      # Extract answer that is in LaTeX math, is bold, 
-      # is surrounded by a box, etc.  
-      final_answer = re.sub(r'(.*?)(\$)(.*?)(\$)(.*)', '$\\3$', final_answer)
-      final_answer = re.sub(r'(\\text\{)(.*?)(\})', '\\2', final_answer)
-      final_answer = re.sub(r'(\\textbf\{)(.*?)(\})', '\\2', final_answer)
-      final_answer = re.sub(r'(\\overline\{)(.*?)(\})', '\\2', final_answer)
-      final_answer = re.sub(r'(\\boxed\{)(.*)(\})', '\\2', final_answer)
-      
-      # Normalize shorthand TeX:
-      #  \fracab -> \frac{a}{b}
-      #  \frac{abc}{bef} -> \frac{abc}{bef}
-      #  \fracabc -> \frac{a}{b}c
-      #  \sqrta -> \sqrt{a}
-      #  \sqrtab -> sqrt{a}b
-      final_answer = re.sub(
-        r'(frac)([^{])(.)', 'frac{\\2}{\\3}', final_answer)
-      final_answer = re.sub(
-        r'(sqrt)([^{])', 'sqrt{\\2}', final_answer)
-      final_answer = final_answer.replace('$', '')
-      
-      # Normalize 100,000 -> 100000
-      if final_answer.replace(',', '').isdigit():
-        final_answer = final_answer.replace(',', '')
-        
-      return final_answer
 
 
 class MinervaMathAlgebraEasy(MinervaMath):

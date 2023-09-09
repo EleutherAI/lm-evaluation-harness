@@ -5,7 +5,11 @@ import collections
 import functools
 import inspect
 import sys
+import signal
 from typing import List
+
+import sympy
+from sympy.parsing.latex import parse_latex
 
 
 class ExitCodeError(Exception):
@@ -15,6 +19,170 @@ class ExitCodeError(Exception):
 def sh(x):
     if os.system(x):
         raise ExitCodeError()
+
+
+class timeout:
+    def __init__(self, seconds=1, error_message="Timeout"):
+        self.seconds = seconds
+        self.error_message = error_message
+
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
+
+
+class SymbolicMathMixin:
+    """
+    Methods useful for parsing mathematical expressions from text and determining equivalence of expressions.
+    """
+
+    SUBSTITUTIONS = [  # used for text normalize
+        ("an ", ""),
+        ("a ", ""),
+        (".$", "$"),
+        ("\\$", ""),
+        (r"\ ", ""),
+        (" ", ""),
+        ("mbox", "text"),
+        (",\\text{and}", ","),
+        ("\\text{and}", ","),
+        ("\\text{m}", "\\text{}"),
+    ]
+    REMOVED_EXPRESSIONS = [  # used for text normalizer
+        "square",
+        "ways",
+        "integers",
+        "dollars",
+        "mph",
+        "inches",
+        "ft",
+        "hours",
+        "km",
+        "units",
+        "\\ldots",
+        "sue",
+        "points",
+        "feet",
+        "minutes",
+        "digits",
+        "cents",
+        "degrees",
+        "cm",
+        "gm",
+        "pounds",
+        "meters",
+        "meals",
+        "edges",
+        "students",
+        "childrentickets",
+        "multiples",
+        "\\text{s}",
+        "\\text{.}",
+        "\\text{\ns}",
+        "\\text{}^2",
+        "\\text{}^3",
+        "\\text{\n}",
+        "\\text{}",
+        r"\mathrm{th}",
+        r"^\circ",
+        r"^{\circ}",
+        r"\;",
+        r",\!",
+        "{,}",
+        '"',
+        "\\dots",
+    ]
+
+    def normalize_tex(self, final_answer: str) -> str:
+        """
+        Normalizes a string representing a mathematical expression.
+        Used as a preprocessing step before parsing methods.
+
+        Copied character for character from appendix D of Lewkowycz et al. (2022)
+        """
+        final_answer = final_answer.split("=")[-1]
+
+        for before, after in self.SUBSTITUTIONS:
+            final_answer = final_answer.replace(before, after)
+        for expr in self.REMOVED_EXPRESSIONS:
+            final_answer = final_answer.replace(expr, "")
+
+        # Extract answer that is in LaTeX math, is bold,
+        # is surrounded by a box, etc.
+        final_answer = re.sub(r"(.*?)(\$)(.*?)(\$)(.*)", "$\\3$", final_answer)
+        final_answer = re.sub(r"(\\text\{)(.*?)(\})", "\\2", final_answer)
+        final_answer = re.sub(r"(\\textbf\{)(.*?)(\})", "\\2", final_answer)
+        final_answer = re.sub(r"(\\overline\{)(.*?)(\})", "\\2", final_answer)
+        final_answer = re.sub(r"(\\boxed\{)(.*)(\})", "\\2", final_answer)
+
+        # Normalize shorthand TeX:
+        #  \fracab -> \frac{a}{b}
+        #  \frac{abc}{bef} -> \frac{abc}{bef}
+        #  \fracabc -> \frac{a}{b}c
+        #  \sqrta -> \sqrt{a}
+        #  \sqrtab -> sqrt{a}b
+        final_answer = re.sub(r"(frac)([^{])(.)", "frac{\\2}{\\3}", final_answer)
+        final_answer = re.sub(r"(sqrt)([^{])", "sqrt{\\2}", final_answer)
+        final_answer = final_answer.replace("$", "")
+
+        # Normalize 100,000 -> 100000
+        if final_answer.replace(",", "").isdigit():
+            final_answer = final_answer.replace(",", "")
+
+        return final_answer
+
+    def parse_tex(self, text: str) -> sympy.Basic:
+        """
+        Wrapper around `sympy.parse_text` that outputs a SymPy expression.
+        Typically, you want to apply `normalize_text` as a preprocessing step.
+        """
+        try:
+            parsed = parse_latex(text)
+        except (
+            sympy.parsing.latex.errors.LaTeXParsingError,
+            sympy.SympifyError,
+            TypeError,
+        ) as e:
+            print(f"failed to parse {text} with familiar exception {e}")
+            return None
+
+        return parsed
+
+    def is_exp_equiv(self, x1: sympy.Basic, x2: sympy.Basic, time_limit=5) -> bool:
+        """
+        Determines whether two sympy expressions are equal.
+        """
+        try:
+            with timeout(seconds=time_limit):
+                try:
+                    diff = x1 - x2
+                    try:
+                        if sympy.simplify(diff) == 0:
+                            return True
+                        else:
+                            return False
+                    except ValueError as e:
+                        print(f"Failed to simplify {x1}-{x2} with {e}")
+                        return False
+                except TypeError as e:
+                    print(
+                        f"Couldn't subtract {x1} and {x2} with familiar exception {e}"
+                    )
+        except TimeoutError as e:
+            print(f"Timed out comparing {x1} and {x2}")
+            return False
+
+    def is_tex_equiv(self, x1: str, x2: str, time_limit=5) -> bool:
+        """
+        Determines whether two (ideally normalized using `normalize_text`) TeX expressions are equal.
+        """
+        return self.is_exp_equiv(self.parse_tex(x1), self.parse_tex(x2), time_limit=time_limit)
 
 
 def simple_parse_args_string(args_string):
