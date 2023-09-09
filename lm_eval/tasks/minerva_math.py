@@ -298,14 +298,12 @@ class MinervaMath(Task):
 
         assert isinstance(params, dict)
         
-        if params == {}:
+        if self.MAJORITY_VOTING not in params:
             unnormalized_answer = self.get_unnormalized_answer(candidates)
             answer = self.normalize_final_answer(unnormalized_answer)
             answers = [answer]
-        elif self.MAJORITY_VOTING in params:
-            answer, pass_rate, answers = self.majority_vote(candidates)
         else:
-            raise AssertionError
+            answer, pass_rate, answers = self.majority_vote(candidates)
 
         if self.is_equiv(
             answer, doc["answer"]
@@ -314,7 +312,7 @@ class MinervaMath(Task):
         else: 
             retval = 0
 
-        if params == {}:
+        if self.MAJORITY_VOTING not in params:
             pass_rate = retval
 
         results = {
