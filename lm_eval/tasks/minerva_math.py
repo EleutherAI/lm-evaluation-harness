@@ -24,21 +24,22 @@ from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
 from lm_eval.utils import get_class_dict
 
+
 def create_math_subclasses(base_class, version=1):
     """
     Dynamically creates topic-specific subclasses of MATH
-    
+
     Parameters:
         base_class (type): The base class for which the subclasses will be created.
         version (int, optional): The version number to be set as an attribute for the subclasses.
             Default is 1.
-    
+
     Usage Example:
         class MinervaMath:
             pass
 
         create_subclasses(MinervaMath)
-        
+
     This will create subclasses like MinervaMathAlgebra, MinervaMathGeometry, etc.,
     each inheriting from MinervaMath and having VERSION and DATASET_NAME attributes.
     """
@@ -49,14 +50,17 @@ def create_math_subclasses(base_class, version=1):
         "intermediate_algebra",
         "number_theory",
         "prealgebra",
-        "precalculus"
+        "precalculus",
     ]
     for topic in topics:
-        class_name = f"{base_class.__name__}{topic.replace('_', ' ').title().replace(' ', '')}"
+        class_name = (
+            f"{base_class.__name__}{topic.replace('_', ' ').title().replace(' ', '')}"
+        )
         class_attr = {"VERSION": version, "DATASET_NAME": topic}
         globals()[class_name] = type(class_name, (base_class,), class_attr)
 
-NL_PROMPT=r"""Problem:
+
+NL_PROMPT = r"""Problem:
 Find the domain of the expression  $\frac{\sqrt{x-2}}{\sqrt{5-x}}$.}
 
 Solution:
@@ -115,17 +119,23 @@ _CITATION = """
       primaryClass={cs.CL}
 }
 """
+
+
 class timeout:
-    def __init__(self, seconds=1, error_message='Timeout'):
+    def __init__(self, seconds=1, error_message="Timeout"):
         self.seconds = seconds
         self.error_message = error_message
+
     def handle_timeout(self, signum, frame):
         raise TimeoutError(self.error_message)
+
     def __enter__(self):
         signal.signal(signal.SIGALRM, self.handle_timeout)
         signal.alarm(self.seconds)
+
     def __exit__(self, type, value, traceback):
         signal.alarm(0)
+
 
 class MinervaMath(Task, ABC):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
@@ -133,7 +143,7 @@ class MinervaMath(Task, ABC):
     MAJORITY_VOTING = "majority_voting"
     SAMPLING_TEMPERATURE = "sampling_temperature"
     EVAL_BATCH_SIZE = "eval_batch_size"
-    INVALID_ANSWER="[invalidanswer]"
+    INVALID_ANSWER = "[invalidanswer]"
     PROMPT = NL_PROMPT
 
     end_seq = "I hope it is correct."
@@ -164,7 +174,6 @@ class MinervaMath(Task, ABC):
         raise NotImplementedError("MinervaMath has no doc_to_target method.")
 
     def last_boxed_only_string(self, string):
-
         idx = string.rfind("\\boxed")
         if "\\boxed " in string:
             return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
@@ -208,7 +217,7 @@ class MinervaMath(Task, ABC):
 
     def _process_doc(self, doc):
         doc["answer"] = self.normalize_final_answer(
-                self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
+            self.remove_boxed(self.last_boxed_only_string(doc["solution"]))
         )
         return doc
 
@@ -224,20 +233,24 @@ class MinervaMath(Task, ABC):
     def construct_requests(self, doc, ctx, params={}):
         if params == {}:
             return rf.generate(ctx, [self.end_seq])
-        
+
         majority_voting_value = int(params.get(self.MAJORITY_VOTING, 1))
         sampling_temperature_value = float(params.get(self.SAMPLING_TEMPERATURE, 1.0))
         eval_batch_size = params.get(self.EVAL_BATCH_SIZE, None)
-        eval_batch_size = int(eval_batch_size) if isinstance(eval_batch_size, str) else eval_batch_size
+        eval_batch_size = (
+            int(eval_batch_size)
+            if isinstance(eval_batch_size, str)
+            else eval_batch_size
+        )
         generation_params = {
-            'num_return_sequences': majority_voting_value,
-            'temperature': sampling_temperature_value,
-            'num_return_sequences_batch': eval_batch_size
+            "num_return_sequences": majority_voting_value,
+            "temperature": sampling_temperature_value,
+            "num_return_sequences_batch": eval_batch_size,
         }
         return rf.generate(ctx, [self.end_seq], generation_params)
-    
+
     def fewshot_context(
-            self, doc, num_fewshot, provide_description=None, rnd=None, description=None
+        self, doc, num_fewshot, provide_description=None, rnd=None, description=None
     ):
         example = self.doc_to_text(doc)
         prompt = self.PROMPT + "\n\n" + example
@@ -247,10 +260,10 @@ class MinervaMath(Task, ABC):
     def get_unnormalized_answer(self, text: str):
         text += self.end_seq
         match = re.search(
-                r'Final Answer: The final answer is(.*?). I hope it is correct.',
-                text,
+            r"Final Answer: The final answer is(.*?). I hope it is correct.",
+            text,
         )
-        if match: 
+        if match:
             return match.group(1).strip()
         else:
             return self.INVALID_ANSWER
@@ -259,49 +272,51 @@ class MinervaMath(Task, ABC):
         """
         x1 and x2 are normalized latex string
         """
-        try: 
+        try:
             with timeout(seconds=5):
                 try:
                     parsed_x1 = parse_latex(x1)
                     parsed_x2 = parse_latex(x2)
-                except (sympy.parsing.latex.errors.LaTeXParsingError, sympy.SympifyError, TypeError):
+                except (
+                    sympy.parsing.latex.errors.LaTeXParsingError,
+                    sympy.SympifyError,
+                    TypeError,
+                ):
                     print(f"couldn't parse one of {x1} or {x2}")
                     return False
-            
-                try: 
+
+                try:
                     diff = parsed_x1 - parsed_x2
                 except TypeError:
                     print(f"couldn't subtract {x1} and {x2}")
                     return False
 
                 try:
-                    if sympy.simplify(diff)==0:
+                    if sympy.simplify(diff) == 0:
                         return True
-                    else: 
+                    else:
                         return False
                 except ValueError:
                     print(f"Had some trouble simplifying when comparing {x1} and {x2}")
         except TimeoutError:
             print(f"Timed out comparing {x1} and {x2}")
             return False
-        except Exception as e: 
+        except Exception as e:
             print(f"Failed comparing {x1} and {x2} with {e}")
             return False
 
-
     def majority_vote(self, candidates):
-
         # get and normalize all answers
         answers = [
-                self.normalize_final_answer(self.get_unnormalized_answer(candidate))
-                for candidate in candidates
+            self.normalize_final_answer(self.get_unnormalized_answer(candidate))
+            for candidate in candidates
         ]
 
-        # Count votes for each answer. If two answers are sympy equivalent, 
-        # we treat them as the same. 
+        # Count votes for each answer. If two answers are sympy equivalent,
+        # we treat them as the same.
         answer_votes = {}
         for answer in answers:
-            if answer in answer_votes: 
+            if answer in answer_votes:
                 answer_votes[answer] += 1
             elif answer == self.INVALID_ANSWER:
                 pass
@@ -310,18 +325,18 @@ class MinervaMath(Task, ABC):
                 for ref in answer_votes:
                     if self.is_equiv(answer, ref) and not counted:
                         answer_votes[ref] += 1
-                        counted=True
+                        counted = True
 
-                if not counted: 
+                if not counted:
                     answer_votes[answer] = 1
 
         if not answer_votes:
             return self.INVALID_ANSWER, 0, answers
 
-        # Find the argmax and max 
+        # Find the argmax and max
         elected_answer, pass_num = max(answer_votes.items(), key=lambda x: x[1])
 
-        pass_rate = pass_num/len(answers)
+        pass_rate = pass_num / len(answers)
 
         return elected_answer, pass_rate, answers
 
@@ -329,7 +344,7 @@ class MinervaMath(Task, ABC):
         candidates = results[0]
 
         assert isinstance(params, dict)
-        
+
         if params == {}:
             unnormalized_answer = self.get_unnormalized_answer(candidates)
             answer = self.normalize_final_answer(unnormalized_answer)
@@ -339,11 +354,9 @@ class MinervaMath(Task, ABC):
         else:
             raise AssertionError
 
-        if self.is_equiv(
-            answer, doc["answer"]
-        ):
+        if self.is_equiv(answer, doc["answer"]):
             retval = 1
-        else: 
+        else:
             retval = 0
 
         if not self.MAJORITY_VOTING:
@@ -357,7 +370,7 @@ class MinervaMath(Task, ABC):
                 "selected_answer": answer,
                 "candidates": candidates,
                 "answers": answers,
-            }
+            },
         }
         return results
 
@@ -368,58 +381,98 @@ class MinervaMath(Task, ABC):
         return {"acc": True, "pass_rate": True, "log_pass_rate": mean}
 
     SUBSTITUTIONS = [
-        ('an ', ''), ('a ', ''), ('.$', '$'), ('\\$', ''), (r'\ ', ''), 
-        (' ', ''), ('mbox', 'text'), (',\\text{and}', ','), 
-        ('\\text{and}', ','), ('\\text{m}', '\\text{}')
+        ("an ", ""),
+        ("a ", ""),
+        (".$", "$"),
+        ("\\$", ""),
+        (r"\ ", ""),
+        (" ", ""),
+        ("mbox", "text"),
+        (",\\text{and}", ","),
+        ("\\text{and}", ","),
+        ("\\text{m}", "\\text{}"),
     ]
     REMOVED_EXPRESSIONS = [
-        'square', 'ways', 'integers', 'dollars', 'mph', 'inches', 'ft', 
-        'hours', 'km', 'units', '\\ldots', 'sue', 'points', 'feet', 
-        'minutes', 'digits', 'cents', 'degrees', 'cm', 'gm', 'pounds', 
-        'meters', 'meals', 'edges', 'students', 'childrentickets', 'multiples',
-        '\\text{s}', '\\text{.}', '\\text{\ns}', '\\text{}^2', 
-        '\\text{}^3', '\\text{\n}', '\\text{}', r'\mathrm{th}', 
-        r'^\circ', r'^{\circ}', r'\;', r',\!', '{,}', '"', '\\dots'
+        "square",
+        "ways",
+        "integers",
+        "dollars",
+        "mph",
+        "inches",
+        "ft",
+        "hours",
+        "km",
+        "units",
+        "\\ldots",
+        "sue",
+        "points",
+        "feet",
+        "minutes",
+        "digits",
+        "cents",
+        "degrees",
+        "cm",
+        "gm",
+        "pounds",
+        "meters",
+        "meals",
+        "edges",
+        "students",
+        "childrentickets",
+        "multiples",
+        "\\text{s}",
+        "\\text{.}",
+        "\\text{\ns}",
+        "\\text{}^2",
+        "\\text{}^3",
+        "\\text{\n}",
+        "\\text{}",
+        r"\mathrm{th}",
+        r"^\circ",
+        r"^{\circ}",
+        r"\;",
+        r",\!",
+        "{,}",
+        '"',
+        "\\dots",
     ]
 
     def normalize_final_answer(self, final_answer: str) -> str:
-      """
-      Normalize a final answer to a quantitative reasoning question.
+        """
+        Normalize a final answer to a quantitative reasoning question.
 
-      Copied character for character from appendix D of Lewkowycz et al. (2022)
-      """
-      final_answer = final_answer.split('=')[-1]
-      
-      for before, after in self.SUBSTITUTIONS:
-        final_answer = final_answer.replace(before, after)
-      for expr in self.REMOVED_EXPRESSIONS:
-        final_answer = final_answer.replace(expr, '')
-      
-      # Extract answer that is in LaTeX math, is bold, 
-      # is surrounded by a box, etc.  
-      final_answer = re.sub(r'(.*?)(\$)(.*?)(\$)(.*)', '$\\3$', final_answer)
-      final_answer = re.sub(r'(\\text\{)(.*?)(\})', '\\2', final_answer)
-      final_answer = re.sub(r'(\\textbf\{)(.*?)(\})', '\\2', final_answer)
-      final_answer = re.sub(r'(\\overline\{)(.*?)(\})', '\\2', final_answer)
-      final_answer = re.sub(r'(\\boxed\{)(.*)(\})', '\\2', final_answer)
-      
-      # Normalize shorthand TeX:
-      #  \fracab -> \frac{a}{b}
-      #  \frac{abc}{bef} -> \frac{abc}{bef}
-      #  \fracabc -> \frac{a}{b}c
-      #  \sqrta -> \sqrt{a}
-      #  \sqrtab -> sqrt{a}b
-      final_answer = re.sub(
-        r'(frac)([^{])(.)', 'frac{\\2}{\\3}', final_answer)
-      final_answer = re.sub(
-        r'(sqrt)([^{])', 'sqrt{\\2}', final_answer)
-      final_answer = final_answer.replace('$', '')
-      
-      # Normalize 100,000 -> 100000
-      if final_answer.replace(',', '').isdigit():
-        final_answer = final_answer.replace(',', '')
-        
-      return final_answer
+        Copied character for character from appendix D of Lewkowycz et al. (2022)
+        """
+        final_answer = final_answer.split("=")[-1]
+
+        for before, after in self.SUBSTITUTIONS:
+            final_answer = final_answer.replace(before, after)
+        for expr in self.REMOVED_EXPRESSIONS:
+            final_answer = final_answer.replace(expr, "")
+
+        # Extract answer that is in LaTeX math, is bold,
+        # is surrounded by a box, etc.
+        final_answer = re.sub(r"(.*?)(\$)(.*?)(\$)(.*)", "$\\3$", final_answer)
+        final_answer = re.sub(r"(\\text\{)(.*?)(\})", "\\2", final_answer)
+        final_answer = re.sub(r"(\\textbf\{)(.*?)(\})", "\\2", final_answer)
+        final_answer = re.sub(r"(\\overline\{)(.*?)(\})", "\\2", final_answer)
+        final_answer = re.sub(r"(\\boxed\{)(.*)(\})", "\\2", final_answer)
+
+        # Normalize shorthand TeX:
+        #  \fracab -> \frac{a}{b}
+        #  \frac{abc}{bef} -> \frac{abc}{bef}
+        #  \fracabc -> \frac{a}{b}c
+        #  \sqrta -> \sqrt{a}
+        #  \sqrtab -> sqrt{a}b
+        final_answer = re.sub(r"(frac)([^{])(.)", "frac{\\2}{\\3}", final_answer)
+        final_answer = re.sub(r"(sqrt)([^{])", "sqrt{\\2}", final_answer)
+        final_answer = final_answer.replace("$", "")
+
+        # Normalize 100,000 -> 100000
+        if final_answer.replace(",", "").isdigit():
+            final_answer = final_answer.replace(",", "")
+
+        return final_answer
 
 
 class MinervaMathAlgebraEasy(MinervaMath):
@@ -428,13 +481,14 @@ class MinervaMathAlgebraEasy(MinervaMath):
 
     def training_docs(self):
         data = map(self._process_doc, self.dataset["train"])
-        data = filter(lambda x: x['level'] == 'Level 1', data)
+        data = filter(lambda x: x["level"] == "Level 1", data)
         return data
 
     def test_docs(self):
         data = map(self._process_doc, self.dataset["test"])
-        data = filter(lambda x: x['level'] == 'Level 1', data)
+        data = filter(lambda x: x["level"] == "Level 1", data)
         return data
+
 
 create_subclasses(MinervaMath)
 
