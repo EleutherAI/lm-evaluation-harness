@@ -314,7 +314,7 @@ class MinervaMath(Task):
         else: 
             retval = 0
 
-        if params == {}:
+        if not self.MAJORITY_VOTING:
             pass_rate = retval
 
         results = {
