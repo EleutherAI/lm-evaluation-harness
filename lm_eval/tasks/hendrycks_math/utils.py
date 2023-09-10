@@ -4,23 +4,23 @@ from typing import Optional
 
 def doc_to_text(doc: dict) -> str:
     train_prompt = [
-        "Problem:\nFind the domain of the expression $\\frac{\\sqrt{x-2}}{\\sqrt{5-x}}$.\n\nSolution:\nThe expressions inside each square root must be non-negative. Therefore, $x-2 \\ge 0$, so $x\\ge2$, and $5 - x \\ge 0$, so $x \\le 5$. Also, the denominator cannot be equal to zero, so $5-x>0$, which gives $x<5$. Therefore, the domain of the expression is $\\boxed{[2,5)}$.\nFinal Answer: The final answer is $[2,5)$. I hope it is correct."
+        "Problem:\nFind the domain of the expression $\\frac{\\sqrt{x-2}}{\\sqrt{5-x}}$.\nSolution:\nThe expressions inside each square root must be non-negative. Therefore, $x-2 \\ge 0$, so $x\\ge2$, and $5 - x \\ge 0$, so $x \\le 5$. Also, the denominator cannot be equal to zero, so $5-x>0$, which gives $x<5$. Therefore, the domain of the expression is $\\boxed{[2,5)}$.\nFinal Answer: The final answer is $[2,5)$. I hope it is correct."
     ]
     train_prompt += [
-        "Problem:\nIf $\\det \\mathbf{A} = 2$ and $\\det \\mathbf{B} = 12,$ then find $\\det (\\mathbf{A} \\mathbf{B}).$\n\nSolution:\nWe have that $\\det (\\mathbf{A} \\mathbf{B}) = (\\det \\mathbf{A})(\\det \\mathbf{B}) = (2)(12) = \\boxed{24}.$\nFinal Answer: The final answer is $24$. I hope it is correct."
+        "Problem:\nIf $\\det \\mathbf{A} = 2$ and $\\det \\mathbf{B} = 12,$ then find $\\det (\\mathbf{A} \\mathbf{B}).$\nSolution:\nWe have that $\\det (\\mathbf{A} \\mathbf{B}) = (\\det \\mathbf{A})(\\det \\mathbf{B}) = (2)(12) = \\boxed{24}.$\nFinal Answer: The final answer is $24$. I hope it is correct."
     ]
     train_prompt += [
-        "Problem:\nTerrell usually lifts two 20-pound weights 12 times. If he uses two 15-pound weights instead, how many times must Terrell lift them in order to lift the same total weight?\n\nSolution:\nIf Terrell lifts two 20-pound weights 12 times, he lifts a total of $2\\cdot 12\\cdot20=480$ pounds of weight.  If he lifts two 15-pound weights instead for $n$ times, he will lift a total of $2\\cdot15\\cdot n=30n$ pounds of weight.  Equating this to 480 pounds, we can solve for $n$: \\begin{align*}\n30n&=480\\\\\n\\Rightarrow\\qquad n&=480/30=\\boxed{16}\n\\end{align*}'}\nFinal Answer: The final answer is $16$. I hope it is correct."
+        "Problem:\nTerrell usually lifts two 20-pound weights 12 times. If he uses two 15-pound weights instead, how many times must Terrell lift them in order to lift the same total weight?\nSolution:\nIf Terrell lifts two 20-pound weights 12 times, he lifts a total of $2\\cdot 12\\cdot20=480$ pounds of weight.  If he lifts two 15-pound weights instead for $n$ times, he will lift a total of $2\\cdot15\\cdot n=30n$ pounds of weight.  Equating this to 480 pounds, we can solve for $n$: \\begin{align*}\n30n&=480\\\\\n\\Rightarrow\\qquad n&=480/30=\\boxed{16}\n\\end{align*}'}\nFinal Answer: The final answer is $16$. I hope it is correct."
     ]
     train_prompt += [
-        "Problem:\nIf the system of equations\n\n\\begin{align*}\n2x-y&=a,\\\\\n3y-6x &=b.\n\\end{align*}has a solution, find $\\frac{a}{b},$ assuming $b \\neq 0.$\n\nSolution:\nIf we multiply the first equation by $-3$, we obtain\n\n$$3y-6x=-3a.$$Since we also know that $3y-6x=b$, we have\n\n$$-3a=b\\Rightarrow\\frac{a}{b}=\\boxed{-\\frac{1}{3}}.$$\nFinal Answer: The final answer is $\\frac{2}{3}$. I hope it is correct."
+        "Problem:\nIf the system of equations\n\n\\begin{align*}\n2x-y&=a,\\\\\n3y-6x &=b.\n\\end{align*}has a solution, find $\\frac{a}{b},$ assuming $b \\neq 0.$\nSolution:\nIf we multiply the first equation by $-3$, we obtain\n\n$$3y-6x=-3a.$$Since we also know that $3y-6x=b$, we have\n\n$$-3a=b\\Rightarrow\\frac{a}{b}=\\boxed{-\\frac{1}{3}}.$$\nFinal Answer: The final answer is $\\frac{2}{3}$. I hope it is correct."
     ]
     train_prompt = "\n\n".join(train_prompt)
-    return train_prompt + "\n\n" + "Problem:\n" + doc["problem"] + "\n\n" + "Solution:"
+    return train_prompt + "\n\n" + "Problem:\n" + doc["problem"] + "\n" + "Solution:"
 
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
-    def _process_doc(doc):
+    def _process_doc(doc: dict) -> dict:
         out_doc = {
             "problem": doc["problem"],
             "solution": doc["solution"],
@@ -48,7 +48,7 @@ def get_answer(s: str) -> Optional[str]:
         return None
 
 
-def process_results(doc, results):
+def process_results(doc: dict, results: list[str, dict]) -> dict:
     retval = 0.0
     answer = get_answer(results[0])
     if is_equiv(answer, doc["final_solution"]):
@@ -56,7 +56,7 @@ def process_results(doc, results):
     return {"exact_match": retval}
 
 
-def remove_boxed(s):
+def remove_boxed(s: str) -> str:
     if "\\boxed " in s:
         left = "\\boxed "
         assert s[: len(left)] == left
@@ -70,7 +70,7 @@ def remove_boxed(s):
     return s[len(left) : -1]
 
 
-def last_boxed_only_string(string):
+def last_boxed_only_string(string: str) -> str:
     idx = string.rfind("\\boxed")
     if "\\boxed " in string:
         return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
@@ -100,7 +100,7 @@ def last_boxed_only_string(string):
     return retval
 
 
-def _fix_fracs(string):
+def _fix_fracs(string: str) -> str:
     substrs = string.split("\\frac")
     new_str = substrs[0]
     if len(substrs) > 1:
@@ -132,7 +132,7 @@ def _fix_fracs(string):
     return string
 
 
-def _fix_a_slash_b(string):
+def _fix_a_slash_b(string: str) -> str:
     if len(string.split("/")) != 2:
         return string
     a = string.split("/")[0]
@@ -147,7 +147,7 @@ def _fix_a_slash_b(string):
         return string
 
 
-def _remove_right_units(string):
+def _remove_right_units(string: str) -> str:
     # "\\text{ " only ever occurs (at least in the val set) when describing units
     if "\\text{ " in string:
         splits = string.split("\\text{ ")
@@ -157,7 +157,7 @@ def _remove_right_units(string):
         return string
 
 
-def _fix_sqrt(string):
+def _fix_sqrt(string: str) -> str:
     if "\\sqrt" not in string:
         return string
     splits = string.split("\\sqrt")
@@ -172,7 +172,7 @@ def _fix_sqrt(string):
     return new_string
 
 
-def _strip_string(string):
+def _strip_string(string: str) -> str:
     # linebreaks
     string = string.replace("\n", "")
     # print(string)
@@ -201,13 +201,15 @@ def _strip_string(string):
 
     # remove dollar signs
     string = string.replace("\\$", "")
+    string = string.replace("$", "")
 
     # remove units (on the right)
     string = _remove_right_units(string)
 
     # remove percentage
     string = string.replace("\\%", "")
-    string = string.replace(r"%", "")  # changed from original TODO: recheck!
+    # Added from original
+    string = string.replace(r"%", "")
 
     # " 0." equivalent to " ." and "{0." equivalent to "{." Alternatively, add "0" if "." is the start of the string
     string = string.replace(" .", " 0.")
@@ -242,7 +244,7 @@ def _strip_string(string):
     return string
 
 
-def is_equiv(str1, str2):
+def is_equiv(str1: str, str2: str) -> bool:
     if str1 is None and str2 is None:
         return True
     if str1 is None or str2 is None:
