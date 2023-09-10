@@ -1,69 +1,106 @@
-from lm_eval.logger import eval_logger
 import datasets
+from typing import Optional
+
+
+def doc_to_text(doc: dict) -> str:
+    train_prompt = [
+        "Problem:\nFind the domain of the expression $\\frac{\\sqrt{x-2}}{\\sqrt{5-x}}$.\nSolution:\nThe expressions inside each square root must be non-negative. Therefore, $x-2 \\ge 0$, so $x\\ge2$, and $5 - x \\ge 0$, so $x \\le 5$. Also, the denominator cannot be equal to zero, so $5-x>0$, which gives $x<5$. Therefore, the domain of the expression is $\\boxed{[2,5)}$.\nFinal Answer: The final answer is $[2,5)$. I hope it is correct."
+    ]
+    train_prompt += [
+        "Problem:\nIf $\\det \\mathbf{A} = 2$ and $\\det \\mathbf{B} = 12,$ then find $\\det (\\mathbf{A} \\mathbf{B}).$\nSolution:\nWe have that $\\det (\\mathbf{A} \\mathbf{B}) = (\\det \\mathbf{A})(\\det \\mathbf{B}) = (2)(12) = \\boxed{24}.$\nFinal Answer: The final answer is $24$. I hope it is correct."
+    ]
+    train_prompt += [
+        "Problem:\nTerrell usually lifts two 20-pound weights 12 times. If he uses two 15-pound weights instead, how many times must Terrell lift them in order to lift the same total weight?\nSolution:\nIf Terrell lifts two 20-pound weights 12 times, he lifts a total of $2\\cdot 12\\cdot20=480$ pounds of weight.  If he lifts two 15-pound weights instead for $n$ times, he will lift a total of $2\\cdot15\\cdot n=30n$ pounds of weight.  Equating this to 480 pounds, we can solve for $n$: \\begin{align*}\n30n&=480\\\\\n\\Rightarrow\\qquad n&=480/30=\\boxed{16}\n\\end{align*}'}\nFinal Answer: The final answer is $16$. I hope it is correct."
+    ]
+    train_prompt += [
+        "Problem:\nIf the system of equations\n\n\\begin{align*}\n2x-y&=a,\\\\\n3y-6x &=b.\n\\end{align*}has a solution, find $\\frac{a}{b},$ assuming $b \\neq 0.$\nSolution:\nIf we multiply the first equation by $-3$, we obtain\n\n$$3y-6x=-3a.$$Since we also know that $3y-6x=b$, we have\n\n$$-3a=b\\Rightarrow\\frac{a}{b}=\\boxed{-\\frac{1}{3}}.$$\nFinal Answer: The final answer is $\\frac{2}{3}$. I hope it is correct."
+    ]
+    train_prompt = "\n\n".join(train_prompt)
+    return train_prompt + "\n\n" + "Problem:\n" + doc["problem"] + "\n" + "Solution:"
 
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
-    def _process_doc(doc):
+    def _process_doc(doc: dict) -> dict:
         out_doc = {
             "problem": doc["problem"],
-            "solution": remove_boxed(last_boxed_only_string(doc["solution"])),
+            "solution": doc["solution"],
+            "final_solution": remove_boxed(last_boxed_only_string(doc["solution"])),
         }
         return out_doc
 
     return dataset.map(_process_doc)
 
 
-def process_results(doc, results):
+def get_answer(s: str) -> Optional[str]:
+    end_str = "I hope it is correct"
+    start_str = "Final Answer: "
+    replacement_str = "The final answer is "
+
+    scrub_periods = lambda x: x.strip().rstrip(".").strip()  # noqa E731
+
+    try:
+        ans = (
+            s.split(end_str)[0].split(start_str)[1].strip().replace(replacement_str, "")
+        )
+        ans = scrub_periods(ans)
+        return ans
+    except:  # noqa: E731
+        return None
+
+
+def process_results(doc: dict, results: list[str, dict]) -> dict:
     retval = 0.0
-    indices = [pos for pos, char in enumerate(results[0]) if char == "$"]
-    if len(indices) <= 1:
-        answer = results[0].strip()
-    else:
-        answer = results[0][indices[0] + 1 : indices[-1]].strip()
-    if is_equiv(answer, doc["solution"]):
+    answer = get_answer(results[0])
+    if is_equiv(answer, doc["final_solution"]):
         retval = 1.0
     return {"exact_match": retval}
 
 
-# GPT3 prompt from https://github.com/hendrycks/math/blob/main/modeling/evaluate_gpt3.py
-def doc_to_text(doc):
-    train_prompt = (
-        "Given a mathematics problem, determine the answer. Simplify your answer as much as possible."
-        + "\n"
-        + "Problem: What is $\left(\\frac{7}{8}\\right)^3 \cdot \left(\\frac{7}{8}\\right)^{-3}$?"  # noqa: W605
-        + "\n"
-        + "Answer: $1$"
-    )
-    train_prompt += (
-        "\n"
-        + "###"
-        + "\n"
-        + "Problem: In how many ways can 4 books be selected from a shelf of 6 books if the order in which the books are selected does not matter?"
-        + "\n"
-        + "Answer: $15$"
-    )
-    train_prompt += (
-        "\n"
-        + "###"
-        + "\n"
-        + "Problem: Find the distance between the points $(2,1,-4)$ and $(5,8,-3).$"
-        + "\n"
-        + "Answer: $\sqrt{59}$"  # noqa: W605
-    )
-    train_prompt += (
-        "\n"
-        + "###"
-        + "\n"
-        + "Problem: The faces of an octahedral die are labeled with digits $1$ through $8$. What is the probability, expressed as a common fraction, of rolling a sum of $15$ with a pair of such octahedral dice?"
-        + "\n"
-        + "Answer: $\\frac{1}{32}$"
-    )
-    prompt = train_prompt + "\n" + "###" + "\n" + doc["problem"] + "\n" + "Answer: $"
-    return prompt
+def remove_boxed(s: str) -> str:
+    if "\\boxed " in s:
+        left = "\\boxed "
+        assert s[: len(left)] == left
+        return s[len(left) :]
+
+    left = "\\boxed{"
+
+    assert s[: len(left)] == left
+    assert s[-1] == "}"
+
+    return s[len(left) : -1]
 
 
-# adpated from https://github.com/hendrycks/math/blob/main/modeling/math_equivalence.py
-def _fix_fracs(string):
+def last_boxed_only_string(string: str) -> str:
+    idx = string.rfind("\\boxed")
+    if "\\boxed " in string:
+        return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
+    if idx < 0:
+        idx = string.rfind("\\fbox")
+        if idx < 0:
+            return None
+
+    i = idx
+    right_brace_idx = None
+    num_left_braces_open = 0
+    while i < len(string):
+        if string[i] == "{":
+            num_left_braces_open += 1
+        if string[i] == "}":
+            num_left_braces_open -= 1
+            if num_left_braces_open == 0:
+                right_brace_idx = i
+                break
+        i += 1
+
+    if right_brace_idx is None:
+        retval = None
+    else:
+        retval = string[idx : right_brace_idx + 1]
+
+    return retval
+
+
+def _fix_fracs(string: str) -> str:
     substrs = string.split("\\frac")
     new_str = substrs[0]
     if len(substrs) > 1:
@@ -95,7 +132,7 @@ def _fix_fracs(string):
     return string
 
 
-def _fix_a_slash_b(string):
+def _fix_a_slash_b(string: str) -> str:
     if len(string.split("/")) != 2:
         return string
     a = string.split("/")[0]
@@ -110,7 +147,7 @@ def _fix_a_slash_b(string):
         return string
 
 
-def _remove_right_units(string):
+def _remove_right_units(string: str) -> str:
     # "\\text{ " only ever occurs (at least in the val set) when describing units
     if "\\text{ " in string:
         splits = string.split("\\text{ ")
@@ -120,7 +157,7 @@ def _remove_right_units(string):
         return string
 
 
-def _fix_sqrt(string):
+def _fix_sqrt(string: str) -> str:
     if "\\sqrt" not in string:
         return string
     splits = string.split("\\sqrt")
@@ -135,7 +172,7 @@ def _fix_sqrt(string):
     return new_string
 
 
-def _strip_string(string):
+def _strip_string(string: str) -> str:
     # linebreaks
     string = string.replace("\n", "")
     # print(string)
@@ -164,13 +201,15 @@ def _strip_string(string):
 
     # remove dollar signs
     string = string.replace("\\$", "")
+    string = string.replace("$", "")
 
     # remove units (on the right)
     string = _remove_right_units(string)
 
     # remove percentage
     string = string.replace("\\%", "")
-    string = string.replace(r"%", "")  # changed from original TODO: recheck!
+    # Added from original
+    string = string.replace(r"%", "")
 
     # " 0." equivalent to " ." and "{0." equivalent to "{." Alternatively, add "0" if "." is the start of the string
     string = string.replace(" .", " 0.")
@@ -205,7 +244,7 @@ def _strip_string(string):
     return string
 
 
-def is_equiv(str1, str2):
+def is_equiv(str1: str, str2: str) -> bool:
     if str1 is None and str2 is None:
         return True
     if str1 is None or str2 is None:
@@ -217,49 +256,3 @@ def is_equiv(str1, str2):
         return ss1 == ss2
     except:  # noqa: E722
         return str1 == str2
-
-
-# Preprocessing: Extract //boxed answer from ground truth
-# taken from https://github.com/hendrycks/math/blob/main/modeling/dataset/util.py
-def remove_boxed(s):
-    if "\\boxed " in s:
-        left = "\\boxed "
-        assert s[: len(left)] == left
-        return s[len(left) :]
-
-    left = "\\boxed{"
-
-    assert s[: len(left)] == left
-    assert s[-1] == "}"
-
-    return s[len(left) : -1]
-
-
-def last_boxed_only_string(string):
-    idx = string.rfind("\\boxed")
-    if "\\boxed " in string:
-        return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
-    if idx < 0:
-        idx = string.rfind("\\fbox")
-        if idx < 0:
-            return None
-
-    i = idx
-    right_brace_idx = None
-    num_left_braces_open = 0
-    while i < len(string):
-        if string[i] == "{":
-            num_left_braces_open += 1
-        if string[i] == "}":
-            num_left_braces_open -= 1
-            if num_left_braces_open == 0:
-                right_brace_idx = i
-                break
-        i += 1
-
-    if right_brace_idx is None:
-        retval = None
-    else:
-        retval = string[idx : right_brace_idx + 1]
-
-    return retval
