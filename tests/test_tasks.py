@@ -9,8 +9,7 @@ from lm_eval.api.task import ConfigurableTask
 TASKS = ["arc_easy"]
 
 
-def task_class():
-    global TASKS
+def task_class(TASKS=["arc_easy"]):
     # CI: new_tasks checks if any modifications have been made
     task_classes = new_tasks()
     # Check if task_classes is empty
