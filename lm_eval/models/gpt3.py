@@ -198,7 +198,6 @@ class GPT3LM(BaseLM):
                 context_enc = self.tok_encode(context)
                 inp = context_enc[-(self.max_length - self.max_gen_toks) :]
                 inps.append(inp)
-            print(until)
             response = oa_completion(
                 engine=self.engine,
                 prompt=inps,
