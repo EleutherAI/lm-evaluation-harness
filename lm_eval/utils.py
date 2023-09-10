@@ -6,7 +6,9 @@ import functools
 import inspect
 import sys
 import signal
-from typing import List
+from typing import List, Callable, TypeVar
+
+T = TypeVar('T')
 
 import sympy
 from sympy.parsing.latex import parse_latex
@@ -36,6 +38,64 @@ class timeout:
     def __exit__(self, type, value, traceback):
         signal.alarm(0)
 
+class MajorityVotingMixin:
+    """
+    Majority voting for an arbitrary definition of equivalence.
+    """
+    def majority_vote(
+            self,
+            sampled_answers: List[T],
+            correct_answer: T,
+            is_equiv : Callable[[T, T], bool] = lambda x, y: x==y
+    ):
+        """
+        Performs majority voting on a list of candidate answers. 
+        Returns accuracy and pass rate checked against `correct_answer`.
+        Supports arbitrary definitions of equivalence via `is_equiv` argument.
+        
+        Arguments:
+            sampled_answers: List[T], list of sampled answers
+            correct_answer: T, ground truth.
+            is_equiv: Callable[[T, T], bool], a function that determines when two answers 
+                should be treated as equivalent. Default is T-equivalence, i.e `lambda x y: x==y`.
+        Returns:
+            acc: int, 0/1 for correct/incorrect
+            pass_rate: bool, proportion of `sampled_answers` equivalent to `correct_answer`
+            votes: List[Tuple[T, int]], for each distinct answer, the amount of votes for that answer. 
+                Sorted by descending amount of votes, so that `elected_answer==votes[0][0]`
+        """
+        if not sampled_answers:
+            return 0, 0, []
+
+        answer_votes = {}
+        for answer in sampled_answers:
+            if answer in answer_votes: 
+                answer_votes[answer] += 1
+            else:
+                counted = False
+                for ref in answer_votes:
+                    if is_equiv(answer, ref) and not counted:
+                        answer_votes[ref] += 1
+                        counted=True
+                if not counted: 
+                    answer_votes[answer] = 1
+
+        votes = list(sorted(answer_votes.items(), key=lambda x: x[1]))
+
+        elected_answer = votes[0][0]
+
+        if is_equiv(correct_answer, elected_answer):
+            acc = 1
+            pass_rate = votes[0][1] / len(sampled_answers)
+        else:
+            acc = 0
+            pass_rate = 0
+            for candidate, num_votes in votes.items():
+                if is_equiv(correct_answer, elected_answer):
+                    pass_rate = num_votes / len(sampled_answers)
+                    break
+
+        return acc, pass_rate, votes
 
 class SymbolicMathMixin:
     """

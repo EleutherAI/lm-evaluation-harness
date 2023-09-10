@@ -13,7 +13,6 @@ import math
 import code
 import signal
 
-
 import sympy
 from sympy.parsing.latex import parse_latex
 
@@ -21,7 +20,7 @@ import inspect
 import lm_eval.datasets.hendrycks_math.hendrycks_math
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
-from lm_eval.utils import SymbolicMathMixin
+from lm_eval.utils import SymbolicMathMixin, MajorityVotingMixin
 
 
 NL_PROMPT=r"""Problem:
@@ -84,7 +83,7 @@ _CITATION = """
 }
 """
 
-class MinervaMath(Task, SymbolicMathMixin):
+class MinervaMath(Task, SymbolicMathMixin, MajorityVotingMixin):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
     DATASET_NAME = None
     MAJORITY_VOTING = "majority_voting"
@@ -215,42 +214,6 @@ class MinervaMath(Task, SymbolicMathMixin):
         else:
             return self.INVALID_ANSWER
 
-    def majority_vote(self, candidates):
-
-        # get and normalize all answers
-        answers = [
-                self.normalize_final_answer(self.get_unnormalized_answer(candidate))
-                for candidate in candidates
-        ]
-
-        # Count votes for each answer. If two answers are sympy equivalent, 
-        # we treat them as the same. 
-        answer_votes = {}
-        for answer in answers:
-            if answer in answer_votes: 
-                answer_votes[answer] += 1
-            elif answer == self.INVALID_ANSWER:
-                pass
-            else:
-                counted = False
-                for ref in answer_votes:
-                    if self.is_tex_equiv(answer, ref) and not counted:
-                        answer_votes[ref] += 1
-                        counted=True
-
-                if not counted: 
-                    answer_votes[answer] = 1
-
-        if not answer_votes:
-            return self.INVALID_ANSWER, 0, answers
-
-        # Find the argmax and max 
-        elected_answer, pass_num = max(answer_votes.items(), key=lambda x: x[1])
-
-        pass_rate = pass_num/len(answers)
-
-        return elected_answer, pass_rate, answers
-
     def process_results(self, doc, results, params={}):
         candidates = results[0]
 
@@ -259,30 +222,41 @@ class MinervaMath(Task, SymbolicMathMixin):
         if self.MAJORITY_VOTING not in params:
             unnormalized_answer = self.get_unnormalized_answer(candidates)
             answer = self.normalize_tex(unnormalized_answer)
-            answers = [answer]
-        else:
-            answer, pass_rate, answers = self.majority_vote(candidates)
-        
-        if self.is_tex_equiv(
-            answer, doc["answer"]
-        ):
-            retval = 1
-        else: 
-            retval = 0
 
-        if self.MAJORITY_VOTING not in params:
-            pass_rate = retval
+            if unnormalized_answer==self.INVALID_ANSWER:
+                acc = 0
+            elif self.is_tex_equiv(answer, doc['answer']):
+                acc = 1 
+            else: 
+                acc = 0 
+
+            pass_rate = acc
+        else:
+            answers = [
+                    self.normalize_final_answer(self.get_unnormalized_answer(candidate))
+                    for candidate in candidates
+                    if self.get_unnormalized_answer(candidate) != self.INVALID_ANSWER
+            ]
+            
+            acc, pass_rate, votes = self.majority_vote(
+                    answers,
+                    correct_answer=doc['answer'],
+                    is_equiv=self.is_tex_equiv,
+            )
+            answer = votes[0][0]
 
         results = {
-            "acc": retval,
+            "acc": acc,
             "pass_rate": pass_rate,
-            "log_pass_rate": math.log(max(pass_rate, 1e-10)),
             "metadata": {
                 "selected_answer": answer,
-                "candidates": candidates,
-                "answers": answers,
+                "unprocessed_answers": candidates,
             }
         }
+
+        if self.MAJORITY_VOTING in params:
+            results["metadata"]["votes"] = votes
+
         return results
 
     def aggregation(self):
