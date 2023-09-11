@@ -4,16 +4,19 @@ import argparse
 
 LANGUAGES = {
     "bn": {  # Bengali
+        # "QUESTION": "প্রশ্ন:",
         "QUESTION": "\u09aa\u09cd\u09b0\u09b6\u09cd\u09a8:",
+        # "ANSWER": "ধাপে ধাপে উত্তর:",
         "ANSWER": "\u09a7\u09be\u09aa\u09c7 \u09a7\u09be\u09aa\u09c7 \u0989\u09a4\u09cd\u09a4\u09b0:",
         "DIRECT": "Answer:",
         "REGEX": "The answer is (\\-?[0-9\\.\\,]+)",
     },
     "de": {  # German
         "QUESTION": "Frage:",
+        # "ANSWER": "Schritt-für-Schritt-Antwort:",
         "ANSWER": "Schritt-f\u00fcr-Schritt-Antwort:",
         "DIRECT": "Antwort:",
-        "REGEX": "The answer is (\\-?[0-9\\.\\,]+)",
+        "REGEX": "Die Antwort lautet (\\-?[0-9\\.\\,]+)",
     },
     "en": {  # English
         "QUESTION": "Question:",
@@ -24,50 +27,68 @@ LANGUAGES = {
     "es": {  # Spanish
         "QUESTION": "Pregunta:",
         "ANSWER": "Respuesta paso a paso:",
-        "DIRECT": "Answer:",
-        "REGEX": "The answer is (\\-?[0-9\\.\\,]+)",
+        "DIRECT": "Respuesta:",
+        "REGEX": "La respuesta es (\\-?[0-9\\.\\,]+)",
     },
     "fr": {  # French
         "QUESTION": "Question :",
+        # "ANSWER": "Réponse étape par étape :"
         "ANSWER": "R\u00e9ponse \u00e9tape par \u00e9tape :",
-        "DIRECT": "Answer:",
-        "REGEX": "The answer is (\\-?[0-9\\.\\,]+)",
+        # "DIRECT": "Réponse :",
+        "DIRECT": "R\u00e9ponse :"
+        # "REGEX": "La réponse est (\\-?[0-9\\.\\,]+)",
+        "REGEX": "La r\u00e9ponse est (\\-?[0-9\\.\\,]+)",
     },
     "ru": {  # Russian
+        # "QUESTION": "Задача:",
         "QUESTION": "\u0417\u0430\u0434\u0430\u0447\u0430:",
+        # "ANSWER": "Пошаговоерешение:",
         "ANSWER": "\u041f\u043e\u0448\u0430\u0433\u043e\u0432\u043e\u0435\u0440\u0435\u0448\u0435\u043d\u0438\u0435:",
         "DIRECT": "Answer:",
-        "REGEX": "The answer is (\\-?[0-9\\.\\,]+)",
+        # "REGEX": "Ответ — (\\-?[0-9\\.\\,]+)",
+        "REGEX": "\u041e\u0442\u0432\u0435\u0442 \u2014 (\\-?[0-9\\.\\,]+)",
     },
     "sw": {  # Swahili
         "QUESTION": "Swali:",
         "ANSWER": "Jibu la Hatua kwa Hatua:",
         "DIRECT": "Answer:",
-        "REGEX": "The answer is (\\-?[0-9\\.\\,]+)",
+        "REGEX": "Jibu ni (\\-?[0-9\\.\\,]+)",
     },
     "te": {  # Telugu
+        # "QUESTION": "ప్రశ్న:",
         "QUESTION": "\u0c2a\u0c4d\u0c30\u0c36\u0c4d\u0c28:",
+        # "ANSWER": "దశలవారీగా సమాధానం:",
         "ANSWER": "\u0c26\u0c36\u0c32\u0c35\u0c3e\u0c30\u0c40\u0c17\u0c3e \u0c38\u0c2e\u0c3e\u0c27\u0c3e\u0c28\u0c02:",
         "DIRECT": "Answer:",
-        "REGEX": "The answer is (\\-?[0-9\\.\\,]+)",
+        # "REGEX": "సమాధానం (\\-?[0-9\\.\\,]+)",
+        "REGEX": "\u0c38\u0c2e\u0c3e\u0c27\u0c3e\u0c28\u0c02 (\\-?[0-9\\.\\,]+)",
     },
     "th": {  # Thai
+        # "QUESTION": "โจทย์:",
         "QUESTION": "\u0e42\u0e08\u0e17\u0e22\u0e4c:",
+        # "ANSWER": "คำตอบทีละขั้นตอน:",
         "ANSWER": "\u0e04\u0e33\u0e15\u0e2d\u0e1a\u0e17\u0e35\u0e25\u0e30\u0e02\u0e31\u0e49\u0e19\u0e15\u0e2d\u0e19:",
         "DIRECT": "Answer:",
-        "REGEX": "The answer is (\\-?[0-9\\.\\,]+)",
+        # "REGEX": "คำตอบคือ (\\-?[0-9\\.\\,]+)",
+        "REGEX": "\u0e04\u0e33\u0e15\u0e2d\u0e1a\u0e04\u0e37\u0e2d (\\-?[0-9\\.\\,]+)",
     },
     "ja": {  # Japanese
+        # "QUESTION": "問題:",
         "QUESTION": "\u554f\u984c:",
+        # "ANSWER": "ステップごとの答え:",
         "ANSWER": "\u30b9\u30c6\u30c3\u30d7\u3054\u3068\u306e\u7b54\u3048:",
         "DIRECT": "Answer:",
-        "REGEX": "The answer is (\\-?[0-9\\.\\,]+)",
+        # "REGEX": "答えは(\\-?[0-9\\.\\,]+)です。",
+        "REGEX": "\u7b54\u3048\u306f(\\-?[0-9\\.\\,]+)\u3067\u3059\u3002",
     },
     "zh": {  # Chinese
+        # "QUESTION": "问题:",
         "QUESTION": "\u95ee\u9898:",
+        # "ANSWER": "逐步解答:",
         "ANSWER": "\u9010\u6b65\u89e3\u7b54:",
         "DIRECT": "Answer:",
-        "REGEX": "The answer is (\\-?[0-9\\.\\,]+)",
+        # "REGEX": "答案是 (\\-?[0-9\\.\\,]+)。",
+        "REGEX": "\u7b54\u6848\u662f (\\-?[0-9\\.\\,]+)\u3002",
     },
 }
 
@@ -80,15 +101,15 @@ def add_regex_pattern(regex_pattern):
         "filter_list": [
             {
                 "name": "get-answer",
-            },
-        ],
-        "filter": [
-            {
-                "function": "regex",
-                "regex_pattern": regex_pattern,
-            },
-            {
-                "function": "take_first",
+                "filter": [
+                    {
+                        "function": "regex",
+                        "regex_pattern": regex_pattern,
+                    },
+                    {
+                        "function": "take_first",
+                    },
+                ],
             },
         ],
     }
@@ -107,6 +128,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
             QUESTION = LANGUAGES[lang]["QUESTION"]
 
             yaml_template = "cot_yaml"
+            filter_list = {}
             if mode == "direct":
                 ANSWER = LANGUAGES[lang]["DIRECT"]
                 REGEX = None
@@ -116,13 +138,13 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                 ANSWER = LANGUAGES[lang]["ANSWER"]
                 REGEX = LANGUAGES[lang]["REGEX"]
                 task_name = f"mgsm_{lang}_native-cot"
+                filter_list = add_regex_pattern(REGEX)
             elif mode == "en-cot":
                 ANSWER = LANGUAGES["en"]["ANSWER"]
                 REGEX = LANGUAGES["en"]["REGEX"]
                 task_name = f"mgsm_{lang}_en-cot"
 
             file_name = f"{task_name}.yaml"
-            filter_list = add_regex_pattern(REGEX)
 
             with open(
                 f"{output_dir}/{file_name}", "w" if overwrite else "x", encoding="utf8"
@@ -147,6 +169,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                     },
                     f,
                     allow_unicode=True,
+                    width=float("inf"),
                 )
         except FileExistsError:
             err.append(file_name)
