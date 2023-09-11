@@ -3,13 +3,21 @@ dataset_path: tau/scrolls
 output_type: greedy_until
 training_split: train
 validation_split: validation
-process_docs: !function ../preprocessors.process_docs
+process_docs: !function preprocessors.process_docs
 doc_to_text: "{{input}}\n\nQuestion: What is a summary of the preceding text?\nAnswer:"
-doc_to_target: "{{outputs.join(", ")}}"
+doc_to_target: "{{outputs|join(', ')}}"
 should_decontaminate: true
 doc_to_decontamination_query: input
 metric_list:
-  - metric: f1
+  - metric: !function metrics.rouge1
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function metrics.rouge2
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function metrics.rougeL
+    aggregation: mean
+    higher_is_better: true
 generation_kwargs:
   until:
     - "\n"

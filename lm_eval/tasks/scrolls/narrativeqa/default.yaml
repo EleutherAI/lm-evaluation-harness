@@ -3,13 +3,14 @@ task: scrolls_narrativeqa
 dataset_name: narrative_qa
 output_type: greedy_until
 process_docs: !function ../preprocessors.process_docs_prepended_question
-doc_to_text: "{{text}}\n\nHypothesis: {{question}}\nConclusion:"
-doc_to_target: "{{outputs[0]}}"
-doc_to_choice: ["Not mentioned", "Entailment", "Contradiction"]
+doc_to_text: "{{text}}\n\nQuestion: {{question}}\nAnswer:"
+doc_to_target: "{{outputs| join(', ')}}"
 should_decontaminate: true
 doc_to_decontamination_query: input
 metric_list:
   - metric: f1
+    aggregation: !function ../metrics.agg_f1
+    higher_is_better: true
 generation_kwargs:
   until:
     - "\n"
