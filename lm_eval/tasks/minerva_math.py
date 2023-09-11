@@ -243,7 +243,10 @@ class MinervaMath(Task, SymbolicMathMixin, MajorityVotingMixin):
                     correct_answer=doc['answer'],
                     is_equiv=self.is_tex_equiv,
             )
-            answer = votes[0][0]
+            if votes:
+                answer = votes[0][0]
+            else: 
+                answer = self.INVALID_ANSWER
 
         results = {
             "acc": acc,
