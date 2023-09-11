@@ -15,7 +15,7 @@ def _preproc_doc(doc):
     return doc
 
 
-def doc_to_text(doc):
+def doc_to_text(doc) -> str:
     doc = _preproc_doc(doc)
     return f"Scenario 1: {doc['scenarios'][0]}\nScenario 2: {doc['scenarios'][1]}\nQuestion: Is Scenario 1 preferable?\nAnswer:"
 

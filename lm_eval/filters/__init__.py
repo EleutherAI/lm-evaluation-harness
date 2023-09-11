@@ -17,14 +17,16 @@ FILTER_REGISTRY = {
 
 
 def get_filter(filter_name):
-    return FILTER_REGISTRY[filter_name]
+    if filter_name in FILTER_REGISTRY:
+        return FILTER_REGISTRY[filter_name]
+    else:
+        return filter_name
 
 
 def build_filter_ensemble(filter_name, components):
     """
     Create a filtering pipeline.
     """
-
     filters = []
     for (function, kwargs) in components:
         if kwargs is None:

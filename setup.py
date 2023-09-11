@@ -15,7 +15,7 @@ extras_require = {
     ],
     "testing": ["pytest", "pytest-cov", "pytest-xdist"],
     "multilingual": ["nagisa>=0.2.7", "jieba>=0.42.1"],
-    "sentencepiece": ["sentencepiece>=0.1.98", "protobuf>=4.22.1"],
+    "sentencepiece": ["sentencepiece>=0.1.98", "protobuf>=4.22.1", "pycountry"],
     "promptsource": [
         "promptsource @ git+https://github.com/bigscience-workshop/promptsource.git#egg=promptsource"
     ],
@@ -53,7 +53,7 @@ setuptools.setup(
     ],
     python_requires=">=3.9",
     install_requires=[
-        "accelerate>=0.18.0",
+        "accelerate>=0.21.0",
         "evaluate",
         "datasets>=2.0.0",
         "evaluate>=0.4.0",
@@ -62,10 +62,9 @@ setuptools.setup(
         "omegaconf>=2.2",
         "peft>=0.2.0",
         "pybind11>=2.6.2",
-        "pycountry",
         "pytablewriter",
         "rouge-score>=0.0.4",
-        "sacrebleu==1.5.0",
+        "sacrebleu>=1.5.0",
         "scikit-learn>=0.24.1",
         "sqlitedict",
         "torch>=1.8",
