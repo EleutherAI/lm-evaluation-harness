@@ -1,7 +1,9 @@
 import re
 from functools import partial
 
-from ..preprocessors import process_docs_prepended_question
+import sys
+sys.path.append('..')
+from preprocessors import process_docs_prepended_question
 
 def process_docs(dataset):
 

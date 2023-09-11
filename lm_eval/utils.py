@@ -432,8 +432,7 @@ def load_yaml_config(yaml_path):
                 # If not found, assume the included yaml
                 # is in the same dir as the original yaml
                 if not os.path.isfile(path):
-                    path = os.path.join(yaml_dir, path)
-
+                    path = os.path.normpath(os.path.join(yaml_dir, path))
                 try:
                     included_yaml_config = load_yaml_config(path)
                     final_yaml_config.update(included_yaml_config)
