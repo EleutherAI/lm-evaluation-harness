@@ -5,7 +5,7 @@ from lm_eval.api.registry import register_model
 
 @register_model("dummy")
 class DummyLM(LM):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     @classmethod
