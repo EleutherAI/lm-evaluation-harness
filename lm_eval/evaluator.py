@@ -184,7 +184,7 @@ def evaluate(
     :param lm: obj
         Language Model
     :param task_dict: dict[str, Task]
-        Dictionary of tasks. Tasks will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
+        Dictionary of tasks. Tasks will be taken to have name type(task).config.task .
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
