@@ -35,7 +35,7 @@ LANGUAGES = {
         # "ANSWER": "Réponse étape par étape :"
         "ANSWER": "R\u00e9ponse \u00e9tape par \u00e9tape :",
         # "DIRECT": "Réponse :",
-        "DIRECT": "R\u00e9ponse :"
+        "DIRECT": "R\u00e9ponse :",
         # "REGEX": "La réponse est (\\-?[0-9\\.\\,]+)",
         "REGEX": "La r\u00e9ponse est (\\-?[0-9\\.\\,]+)",
     },
