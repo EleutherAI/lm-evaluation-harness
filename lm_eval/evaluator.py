@@ -115,11 +115,30 @@ def simple_evaluate(
             + "_rank" + str(lm.rank) + ".db",
         )
 
+    # def _change_fewshot(task_dict):
+    #     for task_name in task_dict.keys():
+    #         task_obj = task_dict[task_name]
+    #         if type(task_obj) == tuple:
+    #             group, task_obj = task_obj
+    #                 if task_obj
+
+    #         config = task_obj._config
+    #         if num_fewshot is not None:
+    #             if config["num_fewshot"] > 0:
+    #                 default_num_fewshot = config["num_fewshot"]
+    #                 eval_logger.warning(
+    #                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
+    #                 )
+
+    #             task_obj._config["num_fewshot"] = num_fewshot
+
     task_dict = lm_eval.tasks.get_task_dict(tasks)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
         if type(task_obj) == tuple:
             group, task_obj = task_obj
+            if task_obj is None:
+                continue
 
         config = task_obj._config
         if num_fewshot is not None:
@@ -210,22 +229,29 @@ def evaluate(
     # tracks all Instances/requests a model must generate output on.
     requests = collections.defaultdict(list)
     # Stores task scores based on task grouping.
-    aggregate = collections.defaultdict(dict)
+    results_agg = collections.defaultdict(dict)
     # tracks if a task was chosen via user selecting a group containing it
-    task_groups = collections.defaultdict(dict)
+    task_to_group = collections.defaultdict(dict)
+    group_to_task = collections.defaultdict(list)
     # stores the amount to pad out reqs per req. type so that
     # number of fwd passes per distributed rank is equal
     padding_requests = collections.defaultdict(int)
-
-    # Stores group related keys and values for group-aggregation
-    task_groups = collections.defaultdict(dict)
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
         if type(task) == tuple:
             group, task = task
-            task_groups[task_name] = group
-            aggregate[task_name] = {}
+            task_to_group[task_name] = group
+
+            if group in list(group_to_task.keys()):
+                group_to_task[group].append(task_name)
+            else:
+                group_to_task[group] = [task_name]
+
+            if task is None:
+                continue
+        else:
+            group_to_task[task_name] = []
 
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
@@ -301,6 +327,8 @@ def evaluate(
     for task_name, task in task_dict.items():
         if type(task) == tuple:
             group, task = task
+            if task is None:
+                continue
         task.apply_filters()
 
     ### Collect values of metrics on all datapoints ###
@@ -310,6 +338,8 @@ def evaluate(
     for task_name, task in task_dict.items():
         if type(task) == tuple:
             group, task = task
+            if task is None:
+                continue
         # TODO: make it possible to use a different metric per filter
         # iterate over different filters used
         for key in task.instances[0].filtered_resps.keys():
@@ -405,19 +435,6 @@ def evaluate(
             task_score = task.aggregation()[metric](items)
             results[task_name][metric + "," + key] = task_score
 
-            # Need to put back in results
-            # pythia | acc
-            #        | perplexity
-            #        | word_perplexity
-            #        | byte_perplexity
-            #        | bits_per_byte
-            if task_name in task_groups:
-                group_name = task_groups[task_name]
-                if metric in list(aggregate[group_name].keys()):
-                    aggregate[group_name][metric].append(task_score)
-                else:
-                    aggregate[group_name][metric] = [task_score]
-
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
             if False:  # bootstrap_iters > 0:
@@ -431,17 +448,61 @@ def evaluate(
                 if stderr is not None:
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
-        if bool(aggregate):
-            for group in aggregate.keys():
-                for metric in aggregate[group].keys():
-                    aggregate[group][metric] = np.average(aggregate[group][metric])
+        tab_dict = {}
+        for group in group_to_task:
+            task_list = group_to_task[group]
+            if group not in tab_dict:
+                tab_dict[group] = 0
+
+            for task in task_list:
+                if task in tab_dict:
+                    tab_dict[task] += 1
+                else:
+                    tab_dict[task] = 1 + tab_dict[group]
+        print(tab_dict)
+        zero_order_groups = [group for group in tab_dict if tab_dict[group] == 0]
+
+        for task_name, task in task_dict.items():
+            if type(task) == tuple:
+                group_name, _ = task
+            else:
+                group_name = None
+
+            scores = results[task_name]
+            if group_name is not None:
+                group_name = tab_dict[group_name] * "-" + group_name
+                if group_name not in results_agg:
+                    results_agg[group_name] = {}
+
+                for metric in scores:
+                    if metric in results_agg[group_name]:
+                        results_agg[group_name][metric].append(scores[metric])
+                    else:
+                        results_agg[group_name][metric] = [scores[metric]]
+
+            tab_task_name = tab_dict[task_name] * "-" + task_name
+            results_agg[tab_task_name] = scores
+            versions[tab_task_name] = versions[task_name]
+
+        if bool(results_agg):
+            for group in results_agg.keys():
+                for metric in results_agg[group].keys():
+                    results_agg[group][metric] = np.average(results_agg[group][metric])
                     versions[group] = "N/A"
 
         results_dict = {
-            "results": dict(sorted(results.items())),
+            "results": dict(results_agg.items()),
             **(
-                {"aggregate": dict(sorted(aggregate.items()))}
-                if bool(aggregate)
+                {
+                    "groups": dict(
+                        [
+                            item
+                            for item in results_agg.items()
+                            if item[0] in zero_order_groups
+                        ]
+                    )
+                }
+                if len(zero_order_groups) > 0
                 else {}
             ),
             "configs": dict(sorted(configs.items())),
