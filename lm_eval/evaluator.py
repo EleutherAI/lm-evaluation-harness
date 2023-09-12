@@ -459,7 +459,6 @@ def evaluate(
                     tab_dict[task] += 1
                 else:
                     tab_dict[task] = 1 + tab_dict[group]
-        print(tab_dict)
         zero_order_groups = [group for group in tab_dict if tab_dict[group] == 0]
 
         for task_name, task in task_dict.items():
