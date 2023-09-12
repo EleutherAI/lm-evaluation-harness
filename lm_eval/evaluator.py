@@ -115,23 +115,6 @@ def simple_evaluate(
             + "_rank" + str(lm.rank) + ".db",
         )
 
-    # def _change_fewshot(task_dict):
-    #     for task_name in task_dict.keys():
-    #         task_obj = task_dict[task_name]
-    #         if type(task_obj) == tuple:
-    #             group, task_obj = task_obj
-    #                 if task_obj
-
-    #         config = task_obj._config
-    #         if num_fewshot is not None:
-    #             if config["num_fewshot"] > 0:
-    #                 default_num_fewshot = config["num_fewshot"]
-    #                 eval_logger.warning(
-    #                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
-    #                 )
-
-    #             task_obj._config["num_fewshot"] = num_fewshot
-
     task_dict = lm_eval.tasks.get_task_dict(tasks)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
