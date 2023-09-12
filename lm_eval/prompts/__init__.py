@@ -65,8 +65,8 @@ def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, **kwa
     else:
         prompts = DatasetTemplates(dataset_name=dataset_name, subset_name=subset_name)
 
+    category_name, *prompt_name = use_prompt.split(":")
     # TODO allow to multiple prompt naming
-    # category_name, *prompt_name = use_prompt.split(":")
     # if len(prompt_name) > 1:
     #     prompt_list = []
     #     for prompt in prompt_name:
