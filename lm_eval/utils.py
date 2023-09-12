@@ -270,8 +270,6 @@ def make_table(result_dict, column: str = "results"):
         column_name = "Tasks"
     elif column == "groups":
         column_name = "Groups"
-    elif column == "benchmarks":
-        column_name = "Benchmarks"
 
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
