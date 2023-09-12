@@ -229,9 +229,13 @@ def bleu(items):
 
     Higher is better
     """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
-    refs, preds = _sacreformat(refs, preds)
+    # Changes done for mlsum dataset
+    
+    # refs = list(zip(*items))[0]
+    # preds = list(zip(*items))[1]
+    refs = items[0]
+    preds = items[1]
+    #refs, preds = _sacreformat(refs, preds)
     return sacrebleu.corpus_bleu(preds, refs).score
 
 

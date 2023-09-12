@@ -33,7 +33,9 @@ class LLMToolsModel(LM):
                 data = {
                     "doc": inputs[i] 
                 }
-                r = requests.post(url, json=data).json()
+                params = {"max_new_tokens": "1024"}
+                r = requests.post(url, json=data, params=params).json()
+                #r = requests.post(url, json=data).json()
                 responses.append(r["response"])
 
             except Exception as e:

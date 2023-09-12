@@ -974,38 +974,53 @@ class ConfigurableTask(Task):
         elif self.OUTPUT_TYPE == "greedy_until":
 
             gold = self.doc_to_target(doc)
+            if self._config.doc_to_choice is not None:
+                # If you set doc_to_choice,
+                # it assumes that doc_to_target returns a number.
+                choices = self.doc_to_choice(doc)
+                gold = choices[gold]
+            else:
+                gold = str(gold)
 
-            for key, result in zip(self._metric_fn_list.keys(), results):
+            result = results[0]
+            for metric in self._metric_fn_list.keys():
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
                     scores = []
                     for gold_option in gold:
-                        res = self._metric_fn_list[key](
-                            references=[gold_option],
-                            predictions=[result],
-                            **self._metric_fn_kwargs[key],
-                        )
-                        if isinstance(res, dict):
+                        try:
+                            result_score = self._metric_fn_list[metric](
+                                references=[gold_option],
+                                predictions=[result],
+                                **self._metric_fn_kwargs[metric],
+                            )
+                        except TypeError:  # TODO: this is hacky and I don't want to do it
+                            result_score = self._metric_fn_list[metric](
+                                [gold_option, result]
+                            )
+                        if isinstance(result_score, dict):
                             # TODO: this handles the case where HF evaluate returns a dict.
-                            res = res[key]
-                        scores.append(res)
+                            result_score = result_score[metric]
+                        scores.append(result_score)
                     if any(scores):
-                        result = 1.0
+                        result_score = 1.0
                     else:
-                        result = 0.0
+                        result_score = 0.0
                 else:
-                    result = self._metric_fn_list[key](
-                        references=[gold],
-                        predictions=[result],
-                        **self._metric_fn_kwargs[key],
-                    )
-
-                if isinstance(result, dict):
-                    result_dict.update(result)
-                else:
-                    result_dict[key] = result
+                    try:
+                        result_score = self._metric_fn_list[metric](
+                            references=[gold],
+                            predictions=[result],
+                            **self._metric_fn_kwargs[metric],
+                        )
+                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                        result_score = self._metric_fn_list[metric]([gold, result])
+                    if isinstance(result_score, dict):
+                        # TODO: this handles the case where HF evaluate returns a dict.
+                        result_score = result_score[metric]
+                result_dict[metric] = result_score
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",

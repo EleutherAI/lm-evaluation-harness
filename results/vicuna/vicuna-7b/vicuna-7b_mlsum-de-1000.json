@@ -2,7 +2,9 @@
   "results": {
     "mlsum-de": {
       "exact_match,none": 0.0,
-      "exact_match_stderr,none": 0.0
+      "exact_match_stderr,none": 0.0,
+      "bleu,none": 2.288844327916266,
+      "bleu_stderr,none": 0.16668943213811255
     }
   },
   "configs": {
@@ -58,6 +60,6 @@
     "limit": 1000.0,
     "bootstrap_iters": 100000
   },
-  "git_hash": "271319b",
-  "duration": 573.9220535755157
+  "git_hash": "bd65dc2",
+  "duration": 12027.37113070488
 }
