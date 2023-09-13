@@ -213,28 +213,24 @@ def evaluate(
     requests = collections.defaultdict(list)
     # Stores task scores based on task grouping.
     results_agg = collections.defaultdict(dict)
+    groups_agg = collections.defaultdict(dict)
     # tracks if a task was chosen via user selecting a group containing it
-    task_to_group = collections.defaultdict(dict)
-    group_to_task = collections.defaultdict(list)
     # stores the amount to pad out reqs per req. type so that
     # number of fwd passes per distributed rank is equal
     padding_requests = collections.defaultdict(int)
+    task_hierarchy = collections.defaultdict(list)
+    task_order = collections.defaultdict(int)
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
         if type(task) == tuple:
-            group, task = task
-            task_to_group[task_name] = group
-
-            if group in list(group_to_task.keys()):
-                group_to_task[group].append(task_name)
-            else:
-                group_to_task[group] = [task_name]
-
-            if task is None:
-                continue
+            group_name, task = task
+            task_hierarchy[group_name].append(task_name)
         else:
-            group_to_task[task_name] = []
+            task_hierarchy[task_name] = []
+
+        if task is None:
+            continue
 
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
@@ -413,10 +409,26 @@ def evaluate(
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
+            metric_key = metric + "," + key
+
             if type(task) == tuple:
-                group, task = task
+                group_name, task = task
+            else:
+                group_name = None
+
             task_score = task.aggregation()[metric](items)
-            results[task_name][metric + "," + key] = task_score
+
+            if group_name is not None:
+                sample_metric_key = metric + "(sample avg)," + key
+                task_metric_key = metric + "(task avg)," + key
+                if task_metric_key in results[group_name]:
+                    results[group_name][task_metric_key].append(task_score)
+                    results[group_name][sample_metric_key].extend(items)
+                else:
+                    results[group_name][task_metric_key] = [task_score]
+                    results[group_name][sample_metric_key] = items
+
+            results[task_name][metric_key] = task_score
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
@@ -431,60 +443,67 @@ def evaluate(
                 if stderr is not None:
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
-        tab_dict = {}
-        for group in group_to_task:
-            task_list = group_to_task[group]
-            if group not in tab_dict:
-                tab_dict[group] = 0
+        # zero_order_groups = [group for group in task_hierarchy if task_hierarchy[group] == 0]
 
-            for task in task_list:
-                if task in tab_dict:
-                    tab_dict[task] += 1
+        # for task_name, task in task_dict.items():
+        #     if type(task) == tuple:
+        #         group_name, _ = task
+        #     else:
+        #         group_name = None
+
+        #     scores = results[task_name]
+        #     if group_name is not None:
+        #         group_name = tab_dict[group_name] * "-" + group_name
+        #         if group_name not in results_agg:
+        #             results_agg[group_name] = {}
+
+        #         for metric in scores:
+        #             if metric in results_agg[group_name]:
+        #                 results_agg[group_name][metric].append(scores[metric])
+        #             else:
+        #                 results_agg[group_name][metric] = [scores[metric]]
+
+        #     tab_task_name = tab_dict[task_name] * "-" + task_name
+        #     results_agg[tab_task_name] = scores
+        #     versions[tab_task_name] = versions[task_name]
+
+        # if bool(results_agg):
+        #     for group in results_agg.keys():
+        #         for metric in results_agg[group].keys():
+        #             results_agg[group][metric] = np.average(results_agg[group][metric])
+        #             versions[group] = "N/A"
+
+        if bool(results):
+            for task_or_group in results.keys():
+                for metric in results[task_or_group].keys():
+                    if type(results[task_or_group][metric]) == list:
+                        results[task_or_group][metric] = np.average(results[task_or_group][metric])
+                        versions[task_or_group] = "N/A"
+
+        for group in task_hierarchy.keys():
+            if group not in task_order:
+                task_order[group] = 0
+
+            for task in task_hierarchy[group]:
+                if task in task_order:
+                    task_order[task] += 1
                 else:
-                    tab_dict[task] = 1 + tab_dict[group]
-        zero_order_groups = [group for group in tab_dict if tab_dict[group] == 0]
+                    task_order[task] = 1 + task_order[group]
 
-        for task_name, task in task_dict.items():
-            if type(task) == tuple:
-                group_name, _ = task
-            else:
-                group_name = None
-
-            scores = results[task_name]
-            if group_name is not None:
-                group_name = tab_dict[group_name] * "-" + group_name
-                if group_name not in results_agg:
-                    results_agg[group_name] = {}
-
-                for metric in scores:
-                    if metric in results_agg[group_name]:
-                        results_agg[group_name][metric].append(scores[metric])
-                    else:
-                        results_agg[group_name][metric] = [scores[metric]]
-
-            tab_task_name = tab_dict[task_name] * "-" + task_name
-            results_agg[tab_task_name] = scores
-            versions[tab_task_name] = versions[task_name]
-
-        if bool(results_agg):
-            for group in results_agg.keys():
-                for metric in results_agg[group].keys():
-                    results_agg[group][metric] = np.average(results_agg[group][metric])
-                    versions[group] = "N/A"
+        for task_or_group, order in task_order.items():
+            tabbed_name = ">"*order+task_or_group
+            results_agg[tabbed_name] = results[task_or_group]
+            versions[tabbed_name] = versions[task_or_group]
+            if (order == 0) and len(task_hierarchy[task_or_group]) > 0:
+                groups_agg[task_or_group] = results[task_or_group]
 
         results_dict = {
             "results": dict(results_agg.items()),
             **(
                 {
-                    "groups": dict(
-                        [
-                            item
-                            for item in results_agg.items()
-                            if item[0] in zero_order_groups
-                        ]
-                    )
+                    "groups": dict(groups_agg.items())
                 }
-                if len(zero_order_groups) > 0
+                if bool(groups_agg)
                 else {}
             ),
             "configs": dict(sorted(configs.items())),
