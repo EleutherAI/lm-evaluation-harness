@@ -140,7 +140,7 @@ class SymbolicMathTask(Task, SymbolicMathMixin, MajorityVotingMixin, ABC):
             pass_rate = acc
         else:
             answers = [
-                    self.normalize_final_answer(self.get_unnormalized_answer(candidate))
+                    self.normalize_tex(self.get_unnormalized_answer(candidate))
                     for candidate in candidates
                     if self.get_unnormalized_answer(candidate) != self.INVALID_ANSWER
             ]

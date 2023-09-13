@@ -80,7 +80,7 @@ class MajorityVotingMixin:
                 if not counted: 
                     answer_votes[answer] = 1
 
-        votes = list(sorted(answer_votes.items(), key=lambda x: x[1]))
+        votes = list(sorted(answer_votes.items(), key=lambda x: -x[1]))
 
         elected_answer = votes[0][0]
 
@@ -90,8 +90,8 @@ class MajorityVotingMixin:
         else:
             acc = 0
             pass_rate = 0
-            for candidate, num_votes in votes.items():
-                if is_equiv(correct_answer, elected_answer):
+            for candidate, num_votes in answer_votes.items():
+                if is_equiv(correct_answer, candidate):
                     pass_rate = num_votes / len(sampled_answers)
                     break
 
@@ -209,7 +209,7 @@ class SymbolicMathMixin:
             sympy.SympifyError,
             TypeError,
         ) as e:
-            print(f"failed to parse {text} with familiar exception {e}")
+            print(f"failed to parse {text} with exception {e}")
             return None
 
         return parsed
@@ -222,18 +222,20 @@ class SymbolicMathMixin:
             with timeout(seconds=time_limit):
                 try:
                     diff = x1 - x2
-                    try:
-                        if sympy.simplify(diff) == 0:
-                            return True
-                        else:
-                            return False
-                    except ValueError as e:
-                        print(f"Failed to simplify {x1}-{x2} with {e}")
-                        return False
                 except TypeError as e:
                     print(
-                        f"Couldn't subtract {x1} and {x2} with familiar exception {e}"
+                        f"Couldn't subtract {x1} and {x2} with exception {e}"
                     )
+                    return False
+
+                try:
+                    if sympy.simplify(diff) == 0:
+                        return True
+                    else:
+                        return False
+                except ValueError as e:
+                    print(f"Failed to simplify {x1}-{x2} with {e}")
+                    return False
         except TimeoutError as e:
             print(f"Timed out comparing {x1} and {x2}")
             return False
