@@ -671,9 +671,9 @@ class ConfigurableTask(Task):
             check_choices = [test_target]
 
         for choice in check_choices:
-            choice_has_whitespace = True if " " in choice else False
+            choice_has_whitespace = True if choice.startswith(" ") or choice.endswith(" ") else False
             delimiter_has_whitespace = (
-                True if " " in self._config.target_delimiter else False
+                True if (self._config.target_delimiter.startswith(" ") or self._config.target_delimiter.endswith(" ")) else False
             )
 
             if delimiter_has_whitespace and choice_has_whitespace:
