@@ -30,10 +30,11 @@ class SymbolicMathTask(Task, SymbolicMathMixin, MajorityVotingMixin, ABC):
             Each row *must* have a field named `"answer"` that contains a LaTeX expression string.
         test_docs (Iterator[Dict]): Iterator containing the test set. 
             Each row *must* have a field named `"answer"` that contains a LaTeX expression string.
-        fewshot_context (str): context that is the model is conditioned on.
+        fewshot_context (str): context that the model will be conditioned on. Should include few shot examples
+            and the test example.
         end_seq (str): when sampling from a model, stops sampling when `end_seq` is generated.
         get_unnormalized_answer (str | Literal[self.INVALID_ANSWER]): extracts a TeX expression 
-            from generated text. Returns `self.INVALID_ANSWER` if extraction failed.
+            from a model sample. Returns `self.INVALID_ANSWER` if extraction failed.
     """
     MAJORITY_VOTING = "majority_voting"
     SAMPLING_TEMPERATURE = "sampling_temperature"
