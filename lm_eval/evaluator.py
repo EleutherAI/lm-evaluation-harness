@@ -40,11 +40,11 @@ def simple_evaluate(
     device=None,
     use_cache=None,
     limit=None,
-    bootstrap_iters=100000,
-    check_integrity=False,
+    bootstrap_iters: int = 100000,
+    check_integrity: bool = False,
     decontamination_ngrams_path=None,
-    write_out=False,
-    log_samples=True,
+    write_out: bool = False,
+    log_samples: bool = True,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -172,17 +172,17 @@ def evaluate(
     lm,
     task_dict,
     limit=None,
-    bootstrap_iters=100000,
+    bootstrap_iters: int = 100000,
     decontamination_ngrams_path=None,
-    write_out=False,
-    log_samples=True,
+    write_out: bool = False,
+    log_samples: bool = True,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param lm: obj
         Language Model
     :param task_dict: dict[str, Task]
-        Dictionary of tasks. Tasks will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
+        Dictionary of tasks. Tasks will be taken to have name type(task).config.task .
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
@@ -216,7 +216,6 @@ def evaluate(
     padding_requests = collections.defaultdict(int)
 
     # Stores group related keys and values for group-aggregation
-    aggregate = collections.defaultdict(dict)
     task_groups = collections.defaultdict(dict)
 
     # get lists of each type of request
@@ -224,6 +223,7 @@ def evaluate(
         if type(task) == tuple:
             group, task = task
             task_groups[task_name] = group
+            aggregate[task_name] = {}
 
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
@@ -248,7 +248,8 @@ def evaluate(
                 # print the prompt for the first few documents
                 if inst.doc_id < 1:
                     eval_logger.info(
-                        f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\n{inst.args[0]}\n(end of prompt on previous line)"
+                        f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\
+\n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
                     )
                     eval_logger.info(f"Request: {str(inst)}")
 
@@ -357,28 +358,35 @@ def evaluate(
             if type(items[0]) == tuple:
                 numitem = len(items[0])
 
-            # distributed gather requires all ranks to have same dimensions
-            # so we pad out with float32 min value
-            pad_value = torch.finfo(torch.float32).min
-            metrics_tensor = torch.tensor(items, device=lm.device)
+            if isinstance(items[0], (str, list)):
+                # handle the string case
+                gathered_items = [None] * lm.accelerator.num_processes
+                torch.distributed.all_gather_object(gathered_items, items)
 
-            original_dtype = metrics_tensor.dtype  # store original dtype
-            torch_device_tensor = lm.accelerator.pad_across_processes(
-                metrics_tensor.to(torch.float32), pad_index=pad_value
-            )
-            gathered_item = lm.accelerator.gather(torch_device_tensor)
-
-            if numitem > 0:
-                gathered_filtered = gathered_item[gathered_item[:, 0] != pad_value]
+                gathered_item = list(itertools.chain.from_iterable(gathered_items))
             else:
-                gathered_filtered = gathered_item[gathered_item != pad_value]
+                # distributed gather requires all ranks to have same dimensions
+                # so we pad out with float32 min value
+                pad_value = torch.finfo(torch.float32).min
+                metrics_tensor = torch.tensor(items, device=lm.device)
 
-            gathered_item = (
-                gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
-            )
-            # reconvert if we were passed a tuple of values
-            if numitem > 0:
-                gathered_item = [tuple(g) for g in gathered_item]
+                original_dtype = metrics_tensor.dtype  # store original dtype
+                torch_device_tensor = lm.accelerator.pad_across_processes(
+                    metrics_tensor.to(torch.float32), pad_index=pad_value
+                )
+                gathered_item = lm.accelerator.gather(torch_device_tensor)
+
+                if numitem > 0:
+                    gathered_filtered = gathered_item[gathered_item[:, 0] != pad_value]
+                else:
+                    gathered_filtered = gathered_item[gathered_item != pad_value]
+
+                gathered_item = (
+                    gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
+                )
+                # reconvert if we were passed a tuple of values
+                if numitem > 0:
+                    gathered_item = [tuple(g) for g in gathered_item]
 
             if lm.rank == 0:
                 vals_torch[(task_name, key, metric)] = gathered_item
@@ -401,16 +409,16 @@ def evaluate(
             #        | word_perplexity
             #        | byte_perplexity
             #        | bits_per_byte
-            if bool(task_groups):
+            if task_name in task_groups:
                 group_name = task_groups[task_name]
-                if metric not in aggregate[group_name]:
-                    aggregate[group_name][metric] = [task_score]
-                else:
+                if metric in list(aggregate[group_name].keys()):
                     aggregate[group_name][metric].append(task_score)
+                else:
+                    aggregate[group_name][metric] = [task_score]
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
-            if bootstrap_iters > 0:
+            if False:  # bootstrap_iters > 0:
                 stderr = lm_eval.api.metrics.stderr_for_metric(
                     metric=task.aggregation()[metric],
                     bootstrap_iters=min(bootstrap_iters, 1000)

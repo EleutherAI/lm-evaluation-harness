@@ -2,7 +2,7 @@ group:
   - super-glue-lm-eval-v1
 task: wsc
 dataset_path: super_glue
-dataset_name: wsc
+dataset_name: wsc.fixed
 output_type: multiple_choice
 training_split: train
 validation_split: validation
