@@ -1,7 +1,8 @@
 import abc
 import os
 
-from typing import Union, List, Tuple
+import torch
+from typing import Union, List, Tuple, Optional, Type, TypeVar
 from sqlitedict import SqliteDict
 import json
 import hashlib
@@ -10,6 +11,8 @@ from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.logger import eval_logger
+
+T = TypeVar("T", bound="LM")
 
 
 class LM(abc.ABC):
@@ -111,11 +114,28 @@ class LM(abc.ABC):
         pass
 
     @classmethod
-    def create_from_arg_string(cls, arg_string, additional_config=None):
+    def create_from_arg_string(
+        cls: Type[T], arg_string: str, additional_config: Optional[dict] = None
+    ) -> T:
+        """
+        Creates an instance of the LM class using the given argument string and additional config.
+
+        Parameters:
+        - arg_string: A string containing arguments in the format key1=value1,key2=value2.
+        - additional_config: Optional dictionary containing additional configuration parameters.
+
+        Returns:
+        - Instance of the LM class.
+        """
         additional_config = {} if additional_config is None else additional_config
         args = utils.simple_parse_args_string(arg_string)
         args2 = {k: v for k, v in additional_config.items() if v is not None}
-        if args2.get("device") == "mps" or args.get("device") == "mps":
+        # TODO: delete once float16 MPS is fixed in torch stable
+        if (
+            args2.get("device") in ("mps", "mps:0")
+            or args.get("device") in ("mps", "mps:0")
+            and "dev" not in torch.__version__
+        ):
             args["dtype"] = "float32"
         return cls(**args, **args2)
 
