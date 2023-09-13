@@ -34,7 +34,6 @@ class SymbolicMathTask(Task, SymbolicMathMixin, MajorityVotingMixin, ABC):
         end_seq (str): when sampling from a model, stops sampling when `end_seq` is generated.
         get_unnormalized_answer (str | Literal[self.INVALID_ANSWER]): extracts a TeX expression 
             from generated text. Returns `self.INVALID_ANSWER` if extraction failed.
-
     """
     MAJORITY_VOTING = "majority_voting"
     SAMPLING_TEMPERATURE = "sampling_temperature"
@@ -90,7 +89,8 @@ class SymbolicMathTask(Task, SymbolicMathMixin, MajorityVotingMixin, ABC):
         Arguments:
             text (str): model sample
         Returns:
-            out (str): string containing a TeX Expression. 
+            out (str | Literal[self.INVALID_ANSWER]): string containing a TeX Expression or 
+                `self.INVALID_ANSWER`. 
         """
         pass
 
