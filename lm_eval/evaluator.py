@@ -443,46 +443,17 @@ def evaluate(
                 if stderr is not None:
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
-        # zero_order_groups = [group for group in task_hierarchy if task_hierarchy[group] == 0]
-
-        # for task_name, task in task_dict.items():
-        #     if type(task) == tuple:
-        #         group_name, _ = task
-        #     else:
-        #         group_name = None
-
-        #     scores = results[task_name]
-        #     if group_name is not None:
-        #         group_name = tab_dict[group_name] * "-" + group_name
-        #         if group_name not in results_agg:
-        #             results_agg[group_name] = {}
-
-        #         for metric in scores:
-        #             if metric in results_agg[group_name]:
-        #                 results_agg[group_name][metric].append(scores[metric])
-        #             else:
-        #                 results_agg[group_name][metric] = [scores[metric]]
-
-        #     tab_task_name = tab_dict[task_name] * "-" + task_name
-        #     results_agg[tab_task_name] = scores
-        #     versions[tab_task_name] = versions[task_name]
-
-        # if bool(results_agg):
-        #     for group in results_agg.keys():
-        #         for metric in results_agg[group].keys():
-        #             results_agg[group][metric] = np.average(results_agg[group][metric])
-        #             versions[group] = "N/A"
-
         if bool(results):
             for task_or_group in results.keys():
                 for metric in results[task_or_group].keys():
+                    try:
+                        print(task_or_group, metric, len(results[task_or_group][metric]))
+                    except:
+                        pass
                     if type(results[task_or_group][metric]) == list:
                         results[task_or_group][metric] = np.average(results[task_or_group][metric])
                         versions[task_or_group] = "N/A"
 
-        print("task_hierarchy")
-        print(task_hierarchy)
-        print("--")
         for group in task_hierarchy.keys():
             if group not in task_order:
                 task_order[group] = 0
@@ -493,15 +464,20 @@ def evaluate(
                 else:
                     task_order[task] = 1 + task_order[group]
 
-        print("task_order")
-        print(task_order)
-        print("--")
-        for task_or_group, order in task_order.items():
-            tabbed_name = ">"*order+task_or_group
-            results_agg[tabbed_name] = results[task_or_group]
-            versions[tabbed_name] = versions[task_or_group]
-            if (order == 0) and len(task_hierarchy[task_or_group]) > 0:
-                groups_agg[task_or_group] = results[task_or_group]
+        for task_name, task in task_dict.items():
+            if type(task) == tuple:
+                group_name, task = task
+                order = task_order[group_name]
+                tabbed_name = "-"*order+group_name
+                results_agg[tabbed_name] = results[group_name]
+                versions[tabbed_name] = versions[group_name]
+                if order == 0:
+                    groups_agg[group_name] = results[group_name]
+
+            order = task_order[task_name]
+            tabbed_name = "-"*order+task_name
+            results_agg[tabbed_name] = results[task_name]
+            versions[tabbed_name] = versions[task_name]
 
         results_dict = {
             "results": dict(results_agg.items()),
