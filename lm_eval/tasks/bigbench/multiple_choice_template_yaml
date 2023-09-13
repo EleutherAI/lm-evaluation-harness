@@ -1,0 +1,10 @@
+group: bigbench
+dataset_path: bigbench
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: inputs
+doc_to_target: "{{multiple_choice_targets.index(targets[0])}}"
+doc_to_choice: "{{multiple_choice_targets}}"
+metric_list:
+  - metric: acc
