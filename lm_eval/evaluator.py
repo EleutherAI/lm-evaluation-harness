@@ -480,6 +480,9 @@ def evaluate(
                         results[task_or_group][metric] = np.average(results[task_or_group][metric])
                         versions[task_or_group] = "N/A"
 
+        print("task_hierarchy")
+        print(task_hierarchy)
+        print("--")
         for group in task_hierarchy.keys():
             if group not in task_order:
                 task_order[group] = 0
@@ -490,6 +493,9 @@ def evaluate(
                 else:
                     task_order[task] = 1 + task_order[group]
 
+        print("task_order")
+        print(task_order)
+        print("--")
         for task_or_group, order in task_order.items():
             tabbed_name = ">"*order+task_or_group
             results_agg[tabbed_name] = results[task_or_group]
