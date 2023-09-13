@@ -218,11 +218,11 @@ def evaluate(
     # stores the amount to pad out reqs per req. type so that
     # number of fwd passes per distributed rank is equal
     padding_requests = collections.defaultdict(int)
-    
+    # store the hierarchy to do proper ordering
     task_hierarchy = collections.defaultdict(list)
-
+    # store the ordering of tasks and groups
     task_order = collections.defaultdict(int)
-    
+    # store the aggregation for aggregating across tasks in the same group
     sample_agg_fn = collections.defaultdict(dict)
 
     # get lists of each type of request
@@ -437,7 +437,7 @@ def evaluate(
                     task_to_group[task].append(group)
                 else:
                     task_to_group[task] = [group]
-        
+
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
@@ -459,7 +459,7 @@ def evaluate(
                         results[grouping][metric_key].append(task_score)
                     else:
                         results[grouping][metric_key] = [task_score]
-                    
+
                     if sample_metric_key in results[grouping]:
                         results[grouping][sample_metric_key] += items
                     else:
@@ -486,36 +486,33 @@ def evaluate(
                 for metric in results[task_or_group].keys():
                     if type(results[task_or_group][metric]) == list:
                         if "(sample agg)" in metric:
-                            results[task_or_group][metric] = sample_agg_fn[task_or_group][metric](results[task_or_group][metric])
+                            results[task_or_group][metric] = sample_agg_fn[
+                                task_or_group
+                            ][metric](results[task_or_group][metric])
                         else:
-                            results[task_or_group][metric] = np.average(results[task_or_group][metric])
+                            results[task_or_group][metric] = np.average(
+                                results[task_or_group][metric]
+                            )
                         versions[task_or_group] = "N/A"
-
 
         for task_name, task in task_dict.items():
             if type(task) == tuple:
                 group_name, task = task
                 order = task_order[group_name]
-                tabbed_name = "-"*order+group_name
+                tabbed_name = "-" * order + group_name
                 results_agg[tabbed_name] = results[group_name]
                 versions[tabbed_name] = versions[group_name]
                 if order == 0:
                     groups_agg[group_name] = results[group_name]
 
             order = task_order[task_name]
-            tabbed_name = "-"*order+task_name
+            tabbed_name = "-" * order + task_name
             results_agg[tabbed_name] = results[task_name]
             versions[tabbed_name] = versions[task_name]
 
         results_dict = {
             "results": dict(results_agg.items()),
-            **(
-                {
-                    "groups": dict(groups_agg.items())
-                }
-                if bool(groups_agg)
-                else {}
-            ),
+            **({"groups": dict(groups_agg.items())} if bool(groups_agg) else {}),
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
         }
