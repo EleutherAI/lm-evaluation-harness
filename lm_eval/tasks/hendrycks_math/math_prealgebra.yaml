@@ -1,3 +1,0 @@
-include: math_algebra.yaml
-dataset_name: prealgebra
-task: math_prealgebra

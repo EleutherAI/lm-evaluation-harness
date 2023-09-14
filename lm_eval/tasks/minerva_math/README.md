@@ -6,7 +6,7 @@ https://arxiv.org/abs/2103.03874
 
 Many intellectual endeavors require mathematical problem solving, but this skill remains beyond the capabilities of computers. To measure this ability in machine learning models, we introduce MATH, a new dataset of 12,500 challenging competition mathematics problems. Each problem in MATH has a full step-by-step solution which can be used to teach models to generate answer derivations and explanations.
 
-NOTE: The few-shot and the generated answer extraction is based on the [Minerva](https://arxiv.org/abs/2206.14858) paper and exact match equivalence is calculated using the `sympy` library
+NOTE: The few-shot and the generated answer extraction is based on the [Minerva](https://arxiv.org/abs/2206.14858) and exact match equivalence is calculated using the `sympy` library
 
 Homepage: https://github.com/hendrycks/math
 
@@ -19,13 +19,20 @@ Homepage: https://github.com/hendrycks/math
   journal={NeurIPS},
   year={2021}
 }
+
+@misc{2206.14858,
+Author = {Aitor Lewkowycz and Anders Andreassen and David Dohan and Ethan Dyer and Henryk Michalewski and Vinay Ramasesh and Ambrose Slone and Cem Anil and Imanol Schlag and Theo Gutman-Solo and Yuhuai Wu and Behnam Neyshabur and Guy Gur-Ari and Vedant Misra},
+Title = {Solving Quantitative Reasoning Problems with Language Models},
+Year = {2022},
+Eprint = {arXiv:2206.14858},
+}
 ```
 
 ### Groups, Benchmarks and Tasks
 
 #### Benchmarks
 
-- `hendrycks_math`
+- `minerva_math`
 
 #### Groups
 
@@ -34,13 +41,13 @@ Homepage: https://github.com/hendrycks/math
 
 #### Tasks
 
-- `math_algebra`
-- `math_counting_and_prob`
-- `math_geometry`
-- `math_intermediate_algebra`
-- `math_num_theory`
-- `math_prealgebra`
-- `math_precalc`
+- `minerva_math_algebra`
+- `minerva_math_counting_and_prob`
+- `minerva_math_geometry`
+- `minerva_math_intermediate_algebra`
+- `minerva_math_num_theory`
+- `minerva_math_prealgebra`
+- `minerva_math_precalc`
 
 ### Checklist
 
