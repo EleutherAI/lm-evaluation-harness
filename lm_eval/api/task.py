@@ -674,7 +674,6 @@ class ConfigurableTask(Task):
             check_choices = test_choice
         else:
             check_choices = [test_target]
-        # TODO: is this only for multiple-choice?
         if self.config.doc_to_choice is not None:
             for choice in check_choices:
                 choice_has_whitespace = True if choice[0].isspace() else False
@@ -1070,7 +1069,7 @@ class ConfigurableTask(Task):
                 gold = choices[gold]
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
-                pass
+                gold = list(gold)
             else:
                 gold = str(gold)
 
