@@ -71,7 +71,8 @@ setuptools.setup(
         "tqdm-multiprocess",
         "transformers>=4.1",
         "zstandard",
-        "antlr4-python3-runtime>=4.11.0,<4.12.0" "sympy>=1.12",
+        "antlr4-python3-runtime>=4.11.0,<4.12.0",
+        "sympy>=1.12",
     ],
     extras_require=extras_require,
 )
