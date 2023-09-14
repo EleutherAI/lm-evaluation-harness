@@ -38,13 +38,15 @@ def main():
         iters = []
 
         for set in args.sets.split(","):
+            docs = None
             if set == "train" and task.has_training_docs():
                 docs = task.training_docs()
             if set == "val" and task.has_validation_docs():
                 docs = task.validation_docs()
             if set == "test" and task.has_test_docs():
                 docs = task.test_docs()
-            iters.append(docs)
+            if docs is not None:
+                iters.append(docs)
 
         docs = join_iters(iters)
 
