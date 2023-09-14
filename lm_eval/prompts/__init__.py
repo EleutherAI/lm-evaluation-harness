@@ -1,5 +1,6 @@
 import ast
 
+from typing import Dict
 from lm_eval import utils
 from lm_eval.logger import eval_logger
 
@@ -7,7 +8,7 @@ from lm_eval.logger import eval_logger
 # Stores prompts in a dictionary indexed by 2 levels:
 # prompt category name, and prompt name.
 # This allows us to access prompts
-PROMPT_REGISTRY: dict[str, dict[str, str]] = {
+PROMPT_REGISTRY: Dict[str, Dict[str, str]] = {
     "qa-basic": {
         "question-newline-answer": "Question: {{question}}\nAnswer:",
         "q-newline-a": "Q: {{question}}\nA:",

@@ -1,6 +1,6 @@
 import os
 import yaml
-from typing import List, Union
+from typing import List, Union, Dict
 
 from lm_eval import utils
 from lm_eval import prompts
@@ -15,7 +15,7 @@ from lm_eval.api.registry import (
 )
 
 
-def register_configurable_task(config: dict[str, str]) -> int:
+def register_configurable_task(config: Dict[str, str]) -> int:
     SubClass = type(
         config["task"] + "ConfigurableTask",
         (ConfigurableTask,),
@@ -38,7 +38,7 @@ def register_configurable_task(config: dict[str, str]) -> int:
     return 0
 
 
-def check_prompt_config(config: dict[str, str]) -> List[dict[str, str]]:
+def check_prompt_config(config: Dict[str, str]) -> List[Dict[str, str]]:
     all_configs = []
     if "use_prompt" in config:
         prompt_list = prompts.load_prompt_list(
@@ -69,7 +69,7 @@ def check_prompt_config(config: dict[str, str]) -> List[dict[str, str]]:
     return all_configs
 
 
-def get_task_name_from_config(task_config: dict[str, str]) -> str:
+def get_task_name_from_config(task_config: Dict[str, str]) -> str:
     if "dataset_name" in task_config:
         return "{dataset_path}_{dataset_name}".format(**task_config)
     else:
@@ -128,7 +128,7 @@ def get_task_name_from_object(task_object):
 
 
 # TODO: pass num_fewshot and other cmdline overrides in a better way
-def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
+def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
 
     config = {**kwargs}
 
