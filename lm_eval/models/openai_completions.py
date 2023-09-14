@@ -41,17 +41,18 @@ def oa_completion(**kwargs):
     Retry with back-off until they respond
     """
     try:
+        from litellm import completion
         import openai, tiktoken  # noqa: E401
     except ModuleNotFoundError:
         raise Exception(
-            "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
+            "attempted to use 'openai' LM type, but package `openai` or `tiktoken` `litellm` are not installed. \
 please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
         )
 
     backoff_time = 3
     while True:
         try:
-            return openai.Completion.create(**kwargs)
+            return completion(**kwargs)
         except openai.error.OpenAIError:
             import traceback
 
@@ -183,9 +184,8 @@ class OpenaiCompletionsLM(LM):
                 ctxlens.append(ctxlen)
 
             response = oa_completion(
-                engine=self.engine,
-                prompt=inps,
-                echo=True,
+                model=self.engine,
+                messages=[{"role": "user", "content": inps}],
                 max_tokens=0,
                 temperature=0.0,
                 logprobs=10,
