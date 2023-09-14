@@ -1,3 +1,0 @@
-include: math_algebra.yaml
-dataset_name: counting_and_probability
-task: math_counting_and_prob

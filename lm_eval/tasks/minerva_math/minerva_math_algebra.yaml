@@ -1,7 +1,7 @@
 group:
   - math_word_problems
-task: math_algebra
-dataset_path: baber/hendrycks_math
+task: minerva_math_algebra
+dataset_path: EleutherAI/hendrycks_math
 process_docs: !function utils.process_docs
 dataset_name: algebra
 output_type: greedy_until
