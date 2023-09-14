@@ -69,6 +69,8 @@ touch lm_eval/tasks/<dataset_name>/utils.py
 ```
 Now, in `utils.py` we'll write a function to process each split of our dataset:
 
+TODO: Change the example to one that's in the tasks/
+
 ```python
 def process_docs(dataset: datasets.Dataset):
     def _helper(doc):
@@ -86,40 +88,53 @@ Now, in our YAML config file we'll use the `!function` constructor, and tell the
 process_docs: !function utils.process_docs
 ```
 
-
-### Writing a prompt with Jinja 2
+## Writing a Prompt Template
 
 The next thing we need to do is decide what format to use when presenting the data to the LM. This is our **prompt**, where we'll define both an input and output format.
 
+To write a prompt, users will use `doc_to_text`, `doc_to_target`, and `doc_to_choice` (Optional when certain conditions are met).
+
+`doc_to_text` defines the input string a model will be given while `doc_to_target` and `doc_to_choice` will be used to generate the target text. `doc_to_target` can be either a text string that refers to the target string or an integer that refers to the index of the correct label. When it is set as an index, `doc_to_choice` must be also be set with the appropriate list of possible choice strings.
+
+### Basic prompts
+
+If a dataset is straightforward enough, users can enter the feature name directly. This assumes that no preprocessing is required. For example in [Swag](https://github.com/EleutherAI/lm-evaluation-harness/blob/1710b42d52d0f327cb0eb3cb1bfbbeca992836ca/lm_eval/tasks/swag/swag.yaml#L10-L11), `doc_to_text` and `doc_to_target` given the name of one of the feature each.
+```yaml
+doc_to_text: startphrase
+doc_to_target: label
+```
+Hard-coding is also possible as is the case in [SciQ](https://github.com/EleutherAI/lm-evaluation-harness/blob/1710b42d52d0f327cb0eb3cb1bfbbeca992836ca/lm_eval/tasks/sciq/sciq.yaml#L11).
+```yaml
+doc_to_target: 3
+```
+`doc_to_choice` can be directly given a list of text as option (See [Toxigen](https://github.com/EleutherAI/lm-evaluation-harness/blob/1710b42d52d0f327cb0eb3cb1bfbbeca992836ca/lm_eval/tasks/toxigen/toxigen.yaml#L11))
+```yaml
+doc_to_choice: ['No', 'Yes']
+```
+
+### Writing a prompt with Jinja 2
+
 We support the [Jinja 2](https://jinja.palletsprojects.com/en/3.1.x/) templating language for writing prompts. In practice, this means you can take your dataset's columns and do many basic string manipulations to place each document into prompted format.
 
-To write a prompt, users are required to write two or three YAML fields in Jinja as strings:
-```yaml
-doc_to_text:
-doc_to_target:
-doc_to_choice:
+Take for example `super_glue/boolq`, as input, we'd like to use the features `passage` and `question` and string them together so that for a a sample line `doc`, the model sees something the format of:
 ```
-Suppose our dataset has a `"question"` field, and an `"answer"` field, which are both strings. We want the model to see, if given a `document` object that is a row of our dataset:
-```
-Question: {document[question]}
+doc["passage"]
+Question: doc["question"]?
 Answer:
 ```
-We do this by writing
+We do this by [writing](https://github.com/EleutherAI/lm-evaluation-harness/blob/1710b42d52d0f327cb0eb3cb1bfbbeca992836ca/lm_eval/tasks/super_glue/boolq/default.yaml#L9C1-L9C61)
 ```yaml
-doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
 ```
-Such that {{question}} will be replaced by `doc["question"]` when rendering the prompt template.
+Such that `{{passage}}` will be replaced by `doc["passage"]` and `{{question}}` with `doc["question"]` when rendering the prompt template.
 
 Our intended output is for the model to predict a single whitespace, and then the answer to the question. We do this via:
 ```yaml
 doc_to_target: "{{answer}}"
-gold_alias: "{{answer}}"
 ```
-where `doc_to_target` is *the string that will be appended to inputs for each few-shot example*, and `gold_alias` is *what is passed to our metric function as reference or gold answer to score against*. For example, for GSM8k word problems, `doc_to_target` should be the reference text reasoning chain given in the dataset culminating in the answer, and `gold_alias` should be **only the numeric answer** to the word problem that is given at the end of the reasoning chain, and which the evaluated model's answer will be compared against.
 
-**Important**: We always add one whitespace between the input and output, such that the full input-output string is `doc_to_target(doc) + " " + doc_to_text(doc)`. doc_to_text and doc_to_target should not contain trailing right or left whitespace, respectively.
 
-Users can also fill out the optional `template_aliases` YAML field, which is added ahead of both the `doc_to_text` and `doc_to_target` fields. This field should not contain any test, but only Jinja variable definitions (`{% ... %}` clauses). This can be used to perform more involved string manipulations and renamings of dataset columns while the main prompt fields remain easy to parse visually.
+**Important**: we now add `target_delimiter` between input and target which defaults to " ", such that the full input-output string is `doc_to_target(doc) + target_delimiter + doc_to_text(doc)`. doc_to_text and doc_to_target should not contain trailing right or left whitespace, respectively.
 
 
 #### Multiple choice format
@@ -135,7 +150,13 @@ doc_to_choice: "{{[distractor1, distractor2, distractor3, correct_answer]}}"
 ```
 Task implementers are thus able to decide what the answer choices should be for a document, and what prompt format to use.
 
+The label index can also be sourced from a feature directly. For example in `superglue/boolq`, the label index if defined in the feature `label`. We can set `doc_to_target` as simply `label`. The options or verbalizers can be written in a the form of a list `["no", "yes"]` that will correspond to the label index.
 
+```yaml
+doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
+doc_to_target: label
+doc_to_choice: ["no", "yes"]
+```
 
 ### Using Python Functions for Prompts
 
@@ -168,6 +189,10 @@ For example, For Super Glue BoolQ, if we want to use the prompt template `GPT-3 
 use_prompt: "promptsource:GPT-3 Style"
 ```
 
+If you would like to run evaluation on all prompt templates, you can simply call it this way.
+```
+use_prompt: "promptsource:*"
+```
 
 ### Setting metrics
 
@@ -183,11 +208,11 @@ metric_list:
   - metric: <name of the metric here>
     aggregation: <name of the aggregation fn here>
     higher_is_better: <true or false>
-  - metric: ...
+  - metric: !function script.function
     aggregation: ...
     higher_is_better: ...
 ```
-`aggregation` and `higher_is_better` can optionally be left out to default to the manually-set defaults, if using a natively supported metric.
+`aggregation` and `higher_is_better` can optionally be left out to default to the manually-set defaults if using a natively supported metric, otherwise it must be defined explicitly (for example, when using a custom metric implemented as a function).
 
 For a full list of natively supported metrics and aggregation functions see `docs/advanced_task_guide.md`. All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval`.
 

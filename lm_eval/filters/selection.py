@@ -4,12 +4,12 @@ from lm_eval.api.filter import Filter
 
 
 class TakeFirstFilter(Filter):
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
-    def apply(self, resps):
+    def apply(self, resps, docs):
         """
         Assuming each entry of `resps` is a list of model responses, we discard all but the first response.
         """
@@ -17,13 +17,12 @@ class TakeFirstFilter(Filter):
 
 
 class TakeKFilter(Filter):
-    def __init__(self, *args, **kwargs):
-
+    def __init__(self, *args, **kwargs) -> None:
         self.k = kwargs.pop("k")
 
         super().__init__(*args, **kwargs)
 
-    def apply(self, resps):
+    def apply(self, resps, docs):
         # check we have at least k responses per doc, else we can't take the first k
         assert (
             len(resps[0]) >= self.k
@@ -32,12 +31,12 @@ class TakeKFilter(Filter):
 
 
 class MajorityVoteFilter(Filter):
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
-    def apply(self, resps):
+    def apply(self, resps, docs):
         """
         Each entry of `resps` is a list of model responses.
         We select the response that occurs most frequently in each entry of `resps`.

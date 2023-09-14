@@ -5,7 +5,7 @@ from lm_eval.logger import eval_logger
 # Stores prompts in a dictionary indexed by 2 levels:
 # prompt category name, and prompt name.
 # This allows us to access prompts
-PROMPT_REGISTRY = {
+PROMPT_REGISTRY: dict[str, dict[str, str]] = {
     "qa-basic": {
         "question-newline-answer": "Question: {{question}}\nAnswer:",
         "q-newline-a": "Q: {{question}}\nA:",
@@ -13,7 +13,7 @@ PROMPT_REGISTRY = {
 }
 
 
-def get_prompt(prompt_id: str, dataset_name=None, subset_name=None):
+def get_prompt(prompt_id: str, dataset_name: str = None, subset_name: str = None):
     # unpack prompt name
     category_name, prompt_name = prompt_id.split(":")
     if subset_name is None:
