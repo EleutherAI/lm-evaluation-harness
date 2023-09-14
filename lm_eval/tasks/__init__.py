@@ -136,6 +136,9 @@ def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
     task_name_from_config_dict = {}
     task_name_from_object_dict = {}
 
+    if type(task_name_list) != list:
+        task_name_list = [task_name_list]
+
     for task_element in task_name_list:
         if isinstance(task_element, str):
 
@@ -143,12 +146,20 @@ def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
                 group_name = task_element
                 for task_name in GROUP_REGISTRY[task_element]:
                     if task_name not in task_name_from_registry_dict:
+                        task_obj = get_task_dict(task_name)
+                        if task_name in task_obj.keys():
+                            task_dict = {
+                                task_name: (group_name, task_obj[task_name]),
+                            }
+                        else:
+                            task_dict = {
+                                task_name: (group_name, None),
+                                **task_obj,
+                            }
+
                         task_name_from_registry_dict = {
                             **task_name_from_registry_dict,
-                            task_name: (
-                                group_name,
-                                get_task(task_name=task_name, config=config),
-                            ),
+                            **task_dict,
                         }
             else:
                 task_name = task_element
