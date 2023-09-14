@@ -15,7 +15,7 @@ from lm_eval.api.registry import (
 )
 
 
-def register_configurable_task(config):
+def register_configurable_task(config: dict[str, str]) -> int:
     SubClass = type(
         config["task"] + "ConfigurableTask",
         (ConfigurableTask,),
@@ -38,7 +38,7 @@ def register_configurable_task(config):
     return 0
 
 
-def check_prompt_config(config):
+def check_prompt_config(config: dict[str, str]) -> List[dict[str, str]]:
     all_configs = []
     if "use_prompt" in config:
         prompt_list = prompts.load_prompt_list(
@@ -69,14 +69,14 @@ def check_prompt_config(config):
     return all_configs
 
 
-def get_task_name_from_config(task_config):
+def get_task_name_from_config(task_config: dict[str, str]) -> str:
     if "dataset_name" in task_config:
         return "{dataset_path}_{dataset_name}".format(**task_config)
     else:
         return "{dataset_path}".format(**task_config)
 
 
-def include_task_folder(task_dir):
+def include_task_folder(task_dir: str) -> None:
     """
     Calling this function
     """
