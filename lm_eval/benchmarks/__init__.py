@@ -11,8 +11,7 @@ from lm_eval.api.registry import (
 )
 
 
-def include_benchmarks(task_dir):
-
+def include_benchmarks(task_dir: str) -> None:
     for root, subdirs, file_list in os.walk(task_dir):
         if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
             for f in file_list:
@@ -45,7 +44,7 @@ def include_benchmarks(task_dir):
 
                         task_names = utils.pattern_match(task_list, ALL_TASKS)
                         for task in task_names:
-                            if task in TASK_REGISTRY:
+                            if (task in TASK_REGISTRY) or (task in GROUP_REGISTRY):
                                 if group in GROUP_REGISTRY:
                                     GROUP_REGISTRY[group].append(task)
                                 else:

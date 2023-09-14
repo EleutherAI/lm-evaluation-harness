@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List
 
 from lm_eval.api.instance import Instance
+from datasets import Dataset
 
 
 class Filter:
@@ -13,12 +14,12 @@ class Filter:
 
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
-    def apply(self, resps):
+    def apply(self, resps, docs):
         """
         Defines the operation to perform on a list of the `inst.resps` properties of `Instance` objects.
         Should return the list of (filtered) response lists *in the same order as they were input*, e.g.
@@ -40,14 +41,14 @@ class FilterEnsemble:
     name: str
     filters: List[Filter]
 
-    def apply(self, instances: List[Instance]):
+    def apply(self, instances: List[Instance], docs: List[Dataset]) -> None:
 
         resps = [
             inst.resps for inst in instances
         ]  # operate just on the model responses
         for f in self.filters:
             # apply filters in sequence
-            resps = f.apply(resps)
+            resps = f.apply(resps, docs)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
         # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.

@@ -15,7 +15,7 @@ from lm_eval.api.registry import (
 )
 
 
-def register_configurable_task(config):
+def register_configurable_task(config: dict[str, str]) -> int:
     SubClass = type(
         config["task"] + "ConfigurableTask",
         (ConfigurableTask,),
@@ -38,7 +38,7 @@ def register_configurable_task(config):
     return 0
 
 
-def check_prompt_config(config):
+def check_prompt_config(config: dict[str, str]) -> List[dict[str, str]]:
     all_configs = []
     if "use_prompt" in config:
         prompt_list = prompts.load_prompt_list(
@@ -69,14 +69,14 @@ def check_prompt_config(config):
     return all_configs
 
 
-def get_task_name_from_config(task_config):
+def get_task_name_from_config(task_config: dict[str, str]) -> str:
     if "dataset_name" in task_config:
         return "{dataset_path}_{dataset_name}".format(**task_config)
     else:
         return "{dataset_path}".format(**task_config)
 
 
-def include_task_folder(task_dir):
+def include_task_folder(task_dir: str) -> None:
     """
     Calling this function
     """
@@ -136,6 +136,9 @@ def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
     task_name_from_config_dict = {}
     task_name_from_object_dict = {}
 
+    if type(task_name_list) != list:
+        task_name_list = [task_name_list]
+
     for task_element in task_name_list:
         if isinstance(task_element, str):
 
@@ -143,12 +146,20 @@ def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
                 group_name = task_element
                 for task_name in GROUP_REGISTRY[task_element]:
                     if task_name not in task_name_from_registry_dict:
+                        task_obj = get_task_dict(task_name)
+                        if task_name in task_obj.keys():
+                            task_dict = {
+                                task_name: (group_name, task_obj[task_name]),
+                            }
+                        else:
+                            task_dict = {
+                                task_name: (group_name, None),
+                                **task_obj,
+                            }
+
                         task_name_from_registry_dict = {
                             **task_name_from_registry_dict,
-                            task_name: (
-                                group_name,
-                                get_task(task_name=task_name, config=config),
-                            ),
+                            **task_dict,
                         }
             else:
                 task_name = task_element
