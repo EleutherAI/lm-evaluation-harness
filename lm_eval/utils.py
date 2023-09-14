@@ -267,9 +267,9 @@ def make_table(result_dict, column: str = "results"):
     from pytablewriter import MarkdownTableWriter, LatexTableWriter
 
     if column == "results":
-        column_name = "Task"
-    elif column == "aggregate":
-        column_name = "Benchmark"
+        column_name = "Tasks"
+    elif column == "groups":
+        column_name = "Groups"
 
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
