@@ -40,13 +40,13 @@ def parse_args():
     parser.add_argument("--decontamination_ngrams_path", default=None)
     parser.add_argument("--description_dict_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
-
     parser.add_argument("--use_accelerate", action="store_true")
     parser.add_argument("--accelerate_device_map_option", type=str, default="auto")
     parser.add_argument("--accelerate_max_memory_per_gpu", type=str, default=None)
     parser.add_argument("--accelerate_max_cpu_memory", type=str, default=None)
     parser.add_argument("--accelerate_offload_folder", type=str, default="./offload")
     parser.add_argument("--accelerate_dtype", type=str, default=None)
+    parser.add_argument("--tp_degree", type=int, default=1)
 
     return parser.parse_args()
 
@@ -101,6 +101,7 @@ def main():
         accelerate_max_cpu_memory=args.accelerate_max_cpu_memory,
         accelerate_offload_folder=args.accelerate_offload_folder,
         accelerate_dtype=args.accelerate_dtype,
+        tp_degree=args.tp_degree,
     )
 
     dumped = json.dumps(results, indent=2)
