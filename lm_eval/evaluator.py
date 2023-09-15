@@ -33,6 +33,7 @@ def simple_evaluate(
     accelerate_max_cpu_memory=None,
     accelerate_offload_folder="./offload",
     accelerate_dtype=None,
+    tp_degree=1,
 ):
 
     """Instantiate and evaluate a model on a list of tasks.
@@ -88,7 +89,8 @@ def simple_evaluate(
             lm = lm_eval.models.get_model(model).create_from_arg_string(
                 model_args, {
                     "batch_size": batch_size,
-                    "device": device
+                    "device": device,
+                    "tensor_parallel_size": tp_degree,
                 }
             )
     else:
