@@ -470,10 +470,10 @@ def evaluate(
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
-            if False:  # bootstrap_iters > 0:
+            if bootstrap_iters > 0:
                 stderr = lm_eval.api.metrics.stderr_for_metric(
                     metric=task.aggregation()[metric],
-                    bootstrap_iters=min(bootstrap_iters, 1000)
+                    bootstrap_iters=min(bootstrap_iters, 100)
                     if metric in ["bleu", "chrf", "ter"]
                     else bootstrap_iters,
                 )
