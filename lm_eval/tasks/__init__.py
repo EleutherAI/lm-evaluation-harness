@@ -189,6 +189,7 @@ TASK_REGISTRY = {
     "minerva_math_num_theory": minerva_math.MinervaMathNumberTheory,
     "minerva_math_prealgebra": minerva_math.MinervaMathPrealgebra,
     "minerva_math_precalc": minerva_math.MinervaMathPrecalculus,
+    "sympy_math_algebra_easy": sympy_math.SympyMathAlgebraEasy,
     "sympy_math_algebra": sympy_math.SympyMathAlgebra,
     "sympy_math_algebra_easy": sympy_math.SympyMathAlgebraEasy,
     "sympy_math_counting_and_prob": sympy_math.SympyMathCountingAndProbability,

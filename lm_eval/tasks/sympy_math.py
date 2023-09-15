@@ -142,10 +142,12 @@ _CITATION = """
 """
 
 
-class SympyMath(Task, MajorityVotingMixin, SymoblicMathMixin):
+class SympyMath(Task, MajorityVotingMixin, SymbolicMathMixin):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
     DATASET_NAME = None
     PROMPT = CODE_PROMPT
+    MAJORITY_VOTING = "majority_voting"
+    INVALID_ANSWER = "[invalidanswer]"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -181,9 +183,9 @@ class SympyMath(Task, MajorityVotingMixin, SymoblicMathMixin):
     def end_seq(self):
         return "I hope my solution is correct."
 
-    def _get_program(self, text: str):
+    def get_program(self, text: str):
         program = re.search(
-                r"```(.*?)```"
+                r"```(.*?)```",
                 text, 
                 re.MULTILINE,
         )
@@ -294,6 +296,11 @@ class SympyMath(Task, MajorityVotingMixin, SymoblicMathMixin):
 
     def higher_is_better(self):
         return {}
+
+    def doc_to_target(self, doc):
+        raise NotImplementedError
+    def doc_to_text(self, doc):
+        raise NotImplementedError
  
 class SympyMathAlgebraEasy(SympyMath):
     VERSION = 1
