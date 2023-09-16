@@ -20,7 +20,9 @@ def main(args):
         logging.info(f"Scoring task {task}")
 
         docs = output['cache'][task]
-
+        
+        accs = []
+        pass_rates = []
         for doc in tqdm(docs):
             answer = checker.parse_tex(checker.normalize_tex(doc['answer']))
             
@@ -46,10 +48,15 @@ def main(args):
                     acc = 0 
                     pass_rate = 0
 
+                accs.append(acc)
+                pass_rates.append(pass_rate)
+
             else:
                 raise ValueError(f"Key extracted_programs has incorrect type: {type(programs)}")
+
+
             
-            results[task] = {"acc": acc, "pass_rate": pass_rate}
+        results[task] = {"acc": sum(accs)/len(accs), "pass_rate": sum(pass_rates)/len(pass_rates)}
 
     output['results'] = results
 
