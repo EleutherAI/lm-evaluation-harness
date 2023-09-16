@@ -11,6 +11,7 @@ from typing import List, Callable, TypeVar
 T = TypeVar('T')
 
 import sympy
+from sympy.core.sympify import SympifyError
 from sympy.parsing.latex import parse_latex
 
 
@@ -206,7 +207,7 @@ class SymbolicMathMixin:
             parsed = parse_latex(text)
         except (
             sympy.parsing.latex.errors.LaTeXParsingError,
-            sympy.SympifyError,
+            SympifyError,
             TypeError,
         ) as e:
             print(f"failed to parse {text} with exception {e}")
@@ -222,7 +223,7 @@ class SymbolicMathMixin:
             with timeout(seconds=time_limit):
                 try:
                     diff = x1 - x2
-                except TypeError as e:
+                except Exception as e:
                     print(
                         f"Couldn't subtract {x1} and {x2} with exception {e}"
                     )
@@ -233,7 +234,7 @@ class SymbolicMathMixin:
                         return True
                     else:
                         return False
-                except ValueError as e:
+                except Exception as e:
                     print(f"Failed to simplify {x1}-{x2} with {e}")
                     return False
         except TimeoutError as e:
