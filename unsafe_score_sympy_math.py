@@ -31,8 +31,6 @@ def main(args):
             exec_globals = {}
 
             if isinstance(programs, str):
-                print("Detected maj@1")
-
                 program_with_indent = textwrap.indent(programs, '  ')
 
                 program_with_exception = f"try:\n{program_with_indent}\nexcept:\n  pass"

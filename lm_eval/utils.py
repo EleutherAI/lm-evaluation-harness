@@ -223,7 +223,7 @@ class SymbolicMathMixin:
             with timeout(seconds=time_limit):
                 try:
                     diff = x1 - x2
-                except Exception as e:
+                except (SympifyError, ValueError, TypeError) as e:
                     print(
                         f"Couldn't subtract {x1} and {x2} with exception {e}"
                     )
@@ -234,11 +234,14 @@ class SymbolicMathMixin:
                         return True
                     else:
                         return False
-                except Exception as e:
+                except (SympifyError, ValueError, TypeError) as e:
                     print(f"Failed to simplify {x1}-{x2} with {e}")
                     return False
         except TimeoutError as e:
             print(f"Timed out comparing {x1} and {x2}")
+            return False
+        except Exception as e:
+            print(f"failed on unrecognized exception {e}")
             return False
 
     def is_tex_equiv(self, x1: str, x2: str, time_limit=5) -> bool:
