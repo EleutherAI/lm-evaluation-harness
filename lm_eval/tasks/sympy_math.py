@@ -185,24 +185,24 @@ class SympyMath(Task, MajorityVotingMixin, SymbolicMathMixin):
 
     def get_program(self, text: str):
         program = re.search(
-                r"```(.*?)```",
+                r"(.*?)```",
                 text, 
-                re.MULTILINE,
+                re.DOTALL,
         )
         if program: 
-            body = match.group(1).strip()
+            body = program.group(1).strip()
         else:
-            return self.INVALID_ANSWER
+            return "failed to get program"
 
         imports = re.search(
                 r"The imports required for this program are\s```(.*?)```",
                 text, 
-                re.MULTILINE,
+                re.DOTALL,
         )
         if imports:
-            header = match.group(1).strip()
+            header = imports.group(1).strip()
         else:
-            return self.INVALID_ANSWER
+            return "failed to get header"
         
         code = header + "\n\n" + body
         return code
