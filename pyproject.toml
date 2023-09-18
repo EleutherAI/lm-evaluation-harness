@@ -36,7 +36,7 @@ dependencies = [
     "tqdm-multiprocess",
     "transformers>=4.1",
     "zstandard",
-    "sympy",
+    "sympy>=1.12",
     "antlr4-python3-runtime >= 4.11, < 4.12"
 ]
 
