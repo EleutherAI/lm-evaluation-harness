@@ -1,4 +1,0 @@
-include: ../scroll_summary_task_yaml
-task: scrolls_summscreenfd
-dataset_path: tau/scrolls
-dataset_name: summ_screen_fd

@@ -1,4 +1,0 @@
-from functools import partial
-from preprocessors import _doc_prepended_question
-
-process_docs_prepended_questionGPTNeoX4K = partial(process_docs, custom_process=_doc_prepended_question)

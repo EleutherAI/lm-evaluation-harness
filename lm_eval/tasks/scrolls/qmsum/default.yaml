@@ -1,5 +1,0 @@
-include: ../scroll_summary_task_yaml
-task: scrolls_qmsum
-dataset_path: tau/scrolls
-dataset_name: qmsum
-process_docs: !function ../preprocessors.process_docs_prepended_question

@@ -1,7 +1,0 @@
-include: ../scroll_multiplechoice_task_yaml
-task: scrolls_quality
-dataset_name: quality
-process_docs: !function utils.process_docs
-doc_to_text: "{{text}}\n\nQuestion: {{question}}\nAnswer:"
-doc_to_target: gold
-doc_to_choice: "{{choices}}"

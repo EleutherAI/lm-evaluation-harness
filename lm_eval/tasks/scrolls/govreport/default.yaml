@@ -1,4 +1,0 @@
-include: ../scroll_summary_task_yaml
-task: scrolls_govreport
-dataset_path: tau/scrolls
-dataset_name: gov_report
