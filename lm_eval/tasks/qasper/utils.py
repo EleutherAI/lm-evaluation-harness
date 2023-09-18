@@ -1,15 +1,10 @@
 from datasets import Dataset
 from functools import partial
 
+
 def process_docs(dataset, set_answer_type="bool"):
 
-    FEATURES = [
-        "title",
-        "abstract",
-        "question",
-        "answer",
-        "answer_type"
-        ]
+    FEATURES = ["title", "abstract", "question", "answer", "answer_type"]
 
     def _categorise_answer(answer_blob):
         if answer_blob["unanswerable"]:
@@ -62,12 +57,16 @@ def process_docs(dataset, set_answer_type="bool"):
 
         return obs_list
 
-    dataset = dataset.map(_flatten, remove_columns=[key for key in dataset.features.keys() if key not in FEATURES])
+    dataset = dataset.map(
+        _flatten,
+        remove_columns=[key for key in dataset.features.keys() if key not in FEATURES],
+    )
     new_dataset = {}
     for key in dataset.features.keys():
         new_dataset[key] = [x for row in dataset[key] for x in row]
-    
+
     return Dataset.from_dict(new_dataset)
+
 
 process_docs_bool = partial(process_docs, set_answer_type="bool")
 process_docs_freeform = partial(process_docs, set_answer_type="free form answer")

@@ -1,7 +1,7 @@
 import numpy as np
 
-def process_docs(dataset):
 
+def process_docs(dataset):
     def _detokenize(text):
         text = text.replace(" '", "'")
         text = text.replace(" \n", "\n")
