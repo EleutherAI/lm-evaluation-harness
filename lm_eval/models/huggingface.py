@@ -107,17 +107,20 @@ class HFLM(LM):
         if not (parallelize or accelerator.num_processes > 1):
             # use user-passed device
             device_list = set(
-                ["cuda", "cpu", "mps"]
+                ["cuda", "cpu"]
                 + [f"cuda:{i}" for i in range(torch.cuda.device_count())]
+                + ["mps", "mps:0"]
             )
             if device:
                 if device not in device_list:
                     device = int(device)
                 self._device = torch.device(device)
                 eval_logger.info(f"Using device '{device}'")
-                if device == "mps":
+                if device in ("mps", "mps:0") and "dev" not in torch.__version__:
                     eval_logger.info(
-                        "MPS is still in beta and only supports float32; setting dtype to float32."
+                        "MPS: Setting dtype to float32. To use float16 with MPS, please install a nightly build of "
+                        "PyTorch: pip3 install --pre torch torchvision torchaudio --index-url "
+                        "https://download.pytorch.org/whl/nightly/cpu"
                     )
             else:
                 eval_logger.info("Device not specified")

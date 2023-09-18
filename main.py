@@ -209,8 +209,8 @@ def main() -> None:
             f"batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
         )
         print(evaluator.make_table(results))
-        if "aggregate" in results:
-            print(evaluator.make_table(results, "aggregate"))
+        if "groups" in results:
+            print(evaluator.make_table(results, "groups"))
 
 
 if __name__ == "__main__":
