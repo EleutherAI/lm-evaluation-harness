@@ -60,7 +60,8 @@ def check_prompt_config(config: dict[str, str]) -> List[dict[str, str]]:
                                 prompt_variation,
                             ]
                         )
-                    }
+                    },
+                    **{"output_type": "greedy_until"}
                 }
             )
     else:
