@@ -1,9 +1,11 @@
-import json
 from typing import List
 from lm_eval.utils import load_yaml_config
 from pathlib import Path
-import sys
+from typing import Union
+import os
 
+
+# {{{CI}}}
 # This is the path where the output for the changed files for the tasks folder is stored
 # FILE_PATH = file_path = ".github/outputs/tasks_all_changed_and_modified_files.txt"
 
@@ -14,7 +16,6 @@ def load_changed_files(file_path: str) -> List[str]:
     with open(file_path, "r") as f:
         content = f.read()
         words_list = [x for x in content.split()]
-        sys.stdout.write(f"list of files: {words_list}")
     return words_list
 
 
@@ -30,3 +31,18 @@ def parser(full_path: List[str]) -> List[str]:
             path = [str(x) for x in (list(Path(x).parent.glob("*.yaml")))]
             _output |= {load_yaml_config(x)["task"] for x in path}
     return list(_output)
+
+
+def new_tasks() -> Union[List[str], None]:
+    FILENAME = ".github/outputs/tasks_all_changed_and_modified_files.txt"
+    if os.path.exists(FILENAME):
+        # If tasks folder has changed then we get the list of files from FILENAME
+        # and parse the yaml files to get the task names.
+        return parser(load_changed_files(FILENAME))
+    elif os.getenv("API") is not None:
+        # Or if API has changed then we set the ENV variable API to True
+        # and run  given tasks.
+        return ["arc_easy", "hellaswag", "piqa", "wikitext"]
+    # if both not true just do arc_easy
+    else:
+        return

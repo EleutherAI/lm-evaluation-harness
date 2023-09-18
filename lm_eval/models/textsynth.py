@@ -41,7 +41,7 @@ def textsynth_completion(**kwargs):
 
 @register_model("textsynth")
 class TextSynthLM(LM):
-    def __init__(self, engine, truncate=False):
+    def __init__(self, engine, truncate: bool = False) -> None:
         """
         :param engine: str
             TextSynth API engine (e.g. `gptj_6B`)
@@ -62,12 +62,12 @@ class TextSynthLM(LM):
         raise NotImplementedError()
 
     @property
-    def max_length(self):
+    def max_length(self) -> int:
         # NOTE: Turn on truncation to avoid errors on long inputs.
         return 2048
 
     @property
-    def max_gen_toks(self):
+    def max_gen_toks(self) -> int:
         return 256
 
     @property
