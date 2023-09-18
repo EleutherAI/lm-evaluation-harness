@@ -63,10 +63,10 @@ jobs:
       - name: Test with pytest
         # if new tasks are added, run tests on them
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true'
-        run: python -m pytest tests/test_tasks.py -s -vv -n=auto
+        run: python -m pytest tests/test_tasks.py -s -vv
         # if api is modified, run tests on it
       - name: Test more tasks with pytest
         env:
           API: true
         if: steps.changed-tasks.outputs.api_any_modified == 'true'
-        run: python -m pytest tests/test_tasks.py -s -vv -n=auto
+        run: python -m pytest tests/test_tasks.py -s -vv
