@@ -16,7 +16,6 @@ import gc
 import torch
 import transformers
 
-from omegaconf import OmegaConf
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
 
@@ -55,8 +54,8 @@ def simple_parse_args_string(args_string):
     args_string = args_string.strip()
     if not args_string:
         return {}
-    arg_list = args_string.split(",")
-    args_dict = OmegaConf.to_object(OmegaConf.from_dotlist(arg_list))
+    arg_list = [arg for arg in args_string.split(",") if arg]
+    args_dict = {k: v for k, v in [arg.split("=") for arg in arg_list]}
     return args_dict
 
 
