@@ -46,7 +46,7 @@ Homepage: https://allenai.org/data/qasper
 
 #### Tasks
 
-* `qasper_bool`: Multiple choice task that evaluates the task with `answer_type="bool"` 
+* `qasper_bool`: Multiple choice task that evaluates the task with `answer_type="bool"`
 * `qasper_freeform`: Greedy generation task that evaluates the samples from the task with `answer_type="free form answer"`
 
 ### Checklist
