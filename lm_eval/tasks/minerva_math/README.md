@@ -61,9 +61,9 @@ For adding novel benchmarks/datasets to the library:
 
 
 If other tasks on this dataset are already supported:
-* [ ] Is the "Main" variant of this task clearly denoted?
-* [ ] Have you provided a short sentence in a README on what each new variant adds / evaluates?
-* [ ] Have you noted which, if any, published evaluation setups are matched by this variant?
+* [x] Is the "Main" variant of this task clearly denoted?
+* [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
+* [x] Have you noted which, if any, published evaluation setups are matched by this variant?
 
 ### Variant Wishlist
 
