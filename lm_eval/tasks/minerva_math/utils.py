@@ -181,6 +181,9 @@ def is_equiv(x1: str, x2: str) -> bool:
     except TimeoutError:
         eval_logger.debug(f"Timed out comparing {x1} and {x2}")
         return False
+    except ImportError as e:
+        eval_logger.error(e)
+        raise
     except Exception as e:
         eval_logger.debug(f"Failed comparing {x1} and {x2} with {e}")
         return False
