@@ -16,7 +16,6 @@ import gc
 import torch
 import transformers
 
-from omegaconf import OmegaConf
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
 
@@ -55,8 +54,8 @@ def simple_parse_args_string(args_string):
     args_string = args_string.strip()
     if not args_string:
         return {}
-    arg_list = args_string.split(",")
-    args_dict = OmegaConf.to_object(OmegaConf.from_dotlist(arg_list))
+    arg_list = [arg for arg in args_string.split(",") if arg]
+    args_dict = {k: v for k, v in [arg.split("=") for arg in arg_list]}
     return args_dict
 
 
@@ -395,8 +394,10 @@ def import_function(loader, node):
     function_name = loader.construct_scalar(node)
     yaml_path = os.path.dirname(loader.name)
 
-    module_name, function_name = function_name.split(".")
-    module_path = os.path.join(yaml_path, "{}.py".format(module_name))
+    *module_name, function_name = function_name.split(".")
+    if type(module_name) == list:
+        module_name = ".".join(module_name)
+    module_path = os.path.normpath(os.path.join(yaml_path, "{}.py".format(module_name)))
 
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     module = importlib.util.module_from_spec(spec)
@@ -430,8 +431,7 @@ def load_yaml_config(yaml_path):
                 # If not found, assume the included yaml
                 # is in the same dir as the original yaml
                 if not os.path.isfile(path):
-                    path = os.path.join(yaml_dir, path)
-
+                    path = os.path.normpath(os.path.join(yaml_dir, path))
                 try:
                     included_yaml_config = load_yaml_config(path)
                     final_yaml_config.update(included_yaml_config)
