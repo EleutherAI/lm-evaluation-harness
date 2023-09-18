@@ -69,7 +69,7 @@ class OpenaiCompletionsLM(LM):
         engine: str = "text-davinci-003",
         truncate: bool = False,
         batch_size: int = 1,
-    ):
+    ) -> None:
         """
 
         :param engine: str
@@ -99,12 +99,12 @@ class OpenaiCompletionsLM(LM):
         return self.end_of_text_token_id
 
     @property
-    def max_length(self):
+    def max_length(self) -> int:
         # Note: the OpenAI API supports up to 2049 tokens, with the first token being the first input token
         return 2048
 
     @property
-    def max_gen_toks(self):
+    def max_gen_toks(self) -> int:
         return 256
 
     @property
@@ -152,7 +152,7 @@ class OpenaiCompletionsLM(LM):
         return self._loglikelihood_tokens(new_reqs)
 
     def _loglikelihood_tokens(
-        self, requests, disable_tqdm=False
+        self, requests, disable_tqdm: bool = False
     ) -> List[Tuple[float, bool]]:
         res = []
 
