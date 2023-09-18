@@ -4,7 +4,7 @@ import sympy
 from sympy.parsing.latex import parse_latex
 import signal
 from lm_eval.logger import eval_logger
-from typing import Optional
+from typing import Optional, List, Dict
 
 
 # taken from
@@ -69,7 +69,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     return dataset.map(_process_doc)
 
 
-def process_results(doc: dict, results: list[str]) -> dict[str, int]:
+def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     candidates = results[0]
 
     unnormalized_answer = get_unnormalized_answer(candidates)
