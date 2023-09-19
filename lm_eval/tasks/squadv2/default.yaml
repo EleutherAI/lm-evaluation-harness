@@ -4,44 +4,22 @@ output_type: greedy_until
 training_split: train
 validation_split: validation
 doc_to_text: "Title: {{title}}\n\nBackground: {{context}}\n\nQuestion: {{question}}\n\n Answer:"
-doc_to_target: "{% if answers.text| length > 0 %}{{answers.text}}{% else %}{{['unanswerable']}}{% endif %}"
+doc_to_target: "{% if answers.text| length > 0 %}{{answers.text}}{% else %}{{['']}}{% endif %}"
 target_delimiter: ""
 should_decontaminate: true
 doc_to_decontamination_query: context
-process_results: !function utils.process_results
 generation_kwargs:
   until:
-    - "\n\n"
     - "\n"
-  do_sample: false
-  temperature: 0.0
-filter_list:
-  - name: remove_whitespace
-    filter:
-      - function: remove_whitespace
-      - function: take_first
+# filter_list:
+#   - name: remove_whitespace
+#     filter:
+#       - function: remove_whitespace
+#       - function: take_first
 metric_list:
-  - metric: exact
-    aggregation: !function utils.exact
+  - metric: !function utils.exact
+    aggregation: mean
     higher_is_better: true
-  # - metric: f1
-  #   aggregation: mean
-  #   higher_is_better: true
-  # - metric: HasAns_exact
-  #   aggregation: mean
-  #   higher_is_better: true
-  # - metric: HasAns_f1
-  #   aggregation: mean
-  #   higher_is_better: true
-  # - metric: NoAns_exact
-  #   aggregation: mean
-  #   higher_is_better: true
-  # - metric: NoAns_f1
-  #   aggregation: mean
-  #   higher_is_better: true
-  # - metric: best_exact
-  #   aggregation: mean
-  #   higher_is_better: true
-  # - metric: best_f1
-  #   aggregation: mean
-  #   higher_is_better: true
+  - metric: !function utils.f1
+    aggregation: mean
+    higher_is_better: true
