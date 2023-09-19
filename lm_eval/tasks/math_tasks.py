@@ -8,7 +8,7 @@ import inspect
 import lm_eval.datasets.hendrycks_math.hendrycks_math
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
-from lm_eval.utils import MajorityVotingMixin, SymbolicMathMixin
+from lm_eval.mixins import MajorityVotingMixin, SymbolicMathMixin
 
 class SymbolicMathTask(Task, SymbolicMathMixin, MajorityVotingMixin, ABC):
     """

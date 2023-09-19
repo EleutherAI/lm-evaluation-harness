@@ -21,7 +21,6 @@ import inspect
 import lm_eval.datasets.hendrycks_math.hendrycks_math
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
-from lm_eval.utils import MajorityVotingMixin
 from lm_eval.tasks.math_tasks import SymbolicMathTask
 
 
