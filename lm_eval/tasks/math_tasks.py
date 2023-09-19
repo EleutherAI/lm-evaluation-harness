@@ -10,7 +10,7 @@ from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
 from lm_eval.mixins import MajorityVotingMixin, SymbolicMathMixin
 
-class SymbolicMathTask(Task, SymbolicMathMixin, MajorityVotingMixin, ABC):
+class SymbolicMathTask(SymbolicMathMixin, MajorityVotingMixin, Task, ABC):
     """
     Abstract base class representing tasks whose answer is a LaTeX mathematical expression,
     e.g `347`, `\sqrt{3}/3`, or `x^2 + 7`.

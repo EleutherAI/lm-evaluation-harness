@@ -141,7 +141,7 @@ _CITATION = """
 """
 
 
-class SympyMath(Task, MajorityVotingMixin, SymbolicMathMixin):
+class SympyMath(MajorityVotingMixin, SymbolicMathMixin, Task):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
     DATASET_NAME = None
     PROMPT = CODE_PROMPT
