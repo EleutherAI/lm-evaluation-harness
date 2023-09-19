@@ -104,7 +104,7 @@ def get_task_name_from_config(task_config: Dict[str, str]) -> str:
         return "{dataset_path}".format(**task_config)
 
 
-def include_task_folder(task_dir: str) -> None:
+def include_task_folder(task_dir: str, register_task=True) -> None:
     """
     Calling this function
     """
@@ -116,14 +116,15 @@ def include_task_folder(task_dir: str) -> None:
                     try:
                         config = utils.load_yaml_config(yaml_path)
 
-                        # If a `task` in config is a list,
-                        # that means it's a benchmark
-                        if type(config["task"]) == list:
-                            register_configurable_group(config)
-                        else:
+                        if register_task:
                             all_configs = check_prompt_config(config)
                             for config in all_configs:
                                 register_configurable_task(config)
+                        else:
+                            # If a `task` in config is a list,
+                            # that means it's a benchmark
+                            if type(config["task"]) == list:
+                                register_configurable_group(config)
 
                     except Exception as error:
                         eval_logger.warning(
@@ -136,6 +137,8 @@ def include_task_folder(task_dir: str) -> None:
 
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
 include_task_folder(task_dir)
+# Register Benchmarks after all tasks have been added
+include_task_folder(task_dir, register_task=False)
 
 
 def get_task(task_name, config):
