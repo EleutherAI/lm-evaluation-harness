@@ -1,4 +1,4 @@
-# group: scrolls
+group: scrolls_qasper
 task: scrolls_qasper_boolean
 dataset_path: tau/scrolls
 dataset_name: qasper
