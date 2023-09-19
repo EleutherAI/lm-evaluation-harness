@@ -7,6 +7,27 @@ from lm_eval.evaluator import make_table
 from tqdm import tqdm
 import copy
 
+def wrap_code(code: str):
+    """
+    Wraps code in a try-except block
+    """
+    code_with_indent = textwrap.indent(code, ' ')
+    return f"try:\n{code_with_indent}\nexcept:\n  pass"
+
+def answer_of_program(program: str, time_limit=15):
+    """
+    Executes program and extracts `answer` global
+    """
+    exec_globals = {}
+    try:
+        with timeout(seconds=time_limit):
+            exec(program, None, exec_globals)
+
+        candidate = exec_globals.get('answer', None)
+        return candidate
+    except (SyntaxError, TimeoutError):
+        return None
+
 def main(args):
     with open(args.output) as f:
         output = json.load(f)
@@ -36,30 +57,44 @@ def main(args):
 
             exec_globals = {}
 
-            if isinstance(programs, str):
-                program_with_indent = textwrap.indent(programs, '  ')
+            is_majority_voting = not isinstance(programs, str)
 
-                program_with_exception = f"try:\n{program_with_indent}\nexcept:\n  pass"
+            if not is_majority_voting:
+                program_with_exception = wrap_code(programs)
 
-                try:
-                    with timeout(seconds=15):
-                        exec(program_with_exception, None, exec_globals)
+                candidate = answer_of_program(program_with_exception)
 
-                    candidate = exec_globals.get('answer', None)
+                if candidate is not None:
                     acc = checker.is_exp_equiv(answer, candidate)
                     pass_rate = acc
-                except (SyntaxError, TimeoutError):
+                else:
                     acc = 0 
                     pass_rate = 0
 
-                accs.append(acc)
-                pass_rates.append(pass_rate)
-
-                output['cache'][task][i]['acc'] = acc
-                output['cache'][task][i]['pass_rate'] = pass_rate
-
             else:
-                raise ValueError(f"Key extracted_programs has incorrect type: {type(programs)}")
+                programs_with_exception = list(map(wrap_code, programs))
+                candidates = list(map(answer_of_program, programs_with_exception))
+
+                acc, pass_rate, votes = voter.majority_vote(
+                        candidates, 
+                        correct_answer=answer, 
+                        is_equiv=checker.is_exp_equiv
+                )
+
+                if not votes:
+                    acc = 0
+                    pass_rate = 0
+
+            accs.append(acc)
+            pass_rates.append(pass_rate)
+
+            output['cache'][task][i]['acc'] = acc
+            output['cache'][task][i]['pass_rate'] = pass_rate
+
+            if is_majority_voting: 
+                output['cache'][task][i]['votes'] = votes
+
+
     
         results[task] = {"acc": sum(accs)/len(accs), "pass_rate": sum(pass_rates)/len(pass_rates)}
 
