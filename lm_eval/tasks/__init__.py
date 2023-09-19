@@ -61,7 +61,7 @@ def check_prompt_config(config: dict[str, str]) -> List[dict[str, str]]:
                             ]
                         )
                     },
-                    **{"output_type": "greedy_until"}
+                    **{"output_type": "greedy_until"},
                 }
             )
     else:
