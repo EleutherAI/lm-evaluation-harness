@@ -37,15 +37,12 @@ def register_configurable_task(config: Dict[str, str]) -> int:
 
     return 0
 
+
 def register_configurable_group(config: Dict[str, str]) -> int:
     group = config["group"]
     all_task_list = config["task"]
-    config_list = [
-        task for task in all_task_list if type(task) != str
-    ]
-    task_list = [
-        task for task in all_task_list if type(task) == str
-    ]
+    config_list = [task for task in all_task_list if type(task) != str]
+    task_list = [task for task in all_task_list if type(task) == str]
 
     for task_config in config_list:
         var_configs = check_prompt_config(
