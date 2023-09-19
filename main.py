@@ -11,7 +11,6 @@ from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger, SPACING
 from lm_eval.tasks import include_task_folder
-from lm_eval.benchmarks import include_benchmarks
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
