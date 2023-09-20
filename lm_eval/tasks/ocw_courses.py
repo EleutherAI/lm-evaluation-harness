@@ -7,14 +7,18 @@ import math
 import code
 import signal
 from abc import ABC
+from typing import Optional
 
 import inspect
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
-from lm_eval.tasks.math_tasks import SymbolicMathTask
+from lm_eval.mixins import MajorityVotingMixin, SymbolicMathMixin
 
+from sympy.parsing.latex import parse_latex
 
-NL_PROMPT=r"""Problem:                                                                                
+import numpy as np
+
+NL_PROMPT = r"""Problem:                                                                                
 Subproblem 0: What is the net charge of arginine in a solution of $\mathrm{pH} 1.0$? 
 Please format your answer as +n or -n.                           
 Solution:
@@ -77,11 +81,12 @@ _CITATION = """
 """
 
 
-class OCWCourses(SymbolicMathTask):
+class OCWCourses(MajorityVotingMixin, SymbolicMathMixin, Task):
     DATASET_PATH = "open-web-math/ocwcourses"
     DATASET_NAME = None
     PROMPT = NL_PROMPT
     VERSION = 1
+    INVALID_ANSWER = "[invalidanswer]"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -106,7 +111,7 @@ class OCWCourses(SymbolicMathTask):
         return self.dataset["test"]
 
     def fewshot_context(
-            self, doc, num_fewshot, provide_description=None, rnd=None, description=None
+        self, doc, num_fewshot, provide_description=None, rnd=None, description=None
     ):
         example = self._doc_to_text(doc)
         prompt = self.PROMPT + "\n\n" + example
@@ -122,13 +127,12 @@ class OCWCourses(SymbolicMathTask):
 
         print(f"\n\n### TEXT TO RE:\n{text}")
         match = re.search(
-                r'Final answer: The final answer is(.*?). I hope it is correct.',
-                text,
+            r"Final answer: The final answer is(.*?). I hope it is correct.", text,
         )
-        if match: 
+        if match:
             ans = match.group(1).strip()
         else:
-            ans = self.INVALID_ANSWER 
+            ans = self.INVALID_ANSWER
 
         print(f"\n EXTRACTED_ANSWER: {ans}")
 
@@ -136,3 +140,188 @@ class OCWCourses(SymbolicMathTask):
 
     def _doc_to_text(self, doc):
         return "Problem:\n" + doc["problem"] + "\nSolution:"
+
+    def doc_to_target(self):
+        raise NotImplementedError("SymbolicMathTask has no doc_to_target method.")
+
+    def doc_to_text(self, doc):
+        raise NotImplementedError("SymbolicMathTask does not implement doc_to_text")
+
+    def should_decontaminate(self):
+        return False
+
+    def process_results(self, doc, results, params={}):
+        candidates = results[0]
+
+        assert isinstance(params, dict)
+
+        ref = doc['answer']
+
+        try:
+            float(ref)
+            normalize_fn = self.normalize_numeric
+            is_equiv = self.numeric_equality
+            answer_type = "numeric"
+        except ValueError:
+            if "=" in ref:
+                normalize_fn = self.normalize_symbolic_equation
+                is_equiv = lambda x, y: x==y
+                answer_type = "equation"
+            else:
+                normalize_fn = self.normalize_tex
+                is_equiv = self.is_tex_equiv
+                answer_type = "expression"
+
+        correct_answer = normalize_fn(ref)
+
+        if self.MAJORITY_VOTING not in params:
+            unnormalized_answer = self.get_unnormalized_answer(candidates)
+
+            model_answer = normalize_fn(unnormalized_answer)
+
+            if unnormalized_answer == self.INVALID_ANSWER:
+                acc = 0
+            elif model_answer == self.INVALID_ANSWER:
+                acc = 0
+            elif is_equiv(model_answer, correct_answer):
+                acc = 1
+            else:
+                acc = 0
+
+            pass_rate = acc
+        else:
+            answers = [
+                normalize_fn(self.get_unnormalized_answer(candidate))
+                for candidate in candidates
+                if self.get_unnormalized_answer(candidate) != self.INVALID_ANSWER
+                and normalize_fn(self.get_unnormalized_answer(candidate)) != self.INVALID_ANSWER
+            ]
+
+            acc, pass_rate, votes = self.majority_vote(
+                answers, correct_answer=correct_answer, is_equiv=is_equiv,
+            )
+            if votes:
+                model_answer = votes[0][0]
+            else:
+                model_answer = self.INVALID_ANSWER
+
+        results = {
+            "acc": acc,
+            "pass_rate": pass_rate,
+            "metadata": {
+                "selected_answer": model_answer, 
+                "unprocessed_answers": candidates,
+                "answer_type": answer_type,
+            },
+        }
+
+        if self.MAJORITY_VOTING in params:
+            results["metadata"]["votes"] = votes
+
+        return results
+
+    def aggregation(self):
+        return {"acc": mean, "pass_rate": mean}
+
+    def higher_is_better(self):
+        return {"acc": True, "pass_rate": True}
+
+    def normalize_numeric(self, s):
+        if s is None:
+            return None
+        for unit in [
+            "eV",
+            " \\mathrm{~kg} \\cdot \\mathrm{m} / \\mathrm{s}",
+            " kg m/s",
+            "kg*m/s",
+            "kg",
+            "m/s",
+            "m / s",
+            "m s^{-1}",
+            "\\text{ m/s}",
+            " \\mathrm{m/s}",
+            " \\text{ m/s}",
+            "g/mole",
+            "g/mol",
+            "\\mathrm{~g}",
+            "\\mathrm{~g} / \\mathrm{mol}",
+            "W",
+            "erg/s",
+            "years",
+            "year",
+            "cm",
+        ]:
+            s = s.replace(unit, "")
+            s = s.strip()
+        for maybe_unit in ["m", "s", "cm"]:
+            s = s.replace("\\mathrm{" + maybe_unit + "}", "")
+            s = s.replace("\\mathrm{~" + maybe_unit + "}", "")
+            s = s.strip()
+        s = s.strip("$")
+        try:
+            return float(eval(s))
+        except:
+            try:
+                expr = parse_latex(s)
+                if expr.is_number:
+                    return float(expr)
+                return self.INVALID_ANSWER
+            except:
+                return self.INVALID_ANSWER
+
+
+    def numeric_equality(self, n1, n2, threshold=0.01):
+        if n1 is None or n2 is None:
+            return False
+        if np.isclose(n1, 0) or np.isclose(n2, 0) or np.isclose(n1 - n2, 0):
+            return np.abs(n1 - n2) < threshold * (n1 + n2) / 2
+        else:
+            return np.isclose(n1, n2)
+
+
+    def normalize_symbolic_equation(self, s: Optional[str]):
+        if not isinstance(s, str):
+            return self.INVALID_ANSWER
+        if s.startswith("\\["):
+            s = s[2:]
+        if s.endswith("\\]"):
+            s = s[:-2]
+        s = s.replace("\\left(", "(")
+        s = s.replace("\\right)", ")")
+        s = s.replace("\\\\", "\\")
+        if s.startswith("$") or s.endswith("$"):
+            s = s.strip("$")
+        try:
+            maybe_expression = parse_latex(s)
+            if not isinstance(maybe_expression, sympy.core.relational.Equality):
+                # we have equation, not expression
+                return self.INVALID_ANSWER
+            else:
+                return maybe_expression
+        except:
+            return self.INVALID_ANSWER
+
+
+    def normalize_symbolic_expression(self, s: Optional[str]):
+        if not isinstance(s, str):
+            return self.INVALID_ANSWER
+        if s.startswith("\\["):
+            s = s[2:]
+        if s.endswith("\\]"):
+            s = s[:-2]
+        s = s.replace("\\left(", "(")
+        s = s.replace("\\right)", ")")
+        s = s.replace("\\\\", "\\")
+        if s.startswith("$") or s.endswith("$"):
+            s = s.strip("$")
+        try:
+            maybe_expression = parse_latex(s)
+            if isinstance(maybe_expression, sympy.core.relational.Equality):
+                # we have equation, not expression
+                return self.INVALID_ANSWER
+            if isinstance(maybe_expression, sympy.logic.boolalg.BooleanFalse):
+                return self.INVALID_ANSWER
+            else:
+                return maybe_expression
+        except:
+            return self.INVALID_ANSWER
