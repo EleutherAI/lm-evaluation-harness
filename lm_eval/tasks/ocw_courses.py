@@ -53,8 +53,7 @@ solution \(y(t)\)
 \[
   y(t)=\boxed{\frac{1}{b-a}\left(e^{-a t}-e^{-b t}\right)}
 \].
-Final answer: The final answer is \[\frac{1}{b-a}\left(e^{-a t}-e^{-b t}\right)\]. 
-I hope it is correct.
+Final answer: The final answer is \[\frac{1}{b-a}\left(e^{-a t}-e^{-b t}\right)\]. I hope it is correct.
 
 Problem:
 Preamble: The following subproblems refer to the differential equation 
@@ -82,6 +81,7 @@ class OCWCourses(SymbolicMathTask):
     DATASET_PATH = "open-web-math/ocwcourses"
     DATASET_NAME = None
     PROMPT = NL_PROMPT
+    VERSION = 1
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -119,14 +119,20 @@ class OCWCourses(SymbolicMathTask):
 
     def get_unnormalized_answer(self, text: str):
         text += self.end_seq
+
+        print(f"\n\n### TEXT TO RE:\n{text}")
         match = re.search(
-                r'Final Answer: The final answer is(.*?). I hope it is correct.',
+                r'Final answer: The final answer is(.*?). I hope it is correct.',
                 text,
         )
         if match: 
-            return match.group(1).strip()
+            ans = match.group(1).strip()
         else:
-            return self.INVALID_ANSWER 
+            ans = self.INVALID_ANSWER 
+
+        print(f"\n EXTRACTED_ANSWER: {ans}")
+
+        return ans
 
     def _doc_to_text(self, doc):
         return "Problem:\n" + doc["problem"] + "\nSolution:"
