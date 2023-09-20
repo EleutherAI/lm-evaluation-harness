@@ -15,39 +15,83 @@ import signal
 from abc import ABC
 
 import sympy
-from sympy.parsing.latex import parse_latex
 
 import inspect
 import lm_eval.datasets.hendrycks_math.hendrycks_math
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
-from lm_eval.tasks.math_tasks import SymbolicMathTask
+from lm_eval.mixins import MajorityVotingMixin, SymbolicMathMixin
 
 
-NL_PROMPT=r"""Problem:
+CODE_PROMPT=r"""Problem:
 Find the domain of the expression  $\frac{\sqrt{x-2}}{\sqrt{5-x}}$.}
 
 Solution:
-The expressions inside each square root must be non-negative. Therefore, $x-2 \ge 0$, so $x\ge2$, and $5 - x \ge 0$, so $x \le 5$. Also, the denominator cannot be equal to zero, so $5-x>0$, which gives $x<5$. Therefore, the domain of the expression is $\boxed{[2,5)}$.
-Final Answer: The final answer is $[2,5)$. I hope it is correct.
+```
+# Initialize variable x as a symbol
+x = Symbol('x')
+
+# The square root of (x-2) requires x-2 >= 0
+domain1 = solveset(x - 2 >= 0, x, domain=S.Reals)
+
+# The square root of (5-x) requires 5-x > 0 (can't be zero because it's in the denominator)
+domain2 = solveset(5 - x > 0, x, domain=S.Reals)
+
+# Step 4: Intersect both domains to find the final domain of the expression
+final_domain = domain1.intersect(domain2)
+
+answer = final_domain
+```
+The imports required for this program are
+```
+from sympy import Symbol, solveset, S
+```
+I hope my solution is correct.
 
 Problem:
 If $\det \mathbf{A} = 2$ and $\det \mathbf{B} = 12,$ then find $\det (\mathbf{A} \mathbf{B}).$
 
 Solution:
-We have that $\det (\mathbf{A} \mathbf{B}) = (\det \mathbf{A})(\det \mathbf{B}) = (2)(12) = \boxed{24}.$
-Final Answer: The final answer is $24$. I hope it is correct.
+```
+# Given det(A) = 2 and det(B) = 12
+det_A = Integer(2)
+det_B = Integer(12)
+
+# Use the property det(AB) = det(A)*det(B)
+det_AB = det_A * det_B
+
+answer = det_AB
+```
+The imports required for this program are
+```
+from sympy import Integer
+```
+I hope my solution is correct. 
 
 Problem:
 Terrell usually lifts two 20-pound weights 12 times. If he uses two 15-pound weights instead, how many times must Terrell lift them in order to lift the same total weight?
 
 Solution:
-If Terrell lifts two 20-pound weights 12 times, he lifts a total of $2\cdot 12\cdot20=480$ pounds of weight.  If he lifts two 15-pound weights instead for $n$ times, he will lift a total of $2\cdot15\cdot n=30n$ pounds of weight.  Equating this to 480 pounds, we can solve for $n$:
-\begin{align*}
-30n&=480\\
-\Rightarrow\qquad n&=480/30=\boxed{16}
-\end{align*}
-Final Answer: The final answer is $16$. I hope it is correct.
+```
+# Initialize n as a symbol, representing the number of times Terrell must lift the 15-pound weights
+n = Symbol('n')
+
+# Calculate the total weight lifted initially, which is 2*20*12 pounds
+total_weight = 2 * 20 * 12
+
+# Set up the equation for total weight lifted with 15-pound weights
+equation = 2 * 15 * n - total_weight
+
+# Step 4: Solve for n
+n_value = solve(equation, n)[0]
+
+answer = n_value 
+```
+The imports required for this program are
+```
+from sympy import Symbol, solve
+```
+I hope my solution is correct. 
 
 Problem:
 If the system of equations
@@ -59,13 +103,25 @@ If the system of equations
 find $\frac{a}{b},$ assuming $b$ is nonzero.
 
 Solution:
-If we multiply the first equation by $-\frac{3}{2}$, we obtain
+```
+# Initialize symbols for a, b, x, y
+a, b = symbols('a b')
+x, y = symbols('x y')
 
-$$6y-9x=-\frac{3}{2}a.$$Since we also know that $6y-9x=b$, we have
+# Since b!=0, we can obtain a/b by dividing the first equation by the second
+a_over_b = (6*x - 4*y) / (6*y - 9*x)
 
-$$-\frac{3}{2}a=b\Rightarrow\frac{a}{b}=\boxed{-\frac{2}{3}}.$$
-Final Answer: The final answer is $-\frac{2}{3}$. I hope it is correct."""
+# Simplify the expression
+a_over_b = simplify(a_over_b)
 
+answer = a_over_b
+```
+The imports required for this program are
+```
+from sympy import symbols, simplify
+```
+I hope my solution is correct. 
+"""
 
 _CITATION = """
 @article{hendrycksmath2021,
@@ -85,10 +141,12 @@ _CITATION = """
 """
 
 
-class MinervaMath(SymbolicMathTask):
+class SympyMath(MajorityVotingMixin, SymbolicMathMixin, Task):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
     DATASET_NAME = None
-    PROMPT = NL_PROMPT
+    PROMPT = CODE_PROMPT
+    MAJORITY_VOTING = "majority_voting"
+    INVALID_ANSWER = "[invalidanswer]"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -115,28 +173,47 @@ class MinervaMath(SymbolicMathTask):
     def fewshot_context(
             self, doc, num_fewshot, provide_description=None, rnd=None, description=None
     ):
-        example = self._doc_to_text(doc)
+        example = "Problem:\n" + doc["problem"] + "\n\nSolution:```"
         prompt = self.PROMPT + "\n\n" + example
 
         return prompt
 
     @property
     def end_seq(self):
-        return "I hope it is correct."
+        return "I hope my solution is correct."
 
-    def get_unnormalized_answer(self, text: str):
-        text += self.end_seq
-        match = re.search(
-                r'Final Answer: The final answer is(.*?). I hope it is correct.',
-                text,
+    def get_program(self, text: str):
+        program = re.search(
+                r"(.*?)```",
+                text, 
+                re.DOTALL,
         )
-        if match: 
-            return match.group(1).strip()
+        if program: 
+            body = program.group(1).strip()
         else:
-            return self.INVALID_ANSWER
+            return "failed to get program"
+
+        imports = re.search(
+                r"The imports required for this program are\s```(.*?)```",
+                text, 
+                re.DOTALL,
+        )
+        if imports:
+            header = imports.group(1).strip()
+        else:
+            return "failed to get header"
+        
+        code = header + "\n\n" + body
+        return code
+
+
+    def _process_doc(self, doc):
+        doc["answer"] = self.normalize_tex(
+                self._remove_boxed(self._last_boxed_only_string(doc["solution"]))
+        )
+        return doc
 
     def _last_boxed_only_string(self, string):
-
         idx = string.rfind("\\boxed")
         if "\\boxed " in string:
             return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
@@ -178,16 +255,37 @@ class MinervaMath(SymbolicMathTask):
 
         return s[len(left) : -1]
 
-    def _process_doc(self, doc):
-        doc["answer"] = self.normalize_tex(
-                self._remove_boxed(self._last_boxed_only_string(doc["solution"]))
-        )
-        return doc
 
-    def _doc_to_text(self, doc):
-        return "Problem:\n" + doc["problem"] + "\n\nSolution:"
+    def process_results(self, doc, results, params={}):
+        candidates = results[0]
+
+        if self.MAJORITY_VOTING in params:
+            programs = [self.get_program(sample) for sample in candidates]
+        else: 
+            programs = self.get_program(candidates)
+
+        assert isinstance(params, dict)
+        
+        results = {
+            "metadata": {
+                "unprocessed_samples": candidates,
+                "extracted_programs": programs,
+            }
+        }
+        return results
+
+    def aggregation(self):
+        return {}
+
+    def higher_is_better(self):
+        return {}
+
+    def doc_to_target(self, doc):
+        raise NotImplementedError
+    def doc_to_text(self, doc):
+        raise NotImplementedError
  
-class MinervaMathAlgebraEasy(MinervaMath):
+class SympyMathAlgebraEasy(SympyMath):
     VERSION = 1
     DATASET_NAME = "algebra"
 
@@ -202,36 +300,36 @@ class MinervaMathAlgebraEasy(MinervaMath):
         return data
 
 
-class MinervaMathAlgebra(MinervaMath):
+class SympyMathAlgebra(SympyMath):
     VERSION = 1
     DATASET_NAME = "algebra"
 
 
-class MinervaMathCountingAndProbability(MinervaMath):
+class SympyMathCountingAndProbability(SympyMath):
     VERSION = 1
     DATASET_NAME = "counting_and_probability"
 
 
-class MinervaMathGeometry(MinervaMath):
+class SympyMathGeometry(SympyMath):
     VERSION = 1
     DATASET_NAME = "geometry"
 
 
-class MinervaMathIntermediateAlgebra(MinervaMath):
+class SympyMathIntermediateAlgebra(SympyMath):
     VERSION = 1
     DATASET_NAME = "intermediate_algebra"
 
 
-class MinervaMathNumberTheory(MinervaMath):
+class SympyMathNumberTheory(SympyMath):
     VERSION = 1
     DATASET_NAME = "number_theory"
 
 
-class MinervaMathPrealgebra(MinervaMath):
+class SympyMathPrealgebra(SympyMath):
     VERSION = 1
     DATASET_NAME = "prealgebra"
 
 
-class MinervaMathPrecalculus(MinervaMath):
+class SympyMathPrecalculus(SympyMath):
     VERSION = 1
     DATASET_NAME = "precalculus"

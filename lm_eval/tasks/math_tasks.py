@@ -8,9 +8,9 @@ import inspect
 import lm_eval.datasets.hendrycks_math.hendrycks_math
 from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
-from lm_eval.utils import MajorityVotingMixin, SymbolicMathMixin
+from lm_eval.mixins import MajorityVotingMixin, SymbolicMathMixin
 
-class SymbolicMathTask(Task, SymbolicMathMixin, MajorityVotingMixin, ABC):
+class SymbolicMathTask(SymbolicMathMixin, MajorityVotingMixin, Task, ABC):
     """
     Abstract base class representing tasks whose answer is a LaTeX mathematical expression,
     e.g `347`, `\sqrt{3}/3`, or `x^2 + 7`.
@@ -103,23 +103,6 @@ class SymbolicMathTask(Task, SymbolicMathMixin, MajorityVotingMixin, ABC):
 
     def should_decontaminate(self):
         return False
-
-    def construct_requests(self, doc, ctx, params={}):
-        if params == {}:
-            return rf.generate(ctx, [self.end_seq])
-        
-        majority_voting_value = int(params.get(self.MAJORITY_VOTING, 1))
-        sampling_temperature_value = float(params.get(self.SAMPLING_TEMPERATURE, 1.0))
-        top_p = float(params.get(self.TOP_P, 1.0))
-        eval_batch_size = params.get(self.EVAL_BATCH_SIZE, None)
-        eval_batch_size = int(eval_batch_size) if isinstance(eval_batch_size, str) else eval_batch_size
-        generation_params = {
-            'num_return_sequences': majority_voting_value,
-            'temperature': sampling_temperature_value,
-            'top_p': top_p,
-            'num_return_sequences_batch': eval_batch_size
-        }
-        return rf.generate(ctx, [self.end_seq], generation_params)
 
     def process_results(self, doc, results, params={}):
         candidates = results[0]
