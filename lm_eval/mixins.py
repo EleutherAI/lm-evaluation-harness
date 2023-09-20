@@ -27,6 +27,10 @@ class MajorityVotingMixin:
     The `construct_requests` method works with no code changes to the subclass, 
     but requires passing the `--description_dict_path` cli argument
     """
+    MAJORITY_VOTING = "majority_voting"
+    SAMPLING_TEMPERATURE = "sampling_temperature"
+    TOP_P = "top_p"
+    EVAL_BATCH_SIZE = "eval_batch_size"
     def majority_vote(
             self,
             sampled_answers: List[T],
@@ -84,7 +88,10 @@ class MajorityVotingMixin:
 
     def construct_requests(self, doc, ctx, params={}):
         if params == {}:
-            return rf.generate(ctx, [self.end_seq])
+            if isinstance(self.end_seq, str):
+                return rf.generate(ctx, [self.end_seq])
+            else:
+                return rf.generate(ctx, self.end_seq)
         
         majority_voting_value = int(params.get(self.MAJORITY_VOTING, 1))
         sampling_temperature_value = float(params.get(self.SAMPLING_TEMPERATURE, 1.0))
@@ -97,7 +104,10 @@ class MajorityVotingMixin:
             'top_p': top_p,
             'num_return_sequences_batch': eval_batch_size
         }
-        return rf.generate(ctx, [self.end_seq], generation_params)
+        if isinstance(self.end_seq, str):
+            return rf.generate(ctx, [self.end_seq], generation_params)
+        else:
+            return rf.generate(ctx, self.end_seq, generation_params)
 
 class SymbolicMathMixin:
     """
