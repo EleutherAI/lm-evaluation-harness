@@ -37,7 +37,7 @@ setuptools.setup(
         "transformers>=4.1",
         "zstandard",
         "accelerate",
-        "timeout_decorator"
+        "timeout_decorator",
         "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz"
     ],
     extras_require={
