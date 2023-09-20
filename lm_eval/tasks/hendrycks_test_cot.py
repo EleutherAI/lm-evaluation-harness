@@ -200,6 +200,10 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
     def doc_to_text(self, doc):
         return doc["query"]
 
+    @property
+    def end_seq(self):
+        return ["\n\n", "Problem:"]
+
     def process_results(self, doc, results, params={}):
         """Take a single document and the LM results and evaluates, returning a
         dict where keys are the names of submetrics and values are the values of
@@ -214,19 +218,34 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
         assert isinstance(params, dict)
         if params == {}:
             completion = self._extract_answer(candidates)
+            acc = self._is_correct(completion, doc['gold'])
+            pass_rate = acc
         elif self.MAJORITY_VOTING in params:
-            completion = self.majority_vote([self._extract_answer(c) for c in candidates])
+            acc, pass_rate, votes = self.majority_vote(
+                    [self._extract_answer(c) for c in candidates if c!=self.INVALID_ANS],
+                    correct_answer=doc['gold'],
+                    # is_equiv=self._is_correct, this line commented out since is_equiv assumed to be symmetric
+            )
+            if votes:
+                completion = votes[0][0]
+            else:
+                completion = self.INVALID_ANS
         else:
             raise AssertionError
 
-        answer = doc["gold"]
-        return {
-            "acc": self._is_correct(completion, answer),
+        return_dict = {
+            "acc": acc,
+            "pass_rate": pass_rate,
             "metadata": {
                 "selected_answer": completion,
                 "candidates": candidates
             }
         }
+
+        if self.MAJORITY_VOTING in params:
+            return_dict['metadata']['votes'] = votes
+
+        return return_dict
         
     def _extract_answer(self, completion):
         match = self.ANS_RE.search(completion)
@@ -263,8 +282,8 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
         return doc["query"]
 
     def aggregation(self):
-        return {"acc": mean}
+        return {"acc": mean, "pass_rate": mean}
 
     def higher_is_better(self):
-        return {"acc": True}
+        return {"acc": True, "pass_rate": True}
     
