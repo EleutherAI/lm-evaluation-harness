@@ -1,6 +1,6 @@
 import os
 import yaml
-from typing import List, Union
+from typing import List, Union, Dict
 
 from lm_eval import utils
 from lm_eval import prompts
@@ -15,7 +15,7 @@ from lm_eval.api.registry import (
 )
 
 
-def register_configurable_task(config: dict[str, str]) -> int:
+def register_configurable_task(config: Dict[str, str]) -> int:
     SubClass = type(
         config["task"] + "ConfigurableTask",
         (ConfigurableTask,),
@@ -38,7 +38,35 @@ def register_configurable_task(config: dict[str, str]) -> int:
     return 0
 
 
-def check_prompt_config(config: dict[str, str]) -> List[dict[str, str]]:
+def register_configurable_group(config: Dict[str, str]) -> int:
+    group = config["group"]
+    all_task_list = config["task"]
+    config_list = [task for task in all_task_list if type(task) != str]
+    task_list = [task for task in all_task_list if type(task) == str]
+
+    for task_config in config_list:
+        var_configs = check_prompt_config(
+            {
+                **task_config,
+                **{"group": group},
+            }
+        )
+        for config in var_configs:
+            register_configurable_task(config)
+
+    task_names = utils.pattern_match(task_list, ALL_TASKS)
+    for task in task_names:
+        if (task in TASK_REGISTRY) or (task in GROUP_REGISTRY):
+            if group in GROUP_REGISTRY:
+                GROUP_REGISTRY[group].append(task)
+            else:
+                GROUP_REGISTRY[group] = [task]
+                ALL_TASKS.add(group)
+
+    return 0
+
+
+def check_prompt_config(config: Dict[str, str]) -> List[Dict[str, str]]:
     all_configs = []
     if "use_prompt" in config:
         prompt_list = prompts.load_prompt_list(
@@ -69,14 +97,14 @@ def check_prompt_config(config: dict[str, str]) -> List[dict[str, str]]:
     return all_configs
 
 
-def get_task_name_from_config(task_config: dict[str, str]) -> str:
+def get_task_name_from_config(task_config: Dict[str, str]) -> str:
     if "dataset_name" in task_config:
         return "{dataset_path}_{dataset_name}".format(**task_config)
     else:
         return "{dataset_path}".format(**task_config)
 
 
-def include_task_folder(task_dir: str) -> None:
+def include_task_folder(task_dir: str, register_task=True) -> None:
     """
     Calling this function
     """
@@ -87,9 +115,16 @@ def include_task_folder(task_dir: str) -> None:
                     yaml_path = os.path.join(root, f)
                     try:
                         config = utils.load_yaml_config(yaml_path)
-                        all_configs = check_prompt_config(config)
-                        for config in all_configs:
-                            register_configurable_task(config)
+
+                        if register_task:
+                            all_configs = check_prompt_config(config)
+                            for config in all_configs:
+                                register_configurable_task(config)
+                        else:
+                            # If a `task` in config is a list,
+                            # that means it's a benchmark
+                            if type(config["task"]) == list:
+                                register_configurable_group(config)
 
                     except Exception as error:
                         eval_logger.warning(
@@ -102,6 +137,8 @@ def include_task_folder(task_dir: str) -> None:
 
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
 include_task_folder(task_dir)
+# Register Benchmarks after all tasks have been added
+include_task_folder(task_dir, register_task=False)
 
 
 def get_task(task_name, config):
@@ -128,13 +165,16 @@ def get_task_name_from_object(task_object):
 
 
 # TODO: pass num_fewshot and other cmdline overrides in a better way
-def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
+def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
 
     config = {**kwargs}
 
     task_name_from_registry_dict = {}
     task_name_from_config_dict = {}
     task_name_from_object_dict = {}
+
+    if type(task_name_list) != list:
+        task_name_list = [task_name_list]
 
     for task_element in task_name_list:
         if isinstance(task_element, str):
@@ -143,12 +183,20 @@ def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
                 group_name = task_element
                 for task_name in GROUP_REGISTRY[task_element]:
                     if task_name not in task_name_from_registry_dict:
+                        task_obj = get_task_dict(task_name)
+                        if task_name in task_obj.keys():
+                            task_dict = {
+                                task_name: (group_name, task_obj[task_name]),
+                            }
+                        else:
+                            task_dict = {
+                                task_name: (group_name, None),
+                                **task_obj,
+                            }
+
                         task_name_from_registry_dict = {
                             **task_name_from_registry_dict,
-                            task_name: (
-                                group_name,
-                                get_task(task_name=task_name, config=config),
-                            ),
+                            **task_dict,
                         }
             else:
                 task_name = task_element
