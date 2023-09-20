@@ -42,6 +42,7 @@ from . import hendrycks_math
 from . import hendrycks_math_ppl
 from . import minerva_math
 from . import ocw_courses
+from . import sympy_math
 from . import cbt
 from . import lambada_cloze
 from . import pile
@@ -190,6 +191,15 @@ TASK_REGISTRY = {
     "minerva_math_prealgebra": minerva_math.MinervaMathPrealgebra,
     "minerva_math_precalc": minerva_math.MinervaMathPrecalculus,
     "ocw_courses": ocw_courses.OCWCourses,
+    "sympy_math_algebra_easy": sympy_math.SympyMathAlgebraEasy,
+    "sympy_math_algebra": sympy_math.SympyMathAlgebra,
+    "sympy_math_algebra_easy": sympy_math.SympyMathAlgebraEasy,
+    "sympy_math_counting_and_prob": sympy_math.SympyMathCountingAndProbability,
+    "sympy_math_geometry": sympy_math.SympyMathGeometry,
+    "sympy_math_intermediate_algebra": sympy_math.SympyMathIntermediateAlgebra,
+    "sympy_math_num_theory": sympy_math.SympyMathNumberTheory,
+    "sympy_math_prealgebra": sympy_math.SympyMathPrealgebra,
+    "sympy_math_precalc": sympy_math.SympyMathPrecalculus,
     "math_asdiv": asdiv.Asdiv,
     "gsm8k": gsm8k.GradeSchoolMath8K,
     "gsm8k_ppl": gsm8k_ppl.GradeSchoolMath8K,
