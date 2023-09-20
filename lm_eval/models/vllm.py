@@ -22,11 +22,11 @@ class VLLM(BaseLM):
         revision: Optional[str] = "main",
         add_special_tokens: Optional[bool] = None,
         batch_size: Optional[int] = 1,
-        max_gen_toks: Optional[int] = 256,
+        max_gen_toks: Optional[int] = 1024,
         max_length: Optional[int] = None,
         trust_remote_code: Optional[bool] = False,
         tensor_parallel_size: Optional[int] = 1,
-        dtype: Optional[Union[str, torch.dtype]] = 'auto',
+        dtype: Optional[Union[str, torch.dtype]] = 'bfloat16',
     ):
         super().__init__()
         self._max_gen_toks = max_gen_toks
