@@ -131,7 +131,7 @@ class IdentifyMathThms(MultipleChoiceTask):
         keys = ["A", "B", "C", "D"]
         return {
             "query": format_example(doc, keys),
-            "choices": doc["multiple_choice_targets"], # keys,
+            "choices": doc["multiple_choice_targets"], # use `keys` to use letter labels
             "gold": doc["multiple_choice_scores"].index(1),
         }
 
