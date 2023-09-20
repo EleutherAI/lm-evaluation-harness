@@ -38,6 +38,7 @@ setuptools.setup(
         "zstandard",
         "accelerate",
         "timeout_decorator"
+        "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz"
     ],
     extras_require={
         "dev": ["black", "flake8", "pre-commit", "pytest", "pytest-cov"],
