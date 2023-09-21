@@ -59,6 +59,7 @@ from . import crowspairs
 from . import lila
 from . import proofnet
 from . import hendrycks_test_cot
+from . import math_sat_cot
 
 ########################################
 # Translation tasks
@@ -394,6 +395,7 @@ TASK_REGISTRY = {
     "proofnet_autoformalize_statements": proofnet.ProofNetAutoformalizeStatements,
     "proofnet_informalize_statements": proofnet.ProofNetInformalizeStatements,
     **hendrycks_test_cot.create_all_mcqa_tasks(),
+    "math_sat_cot": math_sat_cot.MinervaCoTMMLU,
     #
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
