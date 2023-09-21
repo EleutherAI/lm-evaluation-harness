@@ -1,3 +1,6 @@
+import ast
+
+from typing import Dict
 from lm_eval import utils
 from lm_eval.logger import eval_logger
 
@@ -5,7 +8,7 @@ from lm_eval.logger import eval_logger
 # Stores prompts in a dictionary indexed by 2 levels:
 # prompt category name, and prompt name.
 # This allows us to access prompts
-PROMPT_REGISTRY: dict[str, dict[str, str]] = {
+PROMPT_REGISTRY: Dict[str, Dict[str, str]] = {
     "qa-basic": {
         "question-newline-answer": "Question: {{question}}\nAnswer:",
         "q-newline-a": "Q: {{question}}\nA:",
@@ -88,6 +91,14 @@ def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, **kwa
             prompt_name, prompt_yaml_file["prompts"].keys()
         )
 
+    category_name, *prompt_name = use_prompt.split(":")
+    # TODO allow to multiple prompt naming
+    # if len(prompt_name) > 1:
+    #     prompt_list = []
+    #     for prompt in prompt_name:
+    #         prompt_list.append(utils.pattern_match(prompt_name, prompts.all_template_names))
+    # else:
+    prompt_list = utils.pattern_match(prompt_name, prompts.all_template_names)
     return [":".join([category_name, prompt]) for prompt in prompt_list]
 
 

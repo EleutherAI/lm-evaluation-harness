@@ -4,11 +4,5 @@ doc_to_target: '{% if answer is not none %}{{answer[28+1]}}{% else %}{{answer_nu
   endif %}'
 doc_to_text: '{% if answer is not none %}{{question+"\nSchritt-für-Schritt-Antwort:"}}{%
   else %}{{"Frage: "+question+"\nSchritt-für-Schritt-Antwort:"}}{% endif %}'
-filter:
-- function: regex
-  regex_pattern: The answer is (\-?[0-9\.\,]+)
-- function: take_first
-filter_list:
-- name: get-answer
 include: cot_yaml
 task: mgsm_de_direct
