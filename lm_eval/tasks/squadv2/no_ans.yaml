@@ -1,0 +1,9 @@
+include: default.yaml
+task: squadv2_noans_loglikelihood
+dataset_path: squad_v2
+output_type: loglikelihood
+training_split: train
+validation_split: validation
+doc_to_target: " unanswerable"
+metric_list:
+  - metric: perplexity

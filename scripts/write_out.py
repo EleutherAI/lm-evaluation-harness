@@ -38,17 +38,21 @@ def main():
         iters = []
 
         for set in args.sets.split(","):
+            docs = None
             if set == "train" and task.has_training_docs():
                 docs = task.training_docs()
             if set == "val" and task.has_validation_docs():
                 docs = task.validation_docs()
             if set == "test" and task.has_test_docs():
                 docs = task.test_docs()
-            iters.append(docs)
+            if docs is not None:
+                iters.append(docs)
 
         docs = join_iters(iters)
 
-        with open(os.path.join(args.output_base_path, task_name), "w") as f:
+        with open(
+            os.path.join(args.output_base_path, task_name), "w", encoding="utf8"
+        ) as f:
             for i, doc in (
                 zip(range(args.num_examples), docs)
                 if args.num_examples > 0
