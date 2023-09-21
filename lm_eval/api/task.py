@@ -75,6 +75,7 @@ class TaskConfig(dict):
     description: str = ""
     target_delimiter: str = " "
     fewshot_delimiter: str = "\n\n"
+    fewshot_config: dict = None
     # runtime configuration options
     num_fewshot: int = 0
     # scoring options
@@ -629,9 +630,9 @@ class ConfigurableTask(Task):
             self.prompt = None
 
         if self.fewshot_docs() is not None:
-            self.sampler = samplers.Sampler(
-                list(self.fewshot_docs()), self, rnd=random.Random(1234)
-            )
+            self.sampler = samplers.get_sampler(
+                self.config.fewshot_config.get("sampler", "default")
+            )(list(self.fewshot_docs()), self, rnd=random.Random(1234))
 
         if self.has_test_docs():
             self.task_docs = self.test_docs()
