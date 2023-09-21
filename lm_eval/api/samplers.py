@@ -1,4 +1,4 @@
-class Sampler:
+class ContextSampler:
     def __init__(self, docs, task, fewshot_indices=None, rnd=None) -> None:
         self.rnd = rnd
         assert self.rnd, "must pass rnd to FewShotSampler!"
@@ -71,7 +71,19 @@ class Sampler:
         return self.rnd.sample(self.docs, n)
 
 
-class BalancedSampler(Sampler):
+class FirstNSampler(ContextSampler):
+    def sample(self, n) -> None:
+        """
+        Draw the first `n` samples in order from the specified split.
+        Used for tasks with "canonical" ordered fewshot examples, such as MMLU and CMMLU.
+        """
+        assert n <= len(
+            self.docs
+        ), f"Error: number of fewshot samples requested exceeds the {len(self.docs)} that are available."
+        return self.docs[:n]
+
+
+class BalancedSampler(ContextSampler):
     def sample(self, n) -> None:
         """
         TODO: this should return approximately class-balanced samples from our fewshot examples.
@@ -81,10 +93,25 @@ class BalancedSampler(Sampler):
         pass
 
 
-class ManualSampler(Sampler):
+class ManualSampler(ContextSampler):
     def sample(self, n) -> None:
         """ """
         pass
+
+
+SAMPLER_REGISTRY = {
+    "default": ContextSampler,
+    "first_n": FirstNSampler,
+}
+
+
+def get_sampler(name):
+    try:
+        return SAMPLER_REGISTRY[name]
+    except KeyError:
+        raise ValueError(
+            f"Attempted to use contextsampler '{name}', but no sampling strategy for this name found! Supported model names: {', '.join(SAMPLER_REGISTRY.keys())}"
+        )
 
 
 # TODO: how should we do design here? might be better to have a single sampler and pass more kwargs at init.
