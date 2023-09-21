@@ -101,13 +101,13 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
         return False
 
     def has_test_docs(self):
-        return False
+        return True
 
     def validation_docs(self):
-        return map(self._process_doc, self.dataset["validation"])
+        return map(self._process_doc, self.dataset["train"])
 
     def test_docs(self):
-        return map(self._process_doc, self.dataset["test"])
+        return map(self._process_doc, self.dataset["train"])
 
     def _process_doc(self, doc):
         def format_example(doc, keys):
@@ -117,20 +117,20 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
             (A) <choice1>, (B) <choice2>, (C) <choice3>, (D) <choice4>
             Solution:
             """
-            prompt = MCQA_PROMPT + "\n\n" + "Problem: " + doc["question"] + "\nWhat of the following is the right choice? Explain you answer.\n"
+            prompt = MCQA_PROMPT + "\n\n" + "Problem: " + doc["Question"] + "\nWhat of the following is the right choice? Explain you answer.\n"
             prompt += ", ".join(
-                [f"{key} {choice}" for key, choice in zip(keys, doc["choices"])]
+                [f"{key} {choice}" for key, choice in zip(keys, doc["Possible Answers"])]
             )
             prompt += "\nSolution:"
             return prompt
         
-        keys = ["(A)", "(B)", "(C)", "(D)"]
+        keys = ["A", "B", "C", "D"]
         return {
             "query": format_example(doc, keys),
-            "choices": doc["choices"],
-            "gold": keys.index(doc["answer"])
-            if isinstance(doc["answer"], str)
-            else keys[doc["answer"]],
+            "choices": doc["Possible Answers"],
+            "gold": keys.index(doc["Answer"])
+            if isinstance(doc["Answer"], str)
+            else keys[doc["Answer"]],
         }
 
     def doc_to_text(self, doc):
