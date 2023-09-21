@@ -77,7 +77,9 @@ def main():
     print(dumped)
 
     if args.output_path:
-        os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
+        dirname = os.path.dirname(args.output_path)
+        if dirname:
+          os.makedirs(dirname, exist_ok=True)
         with open(args.output_path, "w") as f:
             f.write(dumped)
 
