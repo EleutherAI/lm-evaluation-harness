@@ -5,4 +5,4 @@ doc_to_target: '{% if answer is not none %}{{answer[24+1]}}{% else %}{{answer_nu
 doc_to_text: '{% if answer is not none %}{{question+"\nJibu la Hatua kwa Hatua:"}}{%
   else %}{{"Swali: "+question+"\nJibu la Hatua kwa Hatua:"}}{% endif %}'
 include: cot_yaml
-task: mgsm_sw_direct
+task: mgsm_sw_native_cot

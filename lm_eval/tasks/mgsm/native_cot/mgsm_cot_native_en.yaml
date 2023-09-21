@@ -5,4 +5,4 @@ doc_to_target: '{% if answer is not none %}{{answer[20+1]}}{% else %}{{answer_nu
 doc_to_text: '{% if answer is not none %}{{question+"\nStep-by-Step Answer:"}}{% else
   %}{{"Question: "+question+"\nStep-by-Step Answer:"}}{% endif %}'
 include: cot_yaml
-task: mgsm_en_direct
+task: mgsm_en_native_cot
