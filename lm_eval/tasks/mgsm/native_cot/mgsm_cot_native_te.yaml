@@ -5,4 +5,4 @@ doc_to_target: '{% if answer is not none %}{{answer[18+1]}}{% else %}{{answer_nu
 doc_to_text: '{% if answer is not none %}{{question+"\nదశలవారీగా సమాధానం:"}}{% else
   %}{{"ప్రశ్న: "+question+"\nదశలవారీగా సమాధానం:"}}{% endif %}'
 include: cot_yaml
-task: mgsm_te_direct
+task: mgsm_te_native_cot
