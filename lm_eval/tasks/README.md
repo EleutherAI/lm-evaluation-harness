@@ -16,7 +16,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] MCTACO
 - [x] Pubmed QA
 - [x] SciQ
-- [ ] QASPER
+- [x] QASPER
 - [x] QA4MRE
 - [x] TriviaQA
 - [x] AI2 ARC
@@ -36,7 +36,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] TruthfulQA (mc1)
 - [x] TruthfulQA (mc2)
 - [x] TruthfulQA (gen)
-- [ ] MuTual
+- [x] MuTual
 - [ ] Hendrycks Math (Hailey)
 - [x] Asdiv
 - [ ] GSM8k

@@ -38,6 +38,34 @@ def register_configurable_task(config: Dict[str, str]) -> int:
     return 0
 
 
+def register_configurable_group(config: Dict[str, str]) -> int:
+    group = config["group"]
+    all_task_list = config["task"]
+    config_list = [task for task in all_task_list if type(task) != str]
+    task_list = [task for task in all_task_list if type(task) == str]
+
+    for task_config in config_list:
+        var_configs = check_prompt_config(
+            {
+                **task_config,
+                **{"group": group},
+            }
+        )
+        for config in var_configs:
+            register_configurable_task(config)
+
+    task_names = utils.pattern_match(task_list, ALL_TASKS)
+    for task in task_names:
+        if (task in TASK_REGISTRY) or (task in GROUP_REGISTRY):
+            if group in GROUP_REGISTRY:
+                GROUP_REGISTRY[group].append(task)
+            else:
+                GROUP_REGISTRY[group] = [task]
+                ALL_TASKS.add(group)
+
+    return 0
+
+
 def check_prompt_config(config: Dict[str, str]) -> List[Dict[str, str]]:
     all_configs = []
     if "use_prompt" in config:
@@ -76,7 +104,7 @@ def get_task_name_from_config(task_config: Dict[str, str]) -> str:
         return "{dataset_path}".format(**task_config)
 
 
-def include_task_folder(task_dir: str) -> None:
+def include_task_folder(task_dir: str, register_task=True) -> None:
     """
     Calling this function
     """
@@ -87,9 +115,16 @@ def include_task_folder(task_dir: str) -> None:
                     yaml_path = os.path.join(root, f)
                     try:
                         config = utils.load_yaml_config(yaml_path)
-                        all_configs = check_prompt_config(config)
-                        for config in all_configs:
-                            register_configurable_task(config)
+
+                        if register_task:
+                            all_configs = check_prompt_config(config)
+                            for config in all_configs:
+                                register_configurable_task(config)
+                        else:
+                            # If a `task` in config is a list,
+                            # that means it's a benchmark
+                            if type(config["task"]) == list:
+                                register_configurable_group(config)
 
                     except Exception as error:
                         eval_logger.warning(
@@ -102,6 +137,8 @@ def include_task_folder(task_dir: str) -> None:
 
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
 include_task_folder(task_dir)
+# Register Benchmarks after all tasks have been added
+include_task_folder(task_dir, register_task=False)
 
 
 def get_task(task_name, config):
