@@ -273,7 +273,6 @@ class MammothTemplateMixin:
     USE_INPUT: bool = False # 
 
     def fewshot_context(self, *args, **kwargs):
-
         if "description" in kwargs:
             kwargs["description"] = self.TEMPLATE + "\n\n### Instruction:\n" + kwargs["description"]
             self.USE_INPUT = True
@@ -285,7 +284,6 @@ class MammothTemplateMixin:
         return ctx
 
     def doc_to_template(self, doc, doc_to_text): # doc_to_text should be from task's original doc_to_text
-        print("using templated doc_to_text")
         if self.USE_INPUT: 
             return f"### Input:\n" + f"{doc_to_text}\n\n### Response:"
         else:
