@@ -74,12 +74,8 @@ SUBJECTS = [
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base_yaml_path", required=True)
-    parser.add_argument(
-        "--save_prefix_path", default="flan"
-    )
-    parser.add_argument(
-        "--cot_prompt_path", default=None
-    )
+    parser.add_argument("--save_prefix_path", default="flan")
+    parser.add_argument("--cot_prompt_path", default=None)
     parser.add_argument("--task_prefix", default="")
     return parser.parse_args()
 
@@ -95,6 +91,7 @@ if __name__ == "__main__":
 
     if args.cot_prompt_path is not None:
         import json
+
         with open(args.cot_prompt_path) as f:
             cot_file = json.load(f)
 
@@ -106,7 +103,9 @@ if __name__ == "__main__":
 
         yaml_dict = {
             "include": base_yaml_name,
-            "task": f"mmlu_{args.task_prefix}_{subject}" if args.task_prefix != "" else f"mmlu_{subject}",
+            "task": f"mmlu_{args.task_prefix}_{subject}"
+            if args.task_prefix != ""
+            else f"mmlu_{subject}",
             "dataset_name": subject,
             "description": description,
         }
@@ -114,4 +113,10 @@ if __name__ == "__main__":
         file_save_path = args.save_prefix_path + f"_{subject}.yaml"
         eval_logger.info(f"Saving yaml for subset {subject} to {file_save_path}")
         with open(file_save_path, "w") as yaml_file:
-            yaml.dump(yaml_dict, yaml_file, width=float("inf"), allow_unicode=True, default_style='"')
+            yaml.dump(
+                yaml_dict,
+                yaml_file,
+                width=float("inf"),
+                allow_unicode=True,
+                default_style='"',
+            )
