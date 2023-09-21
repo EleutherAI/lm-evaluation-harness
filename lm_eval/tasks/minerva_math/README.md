@@ -6,7 +6,7 @@ https://arxiv.org/abs/2103.03874
 
 Many intellectual endeavors require mathematical problem solving, but this skill remains beyond the capabilities of computers. To measure this ability in machine learning models, we introduce MATH, a new dataset of 12,500 challenging competition mathematics problems. Each problem in MATH has a full step-by-step solution which can be used to teach models to generate answer derivations and explanations.
 
-NOTE: The few-shot and the generated answer extraction is based on the [Minerva](https://arxiv.org/abs/2206.14858) and exact match equivalence is calculated using the `sympy` library
+NOTE: The few-shot and the generated answer extraction is based on the [Minerva](https://arxiv.org/abs/2206.14858) and exact match equivalence is calculated using the `sympy` library. This requires additional dependencies, which can be installed via the `lm-eval[math]` extra.
 
 Homepage: https://github.com/hendrycks/math
 
