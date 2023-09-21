@@ -280,7 +280,6 @@ class MammothTemplateMixin:
             kwargs["description"] = self.TEMPLATE_NO_DESCRIPTION
 
         ctx = super().fewshot_context(*args, **kwargs)
-        print(ctx)
         return ctx
 
     def doc_to_template(self, doc, doc_to_text): # doc_to_text should be from task's original doc_to_text
