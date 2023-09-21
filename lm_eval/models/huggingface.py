@@ -266,7 +266,9 @@ class HuggingFaceAutoLM(BaseLM):
             try:
                 self.model.to(self._device)
             except:
-                print("Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore.")
+                print(
+                    "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
+                )
 
     def _create_auto_model(
         self,
@@ -292,7 +294,9 @@ class HuggingFaceAutoLM(BaseLM):
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
         if not quantized:
             if load_in_4bit:
-                assert transformers.__version__ >= "4.30.0", "load_in_4bit requires transformers >= 4.30.0"
+                assert (
+                    transformers.__version__ >= "4.30.0"
+                ), "load_in_4bit requires transformers >= 4.30.0"
             model_kwargs = {}
             if transformers.__version__ >= "4.30.0":
                 model_kwargs["load_in_4bit"] = load_in_4bit
@@ -300,9 +304,13 @@ class HuggingFaceAutoLM(BaseLM):
                     if bnb_4bit_quant_type:
                         model_kwargs["bnb_4bit_quant_type"] = bnb_4bit_quant_type
                     if bnb_4bit_compute_dtype:
-                        model_kwargs["bnb_4bit_compute_dtype"] = _get_dtype(bnb_4bit_compute_dtype)
+                        model_kwargs["bnb_4bit_compute_dtype"] = _get_dtype(
+                            bnb_4bit_compute_dtype
+                        )
                     if bnb_4bit_use_double_quant:
-                        model_kwargs["bnb_4bit_use_double_quant"] = bnb_4bit_use_double_quant
+                        model_kwargs[
+                            "bnb_4bit_use_double_quant"
+                        ] = bnb_4bit_use_double_quant
             model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
@@ -317,13 +325,16 @@ class HuggingFaceAutoLM(BaseLM):
             )
         else:
             from auto_gptq import AutoGPTQForCausalLM
+
             model = AutoGPTQForCausalLM.from_quantized(
                 pretrained,
                 model_basename=None if quantized == True else Path(quantized).stem,
                 device_map=device_map,
                 max_memory=max_memory,
                 trust_remote_code=trust_remote_code,
-                use_safetensors=True if quantized == True else quantized.endswith('.safetensors'),
+                use_safetensors=True
+                if quantized == True
+                else quantized.endswith(".safetensors"),
                 use_triton=gptq_use_triton,
                 warmup_triton=gptq_use_triton,
                 inject_fused_attention=inject_fused_attention,
