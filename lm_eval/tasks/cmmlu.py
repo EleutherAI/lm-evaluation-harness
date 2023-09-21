@@ -32,16 +32,16 @@ SUBJECTS = {
     "chinese_driving_rule": "中国驾驶规则",
     "chinese_food_culture": "中国饮食文化",
     "chinese_foreign_policy": "中国外交政策",
-    "chinese_history":"中国历史",
+    "chinese_history": "中国历史",
     "chinese_literature": "中国文学",
     "chinese_teacher_qualification": "中国教师资格",
     "clinical_knowledge": "临床知识",
-    "college_actuarial_science":"大学精算学",
-    "college_education":"大学教育学",
+    "college_actuarial_science": "大学精算学",
+    "college_education": "大学教育学",
     "college_engineering_hydrology": "大学工程水文学",
     "college_law": "大学法律",
     "college_mathematics": "大学数学",
-    "college_medical_statistics":"大学医学统计",
+    "college_medical_statistics": "大学医学统计",
     "college_medicine": "大学医学",
     "computer_science": "计算机科学",
     "computer_security": "计算机安全",
@@ -50,8 +50,8 @@ SUBJECTS = {
     "economics": "经济学",
     "education": "教育学",
     "electrical_engineering": "电气工程",
-    "elementary_chinese":"小学语文",
-    "elementary_commonsense":"小学常识",
+    "elementary_chinese": "小学语文",
+    "elementary_commonsense": "小学常识",
     "elementary_information_and_technology": "小学信息技术",
     "elementary_mathematics": "初等数学",
     "ethnology": "民族学",
@@ -82,12 +82,12 @@ SUBJECTS = {
     "professional_medicine": "专业医学",
     "professional_psychology": "专业心理学",
     "public_relations": "公共关系",
-    "security_study":"安全研究",
+    "security_study": "安全研究",
     "sociology": "社会学",
     "sports_science": "体育学",
     "traditional_chinese_medicine": "中医中药",
     "virology": "病毒学",
-    "world_history":"世界历史",
+    "world_history": "世界历史",
     "world_religions": "世界宗教",
 }
 
@@ -128,11 +128,11 @@ class CmmluSubject(MultipleChoiceTask):
 
     def validation_docs(self):
         if self.has_validation_docs():
-            return map(self._process_doc,self.dataset["dev"])
+            return map(self._process_doc, self.dataset["dev"])
 
     def test_docs(self):
         if self.has_test_docs():
-            return map(self._process_doc,self.dataset["test"])
+            return map(self._process_doc, self.dataset["test"])
 
     def _format_subject(self, subject):
         words = subject.split("_")
@@ -140,7 +140,7 @@ class CmmluSubject(MultipleChoiceTask):
 
     def fewshot_context(self, doc, num_fewshot, **kwargs):
         subject = self.DATASET_NAME
-        description= f"以下是关于{SUBJECTS[subject]}的单项选择题，请直接给出正确答案的选项。"
+        description = f"以下是关于{SUBJECTS[subject]}的单项选择题，请直接给出正确答案的选项。"
         kwargs["description"] = description
         return super().fewshot_context(doc=doc, num_fewshot=num_fewshot, **kwargs)
 
@@ -156,9 +156,7 @@ class CmmluSubject(MultipleChoiceTask):
             """
 
             question = doc["Question"].strip()
-            choices = "".join(
-                [f'{key}. {doc[key]}\n' for key in keys]
-            )
+            choices = "".join([f"{key}. {doc[key]}\n" for key in keys])
             prompt = f"{question}\n{choices}答案："
             return prompt
 
@@ -166,7 +164,7 @@ class CmmluSubject(MultipleChoiceTask):
         return {
             "query": format_example(doc, keys),
             "choices": keys,
-            "gold": ord(doc["Answer"])-ord("A"),
+            "gold": ord(doc["Answer"]) - ord("A"),
         }
 
     def fewshot_examples(self, k, rnd):

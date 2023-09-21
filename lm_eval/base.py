@@ -309,7 +309,9 @@ class BaseLM(LM):
             if override_bs is not None
             else 0,
             fn=_batch_scheduler
-            if self.batch_size == "auto" and n_reordered_requests > 0 and not override_bs
+            if self.batch_size == "auto"
+            and n_reordered_requests > 0
+            and not override_bs
             else None,
         ):
             inps = []
@@ -375,7 +377,9 @@ class BaseLM(LM):
 
                 # Slice to original seq length
                 contlen = len(cont_toks)
-                inplen = inplen + (logits.shape[0] - padding_length) # if "virtual tokens" (from prompt tuning) are added, inplen is larger
+                inplen = inplen + (
+                    logits.shape[0] - padding_length
+                )  # if "virtual tokens" (from prompt tuning) are added, inplen is larger
                 logits = logits[inplen - contlen : inplen].unsqueeze(
                     0
                 )  # [1, seq, vocab]

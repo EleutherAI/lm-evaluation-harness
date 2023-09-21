@@ -58,7 +58,7 @@ class NQOpen(Task):
 
     def test_docs(self):
         raise NotImplementedError()
-    
+
     def doc_to_text(self, doc):
         return f"Q: {doc['question']}\nA:"
 
@@ -86,10 +86,10 @@ class NQOpen(Task):
 
     def _normalize_answer(self, text):
         # Lowercase and remove punctuation, strip whitespace
-        text = text.strip().lower().translate(str.maketrans('', '', string.punctuation))
+        text = text.strip().lower().translate(str.maketrans("", "", string.punctuation))
 
         # Remove articles, resulting in duplicate whitespace
-        text = regex.sub(r'\b(a|an|the)\b', ' ', text)
+        text = regex.sub(r"\b(a|an|the)\b", " ", text)
 
         # Remove duplicate whitespace
         text = " ".join(text.split())
@@ -108,10 +108,8 @@ class NQOpen(Task):
         """
         continuation = self._normalize_answer(results[0])
         answers = [self._normalize_answer(answer) for answer in doc["answer"]]
-        
-        return {
-            "em": float(continuation in answers)
-        }
+
+        return {"em": float(continuation in answers)}
 
     def aggregation(self):
         """
@@ -121,8 +119,8 @@ class NQOpen(Task):
         """
         return {
             "em": mean,
-        } 
-        
+        }
+
     def higher_is_better(self):
         """
         :returns: {str: bool}
@@ -131,4 +129,4 @@ class NQOpen(Task):
         """
         return {
             "em": True,
-        } 
+        }
