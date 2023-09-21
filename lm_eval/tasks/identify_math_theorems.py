@@ -13,6 +13,7 @@ important shortcomings.
 Homepage: https://github.com/hendrycks/test
 """
 from lm_eval.base import MultipleChoiceTask
+from lm_eval.mixins import MammothTemplateMixin
 
 
 _CITATION = """
@@ -87,7 +88,7 @@ SUBJECTS = [
 
 
 
-class IdentifyMathThms(MultipleChoiceTask):
+class IdentifyMathThms(MammothTemplateMixin, MultipleChoiceTask):
     VERSION = 1
     DATASET_PATH = "bigbench"
     DATASET_NAME = "identify_math_theorems"
@@ -121,7 +122,7 @@ class IdentifyMathThms(MultipleChoiceTask):
             D. <choice4>
             Answer:
             """
-            question = doc["inputs"].strip()
+            question = doc["inputs"].strip().lstrip("What follows is a purported mathematical theorem. Some will be true, while other will be false. If the theorem is correct, write the theorem exactly as it is given. Otherwise, write a corrected version of the theorem. Write all answeres in compilable LaTeX.\n\n")
             choices = "".join(
                 [f"{key}. {choice}\n" for key, choice in zip(keys, doc["multiple_choice_targets"])]
             )
@@ -136,6 +137,8 @@ class IdentifyMathThms(MultipleChoiceTask):
         }
 
     def doc_to_text(self, doc):
+        if hasattr(self, "doc_to_template"):
+            return self.doc_to_template(doc, doc["query"]) # args to doc_to_template are (doc, doc_to_text)
         return doc["query"]
 
     def should_decontaminate(self):
