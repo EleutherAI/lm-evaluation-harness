@@ -1,10 +1,17 @@
 import datasets
 import re
-import sympy
-from sympy.parsing.latex import parse_latex
 import signal
 from lm_eval.logger import eval_logger
 from typing import Optional, List, Dict
+
+try:
+    import sympy
+    from sympy.parsing.latex import parse_latex
+except ModuleNotFoundError:
+    raise Exception(
+        "`sympy` is required for generating translation task prompt templates. \
+please install sympy via pip install lm-eval[math] or pip install -e .[math]",
+    )
 
 
 # taken from
