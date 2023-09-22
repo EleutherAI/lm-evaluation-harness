@@ -127,9 +127,9 @@ class GeneralTranslationTask(Task):
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None):
         # This caches in the users home dir automatically
-        self.src_file, self.ref_file = sacrebleu.download_test_set(
+        self.src_file, self.ref_file = tuple(sacrebleu.download_test_set(
             self.sacrebleu_dataset, self.sacrebleu_language_pair
-        )
+        )[:2])
         self.src_data, self.ref_data = [
             [line.rstrip() for line in sacrebleu.smart_open(file)]
             for file in (self.src_file, self.ref_file)
