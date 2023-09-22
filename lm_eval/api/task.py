@@ -1069,6 +1069,7 @@ class ConfigurableTask(Task):
 
         elif self.OUTPUT_TYPE == "greedy_until":
             gold = self.doc_to_target(doc)
+            result = results[0]
             if self.config.doc_to_choice is not None:
                 # If you set doc_to_choice,
                 # it assumes that doc_to_target returns a number.
@@ -1077,10 +1078,10 @@ class ConfigurableTask(Task):
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)
-            else:
-                gold = str(gold)
+            elif type(gold) != type(result):
+                # cast gold to the same type as result
+                gold = type(result)(gold)
 
-            result = results[0]
             for metric in self._metric_fn_list.keys():
                 if self.multiple_target:
                     # in the case where we have multiple targets,
