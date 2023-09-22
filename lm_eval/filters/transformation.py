@@ -37,7 +37,9 @@ class MapFilter(Filter):
         Example:
         mapper = MapFilter({'A': 1, 'B': 2}, default_value=0)
         """
-        assert isinstance(mapping_dict, dict), "Provided mapping_dict is not a dictionary"
+        assert isinstance(
+            mapping_dict, dict
+        ), "Provided mapping_dict is not a dictionary"
         self.mapping_dict = mapping_dict
         self.default_value = default_value
 
