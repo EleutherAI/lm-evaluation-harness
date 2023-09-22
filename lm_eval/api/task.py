@@ -557,7 +557,7 @@ class ConfigurableTask(Task):
                     for key in metric_config
                     if key not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
                 }
-                hf_evaluate_metric = "hf_evaluate" in metric_config and metric_config["hf_evaluate"] == True
+                hf_evaluate_metric = "hf_evaluate" in metric_config and metric_config["hf_evaluate"] is True
 
                 if self.config.process_results is not None:
                     self._metric_fn_list[metric_name] = None
