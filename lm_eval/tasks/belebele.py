@@ -20,6 +20,10 @@ _CITATION = """
 }
 """
 
+LANGS = [
+    "fra_Latn",
+    "eng_Latn",
+]
 
 class BelebeleBase(MultipleChoiceTask):
     VERSION = 0
@@ -98,3 +102,23 @@ class BelebeleBase(MultipleChoiceTask):
 
 class BelebeleFr(BelebeleBase):
     DATASET_NAME = "fra_Latn"
+
+
+class BelebeleEn(BelebeleBase):
+    DATASET_NAME = "eng_Latn"
+
+
+def create_task(lang):
+    class BelebeleCustom(BelebeleBase):
+        def __init__(self):
+            self.DATASET_NAME = lang
+            super().__init__()
+
+    return BelebeleCustom
+
+
+def create_all_tasks():
+    """Creates a dictionary of tasks from a list of langs
+    :return: {task_name: task}
+    """
+    return {f"belebele-{lang}": create_task(lang) for lang in LANGS}

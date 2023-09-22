@@ -101,7 +101,6 @@ all_translation_benchmarks = {
 
 TASK_REGISTRY = {
     "babi": babi.Babi,
-    "belebele_french": belebele.BelebeleFr,
     # GLUE
     "cola": glue.CoLA,
     "mnli": glue.MNLI,
@@ -201,6 +200,7 @@ TASK_REGISTRY = {
     #   e.g. anli, arithmetic, openai_translations, harness_translations
     # hendrycksTest (57 tasks)
     **hendrycks_test.create_all_tasks(),
+    **belebele.create_all_tasks(),
     # e.g. wmt14-fr-en
     **translation.create_tasks_from_benchmarks(gpt3_translation_benchmarks),
     # chef's selection, mostly wmt20
