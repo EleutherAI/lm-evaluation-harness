@@ -128,9 +128,7 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
         return {
             "query": format_example(doc, keys),
             "choices": doc["Possible Answers"],
-            "gold": keys.index(doc["Answer"])
-            if isinstance(doc["Answer"], str)
-            else keys[doc["Answer"]],
+            "gold": "(" + doc["Answer"] + ")"
         }
 
     def doc_to_text(self, doc):
@@ -158,7 +156,7 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
             pass_rate = acc
         elif self.MAJORITY_VOTING in params:
             acc, pass_rate, votes = self.majority_vote(
-                    [self._extract_answer(c) for c in candidates if c!=self.INVALID_ANS],
+                    [self._extract_answer(c) for c in candidates if self._extract_answer(c)!=self.INVALID_ANS],
                     correct_answer=doc['gold'],
                     # is_equiv=self._is_correct, this line commented out since is_equiv assumed to be symmetric
             )
