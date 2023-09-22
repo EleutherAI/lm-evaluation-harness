@@ -631,7 +631,7 @@ class ConfigurableTask(Task):
 
         if self.fewshot_docs() is not None:
             self.sampler = samplers.get_sampler(
-                self.config.fewshot_config.get("sampler", "default")
+                self.config.fewshot_config.get("sampler", "default") if self.config.fewshot_config else "default"
             )(list(self.fewshot_docs()), self, rnd=random.Random(1234))
 
         if self.has_test_docs():
