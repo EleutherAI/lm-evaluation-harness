@@ -11,7 +11,7 @@ class LowercaseFilter(Filter):
 
         return [filter_set(resp) for resp in resps]
 
- 
+
 class UppercaseFilter(Filter):
     def __init__(self) -> None:
         pass
@@ -21,9 +21,10 @@ class UppercaseFilter(Filter):
             return [resp.upper() for resp in inst]
 
         return [filter_set(resp) for resp in resps]
-        
+
+
 class MapFilter(Filter):
-    def __init__(self, mapping_dict: dict = {}, default_value = None) -> None:
+    def __init__(self, mapping_dict: dict = {}, default_value=None) -> None:
         """
         Initializes the MapFilter with a given mapping dictionary and default value.
 
