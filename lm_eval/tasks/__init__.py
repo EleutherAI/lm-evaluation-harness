@@ -19,6 +19,7 @@ from . import hellaswag
 from . import swag
 from . import openbookqa
 from . import squad
+from . import belebele
 from . import naturalqs
 from . import nqopen
 from . import sat
@@ -100,6 +101,7 @@ all_translation_benchmarks = {
 
 TASK_REGISTRY = {
     "babi": babi.Babi,
+    "belebele_french": belebele.BelebeleFr,
     # GLUE
     "cola": glue.CoLA,
     "mnli": glue.MNLI,
