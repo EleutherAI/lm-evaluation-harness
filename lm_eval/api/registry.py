@@ -126,7 +126,7 @@ def get_metric(name, hf_evaluate_metric=False):
             eval_logger.warning(
                 f"Could not find registered metric '{name}' in lm-eval, searching in HF Evaluate library..."
             )
-    
+
     try:
         metric_object = evaluate.load(name)
         return metric_object.compute
