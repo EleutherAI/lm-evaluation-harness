@@ -115,6 +115,12 @@ class PythonGSM8k(Task):
     def has_test_docs(self):
         return True
 
+    def doc_to_text(self, doc):
+        raise NotImplementedError()
+
+    def doc_to_target(self, doc):
+        raise NotImplementedError()
+
     def validation_docs(self):
         if self.has_validation_docs():
             return self.dataset["dev"]
