@@ -117,7 +117,6 @@ class TaskConfig(dict):
                     if self.fewshot_delimiter is None
                     else [self.fewshot_delimiter],
                     "do_sample": False,
-                    "temperature": 0.0,
                 }
 
         # TODO: how to make TaskConfigs be de- and re-serializable, even when using the !function constructor?
