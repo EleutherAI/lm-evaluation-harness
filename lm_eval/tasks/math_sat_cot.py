@@ -1,19 +1,4 @@
 """
-Measuring Massive Multitask Language Understanding
-https://arxiv.org/pdf/2009.03300.pdf
-
-The Hendryck's Test is a benchmark that measured a text model’s multitask accuracy.
-The test covers 57 tasks including elementary mathematics, US history, computer
-science, law, and more. To attain high accuracy on this test, models must possess
-extensive world knowledge and problem solving ability. By comprehensively evaluating
-the breadth and depth of a model’s academic and professional understanding,
-Hendryck's Test can be used to analyze models across many tasks and to identify
-important shortcomings.
-
-Homepage: https://github.com/hendrycks/test
-"""
-
-"""
 Solving Quantitative Reasoning Problems with Language Models
 https://arxiv.org/pdf/2206.14858.pdf
 
@@ -33,13 +18,6 @@ from lm_eval.mixins import MajorityVotingMixin
 import re
 
 _CITATION = """
-@article{hendryckstest2021,
-    title={Measuring Massive Multitask Language Understanding},
-    author={Dan Hendrycks and Collin Burns and Steven Basart and Andy Zou and Mantas Mazeika and Dawn Song and Jacob Steinhardt},
-    journal={Proceedings of the International Conference on Learning Representations (ICLR)},
-    year={2021}
-}
-
 @misc{lewkowycz2022solving,
       title={Solving Quantitative Reasoning Problems with Language Models}, 
       author={Aitor Lewkowycz and Anders Andreassen and David Dohan and Ethan Dyer and Henryk Michalewski and Vinay Ramasesh and Ambrose Slone and Cem Anil and Imanol Schlag and Theo Gutman-Solo and Yuhuai Wu and Behnam Neyshabur and Guy Gur-Ari and Vedant Misra},
@@ -50,32 +28,6 @@ _CITATION = """
 }
 """
 
-SUBJECTS_MCQA = [
-    "abstract_algebra",
-    "college_mathematics",
-    "college_physics",
-    "elementary_mathematics",
-    "high_school_mathematics",
-    "high_school_physics",
-    "high_school_statistics",
-] 
-
-SUBJECTS_CUSTOM = [
-    "astronomy",
-    "college_biology",
-    "college_chemistry",
-    "college_computer_science",
-    "computer_security",
-    "conceptual_physics",
-    "electrical_engineering",
-    "high_school_biology",
-    "high_school_chemistry",
-    "high_school_computer_science",
-    "machine_learning"
-]
-
-
-SUBJECTS_STEM = SUBJECTS_MCQA + SUBJECTS_CUSTOM
 
 
 MCQA_PROMPT = """\
@@ -130,48 +82,32 @@ Final Answer: The final answer is (A). I hope it is correct.
 """
 
 
-def create_all_mcqa_tasks():
-    """Creates a dictionary of tasks from a list of subjects
-    :return: {task_name: task}
-        e.g. {hendrycksTest-abstract_algebra: Task, hendrycksTest-anatomy: Task}
-    """
-    return {f"minerva-hendrycksTest-{sub}": create_mcqa_task(sub) for sub in SUBJECTS_STEM}
-
-
-def create_mcqa_task(subject):
-    class HendrycksTest(MinervaCoTMMLU):
-        def __init__(self):
-            super().__init__(subject)
-
-    return HendrycksTest
-
-
 class MinervaCoTMMLU(MajorityVotingMixin, Task):
     VERSION = 0
-    DATASET_PATH = "hendrycks_test"
+    DATASET_PATH = "mcaleste/sat_multiple_choice_math_may_23"
     DATASET_NAME = None
 
     ANS_RE = re.compile(r"Final Answer: The final answer is \([ABCD]\). I hope it is correct.")
     INVALID_ANS = "[not found]"
 
-    def __init__(self, subject):
-        self.DATASET_NAME = subject
+    def __init__(self):
+        print("test")
         super().__init__()
 
     def has_training_docs(self):
         return False
 
     def has_validation_docs(self):
-        return True
+        return False
 
     def has_test_docs(self):
         return True
 
     def validation_docs(self):
-        return map(self._process_doc, self.dataset["validation"])
+        return map(self._process_doc, self.dataset["train"])
 
     def test_docs(self):
-        return map(self._process_doc, self.dataset["test"])
+        return map(self._process_doc, self.dataset["train"])
 
     def _process_doc(self, doc):
         def format_example(doc, keys):
@@ -181,20 +117,18 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
             (A) <choice1>, (B) <choice2>, (C) <choice3>, (D) <choice4>
             Solution:
             """
-            prompt = MCQA_PROMPT + "\n\n" + "Problem: " + doc["question"] + "\nWhat of the following is the right choice? Explain you answer.\n"
+            prompt = MCQA_PROMPT + "\n\n" + "Problem: " + doc["Question"] + "\nWhat of the following is the right choice? Explain you answer.\n"
             prompt += ", ".join(
-                [f"{key} {choice}" for key, choice in zip(keys, doc["choices"])]
+                [f"{key} {choice}" for key, choice in zip(keys, doc["Possible Answers"])]
             )
             prompt += "\nSolution:"
             return prompt
         
-        keys = ["(A)", "(B)", "(C)", "(D)"]
+        keys = ["A", "B", "C", "D"]
         return {
             "query": format_example(doc, keys),
-            "choices": doc["choices"],
-            "gold": keys.index(doc["answer"])
-            if isinstance(doc["answer"], str)
-            else keys[doc["answer"]],
+            "choices": doc["Possible Answers"],
+            "gold": "(" + doc["Answer"] + ")"
         }
 
     def doc_to_text(self, doc):
@@ -222,7 +156,7 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
             pass_rate = acc
         elif self.MAJORITY_VOTING in params:
             acc, pass_rate, votes = self.majority_vote(
-                    [self._extract_answer(c) for c in candidates if c!=self.INVALID_ANS],
+                    [self._extract_answer(c) for c in candidates if self._extract_answer(c)!=self.INVALID_ANS],
                     correct_answer=doc['gold'],
                     # is_equiv=self._is_correct, this line commented out since is_equiv assumed to be symmetric
             )
