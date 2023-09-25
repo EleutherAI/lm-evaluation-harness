@@ -75,6 +75,7 @@ class TaskConfig(dict):
     description: str = ""
     target_delimiter: str = " "
     fewshot_delimiter: str = "\n\n"
+    fewshot_config: dict = None
     # runtime configuration options
     num_fewshot: int = 0
     # scoring options
@@ -580,7 +581,7 @@ class ConfigurableTask(Task):
                     INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
                     metric_agg = get_default_aggregation(metric_name)
                     eval_logger.warning(
-                        f"metric {metric_name} is defined, but aggregation is not. "
+                        f"[Task: {self._config.task}] metric {metric_name} is defined, but aggregation is not. "
                         f"using default "
                         f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
                     )
@@ -592,7 +593,7 @@ class ConfigurableTask(Task):
                     ]
                 else:
                     eval_logger.warning(
-                        f"metric {metric_name} is defined, but higher_is_better is not. "
+                        f"[Task: {self._config.task}] metric {metric_name} is defined, but higher_is_better is not. "
                         f"using default "
                         f"higher_is_better={is_higher_better(metric_name)}"
                     )
@@ -628,9 +629,11 @@ class ConfigurableTask(Task):
             self.prompt = None
 
         if self.fewshot_docs() is not None:
-            self.sampler = samplers.Sampler(
-                list(self.fewshot_docs()), self, rnd=random.Random(1234)
-            )
+            self.sampler = samplers.get_sampler(
+                self.config.fewshot_config.get("sampler", "default")
+                if self.config.fewshot_config
+                else "default"
+            )(list(self.fewshot_docs()), self, rnd=random.Random(1234))
 
         if self.has_test_docs():
             self.task_docs = self.test_docs()
@@ -837,7 +840,10 @@ class ConfigurableTask(Task):
                     and (target_string[0] == "[")
                     and (target_string[-1] == "]")
                 ):
-                    return ast.literal_eval(target_string)
+                    try:
+                        return ast.literal_eval(target_string)
+                    except (SyntaxError, ValueError):
+                        return target_string
                 else:
                     return target_string
         elif type(doc_to_target) == list:

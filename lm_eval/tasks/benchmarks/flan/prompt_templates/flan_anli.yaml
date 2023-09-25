@@ -1,0 +1,29 @@
+# Flan Prompt Templates
+prompts:
+  "template-0":
+    doc_to_text: "{{premise}}\n\nChoose your answer: based on the paragraph above can we conclude that \"{{hypothesis}}\"?\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nI think the answer is"
+    doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+  "template-1":
+    doc_to_text: "{{premise}}\n\nBased on that paragraph can we conclude that this sentence is true?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+    doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+  "template-2":
+    doc_to_text: "{{premise}}\n\nCan we draw the following conclusion?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+    doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+  "template-3":
+    doc_to_text: "{{premise}}\nDoes this next sentence follow, given the preceding text?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+    doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+  "template-4":
+    doc_to_text: "{{premise}}\nCan we infer the following?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nThe answer is:"
+    doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+  "template-5":
+    doc_to_text: "Read the following paragraph and determine if the hypothesis is true:\n\n{{premise}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nHypothesis: {{hypothesis}}\n\n\n"
+    doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+  "template-6":
+    doc_to_text: "Read the text and determine if the sentence is true (see options at the end):\n\n{{premise}}\n\nSentence: {{hypothesis}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+    doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+  "template-7":
+    doc_to_text: "Can we draw the following hypothesis from the context (see options)? \n\nContext:\n\n{{premise}}\n\nHypothesis: {{hypothesis}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+    doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+  "template-8":
+    doc_to_text: "Choose from options: Determine if the sentence is true based on the text below:\n{{hypothesis}}\n\n{{premise}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+    doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
