@@ -262,6 +262,8 @@ class SympyMath(MajorityVotingMixin, SymbolicMathMixin, Task):
         if self.MAJORITY_VOTING in params:
             programs = [self.get_program(sample) for sample in candidates]
         else: 
+            if isinstance(candidates, list) and len(candidates)==1:
+                candidates = candidates[0]
             programs = self.get_program(candidates)
 
         assert isinstance(params, dict)

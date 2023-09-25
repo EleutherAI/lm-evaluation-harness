@@ -217,6 +217,9 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
         candidates = results[0]
         assert isinstance(params, dict)
         if params == {}:
+            if isinstance(candidates, list) and len(candidates) == 1:
+                candidates = candidates[0]
+                print("results was of type List[List[str]] but not doing majority vote, unwrapping...")
             completion = self._extract_answer(candidates)
             acc = self._is_correct(completion, doc['gold'])
             pass_rate = acc
@@ -252,7 +255,6 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
         if match is not None:
             match_str = match.group(0)
             match_str = match_str.lstrip("Final Answer: The final answer is ").rstrip(". I hope it is correct.")
-            print(match_str)
             return match_str
         else:
             return self.INVALID_ANS  

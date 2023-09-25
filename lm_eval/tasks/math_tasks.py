@@ -110,6 +110,9 @@ class SymbolicMathTask(SymbolicMathMixin, MajorityVotingMixin, Task, ABC):
         assert isinstance(params, dict)
         
         if self.MAJORITY_VOTING not in params:
+            if isinstance(candidates, list) and len(candidates) == 1:
+                candidates = candidates[0]
+                print("results was of type List[List[str]] but not doing majority vote, unwrapping...")       
             unnormalized_answer = self.get_unnormalized_answer(candidates)
             answer = self.normalize_tex(unnormalized_answer)
 
