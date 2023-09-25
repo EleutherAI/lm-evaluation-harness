@@ -10,7 +10,7 @@ from pathlib import Path
 from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger, SPACING
-from lm_eval.tasks import include_task_folder
+from lm_eval.tasks import include_path
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -111,7 +111,7 @@ def main() -> None:
 
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
-        include_task_folder(args.include_path)
+        include_path(args.include_path)
 
     if args.tasks is None:
         task_names = ALL_TASKS

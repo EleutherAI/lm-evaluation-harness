@@ -45,6 +45,18 @@ def register_configurable_group(config: Dict[str, str]) -> int:
     task_list = [task for task in all_task_list if type(task) == str]
 
     for task_config in config_list:
+        # if "task" in task_config:
+        #     task = task_config["task"]
+        #     if task in GROUP_REGISTRY:
+        #         task_list = GROUP_REGISTRY[task]
+        #     elif task in TASK_REGISTRY:
+        #         task_list = [TASK_REGISTRY[task]]
+        
+        #     for _task in task_list:
+        #         task_config = {
+        #             **_task["CONFIG"],
+        #             **task_config
+        #         }
         var_configs = check_prompt_config(
             {
                 **task_config,
@@ -109,36 +121,40 @@ def include_task_folder(task_dir: str, register_task=True) -> None:
     Calling this function
     """
     for root, subdirs, file_list in os.walk(task_dir):
-        if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
-            for f in file_list:
-                if f.endswith(".yaml"):
-                    yaml_path = os.path.join(root, f)
-                    try:
-                        config = utils.load_yaml_config(yaml_path)
+        # if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
+        for f in file_list:
+            if f.endswith(".yaml"):
+                yaml_path = os.path.join(root, f)
+                try:
+                    config = utils.load_yaml_config(yaml_path)
 
-                        if register_task:
-                            all_configs = check_prompt_config(config)
-                            for config in all_configs:
-                                register_configurable_task(config)
-                        else:
-                            # If a `task` in config is a list,
-                            # that means it's a benchmark
-                            if type(config["task"]) == list:
-                                register_configurable_group(config)
+                    if register_task:
+                        all_configs = check_prompt_config(config)
+                        for config in all_configs:
+                            register_configurable_task(config)
+                    else:
+                        # If a `task` in config is a list,
+                        # that means it's a benchmark
+                        if type(config["task"]) == list:
+                            register_configurable_group(config)
 
-                    except Exception as error:
-                        eval_logger.warning(
-                            "Failed to load config in\n"
-                            f"                                 {yaml_path}\n"
-                            "                                 Config will not be added to registry\n"
-                            f"                                 Error: {error}"
-                        )
+                except Exception as error:
+                    eval_logger.warning(
+                        "Failed to load config in\n"
+                        f"                                 {yaml_path}\n"
+                        "                                 Config will not be added to registry\n"
+                        f"                                 Error: {error}"
+                    )
 
+
+def include_path(task_dir):
+    include_task_folder(task_dir)
+    # Register Benchmarks after all tasks have been added
+    include_task_folder(task_dir, register_task=False)
+    return 0
 
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
-include_task_folder(task_dir)
-# Register Benchmarks after all tasks have been added
-include_task_folder(task_dir, register_task=False)
+include_path(task_dir)
 
 
 def get_task(task_name, config):
