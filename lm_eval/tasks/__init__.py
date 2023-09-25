@@ -41,6 +41,7 @@ from . import hendrycks_test
 from . import hendrycks_math
 from . import hendrycks_math_ppl
 from . import minerva_math
+from . import ocw_courses
 from . import sympy_math
 from . import cbt
 from . import lambada_cloze
@@ -191,6 +192,7 @@ TASK_REGISTRY = {
     "minerva_math_num_theory": minerva_math.MinervaMathNumberTheory,
     "minerva_math_prealgebra": minerva_math.MinervaMathPrealgebra,
     "minerva_math_precalc": minerva_math.MinervaMathPrecalculus,
+    "ocw_courses": ocw_courses.OCWCourses,
     "sympy_math_algebra_easy": sympy_math.SympyMathAlgebraEasy,
     "sympy_math_algebra": sympy_math.SympyMathAlgebra,
     "sympy_math_algebra_easy": sympy_math.SympyMathAlgebraEasy,
