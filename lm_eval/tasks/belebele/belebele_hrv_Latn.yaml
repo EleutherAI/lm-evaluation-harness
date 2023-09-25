@@ -1,0 +1,4 @@
+"dataset_name": "hrv_Latn"
+"description": "A split of Belebele for the hrv_Latn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_hrv_Latn"

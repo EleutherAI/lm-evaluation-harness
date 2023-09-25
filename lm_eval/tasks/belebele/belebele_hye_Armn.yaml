@@ -1,0 +1,4 @@
+"dataset_name": "hye_Armn"
+"description": "A split of Belebele for the hye_Armn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_hye_Armn"

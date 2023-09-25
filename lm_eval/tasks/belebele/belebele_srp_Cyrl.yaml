@@ -1,0 +1,4 @@
+"dataset_name": "srp_Cyrl"
+"description": "A split of Belebele for the srp_Cyrl language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_srp_Cyrl"

@@ -1,0 +1,4 @@
+"dataset_name": "npi_Deva"
+"description": "A split of Belebele for the npi_Deva language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_npi_Deva"

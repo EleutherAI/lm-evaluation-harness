@@ -1,0 +1,4 @@
+"dataset_name": "por_Latn"
+"description": "A split of Belebele for the por_Latn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_por_Latn"

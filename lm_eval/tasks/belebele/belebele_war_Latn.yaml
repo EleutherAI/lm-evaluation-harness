@@ -1,0 +1,4 @@
+"dataset_name": "war_Latn"
+"description": "A split of Belebele for the war_Latn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_war_Latn"

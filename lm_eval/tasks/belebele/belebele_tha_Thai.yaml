@@ -1,0 +1,4 @@
+"dataset_name": "tha_Thai"
+"description": "A split of Belebele for the tha_Thai language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_tha_Thai"

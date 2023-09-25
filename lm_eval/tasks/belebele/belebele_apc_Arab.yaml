@@ -1,0 +1,4 @@
+"dataset_name": "apc_Arab"
+"description": "A split of Belebele for the apc_Arab language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_apc_Arab"

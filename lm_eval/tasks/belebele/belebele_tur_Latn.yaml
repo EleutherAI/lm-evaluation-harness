@@ -1,0 +1,4 @@
+"dataset_name": "tur_Latn"
+"description": "A split of Belebele for the tur_Latn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_tur_Latn"

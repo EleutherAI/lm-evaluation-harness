@@ -1,0 +1,4 @@
+"dataset_name": "ary_Arab"
+"description": "A split of Belebele for the ary_Arab language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_ary_Arab"

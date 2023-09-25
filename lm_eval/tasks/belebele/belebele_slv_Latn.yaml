@@ -1,0 +1,4 @@
+"dataset_name": "slv_Latn"
+"description": "A split of Belebele for the slv_Latn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_slv_Latn"

@@ -1,0 +1,4 @@
+"dataset_name": "heb_Hebr"
+"description": "A split of Belebele for the heb_Hebr language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_heb_Hebr"

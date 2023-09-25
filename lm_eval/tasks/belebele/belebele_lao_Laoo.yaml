@@ -1,0 +1,4 @@
+"dataset_name": "lao_Laoo"
+"description": "A split of Belebele for the lao_Laoo language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_lao_Laoo"

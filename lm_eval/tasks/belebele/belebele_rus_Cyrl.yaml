@@ -1,0 +1,4 @@
+"dataset_name": "rus_Cyrl"
+"description": "A split of Belebele for the rus_Cyrl language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_rus_Cyrl"

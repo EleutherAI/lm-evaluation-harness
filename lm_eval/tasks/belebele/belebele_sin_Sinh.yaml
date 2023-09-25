@@ -1,0 +1,4 @@
+"dataset_name": "sin_Sinh"
+"description": "A split of Belebele for the sin_Sinh language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_sin_Sinh"

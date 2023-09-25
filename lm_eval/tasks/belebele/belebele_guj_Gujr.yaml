@@ -1,0 +1,4 @@
+"dataset_name": "guj_Gujr"
+"description": "A split of Belebele for the guj_Gujr language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_guj_Gujr"

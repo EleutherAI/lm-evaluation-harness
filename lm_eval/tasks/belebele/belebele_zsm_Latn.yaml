@@ -1,0 +1,4 @@
+"dataset_name": "zsm_Latn"
+"description": "A split of Belebele for the zsm_Latn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_zsm_Latn"
