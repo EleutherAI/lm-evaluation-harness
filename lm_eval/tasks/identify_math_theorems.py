@@ -88,7 +88,7 @@ SUBJECTS = [
 
 
 
-class IdentifyMathThms(MammothTemplateMixin, MultipleChoiceTask):
+class IdentifyMathThms(MultipleChoiceTask):
     VERSION = 1
     DATASET_PATH = "bigbench"
     DATASET_NAME = "identify_math_theorems"
