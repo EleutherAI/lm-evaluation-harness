@@ -1,0 +1,23 @@
+{
+  "minerva_math_algebra_easy": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "minerva_math_algebra": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "minerva_math_counting_and_prob": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "minerva_math_geometry": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "minerva_math_intermediate_algebra": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "minerva_math_num_theory": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "minerva_math_prealgebra": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "minerva_math_precalc": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}}, 
+  "sympy_math_algebra_easy": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "sympy_math_algebra": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "sympy_math_counting_and_prob": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "sympy_math_geometry": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "sympy_math_intermediate_algebra": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "sympy_math_num_theory": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "sympy_math_prealgebra": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}},
+  "sympy_math_precalc": {"params": {"majority_voting": 100,"sampling_temperature":0.6,"top_p":0.95}}, 
+  "gsm8k": {"params": {"majority_voting": 100, "sampling_temperature": 0.6, "top_p": 0.95}},
+  "ocw_courses": {"params": {"majority_voting": 100, "sampling_temperature": 0.6, "top_p": 0.95}},
+  "hendrycks_test_cot": {"params": {"majority_voting": 100, "sampling_temperature": 0.6, "top_p": 0.95}},
+  "math_sat_cot": {"params": {"majority_voting": 100, "sampling_temperature": 0.6, "top_p": 0.95}}
+}
+
