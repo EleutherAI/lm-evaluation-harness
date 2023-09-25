@@ -1,0 +1,4 @@
+"dataset_name": "ory_Orya"
+"description": "A split of Belebele for the ory_Orya language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_ory_Orya"

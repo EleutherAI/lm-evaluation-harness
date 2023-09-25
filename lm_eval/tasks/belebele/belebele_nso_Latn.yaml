@@ -1,0 +1,4 @@
+"dataset_name": "nso_Latn"
+"description": "A split of Belebele for the nso_Latn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_nso_Latn"

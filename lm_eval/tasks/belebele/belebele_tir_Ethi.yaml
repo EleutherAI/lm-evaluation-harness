@@ -1,0 +1,4 @@
+"dataset_name": "tir_Ethi"
+"description": "A split of Belebele for the tir_Ethi language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_tir_Ethi"

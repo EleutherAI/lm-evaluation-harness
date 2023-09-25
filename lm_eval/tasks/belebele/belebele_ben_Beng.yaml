@@ -1,0 +1,4 @@
+"dataset_name": "ben_Beng"
+"description": "A split of Belebele for the ben_Beng language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_ben_Beng"

@@ -1,0 +1,4 @@
+"dataset_name": "urd_Arab"
+"description": "A split of Belebele for the urd_Arab language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_urd_Arab"

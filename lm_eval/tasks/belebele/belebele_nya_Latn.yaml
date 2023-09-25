@@ -1,0 +1,4 @@
+"dataset_name": "nya_Latn"
+"description": "A split of Belebele for the nya_Latn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_nya_Latn"

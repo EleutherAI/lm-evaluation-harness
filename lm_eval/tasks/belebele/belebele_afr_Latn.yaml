@@ -1,0 +1,4 @@
+"dataset_name": "afr_Latn"
+"description": "A split of Belebele for the afr_Latn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_afr_Latn"

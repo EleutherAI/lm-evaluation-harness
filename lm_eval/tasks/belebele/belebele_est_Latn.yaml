@@ -1,0 +1,4 @@
+"dataset_name": "est_Latn"
+"description": "A split of Belebele for the est_Latn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_est_Latn"

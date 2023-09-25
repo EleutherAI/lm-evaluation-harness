@@ -1,0 +1,4 @@
+"dataset_name": "ckb_Arab"
+"description": "A split of Belebele for the ckb_Arab language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_ckb_Arab"

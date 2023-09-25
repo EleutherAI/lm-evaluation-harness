@@ -1,0 +1,4 @@
+"dataset_name": "khk_Cyrl"
+"description": "A split of Belebele for the khk_Cyrl language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_khk_Cyrl"

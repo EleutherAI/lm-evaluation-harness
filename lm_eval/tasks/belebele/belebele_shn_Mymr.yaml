@@ -1,0 +1,4 @@
+"dataset_name": "shn_Mymr"
+"description": "A split of Belebele for the shn_Mymr language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_shn_Mymr"

@@ -1,0 +1,4 @@
+"dataset_name": "ell_Grek"
+"description": "A split of Belebele for the ell_Grek language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_ell_Grek"

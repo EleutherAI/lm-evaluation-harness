@@ -1,0 +1,4 @@
+"dataset_name": "zul_Latn"
+"description": "A split of Belebele for the zul_Latn language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_zul_Latn"

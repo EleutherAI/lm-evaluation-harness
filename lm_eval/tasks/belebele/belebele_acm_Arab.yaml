@@ -1,0 +1,4 @@
+"dataset_name": "acm_Arab"
+"description": "A split of Belebele for the acm_Arab language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_acm_Arab"

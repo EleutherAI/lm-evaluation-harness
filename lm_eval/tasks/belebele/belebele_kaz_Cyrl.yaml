@@ -1,0 +1,4 @@
+"dataset_name": "kaz_Cyrl"
+"description": "A split of Belebele for the kaz_Cyrl language.\n\n"
+"include": "_default_template_yaml"
+"task": "belebele_kaz_Cyrl"
