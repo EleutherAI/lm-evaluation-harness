@@ -1,4 +1,3 @@
 "dataset_name": "khm_Khmr"
-"description": "A split of Belebele for the khm_Khmr language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_khm_Khmr"

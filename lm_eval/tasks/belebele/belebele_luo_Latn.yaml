@@ -1,4 +1,3 @@
 "dataset_name": "luo_Latn"
-"description": "A split of Belebele for the luo_Latn language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_luo_Latn"

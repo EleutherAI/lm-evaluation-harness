@@ -1,4 +1,3 @@
 "dataset_name": "mal_Mlym"
-"description": "A split of Belebele for the mal_Mlym language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_mal_Mlym"

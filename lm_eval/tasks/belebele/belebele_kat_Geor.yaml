@@ -1,4 +1,3 @@
 "dataset_name": "kat_Geor"
-"description": "A split of Belebele for the kat_Geor language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_kat_Geor"

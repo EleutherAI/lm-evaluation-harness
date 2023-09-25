@@ -1,4 +1,3 @@
 "dataset_name": "ceb_Latn"
-"description": "A split of Belebele for the ceb_Latn language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_ceb_Latn"

@@ -1,4 +1,3 @@
 "dataset_name": "kir_Cyrl"
-"description": "A split of Belebele for the kir_Cyrl language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_kir_Cyrl"

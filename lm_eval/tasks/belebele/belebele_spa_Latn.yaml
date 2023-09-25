@@ -1,4 +1,3 @@
 "dataset_name": "spa_Latn"
-"description": "A split of Belebele for the spa_Latn language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_spa_Latn"

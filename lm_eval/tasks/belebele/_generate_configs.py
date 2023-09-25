@@ -44,15 +44,12 @@ if __name__ == "__main__":
     languages = [split["config"] for split in query()]
 
     for lang in tqdm(languages):
-        description = f"A split of Belebele for the {lang} language.\n\n"
-
         yaml_dict = {
             "include": base_yaml_name,
-            "task": f"belebele_{args.task_prefix}_{subject_eng}"
+            "task": f"belebele_{args.task_prefix}_{lang}"
             if args.task_prefix != ""
             else f"belebele_{lang}",
             "dataset_name": lang,
-            "description": description,
         }
 
         file_save_path = args.save_prefix_path + f"_{lang}.yaml"

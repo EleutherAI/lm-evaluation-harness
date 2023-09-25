@@ -1,4 +1,3 @@
 "dataset_name": "hau_Latn"
-"description": "A split of Belebele for the hau_Latn language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_hau_Latn"

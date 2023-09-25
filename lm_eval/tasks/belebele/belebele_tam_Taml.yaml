@@ -1,4 +1,3 @@
 "dataset_name": "tam_Taml"
-"description": "A split of Belebele for the tam_Taml language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_tam_Taml"

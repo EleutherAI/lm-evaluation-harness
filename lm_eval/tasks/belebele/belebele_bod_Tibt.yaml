@@ -1,4 +1,3 @@
 "dataset_name": "bod_Tibt"
-"description": "A split of Belebele for the bod_Tibt language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_bod_Tibt"
