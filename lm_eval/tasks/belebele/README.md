@@ -32,7 +32,9 @@ Homepage: https://github.com/facebookresearch/belebele
 
 
 The following tasks evaluate languages in the Belebele dataset using loglikelihood-based multiple-choice scoring:
-- `cmmlu_{language}`
+- `belebele_{language}`
+
+The variant evaluated here is the 0-shot or few-shot evaluation with English Instructions.
 
 ### Checklist
 
