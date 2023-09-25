@@ -1,4 +1,3 @@
 "dataset_name": "asm_Beng"
-"description": "A split of Belebele for the asm_Beng language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_asm_Beng"

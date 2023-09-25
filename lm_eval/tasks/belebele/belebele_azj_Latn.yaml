@@ -1,4 +1,3 @@
 "dataset_name": "azj_Latn"
-"description": "A split of Belebele for the azj_Latn language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_azj_Latn"

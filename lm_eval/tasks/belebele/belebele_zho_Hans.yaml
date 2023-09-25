@@ -1,4 +1,3 @@
 "dataset_name": "zho_Hans"
-"description": "A split of Belebele for the zho_Hans language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_zho_Hans"

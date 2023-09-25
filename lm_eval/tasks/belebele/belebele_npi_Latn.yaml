@@ -1,4 +1,3 @@
 "dataset_name": "npi_Latn"
-"description": "A split of Belebele for the npi_Latn language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_npi_Latn"

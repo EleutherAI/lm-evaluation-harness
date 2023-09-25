@@ -1,4 +1,3 @@
 "dataset_name": "tgl_Latn"
-"description": "A split of Belebele for the tgl_Latn language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_tgl_Latn"

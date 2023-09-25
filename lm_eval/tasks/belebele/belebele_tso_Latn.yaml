@@ -1,4 +1,3 @@
 "dataset_name": "tso_Latn"
-"description": "A split of Belebele for the tso_Latn language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_tso_Latn"

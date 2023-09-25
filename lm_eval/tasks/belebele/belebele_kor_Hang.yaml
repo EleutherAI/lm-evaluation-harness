@@ -1,4 +1,3 @@
 "dataset_name": "kor_Hang"
-"description": "A split of Belebele for the kor_Hang language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_kor_Hang"

@@ -1,4 +1,3 @@
 "dataset_name": "tgk_Cyrl"
-"description": "A split of Belebele for the tgk_Cyrl language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_tgk_Cyrl"

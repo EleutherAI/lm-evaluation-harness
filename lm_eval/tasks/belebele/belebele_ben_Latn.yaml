@@ -1,4 +1,3 @@
 "dataset_name": "ben_Latn"
-"description": "A split of Belebele for the ben_Latn language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_ben_Latn"

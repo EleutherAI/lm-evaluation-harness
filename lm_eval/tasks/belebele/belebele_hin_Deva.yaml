@@ -1,4 +1,3 @@
 "dataset_name": "hin_Deva"
-"description": "A split of Belebele for the hin_Deva language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_hin_Deva"

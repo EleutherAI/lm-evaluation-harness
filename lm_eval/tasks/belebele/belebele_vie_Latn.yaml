@@ -1,4 +1,3 @@
 "dataset_name": "vie_Latn"
-"description": "A split of Belebele for the vie_Latn language.\n\n"
 "include": "_default_template_yaml"
 "task": "belebele_vie_Latn"
