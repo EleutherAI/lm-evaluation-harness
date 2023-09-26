@@ -45,62 +45,8 @@ _CITATION = """
 }
 """
 
-OLD_PROMPT = """#Q: Olivia has \$23. She bought five bagels for \$3 each. How much money does she have
-left?
-```python
-money_initial = 23
-bagels = 5
-bagel_cost = 3
-money_spent = bagels * bagel_cost
-money_left = money_initial - money_spent
-print(money_left)
-```
 
-#Q: Michael had 58 golf balls. On tuesday, he lost 23 golf balls. On wednesday, he lost
-2 more. How many golf balls did he have at the end of wednesday?
-```python
-golf_balls_initial = 58
-golf_balls_lost_tuesday = 23
-golf_balls_lost_wednesday = 2
-golf_balls_left = golf_balls_initial - golf_balls_lost_tuesday -
-golf_balls_lost_wednesday
-print(golf_balls_left)
-```
-
-#Q: There were nine computers in the server room. Five more computers were installed
-each day, from monday to thursday. How many computers are now in the server room?
-```python
-computers_initial = 9
-computers_per_day = 5
-num_days = 4 # 4 days between monday and thursday
-computers_added = computers_per_day * num_days
-computers_total = computers_initial + computers_added
-print(computers_total)
-```
-
-#Q: If there are 3 cars in the parking lot and 2 more cars arrive, how many cars are in
-the parking lot?
-```python
-cars_initial = 3
-cars_arrived = 2
-total_cars = cars_initial + cars_arrived
-print(total_cars)
-```
-
-#Q: Leah had 32 chocolates and her sister had 42. If they ate 35, how many pieces do
-they have left in total?
-```python
-leah_chocolates = 32
-sister_chocolates = 42
-total_chocolates = leah_chocolates + sister_chocolates
-chocolates_eaten = 35
-chocolates_left = total_chocolates - chocolates_eaten
-print(chocolates_left)
-```
-
-"""
-
-
+# PAL math prompt, sourced from https://github.com/reasoning-machines/pal/blob/f81ca2a9777f002f98a6b4d0f10b61bd5c8feb02/pal/prompt/math_prompts.py#L16
 PAL_PROMPT = '''
 Q: Olivia has $23. She bought five bagels for $3 each. How much money does she have left?
 
@@ -282,13 +228,12 @@ class PythonGSM8k(Task):
             return self.dataset["test"]
 
     def construct_requests(self, doc, ctx):
-        output = rf.greedy_until(ctx, "Q:") #"```")
+        output = rf.greedy_until(ctx, "Q:")
         return output
 
     def fewshot_context(
             self, doc, num_fewshot, provide_description=None, rnd=None, description=None
     ):
-        # prompt = PROMPT + "Q: " + doc["input"] + '\n\n```python'
         prompt = PAL_PROMPT.format(question=doc["input"])
         return prompt
 
