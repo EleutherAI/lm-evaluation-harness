@@ -1,3 +1,4 @@
+import os
 import ast
 
 from typing import Dict
@@ -65,7 +66,9 @@ def get_prompt(prompt_id: str, dataset_name: str = None, subset_name: str = None
             )
 
 
-def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, file_dir=None, **kwargs):
+def load_prompt_list(
+    use_prompt: str, dataset_name=None, subset_name=None, yaml_path=None, **kwargs
+):
 
     category_name, prompt_name = use_prompt.split(":")
 
@@ -84,8 +87,8 @@ def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, file_
     elif ".yaml" in category_name:
         import yaml
 
-        if file_dir is not None:
-            category_name = os.path.realpath(os.path.join(file_dir, category_name))
+        if yaml_path is not None:
+            category_name = os.path.realpath(os.path.join(yaml_path, category_name))
 
         with open(category_name, "rb") as file:
             prompt_yaml_file = yaml.full_load(file)
@@ -94,7 +97,7 @@ def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, file_
             prompt_name, prompt_yaml_file["prompts"].keys()
         )
 
-    category_name, *prompt_name = use_prompt.split(":")
+    # category_name, *prompt_name = use_prompt.split(":")
     # TODO allow to multiple prompt naming
     # if len(prompt_name) > 1:
     #     prompt_list = []

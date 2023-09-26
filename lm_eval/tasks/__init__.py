@@ -45,24 +45,25 @@ def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -
     task_list = [task for task in all_task_list if type(task) == str]
 
     for task_config in config_list:
-        # if "task" in task_config:
-        #     task = task_config["task"]
-        #     if task in GROUP_REGISTRY:
-        #         task_list = GROUP_REGISTRY[task]
-        #     elif task in TASK_REGISTRY:
-        #         task_list = [TASK_REGISTRY[task]]
-        
-        #     for _task in task_list:
-        #         task_config = {
-        #             **_task["CONFIG"],
-        #             **task_config
-        #         }
+        # assert "task" in task_config:
+        # task = task_config["task"]
+        # if task in GROUP_REGISTRY:
+        #     task_list = GROUP_REGISTRY[task]
+        # elif task in TASK_REGISTRY:
+        #     task_list = [TASK_REGISTRY[task]]
+
+        # for _task in task_list:
+        #     task_config = {
+        #         **_task["CONFIG"],
+        #         **task_config
+        #     }
         task_config = utils.load_yaml_config(yaml_path, task_config)
         var_configs = check_prompt_config(
             {
                 **task_config,
                 **{"group": group},
-            }
+            },
+            yaml_path=os.path.dirname(yaml_path),
         )
         for config in var_configs:
             register_configurable_task(config)
@@ -79,13 +80,16 @@ def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -
     return 0
 
 
-def check_prompt_config(config: Dict[str, str]) -> List[Dict[str, str]]:
+def check_prompt_config(
+    config: Dict[str, str], yaml_path: str = None
+) -> List[Dict[str, str]]:
     all_configs = []
     if "use_prompt" in config:
         prompt_list = prompts.load_prompt_list(
             use_prompt=config["use_prompt"],
             dataset_name=config["dataset_path"],
             subset_name=config["dataset_name"] if "dataset_name" in config else None,
+            yaml_path=yaml_path,
         )
         for idx, prompt_variation in enumerate(prompt_list):
             all_configs.append(
@@ -98,7 +102,9 @@ def check_prompt_config(config: Dict[str, str]) -> List[Dict[str, str]]:
                                 config["task"]
                                 if "task" in config
                                 else get_task_name_from_config(config),
-                                prompt_variation,
+                                prompt_variation.split("/")[-1]
+                                if ".yaml" in prompt_variation
+                                else prompt_variation,
                             ]
                         )
                     },
@@ -117,7 +123,7 @@ def get_task_name_from_config(task_config: Dict[str, str]) -> str:
         return "{dataset_path}".format(**task_config)
 
 
-def include_task_folder(task_dir: str, register_task=True) -> None:
+def include_task_folder(task_dir: str, register_task: bool = True) -> None:
     """
     Calling this function
     """
@@ -129,29 +135,33 @@ def include_task_folder(task_dir: str, register_task=True) -> None:
                 try:
                     config = utils.load_yaml_config(yaml_path)
 
-                    # if ("prompts" in config) and (len(config.keys()) == 1):
+                    if "task" not in config:
+                        continue
 
-                    #     continue
-
-                    if register_task:
-                        all_configs = check_prompt_config(config)
-                        for config in all_configs:
-                            register_configurable_task(config)
-                    else:
-                        # If a `task` in config is a list,
-                        # that means it's a benchmark
-                        if type(config["task"]) == list:
-                            register_configurable_group(config, yaml_path)
+                    all_configs = check_prompt_config(
+                        config, yaml_path=os.path.dirname(yaml_path)
+                    )
+                    for config in all_configs:
+                        if register_task:
+                            if type(config["task"]) == str:
+                                register_configurable_task(config)
+                        else:
+                            if type(config["task"]) == list:
+                                register_configurable_group(config, yaml_path)
 
                 except Exception as error:
                     import traceback
-                    print(traceback.format_exc())
+
+                    print("###")
+                    print(yaml_path)
                     eval_logger.warning(
                         "Failed to load config in\n"
                         f"                                 {yaml_path}\n"
                         "                                 Config will not be added to registry\n"
-                        f"                                 Error: {error}"
+                        f"                                 Error: {error}\n"
+                        f"                                 Traceback: {traceback.format_exc()}"
                     )
+    return 0
 
 
 def include_path(task_dir):
@@ -159,6 +169,7 @@ def include_path(task_dir):
     # Register Benchmarks after all tasks have been added
     include_task_folder(task_dir, register_task=False)
     return 0
+
 
 task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
 include_path(task_dir)

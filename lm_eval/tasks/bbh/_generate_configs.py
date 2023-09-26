@@ -54,7 +54,7 @@ if __name__ == "__main__":
                     shot = "Q:" + shot
                     try:
                         answer = answer_regex.search(shot)[0]
-                    except:
+                    except Exception:
                         print("task", task)
                         print(shot)
                     example = shot.split("Let's think step by step.")[0]
