@@ -426,7 +426,9 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
     if yaml_config is None:
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.full_load(file)
-            yaml_dir = os.path.dirname(yaml_path)
+    
+    if yaml_dir is None:
+        yaml_dir = os.path.dirname(yaml_path)
 
     assert yaml_dir is not None
 

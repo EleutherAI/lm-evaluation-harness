@@ -38,7 +38,7 @@ def register_configurable_task(config: Dict[str, str]) -> int:
     return 0
 
 
-def register_configurable_group(config: Dict[str, str]) -> int:
+def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -> int:
     group = config["group"]
     all_task_list = config["task"]
     config_list = [task for task in all_task_list if type(task) != str]
@@ -57,6 +57,7 @@ def register_configurable_group(config: Dict[str, str]) -> int:
         #             **_task["CONFIG"],
         #             **task_config
         #         }
+        task_config = utils.load_yaml_config(yaml_path, task_config)
         var_configs = check_prompt_config(
             {
                 **task_config,
@@ -128,6 +129,10 @@ def include_task_folder(task_dir: str, register_task=True) -> None:
                 try:
                     config = utils.load_yaml_config(yaml_path)
 
+                    # if ("prompts" in config) and (len(config.keys()) == 1):
+
+                    #     continue
+
                     if register_task:
                         all_configs = check_prompt_config(config)
                         for config in all_configs:
@@ -136,9 +141,11 @@ def include_task_folder(task_dir: str, register_task=True) -> None:
                         # If a `task` in config is a list,
                         # that means it's a benchmark
                         if type(config["task"]) == list:
-                            register_configurable_group(config)
+                            register_configurable_group(config, yaml_path)
 
                 except Exception as error:
+                    import traceback
+                    print(traceback.format_exc())
                     eval_logger.warning(
                         "Failed to load config in\n"
                         f"                                 {yaml_path}\n"
