@@ -1,4 +1,12 @@
 #!/usr/bin/python
+import os
+import re
+import sys
+import math
+import subprocess
+import xml.sax.saxutils
+
+from typing import List, Pattern, Tuple, Union, Dict, Any, Optional
 
 """
 This script was adapted from the original version by hieuhoang1972 which is part of MOSES.
@@ -17,17 +25,13 @@ score_set(s, testid, refids, n=4): Interface with dataset.py; calculate BLEU sco
 The reason for breaking the BLEU computation into three phases cook_refs(), cook_test(), and score_cooked() is to allow the caller to calculate BLEU scores for multiple test sets as efficiently as possible.
 """
 
-import sys, math, re, xml.sax.saxutils
-import subprocess
-import os
-
 # Added to bypass NIST-style pre-processing of hyp and ref files -- wade
 nonorm = 0
 
 preserve_case = False
 eff_ref_len = "shortest"
 
-normalize1 = [
+normalize1: List[Tuple[Union[Pattern[str], str], str]] = [
     ("<skipped>", ""),  # strip "skipped" tags
     (r"-\n", ""),  # strip end-of-line hyphenation and join lines
     (r"\n", " "),  # join lines
@@ -35,7 +39,7 @@ normalize1 = [
 ]
 normalize1 = [(re.compile(pattern), replace) for (pattern, replace) in normalize1]
 
-normalize2 = [
+normalize2: List[Tuple[Union[Pattern[str], str], str]] = [
     (
         r"([\{-\~\[-\` -\&\(-\+\:-\@\/])",
         r" \1 ",
@@ -74,7 +78,7 @@ def normalize(s):
 
 
 def count_ngrams(words, n=4):
-    counts = {}
+    counts: Dict[Any, int] = {}
     for k in range(1, n + 1):
         for i in range(len(words) - k + 1):
             ngram = tuple(words[i : i + k])
@@ -88,7 +92,7 @@ def cook_refs(refs, n=4):
     needs to know about them."""
 
     refs = [normalize(ref) for ref in refs]
-    maxcounts = {}
+    maxcounts: Dict[Tuple[str], int] = {}
     for ref in refs:
         counts = count_ngrams(ref, n)
         for (ngram, count) in counts.items():
@@ -101,7 +105,7 @@ def cook_test(test, item, n=4):
     encapsulates everything that BLEU needs to know about it."""
     (reflens, refmaxcounts) = item
     test = normalize(test)
-    result = {}
+    result: Dict[str, Any] = {}
     result["testlen"] = len(test)
 
     # Calculate effective reference sentence length.
@@ -111,7 +115,7 @@ def cook_test(test, item, n=4):
     elif eff_ref_len == "average":
         result["reflen"] = float(sum(reflens)) / len(reflens)
     elif eff_ref_len == "closest":
-        min_diff = None
+        min_diff: Optional[int] = None
         for reflen in reflens:
             if min_diff is None or abs(reflen - len(test)) < min_diff:
                 min_diff = abs(reflen - len(test))
@@ -128,7 +132,12 @@ def cook_test(test, item, n=4):
 
 
 def score_cooked(allcomps, n=4, ground=0, smooth=1):
-    totalcomps = {"testlen": 0, "reflen": 0, "guess": [0] * n, "correct": [0] * n}
+    totalcomps: Dict[str, Any] = {
+        "testlen": 0,
+        "reflen": 0,
+        "guess": [0] * n,
+        "correct": [0] * n,
+    }
     for comps in allcomps:
         for key in ["testlen", "reflen"]:
             totalcomps[key] += comps[key]
@@ -136,7 +145,7 @@ def score_cooked(allcomps, n=4, ground=0, smooth=1):
             for k in range(n):
                 totalcomps[key][k] += comps[key][k]
     logbleu = 0.0
-    all_bleus = []
+    all_bleus: List[float] = []
     for k in range(n):
         correct = totalcomps["correct"][k]
         guess = totalcomps["guess"][k]
@@ -147,7 +156,7 @@ def score_cooked(allcomps, n=4, ground=0, smooth=1):
             guess + addsmooth + sys.float_info.min
         )
         if guess == 0:
-            all_bleus.append(-10000000)
+            all_bleus.append(-10000000.0)
         else:
             all_bleus.append(math.log(correct + sys.float_info.min) - math.log(guess))
 
@@ -175,8 +184,8 @@ def splitPuncts(line):
 
 
 def computeMaps(predictions, goldfile):
-    predictionMap = {}
-    goldMap = {}
+    predictionMap: Dict[str, list] = {}
+    goldMap: Dict[str, list] = {}
     gf = open(goldfile, "r")
 
     for row in predictions:
