@@ -9,7 +9,7 @@ MODEL=${PROFILE}/${ENDPOINT}
 
 SYMBOLIC=minerva_math*,gsm8k,ocw_courses
 MUL_CHOICE=minerva-hendrycksTest*,math_sat_cot
-TOOLS=sympy_math*
+TOOLS=sympy_math*,python_gsm8k
 
 
 cd ${HARNESS_DIR}
