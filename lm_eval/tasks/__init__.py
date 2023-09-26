@@ -398,7 +398,7 @@ TASK_REGISTRY = {
     "proofnet_autoformalize_statements": proofnet.ProofNetAutoformalizeStatements,
     "proofnet_informalize_statements": proofnet.ProofNetInformalizeStatements,
     **hendrycks_test_cot.create_all_mcqa_tasks(),
-    "math_sat_cot": math_sat_cot.MinervaCoTMMLU,
+    "math_sat_cot": math_sat_cot.MathSATCoT,
     "identify_math_theorems": identify_math_theorems.IdentifyMathThms,
     #
     # Requires manual download of data.

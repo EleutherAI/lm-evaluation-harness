@@ -9,12 +9,14 @@ MODEL=${PROFILE}/${ENDPOINT}
 CONFIG=${HARNESS_DIR}/configs/majk.json
 
 # GSM8k does not support majority voting yet
-SYMBOLIC=minerva_math*,ocw_courses
+SYMBOLIC=minerva_math*,ocw_courses,gsm8k
 MUL_CHOICE=minerva-hendrycksTest*,math_sat_cot
 TOOLS=sympy_math*
+TASKS=${SYMBOLIC},${MUL_CHOICE},${TOOLS}
 
 cd ${HARNESS_DIR}
 
 mkdir -p ${HARNESS_DIR}/output
 
-python main.py --no_cache --model vllm --model_args pretrained=${MODEL} --tasks ${SYMBOLIC},${MUL_CHOICE},${TOOLS} --output_path ${OUT} --tp_degree ${TP_DEGREE} --description_dict_path $CONFIG
+# Note that num_fewshot only applies to gsm8k, since the rest of the tasks have fixed prompts
+python main.py --no_cache --model vllm --model_args pretrained=${MODEL} --tasks $TASKS --output_path ${OUT} --tp_degree ${TP_DEGREE} --description_dict_path $CONFIG --num_fewshot 5
