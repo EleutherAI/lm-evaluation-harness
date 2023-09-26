@@ -7,8 +7,8 @@
 #
 MODEL=${PROFILE}/${ENDPOINT}
 
-SYMBOLIC=minerva_math*
-MUL_CHOICE=minerva-hendrycksTest*
+SYMBOLIC=minerva_math*,gsm8k,ocw_courses
+MUL_CHOICE=minerva-hendrycksTest*,math_sat_cot
 TOOLS=sympy_math*
 
 
@@ -16,4 +16,4 @@ cd ${HARNESS_DIR}
 
 mkdir -p ${HARNESS_DIR}/output
 
-python main.py --no_cache --model vllm --model_args pretrained=${MODEL} --tasks ${SYMBOLIC},${MUL_CHOICE},${TOOLS} --output_path ${OUT} --tp_degree ${TP_DEGREE} --limit 2 
+python main.py --no_cache --model vllm --model_args pretrained=${MODEL} --tasks ${SYMBOLIC},${MUL_CHOICE},${TOOLS} --output_path ${OUT} --tp_degree ${TP_DEGREE}

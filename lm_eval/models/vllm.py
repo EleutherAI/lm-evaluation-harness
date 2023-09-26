@@ -6,6 +6,7 @@ import torch
 from transformers import BatchEncoding
 import transformers
 from tqdm import tqdm
+from itertools import groupby
 
 TokenSequence = Union[List[int], torch.LongTensor, torch.Tensor, BatchEncoding]
 
@@ -115,46 +116,39 @@ class VLLM(BaseLM):
         return output_texts
 
     def generate(self, requests):
-        # Two cases: either all requests are the same until, is_greedy, and _model_generate_kwargs
-        # or they are all different. In the former case, we can batch the requests together
-        # and call _model_generate once. In the latter case, we have to call _model_generate
-        # for each request individually.
 
-        contexts, untils, is_greedys, _model_generate_kwargss = zip(*[self.parse_request(request) for request in requests])
-        # Hash the str of everything
-        str_untils = [str(x) for x in untils]
-        str_model_generate_kwargss = [str(x) for x in _model_generate_kwargss]
-        if len(set(str_untils)) == 1 and len(set(is_greedys)) == 1 and len(set(str_model_generate_kwargss)) == 1:
-            print("All generation parameters are the same. Batching.")
-            # All requests are the same, so we can batch them together.
+        requests_with_parse = [
+            {'request': request, 'parsed': self.parse_request(request)} 
+            for request in requests
+        ]
+
+        # group by until, is_greedy, _model_generate_kwargs
+        grouped_requests_with_parse = groupby(requests_with_parse, key=lambda x: x['parsed'][1:])
+        
+        all_generated_texts = []
+        num_keys = 0
+        for key, requests_with_parse_group in grouped_requests_with_parse:
+            contexts = [req['parsed'][0] for req in requests_with_parse_group]
+            until, is_greedy, _model_generate_kwargs = key
+
+            print(contexts)
             context_enc = self.tok_encode_batch(contexts)
             generated_texts = self._model_generate(
                 inputs=context_enc,
                 max_tokens=self.max_gen_toks,
-                stop=untils[0],
-                **_model_generate_kwargss[0]
+                stop=until,
+                **_model_generate_kwargs
             )
-            for request, generated_text in zip(requests, generated_texts):
-                self.cache_hook.add_partial("generate", request, generated_text)
-            return generated_texts
-        else:
-            print("Some generation parameters are different. Not batching.")
-            # Requests are different, so we have to call _model_generate individually.
-            results = []
-            for request in tqdm(requests):
-                context, until, is_greedy, _model_generate_kwargs = self.parse_request(request)
 
-                context_enc = self.tok_encode_batch(context)
-                generated_texts = self._model_generate(
-                    inputs=context_enc,
-                    max_tokens=self.max_gen_toks,
-                    stop=until,
-                    **_model_generate_kwargs
-                )
-                cache = (context, until, tuple(_model_generate_kwargs))
-                self.cache_hook.add_partial("generate", cache, generated_texts)
-                results.append(generated_texts)
-            return results
+            for row, generated_text in zip(requests_with_parse_group, generated_texts):
+                self.cache_hook.add_partial("generate", row["request"], generated_text)
+
+            all_generated_texts += generated_texts
+            num_keys += 1
+
+        print(f"### {num_keys} UNIQUE KEYS")
+        
+        return all_generated_texts
         
     def _create_auto_tokenizer(
         self,
