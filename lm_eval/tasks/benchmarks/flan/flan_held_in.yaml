@@ -1,0 +1,6 @@
+group: flan_held_in
+task:
+  - flan_boolq
+  - flan_rte
+  - flan_anli
+  - flan_arc

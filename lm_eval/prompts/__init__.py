@@ -65,7 +65,7 @@ def get_prompt(prompt_id: str, dataset_name: str = None, subset_name: str = None
             )
 
 
-def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, **kwargs):
+def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, file_dir=None, **kwargs):
 
     category_name, prompt_name = use_prompt.split(":")
 
@@ -84,6 +84,9 @@ def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, **kwa
     elif ".yaml" in category_name:
         import yaml
 
+        if file_dir is not None:
+            category_name = os.path.realpath(os.path.join(file_dir, category_name))
+
         with open(category_name, "rb") as file:
             prompt_yaml_file = yaml.full_load(file)
 
@@ -98,7 +101,7 @@ def load_prompt_list(use_prompt: str, dataset_name=None, subset_name=None, **kwa
     #     for prompt in prompt_name:
     #         prompt_list.append(utils.pattern_match(prompt_name, prompts.all_template_names))
     # else:
-    prompt_list = utils.pattern_match(prompt_name, prompts.all_template_names)
+    #     prompt_list = utils.pattern_match(prompt_name, prompts.all_template_names)
     return [":".join([category_name, prompt]) for prompt in prompt_list]
 
 
