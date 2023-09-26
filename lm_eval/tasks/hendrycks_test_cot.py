@@ -78,8 +78,7 @@ SUBJECTS_CUSTOM = [
 SUBJECTS_STEM = SUBJECTS_MCQA + SUBJECTS_CUSTOM
 
 
-MCQA_PROMPT = """\
-Problem:
+MCQA_PROMPT = r"""Problem:
 Find the domain of the expression $\frac{\sqrt{x-2}}{\sqrt{5-x}}$.
 What of the following is the right choice? Explain you answer.
 (A) [-5,-2), (B) [2,5), (C) [-2,-5), (D) [5,2)
@@ -126,8 +125,7 @@ If we multiply the first equation by $-\frac{3}{2}$, we obtain
 $$6y-9x=-\frac{3}{2}a.$$Since we also know that $6y-9x=b$, we have
 
 $$-\frac{3}{2}a=b\Rightarrow\frac{a}{b}=\boxed{-\frac{2}{3}}.$$
-Final Answer: The final answer is (A). I hope it is correct.
-"""
+Final Answer: The final answer is (A). I hope it is correct."""
 
 
 def create_all_mcqa_tasks():
@@ -156,6 +154,7 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
 
     def __init__(self, subject):
         self.DATASET_NAME = subject
+        print("WARNING: MMLU ignores --num-fewshot argument and uses a fixed prompt")
         super().__init__()
 
     def has_training_docs(self):
@@ -181,7 +180,7 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
             (A) <choice1>, (B) <choice2>, (C) <choice3>, (D) <choice4>
             Solution:
             """
-            prompt = MCQA_PROMPT + "\n\n" + "Problem: " + doc["question"] + "\nWhat of the following is the right choice? Explain you answer.\n"
+            prompt = MCQA_PROMPT + "\n\n" + "Problem:\n" + doc["question"] + "\nWhat of the following is the right choice? Explain you answer.\n"
             prompt += ", ".join(
                 [f"{key} {choice}" for key, choice in zip(keys, doc["choices"])]
             )
@@ -196,6 +195,11 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
             if isinstance(doc["answer"], str)
             else keys[doc["answer"]],
         }
+    
+    def fewshot_context(
+            self, doc, num_fewshot, provide_description=None, rnd=None, description=None
+    ):
+        return doc["query"]
 
     def doc_to_text(self, doc):
         return doc["query"]
@@ -217,6 +221,9 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
         candidates = results[0]
         assert isinstance(params, dict)
         if params == {}:
+            if isinstance(candidates, list) and len(candidates) == 1:
+                candidates = candidates[0]
+                print("results was of type List[List[str]] but not doing majority vote, unwrapping...")
             completion = self._extract_answer(candidates)
             acc = self._is_correct(completion, doc['gold'])
             pass_rate = acc
@@ -252,7 +259,6 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
         if match is not None:
             match_str = match.group(0)
             match_str = match_str.lstrip("Final Answer: The final answer is ").rstrip(". I hope it is correct.")
-            print(match_str)
             return match_str
         else:
             return self.INVALID_ANS  
@@ -266,8 +272,8 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
         # fewshot_examples is not just sampling from train_docs because dev is
         # in the same distribution as val/test but auxiliary_train isn't
 
-        assert k == 0, "Custom Minerva MMLU prompt hardcodes fewshot context! Must use num_fewshot=0 here"
-        return None
+        # assert k == 0, "Custom Minerva MMLU prompt hardcodes fewshot context! Must use num_fewshot=0 here"
+        raise NotImplementedError
 
     def doc_to_text(self, doc):
         return doc["query"]

@@ -260,3 +260,31 @@ class SymbolicMathMixin:
         Determines whether two (ideally normalized using `normalize_text`) TeX expressions are equal.
         """
         return self.is_exp_equiv(self.parse_tex(x1), self.parse_tex(x2), time_limit=time_limit)
+
+
+class MammothTemplateMixin:
+    """
+    Wraps a task's prompt in Alpaca-style instruction templates following MAmmoTH.
+    """
+    TEMPLATE = "Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request."
+
+    TEMPLATE_NO_DESCRIPTION = "Below is an instruction that describes a task. Write a response that appropriately completes the request."
+
+    USE_INPUT: bool = False # 
+
+    def fewshot_context(self, *args, **kwargs):
+        if "description" in kwargs:
+            kwargs["description"] = self.TEMPLATE + "\n\n### Instruction:\n" + kwargs["description"]
+            self.USE_INPUT = True
+        else:
+            kwargs["description"] = self.TEMPLATE_NO_DESCRIPTION
+
+        ctx = super().fewshot_context(*args, **kwargs)
+        print(ctx)
+        return ctx
+
+    def doc_to_template(self, doc, doc_to_text): # doc_to_text should be from task's original doc_to_text
+        if self.USE_INPUT: 
+            return f"### Input:\n" + f"{doc_to_text}\n\n### Response:"
+        else:
+            return f"### Instruction:\n" + f"{doc_to_text}\n\n### Response:"
