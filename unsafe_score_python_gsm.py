@@ -48,7 +48,7 @@ def main(args):
         for i, doc in enumerate(tqdm(docs[:limit])):
             answer = float(doc['output_answer'])
 
-            program = doc['metadata']['program']
+            program = doc['metadata']['program'] + "\nprint(solution())"
 
             candidate = answer_of_program(program)
             candidate_answer = parse_float(candidate)
