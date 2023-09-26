@@ -1,3 +1,0 @@
-{
-    "math_algebra_easy": {"description": "You will solve a mathematical problem. A single final answer should be written inside of \\boxed{}. For example, if the final answer is -3, it is written as \\boxed{-3}. Here are some examples:", "params": {"majority_voting": 16,"sampling_temperature":0.3,"eval_batch_size":8}}
-}

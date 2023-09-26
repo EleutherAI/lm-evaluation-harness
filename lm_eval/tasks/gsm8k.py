@@ -107,6 +107,7 @@ class GradeSchoolMath8K(Task):
             The results of the requests created in construct_requests.
         """
         completion = results[0]
+
         answer = doc["answer"]
         return {"acc": self._is_correct(completion, answer),
                 "metadata": {"completion": completion}}

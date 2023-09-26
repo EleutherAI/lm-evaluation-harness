@@ -1,3 +1,0 @@
-{
-    "minerva-hendrycksTest-abstract_algebra": {"params": {"majority_voting": 16,"sampling_temperature":0.3,"eval_batch_size":16}}
-}
