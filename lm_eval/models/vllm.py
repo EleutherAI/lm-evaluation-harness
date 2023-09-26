@@ -131,7 +131,6 @@ class VLLM(BaseLM):
             contexts = [req['parsed'][0] for req in requests_with_parse_group]
             until, is_greedy, _model_generate_kwargs = key
 
-            print(contexts)
             context_enc = self.tok_encode_batch(contexts)
             generated_texts = self._model_generate(
                 inputs=context_enc,
