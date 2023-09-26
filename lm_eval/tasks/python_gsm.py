@@ -1,8 +1,9 @@
 """
 Python-GSM8k, solving a GSM8k word problem by generating
 a Python program that evaluates to the correct answer.
-We use the prompt from PAL: Program-Aided Language Models (ICML 2023),
-and add ```python ... ``` around each program.
+We use the 8-shot prompt from PAL: Program-Aided Language Models (ICML 2023),
+and ask models to write a python function solution() 
+of which its result will be printed as its answer.
 
 The input problems are from the Lila dataset.
 
