@@ -45,18 +45,7 @@ def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -
     task_list = [task for task in all_task_list if type(task) == str]
 
     for task_config in config_list:
-        # assert "task" in task_config:
-        # task = task_config["task"]
-        # if task in GROUP_REGISTRY:
-        #     task_list = GROUP_REGISTRY[task]
-        # elif task in TASK_REGISTRY:
-        #     task_list = [TASK_REGISTRY[task]]
 
-        # for _task in task_list:
-        #     task_config = {
-        #         **_task["CONFIG"],
-        #         **task_config
-        #     }
         task_config = utils.load_yaml_config(yaml_path, task_config)
         var_configs = check_prompt_config(
             {
