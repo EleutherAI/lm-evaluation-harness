@@ -87,31 +87,26 @@ The imports required for this program are
 I hope my solution is correct. 
 
 Problem:
-If the system of equations
-
-\begin{align*}
-6x-4y&=a,\\
-6y-9x &=b.
-\end{align*}has a solution $(x, y)$ where $x$ and $y$ are both nonzero,
-find $\frac{a}{b},$ assuming $b$ is nonzero.
+If Anna flips 8 coins, what is the probability that she gets more heads than tails? 
 
 You are an expert programmer. Solve the above mathematical problem by writing a Python program. Express your answer as a numeric type or a SymPy object.
 ```
-# Initialize symbols for a, b, x, y
-a, b = symbols('a b')
-x, y = symbols('x y')
+# There are 2**8 possible outcomes
+n = 8
+total_outcomes = 2 ** n
 
-# Since b!=0, we can obtain a/b by dividing the first equation by the second
-a_over_b = (6*x - 4*y) / (6*y - 9*x)
+# There are binom(n, k) ways to get k heads
+favorable_outcomes = 0
+for k in range((n // 2) + 1, n + 1):
+    favorable_outcomes += math.comb(n, k)
+    
+probability = favorable_outcomes / total_outcomes
 
-# Simplify the expression
-a_over_b = simplify(a_over_b)
-
-answer = a_over_b
+answer = probability
 ```
 The imports required for this program are
 ```
-from sympy import symbols, simplify
+import math
 ```
 I hope my solution is correct. 
 
