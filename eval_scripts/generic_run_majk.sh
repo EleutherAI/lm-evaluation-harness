@@ -19,4 +19,4 @@ cd ${HARNESS_DIR}
 mkdir -p ${HARNESS_DIR}/output
 
 # Note that num_fewshot only applies to gsm8k, since the rest of the tasks have fixed prompts
-python main.py --no_cache --model vllm --model_args pretrained=${MODEL} --tasks $TASKS --output_path ${OUT} --tp_degree ${TP_DEGREE} --description_dict_path $CONFIG --num_fewshot 5
+python main.py --no_cache --model vllm --model_args pretrained=${MODEL} --tasks $TASKS --output_path ${OUT} --tp_degree ${TP_DEGREE} --description_dict_path $CONFIG
