@@ -23,27 +23,22 @@ from lm_eval.base import Task, rf
 from lm_eval.mixins import MajorityVotingMixin, SymbolicMathMixin
 
 PROMPT=r"""Problem:
-Find the domain of the expression  $\frac{\sqrt{x-2}}{\sqrt{5-x}}$.}
+Find the value of $x$ that satisfies $\frac{\sqrt{3x+5}}{\sqrt{6x+5}}=\frac{\sqrt{5}}{3}$. Express your answer as a common fraction.
 
 You are an expert programmer. Solve the above mathematical problem by writing a Python program. Express your answer as a numeric type or a SymPy object.
 ```
-# Initialize variable x as a symbol
-x = Symbol('x')
+# Initialize x
+x = symbols('x')
 
-# The square root of (x-2) requires x-2 >= 0
-domain1 = solveset(x - 2 >= 0, x, domain=S.Reals)
+# Define the equation
+equation = Eq(sqrt(3*x + 5)/sqrt(6*x + 5), sqrt(5)/3)
 
-# The square root of (5-x) requires 5-x > 0 (can't be zero because it's in the denominator)
-domain2 = solveset(5 - x > 0, x, domain=S.Reals)
-
-# Intersect both domains to find the final domain of the expression
-final_domain = domain1.intersect(domain2)
-
-answer = final_domain
+# Solve for x
+answer = solve(equation, x)
 ```
 The imports required for this program are
 ```
-from sympy import Symbol, solveset, S
+from sympy import symbols, Eq, solve, sqrt
 ```
 I hope my solution is correct.
 
@@ -87,7 +82,7 @@ The imports required for this program are
 I hope my solution is correct. 
 
 Problem:
-If Anna flips 8 coins, what is the probability that she gets more heads than tails? 
+If Anna flips 8 coins, what is the probability that she gets more heads than tails?
 
 You are an expert programmer. Solve the above mathematical problem by writing a Python program. Express your answer as a numeric type or a SymPy object.
 ```
@@ -108,7 +103,7 @@ The imports required for this program are
 ```
 import math
 ```
-I hope my solution is correct. 
+I hope my solution is correct.
 
 Problem:
 Evaluate $\left\lceil3\left(6-\frac12\right)\right\rceil$.
