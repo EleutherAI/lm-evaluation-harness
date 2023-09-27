@@ -22,18 +22,22 @@ def wrap_code(code: str):
 
 def cast_numeric_if_possible(x):
     try:
-        if not isfinite(int(x)):
-            raise ValueError
-        return int(x)
-    except (TypeError, ValueError, AttributeError):
-        try:
-            if not isfinite(float(x)):
-                raise ValueError
-            return float(x)
-        except (TypeError, ValueError, AttributeError):
-            return x
+        with timeout(seconds=5):
+            try:
+                if not isfinite(int(x)):
+                    raise ValueError
+                return int(x)
+            except (TypeError, ValueError, AttributeError):
+                try:
+                    if not isfinite(float(x)):
+                        raise ValueError
+                    return float(x)
+                except (TypeError, ValueError, AttributeError):
+                    return x
+    except (TimeoutError, OverflowError):
+        return x
 
-def answer_of_program(program: str, time_limit=15):
+def answer_of_program(program: str, time_limit=5):
     """
     Executes program and extracts `answer` global
     """
@@ -54,7 +58,10 @@ def is_equiv(
         checker: MajorityVotingMixin
 ):
     if isinstance(x1, (int, float)) and isinstance(x2, (int, float)):
-        return bool(isclose(x1, x2) or isclose(x2, x1))
+        try:
+            return bool(isclose(x1, x2) or isclose(x2, x1))
+        except TypeError:
+            return False
     elif isinstance(x1, sympy.Basic) and isinstance(x2, sympy.Basic):
         return checker.is_exp_equiv(x1, x2)
     else:
