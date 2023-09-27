@@ -14,6 +14,8 @@ NOTE: See the official implementation of the task:
 for how to make use of the dataset's calculator annotations in your language
 model's sample/generation function.
 
+NOTE: in this version of the task, we use the prompt from Wei et al.
+
 Homepage: https://github.com/openai/grade-school-math
 """
 import re
@@ -55,6 +57,14 @@ _CITATION = """
       eprint={2110.14168},
       archivePrefix={arXiv},
       primaryClass={cs.LG}
+}
+@misc{wei2023chainofthought,
+      title={Chain-of-Thought Prompting Elicits Reasoning in Large Language Models},
+      author={Jason Wei and Xuezhi Wang and Dale Schuurmans and Maarten Bosma and Brian Ichter and Fei Xia and Ed Chi and Quoc Le and Denny Zhou},
+      year={2023},
+      eprint={2201.11903},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
 }
 """
 
