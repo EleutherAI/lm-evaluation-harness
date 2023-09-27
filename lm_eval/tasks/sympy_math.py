@@ -22,40 +22,34 @@ from lm_eval.metrics import mean
 from lm_eval.base import Task, rf
 from lm_eval.mixins import MajorityVotingMixin, SymbolicMathMixin
 
+PROMPT=r"""Problem:
+Find the value of $x$ that satisfies $\frac{\sqrt{3x+5}}{\sqrt{6x+5}}=\frac{\sqrt{5}}{3}$. Express your answer as a common fraction.
 
-CODE_PROMPT=r"""Problem:
-Find the domain of the expression  $\frac{\sqrt{x-2}}{\sqrt{5-x}}$.}
-
-Solution:
+You are an expert programmer. Solve the above mathematical problem by writing a Python program. Express your answer as a numeric type or a SymPy object.
 ```
-# Initialize variable x as a symbol
-x = Symbol('x')
+# Initialize x
+x = symbols('x')
 
-# The square root of (x-2) requires x-2 >= 0
-domain1 = solveset(x - 2 >= 0, x, domain=S.Reals)
+# Define the equation
+equation = Eq(sqrt(3*x + 5)/sqrt(6*x + 5), sqrt(5)/3)
 
-# The square root of (5-x) requires 5-x > 0 (can't be zero because it's in the denominator)
-domain2 = solveset(5 - x > 0, x, domain=S.Reals)
-
-# Step 4: Intersect both domains to find the final domain of the expression
-final_domain = domain1.intersect(domain2)
-
-answer = final_domain
+# Solve for x
+answer = solve(equation, x)
 ```
 The imports required for this program are
 ```
-from sympy import Symbol, solveset, S
+from sympy import symbols, Eq, solve, sqrt
 ```
 I hope my solution is correct.
 
 Problem:
 If $\det \mathbf{A} = 2$ and $\det \mathbf{B} = 12,$ then find $\det (\mathbf{A} \mathbf{B}).$
 
-Solution:
+You are an expert programmer. Solve the above mathematical problem by writing a Python program. Express your answer as a numeric type or a SymPy object.
 ```
 # Given det(A) = 2 and det(B) = 12
-det_A = Integer(2)
-det_B = Integer(12)
+det_A = 2
+det_B = 12
 
 # Use the property det(AB) = det(A)*det(B)
 det_AB = det_A * det_B
@@ -64,64 +58,71 @@ answer = det_AB
 ```
 The imports required for this program are
 ```
-from sympy import Integer
+
 ```
 I hope my solution is correct. 
 
 Problem:
 Terrell usually lifts two 20-pound weights 12 times. If he uses two 15-pound weights instead, how many times must Terrell lift them in order to lift the same total weight?
 
-Solution:
+You are an expert programmer. Solve the above mathematical problem by writing a Python program. Express your answer as a numeric type or a SymPy object.
 ```
-# Initialize n as a symbol, representing the number of times Terrell must lift the 15-pound weights
-n = Symbol('n')
-
 # Calculate the total weight lifted initially, which is 2*20*12 pounds
 total_weight = 2 * 20 * 12
 
-# Set up the equation for total weight lifted with 15-pound weights
-equation = 2 * 15 * n - total_weight
-
-# Step 4: Solve for n
-n_value = solve(equation, n)[0]
+# Since Terrell lifts two 15-pound weights, divide the total weight by 2 * 15
+repetitions = total_weight / (2*15)
 
 answer = n_value 
 ```
 The imports required for this program are
 ```
-from sympy import Symbol, solve
+
 ```
 I hope my solution is correct. 
 
 Problem:
-If the system of equations
+If Anna flips 8 coins, what is the probability that she gets more heads than tails?
 
-\begin{align*}
-6x-4y&=a,\\
-6y-9x &=b.
-\end{align*}has a solution $(x, y)$ where $x$ and $y$ are both nonzero,
-find $\frac{a}{b},$ assuming $b$ is nonzero.
-
-Solution:
+You are an expert programmer. Solve the above mathematical problem by writing a Python program. Express your answer as a numeric type or a SymPy object.
 ```
-# Initialize symbols for a, b, x, y
-a, b = symbols('a b')
-x, y = symbols('x y')
+# There are 2**8 possible outcomes
+n = 8
+total_outcomes = 2 ** n
 
-# Since b!=0, we can obtain a/b by dividing the first equation by the second
-a_over_b = (6*x - 4*y) / (6*y - 9*x)
+# There are binom(n, k) ways to get k heads
+favorable_outcomes = 0
+for k in range((n // 2) + 1, n + 1):
+    favorable_outcomes += math.comb(n, k)
+    
+probability = favorable_outcomes / total_outcomes
 
-# Simplify the expression
-a_over_b = simplify(a_over_b)
-
-answer = a_over_b
+answer = probability
 ```
 The imports required for this program are
 ```
-from sympy import symbols, simplify
+import math
 ```
-I hope my solution is correct. 
-"""
+I hope my solution is correct.
+
+Problem:
+Evaluate $\left\lceil3\left(6-\frac12\right)\right\rceil$.
+
+You are an expert programmer. Solve the above mathematical problem by writing a Python program. Express your answer as a numeric type or a SymPy object.
+```
+# Calculate 3 * (6 - 1/2)
+result = 3 * (6 - 0.5)
+
+# Apply the ceiling function
+ceiling_result = math.ceil(result)
+
+answer = ceiling_result
+```
+The imports required for this program are
+```
+import math
+```
+I hope my solution is correct."""
 
 _CITATION = """
 @article{hendrycksmath2021,
@@ -144,7 +145,7 @@ _CITATION = """
 class SympyMath(MajorityVotingMixin, SymbolicMathMixin, Task):
     DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_math.hendrycks_math)
     DATASET_NAME = None
-    PROMPT = CODE_PROMPT
+    PROMPT = PROMPT
     MAJORITY_VOTING = "majority_voting"
     INVALID_ANSWER = "[invalidanswer]"
 
@@ -173,7 +174,8 @@ class SympyMath(MajorityVotingMixin, SymbolicMathMixin, Task):
     def fewshot_context(
             self, doc, num_fewshot, provide_description=None, rnd=None, description=None
     ):
-        example = "Problem:\n" + doc["problem"] + "\n\nSolution:```"
+        example = "Problem:\n" + doc["problem"] + "\n\nYou are an expert programmer. Solve the above mathematical problem by writing a Python program. Express your answer as a numeric type or a SymPy object.\n```"
+
         prompt = self.PROMPT + "\n\n" + example
 
         return prompt
