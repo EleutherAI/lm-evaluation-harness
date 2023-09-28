@@ -1,0 +1,7 @@
+dataset_name: philosophy
+description: 'The following are multiple choice questions (with answers) about philosophy.
+
+
+  '
+include: hendrycks_test_original_default.yaml
+task: mmlu_origin_philosophy

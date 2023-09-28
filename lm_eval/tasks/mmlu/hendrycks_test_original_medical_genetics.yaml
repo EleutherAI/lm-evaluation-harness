@@ -1,0 +1,8 @@
+dataset_name: medical_genetics
+description: 'The following are multiple choice questions (with answers) about medical
+  genetics.
+
+
+  '
+include: hendrycks_test_original_default.yaml
+task: mmlu_origin_medical_genetics

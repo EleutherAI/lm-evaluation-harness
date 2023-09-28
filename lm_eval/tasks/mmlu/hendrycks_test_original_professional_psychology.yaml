@@ -1,0 +1,8 @@
+dataset_name: professional_psychology
+description: 'The following are multiple choice questions (with answers) about professional
+  psychology.
+
+
+  '
+include: hendrycks_test_original_default.yaml
+task: mmlu_origin_professional_psychology

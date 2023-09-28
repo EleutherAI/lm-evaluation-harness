@@ -833,12 +833,47 @@ class HFLM(LM):
             re_ords[key] = utils.Reorderer([req.args for req in reqs], _collate)
 
         pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        
+        # Just imitating the implementation in '_loglikelihood_tokens'. Or will get CUDA OOM issue when pass a 'auto' for batch_size 
+        def _batch_scheduler(pos):
+            sched = pos // int(len(re_ord.get_reordered()) / self.batch_schedule)
+            if sched in self.batch_sizes:
+                return self.batch_sizes[sched]
+            if (len(self.batch_sizes) > 1) and (
+                self.batch_sizes[sched - 1] == self.max_batch_size
+            ):
+                # if previous batch size is already maximal, skip recomputation
+                self.batch_sizes[sched] = self.max_batch_size
+                return self.batch_sizes[sched]
+            print(
+                f"Passed argument batch_size = auto:{self.batch_schedule}. Detecting largest batch size"
+            )
+            self.batch_sizes[sched] = self._detect_batch_size(
+                re_ord.get_reordered(), pos
+            )
+            print(f"Determined largest batch size: {self.batch_sizes[sched]}")
+            return self.batch_sizes[sched]
+
+        if self.batch_size == "auto":
+            # using rolling window with maximum context
+            print("Passed argument batch_size = auto. Detecting largest batch size")
+            batch_size = self._detect_batch_size()
+            print(f"Determined Largest batch size: {batch_size}")
+            adaptive_batch_size = batch_size
 
         # for each different set of kwargs, we execute all requests, by batch.
         for key, re_ord in re_ords.items():
             for chunk in utils.chunks(
                 re_ord.get_reordered(),
-                self.batch_size,
+                n=self.batch_size
+                if self.batch_size != "auto"
+                else adaptive_batch_size
+                if adaptive_batch_size is not None
+                else 0,
+                fn=_batch_scheduler
+                if self.batch_size == "auto"
+                and not adaptive_batch_size
+                else None,
             ):
                 contexts, all_gen_kwargs = zip(*chunk)
                 # we assume all gen kwargs in the batch are the same

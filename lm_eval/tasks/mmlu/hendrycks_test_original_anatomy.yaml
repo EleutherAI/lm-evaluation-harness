@@ -1,0 +1,7 @@
+dataset_name: anatomy
+description: 'The following are multiple choice questions (with answers) about anatomy.
+
+
+  '
+include: hendrycks_test_original_default.yaml
+task: mmlu_origin_anatomy

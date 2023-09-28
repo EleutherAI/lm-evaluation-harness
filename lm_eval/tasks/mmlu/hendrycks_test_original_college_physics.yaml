@@ -1,0 +1,8 @@
+dataset_name: college_physics
+description: 'The following are multiple choice questions (with answers) about college
+  physics.
+
+
+  '
+include: hendrycks_test_original_default.yaml
+task: mmlu_origin_college_physics

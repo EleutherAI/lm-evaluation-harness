@@ -1,0 +1,8 @@
+dataset_name: business_ethics
+description: 'The following are multiple choice questions (with answers) about business
+  ethics.
+
+
+  '
+include: hendrycks_test_original_default.yaml
+task: mmlu_origin_business_ethics

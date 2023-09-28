@@ -1,0 +1,8 @@
+dataset_name: college_biology
+description: 'The following are multiple choice questions (with answers) about college
+  biology.
+
+
+  '
+include: hendrycks_test_original_default.yaml
+task: mmlu_origin_college_biology

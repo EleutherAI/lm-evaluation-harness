@@ -1,0 +1,8 @@
+dataset_name: electrical_engineering
+description: 'The following are multiple choice questions (with answers) about electrical
+  engineering.
+
+
+  '
+include: hendrycks_test_original_default.yaml
+task: mmlu_origin_electrical_engineering

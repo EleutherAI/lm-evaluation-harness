@@ -1,0 +1,7 @@
+dataset_name: miscellaneous
+description: 'The following are multiple choice questions (with answers) about miscellaneous.
+
+
+  '
+include: hendrycks_test_original_default.yaml
+task: mmlu_origin_miscellaneous
