@@ -834,7 +834,7 @@ class HFLM(LM):
 
         pbar = tqdm(total=len(requests), disable=(self.rank != 0))
         
-        # Just imitating the implementation in '_loglikelihood_tokens'. Or will get CUDA OOM issue when pass a 'auto' for batch_size 
+        # Just imitating the implementation in '_loglikelihood_tokens'. Or it will get CUDA OOM issue when passing a 'auto' for batch_size 
         def _batch_scheduler(pos):
             sched = pos // int(len(re_ord.get_reordered()) / self.batch_schedule)
             if sched in self.batch_sizes:
