@@ -15,7 +15,6 @@ repos:
       - id: destroyed-symlinks
       - id: detect-private-key
       - id: end-of-file-fixer
-      - id: no-commit-to-branch
       - id: requirements-txt-fixer
       - id: trailing-whitespace
       - id: fix-byte-order-marker
@@ -24,10 +23,6 @@ repos:
         args: [--remove]
       - id: mixed-line-ending
         args: [--fix=lf]
-  - repo: https://github.com/pycqa/flake8
-    rev: 3.7.9
-    hooks:
-      - id: flake8
   - repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:
