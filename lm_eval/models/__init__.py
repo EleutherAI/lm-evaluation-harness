@@ -10,6 +10,7 @@ MODEL_REGISTRY = {
     "hf-causal": gpt2.HFLM,
     "hf-causal-experimental": huggingface.AutoCausalLM,
     "hf-causal-llama": huggingface.AutoLlamaCausalLM,
+    "hf-causal-vllm": huggingface.VLLM,
     "hf-chatglm": huggingface.AutoGLM,
     "hf-seq2seq": huggingface.AutoSeq2SeqLM,
     "gpt2": gpt2.GPT2LM,
