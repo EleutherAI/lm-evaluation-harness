@@ -825,9 +825,7 @@ class VLLM(BaseLM):
         max_tokens: int,
         stop: Optional[List[str]] = None,
     ) -> TokenSequence:
-        sampling_params = SamplingParams(
-            temperature=0.2, top_p=1, max_tokens=max_tokens
-        )
+        sampling_params = SamplingParams(temperature=0, top_p=1, max_tokens=max_tokens)
         generations = self.model.generate(inputs, sampling_params)
         return [val.outputs[0].text for val in generations]
 
