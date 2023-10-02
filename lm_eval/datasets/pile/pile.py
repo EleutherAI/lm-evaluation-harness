@@ -38,8 +38,8 @@ math, computer science, and philosophy papers.
 
 _HOMEPAGE = "https://pile.eleuther.ai/"
 
-# License available at https://github.com/EleutherAI/the-pile/blob/master/LICENSE
-_LICENSE = "MIT License"
+# TODO: Add the licence for the dataset here if you can find it
+_LICENSE = ""
 
 _URLS = {
     "validation": "https://the-eye.eu/public/AI/pile/val.jsonl.zst",

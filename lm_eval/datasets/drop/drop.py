@@ -43,8 +43,8 @@ and perform discrete operations over them (such as addition, counting, or sortin
 
 _HOMEPAGE = "https://allenai.org/data/drop"
 
-# License available at https://allenai.org/data/drop
-_LICENSE = "CC BY"
+# TODO: Add the licence for the dataset here if you can find it
+_LICENSE = ""
 
 _URLS = {
     "drop": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip",

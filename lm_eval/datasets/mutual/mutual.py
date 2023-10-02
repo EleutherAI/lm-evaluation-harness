@@ -38,7 +38,8 @@ modified from Chinese high school English listening comprehension test data.
 
 _HOMEPAGE = "https://github.com/Nealcly/MuTual"
 
-_LICENSE = "No license found"
+# TODO: Add the licence for the dataset here if you can find it
+_LICENSE = ""
 
 _URLS = "https://github.com/Nealcly/MuTual/archive/master.zip"
 
