@@ -39,8 +39,8 @@ a teacher who answers the questions by providing short excerpts (spans) from the
 
 _HOMEPAGE = "https://quac.ai/"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+# License available at https://quac.ai/
+_LICENSE = "CC BY-SA 4.0"
 
 _URLS = {
     "train": "https://s3.amazonaws.com/my89public/quac/train_v0.2.json",

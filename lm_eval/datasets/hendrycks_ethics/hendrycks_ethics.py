@@ -41,8 +41,8 @@ learning agents.
 
 _HOMEPAGE = "https://github.com/hendrycks/ethics"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+# License available at https://github.com/hendrycks/ethics/blob/master/LICENSE
+_LICENSE = "MIT License"
 
 _URLS = "https://people.eecs.berkeley.edu/~hendrycks/ethics.tar"
 
