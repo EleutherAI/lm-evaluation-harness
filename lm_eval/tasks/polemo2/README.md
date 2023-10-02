@@ -1,4 +1,4 @@
-# PolEmo 2.0 
+# PolEmo 2.0
 
 ### Paper
 
