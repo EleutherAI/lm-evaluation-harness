@@ -43,8 +43,8 @@ level (for indicating the level of difficulty).
 
 _HOMEPAGE = "https://github.com/chaochun/nlu-asdiv-dataset"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+# License available at https://github.com/chaochun/nlu-asdiv-dataset/blob/master/README.md
+_LICENSE = "CC BY-NC 4.0"
 
 _URLS = "https://github.com/chaochun/nlu-asdiv-dataset/archive/55790e5270bb91ccfa5053194b25732534696b50.zip"
 

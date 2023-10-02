@@ -44,8 +44,7 @@ appear in a conversation.
 
 _HOMEPAGE = "https://stanfordnlp.github.io/coqa/"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "Different licenses depending on the content (see https://stanfordnlp.github.io/coqa/ for details)"
 
 _URLS = {
     "train": "https://nlp.stanford.edu/data/coqa/coqa-train-v1.0.json",
