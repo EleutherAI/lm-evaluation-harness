@@ -19,7 +19,7 @@ all_task_names = bb_utils.get_all_json_task_names()
 num_shots = [0]
 
 for shots in num_shots:
-    for task_name in tqdm(all_task_names[29:]):
+    for task_name in tqdm(all_task_names):
         try: 
             print(f"Loading '{task_name}' with num_shots={shots}...")
             task_ds = datasets.load_dataset("bigbench", name=task_name, num_shots=shots)
