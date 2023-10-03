@@ -1,8 +1,7 @@
 group: bigbench
-dataset_path: bigbench
+dataset_path: hails/bigbench
 output_type: greedy_until
-training_split: train
-validation_split: validation
+test_split: default
 doc_to_text: inputs
 doc_to_target: "{{targets[0]}}"
 generation_kwargs:
