@@ -33,34 +33,43 @@ _CITATION = """
 
 class Pubmed_QA(Task):
     VERSION = 0
-    DATASET_PATH = "pubmed_qa"
-    DATASET_NAME = "pqa_labeled"
+    DATASET_PATH = "bigbio/pubmed_qa"
+    DATASET_NAME = "pubmed_qa_labeled_fold0_source"
 
     def has_training_docs(self):
-        return False
+        return True
 
     def has_validation_docs(self):
-        return False
+        return True
 
     def has_test_docs(self):
         return True
 
+    def training_docs(self):
+        if self.has_training_docs():
+            if self._training_docs is None:
+                self._training_docs = self.dataset["train"]
+            return self._training_docs
+
+    def validation_docs(self):
+        if self.has_validation_docs():
+            return self.dataset["validation"]
+
     def test_docs(self):
         if self.has_test_docs():
-            # HF is labelled as train but its really just for testing
-            return self.dataset["train"]
+            return self.dataset["test"]
 
     def doc_to_text(self, doc):
-        ctxs = "\n".join(doc["context"]["contexts"])
+        ctxs = "\n".join(doc["CONTEXTS"])
         return "Abstract: {}\nQuestion: {}\nAnswer:".format(
-            ctxs, doc["question"], doc["final_decision"]
+            ctxs, doc["QUESTION"], doc["final_decision"]
         )
 
     def should_decontaminate(self):
         return True
 
     def doc_to_decontamination_query(self, doc):
-        return doc["question"] + " " + "\n".join(doc["context"]["contexts"])
+        return doc["question"] + " " + "\n".join(doc["CONTEXTS"])
 
     def doc_to_target(self, doc):
         return " {}".format(doc["final_decision"])
