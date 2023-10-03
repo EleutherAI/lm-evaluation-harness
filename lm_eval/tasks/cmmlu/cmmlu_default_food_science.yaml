@@ -1,0 +1,4 @@
+"dataset_name": "food_science"
+"description": "以下是关于食品科学的单项选择题，请直接给出正确答案的选项。\n\n"
+"include": "_default_template_yaml"
+"task": "cmmlu_food_science"

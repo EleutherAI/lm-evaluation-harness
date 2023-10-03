@@ -1,0 +1,4 @@
+"dataset_name": "traditional_chinese_medicine"
+"description": "以下是关于中医中药的单项选择题，请直接给出正确答案的选项。\n\n"
+"include": "_default_template_yaml"
+"task": "cmmlu_traditional_chinese_medicine"
