@@ -185,7 +185,7 @@ def main() -> None:
                         {
                             "include": f"../{task_type}",
                             "task": "bigbench_" + task + "_{}".format(task_type.split("_template_yaml")[0]),
-                            "dataset_name": task,
+                            "dataset_name": task + "_zero_shot", # zero-shot version of the dataset
                         },
                         f,
                         width=float("inf"), allow_unicode=True
