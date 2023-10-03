@@ -100,8 +100,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--gen_kwargs",
         default="",
-        help=("String arguments for model generation on greedy_until tasks,"
-            " e.g. `temperature=0,top_k=0,top_p=0`")
+        help=(
+            "String arguments for model generation on greedy_until tasks,"
+            " e.g. `temperature=0,top_k=0,top_p=0`"
+        )
     )
     return parser.parse_args()
 
