@@ -11,7 +11,6 @@ from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger, SPACING
 from lm_eval.tasks import include_task_folder
-from lm_eval.benchmarks import include_benchmarks
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -209,8 +208,8 @@ def main() -> None:
             f"batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
         )
         print(evaluator.make_table(results))
-        if "aggregate" in results:
-            print(evaluator.make_table(results, "aggregate"))
+        if "groups" in results:
+            print(evaluator.make_table(results, "groups"))
 
 
 if __name__ == "__main__":

@@ -75,6 +75,7 @@ class TaskConfig(dict):
     description: str = ""
     target_delimiter: str = " "
     fewshot_delimiter: str = "\n\n"
+    fewshot_config: dict = None
     # runtime configuration options
     num_fewshot: int = 0
     # scoring options
@@ -581,7 +582,7 @@ class ConfigurableTask(Task):
                     INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
                     metric_agg = get_default_aggregation(metric_name)
                     eval_logger.warning(
-                        f"metric {metric_name} is defined, but aggregation is not. "
+                        f"[Task: {self._config.task}] metric {metric_name} is defined, but aggregation is not. "
                         f"using default "
                         f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
                     )
@@ -593,7 +594,7 @@ class ConfigurableTask(Task):
                     ]
                 else:
                     eval_logger.warning(
-                        f"metric {metric_name} is defined, but higher_is_better is not. "
+                        f"[Task: {self._config.task}] metric {metric_name} is defined, but higher_is_better is not. "
                         f"using default "
                         f"higher_is_better={is_higher_better(metric_name)}"
                     )
@@ -629,9 +630,11 @@ class ConfigurableTask(Task):
             self.prompt = None
 
         if self.fewshot_docs() is not None:
-            self.sampler = samplers.Sampler(
-                list(self.fewshot_docs()), self, rnd=random.Random(1234)
-            )
+            self.sampler = samplers.get_sampler(
+                self.config.fewshot_config.get("sampler", "default")
+                if self.config.fewshot_config
+                else "default"
+            )(list(self.fewshot_docs()), self, rnd=random.Random(1234))
 
         if self.has_test_docs():
             self.task_docs = self.test_docs()
@@ -674,21 +677,21 @@ class ConfigurableTask(Task):
             check_choices = test_choice
         else:
             check_choices = [test_target]
-
-        for choice in check_choices:
-            choice_has_whitespace = True if " " in choice else False
-            delimiter_has_whitespace = (
-                True if " " in self.config.target_delimiter else False
-            )
-
-            if delimiter_has_whitespace and choice_has_whitespace:
-                eval_logger.warning(
-                    f'Both target_delimiter and target choice: "{choice}" have whitespace'
+        if self.config.doc_to_choice is not None:
+            for choice in check_choices:
+                choice_has_whitespace = True if choice[0].isspace() else False
+                delimiter_has_whitespace = (
+                    True if self.config.target_delimiter[-1].isspace() else False
                 )
-            elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
-                eval_logger.warning(
-                    f'Both target_delimiter and target choice: "{choice}" does not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
-                )
+
+                if delimiter_has_whitespace and choice_has_whitespace:
+                    eval_logger.warning(
+                        f'Both target_delimiter and target choice: "{choice}" have whitespace'
+                    )
+                elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
+                    eval_logger.warning(
+                        f'Both target_delimiter and target choice: "{choice}" does not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
+                    )
 
     def download(self, dataset_kwargs=None) -> None:
         self.dataset = datasets.load_dataset(
@@ -838,7 +841,10 @@ class ConfigurableTask(Task):
                     and (target_string[0] == "[")
                     and (target_string[-1] == "]")
                 ):
-                    return ast.literal_eval(target_string)
+                    try:
+                        return ast.literal_eval(target_string)
+                    except (SyntaxError, ValueError):
+                        return target_string
                 else:
                     return target_string
         elif type(doc_to_target) == list:
@@ -1067,6 +1073,9 @@ class ConfigurableTask(Task):
                 # it assumes that doc_to_target returns a number.
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
+            # we expect multiple_targets to be a list.
+            elif self.multiple_target:
+                gold = list(gold)
             else:
                 gold = str(gold)
 
@@ -1077,6 +1086,10 @@ class ConfigurableTask(Task):
                     # return true if any are true
                     # TODO: this may break for multipLe_target, non zero-or-1 metrics
                     scores = []
+                    if not isinstance(gold, list):
+                        # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
+                        # print(gold)
+                        gold = [gold]
                     for gold_option in gold:
                         try:
                             result_score = self._metric_fn_list[metric](
