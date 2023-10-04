@@ -30,6 +30,8 @@ def parse_args():
     parser.add_argument("--check_integrity", action="store_true")
     parser.add_argument("--write_out", action="store_true", default=False)
     parser.add_argument("--output_base_path", type=str, default=None)
+    # Custom argument to shuffle the word order in the question
+    parser.add_argument("--shuffle", type=str, default=None)
 
     return parser.parse_args()
 
@@ -71,6 +73,8 @@ def main():
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         output_base_path=args.output_base_path,
+        # Custom argument to shuffle the word order in the question
+        shuffle=args.shuffle,
     )
 
     dumped = json.dumps(results, indent=2)

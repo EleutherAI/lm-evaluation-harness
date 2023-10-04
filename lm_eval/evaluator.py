@@ -1,6 +1,7 @@
 import collections
 import itertools
 import random
+import nltk
 
 import lm_eval.metrics
 import lm_eval.models
@@ -11,7 +12,29 @@ from lm_eval.models.gpt2 import HFLM
 
 import numpy as np
 import transformers
+nltk.download('punkt')
+tokenizer = nltk.tokenize.word_tokenize
+def unigram_shuffle(sentence):
+    words = tokenizer(sentence)  # Tokenize the sentence into words
+    words = words[2:-2]  #Don't include "Question:" and "Answer:" in shuffle
+    random.shuffle(words)  # Shuffle the order of words
+    return ' '.join(words)  # Join the shuffled words back into a sentence
 
+# Function to shuffle bigrams (pairs of consecutive words) in a sentence
+def bigram_shuffle(sentence):
+    words = tokenizer(sentence)  # Tokenize the sentence into words
+    bigrams = list(nltk.bigrams(words[2:-2]))  # Create bigrams
+    random.shuffle(bigrams)  # Shuffle the order of bigrams
+    shuffled_words = [word for bigram in bigrams for word in bigram]  # Flatten back to words
+    return ' '.join(shuffled_words)  # Join the shuffled words back into a sentence
+
+# Function to shuffle trigrams (groups of three consecutive words) in a sentence
+def trigram_shuffle(sentence):
+    words = tokenizer(sentence)  # Tokenize the sentence into words
+    trigrams = list(nltk.trigrams(words[2:-2]))  # Create trigrams
+    random.shuffle(trigrams)  # Shuffle the order of trigrams
+    shuffled_words = [word for trigram in trigrams for word in trigram]  # Flatten back to words
+    return ' '.join(shuffled_words)  # Join the shuffled words back into a sentence
 
 @positional_deprecated
 def simple_evaluate(
@@ -30,6 +53,7 @@ def simple_evaluate(
     decontamination_ngrams_path=None,
     write_out=False,
     output_base_path=None,
+    shuffle=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -112,6 +136,7 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         output_base_path=output_base_path,
+        shuffle = shuffle,
     )
 
     # add info about the model and few shot config
@@ -151,6 +176,8 @@ def evaluate(
     decontamination_ngrams_path=None,
     write_out=False,
     output_base_path=None,
+    # Custom argument to shuffle the word order in the question
+    shuffle=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -172,6 +199,8 @@ def evaluate(
         If True, write all prompts, logits and metrics to json for offline analysis
     :param output_base_path: str, optional
         Directory to which detailed eval info will be written. Defaults to present working dir
+    :param shuffle: str, optional
+        shuffles the question using either trigram, bigram, or unigram. Defaults to none.
     :return
         Dictionary of results
     """
@@ -249,7 +278,15 @@ def evaluate(
                 docs_for_decontamination[(task_name, task_set)].append(
                     task.doc_to_decontamination_query(doc)
                 )
-
+            if shuffle == "unigram":
+                doc['query'] = unigram_shuffle(doc['query'])
+                doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+            elif shuffle == "bigram":
+                doc['query'] = bigram_shuffle(doc['query'])
+                doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+            elif shuffle == "trigram":
+                doc['query'] = trigram_shuffle(doc['query'])
+                doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
             docs[(task_name, doc_id)] = doc
             ctx = task.fewshot_context(
                 doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
@@ -265,7 +302,7 @@ def evaluate(
                     f"Task: {task_name}; document {doc_id}; context prompt (starting on next line):\n{ctx}\n(end of prompt on previous line)"
                 )
                 print("Requests:", reqs)
-
+          
             if not isinstance(reqs, (list, tuple)):
                 reqs = [reqs]
             for i, req in enumerate(reqs):
