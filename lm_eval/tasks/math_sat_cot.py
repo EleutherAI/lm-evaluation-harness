@@ -1,14 +1,9 @@
 """
-Solving Quantitative Reasoning Problems with Language Models
-https://arxiv.org/pdf/2206.14858.pdf
+SAT Math May 2023 questions that do not have figures.
 
-Minerva CoT version of MMLU-STEM.  See Appendix G for prompt reference. 
+We use the version of the dataset found in the Huggingface dataset `mcaleste/sat_multiple_choice_math_may_23`.
 
-`SUBJECTS_MCQA` consists of those subsets (STEM subsets that "use equations") for which the few-shot prompt is Listing 5 from the 
-Minerva Appendix G. SUBJECTS_CUSTOM use a special subject-specific prompt, which are listed as being in the supplementary material but 
-do not appear to be included in the current downloadable zip.
-
-
+Our prompt is taken from from appendix G of Lewkowycz et al. (2022). 
 """
 
 from lm_eval.base import Task, rf
@@ -142,15 +137,6 @@ class MathSATCoT(MajorityVotingMixin, Task):
         return ["\n\n", "Problem:"]
 
     def process_results(self, doc, results, params={}):
-        """Take a single document and the LM results and evaluates, returning a
-        dict where keys are the names of submetrics and values are the values of
-        the metric for that one document
-
-        :param doc:
-            The document as returned from training_docs, validation_docs, or test_docs.
-        :param results:
-            The results of the requests created in construct_requests.
-        """
         candidates = results[0]
         assert isinstance(params, dict)
         if params == {}:
