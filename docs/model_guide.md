@@ -70,9 +70,9 @@ smth smth tokenizer-agnostic
 
 Congrats on implementing your model! Now it's time to test it out.
 
-To make your model usable via the command line interface to `lm-eval` using `main.py`, you'll need to tell `lm-eval` what your model's name is.
+To make your model usable via the command line interface to `lm-eval` using `python -m lm_eval`, you'll need to tell `lm-eval` what your model's name is.
 
-This is done via a *decorator*, `lm_eval.api.registry.register_model`. Using `register_model()`, one can both tell the package what the model's name(s) to be used are when invoking it with `python main.py --model <name>` and alert `lm-eval` to the model's existence.
+This is done via a *decorator*, `lm_eval.api.registry.register_model`. Using `register_model()`, one can both tell the package what the model's name(s) to be used are when invoking it with `python -m lm_eval --model <name>` and alert `lm-eval` to the model's existence.
 
 ```python
 from lm_eval.api.registry import register_model
