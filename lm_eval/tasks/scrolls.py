@@ -42,7 +42,7 @@ import re
 _CITATION = """
 @inproceedings{shaham-etal-2022-scrolls,
     title = "{SCROLLS}: Standardized {C}ompa{R}ison Over Long Language Sequences",
-    author = "Shaham, Uri  and 
+    author = "Shaham, Uri  and
       Segal, Elad  and
       Ivgi, Maor  and
       Efrat, Avia  and
@@ -72,9 +72,14 @@ def _download_metric():
     import os
     import shutil
     from huggingface_hub import hf_hub_download
-    scrolls_metric_path = hf_hub_download(repo_id="tau/scrolls", repo_type="dataset", filename="metrics/scrolls.py")
+
+    scrolls_metric_path = hf_hub_download(
+        repo_id="tau/scrolls", repo_type="dataset", filename="metrics/scrolls.py"
+    )
     updated_scrolls_metric_path = (
-        os.path.dirname(scrolls_metric_path) + os.path.basename(scrolls_metric_path).replace(".", "_") + ".py"
+        os.path.dirname(scrolls_metric_path)
+        + os.path.basename(scrolls_metric_path).replace(".", "_")
+        + ".py"
     )
     shutil.copy(scrolls_metric_path, updated_scrolls_metric_path)
     return updated_scrolls_metric_path
@@ -92,7 +97,7 @@ def _process_doc_prepended_question(doc):
         "input": input,
         "outputs": doc["outputs"],
         "question": input[0:split],
-        "text": input[split + 2:]
+        "text": input[split + 2 :],
     }
 
 
@@ -102,7 +107,9 @@ def _drop_duplicates_in_input(untokenized_dataset):
     indices_to_keep = []
     id_to_idx = {}
     outputs = []
-    for i, (id_, output) in enumerate(zip(untokenized_dataset["id"], untokenized_dataset["output"])):
+    for i, (id_, output) in enumerate(
+        zip(untokenized_dataset["id"], untokenized_dataset["output"])
+    ):
         if id_ in id_to_idx:
             outputs[id_to_idx[id_]].append(output)
             continue
@@ -119,9 +126,11 @@ def _num_cpu_cores():
     # https://stackoverflow.com/questions/1006289/how-to-find-out-the-number-of-cpus-using-python/55423170#55423170
     try:
         import psutil
+
         return psutil.cpu_count(logical=False)
     except ImportError:
         import os
+
         return len(os.sched_getaffinity(0))
 
 
@@ -135,7 +144,11 @@ class _SCROLLSTask(Task):
 
     def __init__(self, no_metric=False):
         super().__init__()
-        self.metric = load_metric(_download_metric(), config_name=self.DATASET_NAME) if not no_metric else None
+        self.metric = (
+            load_metric(_download_metric(), config_name=self.DATASET_NAME)
+            if not no_metric
+            else None
+        )
 
     def has_training_docs(self):
         return True
@@ -176,7 +189,10 @@ class _SCROLLSTask(Task):
         that are less than `max_tokens` when tokenized by each tokenizer
         """
 
-        tokenizers = [AutoTokenizer.from_pretrained(tokenizer) for tokenizer in self.PRUNE_TOKENIZERS]
+        tokenizers = [
+            AutoTokenizer.from_pretrained(tokenizer)
+            for tokenizer in self.PRUNE_TOKENIZERS
+        ]
         cache = {}
 
         def _filter(sample):
@@ -210,18 +226,21 @@ class _SCROLLSTask(Task):
     def _make_compute_metrics(self, value):
         def compute_metrics(samples):
             predictions, references = zip(*samples)  # unzip, if you will
-            computed = self.metric.compute(predictions=predictions, references=references)
+            computed = self.metric.compute(
+                predictions=predictions, references=references
+            )
             return computed[value]
+
         return compute_metrics
 
     def aggregation(self):
         return {
-            key: self._make_compute_metrics(value) for key, value in self._scrolls_metrics().items()
+            key: self._make_compute_metrics(value)
+            for key, value in self._scrolls_metrics().items()
         }
 
 
 class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
-
     def __init__(self):
         super().__init__(no_metric=True)
 
@@ -229,18 +248,10 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
         return None
 
     def aggregation(self):
-        return {
-            "em": mean,
-            "acc": mean,
-            "acc_norm": mean
-        }
+        return {"em": mean, "acc": mean, "acc_norm": mean}
 
     def higher_is_better(self):
-        return {
-            "em": True,
-            "acc": True,
-            "acc_norm": True
-        }
+        return {"em": True, "acc": True, "acc_norm": True}
 
     def process_results(self, doc, results):
         gold = doc["gold"]
@@ -264,22 +275,25 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
 
 
 class _SCROLLSSummaryTask(_SCROLLSTask):
-
     def _process_doc(self, doc):
         return [doc]
 
     def _scrolls_metrics(self):
-        return {"rouge1": "rouge/rouge1", "rouge2": "rouge/rouge2", "rougeL": "rouge/rougeL"}
+        return {
+            "rouge1": "rouge/rouge1",
+            "rouge2": "rouge/rouge2",
+            "rougeL": "rouge/rougeL",
+        }
 
     def process_results(self, doc, results):
         return {
             "rouge1": (results[0], doc["outputs"]),
             "rouge2": (results[0], doc["outputs"]),
-            "rougeL": (results[0], doc["outputs"])
+            "rougeL": (results[0], doc["outputs"]),
         }
 
     def construct_requests(self, doc, ctx):
-        return [rf.greedy_until(ctx, {'until': ["\n"]})]
+        return [rf.greedy_until(ctx, {"until": ["\n"]})]
 
     def doc_to_text(self, doc):
         return f"{doc['input']}\n\nQuestion: What is a summary of the preceding text?\nAnswer:"
@@ -294,8 +308,12 @@ class Qasper(_SCROLLSTask):
 
     def _process_doc(self, doc):
         doc = _process_doc_prepended_question(doc)
-        doc["is_yes_no"] = reduce(lambda prev, cur: prev and squad_metrics.normalize_answer(cur)
-                                  in ["yes", "no"], doc["outputs"], True)
+        doc["is_yes_no"] = reduce(
+            lambda prev, cur: prev
+            and squad_metrics.normalize_answer(cur) in ["yes", "no"],
+            doc["outputs"],
+            True,
+        )
         return [doc]
 
     def _scrolls_metrics(self):
@@ -308,9 +326,7 @@ class Qasper(_SCROLLSTask):
             prediction = "Unanswerable"
         else:
             prediction = results[0]
-        return {
-            "f1": (prediction, doc["outputs"])
-        }
+        return {"f1": (prediction, doc["outputs"])}
 
     def construct_requests(self, doc, ctx):
         if doc["is_yes_no"]:
@@ -318,7 +334,7 @@ class Qasper(_SCROLLSTask):
             ll_no, _ = rf.loglikelihood(ctx, " no")
             return [ll_yes, ll_no]
         else:
-            return [rf.greedy_until(ctx, {'until': ["\n"]})]
+            return [rf.greedy_until(ctx, {"until": ["\n"]})]
 
 
 class QuALITY(_SCROLLSMultipleChoiceTask):
@@ -340,8 +356,10 @@ class QuALITY(_SCROLLSMultipleChoiceTask):
         choices_text = doc["text"][:split]
 
         doc["text"] = doc["text"][split:].strip()
-        doc["choices"] = [QuALITY._normalize_answer(choice) for choice in re.split(
-            QuALITY._multiple_choice_pattern, choices_text)[1:]]
+        doc["choices"] = [
+            QuALITY._normalize_answer(choice)
+            for choice in re.split(QuALITY._multiple_choice_pattern, choices_text)[1:]
+        ]
         doc["gold"] = doc["choices"].index(QuALITY._normalize_answer(doc["outputs"][0]))
 
         return [doc]
@@ -368,12 +386,10 @@ class NarrativeQA(_SCROLLSTask):
         return self._process_doc(doc)[0]["text"]
 
     def process_results(self, doc, results):
-        return {
-            "f1": (results[0], doc["outputs"])
-        }
+        return {"f1": (results[0], doc["outputs"])}
 
     def construct_requests(self, doc, ctx):
-        return [rf.greedy_until(ctx, {'until': ["\n"]})]
+        return [rf.greedy_until(ctx, {"until": ["\n"]})]
 
 
 class ContractNLI(_SCROLLSMultipleChoiceTask):
@@ -439,5 +455,5 @@ def construct_tasks():
         "scrolls_contractnli": ContractNLI,
         "scrolls_govreport": GovReport,
         "scrolls_summscreenfd": SummScreenFD,
-        "scrolls_qmsum": QMSum
+        "scrolls_qmsum": QMSum,
     }

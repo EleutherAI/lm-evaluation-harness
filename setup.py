@@ -13,9 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/EleutherAI/lm-evaluation-harness",
     packages=setuptools.find_packages(),
-    package_data={
-        "lm_eval": ["**/*.json"]
-    },
+    package_data={"lm_eval": ["**/*.json"]},
     include_package_data=True,
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -26,6 +24,7 @@ setuptools.setup(
     python_requires=">=3.9",
     install_requires=[
         "datasets>=2.0.0",
+        "einops",
         "jsonlines",
         "numexpr",
         "openai>=0.6.4",

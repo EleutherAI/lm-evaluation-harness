@@ -19,6 +19,7 @@ _DeviceMapping = NewType("DeviceMapping", Mapping[str, Union[int, str, torch.dev
 
 
 def _get_accelerate_args(
+    low_cpu_mem_usage: Optional[bool] = True,
     device_map_option: Optional[str] = "auto",
     max_memory_per_gpu: Optional[Union[int, str]] = None,
     max_cpu_memory: Optional[Union[int, str]] = None,
@@ -38,6 +39,7 @@ def _get_accelerate_args(
     args = {}
     if max_memory:
         args["max_memory"] = max_memory
+    args["low_cpu_mem_usage"] = low_cpu_mem_usage
     args["device_map"] = device_map_option
     args["offload_folder"] = offload_folder
     return args
@@ -80,6 +82,7 @@ class HuggingFaceAutoLM(BaseLM):
         max_length: Optional[int] = None,
         add_special_tokens: Optional[bool] = None,
         use_accelerate: Optional[bool] = False,
+        low_cpu_mem_usage: Optional[bool] = True,
         device_map_option: Optional[str] = "auto",
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
@@ -91,8 +94,10 @@ class HuggingFaceAutoLM(BaseLM):
         load_in_4bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = True,
         gptq_use_triton: Optional[bool] = False,
+        inject_fused_attention: Optional[bool] = True,
         bnb_4bit_quant_type: Optional[str] = None,
         bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        bnb_4bit_use_double_quant: Optional[bool] = False,
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -113,6 +118,8 @@ class HuggingFaceAutoLM(BaseLM):
             use_accelerate (bool, optional, defaults to False):
                 If True, uses the `accelerate` library to load a large model across
                 multiple devices.
+            low_cpu_mem_usage (bool, optional, defaults to True):
+                It True, uses the `accelerate` library to accelerate loading the model.
             device_map_option (str, optional, defaults to "auto"):
                 The device map option to use when loading the model with
                 `accelerate`.
@@ -154,12 +161,17 @@ class HuggingFaceAutoLM(BaseLM):
                 If True, will trust the remote code when loading the model.
             gptq_use_triton (bool, optional, defaults to False):
                 Use Triton for GPTQ inference.
+            inject_fused_attention (bool, optional, defaults to True):
+                Inject fused attention into GPTQ model.
             bnb_4bit_quant_type (str, optional, defaults to None):
                 The quantization type to use for BnB 4bit quantization. See:
                 https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L77
             bnb_4bit_compute_dtype (Union[str, torch.dtype], optional, defaults to None):
                 The compute dtype to use for BnB 4bit quantization. See:
                 https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L74
+            bnb_4bit_use_double_quant (bool, optional, defaults to False):
+                Whether or not to use double quant to quantize the absmax.
+                https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L80
 
         """
         super().__init__()
@@ -210,6 +222,7 @@ class HuggingFaceAutoLM(BaseLM):
         model_kwargs = {}
         if use_accelerate:
             model_kwargs = _get_accelerate_args(
+                low_cpu_mem_usage,
                 device_map_option,
                 max_memory_per_gpu,
                 max_cpu_memory,
@@ -223,10 +236,12 @@ class HuggingFaceAutoLM(BaseLM):
             subfolder=subfolder,
             torch_dtype=_get_dtype(dtype, self._config),
             gptq_use_triton=gptq_use_triton,
+            inject_fused_attention=inject_fused_attention,
             load_in_8bit=load_in_8bit,
             load_in_4bit=load_in_4bit,
             bnb_4bit_quant_type=bnb_4bit_quant_type,
             bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
+            bnb_4bit_use_double_quant=bnb_4bit_use_double_quant,
             **model_kwargs,
         )
         # note: peft_path can be different than pretrained model path
@@ -251,7 +266,9 @@ class HuggingFaceAutoLM(BaseLM):
             try:
                 self.model.to(self._device)
             except:
-                print("Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore.")
+                print(
+                    "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
+                )
 
     def _create_auto_model(
         self,
@@ -260,6 +277,7 @@ class HuggingFaceAutoLM(BaseLM):
         quantized: Optional[Union[bool, str]] = False,
         revision: str,
         subfolder: str,
+        low_cpu_mem_usage: Optional[bool] = True,
         device_map: Optional[Union[str, _DeviceMapping]] = None,
         max_memory: Optional[dict] = None,
         offload_folder: Optional[str] = None,
@@ -268,13 +286,17 @@ class HuggingFaceAutoLM(BaseLM):
         trust_remote_code: Optional[bool] = False,
         torch_dtype: Optional[Union[str, torch.dtype]] = None,
         gptq_use_triton: Optional[bool] = False,
+        inject_fused_attention: Optional[bool] = True,
         bnb_4bit_quant_type: Optional[str] = None,
         bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        bnb_4bit_use_double_quant: Optional[bool] = False,
     ) -> transformers.AutoModel:
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
         if not quantized:
             if load_in_4bit:
-                assert transformers.__version__ >= "4.30.0", "load_in_4bit requires transformers >= 4.30.0"
+                assert (
+                    transformers.__version__ >= "4.30.0"
+                ), "load_in_4bit requires transformers >= 4.30.0"
             model_kwargs = {}
             if transformers.__version__ >= "4.30.0":
                 model_kwargs["load_in_4bit"] = load_in_4bit
@@ -282,10 +304,17 @@ class HuggingFaceAutoLM(BaseLM):
                     if bnb_4bit_quant_type:
                         model_kwargs["bnb_4bit_quant_type"] = bnb_4bit_quant_type
                     if bnb_4bit_compute_dtype:
-                        model_kwargs["bnb_4bit_compute_dtype"] = _get_dtype(bnb_4bit_compute_dtype)
+                        model_kwargs["bnb_4bit_compute_dtype"] = _get_dtype(
+                            bnb_4bit_compute_dtype
+                        )
+                    if bnb_4bit_use_double_quant:
+                        model_kwargs[
+                            "bnb_4bit_use_double_quant"
+                        ] = bnb_4bit_use_double_quant
             model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
+                low_cpu_mem_usage=low_cpu_mem_usage,
                 device_map=device_map,
                 max_memory=max_memory,
                 offload_folder=offload_folder,
@@ -296,15 +325,19 @@ class HuggingFaceAutoLM(BaseLM):
             )
         else:
             from auto_gptq import AutoGPTQForCausalLM
+
             model = AutoGPTQForCausalLM.from_quantized(
                 pretrained,
                 model_basename=None if quantized == True else Path(quantized).stem,
                 device_map=device_map,
                 max_memory=max_memory,
                 trust_remote_code=trust_remote_code,
-                use_safetensors=True if quantized == True else quantized.endswith('.safetensors'),
+                use_safetensors=True
+                if quantized == True
+                else quantized.endswith(".safetensors"),
                 use_triton=gptq_use_triton,
                 warmup_triton=gptq_use_triton,
+                inject_fused_attention=inject_fused_attention,
             )
         return model
 
