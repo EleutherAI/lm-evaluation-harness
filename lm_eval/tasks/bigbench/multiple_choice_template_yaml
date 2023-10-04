@@ -1,7 +1,7 @@
 group: bigbench
 dataset_path: hails/bigbench
 dataset_kwargs:
-  num_shots: 0 # TODO: num of shots should be controlled through this, not through the typical methods
+  # num_shots: 0 # TODO: num of shots for `bigbench` HF dataset should be controlled through this, not through the typical methods
   # subtask_name: null
 output_type: multiple_choice
 test_split: default
