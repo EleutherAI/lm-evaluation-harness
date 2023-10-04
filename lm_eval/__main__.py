@@ -14,6 +14,7 @@ from lm_eval.tasks import include_task_folder
 
 from typing import Union
 
+
 def parse_eval_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--model", required=True, help="Name of model e.g. `hf`")
@@ -136,8 +137,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
-                else:
-                    task_missing.append(task)
 
         if task_missing != []:
             missing = ", ".join(task_missing)
@@ -216,5 +215,5 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             print(evaluator.make_table(results, "groups"))
 
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
     cli_evaluate()
