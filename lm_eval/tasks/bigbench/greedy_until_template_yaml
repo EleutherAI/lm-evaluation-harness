@@ -1,5 +1,5 @@
 group: bigbench
-dataset_path: hails/bigbench
+dataset_path: bigbench # will switch to `hails/bigbench` when all tasks are pushed
 output_type: greedy_until
 dataset_kwargs:
   # num_shots: 0 # TODO: num of shots for `bigbench` HF dataset should be controlled through this, not through the typical methods
