@@ -14,6 +14,7 @@ import numpy as np
 import transformers
 nltk.download('punkt')
 tokenizer = nltk.tokenize.word_tokenize
+
 def unigram_shuffle(sentence):
     words = tokenizer(sentence)  # Tokenize the sentence into words
     words = words[2:-2]  #Don't include "Question:" and "Answer:" in shuffle
