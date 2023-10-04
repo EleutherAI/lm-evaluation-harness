@@ -47,8 +47,8 @@ lm_eval = ["**/*.yaml", "tasks/**/*"]
 examples = ["**/*.yaml"]
 
 [project.scripts]
-lm-eval = "main:main"
-lm_eval = "main:main"
+lm-eval = "lm_eval.main:main"
+lm_eval = "lm_eval.main:main"
 
 [project.urls]
 Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
