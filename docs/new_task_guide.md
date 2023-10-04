@@ -258,7 +258,7 @@ You can do this via adding the Python snippet
 from lm_eval.tasks import include_task_folder
 include_task_folder("/path/to/yaml/parent/folder")
 ```
-to the top of any Python file that is run or imported when performing evaluation, such as `main.py`.
+to the top of any Python file that is run or imported when performing evaluation, such as `\_\_main\_\_.py`.
 
 Passing `--tasks /path/to/yaml/file` is also accepted.
 
