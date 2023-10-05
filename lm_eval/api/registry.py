@@ -117,24 +117,23 @@ def register_metric(**args):
     return decorate
 
 
-def get_metric(name):
+def get_metric(name, hf_evaluate_metric=False):
+
+    if not hf_evaluate_metric:
+        if name in METRIC_REGISTRY:
+            return METRIC_REGISTRY[name]
+        else:
+            eval_logger.warning(
+                f"Could not find registered metric '{name}' in lm-eval, searching in HF Evaluate library..."
+            )
 
     try:
-        return METRIC_REGISTRY[name]
-    except KeyError:
-        # TODO: change this print to logging?
-        print(
-            f"Could not find registered metric '{name}' in lm-eval, \
-searching in HF Evaluate library..."
+        metric_object = evaluate.load(name)
+        return metric_object.compute
+    except Exception:
+        eval_logger.error(
+            f"{name} not found in the evaluate library! Please check https://huggingface.co/evaluate-metric",
         )
-        try:
-            metric_object = evaluate.load(name)
-            return metric_object.compute
-        except Exception:
-            eval_logger.error(
-                "{} not found in the evaluate library!".format(name),
-                "Please check https://huggingface.co/evaluate-metric",
-            )
 
 
 def register_aggregation(name):

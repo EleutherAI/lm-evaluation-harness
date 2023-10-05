@@ -555,8 +555,13 @@ class ConfigurableTask(Task):
                 kwargs = {
                     key: metric_config[key]
                     for key in metric_config
-                    if key not in ["metric", "aggregation", "higher_is_better"]
+                    if key
+                    not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
                 }
+                hf_evaluate_metric = (
+                    "hf_evaluate" in metric_config
+                    and metric_config["hf_evaluate"] is True
+                )
 
                 if self.config.process_results is not None:
                     self._metric_fn_list[metric_name] = None
@@ -567,7 +572,9 @@ class ConfigurableTask(Task):
                     self._metric_fn_list[metric_name] = metric_fn
                     self._metric_fn_kwargs[metric_name] = kwargs
                 else:
-                    self._metric_fn_list[metric_name] = get_metric(metric_name)
+                    self._metric_fn_list[metric_name] = get_metric(
+                        metric_name, hf_evaluate_metric
+                    )
                     self._metric_fn_kwargs[metric_name] = kwargs
 
                 if "aggregation" in metric_config:
@@ -1068,6 +1075,7 @@ class ConfigurableTask(Task):
 
         elif self.OUTPUT_TYPE == "greedy_until":
             gold = self.doc_to_target(doc)
+            result = results[0]
             if self.config.doc_to_choice is not None:
                 # If you set doc_to_choice,
                 # it assumes that doc_to_target returns a number.
@@ -1076,10 +1084,10 @@ class ConfigurableTask(Task):
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)
-            else:
-                gold = str(gold)
+            elif type(gold) != type(result):
+                # cast gold to the same type as result
+                gold = type(result)(gold)
 
-            result = results[0]
             for metric in self._metric_fn_list.keys():
                 if self.multiple_target:
                     # in the case where we have multiple targets,
