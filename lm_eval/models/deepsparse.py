@@ -27,6 +27,7 @@ class DeepSparseLM(BaseLM):
             task="text-generation",
             model_path=pretrained,
             sequence_length=max_length or self._DEFAULT_MAX_LENGTH,
+            prompt_sequence_length=16,
             trust_remote_code=trust_remote_code,
             batch_size=batch_size,
         )
