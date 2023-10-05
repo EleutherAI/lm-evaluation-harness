@@ -141,8 +141,6 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
                 except Exception as error:
                     import traceback
 
-                    print("###")
-                    print(yaml_path)
                     eval_logger.warning(
                         "Failed to load config in\n"
                         f"                                 {yaml_path}\n"
