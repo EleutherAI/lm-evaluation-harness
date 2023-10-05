@@ -6,7 +6,7 @@ Title: `Beyond the Imitation Game: Quantifying and extrapolating the capabilitie
 
 Abstract: https://arxiv.org/abs/2206.04615
 
-The Beyond the Imitation Game Benchmark (BIG-bench) is a collaborative benchmark intended to probe large language models and extrapolate their future capabilities. 
+The Beyond the Imitation Game Benchmark (BIG-bench) is a collaborative benchmark intended to probe large language models and extrapolate their future capabilities.
 
 Homepage: https://github.com/google/BIG-bench
 
