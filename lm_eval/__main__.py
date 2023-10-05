@@ -12,10 +12,10 @@ from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger, SPACING
 from lm_eval.tasks import include_path
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
+from typing import Union
 
 
-def parse_args() -> argparse.Namespace:
+def parse_eval_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--model", required=True, help="Name of model e.g. `hf`")
     parser.add_argument(
@@ -100,8 +100,13 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def main() -> None:
-    args = parse_args()
+def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
+
+    if not args:
+        # we allow for args to be passed externally, else we parse them ourselves
+        args = parse_eval_args()
+
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     if args.limit:
         eval_logger.warning(
@@ -132,8 +137,6 @@ def main() -> None:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
-                else:
-                    task_missing.append(task)
 
         if task_missing != []:
             missing = ", ".join(task_missing)
@@ -213,4 +216,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    cli_evaluate()

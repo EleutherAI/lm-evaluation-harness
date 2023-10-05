@@ -4,7 +4,7 @@ This document details the interface exposed by `lm-eval` and provides details on
 
 ## Command-line Interface
 
-A majority of users run the library by cloning it from Github and running the `main.py` script.
+A majority of users run the library by cloning it from Github, installing the package as editable, and running the `python -m lm_eval` script.
 
 Equivalently, running the library can be done via the `lm-eval` entrypoint at the command line.
 
