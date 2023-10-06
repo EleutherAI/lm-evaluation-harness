@@ -1,0 +1,8 @@
+dataset_name: us_foreign_policy
+description: 'The following are multiple choice questions (with answers) about us
+  foreign policy.
+
+
+  '
+include: _mmlu_flan_generative_template_yaml
+task: mmlu_flan_cot_zeroshot_us_foreign_policy

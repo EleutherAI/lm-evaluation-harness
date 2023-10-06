@@ -6,6 +6,7 @@ task:
     use_prompt: promptsource:*
     training_split: train
     validation_split: validation
+    output_type: greedy_until
     metric_list:
       - metric: exact_match
         aggregation: mean
@@ -18,6 +19,7 @@ task:
     use_prompt: promptsource:*
     training_split: train
     validation_split: validation
+    output_type: greedy_until
     metric_list:
       - metric: exact_match
         aggregation: mean
@@ -42,6 +44,7 @@ task:
     use_prompt: promptsource:*
     training_split: train
     validation_split: validation
+    output_type: greedy_until
     metric_list:
       - metric: exact_match
         aggregation: mean
@@ -53,6 +56,7 @@ task:
     use_prompt: promptsource:*
     training_split: train_r1
     validation_split: dev_r1
+    output_type: greedy_until
     metric_list:
       - metric: exact_match
         aggregation: mean
@@ -64,6 +68,7 @@ task:
     use_prompt: promptsource:*
     training_split: train_r2
     validation_split: dev_r2
+    output_type: greedy_until
     metric_list:
       - metric: exact_match
         aggregation: mean
@@ -75,6 +80,7 @@ task:
     use_prompt: promptsource:*
     training_split: train_r3
     validation_split: dev_r3
+    output_type: greedy_until
     metric_list:
       - metric: exact_match
         aggregation: mean
@@ -87,6 +93,7 @@ task:
     use_prompt: promptsource:*
     training_split: train
     validation_split: validation
+    output_type: greedy_until
     metric_list:
       - metric: exact_match
         aggregation: mean
@@ -98,6 +105,7 @@ task:
     use_prompt: promptsource:*
     training_split: train
     validation_split: validation
+    output_type: greedy_until
     metric_list:
       - metric: exact_match
         aggregation: mean
@@ -110,6 +118,7 @@ task:
     use_prompt: promptsource:*
     training_split: train
     validation_split: validation
+    output_type: greedy_until
     metric_list:
       - metric: exact_match
         aggregation: mean

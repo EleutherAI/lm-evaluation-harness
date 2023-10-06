@@ -12,8 +12,6 @@ doc_to_choice: "{% set group_id = idx.question|string %}{{[group_id+'_False', gr
 generation_kwargs:
   until:
     - "</s>"
-  do_sample: false
-  temperature: 0.5
 metric_list:
   - metric: !function t5_utils.f1
     aggregation: !function t5_utils.agg_f1
