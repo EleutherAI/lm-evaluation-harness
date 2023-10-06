@@ -1,0 +1,23 @@
+# Flan Prompt Templates
+prompts:
+  "template-0":
+    doc_to_text: "{{question}}\n\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+    doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+  "template-1":
+    doc_to_text: "Question: {{question}}\nOPTIONS:\n- {{choices.text|join('\n- ')}}\nAnswer:"
+    doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+  "template-2":
+    doc_to_text: "Question: {{question}}\n\nWhat is the correct answer to the question from the following choices?\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+    doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+  "template-3":
+    doc_to_text: "Q: {{question}}\nWhat is the correct answer to this question?\nOPTIONS:\n- {{choices.text|join('\n- ')}}...A:"
+    doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+  "template-4":
+    doc_to_text: "Choose your answer?\n\n{{question}}\n\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+    doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+  "template-5":
+    doc_to_text: "Answer the question\n\n{{question}}\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+    doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+  "template-6":
+    doc_to_text: "{{question}}\n\nPick the answer from these options\n\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+    doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"

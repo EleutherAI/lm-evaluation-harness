@@ -1,0 +1,7 @@
+group: flan_boolq
+task:
+  - include: yaml_templates/held_in_template_yaml
+    dataset_path: super_glue
+    dataset_name: boolq
+    use_prompt: prompt_templates/boolq.yaml:*
+    validation_split: validation

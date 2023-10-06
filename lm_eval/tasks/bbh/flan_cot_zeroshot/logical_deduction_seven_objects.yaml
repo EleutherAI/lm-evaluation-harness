@@ -1,0 +1,5 @@
+"dataset_name": "logical_deduction_seven_objects"
+"description": "A logical deduction task which requires deducing the order of a sequence of objects.\n\n"
+"doc_to_text": "Q: {{input}}\nA: Let's think step by step.\n"
+"include": "_flan_cot_zeroshot_template_yaml"
+"task": "bbh_flan_cot_zeroshot_logical_deduction_seven_objects"
