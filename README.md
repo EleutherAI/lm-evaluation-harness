@@ -248,16 +248,23 @@ You can also ask for help, or discuss new features with the maintainers in the #
 @software{eval-harness,
   author       = {Gao, Leo and
                   Tow, Jonathan and
+                  Abbasi, Baber and
                   Biderman, Stella and
                   Black, Sid and
                   DiPofi, Anthony and
                   Foster, Charles and
                   Golding, Laurence and
                   Hsu, Jeffrey and
+                  Le Noac'h, Alain and
+                  Li, Haonan and
                   McDonell, Kyle and
                   Muennighoff, Niklas and
+                  Ociepa, Chris
                   Phang, Jason and
                   Reynolds, Laria and
+                  Schoelkopf, Hailey and
+                  Skowron, Aviya and
+                  Sutawika, Lintang and
                   Tang, Eric and
                   Thite, Anish and
                   Wang, Ben and
