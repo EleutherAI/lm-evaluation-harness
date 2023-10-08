@@ -27,7 +27,9 @@ def register_configurable_task(config: Dict[str, str]) -> int:
         register_task(task_name)(SubClass)
 
     if "group" in config:
-        if type(config["group"]) == str:
+        if config["group"] == config["task"]:
+            raise ValueError("task and group name cannot be the same")
+        elif type(config["group"]) == str:
             group_name = [config["group"]]
         else:
             group_name = config["group"]
@@ -45,7 +47,6 @@ def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -
     task_list = [task for task in all_task_list if type(task) == str]
 
     for task_config in config_list:
-
         task_config = utils.load_yaml_config(yaml_path, task_config)
         var_configs = check_prompt_config(
             {
@@ -137,7 +138,10 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
                         else:
                             if type(config["task"]) == list:
                                 register_configurable_group(config, yaml_path)
-
+                except ModuleNotFoundError as e:
+                    eval_logger.warning(
+                        f"{yaml_path}: {e}. Config will not be added to registry."
+                    )
                 except Exception as error:
                     import traceback
 
@@ -187,7 +191,6 @@ def get_task_name_from_object(task_object):
 
 # TODO: pass num_fewshot and other cmdline overrides in a better way
 def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
-
     config = {**kwargs}
 
     task_name_from_registry_dict = {}
@@ -199,7 +202,6 @@ def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
 
     for task_element in task_name_list:
         if isinstance(task_element, str):
-
             if task_element in GROUP_REGISTRY:
                 group_name = task_element
                 for task_name in GROUP_REGISTRY[task_element]:
@@ -237,7 +239,6 @@ def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
             }
 
         elif isinstance(task_element, Task):
-
             task_name_from_object_dict = {
                 **task_name_from_object_dict,
                 get_task_name_from_object(task_element): task_element,

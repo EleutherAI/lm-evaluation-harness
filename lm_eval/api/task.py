@@ -99,7 +99,7 @@ class TaskConfig(dict):
         if self.generation_kwargs is not None:
             if self.output_type != "greedy_until":
                 eval_logger.warning(
-                    "passed `generation_kwargs`, but not using `output_type: greedy_until`!"
+                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: greedy_until`!"
                 )
                 assert self.output_type != "greedy_until"
 
@@ -759,7 +759,6 @@ class ConfigurableTask(Task):
             return super().fewshot_docs()
 
     def apply_filters(self):
-
         if hasattr(self, "_filters"):
             for f in self._filters:
                 f.apply(self._instances, self.task_docs)
@@ -967,7 +966,6 @@ class ConfigurableTask(Task):
         )
 
     def process_results(self, doc, results):
-
         if callable(self.config.process_results):
             return self.config.process_results(doc, results)
 
@@ -1104,7 +1102,9 @@ class ConfigurableTask(Task):
                                 predictions=[result],
                                 **self._metric_fn_kwargs[metric],
                             )
-                        except TypeError:  # TODO: this is hacky and I don't want to do it
+                        except (
+                            TypeError
+                        ):  # TODO: this is hacky and I don't want to do it
                             result_score = self._metric_fn_list[metric](
                                 [gold_option, result]
                             )
@@ -1123,7 +1123,9 @@ class ConfigurableTask(Task):
                             predictions=[result],
                             **self._metric_fn_kwargs[metric],
                         )
-                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                    except (
+                        TypeError
+                    ):  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.
