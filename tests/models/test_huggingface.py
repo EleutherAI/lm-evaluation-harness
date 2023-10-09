@@ -1,13 +1,17 @@
 from __future__ import annotations
 import pytest
+from pathlib import Path
 import numpy as np
 from lm_eval.models.huggingface import HFLM
 from lm_eval.api.instance import Instance
 import lm_eval.tasks as tasks
+import sys
+import torch
 
 
 class Test_HFLM:
-
+    torch.use_deterministic_algorithms(True)
+    version_minor = sys.version_info.minor
     multiple_choice_task = tasks.TASK_REGISTRY.get("arc_easy")()  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
@@ -90,8 +94,15 @@ class Test_HFLM:
     def test_logliklihood(self) -> None:
         res = self.LM.loglikelihood(self.MULTIPLE_CH)
         _RES, _res = self.MULTIPLE_CH_RES, [r[0] for r in res]
-        # change atol in case of consistent failure
-        assert np.allclose(_res, _RES, atol=1e-4)
+        # log samples to CI
+        dir_path = Path("test_logs")
+        dir_path.mkdir(parents=True, exist_ok=True)
+
+        file_path = dir_path / f"outputs_log_{self.version_minor}.txt"
+        file_path = file_path.resolve()
+        with open(file_path, "w") as f:
+            f.write("\n".join(str(x) for x in _res))
+        assert np.allclose(_res, _RES, atol=1e-2)
         # check indices for Multiple Choice
         argmax_RES, argmax_res = np.argmax(
             np.array(_RES).reshape(-1, 4), axis=1

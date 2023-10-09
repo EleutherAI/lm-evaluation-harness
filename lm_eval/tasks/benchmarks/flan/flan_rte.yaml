@@ -1,0 +1,7 @@
+group: flan_rte
+task:
+  - include: yaml_templates/held_in_template_yaml
+    dataset_path: super_glue
+    dataset_name: rte
+    use_prompt: prompt_templates/rte.yaml:*
+    validation_split: validation

@@ -1,0 +1,39 @@
+group: flan_held_in
+task:
+  - include: flan/yaml_templates/held_in_template_yaml
+    dataset_path: super_glue
+    dataset_name: boolq
+    use_prompt: flan/prompt_templates/boolq.yaml:*
+    validation_split: validation
+  - include: flan/yaml_templates/held_in_template_yaml
+    dataset_path: super_glue
+    dataset_name: rte
+    use_prompt: flan/prompt_templates/rte.yaml:*
+    validation_split: validation
+  - include: flan/yaml_templates/held_in_template_yaml
+    task: anli_r1
+    dataset_path: anli
+    use_prompt: flan/prompt_templates/anli.yaml:*
+    validation_split: dev_r1
+  - include: flan/yaml_templates/held_in_template_yaml
+    task: anli_r2
+    dataset_path: anli
+    use_prompt: flan/prompt_templates/anli.yaml:*
+    validation_split: dev_r2
+  - include: flan/yaml_templates/held_in_template_yaml
+    task: anli_r3
+    dataset_path: anli
+    use_prompt: flan/prompt_templates/anli.yaml:*
+    validation_split: dev_r3
+  - include: flan/yaml_templates/held_in_template_yaml
+    task: arc_easy
+    dataset_path: ai2_arc
+    dataset_name: ARC-Easy
+    use_prompt: flan/prompt_templates/arc.yaml:*
+    validation_split: validation
+  - include: flan/yaml_templates/held_in_template_yaml
+    task: arc_challenge
+    dataset_path: ai2_arc
+    dataset_name: ARC-Challenge
+    use_prompt: flan/prompt_templates/arc.yaml:*
+    validation_split: validation

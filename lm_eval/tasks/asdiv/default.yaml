@@ -1,5 +1,5 @@
 task: asdiv
-dataset_path: lm_eval.datasets.asdiv.asdiv
+dataset_path: EleutherAI/asdiv
 output_type: loglikelihood
 validation_split: validation
 doc_to_text: "{{body}}\nQuestion:{{question}}\nAnswer:"

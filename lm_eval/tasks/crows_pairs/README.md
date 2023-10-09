@@ -93,10 +93,9 @@ All tasks evaluate the percentage of more-stereotypical sentences that are rated
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
   * [x] If yes, does the original paper provide a reference implementation?
-    * [x] The original paper does not for causal language models, so
+    * [x] The original paper does not for causal language models, so this is a novel formulation of the task for autoregressive LMs.
 
 If other tasks on this dataset are already supported:
 * [x] Is the "Main" variant of this task clearly denoted?
 * [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
-  * [x] This matches the evaluations performed in the [Pythia paper](https://arxiv.org/abs/2304.01373)
