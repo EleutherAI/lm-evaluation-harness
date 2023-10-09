@@ -5,8 +5,8 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 
 - [x] Glue
 - [x] SuperGlue
-- [ ] CoQA (Lintang)
-- [ ] DROP (Lintang)
+- [x] CoQA
+- [x] DROP
 - [x] ~~Lambada~~
 - [x] Lambada (Cloze variants)
 - [x] ~~Lambada (Multilingual)~~
@@ -16,7 +16,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] MCTACO
 - [x] Pubmed QA
 - [x] SciQ
-- [ ] QASPER
+- [x] QASPER
 - [x] QA4MRE
 - [x] TriviaQA
 - [x] AI2 ARC
@@ -29,20 +29,20 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] HeadQA
 - [x] MathQA
 - [x] WebQs
-- [ ] WSC273 (Lintang)
+- [x] WSC273
 - [x] Winogrande
 - [x] ANLI
 - [x] Hendrycks Ethics (missing some tasks/metrics, see PR 660: <https://github.com/EleutherAI/lm-evaluation-harness/pull/660> for more info)
 - [x] TruthfulQA (mc1)
 - [x] TruthfulQA (mc2)
 - [x] TruthfulQA (gen)
-- [ ] MuTual
+- [x] MuTual
 - [ ] Hendrycks Math (Hailey)
 - [x] Asdiv
 - [ ] GSM8k
 - [x] Arithmetic
 - [ ] MMMLU (Hailey)
-- [ ] Translation (WMT) suite (Hailey)
+- [x] Translation (WMT) suite
 - [x] Unscramble
 - [x] ~~Pile (perplexity)~~
 - [x] BLiMP
@@ -56,7 +56,7 @@ Boxes should be checked iff tasks are implemented in the refactor and tested for
 - [x] XWinograd
 - [x] PAWS-X
 - [x] XNLI
-- [ ] MGSM (Lintang)
+- [x] MGSM
 - [ ] SCROLLS
 - [x] Babi
 

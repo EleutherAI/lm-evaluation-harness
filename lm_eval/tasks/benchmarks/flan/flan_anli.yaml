@@ -1,0 +1,17 @@
+group: flan_anli
+task:
+  - include: yaml_templates/held_in_template_yaml
+    task: anli_r1
+    dataset_path: anli
+    use_prompt: prompt_templates/anli.yaml:*
+    validation_split: dev_r1
+  - include: yaml_templates/held_in_template_yaml
+    task: anli_r2
+    dataset_path: anli
+    use_prompt: prompt_templates/anli.yaml:*
+    validation_split: dev_r2
+  - include: yaml_templates/held_in_template_yaml
+    task: anli_r3
+    dataset_path: anli
+    use_prompt: prompt_templates/anli.yaml:*
+    validation_split: dev_r3

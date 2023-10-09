@@ -1,3 +1,5 @@
+import os
+
 import torch
 import transformers
 from transformers.models.auto.modeling_auto import (
@@ -20,7 +22,7 @@ from lm_eval.api.registry import register_model
 
 from lm_eval.utils import MultiTokenEOSCriteria, stop_sequences_criteria
 
-from accelerate import Accelerator, find_executable_batch_size
+from accelerate import Accelerator, find_executable_batch_size, DistributedType
 from typing import List, Optional, Union
 
 
@@ -67,6 +69,7 @@ class HFLM(LM):
         revision: Optional[str] = "main",
         subfolder: Optional[str] = None,
         tokenizer: Optional[str] = None,
+        truncation: Optional[bool] = False,
         max_length: Optional[int] = None,
         device: Optional[str] = "cuda",
         dtype: Optional[Union[str, torch.dtype]] = "auto",
@@ -75,6 +78,7 @@ class HFLM(LM):
         low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
+        cache_dir: Optional[Union[str, os.PathLike]] = None,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
         parallelize: Optional[bool] = False,
@@ -90,7 +94,7 @@ class HFLM(LM):
         bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
         gptq: Optional[Union[bool, str]] = False,
         gptq_use_triton: Optional[bool] = False,
-    ):
+    ) -> None:
         super().__init__()
 
         assert isinstance(device, str)
@@ -103,17 +107,20 @@ class HFLM(LM):
         if not (parallelize or accelerator.num_processes > 1):
             # use user-passed device
             device_list = set(
-                ["cuda", "cpu", "mps"]
+                ["cuda", "cpu"]
                 + [f"cuda:{i}" for i in range(torch.cuda.device_count())]
+                + ["mps", "mps:0"]
             )
             if device:
                 if device not in device_list:
                     device = int(device)
                 self._device = torch.device(device)
                 eval_logger.info(f"Using device '{device}'")
-                if device == "mps":
+                if device in ("mps", "mps:0") and "dev" not in torch.__version__:
                     eval_logger.info(
-                        "MPS is still in beta and only supports float32; setting dtype to float32."
+                        "MPS: Setting dtype to float32. To use float16 with MPS, please install a nightly build of "
+                        "PyTorch: pip3 install --pre torch torchvision torchaudio --index-url "
+                        "https://download.pytorch.org/whl/nightly/cpu"
                     )
             else:
                 eval_logger.info("Device not specified")
@@ -240,6 +247,8 @@ class HFLM(LM):
             use_fast=use_fast_tokenizer,
         )
 
+        self.truncation = truncation
+
         self.vocab_size = self.tokenizer.vocab_size
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
 
@@ -289,9 +298,16 @@ class HFLM(LM):
                         "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
                     )
             else:
-                self._model = accelerator.prepare_model(
-                    self.model, evaluation_mode=True
-                )
+                assert accelerator.distributed_type in [
+                    DistributedType.FSDP,
+                    DistributedType.MULTI_GPU,
+                ], "Unsupported distributed type provided. Only DDP and FSDP are supported."
+                if accelerator.distributed_type == DistributedType.FSDP:
+                    self._model = accelerator.prepare(self.model)
+                else:
+                    self._model = accelerator.prepare_model(
+                        self.model, evaluation_mode=True
+                    )
                 self._device = torch.device(f"cuda:{accelerator.local_process_index}")
                 self.accelerator = accelerator
 
@@ -334,7 +350,7 @@ class HFLM(LM):
         return self._DEFAULT_MAX_LENGTH
 
     @property
-    def max_gen_toks(self):
+    def max_gen_toks(self) -> int:
         return 256
 
     @property
@@ -353,7 +369,7 @@ class HFLM(LM):
     def world_size(self):
         return self._world_size
 
-    def _detect_batch_size(self, requests=None, pos=0):
+    def _detect_batch_size(self, requests=None, pos: int = 0):
         if requests:
             _, context_enc, continuation_enc = requests[pos]
             max_length = len(
@@ -403,12 +419,13 @@ class HFLM(LM):
         utils.clear_torch_cache()
         return batch_size
 
-    def tok_encode(self, string: str, left_truncate_len=None):
+    def tok_encode(self, string: str, left_truncate_len=None, add_special_tokens=None):
         """ """
-        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            add_special_tokens = False
-        elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
-            add_special_tokens = True
+        if add_special_tokens is None:
+            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+                add_special_tokens = False
+            elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
+                add_special_tokens = True
 
         encoding = self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
 
@@ -419,7 +436,11 @@ class HFLM(LM):
         return encoding
 
     def tok_batch_encode(
-        self, strings: List[str], padding_side="left", left_truncate_len=None
+        self,
+        strings: List[str],
+        padding_side: str = "left",
+        left_truncate_len: int = None,
+        truncation: bool = False,
     ):
         # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
         old_padding_side = self.tokenizer.padding_side
@@ -432,6 +453,7 @@ class HFLM(LM):
 
         encoding = self.tokenizer(
             strings,
+            truncation=truncation,
             padding="longest",
             return_tensors="pt",
             add_special_tokens=add_special_tokens,
@@ -487,7 +509,7 @@ class HFLM(LM):
             self.tokenizer, stop, 1, context.shape[0]
         )
         return self.model.generate(
-            context,
+            input_ids=context,
             max_length=max_length,
             stopping_criteria=stopping_criteria,
             pad_token_id=self.eot_token_id,
@@ -518,8 +540,12 @@ class HFLM(LM):
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
             context = context[:-n_spaces]
-        whole_enc = self.tok_encode(context + continuation)
-        context_enc = self.tok_encode(context)
+
+        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
+        context_enc = self.tok_encode(context, add_special_tokens=False)
+
+        # whole_enc = self.tok_encode(context + continuation)
+        # context_enc = self.tok_encode(context, add_special_tokens=False)
         context_enc_len = len(context_enc)
         continuation_enc = whole_enc[context_enc_len:]
         return context_enc, continuation_enc
@@ -595,7 +621,9 @@ class HFLM(LM):
 
         return loglikelihoods
 
-    def _loglikelihood_tokens(self, requests, disable_tqdm=False, override_bs=None):
+    def _loglikelihood_tokens(
+        self, requests, disable_tqdm: bool = False, override_bs=None
+    ):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 
@@ -856,7 +884,9 @@ class HFLM(LM):
 
                 # encode, pad, and truncate contexts for this batch
                 context_enc, attn_masks = self.tok_batch_encode(
-                    contexts, left_truncate_len=max_ctx_len
+                    contexts,
+                    left_truncate_len=max_ctx_len,
+                    truncation=self.truncation,
                 )
                 context_enc = context_enc.to(self.device)
                 attn_masks = attn_masks.to(self.device)

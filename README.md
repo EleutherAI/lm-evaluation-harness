@@ -9,8 +9,8 @@ We’d like your help to test it out! you can help by:
 2. Porting tasks supported in the previous version of the harness to the new YAML configuration format. Please check out our [task implementation guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/new_task_guide.md) for more information.
 
 If you choose to port a task not yet completed according to [our checklist](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/tasks/README.md), then you can contribute it by opening a PR containing [Refactor] in the name with:
-- A command of the form `python main.py --model hf --model_args ..... --tasks <task name> ...` which will run the task in the `master` branch, and what the score is
-- A command of the form `python main.py --model hf --model_args ..... --tasks <task name> ...` to run the task in your PR branch to `big-refactor`, and what the resulting score is, to show that we achieve equality between the two implementations.
+- A command of the form `python -m lm_eval --model hf --model_args ..... --tasks <task name> ...` which will run the task in the `master` branch, and what the score is
+- A command of the form `python -m lm_eval --model hf --model_args ..... --tasks <task name> ...` to run the task in your PR branch to `big-refactor`, and what the resulting score is, to show that we achieve equality between the two implementations.
 
 Lastly, we'll no longer be accepting new feature requests beyond those that are already open to the master branch as we carry out this switch to the new version over the next week, though we will be accepting bugfixes to `master` branch and PRs to `big-refactor`. Feel free to reach out in the #lm-thunderdome channel of the EAI discord for more information.
 
@@ -67,7 +67,7 @@ To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/model
 
 
 ```bash
-python main.py \
+python -m lm_eval \
     --model hf \
     --model_args pretrained=EleutherAI/gpt-j-6B \
     --tasks hellaswag \
@@ -78,7 +78,7 @@ python main.py \
 Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partially trained checkpoints, or to specify the datatype for running a model:
 
 ```bash
-python main.py \
+python -m lm_eval \
     --model hf \
     --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
     --tasks lambada_openai,hellaswag \
@@ -91,7 +91,7 @@ Models that are loaded via either `transformers.AutoModelForCausalLM` (autoregre
 Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
 
 ```bash
-python main.py \
+python -m lm_eval \
     --model hf \
     --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
     --tasks lambada_openai,hellaswag \
@@ -99,7 +99,7 @@ python main.py \
     --batch_size auto:4
 ```
 
-Alternatively, you can use `lm-eval` instead of `python main.py` to call lm eval from anywhere.
+Alternatively, you can use `lm-eval` or `lm_eval` instead of `python -m lm_eval` to call lm eval from anywhere.
 
 ### Multi-GPU Evaluation with Hugging Face `accelerate`
 
@@ -108,7 +108,7 @@ To parallelize evaluation of HuggingFace models across multiple GPUs, we allow f
 The first is performed by launching evaluation via the `accelerate` library as follows:
 
 ```
-accelerate launch main.py \
+accelerate launch -m lm_eval \
     --model hf \
     --tasks lambada_openai,arc_easy \
     --batch_size 16 \
@@ -116,10 +116,12 @@ accelerate launch main.py \
 
 This will perform *data-parallel evaluation*: that is, placing a **single full copy** of your model onto each available GPU and *splitting batches across GPUs* to evaluate on K GPUs K times faster than on one.
 
-However, if your model *is too large to be run on a single one of your GPUs*, then we provide an alternative method to run these large models: use of the `parallelize` argument.
+If your model is *is too large to be run on a single one of your GPUs* then you can use `accelerate` with Fully Sharded Data Parallel (FSDP) that splits the weights of the model across your data parallel ranks. To enable this, ensure you select `YES` when asked ```Do you want to use FullyShardedDataParallel?``` when running `accelerate config`. To enable memory-efficient loading, select `YES` when asked `Do you want each individually wrapped FSDP unit to broadcast module parameters from rank 0 at the start?`. This will ensure only the rank 0 process loads the model and then broadcasts the parameters to the other ranks instead of having each rank load all parameters which can lead to large RAM usage spikes around the start of the script that may cause errors.
 
+
+We also provide an second method to run these large models: use of the `parallelize` argument.
 ```
-python main.py \
+python -m lm_eval \
     --model hf \
     --model_args pretrained=EleutherAI/pythia-12b,parallelize=True
     --tasks lambada_openai,arc_easy \
@@ -132,9 +134,9 @@ To pass even more advanced keyword arguments to `accelerate`, we allow for the f
 - `max_cpu_memory`: the max amount of CPU memory to use when offloading the model weights to RAM.
 - `offload_folder`: a folder where model weights will be offloaded to disk if needed.
 
-Using this setting helps for massive models like BLOOM which require, or to avoid exceeding your total system RAM (by default, with `accelerate launch` one copy of the model for each GPU is initialized in RAM before moving it to GPU, resulting in large RAM usage spikes around the start of the script that may cause errors such as `Killed`.) However, it naively splits models across GPUs, resulting in only a single GPU performing work at any point in time, and so is much slower than launching with `accelerate launch`, possibly by a factor of the total # of GPUs.
+Note that this method naively splits models across GPUs, resulting in only a single GPU performing work at any point in time, and so is much slower than launching with `accelerate launch`, possibly by a factor of the total # of GPUs.
 
-**Note that this option requires launching evaluation via `python main.py` rather than `accelerate launch main.py`.**
+**Note that this option requires launching evaluation via `python -m lm_eval` rather than `accelerate launch -m lm_eval`.**
 
 To use `accelerate` with the `lm-eval` command, use
 ```
@@ -165,7 +167,7 @@ Our library supports language models served via the OpenAI Completions API as fo
 
 ```bash
 export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
-python main.py \
+python -m lm_eval \
     --model openai-completions \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag
@@ -196,7 +198,7 @@ This will write out one text file for each task.
 To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
 
 ```bash
-python main.py \
+python -m lm_eval \
     --model openai \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag \
@@ -207,7 +209,7 @@ python main.py \
 
 For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
 ```bash
-python main.py \
+python -m lm_eval \
     --model hf \
     --model_args pretrained=EleutherAI/gpt-j-6b,parallelize=True,load_in_4bit=True,peft=nomic-ai/gpt4all-j-lora \
     --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
@@ -217,7 +219,7 @@ python main.py \
 [GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,gptq=NAME` (or `,gptq=True` for default names) in the `model_args` argument:
 
 ```bash
-python main.py \
+python -m lm_eval \
     --model hf \
     --model_args pretrained=model-name-or-path,gptq=model.safetensors,gptq_use_triton=True \
     --tasks hellaswag

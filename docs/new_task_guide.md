@@ -214,7 +214,7 @@ metric_list:
 ```
 `aggregation` and `higher_is_better` can optionally be left out to default to the manually-set defaults if using a natively supported metric, otherwise it must be defined explicitly (for example, when using a custom metric implemented as a function).
 
-For a full list of natively supported metrics and aggregation functions see `docs/advanced_task_guide.md`. All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval`.
+For a full list of natively supported metrics and aggregation functions see `docs/advanced_task_guide.md`. All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval` or `hf_evaluate` is set to `true`.
 
 ### Optional, More Advanced Setup
 
@@ -258,7 +258,7 @@ You can do this via adding the Python snippet
 from lm_eval.tasks import include_task_folder
 include_task_folder("/path/to/yaml/parent/folder")
 ```
-to the top of any Python file that is run or imported when performing evaluation, such as `main.py`.
+to the top of any Python file that is run or imported when performing evaluation, such as `\_\_main\_\_.py`.
 
 Passing `--tasks /path/to/yaml/file` is also accepted.
 

@@ -1,11 +1,11 @@
-def doc_to_text(doc):
-    ctxs = "\n".join(doc["context"]["contexts"])
+def doc_to_text(doc) -> str:
+    ctxs = "\n".join(doc["CONTEXTS"])
     return "Abstract: {}\nQuestion: {}\nAnswer:".format(
-        ctxs, doc["question"], doc["final_decision"]
+        ctxs, doc["QUESTION"], doc["final_decision"]
     )
 
 
-def doc_to_target(doc):
+def doc_to_target(doc) -> str:
     return " {}".format(doc["final_decision"])
 
 

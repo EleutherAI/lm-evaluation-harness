@@ -1,0 +1,4 @@
+"dataset_name": "college_chemistry"
+"description": "以下是中国关于大学化学的单项选择题，请选出其中的正确答案。\n\n"
+"include": "_default_ceval_yaml"
+"task": "ceval-valid_college_chemistry"
