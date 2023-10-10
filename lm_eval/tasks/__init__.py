@@ -139,15 +139,18 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
                                 register_configurable_group(config, yaml_path)
 
                 except Exception as error:
-                    import traceback
+                    if eval_logger.verbose:
+                        import traceback
 
-                    eval_logger.warning(
-                        "Failed to load config in\n"
-                        f"                                 {yaml_path}\n"
-                        "                                 Config will not be added to registry\n"
-                        f"                                 Error: {error}\n"
-                        f"                                 Traceback: {traceback.format_exc()}"
-                    )
+                        eval_logger.warning(
+                            "Failed to load config in\n"
+                            f"                                 {yaml_path}\n"
+                            "                                 Config will not be added to registry\n"
+                            f"                                 Error: {error}\n"
+                            f"                                 Traceback: {traceback.format_exc()}"
+                        )
+                    else:
+                        eval_logger.warning("Yaml failed to register {yaml_path}\n")
     return 0
 
 

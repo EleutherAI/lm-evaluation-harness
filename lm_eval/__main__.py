@@ -97,6 +97,12 @@ def parse_eval_args() -> argparse.Namespace:
         default=None,
         help="Additional path to include if there are external tasks to include.",
     )
+    parser.add_argument(
+        "--verbose",
+        type=bool,
+        default=False,
+        help="Log error when tasks are not registered.",
+    )
     return parser.parse_args()
 
 
@@ -167,6 +173,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         assert args.output_path, "Specify --output_path"
 
     eval_logger.info(f"Selected Tasks: {task_names}")
+    eval_logger.verbose = args.verbose
 
     results = evaluator.simple_evaluate(
         model=args.model,
