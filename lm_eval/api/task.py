@@ -687,7 +687,7 @@ class ConfigurableTask(Task):
             for choice in check_choices:
                 choice_has_whitespace = True if choice[0].isspace() else False
                 delimiter_has_whitespace = (
-                    True if self.config.target_delimiter[-1].isspace() else False
+                    True if (len(self.config.target_delimiter) >= 1 and self.config.target_delimiter[-1].isspace()) else False
                 )
 
                 if delimiter_has_whitespace and choice_has_whitespace:
