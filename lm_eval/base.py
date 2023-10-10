@@ -341,7 +341,7 @@ class BaseLM(LM):
                 inp = torch.tensor(
                     (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1],
                     dtype=torch.long,
-                ).to(self.device)
+                ).to('xpu')
                 (inplen,) = inp.shape
 
                 cont = continuation_enc
@@ -356,7 +356,7 @@ class BaseLM(LM):
                     [
                         inp,  # [seq]
                         torch.zeros(padding_length - inplen, dtype=torch.long).to(
-                            inp.device
+                            'xpu'
                         ),  # [padding_length - seq]
                     ],
                     dim=0,
@@ -395,7 +395,7 @@ class BaseLM(LM):
                 # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
                 logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
                     -1
-                )  # [1, seq]
+                ).to('xpu')  # [1, seq]
 
                 # Answer: (log prob, is-exact-match)
                 answer = (float(logits.sum()), bool(max_equal))
