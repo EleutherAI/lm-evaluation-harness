@@ -34,8 +34,7 @@ python ~/lm-evaluation-harness/main.py \
             --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 25 \
-            --tasks arc_challenge \
-            --shuffle unigram
+            --tasks arc_challenge
 
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
@@ -43,8 +42,7 @@ python ~/lm-evaluation-harness/main.py \
             --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 5 \
-            --tasks hendrycksTest* \
-            --shuffle unigram
+            --tasks hendrycksTest*
 
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
@@ -52,8 +50,7 @@ python ~/lm-evaluation-harness/main.py \
             --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 10 \
-            --tasks hellaswag \
-            --shuffle unigram
+            --tasks hellaswag
 
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
@@ -61,5 +58,4 @@ python ~/lm-evaluation-harness/main.py \
             --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 0 \
-            --tasks truthfulqa_mc \
-            --shuffle unigram
+            --tasks truthfulqa_mc 
