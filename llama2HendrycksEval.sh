@@ -33,21 +33,5 @@ python ~/lm-evaluation-harness/main.py \
             --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
             --batch_size 16 \
             --device cuda:0 \
-            --num_fewshot 25 \
-            --tasks arc_challenge
-
-python ~/lm-evaluation-harness/main.py \
-            --model hf-causal-experimental \
-            --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
-            --batch_size 16 \
-            --device cuda:0 \
-            --num_fewshot 10 \
-            --tasks hellaswag
-
-python ~/lm-evaluation-harness/main.py \
-            --model hf-causal-experimental \
-            --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
-            --batch_size 16 \
-            --device cuda:0 \
-            --num_fewshot 0 \
-            --tasks truthfulqa_mc 
+            --num_fewshot 5 \
+            --tasks hendrycksTest*
