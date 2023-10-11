@@ -620,7 +620,7 @@ class HFLM(LM):
             loglikelihoods.append(string_nll)
 
         return loglikelihoods
-    
+
     def _batch_scheduler(self, pos, n_reordered_requests):
         sched = pos // int(len(n_reordered_requests) / self.batch_schedule)
         if sched in self.batch_sizes:
@@ -634,9 +634,7 @@ class HFLM(LM):
         print(
             f"Passed argument batch_size = auto:{self.batch_schedule}. Detecting largest batch size"
         )
-        self.batch_sizes[sched] = self._detect_batch_size(
-            n_reordered_requests, pos
-        )
+        self.batch_sizes[sched] = self._detect_batch_size(n_reordered_requests, pos)
         print(f"Determined largest batch size: {self.batch_sizes[sched]}")
         return self.batch_sizes[sched]
 
@@ -854,8 +852,7 @@ class HFLM(LM):
                 if adaptive_batch_size is not None
                 else 0,
                 fn=self._batch_scheduler
-                if self.batch_size == "auto"
-                and not adaptive_batch_size
+                if self.batch_size == "auto" and not adaptive_batch_size
                 else None,
             ):
                 contexts, all_gen_kwargs = zip(*chunk)
