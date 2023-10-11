@@ -847,7 +847,7 @@ class HFLM(LM):
         # for each different set of kwargs, we execute all requests, by batch.
         for key, re_ord in re_ords.items():
             for chunk in utils.chunks(
-                re_ord.get_reordered(),
+                tqdm(re_ord.get_reordered(), disable=self.rank != 0),
                 n=self.batch_size
                 if self.batch_size != "auto"
                 else adaptive_batch_size
@@ -858,7 +858,6 @@ class HFLM(LM):
                 and not adaptive_batch_size
                 else None,
             ):
-
                 contexts, all_gen_kwargs = zip(*chunk)
                 # we assume all gen kwargs in the batch are the same
                 # this is safe to assume because the `grouper` object ensures it.
