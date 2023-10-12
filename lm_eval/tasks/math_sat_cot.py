@@ -80,7 +80,7 @@ class MathSATCoT(MajorityVotingMixin, Task):
     DATASET_PATH = "mcaleste/sat_multiple_choice_math_may_23"
     DATASET_NAME = None
 
-    ANS_RE = re.compile(r"Final Answer: The final answer is \([ABCD]\). I hope it is correct.")
+    ANS_RE = re.compile(r"Final Answer: The final answer is \([ABCD]\).")
     INVALID_ANS = "[not found]"
 
     def __init__(self):
@@ -134,7 +134,8 @@ class MathSATCoT(MajorityVotingMixin, Task):
 
     @property
     def end_seq(self):
-        return ["\n\n", "Problem:"]
+        # return ["\n\n", "Problem:"]
+        return ["I hope it is correct."]
 
     def process_results(self, doc, results, params={}):
         candidates = results[0]

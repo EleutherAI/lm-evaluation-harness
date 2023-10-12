@@ -149,7 +149,7 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
     DATASET_PATH = "hendrycks_test"
     DATASET_NAME = None
 
-    ANS_RE = re.compile(r"Final Answer: The final answer is \([ABCD]\). I hope it is correct.")
+    ANS_RE = re.compile(r"Final Answer: The final answer is \([ABCD]\).")
     INVALID_ANS = "[not found]"
 
     def __init__(self, subject):
@@ -206,7 +206,7 @@ class MinervaCoTMMLU(MajorityVotingMixin, Task):
 
     @property
     def end_seq(self):
-        return ["\n\n", "Problem:"]
+        return ["I hope it is correct."]
 
     def process_results(self, doc, results, params={}):
         """Take a single document and the LM results and evaluates, returning a
