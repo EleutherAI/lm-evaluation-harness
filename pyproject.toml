@@ -43,7 +43,7 @@ packages = ["lm_eval"]
 
 # required to include yaml files in pip installation
 [tool.setuptools.package-data]
-lm_eval = ["**/*.yaml", "tasks/**/*"]
+lm_eval = ["**/*.yaml", "lm_eval/**/*"]
 examples = ["**/*.yaml"]
 
 [project.scripts]
