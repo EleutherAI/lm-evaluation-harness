@@ -296,6 +296,7 @@ def evaluate(
                 elif shuffle == "trigram":
                     doc['query'] = trigram_shuffle(doc['query'])
                     doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+            # Truthful taska are accessed using 'question'
             else:
                 if shuffle == "unigram":
                     doc['question'] = unigram_shuffle(doc['question'])
