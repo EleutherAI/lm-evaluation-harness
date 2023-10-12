@@ -286,15 +286,26 @@ def evaluate(
                 docs_for_decontamination[(task_name, task_set)].append(
                     task.doc_to_decontamination_query(doc)
                 )
-            if shuffle == "unigram":
-                doc['query'] = unigram_shuffle(doc['query'])
-                doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
-            elif shuffle == "bigram":
-                doc['query'] = bigram_shuffle(doc['query'])
-                doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
-            elif shuffle == "trigram":
-                doc['query'] = trigram_shuffle(doc['query'])
-                doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+            if task_name != "truthfulqa_mc":
+                if shuffle == "unigram":
+                    doc['query'] = unigram_shuffle(doc['query'])
+                    doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+                elif shuffle == "bigram":
+                    doc['query'] = bigram_shuffle(doc['query'])
+                    doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+                elif shuffle == "trigram":
+                    doc['query'] = trigram_shuffle(doc['query'])
+                    doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+            else:
+                if shuffle == "unigram":
+                    doc['question'] = unigram_shuffle(doc['question'])
+                    doc['question'] = "Question: " + doc['question'] + "\nAnswer:"
+                elif shuffle == "bigram":
+                    doc['question'] = bigram_shuffle(doc['question'])
+                    doc['question'] = "Question: " + doc['question'] + "\nAnswer:"
+                elif shuffle == "trigram":
+                    doc['question'] = trigram_shuffle(doc['question'])
+                    doc['question'] = "Question: " + doc['question'] + "\nAnswer:"
             docs[(task_name, doc_id)] = doc
             ctx = task.fewshot_context(
                 doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
