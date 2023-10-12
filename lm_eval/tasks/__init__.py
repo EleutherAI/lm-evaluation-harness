@@ -4,7 +4,6 @@ from typing import List, Union, Dict
 
 from lm_eval import utils
 from lm_eval import prompts
-# from lm_eval.logger import eval_logger
 from lm_eval.api.task import TaskConfig, Task, ConfigurableTask
 from lm_eval.api.registry import (
     register_task,
