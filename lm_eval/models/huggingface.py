@@ -759,6 +759,7 @@ class VLLM(BaseLM):
             trust_remote_code=trust_remote_code,
             tokenizer_mode="auto" if use_fast else "slow",
             revision=revision,
+            tensor_parallel_size=gpus
         )
 
     def _model_call(
