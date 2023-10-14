@@ -20,10 +20,11 @@ This project provides a unified framework to test generative language models on 
 
 Features:
 
-- Many tasks implemented, 200+ tasks [implemented in the old framework](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/docs/task_table.md) which require porting to the new setup as described in [the new task guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/new_task_guide.md).
+- [200+ tasks implemented](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/docs/task_table.md)
 - Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
-- Support for commercial APIs including [OpenAI](https://openai.com), [goose.ai](https://goose.ai), and [TextSynth](https://textsynth.com/).
+- Support for commercial APIs including [OpenAI](https://openai.com), [Anthropic](https://goose.ai), [Cohere](https://goose.ai), and [goose.ai](https://textsynth.com/).
 - Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
+- Support for local models and benchmark datasets.
 - Evaluating with publicly available prompts ensures reproducibility and comparability between papers.
 
 ## Install
