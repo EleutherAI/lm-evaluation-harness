@@ -1,17 +1,16 @@
 # Language Model Evaluation Harness
 
 ## Overview
-
 This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
-
 Features:
-
 - [200+ tasks implemented](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/docs/task_table.md)
 - Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for commercial APIs including [OpenAI](https://openai.com), [Anthropic](https://goose.ai), [Cohere](https://goose.ai), and [goose.ai](https://textsynth.com/).
 - Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
 - Support for local models and benchmark datasets.
 - Evaluating with publicly available prompts ensures reproducibility and comparability between papers.
+
+The EleutherAI is thrilled that the Language Model Evaluation Harness is the backend for 🤗 Hugging Face's popular [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard).
 
 ## Install
 
