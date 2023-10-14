@@ -5,7 +5,7 @@ This project provides a unified framework to test generative language models on 
 Features:
 - [200+ tasks implemented](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/docs/task_table.md)
 - Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
-- Support for commercial APIs including [OpenAI](https://openai.com), [Anthropic](https://goose.ai), [Cohere](https://goose.ai), and [goose.ai](https://textsynth.com/).
+- Support for commercial APIs including [OpenAI](https://openai.com), [Anthropic](https://goose.ai), and [goose.ai](https://textsynth.com/).
 - Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
 - Support for local models and benchmark datasets.
 - Evaluating with publicly available prompts ensures reproducibility and comparability between papers.
@@ -43,7 +43,7 @@ pip install -e ".[all]"
 
 ## Support
 
-The best way to get support is to open an issue on this repo or join the EleutherAI discord server](discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
+The best way to get support is to open an issue on this repo or join the [EleutherAI discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases in general.
 
 ## Basic Usage
 
@@ -71,8 +71,7 @@ python -m lm_eval \
     --device cuda:0 \
     --batch_size 8
 ```
-
-Models that are loaded via either `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) or `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface are supported via  Support for this model type is currently pending.
+Just like in the transformers library, a local path can be provided to run models that are not on the Hub. We support all mdoels that are loadable using either `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) or `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5).
 
 Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
 
