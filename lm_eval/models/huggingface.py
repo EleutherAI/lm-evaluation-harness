@@ -19,7 +19,6 @@ _DeviceMapping = NewType("DeviceMapping", Mapping[str, Union[int, str, torch.dev
 
 
 def _get_accelerate_args(
-    low_cpu_mem_usage: Optional[bool] = True,
     device_map_option: Optional[str] = "auto",
     max_memory_per_gpu: Optional[Union[int, str]] = None,
     max_cpu_memory: Optional[Union[int, str]] = None,
@@ -39,7 +38,6 @@ def _get_accelerate_args(
     args = {}
     if max_memory:
         args["max_memory"] = max_memory
-    args["low_cpu_mem_usage"] = low_cpu_mem_usage
     args["device_map"] = device_map_option
     args["offload_folder"] = offload_folder
     return args
@@ -222,7 +220,6 @@ class HuggingFaceAutoLM(BaseLM):
         model_kwargs = {}
         if use_accelerate:
             model_kwargs = _get_accelerate_args(
-                low_cpu_mem_usage,
                 device_map_option,
                 max_memory_per_gpu,
                 max_cpu_memory,
@@ -242,6 +239,7 @@ class HuggingFaceAutoLM(BaseLM):
             bnb_4bit_quant_type=bnb_4bit_quant_type,
             bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
             bnb_4bit_use_double_quant=bnb_4bit_use_double_quant,
+            low_cpu_mem_usage=low_cpu_mem_usage,
             **model_kwargs,
         )
         # note: peft_path can be different than pretrained model path
