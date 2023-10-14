@@ -10,7 +10,7 @@ Features:
 - Support for local models and benchmark datasets.
 - Evaluating with publicly available prompts ensures reproducibility and comparability between papers.
 
-The EleutherAI is thrilled that the Language Model Evaluation Harness is the backend for 🤗 Hugging Face's popular [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard).
+The Language Model Evaluation Harness is the backend for 🤗 Hugging Face's popular [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard) and is used internally by dozens of companies including NVIDIA, Cohere, Booz Allen Hamilton, and Mosaic ML.
 
 ## Install
 
