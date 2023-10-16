@@ -176,9 +176,8 @@ class MegatronLMClient(BaseLM):
             inps = []
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
-                # max_length+1 because the API takes up to 2049 tokens, including the first context token
-                inp = (context_enc + continuation_enc)[-(self.max_length + 1) :]
-                # TODO: the logic is much simpler if we just look at the length of continuation tokens
+                inp = (context_enc + continuation_enc)[-self.max_length :]
+
                 ctxlen = len(context_enc) - max(
                     0, len(context_enc) + len(continuation_enc) - (self.max_length + 1)
                 )
