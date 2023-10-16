@@ -1,0 +1,15 @@
+group: mmlu_style_05_lo
+dataset_path: cais/mmlu
+test_split: test
+fewshot_split: dev
+output_type: multiple_choice
+doc_to_text: "Answer the following question with fruit that represents the options: {{question.strip()}}\n(Apple) {{choices[0]}}\n(Banana) {{choices[1]}}\n(Cantaloupe) {{choices[2]}}\n(Durian) {{choices[3]}}\nAnswer: "
+doc_to_choice: ['(Apple)', '(Banana)', '(Cantaloupe)', '(Durian)']
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
