@@ -475,9 +475,7 @@ def evaluate(
                     metrics = results[task]
 
                     current_size = metrics.pop("samples")
-                    # if "size" in metrics:
-                    #     current_size = metrics.pop("size")
-                    # else:
+                    # if (group in task_order) and task_order[group] == 0:
                     #     current_size = 1
 
                     for metric in [key for key in metrics.keys() if "_stderr" not in key]:
