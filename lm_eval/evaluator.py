@@ -37,6 +37,21 @@ def trigram_shuffle(sentence):
     shuffled_words = [word for trigram in trigrams for word in trigram]  # Flatten back to words
     return ' '.join(shuffled_words)  # Join the shuffled words back into a sentence
 
+# Hendrycks dataset adds the multiple choices to the question
+# Have to shuffle everything before option A.
+def hendrycks_unigram_shuffle(sentence):
+    # Find the index of "A" in the sentence
+    index_of_A = sentence.find("A.")
+    words_before_A = sentence[:index_of_A]
+    words_after_A = sentence[index_of_A:]
+    words_before_A = tokenizer(words_before_A)
+    # Shuffle the words before "A"
+    print(index_of_A)
+    random.shuffle(words_before_A)
+    # Combine the shuffled and unshuffled parts of the sentence
+    shuffled_sentence = ' '.join(words_before_A) + '\n' + words_after_A
+    return shuffled_sentence
+
 @positional_deprecated
 def simple_evaluate(
     model,
@@ -286,7 +301,12 @@ def evaluate(
                 docs_for_decontamination[(task_name, task_set)].append(
                     task.doc_to_decontamination_query(doc)
                 )
-            if task_name != "truthfulqa_mc":
+            # If it is from the hendrycks data use the special shuffle function
+            if "hendrycksTest" in task_name:
+                if shuffle == "unigram":
+                    doc['query'] = hendrycks_unigram_shuffle(doc['query'])
+
+            elif task_name != "truthfulqa_mc":
                 if shuffle == "unigram":
                     doc['query'] = unigram_shuffle(doc['query'])
                     doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
@@ -296,6 +316,7 @@ def evaluate(
                 elif shuffle == "trigram":
                     doc['query'] = trigram_shuffle(doc['query'])
                     doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+
             # Truthful taska are accessed using 'question'
             else:
                 if shuffle == "unigram":
