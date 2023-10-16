@@ -1,5 +1,5 @@
 """
-Take in a YAML, and output all other splits with this YAML
+Take in a YAML, and output all "other" splits with this YAML
 """
 import os
 import yaml
@@ -10,65 +10,65 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.logger import eval_logger
 
-SUBJECTS = [
-    "abstract_algebra",
-    "anatomy",
-    "astronomy",
-    "business_ethics",
-    "clinical_knowledge",
-    "college_biology",
-    "college_chemistry",
-    "college_computer_science",
-    "college_mathematics",
-    "college_medicine",
-    "college_physics",
-    "computer_security",
-    "conceptual_physics",
-    "econometrics",
-    "electrical_engineering",
-    "elementary_mathematics",
-    "formal_logic",
-    "global_facts",
-    "high_school_biology",
-    "high_school_chemistry",
-    "high_school_computer_science",
-    "high_school_european_history",
-    "high_school_geography",
-    "high_school_government_and_politics",
-    "high_school_macroeconomics",
-    "high_school_mathematics",
-    "high_school_microeconomics",
-    "high_school_physics",
-    "high_school_psychology",
-    "high_school_statistics",
-    "high_school_us_history",
-    "high_school_world_history",
-    "human_aging",
-    "human_sexuality",
-    "international_law",
-    "jurisprudence",
-    "logical_fallacies",
-    "machine_learning",
-    "management",
-    "marketing",
-    "medical_genetics",
-    "miscellaneous",
-    "moral_disputes",
-    "moral_scenarios",
-    "nutrition",
-    "philosophy",
-    "prehistory",
-    "professional_accounting",
-    "professional_law",
-    "professional_medicine",
-    "professional_psychology",
-    "public_relations",
-    "security_studies",
-    "sociology",
-    "us_foreign_policy",
-    "virology",
-    "world_religions",
-]
+SUBJECTS = {
+    "abstract_algebra": "stem",
+    "anatomy": "stem",
+    "astronomy": "stem",
+    "business_ethics": "other",
+    "clinical_knowledge": "other",
+    "college_biology": "stem",
+    "college_chemistry": "stem",
+    "college_computer_science": "stem",
+    "college_mathematics": "stem",
+    "college_medicine": "other",
+    "college_physics": "stem",
+    "computer_security": "stem",
+    "conceptual_physics": "stem",
+    "econometrics": "social_sciences",
+    "electrical_engineering": "stem",
+    "elementary_mathematics": "stem",
+    "formal_logic": "humanities",
+    "global_facts": "other",
+    "high_school_biology": "stem",
+    "high_school_chemistry": "stem",
+    "high_school_computer_science": "stem",
+    "high_school_european_history": "humanities",
+    "high_school_geography": "social_sciences",
+    "high_school_government_and_politics": "social_sciences",
+    "high_school_macroeconomics": "social_sciences",
+    "high_school_mathematics": "stem",
+    "high_school_microeconomics": "social_sciences",
+    "high_school_physics": "stem",
+    "high_school_psychology": "social_sciences",
+    "high_school_statistics": "stem",
+    "high_school_us_history": "humanities",
+    "high_school_world_history": "humanities",
+    "human_aging": "other",
+    "human_sexuality": "social_sciences",
+    "international_law": "humanities",
+    "jurisprudence": "humanities",
+    "logical_fallacies": "humanities",
+    "machine_learning": "stem",
+    "management": "other",
+    "marketing": "other",
+    "medical_genetics": "other",
+    "miscellaneous": "other",
+    "moral_disputes": "humanities",
+    "moral_scenarios": "humanities",
+    "nutrition": "other",
+    "philosophy": "humanities",
+    "prehistory": "humanities",
+    "professional_accounting": "other",
+    "professional_law": "humanities",
+    "professional_medicine": "other",
+    "professional_psychology": "social_sciences",
+    "public_relations": "social_sciences",
+    "security_studies": "social_sciences",
+    "sociology": "social_sciences",
+    "us_foreign_policy": "social_sciences",
+    "virology": "other",
+    "world_religions": "humanities",
+}
 
 
 def parse_args():
@@ -77,6 +77,7 @@ def parse_args():
     parser.add_argument("--save_prefix_path", default="flan")
     parser.add_argument("--cot_prompt_path", default=None)
     parser.add_argument("--task_prefix", default="")
+    parser.add_argument("--group_prefix", default="")
     return parser.parse_args()
 
 
@@ -84,7 +85,7 @@ if __name__ == "__main__":
 
     args = parse_args()
 
-    # get filename of base_yaml so we can `"include": ` it in our other YAMLs.
+    # get filename of base_yaml so we can `"include": ` it in our "other" YAMLs.
     base_yaml_name = os.path.split(args.base_yaml_path)[-1]
     with open(args.base_yaml_path) as f:
         base_yaml = yaml.full_load(f)
@@ -95,7 +96,12 @@ if __name__ == "__main__":
         with open(args.cot_prompt_path) as f:
             cot_file = json.load(f)
 
-    for subject in tqdm(SUBJECTS):
+    ALL_CATEGORIES = []
+    for subject, category in tqdm(SUBJECTS.items()):
+
+        if category not in ALL_CATEGORIES:
+            ALL_CATEGORIES.append(category)
+
         if args.cot_prompt_path is not None:
             description = cot_file[subject]
         else:
@@ -103,6 +109,7 @@ if __name__ == "__main__":
 
         yaml_dict = {
             "include": base_yaml_name,
+            "group": f"mmlu_{category}",
             "task": f"mmlu_{args.task_prefix}_{subject}"
             if args.task_prefix != ""
             else f"mmlu_{subject}",
@@ -120,3 +127,18 @@ if __name__ == "__main__":
                 allow_unicode=True,
                 default_style='"',
             )
+
+    if args.group_prefix == "":
+        file_save_path = args.save_prefix_path + ".yaml"
+    else:
+        file_save_path = args.save_prefix_path + f"_{args.group_prefix}.yaml"
+    eval_logger.info(f"Saving benchmark config to {file_save_path}")
+    with open(file_save_path, "w") as yaml_file:
+        yaml.dump(
+            {
+                "group": f"mmlu_{args.group_prefix}",
+                "task": [f"mmlu_{category}" for category in ALL_CATEGORIES]
+                },
+            yaml_file,
+            default_flow_style=False
+        )
