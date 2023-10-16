@@ -30,7 +30,7 @@ export RANK=0
 
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
-            --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
+            --model_args pretrained=/users/adbt150/archive/mpt-7b \
             --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 25 \
@@ -39,7 +39,7 @@ python ~/lm-evaluation-harness/main.py \
 
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
-            --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
+            --model_args pretrained=/users/adbt150/archive/mpt-7b \
             --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 10 \
@@ -48,7 +48,7 @@ python ~/lm-evaluation-harness/main.py \
 
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
-            --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
+            --model_args pretrained=/users/adbt150/archive/mpt-7b \
             --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 0 \
