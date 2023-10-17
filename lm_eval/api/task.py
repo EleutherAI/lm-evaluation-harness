@@ -44,7 +44,7 @@ ALL_OUTPUT_TYPES = [
     "loglikelihood",
     "multiple_choice",
     "loglikelihood_rolling",
-    "greedy_until",
+    "generate_until",
 ]
 
 
@@ -80,7 +80,7 @@ class TaskConfig(dict):
     num_fewshot: int = 0
     # scoring options
     metric_list: list = None
-    output_type: str = "greedy_until"
+    output_type: str = "generate_until"
     generation_kwargs: dict = None
     repeats: int = 1
     filter_list: Union[str, list] = None
@@ -97,11 +97,11 @@ class TaskConfig(dict):
             self.dataset_path = inspect.getfile(import_module(self.dataset_path))
 
         if self.generation_kwargs is not None:
-            if self.output_type != "greedy_until":
+            if self.output_type != "generate_until":
                 eval_logger.warning(
-                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: greedy_until`!"
+                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
                 )
-                assert self.output_type != "greedy_until"
+                assert self.output_type != "generate_until"
 
             if "temperature" in self.generation_kwargs:
                 self.generation_kwargs["temperature"] = float(
@@ -111,7 +111,7 @@ class TaskConfig(dict):
             if "until" not in self.generation_kwargs:
                 self.generation_kwargs["until"] = [self.fewshot_delimiter]
         else:
-            if self.output_type == "greedy_until":
+            if self.output_type == "generate_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
                 self.generation_kwargs = {
                     "until": None
@@ -958,7 +958,7 @@ class ConfigurableTask(Task):
                 )
             return request_list
 
-        elif self.OUTPUT_TYPE == "greedy_until":
+        elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, self.config.generation_kwargs)
 
         return Instance(
@@ -1070,7 +1070,7 @@ class ConfigurableTask(Task):
                 acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
 
-        elif self.OUTPUT_TYPE == "greedy_until":
+        elif self.OUTPUT_TYPE == "generate_until":
             gold = self.doc_to_target(doc)
             result = results[0]
             if self.config.doc_to_choice is not None:
@@ -1134,7 +1134,7 @@ class ConfigurableTask(Task):
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
-                "'loglikelihood', 'loglikelihood_rolling', 'greedy_until' or 'multiple_choice'",
+                "'loglikelihood', 'loglikelihood_rolling', 'generate_until' or 'multiple_choice'",
             )
 
         return result_dict

@@ -3,7 +3,7 @@ group:
 task: gsm8k_cot
 dataset_path: gsm8k
 dataset_name: main
-output_type: greedy_until
+output_type: generate_until
 test_split: test
 doc_to_text: "Q: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?\n\nA: There are 15 trees originally. Then there were 21 trees after some more were planted. So there must have been 21 - 15 = 6. The answer is 6.\n\n\
 Q: If there are 3 cars in the parking lot and 2 more cars arrive, how many cars are in the parking lot?\n\nA: There are originally 3 cars. 2 more cars arrive. 3 + 2 = 5. The answer is 5.\n\n\

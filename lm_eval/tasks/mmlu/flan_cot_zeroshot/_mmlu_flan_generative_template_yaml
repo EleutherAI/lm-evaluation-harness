@@ -2,7 +2,7 @@ group: mmlu_flan_cot_zeroshot
 dataset_path: cais/mmlu
 validation_split: validation
 fewshot_split: dev
-output_type: greedy_until
+output_type: generate_until
 doc_to_text: "Q: {{question.strip()}}\n(A) {{choices[0]}} (B) {{choices[1]}} (C) {{choices[2]}} (D) {{choices[3]}}\nA: Let's think step by step."
 doc_to_target: "{{['(A)', '(B)', '(C)', '(D)'][answer]}}"
 filter_list:

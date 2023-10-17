@@ -3,7 +3,7 @@ group:
 task: polemo2_in
 dataset_path: allegro/klej-polemo2-in
 dataset_name: klej-polemo2-in
-output_type: greedy_until
+output_type: generate_until
 training_split: train
 validation_split: validation
 test_split: test
