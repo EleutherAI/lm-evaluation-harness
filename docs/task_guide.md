@@ -142,7 +142,7 @@ Our final filter pipeline, "maj@8", does majority voting across the first 8 of t
 - performing the same sequence of filters on these new sets of 8 responses, for each document.
 ```yaml
 - name: "maj@8"
-    filter:
+  filter:
     - function: "take_first_k"
       k: 8
     - function: "regex"

@@ -78,7 +78,7 @@ def chunks(iter, n: int = 0, fn=None):
     arr = []
     for i, x in enumerate(iter):
         arr.append(x)
-        if len(arr) == (fn(i) if fn else n):
+        if len(arr) == (fn(i, iter) if fn else n):
             yield arr
             arr = []
 
