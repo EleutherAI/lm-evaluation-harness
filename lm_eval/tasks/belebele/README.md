@@ -13,7 +13,7 @@ Homepage: https://github.com/facebookresearch/belebele
 
 ```bibtex
 @misc{bandarkar2023belebele,
-      title={The Belebele Benchmark: a Parallel Reading Comprehension Dataset in 122 Language Variants}, 
+      title={The Belebele Benchmark: a Parallel Reading Comprehension Dataset in 122 Language Variants},
       author={Lucas Bandarkar and Davis Liang and Benjamin Muller and Mikel Artetxe and Satya Narayan Shukla and Donald Husa and Naman Goyal and Abhinandan Krishnan and Luke Zettlemoyer and Madian Khabsa},
       year={2023},
       eprint={2308.16884},
