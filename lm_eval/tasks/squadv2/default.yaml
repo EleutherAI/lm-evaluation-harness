@@ -1,6 +1,6 @@
 include: _template_yaml
 task: squadv2
-output_type: greedy_until
+output_type: generate_until
 generation_kwargs:
   until:
     - "\n"
