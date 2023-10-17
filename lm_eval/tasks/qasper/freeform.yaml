@@ -1,7 +1,7 @@
 group: qasper
 task: qasper_freeform
 dataset_path: qasper
-output_type: greedy_until
+output_type: generate_until
 training_split: train
 validation_split: validation
 process_docs: !function utils.process_docs_freeform

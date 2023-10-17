@@ -1,4 +1,4 @@
-output_type: greedy_until
+output_type: generate_until
 validation_split: validation
 metric_list:
   - metric: exact_match
