@@ -227,6 +227,7 @@ def evaluate(
         if type(task) == tuple:
             group_name, task = task
             task_hierarchy[group_name].append(task_name)
+            versions[group_name] = "N/A"
         else:
             task_hierarchy[task_name] = []
 
@@ -466,68 +467,94 @@ def evaluate(
         if bool(results):
 
             for group, task_list in reversed(task_hierarchy.items()):
-                versions[group] = "N/A"
-                total_size = 0
-                for task in task_list:
-                    metrics = results[task]
 
-                    current_size = metrics.pop("samples")
-                    # if (group in task_order) and task_order[group] == 0:
-                    #     current_size = 1
+                if task_list == []:
+                    total_size = results[group]["samples"]
+                else:
+                    total_size = 0
 
-                    all_stderr = []
-                    for metric in [
-                        key for key in metrics.keys() if "_stderr" not in key
-                    ]:
+                    for task in task_list:
+                        metrics = results[task]
 
-                        stderr = "_stderr,".join(metric.split(","))
-                        stderr_score = results[task][stderr]
-                        metric_score = results[task][metric]
+                        current_size = metrics.pop("samples")
+                        # TODO: There should be a way for users
+                        #       to toggle between weighted and
+                        #       unweighted averaging
+                        # For unweighted averaging, use:
+                        #     current_size = 1
 
-                        all_stderr.append(stderr)
+                        all_stderr = []
+                        for metric in [
+                            key for key in metrics.keys() if "_stderr" not in key
+                        ]:
 
-                        if metric in results[group]:
-                            results[group][metric] = (
-                                results[group][metric] * total_size
-                                + metric_score * current_size
-                            ) / (total_size + current_size)
-                            # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                            results[group][stderr] = (
-                                (total_size - 1) * results[group][stderr]
-                                + (current_size - 1) * stderr_score
-                            ) / (
-                                total_size + current_size - 1
-                            ) + total_size * current_size / (
-                                (total_size + current_size)
-                                * (total_size + current_size - 1)
-                            ) * (
-                                results[group][metric] - metric_score
-                            ) ** 2
-                        else:
-                            results[group][metric] = metric_score
-                            results[group][stderr] = stderr_score
+                            stderr = "_stderr,".join(metric.split(","))
+                            stderr_score = results[task][stderr]
+                            metric_score = results[task][metric]
 
-                    total_size += current_size
+                            all_stderr.append(stderr)
 
-                for stderr in all_stderr:
-                    results[group][stderr] = np.sqrt(results[group][stderr])
+                            if metric in results[group]:
+                                results[group][metric] = (
+                                    results[group][metric] * total_size
+                                    + metric_score * current_size
+                                ) / (total_size + current_size)
+                                # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
+                                results[group][stderr] = (
+                                    (total_size - 1) * results[group][stderr]
+                                    + (current_size - 1) * stderr_score
+                                ) / (
+                                    total_size + current_size - 1
+                                ) + total_size * current_size / (
+                                    (total_size + current_size)
+                                    * (total_size + current_size - 1)
+                                ) * (
+                                    results[group][metric] - metric_score
+                                ) ** 2
+                            else:
+                                results[group][metric] = metric_score
+                                results[group][stderr] = stderr_score
+
+                        total_size += current_size
+
+                    for stderr in all_stderr:
+                        results[group][stderr] = np.sqrt(results[group][stderr])
 
                 results[group]["samples"] = total_size
 
-        for task_name, task in task_dict.items():
-            if type(task) == tuple:
-                group_name, task = task
+        def print_tasks(task_hierarchy, task_order, task_version):
+
+            results_agg = collections.defaultdict(dict)
+            groups_agg = collections.defaultdict(dict)
+            for group_name, task_list in task_hierarchy.items():
+
                 order = task_order[group_name]
                 tabbed_name = "-" * order + group_name
                 results_agg[tabbed_name] = results[group_name]
-                versions[tabbed_name] = versions[group_name]
-                if order == 0:
-                    groups_agg[group_name] = results[group_name]
+                task_version[tabbed_name] = task_version[group_name]
 
-            order = task_order[task_name]
-            tabbed_name = "-" * order + task_name
-            results_agg[tabbed_name] = results[task_name]
-            versions[tabbed_name] = versions[task_name]
+                if (order < max(task_order.values())) and (len(task_list) > 0):
+                    groups_agg[tabbed_name] = results[group_name]
+
+                if task_list != []:
+                    for task in sorted(task_list):
+                        if task in task_hierarchy:
+                            _task_hierarchy = {task: task_hierarchy[task]}
+                        else:
+                            _task_hierarchy = {task: []}
+
+                        _results_agg, _groups_agg, task_version = print_tasks(
+                            _task_hierarchy, task_order, task_version
+                        )
+
+                        results_agg = {**results_agg, **_results_agg}
+                        groups_agg = {**groups_agg, **_groups_agg}
+
+            return results_agg, groups_agg, task_version
+
+        results_agg, groups_agg, versions = print_tasks(
+            task_hierarchy, task_order, versions
+        )
 
         results_dict = {
             "results": dict(results_agg.items()),
