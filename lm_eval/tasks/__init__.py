@@ -98,7 +98,7 @@ def check_prompt_config(
                             ]
                         )
                     },
-                    **{"output_type": "greedy_until"},
+                    **{"output_type": "generate_until"},
                 }
             )
     else:

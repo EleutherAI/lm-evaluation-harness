@@ -813,7 +813,7 @@ class HFLM(LM):
 
         return re_ord.get_original(res)
 
-    def greedy_until(self, requests):
+    def generate_until(self, requests):
         res = defaultdict(list)
         re_ords = {}
 
@@ -930,7 +930,7 @@ class HFLM(LM):
                     res[key].append(s)
 
                     self.cache_hook.add_partial(
-                        "greedy_until", (context, gen_kwargs), s
+                        "generate_until", (context, gen_kwargs), s
                     )
                     pbar.update(1)
             # reorder this group of results back to original unsorted form
