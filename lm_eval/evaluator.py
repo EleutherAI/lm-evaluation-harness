@@ -478,11 +478,14 @@ def evaluate(
                     # if (group in task_order) and task_order[group] == 0:
                     #     current_size = 1
 
+                    all_stderr = []
                     for metric in [key for key in metrics.keys() if "_stderr" not in key]:
 
                         stderr = "_stderr,".join(metric.split(","))
                         stderr_score = results[task][stderr]
                         metric_score = results[task][metric]
+
+                        all_stderr.append(stderr)
 
                         if metric in results[group]:
                             results[group][metric] = (results[group][metric]*total_size + metric_score*current_size)/(total_size+current_size)
@@ -494,6 +497,10 @@ def evaluate(
                             results[group][stderr] = stderr_score
 
                     total_size += current_size
+
+                for stderr in all_stderr:
+                    results[group][stderr] = np.sqrt(results[group][stderr])
+                
                 results[group]["samples"] = total_size
 
         for task_name, task in task_dict.items():
