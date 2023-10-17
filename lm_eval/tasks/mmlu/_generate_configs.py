@@ -137,8 +137,8 @@ if __name__ == "__main__":
         yaml.dump(
             {
                 "group": f"mmlu_{args.group_prefix}",
-                "task": [f"mmlu_{category}" for category in ALL_CATEGORIES]
-                },
+                "task": [f"mmlu_{category}" for category in ALL_CATEGORIES],
+            },
             yaml_file,
-            default_flow_style=False
+            default_flow_style=False,
         )
