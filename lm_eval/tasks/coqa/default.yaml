@@ -1,6 +1,6 @@
 task: coqa
 dataset_path: EleutherAI/coqa
-output_type: greedy_until
+output_type: generate_until
 training_split: train
 validation_split: validation
 doc_to_text: !function utils.doc_to_text

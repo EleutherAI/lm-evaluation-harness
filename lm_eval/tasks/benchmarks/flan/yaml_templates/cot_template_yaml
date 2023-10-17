@@ -1,5 +1,5 @@
 group: flan-cot
-output_type: greedy_until
+output_type: generate_until
 validation_split: validation
 doc_to_target: "{{answer}}"
 metric_list:

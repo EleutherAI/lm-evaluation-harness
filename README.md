@@ -23,8 +23,12 @@ Features:
 - Many tasks implemented, 200+ tasks [implemented in the old framework](https://github.com/EleutherAI/lm-evaluation-harness/blob/master/docs/task_table.md) which require porting to the new setup as described in [the new task guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/new_task_guide.md).
 - Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for commercial APIs including [OpenAI](https://openai.com), [goose.ai](https://goose.ai), and [TextSynth](https://textsynth.com/).
-- Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
-- Evaluating with publicly available prompts ensures reproducibility and comparability between papers.
+- Support for evaluation on adapters (e.g. LoRA) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
+- Support for local models and benchmarks.
+- Evaluation with publicly available prompts ensures reproducibility and comparability between papers.
+
+The Language Model Evaluation Harness is the backend for 🤗 Hugging Face's popular [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard) and is used internally by dozens of companies including NVIDIA, Cohere, Booz Allen Hamilton, and Mosaic ML.
+
 
 ## Install
 

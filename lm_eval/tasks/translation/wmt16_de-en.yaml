@@ -6,7 +6,7 @@ doc_to_text: 'German phrase: {{translation["de"]}}
 
   English phrase:'
 group:
-- greedy_until
+- generate_until
 - translation
 - wmt16
 - gpt3_translation_benchmarks

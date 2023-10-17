@@ -97,6 +97,12 @@ def parse_eval_args() -> argparse.Namespace:
         default=None,
         help="Additional path to include if there are external tasks to include.",
     )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        default="INFO",
+        help="Log error when tasks are not registered.",
+    )
     return parser.parse_args()
 
 
@@ -105,6 +111,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         # we allow for args to be passed externally, else we parse them ourselves
         args = parse_eval_args()
 
+    eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     if args.limit:
