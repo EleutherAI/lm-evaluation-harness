@@ -74,7 +74,7 @@ SUBJECTS = {
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base_yaml_path", required=True)
-    parser.add_argument("--save_prefix_path", default="flan")
+    parser.add_argument("--save_prefix_path", default="mmlu")
     parser.add_argument("--cot_prompt_path", default=None)
     parser.add_argument("--task_prefix", default="")
     parser.add_argument("--group_prefix", default="")
@@ -109,7 +109,9 @@ if __name__ == "__main__":
 
         yaml_dict = {
             "include": base_yaml_name,
-            "group": f"mmlu_{category}",
+            "group": f"mmlu_{args.task_prefix}_{category}"
+            if args.task_prefix != ""
+            else f"mmlu_{category}",
             "task": f"mmlu_{args.task_prefix}_{subject}"
             if args.task_prefix != ""
             else f"mmlu_{subject}",
@@ -123,22 +125,33 @@ if __name__ == "__main__":
             yaml.dump(
                 yaml_dict,
                 yaml_file,
-                width=float("inf"),
+                # width=float("inf"),
                 allow_unicode=True,
                 default_style='"',
             )
 
-    if args.group_prefix == "":
-        file_save_path = args.save_prefix_path + ".yaml"
+    if args.task_prefix != "":
+        mmlu_subcategories = [
+            f"mmlu_{args.task_prefix}_{category}" for category in ALL_CATEGORIES
+        ]
     else:
-        file_save_path = args.save_prefix_path + f"_{args.group_prefix}.yaml"
+        mmlu_subcategories = [f"mmlu_{category}" for category in ALL_CATEGORIES]
+
+    if args.group_prefix != "":
+        file_save_path = args.group_prefix + ".yaml"
+    else:
+        file_save_path = args.save_prefix_path + ".yaml"
+
     eval_logger.info(f"Saving benchmark config to {file_save_path}")
     with open(file_save_path, "w") as yaml_file:
         yaml.dump(
             {
-                "group": f"mmlu_{args.group_prefix}",
-                "task": [f"mmlu_{category}" for category in ALL_CATEGORIES],
+                "group": f"mmlu_{args.task_prefix}"
+                if args.task_prefix != ""
+                else "mmlu",
+                "task": mmlu_subcategories,
             },
             yaml_file,
+            indent=4,
             default_flow_style=False,
         )
