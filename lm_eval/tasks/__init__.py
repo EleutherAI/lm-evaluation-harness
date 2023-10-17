@@ -4,7 +4,6 @@ from typing import List, Union, Dict
 
 from lm_eval import utils
 from lm_eval import prompts
-from lm_eval.logger import eval_logger
 from lm_eval.api.task import TaskConfig, Task, ConfigurableTask
 from lm_eval.api.registry import (
     register_task,
@@ -14,6 +13,9 @@ from lm_eval.api.registry import (
     ALL_TASKS,
 )
 
+import logging
+
+eval_logger = logging.getLogger('lm-eval')
 
 def register_configurable_task(config: Dict[str, str]) -> int:
     SubClass = type(
@@ -145,7 +147,7 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
                 except Exception as error:
                     import traceback
 
-                    eval_logger.warning(
+                    eval_logger.debug(
                         "Failed to load config in\n"
                         f"                                 {yaml_path}\n"
                         "                                 Config will not be added to registry\n"
