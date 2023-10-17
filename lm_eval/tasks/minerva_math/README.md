@@ -37,7 +37,7 @@ Eprint = {arXiv:2206.14858},
 #### Groups
 
 - `math_word_problems`
-- `greedy_until`
+- `generate_until`
 
 #### Tasks
 

@@ -1,6 +1,6 @@
 task: nq_open
 dataset_path: nq_open
-output_type: greedy_until
+output_type: generate_until
 training_split: train
 validation_split: validation
 description: "Answer these questions:\n"

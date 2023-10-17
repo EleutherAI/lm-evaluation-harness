@@ -6,7 +6,7 @@ doc_to_text: 'English phrase: {{translation["en"]}}
 
   Arabic phrase:'
 group:
-- greedy_until
+- generate_until
 - translation
 - iwslt2017
 include: wmt_common_yaml
