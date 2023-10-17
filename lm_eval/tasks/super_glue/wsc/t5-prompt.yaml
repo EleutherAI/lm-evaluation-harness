@@ -5,7 +5,7 @@ dataset_path: super_glue
 dataset_name: wsc.fixed
 training_split: train
 validation_split: validation
-output_type: greedy_until
+output_type: generate_until
 doc_to_text: !function "t5_utils.doc_to_text"
 doc_to_target: label
 generation_kwargs:

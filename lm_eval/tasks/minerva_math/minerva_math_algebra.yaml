@@ -4,7 +4,7 @@ task: minerva_math_algebra
 dataset_path: EleutherAI/hendrycks_math
 process_docs: !function utils.process_docs
 dataset_name: algebra
-output_type: greedy_until
+output_type: generate_until
 training_split: train
 test_split: test
 doc_to_text:  !function utils.doc_to_text

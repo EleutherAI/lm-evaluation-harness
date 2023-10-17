@@ -1,6 +1,6 @@
 group: bbh_flan_cot_zeroshot
 dataset_path: lukaemon/bbh
-output_type: greedy_until
+output_type: generate_until
 test_split: test
 doc_to_target: "{{target}}"
 metric_list:
