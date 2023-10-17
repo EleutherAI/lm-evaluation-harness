@@ -5,7 +5,7 @@ dataset_path: CM/codexglue_code2text_javascript
 training_split: train
 validation_split: validation
 test_split: test
-output_type: greedy_until
+output_type: generate_until
 generation_kwargs:
   num_beams: 10
   max_length: 128
