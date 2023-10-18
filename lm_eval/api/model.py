@@ -96,7 +96,7 @@ class LM(abc.ABC):
 
     # TODO: Add an optional max length
     @abc.abstractmethod
-    def greedy_until(self, requests) -> List[str]:
+    def generate_until(self, requests) -> List[str]:
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
