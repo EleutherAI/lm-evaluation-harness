@@ -78,7 +78,7 @@ def test_gpt2():
     # test empty context
     gpt2.loglikelihood([("", "test")])
 
-    (gen,) = gpt2.greedy_until(
+    (gen,) = gpt2.generate_until(
         [("The quick brown fox jumps over the lazy", [".", "\n"])]
     )
 
@@ -204,7 +204,7 @@ def test_gpt3():
     # test empty context
     gpt3.loglikelihood([("", "test")])
 
-    (gen,) = gpt3.greedy_until(
+    (gen,) = gpt3.generate_until(
         [("The quick brown fox jumps over the lazy", [".", "\n"])]
     )
 
@@ -300,7 +300,7 @@ def test_textsynth():
     # test empty context
     textsynth.loglikelihood([("", "test")])
 
-    (gen,) = textsynth.greedy_until(
+    (gen,) = textsynth.generate_until(
         [("The quick brown fox jumps over the lazy", [".", "\n"])]
     )
 

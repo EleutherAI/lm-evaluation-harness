@@ -44,26 +44,24 @@ class MyCustomLM(LM):
         #...
 
 
-    def greedy_until(self, requests: list[Instance]) -> list[str]:
+    def generate_until(self, requests: list[Instance]) -> list[str]:
         #...
     #...
 ```
 Where `Instance` is a dataclass defined in [`lm_eval.api.instance`](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/api/instance.py) with property `args` which returns a tuple of (context, continuation).
 
-We support
+We support three types of requests, consisting of different interactions / measurements with an autoregressive LM.
 
-The three types of
+All three request types take as input `requests` of type `list[Instance]` that have a matching `Instance.request_type` to the method name.
 
+- `generate_until`
+  - Each request contains `Instance.args : Tuple[str, dict]` containing 1. an input string to the LM and 2. a dictionary of keyword arguments used to control generation parameters.
+  -
 
+- `loglikelihood`
+  -
 
-smth smth tokenizer-agnostic
-
-3 reqtypes
-- greedy_until, and the arguments passed to it
-
-- loglikelihood, and args passed to it
-
-- loglikelihood_rolling, and args passed to it
+- `loglikelihood_rolling`, and args passed to it
 
 
 ## Registration
