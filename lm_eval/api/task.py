@@ -587,7 +587,7 @@ class ConfigurableTask(Task):
                         ]
                 else:
                     INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
-                    metric_agg = get_default_aggregation(metric_name)
+                    metric_agg = get_metric_aggregation(metric_name)
                     eval_logger.warning(
                         f"[Task: {self._config.task}] metric {metric_name} is defined, but aggregation is not. "
                         f"using default "
