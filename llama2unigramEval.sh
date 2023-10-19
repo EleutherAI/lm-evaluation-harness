@@ -51,7 +51,6 @@ python ~/lm-evaluation-harness/main.py \
             --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
             --batch_size 16 \
             --device cuda:0 \
-            --num_fewshot 0 \
             --tasks truthfulqa_mc \
             --write_out true \
             --shuffle unigram

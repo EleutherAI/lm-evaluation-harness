@@ -307,27 +307,37 @@ def evaluate(
                     doc['query'] = hendrycks_unigram_shuffle(doc['query'])
 
             elif task_name != "truthfulqa_mc":
-                if shuffle == "unigram":
-                    doc['query'] = unigram_shuffle(doc['query'])
-                    doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+                if task_name == "arc_challenge":
+                    if shuffle == "unigram":
+                        doc['query'] = unigram_shuffle(doc['query'])
+                        doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+                else:
+                    if shuffle == "unigram":
+                        doc['query'] = unigram_shuffle(doc['query'])
+                        doc['query'] = doc['query'] 
+                    
+                    """
                 elif shuffle == "bigram":
                     doc['query'] = bigram_shuffle(doc['query'])
                     doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
                 elif shuffle == "trigram":
                     doc['query'] = trigram_shuffle(doc['query'])
                     doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+                    """
 
             # Truthful taska are accessed using 'question'
             else:
                 if shuffle == "unigram":
                     doc['question'] = unigram_shuffle(doc['question'])
-                    doc['question'] = "Question: " + doc['question'] + "\nAnswer:"
+                    doc['question'] = doc['question']
+                    """
                 elif shuffle == "bigram":
                     doc['question'] = bigram_shuffle(doc['question'])
-                    doc['question'] = "Question: " + doc['question'] + "\nAnswer:"
+                    doc['question'] = doc['question'] 
                 elif shuffle == "trigram":
                     doc['question'] = trigram_shuffle(doc['question'])
-                    doc['question'] = "Question: " + doc['question'] + "\nAnswer:"
+                    doc['question'] = doc['question']
+                    """
             docs[(task_name, doc_id)] = doc
             ctx = task.fewshot_context(
                 doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
@@ -338,7 +348,7 @@ def evaluate(
                 prompt_details.append({"doc_id": doc_id})
 
             # print the prompt for the first few documents
-            if doc_id < 1:
+            if doc_id < 2:
                 print(
                     f"Task: {task_name}; document {doc_id}; context prompt (starting on next line):\n{ctx}\n(end of prompt on previous line)"
                 )
