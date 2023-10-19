@@ -5,7 +5,7 @@ import time
 
 from lm_eval.base import BaseLM
 
-REPEAT_REQUEST_TO_OCTOAI_SEREVER = 10
+REPEAT_REQUEST_TO_OCTOAI_SERVER = 10
 
 model_urls = {
    "codellama-7b-instruct-mlc-q0f16": "https://codellama-7b-instruct-fp16-1gpu-g2ave3d5t9mm.octoai.run",
@@ -103,11 +103,9 @@ class OctoAIEndpointLM(BaseLM):
 
   def tok_encode(self, string: str):
       return string
-      #raise NotImplementedError("No idea about anthropic tokenization.")
 
   def tok_decode(self, tokens):
       return tokens
-      #raise NotImplementedError("No idea about anthropic tokenization.")
 
   def _loglikelihood_tokens(self, requests, disable_tqdm=False):
     raise NotImplementedError("No support for logits.")
@@ -174,7 +172,7 @@ class OctoAIEndpointLM(BaseLM):
   # TODO(vvchernov): do we need additional args? max_tokens, temperature..
   def _model_generate(self, inps, results, stop=[]):
     success = False
-    for _ in range(REPEAT_REQUEST_TO_OCTOAI_SEREVER):
+    for _ in range(REPEAT_REQUEST_TO_OCTOAI_SERVER):
       # TODO(vvchernov): process wrong reset
       self.call_octoai_reset()
       response = self.call_octoai_inference(inps)
