@@ -47,7 +47,7 @@ TASK_REGISTRY_TMP = {
     "xstance_fr": x_stance.XStanceFR,
     **xquad.construct_tasks(),
     **xnli.construct_tasks(),
-    **flores200.create_tasks_from_list(euro5_flores_benchmark)
+    **flores200.create_tasks_from_list(euro5_flores_benchmark),
 }
 
 # add a prefix to tasks implemented by OpenGPT-X
