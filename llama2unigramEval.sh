@@ -53,4 +53,5 @@ python ~/lm-evaluation-harness/main.py \
             --device cuda:0 \
             --num_fewshot 0 \
             --tasks truthfulqa_mc \
+            --write_out true \
             --shuffle unigram

@@ -469,7 +469,7 @@ def evaluate(
 
     return {"results": dict(results), "versions": dict(versions)}
 
-
+# make a row with the average of hendrycks test's acc_norm
 def make_table(result_dict):
     """Generate table of results."""
     from pytablewriter import MarkdownTableWriter, LatexTableWriter
