@@ -15,7 +15,8 @@ from lm_eval.api.registry import (
 
 import logging
 
-eval_logger = logging.getLogger('lm-eval')
+eval_logger = logging.getLogger("lm-eval")
+
 
 def register_configurable_task(config: Dict[str, str]) -> int:
     SubClass = type(
