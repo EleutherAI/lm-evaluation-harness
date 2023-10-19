@@ -163,7 +163,7 @@ def get_metric_aggregation(name):
         return METRIC_AGGREGATION_REGISTRY[name]
     except KeyError:
         eval_logger.warning(
-            "{} not a registered aggregation metric!".format(name),
+            "{} metric is not assigned a default aggregation!".format(name),
         )
 
 
