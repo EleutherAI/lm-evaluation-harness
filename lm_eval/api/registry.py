@@ -81,7 +81,7 @@ DEFAULT_METRIC_REGISTRY = {
     ],
     "loglikelihood_rolling": ["word_perplexity", "byte_perplexity", "bits_per_byte"],
     "multiple_choice": ["acc", "acc_norm"],
-    "greedy_until": ["exact_match"],
+    "generate_until": ["exact_match"],
 }
 
 
@@ -171,7 +171,6 @@ def is_higher_better(metric_name):
     try:
         return HIGHER_IS_BETTER_REGISTRY[metric_name]
     except KeyError:
-        raise Warning(f"higher_is_better not specified for metric '{metric_name}'!")
         eval_logger.warning(
             f"higher_is_better not specified for metric '{metric_name}'!"
         )

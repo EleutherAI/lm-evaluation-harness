@@ -15,10 +15,10 @@ class Test_HFLM:
     multiple_choice_task = tasks.TASK_REGISTRY.get("arc_easy")()  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
-    greedy_until_task = tasks.TASK_REGISTRY.get("gsm8k_yaml")()  # type: ignore
-    greedy_until_task.build_all_requests(limit=10, rank=0, world_size=1)
-    greedy_until_task._config.generation_kwargs["max_gen_toks"] = 10
-    GREEDY_UNTIL: list[Instance] = greedy_until_task.instances
+    generate_until_task = tasks.TASK_REGISTRY.get("gsm8k_yaml")()  # type: ignore
+    generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
+    generate_until_task._config.generation_kwargs["max_gen_toks"] = 10
+    generate_until: list[Instance] = generate_until_task.instances
     rolling_task = tasks.TASK_REGISTRY.get("wikitext")()  # type: ignore
     rolling_task.build_all_requests(limit=10, rank=0, world_size=1)
     ROLLING: list[Instance] = rolling_task.instances
@@ -65,7 +65,7 @@ class Test_HFLM:
         -52.70050811767578,
         -56.25089645385742,
     ]
-    GREEDY_UNTIL_RES = [
+    generate_until_RES = [
         " The average of $2.50 each is $",
         " A robe takes 2 bolts of blue fiber and half",
         " $50,000 in repairs.",
@@ -109,9 +109,9 @@ class Test_HFLM:
         ), np.argmax(np.array(_res).reshape(-1, 4), axis=1)
         assert (argmax_RES == argmax_res).all()
 
-    def test_greedy_until(self) -> None:
-        res = self.LM.greedy_until(self.GREEDY_UNTIL)
-        assert res == self.GREEDY_UNTIL_RES
+    def test_generate_until(self) -> None:
+        res = self.LM.generate_until(self.generate_until)
+        assert res == self.generate_until_RES
 
     def test_logliklihood_rolling(self) -> None:
         res = self.LM.loglikelihood_rolling(self.ROLLING)

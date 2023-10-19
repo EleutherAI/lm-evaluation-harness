@@ -20,7 +20,7 @@ class DummyLM(LM):
 
         return res
 
-    def greedy_until(self, requests):
+    def generate_until(self, requests):
         res = []
 
         for ctx, _ in requests:

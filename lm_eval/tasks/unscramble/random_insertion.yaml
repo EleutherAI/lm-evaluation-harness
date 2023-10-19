@@ -3,7 +3,7 @@ group:
 task: random_insertion
 dataset_path: EleutherAI/unscramble
 dataset_name: random_insertion_in_word
-output_type: greedy_until
+output_type: generate_until
 test_split: validation
 doc_to_text: "{{context}}"
 doc_to_target: "{{completion}}"

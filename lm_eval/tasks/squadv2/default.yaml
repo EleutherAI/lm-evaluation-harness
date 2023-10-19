@@ -1,21 +1,9 @@
+include: _template_yaml
 task: squadv2
-dataset_path: squad_v2
-output_type: greedy_until
-training_split: train
-validation_split: validation
-doc_to_text: "Title: {{title}}\n\nBackground: {{context}}\n\nQuestion: {{question}}\n\n Answer:"
-doc_to_target: "{% if answers.text| length > 0 %}{{answers.text}}{% else %}{{['']}}{% endif %}"
-target_delimiter: ""
-should_decontaminate: true
-doc_to_decontamination_query: context
+output_type: generate_until
 generation_kwargs:
   until:
     - "\n"
-# filter_list:
-#   - name: remove_whitespace
-#     filter:
-#       - function: remove_whitespace
-#       - function: take_first
 metric_list:
   - metric: !function utils.exact
     aggregation: mean
