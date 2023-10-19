@@ -158,15 +158,6 @@ def get_aggregation(name):
         )
 
 
-def get_default_aggregation(metric_name):
-    try:
-        return DEFAULT_AGGREGATION_REGISTRY[metric_name]
-    except KeyError:
-        eval_logger.warning(
-            f"No default aggregation metric for metric '{metric_name}'!"
-        )
-
-
 def is_higher_better(metric_name):
     try:
         return HIGHER_IS_BETTER_REGISTRY[metric_name]
