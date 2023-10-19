@@ -15,7 +15,7 @@ from typing import Union
 
 
 def _handle_non_serializable(o):
-    if isinstance(o, np.int64):
+    if isinstance(o, np.int64) or isinstance(o, np.int32):
         return int(o)
     elif isinstance(o, set):
         return list(o)
