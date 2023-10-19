@@ -98,20 +98,20 @@ def parse_eval_args() -> argparse.Namespace:
         help="Additional path to include if there are external tasks to include.",
     )
     parser.add_argument(
-        "--verbose",
-        type=bool,
-        default=False,
+        "--verbosity",
+        type=str,
+        default="INFO",
         help="Log error when tasks are not registered.",
     )
     return parser.parse_args()
 
 
 def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
-
     if not args:
         # we allow for args to be passed externally, else we parse them ourselves
         args = parse_eval_args()
 
+    eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     if args.limit:
@@ -138,19 +138,21 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         else:
             tasks_list = args.tasks.split(",")
             task_names = utils.pattern_match(tasks_list, ALL_TASKS)
-            task_missing = []
             for task in [task for task in tasks_list if task not in task_names]:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
+            task_missing = [task for task in tasks_list if task not in task_names]
 
-        if task_missing != []:
-            missing = ", ".join(task_missing)
-            eval_logger.error(
-                f"Tasks were not found: {missing}\n"
-                f"{SPACING}Try `lm-eval -h` for list of available tasks",
-            )
-            raise ValueError(f"Tasks {missing} were not found.")
+            if task_missing:
+                missing = ", ".join(task_missing)
+                eval_logger.error(
+                    f"Tasks were not found: {missing}\n"
+                    f"{SPACING}Try `lm-eval -h` for list of available tasks",
+                )
+                raise ValueError(
+                    f"Tasks {missing} were not found. Try `lm-eval -h` for list of available tasks."
+                )
 
     if args.output_path:
         path = Path(args.output_path)
