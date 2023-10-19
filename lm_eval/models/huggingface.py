@@ -661,19 +661,13 @@ class HFLM(LM):
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
 
-        for chunk in utils.chunks(
-            tqdm(re_ord.get_reordered(), disable=(disable_tqdm or (self.rank != 0))),
-            n=self.batch_size
-            if self.batch_size != "auto"
-            else override_bs
-            if override_bs is not None
-            else 0,
-            fn=self._batch_scheduler
-            if self.batch_size == "auto"
-            and n_reordered_requests > 0
-            and not override_bs
-            else None,
-        ):
+        chunks = utils.chunks(
+            re_ord.get_reordered(),
+            n=self.batch_size if self.batch_size != "auto" else override_bs if override_bs is not None else 0,
+            fn=self._batch_scheduler if self.batch_size == "auto" and n_reordered_requests > 0 and not override_bs else None,
+        )
+
+        for chunk in tqdm(chunks, disable=(disable_tqdm or (self.rank != 0))):
             inps = []
             cont_toks_list = []
             inplens = []
@@ -844,17 +838,12 @@ class HFLM(LM):
             adaptive_batch_size = batch_size
         # for each different set of kwargs, we execute all requests, by batch.
         for key, re_ord in re_ords.items():
-            for chunk in utils.chunks(
-                tqdm(re_ord.get_reordered(), disable=self.rank != 0),
-                n=self.batch_size
-                if self.batch_size != "auto"
-                else adaptive_batch_size
-                if adaptive_batch_size is not None
-                else 0,
-                fn=self._batch_scheduler
-                if self.batch_size == "auto" and not adaptive_batch_size
-                else None,
-            ):
+            chunks = utils.chunks(
+                re_ord.get_reordered(),
+                n=self.batch_size if self.batch_size != "auto" else adaptive_batch_size if adaptive_batch_size is not None else 0,
+                fn=self._batch_scheduler if self.batch_size == "auto" and not adaptive_batch_size else None,
+            )
+            for chunk in tqdm(chunks, disable=self.rank != 0):
                 contexts, all_gen_kwargs = zip(*chunk)
                 # we assume all gen kwargs in the batch are the same
                 # this is safe to assume because the `grouper` object ensures it.
