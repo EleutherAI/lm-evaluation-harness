@@ -33,6 +33,7 @@ from lm_eval.api.metrics import (
 from lm_eval.api.registry import (
     get_metric,
     get_aggregation,
+    get_metric_aggregation,
     is_higher_better,
     DEFAULT_METRIC_REGISTRY,
     OUTPUT_TYPE_REGISTRY,
@@ -537,12 +538,15 @@ class ConfigurableTask(Task):
         self._aggregation_list = {}
         self._higher_is_better = {}
 
-        _metric_list = DEFAULT_METRIC_REGISTRY[self.config.output_type]
         if self.config.metric_list is None:
             # TODO: handle this in TaskConfig.__post_init__ ?
+            _metric_list = DEFAULT_METRIC_REGISTRY[self.config.output_type]
+
             for metric_name in _metric_list:
                 self._metric_fn_list[metric_name] = get_metric(metric_name)
-                self._aggregation_list[metric_name] = get_aggregation(metric_name)
+                self._aggregation_list[metric_name] = get_metric_aggregation(
+                    metric_name
+                )
                 self._higher_is_better[metric_name] = is_higher_better(metric_name)
         else:
             for metric_config in self.config.metric_list:
