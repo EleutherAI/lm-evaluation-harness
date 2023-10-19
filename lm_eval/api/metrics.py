@@ -5,6 +5,7 @@ import numpy as np
 import sacrebleu
 import sklearn.metrics
 import random
+import evaluate
 
 from lm_eval.api.registry import register_metric, register_aggregation
 
@@ -141,8 +142,8 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
     output_type="generate_until",
     aggregation="mean",
 )
-def exact_match_fn(items):  # This is a passthrough function
-    return items
+def exact_match_fn(**kwargs):  # This is a passthrough function
+    return evaluate.load("exact_match").compute(**kwargs)
 
 
 @register_metric(

@@ -544,6 +544,7 @@ class ConfigurableTask(Task):
 
             for metric_name in _metric_list:
                 self._metric_fn_list[metric_name] = get_metric(metric_name)
+                self._metric_fn_kwargs[metric_name] = {}
                 self._aggregation_list[metric_name] = get_metric_aggregation(
                     metric_name
                 )
