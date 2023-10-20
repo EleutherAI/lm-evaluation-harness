@@ -316,7 +316,7 @@ def evaluate(
                         doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
                 else:
                     if shuffle == "unigram":
-                        doc['query'] = unigram_shuffle(doc['query'])
+                        doc['query'] = unigram_shuffle(doc['query'], task_name)
                         doc['query'] = doc['query'] 
                     
                     """
