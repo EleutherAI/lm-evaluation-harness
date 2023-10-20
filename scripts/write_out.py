@@ -2,6 +2,8 @@ import argparse
 import numpy as np
 import json
 import os
+import random
+from lm_eval import tasks
 from lm_eval.utils import join_iters
 from lm_eval.tasks import include_path
 from lm_eval.logger import eval_logger
@@ -39,8 +41,8 @@ def main():
     else:
         task_names = args.tasks.split(",")
     task_dict = tasks.get_task_dict(task_names)
-    
-          os.makedirs(args.output_base_path, exist_ok=True)
+
+    os.makedirs(args.output_base_path, exist_ok=True)
     for task_name, task in task_dict.items():
         rnd = random.Random()
         rnd.seed(args.seed)
