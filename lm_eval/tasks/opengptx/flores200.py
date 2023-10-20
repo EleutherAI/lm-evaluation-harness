@@ -68,9 +68,11 @@ class FloresTranslationTask(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        return [rf.greedy_until(ctx, {"until": ["\n"]}),
-                rf.loglikelihood_rolling(doc[f"sentence_{self.src_code}"]),
-                rf.loglikelihood_rolling(doc[f"sentence_{self.tgt_code}"])]
+        return [
+            rf.greedy_until(ctx, {"until": ["\n"]}),
+            rf.loglikelihood_rolling(doc[f"sentence_{self.src_code}"]),
+            rf.loglikelihood_rolling(doc[f"sentence_{self.tgt_code}"]),
+        ]
 
     def process_results(self, doc, results):
         # These metrics are corpus-level not sentence level, so we'll hide the
@@ -85,7 +87,7 @@ class FloresTranslationTask(Task):
             "chrf": ref_pred,
             "ter": ref_pred,
             "ppl_src": ll_src,
-            "ppl_tgt": ll_tgt
+            "ppl_tgt": ll_tgt,
         }
 
     def aggregation(self):
@@ -99,7 +101,7 @@ class FloresTranslationTask(Task):
             "chrf": metrics.chrf,
             "ter": metrics.ter,
             "ppl_src": metrics.perplexity,
-            "ppl_tgt": metrics.perplexity
+            "ppl_tgt": metrics.perplexity,
         }
 
     def higher_is_better(self):
@@ -113,7 +115,7 @@ class FloresTranslationTask(Task):
             "chrf": True,
             "ter": False,
             "ppl_src": False,
-            "ppl_tgt": False
+            "ppl_tgt": False,
         }
 
     def __str__(self):
