@@ -19,7 +19,9 @@ def _handle_non_serializable(o):
         return int(o)
     elif isinstance(o, set):
         return list(o)
-    raise TypeError(f"Object of type {o.__class__.__name__} is not JSON serializable")
+    else:
+        print(f"Object of type {o.__class__.__name__} is not JSON serializable,just stringify it")
+        return str(o)
 
 
 def parse_eval_args() -> argparse.Namespace:
@@ -114,7 +116,7 @@ def parse_eval_args() -> argparse.Namespace:
         "--huggingface_login",
         action="store_true",
         default=False,
-        help="huggingface token for downloading some authorization datasets, like toxigen, https://huggingface.co/settings/tokens",
+        help="huggingface token for downloading some authorization datasets, like toxigen, you need add HUGGINGFACE_LOGIN_TOKEN to environment variable firstly. https://huggingface.co/settings/tokens",
     )
     return parser.parse_args()
 
