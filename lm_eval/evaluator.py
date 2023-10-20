@@ -15,9 +15,12 @@ import transformers
 nltk.download('punkt')
 tokenizer = nltk.tokenize.word_tokenize
 
-def unigram_shuffle(sentence):
+# The shuffle is different for each task
+def unigram_shuffle(sentence, task):
     words = tokenizer(sentence)  # Tokenize the sentence into words
-    words = words[2:-2]  #Don't include "Question:" and "Answer:" in shuffle
+    # Arc_challenge
+    if task == "arc_challenge":
+        words = words[2:-2]  #Don't include "Question:" and "Answer:" in shuffle    
     random.shuffle(words)  # Shuffle the order of words
     return ' '.join(words)  # Join the shuffled words back into a sentence
 
@@ -306,10 +309,10 @@ def evaluate(
                 if shuffle == "unigram":
                     doc['query'] = hendrycks_unigram_shuffle(doc['query'])
 
-            elif task_name != "truthfulqa_mc":
+            elif task != "truthfulqa_mc":
                 if task_name == "arc_challenge":
                     if shuffle == "unigram":
-                        doc['query'] = unigram_shuffle(doc['query'])
+                        doc['query'] = unigram_shuffle(doc['query'], task_name)
                         doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
                 else:
                     if shuffle == "unigram":
@@ -324,11 +327,10 @@ def evaluate(
                     doc['query'] = trigram_shuffle(doc['query'])
                     doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
                     """
-
             # Truthful taska are accessed using 'question'
             else:
                 if shuffle == "unigram":
-                    doc['question'] = unigram_shuffle(doc['question'])
+                    doc['question'] = unigram_shuffle(doc['question'], task_name)
                     doc['question'] = doc['question']
                     """
                 elif shuffle == "bigram":
