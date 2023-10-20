@@ -111,9 +111,9 @@ def parse_eval_args() -> argparse.Namespace:
         help="Log error when tasks are not registered.",
     )
     parser.add_argument(
-        "--huggingface_token",
-        type=str,
-        default=None,
+        "--huggingface_login",
+        action="store_true",
+        default=False,
         help="huggingface token for downloading some authorization datasets, like toxigen, https://huggingface.co/settings/tokens",
     )
     return parser.parse_args()
@@ -132,10 +132,14 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
-    if args.huggingface_token:
+    if args.huggingface_login:
         from huggingface_hub import login
 
-        login(token=args.huggingface_token)
+        assert (
+            "HUGGINGFACE_LOGIN_TOKEN" in os.environ
+        ), "Your environment variable does not contain a HUGGINGFACE_LOGIN_TOKEN. Please set the token first."
+        huggingface_token = os.environ["HUGGINGFACE_LOGIN_TOKEN"]
+        login(token=huggingface_token)
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
         include_path(args.include_path)
