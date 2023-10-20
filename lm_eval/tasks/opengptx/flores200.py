@@ -21,6 +21,7 @@ class FloresTranslationTask(Task):
 
     def __init__(self, language_pair: str = None):
         self.DATASET_NAME = self.language_pair = language_pair
+        super().__init__()
         self.src_code, self.tgt_code = language_pair.split("-")
         self.src_lang = code_to_language(self.src_code[:3])
         self.tgt_lang = code_to_language(self.tgt_code[:3])
@@ -43,7 +44,7 @@ class FloresTranslationTask(Task):
     def doc_to_text(self, doc):
         return (
             f"{self.src_lang} phrase: "
-            + doc[f"sentence_{self.src_lang}"]
+            + doc[f"sentence_{self.src_code}"]
             + f"\n{self.tgt_lang} phrase:"
         )
 
@@ -67,16 +68,24 @@ class FloresTranslationTask(Task):
             language description, as well as the few shot examples, and the question
             part of the document for `doc`.
         """
-        return rf.greedy_until(ctx, {"until": ["\n"]})
+        return [rf.greedy_until(ctx, {"until": ["\n"]}),
+                rf.loglikelihood_rolling(doc[f"sentence_{self.src_code}"]),
+                rf.loglikelihood_rolling(doc[f"sentence_{self.tgt_code}"])]
 
     def process_results(self, doc, results):
         # These metrics are corpus-level not sentence level, so we'll hide the
-        # results in this dict and compute the corpus score in the aggregate method
-        ref_pred = (self.doc_to_target(doc), results)
+        # translation results in this dict and compute the corpus score in the
+        # aggregate method. PPL values are computed as usual, however separated
+        # by source and target text.
+
+        pred, ll_src, ll_tgt = results
+        ref_pred = (self.doc_to_target(doc), pred)
         return {
             "bleu": ref_pred,
             "chrf": ref_pred,
             "ter": ref_pred,
+            "ppl_src": ll_src,
+            "ppl_tgt": ll_tgt
         }
 
     def aggregation(self):
@@ -89,6 +98,8 @@ class FloresTranslationTask(Task):
             "bleu": metrics.bleu,
             "chrf": metrics.chrf,
             "ter": metrics.ter,
+            "ppl_src": metrics.perplexity,
+            "ppl_tgt": metrics.perplexity
         }
 
     def higher_is_better(self):
@@ -101,6 +112,8 @@ class FloresTranslationTask(Task):
             "bleu": True,
             "chrf": True,
             "ter": False,
+            "ppl_src": False,
+            "ppl_tgt": False
         }
 
     def __str__(self):
