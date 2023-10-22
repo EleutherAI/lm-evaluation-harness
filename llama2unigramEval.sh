@@ -35,6 +35,7 @@ python ~/lm-evaluation-harness/main.py \
             --device cuda:0 \
             --num_fewshot 25 \
             --tasks arc_challenge \
+            --write_out true \
             --shuffle unigram
 
 python ~/lm-evaluation-harness/main.py \
@@ -52,5 +53,4 @@ python ~/lm-evaluation-harness/main.py \
             --batch_size 16 \
             --device cuda:0 \
             --tasks truthfulqa_mc \
-            --write_out true \
-            --shuffle unigram
+            --write_out true 
