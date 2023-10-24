@@ -39,7 +39,7 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["lm_eval"]
+include = ["lm_eval*"]
 
 # required to include yaml files in pip installation
 [tool.setuptools.package-data]
