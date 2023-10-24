@@ -39,14 +39,11 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["lm_eval"]
-include = ["*"]
-namespaces = false
+include = ["lm_eval"]
 
 # required to include yaml files in pip installation
 [tool.setuptools.package-data]
-lm_eval = ["**/*.yaml", "prompts/**/*", "tasks/**/*"]
-examples = ["**/*.yaml"]
+lm_eval = ["**/*.yaml", "tasks/**/*"]
 
 [project.scripts]
 lm-eval = "lm_eval.__main__:cli_evaluate"
