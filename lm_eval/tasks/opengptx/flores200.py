@@ -78,7 +78,7 @@ class FloresTranslationTask(Task):
         # These metrics are corpus-level not sentence level, so we'll hide the
         # translation results in this dict and compute the corpus score in the
         # aggregate method. PPL values are computed as usual, however separated
-        # by source and target text.
+        # by source (`ppl`) and target (`ppl_tgt`) text.
 
         pred, ll_src, ll_tgt = results
         ref_pred = (self.doc_to_target(doc), pred)
@@ -86,7 +86,7 @@ class FloresTranslationTask(Task):
             "bleu": ref_pred,
             "chrf": ref_pred,
             "ter": ref_pred,
-            "ppl_src": ll_src,
+            "ppl": ll_src,
             "ppl_tgt": ll_tgt,
         }
 
@@ -100,7 +100,7 @@ class FloresTranslationTask(Task):
             "bleu": metrics.bleu,
             "chrf": metrics.chrf,
             "ter": metrics.ter,
-            "ppl_src": metrics.perplexity,
+            "ppl": metrics.perplexity,
             "ppl_tgt": metrics.perplexity,
         }
 
@@ -114,7 +114,7 @@ class FloresTranslationTask(Task):
             "bleu": True,
             "chrf": True,
             "ter": False,
-            "ppl_src": False,
+            "ppl": False,
             "ppl_tgt": False,
         }
 
