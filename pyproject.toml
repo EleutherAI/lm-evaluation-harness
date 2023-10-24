@@ -38,10 +38,6 @@ dependencies = [
     "zstandard",
 ]
 
-[tool.setuptools]
-packages = ["lm_eval"]
-
-
 [tool.setuptools.packages.find]
 include = ["lm_eval*"]
 
