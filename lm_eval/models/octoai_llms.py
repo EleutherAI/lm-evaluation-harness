@@ -37,7 +37,9 @@ class OctoAIEndpointLM(BaseLM):
       model_name="llama2-7b-chat-mlc-q0f16",
       batch_size=1,
       max_batch_size=None,
-      device=None):
+      device=None,
+      top_p=0.0,
+      temperature=0.0,):
     """
     :param model_name: str
         Model name from the list of models supported by OctoAI
@@ -52,9 +54,9 @@ class OctoAIEndpointLM(BaseLM):
     self._device=device
     # TODO(vvchernov): check that model name is supported
 
-    self.init_remote()
+    self.init_remote(top_p, temperature)
 
-  def init_remote(self):
+  def init_remote(self, top_p, temperature):
     # Get the API key from the environment variables
     api_key=os.environ["OCTOAI_API_KEY"]
 
@@ -78,7 +80,9 @@ class OctoAIEndpointLM(BaseLM):
             }
         ],
         "stream": False,
-        "max_tokens": 256
+        "max_tokens": 256,
+        "top_p": top_p,
+        "temperature": temperature,
     }
 
   @property
