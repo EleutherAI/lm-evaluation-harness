@@ -22,7 +22,8 @@ def unigram_shuffle(sentence, task):
     if task == "arc_challenge":
         words = words[2:-2]  #Don't include "Question:" and "Answer:" in shuffle    
     random.shuffle(words)  # Shuffle the order of words
-    return ' '.join(words)  # Join the shuffled words back into a sentence
+    #return ' '.join(words)  # Join the shuffled words back into a sentence
+    return "Guess"
 
 # Function to shuffle bigrams (pairs of consecutive words) in a sentence
 def bigram_shuffle(sentence):
