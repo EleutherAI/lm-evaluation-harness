@@ -50,8 +50,8 @@ python ~/lm-evaluation-harness/main.py \
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
             --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
-            --batch_size 16 \
+            --batch_size 1 \
             --device cuda:0 \
-            --tasks truthfulqa_gen \
+            --tasks truthfulqa_mc \
             --write_out \
             --shuffle unigram
