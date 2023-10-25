@@ -309,7 +309,7 @@ def evaluate(
                 if shuffle == "unigram":
                     doc['query'] = hendrycks_unigram_shuffle(doc['query'])
 
-            elif task_name != "truthfulqa_mc" or task_name != "truthfulqa_gen":
+            elif task_name != "truthfulqa_mc" and task_name != "truthfulqa_gen":
                 if task_name == "arc_challenge":
                     if shuffle == "unigram":
                         doc['query'] = unigram_shuffle(doc['query'], task_name)
