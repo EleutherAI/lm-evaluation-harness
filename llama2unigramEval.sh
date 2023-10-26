@@ -50,7 +50,7 @@ python ~/lm-evaluation-harness/main.py \
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
             --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
-            --batch_size 1 \
+            --batch_size 16 \
             --device cuda:0 \
             --tasks truthfulqa_mc \
             --write_out \
