@@ -33,7 +33,7 @@ from lm_eval.api.metrics import (
 from lm_eval.api.registry import (
     get_metric,
     get_aggregation,
-    get_default_aggregation,
+    get_metric_aggregation,
     is_higher_better,
     DEFAULT_METRIC_REGISTRY,
     OUTPUT_TYPE_REGISTRY,
@@ -538,12 +538,14 @@ class ConfigurableTask(Task):
         self._aggregation_list = {}
         self._higher_is_better = {}
 
-        _metric_list = DEFAULT_METRIC_REGISTRY[self.config.output_type]
         if self.config.metric_list is None:
             # TODO: handle this in TaskConfig.__post_init__ ?
+            _metric_list = DEFAULT_METRIC_REGISTRY[self.config.output_type]
+
             for metric_name in _metric_list:
                 self._metric_fn_list[metric_name] = get_metric(metric_name)
-                self._aggregation_list[metric_name] = get_default_aggregation(
+                self._metric_fn_kwargs[metric_name] = {}
+                self._aggregation_list[metric_name] = get_metric_aggregation(
                     metric_name
                 )
                 self._higher_is_better[metric_name] = is_higher_better(metric_name)
@@ -586,7 +588,7 @@ class ConfigurableTask(Task):
                         ]
                 else:
                     INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
-                    metric_agg = get_default_aggregation(metric_name)
+                    metric_agg = get_metric_aggregation(metric_name)
                     eval_logger.warning(
                         f"[Task: {self._config.task}] metric {metric_name} is defined, but aggregation is not. "
                         f"using default "
@@ -687,7 +689,10 @@ class ConfigurableTask(Task):
             for choice in check_choices:
                 choice_has_whitespace = True if choice[0].isspace() else False
                 delimiter_has_whitespace = (
-                    True if self.config.target_delimiter[-1].isspace() else False
+                    True
+                    if self.config.target_delimiter.rstrip()
+                    == self.config.target_delimiter
+                    else False
                 )
 
                 if delimiter_has_whitespace and choice_has_whitespace:
