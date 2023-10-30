@@ -5,6 +5,8 @@ import os
 import random
 from lm_eval import tasks
 from lm_eval.utils import join_iters
+from lm_eval.tasks import include_path
+from lm_eval.logger import eval_logger
 
 EXAMPLE_DIVIDER = "!!@@##@@!! -- Example {i}\n"
 
@@ -17,12 +19,22 @@ def parse_args():
     parser.add_argument("--num_fewshot", type=int, default=1)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--num_examples", type=int, default=1)
+    parser.add_argument(
+        "--include_path",
+        type=str,
+        default=None,
+        help="Additional path to include if there are external tasks to include.",
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
     np.random.seed(args.seed)
+
+    if args.include_path is not None:
+        eval_logger.info(f"Including path: {args.include_path}")
+        include_path(args.include_path)
 
     if args.tasks == "all_tasks":
         task_names = tasks.ALL_TASKS
