@@ -33,6 +33,6 @@ python ~/lm-evaluation-harness/main.py \
             --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
             --batch_size 4 \
             --device cuda:0 \
-            --tasks truthfulqa_gen \
+            --tasks bigbench_causal_judgement \
             --write_out \
             --shuffle unigram
