@@ -1,0 +1,9 @@
+group: minerva_math
+task:
+  - minerva_math_algebra
+  - minerva_math_counting_and_prob
+  - minerva_math_geometry
+  - minerva_math_intermediate_algebra
+  - minerva_math_num_theory
+  - minerva_math_prealgebra
+  - minerva_math_precalc

@@ -16,7 +16,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 license = { "text" = "MIT" }
 dependencies = [
     "accelerate>=0.21.0",
@@ -25,10 +25,8 @@ dependencies = [
     "evaluate>=0.4.0",
     "jsonlines",
     "numexpr",
-    "omegaconf>=2.2",
     "peft>=0.2.0",
     "pybind11>=2.6.2",
-    "pycountry",
     "pytablewriter",
     "rouge-score>=0.0.4",
     "sacrebleu>=1.5.0",
@@ -40,17 +38,16 @@ dependencies = [
     "zstandard",
 ]
 
-[tool.setuptools]
-packages = ["lm_eval"]
+[tool.setuptools.packages.find]
+include = ["lm_eval*"]
 
 # required to include yaml files in pip installation
 [tool.setuptools.package-data]
 lm_eval = ["**/*.yaml", "tasks/**/*"]
-examples = ["**/*.yaml"]
 
 [project.scripts]
-lm-eval = "main:main"
-lm_eval = "main:main"
+lm-eval = "lm_eval.__main__:cli_evaluate"
+lm_eval = "lm_eval.__main__:cli_evaluate"
 
 [project.urls]
 Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
@@ -65,8 +62,9 @@ linting = [
     "pre-commit",
 ]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
-multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1"]
-sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1", "pycountry"]
+multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
+math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
+sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
 promptsource = [
     "promptsource @ git+https://github.com/bigscience-workshop/promptsource.git#egg=promptsource"
 ]

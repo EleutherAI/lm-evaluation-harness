@@ -7,6 +7,7 @@ import lm_eval.tasks as tasks
 # import lm_eval.models as models
 import lm_eval.api as api
 import lm_eval.evaluator as evaluator
+from typing import List
 import random
 import pytest
 
@@ -26,7 +27,7 @@ import pytest
         )
     ],
 )
-def test_evaluator(task_name: list[str], limit: int, model: str, model_args: str):
+def test_evaluator(task_name: List[str], limit: int, model: str, model_args: str):
     task_name = task_name
     limit = 10
 

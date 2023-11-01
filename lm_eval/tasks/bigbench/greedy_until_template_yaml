@@ -1,0 +1,16 @@
+group: bigbench
+dataset_path: bigbench # will switch to `hails/bigbench` when all tasks are pushed
+output_type: generate_until
+dataset_kwargs:
+  # num_shots: 0 # TODO: num of shots for `bigbench` HF dataset should be controlled through this, not through the typical methods
+  # subtask_name: null
+test_split: default
+doc_to_text: inputs
+doc_to_target: "{{targets[0]}}"
+generation_kwargs:
+  max_length: 128
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_punctuation: true
