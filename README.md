@@ -249,7 +249,7 @@ You can also ask for help, or discuss new features with the maintainers in the #
 ## Cite as
 
 ```
-@software{eval-harness,
+@misc{eval-harness,
   author       = {Gao, Leo and
                   Tow, Jonathan and
                   Abbasi, Baber and
