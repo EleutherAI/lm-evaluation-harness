@@ -16,9 +16,9 @@ flight env activate gridware
 #Remove any unwanted modules
 module purge
 module load libs/nvidia-cuda/11.2.0/bin
-module load /users/adbt150/yes
+module load /users/adbt150/miniconda3
 
-source ~/yes/etc/profile.d/conda.sh
+source ~/miniconda3/etc/profile.d/conda.sh
 conda activate llm
 nvidia-smi
 GPUS_PER_NODE=1
