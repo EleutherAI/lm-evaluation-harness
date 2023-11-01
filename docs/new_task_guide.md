@@ -17,7 +17,7 @@ git checkout -b <task-name>
 pip install -e ".[dev]"
 ```
 
-As a concrete example, we'll walk through reimplementing the `gsm8k` benchmark (a *generative* task which requires sampling text from a model) and the `sciq` benchmark. (a *discriminative*, or *multiple choice*, task where the model picks the most likely of several fixed answer choices).
+In this document, we'll walk through the basics of implementing a static benchmark evaluation in two formats: a *generative* task which requires sampling text from a model, such as [`gsm8k`](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/tasks/gsm8k/gsm8k.yaml), and a *discriminative*, or *multiple choice*, task where the model picks the most likely of several fixed answer choices, such as [`sciq`](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/tasks/sciq/sciq.yaml).
 
 ## Creating a YAML file
 
@@ -116,7 +116,7 @@ doc_to_choice: ['No', 'Yes']
 
 We support the [Jinja 2](https://jinja.palletsprojects.com/en/3.1.x/) templating language for writing prompts. In practice, this means you can take your dataset's columns and do many basic string manipulations to place each document into prompted format.
 
-Take for example `super_glue/boolq`, as input, we'd like to use the features `passage` and `question` and string them together so that for a a sample line `doc`, the model sees something the format of:
+Take for example the dataset `super_glue/boolq`. As input, we'd like to use the features `passage` and `question` and string them together so that for a a sample line `doc`, the model sees something the format of:
 ```
 doc["passage"]
 Question: doc["question"]?
@@ -285,7 +285,7 @@ It's now time to check models' performance on your task! In the evaluation harne
 
 To enable this, we provide a checklist that should be completed when contributing a new task, to enable accurate book-keeping and to ensure that tasks added to the library are well-tested and, where applicable, precedented.
 
-### Task impl. checklist
+### Task Validity Checklist
 
 The checklist is the following:
 
