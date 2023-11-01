@@ -18,7 +18,7 @@ The Language Model Evaluation Harness is the backend for 🤗 Hugging Face's pop
 
 ## Install
 
-To install the `lm-eval` refactor branch from the github repository, run:
+To install the `lm-eval` package from the github repository, run:
 
 ```bash
 git clone https://github.com/EleutherAI/lm-evaluation-harness
@@ -141,7 +141,7 @@ A full accounting of the supported and planned libraries + APIs can be seen belo
 | API or Inference Server     | Implemented?                    | `--model <xxx>` name                                                             | Models supported:                    | Request Types:                                           |
 |-----------------------------|---------------------------------|----------------------------------------------------------------------------------|--------------------------------------|----------------------------------------------------------|
 | OpenAI Completions          | :heavy_check_mark:              | `openai`, `openai-completions`, `gooseai`                                        | up to `code-davinci-002`             | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| OpenAI ChatCompletions      | :x: Not yet - needs help!       | N/A                                                                              | (link here?)                         | `generate_until` (no logprobs)                             |
+| OpenAI ChatCompletions      | :x: Not yet - needs testing!       | N/A                                                                              | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                         | `generate_until` (no logprobs)                             |
 | Anthropic                   | :heavy_check_mark:              | `anthropic`                                                                      | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)         | `generate_until` (no logprobs)                             |
 | GooseAI                     | :heavy_check_mark: (not separately maintained)  | `openai`, `openai-completions`, `gooseai` (same interface as OpenAI Completions) |                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | Textsynth                   | Needs testing                   | `textsynth`                                                                      | ???                                  | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
