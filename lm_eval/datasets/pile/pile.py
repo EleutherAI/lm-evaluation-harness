@@ -38,8 +38,8 @@ math, computer science, and philosophy papers.
 
 _HOMEPAGE = "https://pile.eleuther.ai/"
 
-# License declared at https://arxiv.org/pdf/2201.07311.pdf
-_LICENSE = "MIT license"
+# More details at https://arxiv.org/pdf/2201.07311.pdf
+_LICENSE = "Multiple licenses"
 
 _URLS = {
     "validation": "https://the-eye.eu/public/AI/pile/val.jsonl.zst",
