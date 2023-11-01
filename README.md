@@ -216,12 +216,6 @@ python -m lm_eval \
 
 We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
 
-## Implementing new tasks
-
-To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
-
-
-As a start, we currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, we support prompts authored in the [Promptsource Library](https://github.com/bigscience-workshop/promptsource/tree/main) as described further in [the task guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/new_task_guide.md) and [the advanced task guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/advanced_task_guide.md) and welcome contributions of novel task templates and task variants.
 
 ## How to Contribute or Learn More?
 
@@ -229,6 +223,13 @@ For more information on the library and how everything fits together, check out 
 
 
 You can also ask for help, or discuss new features with the maintainers in the #lm-thunderdome channel of the EleutherAI discord! If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
+
+### Implementing new tasks
+
+To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
+
+
+As a start, we currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, we support prompts authored in the [Promptsource Library](https://github.com/bigscience-workshop/promptsource/tree/main) as described further in [the task guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/new_task_guide.md) and [the advanced task guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/advanced_task_guide.md) and welcome contributions of novel task templates and task variants.
 
 
 ## Cite as
