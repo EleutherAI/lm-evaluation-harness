@@ -221,6 +221,7 @@ def evaluate(
     task_hierarchy = collections.defaultdict(list)
     # store the ordering of tasks and groups
     task_order = collections.defaultdict(int)
+    task_group_alias = collections.defaultdict(dict)
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
@@ -228,6 +229,10 @@ def evaluate(
             group_name, task = task
             task_hierarchy[group_name].append(task_name)
             versions[group_name] = "N/A"
+
+            if "group_alias" in configs[task_name]:
+                task_group_alias[group_name] = configs[task_name]["group_alias"]
+
         else:
             task_hierarchy[task_name] = []
 
@@ -236,6 +241,9 @@ def evaluate(
 
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
+
+        if "task_alias" in configs[task_name]:
+            task_group_alias[task_name] = configs[task_name]["task_alias"]
 
         if limit is not None:
             if task.has_test_docs():
@@ -522,19 +530,19 @@ def evaluate(
 
                 results[group]["samples"] = total_size
 
-        def print_tasks(task_hierarchy, task_order, task_version):
+        def print_tasks(task_hierarchy, task_order, task_version, task_group_alias):
 
             results_agg = collections.defaultdict(dict)
             groups_agg = collections.defaultdict(dict)
             for group_name, task_list in task_hierarchy.items():
 
                 order = task_order[group_name]
-                tabbed_name = "-" * order + group_name
-                results_agg[tabbed_name] = results[group_name]
-                task_version[tabbed_name] = task_version[group_name]
+                results_agg[group_name] = results[group_name]
+                results_agg[group_name]["tab"] = order
 
                 if (order < max(task_order.values())) and (len(task_list) > 0):
-                    groups_agg[tabbed_name] = results[group_name]
+                    groups_agg[group_name] = results[group_name]
+                    groups_agg[group_name]["tab"] = order
 
                 if task_list != []:
                     for task in sorted(task_list):
@@ -544,7 +552,7 @@ def evaluate(
                             _task_hierarchy = {task: []}
 
                         _results_agg, _groups_agg, task_version = print_tasks(
-                            _task_hierarchy, task_order, task_version
+                            _task_hierarchy, task_order, task_version, task_group_alias
                         )
 
                         results_agg = {**results_agg, **_results_agg}
@@ -553,8 +561,40 @@ def evaluate(
             return results_agg, groups_agg, task_version
 
         results_agg, groups_agg, versions = print_tasks(
-            task_hierarchy, task_order, versions
+            task_hierarchy, task_order, versions, task_group_alias
         )
+
+        _results_agg = collections.defaultdict(dict)
+        _versions = collections.defaultdict(dict)
+        for task in results_agg:
+            task_results = results_agg[task]
+            if "tab" in task_results:
+                tab = task_results.pop("tab")
+                tab_string = " "*(tab-1)+"-" if tab > 0 else ""
+
+            if task in task_group_alias:
+                task_alias = task_group_alias[task]
+                _results_agg[tab_string+task_alias] = task_results
+                _versions[tab_string+task_alias] = versions[task]
+            else:
+                _results_agg[tab_string+task] = task_results
+                _versions[tab_string+task] = versions[task]
+        results_agg = _results_agg
+        versions = _versions
+
+        _groups_agg = collections.defaultdict(dict)
+        for group in groups_agg:
+            group_results = groups_agg[group]
+            if "tab" in group_results:
+                tab = group_results.pop("tab")
+                tab_string = " "*(tab-1)+"-" if tab > 0 else ""
+
+            if group in task_group_alias:
+                group_alias = task_group_alias[group]
+                _groups_agg[tab_string+group_alias] = group_results
+            else:
+                _groups_agg[tab_string+group] = group_results
+        groups_agg = _groups_agg
 
         results_dict = {
             "results": dict(results_agg.items()),
