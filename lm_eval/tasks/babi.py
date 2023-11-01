@@ -16,6 +16,7 @@ _CITATION = """
 }
 """
 
+
 class Babi(Task):
     VERSION = 0
     DATASET_PATH = "Muennighoff/babi"
@@ -43,18 +44,16 @@ class Babi(Task):
             return self.dataset["test"]
 
     def doc_to_text(self, doc):
-        return (
-            doc['passage'] + doc['question']
-        )
+        return doc["passage"] + doc["question"]
 
     def should_decontaminate(self):
-        return False # TODO Necessary?
+        return False  # TODO Necessary?
 
     def doc_to_decontamination_query(self, doc):
         return f"Passage: {doc['passage']}\nQuestion: {doc['question']}\nAnswer:"
 
     def doc_to_target(self, doc):
-        return " " + doc['answer']
+        return " " + doc["answer"]
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of

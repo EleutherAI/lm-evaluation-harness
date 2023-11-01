@@ -198,14 +198,13 @@ class GPT3LM(BaseLM):
                 context_enc = self.tok_encode(context)
                 inp = context_enc[-(self.max_length - self.max_gen_toks) :]
                 inps.append(inp)
-
             response = oa_completion(
                 engine=self.engine,
                 prompt=inps,
                 max_tokens=self.max_gen_toks,
                 temperature=0.0,
                 logprobs=10,
-                stop=until,
+                stop=until["until"],
             )
 
             for resp, (context, until_) in zip(response.choices, chunk):

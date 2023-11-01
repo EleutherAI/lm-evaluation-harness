@@ -16,7 +16,7 @@ class Haerae(MultipleChoiceTask):
 
     def test_docs(self):
         return map(self._process_doc, self.dataset["test"])
-    
+
     def _process_doc(self, doc):
         choices = [doc["o1"], doc["o2"], doc["o3"], doc["o4"]]
         if doc.get("o5") is not None:
@@ -24,7 +24,7 @@ class Haerae(MultipleChoiceTask):
         out_doc = {
             "query": doc["query"],
             "choices": choices,
-            "gold": int(doc['gold'])-1,
+            "gold": int(doc["gold"]) - 1,
         }
         return out_doc
 
