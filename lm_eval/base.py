@@ -7,7 +7,6 @@ import os
 import json
 import hashlib
 import datasets
-from sqlitedict import SqliteDict
 from tqdm import tqdm
 import torch
 import torch.nn.functional as F
@@ -891,6 +890,7 @@ class CachingLM:
         :param cache_db: str
             Path to cache db
         """
+        from sqlitedict import SqliteDict
         self.lm = lm
         self.cache_db = cache_db
         if os.path.dirname(cache_db):
