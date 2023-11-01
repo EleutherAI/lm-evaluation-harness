@@ -693,7 +693,7 @@ class ConfigurableTask(Task):
                 delimiter_has_whitespace = (
                     True
                     if self.config.target_delimiter.rstrip()
-                    == self.config.target_delimiter
+                    != self.config.target_delimiter
                     else False
                 )
 
@@ -703,7 +703,7 @@ class ConfigurableTask(Task):
                     )
                 elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
                     eval_logger.warning(
-                        f'Both target_delimiter and target choice: "{choice}" does not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
+                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
     def download(self, dataset_kwargs=None) -> None:
