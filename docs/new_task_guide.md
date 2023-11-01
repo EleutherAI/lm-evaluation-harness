@@ -45,6 +45,16 @@ dataset_name: ... # the dataset configuration to use. Leave `null` if your datas
 dataset_kwargs: null # any extra keyword arguments that should be passed to the dataset constructor, e.g. `data_dir`.
 ```
 
+------------------------------
+**Tip:** To load a local dataset for evaluation, you can specify data files in the `dataset_kwargs` field, such as the following for JSON files:
+```
+dataset_path: json
+dataset_name: null
+dataset_kwargs: 
+  data_files: /path/to/my/json
+```
+-------------------------------
+
 Next, we'd like to tell our task what the dataset's train, validation, and test splits are named, if they exist:
 
 ```yaml
