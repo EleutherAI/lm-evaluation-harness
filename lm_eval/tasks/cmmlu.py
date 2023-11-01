@@ -2,16 +2,23 @@
 CMMLU: Measuring massive multitask language understanding in Chinese
 https://arxiv.org/abs/2306.09212
 
-CMMLU is a comprehensive evaluation benchmark specifically designed to evaluate the knowledge and reasoning abilities of LLMs within the context of Chinese language and culture.
-CMMLU covers a wide range of subjects, comprising 67 topics that span from elementary to advanced professional levels.
+CMMLU is a comprehensive Chinese assessment suite specifically designed to evaluate the advanced knowledge 
+and reasoning abilities of LLMs within the Chinese language and cultural context. CMMLU covers a wide range of 
+subjects, comprising 67 topics that span from elementary to advanced professional levels. It includes subjects that 
+require computational expertise, such as physics and mathematics, as well as disciplines within humanities and 
+social sciences. Many of these tasks are not easily translatable from other languages due to their specific 
+contextual nuances and wording. Furthermore, numerous tasks within CMMLU have answers that are specific to 
+China and may not be universally applicable or considered correct in other regions or languages.
 
 Homepage: https://github.com/haonan-li/CMMLU
+Huggingface homepage: https://huggingface.co/datasets/haonan-li/cmmlu
 """
-from lm_eval.base import MultipleChoiceTask
+import os
+from lm_eval.base import MultipleChoiceTask, rf
 
 _CITATION = """
 @misc{li2023cmmlu,
-      title={CMMLU: Measuring massive multitask language understanding in Chinese},
+      title={CMMLU: Measuring massive multitask language understanding in Chinese}, 
       author={Haonan Li and Yixuan Zhang and Fajri Koto and Yifei Yang and Hai Zhao and Yeyun Gong and Nan Duan and Timothy Baldwin},
       year={2023},
       eprint={2306.09212},
@@ -21,7 +28,77 @@ _CITATION = """
 """
 
 
-SUBJECTS = {
+SUBJECTS = [
+    "agronomy",
+    "anatomy",
+    "ancient_chinese",
+    "arts",
+    "astronomy",
+    "business_ethics",
+    "chinese_civil_service_exam",
+    "chinese_driving_rule",
+    "chinese_food_culture",
+    "chinese_foreign_policy",
+    "chinese_history",
+    "chinese_literature",
+    "chinese_teacher_qualification",
+    "clinical_knowledge",
+    "college_actuarial_science",
+    "college_education",
+    "college_engineering_hydrology",
+    "college_law",
+    "college_mathematics",
+    "college_medical_statistics",
+    "college_medicine",
+    "computer_science",
+    "computer_security",
+    "conceptual_physics",
+    "construction_project_management",
+    "economics",
+    "education",
+    "electrical_engineering",
+    "elementary_chinese",
+    "elementary_commonsense",
+    "elementary_information_and_technology",
+    "elementary_mathematics",
+    "ethnology",
+    "food_science",
+    "genetics",
+    "global_facts",
+    "high_school_biology",
+    "high_school_chemistry",
+    "high_school_geography",
+    "high_school_mathematics",
+    "high_school_physics",
+    "high_school_politics",
+    "human_sexuality",
+    "international_law",
+    "journalism",
+    "jurisprudence",
+    "legal_and_moral_basis",
+    "logical",
+    "machine_learning",
+    "management",
+    "marketing",
+    "marxist_theory",
+    "modern_chinese",
+    "nutrition",
+    "philosophy",
+    "professional_accounting",
+    "professional_law",
+    "professional_medicine",
+    "professional_psychology",
+    "public_relations",
+    "security_study",
+    "sociology",
+    "sports_science",
+    "traditional_chinese_medicine",
+    "virology",
+    "world_history",
+    "world_religions"
+]
+
+SUBJECT_MAPPING = {
     "agronomy": "农学",
     "anatomy": "解剖学",
     "ancient_chinese": "古汉语",
@@ -91,26 +168,103 @@ SUBJECTS = {
     "world_religions": "世界宗教",
 }
 
+SUBJECT_CATEGORIES = {
+    "agronomy": ['other'],
+    "anatomy": ['biology'],
+    "ancient_chinese": ['linguistics','china specific'],
+    "arts": ['arts'],
+    "astronomy": ['physics'],
+    "business_ethics": ['business'],
+    "chinese_civil_service_exam": ['politics','china specific'],
+    "chinese_driving_rule": ['other','china specific'],
+    "chinese_food_culture": ['culture','china specific'],
+    "chinese_foreign_policy": ['politics','china specific'],
+    "chinese_history":['history','china specific'],
+    "chinese_literature": ['literature','china specific'],
+    "chinese_teacher_qualification": ['education','china specific'],
+    "college_actuarial_science":['math'],
+    "college_education":['education'],
+    "college_engineering_hydrology": ['engineering'],
+    "college_law": ['law'],
+    "college_mathematics": ['math'],
+    "college_medical_statistics":['statistics'],
+    "clinical_knowledge": ['other'],
+    "college_medicine": ['other'],
+    "computer_science": ['computer science'],
+    "computer_security": ['other'],
+    "conceptual_physics": ['physics'],
+    "construction_project_management": ['other','china specific'],
+    "economics": ['economics'],
+    "education": ['education'],
+    "elementary_chinese":['linguistics','china specific'],
+    "elementary_commonsense":['other','china specific'],
+    "elementary_information_and_technology": ['other'],
+    "electrical_engineering": ['engineering'],
+    "elementary_mathematics": ['math'],
+    "ethnology": ['culture','china specific'],
+    "food_science": ['other'],
+    "genetics": ['biology'],
+    "global_facts": ['global'],
+    "high_school_biology": ['biology'],
+    "high_school_chemistry": ['chemistry'],
+    "high_school_geography": ['geography'],
+    "high_school_mathematics": ['math'],
+    "high_school_physics": ['physics'],
+    "high_school_politics": ['politics','china specific'],
+    "human_sexuality": ['other'],
+    "international_law": ['law'],
+    "journalism": ['sociology'],
+    "jurisprudence": ['law'],
+    "legal_and_moral_basis": ['other'],
+    "logical": ['philosophy'],
+    "machine_learning": ['computer science'],
+    "management": ['business'],
+    "marketing": ['business'],
+    "marxist_theory": ['philosophy'],
+    "modern_chinese": ['linguistics','china specific'],
+    "nutrition": ['other'],
+    "philosophy": ['philosophy'],
+    "professional_accounting": ['business'],
+    "professional_law": ['law'],
+    "professional_medicine": ['other'],
+    "professional_psychology": ['psychology'],
+    "public_relations": ['politics'],
+    "security_study": ['politics'],
+    "sociology": ['culture'],
+    "sports_science": ['other'],
+    "traditional_chinese_medicine": ['other','china specific'],
+    "virology": ['biology'],
+    "world_history":['history'],
+    "world_religions": ['global'],
+}
+
+CATEGORIES = {
+    "STEM": ["physics", "chemistry", "biology", "computer science", "math", "engineering", "statistics"],
+    "Humanities": ["history", "philosophy", "law", "arts", "literature", "global"],
+    "Social Science": ['linguistics',"business", "politics", "culture", "economics", "geography", "psychology", "education", "sociology"],
+    "Other":["other"],
+    "China specific": ["china specific"],
+}
 
 def create_all_tasks():
     """Creates a dictionary of tasks from a list of subjects
     :return: {task_name: task}
-        e.g. {cmmlu-world_history: Task, cmmlu-virology: Task}
+        e.g. {cmmlu-physician: Task, cmmlu-tax_accountant: Task}
     """
-    return {f"cmmlu-{sub}": create_task(sub) for sub in SUBJECTS.keys()}
+    return {f"cmmlu-{sub}": create_task(sub) for sub in SUBJECTS}
 
 
 def create_task(subject):
-    class Cmmlu(CmmluSubject):
+    class CmmluTest(GeneralCmmluTest):
         def __init__(self):
             super().__init__(subject)
 
-    return Cmmlu
+    return CmmluTest
 
 
-class CmmluSubject(MultipleChoiceTask):
+class GeneralCmmluTest(MultipleChoiceTask):
     VERSION = 1
-    DATASET_PATH = "haonan-li/cmmlu"
+    DATASET_PATH =  os.path.join("haonan-li/cmmlu")
     DATASET_NAME = None
 
     def __init__(self, subject):
@@ -121,61 +275,62 @@ class CmmluSubject(MultipleChoiceTask):
         return False
 
     def has_validation_docs(self):
-        return True
+        return False
 
     def has_test_docs(self):
         return True
 
-    def validation_docs(self):
-        if self.has_validation_docs():
-            return map(self._process_doc, self.dataset["dev"])
-
     def test_docs(self):
-        if self.has_test_docs():
-            return map(self._process_doc, self.dataset["test"])
-
-    def _format_subject(self, subject):
-        words = subject.split("_")
-        return " ".join(words)
+        return map(self._process_doc, self.dataset["test"])
 
     def fewshot_context(self, doc, num_fewshot, **kwargs):
         subject = self.DATASET_NAME
-        description = f"以下是关于{SUBJECTS[subject]}的单项选择题，请直接给出正确答案的选项。"
+        description = f"以下是关于{SUBJECT_MAPPING[subject]}的单项选择题，请直接给出正确答案的选项。"
         kwargs["description"] = description
         return super().fewshot_context(doc=doc, num_fewshot=num_fewshot, **kwargs)
 
     def _process_doc(self, doc):
         def format_example(doc, keys):
             """
-            <prompt>
+            题目：<prompt>
             A. <choice1>
             B. <choice2>
             C. <choice3>
             D. <choice4>
-            答案：
+            答案是：
             """
 
             question = doc["Question"].strip()
-            choices = "".join([f"{key}. {doc[key]}\n" for key in keys])
-            prompt = f"{question}\n{choices}答案："
+            choices = "".join(
+                [f"{key}. {doc[key]}\n" for key in keys]
+            )
+            prompt = f"题目：{question}\n{choices}答案是："
             return prompt
 
         keys = ["A", "B", "C", "D"]
         return {
             "query": format_example(doc, keys),
             "choices": keys,
-            "gold": ord(doc["Answer"]) - ord("A"),
+            "gold": keys.index(doc["Answer"]),
         }
 
     def fewshot_examples(self, k, rnd):
         if self._fewshot_docs is None:
             self._fewshot_docs = list(map(self._process_doc, self.dataset["dev"]))
-
-        # use the unchanged order of the dev set without sampling,
         return self._fewshot_docs[:k]
+    
+    def construct_requests(self, doc, ctx):
+        lls = [
+            rf.loglikelihood(ctx, "{}".format(choice))[0] for choice in doc["choices"]
+        ]
+
+        return lls
 
     def doc_to_text(self, doc):
         return doc["query"]
+    
+    def doc_to_target(self, doc):
+        return doc["choices"][doc["gold"]]
 
     def should_decontaminate(self):
         return True
