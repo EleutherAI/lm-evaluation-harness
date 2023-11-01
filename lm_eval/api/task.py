@@ -52,7 +52,9 @@ ALL_OUTPUT_TYPES = [
 class TaskConfig(dict):
     # task naming/registry
     task: str = None
+    task_alias: str = None
     group: Union[str, list] = None
+    group_alias: Union[str, list] = None
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
