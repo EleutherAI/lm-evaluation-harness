@@ -112,9 +112,11 @@ if __name__ == "__main__":
             "group": f"mmlu_{args.task_prefix}_{category}"
             if args.task_prefix != ""
             else f"mmlu_{category}",
+            "group_alias": category.replace("_", " "),
             "task": f"mmlu_{args.task_prefix}_{subject}"
             if args.task_prefix != ""
             else f"mmlu_{subject}",
+            "task_alias": subject.replace("_", " "),
             "dataset_name": subject,
             "description": description,
         }
