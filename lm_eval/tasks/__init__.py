@@ -16,7 +16,9 @@ from lm_eval.api.registry import (
 import logging
 
 eval_logger = logging.getLogger("lm-eval")
-
+# from lm_eval.logger import eval_logger
+# print("tasks.py eval_logger.level")
+print(eval_logger.level)
 
 def register_configurable_task(config: Dict[str, str]) -> int:
     SubClass = type(
@@ -141,8 +143,11 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
                         else:
                             if type(config["task"]) == list:
                                 register_configurable_group(config, yaml_path)
+
+                # Log this silently and show it only when 
+                # the user defines the appropriate verbosity.
                 except ModuleNotFoundError as e:
-                    eval_logger.warning(
+                    eval_logger.debug(
                         f"{yaml_path}: {e}. Config will not be added to registry."
                     )
                 except Exception as error:

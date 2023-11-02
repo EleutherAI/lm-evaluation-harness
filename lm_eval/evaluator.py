@@ -25,10 +25,6 @@ from lm_eval.utils import (
 
 from lm_eval.logger import eval_logger
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-
 
 @positional_deprecated
 def simple_evaluate(
@@ -46,6 +42,7 @@ def simple_evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
+    verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
 

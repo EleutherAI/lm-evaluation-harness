@@ -1,17 +1,23 @@
 import os
 import re
 import json
-import fnmatch
-import argparse
 import logging
-from pathlib import Path
+import argparse
 import numpy as np
-from lm_eval import evaluator, utils
-from lm_eval.api.registry import ALL_TASKS
-from lm_eval.logger import eval_logger, SPACING
-from lm_eval.tasks import include_path
 
+from pathlib import Path
 from typing import Union
+
+import logging
+
+logging.basicConfig(
+    format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+    datefmt="%Y-%m-%d:%H:%M:%S",
+    level=logging.INFO,
+)
+eval_logger = logging.getLogger("lm-eval")
+
+SPACING = " " * 47
 
 
 def _handle_non_serializable(o):
@@ -29,7 +35,7 @@ def parse_eval_args() -> argparse.Namespace:
     parser.add_argument(
         "--tasks",
         default=None,
-        help="Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS))),
+        # help="Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS))),
     )
     parser.add_argument(
         "--model_args",
@@ -115,12 +121,18 @@ def parse_eval_args() -> argparse.Namespace:
 
 
 def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
-    if not args:
-        # we allow for args to be passed externally, else we parse them ourselves
-        args = parse_eval_args()
+    # if not args:
+    #     # we allow for args to be passed externally, else we parse them ourselves
+    # from lm_eval.logger import eval_logger, SPACING
+
+    args = parse_eval_args()
 
     eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+    from lm_eval import evaluator, utils
+    from lm_eval.api.registry import ALL_TASKS
+    from lm_eval.tasks import include_path
 
     if args.limit:
         eval_logger.warning(
