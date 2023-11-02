@@ -230,8 +230,12 @@ def evaluate(
             task_hierarchy[group_name].append(task_name)
             versions[group_name] = "N/A"
 
-            if "group_alias" in configs[task_name]:
+            if ("group_alias" in configs[task_name]) and (
+                group_name not in task_group_alias
+            ):
+                print(group_name)
                 task_group_alias[group_name] = configs[task_name]["group_alias"]
+                print(task_group_alias)
 
         else:
             task_hierarchy[task_name] = []
@@ -537,11 +541,11 @@ def evaluate(
             for group_name, task_list in task_hierarchy.items():
 
                 order = task_order[group_name]
-                results_agg[group_name] = results[group_name]
+                results_agg[group_name] = results[group_name].copy()
                 results_agg[group_name]["tab"] = order
 
                 if (order < max(task_order.values())) and (len(task_list) > 0):
-                    groups_agg[group_name] = results[group_name]
+                    groups_agg[group_name] = results[group_name].copy()
                     groups_agg[group_name]["tab"] = order
 
                 if task_list != []:
@@ -564,36 +568,41 @@ def evaluate(
             task_hierarchy, task_order, versions, task_group_alias
         )
 
+        print("task_group_alias")
+        print(task_group_alias)
+
         _results_agg = collections.defaultdict(dict)
         _versions = collections.defaultdict(dict)
         for task in results_agg:
             task_results = results_agg[task]
+            tab_string = ""
             if "tab" in task_results:
                 tab = task_results.pop("tab")
-                tab_string = " "*tab+"-" if tab > 0 else ""
+                tab_string = " " * tab + "-" if tab > 0 else ""
 
             if task in task_group_alias:
                 task_alias = task_group_alias[task]
-                _results_agg[tab_string+task_alias] = task_results
-                _versions[tab_string+task_alias] = versions[task]
+                _results_agg[tab_string + task_alias] = task_results
+                _versions[tab_string + task_alias] = versions[task]
             else:
-                _results_agg[tab_string+task] = task_results
-                _versions[tab_string+task] = versions[task]
+                _results_agg[tab_string + task] = task_results
+                _versions[tab_string + task] = versions[task]
         results_agg = _results_agg
         versions = _versions
 
         _groups_agg = collections.defaultdict(dict)
         for group in groups_agg:
             group_results = groups_agg[group]
+            tab_string = ""
             if "tab" in group_results:
                 tab = group_results.pop("tab")
-                tab_string = " "*tab+"-" if tab > 0 else ""
+                tab_string = " " * tab + "-" if tab > 0 else ""
 
             if group in task_group_alias:
                 group_alias = task_group_alias[group]
-                _groups_agg[tab_string+group_alias] = group_results
+                _groups_agg[tab_string + group_alias] = group_results
             else:
-                _groups_agg[tab_string+group] = group_results
+                _groups_agg[tab_string + group] = group_results
         groups_agg = _groups_agg
 
         results_dict = {
