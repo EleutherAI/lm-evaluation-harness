@@ -663,8 +663,16 @@ class HFLM(LM):
 
         chunks = utils.chunks(
             re_ord.get_reordered(),
-            n=self.batch_size if self.batch_size != "auto" else override_bs if override_bs is not None else 0,
-            fn=self._batch_scheduler if self.batch_size == "auto" and n_reordered_requests > 0 and not override_bs else None,
+            n=self.batch_size
+            if self.batch_size != "auto"
+            else override_bs
+            if override_bs is not None
+            else 0,
+            fn=self._batch_scheduler
+            if self.batch_size == "auto"
+            and n_reordered_requests > 0
+            and not override_bs
+            else None,
         )
 
         for chunk in tqdm(chunks, disable=(disable_tqdm or (self.rank != 0))):
@@ -840,8 +848,14 @@ class HFLM(LM):
         for key, re_ord in re_ords.items():
             chunks = utils.chunks(
                 re_ord.get_reordered(),
-                n=self.batch_size if self.batch_size != "auto" else adaptive_batch_size if adaptive_batch_size is not None else 0,
-                fn=self._batch_scheduler if self.batch_size == "auto" and not adaptive_batch_size else None,
+                n=self.batch_size
+                if self.batch_size != "auto"
+                else adaptive_batch_size
+                if adaptive_batch_size is not None
+                else 0,
+                fn=self._batch_scheduler
+                if self.batch_size == "auto" and not adaptive_batch_size
+                else None,
             )
             for chunk in tqdm(chunks, disable=self.rank != 0):
                 contexts, all_gen_kwargs = zip(*chunk)
