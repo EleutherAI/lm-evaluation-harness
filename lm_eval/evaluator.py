@@ -230,13 +230,6 @@ def evaluate(
             task_hierarchy[group_name].append(task_name)
             versions[group_name] = "N/A"
 
-            if ("group_alias" in configs[task_name]) and (
-                group_name not in task_group_alias
-            ):
-                print(group_name)
-                task_group_alias[group_name] = configs[task_name]["group_alias"]
-                print(task_group_alias)
-
         else:
             task_hierarchy[task_name] = []
 
@@ -248,6 +241,11 @@ def evaluate(
 
         if "task_alias" in configs[task_name]:
             task_group_alias[task_name] = configs[task_name]["task_alias"]
+
+        if ("group_alias" in configs[task_name]) and (
+            group_name not in task_group_alias
+        ):
+            task_group_alias[group_name] = configs[task_name]["group_alias"]
 
         if limit is not None:
             if task.has_test_docs():
@@ -502,6 +500,7 @@ def evaluate(
 
                             stderr = "_stderr,".join(metric.split(","))
                             stderr_score = results[task][stderr]
+                            var_score = stderr_score**2
                             metric_score = results[task][metric]
 
                             all_stderr.append(stderr)
@@ -514,7 +513,7 @@ def evaluate(
                                 # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
                                 results[group][stderr] = (
                                     (total_size - 1) * results[group][stderr]
-                                    + (current_size - 1) * stderr_score
+                                    + (current_size - 1) * var_score
                                 ) / (
                                     total_size + current_size - 1
                                 ) + total_size * current_size / (
@@ -525,7 +524,7 @@ def evaluate(
                                 ) ** 2
                             else:
                                 results[group][metric] = metric_score
-                                results[group][stderr] = stderr_score
+                                results[group][stderr] = var_score
 
                         total_size += current_size
 
