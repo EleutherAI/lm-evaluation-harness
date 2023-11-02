@@ -1,7 +1,9 @@
 import os
 import evaluate
 from lm_eval.api.model import LM
-from lm_eval.logger import eval_logger
+
+import logging
+eval_logger = logging.getLogger("lm-eval")
 
 MODEL_REGISTRY = {}
 
