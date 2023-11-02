@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import json
 import logging
 import argparse
@@ -10,14 +11,13 @@ from typing import Union
 
 import logging
 
+SPACING = " " * 47
+
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
     datefmt="%Y-%m-%d:%H:%M:%S",
     level=logging.INFO,
 )
-eval_logger = logging.getLogger("lm-eval")
-
-SPACING = " " * 47
 
 
 def _handle_non_serializable(o):
@@ -28,14 +28,13 @@ def _handle_non_serializable(o):
     else:
         return str(o)
 
-
 def parse_eval_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("--model", required=True, help="Name of model e.g. `hf`")
+    parser.add_argument("--model", default="hf", help="Name of model e.g. `hf`")
     parser.add_argument(
         "--tasks",
         default=None,
-        # help="Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS))),
+        help="To get full list of tasks, use the command lm-eval --tasks list"
     )
     parser.add_argument(
         "--model_args",
@@ -121,18 +120,18 @@ def parse_eval_args() -> argparse.Namespace:
 
 
 def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
-    # if not args:
-    #     # we allow for args to be passed externally, else we parse them ourselves
-    # from lm_eval.logger import eval_logger, SPACING
+    if not args:
+        # we allow for args to be passed externally, else we parse them ourselves
+        args = parse_eval_args()
 
-    args = parse_eval_args()
-
+    eval_logger = logging.getLogger("lm-eval")
     eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
+    eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     from lm_eval import evaluator, utils
-    from lm_eval.api.registry import ALL_TASKS
     from lm_eval.tasks import include_path
+    from lm_eval.api.registry import ALL_TASKS
 
     if args.limit:
         eval_logger.warning(
@@ -145,6 +144,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.tasks is None:
         task_names = ALL_TASKS
+    elif args.tasks == "list":
+        eval_logger.info("Available Tasks:\n - {}".format(f"\n - ".join(sorted(ALL_TASKS))))
+        sys.exit()
     else:
         if os.path.isdir(args.tasks):
             import glob
