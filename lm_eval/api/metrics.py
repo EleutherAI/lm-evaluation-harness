@@ -9,6 +9,8 @@ import evaluate
 
 from lm_eval.api.registry import register_metric, register_aggregation
 
+import logging
+eval_logger = logging.getLogger("lm-eval")
 
 # Register Aggregations First
 @register_aggregation("mean")

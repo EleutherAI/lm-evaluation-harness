@@ -19,7 +19,8 @@ import transformers
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
 
-from lm_eval.logger import eval_logger
+import logging
+eval_logger = logging.getLogger("lm-eval")
 
 
 def escaped_split(text, sep_char, maxsplit=-1):

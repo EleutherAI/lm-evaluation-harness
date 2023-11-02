@@ -21,7 +21,6 @@ from lm_eval.api import samplers
 from lm_eval.api.instance import Instance
 from lm_eval.api.filter import FilterEnsemble
 
-from lm_eval.logger import eval_logger
 from lm_eval.prompts import get_prompt
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.api.metrics import (
@@ -47,6 +46,8 @@ ALL_OUTPUT_TYPES = [
     "generate_until",
 ]
 
+import logging
+eval_logger = logging.getLogger("lm-eval")
 
 @dataclass
 class TaskConfig(dict):
