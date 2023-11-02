@@ -567,9 +567,6 @@ def evaluate(
             task_hierarchy, task_order, versions, task_group_alias
         )
 
-        print("task_group_alias")
-        print(task_group_alias)
-
         _results_agg = collections.defaultdict(dict)
         _versions = collections.defaultdict(dict)
         for task in results_agg:
