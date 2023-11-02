@@ -676,9 +676,7 @@ class HFLM(LM):
         )
 
         pbar = tqdm(total=len(requests), disable=(disable_tqdm or (self.rank != 0)))
-        for (
-            chunk
-        ) in chunks:  # tqdm(chunks, disable=(disable_tqdm or (self.rank != 0))):
+        for chunk in chunks:
             inps = []
             cont_toks_list = []
             inplens = []
@@ -863,7 +861,7 @@ class HFLM(LM):
                 if self.batch_size == "auto" and not adaptive_batch_size
                 else None,
             )
-            for chunk in tqdm(chunks, disable=self.rank != 0):
+            for chunk in chunks:
                 contexts, all_gen_kwargs = zip(*chunk)
                 # we assume all gen kwargs in the batch are the same
                 # this is safe to assume because the `grouper` object ensures it.
