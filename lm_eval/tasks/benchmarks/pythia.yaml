@@ -9,4 +9,4 @@ task:
   - wsc
   - ai2_arc
   - blimp
-  - hendrycksTest*
+  - mmlu

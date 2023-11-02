@@ -68,10 +68,10 @@ def register_group(name):
     return decorate
 
 
-AGGREGATION_REGISTRY = {}
-DEFAULT_AGGREGATION_REGISTRY = {}
-METRIC_REGISTRY = {}
 OUTPUT_TYPE_REGISTRY = {}
+METRIC_REGISTRY = {}
+METRIC_AGGREGATION_REGISTRY = {}
+AGGREGATION_REGISTRY = {}
 HIGHER_IS_BETTER_REGISTRY = {}
 
 DEFAULT_METRIC_REGISTRY = {
@@ -95,8 +95,7 @@ def register_metric(**args):
         for key, registry in [
             ("metric", METRIC_REGISTRY),
             ("higher_is_better", HIGHER_IS_BETTER_REGISTRY),
-            # ("output_type", OUTPUT_TYPE_REGISTRY),
-            ("aggregation", DEFAULT_AGGREGATION_REGISTRY),
+            ("aggregation", METRIC_AGGREGATION_REGISTRY),
         ]:
 
             if key in args:
@@ -158,12 +157,13 @@ def get_aggregation(name):
         )
 
 
-def get_default_aggregation(metric_name):
+def get_metric_aggregation(name):
+
     try:
-        return DEFAULT_AGGREGATION_REGISTRY[metric_name]
+        return METRIC_AGGREGATION_REGISTRY[name]
     except KeyError:
         eval_logger.warning(
-            f"No default aggregation metric for metric '{metric_name}'!"
+            "{} metric is not assigned a default aggregation!".format(name),
         )
 
 
