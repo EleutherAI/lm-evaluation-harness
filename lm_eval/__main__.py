@@ -9,10 +9,6 @@ import numpy as np
 from pathlib import Path
 from typing import Union
 
-import logging
-
-SPACING = " " * 47
-
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
     datefmt="%Y-%m-%d:%H:%M:%S",
@@ -28,13 +24,14 @@ def _handle_non_serializable(o):
     else:
         return str(o)
 
+
 def parse_eval_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--model", default="hf", help="Name of model e.g. `hf`")
     parser.add_argument(
         "--tasks",
         default=None,
-        help="To get full list of tasks, use the command lm-eval --tasks list"
+        help="To get full list of tasks, use the command lm-eval --tasks list",
     )
     parser.add_argument(
         "--model_args",
@@ -145,7 +142,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.tasks is None:
         task_names = ALL_TASKS
     elif args.tasks == "list":
-        eval_logger.info("Available Tasks:\n - {}".format(f"\n - ".join(sorted(ALL_TASKS))))
+        eval_logger.info(
+            "Available Tasks:\n - {}".format(f"\n - ".join(sorted(ALL_TASKS)))
+        )
         sys.exit()
     else:
         if os.path.isdir(args.tasks):
@@ -169,10 +168,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 missing = ", ".join(task_missing)
                 eval_logger.error(
                     f"Tasks were not found: {missing}\n"
-                    f"{SPACING}Try `lm-eval -h` for list of available tasks",
+                    f"{' ' * 47}Try `lm-eval --tasks list` for list of available tasks",
                 )
                 raise ValueError(
-                    f"Tasks {missing} were not found. Try `lm-eval -h` for list of available tasks."
+                    f"Tasks {missing} were not found. Try `lm-eval --tasks list` for list of available tasks."
                 )
 
     if args.output_path:

@@ -17,6 +17,7 @@ import logging
 
 eval_logger = logging.getLogger("lm-eval")
 
+
 def register_configurable_task(config: Dict[str, str]) -> int:
     SubClass = type(
         config["task"] + "ConfigurableTask",
@@ -141,7 +142,7 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
                             if type(config["task"]) == list:
                                 register_configurable_group(config, yaml_path)
 
-                # Log this silently and show it only when 
+                # Log this silently and show it only when
                 # the user defines the appropriate verbosity.
                 except ModuleNotFoundError as e:
                     eval_logger.debug(

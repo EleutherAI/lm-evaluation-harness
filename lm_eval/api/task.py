@@ -4,6 +4,7 @@ from dataclasses import dataclass, field, asdict
 import re
 import ast
 import yaml
+import logging
 import evaluate
 import random
 import itertools
@@ -46,8 +47,9 @@ ALL_OUTPUT_TYPES = [
     "generate_until",
 ]
 
-import logging
+
 eval_logger = logging.getLogger("lm-eval")
+
 
 @dataclass
 class TaskConfig(dict):
