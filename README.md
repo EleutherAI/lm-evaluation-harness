@@ -141,11 +141,11 @@ python main.py \
     --tasks hellaswag
 ```
 
-GGML quantized models can be loaded by using `llama-cpp-python` server:
+GGUF or GGML quantized models can be loaded by using `llama-cpp-python` server:
 
 ```bash
 python main.py \
-    --model ggml \
+    --model gguf \
     --model_args base_url=http://localhost:8000 \
     --tasks hellaswag
 ```
