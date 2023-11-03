@@ -35,7 +35,6 @@ class GGUFLM(BaseLM):
     def __init__(self, base_url, max_length=2048):
         super().__init__()
         self.base_url = base_url
-        self.truncate = truncate
         self.logprobs = 10
         self.temperature = 0.0
         self.max_length = max_length
