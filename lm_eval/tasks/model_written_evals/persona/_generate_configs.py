@@ -4,6 +4,7 @@ import datasets
 
 from tqdm import tqdm
 
+
 def main() -> None:
 
     dataset_path = "EleutherAI/persona"
