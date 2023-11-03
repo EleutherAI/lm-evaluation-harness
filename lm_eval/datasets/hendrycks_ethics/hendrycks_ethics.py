@@ -41,8 +41,10 @@ learning agents.
 
 _HOMEPAGE = "https://github.com/hendrycks/ethics"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+# The authors declared that the dataset is not distributed under a copyright or intellectual property (https://arxiv.org/pdf/2008.02275.pdf)
+# On Hugging Face, the dataset is distributed under the MIT license (https://huggingface.co/datasets/hendrycks/ethics)
+# The common sense portion is from Reddit and might incur some licensing complications.
+_LICENSE = "Ambiguous"
 
 _URLS = "https://people.eecs.berkeley.edu/~hendrycks/ethics.tar"
 
