@@ -4,6 +4,7 @@ from . import anthropic_llms
 from . import huggingface
 from . import textsynth
 from . import dummy
+from . import octoai_llms
 
 MODEL_REGISTRY = {
     "hf": gpt2.HFLM,
@@ -15,6 +16,7 @@ MODEL_REGISTRY = {
     "anthropic": anthropic_llms.AnthropicLM,
     "textsynth": textsynth.TextSynthLM,
     "dummy": dummy.DummyLM,
+    "octoai": octoai_llms.OctoAIEndpointLM,
 }
 
 
