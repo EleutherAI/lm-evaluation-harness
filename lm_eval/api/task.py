@@ -69,7 +69,6 @@ class TaskConfig(dict):
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
     doc_to_choice: Union[Callable, str, dict, list] = None
-    gold_alias: Union[Callable, str] = None
     process_results: Union[Callable, str] = None
     use_prompt: str = None
     description: str = ""
@@ -890,26 +889,6 @@ class ConfigurableTask(Task):
             return doc_to_choice(doc)
         elif hasattr(doc_to_choice, "get_answer_choices_list"):
             return doc_to_choice.get_answer_choices_list(doc)
-        else:
-            raise TypeError
-
-    def gold_alias(self, doc):
-        # returns a version of the gold target answer to a document,
-        # which should be passed into metric for scoring as the ground truth.
-
-        # in multiple_choice tasks, this should be castable to an int corresponding to the index
-        # within the answer choices, while doc_to_target is the string version of {{answer_choices[gold]}}.
-        if self.config.gold_alias is not None:
-            doc_to_target = self.config.gold_alias
-        else:
-            return self.doc_to_target(doc)
-
-        if type(doc_to_target) == str:
-            return utils.apply_template(doc_to_target, doc)
-        elif callable(doc_to_target):
-            return doc_to_target(doc)
-        elif hasattr(doc_to_target, "apply"):
-            return doc_to_target.apply(doc)[1]
         else:
             raise TypeError
 
