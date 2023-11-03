@@ -31,7 +31,7 @@ def get_result(logprobs, context_lenght):
     return continuation_logprobs, is_greedy
 
 
-class GGMLLM(BaseLM):
+class GGUFLM(BaseLM):
     def __init__(self, base_url, truncate=False):
         super().__init__()
         self.base_url = base_url
@@ -42,7 +42,7 @@ class GGMLLM(BaseLM):
         self.max_length = 1024
         self.vocab_size = self.tokenizer.vocab_size
 
-    def ggml_completion(self, context, continuation=None, stop=None, retries=3, delay=5, **kwargs):
+    def gguf_completion(self, context, continuation=None, stop=None, retries=3, delay=5, **kwargs):
         for _ in range(retries):
             try:
                 prompt = context
@@ -67,7 +67,7 @@ class GGMLLM(BaseLM):
             return []
         res = []
         for context, continuation in tqdm(requests):
-            response = self.ggml_completion(context=context, continuation=continuation)
+            response = self.gguf_completion(context=context, continuation=continuation)
             if response and "choices" in response and response["choices"]:
                 choice = response["choices"][0]
                 logprobs = choice.get("logprobs")
@@ -90,7 +90,7 @@ class GGMLLM(BaseLM):
             inp = request[0]
             request_args = request[1]
             until = request_args["until"]
-            response = self.ggml_completion(context=inp, stop=until)
+            response = self.gguf_completion(context=inp, stop=until)
             if response and "choices" in response and response["choices"]:
                 choice = response["choices"][0]
                 if "text" in choice:
