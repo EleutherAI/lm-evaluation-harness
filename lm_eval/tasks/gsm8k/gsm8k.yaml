@@ -1,6 +1,6 @@
 group:
   - math_word_problems
-task: gsm8k_yaml
+task: gsm8k
 dataset_path: gsm8k
 dataset_name: main
 output_type: generate_until
@@ -9,12 +9,12 @@ fewshot_split: train
 test_split: test
 doc_to_text: "Question: {{question}}\nAnswer:"
 doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
-gold_alias: "{{answer.split('### ')[-1].rstrip()}}" # this post-processes the reference that we'll score against
 metric_list:
   - metric: exact_match
     aggregation: mean
     higher_is_better: true
     ignore_case: true
+    ignore_whitespace: true
     ignore_punctuation: false
     regexes_to_ignore:
       - ","
