@@ -20,12 +20,12 @@ Task naming + registration:
 
 Dataset configuration options:
 - **dataset_path** (`str`) — The name of the dataset as listed by HF in the datasets Hub.
-- **dataset_name**  (`str`, *optional*, defaults to None) — The name of, what HF calls, a “data instance” or sub-task of the benchmark. If your task does not contain any data instances, just leave this to default to None. (If you're familiar with the HF `datasets.load_dataset` function, these are just the first 2 arguments to it.)
+- **dataset_name**  (`str`, *optional*, defaults to None) — The name of what HF calls a “data instance” or sub-task of the benchmark. If your task does not contain any data instances, just leave this to default to None. (If you're familiar with the HF `datasets.load_dataset` function, these are just the first 2 arguments to it.)
 - **dataset_kwargs** (`dict`, *optional*) — Auxiliary arguments that `datasets.load_dataset` accepts. This can be used to specify arguments such as `data_files` or `data_dir` if you want to use local datafiles such as json or csv.
 - **training_split** (`str`, *optional*) — Split in the dataset to use as the training split.
 - **validation_split** (`str`, *optional*) — Split in the dataset to use as the validation split.
 - **test_split** (`str`, *optional*) — Split in the dataset to use as the test split.
-- **fewshot_split** (`str`, *optional*) — Split in the dataset to draw few-shot exemplars from. assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+- **fewshot_split** (`str`, *optional*) — Split in the dataset to draw few-shot exemplars from. assert that this not None if num_fewshot > 0.
 - **process_docs** (`Callable`, *optional*) — Optionally define a function to apply to each HF dataset split, to preprocess all documents before being fed into prompt template rendering or other evaluation steps. Can be used to rename dataset columns, or to process documents into a format closer to the expected format expected by a prompt template.
 
 Prompting / in-context formatting options:
