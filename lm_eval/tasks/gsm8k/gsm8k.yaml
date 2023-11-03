@@ -14,12 +14,11 @@ metric_list:
     aggregation: mean
     higher_is_better: true
     ignore_case: true
-    ignore_whitespace: true
     ignore_punctuation: false
     regexes_to_ignore:
       - ","
       - "\\$"
-      - ".*### "
+      - "(?s).*#### "
 generation_kwargs:
   until:
     - "\n\n"
@@ -28,9 +27,9 @@ generation_kwargs:
   temperature: 0.0
 repeats: 1
 num_fewshot: 5
-# filter_list:
-#   - name: "get-answer"
-#     filter:
-#       - function: "regex"
-#         regex_pattern: "### (\\-?[0-9\\.\\,]+)"
-#       - function: "take_first"
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        regex_pattern: "#### (\\-?[0-9\\.\\,]+)"
+      - function: "take_first"

@@ -20,12 +20,12 @@ metric_list:
     aggregation: mean
     higher_is_better: true
     ignore_case: true
-    ignore_whitespace: true
     ignore_punctuation: false
     regexes_to_ignore:
       - ","
       - "\\$"
-      - ".*### "
+      - "(?s).*#### "
+      - "\n\n"
 generation_kwargs:
   until:
     - "Q:"
@@ -38,5 +38,5 @@ filter_list:
   - name: "get-answer"
     filter:
       - function: "regex"
-        regex_pattern: "The answer is (\\-?[0-9\\.\\,]+)"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]+)."
       - function: "take_first"
