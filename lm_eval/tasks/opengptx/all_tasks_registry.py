@@ -22,9 +22,6 @@ from . import xnli
 # Translation tasks
 ########################################
 
-euro5_flores_benchmark = ["eng_Latn", "deu_Latn", "fra_Latn", "ita_Latn", "spa_Latn"]
-
-
 TASK_REGISTRY_TMP = {
     # OpenGPT-X tasks
     "german_europarl_ppl": german_europarl_ppl.GermanEuroparlPerplexity,
@@ -47,7 +44,8 @@ TASK_REGISTRY_TMP = {
     "xstance_fr": x_stance.XStanceFR,
     **xquad.construct_tasks(),
     **xnli.construct_tasks(),
-    **flores200.create_tasks_from_list(euro5_flores_benchmark),
+    **flores200.construct_lang_tasks(),
+    **flores200.construct_trans_tasks(),
 }
 
 # add a prefix to tasks implemented by OpenGPT-X
