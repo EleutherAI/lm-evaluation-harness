@@ -182,7 +182,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         assert args.output_path, "Specify --output_path"
 
     eval_logger.info(f"Selected Tasks: {task_names}")
-    eval_logger.verbose = args.verbose
 
     results = evaluator.simple_evaluate(
         model=args.model,
