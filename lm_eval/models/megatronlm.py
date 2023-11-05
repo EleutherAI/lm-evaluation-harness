@@ -46,7 +46,7 @@ def get_result(logprobs, is_max_logprobs, ctxlen):
     return sum(continuation_logprobs), is_greedy
 
 
-class MegatronServerLM(BaseLM):
+class MegatronLMClient(BaseLM):
     def __init__(self, server_url, model_name, batch_size=20, truncate=False):
         """
 
@@ -72,7 +72,7 @@ class MegatronServerLM(BaseLM):
         meglm_metadata = self.megatron_metadata()
         self.vocab_size = meglm_metadata["vocab_size"]
         self._eod_token_id = meglm_metadata["eod_token_id"]
-        self._max_length = meglm_metadata["max_length"] - self.max_gen_toks
+        self._max_length = meglm_metadata["max_length"]
 
     @property
     def eot_token_id(self):
@@ -176,12 +176,16 @@ class MegatronServerLM(BaseLM):
             inps = []
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
-                # max_length+1 because the API takes up to 2049 tokens, including the first context token
-                inp = (context_enc + continuation_enc)[-(self.max_length + 1) :]
-                # TODO: the logic is much simpler if we just look at the length of continuation tokens
+                inp = (context_enc + continuation_enc)[-self.max_length :]
+
                 ctxlen = len(context_enc) - max(
                     0, len(context_enc) + len(continuation_enc) - (self.max_length + 1)
                 )
+
+                if len(context_enc) + len(continuation_enc) > len(inp):
+                    print(
+                        f"WARNING: Length of concatenated context ...{repr(cache_key[0][-20:])} and continuation {repr(cache_key[1])} exceeds max length {self.max_length + 1}"
+                    )
 
                 inps.append(inp)
                 ctxlens.append(ctxlen)
@@ -246,6 +250,11 @@ class MegatronServerLM(BaseLM):
                 context_enc = self.tok_encode(context)
                 inp = context_enc[-(self.max_length - self.max_gen_toks) :]
                 inps.append(inp)
+
+                if len(context_enc) > len(inp):
+                    print(
+                        f"WARNING: Length of context ...{repr(context[-20:])} exceeds max length {self.max_length - self.max_gen_toks}"
+                    )
 
             if isinstance(until, str):
                 until = [until]
