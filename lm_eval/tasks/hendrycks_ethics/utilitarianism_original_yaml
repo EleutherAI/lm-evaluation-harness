@@ -9,7 +9,6 @@
 # template_aliases:  #"{% set answer_choices = range(1, 11)|list %}"
 # doc_to_text: 'Activity: "{{activity}}"\nRating:'
 # doc_to_target: "{{answer_choices[label]}}"
-# gold_alias: "{{label}}" # this will be cast to an int.
 # metric_list:
 #   - metric: acc
 # TODO: we want this to be implemented as a winograd_schema task type, actually
