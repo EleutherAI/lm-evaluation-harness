@@ -578,7 +578,7 @@ def evaluate(
             tab_string = ""
             if "tab" in task_results:
                 tab = task_results.pop("tab")
-                tab_string = " " * tab + "-" if tab > 0 else ""
+                tab_string = " " * tab + "- " if tab > 0 else ""
 
             if task in task_group_alias:
                 task_alias = task_group_alias[task]
@@ -600,7 +600,7 @@ def evaluate(
             tab_string = ""
             if "tab" in group_results:
                 tab = group_results.pop("tab")
-                tab_string = " " * tab + "-" if tab > 0 else ""
+                tab_string = " " * tab + "- " if tab > 0 else ""
 
             if group in task_group_alias:
                 group_alias = task_group_alias[group]
