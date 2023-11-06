@@ -159,18 +159,6 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
 exact_match = evaluate.load("exact_match")
 
 
-# @register_metric(
-#     metric="token_edit_distance",
-#     higher_is_better=False,
-#     output_type=["generate_until"],
-#     aggregation="mean",
-# )
-# def ted_fn(items):  # This is a passthrough function
-    
-#     references, predictions = items
-#     return distance(references, predictions)
-
-
 @register_metric(
     metric="exact_match",
     higher_is_better=True,

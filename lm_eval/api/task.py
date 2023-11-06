@@ -1063,8 +1063,10 @@ class ConfigurableTask(Task):
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
                 exact_match = int(is_greedy[gold]) if gold != -100 else 0
 
-            prob_norm = [float(i)/sum(lls) for i in lls]
+            prob_norm = utils.softmax(lls)
 
+            # TODO use keyword arguments to the metric?
+            # gold, pred, norm stuff, the original lls, 
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
                 **({"f1": (gold, pred)} if "f1" in use_metric else {}),

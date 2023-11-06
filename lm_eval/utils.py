@@ -15,6 +15,7 @@ from typing import Iterator, List, Literal, Union
 import gc
 import torch
 import transformers
+import numpy as np
 
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
@@ -125,6 +126,12 @@ def pattern_match(patterns, source_list):
         for matching in fnmatch.filter(source_list, pattern):
             task_names.add(matching)
     return sorted(list(task_names))
+
+
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
 
 
 def general_detokenize(string):
