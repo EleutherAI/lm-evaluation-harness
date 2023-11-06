@@ -82,6 +82,7 @@ def main():
             f.write(dumped)
 
     batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
+    args.model_args = utils.hide_private_token(args.model_args)
     print(
         f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, "
         f"num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"

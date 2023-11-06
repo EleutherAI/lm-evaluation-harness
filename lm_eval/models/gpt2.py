@@ -33,6 +33,8 @@ class HFLM(BaseLM):
         load_in_8bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = False,
         dtype: Optional[Union[str, torch.dtype]]="auto",
+        use_auth_token: str=None,
+        token: str=None,
     ):
         super().__init__()
 
@@ -65,6 +67,8 @@ class HFLM(BaseLM):
             revision=revision,
             torch_dtype=_get_dtype(dtype),
             trust_remote_code=trust_remote_code,
+            use_auth_token=use_auth_token,
+            token=token,
         ).eval()
         if not load_in_8bit:
             try:

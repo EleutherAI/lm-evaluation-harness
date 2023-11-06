@@ -46,6 +46,26 @@ def escaped_split(text, sep_char, maxsplit=-1):
     return re.split(r"(?<!\\)" + sep_char, text, maxsplit)
 
 
+def hide_private_token(args_string):
+    """
+    Parses something like
+        args1=val1,arg2=val2
+    Find "token" or "use_auth_token" keys and hide their values
+    Return processed string
+    """
+    args_string = args_string.strip()
+    if not args_string:
+        return {}
+    arg_list = args_string.split(",")
+    new_arg_list = []
+    for key_value in arg_list:
+        key, value = key_value.split("=")
+        if key == "use_auth_token" or key == "token":
+            value = "{PRIVATE_TOKEN}"
+        new_arg_list.append(key + "=" + value)
+    return ",".join(new_arg_list)
+
+
 def simple_parse_args_string(args_string):
     """
     Parses something like

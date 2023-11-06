@@ -6,7 +6,7 @@ import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
 import lm_eval.base
-from lm_eval.utils import positional_deprecated, run_task_tests
+from lm_eval.utils import positional_deprecated, run_task_tests, hide_private_token
 
 
 @positional_deprecated
@@ -103,6 +103,8 @@ def simple_evaluate(
         output_base_path=output_base_path,
     )
 
+    # hide private token before save it in config
+    model_args = hide_private_token(model_args)
     # add info about the model and few shot config
     results["config"] = {
         "model": (model if isinstance(model, str) else model.model.config._name_or_path),
