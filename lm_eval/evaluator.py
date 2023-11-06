@@ -571,6 +571,10 @@ def evaluate(
         _versions = collections.defaultdict(dict)
         for task in results_agg:
             task_results = results_agg[task]
+
+            if "samples" in task_results:
+                task_results.pop("samples")
+
             tab_string = ""
             if "tab" in task_results:
                 tab = task_results.pop("tab")
@@ -589,6 +593,10 @@ def evaluate(
         _groups_agg = collections.defaultdict(dict)
         for group in groups_agg:
             group_results = groups_agg[group]
+
+            if "samples" in group_results:
+                group_results.pop("samples")
+
             tab_string = ""
             if "tab" in group_results:
                 tab = group_results.pop("tab")
