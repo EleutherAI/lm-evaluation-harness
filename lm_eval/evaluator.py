@@ -2,7 +2,6 @@ import random
 import itertools
 import json
 import collections
-import logging
 import sys
 
 import torch
@@ -24,10 +23,6 @@ from lm_eval.utils import (
 )
 
 from lm_eval.logger import eval_logger
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 @positional_deprecated
