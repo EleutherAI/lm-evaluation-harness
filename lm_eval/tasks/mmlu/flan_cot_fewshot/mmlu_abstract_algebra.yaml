@@ -1,5 +1,5 @@
-dataset_name: abstract_algebra
-description: "The following are multiple choice questions (with answers) about abstract\
+"dataset_name": "abstract_algebra"
+"description": "The following are multiple choice questions (with answers) about abstract\
   \ algebra.\n\nQ: Statement 1 | Every element of a group generates a cyclic subgroup\
   \ of the group. Statement 2 | The symmetric group S_10 has 10 elements.\n(A) True,\
   \ True (B) False, False (C) True, False (D) False, True\nA: Let's think step by\
@@ -36,5 +36,6 @@ description: "The following are multiple choice questions (with answers) about a
   \ x = 2, hence x^2 + 1 does not have any roots. For c = 2 the polynomial x^2 + 2\
   \ has two roots at x = 1 and x = 2. Hence Z_3[x]/(x^2 + c) is a field if and only\
   \ if c = 1. The answer is (B)."
-include: _mmlu_flan_cot_fewshot_template_yaml
-task: mmlu_flan_cot_fewshot_abstract_algebra
+"group": "mmlu_flan_cot_fewshot_stem"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_abstract_algebra"

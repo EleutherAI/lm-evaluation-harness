@@ -1,5 +1,5 @@
-dataset_name: professional_psychology
-description: "The following are multiple choice questions (with answers) about professional\
+"dataset_name": "professional_psychology"
+"description": "The following are multiple choice questions (with answers) about professional\
   \ psychology.\n\nQ: In the construction of a multiple regression equation for purposes\
   \ of prediction, the optimal combination of measures is one in which the predictors\n\
   (A) are uncorrelated with each other but are moderately correlated with the criterion\
@@ -18,30 +18,31 @@ description: "The following are multiple choice questions (with answers) about p
   \ step by step. We refer to Wikipedia articles on psychology for help. The definition\
   \ of mode is the most frequently occurring number. The answer is (D).\n\nQ: Carl\
   \ Jung believed that a client's transference:\n(A) is a fantasy that distracts the\
-  \ client from reality. (B) represents \u201Cmixed feelings\u201D toward the therapist.\
-  \ (C) \"is a form of \"\"acting out.\"\"\" (D) reflects the client\u2019s personal\
-  \ and collective unconscious.\nA: Let's think step by step. We refer to Wikipedia\
-  \ articles on psychology for help. Transference is a phenomenon that a person's\
-  \ feelings are unconsciously redirected, so it reflects the client's personal and\
-  \ collective unconscious. The answer is (D).\n\nQ: In terms of Hofstede\u2019s (1980)\
-  \ five cultural dimensions, the United States scores at the top of the scale on:\n\
-  (A) individualism. (B) individualism and power distance. (C) power distance and\
-  \ masculinity. (D) uncertainty avoidance.\nA: Let's think step by step. We refer\
-  \ to Wikipedia articles on psychology for help. US scores highest on individualism\
-  \ among the five cultural dimensions. The answer is (A).\n\nQ: One of your therapy\
-  \ clients asks your advice about a good weight- reduction program. You have investigated\
-  \ the programs in the community and are enrolled in the one you consider the best.\
-  \ This program offers a $50 bonus to its patrons for each new person they bring\
-  \ into the program. Under these circumstances, your most appropriate response would\
-  \ be to\n(A) tell your client the pros and cons of each program you know about except\
-  \ for the one in which you are enrolled (B) recommend to your client the program\
-  \ in which you are enrolled and explain the $50 bonus you will receive (C) recommend\
-  \ to your client the program in which you are enrolled and offer to have the $50\
-  \ bonus credited to your client's account in the program (D) tell your client the\
-  \ pros and cons of each program you know about, but do not claim the $50 bonus if\
-  \ your client enrolls in your program\nA: Let's think step by step. We refer to\
-  \ Wikipedia articles on psychology for help. Based on the circumstances, you should\
-  \ tell your client about the pros and cons of each program, but it would be inappropriate\
-  \ to receive the bonus, so you should not claim the $50 bonus. The answer is (D)."
-include: _mmlu_flan_cot_fewshot_template_yaml
-task: mmlu_flan_cot_fewshot_professional_psychology
+  \ client from reality. (B) represents “mixed feelings” toward the therapist. (C)\
+  \ \"is a form of \"\"acting out.\"\"\" (D) reflects the client’s personal and collective\
+  \ unconscious.\nA: Let's think step by step. We refer to Wikipedia articles on psychology\
+  \ for help. Transference is a phenomenon that a person's feelings are unconsciously\
+  \ redirected, so it reflects the client's personal and collective unconscious. The\
+  \ answer is (D).\n\nQ: In terms of Hofstede’s (1980) five cultural dimensions, the\
+  \ United States scores at the top of the scale on:\n(A) individualism. (B) individualism\
+  \ and power distance. (C) power distance and masculinity. (D) uncertainty avoidance.\n\
+  A: Let's think step by step. We refer to Wikipedia articles on psychology for help.\
+  \ US scores highest on individualism among the five cultural dimensions. The answer\
+  \ is (A).\n\nQ: One of your therapy clients asks your advice about a good weight-\
+  \ reduction program. You have investigated the programs in the community and are\
+  \ enrolled in the one you consider the best. This program offers a $50 bonus to\
+  \ its patrons for each new person they bring into the program. Under these circumstances,\
+  \ your most appropriate response would be to\n(A) tell your client the pros and\
+  \ cons of each program you know about except for the one in which you are enrolled\
+  \ (B) recommend to your client the program in which you are enrolled and explain\
+  \ the $50 bonus you will receive (C) recommend to your client the program in which\
+  \ you are enrolled and offer to have the $50 bonus credited to your client's account\
+  \ in the program (D) tell your client the pros and cons of each program you know\
+  \ about, but do not claim the $50 bonus if your client enrolls in your program\n\
+  A: Let's think step by step. We refer to Wikipedia articles on psychology for help.\
+  \ Based on the circumstances, you should tell your client about the pros and cons\
+  \ of each program, but it would be inappropriate to receive the bonus, so you should\
+  \ not claim the $50 bonus. The answer is (D)."
+"group": "mmlu_flan_cot_fewshot_social_sciences"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_professional_psychology"
