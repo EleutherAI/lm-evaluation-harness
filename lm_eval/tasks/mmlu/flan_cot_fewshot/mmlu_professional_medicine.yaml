@@ -1,18 +1,18 @@
-dataset_name: professional_medicine
-description: "The following are multiple choice questions (with answers) about professional\
+"dataset_name": "professional_medicine"
+"description": "The following are multiple choice questions (with answers) about professional\
   \ medicine.\n\nQ: A 22-year-old male marathon runner presents to the office with\
   \ the complaint of right-sided rib pain when he runs long distances. Physical examination\
-  \ reveals normal heart and lung findings and an exhalation dysfunction at ribs\_\
-  4-5 on the right. Which of the following muscles or muscle groups will be most useful\
+  \ reveals normal heart and lung findings and an exhalation dysfunction at ribs 4-5\
+  \ on the right. Which of the following muscles or muscle groups will be most useful\
   \ in correcting this dysfunction utilizing a direct method?\n(A) anterior scalene\
   \ (B) latissimus dorsi (C) pectoralis minor (D) quadratus lumborum\nA: Let's think\
   \ step by step. We refer to Wikipedia articles on medicine for help. Among the options,\
   \ only pectoralis minor muscle origins from the outer surfaces of the 3rd to 5th\
   \ ribs. The answer is (C).\n\nQ: A 36-year-old male presents to the office with\
-  \ a\_3-week\_history of low back pain. He denies any recent trauma but says that\
-  \ he climbs in and out of his truck numerous times a day for his job. Examination\
-  \ of the patient in the prone position reveals a deep sacral sulcus on the left,\
-  \ a posterior inferior lateral angle on the right, and a lumbosacral junction that\
+  \ a 3-week history of low back pain. He denies any recent trauma but says that he\
+  \ climbs in and out of his truck numerous times a day for his job. Examination of\
+  \ the patient in the prone position reveals a deep sacral sulcus on the left, a\
+  \ posterior inferior lateral angle on the right, and a lumbosacral junction that\
   \ springs freely on compression. The most likely diagnosis is\n(A) left-on-left\
   \ sacral torsion (B) left-on-right sacral torsion (C) right unilateral sacral flexion\
   \ (D) right-on-right sacral torsion\nA: Let's think step by step. We refer to Wikipedia\
@@ -23,9 +23,9 @@ description: "The following are multiple choice questions (with answers) about p
   \ nonproductive cough, runny nose, and frontal headache. He says the headache is\
   \ worse in the morning and ibuprofen does provide some relief. He has not had shortness\
   \ of breath. Medical history is unremarkable. He takes no medications other than\
-  \ the ibuprofen for pain. Vital signs are temperature 37.4\xB0C (99.4\xB0F), pulse\
-  \ 88/min, respirations 18/min, and blood pressure 120/84 mm Hg. Examination of the\
-  \ nares shows erythematous mucous membranes. Examination of the throat shows erythema\
+  \ the ibuprofen for pain. Vital signs are temperature 37.4°C (99.4°F), pulse 88/min,\
+  \ respirations 18/min, and blood pressure 120/84 mm Hg. Examination of the nares\
+  \ shows erythematous mucous membranes. Examination of the throat shows erythema\
   \ and follicular lymphoid hyperplasia on the posterior oropharynx. There is no palpable\
   \ cervical adenopathy. Lungs are clear to auscultation. Which of the following is\
   \ the most likely cause of this patient's symptoms?\n(A) Allergic rhinitis (B) Epstein-Barr\
@@ -57,13 +57,14 @@ description: "The following are multiple choice questions (with answers) about p
   \ A follow-up visit in the office 2 weeks ago disclosed elevated urinary normetanephrine\
   \ and metanephrine and plasma aldosterone concentrations. The patient was referred\
   \ to a surgeon, who recommended the adrenalectomy. Today, vital signs are temperature\
-  \ 36.6\xB0C (97.9\xB0F), pulse 100/min, respirations 14/min, and blood pressure\
-  \ 170/95 mm Hg. Physical examination discloses no significant findings. Initial\
-  \ preoperative preparation should include treatment with which of the following?\n\
-  (A) Labetalol (B) A loading dose of potassium chloride (C) Nifedipine (D) Phenoxybenzamine\n\
+  \ 36.6°C (97.9°F), pulse 100/min, respirations 14/min, and blood pressure 170/95\
+  \ mm Hg. Physical examination discloses no significant findings. Initial preoperative\
+  \ preparation should include treatment with which of the following?\n(A) Labetalol\
+  \ (B) A loading dose of potassium chloride (C) Nifedipine (D) Phenoxybenzamine\n\
   A: Let's think step by step. We refer to Wikipedia articles on medicine for help.\
   \ The symptoms and the adrenal mass suggested pheochromocytoma, and the blood pressure\
   \ indicates hypertension. Phenoxybenzamine is used to treat hypertension caused\
   \ by pheochromocytoma. The answer is (D)."
-include: _mmlu_flan_cot_fewshot_template_yaml
-task: mmlu_flan_cot_fewshot_professional_medicine
+"group": "mmlu_flan_cot_fewshot_other"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_professional_medicine"
