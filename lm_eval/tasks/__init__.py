@@ -15,7 +15,7 @@ from lm_eval.api.registry import (
 
 import logging
 
-from .squad import SQuAD2
+from .squadv2.squad import SQuAD2
 
 eval_logger = logging.getLogger("lm-eval")
 

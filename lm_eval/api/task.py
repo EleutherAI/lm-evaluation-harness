@@ -208,7 +208,6 @@ class Task(abc.ABC):
             TaskConfig(
                 {
                     **config,
-                    **{"dataset_path": DATASET_PATH, "dataset_name": DATASET_NAME},
                 }
             )
             if config
@@ -216,7 +215,6 @@ class Task(abc.ABC):
         )
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
-
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None) -> None:
         """Downloads and returns the task dataset.
@@ -357,9 +355,7 @@ class Task(abc.ABC):
                 False
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
-        eval_logger.info(
-            f"Building contexts for task on rank {rank}..."
-        )
+        eval_logger.info(f"Building contexts for task on rank {rank}...")
 
         instances = []
         for doc_id, doc in utils.create_iterator(
@@ -450,7 +446,12 @@ class Task(abc.ABC):
 
     @utils.positional_deprecated
     def fewshot_context(
-        self, doc, num_fewshot, provide_description=None, rnd=random.Random(1234), description=None
+        self,
+        doc,
+        num_fewshot,
+        provide_description=None,
+        rnd=random.Random(1234),
+        description=None,
     ):
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -800,7 +801,6 @@ class ConfigurableTask(Task):
                 )
             return super().fewshot_docs()
 
-
     @utils.positional_deprecated
     def fewshot_context(self, doc, num_fewshot):
         """Returns a fewshot context string that is made up of a prepended description
@@ -833,7 +833,6 @@ class ConfigurableTask(Task):
                 return labeled_examples + choices[example]
             else:
                 return labeled_examples + str(example)
-
 
     def apply_filters(self):
         if hasattr(self, "_filters"):
