@@ -91,7 +91,7 @@ class TaskConfig(dict):
     metadata: str = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
-        if "." in self.dataset_path:
+        if self.dataset_path and ("." in self.dataset_path):
             import inspect
             from importlib import import_module
 
@@ -204,19 +204,19 @@ class Task(abc.ABC):
         self._fewshot_docs = None
         self._instances = None
 
-        self._config = TaskConfig(**config) if config else TaskConfig()
-
-        if not hasattr(self, "_filters"):
-            self._filters = []
-            for name, components in self._config.get(
-                "filters", [["none", [["take_first", None]]]]
-            ):
-                filter_pipeline = build_filter_ensemble(name, components)
-                self._filters.append(filter_pipeline)
-
-        self.sampler = samplers.Sampler(
-            list(self.fewshot_docs()), self, rnd=random.Random(1234)
+        self._config = (
+            TaskConfig(
+                {
+                    **config,
+                    **{"dataset_path": DATASET_PATH, "dataset_name": DATASET_NAME},
+                }
+            )
+            if config
+            else TaskConfig()
         )
+
+        self._filters = [build_filter_ensemble("none", [["take_first", None]])]
+
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None) -> None:
         """Downloads and returns the task dataset.
@@ -358,7 +358,7 @@ class Task(abc.ABC):
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
         eval_logger.info(
-            f"Building contexts for task '{self.config.task}' on rank {rank}..."
+            f"Building contexts for task on rank {rank}..."
         )
 
         instances = []
@@ -449,7 +449,9 @@ class Task(abc.ABC):
         return len(re.split(r"\s+", doc))
 
     @utils.positional_deprecated
-    def fewshot_context(self, doc, num_fewshot):
+    def fewshot_context(
+        self, doc, num_fewshot, provide_description=None, rnd=random.Random(1234), description=None
+    ):
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -457,34 +459,68 @@ class Task(abc.ABC):
             The document as returned from training_docs, validation_docs, or test_docs.
         :param num_fewshot: int
             The number of fewshot examples to provide in the returned context string.
+        :param provide_description: bool
+            Not implemented, and this option is deprecated and will be removed in a future version in favor of a different description providing method
+        :param rnd: random.Random
+            The pseudo-random number generator used to randomly sample examples.
+            WARNING: This is currently a required arg although it's optionalized with a default `None`.
+        :param description: str
+            The task's description that will be prepended to the fewshot examples.
         :returns: str
             The fewshot context.
         """
+        assert (
+            rnd is not None
+        ), "A `random.Random` generator argument must be provided to `rnd`"
+        assert not provide_description, (
+            "The `provide_description` arg will be removed in future versions. To prepend "
+            "a custom description to the context, supply the corresponding string via the "
+            "`description` arg."
+        )
+        if provide_description is not None:
+            # nudge people to not specify it at all
+            print(
+                "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
+            )
+
+        description = description + "\n\n" if description else ""
 
         if num_fewshot == 0:
-            # always prepend the (possibly empty) task description
-            labeled_examples = self.config.description
+            labeled_examples = ""
         else:
-            labeled_examples = self.config.description + self.sampler.get_context(
-                doc, num_fewshot
+            # for sets with no training docs, draw from other set *but ensure no overlap with current doc*
+            if self.has_training_docs():
+                fewshotex = self.fewshot_examples(k=num_fewshot, rnd=rnd)
+            else:
+                if self._fewshot_docs is None:
+                    self._fewshot_docs = list(
+                        self.validation_docs()
+                        if self.has_validation_docs()
+                        else self.test_docs()
+                    )
+
+                fewshotex = rnd.sample(self._fewshot_docs, num_fewshot + 1)
+
+                # get rid of the doc that's the one we're evaluating, if it's in the fewshot
+                fewshotex = [x for x in fewshotex if x != doc][:num_fewshot]
+
+            labeled_examples = (
+                "\n\n".join(
+                    [
+                        self.doc_to_text(doc) + self.doc_to_target(doc)
+                        for doc in fewshotex
+                    ]
+                )
+                + "\n\n"
             )
 
         example = self.doc_to_text(doc)
-        if type(example) == str:
-            return labeled_examples + example
-        elif type(example) == list:
-            return [labeled_examples + ex for ex in example]
-        elif type(example) == int:
-            if self.config.doc_to_choice is not None:
-                choices = self.doc_to_choice(doc)
-                return labeled_examples + choices[example]
-            else:
-                return labeled_examples + str(example)
+        return description + labeled_examples + example
 
     def apply_filters(self):
         if hasattr(self, "_filters"):
             for f in self._filters:
-                f.apply(self._instances)
+                f.apply(self._instances, None)
         else:
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
@@ -763,6 +799,41 @@ class ConfigurableTask(Task):
                     "using preconfigured rule."
                 )
             return super().fewshot_docs()
+
+
+    @utils.positional_deprecated
+    def fewshot_context(self, doc, num_fewshot):
+        """Returns a fewshot context string that is made up of a prepended description
+        (if provided), the `num_fewshot` number of examples, and an appended prompt example.
+
+        :param doc: str
+            The document as returned from training_docs, validation_docs, or test_docs.
+        :param num_fewshot: int
+            The number of fewshot examples to provide in the returned context string.
+        :returns: str
+            The fewshot context.
+        """
+
+        if num_fewshot == 0:
+            # always prepend the (possibly empty) task description
+            labeled_examples = self.config.description
+        else:
+            labeled_examples = self.config.description + self.sampler.get_context(
+                doc, num_fewshot
+            )
+
+        example = self.doc_to_text(doc)
+        if type(example) == str:
+            return labeled_examples + example
+        elif type(example) == list:
+            return [labeled_examples + ex for ex in example]
+        elif type(example) == int:
+            if self.config.doc_to_choice is not None:
+                choices = self.doc_to_choice(doc)
+                return labeled_examples + choices[example]
+            else:
+                return labeled_examples + str(example)
+
 
     def apply_filters(self):
         if hasattr(self, "_filters"):
