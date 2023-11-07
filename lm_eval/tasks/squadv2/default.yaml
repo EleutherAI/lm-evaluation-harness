@@ -1,5 +1,5 @@
 include: _template_yaml
-task: squadv2
+task: squadv2_generate_until
 output_type: generate_until
 generation_kwargs:
   until:

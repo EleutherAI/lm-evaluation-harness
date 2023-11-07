@@ -1,4 +1,4 @@
 group: squadv2_complete
 task:
-  - squadv2
+  - squadv2_generate_until
   - squadv2_noans_loglikelihood
