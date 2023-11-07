@@ -1,5 +1,5 @@
 group: bigbench
-dataset_path: bigbench # will switch to `hails/bigbench` when all tasks are pushed
+dataset_path: hails/bigbench # will switch to `hails/bigbench` when all tasks are pushed
 output_type: generate_until
 dataset_kwargs:
   # num_shots: 0 # TODO: num of shots for `bigbench` HF dataset should be controlled through this, not through the typical methods
@@ -14,3 +14,6 @@ metric_list:
     aggregation: mean
     higher_is_better: true
     ignore_punctuation: true
+  - metric: !function aux_metric.token_edit_distance # pip install textdistance
+    aggregation: mean
+    higher_is_better: false
