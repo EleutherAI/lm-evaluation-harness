@@ -1066,14 +1066,18 @@ class ConfigurableTask(Task):
             prob_norm = utils.softmax(lls)
 
             # TODO use keyword arguments to the metric?
-            # gold, pred, norm stuff, the original lls, 
+            # gold, pred, norm stuff, the original lls,
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
                 **({"f1": (gold, pred)} if "f1" in use_metric else {}),
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
-                **({"brier_score": (gold, prob_norm)} if "brier_score" in use_metric else {}),
+                **(
+                    {"brier_score": (gold, prob_norm)}
+                    if "brier_score" in use_metric
+                    else {}
+                ),
             }
 
             if "acc_mutual_info" in use_metric:

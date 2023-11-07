@@ -50,7 +50,7 @@ dataset_kwargs: null # any extra keyword arguments that should be passed to the 
 ```
 dataset_path: json
 dataset_name: null
-dataset_kwargs: 
+dataset_kwargs:
   data_files: /path/to/my/json
 ```
 -------------------------------

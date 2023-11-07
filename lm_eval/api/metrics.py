@@ -111,9 +111,9 @@ def ter(items):
 def brier_score(items):  # This is a passthrough function
     gold, predictions = list(zip(*items))
     gold = list(gold)
-    gold_one_hot = np.eye(np.max(gold)+1)[gold]
+    gold_one_hot = np.eye(np.max(gold) + 1)[gold]
     predictions = list(zip(*items))[1]
-    return np.mean(np.sum((predictions - gold_one_hot)**2, axis=1))
+    return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
 
 
 @register_metric(
