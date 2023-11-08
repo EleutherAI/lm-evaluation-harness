@@ -15,9 +15,11 @@ from lm_eval.api.registry import (
 
 import logging
 
+eval_logger = logging.getLogger("lm-eval")
+
+# import python tasks
 from .squadv2.squad import SQuAD2
 
-eval_logger = logging.getLogger("lm-eval")
 
 
 def register_configurable_task(config: Dict[str, str]) -> int:
