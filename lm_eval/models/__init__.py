@@ -5,6 +5,7 @@ from . import huggingface
 from . import textsynth
 from . import deepsparse
 from . import dummy
+from . import gguf
 
 MODEL_REGISTRY = {
     "hf": gpt2.HFLM,
@@ -17,6 +18,7 @@ MODEL_REGISTRY = {
     "textsynth": textsynth.TextSynthLM,
     "deepsparse": deepsparse.DeepSparseLM,
     "dummy": dummy.DummyLM,
+    "gguf": gguf.GGUFLM
 }
 
 

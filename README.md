@@ -141,6 +141,15 @@ python main.py \
     --tasks hellaswag
 ```
 
+GGUF or GGML quantized models can be loaded by using `llama-cpp-python` server:
+
+```bash
+python main.py \
+    --model gguf \
+    --model_args base_url=http://localhost:8000 \
+    --tasks hellaswag
+```
+
 We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
 
 We currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, check out the [BigScience fork](https://github.com/bigscience-workshop/lm-evaluation-harness) of this repo. We are currently working on upstreaming this capability to `main`.

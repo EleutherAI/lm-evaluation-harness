@@ -39,7 +39,7 @@ a teacher who answers the questions by providing short excerpts (spans) from the
 
 _HOMEPAGE = "https://quac.ai/"
 
-# License available at https://quac.ai/
+# License declared at https://quac.ai/
 _LICENSE = "CC BY-SA 4.0"
 
 _URLS = {
