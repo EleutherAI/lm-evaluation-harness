@@ -64,6 +64,12 @@ from . import mgsm
 from .aam.all_tasks_registry import TASK_REGISTRY as AAM_TASK_REGISTRY
 from .opengptx.all_tasks_registry import TASK_REGISTRY as OGX_TASK_REGISTRY
 
+from .mlmm import multilingual_arc
+from .mlmm import multilingual_hellaswag
+from .mlmm import multilingual_mmlu
+from .mlmm import multilingual_truthfulqa
+
+
 ########################################
 # Translation tasks
 ########################################
@@ -328,6 +334,11 @@ TASK_REGISTRY = {
     **tmp_new_pawsx.construct_tasks(),
     **tmp_new_xnli.construct_tasks(),
     **mgsm.construct_tasks(),
+    # Multilingual OpenLLM Evaluation
+    **multilingual_arc.create_all_tasks(),
+    **multilingual_mmlu.create_all_tasks(),
+    **multilingual_truthfulqa.create_all_tasks(),
+    **multilingual_hellaswag.create_all_tasks(),
 }
 
 # append the luminous (eg. Aleph-Alpha implemented) tasks to the whole registry
