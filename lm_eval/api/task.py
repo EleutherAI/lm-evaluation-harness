@@ -953,10 +953,7 @@ class ConfigurableTask(Task):
 
     def process_results(self, doc, results):
         if callable(self.config.process_results):
-            try:
-                return self.config.process_results(self, doc, results)
-            except:
-                return self.config.process_results(doc, results)
+            return self.config.process_results(doc, results)
 
         result_dict = {}
         use_metric = list(self._metric_fn_list.keys())
