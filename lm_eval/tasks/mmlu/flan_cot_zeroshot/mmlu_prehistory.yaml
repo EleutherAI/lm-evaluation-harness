@@ -1,7 +1,6 @@
-dataset_name: prehistory
-description: 'The following are multiple choice questions (with answers) about prehistory.
-
-
-  '
-include: _mmlu_flan_generative_template_yaml
-task: mmlu_flan_cot_zeroshot_prehistory
+"dataset_name": "prehistory"
+"description": "The following are multiple choice questions (with answers) about prehistory.\n\
+  \n"
+"group": "mmlu_flan_cot_zeroshot_humanities"
+"include": "_mmlu_flan_cot_zeroshot_template_yaml"
+"task": "mmlu_flan_cot_zeroshot_prehistory"

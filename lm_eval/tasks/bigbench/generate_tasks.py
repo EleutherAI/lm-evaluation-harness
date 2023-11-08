@@ -175,8 +175,8 @@ all_subtasks = [
 def main() -> None:
 
     for path, task_type in zip(
-        ["multiple_choice", "greedy_until"],
-        ["multiple_choice_template_yaml", "greedy_until_template_yaml"],
+        ["multiple_choice", "generate_until"],
+        ["multiple_choice_template_yaml", "generate_until_template_yaml"],
     ):
         os.makedirs(path, exist_ok=True)
         for task in all_subtasks:

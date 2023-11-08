@@ -1,0 +1,24 @@
+group: mmlu_flan_cot_zeroshot
+dataset_path: hails/mmlu_no_train # a copy of `cais/mmlu` with no auxiliary_train split
+validation_split: validation
+fewshot_split: dev
+output_type: generate_until
+doc_to_text: "Q: {{question.strip()}}\n(A) {{choices[0]}} (B) {{choices[1]}} (C) {{choices[2]}} (D) {{choices[3]}}\nA: Let's think step by step."
+doc_to_target: "{{['(A)', '(B)', '(C)', '(D)'][answer]}}"
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+      - function: "take_first"
+generation_kwargs:
+  until:
+    - "</s>"
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true

@@ -33,7 +33,7 @@ from lm_eval.api.metrics import (
 from lm_eval.api.registry import (
     get_metric,
     get_aggregation,
-    get_default_aggregation,
+    get_metric_aggregation,
     is_higher_better,
     DEFAULT_METRIC_REGISTRY,
     OUTPUT_TYPE_REGISTRY,
@@ -44,7 +44,7 @@ ALL_OUTPUT_TYPES = [
     "loglikelihood",
     "multiple_choice",
     "loglikelihood_rolling",
-    "greedy_until",
+    "generate_until",
 ]
 
 
@@ -52,7 +52,9 @@ ALL_OUTPUT_TYPES = [
 class TaskConfig(dict):
     # task naming/registry
     task: str = None
+    task_alias: str = None
     group: Union[str, list] = None
+    group_alias: Union[str, list] = None
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
@@ -69,7 +71,6 @@ class TaskConfig(dict):
     doc_to_text: Union[Callable, str] = None
     doc_to_target: Union[Callable, str] = None
     doc_to_choice: Union[Callable, str, dict, list] = None
-    gold_alias: Union[Callable, str] = None
     process_results: Union[Callable, str] = None
     use_prompt: str = None
     description: str = ""
@@ -80,7 +81,7 @@ class TaskConfig(dict):
     num_fewshot: int = 0
     # scoring options
     metric_list: list = None
-    output_type: str = "greedy_until"
+    output_type: str = "generate_until"
     generation_kwargs: dict = None
     repeats: int = 1
     filter_list: Union[str, list] = None
@@ -97,11 +98,11 @@ class TaskConfig(dict):
             self.dataset_path = inspect.getfile(import_module(self.dataset_path))
 
         if self.generation_kwargs is not None:
-            if self.output_type != "greedy_until":
+            if self.output_type != "generate_until":
                 eval_logger.warning(
-                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: greedy_until`!"
+                    f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
                 )
-                assert self.output_type != "greedy_until"
+                assert self.output_type != "generate_until"
 
             if "temperature" in self.generation_kwargs:
                 self.generation_kwargs["temperature"] = float(
@@ -111,7 +112,7 @@ class TaskConfig(dict):
             if "until" not in self.generation_kwargs:
                 self.generation_kwargs["until"] = [self.fewshot_delimiter]
         else:
-            if self.output_type == "greedy_until":
+            if self.output_type == "generate_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
                 self.generation_kwargs = {
                     "until": None
@@ -538,12 +539,14 @@ class ConfigurableTask(Task):
         self._aggregation_list = {}
         self._higher_is_better = {}
 
-        _metric_list = DEFAULT_METRIC_REGISTRY[self.config.output_type]
         if self.config.metric_list is None:
             # TODO: handle this in TaskConfig.__post_init__ ?
+            _metric_list = DEFAULT_METRIC_REGISTRY[self.config.output_type]
+
             for metric_name in _metric_list:
                 self._metric_fn_list[metric_name] = get_metric(metric_name)
-                self._aggregation_list[metric_name] = get_default_aggregation(
+                self._metric_fn_kwargs[metric_name] = {}
+                self._aggregation_list[metric_name] = get_metric_aggregation(
                     metric_name
                 )
                 self._higher_is_better[metric_name] = is_higher_better(metric_name)
@@ -586,7 +589,7 @@ class ConfigurableTask(Task):
                         ]
                 else:
                     INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
-                    metric_agg = get_default_aggregation(metric_name)
+                    metric_agg = get_metric_aggregation(metric_name)
                     eval_logger.warning(
                         f"[Task: {self._config.task}] metric {metric_name} is defined, but aggregation is not. "
                         f"using default "
@@ -687,7 +690,10 @@ class ConfigurableTask(Task):
             for choice in check_choices:
                 choice_has_whitespace = True if choice[0].isspace() else False
                 delimiter_has_whitespace = (
-                    True if self.config.target_delimiter[-1].isspace() else False
+                    True
+                    if self.config.target_delimiter.rstrip()
+                    != self.config.target_delimiter
+                    else False
                 )
 
                 if delimiter_has_whitespace and choice_has_whitespace:
@@ -696,7 +702,7 @@ class ConfigurableTask(Task):
                     )
                 elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
                     eval_logger.warning(
-                        f'Both target_delimiter and target choice: "{choice}" does not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
+                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
     def download(self, dataset_kwargs=None) -> None:
@@ -888,26 +894,6 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def gold_alias(self, doc):
-        # returns a version of the gold target answer to a document,
-        # which should be passed into metric for scoring as the ground truth.
-
-        # in multiple_choice tasks, this should be castable to an int corresponding to the index
-        # within the answer choices, while doc_to_target is the string version of {{answer_choices[gold]}}.
-        if self.config.gold_alias is not None:
-            doc_to_target = self.config.gold_alias
-        else:
-            return self.doc_to_target(doc)
-
-        if type(doc_to_target) == str:
-            return utils.apply_template(doc_to_target, doc)
-        elif callable(doc_to_target):
-            return doc_to_target(doc)
-        elif hasattr(doc_to_target, "apply"):
-            return doc_to_target.apply(doc)[1]
-        else:
-            raise TypeError
-
     def construct_requests(
         self, doc: dict, ctx: str, **kwargs
     ) -> Union[List[Instance], Instance]:
@@ -958,7 +944,7 @@ class ConfigurableTask(Task):
                 )
             return request_list
 
-        elif self.OUTPUT_TYPE == "greedy_until":
+        elif self.OUTPUT_TYPE == "generate_until":
             arguments = (ctx, self.config.generation_kwargs)
 
         return Instance(
@@ -1055,12 +1041,21 @@ class ConfigurableTask(Task):
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
                 exact_match = int(is_greedy[gold]) if gold != -100 else 0
 
+            prob_norm = utils.softmax(lls)
+
+            # TODO use keyword arguments to the metric?
+            # gold, pred, norm stuff, the original lls,
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
                 **({"f1": (gold, pred)} if "f1" in use_metric else {}),
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
+                **(
+                    {"brier_score": (gold, prob_norm)}
+                    if "brier_score" in use_metric
+                    else {}
+                ),
             }
 
             if "acc_mutual_info" in use_metric:
@@ -1070,7 +1065,7 @@ class ConfigurableTask(Task):
                 acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
 
-        elif self.OUTPUT_TYPE == "greedy_until":
+        elif self.OUTPUT_TYPE == "generate_until":
             gold = self.doc_to_target(doc)
             result = results[0]
             if self.config.doc_to_choice is not None:
@@ -1134,7 +1129,7 @@ class ConfigurableTask(Task):
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
-                "'loglikelihood', 'loglikelihood_rolling', 'greedy_until' or 'multiple_choice'",
+                "'loglikelihood', 'loglikelihood_rolling', 'generate_until' or 'multiple_choice'",
             )
 
         return result_dict

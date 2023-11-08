@@ -2,17 +2,25 @@ import os
 import re
 import json
 import fnmatch
-import jsonlines
 import argparse
 import logging
 from pathlib import Path
-
+import numpy as np
 from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger, SPACING
 from lm_eval.tasks import include_path
 
 from typing import Union
+
+
+def _handle_non_serializable(o):
+    if isinstance(o, np.int64) or isinstance(o, np.int32):
+        return int(o)
+    elif isinstance(o, set):
+        return list(o)
+    else:
+        return str(o)
 
 
 def parse_eval_args() -> argparse.Namespace:
@@ -97,6 +105,12 @@ def parse_eval_args() -> argparse.Namespace:
         default=None,
         help="Additional path to include if there are external tasks to include.",
     )
+    parser.add_argument(
+        "--verbosity",
+        type=str,
+        default="INFO",
+        help="Log error when tasks are not registered.",
+    )
     return parser.parse_args()
 
 
@@ -105,6 +119,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         # we allow for args to be passed externally, else we parse them ourselves
         args = parse_eval_args()
 
+    eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     if args.limit:
@@ -112,7 +127,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
-
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
         include_path(args.include_path)
@@ -188,7 +202,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if results is not None:
         if args.log_samples:
             samples = results.pop("samples")
-        dumped = json.dumps(results, indent=2, default=lambda o: str(o))
+        dumped = json.dumps(results, indent=2, default=_handle_non_serializable)
         if args.show_config:
             print(dumped)
 
@@ -203,9 +217,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                         re.sub("/|=", "__", args.model_args), task_name
                     )
                     filename = path.joinpath(f"{output_name}.jsonl")
-
-                    with jsonlines.open(filename, "w") as f:
-                        f.write_all(samples[task_name])
+                    samples_dumped = json.dumps(
+                        samples[task_name], indent=2, default=_handle_non_serializable
+                    )
+                    filename.open("w").write(samples_dumped)
 
         print(
             f"{args.model} ({args.model_args}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "

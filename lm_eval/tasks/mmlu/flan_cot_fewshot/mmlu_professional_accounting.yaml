@@ -1,7 +1,7 @@
-dataset_name: professional_accounting
-description: "The following are multiple choice questions (with answers) about professional\
-  \ accounting.\n\nQ: An auditor traces the serial numbers on equipment to a nonissuer\u2019\
-  s subledger. Which of the following management assertions is supported by this test?\n\
+"dataset_name": "professional_accounting"
+"description": "The following are multiple choice questions (with answers) about professional\
+  \ accounting.\n\nQ: An auditor traces the serial numbers on equipment to a nonissuer’s\
+  \ subledger. Which of the following management assertions is supported by this test?\n\
   (A) Valuation and allocation (B) Completeness (C) Rights and obligations (D) Presentation\
   \ and disclosure\nA: Let's think step by step. We refer to Wikipedia articles on\
   \ accounting for help. The completeness assertion is tested by tracing supporting\
@@ -43,5 +43,6 @@ description: "The following are multiple choice questions (with answers) about p
   \ transactions, only Proceeds from long-term debt belongs to the financing activities\
   \ section of cashflow, hence the amount reported should be $100000. The answer is\
   \ (D)."
-include: _mmlu_flan_cot_fewshot_template_yaml
-task: mmlu_flan_cot_fewshot_professional_accounting
+"group": "mmlu_flan_cot_fewshot_other"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_professional_accounting"
