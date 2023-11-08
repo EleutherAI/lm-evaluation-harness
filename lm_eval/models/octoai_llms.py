@@ -74,12 +74,6 @@ class OctoAIEndpointLM(BaseLM):
 
     self.data = {
         "model": self.model_name,
-        "messages": [
-            {
-                "role": "user",
-                "content": "" # need to fill before use inference
-            }
-        ],
         "stream": False,
         "max_tokens": 256,
         "top_p": top_p,
@@ -162,8 +156,13 @@ class OctoAIEndpointLM(BaseLM):
       print(e)
       return
 
-  def call_octoai_inference(self, user_input: str):
-    self.data["messages"][0]["content"] = user_input
+  def call_octoai_inference(self, user_input: str, url_postfix: str):
+    self.data["messages"] = [
+        {
+            "role": "user",
+            "content": user_input,
+        }
+    ],
     response = requests.post(self.url + "/v1/chat/completions", headers=self.headers, json=self.data)
 
     if response.status_code != 200:
