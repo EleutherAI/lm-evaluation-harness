@@ -34,12 +34,13 @@ model_urls = {
 class OctoAIEndpointLM(BaseLM):
   def __init__(
       self,
-      model_name="llama2-7b-chat-mlc-q0f16",
-      batch_size=1,
-      max_batch_size=None,
-      device=None,
-      top_p=0.0,
-      temperature=0.0,):
+      model_name: str="llama2-7b-chat-mlc-q0f16",
+      url: str=None,
+      batch_size: int=1,
+      max_batch_size: int=None,
+      device: str=None,
+      top_p: float=0.0,
+      temperature: float=0.0,):
     """
     :param model_name: str
         Model name from the list of models supported by OctoAI
@@ -54,16 +55,16 @@ class OctoAIEndpointLM(BaseLM):
     self._device=device
     # TODO(vvchernov): check that model name is supported
 
-    self.init_remote(top_p, temperature)
+    self.init_remote(url, top_p, temperature)
 
-  def init_remote(self, top_p, temperature):
+  def init_remote(self, url, top_p, temperature):
     # Get the API key from the environment variables
     api_key=os.environ["OCTOAI_API_KEY"]
 
     if api_key is None:
       raise ValueError("API_KEY not found in the .env file")
 
-    self.url = model_urls[self.model_name]
+    self.url = url if url is not None else model_urls[self.model_name]
 
     self.headers = {
       "accept": "text/event-stream",
