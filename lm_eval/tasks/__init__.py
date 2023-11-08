@@ -18,7 +18,7 @@ import logging
 eval_logger = logging.getLogger("lm-eval")
 
 # import python tasks
-from .squadv2.squad import SQuAD2
+from .squad import SQuAD2
 
 
 
