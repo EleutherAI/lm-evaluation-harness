@@ -7,7 +7,6 @@ import sklearn.metrics
 import random
 import evaluate
 
-from Levenshtein import distance
 from lm_eval.api.registry import register_metric, register_aggregation
 
 
