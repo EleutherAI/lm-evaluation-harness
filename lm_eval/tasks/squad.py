@@ -34,6 +34,7 @@ _CITATION = """
 }
 """
 
+
 def _squad_metric(predictions, references):
     squad_metric = datasets.load_metric("squad_v2")
     return squad_metric.compute(predictions=predictions, references=references)
@@ -125,7 +126,7 @@ class SQuAD2(Task):
                 arguments=(ctx, " " + "unanswerable"),
                 idx=0,
                 **kwargs
-            )
+            ),
         ]
 
     def process_results(self, doc, results):
@@ -138,7 +139,7 @@ class SQuAD2(Task):
         :param results:
             The results of the requests created in construct_requests.
         """
-        
+
         continuation, (logprob_unanswerable, _) = results
 
         no_answer_probability = exp(logprob_unanswerable)

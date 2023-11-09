@@ -204,15 +204,7 @@ class Task(abc.ABC):
         self._fewshot_docs = None
         self._instances = None
 
-        self._config = (
-            TaskConfig(
-                {
-                    **config,
-                }
-            )
-            if config
-            else TaskConfig()
-        )
+        self._config = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
 
