@@ -78,7 +78,7 @@ def create_task(lang):
     class ATest(TruthfulQAMultipleChoice):
         def __init__(self):
             self.DATASET_NAME = f"truthfulqa_{lang}"
-            super().__init__(lang)
+            super().__init__()
 
     return ATest
 
