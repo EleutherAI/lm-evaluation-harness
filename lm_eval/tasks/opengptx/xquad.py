@@ -272,6 +272,7 @@ LANG_CLASSES = [
     XQuADEn,
     XQuADEs,
     XQuADHi,
+    XQuADEl,
     XQuADTh,
     XQuADTr,
     XQuADRu,
