@@ -1,34 +1,3 @@
-"""
-SCROLLS: Standardized CompaRison Over Long Language Sequences
-https://arxiv.org/abs/2201.03533
-
-SCROLLS is a suite of datasets that require synthesizing information over long texts.
-The benchmark includes seven natural language tasks across multiple domains,
-including summarization, question answering, and natural language inference.
-
-Homepage: https://www.scrolls-benchmark.com/
-
-Since SCROLLS tasks are generally longer than the maximum sequence length of many models,
-it is possible to create "subset" tasks that contain only those samples whose tokenized length
-is less than some pre-defined limit. For example, to create a subset of "Qasper" that would
-be suitable for a model using the GPTNeoX tokenizer and a 4K maximium sequence length:
-
-```
-class QasperGPTNeoX4K(Qasper):
-    PRUNE_TOKENIZERS = ["EleutherAI/pythia-410m-deduped"]
-    PRUNE_MAX_TOKENS = 4096
-    PRUNE_NUM_PROC = _num_cpu_cores() # optional, to speed up pruning of large datasets like NarrativeQA
-```
-
-`PRUNE_TOKENIZERS` can contain more than one tokenizer; this will include only samples that are
-less than `PRUNE_MAX_TOKENS` for ALL of the tokenizers. This can be useful to comparing models
-that use different tokenizers but the same maximum sequence length.
-
-Once the subset task class has been defined in this file, it can be used by adding the class
-to `lm_eval/tasks/__init__.py`.
-
-NOTE: GovReport may need `max_gen_toks` set larger for causal models.
-"""
 import re
 import numpy as np
 import transformers.data.metrics.squad_metrics as squad_metrics
@@ -146,13 +115,8 @@ class _SCROLLSTask(Task):
     PRUNE_MAX_TOKENS = None
     PRUNE_NUM_PROC = None
 
-    def __init__(self, no_metric=False):
-        super().__init__()
-        self.metric = (
-            load_metric(_download_metric(), config_name=self.DATASET_NAME)
-            if not no_metric
-            else None
-        )
+    def __post_init__(self):
+        self.metric = load_metric(_download_metric(), config_name=self.DATASET_NAME)
 
     def has_training_docs(self):
         return True
@@ -245,8 +209,8 @@ class _SCROLLSTask(Task):
 
 
 class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
-    def __init__(self):
-        super().__init__(no_metric=True)
+    def __post_init__(self):
+        self.metric = None
 
     def _scrolls_metrics(self):
         return None
@@ -270,7 +234,7 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
             "em": acc_norm * 100.0,
         }
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, **kwargs):
 
         request_list = [
             Instance(
@@ -278,6 +242,7 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
                 doc=doc,
                 arguments=(ctx, " {}".format(choice)),
                 idx=i,
+                **kwargs,
             )
             for i, choice in doc["choices"]
         ]
@@ -302,12 +267,13 @@ class _SCROLLSSummaryTask(_SCROLLSTask):
             "rougeL": (results[0], doc["outputs"]),
         }
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, **kwargs):
         return Instance(
             request_type="generate_until",
             doc=doc,
             arguments=(ctx, {"until": ["\n"]}),
             idx=0,
+            **kwargs,
         )
 
     def doc_to_text(self, doc):
@@ -344,7 +310,7 @@ class Qasper(_SCROLLSTask):
             prediction = results[0]
         return {"f1": (prediction, doc["outputs"])}
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, **kwargs):
         if doc["is_yes_no"]:
             return [
                 Instance(
@@ -352,12 +318,14 @@ class Qasper(_SCROLLSTask):
                     doc=doc,
                     arguments=(ctx, " yes"),
                     idx=0,
+                    **kwargs,
                 ),
                 Instance(
                     request_type="loglikelihood",
                     doc=doc,
                     arguments=(ctx, " no"),
                     idx=1,
+                    **kwargs,
                 ),
             ]
         else:
@@ -366,6 +334,7 @@ class Qasper(_SCROLLSTask):
                 doc=doc,
                 arguments=(ctx, {"until": ["\n"]}),
                 idx=0,
+                **kwargs,
             )
 
 
@@ -422,12 +391,13 @@ class NarrativeQA(_SCROLLSTask):
     def process_results(self, doc, results):
         return {"f1": (results[0], doc["outputs"])}
 
-    def construct_requests(self, doc, ctx):
+    def construct_requests(self, doc, ctx, **kwargs):
         return Instance(
             request_type="generate_until",
             doc=doc,
             arguments=(ctx, {"until": ["\n"]}),
             idx=0,
+            **kwargs,
         )
 
 
