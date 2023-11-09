@@ -17,7 +17,14 @@ import logging
 
 # import python tasks
 from .squad import SQuAD2
-from .scrolls import QuALITY, NarrativeQA, ContractNLI, GovReport, SummScreenFD, QMSum
+from .scrolls import (
+    QuALITY,
+    NarrativeQA,
+    ContractNLI,
+    GovReport,
+    SummScreenFD,
+    QMSum
+)
 
 eval_logger = logging.getLogger("lm-eval")
 
