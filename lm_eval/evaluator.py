@@ -468,6 +468,8 @@ def evaluate(
 
                 if stderr is not None:
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
+                else:
+                    results[task_name][metric + "_stderr" + "," + key] = 0
 
         if bool(results):
 
