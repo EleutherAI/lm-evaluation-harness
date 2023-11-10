@@ -9,12 +9,9 @@ import numpy as np
 from pathlib import Path
 from typing import Union
 
-logging.basicConfig(
-    format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
-    datefmt="%Y-%m-%d:%H:%M:%S",
-    level=logging.INFO,
-)
-
+from lm_eval import evaluator, utils
+from lm_eval.tasks import initialize_tasks, include_path
+from lm_eval.api.registry import ALL_TASKS
 
 def _handle_non_serializable(o):
     if isinstance(o, np.int64) or isinstance(o, np.int32):
@@ -121,14 +118,12 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         # we allow for args to be passed externally, else we parse them ourselves
         args = parse_eval_args()
 
-    eval_logger = logging.getLogger("lm-eval")
+    eval_logger = utils.eval_logger
     eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-    from lm_eval import evaluator, utils
-    from lm_eval.tasks import include_path
-    from lm_eval.api.registry import ALL_TASKS
+    initialize_tasks(args.verbosity)
 
     if args.limit:
         eval_logger.warning(

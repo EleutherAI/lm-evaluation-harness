@@ -14,8 +14,7 @@ from lm_eval.api.registry import (
 )
 
 import logging
-
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = utils.eval_logger
 
 
 def register_configurable_task(config: Dict[str, str]) -> int:
@@ -168,8 +167,12 @@ def include_path(task_dir):
     return 0
 
 
-task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
-include_path(task_dir)
+def initialize_tasks(verbosity="INFO"):
+
+    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+
+    task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
+    include_path(task_dir)
 
 
 def get_task(task_name, config):

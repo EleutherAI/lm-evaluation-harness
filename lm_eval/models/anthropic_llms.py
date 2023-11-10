@@ -2,9 +2,10 @@ from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from tqdm import tqdm
 import time
-from lm_eval.logger import eval_logger
+from lm_eval import utils
 from typing import List, Any, Tuple
 
+eval_logger = utils.eval_logger
 
 def anthropic_completion(
     client,  #: anthropic.Anthropic,
