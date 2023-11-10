@@ -1,7 +1,6 @@
-dataset_name: miscellaneous
-description: 'The following are multiple choice questions (with answers) about miscellaneous.
-
-
-  '
-include: _mmlu_flan_generative_template_yaml
-task: mmlu_flan_cot_zeroshot_miscellaneous
+"dataset_name": "miscellaneous"
+"description": "The following are multiple choice questions (with answers) about miscellaneous.\n\
+  \n"
+"group": "mmlu_flan_cot_zeroshot_other"
+"include": "_mmlu_flan_cot_zeroshot_template_yaml"
+"task": "mmlu_flan_cot_zeroshot_miscellaneous"

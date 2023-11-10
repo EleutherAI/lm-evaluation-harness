@@ -1,5 +1,5 @@
-dataset_name: high_school_computer_science
-description: "The following are multiple choice questions (with answers) about high\
+"dataset_name": "high_school_computer_science"
+"description": "The following are multiple choice questions (with answers) about high\
   \ school computer science.\n\nQ: Which of the following is an example of the use\
   \ of a device on the Internet of Things (IoT) ?\n(A) A car alerts a driver that\
   \ it is about to hit an object. (B) A hiker uses a G P S watch to keep track of\
@@ -26,9 +26,9 @@ description: "The following are multiple choice questions (with answers) about h
   \ launched from any web sites visited or files downloaded.\nA: Let's think step\
   \ by step. Choice A is incorrect as it only describes network traffic, which an\
   \ anonymous browser does not change. Choice B is correct as it correctly describes\
-  \ how an anonymous browser will prevent saving data on the user\u2019s computer\
-  \ after the session is ended. Choice C is incorrect because an anonymous browser\
-  \ will not prevent logging in to email or social media accounts. Choice D is incorrect\
+  \ how an anonymous browser will prevent saving data on the user’s computer after\
+  \ the session is ended. Choice C is incorrect because an anonymous browser will\
+  \ not prevent logging in to email or social media accounts. Choice D is incorrect\
   \ because an anonymous browser in itself performs no virus protection. The answer\
   \ is (B).\n\nQ: In the program below, the initial value of X is 5 and the initial\
   \ value of Y is 10.\nIF (X < 0){\n DISPLAY (\"Foxtrot\")\n} ELSE {\n IF (X > Y){\n\
@@ -66,5 +66,6 @@ description: "The following are multiple choice questions (with answers) about h
   \ its value is greater than 100, regardless of the elements in the list. Choice\
   \ D is incorrect because its step 3 does not increment the value of position, so\
   \ it will repeat forever. The answer is (B)."
-include: _mmlu_flan_cot_fewshot_template_yaml
-task: mmlu_flan_cot_fewshot_high_school_computer_science
+"group": "mmlu_flan_cot_fewshot_stem"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_high_school_computer_science"
