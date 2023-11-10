@@ -1,5 +1,5 @@
-dataset_name: college_biology
-description: "The following are multiple choice questions (with answers) about college\
+"dataset_name": "college_biology"
+"description": "The following are multiple choice questions (with answers) about college\
   \ biology.\n\nQ: Which of the following represents an accurate statement concerning\
   \ arthropods?\n(A) They possess an exoskeleton composed primarily of peptidoglycan.\
   \ (B) They possess an open circulatory system with a dorsal heart. (C) They are\
@@ -19,7 +19,7 @@ description: "The following are multiple choice questions (with answers) about c
   \ Law, $p^2 + 2 p q + q^2 = 1$, and $p + q = 1$ where $p$ is the frequency of the\
   \ dominant allele, $q$ is the frequency of the recessive allele, and $p^2$, $q^2$,\
   \ and $2pq$ are the frequencies of dominant homozygous, recessive homozygous, and\
-  \ heterozygous individuals, respectively. \u200BThe frequency of the recessive allele\
+  \ heterozygous individuals, respectively. ​The frequency of the recessive allele\
   \ (q) is $\\sqrt{\frac{1}{400}} = 0.05$. We have $p = 1 - q = 0.95$. The frequency\
   \ of heterozygous individuals is $2pq = 2 \\cdot 0.05 \\cdot 0.95 = 0.095$. The\
   \ number of heterozygous individuals is equal to the frequency of heterozygous individuals\
@@ -56,5 +56,6 @@ description: "The following are multiple choice questions (with answers) about c
   \ the human and bird forearms, which rules out (D). Humans and birds do belong to\
   \ the same clade - a group of organisms composed of a common ancestor. The answer\
   \ is (C)."
-include: _mmlu_flan_cot_fewshot_template_yaml
-task: mmlu_flan_cot_fewshot_college_biology
+"group": "mmlu_flan_cot_fewshot_stem"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_college_biology"
