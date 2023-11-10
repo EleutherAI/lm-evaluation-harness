@@ -20,9 +20,8 @@ from lm_eval.utils import (
     make_table,
     create_iterator,
     get_git_commit_hash,
+    eval_logger
 )
-
-eval_logger = logging.getLogger("lm-eval")
 
 
 @positional_deprecated

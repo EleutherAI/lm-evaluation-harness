@@ -3,7 +3,7 @@ import ast
 
 from typing import Dict
 from lm_eval import utils
-from lm_eval.logger import eval_logger
+from lm_eval.utils import eval_logger
 
 # Prompt library.
 # Stores prompts in a dictionary indexed by 2 levels:

@@ -21,8 +21,14 @@ from itertools import islice
 
 import logging
 
+logging.basicConfig(
+    format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+    datefmt="%Y-%m-%d:%H:%M:%S",
+    level=logging.INFO,
+)
 eval_logger = logging.getLogger("lm-eval")
 
+SPACING = " " * 47
 
 def escaped_split(text, sep_char, maxsplit=-1):
     """Split text into a list on occurrences of the given separation
