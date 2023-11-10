@@ -106,8 +106,39 @@ class OctoAIEndpointLM(BaseLM):
   def tok_decode(self, tokens):
       return tokens
 
-  def _loglikelihood_tokens(self, requests, disable_tqdm=False):
-    raise NotImplementedError("No support for logits.")
+  def loglikelihood(self, requests):
+    if not requests:
+      return []
+
+    results = []
+    if self.time_meas:
+      start_timer = time.time()
+    if self.batch_size > 1:
+      def _batcher(in_requests):
+        for i in range(0, len(in_requests), self.batch_size):
+          yield in_requests[i:i + self.batch_size]
+
+      for request_batch in _batcher(requests):
+        try:
+          # TODO(vvchernov): Use _model_generate_parallel(...) when it becomes possible
+          self._model_generate_batch_for_loglikelihood(request_batch, results)
+        except ConnectionError as e:
+          print(f"ConnectionError: {e}. Skipping this batch and continuing...")
+    else:
+      for context, continuation in requests:
+        try:
+          self._model_generate_for_loglikelihood(context, continuation, results)
+        except ConnectionError as e:
+          print(f"ConnectionError: {e}. Skipping this request and continuing...")
+
+    if self.time_meas:
+      stop_timer = time.time()
+      secs = stop_timer - start_timer
+      print(
+        "Full time of predictions measurement: {:.2f} sec, {:.2f} min, {:.2f} hour(s)".format(
+            secs, secs / 60, secs / 3600))
+
+    return results
 
   def greedy_until(self, requests):
     if not requests:
@@ -127,7 +158,6 @@ class OctoAIEndpointLM(BaseLM):
           self._model_generate_batch(request_batch, results)
         except ConnectionError as e:
           print(f"ConnectionError: {e}. Skipping this batch and continuing...")
-
     else:
       for request in requests:
         inp = request[0]
@@ -156,31 +186,29 @@ class OctoAIEndpointLM(BaseLM):
       print(e)
       return
 
-  def call_octoai_inference(self, user_input: str, url_postfix: str):
-    self.data["messages"] = [
-        {
-            "role": "user",
-            "content": user_input,
-        }
-    ],
-    response = requests.post(self.url + "/v1/chat/completions", headers=self.headers, json=self.data)
+  def call_octoai_inference(self, url_postfix: str):
+    response = requests.post(self.url + url_postfix, headers=self.headers, json=self.data)
 
     if response.status_code != 200:
       print(f"Error: {response.status_code} - {response.text}")
 
-    return response
+    return json.loads(response.text)
 
   def _model_call(self, inps):
     raise NotImplementedError("OctoAI does not support one model call")
 
-  # TODO(vvchernov): do we need additional args? max_tokens, temperature..
   def _model_generate(self, inps, results, stop=[]):
     success = False
+    self.data["messages"] = [
+        {
+            "role": "user",
+            "content": inps,
+        }
+    ]
     for _ in range(REPEAT_REQUEST_TO_OCTOAI_SERVER):
       # TODO(vvchernov): process wrong reset
       self.call_octoai_reset()
-      response = self.call_octoai_inference(inps)
-      response = json.loads(response.text)
+      response = self.call_octoai_inference("/v1/chat/completions")
       if 'choices' in response.keys():
         success = True
         break
@@ -198,6 +226,36 @@ class OctoAIEndpointLM(BaseLM):
       request_args = request_batch[id][1]
       until = request_args["until"]
       self._model_generate(inp, parallel_results[id], stop=until)
+
+    # Collect results together
+    for id in range(len(request_batch)):
+      results.extend(parallel_results[id])
+
+  def _model_generate_for_loglikelihood(self, context, continuation, results):
+    success = False
+    self.data["context"] = context
+    self.data["continuation"] = continuation
+    for _ in range(REPEAT_REQUEST_TO_OCTOAI_SERVER):
+      response = self.call_octoai_inference("/v1/completions")
+      if 'choices' in response.keys():
+        success = True
+        break
+    if success:
+      logprob_dict = json.loads(response['choices'][0]['text'])
+      logprob = logprob_dict["logprobes"]
+      is_greedy = logprob_dict["is_greedy"]
+      results.append((logprob, is_greedy))
+    else:
+      print("ERROR: responce does not have choices. Dummy response was inserted")
+      import sys
+      results.append((-sys.float_info.max, False))
+
+  def _model_generate_batch_for_loglikelihood(self, request_batch, results):
+    parallel_results={}
+    for id in range(len(request_batch)):
+      parallel_results[id]=[]
+      context, continuation = request_batch[id]
+      self._model_generate_for_loglikelihood(context, continuation, parallel_results[id])
 
     # Collect results together
     for id in range(len(request_batch)):
