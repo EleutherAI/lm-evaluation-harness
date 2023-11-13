@@ -321,4 +321,7 @@ class OctoAIEndpointLM(BaseLM):
     return self.test(runner, requests)
 
   def _model_call(self, inps):
-    raise NotImplementedError("OctoAI does not support one model call")
+    raise NotImplementedError("OctoAI does not support one model call, loglikelyhood method was override")
+
+  def _model_generate(self, context, max_length, eos_token_id):
+    raise NotImplementedError("OctoAI does not support model generate, greedy_until method was override")
