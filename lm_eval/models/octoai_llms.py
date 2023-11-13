@@ -197,24 +197,21 @@ class OctoAIEndpointRunnerGreedyUntil(OctoAIEndpointRunnerBase):
 
 
 class OctoAIEndpointRunnerLogLikelihood(OctoAIEndpointRunnerBase):
-  url_postfix = "/v1/completions"
+  url_postfix = "/v1/logprob"
   reset = False
 
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
 
     self.msg = self.get_base_msg()
-    self.msg["logprobs"] = True
-    self.msg["prompt"] = "" # required parameter for completion request, do it dummy
 
   def prepare_msg_data(self, request):
     self.msg["context"] = request[0]
     self.msg["continuation"] = request[1]
 
   def get_result(self, response):
-    logprob_dict = json.loads(response['choices'][0]['text'])
-    logprob = logprob_dict["logprobes"]
-    is_greedy = logprob_dict["is_greedy"]
+    logprob = response["logprob"]
+    is_greedy = response["is_greedy"]
     return (logprob, is_greedy)
 
   def dummy_result(self):
