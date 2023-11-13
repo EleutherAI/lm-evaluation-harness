@@ -25,6 +25,7 @@ dependencies = [
     "evaluate>=0.4.0",
     "jsonlines",
     "numexpr",
+    "pandas",
     "peft>=0.2.0",
     "pybind11>=2.6.2",
     "pytablewriter",
@@ -35,6 +36,7 @@ dependencies = [
     "torch>=1.8",
     "tqdm-multiprocess",
     "transformers>=4.1",
+    "zeno-client",
     "zstandard",
 ]
 
