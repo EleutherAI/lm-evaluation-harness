@@ -1,0 +1,4 @@
+include: _template_01_yaml
+task: arithmetic_5da_alt_01
+dataset_name: arithmetic_5da
+task_alias: 5da

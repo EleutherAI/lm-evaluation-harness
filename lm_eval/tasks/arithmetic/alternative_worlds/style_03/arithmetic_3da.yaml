@@ -1,0 +1,4 @@
+include: _template_03_yaml
+task: arithmetic_3da_alt_03
+dataset_name: arithmetic_3da
+task_alias: 3da

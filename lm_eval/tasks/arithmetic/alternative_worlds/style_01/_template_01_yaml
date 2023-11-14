@@ -1,0 +1,15 @@
+include: ../_template_yaml
+group: arithmetic_alt_01
+group_alias: arithmetic (Style 01)
+dataset_path: EleutherAI/arithmetic
+output_type: loglikelihood
+validation_split: validation
+test_split: null
+doc_to_text: !function ../utils.style_01
+doc_to_target: "{{completion}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: brier_score
+    higher_is_better: false

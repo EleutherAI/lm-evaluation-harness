@@ -1,0 +1,4 @@
+include: _template_02_yaml
+task: arithmetic_2da_alt_02
+dataset_name: arithmetic_2da
+task_alias: 2da

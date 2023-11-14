@@ -1,0 +1,4 @@
+include: _template_02_yaml
+task: arithmetic_2ds_alt_02
+dataset_name: arithmetic_2ds
+task_alias: 2ds

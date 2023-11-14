@@ -1,0 +1,4 @@
+include: _template_04_yaml
+task: arithmetic_4da_alt_04
+dataset_name: arithmetic_4da
+task_alias: 4da

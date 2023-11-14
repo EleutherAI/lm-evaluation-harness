@@ -1,0 +1,3 @@
+include: _template_01_yaml
+task: arithmetic_1dc_alt_01
+dataset_name: arithmetic_1dc
