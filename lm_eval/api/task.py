@@ -960,9 +960,16 @@ class ConfigurableTask(Task):
         if self.OUTPUT_TYPE == "loglikelihood":
             results = results[0]
             ll, is_greedy = results
+            prob_norm = np.exp(ll)
+
             return {
                 **({"perplexity": ll} if "perplexity" in use_metric else {}),
                 **({"acc": int(is_greedy)} if "acc" in use_metric else {}),
+                **(
+                    {"brier_score": (0, [prob_norm])} # Gold is Index 0
+                    if "brier_score" in use_metric
+                    else {}
+                ),
             }
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
             (loglikelihood,) = results
