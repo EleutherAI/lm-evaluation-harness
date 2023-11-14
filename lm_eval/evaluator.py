@@ -579,7 +579,6 @@ def evaluate(
             else:
                 results_agg[task]["alias"] = tab_string + task
 
-        _groups_agg = collections.defaultdict(dict)
         for group in groups_agg:
             group_results = groups_agg[group]
 
