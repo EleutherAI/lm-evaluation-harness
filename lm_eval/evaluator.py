@@ -559,8 +559,6 @@ def evaluate(
             task_hierarchy, task_order, versions, task_group_alias
         )
 
-        _results_agg = collections.defaultdict(dict)
-        _versions = collections.defaultdict(dict)
         for task in results_agg:
             task_results = results_agg[task]
 
@@ -574,15 +572,10 @@ def evaluate(
 
             if task in task_group_alias:
                 task_alias = task_group_alias[task]
-                _results_agg[tab_string + task_alias] = task_results
-                _versions[tab_string + task_alias] = versions[task]
+                results_agg[task]["alias"] = tab_string + task_alias
             else:
-                _results_agg[tab_string + task] = task_results
-                _versions[tab_string + task] = versions[task]
-        results_agg = _results_agg
-        versions = _versions
+                results_agg[task]["alias"] = tab_string + task
 
-        _groups_agg = collections.defaultdict(dict)
         for group in groups_agg:
             group_results = groups_agg[group]
 
@@ -596,10 +589,9 @@ def evaluate(
 
             if group in task_group_alias:
                 group_alias = task_group_alias[group]
-                _groups_agg[tab_string + group_alias] = group_results
+                groups_agg[group]["alias"] = tab_string + group_alias
             else:
-                _groups_agg[tab_string + group] = group_results
-        groups_agg = _groups_agg
+                groups_agg[group]["alias"] = tab_string + group
 
         results_dict = {
             "results": dict(results_agg.items()),
