@@ -15,7 +15,7 @@ class Test_HFLM:
     multiple_choice_task = tasks.TASK_REGISTRY.get("arc_easy")()  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
-    generate_until_task = tasks.TASK_REGISTRY.get("gsm8k_yaml")()  # type: ignore
+    generate_until_task = tasks.TASK_REGISTRY.get("gsm8k")()  # type: ignore
     generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
     generate_until_task._config.generation_kwargs["max_gen_toks"] = 10
     generate_until: list[Instance] = generate_until_task.instances
