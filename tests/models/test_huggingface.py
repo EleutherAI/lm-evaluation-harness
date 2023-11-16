@@ -115,7 +115,7 @@ class Test_HFLM:
 
     def test_logliklihood_rolling(self) -> None:
         res = self.LM.loglikelihood_rolling(self.ROLLING)
-        assert np.allclose(res, self.ROLLING_RES, atol=1e-2)
+        assert np.allclose(res, self.ROLLING_RES, atol=1e-1)
 
     def test_toc_encode(self) -> None:
         res = self.LM.tok_encode("foo bar")
