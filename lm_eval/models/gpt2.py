@@ -279,10 +279,7 @@ class OPTIMUMLM(BaseLM):
         returns: a torch tensor of shape [batch, sequence, vocab] with the
         logits returned from the model
         """
-        #with torch.no_grad():
-        attention_mask = inps.clone()
-        attention_mask[:] = 1.0
-        return self.gpt2(inps, attention_mask)[0]
+        return self.gpt2(inps)[0]
 
     def _model_generate(self, context, max_length, eos_token_id):
         generation_kwargs = {'do_sample': False, 'max_length': max_length}
