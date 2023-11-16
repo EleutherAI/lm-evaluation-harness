@@ -81,9 +81,9 @@ To evaluate models that are loaded via `AutoSeq2SeqLM` in Huggingface, you inste
 
 > **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
 
-### Models converted via HF Optimum
+### OpenVINO models converted via HuggingFace Optimum
 ```bash
-python main.py --model optimum-causal --model_args pretrained=<model_path> --tokenizer databricks/dolly-v2-3b --task lambada_openai --limit 1000
+python main.py --model optimum-causal --model_args pretrained=<model_path_or_name> --task lambada_openai
 ```
 
 ### Commercial APIs
