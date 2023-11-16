@@ -4,6 +4,7 @@ from typing import List, Union
 import sacrebleu
 import lm_eval.base
 
+from . import babi
 from . import superglue
 from . import glue
 from . import arc
@@ -19,6 +20,7 @@ from . import swag
 from . import openbookqa
 from . import squad
 from . import naturalqs
+from . import nqopen
 from . import sat
 from . import arithmetic
 from . import lambada
@@ -60,6 +62,11 @@ from . import xwinograd
 from . import pawsx
 from . import xnli
 from . import mgsm
+from . import scrolls
+from . import ceval
+from . import csatqa
+from . import haerae
+from . import cmmlu
 
 ########################################
 # Translation tasks
@@ -92,6 +99,7 @@ all_translation_benchmarks = {
 
 
 TASK_REGISTRY = {
+    "babi": babi.Babi,
     # GLUE
     "cola": glue.CoLA,
     "mnli": glue.MNLI,
@@ -144,6 +152,7 @@ TASK_REGISTRY = {
     "squad2": squad.SQuAD2,
     "race": race.RACE,
     # "naturalqs": naturalqs.NaturalQs, # not implemented yet
+    "nq_open": nqopen.NQOpen,
     "headqa": headqa.HeadQAEsDeprecated,  # for backwards compat - headqa used to default to es
     "headqa_es": headqa.HeadQAEs,
     "headqa_en": headqa.HeadQAEn,
@@ -314,6 +323,19 @@ TASK_REGISTRY = {
     "crows_pairs_french_nationality": crowspairs.CrowsPairsFrenchNationality,
     "crows_pairs_french_physical_appearance": crowspairs.CrowsPairsFrenchPhysicalAppearance,
     "crows_pairs_french_autre": crowspairs.CrowsPairsFrenchAutre,
+    "csatqa_wr": csatqa.WR,
+    "csatqa_gr": csatqa.GR,
+    "csatqa_rcs": csatqa.RCS,
+    "csatqa_rcss": csatqa.RCSS,
+    "csatqa_rch": csatqa.RCH,
+    "csatqa_li": csatqa.LI,
+    "haerae_hi": haerae.HI,
+    "haerae_kgk": haerae.KGK,
+    "haerae_lw": haerae.LW,
+    "haerae_rc": haerae.RC,
+    "haerae_rw": haerae.RW,
+    "haerae_sn": haerae.SN,
+    # Requires manual download
     # Requires manual download of data.
     # "storycloze_2016": storycloze.StoryCloze2016,
     # "storycloze_2018": storycloze.StoryCloze2018,
@@ -325,6 +347,9 @@ TASK_REGISTRY = {
     **pawsx.construct_tasks(),
     **xnli.construct_tasks(),
     **mgsm.construct_tasks(),
+    **scrolls.construct_tasks(),
+    **ceval.create_all_tasks(),
+    **cmmlu.create_all_tasks()
 }
 
 

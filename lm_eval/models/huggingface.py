@@ -9,7 +9,6 @@ from typing import List, Mapping, NewType, Optional, Tuple, Union
 from tqdm import tqdm
 
 from transformers import BatchEncoding
-from accelerate import find_executable_batch_size
 
 from lm_eval import utils
 from lm_eval.base import BaseLM
@@ -76,10 +75,12 @@ class HuggingFaceAutoLM(BaseLM):
         subfolder: Optional[str] = None,
         revision: Optional[str] = "main",
         batch_size: Optional[Union[int, str]] = 1,
+        max_batch_size: Optional[int] = 512,
         max_gen_toks: Optional[int] = 256,
         max_length: Optional[int] = None,
         add_special_tokens: Optional[bool] = None,
         use_accelerate: Optional[bool] = False,
+        low_cpu_mem_usage: Optional[bool] = True,
         device_map_option: Optional[str] = "auto",
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
@@ -91,6 +92,10 @@ class HuggingFaceAutoLM(BaseLM):
         load_in_4bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = False,
         gptq_use_triton: Optional[bool] = False,
+        inject_fused_attention: Optional[bool] = True,
+        bnb_4bit_quant_type: Optional[str] = None,
+        bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        bnb_4bit_use_double_quant: Optional[bool] = False,
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -111,6 +116,8 @@ class HuggingFaceAutoLM(BaseLM):
             use_accelerate (bool, optional, defaults to False):
                 If True, uses the `accelerate` library to load a large model across
                 multiple devices.
+            low_cpu_mem_usage (bool, optional, defaults to True):
+                It True, uses the `accelerate` library to accelerate loading the model.
             device_map_option (str, optional, defaults to "auto"):
                 The device map option to use when loading the model with
                 `accelerate`.
@@ -152,6 +159,18 @@ class HuggingFaceAutoLM(BaseLM):
                 If True, will trust the remote code when loading the model.
             gptq_use_triton (bool, optional, defaults to False):
                 Use Triton for GPTQ inference.
+            inject_fused_attention (bool, optional, defaults to True):
+                Inject fused attention into GPTQ model.
+            bnb_4bit_quant_type (str, optional, defaults to None):
+                The quantization type to use for BnB 4bit quantization. See:
+                https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L77
+            bnb_4bit_compute_dtype (Union[str, torch.dtype], optional, defaults to None):
+                The compute dtype to use for BnB 4bit quantization. See:
+                https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L74
+            bnb_4bit_use_double_quant (bool, optional, defaults to False):
+                Whether or not to use double quant to quantize the absmax.
+                https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L80
+
         """
         super().__init__()
 
@@ -172,10 +191,13 @@ class HuggingFaceAutoLM(BaseLM):
             ), "Evaluating causal models with `add_special_tokens=True` is currently not supported."
 
         # setup for automatic batch size detection
-        if batch_size == "auto":
-            self._batch_size = batch_size
+        if str(batch_size).startswith("auto"):
+            batch_size = batch_size.split(":")
+            self._batch_size = batch_size[0]
+            self.batch_schedule = float(batch_size[1]) if len(batch_size) > 1 else 1
         else:
             self._batch_size = int(batch_size)
+        self.max_batch_size = max_batch_size
 
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
@@ -191,6 +213,7 @@ class HuggingFaceAutoLM(BaseLM):
             revision=revision,
             subfolder=subfolder,
             tokenizer=tokenizer,
+            trust_remote_code=trust_remote_code,
         )
         self.tokenizer.model_max_length = self.max_length
 
@@ -210,8 +233,13 @@ class HuggingFaceAutoLM(BaseLM):
             subfolder=subfolder,
             torch_dtype=_get_dtype(dtype, self._config),
             gptq_use_triton=gptq_use_triton,
+            inject_fused_attention=inject_fused_attention,
             load_in_8bit=load_in_8bit,
             load_in_4bit=load_in_4bit,
+            bnb_4bit_quant_type=bnb_4bit_quant_type,
+            bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
+            bnb_4bit_use_double_quant=bnb_4bit_use_double_quant,
+            low_cpu_mem_usage=low_cpu_mem_usage,
             **model_kwargs,
         )
         # note: peft_path can be different than pretrained model path
@@ -232,8 +260,13 @@ class HuggingFaceAutoLM(BaseLM):
             # the user specified one so we force `self._device` to be the same as
             # `lm_head`'s.
             self._device = self.model.hf_device_map["lm_head"]
-        if not use_accelerate:
-            self.model.to(self._device)
+        if not use_accelerate and not (load_in_4bit or load_in_8bit):
+            try:
+                self.model.to(self._device)
+            except:
+                print(
+                    "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
+                )
 
     def _create_auto_model(
         self,
@@ -242,6 +275,7 @@ class HuggingFaceAutoLM(BaseLM):
         quantized: Optional[Union[bool, str]] = False,
         revision: str,
         subfolder: str,
+        low_cpu_mem_usage: Optional[bool] = True,
         device_map: Optional[Union[str, _DeviceMapping]] = None,
         max_memory: Optional[dict] = None,
         offload_folder: Optional[str] = None,
@@ -250,17 +284,35 @@ class HuggingFaceAutoLM(BaseLM):
         trust_remote_code: Optional[bool] = False,
         torch_dtype: Optional[Union[str, torch.dtype]] = None,
         gptq_use_triton: Optional[bool] = False,
+        inject_fused_attention: Optional[bool] = True,
+        bnb_4bit_quant_type: Optional[str] = None,
+        bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        bnb_4bit_use_double_quant: Optional[bool] = False,
     ) -> transformers.AutoModel:
         """Returns a pre-trained pytorch model from a pre-trained model configuration."""
         if not quantized:
             if load_in_4bit:
-                assert transformers.__version__ >= "4.30.0", "load_in_4bit requires transformers >= 4.30.0"
+                assert (
+                    transformers.__version__ >= "4.30.0"
+                ), "load_in_4bit requires transformers >= 4.30.0"
             model_kwargs = {}
             if transformers.__version__ >= "4.30.0":
                 model_kwargs["load_in_4bit"] = load_in_4bit
+                if load_in_4bit:
+                    if bnb_4bit_quant_type:
+                        model_kwargs["bnb_4bit_quant_type"] = bnb_4bit_quant_type
+                    if bnb_4bit_compute_dtype:
+                        model_kwargs["bnb_4bit_compute_dtype"] = _get_dtype(
+                            bnb_4bit_compute_dtype
+                        )
+                    if bnb_4bit_use_double_quant:
+                        model_kwargs[
+                            "bnb_4bit_use_double_quant"
+                        ] = bnb_4bit_use_double_quant
             model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision + ("/" + subfolder if subfolder is not None else ""),
+                low_cpu_mem_usage=low_cpu_mem_usage,
                 device_map=device_map,
                 max_memory=max_memory,
                 offload_folder=offload_folder,
@@ -271,15 +323,19 @@ class HuggingFaceAutoLM(BaseLM):
             )
         else:
             from auto_gptq import AutoGPTQForCausalLM
+
             model = AutoGPTQForCausalLM.from_quantized(
                 pretrained,
                 model_basename=None if quantized == True else Path(quantized).stem,
                 device_map=device_map,
                 max_memory=max_memory,
                 trust_remote_code=trust_remote_code,
-                use_safetensors=True if quantized == True else quantized.endswith('.safetensors'),
+                use_safetensors=True
+                if quantized == True
+                else quantized.endswith(".safetensors"),
                 use_triton=gptq_use_triton,
                 warmup_triton=gptq_use_triton,
+                inject_fused_attention=inject_fused_attention,
             )
         return model
 
@@ -308,11 +364,13 @@ class HuggingFaceAutoLM(BaseLM):
         revision: str,
         subfolder: str,
         tokenizer: Optional[str] = None,
+        trust_remote_code: Optional[bool] = False,
     ) -> transformers.PreTrainedTokenizer:
         """Returns a pre-trained tokenizer from a pre-trained tokenizer configuration."""
         tokenizer = self.AUTO_TOKENIZER_CLASS.from_pretrained(
             pretrained if tokenizer is None else tokenizer,
             revision=revision + ("/" + subfolder if subfolder is not None else ""),
+            trust_remote_code=trust_remote_code,
         )
         tokenizer.pad_token = tokenizer.eos_token
         return tokenizer
@@ -411,19 +469,7 @@ class HuggingFaceAutoLM(BaseLM):
         if self.batch_size == "auto":
             # using rolling window with maximum context
             print("Passed argument batch_size = auto. Detecting largest batch size")
-
-            @find_executable_batch_size(
-                starting_batch_size=512
-            )  # if OOM, then halves batch_size and tries again
-            def forward_batch(batch_size):
-                test_batch = torch.ones(
-                    (batch_size, self.max_length), device=self.device
-                ).long()
-                for _ in range(5):
-                    _ = F.log_softmax(self._model_call(test_batch), dim=-1).cpu()
-                return batch_size
-
-            batch_size = forward_batch()
+            batch_size = self._detect_batch_size()
             print(f"Determined Largest batch size: {batch_size}")
             adaptive_batch_size = batch_size
 
@@ -488,12 +534,14 @@ class AutoCausalLM(HuggingFaceAutoLM):
         revision: str,
         subfolder: str,
         tokenizer: Optional[str] = None,
+        trust_remote_code: Optional[bool] = False,
     ) -> transformers.PreTrainedTokenizer:
         tokenizer = super()._create_auto_tokenizer(
             pretrained=pretrained,
             revision=revision,
             subfolder=subfolder,
             tokenizer=tokenizer,
+            trust_remote_code=trust_remote_code,
         )
         tokenizer.padding_side = "left"
         return tokenizer
