@@ -28,7 +28,6 @@ def simple_evaluate(
     description_dict=None,
     check_integrity=False,
     decontamination_ngrams_path=None,
-    tokenizer=None,
     write_out=False,
     output_base_path=None,
 ):
@@ -75,9 +74,6 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
         lm = lm_eval.models.get_model(model).create_from_arg_string(
-<<<<<<< HEAD
-            model_args, {"batch_size": batch_size, "device": device, "tokenizer": tokenizer, "trust_remote_code": True}
-=======
             model_args,
             {
                 "batch_size": batch_size,
@@ -90,7 +86,6 @@ def simple_evaluate(
             pretrained=model,
             batch_size=batch_size,
             max_batch_size=max_batch_size,
->>>>>>> origin/master
         )
         no_cache = True
     else:

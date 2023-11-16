@@ -16,7 +16,8 @@ MODEL_REGISTRY = {
     "anthropic": anthropic_llms.AnthropicLM,
     "textsynth": textsynth.TextSynthLM,
     "dummy": dummy.DummyLM,
-    "gguf": gguf.GGUFLM
+    "gguf": gguf.GGUFLM,
+    "optimum-causal": gpt2.OPTIMUMLM,
 }
 
 

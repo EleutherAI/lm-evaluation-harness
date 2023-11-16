@@ -215,31 +215,22 @@ class OPTIMUMLM(BaseLM):
 
         self.gpt2 = OVModelForCausalLM.from_pretrained(
             pretrained,
-            # load_in_8bit=load_in_8bit,
-            # low_cpu_mem_usage=low_cpu_mem_usage,
+            load_in_8bit=load_in_8bit,
             revision=revision,
             trust_remote_code=trust_remote_code,
             use_cache=True,
         )
-        #self.gpt2.eval()
 
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-            pretrained if tokenizer is None else tokenizer,
-            revision=revision,
-            trust_remote_code=trust_remote_code,
-        )
+        try:
+            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+                pretrained if tokenizer is None else tokenizer,
+                revision=revision,
+                trust_remote_code=trust_remote_code,
+            )
+        except:
+            print("Tokenizer is missed. Plaase save it into the same folder with the model.")
 
         self.vocab_size = self.tokenizer.vocab_size
-
-        # if isinstance(
-        #     self.tokenizer, (transformers.GPT2Tokenizer, transformers.GPT2TokenizerFast)
-        # ):
-        #     assert self.tokenizer.encode("hello\n\nhello") == [
-        #         31373,
-        #         198,
-        #         198,
-        #         31373,
-        #     ], self.tokenizer.encode("hello\n\nhello")
 
         # setup for automatic batch size detection
         if batch_size == 'auto': 

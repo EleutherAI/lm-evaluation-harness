@@ -79,7 +79,6 @@ def main():
         description_dict=description_dict,
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
-        tokenizer=args.tokenizer,
         write_out=args.write_out,
         output_base_path=args.output_base_path,
     )
