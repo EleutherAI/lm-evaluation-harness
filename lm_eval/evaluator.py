@@ -20,7 +20,7 @@ from lm_eval.utils import (
     make_table,
     create_iterator,
     get_git_commit_hash,
-    eval_logger
+    eval_logger,
 )
 
 
@@ -40,7 +40,6 @@ def simple_evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
-    verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
 

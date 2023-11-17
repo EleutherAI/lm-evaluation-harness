@@ -30,6 +30,7 @@ eval_logger = logging.getLogger("lm-eval")
 
 SPACING = " " * 47
 
+
 def escaped_split(text, sep_char, maxsplit=-1):
     """Split text into a list on occurrences of the given separation
     character `sep_char`. The separation character may be escaped by a

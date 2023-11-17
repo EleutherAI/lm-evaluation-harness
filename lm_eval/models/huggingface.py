@@ -26,6 +26,7 @@ from typing import List, Optional, Union
 
 eval_logger = utils.eval_logger
 
+
 def _get_accelerate_args(
     device_map_option: Optional[str] = "auto",
     max_memory_per_gpu: Optional[Union[int, str]] = None,
