@@ -8,6 +8,8 @@ import lm_eval.tasks as tasks
 import sys
 import torch
 
+tasks.initialize_tasks()
+
 
 class Test_HFLM:
     torch.use_deterministic_algorithms(True)
