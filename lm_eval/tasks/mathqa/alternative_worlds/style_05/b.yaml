@@ -1,0 +1,7 @@
+include: ../_mathqa_alt_yaml
+group: mathqa_05
+group_alias: style_05 
+task: mathqa_05b
+task_alias: b
+doc_to_text: !function ../styles.template_05
+doc_to_choice: !function ../styles.choice_05b
