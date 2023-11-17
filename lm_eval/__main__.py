@@ -153,7 +153,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 task
                 for task in tasks_list
                 if task not in task_names and "*" not in task
-            ]
+            ]  # we don't want errors if a wildcard ("*") task name was used
 
             if task_missing:
                 missing = ", ".join(task_missing)
