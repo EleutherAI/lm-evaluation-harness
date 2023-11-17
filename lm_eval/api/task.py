@@ -465,18 +465,8 @@ class Task(abc.ABC):
         assert (
             rnd is not None
         ), "A `random.Random` generator argument must be provided to `rnd`"
-        assert not provide_description, (
-            "The `provide_description` arg will be removed in future versions. To prepend "
-            "a custom description to the context, supply the corresponding string via the "
-            "`description` arg."
-        )
-        if provide_description is not None:
-            # nudge people to not specify it at all
-            print(
-                "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
-            )
 
-        description = description + "\n\n" if description else ""
+        description = description if description else ""
 
         if num_fewshot == 0:
             labeled_examples = ""
