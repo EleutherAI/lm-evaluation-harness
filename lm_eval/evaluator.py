@@ -225,6 +225,7 @@ def evaluate(
             versions[group_name] = "N/A"
 
         else:
+            group_name = None
             task_hierarchy[task_name] = []
 
         if task is None:
@@ -236,8 +237,10 @@ def evaluate(
         if "task_alias" in configs[task_name]:
             task_group_alias[task_name] = configs[task_name]["task_alias"]
 
-        if ("group_alias" in configs[task_name]) and (
-            group_name not in task_group_alias
+        if (
+            ("group_alias" in configs[task_name])
+            and (group_name not in task_group_alias)
+            and (group_name is not None)
         ):
             task_group_alias[group_name] = configs[task_name]["group_alias"]
 
@@ -267,12 +270,9 @@ def evaluate(
                     eval_logger.info(f"Request: {str(inst)}")
 
         # aggregate Instances by LM method requested to get output.
-        reqtype = (
-            "loglikelihood"
-            if task.OUTPUT_TYPE == "multiple_choice"
-            else task.OUTPUT_TYPE
-        )  # TODO: this is hacky, fix in task.py
-        requests[reqtype].extend(task.instances)
+        for instance in task.instances:
+            reqtype = instance.request_type
+            requests[reqtype].append(instance)
 
         if lm.world_size > 1:
             instances_rnk = torch.tensor(len(task._instances), device=lm.device)
