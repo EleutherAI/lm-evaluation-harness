@@ -15,6 +15,17 @@ from lm_eval.api.registry import (
 
 import logging
 
+# import python tasks
+from .squadv2.task import SQuAD2
+from .scrolls.task import (
+    QuALITY,
+    NarrativeQA,
+    ContractNLI,
+    GovReport,
+    SummScreenFD,
+    QMSum,
+)
+
 eval_logger = utils.eval_logger
 
 

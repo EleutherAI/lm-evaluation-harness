@@ -1,6 +1,0 @@
-include: _template_yaml
-task: squadv2_noans_loglikelihood
-output_type: loglikelihood
-doc_to_target: " unanswerable"
-metric_list:
-  - metric: perplexity
