@@ -238,9 +238,11 @@ def evaluate(
         if "task_alias" in configs[task_name]:
             task_group_alias[task_name] = configs[task_name]["task_alias"]
 
-        if ("group_alias" in configs[task_name]) and (
-            group_name not in task_group_alias
-        ) and (group_name != None):
+        if (
+            ("group_alias" in configs[task_name])
+            and (group_name not in task_group_alias)
+            and (group_name is not None)
+        ):
             task_group_alias[group_name] = configs[task_name]["group_alias"]
 
         if limit is not None:
