@@ -313,6 +313,10 @@ def make_table(result_dict, column: str = "results"):
 
     for k, dic in result_dict[column].items():
         version = result_dict["versions"][k]
+
+        if "alias" in dic:
+            k = dic.pop("alias")
+
         for (mf), v in dic.items():
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
