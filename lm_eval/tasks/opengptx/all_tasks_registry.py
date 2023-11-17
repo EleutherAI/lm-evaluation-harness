@@ -1,4 +1,5 @@
 # OpenGPT-X tasks
+from . import flores200
 from . import german_europarl_ppl
 from . import german_ler_ppl
 from . import germanquad
@@ -17,6 +18,9 @@ from . import x_stance
 from . import xquad
 from . import xnli
 
+########################################
+# Translation tasks
+########################################
 
 TASK_REGISTRY_TMP = {
     # OpenGPT-X tasks
@@ -40,6 +44,8 @@ TASK_REGISTRY_TMP = {
     "xstance_fr": x_stance.XStanceFR,
     **xquad.construct_tasks(),
     **xnli.construct_tasks(),
+    **flores200.construct_lang_tasks(),
+    **flores200.construct_trans_tasks(),
 }
 
 # add a prefix to tasks implemented by OpenGPT-X
