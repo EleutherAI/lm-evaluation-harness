@@ -20,9 +20,8 @@ from lm_eval.utils import (
     make_table,
     create_iterator,
     get_git_commit_hash,
+    eval_logger,
 )
-
-from lm_eval.logger import eval_logger
 
 
 @positional_deprecated
@@ -256,7 +255,7 @@ def evaluate(
 
         task.build_all_requests(limit=limit, rank=lm.rank, world_size=lm.world_size)
 
-        eval_logger.info(
+        eval_logger.debug(
             f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
         )
 

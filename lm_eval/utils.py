@@ -19,7 +19,16 @@ import transformers
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
 
-from lm_eval.logger import eval_logger
+import logging
+
+logging.basicConfig(
+    format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+    datefmt="%Y-%m-%d:%H:%M:%S",
+    level=logging.INFO,
+)
+eval_logger = logging.getLogger("lm-eval")
+
+SPACING = " " * 47
 
 
 def escaped_split(text, sep_char, maxsplit=-1):
