@@ -149,7 +149,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
-            task_missing = [task for task in tasks_list if task not in task_names]
+            task_missing = [
+                task
+                for task in tasks_list
+                if task not in task_names and "*" not in task
+            ]
 
             if task_missing:
                 missing = ", ".join(task_missing)
