@@ -226,6 +226,7 @@ def evaluate(
             versions[group_name] = "N/A"
 
         else:
+            group_name = None
             task_hierarchy[task_name] = []
 
         if task is None:
@@ -239,7 +240,7 @@ def evaluate(
 
         if ("group_alias" in configs[task_name]) and (
             group_name not in task_group_alias
-        ):
+        ) and (group_name != None):
             task_group_alias[group_name] = configs[task_name]["group_alias"]
 
         if limit is not None:
