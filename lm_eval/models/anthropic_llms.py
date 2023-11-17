@@ -7,6 +7,7 @@ from typing import List, Any, Tuple
 
 eval_logger = utils.eval_logger
 
+
 def anthropic_completion(
     client,  #: anthropic.Anthropic,
     model: str,

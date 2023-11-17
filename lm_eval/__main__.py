@@ -13,6 +13,7 @@ from lm_eval import evaluator, utils
 from lm_eval.tasks import initialize_tasks, include_path
 from lm_eval.api.registry import ALL_TASKS
 
+
 def _handle_non_serializable(o):
     if isinstance(o, np.int64) or isinstance(o, np.int32):
         return int(o)
@@ -163,7 +164,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 missing = ", ".join(task_missing)
                 eval_logger.error(
                     f"Tasks were not found: {missing}\n"
-                    f"{' ' * 47}Try `lm-eval --tasks list` for list of available tasks",
+                    f"{utils.SPACING}Try `lm-eval --tasks list` for list of available tasks",
                 )
                 raise ValueError(
                     f"Tasks {missing} were not found. Try `lm-eval --tasks list` for list of available tasks."
