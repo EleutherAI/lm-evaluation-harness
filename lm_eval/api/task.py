@@ -441,7 +441,6 @@ class Task(abc.ABC):
         self,
         doc,
         num_fewshot,
-        provide_description=None,
         rnd=random.Random(1234),
         description=None,
     ):
@@ -452,8 +451,6 @@ class Task(abc.ABC):
             The document as returned from training_docs, validation_docs, or test_docs.
         :param num_fewshot: int
             The number of fewshot examples to provide in the returned context string.
-        :param provide_description: bool
-            Not implemented, and this option is deprecated and will be removed in a future version in favor of a different description providing method
         :param rnd: random.Random
             The pseudo-random number generator used to randomly sample examples.
             WARNING: This is currently a required arg although it's optionalized with a default `None`.
