@@ -26,7 +26,7 @@ from .scrolls.task import (
     QMSum,
 )
 
-eval_logger = logging.getLogger("lm-eval")
+eval_logger = utils.eval_logger
 
 
 def register_configurable_task(config: Dict[str, str]) -> int:
@@ -152,8 +152,11 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
                         else:
                             if type(config["task"]) == list:
                                 register_configurable_group(config, yaml_path)
+
+                # Log this silently and show it only when
+                # the user defines the appropriate verbosity.
                 except ModuleNotFoundError as e:
-                    eval_logger.warning(
+                    eval_logger.debug(
                         f"{yaml_path}: {e}. Config will not be added to registry."
                     )
                 except Exception as error:
@@ -176,8 +179,12 @@ def include_path(task_dir):
     return 0
 
 
-task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
-include_path(task_dir)
+def initialize_tasks(verbosity="INFO"):
+
+    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+
+    task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
+    include_path(task_dir)
 
 
 def get_task(task_name, config):

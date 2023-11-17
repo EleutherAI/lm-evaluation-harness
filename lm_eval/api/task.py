@@ -4,6 +4,7 @@ from dataclasses import dataclass, field, asdict
 import re
 import ast
 import yaml
+import logging
 import evaluate
 import random
 import itertools
@@ -21,7 +22,6 @@ from lm_eval.api import samplers
 from lm_eval.api.instance import Instance
 from lm_eval.api.filter import FilterEnsemble
 
-from lm_eval.logger import eval_logger
 from lm_eval.prompts import get_prompt
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.api.metrics import (
@@ -46,6 +46,9 @@ ALL_OUTPUT_TYPES = [
     "loglikelihood_rolling",
     "generate_until",
 ]
+
+
+eval_logger = logging.getLogger("lm-eval")
 
 
 @dataclass

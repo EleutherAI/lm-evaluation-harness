@@ -1,17 +1,17 @@
 import os
 import re
+import sys
 import json
-import fnmatch
-import argparse
 import logging
-from pathlib import Path
+import argparse
 import numpy as np
-from lm_eval import evaluator, utils
-from lm_eval.api.registry import ALL_TASKS
-from lm_eval.logger import eval_logger, SPACING
-from lm_eval.tasks import include_path
 
+from pathlib import Path
 from typing import Union
+
+from lm_eval import evaluator, utils
+from lm_eval.tasks import initialize_tasks, include_path
+from lm_eval.api.registry import ALL_TASKS
 
 
 def _handle_non_serializable(o):
@@ -25,11 +25,11 @@ def _handle_non_serializable(o):
 
 def parse_eval_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("--model", required=True, help="Name of model e.g. `hf`")
+    parser.add_argument("--model", default="hf", help="Name of model e.g. `hf`")
     parser.add_argument(
         "--tasks",
         default=None,
-        help="Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS))),
+        help="To get full list of tasks, use the command lm-eval --tasks list",
     )
     parser.add_argument(
         "--model_args",
@@ -119,8 +119,12 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         # we allow for args to be passed externally, else we parse them ourselves
         args = parse_eval_args()
 
+    eval_logger = utils.eval_logger
     eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
+    eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+    initialize_tasks(args.verbosity)
 
     if args.limit:
         eval_logger.warning(
@@ -133,6 +137,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.tasks is None:
         task_names = ALL_TASKS
+    elif args.tasks == "list":
+        eval_logger.info(
+            "Available Tasks:\n - {}".format(f"\n - ".join(sorted(ALL_TASKS)))
+        )
+        sys.exit()
     else:
         if os.path.isdir(args.tasks):
             import glob
@@ -159,10 +168,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 missing = ", ".join(task_missing)
                 eval_logger.error(
                     f"Tasks were not found: {missing}\n"
-                    f"{SPACING}Try `lm-eval -h` for list of available tasks",
+                    f"{utils.SPACING}Try `lm-eval --tasks list` for list of available tasks",
                 )
                 raise ValueError(
-                    f"Tasks {missing} were not found. Try `lm-eval -h` for list of available tasks."
+                    f"Tasks {missing} were not found. Try `lm-eval --tasks list` for list of available tasks."
                 )
 
     if args.output_path:
