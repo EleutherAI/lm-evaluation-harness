@@ -34,12 +34,11 @@ Homepage: https://rajpurkar.github.io/SQuAD-explorer/
 
 #### Groups
 
-* `squadv2_complete`: Runs both `squadv2` and `squadv2_noans_loglikelihood`
+* Not part of a group yet
 
 #### Tasks
 
 * `squadv2`: `Default squadv2 task`
-* `squadv2_noans_loglikelihood`: `Additional task to acquire the probability of model predicting there is no answer`
 
 ### Checklist
 
