@@ -229,7 +229,7 @@ def create_task_from_path(json_path):
 
 
 def create_all_tasks():
-     try:
+    try:
         resources_dir = importlib.resources.files("lm_eval.datasets") / "bigbench_resources"
     except:
         import importlib_resources
