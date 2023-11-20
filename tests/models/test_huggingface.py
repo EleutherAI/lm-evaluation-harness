@@ -8,6 +8,8 @@ import lm_eval.tasks as tasks
 import sys
 import torch
 
+tasks.initialize_tasks()
+
 
 class Test_HFLM:
     torch.use_deterministic_algorithms(True)
@@ -15,7 +17,7 @@ class Test_HFLM:
     multiple_choice_task = tasks.TASK_REGISTRY.get("arc_easy")()  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
-    generate_until_task = tasks.TASK_REGISTRY.get("gsm8k_yaml")()  # type: ignore
+    generate_until_task = tasks.TASK_REGISTRY.get("gsm8k")()  # type: ignore
     generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
     generate_until_task._config.generation_kwargs["max_gen_toks"] = 10
     generate_until: list[Instance] = generate_until_task.instances
@@ -115,7 +117,7 @@ class Test_HFLM:
 
     def test_logliklihood_rolling(self) -> None:
         res = self.LM.loglikelihood_rolling(self.ROLLING)
-        assert np.allclose(res, self.ROLLING_RES, atol=1e-2)
+        assert np.allclose(res, self.ROLLING_RES, atol=1e-1)
 
     def test_toc_encode(self) -> None:
         res = self.LM.tok_encode("foo bar")

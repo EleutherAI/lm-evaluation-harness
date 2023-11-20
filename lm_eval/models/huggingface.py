@@ -16,7 +16,6 @@ from pathlib import Path
 import torch.nn.functional as F
 
 from lm_eval import utils
-from lm_eval.logger import eval_logger
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 
@@ -24,6 +23,8 @@ from lm_eval.utils import MultiTokenEOSCriteria, stop_sequences_criteria
 
 from accelerate import Accelerator, find_executable_batch_size, DistributedType
 from typing import List, Optional, Union
+
+eval_logger = utils.eval_logger
 
 
 def _get_accelerate_args(

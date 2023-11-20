@@ -59,6 +59,8 @@ my_model = initialize_my_model() # create your model (could be running finetunin
 ...
 lm_obj = Your_LM(model=my_model, batch_size=16) # instantiate an LM subclass that takes your initialized model and can run `Your_LM.loglikelihood()`, `Your_LM.loglikelihood_rolling()`, `Your_LM.generate_until()`
 
+lm_eval.tasks.initialize_tasks() # register all tasks from the `lm_eval/tasks` subdirectory. Alternatively, can call `lm_eval.tasks.include_path("path/to/my/custom/task/configs")` to only register a set of tasks in a separate directory.
+
 results = lm_eval.simple_evaluate( # call simple_evaluate
     model=lm_obj,
     tasks=["taskname1", "taskname2"],
@@ -85,7 +87,7 @@ my_model = initialize_my_model() # create your model (could be running finetunin
 ...
 lm_obj = Your_LM(model=my_model, batch_size=16) # instantiate an LM subclass that takes your initialized model and can run `Your_LM.loglikelihood()`, `Your_LM.loglikelihood_rolling()`, `Your_LM.generate_until()`
 
-
+lm_eval.tasks.initialize_tasks() # register all tasks from the `lm_eval/tasks` subdirectory. Alternatively, can call `lm_eval.tasks.include_path("path/to/my/custom/task/configs")` to only register a set of tasks in a separate directory.
 
 def evaluate(
     lm=lm_obj,
