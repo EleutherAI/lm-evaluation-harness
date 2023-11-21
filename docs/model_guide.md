@@ -1,7 +1,5 @@
 # New Model Guide
 
-The `lm-evaluation-harness` is intended to be a model-agnostic framework for evaluating . We provide first-class support for HuggingFace `AutoModelForCausalLM` and `AutoModelForSeq2SeqLM` type models, but
-
 This guide may be of special interest to users who are using the library outside of the repository, via installing the library via pypi and calling `lm_eval.evaluator.evaluate()` to evaluate an existing model.
 
 In order to properly evaluate a given LM, we require implementation of a wrapper class subclassing the `lm_eval.api.model.LM` class, that defines how the Evaluation Harness should interface with your model. This guide walks through how to write this `LM` subclass via adding it to the library!
