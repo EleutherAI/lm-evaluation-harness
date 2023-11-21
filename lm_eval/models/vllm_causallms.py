@@ -7,7 +7,12 @@ import copy
 from tqdm import tqdm
 from lm_eval.api.registry import register_model
 from lm_eval import utils
-from vllm import LLM, SamplingParams
+
+# TODO: Fix this once complete
+try:
+    from vllm import LLM, SamplingParams
+except ModuleNotFoundError:
+    pass
 
 
 @register_model("vllm")
