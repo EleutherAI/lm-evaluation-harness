@@ -16,11 +16,19 @@ import gc
 import torch
 import transformers
 
-from omegaconf import OmegaConf
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
 
-from lm_eval.logger import eval_logger
+import logging
+
+logging.basicConfig(
+    format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+    datefmt="%Y-%m-%d:%H:%M:%S",
+    level=logging.INFO,
+)
+eval_logger = logging.getLogger("lm-eval")
+
+SPACING = " " * 47
 
 
 def escaped_split(text, sep_char, maxsplit=-1):
@@ -46,6 +54,14 @@ def escaped_split(text, sep_char, maxsplit=-1):
     return re.split(r"(?<!\\)" + sep_char, text, maxsplit)
 
 
+def handle_arg_string(arg):
+    if arg.lower() == "true":
+        return True
+    elif arg.lower() == "false":
+        return False
+    return arg
+
+
 def simple_parse_args_string(args_string):
     """
     Parses something like
@@ -55,8 +71,10 @@ def simple_parse_args_string(args_string):
     args_string = args_string.strip()
     if not args_string:
         return {}
-    arg_list = args_string.split(",")
-    args_dict = OmegaConf.to_object(OmegaConf.from_dotlist(arg_list))
+    arg_list = [arg for arg in args_string.split(",") if arg]
+    args_dict = {
+        k: handle_arg_string(v) for k, v in [arg.split("=") for arg in arg_list]
+    }
     return args_dict
 
 
@@ -69,7 +87,7 @@ def chunks(iter, n: int = 0, fn=None):
     arr = []
     for i, x in enumerate(iter):
         arr.append(x)
-        if len(arr) == (fn(i) if fn else n):
+        if len(arr) == (fn(i, iter) if fn else n):
             yield arr
             arr = []
 
@@ -267,9 +285,9 @@ def make_table(result_dict, column: str = "results"):
     from pytablewriter import MarkdownTableWriter, LatexTableWriter
 
     if column == "results":
-        column_name = "Task"
-    elif column == "aggregate":
-        column_name = "Benchmark"
+        column_name = "Tasks"
+    elif column == "groups":
+        column_name = "Groups"
 
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
@@ -296,6 +314,10 @@ def make_table(result_dict, column: str = "results"):
 
     for k, dic in result_dict[column].items():
         version = result_dict["versions"][k]
+
+        if "alias" in dic:
+            k = dic.pop("alias")
+
         for (mf), v in dic.items():
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
@@ -395,8 +417,10 @@ def import_function(loader, node):
     function_name = loader.construct_scalar(node)
     yaml_path = os.path.dirname(loader.name)
 
-    module_name, function_name = function_name.split(".")
-    module_path = os.path.join(yaml_path, "{}.py".format(module_name))
+    *module_name, function_name = function_name.split(".")
+    if type(module_name) == list:
+        module_name = ".".join(module_name)
+    module_path = os.path.normpath(os.path.join(yaml_path, "{}.py".format(module_name)))
 
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     module = importlib.util.module_from_spec(spec)
@@ -410,38 +434,45 @@ def import_function(loader, node):
 yaml.add_constructor("!function", import_function)
 
 
-def load_yaml_config(yaml_path):
-    with open(yaml_path, "rb") as file:
-        yaml_config = yaml.full_load(file)
+def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
+
+    if yaml_config is None:
+        with open(yaml_path, "rb") as file:
+            yaml_config = yaml.full_load(file)
+
+    if yaml_dir is None:
         yaml_dir = os.path.dirname(yaml_path)
 
-        if "include" in yaml_config:
-            include_path = yaml_config["include"]
-            del yaml_config["include"]
+    assert yaml_dir is not None
 
-            if type(include_path) == str:
-                include_path = [include_path]
+    if "include" in yaml_config:
+        include_path = yaml_config["include"]
+        del yaml_config["include"]
 
-            # Load from the last one first
-            include_path.reverse()
-            final_yaml_config = {}
-            for path in include_path:
-                # Assumes that path is a full path.
-                # If not found, assume the included yaml
-                # is in the same dir as the original yaml
-                if not os.path.isfile(path):
-                    path = os.path.join(yaml_dir, path)
+        if type(include_path) == str:
+            include_path = [include_path]
 
-                try:
-                    included_yaml_config = load_yaml_config(path)
-                    final_yaml_config.update(included_yaml_config)
-                except Exception as ex:
-                    # If failed to load, ignore
-                    raise ex
+        # Load from the last one first
+        include_path.reverse()
+        final_yaml_config = {}
+        for path in include_path:
 
-            final_yaml_config.update(yaml_config)
-            return final_yaml_config
-        return yaml_config
+            # Assumes that path is a full path.
+            # If not found, assume the included yaml
+            # is in the same dir as the original yaml
+            if not os.path.isfile(path):
+                path = os.path.join(yaml_dir, path)
+
+            try:
+                included_yaml_config = load_yaml_config(path)
+                final_yaml_config.update(included_yaml_config)
+            except Exception as ex:
+                # If failed to load, ignore
+                raise ex
+
+        final_yaml_config.update(yaml_config)
+        return final_yaml_config
+    return yaml_config
 
 
 def regex_replace(string, pattern, repl, count: int = 0):

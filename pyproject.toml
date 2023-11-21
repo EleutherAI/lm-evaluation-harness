@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=40.8.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lm_eval"
+version = "1.0.0"
+authors = [
+    {name="EleutherAI", email="contact@eleuther.ai"}
+]
+description = "A framework for evaluating language models"
+readme = "README.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.8"
+license = { "text" = "MIT" }
+dependencies = [
+    "accelerate>=0.21.0",
+    "evaluate",
+    "datasets>=2.0.0",
+    "evaluate>=0.4.0",
+    "jsonlines",
+    "numexpr",
+    "peft>=0.2.0",
+    "pybind11>=2.6.2",
+    "pytablewriter",
+    "rouge-score>=0.0.4",
+    "sacrebleu>=1.5.0",
+    "scikit-learn>=0.24.1",
+    "sqlitedict",
+    "torch>=1.8",
+    "tqdm-multiprocess",
+    "transformers>=4.1",
+    "zstandard",
+]
+
+[tool.setuptools.packages.find]
+include = ["lm_eval*"]
+
+# required to include yaml files in pip installation
+[tool.setuptools.package-data]
+lm_eval = ["**/*.yaml", "tasks/**/*"]
+
+[project.scripts]
+lm-eval = "lm_eval.__main__:cli_evaluate"
+lm_eval = "lm_eval.__main__:cli_evaluate"
+
+[project.urls]
+Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
+Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
+
+[project.optional-dependencies]
+dev = ["black", "flake8", "pre-commit", "pytest", "pytest-cov"]
+linting = [
+    "flake8",
+    "pylint",
+    "mypy",
+    "pre-commit",
+]
+testing = ["pytest", "pytest-cov", "pytest-xdist"]
+multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
+math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
+sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
+promptsource = [
+    "promptsource @ git+https://github.com/bigscience-workshop/promptsource.git#egg=promptsource"
+]
+gptq = ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"]
+anthropic = ["anthropic"]
+openai = ["openai", "tiktoken"]
+all = [
+    "lm_eval[dev]",
+    "lm_eval[testing]",
+    "lm_eval[linting]",
+    "lm_eval[multilingual]",
+    "lm_eval[sentencepiece]",
+    "lm_eval[promptsource]",
+    "lm_eval[gptq]",
+    "lm_eval[anthropic]",
+    "lm_eval[openai]"
+]

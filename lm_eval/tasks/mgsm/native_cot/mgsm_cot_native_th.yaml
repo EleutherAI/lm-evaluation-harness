@@ -4,11 +4,5 @@ doc_to_target: '{% if answer is not none %}{{answer[17+1]}}{% else %}{{answer_nu
   endif %}'
 doc_to_text: '{% if answer is not none %}{{question+"\nคำตอบทีละขั้นตอน:"}}{% else
   %}{{"โจทย์: "+question+"\nคำตอบทีละขั้นตอน:"}}{% endif %}'
-filter:
-- function: regex
-  regex_pattern: The answer is (\-?[0-9\.\,]+)
-- function: take_first
-filter_list:
-- name: get-answer
 include: cot_yaml
-task: mgsm_th_direct
+task: mgsm_th_native_cot

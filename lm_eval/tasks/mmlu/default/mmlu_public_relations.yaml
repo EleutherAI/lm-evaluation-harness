@@ -1,0 +1,8 @@
+"dataset_name": "public_relations"
+"description": "The following are multiple choice questions (with answers) about public\
+  \ relations.\n\n"
+"group": "mmlu_social_sciences"
+"group_alias": "social_sciences"
+"include": "_default_template_yaml"
+"task": "mmlu_public_relations"
+"task_alias": "public_relations"

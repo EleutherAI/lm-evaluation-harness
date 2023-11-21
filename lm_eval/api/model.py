@@ -1,7 +1,8 @@
 import abc
 import os
 
-from typing import Union, List, Tuple
+import torch
+from typing import Union, List, Tuple, Optional, Type, TypeVar
 from sqlitedict import SqliteDict
 import json
 import hashlib
@@ -9,7 +10,12 @@ import hashlib
 from tqdm import tqdm
 
 from lm_eval import utils
-from lm_eval.logger import eval_logger
+
+import logging
+
+eval_logger = logging.getLogger("lm-eval")
+
+T = TypeVar("T", bound="LM")
 
 
 class LM(abc.ABC):
@@ -93,7 +99,7 @@ class LM(abc.ABC):
 
     # TODO: Add an optional max length
     @abc.abstractmethod
-    def greedy_until(self, requests) -> List[str]:
+    def generate_until(self, requests) -> List[str]:
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
@@ -111,11 +117,28 @@ class LM(abc.ABC):
         pass
 
     @classmethod
-    def create_from_arg_string(cls, arg_string, additional_config=None):
+    def create_from_arg_string(
+        cls: Type[T], arg_string: str, additional_config: Optional[dict] = None
+    ) -> T:
+        """
+        Creates an instance of the LM class using the given argument string and additional config.
+
+        Parameters:
+        - arg_string: A string containing arguments in the format key1=value1,key2=value2.
+        - additional_config: Optional dictionary containing additional configuration parameters.
+
+        Returns:
+        - Instance of the LM class.
+        """
         additional_config = {} if additional_config is None else additional_config
         args = utils.simple_parse_args_string(arg_string)
         args2 = {k: v for k, v in additional_config.items() if v is not None}
-        if args2.get("device") == "mps" or args.get("device") == "mps":
+        # TODO: delete once float16 MPS is fixed in torch stable
+        if (
+            args2.get("device") in ("mps", "mps:0")
+            or args.get("device") in ("mps", "mps:0")
+            and "dev" not in torch.__version__
+        ):
             args["dtype"] = "float32"
         return cls(**args, **args2)
 
@@ -191,12 +214,12 @@ class CachingLM:
             )
             for req in tqdm(requests):
                 hsh = hash_args(attr, req.args)
-                if attr == "greedy_until" and req.args[1].get("do_sample", False):
+                if attr == "generate_until" and req.args[1].get("do_sample", False):
                     # when we are doing non-greedy generation, don't use the cache
                     # (else every "randomly sampled" generation would be identical for repeats > 1).
                     if not warned:
                         eval_logger.warning(
-                            f"Arguments to lm.greedy_until() '{req.args[1]}' include non-deterministic sampling. Caching will not be performed for such requests."
+                            f"Arguments to lm.generate_until() '{req.args[1]}' include non-deterministic sampling. Caching will not be performed for such requests."
                         )
                         warned = True
                     res.append(None)

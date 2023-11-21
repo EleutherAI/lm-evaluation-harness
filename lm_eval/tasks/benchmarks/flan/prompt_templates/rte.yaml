@@ -1,0 +1,29 @@
+# Flan Prompt Templates
+prompts:
+  "template-0":
+    doc_to_text: "{{premise}}\n\nQuestion with options: Based on the paragraph above can we conclude that \"{{hypothesis}}\"?\n\nOPTIONS:\n- yes\n- no"
+    doc_to_target: "{{['yes', 'no'][label]}}"
+  "template-1":
+    doc_to_text: "{{premise}}\n\nBased on that paragraph can we conclude that the sentence below is true?\n{{hypothesis}}\n\nOPTIONS:\n- yes\n- no"
+    doc_to_target: "{{['yes', 'no'][label]}}"
+  "template-2":
+    doc_to_text: "{{premise}}\n\nQ with options: Can we draw the following conclusion?\n{{hypothesis}}\n\nOPTIONS:\n- yes\n- no"
+    doc_to_target: "{{['yes', 'no'][label]}}"
+  "template-3":
+    doc_to_text: "{{premise}}\nDoes this next sentence follow, given the preceding text?\n{{hypothesis}}\n\nOPTIONS:\n- yes\n- no"
+    doc_to_target: "{{['yes', 'no'][label]}}"
+  "template-4":
+    doc_to_text: "{{premise}}\nOPTIONS:\n- yes\n- no\nQuestion: Can we infer the following?\n{{hypothesis}}"
+    doc_to_target: "{{['yes', 'no'][label]}}"
+  "template-5":
+    doc_to_text: "Read the following paragraph and determine if the hypothesis is true. Select from options at the end:\n\n{{premise}}\n\nHypothesis: {{hypothesis}}\nOPTIONS:\n- yes\n- no\nThe answer is"
+    doc_to_target: "{{['yes', 'no'][label]}}"
+  "template-6":
+    doc_to_text: "Read the text and determine if the sentence is true:\n\n{{premise}}\n\nSentence: {{hypothesis}}\nOPTIONS:\n- yes\n- no\nA:"
+    doc_to_target: "{{['yes', 'no'][label]}}"
+  "template-7":
+    doc_to_text: "Question with options: can we draw the following hypothesis from the context? \n\nContext:\n\n{{premise}}\n\nHypothesis: {{hypothesis}}\nOPTIONS:\n- yes\n- no\nA:"
+    doc_to_target: "{{['yes', 'no'][label]}}"
+  "template-8":
+    doc_to_text: "Determine if the sentence is true based on the text below. Choose from options.\n{{hypothesis}}\n\n{{premise}}\nOPTIONS:\n- yes\n- no"
+    doc_to_target: "{{['yes', 'no'][label]}}"

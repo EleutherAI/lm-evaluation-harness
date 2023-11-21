@@ -1,0 +1,4 @@
+"dataset_name": "probability_and_statistics"
+"description": "以下是中国关于概率统计的单项选择题，请选出其中的正确答案。\n\n"
+"include": "_default_ceval_yaml"
+"task": "ceval-valid_probability_and_statistics"
