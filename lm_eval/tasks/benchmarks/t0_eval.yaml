@@ -1,0 +1,127 @@
+group: t0_eval
+task:
+  # Coreference Resolution
+  - dataset_path: super_glue
+    dataset_name: wsc.fixed
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    output_type: generate_until
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Coreference Resolution
+  - dataset_path: winogrande
+    dataset_name: winogrande_xl
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    output_type: generate_until
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Natural Language Inference
+  - dataset_path: super_glue
+    dataset_name: cb
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    output_type: generate_until
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  - dataset_path: super_glue
+    dataset_name: rte
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    output_type: generate_until
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  - task: anli_r1
+    dataset_path: anli
+    use_prompt: promptsource:*
+    training_split: train_r1
+    validation_split: dev_r1
+    output_type: generate_until
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  - task: anli_r2
+    dataset_path: anli
+    use_prompt: promptsource:*
+    training_split: train_r2
+    validation_split: dev_r2
+    output_type: generate_until
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  - task: anli_r3
+    dataset_path: anli
+    use_prompt: promptsource:*
+    training_split: train_r3
+    validation_split: dev_r3
+    output_type: generate_until
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Sentence Completion
+  - dataset_path: super_glue
+    dataset_name: copa
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    output_type: generate_until
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Natural Language Inference
+  - dataset_path: hellaswag
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    output_type: generate_until
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true
+  # Word Sense Disambiguation
+  - dataset_path: super_glue
+    dataset_name: wic
+    use_prompt: promptsource:*
+    training_split: train
+    validation_split: validation
+    output_type: generate_until
+    metric_list:
+      - metric: exact_match
+        aggregation: mean
+        higher_is_better: true
+        ignore_case: true
+        ignore_punctuation: true

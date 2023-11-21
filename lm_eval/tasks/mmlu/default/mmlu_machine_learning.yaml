@@ -1,0 +1,8 @@
+"dataset_name": "machine_learning"
+"description": "The following are multiple choice questions (with answers) about machine\
+  \ learning.\n\n"
+"group": "mmlu_stem"
+"group_alias": "stem"
+"include": "_default_template_yaml"
+"task": "mmlu_machine_learning"
+"task_alias": "machine_learning"

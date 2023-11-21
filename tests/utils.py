@@ -9,6 +9,7 @@ import os
 # This is the path where the output for the changed files for the tasks folder is stored
 # FILE_PATH = file_path = ".github/outputs/tasks_all_changed_and_modified_files.txt"
 
+
 # reads a text file and returns a list of words
 # used to read the output of the changed txt from tj-actions/changed-files
 def load_changed_files(file_path: str) -> List[str]:
@@ -32,7 +33,7 @@ def parser(full_path: List[str]) -> List[str]:
     return list(_output)
 
 
-def new_tasks() -> Union[list[str], None]:
+def new_tasks() -> Union[List[str], None]:
     FILENAME = ".github/outputs/tasks_all_changed_and_modified_files.txt"
     if os.path.exists(FILENAME):
         # If tasks folder has changed then we get the list of files from FILENAME

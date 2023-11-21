@@ -3,7 +3,7 @@ group:
 task: gsm8k_cot
 dataset_path: gsm8k
 dataset_name: main
-output_type: greedy_until
+output_type: generate_until
 test_split: test
 doc_to_text: "Q: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?\n\nA: There are 15 trees originally. Then there were 21 trees after some more were planted. So there must have been 21 - 15 = 6. The answer is 6.\n\n\
 Q: If there are 3 cars in the parking lot and 2 more cars arrive, how many cars are in the parking lot?\n\nA: There are originally 3 cars. 2 more cars arrive. 3 + 2 = 5. The answer is 5.\n\n\
@@ -14,8 +14,7 @@ Q: There were nine computers in the server room. Five more computers were instal
 Q: Michael had 58 golf balls. On tuesday, he lost 23 golf balls. On wednesday, he lost 2 more. How many golf balls did he have at the end of wednesday?\n\nA: Michael started with 58 golf balls. After losing 23 on tuesday, he had 58 - 23 = 35. After losing 2 more, he had 35 - 2 = 33 golf balls. The answer is 33.\n\n\
 Q: Olivia has $23. She bought five bagels for $3 each. How much money does she have left?\n\nA: Olivia had 23 dollars. 5 bagels for 3 dollars each will be 5 x 3 = 15 dollars. So she has 23 - 15 dollars left. 23 - 15 is 8. The answer is 8.\n\n\
 Q: {{question}}\n\nA:"
-doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
-gold_alias: "{{answer.split('### ')[-1].rstrip()}}" # this post-processes the reference that we'll score against
+doc_to_target: " {{answer.split('### ')[-1].rstrip()}}"
 metric_list:
   - metric: exact_match
     aggregation: mean
@@ -25,6 +24,8 @@ metric_list:
     regexes_to_ignore:
       - ","
       - "\\$"
+      - "(?s).*#### "
+      - "\n\n"
 generation_kwargs:
   until:
     - "Q:"
@@ -37,5 +38,5 @@ filter_list:
   - name: "get-answer"
     filter:
       - function: "regex"
-        regex_pattern: "The answer is (\\-?[0-9\\.\\,]+)"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]+)."
       - function: "take_first"

@@ -1,15 +1,14 @@
 group:
   - math_word_problems
-task: gsm8k_yaml
+task: gsm8k
 dataset_path: gsm8k
 dataset_name: main
-output_type: greedy_until
+output_type: generate_until
 training_split: train
 fewshot_split: train
 test_split: test
 doc_to_text: "Question: {{question}}\nAnswer:"
 doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
-gold_alias: "{{answer.split('### ')[-1].rstrip()}}" # this post-processes the reference that we'll score against
 metric_list:
   - metric: exact_match
     aggregation: mean
@@ -19,7 +18,7 @@ metric_list:
     regexes_to_ignore:
       - ","
       - "\\$"
-      - ".*### "
+      - "(?s).*#### "
 generation_kwargs:
   until:
     - "\n\n"
@@ -28,9 +27,9 @@ generation_kwargs:
   temperature: 0.0
 repeats: 1
 num_fewshot: 5
-# filter_list:
-#   - name: "get-answer"
-#     filter:
-#       - function: "regex"
-#         regex_pattern: "### (\\-?[0-9\\.\\,]+)"
-#       - function: "take_first"
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        regex_pattern: "#### (\\-?[0-9\\.\\,]+)"
+      - function: "take_first"

@@ -1,7 +1,7 @@
 task: logieval
 dataset_path: baber/logiqa2
 dataset_name: logieval
-output_type: greedy_until
+output_type: generate_until
 training_split: train
 test_split: test
 # Instructions + {content}

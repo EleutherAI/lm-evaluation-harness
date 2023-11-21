@@ -1,0 +1,14 @@
+group: flan_arc
+task:
+  - include: yaml_templates/held_in_template_yaml
+    task: arc_easy
+    dataset_path: ai2_arc
+    dataset_name: ARC-Easy
+    use_prompt: prompt_templates/arc.yaml:*
+    validation_split: validation
+  - include: yaml_templates/held_in_template_yaml
+    task: arc_challenge
+    dataset_path: ai2_arc
+    dataset_name: ARC-Challenge
+    use_prompt: prompt_templates/arc.yaml:*
+    validation_split: validation

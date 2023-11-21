@@ -1,10 +1,9 @@
 import os
 import yaml
-from typing import List, Union
+from typing import List, Union, Dict
 
 from lm_eval import utils
 from lm_eval import prompts
-from lm_eval.logger import eval_logger
 from lm_eval.api.task import TaskConfig, Task, ConfigurableTask
 from lm_eval.api.registry import (
     register_task,
@@ -14,8 +13,23 @@ from lm_eval.api.registry import (
     ALL_TASKS,
 )
 
+import logging
 
-def register_configurable_task(config: dict[str, str]) -> int:
+# import python tasks
+from .squadv2.task import SQuAD2
+from .scrolls.task import (
+    QuALITY,
+    NarrativeQA,
+    ContractNLI,
+    GovReport,
+    SummScreenFD,
+    QMSum,
+)
+
+eval_logger = utils.eval_logger
+
+
+def register_configurable_task(config: Dict[str, str]) -> int:
     SubClass = type(
         config["task"] + "ConfigurableTask",
         (ConfigurableTask,),
@@ -27,7 +41,9 @@ def register_configurable_task(config: dict[str, str]) -> int:
         register_task(task_name)(SubClass)
 
     if "group" in config:
-        if type(config["group"]) == str:
+        if config["group"] == config["task"]:
+            raise ValueError("task and group name cannot be the same")
+        elif type(config["group"]) == str:
             group_name = [config["group"]]
         else:
             group_name = config["group"]
@@ -38,13 +54,46 @@ def register_configurable_task(config: dict[str, str]) -> int:
     return 0
 
 
-def check_prompt_config(config: dict[str, str]) -> List[dict[str, str]]:
+def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -> int:
+    group = config["group"]
+    all_task_list = config["task"]
+    config_list = [task for task in all_task_list if type(task) != str]
+    task_list = [task for task in all_task_list if type(task) == str]
+
+    for task_config in config_list:
+        task_config = utils.load_yaml_config(yaml_path, task_config)
+        var_configs = check_prompt_config(
+            {
+                **task_config,
+                **{"group": group},
+            },
+            yaml_path=os.path.dirname(yaml_path),
+        )
+        for config in var_configs:
+            register_configurable_task(config)
+
+    task_names = utils.pattern_match(task_list, ALL_TASKS)
+    for task in task_names:
+        if (task in TASK_REGISTRY) or (task in GROUP_REGISTRY):
+            if group in GROUP_REGISTRY:
+                GROUP_REGISTRY[group].append(task)
+            else:
+                GROUP_REGISTRY[group] = [task]
+                ALL_TASKS.add(group)
+
+    return 0
+
+
+def check_prompt_config(
+    config: Dict[str, str], yaml_path: str = None
+) -> List[Dict[str, str]]:
     all_configs = []
     if "use_prompt" in config:
         prompt_list = prompts.load_prompt_list(
             use_prompt=config["use_prompt"],
             dataset_name=config["dataset_path"],
             subset_name=config["dataset_name"] if "dataset_name" in config else None,
+            yaml_path=yaml_path,
         )
         for idx, prompt_variation in enumerate(prompt_list):
             all_configs.append(
@@ -57,11 +106,13 @@ def check_prompt_config(config: dict[str, str]) -> List[dict[str, str]]:
                                 config["task"]
                                 if "task" in config
                                 else get_task_name_from_config(config),
-                                prompt_variation,
+                                prompt_variation.split("/")[-1]
+                                if ".yaml" in prompt_variation
+                                else prompt_variation,
                             ]
                         )
                     },
-                    **{"output_type": "greedy_until"},
+                    **{"output_type": "generate_until"},
                 }
             )
     else:
@@ -69,39 +120,71 @@ def check_prompt_config(config: dict[str, str]) -> List[dict[str, str]]:
     return all_configs
 
 
-def get_task_name_from_config(task_config: dict[str, str]) -> str:
+def get_task_name_from_config(task_config: Dict[str, str]) -> str:
     if "dataset_name" in task_config:
         return "{dataset_path}_{dataset_name}".format(**task_config)
     else:
         return "{dataset_path}".format(**task_config)
 
 
-def include_task_folder(task_dir: str) -> None:
+def include_task_folder(task_dir: str, register_task: bool = True) -> None:
     """
     Calling this function
     """
     for root, subdirs, file_list in os.walk(task_dir):
-        if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
-            for f in file_list:
-                if f.endswith(".yaml"):
-                    yaml_path = os.path.join(root, f)
-                    try:
-                        config = utils.load_yaml_config(yaml_path)
-                        all_configs = check_prompt_config(config)
-                        for config in all_configs:
-                            register_configurable_task(config)
+        # if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
+        for f in file_list:
+            if f.endswith(".yaml"):
+                yaml_path = os.path.join(root, f)
+                try:
+                    config = utils.load_yaml_config(yaml_path)
 
-                    except Exception as error:
-                        eval_logger.warning(
-                            "Failed to load config in\n"
-                            f"                                 {yaml_path}\n"
-                            "                                 Config will not be added to registry\n"
-                            f"                                 Error: {error}"
-                        )
+                    if "task" not in config:
+                        continue
+
+                    all_configs = check_prompt_config(
+                        config, yaml_path=os.path.dirname(yaml_path)
+                    )
+                    for config in all_configs:
+                        if register_task:
+                            if type(config["task"]) == str:
+                                register_configurable_task(config)
+                        else:
+                            if type(config["task"]) == list:
+                                register_configurable_group(config, yaml_path)
+
+                # Log this silently and show it only when
+                # the user defines the appropriate verbosity.
+                except ModuleNotFoundError as e:
+                    eval_logger.debug(
+                        f"{yaml_path}: {e}. Config will not be added to registry."
+                    )
+                except Exception as error:
+                    import traceback
+
+                    eval_logger.debug(
+                        "Failed to load config in\n"
+                        f"                                 {yaml_path}\n"
+                        "                                 Config will not be added to registry\n"
+                        f"                                 Error: {error}\n"
+                        f"                                 Traceback: {traceback.format_exc()}"
+                    )
+    return 0
 
 
-task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
-include_task_folder(task_dir)
+def include_path(task_dir):
+    include_task_folder(task_dir)
+    # Register Benchmarks after all tasks have been added
+    include_task_folder(task_dir, register_task=False)
+    return 0
+
+
+def initialize_tasks(verbosity="INFO"):
+
+    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+
+    task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
+    include_path(task_dir)
 
 
 def get_task(task_name, config):
@@ -128,27 +211,36 @@ def get_task_name_from_object(task_object):
 
 
 # TODO: pass num_fewshot and other cmdline overrides in a better way
-def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
-
+def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
     config = {**kwargs}
 
     task_name_from_registry_dict = {}
     task_name_from_config_dict = {}
     task_name_from_object_dict = {}
 
+    if type(task_name_list) != list:
+        task_name_list = [task_name_list]
+
     for task_element in task_name_list:
         if isinstance(task_element, str):
-
             if task_element in GROUP_REGISTRY:
                 group_name = task_element
                 for task_name in GROUP_REGISTRY[task_element]:
                     if task_name not in task_name_from_registry_dict:
+                        task_obj = get_task_dict(task_name)
+                        if task_name in task_obj.keys():
+                            task_dict = {
+                                task_name: (group_name, task_obj[task_name]),
+                            }
+                        else:
+                            task_dict = {
+                                task_name: (group_name, None),
+                                **task_obj,
+                            }
+
                         task_name_from_registry_dict = {
                             **task_name_from_registry_dict,
-                            task_name: (
-                                group_name,
-                                get_task(task_name=task_name, config=config),
-                            ),
+                            **task_dict,
                         }
             else:
                 task_name = task_element
@@ -168,7 +260,6 @@ def get_task_dict(task_name_list: List[Union[str, dict, Task]], **kwargs):
             }
 
         elif isinstance(task_element, Task):
-
             task_name_from_object_dict = {
                 **task_name_from_object_dict,
                 get_task_name_from_object(task_element): task_element,
