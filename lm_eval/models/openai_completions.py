@@ -228,7 +228,7 @@ class OpenaiCompletionsLM(LM):
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
         return re_ord.get_original(res)
 
-    def greedy_until(self, requests) -> List[str]:
+    def generate_until(self, requests) -> List[str]:
         if not requests:
             return []
         res = []
@@ -285,7 +285,7 @@ class OpenaiCompletionsLM(LM):
 
                 # partial caching
                 self.cache_hook.add_partial(
-                    "greedy_until", (context, {"until": until_}), s
+                    "generate_until", (context, {"until": until_}), s
                 )
 
                 res.append(s)
@@ -296,7 +296,7 @@ class OpenaiCompletionsLM(LM):
         raise NotImplementedError()
 
     def _model_generate(self, context, max_length, eos_token_id):
-        # Isn't used because we override greedy_until
+        # Isn't used because we override generate_until
         raise NotImplementedError()
 
     def loglikelihood_rolling(self, requests) -> List[float]:
@@ -404,7 +404,7 @@ class OpenaiChatCompletionsLM(LM):
         continuation_enc = whole_enc[context_enc_len:]
         return context_enc, continuation_enc
 
-    def greedy_until(self, requests) -> List[str]:
+    def generate_until(self, requests) -> List[str]:
         if not requests:
             return []
         res = []
@@ -461,7 +461,7 @@ class OpenaiChatCompletionsLM(LM):
 
                 # partial caching
                 self.cache_hook.add_partial(
-                    "greedy_until", (context, {"until": until_}), s
+                    "generate_until", (context, {"until": until_}), s
                 )
 
                 res.append(s)
