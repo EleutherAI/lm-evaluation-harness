@@ -7,7 +7,7 @@ import copy
 from tqdm import tqdm
 from lm_eval.api.registry import register_model
 from lm_eval import utils
-from vllm_causallms import LLM, SamplingParams
+from vllm import LLM, SamplingParams
 
 
 @register_model("vllm")
