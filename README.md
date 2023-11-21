@@ -21,7 +21,7 @@ This project provides a unified framework to test generative language models on 
 
 Features:
 
-- 200+ tasks implemented. See the [task-table](./docs/task_table.md) for a complete list.
+- 200+ subtasks / evaluation settings implemented. See the [task-table](./docs/task_table.md) for a complete list.
 - Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for commercial APIs including [OpenAI](https://openai.com), [goose.ai](https://goose.ai), and [TextSynth](https://textsynth.com/).
 - Support for evaluation on adapters (e.g. LoRa) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
