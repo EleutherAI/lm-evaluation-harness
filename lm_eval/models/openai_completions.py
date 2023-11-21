@@ -162,21 +162,18 @@ class OpenaiChatCompletionsLM(LM):
                 presence_penalty=self.presence_penalty,
                 temperature=self.temperature,
                 top_p=self.top_p,
-                # stop=until,
             )
 
             for resp, (context, args_) in zip(response.choices, chunk):
-                print(resp)
-                import sys; sys.exit()
-
-                s = resp["text"]
+                s = resp.message.content
 
                 # until_ = args_.get("until", ["<|endoftext|>"])
-                until_ = args_.get("until", "null")
+                until_ = args_.get("until", None)
 
-                for term in until_:
-                    if len(term) > 0:
-                        s = s.split(term)[0]
+                if until_ is not None:
+                    for term in until_:
+                        if len(term) > 0:
+                            s = s.split(term)[0]
 
                 # partial caching
                 self.cache_hook.add_partial(
