@@ -25,6 +25,7 @@ setuptools.setup(
     install_requires=[
         "datasets>=2.0.0",
         "einops",
+        "importlib-resources",
         "jsonlines",
         "numexpr",
         "openai>=0.6.4",
