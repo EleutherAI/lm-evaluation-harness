@@ -10,6 +10,7 @@ import functools
 import numpy as np
 import re
 import importlib.resources
+import importlib_resources
 from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
 

@@ -81,6 +81,7 @@ To evaluate models that are loaded via `AutoSeq2SeqLM` in Huggingface, you inste
 
 > **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
 
+
 ### Neural Magic `deepsparse`
 
 Models from [SparseZoo](https://sparsezoo.neuralmagic.com/) can be evaluated directly in lm-evaluation-harness using [DeepSparse](https://github.com/neuralmagic/deepsparse):
@@ -93,6 +94,11 @@ Compatible models hosted on Hugging Face Hub can be used as well:
 ```bash
 python main.py --model deepsparse --model_args pretrained=hf:mgoin/TinyLlama-1.1B-Chat-v0.3-ds --tasks hellaswag
 python main.py --model deepsparse --model_args pretrained=hf:neuralmagic/mpt-7b-gsm8k-pruned60-quant-ds --tasks gsm8k
+```
+
+### OpenVINO models converted via HuggingFace Optimum
+```bash
+python main.py --model optimum-causal --model_args pretrained=<model_path_or_name> --task lambada_openai
 ```
 
 ### Commercial APIs
