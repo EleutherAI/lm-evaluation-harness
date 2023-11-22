@@ -2,8 +2,6 @@ import torch
 import transformers
 from typing import Optional, Union
 from lm_eval.base import BaseLM
-import optimum
-from optimum.intel.openvino import OVModelForCausalLM
 
 
 def _get_dtype(dtype: Union[str, torch.dtype]) -> torch.dtype:
@@ -192,6 +190,9 @@ class OPTIMUMLM(BaseLM):
         trust_remote_code: Optional[bool] = False,
     ):
         super().__init__()
+
+        import optimum
+        from optimum.intel.openvino import OVModelForCausalLM
 
         assert isinstance(device, str)
         assert isinstance(pretrained, str)
