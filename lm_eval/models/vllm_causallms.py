@@ -84,6 +84,7 @@ class VLLM(LM):
         generate: bool = False,
         max_tokens: int = None,
         stop: Optional[List[str]] = None,
+        use_tqdm=False,
         **kwargs,
     ):
         if "do_sample" in kwargs.keys():
@@ -95,13 +96,16 @@ class VLLM(LM):
             outputs = self.model.generate(
                 prompt_token_ids=requests,
                 sampling_params=generate_sampling_params,
+                use_tqdm=use_tqdm,
             )
         else:
             logliklihood_sampling_params = SamplingParams(
                 temperature=0, prompt_logprobs=2, max_tokens=1
             )
             outputs = self.model.generate(
-                prompt_token_ids=requests, sampling_params=logliklihood_sampling_params
+                prompt_token_ids=requests,
+                sampling_params=logliklihood_sampling_params,
+                use_tqdm=use_tqdm,
             )
         return outputs
 
