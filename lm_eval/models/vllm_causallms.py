@@ -37,7 +37,7 @@ class VLLM(LM):
             dtype=dtype,
             tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code,
-            tensor_parallel_size=tensor_parallel_size,
+            tensor_parallel_size=int(tensor_parallel_size),
             swap_space=swap_space,
             quantization=quantization,
         )
@@ -87,7 +87,7 @@ class VLLM(LM):
         generate: bool = False,
         max_tokens: int = None,
         stop: Optional[List[str]] = None,
-        use_tqdm=False,
+        use_tqdm=True,
         **kwargs,
     ):
         if "do_sample" in kwargs.keys():
