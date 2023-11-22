@@ -161,7 +161,9 @@ class VLLM(LM):
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
         context_encoding = self.tokenizer(context)
-        requests = list(zip((context, context_encoding.input_ids), all_gen_kwargs))
+        requests = [
+            ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
+        ]
 
         def _collate_gen(_requests):
             # the negative sign on len(toks) sorts descending - this has a few advantages:
@@ -190,7 +192,7 @@ class VLLM(LM):
             )
             for chunk in chunks:
                 context_and_encoding, all_gen_kwargs = zip(*chunk)
-                context, context_encoding = context_and_encoding
+                context, context_encoding = zip(*context_and_encoding)
                 # we assume all gen kwargs in the batch are the same
                 # this is safe to assume because the `grouper` object ensures it.
                 gen_kwargs = all_gen_kwargs[0]
