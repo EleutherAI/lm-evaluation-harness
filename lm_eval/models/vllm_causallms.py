@@ -37,7 +37,7 @@ class VLLM(LM):
 
         self.model = LLM(
             model=pretrained,
-            gpu_memory_utilization=0.2,
+            gpu_memory_utilization=0.9,
             revision=revision,
             dtype=dtype,
             tokenizer_mode=tokenizer_mode,
@@ -135,7 +135,7 @@ class VLLM(LM):
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
                         prefix_token=self.eot_token_id,
-                        max_seq_len=self.max_length,
+                        max_seq_len=self.max_length - 1,
                         context_len=1,
                     ),
                 )
@@ -331,7 +331,9 @@ class VLLM(LM):
 
         # Determine if is_greedy
         is_greedy = True
-        for token, logprob_dict in zip(tokens[ctxlen:], continuation_logprobs_dicts):
+        for token, logprob_dict in zip(
+            tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]
+        ):
             # Get the token with the maximum log probability from the logprob_dict
             if logprob_dict:  # Ensure the logprob_dict is not None
                 top_token = max(logprob_dict, key=logprob_dict.get)
