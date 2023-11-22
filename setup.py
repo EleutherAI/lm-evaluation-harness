@@ -50,5 +50,6 @@ setuptools.setup(
         "sentencepiece": ["sentencepiece>=0.1.98", "protobuf>=4.22.1"],
         "auto-gptq": ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"],
         "anthropic": ["anthropic"],
+        "openvino": ["openvino", "nncf", "onnx", "optimum-intel @ git+https://github.com/huggingface/optimum-intel.git"],
     },
 )

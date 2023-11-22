@@ -81,6 +81,11 @@ To evaluate models that are loaded via `AutoSeq2SeqLM` in Huggingface, you inste
 
 > **Warning**: Choosing the wrong model may result in erroneous outputs despite not erroring.
 
+### OpenVINO models converted via HuggingFace Optimum
+```bash
+python main.py --model optimum-causal --model_args pretrained=<model_path_or_name> --task lambada_openai
+```
+
 ### Commercial APIs
 
 Our library also supports language models served via the OpenAI API:
