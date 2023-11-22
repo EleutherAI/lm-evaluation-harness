@@ -4,8 +4,6 @@ import random
 import numpy
 import torch
 
-import deepsparse
-
 from lm_eval import utils
 from lm_eval.base import BaseLM
 
@@ -28,6 +26,8 @@ class DeepSparseLM(BaseLM):
         llm-evaluation-harness.
         """
         super().__init__()
+
+        import deepsparse
 
         self._batch_size = int(batch_size)
         self._max_length = max_length or self._DEFAULT_MAX_LENGTH
