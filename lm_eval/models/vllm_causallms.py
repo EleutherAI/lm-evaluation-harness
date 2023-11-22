@@ -160,7 +160,7 @@ class VLLM(LM):
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
-        context_encoding = self.tokenizer(context)
+        context_encoding = self.tokenizer(context).input_ids
         requests = [
             ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
         ]
