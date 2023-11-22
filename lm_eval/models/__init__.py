@@ -4,7 +4,10 @@ from . import textsynth
 from . import dummy
 from . import anthropic_llms
 from . import gguf
-from . import vllm_causallms
 
+try:
+    from . import vllm_causallms
+except ModuleNotFoundError:
+    pass
 
 # TODO: implement __all__

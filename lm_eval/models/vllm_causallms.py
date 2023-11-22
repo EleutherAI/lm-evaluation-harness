@@ -7,8 +7,7 @@ import copy
 from tqdm import tqdm
 from lm_eval.api.registry import register_model
 from lm_eval import utils
-
-# flake8: noqa
+from vllm import LLM, SamplingParams
 
 
 @register_model("vllm")
@@ -30,7 +29,6 @@ class VLLM(LM):
         max_length: int = None,
     ):
         super().__init__()
-        from vllm import LLM, SamplingParams
 
         self.model = LLM(
             model=pretrained,
