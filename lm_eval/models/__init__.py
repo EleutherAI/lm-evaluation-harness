@@ -3,6 +3,7 @@ from . import gpt3
 from . import anthropic_llms
 from . import huggingface
 from . import textsynth
+from . import deepsparse
 from . import dummy
 from . import gguf
 
@@ -15,6 +16,7 @@ MODEL_REGISTRY = {
     "gpt3": gpt3.GPT3LM,
     "anthropic": anthropic_llms.AnthropicLM,
     "textsynth": textsynth.TextSynthLM,
+    "deepsparse": deepsparse.DeepSparseLM,
     "dummy": dummy.DummyLM,
     "gguf": gguf.GGUFLM,
     "optimum-causal": gpt2.OPTIMUMLM,
