@@ -889,8 +889,6 @@ class HFLM(LM):
                     max_gen_toks = kwargs.pop("max_gen_toks")
                 else:
                     max_gen_toks = self.max_gen_toks
-                # first stop sequence is used to halt generation upon encountering
-                primary_until = [until[0]]
 
                 # set the max length in tokens of inputs ("context_enc")
                 if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
@@ -916,7 +914,7 @@ class HFLM(LM):
                 cont = self._model_generate(
                     context=context_enc,
                     attention_mask=attn_masks,
-                    stop=primary_until,
+                    stop=until,
                     **kwargs,
                 )
 
