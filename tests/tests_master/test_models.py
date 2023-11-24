@@ -1,14 +1,15 @@
 import hashlib
 import json
-from openai import OpenAI
-
-client = OpenAI()
 import os
 import pickle
 import pytest
 import unittest.mock as mock
 
 import lm_eval.models as models
+
+from openai import OpenAI
+
+client = OpenAI()
 
 
 LOGLIKELIHOOD_TEST_CASES = [
