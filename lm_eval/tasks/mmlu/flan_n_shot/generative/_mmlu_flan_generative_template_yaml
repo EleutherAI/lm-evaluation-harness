@@ -1,0 +1,14 @@
+group: mmlu_flan_n_shot_generative
+dataset_path: hails/mmlu_no_train # a copy of `cais/mmlu` with no auxiliary_train split
+test_split: test
+fewshot_split: dev
+output_type: generate_until
+doc_to_text: "Q: {{question.strip()}}\n(A) {{choices[0]}} (B) {{choices[1]}} (C) {{choices[2]}} (D) {{choices[3]}}\nA: "
+doc_to_target: "{{['(A)', '(B)', '(C)', '(D)'][answer]}}"
+generation_kwargs:
+  until:
+    - "</s>"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true

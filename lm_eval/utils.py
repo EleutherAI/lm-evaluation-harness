@@ -19,7 +19,16 @@ import transformers
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
 
-from lm_eval.logger import eval_logger
+import logging
+
+logging.basicConfig(
+    format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+    datefmt="%Y-%m-%d:%H:%M:%S",
+    level=logging.INFO,
+)
+eval_logger = logging.getLogger("lm-eval")
+
+SPACING = " " * 47
 
 
 def escaped_split(text, sep_char, maxsplit=-1):
@@ -83,7 +92,7 @@ def chunks(iter, n: int = 0, fn=None):
     arr = []
     for i, x in enumerate(iter):
         arr.append(x)
-        if len(arr) == (fn(i) if fn else n):
+        if len(arr) == (fn(i, iter) if fn else n):
             yield arr
             arr = []
 
@@ -310,6 +319,10 @@ def make_table(result_dict, column: str = "results"):
 
     for k, dic in result_dict[column].items():
         version = result_dict["versions"][k]
+
+        if "alias" in dic:
+            k = dic.pop("alias")
+
         for (mf), v in dic.items():
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
@@ -426,37 +439,45 @@ def import_function(loader, node):
 yaml.add_constructor("!function", import_function)
 
 
-def load_yaml_config(yaml_path):
-    with open(yaml_path, "rb") as file:
-        yaml_config = yaml.full_load(file)
+def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
+
+    if yaml_config is None:
+        with open(yaml_path, "rb") as file:
+            yaml_config = yaml.full_load(file)
+
+    if yaml_dir is None:
         yaml_dir = os.path.dirname(yaml_path)
 
-        if "include" in yaml_config:
-            include_path = yaml_config["include"]
-            del yaml_config["include"]
+    assert yaml_dir is not None
 
-            if type(include_path) == str:
-                include_path = [include_path]
+    if "include" in yaml_config:
+        include_path = yaml_config["include"]
+        del yaml_config["include"]
 
-            # Load from the last one first
-            include_path.reverse()
-            final_yaml_config = {}
-            for path in include_path:
-                # Assumes that path is a full path.
-                # If not found, assume the included yaml
-                # is in the same dir as the original yaml
-                if not os.path.isfile(path):
-                    path = os.path.normpath(os.path.join(yaml_dir, path))
-                try:
-                    included_yaml_config = load_yaml_config(path)
-                    final_yaml_config.update(included_yaml_config)
-                except Exception as ex:
-                    # If failed to load, ignore
-                    raise ex
+        if type(include_path) == str:
+            include_path = [include_path]
 
-            final_yaml_config.update(yaml_config)
-            return final_yaml_config
-        return yaml_config
+        # Load from the last one first
+        include_path.reverse()
+        final_yaml_config = {}
+        for path in include_path:
+
+            # Assumes that path is a full path.
+            # If not found, assume the included yaml
+            # is in the same dir as the original yaml
+            if not os.path.isfile(path):
+                path = os.path.join(yaml_dir, path)
+
+            try:
+                included_yaml_config = load_yaml_config(path)
+                final_yaml_config.update(included_yaml_config)
+            except Exception as ex:
+                # If failed to load, ignore
+                raise ex
+
+        final_yaml_config.update(yaml_config)
+        return final_yaml_config
+    return yaml_config
 
 
 def regex_replace(string, pattern, repl, count: int = 0):
@@ -563,7 +584,14 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
         self.done_tracker = [False] * batch_size
         self.sequence = sequence
         self.sequence_ids = tokenizer.encode(sequence, add_special_tokens=False)
-        self.sequence_id_len = len(self.sequence_ids)
+        # we look back for 2 more tokens than it takes to encode our stop sequence
+        # because tokenizers suck, and a model might generate `['\n', '\n']` but our `sequence` is `['\n\n']`
+        # and we don't want to mistakenly not stop a generation because our
+        # (string) stop sequence was output in a different tokenization
+
+        # NOTE: there is a minor danger that this will end up looking back 2 tokens into the past, into the inputs to the model,
+        # and stopping generation immediately as a result. With only 2 extra tokens of lookback, this risk is minimized
+        self.sequence_id_len = len(self.sequence_ids) + 2
         self.tokenizer = tokenizer
 
     def __call__(self, input_ids, scores, **kwargs) -> bool:
@@ -573,7 +601,6 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
         ]
 
         lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
-
         for i, done in enumerate(self.done_tracker):
             if not done:
                 self.done_tracker[i] = self.sequence in lookback_tokens_batch[i]

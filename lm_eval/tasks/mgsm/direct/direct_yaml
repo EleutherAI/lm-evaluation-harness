@@ -4,7 +4,7 @@
 group: mgsm_direct
 dataset_path: juletxara/mgsm
 dataset_name: null  # Overridden by language-specific config.
-output_type: greedy_until
+output_type: generate_until
 training_split: train
 test_split: test
 target_delimiter: ""

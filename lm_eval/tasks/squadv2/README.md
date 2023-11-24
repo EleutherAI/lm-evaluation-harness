@@ -2,25 +2,43 @@
 
 ### Paper
 
-Title: `paper title goes here`
-Abstract: `link to paper PDF or arXiv abstract goes here`
+Title: `Know What You Don’t Know: Unanswerable Questions for SQuAD`
+Abstract: https://arxiv.org/abs/1806.03822
 
-`Short description of paper / benchmark goes here:`
+Stanford Question Answering Dataset (SQuAD) is a reading comprehension dataset,
+consisting of questions posed by crowdworkers on a set of Wikipedia articles,
+where the answer to every question is a segment of text, or span, from the
+corresponding reading passage, or the question might be unanswerable.
+SQuAD2.0 combines the 100,000 questions in SQuAD1.1 with over 50,000 unanswerable
+questions written adversarially by crowdworkers to look similar to answerable ones.
+To do well on SQuAD2.0, systems must not only answer questions when possible, but
+also determine when no answer is supported by the paragraph and abstain from answering.
 
-Homepage: `homepage to the benchmark's website goes here, if applicable`
+Homepage: https://rajpurkar.github.io/SQuAD-explorer/
 
 
 ### Citation
 
 ```
-BibTeX-formatted citation goes here
+@misc{rajpurkar2018know,
+    title={Know What You Don't Know: Unanswerable Questions for SQuAD},
+    author={Pranav Rajpurkar and Robin Jia and Percy Liang},
+    year={2018},
+    eprint={1806.03822},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
 ```
 
-### Subtasks
+### Groups and Tasks
 
-List or describe tasks defined in this folder, and their names here:
-* `task_name`: `1-sentence description of what this particular task does`
-* `task_name2`: .....
+#### Groups
+
+* Not part of a group yet
+
+#### Tasks
+
+* `squadv2`: `Default squadv2 task`
 
 ### Checklist
 

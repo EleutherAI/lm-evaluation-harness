@@ -1,0 +1,11 @@
+group: flan_cot
+task:
+  - include: yaml_templates/cot_template_yaml
+    dataset_path: gsmk
+    dataset_name: boolq
+    use_prompt: promptsource:*
+    validation_split: validation
+  - include: yaml_templates/cot_template_yaml
+    dataset_path: EleutherAI/asdiv
+    use_prompt: promptsource:*
+    validation_split: validation

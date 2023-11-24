@@ -3,12 +3,13 @@ group:
 task: "boolq-seq2seq"
 dataset_path: super_glue
 dataset_name: boolq
-output_type: greedy_until
+output_type: generate_until
 training_split: train
 validation_split: validation
 doc_to_text: "{{passage}}\nQuestion: {{question}}?\nAnswer:"
 doc_to_target: label
-doc_to_choice: ['no', 'yes']
+doc_to_choice: [' no', ' yes']
+target_delimiter: ""
 generation_kwargs:
   until:
     - "\n\n"

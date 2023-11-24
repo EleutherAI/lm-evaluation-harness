@@ -98,9 +98,9 @@ def test_versions_stable(taskname, task_class):
 
         return res
 
-    def greedy_until(reqs):
+    def generate_until(reqs):
         res = []
-        assert_target_hashed(f"{taskname}-v{task_class.VERSION}-greedy_until", reqs)
+        assert_target_hashed(f"{taskname}-v{task_class.VERSION}-generate_until", reqs)
 
         for ctx, _ in [req.args for req in reqs]:
             res.append("lol")
@@ -110,7 +110,7 @@ def test_versions_stable(taskname, task_class):
 
     lm.loglikelihood = ll_fn
     lm.loglikelihood_rolling = ll_perp_fn
-    lm.greedy_until = greedy_until
+    lm.generate_until = generate_until
 
     limit = None
     result = evaluator.evaluate(

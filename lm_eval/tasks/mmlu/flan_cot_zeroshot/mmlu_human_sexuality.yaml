@@ -1,0 +1,6 @@
+"dataset_name": "human_sexuality"
+"description": "The following are multiple choice questions (with answers) about human\
+  \ sexuality.\n\n"
+"group": "mmlu_flan_cot_zeroshot_social_sciences"
+"include": "_mmlu_flan_cot_zeroshot_template_yaml"
+"task": "mmlu_flan_cot_zeroshot_human_sexuality"

@@ -1,0 +1,33 @@
+# Flan Prompt Templates
+prompts:
+  "template-0":
+    doc_to_text: "{{passage}}\n\nCan we conclude that {{question}}?\n\nOPTIONS:\n- no\n- yes"
+    doc_to_target: "{{['no', 'yes'][label]}}"
+  "template-1":
+    doc_to_text: "{{passage}}\n\nIs it true that {{question}}?\n\nOPTIONS:\n- no\n- yes"
+    doc_to_target: "{{['no', 'yes'][label]}}"
+  "template-2":
+    doc_to_text: "{{passage}}\n\n{{question}}?\n\nOPTIONS:\n- no\n- yes"
+    doc_to_target: "{{['no', 'yes'][label]}}"
+  "template-3":
+    doc_to_text: "Text: {{passage}}\n\nQuestion: {{question}}?\n\nOPTIONS:\n- no\n- yes"
+    doc_to_target: "{{['no', 'yes'][label]}}"
+  "template-4":
+    doc_to_text: "{{passage}}\n\nWhat's the best answer to this question: {{question}}?\n\nOPTIONS:\n- no\n- yes"
+    doc_to_target: "{{['no', 'yes'][label]}}"
+  "template-5":
+    doc_to_text: "{{passage}}\nBased on the above text what's the best answer to this question: {{question}}?\n\nOPTIONS:\n- no\n- yes"
+    doc_to_target: "{{['no', 'yes'][label]}}"
+  "template-6":
+    doc_to_text: "{{passage}}\nAnswer this question making sure that the answer is supposed by the text: {{question}}?\n\nOPTIONS:\n- no\n- yes"
+    doc_to_target: "{{['no', 'yes'][label]}}"
+  "template-7":
+    doc_to_text: "{{passage}}\n\nIs the following statement correct based on the text\n\n{{question}}\n\nOPTIONS:\n- no\n- yes"
+    doc_to_target: "{{['no', 'yes'][label]}}"
+  "template-8":
+    # doc_to_text: "{{title}}\n\n{{passage}}\n\nIs this statement correct \"{{question}}\"?\n\nOPTIONS:\n- no\n- yes"
+    doc_to_text: "{{passage}}\n\nIs this statement correct \"{{question}}\"?\n\nOPTIONS:\n- no\n- yes"
+    doc_to_target: "{{['no', 'yes'][label]}}"
+  "template-9":
+    doc_to_text: "Is it true that {{question}} based on the following text?\n\n{{passage}}\n\nOPTIONS:\n- no\n- yes"
+    doc_to_target: "{{['no', 'yes'][label]}}"
