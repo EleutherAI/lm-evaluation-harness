@@ -90,6 +90,9 @@ def simple_evaluate(
 
     if gen_kwargs is not None:
         gen_kwargs = simple_parse_args_string(gen_kwargs)
+        eval_logger.warning(
+            f"generation_kwargs specified through cli, these settings will be used over set parameters in yaml tasks."
+        )
         if gen_kwargs == "":
             gen_kwargs = None
 
@@ -127,7 +130,7 @@ def simple_evaluate(
                 continue
 
         config = task_obj._config
-        if config["output_type"] == "greedy_until" and gen_kwargs is not None:
+        if config["output_type"] == "generate_until" and gen_kwargs is not None:
             config["generation_kwargs"].update(gen_kwargs)
 
         if num_fewshot is not None:
