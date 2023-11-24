@@ -88,6 +88,11 @@ def simple_evaluate(
         tasks != []
     ), "No tasks specified, or no tasks found. Please verify the task names."
 
+    if gen_kwargs is not None:
+        gen_kwargs = simple_parse_args_string(gen_kwargs)
+        if gen_kwargs == "":
+            gen_kwargs = None
+
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
@@ -122,8 +127,7 @@ def simple_evaluate(
                 continue
 
         config = task_obj._config
-        if config['output_type'] == 'greedy_until' and gen_kwargs != "":
-            gen_kwargs = simple_parse_args_string(gen_kwargs)
+        if config['output_type'] == 'greedy_until' and gen_kwargs is not None:
             config['generation_kwargs'].update(gen_kwargs)
 
         if num_fewshot is not None:
