@@ -4,7 +4,7 @@ from .utils import new_tasks
 import lm_eval.tasks as tasks
 from lm_eval.api.task import ConfigurableTask
 
-
+tasks.initialize_tasks()
 # Default Task
 TASKS = ["arc_easy"]
 
