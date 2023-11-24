@@ -106,19 +106,16 @@ def parse_eval_args() -> argparse.Namespace:
         help="Additional path to include if there are external tasks to include.",
     )
     parser.add_argument(
-<<<<<<< HEAD:main.py
         "--gen_kwargs",
         default="",
         help=(
             "String arguments for model generation on greedy_until tasks,"
             " e.g. `temperature=0,top_k=0,top_p=0`"
         )
-=======
         "--verbosity",
         type=str,
         default="INFO",
         help="Log error when tasks are not registered.",
->>>>>>> 9d030712672ad7893c3d112b91ee13aa94df320b:lm_eval/__main__.py
     )
     return parser.parse_args()
 
