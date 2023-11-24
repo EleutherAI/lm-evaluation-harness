@@ -21,7 +21,7 @@ from lm_eval.utils import (
     create_iterator,
     get_git_commit_hash,
     simple_parse_args_string,
-    eval_logger
+    eval_logger,
 )
 
 
@@ -41,7 +41,7 @@ def simple_evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
-    gen_kwargs: str = None
+    gen_kwargs: str = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -127,8 +127,8 @@ def simple_evaluate(
                 continue
 
         config = task_obj._config
-        if config['output_type'] == 'greedy_until' and gen_kwargs is not None:
-            config['generation_kwargs'].update(gen_kwargs)
+        if config["output_type"] == "greedy_until" and gen_kwargs is not None:
+            config["generation_kwargs"].update(gen_kwargs)
 
         if num_fewshot is not None:
             if config["num_fewshot"] > 0:
@@ -167,7 +167,7 @@ def simple_evaluate(
             "use_cache": use_cache,
             "limit": limit,
             "bootstrap_iters": bootstrap_iters,
-            "gen_kwargs": gen_kwargs
+            "gen_kwargs": gen_kwargs,
         }
         results["git_hash"] = get_git_commit_hash()
         return results

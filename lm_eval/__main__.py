@@ -111,7 +111,9 @@ def parse_eval_args() -> argparse.Namespace:
         help=(
             "String arguments for model generation on greedy_until tasks,"
             " e.g. `temperature=0,top_k=0,top_p=0`"
-        )
+        ),
+    )
+    parser.add_argument(
         "--verbosity",
         type=str,
         default="INFO",
@@ -216,7 +218,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
-        gen_kwargs=args.gen_kwargs
+        gen_kwargs=args.gen_kwargs,
     )
 
     if results is not None:
