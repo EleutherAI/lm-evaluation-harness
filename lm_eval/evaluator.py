@@ -1,27 +1,33 @@
-import random
+import collections
 import itertools
 import json
-import collections
+import logging
+import random
 import sys
 
-import torch
-
 import numpy as np
+import torch
+from accelerate.utils.operations import _gpu_gather
 
 import lm_eval.api
-import lm_eval.tasks
-import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry
-
+import lm_eval.benchmarks
+import lm_eval.models
+import lm_eval.tasks
+from lm_eval.logger import eval_logger
 from lm_eval.utils import (
+    create_iterator,
+    eval_logger,
+    get_git_commit_hash,
+    make_table,
     positional_deprecated,
     run_task_tests,
-    make_table,
-    create_iterator,
-    get_git_commit_hash,
-    eval_logger,
 )
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 @positional_deprecated
@@ -328,6 +334,7 @@ def evaluate(
         # TODO: make it possible to use a different metric per filter
         # iterate over different filters used
         for key in task.instances[0].filtered_resps.keys():
+            num_requests = 0
             doc_iterator = (
                 itertools.islice(
                     enumerate(task.test_docs()), lm.rank, limit, lm.world_size
@@ -358,6 +365,59 @@ def evaluate(
                     samples[task_name].append(example)
                 for metric, value in metrics.items():
                     vals[(task_name, key, metric)].append(value)
+                num_requests += 1
+        num_requests = torch.tensor(num_requests, device=lm.device)
+
+    ### Aggregate results over all datapoints ###
+    # aggregate results ; run bootstrap CIs
+    for (task_name, key, metric), items in vals.items():
+        task = task_dict[task_name]
+        if type(task) == tuple:
+            group, task = task
+        task_score = task.aggregation()[metric](items)
+        results[task_name][metric + "," + key] = task_score
+
+        # Need to put back in results
+        # pythia | acc
+        #        | perplexity
+        #        | word_perplexity
+        #        | byte_perplexity
+        #        | bits_per_byte
+        if bool(task_groups):
+            group_name = task_groups[task_name]
+            if metric not in aggregate[group_name]:
+                aggregate[group_name][metric] = [task_score]
+            else:
+                aggregate[group_name][metric].append(task_score)
+
+        # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
+        # so we run them less iterations. still looking for a cleaner way to do this
+        if bootstrap_iters > 0:
+            stderr = lm_eval.api.metrics.stderr_for_metric(
+                metric=task.aggregation()[metric],
+                bootstrap_iters=min(bootstrap_iters, 1000)
+                if metric in ["bleu", "chrf", "ter"]
+                else bootstrap_iters,
+            )
+
+            if stderr is not None:
+                results[task_name][metric + "_stderr" + "," + key] = stderr(items)
+
+    if bool(aggregate):
+        for group in aggregate.keys():
+            for metric in aggregate[group].keys():
+                aggregate[group][metric] = np.average(aggregate[group][metric])
+                versions[group] = "N/A"
+
+    results_dict = {
+        "results": dict(sorted(results.items())),
+        **({"aggregate": dict(sorted(aggregate.items()))} if bool(aggregate) else {}),
+        "configs": dict(sorted(configs.items())),
+        "versions": dict(sorted(versions.items())),
+    }
+    if log_samples:
+        results_dict["samples"] = dict(samples)
+    print("Rank: ", lm.rank, " Results: ", results_dict)
 
     if lm.world_size > 1:
         # if multigpu, then gather data across all ranks
@@ -386,17 +446,37 @@ def evaluate(
                 # so we pad out with float32 min value
                 pad_value = torch.finfo(torch.float32).min
                 metrics_tensor = torch.tensor(items, device=lm.device)
-
                 original_dtype = metrics_tensor.dtype  # store original dtype
+                # Gather sizes
                 torch_device_tensor = lm.accelerator.pad_across_processes(
                     metrics_tensor.to(torch.float32), pad_index=pad_value
                 )
-                gathered_item = lm.accelerator.gather(torch_device_tensor)
 
+                gathered_item = lm.accelerator.gather(torch_device_tensor)
                 if numitem > 0:
                     gathered_filtered = gathered_item[gathered_item[:, 0] != pad_value]
                 else:
                     gathered_filtered = gathered_item[gathered_item != pad_value]
+                # gathered_sizes = lm.accelerator.gather(num_requests)
+                # sizes = torch.stack(output_tensors)
+                # if lm.rank == 0:
+                #     print(gathered_sizes)
+                # max_size = 26834
+                # # Use max size to pad
+                # metrics_tensor = metrics_tensor.to(torch.float32)
+                # if max_size != metrics_tensor.shape[0]:
+                #     old_size = metrics_tensor.shape
+                #     new_size = list(old_size)
+                #     new_size[0] = max_size
+                #     device_tensor = metrics_tensor.new_zeros(tuple(new_size)) + pad_value
+                #     indices = tuple(
+                #         slice(0, old_size[0]) if i == 0 else slice(None)
+                #         for i in range(len(new_size))
+                #     )
+                #     device_tensor[indices] = metrics_tensor
+                # else:
+                #     device_tensor = metrics_tensor
+                # gathered_item = lm.accelerator.gather(device_tensor)
 
                 gathered_item = (
                     gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
@@ -411,7 +491,6 @@ def evaluate(
         vals = vals_torch
 
     if lm.rank == 0:
-
         ### Get task ordering for correct sample-wide aggregation
         group_to_task = {}
         for group in task_hierarchy.keys():
@@ -422,7 +501,6 @@ def evaluate(
                 group_to_task[group] = task_hierarchy[group].copy()
 
             for task in task_hierarchy[group]:
-
                 if task in task_order:
                     task_order[task] += 1
                 else:
@@ -469,9 +547,7 @@ def evaluate(
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
         if bool(results):
-
             for group, task_list in reversed(task_hierarchy.items()):
-
                 if task_list == []:
                     total_size = results[group]["samples"]
                 else:
@@ -491,7 +567,6 @@ def evaluate(
                         for metric in [
                             key for key in metrics.keys() if "_stderr" not in key
                         ]:
-
                             stderr = "_stderr,".join(metric.split(","))
                             stderr_score = results[task][stderr]
                             var_score = stderr_score**2
@@ -528,11 +603,9 @@ def evaluate(
                 results[group]["samples"] = total_size
 
         def print_tasks(task_hierarchy, task_order, task_version, task_group_alias):
-
             results_agg = collections.defaultdict(dict)
             groups_agg = collections.defaultdict(dict)
             for group_name, task_list in task_hierarchy.items():
-
                 order = task_order[group_name]
                 results_agg[group_name] = results[group_name].copy()
                 results_agg[group_name]["tab"] = order

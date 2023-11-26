@@ -1,44 +1,39 @@
 import abc
-from dataclasses import dataclass, field, asdict
-
-import re
 import ast
-import yaml
-import logging
-import evaluate
-import random
 import itertools
-import functools
-from tqdm import tqdm
+import logging
+import random
+import re
+from collections.abc import Callable
+from dataclasses import asdict, dataclass, field
+from typing import Any, List, Literal, Tuple, Union
 
 import datasets
+import evaluate
 import numpy as np
-
-from typing import Union, List, Any, Tuple, Literal
-from collections.abc import Callable
+import scipy.special as sp
+import yaml
+from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers
-from lm_eval.api.instance import Instance
 from lm_eval.api.filter import FilterEnsemble
-
-from lm_eval.prompts import get_prompt
-from lm_eval.filters import build_filter_ensemble
 from lm_eval.api.metrics import (
-    mean,
-    weighted_perplexity,
     bits_per_byte,
+    mean,
     metric_max_over_ground_truths,
+    weighted_perplexity,
 )
 from lm_eval.api.registry import (
-    get_metric,
-    get_aggregation,
-    get_metric_aggregation,
-    is_higher_better,
     DEFAULT_METRIC_REGISTRY,
     OUTPUT_TYPE_REGISTRY,
-    AGGREGATION_REGISTRY,
+    get_aggregation,
+    get_metric,
+    get_metric_aggregation,
+    is_higher_better,
 )
+from lm_eval.filters import build_filter_ensemble
+from lm_eval.prompts import get_prompt
 
 ALL_OUTPUT_TYPES = [
     "loglikelihood",
@@ -674,6 +669,8 @@ class ConfigurableTask(Task):
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
         # Test One Doc
+        # self.features = ["text", "meta"]
+        # return None
         self.features = list(self.task_docs.features.keys())
         self.multiple_input = 0
         self.multiple_target = 0
@@ -781,8 +778,11 @@ class ConfigurableTask(Task):
                     "num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
-            return super().fewshot_docs()
+                return super().fewshot_docs()
+            else:
+                return None
 
+    def apply_filters(self):
     @utils.positional_deprecated
     def fewshot_context(self, doc, num_fewshot):
         """Returns a fewshot context string that is made up of a prepended description
@@ -897,6 +897,7 @@ class ConfigurableTask(Task):
                 return doc[doc_to_target]
             else:
                 target_string = utils.apply_template(doc_to_target, doc)
+                # return target_string
                 if target_string.isdigit() and self._config.doc_to_choice is not None:
                     return ast.literal_eval(target_string)
                 elif (
@@ -1044,10 +1045,7 @@ class ConfigurableTask(Task):
             choices = self.doc_to_choice(doc)
             completion_len = np.array([float(len(i)) for i in choices])
 
-            if (
-                2 * len(choices) == len(lls)
-                and "acc_mutual_info" in self._metric_fn_list.keys()
-            ):
+            if 2 * len(choices) == len(lls) and "acc_mutual_info" in use_metric:
                 # then we are doing mutual info.
                 # this stores the "dryrun" / unconditional answer loglikelihoods
                 lls_unconditional = lls[1::2]
@@ -1083,6 +1081,20 @@ class ConfigurableTask(Task):
                     f"Sample:\n\n{doc}\n\n"
                 )
 
+            if "ece" in use_metric:
+                # Convert lls from log-probabilities to normalized probabilities
+                norm_probs: list[float] = np.exp(lls - sp.logsumexp(lls)).tolist()
+                calib_scores: list[float] = [0.0] * len(choices)
+                if isinstance(gold, list):
+                    for g in gold:
+                        calib_scores[g] = 1.0
+                else:
+                    calib_scores[gold] = 1.0
+                calibration_probs: dict[str, list[float]] = {
+                    "probs": norm_probs,
+                    "scores": calib_scores,
+                }
+
             if self.multiple_target:
                 acc = 1.0 if pred in gold else 0.0
                 acc_norm = 1.0 if pred_norm in gold else 0.0
@@ -1099,6 +1111,7 @@ class ConfigurableTask(Task):
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
+                **({"ece": calibration_probs} if "ece" in use_metric else {}),
             }
 
             if "acc_mutual_info" in use_metric:

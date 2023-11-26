@@ -1,17 +1,17 @@
+import logging
 import math
+import random
 from collections.abc import Iterable
 
+import evaluate
 import numpy as np
 import sacrebleu
 import sklearn.metrics
-import random
-import evaluate
 
-from lm_eval.api.registry import register_metric, register_aggregation
-
-import logging
+from lm_eval.api.registry import register_aggregation, register_metric
 
 eval_logger = logging.getLogger("lm-eval")
+
 
 # Register Aggregations First
 @register_aggregation("mean")
@@ -109,6 +109,37 @@ def ter(items):
     return sacrebleu.corpus_ter(preds, refs).score
 
 
+@register_aggregation("ece")
+def ece(items: list) -> float:
+    probs: list[float] = []
+    scores: list[float] = []
+    for i in range(len(items)):
+        # Get only largest probability from each example
+        largest_idx = np.argmax(items[i]["probs"])
+        probs.append(items[i]["probs"][largest_idx])
+        scores.append(items[i]["scores"][largest_idx])
+
+    sorted_indices = np.argsort(probs)
+    sorted_probs = np.asarray(probs)[sorted_indices]
+    sorted_scores = np.asarray(scores)[sorted_indices]
+
+    def bin_to_subsets(array: np.ndarray, num_subsets: int = 10) -> np.ndarray:
+        subset_size: int = len(array) // num_subsets
+        remainder: int = len(array) % num_subsets
+        subsets: list[np.ndarray] = []
+        start: int = 0
+        for _ in range(num_subsets):
+            subset_end: int = start + subset_size + (1 if remainder > 0 else 0)
+            subsets.append(array[start:subset_end])
+            start = subset_end
+            remainder -= 1
+        return subsets
+
+    probs = np.asarray([np.mean(x) for x in bin_to_subsets(sorted_probs, 10)])
+    freqs = np.asarray([np.mean(x) for x in bin_to_subsets(sorted_scores, 10)])
+    return np.sum(np.abs(freqs - probs)) / len(freqs)
+
+
 @register_metric(
     metric="acc",
     higher_is_better=True,
@@ -150,6 +181,25 @@ exact_match = evaluate.load("exact_match")
 )
 def exact_match_fn(**kwargs):
     return exact_match.compute(**kwargs)
+
+
+@register_metric(
+    metric="ece",
+    higher_is_better=False,
+    output_type="multiple_choice",
+    aggregation="ece",
+)
+def ece_fn(items):  # This is a passthrough function
+    """
+    Expected Calibration Error (ECE).
+
+    This consists of the average absolute difference between the fraction of
+    model predictions which are correct and the mean of the model's normalized
+    probability for those predictions (after binning), for multiple choice questions.
+
+    Paper: https://arxiv.org/abs/2207.05221
+    """
+    return items
 
 
 @register_metric(
