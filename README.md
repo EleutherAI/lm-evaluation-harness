@@ -226,16 +226,21 @@ For a full list of supported arguments, check out the [interface](https://github
 
 For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
 
-
 You can also ask for help, or discuss new features with the maintainers in the #lm-thunderdome channel of the EleutherAI discord! If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
 
 ### Implementing new tasks
 
 To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
 
+In general, we following the following priority list for addressing concerns about prompting and other eval details:
+1. If there is widespread agreement among people who train LLMs, use the agreed upon procedure.
+2. If there is a clear and unambiguous official implementation, use that procedure.
+3. If there is widespread agreement among people who evaluate LLMs, use the agreed upon procedure.
+4. If there are multiple common implementations but not universal or widespread agreement, use our preferred option among the common implementations. As before, prioritize choosing from among the implementations found in LLM training papers.
 
-As a start, we currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, we support prompts authored in the [Promptsource Library](https://github.com/bigscience-workshop/promptsource/tree/main) as described further in [the task guide](./docs/new_task_guide.md) and [the advanced task guide](./docs/advanced_task_guide.md) and welcome contributions of novel task templates and task variants.
+These are guidelines and not rules, and can be overruled in special circumstances.
 
+We try to prioritize agreement with the procedures used by other groups to decrease the harm when people inevitably compare runs across different papers despite our discouragement of the practice. Historically, we also prioritized the implementation from "Language Models are Few Shot Learners" as our original goal was specifically to compare results with that paper.
 
 ## Cite as
 
