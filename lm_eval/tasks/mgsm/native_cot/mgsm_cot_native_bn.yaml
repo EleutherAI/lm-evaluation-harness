@@ -5,4 +5,4 @@ doc_to_target: '{% if answer is not none %}{{answer[16+1]}}{% else %}{{answer_nu
 doc_to_text: '{% if answer is not none %}{{question+"\nধাপে ধাপে উত্তর:"}}{% else
   %}{{"প্রশ্ন: "+question+"\nধাপে ধাপে উত্তর:"}}{% endif %}'
 include: cot_yaml
-task: mgsm_bn_direct
+task: mgsm_bn_native_cot

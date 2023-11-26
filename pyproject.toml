@@ -38,17 +38,16 @@ dependencies = [
     "zstandard",
 ]
 
-[tool.setuptools]
-packages = ["lm_eval"]
+[tool.setuptools.packages.find]
+include = ["lm_eval*"]
 
 # required to include yaml files in pip installation
 [tool.setuptools.package-data]
 lm_eval = ["**/*.yaml", "tasks/**/*"]
-examples = ["**/*.yaml"]
 
 [project.scripts]
-lm-eval = "main:main"
-lm_eval = "main:main"
+lm-eval = "lm_eval.__main__:cli_evaluate"
+lm_eval = "lm_eval.__main__:cli_evaluate"
 
 [project.urls]
 Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
@@ -64,6 +63,7 @@ linting = [
 ]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
+math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
 sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
 promptsource = [
     "promptsource @ git+https://github.com/bigscience-workshop/promptsource.git#egg=promptsource"

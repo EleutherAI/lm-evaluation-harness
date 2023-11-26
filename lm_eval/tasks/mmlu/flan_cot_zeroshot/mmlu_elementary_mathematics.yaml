@@ -1,0 +1,6 @@
+"dataset_name": "elementary_mathematics"
+"description": "The following are multiple choice questions (with answers) about elementary\
+  \ mathematics.\n\n"
+"group": "mmlu_flan_cot_zeroshot_stem"
+"include": "_mmlu_flan_cot_zeroshot_template_yaml"
+"task": "mmlu_flan_cot_zeroshot_elementary_mathematics"

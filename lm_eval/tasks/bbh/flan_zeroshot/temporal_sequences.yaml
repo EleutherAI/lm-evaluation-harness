@@ -1,0 +1,5 @@
+"dataset_name": "temporal_sequences"
+"description": "Task description: Answer questions about which times certain events could have occurred.\n\n"
+"doc_to_text": "Q: {{input}}\nA:"
+"include": "_flan_zeroshot_template_yaml"
+"task": "bbh_flan_zeroshot_temporal_sequences"

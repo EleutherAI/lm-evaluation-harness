@@ -17,7 +17,7 @@ git checkout -b <task-name>
 pip install -e ".[dev]"
 ```
 
-As a concrete example, we'll walk through reimplementing the `gsm8k` benchmark (a *generative* task which requires sampling text from a model) and the `sciq` benchmark. (a *discriminative*, or *multiple choice*, task where the model picks the most likely of several fixed answer choices).
+In this document, we'll walk through the basics of implementing a static benchmark evaluation in two formats: a *generative* task which requires sampling text from a model, such as [`gsm8k`](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/tasks/gsm8k/gsm8k.yaml), and a *discriminative*, or *multiple choice*, task where the model picks the most likely of several fixed answer choices, such as [`sciq`](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/tasks/sciq/sciq.yaml).
 
 ## Creating a YAML file
 
@@ -44,6 +44,16 @@ dataset_path: ... # the name of the dataset on the HF Hub.
 dataset_name: ... # the dataset configuration to use. Leave `null` if your dataset does not require a config to be passed. See https://huggingface.co/docs/datasets/load_hub#configurations for more info.
 dataset_kwargs: null # any extra keyword arguments that should be passed to the dataset constructor, e.g. `data_dir`.
 ```
+
+------------------------------
+**Tip:** To load a local dataset for evaluation, you can specify data files in the `dataset_kwargs` field, such as the following for JSON files:
+```
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files: /path/to/my/json
+```
+-------------------------------
 
 Next, we'd like to tell our task what the dataset's train, validation, and test splits are named, if they exist:
 
@@ -116,7 +126,7 @@ doc_to_choice: ['No', 'Yes']
 
 We support the [Jinja 2](https://jinja.palletsprojects.com/en/3.1.x/) templating language for writing prompts. In practice, this means you can take your dataset's columns and do many basic string manipulations to place each document into prompted format.
 
-Take for example `super_glue/boolq`, as input, we'd like to use the features `passage` and `question` and string them together so that for a a sample line `doc`, the model sees something the format of:
+Take for example the dataset `super_glue/boolq`. As input, we'd like to use the features `passage` and `question` and string them together so that for a a sample line `doc`, the model sees something the format of:
 ```
 doc["passage"]
 Question: doc["question"]?
@@ -214,7 +224,7 @@ metric_list:
 ```
 `aggregation` and `higher_is_better` can optionally be left out to default to the manually-set defaults if using a natively supported metric, otherwise it must be defined explicitly (for example, when using a custom metric implemented as a function).
 
-For a full list of natively supported metrics and aggregation functions see `docs/advanced_task_guide.md`. All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval`.
+For a full list of natively supported metrics and aggregation functions see `docs/advanced_task_guide.md`. All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval` or `hf_evaluate` is set to `true`.
 
 ### Optional, More Advanced Setup
 
@@ -258,10 +268,28 @@ You can do this via adding the Python snippet
 from lm_eval.tasks import include_task_folder
 include_task_folder("/path/to/yaml/parent/folder")
 ```
-to the top of any Python file that is run or imported when performing evaluation, such as `main.py`.
+to the top of any Python file that is run or imported when performing evaluation, such as `\_\_main\_\_.py`.
 
 Passing `--tasks /path/to/yaml/file` is also accepted.
 
+
+## Beautifying Table Display
+
+To avoid conflict, each task needs to be registered with a unique name. Because of this, slight variations of task are still counted as unique tasks and need to be named uniquely. This could be done by appending an additional naming that may refer to the variation such as in MMLU where the template used to evaluated for flan are differentiated from the default by the prefix `mmlu_flan_*`. Printing the full task names can easily clutter the results table at the end of the evaluation especially when you have a long list of tasks or are using a benchmark that comprises of many tasks. To make it more legible, you can use `task_alias` and `group_alias` to provide an alternative task name and group name that will be printed.
+``
+for example in `mmlu_abstract_algebra.yaml` we set `group_alias` to `stem` and `task_alias` to `abstract_algebra`.
+
+```
+"dataset_name": "abstract_algebra"
+"description": "The following are multiple choice questions (with answers) about abstract\
+  \ algebra.\n\n"
+"group": "mmlu_stem"
+"group_alias": "stem"
+"include": "_default_template_yaml"
+"task": "mmlu_abstract_algebra"
+"task_alias": "abstract_algebra"
+```
+Note: Even though `group` can be a list, for now, `group_alias` can only be a single string.
 
 ## Checking validity
 
@@ -285,7 +313,7 @@ It's now time to check models' performance on your task! In the evaluation harne
 
 To enable this, we provide a checklist that should be completed when contributing a new task, to enable accurate book-keeping and to ensure that tasks added to the library are well-tested and, where applicable, precedented.
 
-### Task impl. checklist
+### Task Validity Checklist
 
 The checklist is the following:
 

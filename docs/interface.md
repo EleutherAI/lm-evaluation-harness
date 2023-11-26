@@ -4,7 +4,7 @@ This document details the interface exposed by `lm-eval` and provides details on
 
 ## Command-line Interface
 
-A majority of users run the library by cloning it from Github and running the `main.py` script.
+A majority of users run the library by cloning it from Github, installing the package as editable, and running the `python -m lm_eval` script.
 
 Equivalently, running the library can be done via the `lm-eval` entrypoint at the command line.
 
@@ -57,7 +57,9 @@ import lm_eval
 
 my_model = initialize_my_model() # create your model (could be running finetuning with some custom modeling code)
 ...
-lm_obj = Your_LM(model=my_model, batch_size=16) # instantiate an LM subclass that takes your initialized model and can run `Your_LM.loglikelihood()`, `Your_LM.loglikelihood_rolling()`, `Your_LM.greedy_until()`
+lm_obj = Your_LM(model=my_model, batch_size=16) # instantiate an LM subclass that takes your initialized model and can run `Your_LM.loglikelihood()`, `Your_LM.loglikelihood_rolling()`, `Your_LM.generate_until()`
+
+lm_eval.tasks.initialize_tasks() # register all tasks from the `lm_eval/tasks` subdirectory. Alternatively, can call `lm_eval.tasks.include_path("path/to/my/custom/task/configs")` to only register a set of tasks in a separate directory.
 
 results = lm_eval.simple_evaluate( # call simple_evaluate
     model=lm_obj,
@@ -83,9 +85,9 @@ from my_tasks import MyTask1 # suppose you've defined a custom lm_eval.api.Task 
 
 my_model = initialize_my_model() # create your model (could be running finetuning with some custom modeling code)
 ...
-lm_obj = Your_LM(model=my_model, batch_size=16) # instantiate an LM subclass that takes your initialized model and can run `Your_LM.loglikelihood()`, `Your_LM.loglikelihood_rolling()`, `Your_LM.greedy_until()`
+lm_obj = Your_LM(model=my_model, batch_size=16) # instantiate an LM subclass that takes your initialized model and can run `Your_LM.loglikelihood()`, `Your_LM.loglikelihood_rolling()`, `Your_LM.generate_until()`
 
-
+lm_eval.tasks.initialize_tasks() # register all tasks from the `lm_eval/tasks` subdirectory. Alternatively, can call `lm_eval.tasks.include_path("path/to/my/custom/task/configs")` to only register a set of tasks in a separate directory.
 
 def evaluate(
     lm=lm_obj,

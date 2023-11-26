@@ -1,0 +1,6 @@
+"dataset_name": "high_school_statistics"
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school statistics.\n\n"
+"group": "mmlu_flan_cot_zeroshot_stem"
+"include": "_mmlu_flan_cot_zeroshot_template_yaml"
+"task": "mmlu_flan_cot_zeroshot_high_school_statistics"
