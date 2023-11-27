@@ -2,7 +2,7 @@
 
 ### Paper
 
-Title: SocialIQA: Commonsense Reasoning about Social Interactions
+Title: Social IQA: Commonsense Reasoning about Social Interactions
 
 Abstract: https://arxiv.org/abs/1904.09728
 
