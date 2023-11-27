@@ -43,7 +43,7 @@ class VLLM(LM):
 
         try:
             import vllm
-        except ModuleNotFoundError: 
+        except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'vllm' LM type, but package `vllm` is not installed. \
 please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`",
@@ -60,7 +60,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             tensor_parallel_size=int(tensor_parallel_size),
             swap_space=int(swap_space),
             quantization=quantization,
-            seed=seed,
+            seed=int(seed),
         )
         self.tokenizer = self.model.get_tokenizer()
         self.batch_size = batch_size
