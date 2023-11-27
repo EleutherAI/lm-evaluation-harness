@@ -1,4 +1,6 @@
-group: bbh_flan_cot_zeroshot
+group:
+- bbh_flan_cot_zeroshot
+- bbh_cot_zeroshot
 dataset_path: lukaemon/bbh
 output_type: generate_until
 test_split: test
