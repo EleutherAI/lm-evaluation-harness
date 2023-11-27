@@ -7,11 +7,13 @@ import copy
 from tqdm import tqdm
 from lm_eval.api.registry import register_model
 from lm_eval import utils
+
 try:
     from vllm import LLM, SamplingParams
 except ModuleNotFoundError:
     pass
-    
+
+
 eval_logger = utils.eval_logger
 
 
@@ -43,10 +45,10 @@ class VLLM(LM):
             import vllm
         except ModuleNotFoundError: 
             raise Exception(
-            "attempted to use 'vllm' LM type, but package `vllm` is not installed. \
+                "attempted to use 'vllm' LM type, but package `vllm` is not installed. \
 please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`",
-        )
-        
+            )
+
         assert "cuda" in device or device is None, "vLLM only supports CUDA"
         self.model = LLM(
             model=pretrained,
