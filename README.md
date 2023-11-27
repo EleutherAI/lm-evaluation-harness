@@ -39,7 +39,7 @@ pip install -e ".[gptq]"
 ```
 
 
-To install the package with all extras, run
+Though we recommend only installing the extras you require, to install the package with all extras, run
 ```bash
 pip install -e ".[all]"
 ```
@@ -132,9 +132,30 @@ To use `accelerate` with the `lm-eval` command, use
 accelerate launch --no_python lm-eval --model ...
 ```
 
-### Commercial APIs
+### Tensor Parallel + Optimized Inference with vLLM
 
-Our library also supports the evaluation of models served via several commercial APIs, and hope to implement support for common performant local/self-hosted inference servers.
+We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html).
+
+To run with vLLM, first install the vllm library, externally or via the lm_eval[vllm] extra:
+
+```bash
+pip install -e .[vllm]
+```
+
+Then, you can run the library as normal, for single-GPU or tensor-parallel inference, for example:
+
+```bash
+python -m lm_eval \
+    --model vllm \
+    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},dtype=auto,gpu_memory_utilization=0.8
+    --tasks lambada_openai
+    --batch_size auto
+```
+For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
+
+### Supported APIs and Inference Libraries
+
+Our library also supports the evaluation of models served via several commercial APIs, and we hope to implement support for the most commonly used performant local/self-hosted inference servers.
 
 A full accounting of the supported and planned libraries + APIs can be seen below:
 
