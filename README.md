@@ -146,7 +146,7 @@ A full accounting of the supported and planned libraries + APIs can be seen belo
 | GooseAI                     | :heavy_check_mark: (not separately maintained)  | `openai`, `openai-completions`, `gooseai` (same interface as OpenAI Completions) |                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | Textsynth                   | Needs testing                   | `textsynth`                                                                      | ???                                  | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | Cohere                      | :hourglass: - blocked on Cohere API bug | N/A                                                                              | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models) | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| GGML                        | :hourglass: [PR](https://github.com/EleutherAI/lm-evaluation-harness/pull/617)              | N/A                                                                              | ???                                  | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| GGML/[Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python))                        | :heavy_check_mark:              | `gguf`, `ggml`                                                | Llama-architecture models (Llama, Llama 2, Llemma, Mistral(?), Llama finetunes)                               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | vLLM                        | :x: Not yet - needs help!       | N/A                                                                              | All HF models                        | `generate_until` (no logprobs)                             |
 | Your inference server here! | ...                             | ...                                                                              | ...                                  | ...                                                      |                                | ...                                                      |
 
@@ -194,7 +194,7 @@ python -m lm_eval \
     --check_integrity
 ```
 
-## Advanced Usage
+## Advanced Usage Tips
 
 For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
 ```bash
@@ -216,11 +216,15 @@ python -m lm_eval \
 
 We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
 
+To save evaluation results provide an `--output_path`. We also support logging model responses with the `--log_samples` flag for post-hoc analysis.
+
+Additionally, one can provide a directory with `--use_cache` to cache the results of prior runs. This allows you to avoid repeated execution of the same (model, task) pairs for re-scoring.
+
+For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/interface.md) guide in our documentation!
 
 ## How to Contribute or Learn More?
 
 For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
-
 
 You can also ask for help, or discuss new features with the maintainers in the #lm-thunderdome channel of the EleutherAI discord! If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
 
@@ -228,9 +232,15 @@ You can also ask for help, or discuss new features with the maintainers in the #
 
 To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
 
+In general, we following the following priority list for addressing concerns about prompting and other eval details:
+1. If there is widespread agreement among people who train LLMs, use the agreed upon procedure.
+2. If there is a clear and unambiguous official implementation, use that procedure.
+3. If there is widespread agreement among people who evaluate LLMs, use the agreed upon procedure.
+4. If there are multiple common implementations but not universal or widespread agreement, use our preferred option among the common implementations. As before, prioritize choosing from among the implementations found in LLM training papers.
 
-As a start, we currently only support one prompt per task, which we strive to make the "standard" as defined by the benchmark's authors. If you would like to study how varying prompts causes changes in the evaluation score, we support prompts authored in the [Promptsource Library](https://github.com/bigscience-workshop/promptsource/tree/main) as described further in [the task guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/new_task_guide.md) and [the advanced task guide](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/docs/advanced_task_guide.md) and welcome contributions of novel task templates and task variants.
+These are guidelines and not rules, and can be overruled in special circumstances.
 
+We try to prioritize agreement with the procedures used by other groups to decrease the harm when people inevitably compare runs across different papers despite our discouragement of the practice. Historically, we also prioritized the implementation from "Language Models are Few Shot Learners" as our original goal was specifically to compare results with that paper.
 
 ## Cite as
 
