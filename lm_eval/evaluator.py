@@ -20,6 +20,7 @@ from lm_eval.utils import (
     make_table,
     create_iterator,
     get_git_commit_hash,
+    simple_parse_args_string,
     eval_logger,
 )
 
@@ -40,6 +41,7 @@ def simple_evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
+    gen_kwargs: str = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -70,6 +72,9 @@ def simple_evaluate(
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param gen_kwargs: str
+        String arguments for model generation
+        Ignored for all tasks with loglikelihood output_type
     :return
         Dictionary of results
     """
@@ -82,6 +87,14 @@ def simple_evaluate(
     assert (
         tasks != []
     ), "No tasks specified, or no tasks found. Please verify the task names."
+
+    if gen_kwargs is not None:
+        gen_kwargs = simple_parse_args_string(gen_kwargs)
+        eval_logger.warning(
+            f"generation_kwargs specified through cli, these settings will be used over set parameters in yaml tasks."
+        )
+        if gen_kwargs == "":
+            gen_kwargs = None
 
     if isinstance(model, str):
         if model_args is None:
@@ -117,6 +130,9 @@ def simple_evaluate(
                 continue
 
         config = task_obj._config
+        if config["output_type"] == "generate_until" and gen_kwargs is not None:
+            config["generation_kwargs"].update(gen_kwargs)
+
         if num_fewshot is not None:
             if config["num_fewshot"] > 0:
                 default_num_fewshot = config["num_fewshot"]
@@ -154,6 +170,7 @@ def simple_evaluate(
             "use_cache": use_cache,
             "limit": limit,
             "bootstrap_iters": bootstrap_iters,
+            "gen_kwargs": gen_kwargs,
         }
         results["git_hash"] = get_git_commit_hash()
         return results

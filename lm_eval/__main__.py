@@ -106,6 +106,14 @@ def parse_eval_args() -> argparse.Namespace:
         help="Additional path to include if there are external tasks to include.",
     )
     parser.add_argument(
+        "--gen_kwargs",
+        default="",
+        help=(
+            "String arguments for model generation on greedy_until tasks,"
+            " e.g. `temperature=0,top_k=0,top_p=0`"
+        ),
+    )
+    parser.add_argument(
         "--verbosity",
         type=str,
         default="INFO",
@@ -210,6 +218,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
+        gen_kwargs=args.gen_kwargs,
     )
 
     if results is not None:
@@ -236,7 +245,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     filename.open("w").write(samples_dumped)
 
         print(
-            f"{args.model} ({args.model_args}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
+            f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
             f"batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
         )
         print(evaluator.make_table(results))

@@ -59,7 +59,12 @@ def handle_arg_string(arg):
         return True
     elif arg.lower() == "false":
         return False
-    return arg
+    elif arg.isnumeric():
+        return int(arg)
+    try:
+        return float(arg)
+    except ValueError:
+        return arg
 
 
 def simple_parse_args_string(args_string):
