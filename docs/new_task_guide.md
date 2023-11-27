@@ -4,6 +4,8 @@
 
 This documentation page provides a walkthrough to get started creating your own task, on the `big-refactor` branch of the repository (which will be v0.5.0 in the future.)
 
+A more interactive tutorial is available as a Jupyter notebook [here](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/examples/lm-eval-overview.ipynb).
+
 ## Setup
 
 If you haven't already, go ahead and fork the main repo, clone it, create a branch with the name of your task, and install the project requirements in your environment:
