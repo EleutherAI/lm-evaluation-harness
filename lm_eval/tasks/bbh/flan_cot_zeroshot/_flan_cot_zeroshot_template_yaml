@@ -12,6 +12,8 @@ metric_list:
 generation_kwargs:
   until:
     - "</s>"
+    - "Q"
+    - "\n\n"
   do_sample: false
   temperature: 0.0
 filter_list:
