@@ -1,4 +1,6 @@
-group: bbh_flan_cot_fewshot
+group:
+- bbh_flan_cot_fewshot
+- bbh
 dataset_path: lukaemon/bbh
 output_type: generate_until
 test_split: test
@@ -12,6 +14,8 @@ metric_list:
 generation_kwargs:
   until:
     - "</s>"
+    - "Q"
+    - "\n\n"
   do_sample: false
   temperature: 0.0
 filter_list:
