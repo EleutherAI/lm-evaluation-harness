@@ -8,6 +8,7 @@ import torch
 
 @pytest.mark.skip(reason="requires CUDA")
 class TEST_VLLM:
+    vllm = pytest.importorskip("vllm")
     try:
         from lm_eval.models.vllm_causallms import VLLM
 
