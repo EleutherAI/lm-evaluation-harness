@@ -36,11 +36,6 @@ class VLLM(LM):
     ):
         super().__init__()
         assert "cuda" in device or device is None, "vLLM only supports CUDA"
-        if batch_size == "auto":
-            eval_logger.info(
-                "vllm does not support auto selection. Setting batch_size to 8"
-            )
-            batch_size = 8
         self.model = LLM(
             model=pretrained,
             gpu_memory_utilization=gpu_memory_utilization,
