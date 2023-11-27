@@ -39,7 +39,7 @@ pip install -e ".[gptq]"
 ```
 
 
-To install the package with all extras, run
+Though we recommend only installing the extras you require, to install the package with all extras, run
 ```bash
 pip install -e ".[all]"
 ```
@@ -132,23 +132,44 @@ To use `accelerate` with the `lm-eval` command, use
 accelerate launch --no_python lm-eval --model ...
 ```
 
-### Commercial APIs
+### Tensor Parallel + Optimized Inference with vLLM
 
-Our library also supports the evaluation of models served via several commercial APIs, and hope to implement support for common performant local/self-hosted inference servers.
+We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html).
+
+To run with vLLM, first install the vllm library, externally or via the lm_eval[vllm] extra:
+
+```bash
+pip install -e .[vllm]
+```
+
+Then, you can run the library as normal, for single-GPU or tensor-parallel inference, for example:
+
+```bash
+python -m lm_eval \
+    --model vllm \
+    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},dtype=auto,gpu_memory_utilization=0.8
+    --tasks lambada_openai
+    --batch_size auto
+```
+For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
+
+### Supported APIs and Inference Libraries
+
+Our library also supports the evaluation of models served via several commercial APIs, and we hope to implement support for the most commonly used performant local/self-hosted inference servers.
 
 A full accounting of the supported and planned libraries + APIs can be seen below:
 
-| API or Inference Server     | Implemented?                    | `--model <xxx>` name                                                             | Models supported:                    | Request Types:                                           |
-|-----------------------------|---------------------------------|----------------------------------------------------------------------------------|--------------------------------------|----------------------------------------------------------|
-| OpenAI Completions          | :heavy_check_mark:              | `openai`, `openai-completions`, `gooseai`                                        | up to `code-davinci-002`             | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| OpenAI ChatCompletions      | :x: Not yet - needs testing!       | N/A                                                                              | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                         | `generate_until` (no logprobs)                             |
-| Anthropic                   | :heavy_check_mark:              | `anthropic`                                                                      | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)         | `generate_until` (no logprobs)                             |
-| GooseAI                     | :heavy_check_mark: (not separately maintained)  | `openai`, `openai-completions`, `gooseai` (same interface as OpenAI Completions) |                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Textsynth                   | Needs testing                   | `textsynth`                                                                      | ???                                  | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Cohere                      | :hourglass: - blocked on Cohere API bug | N/A                                                                              | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models) | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| GGML/[Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python))                        | :heavy_check_mark:              | `gguf`, `ggml`                                                | Llama-architecture models (Llama, Llama 2, Llemma, Mistral(?), Llama finetunes)                               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| vLLM                        | :x: Not yet - needs help!       | N/A                                                                              | All HF models                        | `generate_until` (no logprobs)                             |
-| Your inference server here! | ...                             | ...                                                                              | ...                                  | ...                                                      |                                | ...                                                      |
+| API or Inference Server     | Implemented?                    | `--model <xxx>` name                                                             | Models supported:                                                                             | Request Types:                                           |
+|-----------------------------|---------------------------------|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------|
+| OpenAI Completions          | :heavy_check_mark:              | `openai`, `openai-completions`, `gooseai`                                        | up to `code-davinci-002`                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| OpenAI ChatCompletions      | :x: Not yet - needs testing!       | N/A                                                                              | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                 | `generate_until` (no logprobs)                             |
+| Anthropic                   | :heavy_check_mark:              | `anthropic`                                                                      | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)  | `generate_until` (no logprobs)                             |
+| GooseAI                     | :heavy_check_mark: (not separately maintained)  | `openai`, `openai-completions`, `gooseai` (same interface as OpenAI Completions) |                                                                                               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Textsynth                   | Needs testing                   | `textsynth`                                                                      | ???                                                                                           | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Cohere                      | :hourglass: - blocked on Cohere API bug | N/A                                                                              | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models)                        | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| GGML/[Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python))                        | :heavy_check_mark:              | `gguf`, `ggml`                                                                   | Llama-architecture models (Llama, Llama 2, Llemma, Mistral(?), Llama finetunes)               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| vLLM                        | :heavy_check_mark:       | `vllm`                                                                           | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
+| Your inference server here! | ...                             | ...                                                                              | ...                                                                                           | ...                                                      |                                | ...                                                      |
 
 It is on our roadmap to create task variants designed to enable models which do not serve logprobs/loglikelihoods to be compared with generation performance of open-source models.
 
