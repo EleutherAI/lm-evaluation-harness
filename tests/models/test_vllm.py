@@ -1,17 +1,21 @@
 import pytest
 from typing import List
-from lm_eval.models.vllm_causallms import VLLM
 from lm_eval.api.instance import Instance
 import lm_eval.tasks as tasks
 import sys
 import torch
 
 
-@pytest.skip(reason="requires CUDA")
+@pytest.mark.skip(reason="requires CUDA")
 class TEST_VLLM:
+    try:
+        from lm_eval.models.vllm_causallms import VLLM
+
+        LM = VLLM(pretrained="EleutherAI/pythia-70m")
+    except ModuleNotFoundError:
+        pass
     torch.use_deterministic_algorithms(True)
     tasks.initialize_tasks()
-    LM = VLLM(pretrained="EleutherAI/pythia-70m")
     multiple_choice_task = tasks.TASK_REGISTRY.get("arc_easy")()  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: List[Instance] = multiple_choice_task.instances
