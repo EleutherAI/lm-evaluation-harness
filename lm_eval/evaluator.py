@@ -625,7 +625,8 @@ def evaluate(
                 groups_agg[group]["alias"] = tab_string + group
 
         for group_name, task_list in task_hierarchy.items():
-            num_fewshot[group_name] = num_fewshot[task_list[0]]
+            if task_list != []:
+                num_fewshot[group_name] = num_fewshot[task_list[0]]
 
         results_dict = {
             "results": dict(results_agg.items()),
