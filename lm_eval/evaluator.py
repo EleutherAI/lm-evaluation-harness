@@ -138,7 +138,7 @@ def simple_evaluate(
                 eval_logger.info(
                     f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
                 )
-            elif config["num_fewshot"] > 0:
+            else:
                 default_num_fewshot = config["num_fewshot"]
                 eval_logger.warning(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
@@ -623,6 +623,9 @@ def evaluate(
                 groups_agg[group]["alias"] = tab_string + group_alias
             else:
                 groups_agg[group]["alias"] = tab_string + group
+
+        for group_name, task_list in task_hierarchy.items():
+            num_fewshot[group_name] = num_fewshot[task_list[0]]
 
         results_dict = {
             "results": dict(results_agg.items()),
