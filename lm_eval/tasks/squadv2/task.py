@@ -50,7 +50,7 @@ def _squad_agg(key, items):
 
 @register_task("squadv2")
 class SQuAD2(Task):
-    VERSION = 1
+    VERSION = 2
     DATASET_PATH = "squad_v2"
     DATASET_NAME = None
 
