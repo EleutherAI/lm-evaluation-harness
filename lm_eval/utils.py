@@ -280,28 +280,21 @@ def make_table(result_dict, column: str = "results"):
     elif column == "groups":
         column_name = "Groups"
 
+    all_headers = [
+        column_name,
+        "Version",
+        "Filter",
+        "n-shot",
+        "Metric",
+        "Value",
+        "",
+        "Stderr",
+    ]
+
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
-    md_writer.headers = [
-        column_name,
-        "Version",
-        "Filter",
-        "n-shot",
-        "Metric",
-        "Value",
-        "",
-        "Stderr",
-    ]
-    latex_writer.headers = [
-        column_name,
-        "Version",
-        "Filter",
-        "n-shot",
-        "Metric",
-        "Value",
-        "",
-        "Stderr",
-    ]
+    md_writer.headers = all_headers
+    latex_writer.headers = all_headers
 
     values = []
 
