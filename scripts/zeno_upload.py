@@ -4,9 +4,8 @@ import os
 import re
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-from zeno_client import ZenoClient, ZenoMetric
+from zeno_client import ZenoClient
 
 
 def parse_args():
@@ -33,11 +32,11 @@ def main():
     """
     args = parse_args()
 
-    client = ZenoClient(os.environ["ZENO_API_KEY"])
+    client = ZenoClient(os.environ["ZENO_API_KEY"], endpoint="http://localhost:8000")
     project = client.create_project(
         name=args.project_name,
         view="text-classification",
-        metrics=[ZenoMetric(name="accuracy", type="mean", columns=["correct"])],
+        metrics=[],  # TODO: Check metrics
     )
 
     # Get all model subfolders from the parent data folder.
@@ -47,7 +46,7 @@ def main():
         if f.is_dir()
     ]
 
-    assert len(models) == 0, "No model directories found in the data_path."
+    assert len(models) > 0, "No model directories found in the data_path."
 
     # Upload data for all models
     for model_index, model in enumerate(models):
@@ -63,9 +62,7 @@ def main():
         files = list(dir_path.glob("*.jsonl"))
         tasks = [
             {
-                "name": file.name.replace(model_args, "")
-                .replace(".jsonl", "")
-                .replace("_", ""),
+                "name": file.name.replace(model_args, "").replace(".jsonl", "")[1:],
                 "file": file,
             }
             for file in files
@@ -74,36 +71,29 @@ def main():
         df = pd.DataFrame()
         system_df = pd.DataFrame()
 
+        configs = json.load(open(Path(dir_path, "results.json")))["configs"]
+
         # Accumulate data for all tasks
         for index, task in enumerate(tasks):
+            config = configs[task["name"]]
             data = []
             with open(task["file"], "r") as file:
-                for line in file:
-                    data.append(json.loads(line))
-            questions_answers = list(
-                map(
-                    lambda x: {
-                        "question": x["arguments"][0][0],
-                        "answers": list(map(lambda y: y[1], x["arguments"])),
-                    },
-                    data,
-                )
-            )
+                data = json.loads(file.read())
+
             if model_index == 0:  # Only need to assemble data for the first model
                 df = (
-                    generate_dataset(data, questions_answers, task["name"])
+                    generate_dataset(data, config, task["name"])
                     if index == 0
-                    else pd.concat(
-                        [df, generate_dataset(data, questions_answers, task["name"])]
-                    )
+                    else pd.concat([df, generate_dataset(data, config, task["name"])])
                 )
+
             system_df = (
-                generate_system_df(data, questions_answers, task["name"])
+                generate_system_df(data, config, task["name"])
                 if index == 0
                 else pd.concat(
                     [
                         system_df,
-                        generate_system_df(data, questions_answers, task["name"]),
+                        generate_system_df(data, config, task["name"]),
                     ]
                 )
             )
@@ -123,54 +113,68 @@ def main():
 
 def generate_dataset(
     data,
-    questions_answers,
+    config,
     task_name: str,
 ):
     """Generate a Zeno dataset from evaluation data.
 
     Args:
         data: The data to generate a dataset for.
-        questions_answers: The questions and answers for all instances.
+        config: The configuration of the task.
         task_name (str): The name of the task for which to format the data.
 
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno.
     """
-    labels = list(map(lambda x: int(x["target"]), data))
-    label_values = [
-        questions_answers[index]["answers"][label] for index, label in enumerate(labels)
-    ]
-    df = pd.DataFrame(
+    ids = list(
+        map(
+            lambda x: f"{task_name}_{str(x['doc_id'])}",
+            data,
+        )
+    )
+    labels = list(map(lambda x: str(x["target"]), data))
+    instance = [""] * len(ids)
+
+    if config["output_type"] == "loglikelihood":
+        instance = list(map(lambda x: str(x["arguments"][0][0]), data))
+        labels = list(map(lambda x: str(x["arguments"][0][1]), data))
+    elif config["output_type"] == "multiple_choice":
+        instance = list(
+            map(
+                lambda x: str(
+                    x["arguments"][0][0]
+                    + "\n\n"
+                    + "\n".join(list(map(lambda y: f"- {y[1]}", x["arguments"])))
+                ),
+                data,
+            )
+        )
+    elif config["output_type"] == "loglikelihood_rolling":
+        instance = list(map(lambda x: str(x["arguments"][0][0]), data))
+    elif config["output_type"] == "generate_until":
+        instance = list(map(lambda x: str(x["arguments"][0][0]), data))
+
+    return pd.DataFrame(
         {
-            "id": list(
-                map(
-                    lambda x: f"{task_name}_{str(x['doc_id'])}",
-                    data,
-                )
-            ),
-            "data": list(
-                map(
-                    lambda x: x["question"] + "\n\n" + "\n".join(x["answers"]),
-                    questions_answers,
-                )
-            ),
+            "id": ids,
+            "data": instance,
             "task": task_name,
-            "labels": label_values,
+            "labels": labels,
+            "output_type": config["output_type"],
         }
     )
-    return df
 
 
 def generate_system_df(
     data,
-    questions_answers,
+    config,
     task_name: str,
 ):
     """Generate a dataframe for a specific system to be uploaded to Zeno.
 
     Args:
         data: The data to generate a dataframe from.
-        questions_answers: The questions and answers for all instances.
+        config: The configuration of the task.
         task_name (str): The name of the task for which to format the data.
 
     Returns:
@@ -182,41 +186,41 @@ def generate_system_df(
             data,
         )
     )
-    answers = []
-    correct_list = []
-    for element_index, element in enumerate(data):
-        resps = list(map(lambda x: x[0], element["filtered_resps"]))
-        if "acc_norm" in element:
-            norm_logits = resps / np.array(
-                [float(len(i)) for i in questions_answers[element_index]["answers"]]
+    answers = [""] * len(ids)
+
+    if config["output_type"] == "loglikelihood":
+        answers = list(
+            map(
+                lambda x: "correct"
+                if x["filtered_resps"][0][1] == True
+                else "incorrect",
+                data,
             )
-            answer = questions_answers[element_index]["answers"][np.argmax(norm_logits)]
-            correct = (
-                questions_answers[element_index]["answers"][element["target"]] == answer
+        )
+    elif config["output_type"] == "multiple_choice":
+        answers = list(
+            map(
+                lambda x: ", ".join(
+                    list(map(lambda y: str(y[0]), x["filtered_resps"]))
+                ),
+                data,
             )
-            answer = (
-                answer
-                + "\n\n"
-                + "Raw Pred.: "
-                + ", ".join(map(lambda y: str(round(y, 2)), resps))
-                + "\n\n"
-                + "Norm Pred.: "
-                + ", ".join(map(lambda y: str(round(y, 2)), norm_logits))
+        )
+    elif config["output_type"] == "loglikelihood_rolling":
+        answers = list(map(lambda x: str(x["filtered_resps"][0]), data))
+    elif config["output_type"] == "generate_until":
+        answers = list(map(lambda x: str(x["filtered_resps"][0]), data))
+
+    metrics = {}
+    for metric in config["metric_list"]:
+        if "aggregation" in metric and metric["aggregation"] == "mean":
+            metrics[metric["metric"]] = list(
+                map(lambda x: str(x[metric["metric"]]), data)
             )
-        else:
-            answer = questions_answers[element_index]["answers"][np.argmax(resps)]
-            correct = (
-                questions_answers[element_index]["answers"][element["target"]] == answer
-            )
-            answer = (
-                answer
-                + "\n\n"
-                + "Pred.: "
-                + ", ".join(map(lambda y: str(round(y, 2)), resps))
-            )
-        answers.append(answer)
-        correct_list.append(correct)
-    system_df = pd.DataFrame({"id": ids, "output": answers, "correct": correct_list})
+
+    system_dict = {"id": ids, "output": answers}
+    system_dict.update(metrics)
+    system_df = pd.DataFrame(system_dict)
     return system_df
 
 
