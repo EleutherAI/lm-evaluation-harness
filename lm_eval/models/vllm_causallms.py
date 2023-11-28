@@ -1,12 +1,14 @@
 from collections import defaultdict
 from typing import List, Tuple, Optional, Literal, Union
-
+from transformers import AutoTokenizer
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 import copy
 from tqdm import tqdm
 from lm_eval.api.registry import register_model
 from lm_eval import utils
+from ray.util.multiprocessing import Pool
+
 
 try:
     from vllm import LLM, SamplingParams
@@ -15,6 +17,11 @@ except ModuleNotFoundError:
 
 
 eval_logger = utils.eval_logger
+
+
+def run_inference_one_gpu(model_args: dict, sampling_params, requests: List[int]):
+    llm = LLM(**model_args)
+    return llm.generate(prompt_token_ids=requests, sampling_params=sampling_params)
 
 
 @register_model("vllm")
@@ -38,6 +45,7 @@ class VLLM(LM):
         seed: int = 1234,
         gpu_memory_utilization: float = 0.9,
         device: str = "cuda",
+        data_parallel: int = 1,
     ):
         super().__init__()
 
@@ -50,19 +58,28 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             )
 
         assert "cuda" in device or device is None, "vLLM only supports CUDA"
-        self.model = LLM(
-            model=pretrained,
-            gpu_memory_utilization=float(gpu_memory_utilization),
+        self.tensor_parallel_size = int(tensor_parallel_size)
+        self.data_parallel = int(data_parallel)
+        self.model_args = {
+            "model": pretrained,
+            "gpu_memory_utilization": float(gpu_memory_utilization),
+            "revision": revision,
+            "dtype": dtype,
+            "tokenizer_mode": tokenizer_mode,
+            "trust_remote_code": trust_remote_code,
+            "tensor_parallel_size": int(tensor_parallel_size),
+            "swap_space": int(swap_space),
+            "quantization": quantization,
+            "seed": int(seed),
+        }
+        if self.data_parallel <= 1:
+            self.model = LLM(**self.model_args)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            pretrained,
             revision=revision,
-            dtype=dtype,
-            tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code,
-            tensor_parallel_size=int(tensor_parallel_size),
-            swap_space=int(swap_space),
-            quantization=quantization,
-            seed=int(seed),
+            use_fast=True if tokenizer_mode == "auto" else False,
         )
-        self.tokenizer = self.model.get_tokenizer()
         self.batch_size = batch_size
         self._max_length = max_length
         self._max_gen_toks = max_gen_toks
@@ -76,8 +93,8 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
     def max_length(self):
         if self._max_length:  # if max length manually set, return it
             return self._max_length
-        if hasattr(self.model.llm_engine.model_config, "max_model_len"):
-            return self.model.llm_engine.model_config.max_model_len
+        if hasattr(self.tokenizer, "model_max_length"):
+            return self.tokenizer.model_max_length
         return self._DEFAULT_MAX_LENGTH
 
     @property
@@ -114,23 +131,31 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
         if "do_sample" in kwargs.keys():
             kwargs.pop("do_sample")
         if generate:
-            generate_sampling_params = SamplingParams(
-                max_tokens=max_tokens, stop=stop, **kwargs
-            )
-            outputs = self.model.generate(
-                prompt_token_ids=requests,
-                sampling_params=generate_sampling_params,
-                use_tqdm=use_tqdm,
-            )
+            sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
         else:
-            logliklihood_sampling_params = SamplingParams(
+            sampling_params = SamplingParams(
                 temperature=0, prompt_logprobs=2, max_tokens=1
             )
-            outputs = self.model.generate(
-                prompt_token_ids=requests,
-                sampling_params=logliklihood_sampling_params,
-                use_tqdm=use_tqdm,
-            )
+        if self.data_parallel > 1:
+            req_list = []
+            for replicas in range(self.data_parallel):
+                reqs = utils.create_iterator(
+                    requests, rank=replicas, world_size=self.data_parallel
+                )
+                req_list.append(reqs)
+            inputs = [(self.model_args, sampling_params, req) for req in req_list]
+
+            with Pool(processes=self.data_parallel) as pool:
+                results = pool.starmap(run_inference_one_gpu, inputs)
+            # flatten results
+            return [item for sublist in results for item in sublist]
+
+        outputs = self.model.generate(
+            prompt_token_ids=requests,
+            sampling_params=sampling_params,
+            use_tqdm=use_tqdm,
+        )
+
         return outputs
 
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
