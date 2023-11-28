@@ -10,7 +10,7 @@ import collections
 import importlib.util
 import fnmatch
 
-from typing import Iterator, List, Literal, Union
+from typing import Iterator, List, Literal, Union, Any, Callable
 
 import gc
 import torch
@@ -59,7 +59,12 @@ def handle_arg_string(arg):
         return True
     elif arg.lower() == "false":
         return False
-    return arg
+    elif arg.isnumeric():
+        return int(arg)
+    try:
+        return float(arg)
+    except ValueError:
+        return arg
 
 
 def simple_parse_args_string(args_string):
@@ -84,6 +89,32 @@ def join_iters(iters):
 
 
 def chunks(iter, n: int = 0, fn=None):
+    """
+    Divides an iterable into chunks of specified size or based on a given function.
+    Useful for batching
+
+    Parameters:
+    - iter: The input iterable to be divided into chunks.
+    - n: An integer representing the size of each chunk. Default is 0.
+    - fn: A function that takes the current index and the iterable as arguments and returns the size of the chunk. Default is None.
+
+    Returns:
+    An iterator that yields chunks of the input iterable.
+
+    Example usage:
+    ```
+    data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    for chunk in chunks(data, 3):
+        print(chunk)
+    ```
+    Output:
+    ```
+    [1, 2, 3]
+    [4, 5, 6]
+    [7, 8, 9]
+    [10]
+    ```
+    """
     arr = []
     for i, x in enumerate(iter):
         arr.append(x)
@@ -194,7 +225,13 @@ def make_disjoint_window(pair):
 
 
 class Reorderer:
-    def __init__(self, arr, fn) -> None:
+    def __init__(self, arr: List[Any], fn: Callable) -> None:
+        """Reorder an array according to some function
+
+        Args:
+            arr (List[Any]): The initial array
+            fn (Callable[[Any], Any]): A function to determine the priority of elements
+        """
         self.size = len(arr)
         arr = list(enumerate(arr))
         arr = group(arr, lambda x: fn(x[1]))
@@ -206,9 +243,22 @@ class Reorderer:
         self.arr = arr
 
     def get_reordered(self):
+        """Gets the reordered array
+
+        Returns:
+            List[Any]: The reordered array
+        """
         return [x[1] for x in self.arr]
 
     def get_original(self, newarr):
+        """Restores the original order of a new array based on the old array's order
+
+        Args:
+            newarr (List[Any]): The array to be restored
+
+        Returns:
+            List[Any]: The array restored to the original order
+        """
         res = [None] * self.size
         cov = [False] * self.size
 
@@ -435,7 +485,6 @@ yaml.add_constructor("!function", import_function)
 
 
 def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
-
     if yaml_config is None:
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.full_load(file)
@@ -456,7 +505,6 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
         include_path.reverse()
         final_yaml_config = {}
         for path in include_path:
-
             # Assumes that path is a full path.
             # If not found, assume the included yaml
             # is in the same dir as the original yaml
@@ -579,7 +627,14 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
         self.done_tracker = [False] * batch_size
         self.sequence = sequence
         self.sequence_ids = tokenizer.encode(sequence, add_special_tokens=False)
-        self.sequence_id_len = len(self.sequence_ids)
+        # we look back for 2 more tokens than it takes to encode our stop sequence
+        # because tokenizers suck, and a model might generate `['\n', '\n']` but our `sequence` is `['\n\n']`
+        # and we don't want to mistakenly not stop a generation because our
+        # (string) stop sequence was output in a different tokenization
+
+        # NOTE: there is a minor danger that this will end up looking back 2 tokens into the past, into the inputs to the model,
+        # and stopping generation immediately as a result. With only 2 extra tokens of lookback, this risk is minimized
+        self.sequence_id_len = len(self.sequence_ids) + 2
         self.tokenizer = tokenizer
 
     def __call__(self, input_ids, scores, **kwargs) -> bool:
@@ -589,7 +644,6 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
         ]
 
         lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
-
         for i, done in enumerate(self.done_tracker):
             if not done:
                 self.done_tracker[i] = self.sequence in lookback_tokens_batch[i]
