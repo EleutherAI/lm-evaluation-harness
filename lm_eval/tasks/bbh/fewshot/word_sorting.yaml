@@ -1,0 +1,5 @@
+"dataset_name": "word_sorting"
+"description": "Sort a list of words.\n\n"
+"doc_to_text": "Q: Sort the following words alphabetically: List: oven costume counterpart\nA: costume counterpart oven\n\nQ: Sort the following words alphabetically: List: hypochlorite ponderosa phone credulity\nA: credulity hypochlorite phone ponderosa\n\nQ: Sort the following words alphabetically: List: newt arson parthia seismography mugho aspect census\nA: arson aspect census mugho newt parthia seismography\n\nQ: {{input}}\nA:"
+"include": "_fewshot_template_yaml"
+"task": "bbh_fewshot_word_sorting"
