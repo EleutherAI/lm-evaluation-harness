@@ -81,7 +81,7 @@ class TaskConfig(dict):
     fewshot_delimiter: str = "\n\n"
     fewshot_config: dict = None
     # runtime configuration options
-    num_fewshot: int = 0
+    num_fewshot: int = -1
     # scoring options
     metric_list: list = None
     output_type: str = "generate_until"

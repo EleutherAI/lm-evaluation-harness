@@ -134,13 +134,17 @@ def simple_evaluate(
             config["generation_kwargs"].update(gen_kwargs)
 
         if num_fewshot is not None:
-            if config["num_fewshot"] > 0:
+            if config["num_fewshot"] == 0:
+                eval_logger.info(
+                    f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
+                )
+            else:
                 default_num_fewshot = config["num_fewshot"]
                 eval_logger.warning(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
 
-            task_obj._config["num_fewshot"] = num_fewshot
+                task_obj._config["num_fewshot"] = num_fewshot
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -233,6 +237,8 @@ def evaluate(
     # store the ordering of tasks and groups
     task_order = collections.defaultdict(int)
     task_group_alias = collections.defaultdict(dict)
+    # store num-fewshot value per task
+    num_fewshot = collections.defaultdict(int)
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
@@ -250,6 +256,12 @@ def evaluate(
 
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
+
+        if "num_fewshot" in configs[task_name]:
+            n_shot = configs[task_name]["num_fewshot"]
+        else:
+            n_shot = -1
+        num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
             task_group_alias[task_name] = configs[task_name]["task_alias"]
@@ -612,11 +624,15 @@ def evaluate(
             else:
                 groups_agg[group]["alias"] = tab_string + group
 
+        for group_name, task_list in task_hierarchy.items():
+            num_fewshot[group_name] = num_fewshot[task_list[0]]
+
         results_dict = {
             "results": dict(results_agg.items()),
             **({"groups": dict(groups_agg.items())} if bool(groups_agg) else {}),
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
+            "n-shot": dict(sorted(num_fewshot.items())),
         }
         if log_samples:
             results_dict["samples"] = dict(samples)
