@@ -11,6 +11,7 @@ from typing import List
 import random
 import pytest
 
+tasks.initialize_tasks()
 
 # TODO: more fine grained unit tests rather than this big honking integration
 # test once we break evaluator into smaller, more manageable pieces
