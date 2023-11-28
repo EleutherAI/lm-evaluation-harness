@@ -119,13 +119,17 @@ def simple_evaluate(
 
         config = task_obj._config
         if num_fewshot is not None:
-            if config["num_fewshot"] > 0:
+            if config["num_fewshot"] == 0:
+                eval_logger.info(
+                    f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
+                )
+            elif config["num_fewshot"] > 0:
                 default_num_fewshot = config["num_fewshot"]
                 eval_logger.warning(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
 
-            task_obj._config["num_fewshot"] = num_fewshot
+                task_obj._config["num_fewshot"] = num_fewshot
 
     if check_integrity:
         run_task_tests(task_list=tasks)
