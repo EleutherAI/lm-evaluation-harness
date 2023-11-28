@@ -1,0 +1,5 @@
+"dataset_name": "ruin_names"
+"description": "Select the humorous edit that 'ruins' the input movie or musical artist name.\n\n"
+"doc_to_text": "Q: Which of the following is a humorous edit of this artist or movie name: 'whitesnake'?\nOptions:\n(A) whitesnape\n(B) whitesnapke\n(C) whitesnuake\n(D) mwhitesnake\nA: (A)\n\nQ: Which of the following is a humorous edit of this artist or movie name: 'one of our dinosaurs is missing'?\nOptions:\n(A) ofne of our dinosaurs is missing\n(B) one af our dinosaurs is missing\n(C) one of our dinosaurs is pissing\n(D) one of our dinosaur is missing\nA: (C)\n\nQ: Which of the following is a humorous edit of this artist or movie name: 'counting crows'?\nOptions:\n(A) countingy crows\n(B) counting cows\n(C) courting crows\n(D) coutnting crows\nA: (B)\n\nQ: {{input}}\nA:"
+"include": "_fewshot_template_yaml"
+"task": "bbh_fewshot_ruin_names"
