@@ -10,3 +10,5 @@ doc_to_target: 1
 doc_to_choice: ["no", "yes"]
 metric_list:
   - metric: f1
+metadata:
+  - version: 1.0

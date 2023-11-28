@@ -12,3 +12,5 @@ doc_to_choice: ["no", "yes"]
 metric_list:
   - metric: acc
   - metric: f1
+metadata:
+  - version: 1.0
