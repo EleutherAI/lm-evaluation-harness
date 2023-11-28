@@ -17,3 +17,5 @@ metric_list:
   - metric: !function bleu.smoothed_bleu_4
     aggregation: mean
     higher_is_better: True
+metadata:
+  - version: 2.0

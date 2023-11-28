@@ -24,3 +24,5 @@ filter_list:
       - function: "regex"
         regex_pattern: "(?<=the answer is )(.*)(?=.)"
       - function: "take_first"
+metadata:
+  - version: 0.0

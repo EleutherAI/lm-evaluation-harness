@@ -16,3 +16,5 @@ metric_list:
   - metric: em
     higher_is_better: True
     aggregation: mean
+metadata:
+  - version: 1.0

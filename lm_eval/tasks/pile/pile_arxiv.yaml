@@ -19,3 +19,5 @@ metric_list:
   - metric: bits_per_byte
     aggregation: bits_per_byte
     higher_is_better: false
+metadata:
+  - version: 2.0

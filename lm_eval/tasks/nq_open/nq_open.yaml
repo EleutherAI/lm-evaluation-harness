@@ -28,3 +28,5 @@ metric_list:
     ignore_punctuation: true
     regexes_to_ignore:
     - "\ban|a|the\b"
+metadata:
+  - version: 0.0
