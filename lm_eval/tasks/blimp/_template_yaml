@@ -5,6 +5,7 @@ validation_split: train
 doc_to_text: ""
 doc_to_target: 0
 doc_to_choice: "{{[sentence_good, sentence_bad]}}"
+num_fewshot: 0
 should_decontaminate: true
 doc_to_decontamination_query: "{{sentence_good}} {{sentence_bad}}"
 metric_list:
