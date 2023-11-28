@@ -1,7 +1,7 @@
 import datasets
 import re
 import signal
-from lm_eval.logger import eval_logger
+from lm_eval.utils import eval_logger
 from typing import Optional, List, Dict
 
 try:

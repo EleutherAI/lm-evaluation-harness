@@ -71,6 +71,7 @@ promptsource = [
 gptq = ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"]
 anthropic = ["anthropic"]
 openai = ["openai", "tiktoken"]
+vllm = ["vllm"]
 all = [
     "lm_eval[dev]",
     "lm_eval[testing]",
@@ -80,5 +81,6 @@ all = [
     "lm_eval[promptsource]",
     "lm_eval[gptq]",
     "lm_eval[anthropic]",
-    "lm_eval[openai]"
+    "lm_eval[openai]",
+    "lm_eval[vllm]",
 ]
