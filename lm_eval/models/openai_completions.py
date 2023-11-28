@@ -10,9 +10,6 @@ from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 
-import asyncio
-from openai import OpenAI, AsyncOpenAI
-
 
 def get_result(response: dict, ctxlen: int) -> Tuple[float, bool]:
     """Process results from OpenAI API response.
@@ -58,7 +55,7 @@ please install these via `pip install lm-eval[openai]` or `pip install -e .[open
     backoff_time = 3
     while True:
         try:
-            return openai.Completion.create(**kwargs)
+            return openai.Completions.create(**kwargs)
         except openai.error.OpenAIError:
             import traceback
 
@@ -344,7 +341,6 @@ please install these via `pip install lm-eval[openai]` or `pip install -e .[open
 
 @register_model("openai-chat-completions")
 class OpenaiChatCompletionsLM(LM):
-
     def __init__(
         self, model: str = "gpt-3.5-turbo", truncate: bool = False, batch_size: int = 1
     ) -> None:
@@ -376,7 +372,7 @@ class OpenaiChatCompletionsLM(LM):
         self.end_of_text_token_id = self.tokenizer.eot_token
 
         # Read from environment variable OPENAI_API_KEY
-        self.client = OpenAI() # AsyncOpenAI()
+        self.client = openai.OpenAI()  # openai.AsyncOpenAI()
 
     @property
     def eot_token_id(self):
@@ -451,8 +447,8 @@ class OpenaiChatCompletionsLM(LM):
 
         pbar = tqdm(total=len(requests), disable=(self.rank != 0))
         for key, re_ord in re_ords.items():
-            # n needs to be 1 because messages in 
-            # chat completion are not batch but 
+            # n needs to be 1 because messages in
+            # chat completion are not batch but
             # is regarded as a single conversation.
             chunks = utils.chunks(re_ord.get_reordered(), n=1)
             for chunk in chunks:
