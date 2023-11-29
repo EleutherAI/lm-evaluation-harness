@@ -18,7 +18,8 @@ except ModuleNotFoundError:
 eval_logger = utils.eval_logger
 
 
-def run_inference_one_gpu(model_args: dict, sampling_params, requests: List[int]):
+# adapter from https://github.com/vllm-project/vllm/issues/367#issuecomment-1788341727
+def run_inference_one_model(model_args: dict, sampling_params, requests: List[int]):
     # gpu_id = [x for x in gpu_id]
     # os.environ["CUDA_VISIBLE_DEVICES"]= str(gpu_id)
     llm = LLM(**model_args)
@@ -149,7 +150,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             inputs = [(self.model_args, sampling_params, req) for req in requests]
 
             with Pool(self.data_parallel) as pool:
-                results = pool.starmap(run_inference_one_gpu, inputs)
+                results = pool.starmap(run_inference_one_model, inputs)
             # flatten results
             return [item for sublist in results for item in sublist]
 
