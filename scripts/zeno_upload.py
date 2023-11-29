@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 import pandas as pd
-from zeno_client import ZenoClient
+from zeno_client import ZenoClient, ZenoMetric
 
 
 def parse_args():
@@ -32,12 +32,7 @@ def main():
     """
     args = parse_args()
 
-    client = ZenoClient(os.environ["ZENO_API_KEY"], endpoint="http://localhost:8000")
-    project = client.create_project(
-        name=args.project_name,
-        view="text-classification",
-        metrics=[],  # TODO: Check metrics
-    )
+    client = ZenoClient(os.environ["ZENO_API_KEY"])
 
     # Get all model subfolders from the parent data folder.
     models = [
@@ -48,90 +43,92 @@ def main():
 
     assert len(models) > 0, "No model directories found in the data_path."
 
-    # Upload data for all models
-    for model_index, model in enumerate(models):
-        # Get all output files for the tasks
-        dir_path = Path(args.data_path, model)
+    tasks = tasks_for_model(models[0], args.data_path)
 
-        # Task files are saved with model args as a prefix. We don't want this for the Zeno task names.
-        model_args = re.sub(
-            "/|=",
-            "__",
-            json.load(open(Path(dir_path, "results.json")))["config"]["model_args"],
-        )
-        files = list(dir_path.glob("*.jsonl"))
-        tasks = [
-            {
-                "name": file.name.replace(model_args, "").replace(".jsonl", "")[1:],
-                "file": file,
-            }
-            for file in files
-        ]
+    for model in models:  # Make sure that all models have the same tasks.
+        assert (
+            tasks_for_model(model, args.data_path) == tasks
+        ), "All models must have the same tasks."
 
-        df = pd.DataFrame()
-        system_df = pd.DataFrame()
-
-        configs = json.load(open(Path(dir_path, "results.json")))["configs"]
-
-        # Accumulate data for all tasks
-        for index, task in enumerate(tasks):
-            config = configs[task["name"]]
-            data = []
-            with open(task["file"], "r") as file:
+    for task in tasks:
+        # Upload data for all models
+        for model_index, model in enumerate(models):
+            model_args = re.sub(
+                "/|=",
+                "__",
+                json.load(open(Path(args.data_path, model, "results.json")))["config"][
+                    "model_args"
+                ],
+            )
+            with open(
+                Path(args.data_path, model, f"{model_args}_{task}.jsonl"), "r"
+            ) as file:
                 data = json.loads(file.read())
 
+            configs = json.load(open(Path(args.data_path, model, "results.json")))[
+                "configs"
+            ]
+            config = configs[task]
+
             if model_index == 0:  # Only need to assemble data for the first model
-                df = (
-                    generate_dataset(data, config, task["name"])
-                    if index == 0
-                    else pd.concat([df, generate_dataset(data, config, task["name"])])
+                metrics = []
+                for metric in config["metric_list"]:
+                    metrics.append(
+                        ZenoMetric(
+                            name=metric["metric"],
+                            type="mean",
+                            columns=[metric["metric"]],
+                        )
+                    )
+                project = client.create_project(
+                    name=args.project_name + (f"_{task}" if len(tasks) > 1 else ""),
+                    view="text-classification",
+                    metrics=metrics,
+                )
+                project.upload_dataset(
+                    generate_dataset(data, config),
+                    id_column="id",
+                    data_column="data",
+                    label_column="labels",
                 )
 
-            system_df = (
-                generate_system_df(data, config, task["name"])
-                if index == 0
-                else pd.concat(
-                    [
-                        system_df,
-                        generate_system_df(data, config, task["name"]),
-                    ]
-                )
+            project.upload_system(
+                generate_system_df(data, config),
+                name=model,
+                id_column="id",
+                output_column="output",
             )
 
-        if model_index == 0:  # Only need to upload data for the first model
-            project.upload_dataset(
-                df, id_column="id", data_column="data", label_column="labels"
-            )
 
-        project.upload_system(
-            system_df,
-            name=model,
-            id_column="id",
-            output_column="output",
-        )
+def tasks_for_model(model: str, data_path: str):
+    """Get the tasks for a specific model.
+
+    Args:
+        model (str): The name of the model.
+        data_path (str): The path to the data.
+
+    Returns:
+        list: A list of tasks for the model.
+    """
+    dir_path = Path(data_path, model)
+    config = (json.load(open(Path(dir_path, "results.json")))["configs"],)
+    return list(config[0].keys())
 
 
 def generate_dataset(
     data,
     config,
-    task_name: str,
 ):
     """Generate a Zeno dataset from evaluation data.
 
     Args:
         data: The data to generate a dataset for.
         config: The configuration of the task.
-        task_name (str): The name of the task for which to format the data.
 
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno.
     """
-    ids = list(
-        map(
-            lambda x: f"{task_name}_{str(x['doc_id'])}",
-            data,
-        )
-    )
+    ids = list(map(lambda x: str(x["doc_id"]), data))
     labels = list(map(lambda x: str(x["target"]), data))
     instance = [""] * len(ids)
 
@@ -158,34 +155,23 @@ def generate_dataset(
         {
             "id": ids,
             "data": instance,
-            "task": task_name,
             "labels": labels,
             "output_type": config["output_type"],
         }
     )
 
 
-def generate_system_df(
-    data,
-    config,
-    task_name: str,
-):
+def generate_system_df(data, config):
     """Generate a dataframe for a specific system to be uploaded to Zeno.
 
     Args:
         data: The data to generate a dataframe from.
         config: The configuration of the task.
-        task_name (str): The name of the task for which to format the data.
 
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno as a system.
     """
-    ids = list(
-        map(
-            lambda x: f"{task_name}_{str(x['doc_id'])}",
-            data,
-        )
-    )
+    ids = list(map(lambda x: str(x["doc_id"]), data))
     answers = [""] * len(ids)
 
     if config["output_type"] == "loglikelihood":
@@ -214,9 +200,7 @@ def generate_system_df(
     metrics = {}
     for metric in config["metric_list"]:
         if "aggregation" in metric and metric["aggregation"] == "mean":
-            metrics[metric["metric"]] = list(
-                map(lambda x: str(x[metric["metric"]]), data)
-            )
+            metrics[metric["metric"]] = list(map(lambda x: x[metric["metric"]], data))
 
     system_dict = {"id": ids, "output": answers}
     system_dict.update(metrics)
