@@ -121,12 +121,12 @@ To run with vLLM, first install the vllm library, externally or via the lm_eval[
 pip install -e .[vllm]
 ```
 
-Then, you can run the library as normal. For single-GPU or multi-GPU — tensor parallel, data parallel or a combination of both — inference, for example:
+Then, you can run the library as normal. For single-GPU or multi-GPU — tensor parallel, data parallel, or a combination of both — inference, for example:
 
 ```bash
 python -m lm_eval \
     --model vllm \
-    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},data_parallel={number of model replicas},dtype=auto,gpu_memory_utilization=0.8
+    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs per model},data_parallel={number of model replicas},dtype=auto,gpu_memory_utilization=0.8
     --tasks lambada_openai
     --batch_size auto
 ```
