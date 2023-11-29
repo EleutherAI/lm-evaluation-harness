@@ -260,7 +260,7 @@ def evaluate(
         if "num_fewshot" in configs[task_name]:
             n_shot = configs[task_name]["num_fewshot"]
         else:
-            n_shot = -1
+            n_shot = 0
         num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
@@ -440,7 +440,6 @@ def evaluate(
         vals = vals_torch
 
     if lm.rank == 0:
-
         ### Get task ordering for correct sample-wide aggregation
         group_to_task = {}
         for group in task_hierarchy.keys():
@@ -451,7 +450,6 @@ def evaluate(
                 group_to_task[group] = task_hierarchy[group].copy()
 
             for task in task_hierarchy[group]:
-
                 if task in task_order:
                     task_order[task] += 1
                 else:
@@ -498,9 +496,7 @@ def evaluate(
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
 
         if bool(results):
-
             for group, task_list in reversed(task_hierarchy.items()):
-
                 if task_list == []:
                     total_size = results[group]["samples"]
                 else:
@@ -520,7 +516,6 @@ def evaluate(
                         for metric in [
                             key for key in metrics.keys() if "_stderr" not in key
                         ]:
-
                             stderr = "_stderr,".join(metric.split(","))
                             stderr_score = results[task][stderr]
                             var_score = stderr_score**2
@@ -557,11 +552,9 @@ def evaluate(
                 results[group]["samples"] = total_size
 
         def print_tasks(task_hierarchy, task_order, task_version, task_group_alias):
-
             results_agg = collections.defaultdict(dict)
             groups_agg = collections.defaultdict(dict)
             for group_name, task_list in task_hierarchy.items():
-
                 order = task_order[group_name]
                 results_agg[group_name] = results[group_name].copy()
                 results_agg[group_name]["tab"] = order
