@@ -7,10 +7,10 @@ import copy
 from tqdm import tqdm
 from lm_eval.api.registry import register_model
 from lm_eval import utils
-from ray.util.multiprocessing import Pool
 
 try:
     from vllm import LLM, SamplingParams
+    from ray.util.multiprocessing import Pool
 except ModuleNotFoundError:
     pass
 
