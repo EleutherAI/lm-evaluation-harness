@@ -7,7 +7,6 @@ import copy
 from tqdm import tqdm
 from lm_eval.api.registry import register_model
 from lm_eval import utils
-import numpy as np
 
 try:
     from vllm import LLM, SamplingParams
@@ -142,7 +141,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
                 temperature=0, prompt_logprobs=2, max_tokens=1
             )
         if self.data_parallel > 1:
-            requests = np.array_split(requests, self.data_parallel)
+            requests = [list(x) for x in (utils.divide(requests, self.data_parallel))]
             inputs = [(self.model_args, sampling_params, req) for req in requests]
 
             with Pool(self.data_parallel) as pool:
