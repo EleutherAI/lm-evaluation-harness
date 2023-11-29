@@ -25,7 +25,7 @@ cd lm-evaluation-harness
 pip install -e .
 ```
 
-We also provide a number of optional dependencies for . Extras can be installed via `pip install -e ".[NAME]"`
+We also provide a number of optional dependencies for extended functionality. Extras can be installed via `pip install -e ".[NAME]"`
 
 | Name          | Use                                   |
 | ------------- | ------------------------------------- |
@@ -111,7 +111,7 @@ To use `accelerate` with the `lm-eval` command, use
 accelerate launch --no_python lm-eval --model ...
 ```
 
-#### Tensor Parallel + Optimized Inference with vLLM
+#### Tensor + Data Parallel and Optimized Inference with `vLLM`
 
 We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html).
 
@@ -121,12 +121,12 @@ To run with vLLM, first install the vllm library, externally or via the lm_eval[
 pip install -e .[vllm]
 ```
 
-Then, you can run the library as normal, for single-GPU or tensor-parallel inference, for example:
+Then, you can run the library as normal. For single-GPU or multi-GPU — tensor parallel, data parallel or a combination of both — inference, for example:
 
 ```bash
 python -m lm_eval \
     --model vllm \
-    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},dtype=auto,gpu_memory_utilization=0.8
+    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},data_parallel={number of model replicas},dtype=auto,gpu_memory_utilization=0.8
     --tasks lambada_openai
     --batch_size auto
 ```
