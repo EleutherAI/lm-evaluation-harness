@@ -366,9 +366,12 @@ class BaseLM(LM):
                 inplens.append(inplen)
 
             batched_inps = torch.cat(inps, dim=0)  # [batch, padding_length]
-            multi_logits = F.log_softmax(
-                self._model_call(batched_inps), dim=-1
-            ).cpu()  # [batch, padding_length, vocab]
+            if getattr(self, 'no_softmax', False):
+                multi_logits = self._model_call(batched_inps).cpu()
+            else:
+                multi_logits = F.log_softmax(
+                    self._model_call(batched_inps), dim=-1
+                ).cpu()  # [batch, padding_length, vocab]
 
             for (cache_key, _, _), logits, inp, inplen, cont_toks in zip(
                 chunk, multi_logits, inps, inplens, cont_toks_list

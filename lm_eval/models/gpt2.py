@@ -32,6 +32,7 @@ class HFLM(BaseLM):
         load_in_8bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = False,
         dtype: Optional[Union[str, torch.dtype]] = "auto",
+        no_softmax: Optional[bool] = False,
     ):
         super().__init__()
 
@@ -112,6 +113,8 @@ class HFLM(BaseLM):
         self.max_batch_size = max_batch_size
 
         self._max_length = max_length
+
+        self.no_softmax = no_softmax
 
     @property
     def eot_token_id(self):

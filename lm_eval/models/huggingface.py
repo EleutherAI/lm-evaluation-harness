@@ -96,6 +96,7 @@ class HuggingFaceAutoLM(BaseLM):
         bnb_4bit_quant_type: Optional[str] = None,
         bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
         bnb_4bit_use_double_quant: Optional[bool] = False,
+        no_softmax: Optional[bool] = False,
     ):
         """Initializes a HuggingFace `AutoModel` and `AutoTokenizer` for evaluation.
         Args:
@@ -170,6 +171,8 @@ class HuggingFaceAutoLM(BaseLM):
             bnb_4bit_use_double_quant (bool, optional, defaults to False):
                 Whether or not to use double quant to quantize the absmax.
                 https://github.com/huggingface/transformers/blob/main/src/transformers/utils/quantization_config.py#L80
+            no_softmax (bool, optional, defaults to False):
+                Whether or not to run softmax in loglikelihood calculation. Use no_softmax=True for globally normalized models.
 
         """
         super().__init__()
@@ -267,6 +270,7 @@ class HuggingFaceAutoLM(BaseLM):
                 print(
                     "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
                 )
+        self.no_softmax = no_softmax
 
     def _create_auto_model(
         self,

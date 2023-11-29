@@ -30,6 +30,7 @@ def simple_evaluate(
     decontamination_ngrams_path=None,
     write_out=False,
     output_base_path=None,
+    no_softmax=False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -62,6 +63,8 @@ def simple_evaluate(
         If True, write details about prompts and logits to json for all tasks
     :param output_base_path: str, optional
         Directory to which detailed eval info will be written. Defaults to present working dir.
+    :param no_softmax: bool
+        Whether or not to run softmax in loglikelihood calculation. Use no_softmax=True for globally normalized models.
     :return
         Dictionary of results
     """
@@ -79,6 +82,7 @@ def simple_evaluate(
                 "batch_size": batch_size,
                 "max_batch_size": max_batch_size,
                 "device": device,
+                "no_softmax": no_softmax,
             },
         )
     elif isinstance(model, transformers.PreTrainedModel):
@@ -86,6 +90,7 @@ def simple_evaluate(
             pretrained=model,
             batch_size=batch_size,
             max_batch_size=max_batch_size,
+            no_softmax=no_softmax,
         )
         no_cache = True
     else:
