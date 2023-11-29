@@ -1,5 +1,5 @@
 import os
-
+from packaging import version
 import torch
 import transformers
 from transformers.models.auto.modeling_auto import (
@@ -118,11 +118,11 @@ class HFLM(LM):
                     device = int(device)
                 self._device = torch.device(device)
                 eval_logger.info(f"Using device '{device}'")
-                if device in ("mps", "mps:0") and "dev" not in torch.__version__:
-                    eval_logger.info(
-                        "MPS: Setting dtype to float32. To use float16 with MPS, please install a nightly build of "
-                        "PyTorch: pip3 install --pre torch torchvision torchaudio --index-url "
-                        "https://download.pytorch.org/whl/nightly/cpu"
+                if device in ("mps", "mps:0") and version.parse(
+                    torch.__version__
+                ) < version.parse("2.1"):
+                    raise RuntimeError(
+                        f"mps requires torch >= 2.1. You have {torch.__version__}"
                     )
             else:
                 eval_logger.info("Device not specified")
