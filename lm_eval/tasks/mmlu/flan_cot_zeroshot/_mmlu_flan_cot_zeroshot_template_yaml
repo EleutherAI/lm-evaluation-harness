@@ -21,3 +21,5 @@ metric_list:
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
+metadata:
+  - version: 0.0

@@ -10,3 +10,5 @@ doc_to_target: label
 doc_to_choice: ["negative", "positive"]
 metric_list:
   - metric: acc
+metadata:
+  - version: 1.0

@@ -13,3 +13,5 @@ should_decontaminate: true
 doc_to_decontamination_query: passage
 metric_list:
   - metric: acc
+metadata:
+  - version: 2.0

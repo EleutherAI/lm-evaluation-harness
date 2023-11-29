@@ -8,3 +8,5 @@ doc_to_target: !function utils.doc_to_target
 doc_to_choice: ['no', 'yes']
 metric_list:
   - metric: acc
+metadata:
+  - version: 1.0
