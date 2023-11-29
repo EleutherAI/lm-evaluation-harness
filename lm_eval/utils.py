@@ -339,31 +339,27 @@ def make_table(result_dict, column: str = "results"):
     elif column == "groups":
         column_name = "Groups"
 
+    all_headers = [
+        column_name,
+        "Version",
+        "Filter",
+        "n-shot",
+        "Metric",
+        "Value",
+        "",
+        "Stderr",
+    ]
+
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
-    md_writer.headers = [
-        column_name,
-        "Version",
-        "Filter",
-        "Metric",
-        "Value",
-        "",
-        "Stderr",
-    ]
-    latex_writer.headers = [
-        column_name,
-        "Version",
-        "Filter",
-        "Metric",
-        "Value",
-        "",
-        "Stderr",
-    ]
+    md_writer.headers = all_headers
+    latex_writer.headers = all_headers
 
     values = []
 
     for k, dic in result_dict[column].items():
         version = result_dict["versions"][k]
+        n = str(result_dict["n-shot"][k])
 
         if "alias" in dic:
             k = dic.pop("alias")
@@ -375,9 +371,9 @@ def make_table(result_dict, column: str = "results"):
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                values.append([k, version, f, m, "%.4f" % v, "±", "%.4f" % se])
+                values.append([k, version, f, n, m, "%.4f" % v, "±", "%.4f" % se])
             else:
-                values.append([k, version, f, m, "%.4f" % v, "", ""])
+                values.append([k, version, f, n, m, "%.4f" % v, "", ""])
             k = ""
             version = ""
     md_writer.value_matrix = values

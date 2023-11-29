@@ -33,3 +33,5 @@ filter_list:
       - function: "regex"
         regex_pattern: "#### (\\-?[0-9\\.\\,]+)"
       - function: "take_first"
+metadata:
+  - version: 1.0

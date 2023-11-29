@@ -81,7 +81,7 @@ class TaskConfig(dict):
     fewshot_delimiter: str = "\n\n"
     fewshot_config: dict = None
     # runtime configuration options
-    num_fewshot: int = 0
+    num_fewshot: int = -1
     # scoring options
     metric_list: list = None
     output_type: str = "generate_until"
@@ -91,7 +91,9 @@ class TaskConfig(dict):
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
 
-    metadata: str = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+    metadata: Union[
+        str, list
+    ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
         if self.dataset_path and ("." in self.dataset_path):
