@@ -1,4 +1,4 @@
-# Task-name
+# Winogender
 
 ### Paper
 
@@ -33,7 +33,7 @@ Homepage: https://github.com/rudinger/winogender-schemas
 #### Groups
 
 * `winogender`: Accuracy on the entire set of Winogender sentences.
-* `winogender_gotcha`: A subset of the Winogender dataset where the gender of the pronoun refering to an occupation does not match U.S. statistics on the occupation's majority gender.
+* `winogender_gotcha`: A subset of the Winogender dataset where the gender of the pronoun referring to an occupation does not match U.S. statistics on the occupation's majority gender.
 
 #### Tasks
 The following tasks evaluate the accuracy on Winogender for pronouns for a particular gender:
