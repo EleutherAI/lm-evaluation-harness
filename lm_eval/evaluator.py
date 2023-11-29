@@ -260,7 +260,7 @@ def evaluate(
         if "num_fewshot" in configs[task_name]:
             n_shot = configs[task_name]["num_fewshot"]
         else:
-            n_shot = -1
+            n_shot = 0
         num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
