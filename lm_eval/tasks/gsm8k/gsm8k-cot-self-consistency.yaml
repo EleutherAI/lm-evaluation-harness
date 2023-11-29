@@ -30,3 +30,5 @@ filter_list:
         regex_pattern: "The answer is (\\-?[0-9\\.\\,]*[0-9]+)"
       - function: "majority_vote"
       - function: "take_first"
+metadata:
+  - version: 0.0

@@ -50,7 +50,7 @@ Scoring details:
 - **doc_to_decontamination_query** (`str`, *optional*) —
 
 Other:
-- **metadata** (`str`, *optional*) — An optional field where arbitrary metadata can be passed.
+- **metadata** (`Union[str, list]`, *optional*) — An optional field where arbitrary metadata can be passed. A good example would be `version` that is used to denote the version of the yaml config.
 
 ## Filters
 

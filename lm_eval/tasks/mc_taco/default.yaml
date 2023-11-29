@@ -11,3 +11,5 @@ doc_to_decontamination_query: "{{question}} {{sentence}}"
 metric_list:
   - metric: acc
   - metric: f1
+metadata:
+  - version: 1.0

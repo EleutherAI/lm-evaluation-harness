@@ -19,3 +19,5 @@ metric_list:
   - metric: pct_stereotype
     aggregation: mean
     higher_is_better: false
+metadata:
+  - version: 1.0
