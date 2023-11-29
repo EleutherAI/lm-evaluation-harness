@@ -1,6 +1,4 @@
 from collections import defaultdict
-import os
-from itertools import islice
 from typing import List, Tuple, Optional, Literal, Union, Any
 from transformers import AutoTokenizer
 from lm_eval.api.instance import Instance
@@ -10,8 +8,6 @@ from tqdm import tqdm
 from lm_eval.api.registry import register_model
 from lm_eval import utils
 from ray.util.multiprocessing import Pool
-import multiprocessing
-
 
 try:
     from vllm import LLM, SamplingParams
