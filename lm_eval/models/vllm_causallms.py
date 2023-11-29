@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import List, Tuple, Optional, Literal, Union
+from itertools import islice
+from typing import List, Tuple, Optional, Literal, Union, Any
 from transformers import AutoTokenizer
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
@@ -22,6 +23,11 @@ eval_logger = utils.eval_logger
 def run_inference_one_gpu(model_args: dict, sampling_params, requests: List[int]):
     llm = LLM(**model_args)
     return llm.generate(prompt_token_ids=requests, sampling_params=sampling_params)
+
+
+def chunk_list(my_list: List[Any], chunk_size: int):
+    for i in range(0, len(my_list), chunk_size):
+        yield list(islice(my_list, i, i + chunk_size))
 
 
 @register_model("vllm")
@@ -137,16 +143,13 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
                 temperature=0, prompt_logprobs=2, max_tokens=1
             )
         if self.data_parallel > 1:
-            req_list = []
-            for replicas in range(self.data_parallel):
-                reqs = utils.create_iterator(
-                    requests, rank=replicas, world_size=self.data_parallel
-                )
-                req_list.append(reqs)
-            inputs = [(self.model_args, sampling_params, req) for req in req_list]
+            requests = chunk_list(requests, self.data_parallel)
+            inputs = [(self.model_args, sampling_params, req) for req in requests]
 
-            with Pool(processes=self.data_parallel) as pool:
-                results = pool.starmap(run_inference_one_gpu, inputs)
+            with Pool() as pool:
+                results = pool.starmap(
+                    run_inference_one_gpu, inputs, self.data_parallel
+                )
             # flatten results
             return [item for sublist in results for item in sublist]
 
