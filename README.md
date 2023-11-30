@@ -13,7 +13,7 @@ This project provides a unified framework to test generative language models on 
 - Evaluation with publicly available prompts ensures reproducibility and comparability between papers.
 - Easy support for custom prompts and evaluation metrics.
 
-The Language Model Evaluation Harness is the backend for 🤗 Hugging Face's popular [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard), has been used in [hundreds of papers](https://scholar.google.com/scholar?oi=bibs&hl=en&authuser=2&cites=15052937328817631261,4097184744846514103,17476825572045927382,18443729326628441434,12854182577605049984) is used internally by dozens of companies including NVIDIA, Cohere, Booz Allen Hamilton, and Mosaic ML.
+The Language Model Evaluation Harness is the backend for 🤗 Hugging Face's popular [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard), has been used in [hundreds of papers](https://scholar.google.com/scholar?oi=bibs&hl=en&authuser=2&cites=15052937328817631261,4097184744846514103,17476825572045927382,18443729326628441434,12854182577605049984) is used internally by dozens of companies including NVIDIA, Cohere, Nous Research, Booz Allen Hamilton, and Mosaic ML.
 
 ## Install
 
@@ -47,8 +47,7 @@ We also provide a number of optional dependencies for . Extras can be installed 
 To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command:
 
 ```bash
-lm_eval \
-    --model hf \
+lm_eval --model hf \
     --model_args pretrained=EleutherAI/gpt-j-6B \
     --tasks hellaswag \
     --device cuda:0 \
@@ -58,8 +57,7 @@ lm_eval \
 Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partially trained checkpoints, or to specify the datatype for running a model:
 
 ```bash
-lm_eval \
-    --model hf \
+lm_eval --model hf \
     --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
     --tasks lambada_openai,hellaswag \
     --device cuda:0 \
@@ -71,8 +69,7 @@ Models that are loaded via both `transformers.AutoModelForCausalLM` (autoregress
 Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
 
 ```bash
-lm_eval \
-    --model hf \
+lm_eval --model hf \
     --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
     --tasks lambada_openai,hellaswag \
     --device cuda:0 \
@@ -81,7 +78,7 @@ lm_eval \
 
 Alternatively, you can use `lm-eval` instead of `lm_eval`.
 
-> ![Note]
+> [!Note]
 > Just like you can provide a local path to `transformers.AutoModel`, you can also provide a local path to `lm_eval` via `--model_args pretrained=/path/to/model`
 
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
@@ -89,8 +86,7 @@ Alternatively, you can use `lm-eval` instead of `lm_eval`.
 To parallelize evaluation of HuggingFace models across multiple GPUs, we leverage the [accelerate 🚀](https://github.com/huggingface/accelerate) library as follows:
 
 ```
-accelerate launch -m lm_eval \
-    --model hf \
+accelerate launch -m lm_eval --model hf \
     --tasks lambada_openai,arc_easy \
     --batch_size 16
 ```
@@ -115,8 +111,7 @@ accelerate launch --no_python lm-eval --model ...
 We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html).
 
 ```bash
-lm_eval \
-    --model vllm \
+lm_eval --model vllm \
     --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},dtype=auto,gpu_memory_utilization=0.8 \
     --tasks lambada_openai \
     --batch_size auto
@@ -177,8 +172,7 @@ If you have a Metal compatible Mac, you can run the eval harness using the MPS b
 To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
 
 ```bash
-lm_eval \
-    --model openai \
+lm_eval --model openai \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag \
     --check_integrity
@@ -188,8 +182,7 @@ lm_eval \
 
 For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
 ```bash
-lm_eval \
-    --model hf \
+lm_eval --model hf \
     --model_args pretrained=EleutherAI/gpt-j-6b,parallelize=True,load_in_4bit=True,peft=nomic-ai/gpt4all-j-lora \
     --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
     --device cuda:0
@@ -198,8 +191,7 @@ lm_eval \
 [GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,gptq=NAME` (or `,gptq=True` for default names) in the `model_args` argument:
 
 ```bash
-lm_eval \
-    --model hf \
+lm_eval --model hf \
     --model_args pretrained=model-name-or-path,gptq=model.safetensors,gptq_use_triton=True \
     --tasks hellaswag
 ```
