@@ -40,10 +40,6 @@ We also provide a number of optional dependencies for . Extras can be installed 
 | vllm          | For loading models with vLLM          |
 | all           | Loads all extras                      |
 
-### Support
-
-The best way to get support is to open an issue on this repo or join the EleutherAI discord server](discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
-
 ## Basic Usage
 
 ### Hugging Face `transformers`
@@ -85,7 +81,10 @@ python -m lm_eval \
 
 Alternatively, you can use `lm-eval` or `lm_eval` instead of `python -m lm_eval` to call lm eval from anywhere.
 
-### Multi-GPU Evaluation with Hugging Face `accelerate`
+> ![Note]
+> Just like you can provide a local path to `transformers.AutoModel`, you can also provide a local path to `lm_eval` via `--model_args pretrained=/path/to/model`
+
+#### Multi-GPU Evaluation with Hugging Face `accelerate`
 
 To parallelize evaluation of HuggingFace models across multiple GPUs, we leverage the [accelerate 🚀](https://github.com/huggingface/accelerate) library as follows:
 
@@ -111,17 +110,9 @@ To use `accelerate` with the `lm-eval` command, use
 accelerate launch --no_python lm-eval --model ...
 ```
 
-#### Tensor Parallel + Optimized Inference with vLLM
+### Tensor Parallel + Optimized Inference with vLLM
 
 We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html).
-
-To run with vLLM, first install the vllm library, externally or via the lm_eval[vllm] extra:
-
-```bash
-pip install -e .[vllm]
-```
-
-Then, you can run the library as normal, for single-GPU or tensor-parallel inference, for example:
 
 ```bash
 python -m lm_eval \
@@ -132,11 +123,21 @@ python -m lm_eval \
 ```
 For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
 
-### Supported APIs and Inference Libraries
+### Model APIs and Inference Servers
 
 Our library also supports the evaluation of models served via several commercial APIs, and we hope to implement support for the most commonly used performant local/self-hosted inference servers.
 
-A full accounting of the supported and planned libraries + APIs can be seen below:
+To call a hosted model, use:
+
+```bash
+export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
+lm_eval --model openai-completions \
+    --model_args engine=davinci \
+    --tasks lambada_openai,hellaswag
+```
+
+Note that for externally hosted models, configs such as `--device` and `--batch_size` should not be used and do not function. Just like you can use `--model_args` to pass arbitrary arguments to the model constructor for local models, you can use it to pass arbitrary arguments to the model API for hosted models. See the documentation of the hosting service for information on what arguments they support.
+
 
 | API or Inference Server     | Implemented?                    | `--model <xxx>` name                                                             | Models supported:                                                                             | Request Types:                                           |
 |-----------------------------|---------------------------------|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------|
@@ -144,45 +145,34 @@ A full accounting of the supported and planned libraries + APIs can be seen belo
 | OpenAI ChatCompletions      | :x: Not yet - needs testing!       | N/A                                                                              | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                 | `generate_until` (no logprobs)                             |
 | Anthropic                   | :heavy_check_mark:              | `anthropic`                                                                      | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)  | `generate_until` (no logprobs)                             |
 | GooseAI                     | :heavy_check_mark: (not separately maintained)  | `openai`, `openai-completions`, `gooseai` (same interface as OpenAI Completions) |                                                                                               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Textsynth                   | Needs testing                   | `textsynth`                                                                      | ???                                                                                           | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Textsynth                   | :heavy_check_mark:                   | `textsynth`                                                                      | [All supported engines](https://textsynth.com/documentation.html#engines)                                                                                           | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | Cohere                      | [:hourglass: - blocked on Cohere API bug](https://github.com/EleutherAI/lm-evaluation-harness/pull/395) | N/A                                                                              | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models)                        | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| GGML/[Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python))                        | :heavy_check_mark:              | `gguf`, `ggml`                                                                   | Llama-architecture models (Llama, Llama 2, Llemma, Mistral(?), Llama finetunes)               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python))                        | :heavy_check_mark:              | `gguf`, `ggml`                                                                   | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | vLLM                        | :heavy_check_mark:       | `vllm`                                                                           | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
 | Your inference server here! | ...                             | ...                                                                              | ...                                                                                           | ...                                                      |                                | ...                                                      |
 
 It is on our roadmap to create task variants designed to enable models which do not serve logprobs/loglikelihoods to be compared with generation performance of open-source models.
 
-Our library supports language models served via the OpenAI Completions API as follows:
-
-```bash
-export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
-python -m lm_eval \
-    --model openai-completions \
-    --model_args engine=davinci \
-    --tasks lambada_openai,hellaswag
-```
-
-While this functionality is only officially maintained for the official OpenAI API, it tends to also work for other hosting services that use the same API such as [goose.ai](goose.ai) with minor modification. We also have an implementation for the [TextSynth](https://textsynth.com/index.html) API, using `--model textsynth`.
-
 ### Other Frameworks
 
-A number of other libraries contain scripts for calling the eval harness through their library. These include [GPT-NeoX](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py), [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/blob/main/examples/MoE/readme_evalharness.md), and [mesh-transformer-jax](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
+A number of other libraries contain scripts for calling the eval harness through their library. These include [GPT-NeoX](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py), [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/blob/main/examples/MoE/readme_evalharness.md), and [mesh-transformer-jax](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py). 
 
 ### Additional Features
 
 If you have a CUDA-compatible Mac GPU, you can run the eval harness using the MPS back-end by replaicng `--device cuda:0` with `--device mps:0`. PyTorch does not currently support automatic mixed precision (AMP) for MPS, so we forcibly cast all weights to fp32 regardless of how they're stored. This is slower and has a larger memory footprint than we can achieve on Linux systems, but as PyTorch continues to improve its MPS support we hope to continue to improve it.
 
-💡 **Tip**: You can inspect what the LM inputs look like by running the following command:
-
-```bash
-python write_out.py \
-    --tasks all_tasks \
-    --num_fewshot 5 \
-    --num_examples 10 \
-    --output_base_path /path/to/output/folder
-```
-
-This will write out one text file for each task.
+> [!Note]
+> You can inspect what the LM inputs look like by running the following command:
+> 
+> ```bash
+> python write_out.py \
+>     --tasks all_tasks \
+>     --num_fewshot 5 \
+>     --num_examples 10 \
+>     --output_base_path /path/to/output/folder
+> ```
+> 
+> This will write out one text file for each task.
 
 To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
 
@@ -241,6 +231,10 @@ In general, we following the following priority list for addressing concerns abo
 These are guidelines and not rules, and can be overruled in special circumstances.
 
 We try to prioritize agreement with the procedures used by other groups to decrease the harm when people inevitably compare runs across different papers despite our discouragement of the practice. Historically, we also prioritized the implementation from "Language Models are Few Shot Learners" as our original goal was specifically to compare results with that paper.
+
+### Support
+
+The best way to get support is to open an issue on this repo or join the EleutherAI discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
 
 ## Cite as
 
