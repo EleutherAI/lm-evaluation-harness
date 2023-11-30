@@ -83,7 +83,7 @@ lm_eval \
     --batch_size auto:4
 ```
 
-Alternatively, you can use `lm-eval` or `lm_eval` instead of `lm_eval` to call lm eval from anywhere.
+Alternatively, you can use `lm-eval` instead of `lm_eval`.
 
 ### Multi-GPU Evaluation with Hugging Face `accelerate`
 
@@ -93,7 +93,7 @@ To parallelize evaluation of HuggingFace models across multiple GPUs, we leverag
 accelerate launch -m lm_eval \
     --model hf \
     --tasks lambada_openai,arc_easy \
-    --batch_size 16 \
+    --batch_size 16
 ```
 
 This will perform *data-parallel evaluation*: that is, placing a **single full copy** of your model onto each available GPU and *splitting batches across GPUs* to evaluate on K GPUs K times faster than on one.
@@ -126,8 +126,8 @@ Then, you can run the library as normal, for single-GPU or tensor-parallel infer
 ```bash
 lm_eval \
     --model vllm \
-    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},dtype=auto,gpu_memory_utilization=0.8
-    --tasks lambada_openai
+    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},dtype=auto,gpu_memory_utilization=0.8 \
+    --tasks lambada_openai \
     --batch_size auto
 ```
 For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
