@@ -51,7 +51,7 @@ The best way to get support is to open an issue on this repo or join the Eleuthe
 To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command:
 
 ```bash
-python -m lm_eval \
+lm_eval \
     --model hf \
     --model_args pretrained=EleutherAI/gpt-j-6B \
     --tasks hellaswag \
@@ -62,7 +62,7 @@ python -m lm_eval \
 Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partially trained checkpoints, or to specify the datatype for running a model:
 
 ```bash
-python -m lm_eval \
+lm_eval \
     --model hf \
     --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
     --tasks lambada_openai,hellaswag \
@@ -75,7 +75,7 @@ Models that are loaded via both `transformers.AutoModelForCausalLM` (autoregress
 Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
 
 ```bash
-python -m lm_eval \
+lm_eval \
     --model hf \
     --model_args pretrained=EleutherAI/pythia-160m,revision=step100000,dtype="float" \
     --tasks lambada_openai,hellaswag \
@@ -83,7 +83,7 @@ python -m lm_eval \
     --batch_size auto:4
 ```
 
-Alternatively, you can use `lm-eval` or `lm_eval` instead of `python -m lm_eval` to call lm eval from anywhere.
+Alternatively, you can use `lm-eval` instead of `lm_eval`.
 
 ### Multi-GPU Evaluation with Hugging Face `accelerate`
 
@@ -93,7 +93,7 @@ To parallelize evaluation of HuggingFace models across multiple GPUs, we leverag
 accelerate launch -m lm_eval \
     --model hf \
     --tasks lambada_openai,arc_easy \
-    --batch_size 16 \
+    --batch_size 16
 ```
 
 This will perform *data-parallel evaluation*: that is, placing a **single full copy** of your model onto each available GPU and *splitting batches across GPUs* to evaluate on K GPUs K times faster than on one.
@@ -124,10 +124,10 @@ pip install -e .[vllm]
 Then, you can run the library as normal, for single-GPU or tensor-parallel inference, for example:
 
 ```bash
-python -m lm_eval \
+lm_eval \
     --model vllm \
-    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},dtype=auto,gpu_memory_utilization=0.8
-    --tasks lambada_openai
+    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},dtype=auto,gpu_memory_utilization=0.8 \
+    --tasks lambada_openai \
     --batch_size auto
 ```
 For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
@@ -156,7 +156,7 @@ Our library supports language models served via the OpenAI Completions API as fo
 
 ```bash
 export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
-python -m lm_eval \
+lm_eval \
     --model openai-completions \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag
@@ -187,7 +187,7 @@ This will write out one text file for each task.
 To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
 
 ```bash
-python -m lm_eval \
+lm_eval \
     --model openai \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag \
@@ -198,7 +198,7 @@ python -m lm_eval \
 
 For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
 ```bash
-python -m lm_eval \
+lm_eval \
     --model hf \
     --model_args pretrained=EleutherAI/gpt-j-6b,parallelize=True,load_in_4bit=True,peft=nomic-ai/gpt4all-j-lora \
     --tasks openbookqa,arc_easy,winogrande,hellaswag,arc_challenge,piqa,boolq \
@@ -208,7 +208,7 @@ python -m lm_eval \
 [GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,gptq=NAME` (or `,gptq=True` for default names) in the `model_args` argument:
 
 ```bash
-python -m lm_eval \
+lm_eval \
     --model hf \
     --model_args pretrained=model-name-or-path,gptq=model.safetensors,gptq_use_triton=True \
     --tasks hellaswag
