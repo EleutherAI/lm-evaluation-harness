@@ -208,8 +208,6 @@ For a full list of supported arguments, check out the [interface](https://github
 
 For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
 
-You can also ask for help, or discuss new features with the maintainers in the #lm-thunderdome channel of the EleutherAI discord! If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
-
 ### Implementing new tasks
 
 To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
@@ -226,7 +224,7 @@ We try to prioritize agreement with the procedures used by other groups to decre
 
 ### Support
 
-The best way to get support is to open an issue on this repo or join the EleutherAI discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
+The best way to get support is to open an issue on this repo or join the [EleutherAI Discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases. If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
 
 ## Cite as
 
