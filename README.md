@@ -113,7 +113,7 @@ We also support vLLM for faster inference on [supported model types](https://doc
 
 ```bash
 lm_eval --model vllm \
-    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},dtype=auto,gpu_memory_utilization=0.8 \
+    --model_args pretrained={model_name},tensor_parallel_size={GPUs_per_model},dtype=auto,gpu_memory_utilization=0.8,data_parallel={model_replicas} \
     --tasks lambada_openai \
     --batch_size auto
 ```
