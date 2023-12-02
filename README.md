@@ -220,7 +220,7 @@ In general, we follow this priority list for addressing concerns about prompting
 
 These are guidelines and not rules, and can be overruled in special circumstances.
 
-We try to prioritize agreement with the procedures used by other groups to decrease the harm when people inevitably compare runs across different papers despite our discouragement of the practice. Historically, we also prioritized the implementation from "Language Models are Few Shot Learners" as our original goal was specifically to compare results with that paper.
+We try to prioritize agreement with the procedures used by other groups to decrease the harm when people inevitably compare runs across different papers despite our discouragement of the practice. Historically, we also prioritized the implementation from [Language Models are Few Shot Learners](https://arxiv.org/abs/2005.14165) as our original goal was specifically to compare results with that paper.
 
 ### Support
 
