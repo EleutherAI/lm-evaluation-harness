@@ -151,7 +151,7 @@ It is on our roadmap to create task variants designed to enable models which do 
 
 ### Other Frameworks
 
-A number of other libraries contain scripts for calling the eval harness through their library. These include [GPT-NeoX](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py), [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/blob/main/examples/MoE/readme_evalharness.md), and [mesh-transformer-jax](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py). 
+A number of other libraries contain scripts for calling the eval harness through their library. These include [GPT-NeoX](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py), [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/blob/main/examples/MoE/readme_evalharness.md), and [mesh-transformer-jax](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
 
 ### Additional Features
 
@@ -159,7 +159,6 @@ If you have a Metal compatible Mac, you can run the eval harness using the MPS b
 
 > [!Note]
 > You can inspect what the LM inputs look like by running the following command:
-> 
 > ```bash
 > python write_out.py \
 >     --tasks all_tasks \
@@ -167,7 +166,6 @@ If you have a Metal compatible Mac, you can run the eval harness using the MPS b
 >     --num_examples 10 \
 >     --output_base_path /path/to/output/folder
 > ```
-> 
 > This will write out one text file for each task.
 
 To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
