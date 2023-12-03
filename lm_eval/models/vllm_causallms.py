@@ -81,15 +81,12 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             self.model = LLM(**self.model_args)
         else:
             self.model_args["worker_use_ray"] = True
-        if tokenizer:
-            self.tokenizer = tokenizer
-        else:
-            self.tokenizer = get_tokenizer(
-                pretrained,
-                tokenizer_mode=tokenizer_mode,
-                trust_remote_code=trust_remote_code,
-                tokenizer_revision=tokenizer_revision,
-            )
+        self.tokenizer = get_tokenizer(
+            tokenizer if tokenizer else pretrained,
+            tokenizer_mode=tokenizer_mode,
+            trust_remote_code=trust_remote_code,
+            tokenizer_revision=tokenizer_revision,
+        )
         self.batch_size = batch_size
         self._max_length = max_length
         self._max_gen_toks = max_gen_toks
