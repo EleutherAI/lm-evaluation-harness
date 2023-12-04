@@ -6,10 +6,10 @@ name: Unit Tests
 on:
   push:
     branches:
-      - 'big-refactor*'
+      - 'main'
   pull_request:
     branches:
-      - 'big-refactor*'
+      - 'main'
   workflow_dispatch:
 # Jobs run concurrently and steps run sequentially within a job.
 # jobs: linter and cpu_tests. Add more jobs/steps as required.
