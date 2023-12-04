@@ -36,7 +36,7 @@
   \ (C) frighten away enemies, in particular the Spaniards. (D) legitimize his kingship,\
   \ since his father was not royal.\nA: Let's think step by step. We refer to Wikipedia\
   \ articles on prehistory for help. Pacal built the temples as the funerary monument\
-  \ to legitimize his kingship. The answer is (D)."
+  \ to legitimize his kingship. The answer is (D).\n\n"
 "group": "mmlu_flan_cot_fewshot_humanities"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_prehistory"

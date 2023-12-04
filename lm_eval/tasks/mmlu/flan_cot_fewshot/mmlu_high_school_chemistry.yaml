@@ -44,7 +44,7 @@
   \ (aq) + H_{2}O \nightarrow H_{3}O^{+} + CH3COO^{-}$. The conjugate base is therefore\
   \ the acetate ion. The added strong acid, Nitric acid, will react with the conjugate\
   \ base. Therefore the maximum amount of acid that can be added will be equal to\
-  \ the amount of acetate ion, or 2 moles. The answer is (C)."
+  \ the amount of acetate ion, or 2 moles. The answer is (C).\n\n"
 "group": "mmlu_flan_cot_fewshot_stem"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_high_school_chemistry"

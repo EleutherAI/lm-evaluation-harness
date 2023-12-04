@@ -43,7 +43,7 @@
   \ on ethical philosophy in South Africa. Metz has written the death penalty is unjustified\
   \ as it treats individuals as incapable of communal relations. It is unclear that\
   \ capital punishment is to the benefit of, or a deterrent of harm to the community.\
-  \ The answer is (A)."
+  \ The answer is (A).\n\n"
 "group": "mmlu_flan_cot_fewshot_humanities"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_moral_disputes"

@@ -57,7 +57,7 @@
   \ die away (B) Persist indefinitely (C) Grow exponentially (D) Never occur\nA: Let's\
   \ think step by step. We refer to Wikipedia articles on econometrics for help. This\
   \ is a formal logic problem about stationally process. For a stationary autoregressive\
-  \ process, shocks will eventually die away. The answer is (A)."
+  \ process, shocks will eventually die away. The answer is (A).\n\n"
 "group": "mmlu_flan_cot_fewshot_social_sciences"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_econometrics"

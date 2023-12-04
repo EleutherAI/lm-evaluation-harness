@@ -35,7 +35,7 @@
   \ then x^2 + c = x^2 + 1 = 0 + 1 for x = 0, 1 + 1 = 2 for x = 1 and 1 + 1 = 2 for\
   \ x = 2, hence x^2 + 1 does not have any roots. For c = 2 the polynomial x^2 + 2\
   \ has two roots at x = 1 and x = 2. Hence Z_3[x]/(x^2 + c) is a field if and only\
-  \ if c = 1. The answer is (B)."
+  \ if c = 1. The answer is (B).\n\n"
 "group": "mmlu_flan_cot_fewshot_stem"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_abstract_algebra"
