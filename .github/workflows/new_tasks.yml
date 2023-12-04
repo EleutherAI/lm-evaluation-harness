@@ -3,10 +3,10 @@ name: Tasks Modified
 on:
   push:
     branches:
-      - 'big-refactor*'
+      - 'main'
   pull_request:
     branches:
-      - 'big-refactor*'
+      - 'main'
   workflow_dispatch:
 # comment/edit out the above to stop/change the triggers
 jobs:
