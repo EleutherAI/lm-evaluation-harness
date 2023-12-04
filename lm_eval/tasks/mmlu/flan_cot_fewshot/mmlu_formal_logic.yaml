@@ -47,7 +47,7 @@
   \ (∀x)(Px ⊃ ~Dx) → For all x, x is on Mars implies that x do not drive on Mars.\n\
   Option (D): ~Dp: → p do not drive on Mars.\nOf all these options, Option (C) appears\
   \ to be the best and most meaningful interpretation of the argument “No people drive\
-  \ on Mars.” The answer is (C)."
+  \ on Mars.” The answer is (C).\n\n"
 "group": "mmlu_flan_cot_fewshot_humanities"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_formal_logic"

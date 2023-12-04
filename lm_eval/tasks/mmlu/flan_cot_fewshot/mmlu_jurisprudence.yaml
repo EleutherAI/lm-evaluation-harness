@@ -39,7 +39,7 @@
   \ help. The POP would opt for the 'maximin' strategy, opt for the 'difference principle',\
   \ and reject the 'system of natural liberty', but the POP would not choose equality\
   \ above liberty, since the POP assume both equal and free citizens. The answer is\
-  \ (A)."
+  \ (A).\n\n"
 "group": "mmlu_flan_cot_fewshot_humanities"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_jurisprudence"

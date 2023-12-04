@@ -48,7 +48,7 @@
   \ proceed with cell division. Cues like these act by changing the activity of core\
   \ cell cycle regulators inside the cell. The most common regulators are cyclins\
   \ and cyclin-dependent kinases. Fibroblast cells do not play any role in cell division.\
-  \ The answer is (D)."
+  \ The answer is (D).\n\n"
 "group": "mmlu_flan_cot_fewshot_stem"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_high_school_biology"

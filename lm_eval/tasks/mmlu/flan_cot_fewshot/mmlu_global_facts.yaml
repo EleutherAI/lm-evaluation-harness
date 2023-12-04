@@ -28,7 +28,7 @@
   \ of their nation or the world.\nA: Let's think step by step. We refer to Wikipedia\
   \ articles on global facts for help. As of 2019, most people tend to be optimistic\
   \ about their own future but pessimistic about the future of their nation or the\
-  \ world. The answer is (B)."
+  \ world. The answer is (B).\n\n"
 "group": "mmlu_flan_cot_fewshot_other"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_global_facts"

@@ -28,7 +28,7 @@
   \ during the third trimester (D) all through the pregnancy\nA: Let's think step\
   \ by step. We refer to Wikipedia articles on human sexuality for help. Morning sickness\
   \ usually begins by nine weeks after conception, corresponding to the first trimester.\
-  \ The answer is (A)."
+  \ The answer is (A).\n\n"
 "group": "mmlu_flan_cot_fewshot_social_sciences"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_human_sexuality"

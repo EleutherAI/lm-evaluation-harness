@@ -31,7 +31,7 @@
   \ dozens of American cities.\nA: Let's think step by step. We refer to Wikipedia\
   \ articles on macroeconomics for help. The economic transactions related to the\
   \ performance of the American pop-singer in Paris happens entirely outside the U.S.\
-  \ and hence is not included in the GDP numbers. The answer is (C)."
+  \ and hence is not included in the GDP numbers. The answer is (C).\n\n"
 "group": "mmlu_flan_cot_fewshot_social_sciences"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_high_school_macroeconomics"
