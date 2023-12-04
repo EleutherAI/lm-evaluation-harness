@@ -2,7 +2,7 @@
 
 ## Announcement
 
-**A new v0.4.0 release of lm-evaluation-harness is available** ! 
+**A new v0.4.0 release of lm-evaluation-harness is available** !
 
 New updates and features include:
 
