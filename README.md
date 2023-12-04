@@ -8,7 +8,7 @@ New updates and features include:
 
 - Internal refactoring
 - Config-based task creation and configuration
-- Easier import of externally-defined task config files (--include_path, passing path to YAML directly, etc)
+- Easier import and sharing of externally-defined task config YAMLs
 - Support for Jinja2 prompt design, easy modification of prompts + prompt imports from Promptsource
 - More advanced configuration options, including output post-processing, answer extraction, and multiple LM generations per document, configurable fewshot settings, and more
 - Speedups and new modeling libraries supported, including: faster data-parallel HF model usage, vLLM support, MPS support with HuggingFace, and more
