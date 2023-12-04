@@ -1,8 +1,9 @@
 # Language Model Evaluation Harness
 
-## Announcement
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
 
-**A new v0.4.0 release of lm-evaluation-harness is available** !
+## Announcement
+**A new v0.4.0 release of lm-evaluation-harness is available** ! 
 
 New updates and features include:
 
@@ -245,7 +246,7 @@ We try to prioritize agreement with the procedures used by other groups to decre
 
 ### Support
 
-The best way to get support is to open an issue on this repo or join the EleutherAI discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
+The best way to get support is to open an issue on this repo or join the [EleutherAI discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
 
 ## Cite as
 
@@ -253,11 +254,11 @@ The best way to get support is to open an issue on this repo or join the Eleuthe
 @misc{eval-harness,
   author       = {Gao, Leo and Tow, Jonathan and Abbasi, Baber and Biderman, Stella and Black, Sid and DiPofi, Anthony and Foster, Charles and Golding, Laurence and Hsu, Jeffrey and Le Noac'h, Alain and Li, Haonan and McDonell, Kyle and Muennighoff, Niklas and Ociepa, Chris and Phang, Jason and Reynolds, Laria and Schoelkopf, Hailey and Skowron, Aviya and Sutawika, Lintang and Tang, Eric and Thite, Anish and Wang, Ben and Wang, Kevin and Zou, Andy},
   title        = {A framework for few-shot language model evaluation},
-  month        = sep,
-  year         = 2021,
+  month        = 12,
+  year         = 2023,
   publisher    = {Zenodo},
-  version      = {v0.0.1},
-  doi          = {10.5281/zenodo.5371628},
-  url          = {https://doi.org/10.5281/zenodo.5371628}
+  version      = {v0.4.0},
+  doi          = {10.5281/zenodo.10256836},
+  url          = {https://zenodo.org/records/10256836}
 }
 ```
