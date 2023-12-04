@@ -49,7 +49,7 @@
   \ red. Options (C) and (D) are not specific enough about why the color of the surface\
   \ would be red, while (A) is correct because it explains that the surface is red\
   \ due to the rusted materials on the surface and the red color comes from the rust.\
-  \ So the correct option is (A). The answer is (A)."
+  \ So the correct option is (A). The answer is (A).\n\n"
 "group": "mmlu_flan_cot_fewshot_stem"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_astronomy"

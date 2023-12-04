@@ -34,7 +34,7 @@
   \ Obama (D) It reduced global use of the US dollar\nA: Let's think step by step.\
   \ We refer to Wikipedia articles on us foreign policy for help. The 2008 financial\
   \ crisis damanged the international reputation of the American model of political\
-  \ economy and capitalism. The answer is (A)."
+  \ economy and capitalism. The answer is (A).\n\n"
 "group": "mmlu_flan_cot_fewshot_social_sciences"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_us_foreign_policy"
