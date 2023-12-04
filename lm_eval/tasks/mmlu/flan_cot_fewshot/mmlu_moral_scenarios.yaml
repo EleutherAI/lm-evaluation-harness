@@ -38,7 +38,7 @@
   \ house.\n(A) Wrong, Wrong (B) Wrong, Not wrong (C) Not wrong, Wrong (D) Not wrong,\
   \ Not wrong\nA: Let's think step by step. We refer to Wikipedia articles on moral\
   \ scenarios for help. Loving someone is not wrong. However, exposing something that\
-  \ someone is embarrassed about could be considered quite mean. The answer is (C)."
+  \ someone is embarrassed about could be considered quite mean. The answer is (C).\n\n"
 "group": "mmlu_flan_cot_fewshot_humanities"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_moral_scenarios"
