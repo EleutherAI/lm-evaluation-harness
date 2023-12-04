@@ -15,7 +15,6 @@ try:
 except ModuleNotFoundError:
     pass
 
-
 eval_logger = utils.eval_logger
 
 
@@ -162,6 +161,21 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
 
         return outputs
 
+    def _encode_pair(
+        self, context: str, continuation: str
+    ) -> Tuple[List[int], List[int]]:
+        n_spaces = len(context) - len(context.rstrip())
+        if n_spaces > 0:
+            continuation = context[-n_spaces:] + continuation
+            context = context[:-n_spaces]
+
+        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
+        context_enc = self.tok_encode(context, add_special_tokens=False)
+
+        context_enc_len = len(context_enc)
+        continuation_enc = whole_enc[context_enc_len:]
+        return context_enc, continuation_enc
+
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
@@ -171,12 +185,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
                     continuation
                 )
             else:
-                context_enc, continuation_enc = self.tokenizer(
-                    [context, continuation],
-                    truncation="do_not_truncate",
-                    add_special_tokens=False,
-                    return_attention_mask=False,
-                ).input_ids
+                context_enc, continuation_enc = self._encode_pair(context, continuation)
 
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
