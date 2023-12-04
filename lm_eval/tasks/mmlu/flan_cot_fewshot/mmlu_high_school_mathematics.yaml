@@ -31,7 +31,7 @@
   \ (Assume that all three lights blink simultaneously at the very beginning of the\
   \ dance.)\n(A) 3 (B) 15 (C) 6 (D) 5\nA: Let's think step by step. The least common\
   \ multiple of 2, 3 and 5 is 30, so during a 7 minute dance, all the three lights\
-  \ will come on at the same time $2*7+1=15$ times. The answer is (B)."
+  \ will come on at the same time $2*7+1=15$ times. The answer is (B).\n\n"
 "group": "mmlu_flan_cot_fewshot_stem"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_high_school_mathematics"

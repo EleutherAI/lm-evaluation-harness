@@ -39,7 +39,7 @@
   A: Let's think step by step. We refer to Wikipedia articles on logical fallacies\
   \ for help. The argument against the person fallacy occurs when someone irrelevantly\
   \ attacks the character of an opposing arguer, instead of addressing that opponent's\
-  \ arguments. The answer is (C)."
+  \ arguments. The answer is (C).\n\n"
 "group": "mmlu_flan_cot_fewshot_humanities"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_logical_fallacies"

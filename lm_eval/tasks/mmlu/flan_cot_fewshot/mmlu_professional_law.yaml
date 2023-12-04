@@ -100,7 +100,7 @@
   \ think step by step. We refer to Wikipedia articles on law for help. The Fourteenth\
   \ Amendment further supports the First Amendment by establishing a due process clause.\
   \ Hence the strongest argument should be the statute is overbroad and consequently\
-  \ invalid under the First and Fourteenth Amendments. The answer is (D)."
+  \ invalid under the First and Fourteenth Amendments. The answer is (D).\n\n"
 "group": "mmlu_flan_cot_fewshot_humanities"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_professional_law"

@@ -112,22 +112,3 @@ def get_sampler(name):
         raise ValueError(
             f"Attempted to use contextsampler '{name}', but no sampling strategy for this name found! Supported model names: {', '.join(SAMPLER_REGISTRY.keys())}"
         )
-
-
-# TODO: how should we do design here? might be better to have a single sampler and pass more kwargs at init.
-# Depends what's easier for new user to add own functionality on top of
-
-# types of sampler:
-# - class-balanced, randomly shuffled
-# - class-balanced, one particular set of fewshot examples for all evaled instances
-# - hand-specify number of fewshot examples per class?
-# - random, varies per example (check that this is curr. default in old repo)
-# - random, unified per example
-# - enforce a specific fixed fewshot string! (or should we not use this, in favor of including it in prompt template directly)
-
-
-# - user-specified doc indices to restrict fewshot doc options to
-# - user specifies split to use for drawing fewshot instances (TODO: manually prevent this from being same split you eval!)
-# - user specifies a prepended "description"/string to add in front of the (prompted) input
-
-# - user specifies a location to draw fewshot samples from? DO THIS IN TASK CLASS
