@@ -12,7 +12,6 @@ To get started contributing, go ahead and fork the main repo, clone it, create a
 # After forking...
 git clone https://github.com/<YOUR-USERNAME>/lm-evaluation-harness.git
 cd lm-evaluation-harness
-git checkout big-refactor
 git checkout -b <model-type>
 pip install -e ".[dev]"
 ```
@@ -46,7 +45,7 @@ class MyCustomLM(LM):
         #...
     #...
 ```
-Where `Instance` is a dataclass defined in [`lm_eval.api.instance`](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/api/instance.py) with property `args` of request-dependent type signature described below.
+Where `Instance` is a dataclass defined in [`lm_eval.api.instance`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/api/instance.py) with property `args` of request-dependent type signature described below.
 
 We support three types of requests, consisting of different interactions / measurements with an autoregressive LM.
 
