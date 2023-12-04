@@ -1,10 +1,8 @@
 # Language Model Evaluation Harness
 
-<<<<<<< HEAD
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
-=======
-## Announcement
 
+## Announcement
 **A new v0.4.0 release of lm-evaluation-harness is available** ! 
 
 New updates and features include:
@@ -21,7 +19,6 @@ New updates and features include:
 Please see our updated documentation pages in `docs/` for more details.
 
 Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](discord.gg/eleutherai)!
->>>>>>> 3c75a2c77375769f5c483f084e95ea8b8514c9bb
 
 ## Overview
 
@@ -249,7 +246,7 @@ We try to prioritize agreement with the procedures used by other groups to decre
 
 ### Support
 
-The best way to get support is to open an issue on this repo or join the EleutherAI discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
+The best way to get support is to open an issue on this repo or join the [EleutherAI discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
 
 ## Cite as
 
