@@ -13,7 +13,6 @@ important shortcomings.
 Homepage: https://github.com/hendrycks/test
 """
 from lm_eval.base import MultipleChoiceTask
-from . import get_mlmm_dataset_path
 
 _CITATION = """
 @article{hendryckstest2021,
@@ -125,7 +124,7 @@ class GeneralHendrycksTest(MultipleChoiceTask):
 
     def __init__(self, lang, subject=None):
         self.DATASET_NAME = f"mmlu_{lang}"
-        self.DATASET_PATH = get_mlmm_dataset_path("datasets/m_mmlu")
+        self.DATASET_PATH = "malteos/m_mmlu"
         self.subject = subject
 
         super().__init__()

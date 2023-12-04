@@ -12,18 +12,3 @@ This repo contains benchmark datasets and evaluation scripts for Multilingual La
 Currently, our datasets support 26 languages: Russian, German, Chinese, French, Spanish, Italian, Dutch, Vietnamese, Indonesian, Arabic, Hungarian, Romanian, Danish, Slovak, Ukrainian, Catalan, Serbian, Croatian, Hindi, Bengali, Tamil, Nepali, Malayalam, Marathi, Telugu, and Kannada.
 
 """
-import os
-
-
-def get_mlmm_dataset_path(dataset_path: str) -> str:
-    base_path = os.environ.get("MLMM_DATASET_BASE_PATH", None)
-
-    if base_path:
-        dataset_path = os.path.join(base_path, dataset_path)
-
-    if not os.path.exists(dataset_path):
-        raise FileNotFoundError(
-            f"Dataset path does not exist ({dataset_path}). If you already downloaded the data, try to set the MLMM_DATASET_BASE_PATH environment variable. To download the data, follow the instruction as provided here: https://github.com/nlp-uoregon/mlmm-evaluation/tree/main#basic-usage"
-        )
-
-    return dataset_path

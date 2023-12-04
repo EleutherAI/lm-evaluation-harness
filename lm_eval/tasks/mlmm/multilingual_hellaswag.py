@@ -15,7 +15,6 @@ Homepage: https://rowanzellers.com/hellaswag/
 """
 import re
 from lm_eval.base import MultipleChoiceTask
-from . import get_mlmm_dataset_path
 
 _CITATION = """
 @inproceedings{zellers2019hellaswag,
@@ -52,7 +51,7 @@ class HellaSwag(MultipleChoiceTask):
         self.VERSION = 1
         self.lang = lang
         self.DATASET_NAME = f"hellaswag_{lang}"
-        self.DATASET_PATH = get_mlmm_dataset_path("datasets/m_hellaswag")
+        self.DATASET_PATH = "malteos/m_hellaswag"
         self.NUM_FEW_SHOT = 0
         super().__init__(**kwargs)
 

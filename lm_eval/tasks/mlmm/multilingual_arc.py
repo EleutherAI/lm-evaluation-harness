@@ -13,7 +13,6 @@ a co-occurrence method fail to answer correctly) and an Easy Set of 5,197 questi
 Homepage: https://allenai.org/data/arc
 """
 from lm_eval.base import MultipleChoiceTask
-from . import get_mlmm_dataset_path
 
 _CITATION = """
 @article{Clark2018ThinkYH,
@@ -51,7 +50,7 @@ class MultilingualARC(MultipleChoiceTask):
         self.VERSION = 0
         self.lang = lang
         self.DATASET_NAME = f"arc_{lang}"
-        self.DATASET_PATH = get_mlmm_dataset_path("datasets/m_arc")
+        self.DATASET_PATH = "malteos/m_arc"
         self.NUM_FEW_SHOT = 25
         super().__init__(**kwargs)
 

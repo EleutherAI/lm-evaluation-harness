@@ -25,7 +25,6 @@ import datasets
 from rouge_score import rouge_scorer, scoring
 from lm_eval.base import rf, Task
 from lm_eval.metrics import mean
-from . import get_mlmm_dataset_path
 
 try:
     import bleurt
@@ -88,7 +87,7 @@ class TruthfulQAMultipleChoice(Task):
     NUM_FEW_SHOT = 0
 
     def __init__(self, **kwargs):
-        self.DATASET_PATH = get_mlmm_dataset_path("datasets/m_truthfulqa")
+        self.DATASET_PATH = "malteos/m_truthfulqa"
         super().__init__(**kwargs)
 
     def has_training_docs(self):
