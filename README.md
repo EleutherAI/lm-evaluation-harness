@@ -3,7 +3,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
 
 ## Announcement
-**A new v0.4.0 release of lm-evaluation-harness is available** ! 
+**A new v0.4.0 release of lm-evaluation-harness is available** !
 
 New updates and features include:
 
@@ -45,7 +45,7 @@ cd lm-evaluation-harness
 pip install -e .
 ```
 
-We also provide a number of optional dependencies for . Extras can be installed via `pip install -e ".[NAME]"`
+We also provide a number of optional dependencies for extended functionality. Extras can be installed via `pip install -e ".[NAME]"`
 
 | Name          | Use                                   |
 | ------------- | ------------------------------------- |
