@@ -5,7 +5,6 @@
 This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
 
 **Features:**
-
 - Over 60 standard academic benchmarks for LLMs, with hundreds of subtasks and variants implemented.
 - Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for commercial APIs including [OpenAI](https://openai.com), [goose.ai](https://goose.ai), and [TextSynth](https://textsynth.com/).
@@ -67,7 +66,7 @@ lm_eval --model hf \
 
 Models that are loaded via both `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) and `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface are supporteded.
 
-Batch size selection can be automated by setting the `--batch_size` flag to `auto`. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append `:N` to above flag to automatically recompute the largest batch size `N` times. For example, to recompute the batch size 4 times, the command would be:
+Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
 
 ```bash
 lm_eval --model hf \
@@ -92,19 +91,17 @@ accelerate launch -m lm_eval --model hf \
     --batch_size 16
 ```
 
-This will perform _data-parallel evaluation_: that is, placing a **single full copy** of your model onto each available GPU and _splitting batches across GPUs_ to evaluate on K GPUs K times faster than on one.
+This will perform *data-parallel evaluation*: that is, placing a **single full copy** of your model onto each available GPU and *splitting batches across GPUs* to evaluate on K GPUs K times faster than on one.
 
-If your model is _is too large to be run on a single one of your GPUs_ then you can use `accelerate` with Fully Sharded Data Parallel (FSDP) that splits the weights of the model across your data parallel ranks. To enable this, ensure you select `YES` when asked `Do you want to use FullyShardedDataParallel?` when running `accelerate config`. To enable memory-efficient loading, select `YES` when asked `Do you want each individually wrapped FSDP unit to broadcast module parameters from rank 0 at the start?`. This will ensure only the rank 0 process loads the model and then broadcasts the parameters to the other ranks instead of having each rank load all parameters which can lead to large RAM usage spikes around the start of the script that may cause errors.
+If your model is *is too large to be run on a single one of your GPUs* then you can use `accelerate` with Fully Sharded Data Parallel (FSDP) that splits the weights of the model across your data parallel ranks. To enable this, ensure you select `YES` when asked ```Do you want to use FullyShardedDataParallel?``` when running `accelerate config`. To enable memory-efficient loading, select `YES` when asked `Do you want each individually wrapped FSDP unit to broadcast module parameters from rank 0 at the start?`. This will ensure only the rank 0 process loads the model and then broadcasts the parameters to the other ranks instead of having each rank load all parameters which can lead to large RAM usage spikes around the start of the script that may cause errors.
 
 To pass even more advanced keyword arguments to `accelerate`, we allow for the following arguments as well:
-
 - `device_map_option`: How to split model weights across available GPUs. defaults to "auto".
 - `max_memory_per_gpu`: the max GPU memory to use per GPU in loading the model.
 - `max_cpu_memory`: the max amount of CPU memory to use when offloading the model weights to RAM.
 - `offload_folder`: a folder where model weights will be offloaded to disk if needed.
 
 To use `accelerate` with the `lm-eval` command, use
-
 ```
 accelerate launch --no_python lm-eval --model ...
 ```
@@ -119,7 +116,6 @@ lm_eval --model vllm \
     --tasks lambada_openai \
     --batch_size auto
 ```
-
 For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
 
 ### Model APIs and Inference Servers
@@ -137,17 +133,18 @@ lm_eval --model openai-completions \
 
 Note that for externally hosted models, configs such as `--device` and `--batch_size` should not be used and do not function. Just like you can use `--model_args` to pass arbitrary arguments to the model constructor for local models, you can use it to pass arbitrary arguments to the model API for hosted models. See the documentation of the hosting service for information on what arguments they support.
 
-| API or Inference Server                                                                                                   | Implemented?                                                                                            | `--model <xxx>` name                                                             | Models supported:                                                                             | Request Types:                                             |
-| ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | --- | --- |
-| OpenAI Completions                                                                                                        | :heavy_check_mark:                                                                                      | `openai`, `openai-completions`, `gooseai`                                        | up to `code-davinci-002`                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| OpenAI ChatCompletions                                                                                                    | :x: Not yet - needs testing!                                                                            | N/A                                                                              | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                 | `generate_until` (no logprobs)                             |
-| Anthropic                                                                                                                 | :heavy_check_mark:                                                                                      | `anthropic`                                                                      | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)  | `generate_until` (no logprobs)                             |
-| GooseAI                                                                                                                   | :heavy_check_mark: (not separately maintained)                                                          | `openai`, `openai-completions`, `gooseai` (same interface as OpenAI Completions) |                                                                                               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Textsynth                                                                                                                 | :heavy_check_mark:                                                                                      | `textsynth`                                                                      | [All supported engines](https://textsynth.com/documentation.html#engines)                     | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Cohere                                                                                                                    | [:hourglass: - blocked on Cohere API bug](https://github.com/EleutherAI/lm-evaluation-harness/pull/395) | N/A                                                                              | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models)                        | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)) | :heavy_check_mark:                                                                                      | `gguf`, `ggml`                                                                   | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)                   | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| vLLM                                                                                                                      | :heavy_check_mark:                                                                                      | `vllm`                                                                           | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Your inference server here!                                                                                               | ...                                                                                                     | ...                                                                              | ...                                                                                           | ...                                                        |     | ... |
+
+| API or Inference Server     | Implemented?                    | `--model <xxx>` name                                                             | Models supported:                                                                             | Request Types:                                           |
+|-----------------------------|---------------------------------|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------|
+| OpenAI Completions          | :heavy_check_mark:              | `openai`, `openai-completions`, `gooseai`                                        | up to `code-davinci-002`                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| OpenAI ChatCompletions      | :x: Not yet - needs testing!       | N/A                                                                              | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                 | `generate_until` (no logprobs)                             |
+| Anthropic                   | :heavy_check_mark:              | `anthropic`                                                                      | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)  | `generate_until` (no logprobs)                             |
+| GooseAI                     | :heavy_check_mark: (not separately maintained)  | `openai`, `openai-completions`, `gooseai` (same interface as OpenAI Completions) |                                                                                               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Textsynth                   | :heavy_check_mark:                   | `textsynth`                                                                      | [All supported engines](https://textsynth.com/documentation.html#engines)                                                                                           | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Cohere                      | [:hourglass: - blocked on Cohere API bug](https://github.com/EleutherAI/lm-evaluation-harness/pull/395) | N/A                                                                              | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models)                        | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python))                        | :heavy_check_mark:              | `gguf`, `ggml`                                                                   | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| vLLM                        | :heavy_check_mark:       | `vllm`                                                                           | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
+| Your inference server here! | ...                             | ...                                                                              | ...                                                                                           | ...                                                      |                                | ...                                                      |
 
 It is on our roadmap to create task variants designed to enable models which do not serve logprobs/loglikelihoods to be compared with generation performance of open-source models.
 
@@ -183,8 +180,7 @@ lm_eval --model openai \
 
 ## Advanced Usage Tips
 
-For models loaded with the HuggingFace `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
-
+For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
 ```bash
 lm_eval --model hf \
     --model_args pretrained=EleutherAI/gpt-j-6b,parallelize=True,load_in_4bit=True,peft=nomic-ai/gpt4all-j-lora \
@@ -237,7 +233,7 @@ python -m lm_eval \
 Then, you can upload the resulting data using the `zeno_visualize` script:
 
 ```bash
-python zeno_visualize \
+python zeno_visualize.py \
     --data_path output \
     --project_name "Eleuther Project"
 ```
@@ -256,7 +252,6 @@ You can also ask for help, or discuss new features with the maintainers in the #
 To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
 
 In general, we following the following priority list for addressing concerns about prompting and other eval details:
-
 1. If there is widespread agreement among people who train LLMs, use the agreed upon procedure.
 2. If there is a clear and unambiguous official implementation, use that procedure.
 3. If there is widespread agreement among people who evaluate LLMs, use the agreed upon procedure.
