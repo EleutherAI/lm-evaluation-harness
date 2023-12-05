@@ -46,9 +46,10 @@ def main():
     tasks = tasks_for_model(models[0], args.data_path)
 
     for model in models:  # Make sure that all models have the same tasks.
+        model_tasks = tasks_for_model(model, args.data_path)
         assert (
-            tasks_for_model(model, args.data_path) == tasks
-        ), "All models must have the same tasks."
+            model_tasks == tasks
+        ), f"All models must have the same tasks.\n\n{model} has tasks: {model_tasks}\n{models[0]} has tasks: {tasks}"
 
     for task in tasks:
         # Upload data for all models
@@ -128,28 +129,24 @@ def generate_dataset(
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno.
     """
-    ids = list(map(lambda x: str(x["doc_id"]), data))
-    labels = list(map(lambda x: str(x["target"]), data))
+    ids = [x["doc_id"] for x in data]
+    labels = [x["target"] for x in data]
     instance = [""] * len(ids)
 
     if config["output_type"] == "loglikelihood":
-        instance = list(map(lambda x: str(x["arguments"][0][0]), data))
-        labels = list(map(lambda x: str(x["arguments"][0][1]), data))
+        instance = [x["arguments"][0][0] for x in data]
+        labels = [x["arguments"][0][1] for x in data]
     elif config["output_type"] == "multiple_choice":
-        instance = list(
-            map(
-                lambda x: str(
-                    x["arguments"][0][0]
-                    + "\n\n"
-                    + "\n".join(list(map(lambda y: f"- {y[1]}", x["arguments"])))
-                ),
-                data,
-            )
-        )
+        instance = [
+            x["arguments"][0][0]
+            + "\n\n"
+            + "\n".join([f"- {y[1]}" for y in x["arguments"]])
+            for x in data
+        ]
     elif config["output_type"] == "loglikelihood_rolling":
-        instance = list(map(lambda x: str(x["arguments"][0][0]), data))
+        instance = [x["arguments"][0][0] for x in data]
     elif config["output_type"] == "generate_until":
-        instance = list(map(lambda x: str(x["arguments"][0][0]), data))
+        instance = [x["arguments"][0][0] for x in data]
 
     return pd.DataFrame(
         {
@@ -171,36 +168,25 @@ def generate_system_df(data, config):
     Returns:
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno as a system.
     """
-    ids = list(map(lambda x: str(x["doc_id"]), data))
+    ids = [x["doc_id"] for x in data]
     answers = [""] * len(ids)
 
     if config["output_type"] == "loglikelihood":
-        answers = list(
-            map(
-                lambda x: "correct"
-                if x["filtered_resps"][0][1] == True
-                else "incorrect",
-                data,
-            )
-        )
+        answers = [
+            "correct" if x["filtered_resps"][0][1] is True else "incorrect"
+            for x in data
+        ]
     elif config["output_type"] == "multiple_choice":
-        answers = list(
-            map(
-                lambda x: ", ".join(
-                    list(map(lambda y: str(y[0]), x["filtered_resps"]))
-                ),
-                data,
-            )
-        )
+        answers = [", ".join([str(y[0]) for y in x["filtered_resps"]]) for x in data]
     elif config["output_type"] == "loglikelihood_rolling":
-        answers = list(map(lambda x: str(x["filtered_resps"][0]), data))
+        answers = [str(x["filtered_resps"][0]) for x in data]
     elif config["output_type"] == "generate_until":
-        answers = list(map(lambda x: str(x["filtered_resps"][0]), data))
+        answers = [str(x["filtered_resps"][0]) for x in data]
 
     metrics = {}
     for metric in config["metric_list"]:
         if "aggregation" in metric and metric["aggregation"] == "mean":
-            metrics[metric["metric"]] = list(map(lambda x: x[metric["metric"]], data))
+            metrics[metric["metric"]] = [x[metric["metric"]] for x in data]
 
     system_dict = {"id": ids, "output": answers}
     system_dict.update(metrics)

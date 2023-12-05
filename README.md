@@ -96,16 +96,6 @@ This will perform _data-parallel evaluation_: that is, placing a **single full c
 
 If your model is _is too large to be run on a single one of your GPUs_ then you can use `accelerate` with Fully Sharded Data Parallel (FSDP) that splits the weights of the model across your data parallel ranks. To enable this, ensure you select `YES` when asked `Do you want to use FullyShardedDataParallel?` when running `accelerate config`. To enable memory-efficient loading, select `YES` when asked `Do you want each individually wrapped FSDP unit to broadcast module parameters from rank 0 at the start?`. This will ensure only the rank 0 process loads the model and then broadcasts the parameters to the other ranks instead of having each rank load all parameters which can lead to large RAM usage spikes around the start of the script that may cause errors.
 
-We also provide an second method to run these large models: use of the `parallelize` argument.
-
-```
-python -m lm_eval \
-    --model hf \
-    --model_args pretrained=EleutherAI/pythia-12b,parallelize=True
-    --tasks lambada_openai,arc_easy \
-    --batch_size 16
-```
-
 To pass even more advanced keyword arguments to `accelerate`, we allow for the following arguments as well:
 
 - `device_map_option`: How to split model weights across available GPUs. defaults to "auto".
@@ -220,15 +210,18 @@ For a full list of supported arguments, check out the [interface](https://github
 
 ## Visualizing Results
 
-To visualize model predictions for individual instances as well as overall scores, you can use the [Zeno AI evaluation platform](https://zenoml.com).
+You can use [Zeno](https://zenoml.com) to visualize the results of your eval harness runs.
 
-After creating a Zeno account, you will have to add your API key to your environment variables:
+First, head to [hub.zenoml.com](hub.zenoml.com) to create an account and get an API key [on your account page](hub.zenoml.com/account).
+Add this key as an environment variable:
 
 ```bash
 export ZENO_API_KEY=[your api key]
 ```
 
-To be able to upload results, evaluation has to be run with the `log_samples` and `output_path` flags. We expect `output_path` to contain multiple folders that represent individual model names. You can thus run your evaluation on any number of tasks and models and upload all of the results as one Zeno project.
+To visualize the results, run the eval harness with the `log_samples` and `output_path` flags.
+We expect `output_path` to contain multiple folders that represent individual model names.
+You can thus run your evaluation on any number of tasks and models and upload all of the results as projects on Zeno.
 
 ```bash
 python -m lm_eval \
@@ -241,15 +234,16 @@ python -m lm_eval \
     --output_path output/gpt-j-6B
 ```
 
-Then, you can upload the resulting data using the `zeno_upload` script:
+Then, you can upload the resulting data using the `zeno_visualize` script:
 
 ```bash
-python zeno_upload \
+python zeno_visualize \
     --data_path output \
     --project_name "Eleuther Project"
 ```
 
 This will use all subfolders in `data_path` as different models and upload all tasks within these model folders to Zeno.
+If you run the eval harness on multiple tasks, the `project_name` will be used as a prefix and one project will be created per task.
 
 ## How to Contribute or Learn More?
 
