@@ -1,4 +1,0 @@
-"dataset_name": "electrical_engineering"
-"description": "The following are multiple choice questions (with answers) about electrical engineering.\n\n"
-"include": "_template_yaml"
-"task": "mmlu_style_05_fc_electrical_engineering"

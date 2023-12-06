@@ -1,4 +1,0 @@
-"dataset_name": "nutrition"
-"description": "The following are multiple choice questions (with answers) about nutrition.\n\n"
-"include": "_template_yaml"
-"task": "mmlu_style_04_fc_nutrition"
