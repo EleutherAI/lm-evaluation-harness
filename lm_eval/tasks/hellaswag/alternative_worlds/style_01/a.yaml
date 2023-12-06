@@ -1,6 +1,6 @@
 include: ../_hellaswag_alt_yaml
 group: hellaswag_01
-group_alias: style_01 
+group_alias: style_01
 task: hellaswag_01a
 task_alias: a
 doc_to_text: !function ../styles.template_01

@@ -15,6 +15,6 @@ Answer types:
     - original option
     - just letter
 - letters + continuation
-    - original option 
+    - original option
     - just letter
 - continuation

@@ -1,6 +1,7 @@
 import string
 from functools import partial
 
+
 def doc_to_text_base(alphabet, style, doc):
 
     choices = doc["choices"]
@@ -13,19 +14,21 @@ def doc_to_text_base(alphabet, style, doc):
     else:
         choice_string = "{} {}"
 
-    doc_to_text = "\n\n".join([
-        doc["query"]+"...",
-        " What is the most appropriate continuation?",
-        ] + [
-            choice_string.format(i,j) for i,j in zip(letter_list, choices)
+    doc_to_text = "\n\n".join(
+        [
+            doc["query"] + "...",
+            " What is the most appropriate continuation?",
         ]
+        + [choice_string.format(i, j) for i, j in zip(letter_list, choices)]
     )
 
     return doc_to_text
 
+
 # Full continuation
 def choice_A(doc):
     return doc["choices"]
+
 
 # Letters only
 def choice_B(alphabet, style, doc):
@@ -35,9 +38,10 @@ def choice_B(alphabet, style, doc):
 
     letter_list = [style.format(letter) for letter in alphabet[0:num]]
     if "\t" in style:
-        letter_list = [letter.replace("\t","") for letter in letter_list]
+        letter_list = [letter.replace("\t", "") for letter in letter_list]
 
     return letter_list
+
 
 # Letters + Full continuation
 def choice_C(alphabet, style, doc):
@@ -47,9 +51,10 @@ def choice_C(alphabet, style, doc):
 
     letter_list = [style.format(letter) for letter in alphabet[0:num]]
     if "\t" not in style:
-        letter_list = [letter+" " for letter in letter_list]
+        letter_list = [letter + " " for letter in letter_list]
 
-    return [letter+choice for letter, choice in zip(letter_list, doc["choices"])]
+    return [letter + choice for letter, choice in zip(letter_list, doc["choices"])]
+
 
 template_01 = partial(doc_to_text_base, string.ascii_lowercase, "({})")
 choice_01a = choice_A
@@ -83,5 +88,3 @@ template_08 = partial(doc_to_text_base, string.ascii_uppercase, "{}\t")
 choice_08a = choice_A
 choice_08b = partial(choice_B, string.ascii_uppercase, "{}\t")
 choice_08c = partial(choice_C, string.ascii_uppercase, "{}\t")
-
-

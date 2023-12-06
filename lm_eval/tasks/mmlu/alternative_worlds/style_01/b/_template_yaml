@@ -1,5 +1,5 @@
 group: mmlu_style_01
-group_alias: style_01 
+group_alias: style_01
 task: mmlu_style_01b
 task_alias: b
 dataset_path: cais/mmlu

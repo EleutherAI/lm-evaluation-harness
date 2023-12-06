@@ -127,10 +127,10 @@ def brier_score(items):  # This is a passthrough function
         _p = np.array(p)
         _g = np.array(g)
         _g_one_hot = np.eye(len(_p[0]))[_g]
-        average += np.mean(np.sum((_p - _g_one_hot) ** 2, axis=1))*len(_g)
+        average += np.mean(np.sum((_p - _g_one_hot) ** 2, axis=1)) * len(_g)
         total_size += len(_g)
 
-    return average/total_size
+    return average / total_size
 
 
 @register_metric(

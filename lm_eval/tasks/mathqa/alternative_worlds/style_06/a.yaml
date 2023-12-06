@@ -1,6 +1,6 @@
 include: ../_mathqa_alt_yaml
 group: mathqa_06
-group_alias: style_06 
+group_alias: style_06
 task: mathqa_06a
 task_alias: a
 doc_to_text: !function ../styles.template_06

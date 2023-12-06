@@ -1,6 +1,6 @@
 include: ../_arc_easy_alt_yaml
 group: arc_easy_04
-group_alias: style_04 
+group_alias: style_04
 task: arc_easy_04c
 task_alias: c
 doc_to_text: !function ../styles.template_04
