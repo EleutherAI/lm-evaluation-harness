@@ -61,7 +61,7 @@ def parse_args():
     parser.add_argument("--tasks", type=str, default="arc_easy,hellaswag")
     parser.add_argument(
         "--limit",
-        type=int,
+        type=float,
         default=100,
     )
     parser.add_argument(
