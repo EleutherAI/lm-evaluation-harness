@@ -55,7 +55,7 @@
   \ resemblance of structures that have different origins, which is not the case for\
   \ the human and bird forearms, which rules out (D). Humans and birds do belong to\
   \ the same clade - a group of organisms composed of a common ancestor. The answer\
-  \ is (C)."
+  \ is (C).\n\n"
 "group": "mmlu_flan_cot_fewshot_stem"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_college_biology"

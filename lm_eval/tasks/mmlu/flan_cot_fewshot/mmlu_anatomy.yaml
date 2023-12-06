@@ -51,7 +51,7 @@
   \ of the hyoid bone; therefore, the embryological origin of the hyoid bone are the\
   \ second and the third pharyngeal arches—this information is covered in the last\
   \ option (D). Therefore, we conclude that (D) must be the correct answer. The answer\
-  \ is (D)."
+  \ is (D).\n\n"
 "group": "mmlu_flan_cot_fewshot_stem"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_anatomy"

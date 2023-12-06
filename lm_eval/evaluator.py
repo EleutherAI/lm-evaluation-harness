@@ -20,6 +20,7 @@ from lm_eval.utils import (
     make_table,
     create_iterator,
     get_git_commit_hash,
+    simple_parse_args_string,
     eval_logger,
 )
 
@@ -40,6 +41,7 @@ def simple_evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
+    gen_kwargs: str = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -70,6 +72,9 @@ def simple_evaluate(
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param gen_kwargs: str
+        String arguments for model generation
+        Ignored for all tasks with loglikelihood output_type
     :return
         Dictionary of results
     """
@@ -82,6 +87,14 @@ def simple_evaluate(
     assert (
         tasks != []
     ), "No tasks specified, or no tasks found. Please verify the task names."
+
+    if gen_kwargs is not None:
+        gen_kwargs = simple_parse_args_string(gen_kwargs)
+        eval_logger.warning(
+            f"generation_kwargs specified through cli, these settings will be used over set parameters in yaml tasks."
+        )
+        if gen_kwargs == "":
+            gen_kwargs = None
 
     if isinstance(model, str):
         if model_args is None:
@@ -117,14 +130,21 @@ def simple_evaluate(
                 continue
 
         config = task_obj._config
+        if config["output_type"] == "generate_until" and gen_kwargs is not None:
+            config["generation_kwargs"].update(gen_kwargs)
+
         if num_fewshot is not None:
-            if config["num_fewshot"] > 0:
+            if config["num_fewshot"] == 0:
+                eval_logger.info(
+                    f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
+                )
+            else:
                 default_num_fewshot = config["num_fewshot"]
                 eval_logger.warning(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
 
-            task_obj._config["num_fewshot"] = num_fewshot
+                task_obj._config["num_fewshot"] = num_fewshot
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -154,6 +174,7 @@ def simple_evaluate(
             "use_cache": use_cache,
             "limit": limit,
             "bootstrap_iters": bootstrap_iters,
+            "gen_kwargs": gen_kwargs,
         }
         results["git_hash"] = get_git_commit_hash()
         return results
@@ -216,6 +237,8 @@ def evaluate(
     # store the ordering of tasks and groups
     task_order = collections.defaultdict(int)
     task_group_alias = collections.defaultdict(dict)
+    # store num-fewshot value per task
+    num_fewshot = collections.defaultdict(int)
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
@@ -233,6 +256,12 @@ def evaluate(
 
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
+
+        if "num_fewshot" in configs[task_name]:
+            n_shot = configs[task_name]["num_fewshot"]
+        else:
+            n_shot = 0
+        num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
             task_group_alias[task_name] = configs[task_name]["task_alias"]
@@ -411,7 +440,6 @@ def evaluate(
         vals = vals_torch
 
     if lm.rank == 0:
-
         ### Get task ordering for correct sample-wide aggregation
         group_to_task = {}
         for group in task_hierarchy.keys():
@@ -422,7 +450,6 @@ def evaluate(
                 group_to_task[group] = task_hierarchy[group].copy()
 
             for task in task_hierarchy[group]:
-
                 if task in task_order:
                     task_order[task] += 1
                 else:
@@ -471,9 +498,7 @@ def evaluate(
                     results[task_name][metric + "_stderr" + "," + key] = 0
 
         if bool(results):
-
             for group, task_list in reversed(task_hierarchy.items()):
-
                 if task_list == []:
                     total_size = results[group]["samples"]
                 else:
@@ -493,7 +518,6 @@ def evaluate(
                         for metric in [
                             key for key in metrics.keys() if "_stderr" not in key
                         ]:
-
                             stderr = "_stderr,".join(metric.split(","))
                             stderr_score = results[task][stderr]
                             var_score = stderr_score**2
@@ -530,11 +554,9 @@ def evaluate(
                 results[group]["samples"] = total_size
 
         def print_tasks(task_hierarchy, task_order, task_version, task_group_alias):
-
             results_agg = collections.defaultdict(dict)
             groups_agg = collections.defaultdict(dict)
             for group_name, task_list in task_hierarchy.items():
-
                 order = task_order[group_name]
                 results_agg[group_name] = results[group_name].copy()
                 results_agg[group_name]["tab"] = order
@@ -597,11 +619,16 @@ def evaluate(
             else:
                 groups_agg[group]["alias"] = tab_string + group
 
+        for group_name, task_list in task_hierarchy.items():
+            if task_list != []:
+                num_fewshot[group_name] = num_fewshot[task_list[0]]
+
         results_dict = {
             "results": dict(results_agg.items()),
             **({"groups": dict(groups_agg.items())} if bool(groups_agg) else {}),
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
+            "n-shot": dict(sorted(num_fewshot.items())),
         }
         if log_samples:
             results_dict["samples"] = dict(samples)

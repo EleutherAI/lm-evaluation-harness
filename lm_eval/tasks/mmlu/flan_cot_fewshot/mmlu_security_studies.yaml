@@ -80,7 +80,7 @@
   \ conflict. It seeks to control by imposing compliance by removing any opportunity\
   \ for negotiation or concession.\nA: Let's think step by step. We refer to Wikipedia\
   \ articles on security studies for help. Coercive diplomacy uses the threat of force\
-  \ to induce the opponent to comply with demands. The answer is (B)."
+  \ to induce the opponent to comply with demands. The answer is (B).\n\n"
 "group": "mmlu_flan_cot_fewshot_social_sciences"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_security_studies"

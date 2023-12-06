@@ -19,3 +19,5 @@ filter_list:
   - name: "wsc_postprocessor"
     filter:
       - function: !function t5_utils.WSCPostprocess
+metadata:
+  - version: 0.0

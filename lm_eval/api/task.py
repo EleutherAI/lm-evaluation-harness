@@ -81,7 +81,7 @@ class TaskConfig(dict):
     fewshot_delimiter: str = "\n\n"
     fewshot_config: dict = None
     # runtime configuration options
-    num_fewshot: int = 0
+    num_fewshot: int = None
     # scoring options
     metric_list: list = None
     output_type: str = "generate_until"
@@ -91,7 +91,9 @@ class TaskConfig(dict):
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
 
-    metadata: str = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+    metadata: Union[
+        str, list
+    ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
         if self.dataset_path and ("." in self.dataset_path):
@@ -359,7 +361,7 @@ class Task(abc.ABC):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(
                 doc,
-                self.config.num_fewshot,
+                0 if self.config.num_fewshot is None else self.config.num_fewshot,
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -775,7 +777,7 @@ class ConfigurableTask(Task):
         if self.config.fewshot_split is not None:
             return self.dataset[self.config.fewshot_split]
         else:
-            if self.config.num_fewshot > 0:
+            if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
                 eval_logger.warning(
                     f"Task '{self.config.task}': "
                     "num_fewshot > 0 but fewshot_split is None. "

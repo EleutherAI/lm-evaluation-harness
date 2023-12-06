@@ -37,7 +37,7 @@
   \ step. We refer to Wikipedia articles on sociology for help. The post-war welfare\
   \ state of 1948 aimed to provide free healthcare and education, full employment,\
   \ and universal welfare. But it did not aim to provide a minimum wage. The answer\
-  \ is (B)."
+  \ is (B).\n\n"
 "group": "mmlu_flan_cot_fewshot_social_sciences"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_sociology"

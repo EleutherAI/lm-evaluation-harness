@@ -17,7 +17,7 @@ from lm_eval.logger import eval_logger
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base_yaml_path", required=True)
-    parser.add_argument("--save_prefix_path", default="flan_zeroshot")
+    parser.add_argument("--save_prefix_path", default="zeroshot")
     parser.add_argument("--cot", default=False)
     parser.add_argument("--fewshot", default=False)
     parser.add_argument("--task_prefix", default="")

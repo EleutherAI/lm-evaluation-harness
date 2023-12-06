@@ -1,0 +1,4 @@
+include: _template_00_yaml
+task: arithmetic_2dm_alt_00
+dataset_name: arithmetic_2dm
+task_alias: 2dm

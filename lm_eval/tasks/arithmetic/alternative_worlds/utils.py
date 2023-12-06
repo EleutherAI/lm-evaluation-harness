@@ -2,6 +2,10 @@ import re
 
 # Original Prompt
 # Question: What is (9 + 8) * 2? Answer:
+def style_00(docs):
+
+    # What is (9 + 8) * 2?
+    return docs["context"]
 
 def style_01(docs):
 

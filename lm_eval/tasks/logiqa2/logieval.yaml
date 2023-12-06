@@ -23,3 +23,5 @@ filter_list:
         # https://github.com/openai/evals/blob/305b237cdb3884c7ddb6a5d12cb184a83551fcba/evals/api.py#L84
         regex_pattern: "^\\s*([A-D])"
       - function: "take_first"
+metadata:
+  - version: 0.0

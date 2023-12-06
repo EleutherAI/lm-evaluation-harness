@@ -1,0 +1,7 @@
+include: ../_arc_easy_alt_yaml
+group: arc_easy_06
+group_alias: style_06 
+task: arc_easy_06a
+task_alias: a
+doc_to_text: !function ../styles.template_06
+doc_to_choice: !function ../styles.choice_06a
