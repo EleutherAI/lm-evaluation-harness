@@ -50,10 +50,11 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-
+    hf_args = "," + args.hf_args
+    vllm_args = "," + args.vllm_args
     results_hf = lm_eval.evaluator.simple_evaluate(
         model="hf",
-        model_args=f"pretrained={args.pretrained}" + args.hf_args,
+        model_args=f"pretrained={args.pretrained}" + hf_args,
         tasks=args.tasks,
         limit=args.limit,
         device=args.device,
@@ -61,7 +62,7 @@ if __name__ == "__main__":
     )
     results_vllm = lm_eval.evaluator.simple_evaluate(
         model="vllm",
-        model_args=f"pretrained={args.pretrained}" + args.hf_args,
+        model_args=f"pretrained={args.pretrained}" + vllm_args,
         tasks=args.tasks,
         limit=args.limit,
         device=args.device,
