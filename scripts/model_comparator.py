@@ -77,7 +77,7 @@ def parse_args():
     )
     parser.add_argument(
         "--batch",
-        type=int,
+        type=str,
         default=8,
     )
     parser.add_argument(
