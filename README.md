@@ -3,7 +3,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
 
 ## Announcement
-**A new v0.4.0 release of lm-evaluation-harness is available** ! 
+**A new v0.4.0 release of lm-evaluation-harness is available** !
 
 New updates and features include:
 
