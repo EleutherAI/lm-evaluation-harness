@@ -86,6 +86,8 @@ class TaskConfig(dict):
     metric_list: list = None
     output_type: str = "generate_until"
     generation_kwargs: dict = None
+    generation_kwargs_sampling: dict = None
+    generation_kwargs_sampling_number: int = 0
     repeats: int = 1
     filter_list: Union[str, list] = None
     should_decontaminate: bool = False
@@ -999,7 +1001,33 @@ class ConfigurableTask(Task):
             return request_list
 
         elif self.OUTPUT_TYPE == "generate_until":
-            arguments = (ctx, self.config.generation_kwargs)
+            if hasattr(self.config, 'generation_kwargs_sampling'):
+                arguments = (ctx, self.config.generation_kwargs)
+                request_list = [
+                    Instance(
+                        request_type=self.OUTPUT_TYPE,
+                        doc=doc,
+                        arguments=arguments,
+                        idx=0,
+                        **kwargs
+                        ),
+                ]
+
+                sampling_arguments = (ctx, self.config.generation_kwargs_sampling)
+                request_list.extend([
+                    Instance(
+                        request_type=self.OUTPUT_TYPE,
+                        doc=doc,
+                        arguments=sampling_arguments,
+                        idx=idx,
+                        **kwargs
+                        )
+                    for idx in range(1, self.config.generation_kwargs_sampling_number+1)
+                    ]
+                )
+                return request_list
+            else:
+                arguments = (ctx, self.config.generation_kwargs)
 
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
