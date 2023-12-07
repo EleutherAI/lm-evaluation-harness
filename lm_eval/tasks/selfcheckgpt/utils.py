@@ -51,6 +51,9 @@ def process_results(doc, results, threshold=0.6):
             passage = passage,
             sampled_passages = other_responses,
             )
+        return {"avg": selfcheckgpt_scores["doc_level"]["avg_neg_logprob"],
+                "max": selfcheckgpt_scores["doc_level"]["avg_max_neg_logprob"]}
+
     elif selfcheckgpt_type == 'SelfCheckBERTScore':
         selfcheckgpt_scores = selfcheckgpt.predict(
             sentences = sentences,
