@@ -83,13 +83,13 @@ You should try your best to determine if the summary contains non-factual or hal
 
 def doc_to_text_qa(doc: dict[str, str]) -> str:
     # prompt = instruction + "\n\n#Question#: " + question + "\n#Answer#: " + answer + "\n#Your Judgement#:"
-    doc_text = QA_INSTURCTIONS + "\n\n#Question#: " + doc["question"] + "\n#Answer#: " + doc["answer"] + "\n#Your Judgement#:"
+    doc_text = QA_INSTURCTIONS + "\n\n#Knowledge: " + doc["knowledge"] + "\n#Question#: " + doc["question"] + "\n#Answer#: " + doc["answer"] + "\n#Your Judgement#:"
     return doc_text
 
 
 def doc_to_text_dialogue(doc: dict[str, str]) -> str:
     # prompt = instruction + "\n\n#Dialogue History#: " + dialog + "\n#Response#: " + response + "\n#Your Judgement#:"
-    doc_text = DIALOGUE_INSTRUCTIONS + "\n\n#Dialogue History#: " + doc["dialogue_history"] + "\n#Response#: " + doc["response"] + "\n#Your Judgement#:"
+    doc_text = DIALOGUE_INSTRUCTIONS + "\n\n#Knowledge: " + doc["knowledge"] + "\n#Dialogue History#: " + doc["dialogue_history"] + "\n#Response#: " + doc["response"] + "\n#Your Judgement#:"
     return doc_text
 
 
