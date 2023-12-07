@@ -15,6 +15,7 @@ generation_kwargs:
     - "</s>"
   do_sample: false
   temperature: 0.0
+num_fewshot: 0
 metric_list:
   - metric: exact_match
     aggregation: mean
