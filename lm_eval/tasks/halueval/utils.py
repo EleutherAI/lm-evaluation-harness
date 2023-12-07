@@ -1,5 +1,4 @@
-from itertools import zip_longest
-import transformers.data.metrics.squad_metrics as squad_metrics
+# Main reference: https://github.com/RUCAIBox/HaluEval/blob/main/evaluation/evaluate.py
 
 QA_INSTURCTIONS = """I want you act as an answer judge. Given a question and an answer, your objective is to determine if the provided answer contains non-factual or hallucinated information. You SHOULD give your judgement based on the following hallucination types and the world knowledge.
 
@@ -83,21 +82,18 @@ You should try your best to determine if the summary contains non-factual or hal
 
 
 def doc_to_text_qa(doc: dict[str, str]) -> str:
-    # print('XXX doc_to_text_qa')
     # prompt = instruction + "\n\n#Question#: " + question + "\n#Answer#: " + answer + "\n#Your Judgement#:"
     doc_text = QA_INSTURCTIONS + "\n\n#Question#: " + doc["question"] + "\n#Answer#: " + doc["answer"] + "\n#Your Judgement#:"
     return doc_text
 
 
 def doc_to_text_dialogue(doc: dict[str, str]) -> str:
-    # print('XXX doc_to_text_dialogue')
     # prompt = instruction + "\n\n#Dialogue History#: " + dialog + "\n#Response#: " + response + "\n#Your Judgement#:"
     doc_text = DIALOGUE_INSTRUCTIONS + "\n\n#Dialogue History#: " + doc["dialogue_history"] + "\n#Response#: " + doc["response"] + "\n#Your Judgement#:"
     return doc_text
 
 
 def doc_to_text_summarization(doc: dict[str, str]) -> str:
-    # print('XXX doc_to_text_dialogue')
     # prompt1 = instruction + "\n\n#Document#: " + document
     # prompt2 = "\n#Summary#: " + summary + "\n#Your Judgement#:"
     doc_text_1 = SUMMARIZATION_INSTRUCTIONS + "\n\n#Document#: " + doc["document"]
@@ -106,15 +102,7 @@ def doc_to_text_summarization(doc: dict[str, str]) -> str:
     return doc_text
 
 
-def doc_to_text_summarization(doc: dict[str, str]) -> str:
-    # print('XXX doc_to_text_dialogue')
-    # prompt = instruction + "\n\n#Dialogue History#: " + dialog + "\n#Response#: " + response + "\n#Your Judgement#:"
-    doc_text = DIALOGUE_INSTRUCTIONS + "\n\n#Dialogue History#: " + doc["question"] + "\n#Answer#: " + doc["answer"] + "\n#Your Judgement#:"
-    return doc_text
-
-
 def doc_to_target_qa(doc: dict[str, str]) -> str:
-    # print('XXX doc_to_target_qa')
     return doc['hallucination']
 
 

@@ -5,7 +5,7 @@ output_type: generate_until
 training_split: data
 validation_split: data
 doc_to_text: !function utils.doc_to_text_summarization
-doc_to_target: !function utils.doc_to_target_summarization
+doc_to_target: !function utils.doc_to_target_qa
 process_results: !function utils.process_results_qa
 fewshot_delimiter: "\n"
 generation_kwargs:
