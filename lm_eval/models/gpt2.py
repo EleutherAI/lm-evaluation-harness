@@ -214,12 +214,15 @@ class OPTIMUMLM(BaseLM):
         # TODO: update this to be less of a hack once subfolder is fixed in HF
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
+        ov_config = {"PERFORMANCE_HINT": "LATENCY", "NUM_STREAMS": "1", "CACHE_DIR": ""}
+
         self.gpt2 = OVModelForCausalLM.from_pretrained(
             pretrained,
             load_in_8bit=load_in_8bit,
             revision=revision,
             trust_remote_code=trust_remote_code,
             use_cache=True,
+            ov_config=ov_config
         )
 
         try:
