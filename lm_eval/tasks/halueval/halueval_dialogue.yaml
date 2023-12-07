@@ -15,11 +15,6 @@ generation_kwargs:
     - ","
   do_sample: false
   temperature: 0.0
-filter_list:
-  - name: remove_whitespace
-    filter:
-      - function: remove_whitespace
-      - function: take_first
 target_delimiter: " "
 metric_list:
   - metric: em
