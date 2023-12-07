@@ -116,7 +116,7 @@ def compute_metrics_qa(gold_answer: str, prediction: str) -> dict[str, float]:
     elif "No" in prediction:
         prediction = "no"
 
-    is_exact = (gold_answer == prediction)
+    is_exact = gold_answer == prediction
 
     res = {"correctness": 1.0 if is_correct else 0.0}
     if is_correct:
