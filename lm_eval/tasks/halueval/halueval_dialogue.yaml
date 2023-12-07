@@ -1,0 +1,32 @@
+task: halueval_qa
+dataset_path: pminervini/HaluEval
+dataset_name: dialogue_samples
+output_type: generate_until
+training_split: data
+validation_split: data
+doc_to_text: !function utils.doc_to_text_dialogue
+doc_to_target: !function utils.doc_to_target_dialogue
+process_results: !function utils.process_results_qa
+fewshot_delimiter: "\n"
+generation_kwargs:
+  until:
+    - "\n"
+    - "."
+    - ","
+  do_sample: false
+  temperature: 0.0
+filter_list:
+  - name: remove_whitespace
+    filter:
+      - function: remove_whitespace
+      - function: take_first
+target_delimiter: " "
+metric_list:
+  - metric: em
+    aggregation: mean
+    higher_is_better: true
+  - metric: correctness
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  - version: 0.0
