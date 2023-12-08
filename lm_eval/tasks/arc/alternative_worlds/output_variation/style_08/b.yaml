@@ -1,0 +1,6 @@
+include: ../_arc_easy_alt_yaml
+group: arc_easy_alt_ov_08
+task: arc_easy_alt_ov_08b
+doc_to_text: !function ../styles.template_08
+doc_to_choice: !function ../styles.choice_08b
+doc_to_decontamination_query: !function ../styles.template_08

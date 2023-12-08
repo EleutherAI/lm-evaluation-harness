@@ -1,0 +1,5 @@
+include: _arc_easy_alt_yaml
+group: arc_easy_alt_pv
+task: arc_easy_alt_pv_02
+doc_to_text: "Q: {{question}}\nA:"
+doc_to_decontamination_query: "Q: {{question}}\nA:"
