@@ -1,0 +1,4 @@
+"dataset_name": "salient_translation_error_detection"
+"description": "Detect the type of error in an English translation of a German source sentence.\n\n"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_alt_pv_03_zeroshot_salient_translation_error_detection"

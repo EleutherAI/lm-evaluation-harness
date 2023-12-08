@@ -1,0 +1,6 @@
+"dataset_name": "formal_fallacies"
+"description": "Distinguish deductively valid arguments from formal fallacies.\n\n"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_alt_pv_03_zeroshot_formal_fallacies"
+"doc_to_target": target
+"doc_to_choice": ["valid", "invalid"]

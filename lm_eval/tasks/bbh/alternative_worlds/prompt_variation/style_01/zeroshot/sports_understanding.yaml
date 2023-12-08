@@ -1,0 +1,6 @@
+"dataset_name": "sports_understanding"
+"description": "Determine whether an artificially constructed sentence relating to sports is plausible or not.\n\n"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_alt_pv_01_zeroshot_sports_understanding"
+"doc_to_target": target
+"doc_to_choice": ["yes", "no"]
