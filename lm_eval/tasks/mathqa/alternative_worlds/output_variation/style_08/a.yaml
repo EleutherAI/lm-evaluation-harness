@@ -1,0 +1,5 @@
+include: ../_mathqa_alt_yaml
+group: mathqa_alt_ov_08
+task: mathqa_alt_ov_08a
+doc_to_text: !function ../styles.template_08
+doc_to_choice: !function ../styles.choice_08a

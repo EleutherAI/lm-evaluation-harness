@@ -1,0 +1,10 @@
+group: mathqa_alt_ov
+task:
+  - mathqa_alt_ov_01
+  - mathqa_alt_ov_02
+  - mathqa_alt_ov_03
+  - mathqa_alt_ov_04
+  - mathqa_alt_ov_05
+  - mathqa_alt_ov_06
+  - mathqa_alt_ov_07
+  - mathqa_alt_ov_08
