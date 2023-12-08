@@ -831,8 +831,11 @@ class ConfigurableTask(Task):
 
     def doc_to_decontamination_query(self, doc):
         if self.config.should_decontaminate:
-            if self.config.doc_to_decontamination_query in self.features:
-                return doc[self.config.doc_to_decontamination_query]
+            doc_to_decontamination_query = self.config.doc_to_decontamination_query
+            if doc_to_decontamination_query in self.features:
+                return doc[doc_to_decontamination_query]
+            elif callable(doc_to_decontamination_query):
+                return doc_to_decontamination_query(doc)
             else:
                 return ast.literal_eval(
                     utils.apply_template(self.config.doc_to_decontamination_query, doc)
