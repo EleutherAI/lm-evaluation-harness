@@ -1,0 +1,5 @@
+include: ../_sciq_alt_yaml
+group: sciq_alt_ov_08
+task: sciq_alt_ov_08c
+doc_to_text: !function ../styles.template_08
+doc_to_choice: !function ../styles.choice_08c
