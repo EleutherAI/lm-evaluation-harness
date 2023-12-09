@@ -86,7 +86,7 @@ class HFLM(LM):
         dtype: Optional[Union[str, torch.dtype]] = "auto",
         batch_size: Optional[Union[int, str]] = 1,
         max_batch_size: Optional[int] = 64,
-        low_cpu_mem_usage: Optional[bool] = True,
+        # low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
         # arguments used for splitting a model across GPUs naively.
@@ -98,12 +98,13 @@ class HFLM(LM):
         offload_folder: Optional[Union[str, os.PathLike]] = "./offload",
         # PEFT and quantization options
         peft: Optional[str] = None,
-        load_in_8bit: Optional[bool] = False,
-        load_in_4bit: Optional[bool] = False,
-        bnb_4bit_quant_type: Optional[str] = None,
-        bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        # load_in_8bit: Optional[bool] = False,
+        # load_in_4bit: Optional[bool] = False,
+        # bnb_4bit_quant_type: Optional[str] = None,
+        # bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
         gptq: Optional[Union[bool, str]] = False,
-        gptq_use_triton: Optional[bool] = False,
+        # gptq_use_triton: Optional[bool] = False,
+        **kwargs,
     ) -> None:
         super().__init__()
 
@@ -197,7 +198,7 @@ class HFLM(LM):
                 pretrained=pretrained,
                 revision=revision,
                 dtype=dtype,
-                low_cpu_mem_usage=low_cpu_mem_usage,
+                # low_cpu_mem_usage=low_cpu_mem_usage,
                 trust_remote_code=trust_remote_code,
                 parallelize=parallelize,
                 device_map_option=device_map_option,
@@ -205,12 +206,13 @@ class HFLM(LM):
                 max_cpu_memory=max_cpu_memory,
                 offload_folder=offload_folder,
                 peft=peft,
-                load_in_8bit=load_in_8bit,
-                load_in_4bit=load_in_4bit,
-                bnb_4bit_quant_type=bnb_4bit_quant_type,
-                bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
+                # load_in_8bit=load_in_8bit,
+                # load_in_4bit=load_in_4bit,
+                # bnb_4bit_quant_type=bnb_4bit_quant_type,
+                # bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
                 gptq=gptq,
-                gptq_use_triton=gptq_use_triton,
+                # gptq_use_triton=gptq_use_triton,
+                **kwargs,
             )
 
         # access self._model through self.model property outside this method
@@ -423,7 +425,7 @@ class HFLM(LM):
         pretrained: str,
         revision: Optional[str] = "main",
         dtype: Optional[Union[str, torch.dtype]] = "auto",
-        low_cpu_mem_usage: Optional[bool] = True,
+        # low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
@@ -435,12 +437,13 @@ class HFLM(LM):
         offload_folder: Optional[str] = "./offload",
         # PEFT and quantization options
         peft: Optional[str] = None,
-        load_in_8bit: Optional[bool] = False,
-        load_in_4bit: Optional[bool] = False,
-        bnb_4bit_quant_type: Optional[str] = None,
-        bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
+        # load_in_8bit: Optional[bool] = False,
+        # load_in_4bit: Optional[bool] = False,
+        # bnb_4bit_quant_type: Optional[str] = None,
+        # bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
         gptq: Optional[Union[bool, str]] = False,
-        gptq_use_triton: Optional[bool] = False,
+        # gptq_use_triton: Optional[bool] = False,
+        **kwargs,
     ) -> None:
         """
         Initializes an HF or HF-compatible PreTrainedModel from scratch
@@ -454,7 +457,7 @@ class HFLM(LM):
         please consider subclassing HFLM and overriding this and other methods as needed.
         """
 
-        model_kwargs = {}
+        model_kwargs = kwargs if kwargs else {}
 
         if parallelize:
             model_kwargs = _get_accelerate_args(
@@ -464,26 +467,23 @@ class HFLM(LM):
                 offload_folder,
             )
         if not gptq:
-            if load_in_4bit:
+            if model_kwargs.get("load_in_4bit", None):
                 assert (
                     transformers.__version__ >= "4.30.0"
                 ), "load_in_4bit requires transformers >= 4.30.0"
             if transformers.__version__ >= "4.30.0":
-                model_kwargs["load_in_4bit"] = load_in_4bit
-                if load_in_4bit:
-                    if bnb_4bit_quant_type:
-                        model_kwargs["bnb_4bit_quant_type"] = bnb_4bit_quant_type
-                    if bnb_4bit_compute_dtype:
+                if model_kwargs["load_in_4bit"]:
+                    if model_kwargs.get("bnb_4bit_compute_dtype", None):
                         model_kwargs["bnb_4bit_compute_dtype"] = utils.get_dtype(
-                            bnb_4bit_compute_dtype
+                            model_kwargs["bnb_4bit_compute_dtype"]
                         )
             self._model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision,
                 torch_dtype=utils.get_dtype(dtype),
-                low_cpu_mem_usage=low_cpu_mem_usage,
-                trust_remote_code=trust_remote_code,
-                load_in_8bit=load_in_8bit,
+                # low_cpu_mem_usage=low_cpu_mem_usage,
+                # trust_remote_code=trust_remote_code,
+                # load_in_8bit=load_in_8bit,
                 **model_kwargs,
             )
         else:
@@ -498,16 +498,16 @@ class HFLM(LM):
             self._model = AutoGPTQForCausalLM.from_quantized(
                 pretrained,
                 model_basename=None if gptq is True else Path(gptq).stem,
-                low_cpu_mem_usage=low_cpu_mem_usage,
-                trust_remote_code=trust_remote_code,
+                # low_cpu_mem_usage=low_cpu_mem_usage,
+                # trust_remote_code=trust_remote_code,
                 use_safetensors=True if gptq is True else gptq.endswith(".safetensors"),
-                use_triton=gptq_use_triton,
-                warmup_triton=gptq_use_triton,
+                # use_triton=gptq_use_triton,
+                # warmup_triton=gptq_use_triton,
                 **model_kwargs,
             )
 
         if peft:
-            if load_in_4bit:
+            if model_kwargs.get("load_in_4bit", None):
                 assert PEFT_VERSION >= "0.4.0", "load_in_4bit requires peft >= 0.4.0"
             self._model = PeftModel.from_pretrained(
                 self._model, peft, revision=revision
