@@ -1,4 +1,4 @@
-task: halueval_qa
+task: halueval_dialogue
 dataset_path: pminervini/HaluEval
 dataset_name: dialogue_samples
 output_type: generate_until

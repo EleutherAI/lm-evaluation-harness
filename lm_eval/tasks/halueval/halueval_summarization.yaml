@@ -1,4 +1,4 @@
-task: halueval_qa
+task: halueval_summarization
 dataset_path: pminervini/HaluEval
 dataset_name: summarization_samples
 output_type: generate_until
