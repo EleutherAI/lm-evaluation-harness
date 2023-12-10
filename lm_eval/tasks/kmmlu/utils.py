@@ -1,5 +1,6 @@
 import datasets
 
+
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     def _process_doc(doc):
         instruction = (
@@ -12,9 +13,8 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         out_doc = {
             "question": instruction,
             "choices": ["(1)", "(2)", "(3)", "(4)"],
-            "gold": int(doc["gold"]) - 1,
+            "gold": int(doc["gold"]) - 1
         }
         return out_doc
 
     return dataset.map(_process_doc)
-
