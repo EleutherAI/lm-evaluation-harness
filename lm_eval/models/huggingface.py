@@ -198,7 +198,6 @@ class HFLM(LM):
                 pretrained=pretrained,
                 revision=revision,
                 dtype=dtype,
-                # low_cpu_mem_usage=low_cpu_mem_usage,
                 trust_remote_code=trust_remote_code,
                 parallelize=parallelize,
                 device_map_option=device_map_option,
@@ -206,12 +205,7 @@ class HFLM(LM):
                 max_cpu_memory=max_cpu_memory,
                 offload_folder=offload_folder,
                 peft=peft,
-                # load_in_8bit=load_in_8bit,
-                # load_in_4bit=load_in_4bit,
-                # bnb_4bit_quant_type=bnb_4bit_quant_type,
-                # bnb_4bit_compute_dtype=bnb_4bit_compute_dtype,
                 gptq=gptq,
-                # gptq_use_triton=gptq_use_triton,
                 **kwargs,
             )
 
@@ -425,7 +419,6 @@ class HFLM(LM):
         pretrained: str,
         revision: Optional[str] = "main",
         dtype: Optional[Union[str, torch.dtype]] = "auto",
-        # low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
@@ -437,12 +430,7 @@ class HFLM(LM):
         offload_folder: Optional[str] = "./offload",
         # PEFT and quantization options
         peft: Optional[str] = None,
-        # load_in_8bit: Optional[bool] = False,
-        # load_in_4bit: Optional[bool] = False,
-        # bnb_4bit_quant_type: Optional[str] = None,
-        # bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
         gptq: Optional[Union[bool, str]] = False,
-        # gptq_use_triton: Optional[bool] = False,
         **kwargs,
     ) -> None:
         """
@@ -460,11 +448,13 @@ class HFLM(LM):
         model_kwargs = kwargs if kwargs else {}
 
         if parallelize:
-            model_kwargs = _get_accelerate_args(
-                device_map_option,
-                max_memory_per_gpu,
-                max_cpu_memory,
-                offload_folder,
+            model_kwargs.update(
+                _get_accelerate_args(
+                    device_map_option,
+                    max_memory_per_gpu,
+                    max_cpu_memory,
+                    offload_folder,
+                )
             )
         if not gptq:
             if model_kwargs.get("load_in_4bit", None):
@@ -481,9 +471,6 @@ class HFLM(LM):
                 pretrained,
                 revision=revision,
                 torch_dtype=utils.get_dtype(dtype),
-                # low_cpu_mem_usage=low_cpu_mem_usage,
-                # trust_remote_code=trust_remote_code,
-                # load_in_8bit=load_in_8bit,
                 **model_kwargs,
             )
         else:
@@ -498,11 +485,7 @@ class HFLM(LM):
             self._model = AutoGPTQForCausalLM.from_quantized(
                 pretrained,
                 model_basename=None if gptq is True else Path(gptq).stem,
-                # low_cpu_mem_usage=low_cpu_mem_usage,
-                # trust_remote_code=trust_remote_code,
                 use_safetensors=True if gptq is True else gptq.endswith(".safetensors"),
-                # use_triton=gptq_use_triton,
-                # warmup_triton=gptq_use_triton,
                 **model_kwargs,
             )
 
