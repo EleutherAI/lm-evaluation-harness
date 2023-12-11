@@ -227,7 +227,19 @@ class HFLM(LM):
         self.truncation = truncation
 
         self.vocab_size = self.tokenizer.vocab_size
-        self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+        # select (or create) a pad token to use
+        if self.tokenizer.pad_token:
+            pass
+        elif self.tokenizer.unk_token:
+            self.tokenizer.pad_token_id = self.tokenizer.unk_token_id
+        elif self.tokenizer.eos_token:
+            self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+        else:
+            if "Qwen" in pretrained:
+                # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
+                self.tokenizer.pad_token = "<|endoftext|>"
+            else:
+                self.tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
 
         self._max_length = max_length
 
@@ -456,7 +468,7 @@ class HFLM(LM):
                     transformers.__version__ >= "4.30.0"
                 ), "load_in_4bit requires transformers >= 4.30.0"
             if transformers.__version__ >= "4.30.0":
-                if model_kwargs["load_in_4bit"]:
+                if model_kwargs.get("load_in_4bit", None):
                     if model_kwargs.get("bnb_4bit_compute_dtype", None):
                         model_kwargs["bnb_4bit_compute_dtype"] = utils.get_dtype(
                             model_kwargs["bnb_4bit_compute_dtype"]
@@ -465,6 +477,7 @@ class HFLM(LM):
                 pretrained,
                 revision=revision,
                 torch_dtype=utils.get_dtype(dtype),
+                trust_remote_code=trust_remote_code,
                 **model_kwargs,
             )
         else:
@@ -478,6 +491,7 @@ class HFLM(LM):
 
             self._model = AutoGPTQForCausalLM.from_quantized(
                 pretrained,
+                trust_remote_code=trust_remote_code,
                 model_basename=None if autogptq is True else Path(autogptq).stem,
                 use_safetensors=True
                 if autogptq is True
@@ -688,7 +702,7 @@ class HFLM(LM):
             input_ids=context,
             max_length=max_length,
             stopping_criteria=stopping_criteria,
-            pad_token_id=self.eot_token_id,
+            pad_token_id=self.tokenizer.pad_token_id,
             use_cache=True,
             **generation_kwargs,
         )
