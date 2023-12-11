@@ -86,7 +86,6 @@ class HFLM(LM):
         dtype: Optional[Union[str, torch.dtype]] = "auto",
         batch_size: Optional[Union[int, str]] = 1,
         max_batch_size: Optional[int] = 64,
-        # low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
         # arguments used for splitting a model across GPUs naively.
@@ -98,12 +97,7 @@ class HFLM(LM):
         offload_folder: Optional[Union[str, os.PathLike]] = "./offload",
         # PEFT and quantization options
         peft: Optional[str] = None,
-        # load_in_8bit: Optional[bool] = False,
-        # load_in_4bit: Optional[bool] = False,
-        # bnb_4bit_quant_type: Optional[str] = None,
-        # bnb_4bit_compute_dtype: Optional[Union[str, torch.dtype]] = None,
-        gptq: Optional[Union[bool, str]] = False,
-        # gptq_use_triton: Optional[bool] = False,
+        autogptq: Optional[Union[bool, str]] = False,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -205,7 +199,7 @@ class HFLM(LM):
                 max_cpu_memory=max_cpu_memory,
                 offload_folder=offload_folder,
                 peft=peft,
-                gptq=gptq,
+                autogptq=autogptq,
                 **kwargs,
             )
 
@@ -430,7 +424,7 @@ class HFLM(LM):
         offload_folder: Optional[str] = "./offload",
         # PEFT and quantization options
         peft: Optional[str] = None,
-        gptq: Optional[Union[bool, str]] = False,
+        autogptq: Optional[Union[bool, str]] = False,
         **kwargs,
     ) -> None:
         """
@@ -456,7 +450,7 @@ class HFLM(LM):
                     offload_folder,
                 )
             )
-        if not gptq:
+        if not autogptq:
             if model_kwargs.get("load_in_4bit", None):
                 assert (
                     transformers.__version__ >= "4.30.0"
@@ -484,8 +478,10 @@ class HFLM(LM):
 
             self._model = AutoGPTQForCausalLM.from_quantized(
                 pretrained,
-                model_basename=None if gptq is True else Path(gptq).stem,
-                use_safetensors=True if gptq is True else gptq.endswith(".safetensors"),
+                model_basename=None if autogptq is True else Path(autogptq).stem,
+                use_safetensors=True
+                if autogptq is True
+                else autogptq.endswith(".safetensors"),
                 **model_kwargs,
             )
 
