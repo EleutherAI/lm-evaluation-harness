@@ -33,7 +33,9 @@ _CITATION = """
 """
 
 
-ANS_RE = re.compile(r"#### (\-?[0-9\.\,]+)")
+NUMBER_RE = r"\b\-?\d+(\,\d+)?(\.\d+)?\b"
+ANS_RE = re.compile(rf'{NUMBER_RE}(?![\s\S]*{NUMBER_RE})')
+ANS_RE_FEWSHOT = re.compile(r"#### (\-?[0-9\.\,]+)")
 INVALID_ANS = "[invalid]"
 
 
@@ -83,9 +85,10 @@ class GradeSchoolMath8K(Task):
         return completion
 
     def _extract_answer(self, completion):
+        # TODO(vvchernov): try to use ANS_RE_FEWSHOT to check correct format
         match = ANS_RE.search(completion)
         if match:
-            match_str = match.group(1).strip()
+            match_str = match.group(0).strip()
             match_str = match_str.replace(",", "")
             return match_str
         else:
