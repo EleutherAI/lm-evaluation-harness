@@ -1,7 +1,7 @@
 group: glue
-task: sst
+task: sst2
 dataset_path: glue
-dataset_name: sst
+dataset_name: sst2
 output_type: multiple_choice
 training_split: train
 validation_split: validation
