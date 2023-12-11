@@ -207,14 +207,17 @@ class HFLM(LM):
         self.model.eval()
         self.model.tie_weights()
 
-        if gpus >= 1 and not parallelize and isinstance(pretrained, str):
-            # place model onto device, if not using HF Accelerate in any form
-            try:
-                self.model.to(self.device)
-            except ValueError:
-                eval_logger.info(
-                    "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
-                )
+        if gpus >= 1 and isinstance(pretrained, str):
+            if not (parallelize or autogptq or ("device_map" in kwargs)):
+                # place model onto device requested manually,
+                # if not using HF Accelerate or device_map
+                # or any other option that preloads model onto device
+                try:
+                    self.model.to(self.device)
+                except ValueError:
+                    eval_logger.info(
+                        "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
+                    )
 
         self._create_tokenizer(
             pretrained,
@@ -264,30 +267,18 @@ class HFLM(LM):
                         )
                     else:
                         pass
-                elif gpus > accelerator.num_processes:
-                    # TODO: make sure there's still never an edge case where we unintentionally default to CPU
-                    eval_logger.warning(
-                        "WARNING: The number of total system GPUs does not match the number of spawned processes. "
-                        "If you would like to use data parallelism, please launch the script "
-                        "with 'accelerate launch *script*'. "
-                        f"Current run will proceed with {accelerator.num_processes} devices."
-                    )
-                    self._rank = accelerator.local_process_index
-                    self._world_size = accelerator.num_processes
-                    # manually set model to use gpu, for case where many GPUs available but
-                    # only seek to use one
-                    self._device = (
-                        torch.device(f"cuda:{accelerator.local_process_index}")
-                        if torch.cuda.is_available()
-                        else torch.device("cpu")
-                    )
-                    try:
-                        self.model.to(self.device)
-                    except ValueError:
-                        eval_logger.info(
-                            "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
-                        )
+                elif accelerator.num_processes == 1:
+                    # if we aren't launching via accelerate, ditch
+                    self._rank = 0
+                    self._world_size = 1
                 else:
+                    if gpus > accelerator.num_processes:
+                        eval_logger.warning(
+                            "WARNING: The number of total system GPUs does not match the number of spawned processes. "
+                            "If you would like to use data parallelism, please launch the script "
+                            "with 'accelerate launch *script*'. "
+                            f"Current run will proceed with {accelerator.num_processes} devices."
+                        )
                     assert accelerator.distributed_type in [
                         DistributedType.FSDP,
                         DistributedType.MULTI_GPU,
