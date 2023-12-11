@@ -11,6 +11,8 @@ Homepage: https://nlp.cs.washington.edu/triviaqa/
 """
 import inspect
 import string
+import re
+
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 
@@ -75,6 +77,17 @@ class TriviaQA(Task):
         continuation = rf.greedy_until(ctx, {"until": ["\n", ".", ","]})
         return continuation
 
+    def simple_check(self, continuation, list_of_candidates):
+        check = False
+        for candidate in list_of_candidates:
+            if re.search(candidate, continuation):
+                check = True
+                break
+        return float(check)
+
+    def orig_simple_check(self, continuation, list_of_candidates):
+        return float(continuation in list_of_candidates)
+
     def process_results(self, doc, results):
         continuation = (
             results[0]
@@ -86,7 +99,7 @@ class TriviaQA(Task):
             alias.lower().translate(str.maketrans("", "", string.punctuation))
             for alias in doc["answer"]["aliases"]
         ]
-        return {"em": float(continuation in list_of_candidates)}
+        return {"em": self.simple_check(continuation, list_of_candidates)}
 
     def aggregation(self):
         return {
