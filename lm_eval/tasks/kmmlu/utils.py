@@ -13,7 +13,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         out_doc = {
             "question": instruction,
             "choices": ["(1)", "(2)", "(3)", "(4)"],
-            "gold": int(doc["gold"]) - 1,
+            "gold": int(doc["answer"]) - 1,
         }
         return out_doc
 
