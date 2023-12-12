@@ -1,6 +1,6 @@
 from collections import defaultdict
-from typing import List, Tuple, Optional, Literal, Union
-
+from typing import List, Tuple, Optional, Literal, Union, Any
+from transformers import AutoTokenizer
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 import copy
@@ -10,11 +10,20 @@ from lm_eval import utils
 
 try:
     from vllm import LLM, SamplingParams
+    from ray.util.multiprocessing import Pool
+    from vllm.transformers_utils.tokenizer import get_tokenizer
 except ModuleNotFoundError:
     pass
 
-
 eval_logger = utils.eval_logger
+
+
+# adapted from https://github.com/vllm-project/vllm/issues/367#issuecomment-1788341727
+def run_inference_one_model(model_args: dict, sampling_params, requests: List[int]):
+    # gpu_id = [x for x in gpu_id]
+    # os.environ["CUDA_VISIBLE_DEVICES"]= str(gpu_id)
+    llm = LLM(**model_args)
+    return llm.generate(prompt_token_ids=requests, sampling_params=sampling_params)
 
 
 @register_model("vllm")
@@ -27,7 +36,9 @@ class VLLM(LM):
         dtype: Literal["float16", "bfloat16", "float32", "auto"] = "auto",
         revision: Optional[str] = None,
         trust_remote_code: Optional[bool] = False,
+        tokenizer: Optional[str] = None,
         tokenizer_mode: Literal["auto", "slow"] = "auto",
+        tokenizer_revision: Optional[str] = None,
         tensor_parallel_size: int = 1,
         quantization: Optional[Literal["awq"]] = None,
         max_gen_toks: int = 256,
@@ -38,6 +49,7 @@ class VLLM(LM):
         seed: int = 1234,
         gpu_memory_utilization: float = 0.9,
         device: str = "cuda",
+        data_parallel_size: int = 1,
     ):
         super().__init__()
 
@@ -50,19 +62,32 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             )
 
         assert "cuda" in device or device is None, "vLLM only supports CUDA"
-        self.model = LLM(
-            model=pretrained,
-            gpu_memory_utilization=float(gpu_memory_utilization),
-            revision=revision,
-            dtype=dtype,
+        self.tensor_parallel_size = int(tensor_parallel_size)
+        self.data_parallel_size = int(data_parallel_size)
+        self.model_args = {
+            "model": pretrained,
+            "gpu_memory_utilization": float(gpu_memory_utilization),
+            "revision": revision,
+            "dtype": dtype,
+            "tokenizer": tokenizer,
+            "tokenizer_mode": tokenizer_mode,
+            "tokenizer_revision": tokenizer_revision,
+            "trust_remote_code": trust_remote_code,
+            "tensor_parallel_size": int(tensor_parallel_size),
+            "swap_space": int(swap_space),
+            "quantization": quantization,
+            "seed": int(seed),
+        }
+        if self.data_parallel_size <= 1:
+            self.model = LLM(**self.model_args)
+        else:
+            self.model_args["worker_use_ray"] = True
+        self.tokenizer = get_tokenizer(
+            tokenizer if tokenizer else pretrained,
             tokenizer_mode=tokenizer_mode,
             trust_remote_code=trust_remote_code,
-            tensor_parallel_size=int(tensor_parallel_size),
-            swap_space=int(swap_space),
-            quantization=quantization,
-            seed=int(seed),
+            tokenizer_revision=tokenizer_revision,
         )
-        self.tokenizer = self.model.get_tokenizer()
         self.batch_size = batch_size
         self._max_length = max_length
         self._max_gen_toks = max_gen_toks
@@ -76,8 +101,8 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
     def max_length(self):
         if self._max_length:  # if max length manually set, return it
             return self._max_length
-        if hasattr(self.model.llm_engine.model_config, "max_model_len"):
-            return self.model.llm_engine.model_config.max_model_len
+        if hasattr(self.tokenizer, "model_max_length"):
+            return self.tokenizer.model_max_length
         return self._DEFAULT_MAX_LENGTH
 
     @property
@@ -104,7 +129,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
 
     def _model_generate(
         self,
-        requests: List[int] = None,
+        requests: List[List[int]] = None,
         generate: bool = False,
         max_tokens: int = None,
         stop: Optional[List[str]] = None,
@@ -114,24 +139,49 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
         if "do_sample" in kwargs.keys():
             kwargs.pop("do_sample")
         if generate:
-            generate_sampling_params = SamplingParams(
-                max_tokens=max_tokens, stop=stop, **kwargs
+            # hf defaults
+            kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
+            kwargs["spaces_between_special_tokens"] = kwargs.get(
+                "spaces_between_special_tokens", False
             )
-            outputs = self.model.generate(
-                prompt_token_ids=requests,
-                sampling_params=generate_sampling_params,
-                use_tqdm=use_tqdm,
-            )
+            sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
         else:
-            logliklihood_sampling_params = SamplingParams(
+            sampling_params = SamplingParams(
                 temperature=0, prompt_logprobs=2, max_tokens=1
             )
-            outputs = self.model.generate(
-                prompt_token_ids=requests,
-                sampling_params=logliklihood_sampling_params,
-                use_tqdm=use_tqdm,
-            )
+        if self.data_parallel_size > 1:
+            requests = [
+                list(x) for x in utils.divide(requests, self.data_parallel_size)
+            ]
+            inputs = [(self.model_args, sampling_params, req) for req in requests]
+
+            with Pool(self.data_parallel_size) as pool:
+                results = pool.starmap(run_inference_one_model, inputs)
+            # flatten results
+            return [item for sublist in results for item in sublist]
+
+        outputs = self.model.generate(
+            prompt_token_ids=requests,
+            sampling_params=sampling_params,
+            use_tqdm=use_tqdm,
+        )
+
         return outputs
+
+    def _encode_pair(
+        self, context: str, continuation: str
+    ) -> Tuple[List[int], List[int]]:
+        n_spaces = len(context) - len(context.rstrip())
+        if n_spaces > 0:
+            continuation = context[-n_spaces:] + continuation
+            context = context[:-n_spaces]
+
+        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
+        context_enc = self.tok_encode(context, add_special_tokens=False)
+
+        context_enc_len = len(context_enc)
+        continuation_enc = whole_enc[context_enc_len:]
+        return context_enc, continuation_enc
 
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
         new_reqs = []
@@ -142,12 +192,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
                     continuation
                 )
             else:
-                context_enc, continuation_enc = self.tokenizer(
-                    [context, continuation],
-                    truncation="do_not_truncate",
-                    add_special_tokens=False,
-                    return_attention_mask=False,
-                ).input_ids
+                context_enc, continuation_enc = self._encode_pair(context, continuation)
 
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
@@ -188,7 +233,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
-        context_encoding = self.tokenizer(context).input_ids
+        context_encoding = self.tokenizer(context, add_special_tokens=False).input_ids
         requests = [
             ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
         ]
