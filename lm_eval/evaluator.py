@@ -492,8 +492,10 @@ def evaluate(
                     else bootstrap_iters,
                 )
 
-                if stderr is not None:
+                if stderr is not None and len(items) > 1:
                     results[task_name][metric + "_stderr" + "," + key] = stderr(items)
+                else:
+                    results[task_name][metric + "_stderr" + "," + key] = "N/A"
 
         if bool(results):
             for group, task_list in reversed(task_hierarchy.items()):
