@@ -1,3 +1,5 @@
+group:
+  - halueval
 task: halueval_qa
 dataset_path: pminervini/HaluEval
 dataset_name: qa_samples

@@ -1,3 +1,5 @@
+group:
+  - halueval
 task: halueval_dialogue
 dataset_path: pminervini/HaluEval
 dataset_name: dialogue_samples

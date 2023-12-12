@@ -1,3 +1,5 @@
+group:
+  - halueval
 task: halueval_summarization
 dataset_path: pminervini/HaluEval
 dataset_name: summarization_samples
