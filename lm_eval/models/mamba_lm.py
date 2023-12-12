@@ -25,7 +25,7 @@ from typing import Literal, Optional, Union
 class MambaLMWrapper(HFLM):
     def __init__(
         self,
-        pretrained: Optional[Union[str, MambaLMHeadModel]] = "state-spaces/mamba-130m",
+        pretrained="state-spaces/mamba-130m",
         # mamba supports most default HFLM kwargs.
         # however, it does not currently support advanced from_pretrained() kwargs
         # `parallelize=True`, PEFT, autoGPTQ,
@@ -52,6 +52,14 @@ class MambaLMWrapper(HFLM):
         **kwargs,
     ) -> None:
 
+        try:
+            from mamba_ssm.utils.hf import load_config_hf  # noqa: F811
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
+please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba]`",
+            )
+
         self._config = load_config_hf(pretrained)
 
     def _create_model(
@@ -63,6 +71,14 @@ class MambaLMWrapper(HFLM):
         # Mamba does not support arbitrary HF from_pretrained() args
         **kwargs,
     ) -> None:
+
+        try:
+            from mamba_ssm.models.mixer_seq_simple import MambaLMHeadModel  # noqa: F811
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'mamba_ssm' LM type, but package `mamba_ssm` is not installed. \
+please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba]`",
+            )
 
         self._model = MambaLMHeadModel.from_pretrained(
             pretrained,
