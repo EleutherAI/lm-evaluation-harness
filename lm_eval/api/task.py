@@ -96,11 +96,15 @@ class TaskConfig(dict):
     ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
-        if self.dataset_path and ("." in self.dataset_path):
+        if self.dataset_path:
             import inspect
             from importlib import import_module
 
-            self.dataset_path = inspect.getfile(import_module(self.dataset_path))
+            try:
+                self.dataset_path = inspect.getfile(import_module(self.dataset_path))
+            except ImportError as e:
+                # not found on local filesystem, assume it's on the huggingface hub
+                pass
 
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
