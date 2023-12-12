@@ -49,7 +49,7 @@ class VLLM(LM):
         seed: int = 1234,
         gpu_memory_utilization: float = 0.9,
         device: str = "cuda",
-        data_parallel: int = 1,
+        data_parallel_size: int = 1,
     ):
         super().__init__()
 
@@ -63,7 +63,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
 
         assert "cuda" in device or device is None, "vLLM only supports CUDA"
         self.tensor_parallel_size = int(tensor_parallel_size)
-        self.data_parallel = int(data_parallel)
+        self.data_parallel_size = int(data_parallel_size)
         self.model_args = {
             "model": pretrained,
             "gpu_memory_utilization": float(gpu_memory_utilization),
@@ -78,7 +78,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             "quantization": quantization,
             "seed": int(seed),
         }
-        if self.data_parallel <= 1:
+        if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
         else:
             self.model_args["worker_use_ray"] = True
@@ -149,11 +149,11 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             sampling_params = SamplingParams(
                 temperature=0, prompt_logprobs=2, max_tokens=1
             )
-        if self.data_parallel > 1:
-            requests = [list(x) for x in utils.divide(requests, self.data_parallel)]
+        if self.data_parallel_size > 1:
+            requests = [list(x) for x in utils.divide(requests, self.data_parallel_size)]
             inputs = [(self.model_args, sampling_params, req) for req in requests]
 
-            with Pool(self.data_parallel) as pool:
+            with Pool(self.data_parallel_size) as pool:
                 results = pool.starmap(run_inference_one_model, inputs)
             # flatten results
             return [item for sublist in results for item in sublist]
