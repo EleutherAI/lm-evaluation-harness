@@ -139,6 +139,8 @@ lm_eval --model vllm \
 ```
 For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
 
+vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation, and provide a script at [./scripts/model_comparator.py](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/scripts/model_comparator.py) for checking validity of vllm results against HF.
+
 ### Model APIs and Inference Servers
 
 Our library also supports the evaluation of models served via several commercial APIs, and we hope to implement support for the most commonly used performant local/self-hosted inference servers.
@@ -221,7 +223,7 @@ To save evaluation results provide an `--output_path`. We also support logging m
 
 Additionally, one can provide a directory with `--use_cache` to cache the results of prior runs. This allows you to avoid repeated execution of the same (model, task) pairs for re-scoring.
 
-For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/interface.md) guide in our documentation!
+For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
 
 ## How to Contribute or Learn More?
 
