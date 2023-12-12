@@ -175,7 +175,7 @@ class HFLM(LM):
             # TODO: update this to be less of a hack once subfolder is fixed in HF
             revision = revision + ("/" + subfolder if subfolder is not None else "")
 
-            self._config = transformers.AutoConfig.from_pretrained(
+            self._get_config(
                 pretrained,
                 revision=revision,
                 trust_remote_code=trust_remote_code,
@@ -183,7 +183,7 @@ class HFLM(LM):
 
         # determine which of 'causal' and 'seq2seq' backends to use
         self._get_backend(
-            config=self._config, backend=backend, trust_remote_code=trust_remote_code
+            config=self.config, backend=backend, trust_remote_code=trust_remote_code
         )
 
         # if we passed `pretrained` as a string, initialize our model now
@@ -392,7 +392,7 @@ class HFLM(LM):
                 # these special cases should be treated as seq2seq models.
                 self.AUTO_MODEL_CLASS = transformers.AutoModelForSeq2SeqLM
             elif (
-                getattr(self._config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
+                getattr(self.config, "model_type") in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
             ):
                 self.AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
             else:
@@ -410,6 +410,19 @@ class HFLM(LM):
             transformers.AutoModelForSeq2SeqLM,
         ]
         return None
+
+    def _get_config(
+        self,
+        pretrained: str,
+        revision: str = "main",
+        trust_remote_code: bool = False,
+    ) -> None:
+
+        self._config = transformers.AutoConfig.from_pretrained(
+            pretrained,
+            revision=revision,
+            trust_remote_code=trust_remote_code,
+        )
 
     def _create_model(
         self,
@@ -683,7 +696,7 @@ class HFLM(LM):
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
         # we require users to pass do_sample=True explicitly
         # for non-greedy gen. This should be reevaluated when considering beam search.
-        if "do_sample" not in generation_kwargs.keys():
+        if "do_sample" not in generation_kwargs:
             generation_kwargs["do_sample"] = False
         # build stopping criteria
         stopping_criteria = stop_sequences_criteria(
