@@ -7,13 +7,10 @@ validation_split: data
 test_split: data
 num_fewshot: 0
 doc_to_text: !function utils.doc_to_text_dialogue
-doc_to_target: !function utils.doc_to_target_qa
-process_results: !function utils.process_results_qa
+doc_to_target: !function utils.doc_to_target
+process_results: !function utils.process_results
 metric_list:
-  - metric: em
-    aggregation: mean
-    higher_is_better: true
-  - metric: correctness
+  - metric: acc
     aggregation: mean
     higher_is_better: true
 metadata:

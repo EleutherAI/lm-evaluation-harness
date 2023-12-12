@@ -102,11 +102,11 @@ def doc_to_text_summarization(doc: dict[str, str]) -> str:
     return doc_text
 
 
-def doc_to_target_qa(doc: dict[str, str]) -> str:
+def doc_to_target(doc: dict[str, str]) -> str:
     return doc['hallucination']
 
 
-def compute_metrics_qa(gold_answer: str, prediction: str) -> dict[str, float]:
+def compute_metrics(gold_answer: str, prediction: str) -> dict[str, float]:
     is_correct = True
 
     if ("Yes" in prediction and "No" in prediction) or ("Yes" not in prediction and "No" not in prediction):
@@ -118,17 +118,15 @@ def compute_metrics_qa(gold_answer: str, prediction: str) -> dict[str, float]:
 
     is_exact = gold_answer == prediction
 
-    res = {"correctness": 1.0 if is_correct else 0.0}
-    if is_correct:
-        res["em"] = 1.0 if is_exact else 0.0
+    res = {"acc": 1.0 if (is_correct and is_exact) else 0.0}
 
     return res
 
 
-def process_results_qa(doc: dict[str, str], results: list[str]):
+def process_results(doc: dict[str, str], results: list[str]):
     # results is e.g., ['Yes']
-    gold_list = doc_to_target_qa(doc)
+    gold_list = doc_to_target(doc)
     # gold_list is e.g., 'yes'
     prediction = results[0].strip().split("\n")[0]
-    scores = compute_metrics_qa(gold_list, prediction)
+    scores = compute_metrics(gold_list, prediction)
     return scores
