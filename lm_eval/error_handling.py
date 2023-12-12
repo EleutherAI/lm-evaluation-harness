@@ -23,7 +23,7 @@ def retry_on_rate_limit_error(
     ```
     """
 
-    def decorator(func):
+    def decorator(func: Callable):
         @wraps(func)
         def wrapper(*args, **kwargs):
             sleep_time = backoff_time
