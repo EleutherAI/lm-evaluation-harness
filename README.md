@@ -3,7 +3,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
 
 ## Announcement
-**A new v0.4.0 release of lm-evaluation-harness is available** ! 
+**A new v0.4.0 release of lm-evaluation-harness is available** !
 
 New updates and features include:
 
@@ -58,6 +58,7 @@ We also provide a number of optional dependencies for . Extras can be installed 
 | promptsource  | For using PromtSource prompts         |
 | sentencepiece | For using the sentencepiece tokenizer |
 | vllm          | For loading models with vLLM          |
+| mamba         | For loading Mamba models              |
 | all           | Loads all extras                      |
 
 ## Basic Usage
@@ -164,6 +165,7 @@ Note that for externally hosted models, configs such as `--device` and `--batch_
 | Cohere                      | [:hourglass: - blocked on Cohere API bug](https://github.com/EleutherAI/lm-evaluation-harness/pull/395) | N/A                                                                              | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models)                        | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python))                        | :heavy_check_mark:              | `gguf`, `ggml`                                                                   | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | vLLM                        | :heavy_check_mark:       | `vllm`                                                                           | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
+| Mamba                       | :heavy_check_mark:       | `mamba_ssm`                                                                      | [Mamba architecture Language Models via the `mamba_ssm` package](huggingface.co/state-spaces) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
 | Your inference server here! | ...                             | ...                                                                              | ...                                                                                           | ...                                                      |                                | ...                                                      |
 
 It is on our roadmap to create task variants designed to enable models which do not serve logprobs/loglikelihoods to be compared with generation performance of open-source models.
