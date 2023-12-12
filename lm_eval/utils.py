@@ -371,7 +371,9 @@ def make_table(result_dict, column: str = "results"):
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                values.append([k, version, f, n, m, "%.4f" % v, "±", "%.4f" % se])
+                if se != "N/A":
+                    se = "%.4f" % se
+                values.append([k, version, f, n, m, "%.4f" % v, "±", se])
             else:
                 values.append([k, version, f, n, m, "%.4f" % v, "", ""])
             k = ""
