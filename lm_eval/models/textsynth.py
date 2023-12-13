@@ -41,7 +41,7 @@ def textsynth_completion(**kwargs):
 
 @register_model("textsynth")
 class TextSynthLM(LM):
-    def __init__(self, engine, truncate=False):
+    def __init__(self, engine, truncate: bool = False) -> None:
         """
         :param engine: str
             TextSynth API engine (e.g. `gptj_6B`)
@@ -58,34 +58,34 @@ class TextSynthLM(LM):
 
     @property
     def eot_token_id(self):
-        # Isn't used because we override loglikelihood, loglikelihood_rolling and greedy_until
+        # Isn't used because we override loglikelihood, loglikelihood_rolling and generate_until
         raise NotImplementedError()
 
     @property
-    def max_length(self):
+    def max_length(self) -> int:
         # NOTE: Turn on truncation to avoid errors on long inputs.
         return 2048
 
     @property
-    def max_gen_toks(self):
+    def max_gen_toks(self) -> int:
         return 256
 
     @property
     def batch_size(self):
-        # Isn't used because we override loglikelihood, loglikelihood_rolling and greedy_until
+        # Isn't used because we override loglikelihood, loglikelihood_rolling and generate_until
         raise NotImplementedError()
 
     @property
     def device(self):
-        # Isn't used because we override loglikelihood, loglikelihood_rolling and greedy_until
+        # Isn't used because we override loglikelihood, loglikelihood_rolling and generate_until
         raise NotImplementedError()
 
     def tok_encode(self, string: str):
-        # Isn't used because we override loglikelihood, loglikelihood_rolling and greedy_until
+        # Isn't used because we override loglikelihood, loglikelihood_rolling and generate_until
         raise NotImplementedError()
 
     def tok_decode(self, tokens):
-        # Isn't used because we override loglikelihood, loglikelihood_rolling and greedy_until
+        # Isn't used because we override loglikelihood, loglikelihood_rolling and generate_until
         raise NotImplementedError()
 
     def loglikelihood(self, requests):
@@ -122,7 +122,7 @@ class TextSynthLM(LM):
             "input tokenization support from TextSynth."
         )
 
-    def greedy_until(self, requests):
+    def generate_until(self, requests):
         if not requests:
             return []
 
@@ -146,7 +146,7 @@ class TextSynthLM(LM):
                 s = resp["text"]
                 res.append(s)
 
-                self.cache_hook.add_partial("greedy_until", (inp, request_args), s)
+                self.cache_hook.add_partial("generate_until", (inp, request_args), s)
             else:
                 logger.error(
                     f"The following response does not contain generated `text`. "
@@ -160,5 +160,5 @@ class TextSynthLM(LM):
         raise NotImplementedError()
 
     def _model_generate(self, context, max_length, eos_token_id):
-        # Isn't used because we override greedy_until
+        # Isn't used because we override generate_until
         raise NotImplementedError()

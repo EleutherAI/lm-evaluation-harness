@@ -1,0 +1,39 @@
+"dataset_name": "high_school_physics"
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school physics.\n\nQ: A microwave oven is connected to an outlet, 120 V, and draws\
+  \ a current of 2 amps. At what rate is energy being used by the microwave oven?\n\
+  (A) 10 W (B) 30 W (C) 60 W (D) 240 W\nA: Let's think step by step. Rate of energy\
+  \ usage is known as power; in an dissipative electrical circuit, power is given\
+  \ by voltage times current. So in our case, the power is 120 V times 2 amps, or\
+  \ 240 W. The answer is (D).\n\nQ: A point charge, Q = +1 mC, is fixed at the origin.\
+  \ How much work is required to move a charge, Q = +8 µC, from the point (0, 4 meters)\
+  \ to the point (3 meters, 0)?\n(A) 3.5 J (B) 6.0 J (C) 22.5 J (D) 40 J\nA: Let's\
+  \ think step by step. To calculate the work required to move a charge from one location\
+  \ to another in a fixed electric field, it is enough to calculate the potential\
+  \ difference between the two locations. Here, the potential only depends on the\
+  \ distance between the charges; it’s $k q_1 q_2 / r$, where $k$ is Coulomb’s constant.\
+  \ Plugging in values $q_1 = $ 1 mC, $q_2 = 8 \\mu$ C, gives the answer as 5.992\
+  \ J, which rounds to 6 J. The answer is (B).\n\nQ: Which of the following conditions\
+  \ will ensure that angular momentum is conserved? I. Conservation of linear momentum\
+  \ II. Zero net external force III. Zero net external torque\n(A) I and II only (B)\
+  \ I and III only (C) II and III only (D) III only\nA: Let's think step by step.\
+  \ Torque is defined as the change in angular momentum; if there is zero external\
+  \ torque, angular momentum is conserved. The answer is (D).\n\nQ: A photocell of\
+  \ work function ϕ = 2eV is connected to a resistor in series. Light of frequency\
+  \ f = 1 × 10^15 Hz hits a metal plate of the photocell. If the power of the light\
+  \ is P = 100 W, what is the current through the resistor?\n(A) 2:00 AM (B) 6:00\
+  \ AM (C) 12:00 AM (D) 24 A\nA: Let's think step by step. The only answer above which\
+  \ has units of current is D, 24 A. The answer is (D).\n\nQ: A pipe full of air is\
+  \ closed at one end. A standing wave is produced in the pipe, causing the pipe to\
+  \ sound a note. Which of the following is a correct statement about the wave’s properties\
+  \ at the closed end of the pipe?\n(A) The pressure is at a node, but the particle\
+  \ displacement is at an antinode. (B) The pressure is at an antinode, but the particle\
+  \ displacement is at a node. (C) The pressure and the particle displacement are\
+  \ both at nodes. (D) The pressure and the particle displacement are both at antinodes.\n\
+  A: Let's think step by step. At the closed end of the pipe, the particles cannot\
+  \ have any net displacement because the pipe closure stops them. So the particle\
+  \ displacement is at a node. This closure also causes the pressure to be maximal,\
+  \ i.e. an antinode. The answer is (B).\n\n"
+"group": "mmlu_flan_cot_fewshot_stem"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_high_school_physics"

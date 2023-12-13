@@ -1,0 +1,28 @@
+"dataset_name": "human_aging"
+"description": "The following are multiple choice questions (with answers) about human\
+  \ aging.\n\nQ: All other things being equal, which of the following persons is more\
+  \ likely to show osteoporosis?\n(A) An older Hispanic American woman (B) An older\
+  \ African American woman (C) An older Asian American woman (D) An older Native American\
+  \ woman\nA: Let's think step by step. We refer to Wikipedia articles on human aging\
+  \ for help. Although osteoporosis can occur at any age, the risk is higher for older\
+  \ people. It is most common in Asian and non-Hispanic white women. The answer is\
+  \ (C).\n\nQ: The finding that adults tend to remember events from their adolescence\
+  \ better than from other periods in their lives is referred to as the\n(A) Adolescence\
+  \ advantage (B) Reminiscence bump (C) Memorial memorial (D) Quadratic retrieval\
+  \ spike\nA: Let's think step by step. We refer to Wikipedia articles on human aging\
+  \ for help. Reminiscence bump is a phenomenon that older adults tend to recollect\
+  \ events during their young ages. People usually have a period of childhood amnesia\
+  \ from birth to around age 5, and a reminiscence bump between 10 and 30. The answer\
+  \ is (B).\n\nQ: Which element in tobacco smoke is responsible for cancers?\n(A)\
+  \ Nicotine (B) Tar (C) Carbon monoxide (D) Smoke particles\nA: Let's think step\
+  \ by step. We refer to Wikipedia articles on human aging for help. The benzene,\
+  \ acrylamide and acrylonitrile in tar interact with the lungs and cause DNA mutations\
+  \ in cells of the lungs, and lead to cancer. The answer is (B).\n\nQ: When older\
+  \ adults move to a new state after retirement, which of the following is the more\
+  \ likely destination?\n(A) Texas (B) California (C) Hawaii (D) Vermont\nA: Let's\
+  \ think step by step. We refer to Wikipedia articles on human aging for help. Texas\
+  \ does not have state tax, and has low cost of living compared with the other three\
+  \ options. The answer is (A).\n\n"
+"group": "mmlu_flan_cot_fewshot_other"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_human_aging"

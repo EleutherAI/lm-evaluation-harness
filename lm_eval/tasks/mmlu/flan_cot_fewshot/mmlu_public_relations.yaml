@@ -1,0 +1,39 @@
+"dataset_name": "public_relations"
+"description": "The following are multiple choice questions (with answers) about public\
+  \ relations.\n\nQ: Earth Hour was a campaign launched by which organization?\n(A)\
+  \ Greenpeace (B) The UN (C) Oxfam (D) World Wildlife Fund\nA: Let's think step by\
+  \ step. We refer to Wikipedia articles on public relations for help. Earth Hour\
+  \ is a worldwide movement oragnized launched by the World Wildlife Fund. The answer\
+  \ is (D).\n\nQ: In issues management, what is the most proactive approach to addressing\
+  \ negative or misleading information posted online about your organization?\n(A)\
+  \ Buy domain names that could be used by opposition groups. (B) Post anonymous comments\
+  \ on blogs to combat this information. (C) Prepare a news release that discredits\
+  \ the inaccurate information. (D) Make policy changes to address complaints highlighted\
+  \ on these sites.\nA: Let's think step by step. We refer to Wikipedia articles on\
+  \ public relations for help. In issues management, the most proactive approach to\
+  \ addressing negative or misleading information posted online is to make policy\
+  \ changes to address complaints highlighted on those sites. The answer is (D).\n\
+  \nQ: At which stage in the planning process would a situation analysis be carried\
+  \ out?\n(A) Defining the program (B) Planning the program (C) Taking action and\
+  \ implementing ideas (D) Evaluation of the program\nA: Let's think step by step.\
+  \ We refer to Wikipedia articles on public relations for help. Situation analyses\
+  \ are typically carried out during the planning process stage of defining the program.\
+  \ The answer is (A).\n\nQ: Which of these statements is true of the Vatican in 2010\
+  \ at the time of the accusations of child abuse cover-ups?\n(A) There was a coordinated\
+  \ media response. (B) Consistent messages were communicated. (C) Criticisms were\
+  \ taken as attacks on the Catholic Church. (D) The credibility of the Vatican was\
+  \ upheld.\nA: Let's think step by step. We refer to Wikipedia articles on public\
+  \ relations for help. In 2010 when there were accusations of child abuse cover-ups,\
+  \ the Vatican took those criticisms as attacks on the Catholic Church. The answer\
+  \ is (C).\n\nQ: What should a public relations media practitioner do if she does\
+  \ not know the answer to a reporter's question?\n(A) Give the reporter other information\
+  \ she is certain is correct. (B) Say that the information is 'off the record' and\
+  \ will be disseminated later. (C) Say 'I don't know' and promise to provide the\
+  \ information later. (D) Say 'no comment,' rather than appear uninformed.\nA: Let's\
+  \ think step by step. We refer to Wikipedia articles on public relations for help.\
+  \ If a public relations media practitioner does not know the answer to a reporter's\
+  \ question, they should say 'I don't know' and offer to provide the information\
+  \ later. The answer is (C).\n\n"
+"group": "mmlu_flan_cot_fewshot_social_sciences"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_public_relations"

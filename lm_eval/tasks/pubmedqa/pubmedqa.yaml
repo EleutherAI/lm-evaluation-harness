@@ -1,10 +1,10 @@
-task: pubmed_qa
-dataset_path: pubmed_qa
-dataset_name: pqa_labeled
+task: pubmedqa
+dataset_path: bigbio/pubmed_qa
+dataset_name: pubmed_qa_labeled_fold0_source
 output_type: multiple_choice
-training_split: null
-validation_split: null
-test_split: train
+training_split: train
+validation_split: validation
+test_split: test
 doc_to_text: !function preprocess_pubmedqa.doc_to_text
 doc_to_target: final_decision
 doc_to_choice: ["yes", "no", "maybe"]
@@ -12,3 +12,5 @@ metric_list:
   - metric: acc
     aggregation: mean
     higher_is_better: true
+metadata:
+  - version: 1.0

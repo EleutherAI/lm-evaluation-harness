@@ -1,0 +1,56 @@
+"dataset_name": "business_ethics"
+"description": "The following are multiple choice questions (with answers) about business\
+  \ ethics.\n\nQ: In contrast to _______, _______ aim to reward favourable behaviour\
+  \ by companies. The success of such campaigns have been heightened through the use\
+  \ of ___________, which allow campaigns to facilitate the company in achieving _________\
+  \ .\n(A) Buycotts, Boycotts, Blockchain technology, Charitable donations (B) Buycotts,\
+  \ Boycotts, Digital technology, Increased Sales (C) Boycotts, Buyalls, Blockchain\
+  \ technology, Charitable donations (D) Boycotts, Buycotts, Digital technology, Increased\
+  \ Sales\nA: Let's think step by step. We refer to Wikipedia articles on business\
+  \ ethics for help. The sentence that best uses the possible options above is “In\
+  \ contrast to *boycotts*, *buycotts* aim to reward favourable behavior by companies.\
+  \ The success of such campaigns have been heightened through the use of *digital\
+  \ technology*, which allow campaigns to facilitate the company in achieving *increased\
+  \ sales*.” The answer is (D).\n\nQ: _______ is the direct attempt to formally or\
+  \ informally manage ethical issues or problems, through specific policies, practices\
+  \ and programmes.\n(A) Corporate social responsibility (B) Business ethics management\
+  \ (C) Sustainability (D) Environmental management\nA: Let's think step by step.\
+  \ We refer to Wikipedia articles on business ethics for help. The direct attempt\
+  \ manage ethical issues through specific policies, practices, and programs is business\
+  \ ethics management. The answer is (B).\n\nQ: Three contrasting tactics that CSO's\
+  \ can engage in to meet their aims are ________ which typically involves research\
+  \ and communication, ________, which may involve physically attacking a company's\
+  \ operations or ________, often involving some form of _______.\n(A) Non-violent\
+  \ direct action, Violent direct action, Indirect action, Boycott (B) Indirect action,\
+  \ Instrumental action, Non-violent direct action, Information campaign (C) Indirect\
+  \ action, Violent direct action, Non-violent direct-action Boycott (D) Non-violent\
+  \ direct action, Instrumental action, Indirect action, Information campaign\nA:\
+  \ Let's think step by step. We refer to Wikipedia articles on business ethics for\
+  \ help. The sentence that best uses the possible options above is “Three contrasting\
+  \ tactics that CSO's can engage in to meet their aims are *indirect action*, which\
+  \ typically involves research and communication, *violent direct action*, which\
+  \ may involve physically attacking a company's operations or *non-violent direct\
+  \ action*, often involving some form of *boycott*.” The answer is (C).\n\nQ: To\
+  \ ensure the independence of the non-executive board members, there are a number\
+  \ of steps which can be taken, which include non-executives being drawn from _______\
+  \ the company, being appointed for a _________ time period as well as being appointed\
+  \ _________.\n(A) Outside, Limited, Independently (B) Inside, Limited, Intermittently\
+  \ (C) Outside, Unlimited, Intermittently (D) Inside, Unlimited, Independently\n\
+  A: Let's think step by step. We refer to Wikipedia articles on business ethics for\
+  \ help. The sentence that best uses the possible options above is “To ensure the\
+  \ independence of the non-executive board members, there are a number of steps which\
+  \ can be taken, which include non-executives being draw from *outside* the company,\
+  \ being appointed for a *limited* time period as well as being imported *independently*.\
+  \ The answer is (A).\n\nQ: Beyond the business case for engaging in CSR there are\
+  \ a number of moral arguments relating to: negative _______, the _______that corporations\
+  \ possess and the ________ of business and society.\n(A) Externalities, Power, Independence\
+  \ (B) Publicity, Insubstantial resources, Mutual dependence (C) Publicity, Power,\
+  \ Independence (D) Externalities, Power, Mutual dependence\nA: Let's think step\
+  \ by step. We refer to Wikipedia articles on business ethics for help. The sentence\
+  \ that best uses the possible options above is “Beyond the business case for engaging\
+  \ the CSR there are a number of moral arguments relating to: negative *externalities*,\
+  \ the *power* that corporations possess and the *mutual independence* of business\
+  \ and society. The answer is (D).\n\n"
+"group": "mmlu_flan_cot_fewshot_other"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_business_ethics"

@@ -1,0 +1,48 @@
+"dataset_name": "nutrition"
+"description": "The following are multiple choice questions (with answers) about nutrition.\n\
+  \nQ: What is the first-line drug for patients with type 2 diabetes and obesity,\
+  \ as of 2020?\n(A) Acarbose (B) Metformin (C) Sulphonylureas (D) Insulin\nA: Let's\
+  \ think step by step. We refer to Wikipedia articles on nutrition for help. Metformin\
+  \ (Fortamet, Glumetza, or others) is usually the first medication prescribed for\
+  \ type 2 diabetes, as well as obesity. It works by lowering glucose production in\
+  \ the liver and improving the body's sensitivity to insulin. The answer is (B).\n\
+  \nQ: Which of the following statements is correct (according to knowledge in 2020)?\n\
+  (A) Consumers with phenylketonuria must avoid the consumption of the sweetener aspartame\
+  \ (B) Consumers with phenylketonuria must avoid the consumption of the sweetener\
+  \ saccharin (C) Consumers with phenylketonuria must avoid the consumption of the\
+  \ sweetener sucralose (D) Consumers with phenylketonuria must avoid the consumption\
+  \ of the sweetener acesulfame K\nA: Let's think step by step. We refer to Wikipedia\
+  \ articles on nutrition for help. People with phenylketonuria (PKU) cannot break\
+  \ down the amino acid phenylalanine. As it builds up in the blood and brain it can\
+  \ lead to brain damage. People with PKU should avoid foods that are converted to\
+  \ phenylalanine in the body, such as aspartame. The answer is (A).\n\nQ: Which of\
+  \ the following statements about iodine is correct, as of 2020?\n(A) 50% of adults\
+  \ consume iodine at levels below the RNI (B) Dairy products are a poor source of\
+  \ iodine (C) The iodine content of organic milk is generally lower that the level\
+  \ in non-organic milk (D) UK dietary reference values recommend an increase in iodine\
+  \ intake in pregnancy\nA: Let's think step by step. We refer to Wikipedia articles\
+  \ on nutrition for help. Organic milk usually has less iodine content than non-organic\
+  \ milk. The answer is (C).\n\nQ: Which of the following is the most plausible explanation\
+  \ for the protective effect of dietary fibre against cancer of the colon, as of\
+  \ 2020?\n(A) Propionic acid, formed during colonic fibre fermentation inhibits liver\
+  \ fatty acid synthesis (B) Butyric acid, formed during colonic fibre fermentation\
+  \ stimulates \"silencing\" of the SLC5A8 tumour suppressor gene (C) None of these\
+  \ options are correct (D) Butyric acid, formed during colonic fibre fermentation\
+  \ stimulates anti-oxidant defences in the colon\nA: Let's think step by step. We\
+  \ refer to Wikipedia articles on nutrition for help. Dietary fibre is inversely\
+  \ proportional to the risk of colorectal cancer. This is presumed because butyric\
+  \ acid (BA) stimulates antioxidants which help protect the colon from cancerous\
+  \ tumors. The answer is (D).\n\nQ: In a cohort study, the risk ratio of developing\
+  \ diabetes was 0.86 when comparing consumers of tea (the exposed) to those who did\
+  \ not drink tea (the unexposed). Which one statement is correct (according to knowledge\
+  \ in 2020)?\n(A) The tea drinkers have lower risk of developing diabetes. (B) The\
+  \ tea drinkers have higher risk of developing diabetes. (C) Based on the information\
+  \ given we cannot tell if the observed difference in disease risk is the result\
+  \ of chance. (D) The risk ratio is close to the value one, so there is no difference\
+  \ in disease risk between the two groups.\nA: Let's think step by step. We refer\
+  \ to Wikipedia articles on nutrition for help. The risk ratio is not sufficiently\
+  \ reduced that it could not be explained by random chance given the studies sample\
+  \ size. The answer is (C).\n\n"
+"group": "mmlu_flan_cot_fewshot_other"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_nutrition"

@@ -3,7 +3,7 @@ group:
 task: truthfulqa_gen
 dataset_path: truthful_qa
 dataset_name: generation
-output_type: greedy_until
+output_type: generate_until
 training_split: null
 validation_split: validation
 test_split: null
@@ -75,3 +75,5 @@ metric_list:
   - metric: rougeL_diff
     aggregation: mean
     higher_is_better: true
+metadata:
+  - version: 2.0

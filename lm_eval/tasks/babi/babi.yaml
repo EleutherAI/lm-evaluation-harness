@@ -1,7 +1,7 @@
 task: babi
 dataset_path: Muennighoff/babi
 dataset_name: null
-output_type: greedy_until
+output_type: generate_until
 training_split: train
 validation_split: valid
 test_split: test
@@ -16,3 +16,5 @@ metric_list:
   - metric: exact_match
     aggregation: mean
     higher_is_better: true
+metadata:
+  - version: 0.0

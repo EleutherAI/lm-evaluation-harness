@@ -1,0 +1,44 @@
+"dataset_name": "college_physics"
+"description": "The following are multiple choice questions (with answers) about college\
+  \ physics.\n\nQ: A refracting telescope consists of two converging lenses separated\
+  \ by 100 cm. The eye-piece lens has a focal length of 20 cm. The angular magnification\
+  \ of the telescope is\n(A) 4 (B) 5 (C) 6 (D) 20\nA: Let's think step by step. In\
+  \ a refracting telescope, if both lenses are converging, the focus of both lenses\
+  \ must be between the two lenses, and thus the focal lengths of the two lenses must\
+  \ add up to their separation. Since the focal length of one lens is 20 cm, the focal\
+  \ length of the other must be 80 cm. The magnification is the ratio of these two\
+  \ focal lengths, or 4. The answer is (A).\n\nQ: The muon decays with a characteristic\
+  \ lifetime of about 10^-6 second into an electron, a muon neutrino, and an electron\
+  \ antineutrino. The muon is forbidden from decaying into an electron and just a\
+  \ single neutrino by the law of conservation of\n(A) charge (B) mass (C) energy\
+  \ and momentum (D) lepton number\nA: Let's think step by step. Lepton number must\
+  \ be conserved, meaning the total number of leptons minus the number of antileptons.\
+  \ If a muon decays into an electron and a single neutrino, the total lepton number\
+  \ would go from one to two, violating lepton number conservation. The answer is\
+  \ (D).\n\nQ: One end of a Nichrome wire of length 2L and cross-sectional area A\
+  \ is attached to an end of another Nichrome wire of length L and cross- sectional\
+  \ area 2A. If the free end of the longer wire is at an electric potential of 8.0\
+  \ volts, and the free end of the shorter wire is at an electric potential of 1.0\
+  \ volt, the potential at the junction of the two wires is most nearly equal to\n\
+  (A) 2.4 V (B) 3.3 V (C) 4.5 V (D) 5.7 V\nA: Let's think step by step. This is a\
+  \ simple voltage divider problem, where the longer wire has a resistance four times\
+  \ that of the shorter end. So the voltage divider ratio is 1 / 5, meaning that the\
+  \ potential in the middle is 1.0 V + (8.0 V - 1.0 V) * 1/5 = 2.4 V. The answer is\
+  \ (A).\n\nQ: A refracting telescope consists of two converging lenses separated\
+  \ by 100 cm. The eye-piece lens has a focal length of 20 cm. The angular magnification\
+  \ of the telescope is\n(A) 4 (B) 5 (C) 6 (D) 20\nA: Let's think step by step. In\
+  \ a refracting telescope, if both lenses are converging, the focus of both lenses\
+  \ must be between the two lenses, and thus the focal lengths of the two lenses must\
+  \ add up to their separation. Since the focal length of one lens is 20 cm, the focal\
+  \ length of the other must be 80 cm. The magnification is the ratio of these two\
+  \ focal lengths, or 4. The answer is (A).\n\nQ: For which of the following thermodynamic\
+  \ processes is the increase in the internal energy of an ideal gas equal to the\
+  \ heat added to the gas?\n(A) Constant temperature (B) Constant volume (C) Constant\
+  \ pressure (D) Adiabatic\nA: Let's think step by step. Heat added to the gas can\
+  \ go into the gases internal energy or work done against an external force. However,\
+  \ if the volume of the gas container is constant, no work will be done (since work\
+  \ is pressure times change in volume). So, at constant volume, all of the heat goes\
+  \ into the internal energy. The answer is (B).\n\n"
+"group": "mmlu_flan_cot_fewshot_stem"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_college_physics"

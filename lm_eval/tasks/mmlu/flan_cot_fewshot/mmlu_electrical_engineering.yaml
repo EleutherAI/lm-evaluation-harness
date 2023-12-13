@@ -1,0 +1,34 @@
+"dataset_name": "electrical_engineering"
+"description": "\nThe following are multiple choice questions (with answers) about\
+  \ electrical engineering.\n\nQ: A point pole has a strength of 4π * 10^-4 weber.\
+  \ The force in newtons on a point pole of 4π * 1.5 * 10^-4 weber placed at a distance\
+  \ of 10 cm from it will be\n(A) 15 N. (B) 20 N. (C) 7.5 N. (D) 3.75 N.\nA: Let's\
+  \ think step by step. The force between two point poles is given by m_1m_2/(mu_0\
+  \ 4 \\pi r^2), in analogy to Coulomb’s law. Plugging in the values given in the\
+  \ question, we calculate that the force is approximately 15 N. The answer is (A).\n\
+  \nQ: The coil of a moving coil meter has 100 turns, is 40 mm long and 30 mm wide.\
+  \ The control torque is 240*10-6 N-m on full scale. If magnetic flux density is\
+  \ 1Wb/m2 range of meter is\n(A) 1 mA. (B) 2 mA. (C) 3 mA. (D) 4 mA.\nA: Let's think\
+  \ step by step. The torque on a coil in a uniform magnetic field is given by BANI,\
+  \ where B is the magnetic flux density, A is the area of the coil, N is the number\
+  \ of turns, and I is the current. So we have that I = (Torque)/(BAN), or 240e-6/(1200e-6\
+  \ * 100 * 1) = 2e-3. The answer is (B).\n\nQ: In an SR latch built from NOR gates,\
+  \ which condition is not allowed\n(A) S=0, R=0 (B) S=0, R=1 (C) S=1, R=0 (D) S=1,\
+  \ R=1\nA: Let's think step by step. An SR latch is a set-reset latch; in the case\
+  \ where S=1 and R=1, the circuit has no stable state; instead a race condition will\
+  \ be produced within the circuit, so the device will be in an undefined state. So\
+  \ S=1, R=1 is an illegal input. The answer is (D).\n\nQ: Two long parallel conductors\
+  \ carry 100 A. If the conductors are separated by 20 mm, the force per meter of\
+  \ length of each conductor will be\n(A) 100 N. (B) 0.1 N. (C) 1 N. (D) 0.01 N.\n\
+  A: Let's think step by step. The magnetic force-per-length between two current-carrying\
+  \ conductors is given by \\mu_0 I_1 I_2 / (2 \\pi r), where $r$ is the separation\
+  \ distance and I_1 and I_2 are the currents. Plugging in 100 A for I_1 and I_2,\
+  \ and 20 mm for r, gives 0.1 N. The answer is (B).\n\nQ: In a 2 pole lap winding\
+  \ dc machine , the resistance of one conductor is 2Ω and total number of conductors\
+  \ is 100. Find the total resistance\n(A) 200Ω (B) 100Ω (C) 50Ω (D) 10Ω\nA: Let's\
+  \ think step by step. In lap winding, effectively two resistors are connected in\
+  \ parallel, so the actual resistance of each pair is 1 Ohm. Since we have 50 pairs,\
+  \ we get a total resistance of 50 Ohms. The answer is (C).\n\n"
+"group": "mmlu_flan_cot_fewshot_stem"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_electrical_engineering"

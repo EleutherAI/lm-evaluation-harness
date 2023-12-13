@@ -1,0 +1,37 @@
+"dataset_name": "medical_genetics"
+"description": "The following are multiple choice questions (with answers) about medical\
+  \ genetics.\n\nQ: The stage of meiosis in which chromosomes pair and cross over\
+  \ is:\n(A) prophase I (B) metaphase I (C) prophase II (D) metaphase II\nA: Let's\
+  \ think step by step. We refer to Wikipedia articles on medical genetics for help.\
+  \ Prophase I is the stage of meiosis where homologous chromosomes pair with each\
+  \ other and exchange genetic material. The answer is (A).\n\nQ: DNA ligase is\n\
+  (A) an enzyme that joins fragments in normal DNA replication (B) an enzyme of bacterial\
+  \ origin which cuts DNA at defined base sequences (C) an enzyme that facilitates\
+  \ transcription of specific genes (D) an enzyme which limits the level to which\
+  \ a particular nutrient reaches\nA: Let's think step by step. We refer to Wikipedia\
+  \ articles on medical genetics for help. DNA ligase is a type of enzyme (EC 6.5.1.1)\
+  \ responsible for joining DNA strands together by catalyzing a phosphodiester bond.\
+  \ The answer is (A).\n\nQ: Which of the following conditions does not show multifactorial\
+  \ inheritance?\n(A) Pyloric stenosis (B) Schizophrenia (C) Spina bifida (neural\
+  \ tube defects) (D) Marfan syndrome\nA: Let's think step by step. We refer to Wikipedia\
+  \ articles on medical genetics for help. Multifactorial inheritance is when more\
+  \ than a single factor is responsible for causing a given trait or health problem.\
+  \ Genes cannot be the only factor. Marfan syndrome, on the other hand, requires\
+  \ only one abnormal copy of the of the Marfan gene, from one parent, to inherit\
+  \ the trait. The answer is (D).\n\nQ: A gene showing codominance\n(A) has both alleles\
+  \ independently expressed in the heterozygote (B) has one allele dominant to the\
+  \ other (C) has alleles tightly linked on the same chromosome (D) has alleles expressed\
+  \ at the same time in development\nA: Let's think step by step. We refer to Wikipedia\
+  \ articles on medical genetics for help. Codominance, as it relates to genetics,\
+  \ refers to a type of genetic inheritance where the phenotype of both the parents\
+  \ is easily observed in the offspring. A heterozygote is an individual having two\
+  \ different alleles of a gene. The answer is (A).\n\nQ: Large triplet repeat expansions\
+  \ can be detected by:\n(A) polymerase chain reaction. (B) single strand conformational\
+  \ polymorphism analysis. (C) Southern blotting. (D) Western blotting.\nA: Let's\
+  \ think step by step. We refer to Wikipedia articles on medical genetics for help.\
+  \ A Southern blot is a method in molecular biology for detecting specific DNA sequences\
+  \ in a sample. Large triplet repeat expansions are usually detected with this method.\
+  \ The answer is (C).\n\n"
+"group": "mmlu_flan_cot_fewshot_other"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_medical_genetics"

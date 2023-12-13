@@ -1,0 +1,71 @@
+"dataset_name": "high_school_computer_science"
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school computer science.\n\nQ: Which of the following is an example of the use\
+  \ of a device on the Internet of Things (IoT) ?\n(A) A car alerts a driver that\
+  \ it is about to hit an object. (B) A hiker uses a G P S watch to keep track of\
+  \ her position. (C) A refrigerator orders milk from an online delivery service when\
+  \ the milk in the refrigerator is almost gone. (D) A runner uses a watch with optical\
+  \ sensors to monitor his heart rate.\nA: Let's think step by step. The term Internet\
+  \ of Things (IoT) refers to common devices which are connected to the internet,\
+  \ enabling new functionality. Choice A is incorrect because it does not describe\
+  \ an internet connected device. In choice B, the watch is only described as having\
+  \ GPS functionality but no internet connectivity. Choice C describes a common device\
+  \ (a refrigerator) which has internet connectivity enabling new functionality (online\
+  \ ordering). Choice D does not mention internet connectivity for the watch, only\
+  \ optical sensors. The answer is (C).\n\nQ: Many Web browsers allow users to open\
+  \ anonymous windows. During a browsing session in an anonymous window, the browser\
+  \ does not record a browsing history or a list of downloaded files. When the anonymous\
+  \ window is exited, cookies created during the session are deleted. Which of the\
+  \ following statements about browsing sessions in an anonymous window is true?\n\
+  (A) The activities of a user browsing in an anonymous window will not be visible\
+  \ to people who monitor the user's network, such as the system administrator. (B)\
+  \ Items placed in a Web store's shopping cart for future purchase during the anonymous\
+  \ browsing session will not be saved on the user's computer. (C) A user will not\
+  \ be able to log in to e-mail or social media accounts during the anonymous browsing\
+  \ session. (D) A user browsing in an anonymous window will be protected from viruses\
+  \ launched from any web sites visited or files downloaded.\nA: Let's think step\
+  \ by step. Choice A is incorrect as it only describes network traffic, which an\
+  \ anonymous browser does not change. Choice B is correct as it correctly describes\
+  \ how an anonymous browser will prevent saving data on the user’s computer after\
+  \ the session is ended. Choice C is incorrect because an anonymous browser will\
+  \ not prevent logging in to email or social media accounts. Choice D is incorrect\
+  \ because an anonymous browser in itself performs no virus protection. The answer\
+  \ is (B).\n\nQ: In the program below, the initial value of X is 5 and the initial\
+  \ value of Y is 10.\nIF (X < 0){\n DISPLAY (\"Foxtrot\")\n} ELSE {\n IF (X > Y){\n\
+  \  DISPLAY (\"Hotel\")\n } ELSE {\n  IF (Y > 0){\n   DISPLAY (\"November\")\n  }\
+  \ ELSE {\n   DISPLAY (\"Yankee\")\n  }\n }\n}\nWhat is displayed as a result of\
+  \ running the program?\n(A) Foxtrot (B) Hotel (C) November (D) Yankee\nA: Let's\
+  \ think step by step. Because X has the value 5, the first conditional IF (X < 0)\
+  \ is false, so we move to the first ELSE clause. Because X is 5 and Y is 10, the\
+  \ second conditional IF (X > Y) is false, so we move to the following ELSE clause.\
+  \ Since Y is 10, the conditional IF (Y > 0) is true, so the command DISPLAY (\"\
+  November\") is executed. The answer is (C).\n\nQ: What is the output of \"abc\"\
+  [::-1] in Python 3?\n(A) Error (B) abc (C) cba (D) c\nA: Let's think step by step.\
+  \ We know that the slicing operator [::-1] takes all of the elements in the string\
+  \ in reverse order, so we reverse the order of the string \"abc\", resulting in\
+  \ \"cba\". The answer is (C).\n\nQ: A list of numbers has n elements, indexed from\
+  \ 1 to n. The following algorithm is intended to display the number of elements\
+  \ in the list that have a value greater than 100. The algorithm uses the variables\
+  \ count and position. Steps 3 and 4 are missing.\n Step 1: Set count to 0 and position\
+  \ to 1.\n Step 2: If the value of the element at index position is greater than\
+  \ 100, increase the value of count by 1.\n Step 3: (missing step)\n Step 4: (missing\
+  \ step)\n Step 5: Display the value of count.\nWhich of the following could be used\
+  \ to replace steps 3 and 4 so that the algorithm works as intended?\n(A) Step 3:\
+  \ Increase the value of position by 1.\n  Step 4: Repeat steps 2 and 3 until the\
+  \ value of count is greater than 100.\n(B) Step 3: Increase the value of position\
+  \ by 1.\n  Step 4: Repeat steps 2 and 3 until the value of position is greater than\
+  \ n.\n(C) Step 3: Repeat step 2 until the value of count is greater than 100.\n\
+  \  Step 4: Increase the value of position by 1.\n(D) Step 3: Repeat step 2 until\
+  \ the value of position is greater than n.\n  Step 4: Increase the value of count\
+  \ by 1.\nA: Let's think step by step. Choice A is incorrect, because its Step 4\
+  \ has an incorrect termination condition, stopping when count is greater than 100.\
+  \ We need to stop after inspecting all elements in the list. Choice B is correct\
+  \ because it correctly increments both count and position, and correctly repeats\
+  \ these steps and terminates when all elements in the list have been inspected.\
+  \ Choice C is incorrect because it incorrectly increments the variable count until\
+  \ its value is greater than 100, regardless of the elements in the list. Choice\
+  \ D is incorrect because its step 3 does not increment the value of position, so\
+  \ it will repeat forever. The answer is (B).\n\n"
+"group": "mmlu_flan_cot_fewshot_stem"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_high_school_computer_science"

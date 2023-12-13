@@ -1,0 +1,106 @@
+"dataset_name": "professional_law"
+"description": "The following are multiple choice questions (with answers) about professional\
+  \ law.\n\nQ: A son owed a creditor $5,000. The son's father contacted the creditor\
+  \ and told him that he wanted to pay the son's debt. The father signed a document\
+  \ that stated the father would pay the son's debt at a rate of $500 a month for\
+  \ 10 months. The creditor made no written or oral commitment to forbear to sue the\
+  \ son to collect the $5,000 debt, and the father made no oral or written request\
+  \ for any such forbearance. For the next five months, the father made and the creditor\
+  \ accepted the $500 monthly payments as agreed. During that period, the creditor,\
+  \ in fact, did forbear to take any legal action against the son. However, the father\
+  \ then informed the creditor that he would make no further payments on the debt.\
+  \ Which of the following is the most persuasive argument that the father is liable\
+  \ to the creditor under the terms of their agreement?\n(A) The father's promise\
+  \ and the creditor's reliance thereon, if proved, gave rise to a valid claim by\
+  \ the creditor against the father based on the doctrine of promissory estoppel.\
+  \ (B) Because it was foreseeable that the father's promise would induce the creditor\
+  \ to forbear taking any action against the son, such forbearance was, as a matter\
+  \ of law, a bargained-for consideration for the father's promise. (C) The father's\
+  \ five payments to the creditor totaling $2,500 manifested a serious intent on the\
+  \ father's part to be contractually bound, and such manifestation is generally recognized\
+  \ as an effective substitute for consideration. (D) By assuming the antecedent debt\
+  \ obligation that the son owed to the creditor, the father became a surety whose\
+  \ promise to the creditor was enforceable, since it was in writing and supported\
+  \ by adequate consideration. \nA: Let's think step by step. We refer to Wikipedia\
+  \ articles on law for help. The doctrine of promissory estoppel stops a person from\
+  \ going back on a promise in contract law, hence option (A) should be the most persuasive\
+  \ argument. The answer is (A).\n\nQ: A state has recently enacted a statute prohibiting\
+  \ the disposal of any nuclear wastes within the state. This law does not contravene\
+  \ or conflict with any federal statutes. A man operates a company in the state that\
+  \ is engaged in the disposal of nuclear wastes. Subsequent to the passage of the\
+  \ state statute, the man, not yet aware of the new law, entered into contracts with\
+  \ many out-of-state firms to dispose of their nuclear wastes in the state. On account\
+  \ of this new law, however, the man will be unable to perform these contracts. Assume\
+  \ that the man has standing to challenge this state law. Which of the following\
+  \ presents his strongest constitutional grounds to challenge the state law prohibiting\
+  \ the disposal of nuclear wastes within the state?\n(A) The commerce clause. (B)\
+  \ The equal protection clause of the Fourteenth Amendment. (C) The privileges and\
+  \ immunities clause of Article IV, Section 2. (D) The contract clause.\nA: Let's\
+  \ think step by step. We refer to Wikipedia articles on law for help. The commerce\
+  \ clause states that Congress shall have the power to regulate commerce with foreign\
+  \ Nations, and among the several States, and with the Indian Tribes. The statute\
+  \ affects inter-state commerce which puts it into question. Hence the man's strongest\
+  \ argument should be the commerce clause. The answer is (A).\n\nQ: On October 1,\
+  \ 1980, a developer, owner of several hundred acres in a rural county, drafted a\
+  \ general development plan for the area. The duly recorded plan imposed elaborate\
+  \ limitations and restrictions upon the land in the plan, which was to be developed\
+  \ as a residential district. The restrictions were to extend to all persons acquiring\
+  \ any of the lots and to their heirs, assigns, and lessees. It was further provided\
+  \ that all subsequent owners would be charged with due notice of the restrictions.\
+  \ Among those restrictions in the general plan were the following:(22) A franchise\
+  \ right is created in a strip of land 10 feet in width along the rear of each lot\
+  \ for the use of public utility companies with right of ingress and egress. (23)\
+  \ No house or structure of any kind shall be built on the aforementioned strip of\
+  \ land running through the said blocks. In 2000, a retiree purchased one of the\
+  \ lots, built a house, and erected a fence in the rear of his property within the\
+  \ restricted area. In 2004, a teacher purchased a lot adjacent to the retiree's\
+  \ property and built a new house. Two years later, a librarian purchased the lot\
+  \ that adjoined the teacher's property. The three deeds to those properties each\
+  \ contained references to the deed book where the general plan was recorded. In\
+  \ 2008, the librarian began the construction of a seven-foot post-and-rail fence\
+  \ along the line dividing his lot with the teacher's, and along the center of the\
+  \ area subject to the franchise right. Although the teacher objected to its construction,\
+  \ the fence was completed. If the teacher seeks a mandatory injunction to compel\
+  \ removal of the librarian's fence, the court will most likely\n(A) grant relief,\
+  \ because the fence was in violation of the easement restriction. (B) grant relief,\
+  \ because the encroachment of the fence violated the restriction in the original\
+  \ plan. (C) deny relief, because the teacher failed to enforce the restriction against\
+  \ the retiree. (D) deny relief, because the fence would not be construed as \"a\
+  \ structure\" within the terms of the restriction. \nA: Let's think step by step.\
+  \ We refer to Wikipedia articles on law for help. The restrictions in the original\
+  \ plan say no house or structure of any kind shall be built on the aforementioned\
+  \ strip of land running through the said blocks. Hence the court will most likely\
+  \ grant relief because the fence violated the restriction in the original plan.\
+  \ The answer is (B).\n\nQ: Judge took judicial notice of some facts at the beginning\
+  \ of the trial. Which of the following is not an appropriate kind of fact for judicial\
+  \ notice?\n(A) Indisputable facts. (B) Facts that have been asserted by individual\
+  \ political organizations. (C) Facts recognized to be true by common knowledge.\
+  \ (D) Facts capable of scientific verification.\nA: Let's think step by step. We\
+  \ refer to Wikipedia articles on law for help. Among the options, facts that have\
+  \ been asserted by individual political organizations is not an appropriate kind\
+  \ of fact for judicial notice. The answer is (B).\n\nQ: A state legislature has\
+  \ recently enacted a statute making it a misdemeanor to curse or revile or use obscene\
+  \ or opprobrious language toward or in reference to a police officer perfonning\
+  \ his duties. A student at a state university organized a demonstration on campus\
+  \ to protest the war. The rally was attended by a group of 50 students who shouted\
+  \ anti-war messages at cars passing by. To show his contempt for the United States,\
+  \ the student sewed the American flag to the rear of his jeans. When a police officer\
+  \ saw the flag sown on the student's jeans, he approached and told him to remove\
+  \ the flag or he would be placed under arrest. The student became angered and shouted\
+  \ at the police officer, \"Listen, you bastard, I'll wear this rag anywhere I please.\
+  \ \" The student was subsequently placed under arrest and charged with violating\
+  \ the state statute. The student subsequently brings suit in state court challenging\
+  \ the constitutionality of the statute. The strongest constitutional argument for\
+  \ the student is that\n(A) the statute is void for vagueness under the Fourteenth\
+  \ Amendment's due process clause. (B) the statute is invalid because it violates\
+  \ the petitioner's freedom of speech under the First Amendment. (C) the statute\
+  \ is an abridgment of freedom of speech under the First Amendment because less restrictive\
+  \ means are available for achieving the same purpose. (D) the statute is overbroad\
+  \ and consequently invalid under the First and Fourteenth Amendments.\nA: Let's\
+  \ think step by step. We refer to Wikipedia articles on law for help. The Fourteenth\
+  \ Amendment further supports the First Amendment by establishing a due process clause.\
+  \ Hence the strongest argument should be the statute is overbroad and consequently\
+  \ invalid under the First and Fourteenth Amendments. The answer is (D).\n\n"
+"group": "mmlu_flan_cot_fewshot_humanities"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_professional_law"

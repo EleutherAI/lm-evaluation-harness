@@ -1,0 +1,33 @@
+"dataset_name": "conceptual_physics"
+"description": "\nThe following are multiple choice questions (with answers) about\
+  \ conceptual physics.\n\nQ: Colors in a soap bubble result from light\n(A) converted\
+  \ to a different frequency (B) deflection (C) interference (D) polarization\nA:\
+  \ Let's think step by step. In a soap bubble film, the light bounces between the\
+  \ two soap-air interfaces many times, interfering with itself constructively or\
+  \ destructively depending on the width of the film. This results in different colors\
+  \ being visible. The answer is (C).\n\nQ: Compared with the mass of a uranium atom\
+  \ undergoing fission, the combined masses of the products after fission are\n(A)\
+  \ less (B) more (C) the same (D) zero\nA: Let's think step by step. Fission releases\
+  \ energy, which comes from the rest mass of its initial nucleus. Thus the mass of\
+  \ the products is less than the mass of the reactant uranium nucleus. The answer\
+  \ is (A).\n\nQ: Things that are equivalent according to the equivalence principle\
+  \ are\n(A) space and time. (B) a traveling twin and a stay-at-home twin. (C) gravity\
+  \ and acceleration. (D) mass and energy.\nA: Let's think step by step. Einstein’s\
+  \ famous equivalence principle states that gravity and acceleration are equivalent.\
+  \ The answer is (C).\n\nQ: Which of these three elements has the most mass per nucleon?\n\
+  (A) Hydrogen (B) Iron (C) Uranium (D) Same in each\nA: Let's think step by step.\
+  \ Due to nuclear binding energy, the mass of an atomic nucleus is less than the\
+  \ sum of individual masses of the free constituent protons and neutrons; this is\
+  \ known as the mass defect. Hydrogen has no mass defect because it has only a single\
+  \ nucleon, so it will have the most mass per nucleon. The answer is (A).\n\nQ: A\
+  \ model airplane flies slower when flying into the wind and faster with wind at\
+  \ its back. When launched at right angles to the wind a cross wind its groundspeed\
+  \ compared with flying in still air is\n(A) the same (B) greater (C) less (D) either\
+  \ greater or less depending on wind speed\nA: Let's think step by step. The plane’s\
+  \ speed in the direction of the wind is greater than it would be in the absence\
+  \ of wind, and its direction orthogonal to the wind is the same as it would be in\
+  \ the absence of the wind. The total speed, which is these two components added\
+  \ in quadrature, is thus greater than the speed in still air. The answer is (B).\n\n"
+"group": "mmlu_flan_cot_fewshot_stem"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_conceptual_physics"

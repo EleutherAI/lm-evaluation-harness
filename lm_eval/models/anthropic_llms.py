@@ -2,8 +2,10 @@ from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from tqdm import tqdm
 import time
-from lm_eval.logger import eval_logger
+from lm_eval import utils
 from typing import List, Any, Tuple
+
+eval_logger = utils.eval_logger
 
 
 def anthropic_completion(
@@ -76,7 +78,7 @@ class AnthropicLM(LM):
         max_tokens_to_sample: int = 256,
         temperature: float = 0,  # defaults to 1
         **kwargs,  # top_p, top_k, etc.
-    ):
+    ) -> None:
         """Anthropic API wrapper.
 
         :param model: str
@@ -135,11 +137,10 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
     def tok_decode(self, tokens: List[int]) -> str:
         return self.tokenizer.decode(tokens)
 
-    def _loglikelihood_tokens(self, requests, disable_tqdm=False):
+    def _loglikelihood_tokens(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
 
-    def greedy_until(self, requests) -> List[str]:
-
+    def generate_until(self, requests) -> List[str]:
         if not requests:
             return []
 
@@ -165,7 +166,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
                 )
                 res.append(response)
 
-                self.cache_hook.add_partial("greedy_until", request, response)
+                self.cache_hook.add_partial("generate_until", request, response)
             except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
                 eval_logger.critical(f"Server unreachable: {e.__cause__}")
                 break
@@ -180,7 +181,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         raise NotImplementedError()
 
     def _model_generate(self, context, max_length, eos_token_id):
-        # Isn't used because we override greedy_until
+        # Isn't used because we override generate_until
         raise NotImplementedError()
 
     def loglikelihood(self, requests):

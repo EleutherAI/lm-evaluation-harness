@@ -1,0 +1,57 @@
+"dataset_name": "anatomy"
+"description": "The following are multiple choice questions (with answers) about anatomy.\n\
+  \nQ: Which of the following is the body cavity that contains the pituitary gland?\n\
+  (A) Abdominal (B) Cranial (C) Pleural (D) Spinal\nA: Let's think step by step. We\
+  \ refer to Wikipedia articles on anatomy for help. Let’s solve this problem step\
+  \ by step. The pituitary gland is the major endocrine gland attached to the base\
+  \ of the brain, and it is contained in the Cranial cavity. The answer is (B).\n\n\
+  Q: Which of these branches of the trigeminal nerve contain somatic motor processes?\n\
+  (A) The supraorbital nerve (B) The infraorbital nerve (C) The mental nerve (D) None\
+  \ of the above\nA: Let's think step by step. We refer to Wikipedia articles on anatomy\
+  \ for help. Let’s solve this problem step by step. \nWe know the following: (A)\
+  \ The supraorbital nerve (also known as the frontal nerve) is the largest branch\
+  \ of the ophthalmic nerve and branch of ophthalmic division of the trigeminal nerve.\
+  \ (B) The infraorbital nerve is a branch of the maxillary division of the trigeminal\
+  \ nerve. (C) The mental nerve is a branch of the mandibular division of the trigeminal\
+  \ nerve. Because all these nerves are purely sensory nerves and do not contain any\
+  \ somatic motor processes. Therefore, the answer should be none of the above, which\
+  \ is (D). The answer is (D).\n\nQ: In Angle's Class II Div 2 occlusion there is\n\
+  (A) excess overbite of the upper lateral incisors. (B) negative overjet of the upper\
+  \ central incisors. (C) excess overjet of the upper lateral incisors. (D) excess\
+  \ overjet of the upper central incisors.\nA: Let's think step by step. We refer\
+  \ to Wikipedia articles on anatomy for help. Let’s solve this problem step by step.\
+  \ This is a question related to anatomy and orthodontics. Excess overjet is associated\
+  \ with Class II occlusions; therefore, we can safely eliminate (B) from the list,\
+  \ as negative overjet is often associated with Class III occlusions. Now, we need\
+  \ to determine the location of the excess overjet, and that would be the upper (maxillary)\
+  \ lateral incisors. Only (C) has the correct information. The answer is (C).\n\n\
+  Q: The pleura\n(A) have no sensory innervation. (B) are separated by a 2 mm space.\
+  \ (C) extend into the neck. (D) are composed of respiratory epithelium.\nA: Let's\
+  \ think step by step. We refer to Wikipedia articles on anatomy for help. Let’s\
+  \ solve this problem step by step. First, recall that the pleura refers to the thin\
+  \ layer of tissue that covers the lungs and lines the interior wall of the chest\
+  \ cavity. Now, let’s look at each option:\nOption (A): “The pleura have no sensory\
+  \ innervation.” This information is not correct. The pleura do have a sensory innervation.\n\
+  Option (B): “The pleura are separated by a 2 mm space.” This information is not\
+  \ correct. There is a very thin “potential” space between the layers of the pleura;\
+  \ however, it is typically filled with serous pleural fluid. \nOption (C): “The\
+  \ pleura extend into the neck.” This information is actuakky true. The cervical\
+  \ pleura, also known as the dome of the pleuradome of the pleura, lines the extendsiton\
+  \ of the pleural cavity into the neck.\nOption (D): “The pleura are composed of\
+  \ respiratory epithelium.” This information is not correct. The pleaura are composed\
+  \ of connective tissue (CT).\nBecause (A), (B), and (D) are all incorrect, (D) is\
+  \ the only correct answer. The answer is (C).\n\nQ: What is the embryological origin\
+  \ of the hyoid bone?\n(A) The first pharyngeal arch (B) The first and second pharyngeal\
+  \ arches (C) The second pharyngeal arch (D) The second and third pharyngeal arches\n\
+  A: Let's think step by step. We refer to Wikipedia articles on anatomy for help.\
+  \ Let’s solve this problem step by step. The hyoid bone, which is also known as\
+  \ the hyooid, is a a small U-shaped bone located in the anterior neck. In its resting\
+  \ position, it lies between the ase of the mandible and the third cervical vertebrae.\
+  \ We know that the second and the third pharyngeal arches give rise to the horns\
+  \ of the hyoid bone; therefore, the embryological origin of the hyoid bone are the\
+  \ second and the third pharyngeal arches—this information is covered in the last\
+  \ option (D). Therefore, we conclude that (D) must be the correct answer. The answer\
+  \ is (D).\n\n"
+"group": "mmlu_flan_cot_fewshot_stem"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_anatomy"

@@ -1,0 +1,43 @@
+"dataset_name": "sociology"
+"description": "The following are multiple choice questions (with answers) about sociology.\n\
+  \nQ: Which of the following is not a problem associated with official statistics\
+  \ on strike action?\n(A) most strikes go unnoticed by employers and the mass media\
+  \ (B) not all industrial disputes will be reported by the employer (C) the definition\
+  \ of strikes excludes those that involve fewer than ten workers or last less than\
+  \ one day (D) it is hard to compare strikes that were measured in different ways\n\
+  A: Let's think step by step. We refer to Wikipedia articles on sociology for help.\
+  \ Official statistics on strike action can be problematic because not all industrial\
+  \ disputes will be reported by employers, the definition of strikes excludes those\
+  \ that involves fewer than ten workers or last less than one day, and it is hard\
+  \ to compare strikes that were measured in different ways. Thus, (A) is not a problem\
+  \ associated with official statistics on strike action. The answer is (A).\n\nQ:\
+  \ What does Berger (1963) describe as a metaphor for social reality?\n(A) a fairground\
+  \ ride (B) a circus (C) a puppet theatre (D) a ballet\nA: Let's think step by step.\
+  \ We refer to Wikipedia articles on sociology for help. Berger describes social\
+  \ reality using the metaphor of a puppet theatre. The answer is (C).\n\nQ: The term\
+  \ 'hegemony' refers to:\n(A) the tendency for the working class not to realize their\
+  \ own interests (B) a dominant ideology that legitimates economic, political and\
+  \ cultural power (C) a form of dual consciousness based on ideology and everyday\
+  \ experiences (D) a mode of payment given for outstanding topiary\nA: Let's think\
+  \ step by step. We refer to Wikipedia articles on sociology for help. Hegemony refers\
+  \ to a dominant ideology that legitimates economic, policital, and cultural power.\
+  \ The answer is (B).\n\nQ: The shift from 'civil religion' to 'common religion'\
+  \ means that:\n(A) the increasing bureaucracy of the state has made religion only\
+  \ a marginal part of our lives (B) despite the weakening of traditional authority,\
+  \ our everyday lives and 'common sense' remain shaped by religious beliefs and values\
+  \ (C) religious participation in collective worship may have declined, but people\
+  \ still practise their faiths in private (D) people are much more likely to discuss\
+  \ their religious beliefs in public, informal settings\nA: Let's think step by step.\
+  \ We refer to Wikipedia articles on sociology for help. The shift from civil religion\
+  \ to common religion means that despite the weakening of traditional authority,\
+  \ our everyday lives and common sense remain shaped by religious beliefs and values.\
+  \ The answer is (B).\n\nQ: Which of the following did the post-war welfare state\
+  \ of 1948 not aim to provide:\n(A) free health care and education for all (B) a\
+  \ minimum wage (C) full employment (D) universal welfare\nA: Let's think step by\
+  \ step. We refer to Wikipedia articles on sociology for help. The post-war welfare\
+  \ state of 1948 aimed to provide free healthcare and education, full employment,\
+  \ and universal welfare. But it did not aim to provide a minimum wage. The answer\
+  \ is (B).\n\n"
+"group": "mmlu_flan_cot_fewshot_social_sciences"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_sociology"

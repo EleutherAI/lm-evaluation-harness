@@ -5,9 +5,13 @@ import numpy as np
 import sacrebleu
 import sklearn.metrics
 import random
+import evaluate
 
 from lm_eval.api.registry import register_metric, register_aggregation
 
+import logging
+
+eval_logger = logging.getLogger("lm-eval")
 
 # Register Aggregations First
 @register_aggregation("mean")
@@ -56,6 +60,55 @@ def matthews_corrcoef(items):
     return sklearn.metrics.matthews_corrcoef(golds, preds)
 
 
+@register_aggregation("bleu")
+def bleu(items):
+    """The Bilingual Evaluation Understudy Score, or BLEU for short, is a metric
+    for evaluating a generated sentence to a reference sentence. It counts matching
+    n-grams in the candidate translation to n-grams in the reference text, where
+    1-gram or unigram would be each token and a bigram comparison would be each
+    word pair. The comparison is made regardless of word order
+    Source: https://machinelearningmastery.com/calculate-bleu-score-for-text-python/
+    Paper: https://www.aclweb.org/anthology/P02-1040/
+
+    Higher is better
+    """
+    refs = list(zip(*items))[0]
+    preds = list(zip(*items))[1]
+    refs, preds = _sacreformat(refs, preds)
+    return sacrebleu.corpus_bleu(preds, refs).score
+
+
+@register_aggregation("chrf")
+def chrf(items):
+    """chrF++ is a tool for automatic evaluation of machine translation output
+    based on character n-gram precision and recall enhanced with word n-grams.
+    Source: https://github.com/m-popovic/chrF
+    Paper: https://www.aclweb.org/anthology/W15-3049.pdf
+
+    Higher is better  # TODO I think
+    """
+    refs = list(zip(*items))[0]
+    preds = list(zip(*items))[1]
+    refs, preds = _sacreformat(refs, preds)
+    return sacrebleu.corpus_chrf(preds, refs).score
+
+
+@register_aggregation("ter")
+def ter(items):
+    """Translation Error Rate is an error metric for machine translation that
+    measures the number of edits required to change a system output into one
+    of the references
+    Source: http://www.cs.umd.edu/~snover/tercom/
+    Paper: http://mt-archive.info/AMTA-2006-Snover.pdf
+
+    Lower is better
+    """
+    refs = list(zip(*items))[0]
+    preds = list(zip(*items))[1]
+    refs, preds = _sacreformat(refs, preds)
+    return sacrebleu.corpus_ter(preds, refs).score
+
+
 @register_metric(
     metric="acc",
     higher_is_better=True,
@@ -84,6 +137,19 @@ def acc_norm_fn(items):  # This is a passthrough function
 )
 def acc_mutual_info_fn(items):  # This is a passthrough function
     return items
+
+
+exact_match = evaluate.load("exact_match")
+
+
+@register_metric(
+    metric="exact_match",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="mean",
+)
+def exact_match_fn(**kwargs):
+    return exact_match.compute(**kwargs)
 
 
 @register_metric(
@@ -161,6 +227,36 @@ def f1_fn(items):  # This is a passthrough function
 
 
 @register_metric(
+    metric="bleu",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="bleu",
+)
+def bleu_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="chrf",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="chrf",
+)
+def chrf_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
+    metric="ter",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="ter",
+)
+def ter_fn(items):  # This is a passthrough function
+    return items
+
+
+@register_metric(
     metric="acc_all",
     higher_is_better=True,
     output_type="loglikelihood",
@@ -217,55 +313,6 @@ def weighted_mean(items):
     return sum(a) / sum(b)
 
 
-@register_metric(metric="bleu", higher_is_better=True, aggregation="mean")
-def bleu(items):
-    """The Bilingual Evaluation Understudy Score, or BLEU for short, is a metric
-    for evaluating a generated sentence to a reference sentence. It counts matching
-    n-grams in the candidate translation to n-grams in the reference text, where
-    1-gram or unigram would be each token and a bigram comparison would be each
-    word pair. The comparison is made regardless of word order
-    Source: https://machinelearningmastery.com/calculate-bleu-score-for-text-python/
-    Paper: https://www.aclweb.org/anthology/P02-1040/
-
-    Higher is better
-    """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
-    refs, preds = _sacreformat(refs, preds)
-    return sacrebleu.corpus_bleu(preds, refs).score
-
-
-@register_metric(metric="chrf", higher_is_better=True, aggregation="mean")
-def chrf(items):
-    """chrF++ is a tool for automatic evaluation of machine translation output
-    based on character n-gram precision and recall enhanced with word n-grams.
-    Source: https://github.com/m-popovic/chrF
-    Paper: https://www.aclweb.org/anthology/W15-3049.pdf
-
-    Higher is better  # TODO I think
-    """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
-    refs, preds = _sacreformat(refs, preds)
-    return sacrebleu.corpus_chrf(preds, refs).score
-
-
-@register_metric(metric="ter", higher_is_better=True, aggregation="mean")
-def ter(items):
-    """Translation Error Rate is an error metric for machine translation that
-    measures the number of edits required to change a system output into one
-    of the references
-    Source: http://www.cs.umd.edu/~snover/tercom/
-    Paper: http://mt-archive.info/AMTA-2006-Snover.pdf
-
-    Lower is better
-    """
-    refs = list(zip(*items))[0]
-    preds = list(zip(*items))[1]
-    refs, preds = _sacreformat(refs, preds)
-    return sacrebleu.corpus_ter(preds, refs).score
-
-
 def is_non_str_iterable(obj):
     return isinstance(obj, Iterable) and not isinstance(obj, str)
 
@@ -302,7 +349,7 @@ def _sacreformat(refs, preds):
 
 
 class _bootstrap_internal:
-    def __init__(self, f, n):
+    def __init__(self, f, n) -> None:
         self.f = f
         self.n = n
 

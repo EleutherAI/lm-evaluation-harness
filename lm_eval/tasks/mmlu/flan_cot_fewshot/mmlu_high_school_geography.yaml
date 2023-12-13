@@ -1,0 +1,37 @@
+"dataset_name": "high_school_geography"
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school geography.\n\nQ: Which one of the following items is an example of nonmaterial\
+  \ culture?\n(A) Dove soap (B) Dove candy bar (C) Dove symbol (D) A dove (bird).\n\
+  A: Let's think step by step. We refer to Wikipedia articles on geography for help.\
+  \ Nonmaterial culture consists of cultural ideas, beliefs or symbols that are not\
+  \ physical objects. The answer is (C).\n\nQ: During the third stage of the demographic\
+  \ transition model, which of the following is true?\n(A) Birth rates increase and\
+  \ population growth rate is less rapid. (B) Birth rates decline and population growth\
+  \ rate is less rapid. (C) Birth rates increase and population growth rate increases.\
+  \ (D) Birth rates decrease and population growth rate increases.\nA: Let's think\
+  \ step by step. We refer to Wikipedia articles on geography for help. The demographic\
+  \ transition model models the five different stages of population growth as a country\
+  \ goes through economic development, where the third stage refers to a period of\
+  \ declining birth rates and lower population growth. The answer is (B).\n\nQ: The\
+  \ practice of hiring a foreign third-party service provider to run an operation\
+  \ is called\n(A) outsourcing. (B) offshoring. (C) maquiladoras. (D) locational interdependence.\n\
+  A: Let's think step by step. We refer to Wikipedia articles on geography for help.\
+  \ \"Offshoring\" literally means to move or base some of the activities or processes\
+  \ of a company to a foreign country. The answer is (B).\n\nQ: Which of the following\
+  \ statements is NOT accurate regarding the services provided by local governments\
+  \ in the United States?\n(A) Duplication of efforts occurs often. (B) Social problems\
+  \ of the central city spill over into the surrounding residential suburbs. (C) Inefficiency\
+  \ in providing services occurs often. (D) One neighborhood's efforts to reduce pollution\
+  \ are always supported by neighboring communities.\nA: Let's think step by step.\
+  \ We refer to Wikipedia articles on geography for help. There may be economic, social\
+  \ or political reasons for two neighboring communities and their local governments\
+  \ not agreeing to pollution reduction efforts initiated by one of them. The answer\
+  \ is (D).\n\nQ: The rate of natural increase of a population is found by subtracting\
+  \ the\n(A) crude death rate from the crude birth date. (B) crude birth rate from\
+  \ the crude death rate. (C) doubling time from the crude birth rate. (D) fertility\
+  \ rate from the crude death rate.\nA: Let's think step by step. We refer to Wikipedia\
+  \ articles on geography for help. The difference between number of births and deaths\
+  \ gives the population increase at any given time. The answer is (A).\n\n"
+"group": "mmlu_flan_cot_fewshot_social_sciences"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_high_school_geography"

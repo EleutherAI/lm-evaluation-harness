@@ -1,0 +1,63 @@
+"dataset_name": "econometrics"
+"description": "The following are multiple choice questions (with answers) about econometrics.\n\
+  \nQ: Suppose now that a researcher wishes to use information criteria to determine\
+  \ the optimal lag length for a VAR. 500 observations are available for the bi-variate\
+  \ VAR, and the values of the determinant of the variance-covariance matrix of residuals\
+  \ are 0.0336, 0.0169, 0.0084, and 0.0062 for 1, 2, 3, and 4 lags respectively. What\
+  \ is the optimal model order according to Akaike's information criterion?\n(A) 1\
+  \ lag (B) 2 lags (C) 3 lags (D) 4 lags\nA: Let's think step by step. We refer to\
+  \ Wikipedia articles on econometrics for help. Let’s solve this problem step by\
+  \ step. First of all, let’s recall that for a given set of data, Akaike's information\
+  \ criterion (AIC) allows us to measure how well a statistical model fits the data;\
+  \ it is an estimator of prediction error. Here in this problem we will need to use\
+  \ the formula ln(det(sigma_hat)) + (2 * k / T) to determine the values of Akaike’s\
+  \ criterion, where ln denotes the natural log function, det the determinant function,\
+  \ k the total number of parameters in total (across both equations), and T the number\
+  \ of observations (which, in this case, is equal to 500). For 1 lag, the number\
+  \ of parameters in total is equal to 6; for 2 lags, it is 10; for 3 lags, it is\
+  \ 14; and for 4 lags, it is 18. Now, let’s calculate the values of the criterion\
+  \ for each lag:\n(A) 1 lag: ln(0.0336) + (2 * 6 / 500) = ln(0.0336) + (12 / 500)\
+  \ = -3.369\n(B) 2 lags: ln(0.0169) + (2 * 10 / 500) = ln(0.0169) + (20 / 500) =\
+  \ -4.040\n(C) 3 lags: ln(0.0084) + (2 * 14 / 500) = ln(0.0084) + (28 / 500) =-4.724\n\
+  (D) 4 lags: ln(0.0062) + (2 * 18 / 500) = ln(0.0062) + (36 / 500) =-5.011\nBecause\
+  \ the optimal model order according to AIC minimizes the information criterion,\
+  \ the answer should be the one with the lowest value. In this case, (D) has the\
+  \ lowest value. The answer is (C).\n\nQ: Consider the following AR(1) model with\
+  \ the disturbances having zero mean and unit variance\nyt = 0.2 + 0.4 yt-1 + ut\n\
+  The (unconditional) mean of y will be given by\n(A) 0.2 (B) 0.4 (C) 0.5 (D) 0.33\n\
+  A: Let's think step by step. We refer to Wikipedia articles on econometrics for\
+  \ help. Let’s solve this problem step by step. If we have a an AR(1) model with\
+  \ the disturbances having zero mean and unit variance, then the unconditional mean\
+  \ of y is equal to the following:\nunconditional mean of y = (the intercept term)\
+  \ / (1 - autoregressive coefficient)\nWe know that the intercept term is 0.2 and\
+  \ the autoregressive coefficient is 0.4; thus, we have:\nunconditional mean of y\
+  \ = (0.2) / (1 - 0.4) = (0.2) / (0.6) = 2 / 6 = 1 / 3, which is approximately 0.33.\
+  \ That means that the answer should be (D) 0.33. The answer is (D).\n\nQ: What would\
+  \ be then consequences for the OLS estimator if heteroscedasticity is present in\
+  \ a regression model but ignored?\n(A) It will be biased (B) It will be inconsistent\
+  \ (C) It will be inefficient (D) All of (a), (b) and (c) will be true.\nA: Let's\
+  \ think step by step. We refer to Wikipedia articles on econometrics for help. Heteroscedasticity\
+  \ refers to the condition where the variance of the error terms is not constant\
+  \ across multiple observations. If heteroscedasticity is present in a regression\
+  \ model, then the coefficient estimates in the OLS estimator will be not only unbiased\
+  \ and consistent but also inefficient. Because (A) and (B) are incorrect choices\
+  \ and (C) is a correct choice, (D) cannot be the right answer. Ultimately, (C) is\
+  \ the only true choice. The answer is (C).\n\nQ: Suppose that a test statistic has\
+  \ associated with it a p-value of 0.08. Which one of the following statements is\
+  \ true?\n(i) If the size of the test were exactly 8%, we would be indifferent between\
+  \ rejecting and not rejecting the null hypothesis\n(ii) The null would be rejected\
+  \ if a 10% size of test were used\n(iii) The null would not be rejected if a 1%\
+  \ size of test were used\n(iv) The null would be rejected if a 5% size of test were\
+  \ used.\n(A) (ii) and (iv) only (B) (i) and (iii) only (C) (i), (ii), and (iii)\
+  \ only (D) (i), (ii), (iii), and (iv).\nA: Let's think step by step. We refer to\
+  \ Wikipedia articles on econometrics for help. Let’s reason about each of the options.\n\
+  (i) is a true statement.\n(ii) is a true statement.\n(iii) is a true statement.\n\
+  (iv) is not a true statement. Thus, (i), (ii), and (iii) are true. The answer is\
+  \ (C).\n\nQ: For a stationary autoregressive process, shocks will\n(A) Eventually\
+  \ die away (B) Persist indefinitely (C) Grow exponentially (D) Never occur\nA: Let's\
+  \ think step by step. We refer to Wikipedia articles on econometrics for help. This\
+  \ is a formal logic problem about stationally process. For a stationary autoregressive\
+  \ process, shocks will eventually die away. The answer is (A).\n\n"
+"group": "mmlu_flan_cot_fewshot_social_sciences"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_econometrics"

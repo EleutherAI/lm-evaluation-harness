@@ -3,7 +3,7 @@ group:
 task: anagrams2
 dataset_path: EleutherAI/unscramble
 dataset_name: mid_word_2_anagrams
-output_type: greedy_until
+output_type: generate_until
 test_split: validation
 doc_to_text: "{{context}}"
 doc_to_target: "{{completion}}"
@@ -16,3 +16,5 @@ metric_list:
     higher_is_better: true
     ignore_case: false
     ignore_punctuation: false
+metadata:
+  - version: 1.0

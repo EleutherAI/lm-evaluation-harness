@@ -10,17 +10,25 @@ import collections
 import importlib.util
 import fnmatch
 
-from typing import List, Literal, Union
+from typing import Iterator, List, Literal, Union, Any, Callable
 
 import gc
 import torch
 import transformers
 
-from omegaconf import OmegaConf
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
 
-from lm_eval.logger import eval_logger
+import logging
+
+logging.basicConfig(
+    format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+    datefmt="%Y-%m-%d:%H:%M:%S",
+    level=logging.INFO,
+)
+eval_logger = logging.getLogger("lm-eval")
+
+SPACING = " " * 47
 
 
 def escaped_split(text, sep_char, maxsplit=-1):
@@ -46,6 +54,19 @@ def escaped_split(text, sep_char, maxsplit=-1):
     return re.split(r"(?<!\\)" + sep_char, text, maxsplit)
 
 
+def handle_arg_string(arg):
+    if arg.lower() == "true":
+        return True
+    elif arg.lower() == "false":
+        return False
+    elif arg.isnumeric():
+        return int(arg)
+    try:
+        return float(arg)
+    except ValueError:
+        return arg
+
+
 def simple_parse_args_string(args_string):
     """
     Parses something like
@@ -55,8 +76,10 @@ def simple_parse_args_string(args_string):
     args_string = args_string.strip()
     if not args_string:
         return {}
-    arg_list = args_string.split(",")
-    args_dict = OmegaConf.to_object(OmegaConf.from_dotlist(arg_list))
+    arg_list = [arg for arg in args_string.split(",") if arg]
+    args_dict = {
+        k: handle_arg_string(v) for k, v in [arg.split("=") for arg in arg_list]
+    }
     return args_dict
 
 
@@ -65,11 +88,37 @@ def join_iters(iters):
         yield from iter
 
 
-def chunks(iter, n=0, fn=None):
+def chunks(iter, n: int = 0, fn=None):
+    """
+    Divides an iterable into chunks of specified size or based on a given function.
+    Useful for batching
+
+    Parameters:
+    - iter: The input iterable to be divided into chunks.
+    - n: An integer representing the size of each chunk. Default is 0.
+    - fn: A function that takes the current index and the iterable as arguments and returns the size of the chunk. Default is None.
+
+    Returns:
+    An iterator that yields chunks of the input iterable.
+
+    Example usage:
+    ```
+    data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    for chunk in chunks(data, 3):
+        print(chunk)
+    ```
+    Output:
+    ```
+    [1, 2, 3]
+    [4, 5, 6]
+    [7, 8, 9]
+    [10]
+    ```
+    """
     arr = []
     for i, x in enumerate(iter):
         arr.append(x)
-        if len(arr) == (fn(i) if fn else n):
+        if len(arr) == (fn(i, iter) if fn else n):
             yield arr
             arr = []
 
@@ -87,11 +136,11 @@ def group(arr, fn):
 
 
 class MultiChoice:
-    def __init__(self, choices):
+    def __init__(self, choices) -> None:
         self.choices = choices
 
     # Simple wildcard support (linux filename patterns)
-    def __contains__(self, values):
+    def __contains__(self, values) -> bool:
         for value in values.split(","):
             if len(fnmatch.filter(self.choices, value)) == 0:
                 eval_logger.info(f"Available tasks to choose:")
@@ -100,7 +149,7 @@ class MultiChoice:
                 raise ValueError("'{}' is not in task list".format(value))
         return True
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         for choice in self.choices:
             yield choice
 
@@ -108,7 +157,6 @@ class MultiChoice:
 # Returns a list containing all values of the source_list that
 # match at least one of the patterns
 def pattern_match(patterns, source_list):
-
     if type(patterns) == str:
         patterns = [patterns]
 
@@ -177,7 +225,13 @@ def make_disjoint_window(pair):
 
 
 class Reorderer:
-    def __init__(self, arr, fn):
+    def __init__(self, arr: List[Any], fn: Callable) -> None:
+        """Reorder an array according to some function
+
+        Args:
+            arr (List[Any]): The initial array
+            fn (Callable[[Any], Any]): A function to determine the priority of elements
+        """
         self.size = len(arr)
         arr = list(enumerate(arr))
         arr = group(arr, lambda x: fn(x[1]))
@@ -189,9 +243,22 @@ class Reorderer:
         self.arr = arr
 
     def get_reordered(self):
+        """Gets the reordered array
+
+        Returns:
+            List[Any]: The reordered array
+        """
         return [x[1] for x in self.arr]
 
     def get_original(self, newarr):
+        """Restores the original order of a new array based on the old array's order
+
+        Args:
+            newarr (List[Any]): The array to be restored
+
+        Returns:
+            List[Any]: The array restored to the original order
+        """
         res = [None] * self.size
         cov = [False] * self.size
 
@@ -212,7 +279,7 @@ class Grouper:
     objects in `arr` satisfying `key == fn(ob)`.
     """
 
-    def __init__(self, arr, fn):
+    def __init__(self, arr, fn) -> None:
         # self.orig_arr = arr
         self.size = len(arr)
         arr = list(enumerate(arr))
@@ -263,40 +330,40 @@ class Grouper:
         return res
 
 
-def make_table(result_dict, column="results"):
+def make_table(result_dict, column: str = "results"):
     """Generate table of results."""
     from pytablewriter import MarkdownTableWriter, LatexTableWriter
 
     if column == "results":
-        column_name = "Task"
-    elif column == "aggregate":
-        column_name = "Benchmark"
+        column_name = "Tasks"
+    elif column == "groups":
+        column_name = "Groups"
+
+    all_headers = [
+        column_name,
+        "Version",
+        "Filter",
+        "n-shot",
+        "Metric",
+        "Value",
+        "",
+        "Stderr",
+    ]
 
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
-    md_writer.headers = [
-        column_name,
-        "Version",
-        "Filter",
-        "Metric",
-        "Value",
-        "",
-        "Stderr",
-    ]
-    latex_writer.headers = [
-        column_name,
-        "Version",
-        "Filter",
-        "Metric",
-        "Value",
-        "",
-        "Stderr",
-    ]
+    md_writer.headers = all_headers
+    latex_writer.headers = all_headers
 
     values = []
 
     for k, dic in result_dict[column].items():
         version = result_dict["versions"][k]
+        n = str(result_dict["n-shot"][k])
+
+        if "alias" in dic:
+            k = dic.pop("alias")
+
         for (mf), v in dic.items():
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
@@ -304,9 +371,11 @@ def make_table(result_dict, column="results"):
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                values.append([k, version, f, m, "%.4f" % v, "±", "%.4f" % se])
+                if se != "N/A":
+                    se = "%.4f" % se
+                values.append([k, version, f, n, m, "%.4f" % v, "±", se])
             else:
-                values.append([k, version, f, m, "%.4f" % v, "", ""])
+                values.append([k, version, f, n, m, "%.4f" % v, "", ""])
             k = ""
             version = ""
     md_writer.value_matrix = values
@@ -393,12 +462,13 @@ def get_git_commit_hash():
 
 
 def import_function(loader, node):
-
     function_name = loader.construct_scalar(node)
     yaml_path = os.path.dirname(loader.name)
 
-    module_name, function_name = function_name.split(".")
-    module_path = os.path.join(yaml_path, "{}.py".format(module_name))
+    *module_name, function_name = function_name.split(".")
+    if type(module_name) == list:
+        module_name = ".".join(module_name)
+    module_path = os.path.normpath(os.path.join(yaml_path, "{}.py".format(module_name)))
 
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     module = importlib.util.module_from_spec(spec)
@@ -412,42 +482,46 @@ def import_function(loader, node):
 yaml.add_constructor("!function", import_function)
 
 
-def load_yaml_config(yaml_path):
-    with open(yaml_path, "rb") as file:
-        yaml_config = yaml.full_load(file)
+def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
+    if yaml_config is None:
+        with open(yaml_path, "rb") as file:
+            yaml_config = yaml.full_load(file)
+
+    if yaml_dir is None:
         yaml_dir = os.path.dirname(yaml_path)
 
-        if "include" in yaml_config:
-            include_path = yaml_config["include"]
-            del yaml_config["include"]
+    assert yaml_dir is not None
 
-            if type(include_path) == str:
-                include_path = [include_path]
+    if "include" in yaml_config:
+        include_path = yaml_config["include"]
+        del yaml_config["include"]
 
-            # Load from the last one first
-            include_path.reverse()
-            final_yaml_config = {}
-            for path in include_path:
+        if type(include_path) == str:
+            include_path = [include_path]
 
-                # Assumes that path is a full path.
-                # If not found, assume the included yaml
-                # is in the same dir as the original yaml
-                if not os.path.isfile(path):
-                    path = os.path.join(yaml_dir, path)
+        # Load from the last one first
+        include_path.reverse()
+        final_yaml_config = {}
+        for path in include_path:
+            # Assumes that path is a full path.
+            # If not found, assume the included yaml
+            # is in the same dir as the original yaml
+            if not os.path.isfile(path):
+                path = os.path.join(yaml_dir, path)
 
-                try:
-                    included_yaml_config = load_yaml_config(path)
-                    final_yaml_config.update(included_yaml_config)
-                except Exception as ex:
-                    # If failed to load, ignore
-                    raise ex
+            try:
+                included_yaml_config = load_yaml_config(path)
+                final_yaml_config.update(included_yaml_config)
+            except Exception as ex:
+                # If failed to load, ignore
+                raise ex
 
-            final_yaml_config.update(yaml_config)
-            return final_yaml_config
-        return yaml_config
+        final_yaml_config.update(yaml_config)
+        return final_yaml_config
+    return yaml_config
 
 
-def regex_replace(string, pattern, repl, count=0):
+def regex_replace(string, pattern, repl, count: int = 0):
     """Implements the `re.sub` function as a custom Jinja filter."""
     return re.sub(pattern, repl, string, count=count)
 
@@ -521,7 +595,7 @@ def pad_and_concat(
     return torch.cat(tensors, dim=0)
 
 
-def clear_torch_cache():
+def clear_torch_cache() -> None:
     gc.collect()
     torch.cuda.empty_cache()
 
@@ -546,12 +620,19 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
         tokenizer: transformers.PreTrainedTokenizer,
         initial_decoder_input_length: int,
         batch_size: int,
-    ):
+    ) -> None:
         self.initial_decoder_input_length = initial_decoder_input_length
         self.done_tracker = [False] * batch_size
         self.sequence = sequence
         self.sequence_ids = tokenizer.encode(sequence, add_special_tokens=False)
-        self.sequence_id_len = len(self.sequence_ids)
+        # we look back for 2 more tokens than it takes to encode our stop sequence
+        # because tokenizers suck, and a model might generate `['\n', '\n']` but our `sequence` is `['\n\n']`
+        # and we don't want to mistakenly not stop a generation because our
+        # (string) stop sequence was output in a different tokenization
+
+        # NOTE: there is a minor danger that this will end up looking back 2 tokens into the past, into the inputs to the model,
+        # and stopping generation immediately as a result. With only 2 extra tokens of lookback, this risk is minimized
+        self.sequence_id_len = len(self.sequence_ids) + 2
         self.tokenizer = tokenizer
 
     def __call__(self, input_ids, scores, **kwargs) -> bool:
@@ -561,7 +642,6 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
         ]
 
         lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
-
         for i, done in enumerate(self.done_tracker):
             if not done:
                 self.done_tracker[i] = self.sequence in lookback_tokens_batch[i]
@@ -584,3 +664,55 @@ def stop_sequences_criteria(
             ],
         ]
     )
+
+
+# from more_itertools
+def divide(iterable, n) -> List[Iterator]:
+    """Divide the elements from *iterable* into *n* parts, maintaining
+    order.
+
+        >>> group_1, group_2 = divide(2, [1, 2, 3, 4, 5, 6])
+        >>> list(group_1)
+        [1, 2, 3]
+        >>> list(group_2)
+        [4, 5, 6]
+
+    If the length of *iterable* is not evenly divisible by *n*, then the
+    length of the returned iterables will not be identical:
+
+        >>> children = divide(3, [1, 2, 3, 4, 5, 6, 7])
+        >>> [list(c) for c in children]
+        [[1, 2, 3], [4, 5], [6, 7]]
+
+    If the length of the iterable is smaller than n, then the last returned
+    iterables will be empty:
+
+        >>> children = divide(5, [1, 2, 3])
+        >>> [list(c) for c in children]
+        [[1], [2], [3], [], []]
+
+    This function will exhaust the iterable before returning and may require
+    significant storage. If order is not important, see :func:`distribute`,
+    which does not first pull the iterable into memory.
+
+    """
+    if n < 1:
+        raise ValueError("n must be at least 1")
+
+    try:
+        iterable[:0]
+    except TypeError:
+        seq = tuple(iterable)
+    else:
+        seq = iterable
+
+    q, r = divmod(len(seq), n)
+
+    ret = []
+    stop = 0
+    for i in range(1, n + 1):
+        start = stop
+        stop += q + 1 if i <= r else q
+        ret.append(iter(seq[start:stop]))
+
+    return ret

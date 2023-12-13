@@ -1,20 +1,25 @@
 import abc
 import os
+
 import torch
-from typing import Union, List, Tuple, TypeVar, Type
+from typing import Union, List, Tuple, Optional, Type, TypeVar
 from sqlitedict import SqliteDict
 import json
 import hashlib
+
 from tqdm import tqdm
-from lm_eval.api.instance import Instance
+
 from lm_eval import utils
-from lm_eval.logger import eval_logger
+
+import logging
+
+eval_logger = logging.getLogger("lm-eval")
 
 T = TypeVar("T", bound="LM")
 
 
 class LM(abc.ABC):
-    def __init__(self):
+    def __init__(self) -> None:
         """Defines the interface that should be implemented by all LM subclasses.
         LMs are assumed to take text (strings) as input and yield strings as output
         (inputs/outputs should be tokenization-agnostic.)
@@ -26,7 +31,7 @@ class LM(abc.ABC):
         self.cache_hook = CacheHook(None)
 
     @abc.abstractmethod
-    def loglikelihood(self, requests: list[Instance]) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
         """Compute log-likelihood of generating a continuation from a context.
         Downstream tasks should attempt to use loglikelihood instead of other
         LM calls whenever possible.
@@ -51,9 +56,7 @@ class LM(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def loglikelihood_rolling(
-        self, requests: list[Instance]
-    ) -> List[Tuple[float, bool]]:
+    def loglikelihood_rolling(self, requests) -> List[Tuple[float, bool]]:
         """Compute full log-likelihood of a string, with no truncation, for perplexity computation
         - We will use the full max context length of the model.
         - For inputs that exceed the max context length, we divide the tokenized string into chunks of up to
@@ -96,7 +99,7 @@ class LM(abc.ABC):
 
     # TODO: Add an optional max length
     @abc.abstractmethod
-    def greedy_until(self, requests: list[Instance]) -> List[str]:
+    def generate_until(self, requests) -> List[str]:
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
@@ -115,38 +118,38 @@ class LM(abc.ABC):
 
     @classmethod
     def create_from_arg_string(
-        cls: Type[T], arg_string: str, additional_config: dict = None
+        cls: Type[T], arg_string: str, additional_config: Optional[dict] = None
     ) -> T:
-        """Create a model instance from an arg_string of the form `key=value,key1=value1`."""
+        """
+        Creates an instance of the LM class using the given argument string and additional config.
+
+        Parameters:
+        - arg_string: A string containing arguments in the format key1=value1,key2=value2.
+        - additional_config: Optional dictionary containing additional configuration parameters.
+
+        Returns:
+        - Instance of the LM class.
+        """
         additional_config = {} if additional_config is None else additional_config
         args = utils.simple_parse_args_string(arg_string)
         args2 = {k: v for k, v in additional_config.items() if v is not None}
-        # TODO: remove this hack once mps is fixed in torch stable
-        if args2.get("device") in ("mps", "mps:0") or args.get("device") in (
-            "mps",
-            "mps:0",
-        ):
-            if "dev" not in torch.__version__:
-                args["dtype"] = "float32"
-        # if trailing comma, remove empty key
-        args.pop("", None)
         return cls(**args, **args2)
 
     @property
-    def rank(self) -> int:
+    def rank(self):
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
         return self._rank
 
     @property
-    def world_size(self) -> int:
+    def world_size(self):
         # used in the case of parallelism. Hardcoded to
         # ensure no errors arise using API models which do
         # not support multi-device parallelism nor expect it.
         return self._world_size
 
-    def set_cache_hook(self, cache_hook):
+    def set_cache_hook(self, cache_hook) -> None:
         self.cache_hook = cache_hook
 
 
@@ -157,14 +160,14 @@ def hash_args(attr, args):
 
 
 class CacheHook:
-    def __init__(self, cachinglm):
+    def __init__(self, cachinglm) -> None:
         if cachinglm is None:
             self.dbdict = None
             return
 
         self.dbdict = cachinglm.dbdict
 
-    def add_partial(self, attr, req, res):
+    def add_partial(self, attr, req, res) -> None:
         if self.dbdict is None:
             return
         hsh = hash_args(attr, req)
@@ -172,7 +175,7 @@ class CacheHook:
 
 
 class CachingLM:
-    def __init__(self, lm, cache_db):
+    def __init__(self, lm, cache_db) -> None:
         """LM wrapper that returns cached results if they exist, and uses the underlying LM if not.
 
         :param lm: LM
@@ -204,12 +207,12 @@ class CachingLM:
             )
             for req in tqdm(requests):
                 hsh = hash_args(attr, req.args)
-                if attr == "greedy_until" and req.args[1].get("do_sample", False):
+                if attr == "generate_until" and req.args[1].get("do_sample", False):
                     # when we are doing non-greedy generation, don't use the cache
                     # (else every "randomly sampled" generation would be identical for repeats > 1).
                     if not warned:
                         eval_logger.warning(
-                            f"Arguments to lm.greedy_until() '{req.args[1]}' include non-deterministic sampling. Caching will not be performed for such requests."
+                            f"Arguments to lm.generate_until() '{req.args[1]}' include non-deterministic sampling. Caching will not be performed for such requests."
                         )
                         warned = True
                     res.append(None)

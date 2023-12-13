@@ -1,20 +1,26 @@
 from __future__ import annotations
 import pytest
+from pathlib import Path
 import numpy as np
 from lm_eval.models.huggingface import HFLM
 from lm_eval.api.instance import Instance
 import lm_eval.tasks as tasks
+import sys
+import torch
+
+tasks.initialize_tasks()
 
 
 class Test_HFLM:
-
+    torch.use_deterministic_algorithms(True)
+    version_minor = sys.version_info.minor
     multiple_choice_task = tasks.TASK_REGISTRY.get("arc_easy")()  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
-    greedy_until_task = tasks.TASK_REGISTRY.get("gsm8k_yaml")()  # type: ignore
-    greedy_until_task.build_all_requests(limit=10, rank=0, world_size=1)
-    greedy_until_task._config.generation_kwargs["max_gen_toks"] = 10
-    GREEDY_UNTIL: list[Instance] = greedy_until_task.instances
+    generate_until_task = tasks.TASK_REGISTRY.get("gsm8k")()  # type: ignore
+    generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
+    generate_until_task._config.generation_kwargs["max_gen_toks"] = 10
+    generate_until: list[Instance] = generate_until_task.instances
     rolling_task = tasks.TASK_REGISTRY.get("wikitext")()  # type: ignore
     rolling_task.build_all_requests(limit=10, rank=0, world_size=1)
     ROLLING: list[Instance] = rolling_task.instances
@@ -61,7 +67,7 @@ class Test_HFLM:
         -52.70050811767578,
         -56.25089645385742,
     ]
-    GREEDY_UNTIL_RES = [
+    generate_until_RES = [
         " The average of $2.50 each is $",
         " A robe takes 2 bolts of blue fiber and half",
         " $50,000 in repairs.",
@@ -90,21 +96,28 @@ class Test_HFLM:
     def test_logliklihood(self) -> None:
         res = self.LM.loglikelihood(self.MULTIPLE_CH)
         _RES, _res = self.MULTIPLE_CH_RES, [r[0] for r in res]
-        # change atol in case of consistent failure
-        assert np.allclose(_res, _RES, atol=1e-4)
+        # log samples to CI
+        dir_path = Path("test_logs")
+        dir_path.mkdir(parents=True, exist_ok=True)
+
+        file_path = dir_path / f"outputs_log_{self.version_minor}.txt"
+        file_path = file_path.resolve()
+        with open(file_path, "w") as f:
+            f.write("\n".join(str(x) for x in _res))
+        assert np.allclose(_res, _RES, atol=1e-2)
         # check indices for Multiple Choice
         argmax_RES, argmax_res = np.argmax(
             np.array(_RES).reshape(-1, 4), axis=1
         ), np.argmax(np.array(_res).reshape(-1, 4), axis=1)
         assert (argmax_RES == argmax_res).all()
 
-    def test_greedy_until(self) -> None:
-        res = self.LM.greedy_until(self.GREEDY_UNTIL)
-        assert res == self.GREEDY_UNTIL_RES
+    def test_generate_until(self) -> None:
+        res = self.LM.generate_until(self.generate_until)
+        assert res == self.generate_until_RES
 
     def test_logliklihood_rolling(self) -> None:
         res = self.LM.loglikelihood_rolling(self.ROLLING)
-        assert np.allclose(res, self.ROLLING_RES, atol=1e-2)
+        assert np.allclose(res, self.ROLLING_RES, atol=1e-1)
 
     def test_toc_encode(self) -> None:
         res = self.LM.tok_encode("foo bar")

@@ -1,0 +1,50 @@
+"dataset_name": "college_mathematics"
+"description": "The following are multiple choice questions (with answers) about college\
+  \ mathematics.\n\nQ: Let V be the set of all real polynomials p(x). Let transformations\
+  \ T, S be defined on V by T:p(x) -> xp(x) and S:p(x) -> p'(x) = d/dx p(x), and interpret\
+  \ (ST)(p(x)) as S(T(p(x))). Which of the following is true?\n(A) ST = 0 (B) ST =\
+  \ T (C) ST = TS (D) ST - TS is the identity map of V onto itself.\nA: Let's think\
+  \ step by step. For a given polynomial $p$ we have\n\\[ST(p) = (xp(x))’ = p(x) +\
+  \ xp’(x)\\]\nand\n\\[TS(p) = xp’(x).\\]\nHence \\[ST(p) - TS(p) = p(x) + xp’(x)\
+  \ - xp’(x).\\] The answer is (D).\n\nQ: Suppose that f(1 + x) = f(x) for all real\
+  \ x. If f is a polynomial and f(5) = 11, then f(15/2)\n(A) -11 (B) 0 (C) 11 (D)\
+  \ 33/2\nA: Let's think step by step. The only polynomial so that $f(1 + x) = f(x)$\
+  \ is a constant polynomial. Hence $f(5) = 11 = f(15/2)$. The answer is (C).\n\n\
+  Q: Let A be a real 2x2 matrix. Which of the following statements must be true?\n\
+  I. All of the entries of A^2 are nonnegative.\nII. The determinant of A^2 is nonnegative.\n\
+  III. If A has two distinct eigenvalues, then A^2 has two distinct eigenvalues.\n\
+  (A) I only (B) II only (C) III only (D) II and III only\nA: Let's think step by\
+  \ step. We have \\[ det(A^2) = (det(A))^2 \\geq 0,\\] hence II holds.\nIII is false:\
+  \ as a counterexample take a diagonal matrix with -1 and 1 on the diagonal. Then\
+  \ $A^2$ is the identity matrix. The answer is (B).\n\nQ: Let A be the set of all\
+  \ ordered pairs of integers (m, n) such that 7m + 12n = 22. What is the greatest\
+  \ negative number in the set B = {m + n : (m, n) \\in A}?\n(A) -5 (B) -4 (C) -3\
+  \ (D) -2\nA: Let's think step by step. We have 12n = 22 - 7m and one of the solutions\
+  \ is $m = -2$, $n = 3$. Then $m + n = 1$, hence we need to look for smaller $m$\
+  \ in order to make $m + n$ negative. The next solution is $m = -14$ and $n = 10$.\
+  \ For smaller $m$ we have $m + n$ smaller than $-4$. The answer is (B).\n\nQ: A\
+  \ tank initially contains a salt solution of 3 grams of salt dissolved in 100 liters\
+  \ of water. A salt solution containing 0.02 grams of salt per liter of water is\
+  \ sprayed into the tank at a rate of 4 liters per minute. The sprayed solution is\
+  \ continually mixed with the salt solution in the tank, and the mixture flows out\
+  \ of the tank at a rate of 4 liters per minute. If the mixing is instantaneous,\
+  \ how many grams of salt are in the tank after 100 minutes have elapsed?\n(A) 2\
+  \ (B) 2 - e^-2 (C) 2 + e^-2 (D) 2 + e^-4\nA: Let's think step by step. For all $t\
+  \ \\in \\mathbb{R}$, let $s(t)$ denote the number grams of salt in the tank at the\
+  \ $t$ minute mark. Then $s(0) = 3$.\nWe use $s$ and $s(t)$ interchangeably. We also\
+  \ use $s^{\\prime}$ and $s^{\\prime}(t)$ interchangeably. The solution sprayed into\
+  \ the tank adds $(0.02) 4=2 / 25$ grams of salt per minute. There are always 100\
+  \ liters of liquid in the tank, containing $s$ grams of salt. So the density of\
+  \ salt in the tank is $s / 100$ grams per liter. The flow of water out of the tank\
+  \ therefore subtracts $4(s / 100)=s / 25$ grams of salt per minute. Then, for all\
+  \ $t \\in \\mathbb{R}$, we have $s^{\\prime}(t)=(2 / 25)-(s / 25)=(2-s) / 25$, and\
+  \ so $[s(t)=2] \\Rightarrow\\left[s^{\\prime}(t)=0\right]$. For all $t \\in \\mathbb{R}$,\n\
+  $$\n\frac{d}{d t}[\\ln (s-2)]=\frac{s^{\\prime}}{s-2}=\frac{-1}{25}=\frac{d}{d t}\\\
+  left[-\frac{t}{25}\right] .\n$$\nChoose $C \\in \\mathbb{R}$ such that, for all\
+  \ $t \\in \\mathbb{R}, \\ln ((s(t)-2))=-[t / 25]+C$. Let $K:=e^{C}$. Then, for all\
+  \ $t \\in \\mathbb{R}$, we have $(s(t))-2=K e^{-t / 25}$, and so $s(t)=2+K e^{-t\
+  \ / 25}$. Then $3=s(0)=2+K e^{0}=2+K$, so $K=1$. Then $s(100)=2+K e^{-100 / 25}=2+1\
+  \ \\cdot e^{-4}=2+e^{-4}$. The answer is (D).\n\n"
+"group": "mmlu_flan_cot_fewshot_stem"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_college_mathematics"

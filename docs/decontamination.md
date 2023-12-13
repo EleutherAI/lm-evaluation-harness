@@ -2,11 +2,11 @@
 
 ## Usage
 
-Simply add a "--decontamination_ngrams_path" when running main.py. The provided directory should contain
+Simply add a "--decontamination_ngrams_path" when running \__main\__.py. The provided directory should contain
 the ngram files and info.json produced in "Pile Ngram Generation" further down.
 
 ```bash
-python main.py \
+python -m lm_eval \
     --model gpt2 \
     --device 0 \
     --tasks sciq \

@@ -1,0 +1,41 @@
+"dataset_name": "elementary_mathematics"
+"description": "The following are multiple choice questions (with answers) about elementary\
+  \ mathematics.\n\nQ: Olivia used the rule \"Add 11\" to create the number pattern\
+  \ shown below. 10, 21, 32, 43, 54. Which statement about the number pattern is true?\n\
+  (A) The 10th number in the pattern will be an even number.\n(B) The number pattern\
+  \ will never have two even numbers next to each other.\n(C) The next two numbers\
+  \ in the pattern will be an even number then an odd number.\n(D) If the number pattern\
+  \ started with an odd number then the pattern would have only odd numbers in it.\n\
+  A: Let's think step by step. Choice A is incorrect because every even-numbered term\
+  \ in the pattern is odd, and 10 is an even number. Choice B is correct, because\
+  \ adding an odd number (in this case 11) to an odd number produces an even number,\
+  \ and adding an odd number to an even number produces an odd number. Thus the terms\
+  \ in the pattern will alternate between odd and even, so there will never be two\
+  \ even numbers next to each other. Choice C is incorrect because the last term in\
+  \ the example is even (54), and we know that the terms will alternate between even\
+  \ and odd. Choice D is incorrect because the terms in the pattern will alternate\
+  \ between odd and even, regardless of the value of the first term. The answer is\
+  \ (B).\n\nQ: The population of the city where Michelle was born is 145,826. What\
+  \ is the value of the 5 in the number 145,826?\n(A) 5 thousands\n(B) 5 hundreds\n\
+  (C) 5 tens\n(D) 5 ones\nA: Let's think step by step. Choice A is correct, because\
+  \ there are three digits following the 5, so\nthe 5 is in the thousands place. Thus\
+  \ the other choices are incorrect. The answer is (A).\n\nQ: A store sells 107 different\
+  \ colors of paint. They have 25 cans of each color in storage. The number of cans\
+  \ of paint the store has in storage can be found using the expression below. 107\
+  \ × 25. How many cans of paint does the store have in storage?\n(A) 749\n(B) 2,675\n\
+  (C) 2,945\n(D) 4,250\nA: Let's think step by step. We can calculate 107 x 25 = (100\
+  \ x 25) + (7 x 25) = 2500 + 175 = 2675. The answer is (B).\n\nQ: A total of 30 players\
+  \ will play basketball at a park. There will be exactly 5 players on each team.\
+  \ Which statement correctly explains how to find the number of teams needed?\n(A)\
+  \ Add 5 to 30 to find 35 teams.\n(B) Divide 30 by 5 to find 6 teams.\n(C) Multiply\
+  \ 30 and 5 to find 150 teams.\n(D) Subtract 5 from 30 to find 25 teams.\nA: Let's\
+  \ think step by step. We want to find the number of teams. We know that there are\
+  \ 5 players/team, and 30 players. Thus to get the number of teams we divide players\
+  \ by players/team, so 30 players / 5 players/team = 6 teams. The answer is (B).\n\
+  \nQ: Which expression is equivalent to 5 x 9?\n(A) (5 x 4) x (6 x 5)\n(B) (5 x 5)\
+  \ + (5 x 4)\n(C) (5 x 5) + (5 x 9)\n(D) (5 x 9) x (6 x 9)\nA: Let's think step by\
+  \ step. We know that 9 = (5 + 4), so 5 x 9 = 5 x (5 + 4) = (5 x 5) + (5 x 4). The\
+  \ answer is (B).\n\n"
+"group": "mmlu_flan_cot_fewshot_stem"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_elementary_mathematics"

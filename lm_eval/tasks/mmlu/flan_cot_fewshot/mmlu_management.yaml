@@ -1,0 +1,33 @@
+"dataset_name": "management"
+"description": "The following are multiple choice questions (with answers) about management.\n\
+  \nQ: How can organisational structures that are characterised by democratic and\
+  \ inclusive styles of management be described?\n(A) Hierarchical (B) Bureaucratic\
+  \ (C) Flat (D) Functional\nA: Let's think step by step. We refer to Wikipedia articles\
+  \ on management for help. Flat organizational structures are characterized by democratic\
+  \ and inclusive styles of management, and have few (if any) levels of management\
+  \ between the workers and managers.  The answer is (C).\n\nQ: Hygiene factors are\
+  \ associated with which writer?\n(A) Frederick Hertzberg (B) D.C. McClelland (C)\
+  \ Abraham Maslow (D) Douglas McGregor\nA: Let's think step by step. We refer to\
+  \ Wikipedia articles on management for help. Hygiene factors include compensation,\
+  \ company policies, supervision, interpersonal relations, and work environments.\
+  \ Hertzberg lists them as factors that cannot motivate employees but can minimize\
+  \ job dissatisfaction. The answer is (A).\n\nQ: What characteristic is not a key\
+  \ feature of the 'open systems' model of management?\n(A) Morale (B) Innovation\
+  \ (C) Growth resource (D) Adaptation\nA: Let's think step by step. We refer to Wikipedia\
+  \ articles on management for help. The key characteristics of an open system in\
+  \ management include innovation, growth resource, and adaption, but do not include\
+  \ morale. The answer is (A).\n\nQ: Which element of the cultural web forms regalia?\n\
+  (A) Symbols (B) Rituals and routines (C) Power structures (D) Control systems\n\
+  A: Let's think step by step. We refer to Wikipedia articles on management for help.\
+  \ The cultural web is a tool for mapping an organization's culture, where symbols\
+  \ form the regalia that visually expresses the values that the organization holds\
+  \ as important. The answer is (A).\n\nQ: What are the two main dimensions of the\
+  \ Ohio Studies into leadership?\n(A) Starting position and end position (B) Initial\
+  \ environment and changed environment (C) Organisational structure and conditioning\
+  \ (D) Initiating structure and considerations\nA: Let's think step by step. We refer\
+  \ to Wikipedia articles on management for help. The Ohio State Leadership Studies\
+  \ conducted in the 1940s identified initiating structure and consideration as the\
+  \ two main dimensions of leader behavior. The answer is (D).\n\n"
+"group": "mmlu_flan_cot_fewshot_other"
+"include": "_mmlu_flan_cot_fewshot_template_yaml"
+"task": "mmlu_flan_cot_fewshot_management"

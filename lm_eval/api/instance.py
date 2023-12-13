@@ -4,7 +4,7 @@ from typing import Literal, Tuple
 
 @dataclass
 class Instance:
-    request_type: Literal["loglikelihood", "loglikelihood_rolling", "greedy_until"]
+    request_type: Literal["loglikelihood", "loglikelihood_rolling", "generate_until"]
     doc: dict
     arguments: tuple
     idx: int
@@ -19,7 +19,7 @@ class Instance:
     doc_id: str = None
     repeats: str = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # unpack metadata field
         self.task_name, self.doc_id, self.repeats = self.metadata
 

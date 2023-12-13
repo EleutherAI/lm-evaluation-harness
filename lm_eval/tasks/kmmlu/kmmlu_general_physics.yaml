@@ -1,0 +1,3 @@
+"dataset_name": "General Physics"
+"include": "_default_kmmlu_yaml"
+"task": "kmmlu_general_physics"
