@@ -1,5 +1,25 @@
 # Language Model Evaluation Harness
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
+
+## Announcement
+**A new v0.4.0 release of lm-evaluation-harness is available** !
+
+New updates and features include:
+
+- Internal refactoring
+- Config-based task creation and configuration
+- Easier import and sharing of externally-defined task config YAMLs
+- Support for Jinja2 prompt design, easy modification of prompts + prompt imports from Promptsource
+- More advanced configuration options, including output post-processing, answer extraction, and multiple LM generations per document, configurable fewshot settings, and more
+- Speedups and new modeling libraries supported, including: faster data-parallel HF model usage, vLLM support, MPS support with HuggingFace, and more
+- Logging and usability changes
+- New tasks including CoT BIG-Bench-Hard, Belebele, user-defined task groupings, and more
+
+Please see our updated documentation pages in `docs/` for more details.
+
+Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](discord.gg/eleutherai)!
+
 ## Overview
 
 This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
@@ -25,7 +45,7 @@ cd lm-evaluation-harness
 pip install -e .
 ```
 
-We also provide a number of optional dependencies for . Extras can be installed via `pip install -e ".[NAME]"`
+We also provide a number of optional dependencies for extended functionality. Extras can be installed via `pip install -e ".[NAME]"`
 
 | Name          | Use                                   |
 | ------------- | ------------------------------------- |
@@ -106,17 +126,20 @@ To use `accelerate` with the `lm-eval` command, use
 accelerate launch --no_python lm-eval --model ...
 ```
 
-### Tensor Parallel + Optimized Inference with vLLM
 
-We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html).
+### Tensor + Data Parallel and Optimized Inference with `vLLM`
+
+We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html). For single-GPU or multi-GPU — tensor parallel, data parallel, or a combination of both — inference, for example:
 
 ```bash
 lm_eval --model vllm \
-    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},dtype=auto,gpu_memory_utilization=0.8 \
+    --model_args pretrained={model_name},tensor_parallel_size={GPUs_per_model},dtype=auto,gpu_memory_utilization=0.8,data_parallel_size={model_replicas} \
     --tasks lambada_openai \
     --batch_size auto
 ```
 For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
+
+vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation, and provide a script at [./scripts/model_comparator.py](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/scripts/model_comparator.py) for checking validity of vllm results against HF.
 
 ### Model APIs and Inference Servers
 
@@ -158,7 +181,6 @@ If you have a Metal compatible Mac, you can run the eval harness using the MPS b
 
 > [!Note]
 > You can inspect what the LM inputs look like by running the following command:
->
 > ```bash
 > python write_out.py \
 >     --tasks all_tasks \
@@ -166,7 +188,6 @@ If you have a Metal compatible Mac, you can run the eval harness using the MPS b
 >     --num_examples 10 \
 >     --output_base_path /path/to/output/folder
 > ```
->
 > This will write out one text file for each task.
 
 To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
@@ -202,19 +223,17 @@ To save evaluation results provide an `--output_path`. We also support logging m
 
 Additionally, one can provide a directory with `--use_cache` to cache the results of prior runs. This allows you to avoid repeated execution of the same (model, task) pairs for re-scoring.
 
-For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/interface.md) guide in our documentation!
+For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
 
 ## How to Contribute or Learn More?
 
 For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
 
-You can also ask for help, or discuss new features with the maintainers in the #lm-thunderdome channel of the EleutherAI discord! If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
-
 ### Implementing new tasks
 
 To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
 
-In general, we following the following priority list for addressing concerns about prompting and other eval details:
+In general, we follow this priority list for addressing concerns about prompting and other eval details:
 1. If there is widespread agreement among people who train LLMs, use the agreed upon procedure.
 2. If there is a clear and unambiguous official implementation, use that procedure.
 3. If there is widespread agreement among people who evaluate LLMs, use the agreed upon procedure.
@@ -222,11 +241,11 @@ In general, we following the following priority list for addressing concerns abo
 
 These are guidelines and not rules, and can be overruled in special circumstances.
 
-We try to prioritize agreement with the procedures used by other groups to decrease the harm when people inevitably compare runs across different papers despite our discouragement of the practice. Historically, we also prioritized the implementation from "Language Models are Few Shot Learners" as our original goal was specifically to compare results with that paper.
+We try to prioritize agreement with the procedures used by other groups to decrease the harm when people inevitably compare runs across different papers despite our discouragement of the practice. Historically, we also prioritized the implementation from [Language Models are Few Shot Learners](https://arxiv.org/abs/2005.14165) as our original goal was specifically to compare results with that paper.
 
 ### Support
 
-The best way to get support is to open an issue on this repo or join the EleutherAI discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
+The best way to get support is to open an issue on this repo or join the [EleutherAI Discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases. If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
 
 ## Cite as
 
@@ -234,11 +253,11 @@ The best way to get support is to open an issue on this repo or join the Eleuthe
 @misc{eval-harness,
   author       = {Gao, Leo and Tow, Jonathan and Abbasi, Baber and Biderman, Stella and Black, Sid and DiPofi, Anthony and Foster, Charles and Golding, Laurence and Hsu, Jeffrey and Le Noac'h, Alain and Li, Haonan and McDonell, Kyle and Muennighoff, Niklas and Ociepa, Chris and Phang, Jason and Reynolds, Laria and Schoelkopf, Hailey and Skowron, Aviya and Sutawika, Lintang and Tang, Eric and Thite, Anish and Wang, Ben and Wang, Kevin and Zou, Andy},
   title        = {A framework for few-shot language model evaluation},
-  month        = sep,
-  year         = 2021,
+  month        = 12,
+  year         = 2023,
   publisher    = {Zenodo},
-  version      = {v0.0.1},
-  doi          = {10.5281/zenodo.5371628},
-  url          = {https://doi.org/10.5281/zenodo.5371628}
+  version      = {v0.4.0},
+  doi          = {10.5281/zenodo.10256836},
+  url          = {https://zenodo.org/records/10256836}
 }
 ```

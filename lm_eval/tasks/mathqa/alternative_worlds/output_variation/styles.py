@@ -2,12 +2,14 @@ import re
 import string
 from functools import partial
 
+
 def parse_choices(doc):
     choices = [
         c[4:].rstrip(" ,")
         for c in re.findall(r"[abcd] \) .*?, |e \) .*?$", doc["options"])
     ]
     return choices
+
 
 def doc_to_text_base(alphabet, style, doc):
     choices = parse_choices(doc)
@@ -24,9 +26,11 @@ def doc_to_text_base(alphabet, style, doc):
     )
     return doc_to_text
 
+
 # Full continuation
 def choice_A(doc):
     return parse_choices(doc)
+
 
 # Letters only
 def choice_B(alphabet, style, doc):
@@ -37,6 +41,7 @@ def choice_B(alphabet, style, doc):
         letter_list = [letter.replace("\t", "") for letter in letter_list]
     return letter_list
 
+
 # Letters + Full continuation
 def choice_C(alphabet, style, doc):
     choices = parse_choices(doc)
@@ -45,6 +50,7 @@ def choice_C(alphabet, style, doc):
     if "\t" not in style:
         letter_list = [letter + " " for letter in letter_list]
     return [letter + choice for letter, choice in zip(letter_list, choices)]
+
 
 template_01 = partial(doc_to_text_base, string.ascii_lowercase, "({})")
 choice_01a = choice_A

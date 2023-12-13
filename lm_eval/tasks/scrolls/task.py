@@ -244,7 +244,7 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
                 idx=i,
                 **kwargs,
             )
-            for i, choice in doc["choices"]
+            for i, choice in enumerate(doc["choices"])
         ]
         return request_list
 
