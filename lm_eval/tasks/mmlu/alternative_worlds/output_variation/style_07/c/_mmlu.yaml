@@ -1,0 +1,6 @@
+group: mmlu_alt_ov_07c
+task:
+  - mmlu_alt_ov_07c_stem
+  - mmlu_alt_ov_07c_other
+  - mmlu_alt_ov_07c_social_sciences
+  - mmlu_alt_ov_07c_humanities

@@ -1,0 +1,6 @@
+"dataset_name": "abstract_algebra"
+"description": "The following are multiple choice questions (with answers) about abstract\
+  \ algebra.\n\n"
+"group": "mmlu_alt_ov_06b_stem"
+"include": "_template_yaml"
+"task": "mmlu_alt_ov_06b_abstract_algebra"
