@@ -1,0 +1,26 @@
+group: mmlu_alt_ov
+task:
+  - mmlu_alt_ov_01a
+  - mmlu_alt_ov_01b
+  - mmlu_alt_ov_01c
+  - mmlu_alt_ov_02a
+  - mmlu_alt_ov_02b
+  - mmlu_alt_ov_02c
+  - mmlu_alt_ov_03a
+  - mmlu_alt_ov_03b
+  - mmlu_alt_ov_03c
+  - mmlu_alt_ov_04a
+  - mmlu_alt_ov_04b
+  - mmlu_alt_ov_04c
+  - mmlu_alt_ov_05a
+  - mmlu_alt_ov_05b
+  - mmlu_alt_ov_05c
+  - mmlu_alt_ov_06a
+  - mmlu_alt_ov_06b
+  - mmlu_alt_ov_06c
+  - mmlu_alt_ov_07a
+  - mmlu_alt_ov_07b
+  - mmlu_alt_ov_07c
+  - mmlu_alt_ov_08a
+  - mmlu_alt_ov_08b
+  - mmlu_alt_ov_08c

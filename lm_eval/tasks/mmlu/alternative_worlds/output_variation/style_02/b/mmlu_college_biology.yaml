@@ -1,0 +1,6 @@
+"dataset_name": "college_biology"
+"description": "The following are multiple choice questions (with answers) about college\
+  \ biology.\n\n"
+"group": "mmlu_alt_ov_02b_stem"
+"include": "_template_yaml"
+"task": "mmlu_alt_ov_02b_college_biology"
