@@ -936,7 +936,10 @@ class ConfigurableTask(Task):
             doc_to_choice = self.config.doc_to_choice
 
         if type(doc_to_choice) == str:
-            return ast.literal_eval(utils.apply_template(doc_to_choice, doc))
+            if doc_to_choice in self.features:
+                return doc[doc_to_choice]
+            else:
+                return ast.literal_eval(utils.apply_template(doc_to_choice, doc))
         elif type(doc_to_choice) == list:
             return doc_to_choice
         elif type(doc_to_choice) == dict:
