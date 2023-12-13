@@ -1,7 +1,0 @@
-group: alternative_worlds_mmlu_lo
-task:
-  - mmlu_style_01_lo
-  - mmlu_style_02_lo
-  - mmlu_style_03_lo
-  - mmlu_style_04_lo
-  - mmlu_style_05_lo
