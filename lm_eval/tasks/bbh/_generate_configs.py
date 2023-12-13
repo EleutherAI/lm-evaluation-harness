@@ -11,7 +11,6 @@ import datasets
 from tqdm import tqdm
 
 from lm_eval import utils
-from lm_eval.logger import eval_logger
 
 
 def parse_args():
@@ -43,7 +42,7 @@ if __name__ == "__main__":
             f"https://raw.githubusercontent.com/suzgunmirac/BIG-Bench-Hard/main/cot-prompts/{task}.txt"
         ).content.decode("utf-8")
         prompt = resp.split("\n-----\n")[-1]
-        description, *few_shot = prompt.split("\n\nQ:")
+        description, *few_shot = prompt.split("\n\n")
 
         prefix_doc_to_text = ""
         if args.fewshot:
@@ -73,7 +72,7 @@ if __name__ == "__main__":
         }
 
         file_save_path = args.save_prefix_path + f"/{task}.yaml"
-        eval_logger.info(f"Saving yaml for subset {task} to {file_save_path}")
+        utils.eval_logger.info(f"Saving yaml for subset {task} to {file_save_path}")
         with open(file_save_path, "w") as yaml_file:
             yaml.dump(
                 yaml_dict,
