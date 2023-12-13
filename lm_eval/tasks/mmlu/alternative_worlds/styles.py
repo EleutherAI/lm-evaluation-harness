@@ -4,7 +4,7 @@ from functools import partial
 
 def doc_to_text_base(alphabet, style, doc):
 
-    choices = doc["choices"]["text"]
+    choices = doc["choices"]
     num = len(choices)
 
     letter_list = [style.format(letter) for letter in alphabet[0:num]]
@@ -26,13 +26,13 @@ def doc_to_text_base(alphabet, style, doc):
 
 # Full continuation
 def choice_A(doc):
-    return doc["choices"]["text"]
+    return doc["choices"]
 
 
 # Letters only
 def choice_B(alphabet, style, doc):
 
-    choices = doc["choices"]["text"]
+    choices = doc["choices"]
     num = len(choices)
 
     letter_list = [style.format(letter) for letter in alphabet[0:num]]
@@ -45,7 +45,7 @@ def choice_B(alphabet, style, doc):
 # Letters + Full continuation
 def choice_C(alphabet, style, doc):
 
-    choices = doc["choices"]["text"]
+    choices = doc["choices"]
     num = len(choices)
 
     letter_list = [style.format(letter) for letter in alphabet[0:num]]
