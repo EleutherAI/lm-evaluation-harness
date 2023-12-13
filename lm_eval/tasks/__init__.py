@@ -131,7 +131,7 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
     """
     Calling this function
     """
-    for root, subdirs, file_list in os.walk(task_dir):
+    for root, subdirs, file_list in reversed(list(os.walk(task_dir))):
         # if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
         for f in file_list:
             if f.endswith(".yaml"):
