@@ -234,8 +234,6 @@ def evaluate(
     padding_requests = collections.defaultdict(int)
     # store the hierarchy to do proper ordering
     task_hierarchy = collections.defaultdict(list)
-    # store task aliases
-    task_group_alias = collections.defaultdict(dict)
     # store num-fewshot value per task
     num_fewshot = collections.defaultdict(int)
 
@@ -263,14 +261,14 @@ def evaluate(
         num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
-            task_group_alias[task_name] = configs[task_name]["task_alias"]
+            results[task_name]["alias"] = configs[task_name]["task_alias"]
 
         if (
             ("group_alias" in configs[task_name])
             and (group_name not in task_group_alias)
             and (group_name is not None)
         ):
-            task_group_alias[group_name] = configs[task_name]["group_alias"]
+            results[group_name]["alias"] = configs[task_name]["group_alias"]
 
         if limit is not None:
             if task.has_test_docs():
@@ -478,7 +476,10 @@ def evaluate(
                     total_size = 0
 
                     for task in task_list:
-                        metrics = results[task]
+                        metrics = results[task].copy()
+
+                        if "alias" in metrics:
+                            metrics.pop("alias")
 
                         current_size = metrics.pop("samples")
                         # TODO: There should be a way for users
@@ -534,11 +535,27 @@ def evaluate(
             task_list = sorted(task_list)
 
             results_agg[group_name] = results[group_name].copy()
-            results_agg[group_name]["tab"] = tab
+            # results_agg[group_name]["tab"] = tab
+            if "samples" in results_agg[group_name]:
+                results_agg[group_name].pop("samples")
+
+            tab_string = " " * tab + "- " if tab > 0 else ""
+
+            if "alias" in results_agg[group_name]:
+                results_agg[group_name]["alias"] = tab_string + results_agg[group_name]["alias"]
+            else:
+                results_agg[group_name]["alias"] = tab_string + group_name
 
             if len(task_list) > 0:
                 groups_agg[group_name] = results[group_name].copy()
-                groups_agg[group_name]["tab"] = tab
+                # groups_agg[group_name]["tab"] = tab
+                if "samples" in groups_agg[group_name]:
+                    groups_agg[group_name].pop("samples")
+
+                if "alias" in groups_agg[group_name]:
+                    groups_agg[group_name]["alias"] = tab_string + groups_agg[group_name]["alias"]
+                else:
+                    groups_agg[group_name]["alias"] = tab_string + group_name
 
                 for task_name in task_list:
                     if task_name in task_hierarchy:
@@ -573,41 +590,6 @@ def evaluate(
 
             results_agg = {**results_agg, **_results_agg}
             groups_agg = {**groups_agg, **_groups_agg}
-
-
-        for task in results_agg:
-            task_results = results_agg[task]
-
-            if "samples" in task_results:
-                task_results.pop("samples")
-
-            tab_string = ""
-            if "tab" in task_results:
-                tab = task_results.pop("tab")
-                tab_string = " " * tab + "- " if tab > 0 else ""
-
-            if task in task_group_alias:
-                task_alias = task_group_alias[task]
-                results_agg[task]["alias"] = tab_string + task_alias
-            else:
-                results_agg[task]["alias"] = tab_string + task
-
-        for group in groups_agg:
-            group_results = groups_agg[group]
-
-            if "samples" in group_results:
-                group_results.pop("samples")
-
-            tab_string = ""
-            if "tab" in group_results:
-                tab = group_results.pop("tab")
-                tab_string = " " * tab + "- " if tab > 0 else ""
-
-            if group in task_group_alias:
-                group_alias = task_group_alias[group]
-                groups_agg[group]["alias"] = tab_string + group_alias
-            else:
-                groups_agg[group]["alias"] = tab_string + group
 
         for group_name, task_list in task_hierarchy.items():
             if task_list != []:
