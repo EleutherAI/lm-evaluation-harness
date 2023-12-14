@@ -47,10 +47,9 @@ if __name__ == "__main__":
         prefix_doc_to_text = ""
         if args.fewshot:
             if args.cot:
-                prefix_doc_to_text = " ".join(few_shot)
+                prefix_doc_to_text = "\n\n".join(few_shot) + "\n\n"
             else:
                 for shot in few_shot:
-                    shot = "Q:" + shot
                     try:
                         answer = answer_regex.search(shot)[0]
                     except Exception:
