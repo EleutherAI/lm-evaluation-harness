@@ -1,6 +1,7 @@
 import abc
 from dataclasses import dataclass, field, asdict
 
+import os
 import re
 import ast
 import yaml
@@ -96,7 +97,7 @@ class TaskConfig(dict):
     ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
-        if self.dataset_path and ("." in self.dataset_path):
+        if self.dataset_path and os.path.exists(os.path.dirname(self.dataset_path)):
             import inspect
             from importlib import import_module
 
