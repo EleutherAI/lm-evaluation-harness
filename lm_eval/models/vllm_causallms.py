@@ -63,7 +63,9 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             )
 
         assert "cuda" in device or device is None, "vLLM only supports CUDA"
-        assert max_length is None or max_model_len is None, "Either max_length or max_model_len may be provided, but not both"
+        assert (
+            max_length is None or max_model_len is None
+        ), "Either max_length or max_model_len may be provided, but not both"
 
         self._max_length = max_model_len if max_model_len is not None else max_length
         self.tensor_parallel_size = int(tensor_parallel_size)
