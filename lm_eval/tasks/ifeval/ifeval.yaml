@@ -10,7 +10,7 @@ generation_kwargs:
   until: []
   do_sample: false
   temperature: 0.0
-  max_gen_toks: 2048
+  max_gen_toks: 1280
 process_results: !function utils.process_results
 metric_list:
   - metric: prompt_level_strict_acc
