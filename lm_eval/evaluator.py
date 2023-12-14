@@ -526,7 +526,7 @@ def evaluate(
 
                 results[group]["samples"] = total_size
 
-        def print_tasks(task_hierarchy, tab=0):
+        def print_tasks(task_hierarchy, results, tab=0):
             results_agg = collections.defaultdict(dict)
             groups_agg = collections.defaultdict(dict)
 
@@ -547,15 +547,36 @@ def evaluate(
                             **task_hierarchy,
                         }
                     else:
-                        _task_hierarchy = {task_name: []}
+                        _task_hierarchy = {
+                            **{task_name: []},
+                            **task_hierarchy,
+                        }
 
-                    _results_agg, _groups_agg = print_tasks(_task_hierarchy, tab + 1)
+                    _results_agg, _groups_agg = print_tasks(_task_hierarchy, results, tab + 1)
                     results_agg = {**results_agg, **_results_agg}
                     groups_agg = {**groups_agg, **_groups_agg}
 
             return results_agg, groups_agg
 
-        results_agg, groups_agg = print_tasks(task_hierarchy)
+        print("results")
+        print(dict(results))
+        print("task_hierarchy")
+        print(dict(task_hierarchy))
+
+        results_agg = collections.defaultdict(dict)
+        groups_agg = collections.defaultdict(dict)
+        all_tasks_list = list(task_hierarchy.keys())
+        left_tasks_list = []
+        while len(left_tasks_list) != 0:
+            add_tasks_list = list(k for k in results_agg.keys() if results_agg[k]['tab'] == 0)
+            left_tasks_list = list(set(all_tasks_list) ^ set(add_tasks_list))
+
+            _task_hierarchy = {k:v for k,v in task_hierarchy.items() if k in left_tasks_list}
+            _results_agg, _groups_agg = print_tasks(_task_hierarchy, results)
+
+            results_agg = {**results_agg, **_results_agg}
+            groups_agg = {**groups_agg, **_groups_agg}
+
 
         for task in results_agg:
             task_results = results_agg[task]
