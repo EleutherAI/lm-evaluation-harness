@@ -841,7 +841,9 @@ class ConfigurableTask(Task):
                     return doc_to_decontamination_query(doc)
                 else:
                     return ast.literal_eval(
-                        utils.apply_template(self.config.doc_to_decontamination_query, doc)
+                        utils.apply_template(
+                            self.config.doc_to_decontamination_query, doc
+                        )
                     )
 
     def _process_doc(self, doc):
