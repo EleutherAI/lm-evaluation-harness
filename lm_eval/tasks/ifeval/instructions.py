@@ -1,4 +1,3 @@
-# coding=utf-8
 # Copyright 2023 The Google Research Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +22,6 @@ import string
 from typing import Dict, Optional, Sequence, Union
 
 import langdetect
-
 from lm_eval.tasks.ifeval import instructions_util
 
 logger = logging.getLogger(__name__)
@@ -940,7 +938,7 @@ class JsonFormat(Instruction):
         )
         try:
             json.loads(value)
-        except ValueError as _:
+        except ValueError:
             return False
         return True
 
