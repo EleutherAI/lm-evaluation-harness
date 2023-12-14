@@ -437,6 +437,32 @@ def evaluate(
         vals = vals_torch
 
     if lm.rank == 0:
+        ### Get task ordering for correct sample-wide aggregation
+        group_to_task = {}
+        for group in task_hierarchy.keys():
+            if group not in task_order:
+                task_order[group] = 0
+
+            if len(task_hierarchy[group]) > 0:
+                group_to_task[group] = task_hierarchy[group].copy()
+
+            for task in task_hierarchy[group]:
+                if task in task_order:
+                    task_order[task] += 1
+                else:
+                    task_order[task] = 1 + task_order[group]
+
+                if task in task_hierarchy:
+                    group_to_task[group].remove(task)
+                    group_to_task[group].extend(task_hierarchy[task])
+
+        task_to_group = {}
+        for group in group_to_task:
+            for task in group_to_task[group]:
+                if task in task_to_group:
+                    task_to_group[task].append(group)
+                else:
+                    task_to_group[task] = [group]
 
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
@@ -530,6 +556,10 @@ def evaluate(
         def print_tasks(task_hierarchy, results, tab=0):
             results_agg = collections.defaultdict(dict)
             groups_agg = collections.defaultdict(dict)
+            for group_name, task_list in task_hierarchy.items():
+                order = task_order[group_name]
+                results_agg[group_name] = results[group_name].copy()
+                results_agg[group_name]["tab"] = order
 
             (group_name, task_list), *_ = task_hierarchy.items()
             task_list = sorted(task_list)
@@ -573,7 +603,7 @@ def evaluate(
                     results_agg = {**results_agg, **_results_agg}
                     groups_agg = {**groups_agg, **_groups_agg}
 
-            return results_agg, groups_agg
+            return results_agg, groups_agg, task_version
 
         results_agg = collections.defaultdict(dict)
         groups_agg = collections.defaultdict(dict)
