@@ -558,18 +558,15 @@ def evaluate(
 
             return results_agg, groups_agg
 
-        print("results")
-        print(dict(results))
-        print("task_hierarchy")
-        print(dict(task_hierarchy))
-
         results_agg = collections.defaultdict(dict)
         groups_agg = collections.defaultdict(dict)
         all_tasks_list = list(task_hierarchy.keys())
         left_tasks_list = []
-        while len(left_tasks_list) != 0:
-            add_tasks_list = list(k for k in results_agg.keys() if results_agg[k]['tab'] == 0)
-            left_tasks_list = list(set(all_tasks_list) ^ set(add_tasks_list))
+        while True:
+            add_tasks_list = list(k for k in results_agg.keys())
+            left_tasks_list = sorted(list(set(all_tasks_list) - set(add_tasks_list)))
+            if len(left_tasks_list) == 0:
+                break
 
             _task_hierarchy = {k:v for k,v in task_hierarchy.items() if k in left_tasks_list}
             _results_agg, _groups_agg = print_tasks(_task_hierarchy, results)
