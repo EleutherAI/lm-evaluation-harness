@@ -123,6 +123,13 @@ doc_to_target: 3
 doc_to_choice: ['No', 'Yes']
 ```
 
+if a dataset feature is already a list, you can set the name of the feature as `doc_to_choice` (See [Hellaswag](https://github.com/EleutherAI/lm-evaluation-harness/blob/e0eda4d3ffa10e5f65e0976161cd134bec61983a/lm_eval/tasks/hellaswag/hellaswag.yaml#L13))
+```
+doc_to_choice: choices
+```
+
+
+
 ### Writing a prompt with Jinja 2
 
 We support the [Jinja 2](https://jinja.palletsprojects.com/en/3.1.x/) templating language for writing prompts. In practice, this means you can take your dataset's columns and do many basic string manipulations to place each document into prompted format.
