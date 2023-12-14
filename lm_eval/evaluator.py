@@ -265,7 +265,7 @@ def evaluate(
 
         if (
             ("group_alias" in configs[task_name])
-            and (group_name not in task_group_alias)
+            and (group_name not in results)
             and (group_name is not None)
         ):
             results[group_name]["alias"] = configs[task_name]["group_alias"]
@@ -437,32 +437,6 @@ def evaluate(
         vals = vals_torch
 
     if lm.rank == 0:
-        ### Get task ordering for correct sample-wide aggregation
-        group_to_task = {}
-        for group in task_hierarchy.keys():
-            if group not in task_order:
-                task_order[group] = 0
-
-            if len(task_hierarchy[group]) > 0:
-                group_to_task[group] = task_hierarchy[group].copy()
-
-            for task in task_hierarchy[group]:
-                if task in task_order:
-                    task_order[task] += 1
-                else:
-                    task_order[task] = 1 + task_order[group]
-
-                if task in task_hierarchy:
-                    group_to_task[group].remove(task)
-                    group_to_task[group].extend(task_hierarchy[task])
-
-        task_to_group = {}
-        for group in group_to_task:
-            for task in group_to_task[group]:
-                if task in task_to_group:
-                    task_to_group[task].append(group)
-                else:
-                    task_to_group[task] = [group]
 
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
@@ -556,10 +530,6 @@ def evaluate(
         def print_tasks(task_hierarchy, results, tab=0):
             results_agg = collections.defaultdict(dict)
             groups_agg = collections.defaultdict(dict)
-            for group_name, task_list in task_hierarchy.items():
-                order = task_order[group_name]
-                results_agg[group_name] = results[group_name].copy()
-                results_agg[group_name]["tab"] = order
 
             (group_name, task_list), *_ = task_hierarchy.items()
             task_list = sorted(task_list)
@@ -572,7 +542,9 @@ def evaluate(
             tab_string = " " * tab + "- " if tab > 0 else ""
 
             if "alias" in results_agg[group_name]:
-                results_agg[group_name]["alias"] = tab_string + results_agg[group_name]["alias"]
+                results_agg[group_name]["alias"] = (
+                    tab_string + results_agg[group_name]["alias"]
+                )
             else:
                 results_agg[group_name]["alias"] = tab_string + group_name
 
@@ -583,7 +555,9 @@ def evaluate(
                     groups_agg[group_name].pop("samples")
 
                 if "alias" in groups_agg[group_name]:
-                    groups_agg[group_name]["alias"] = tab_string + groups_agg[group_name]["alias"]
+                    groups_agg[group_name]["alias"] = (
+                        tab_string + groups_agg[group_name]["alias"]
+                    )
                 else:
                     groups_agg[group_name]["alias"] = tab_string + group_name
 
@@ -599,11 +573,13 @@ def evaluate(
                             **task_hierarchy,
                         }
 
-                    _results_agg, _groups_agg = print_tasks(_task_hierarchy, results, tab + 1)
+                    _results_agg, _groups_agg = print_tasks(
+                        _task_hierarchy, results, tab + 1
+                    )
                     results_agg = {**results_agg, **_results_agg}
                     groups_agg = {**groups_agg, **_groups_agg}
 
-            return results_agg, groups_agg, task_version
+            return results_agg, groups_agg
 
         results_agg = collections.defaultdict(dict)
         groups_agg = collections.defaultdict(dict)
@@ -615,7 +591,9 @@ def evaluate(
             if len(left_tasks_list) == 0:
                 break
 
-            _task_hierarchy = {k:v for k,v in task_hierarchy.items() if k in left_tasks_list}
+            _task_hierarchy = {
+                k: v for k, v in task_hierarchy.items() if k in left_tasks_list
+            }
             _results_agg, _groups_agg = print_tasks(_task_hierarchy, results)
 
             results_agg = {**results_agg, **_results_agg}
