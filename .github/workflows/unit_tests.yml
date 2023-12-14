@@ -32,6 +32,8 @@ jobs:
       run: pip install -e '.[linting,testing]' --extra-index-url https://download.pytorch.org/whl/cpu
     - name: Pre-Commit
       uses: pre-commit/action@v3.0.0
+      with:
+        extra_args: --exclude="no-commit-to-branch"
     - name: Lint with pylint
       run: python -m pylint --disable=all -e W0311 --jobs=0 --indent-string='    ' **/*.py
     - name: Lint with flake8
