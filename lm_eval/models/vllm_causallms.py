@@ -260,7 +260,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
         for key, re_ord in re_ords.items():
             chunks = utils.chunks(
                 re_ord.get_reordered(),
-                n=self.batch_size if self.batch_size != "auto" else 0,
+                n=int(self.batch_size) if self.batch_size != "auto" else 0,
                 fn=None,
             )
             for chunk in chunks:
@@ -339,7 +339,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
 
         chunks = utils.chunks(
             re_ord.get_reordered(),
-            n=self.batch_size if self.batch_size != "auto" else 0,
+            n=int(self.batch_size) if self.batch_size != "auto" else 0,
             fn=None,
         )
         pbar = tqdm(total=len(requests), disable=disable_tqdm)
