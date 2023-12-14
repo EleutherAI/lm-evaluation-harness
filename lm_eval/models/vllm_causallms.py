@@ -74,6 +74,7 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             "tokenizer_revision": tokenizer_revision,
             "trust_remote_code": trust_remote_code,
             "tensor_parallel_size": int(tensor_parallel_size),
+            "max_model_len": int(max_length),
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
