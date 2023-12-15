@@ -149,7 +149,7 @@ Our library also supports the evaluation of models served via several commercial
 To call a hosted model, use:
 
 ```bash
-export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
+export OPENAI_API_KEY=YOUR_KEY_HERE
 lm_eval --model openai-completions \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag
