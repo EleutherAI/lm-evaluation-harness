@@ -1,0 +1,3 @@
+include: fld.yaml
+task: fld_star
+dataset_name: star
