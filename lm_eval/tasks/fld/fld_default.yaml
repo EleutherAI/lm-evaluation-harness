@@ -1,6 +1,6 @@
 group:
   - fld
-task: fld
+task: fld_default
 dataset_path: hitachi-nlp/FLD.v2
 dataset_name: default
 training_split: train

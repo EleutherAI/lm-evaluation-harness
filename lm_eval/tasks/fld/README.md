@@ -14,9 +14,6 @@ Unique features of FLD are:
 * It assesses diverse reasoning patterns (i.e., deduction rules), as it is based on formal logic theory.
 * As a result, it is highly challenging. Indeed, even GPT-4 can solve only about half of the problems. 
 
-This release is the simplified version of FLD where a model is required to predict only an answer.
-This setting is described by "answer accuracy" in the original paper.
-
 Homepage: https://github.com/hitachi-nlp/FLD
 
 
@@ -43,12 +40,15 @@ Homepage: https://github.com/hitachi-nlp/FLD
 
 #### Groups
 
-* Not part of a group.
+* `fld`
 
 #### Tasks
 
-* `fld`
-* `fld_star`
+This release is the simplified version of FLD where a model is required to predict only an answer.
+This setting is described by "answer accuracy" in the original paper.
+
+* `fld_default` is a basic task based on [FLD.v2](https://huggingface.co/datasets/hitachi-nlp/FLD.v2/viewer/star)
+* `fld_star`: is a more challenging version based on [FLD.v2-star](https://huggingface.co/datasets/hitachi-nlp/FLD.v2/viewer/star)
 
 ### Checklist
 
