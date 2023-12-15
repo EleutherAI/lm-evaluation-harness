@@ -94,7 +94,7 @@ class OpenaiCompletionsLM(LM):
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )
-        self.model= model
+        self.model = model
         self.tokenizer = tiktoken.encoding_for_model(self.model)
         self.vocab_size = self.tokenizer.n_vocab
         self.truncate = truncate
@@ -196,7 +196,7 @@ class OpenaiCompletionsLM(LM):
                 ctxlens.append(ctxlen)
 
             response = oa_completion(
-                model=self.engine,
+                model=self.model,
                 prompt=inps,
                 echo=True,
                 max_tokens=0,
@@ -265,7 +265,7 @@ class OpenaiCompletionsLM(LM):
                 **request_args,
             )
             for resp, (context, args_) in zip(response.choices, chunk):
-                s = getattr(resp, 'text')
+                s = getattr(resp, "text")
 
                 until_ = until
 
