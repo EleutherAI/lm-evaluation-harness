@@ -56,8 +56,7 @@ please install these via `pip install lm-eval[openai]` or `pip install -e .[open
     while True:
         try:
             return openai.completions.create(**kwargs)
-        except Exception as e:
-            print(e)
+        except openai.OpenAIError:
             import traceback
 
             traceback.print_exc()
@@ -65,14 +64,14 @@ please install these via `pip install lm-eval[openai]` or `pip install -e .[open
             backoff_time *= 1.5
 
 
-@register_model("gooseai")
+@register_model("openai-completions")
 class OpenaiCompletionsLM(LM):
     REQ_CHUNK_SIZE = 20
     _DEFAULT_MAX_LENGTH = 2048
 
     def __init__(
         self,
-        engine: str = "text-davinci-003",
+        model: str = "text-davinci-003",
         truncate: bool = False,
         max_gen_toks: int = 256,
         batch_size: int = 1,
@@ -95,8 +94,8 @@ class OpenaiCompletionsLM(LM):
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )
-        self.engine = engine
-        self.tokenizer = tiktoken.encoding_for_model(self.engine)
+        self.model= model
+        self.tokenizer = tiktoken.encoding_for_model(self.model)
         self.vocab_size = self.tokenizer.n_vocab
         self.truncate = truncate
         self.end_of_text_token_id = self.tokenizer.eot_token
@@ -258,7 +257,7 @@ class OpenaiCompletionsLM(LM):
             request_args["temperature"] = request_args.get("temperature", 0)
 
             response = oa_completion(
-                model=self.engine,
+                model=self.model,
                 prompt=inps,
                 max_tokens=self.max_gen_toks,
                 stop=until,
@@ -266,7 +265,7 @@ class OpenaiCompletionsLM(LM):
                 **request_args,
             )
             for resp, (context, args_) in zip(response.choices, chunk):
-                s = resp.text
+                s = getattr(resp, 'text')
 
                 until_ = until
 
