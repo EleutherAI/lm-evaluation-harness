@@ -487,9 +487,9 @@ def evaluate(
                         # For unweighted averaging, use:
                         #     current_size = 1
 
-                        # TODO: Tasks like brier score for individual 
-                        # tasks have no stderr since the score is 
-                        # itself an aggregation. But it's possible to 
+                        # TODO: Tasks like brier score for individual
+                        # tasks have no stderr since the score is
+                        # itself an aggregation. But it's possible to
                         # calculate the stderr over groups
 
                         all_stderr = []
