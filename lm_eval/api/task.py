@@ -1116,7 +1116,8 @@ class ConfigurableTask(Task):
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
                 **(
-                    {"brier_score": (gold, prob_norm)}
+                    # {"brier_score": (gold, prob_norm)}
+                    {"brier_score": [np.eye(len(prob_norm))[gold], prob_norm]}
                     if "brier_score" in use_metric
                     else {}
                 ),
