@@ -29,7 +29,7 @@ jobs:
         cache: pip
         cache-dependency-path: setup.py
     - name: Install dependencies
-      run: pip install -e '.[linting,testing]' --extra-index-url https://download.pytorch.org/whl/cpu
+      run: pip install -e '.[linting,testing]' --extra-index-url https://download.pytorch.org/whl/cpu ; export SKIP=no-commit-to-branch # env var deactivates --no-commit-to-branch
     - name: Pre-Commit
       uses: pre-commit/action@v3.0.0
     - name: Lint with pylint
