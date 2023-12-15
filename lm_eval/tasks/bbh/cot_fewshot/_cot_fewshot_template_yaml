@@ -12,6 +12,7 @@ metric_list:
     # ignore_case: true
     # ignore_punctuation: true
 generation_kwargs:
+  max_gen_toks: 1024
   until:
     - "</s>"
     - "Q"
@@ -26,4 +27,4 @@ filter_list:
       - function: "take_first"
 num_fewshot: 0
 metadata:
-  - version: 0.0
+  - version: 1.0
