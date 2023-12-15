@@ -64,7 +64,7 @@ please install these via `pip install lm-eval[openai]` or `pip install -e .[open
             backoff_time *= 1.5
 
 
-@register_model("gooseai")
+@register_model("openai-completions")
 class OpenaiCompletionsLM(LM):
     REQ_CHUNK_SIZE = 20
 
