@@ -10,9 +10,9 @@ Abstract: https://arxiv.org/abs/2308.07336
 Given a set of facts and a hypothesis, an LLM is required to generate (i) proof steps to (dis-)prove the hypothesis, and (ii) an answer ("proved", "disproved" or unknown").
 
 Unique features of FLD are:
-* It assesses the model's logical reasoning ability *isolated from knowledge*, as the facts are randomly constructed so that referring to existing knowledge never helps solve the task. 
+* It assesses the model's logical reasoning ability *isolated from knowledge*, as the facts are randomly constructed so that referring to existing knowledge never helps solve the task.
 * It assesses diverse reasoning patterns (i.e., deduction rules), as it is based on formal logic theory.
-* As a result, it is highly challenging. Indeed, even GPT-4 can solve only about half of the problems. 
+* As a result, it is highly challenging. Indeed, even GPT-4 can solve only about half of the problems.
 
 Homepage: https://github.com/hitachi-nlp/FLD
 
