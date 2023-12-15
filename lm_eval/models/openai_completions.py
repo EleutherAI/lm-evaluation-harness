@@ -55,8 +55,8 @@ please install these via `pip install lm-eval[openai]` or `pip install -e .[open
     backoff_time = 3
     while True:
         try:
-            return openai.Completions.create(**kwargs)
-        except openai.error.OpenAIError:
+            return openai.completions.create(**kwargs)
+        except openai.OpenAIError:
             import traceback
 
             traceback.print_exc()
@@ -64,13 +64,13 @@ please install these via `pip install lm-eval[openai]` or `pip install -e .[open
             backoff_time *= 1.5
 
 
-@register_model("gooseai")
+@register_model("openai-completions")
 class OpenaiCompletionsLM(LM):
     REQ_CHUNK_SIZE = 20
 
     def __init__(
         self,
-        engine: str = "text-davinci-003",
+        model: str = "text-davinci-003",
         truncate: bool = False,
         batch_size: int = 1,
     ) -> None:
@@ -89,8 +89,8 @@ class OpenaiCompletionsLM(LM):
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )
-        self.engine = engine
-        self.tokenizer = tiktoken.encoding_for_model(self.engine)
+        self.model= model
+        self.tokenizer = tiktoken.encoding_for_model(self.model)
         self.vocab_size = self.tokenizer.n_vocab
         self.truncate = truncate
         self.end_of_text_token_id = self.tokenizer.eot_token
@@ -245,7 +245,7 @@ class OpenaiCompletionsLM(LM):
             until = request_args.get("until", ["<|endoftext|>"])
 
             response = oa_completion(
-                engine=self.engine,
+                model=self.model,
                 prompt=inps,
                 max_tokens=self.max_gen_toks,
                 temperature=0.0,
@@ -254,7 +254,7 @@ class OpenaiCompletionsLM(LM):
             )
 
             for resp, (context, args_) in zip(response.choices, chunk):
-                s = resp["text"]
+                s = getattr(resp, 'text')
 
                 until_ = args_.get("until", ["<|endoftext|>"])
 
