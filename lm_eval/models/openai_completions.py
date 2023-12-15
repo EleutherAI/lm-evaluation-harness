@@ -197,7 +197,7 @@ class OpenaiCompletionsLM(LM):
                 ctxlens.append(ctxlen)
 
             response = oa_completion(
-                engine=self.engine,
+                model=self.engine,
                 prompt=inps,
                 echo=True,
                 max_tokens=0,
