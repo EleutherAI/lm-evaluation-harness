@@ -203,6 +203,7 @@ class OpenaiCompletionsLM(LM):
                 max_tokens=0,
                 temperature=0.0,
                 logprobs=10,
+                seed=self.seed,
             )
 
             for resp, ctxlen, (cache_key, context_enc, continuation_enc) in zip(
@@ -254,12 +255,14 @@ class OpenaiCompletionsLM(LM):
 
             until = request_args.pop("until", ["<|endoftext|>"])
             request_args.pop("do_sample", None)
+            request_args["temperature"] = request_args.get("temperature", 0)
 
             response = oa_completion(
                 model=self.engine,
                 prompt=inps,
                 max_tokens=self.max_gen_toks,
                 stop=until,
+                seed=self.seed,
                 **request_args,
             )
             for resp, (context, args_) in zip(response.choices, chunk):
