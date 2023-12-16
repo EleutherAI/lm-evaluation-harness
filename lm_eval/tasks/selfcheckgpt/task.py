@@ -100,8 +100,8 @@ class SelfCheckGpt(Task):
                 passage = response_temperature_0,
                 sampled_passages = other_responses,
                 )
-            return {"avg": selfcheckgpt_scores["doc_level"]["avg_neg_logprob"],
-                    "max": selfcheckgpt_scores["doc_level"]["avg_max_neg_logprob"]}
+            return {'avg-selfcheckgpt': selfcheckgpt_scores['doc_level']['avg_neg_logprob'],
+                    'max-selfcheckgpt': selfcheckgpt_scores['doc_level']['avg_max_neg_logprob']}
 
         elif self.selfcheckgpt_type == 'SelfCheckBERTScore':
             selfcheckgpt_scores = self.selfcheckgpt.predict(
@@ -126,7 +126,7 @@ class SelfCheckGpt(Task):
         selfcheckgpt_scores_avg = sum(selfcheckgpt_scores) / len(selfcheckgpt_scores) if len(selfcheckgpt_scores) > 0 else 0
         selfcheckgpt_scores_max = max(selfcheckgpt_scores)
 
-        return {'avg': selfcheckgpt_scores_avg, 'max': selfcheckgpt_scores_max}
+        return {'avg-selfcheckgpt': selfcheckgpt_scores_avg, 'max-selfcheckgpt': selfcheckgpt_scores_max}
 
     def aggregation(self):
         """
@@ -134,7 +134,7 @@ class SelfCheckGpt(Task):
             A dictionary where keys are the names of submetrics and values are
             functions that aggregate a list of metrics
         """
-        return {k: mean for k in ["avg", "max"]}
+        return {k: mean for k in ["avg-selfcheckgpt", "max-selfcheckgpt"]}
 
     def higher_is_better(self):
         """
@@ -142,4 +142,4 @@ class SelfCheckGpt(Task):
             A dictionary where keys are the names of submetrics and values are
             whether a higher value of the submetric is better
         """
-        return {k: False for k in ["avg", "max"]}
+        return {k: False for k in ["avg-selfcheckgpt", "max-selfcheckgpt"]}
