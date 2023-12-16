@@ -86,8 +86,6 @@ class TaskConfig(dict):
     metric_list: list = None
     output_type: str = "generate_until"
     generation_kwargs: dict = None
-    generation_kwargs_sampling: dict = None
-    generation_kwargs_sampling_number: int = 0
     repeats: int = 1
     filter_list: Union[str, list] = None
     should_decontaminate: bool = False
