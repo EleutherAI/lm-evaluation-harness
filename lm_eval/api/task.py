@@ -1001,33 +1001,7 @@ class ConfigurableTask(Task):
             return request_list
 
         elif self.OUTPUT_TYPE == "generate_until":
-            if hasattr(self.config, 'generation_kwargs_sampling'):
-                arguments = (ctx, self.config.generation_kwargs)
-                request_list = [
-                    Instance(
-                        request_type=self.OUTPUT_TYPE,
-                        doc=doc,
-                        arguments=arguments,
-                        idx=0,
-                        **kwargs
-                        ),
-                ]
-
-                sampling_arguments = (ctx, self.config.generation_kwargs_sampling)
-                request_list.extend([
-                    Instance(
-                        request_type=self.OUTPUT_TYPE,
-                        doc=doc,
-                        arguments=sampling_arguments,
-                        idx=idx,
-                        **kwargs
-                        )
-                    for idx in range(1, self.config.generation_kwargs_sampling_number+1)
-                    ]
-                )
-                return request_list
-            else:
-                arguments = (ctx, self.config.generation_kwargs)
+            arguments = (ctx, self.config.generation_kwargs)
 
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs

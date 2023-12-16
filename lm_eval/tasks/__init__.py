@@ -25,6 +25,7 @@ from .scrolls.task import (
     SummScreenFD,
     QMSum,
 )
+from .selfcheckgpt.task import SelfCheckGpt
 
 eval_logger = utils.eval_logger
 
@@ -138,7 +139,8 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
                 yaml_path = os.path.join(root, f)
                 try:
                     config = utils.load_yaml_config(yaml_path)
-
+                    if 'selfcheckgpt' in yaml_path:
+                        print(yaml_path)
                     if "task" not in config:
                         continue
 
