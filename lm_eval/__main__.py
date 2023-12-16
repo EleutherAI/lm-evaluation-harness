@@ -130,7 +130,7 @@ def parse_eval_args() -> argparse.Namespace:
         type=str,
         default="INFO",
         metavar="INFO|DEBUG|WARNING|ERROR|CRITICAL",
-        help="Log debug error when tasks are not registered.",
+        help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations.",
     )
     return parser.parse_args()
 
@@ -192,7 +192,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     f"{utils.SPACING}Try `lm-eval --tasks list` for list of available tasks",
                 )
                 raise ValueError(
-                    f"Tasks {missing} were not found. Try `lm-eval --tasks list` for list of available tasks."
+                    f"Tasks not found: {missing}. Try `lm-eval --tasks list` for list of available tasks, or '--verbosity DEBUG' to troubleshoot task registration issues."
                 )
 
     if args.output_path:
