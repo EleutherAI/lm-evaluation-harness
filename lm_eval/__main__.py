@@ -129,8 +129,8 @@ def parse_eval_args() -> argparse.Namespace:
         "--verbosity",
         type=str,
         default="INFO",
-        metavar="INFO|DEBUG|WARNING|ERROR|CRITICAL",
-        help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations.",
+        metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
+        help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
     )
     return parser.parse_args()
 
