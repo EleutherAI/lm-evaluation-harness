@@ -238,7 +238,7 @@ class HFLM(LM):
         elif self.tokenizer.eos_token:
             self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         else:
-            if "Qwen" in pretrained:
+            if self.config.model_type == "qwen":
                 # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
                 self.tokenizer.pad_token = "<|endoftext|>"
             else:
