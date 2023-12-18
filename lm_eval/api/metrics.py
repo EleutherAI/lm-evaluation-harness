@@ -14,6 +14,11 @@ import logging
 eval_logger = logging.getLogger("lm-eval")
 
 # Register Aggregations First
+@register_aggregation("null")
+def null(arr):
+    return arr
+
+
 @register_aggregation("mean")
 def mean(arr):
     return sum(arr) / len(arr)
@@ -204,6 +209,16 @@ def sample_stddev(arr):
 
 def mean_stderr(arr):
     return sample_stddev(arr) / math.sqrt(len(arr))
+
+
+@register_metric(
+    metric="bypass",
+    higher_is_better=True,
+    output_type=["loglikelihood", "multiple_choice", "generate_until"],
+    aggregation="null",
+)
+def bypass(items):  # This is a passthrough function
+    return items
 
 
 @register_metric(

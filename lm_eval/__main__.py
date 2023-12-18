@@ -142,6 +142,12 @@ def parse_eval_args() -> argparse.Namespace:
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
         help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
     )
+    parser.add_argument(
+        "--predict_only",
+        action="store_true",
+        default=False,
+        help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
+    )
     return parser.parse_args()
 
 
@@ -242,6 +248,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         write_out=args.write_out,
         log_samples=args.log_samples,
         gen_kwargs=args.gen_kwargs,
+        predict_only=args.predict_only,
     )
 
     if results is not None:

@@ -42,6 +42,7 @@ def simple_evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     gen_kwargs: str = None,
+    predict_only: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -130,6 +131,10 @@ def simple_evaluate(
                 continue
 
         config = task_obj._config
+        if predict_only:
+            task_obj._config["metric_list"] = [
+                {"metric": "bypass", "aggregation": "null"}
+            ]
         if config["output_type"] == "generate_until" and gen_kwargs is not None:
             config["generation_kwargs"].update(gen_kwargs)
 
