@@ -1,6 +1,7 @@
 import abc
 from dataclasses import dataclass, field, asdict
 
+import os
 import re
 import ast
 import yaml
@@ -96,7 +97,7 @@ class TaskConfig(dict):
     ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
-        if self.dataset_path and ("." in self.dataset_path):
+        if self.dataset_path and os.path.exists(os.path.dirname(self.dataset_path)):
             import inspect
             from importlib import import_module
 
@@ -831,12 +832,20 @@ class ConfigurableTask(Task):
 
     def doc_to_decontamination_query(self, doc):
         if self.config.should_decontaminate:
-            if self.config.doc_to_decontamination_query in self.features:
-                return doc[self.config.doc_to_decontamination_query]
+            if self.config.doc_to_decontamination_query is None:
+                return self.doc_to_text(doc)
             else:
-                return ast.literal_eval(
-                    utils.apply_template(self.config.doc_to_decontamination_query, doc)
-                )
+                doc_to_decontamination_query = self.config.doc_to_decontamination_query
+                if doc_to_decontamination_query in self.features:
+                    return doc[doc_to_decontamination_query]
+                elif callable(doc_to_decontamination_query):
+                    return doc_to_decontamination_query(doc)
+                else:
+                    return ast.literal_eval(
+                        utils.apply_template(
+                            self.config.doc_to_decontamination_query, doc
+                        )
+                    )
 
     def _process_doc(self, doc):
         """
@@ -936,7 +945,10 @@ class ConfigurableTask(Task):
             doc_to_choice = self.config.doc_to_choice
 
         if type(doc_to_choice) == str:
-            return ast.literal_eval(utils.apply_template(doc_to_choice, doc))
+            if doc_to_choice in self.features:
+                return doc[doc_to_choice]
+            else:
+                return ast.literal_eval(utils.apply_template(doc_to_choice, doc))
         elif type(doc_to_choice) == list:
             return doc_to_choice
         elif type(doc_to_choice) == dict:

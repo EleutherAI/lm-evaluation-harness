@@ -1,0 +1,3 @@
+"dataset_name": "Electrical Engineering"
+"include": "_default_kmmlu_yaml"
+"task": "kmmlu_electrical_engineering"

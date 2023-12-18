@@ -27,6 +27,7 @@ This project provides a unified framework to test generative language models on 
 **Features:**
 - Over 60 standard academic benchmarks for LLMs, with hundreds of subtasks and variants implemented.
 - Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
+- Support for fast and memory-efficient inference with [vLLM](https://github.com/vllm-project/vllm).
 - Support for commercial APIs including [OpenAI](https://openai.com), [goose.ai](https://goose.ai), and [TextSynth](https://textsynth.com/).
 - Support for evaluation on adapters (e.g. LoRA) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
 - Support for local models and benchmarks.
@@ -45,7 +46,7 @@ cd lm-evaluation-harness
 pip install -e .
 ```
 
-We also provide a number of optional dependencies for . Extras can be installed via `pip install -e ".[NAME]"`
+We also provide a number of optional dependencies for extended functionality. Extras can be installed via `pip install -e ".[NAME]"`
 
 | Name          | Use                                   |
 | ------------- | ------------------------------------- |
@@ -85,7 +86,7 @@ lm_eval --model hf \
     --batch_size 8
 ```
 
-Models that are loaded via both `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) and `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface are supporteded.
+Models that are loaded via both `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) and `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface are supported.
 
 Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
 
@@ -97,7 +98,7 @@ lm_eval --model hf \
     --batch_size auto:4
 ```
 
-Alternatively, you can use `lm-eval` instead of `lm_eval`.
+The full list of supported arguments are provided [here](./docs/interface.md), and on the terminal by calling `lm_eval -h`. Alternatively, you can use `lm-eval` instead of `lm_eval`.
 
 > [!Note]
 > Just like you can provide a local path to `transformers.AutoModel`, you can also provide a local path to `lm_eval` via `--model_args pretrained=/path/to/model`
@@ -127,17 +128,20 @@ To use `accelerate` with the `lm-eval` command, use
 accelerate launch --no_python lm-eval --model ...
 ```
 
-### Tensor Parallel + Optimized Inference with vLLM
 
-We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html).
+### Tensor + Data Parallel and Optimized Inference with `vLLM`
+
+We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html). For single-GPU or multi-GPU — tensor parallel, data parallel, or a combination of both — inference, for example:
 
 ```bash
 lm_eval --model vllm \
-    --model_args pretrained={model_name},tensor_parallel_size={number of GPUs to use},dtype=auto,gpu_memory_utilization=0.8 \
+    --model_args pretrained={model_name},tensor_parallel_size={GPUs_per_model},dtype=auto,gpu_memory_utilization=0.8,data_parallel_size={model_replicas} \
     --tasks lambada_openai \
     --batch_size auto
 ```
 For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
+
+vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation, and provide a [script](./scripts/model_comparator.py) for checking the validity of vllm results against HF.
 
 ### Model APIs and Inference Servers
 
@@ -146,7 +150,7 @@ Our library also supports the evaluation of models served via several commercial
 To call a hosted model, use:
 
 ```bash
-export OPENAI_API_SECRET_KEY=YOUR_KEY_HERE
+export OPENAI_API_KEY=YOUR_KEY_HERE
 lm_eval --model openai-completions \
     --model_args engine=davinci \
     --tasks lambada_openai,hellaswag
@@ -180,7 +184,6 @@ If you have a Metal compatible Mac, you can run the eval harness using the MPS b
 
 > [!Note]
 > You can inspect what the LM inputs look like by running the following command:
->
 > ```bash
 > python write_out.py \
 >     --tasks all_tasks \
@@ -188,7 +191,6 @@ If you have a Metal compatible Mac, you can run the eval harness using the MPS b
 >     --num_examples 10 \
 >     --output_base_path /path/to/output/folder
 > ```
->
 > This will write out one text file for each task.
 
 To verify the data integrity of the tasks you're performing in addition to running the tasks themselves, you can use the `--check_integrity` flag:
@@ -224,19 +226,17 @@ To save evaluation results provide an `--output_path`. We also support logging m
 
 Additionally, one can provide a directory with `--use_cache` to cache the results of prior runs. This allows you to avoid repeated execution of the same (model, task) pairs for re-scoring.
 
-For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/docs/interface.md) guide in our documentation!
+For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
 
 ## How to Contribute or Learn More?
 
 For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
 
-You can also ask for help, or discuss new features with the maintainers in the #lm-thunderdome channel of the EleutherAI discord! If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
-
 ### Implementing new tasks
 
 To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
 
-In general, we following the following priority list for addressing concerns about prompting and other eval details:
+In general, we follow this priority list for addressing concerns about prompting and other eval details:
 1. If there is widespread agreement among people who train LLMs, use the agreed upon procedure.
 2. If there is a clear and unambiguous official implementation, use that procedure.
 3. If there is widespread agreement among people who evaluate LLMs, use the agreed upon procedure.
@@ -244,11 +244,11 @@ In general, we following the following priority list for addressing concerns abo
 
 These are guidelines and not rules, and can be overruled in special circumstances.
 
-We try to prioritize agreement with the procedures used by other groups to decrease the harm when people inevitably compare runs across different papers despite our discouragement of the practice. Historically, we also prioritized the implementation from "Language Models are Few Shot Learners" as our original goal was specifically to compare results with that paper.
+We try to prioritize agreement with the procedures used by other groups to decrease the harm when people inevitably compare runs across different papers despite our discouragement of the practice. Historically, we also prioritized the implementation from [Language Models are Few Shot Learners](https://arxiv.org/abs/2005.14165) as our original goal was specifically to compare results with that paper.
 
 ### Support
 
-The best way to get support is to open an issue on this repo or join the [EleutherAI discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases.
+The best way to get support is to open an issue on this repo or join the [EleutherAI Discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases. If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
 
 ## Cite as
 

@@ -1,0 +1,3 @@
+"dataset_name": "Environmental Science"
+"include": "_default_kmmlu_yaml"
+"task": "kmmlu_environmental_science"
