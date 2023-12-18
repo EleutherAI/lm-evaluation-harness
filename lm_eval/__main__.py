@@ -29,43 +29,53 @@ def parse_eval_args() -> argparse.Namespace:
     parser.add_argument(
         "--tasks",
         default=None,
+        metavar="task1,task2",
         help="To get full list of tasks, use the command lm-eval --tasks list",
     )
     parser.add_argument(
         "--model_args",
         default="",
-        help="String arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
+        help="Comma separated string arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
     )
     parser.add_argument(
         "--num_fewshot",
         type=int,
         default=None,
+        metavar="N",
         help="Number of examples in few-shot context",
     )
-    parser.add_argument("--batch_size", type=str, default=1)
+    parser.add_argument(
+        "--batch_size",
+        type=str,
+        default=1,
+        metavar="auto|auto:N|N",
+        help="Acceptable values are 'auto', 'auto:N' or N, where N is an integer. Default 1.",
+    )
     parser.add_argument(
         "--max_batch_size",
         type=int,
         default=None,
-        help="Maximal batch size to try with --batch_size auto",
+        metavar="N",
+        help="Maximal batch size to try with --batch_size auto.",
     )
     parser.add_argument(
         "--device",
         type=str,
         default=None,
-        help="Device to use (e.g. cuda, cuda:0, cpu)",
+        help="Device to use (e.g. cuda, cuda:0, cpu).",
     )
     parser.add_argument(
         "--output_path",
         default=None,
         type=str,
-        metavar="= [dir/file.jsonl] [DIR]",
+        metavar="DIR|DIR/file.json",
         help="The path to the output file where the result metrics will be saved. If the path is a directory and log_samples is true, the results will be saved in the directory. Else the parent directory will be used.",
     )
     parser.add_argument(
         "--limit",
         type=float,
         default=None,
+        metavar="N|0<N<1",
         help="Limit the number of examples per task. "
         "If <1, limit is a percentage of the total number of examples.",
     )
@@ -73,25 +83,26 @@ def parse_eval_args() -> argparse.Namespace:
         "--use_cache",
         type=str,
         default=None,
+        metavar="DIR",
         help="A path to a sqlite db file for caching model responses. `None` if not caching.",
     )
     parser.add_argument("--decontamination_ngrams_path", default=None)  # TODO: not used
     parser.add_argument(
         "--check_integrity",
         action="store_true",
-        help="Whether to run the relevant part of the test suite for the tasks",
+        help="Whether to run the relevant part of the test suite for the tasks.",
     )
     parser.add_argument(
         "--write_out",
         action="store_true",
         default=False,
-        help="Prints the prompt for the first few documents",
+        help="Prints the prompt for the first few documents.",
     )
     parser.add_argument(
         "--log_samples",
         action="store_true",
         default=False,
-        help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis",
+        help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis. Use with --output_path.",
     )
     parser.add_argument(
         "--show_config",
@@ -103,21 +114,23 @@ def parse_eval_args() -> argparse.Namespace:
         "--include_path",
         type=str,
         default=None,
+        metavar="DIR",
         help="Additional path to include if there are external tasks to include.",
     )
     parser.add_argument(
         "--gen_kwargs",
-        default="",
+        default=None,
         help=(
             "String arguments for model generation on greedy_until tasks,"
-            " e.g. `temperature=0,top_k=0,top_p=0`"
+            " e.g. `temperature=0,top_k=0,top_p=0`."
         ),
     )
     parser.add_argument(
         "--verbosity",
         type=str,
         default="INFO",
-        help="Log error when tasks are not registered.",
+        metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
+        help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
     )
     return parser.parse_args()
 
@@ -179,7 +192,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     f"{utils.SPACING}Try `lm-eval --tasks list` for list of available tasks",
                 )
                 raise ValueError(
-                    f"Tasks {missing} were not found. Try `lm-eval --tasks list` for list of available tasks."
+                    f"Tasks not found: {missing}. Try `lm-eval --tasks list` for list of available tasks, or '--verbosity DEBUG' to troubleshoot task registration issues."
                 )
 
     if args.output_path:

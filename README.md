@@ -97,7 +97,7 @@ lm_eval --model hf \
     --batch_size auto:4
 ```
 
-Alternatively, you can use `lm-eval` instead of `lm_eval`.
+The full list of supported arguments are provided [here](./docs/interface.md), and on the terminal by calling `lm_eval -h`. Alternatively, you can use `lm-eval` instead of `lm_eval`.
 
 > [!Note]
 > Just like you can provide a local path to `transformers.AutoModel`, you can also provide a local path to `lm_eval` via `--model_args pretrained=/path/to/model`
@@ -140,7 +140,7 @@ lm_eval --model vllm \
 ```
 For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
 
-vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation, and provide a script at [./scripts/model_comparator.py](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/scripts/model_comparator.py) for checking validity of vllm results against HF.
+vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation, and provide a [script](./scripts/model_comparator.py) for checking the validity of vllm results against HF.
 
 ### Model APIs and Inference Servers
 
