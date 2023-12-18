@@ -25,20 +25,23 @@ def _handle_non_serializable(o):
 
 def parse_eval_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("--model", default="hf", help="Name of model e.g. `hf`")
+    parser.add_argument("--model", "-m", default="hf", help="Name of model e.g. `hf`")
     parser.add_argument(
         "--tasks",
+        "-t",
         default=None,
         metavar="task1,task2",
         help="To get full list of tasks, use the command lm-eval --tasks list",
     )
     parser.add_argument(
         "--model_args",
+        "-a",
         default="",
         help="Comma separated string arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
     )
     parser.add_argument(
         "--num_fewshot",
+        "-f",
         type=int,
         default=None,
         metavar="N",
@@ -46,6 +49,7 @@ def parse_eval_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--batch_size",
+        "-b",
         type=str,
         default=1,
         metavar="auto|auto:N|N",
@@ -66,6 +70,7 @@ def parse_eval_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--output_path",
+        "-o",
         default=None,
         type=str,
         metavar="DIR|DIR/file.json",
@@ -73,6 +78,7 @@ def parse_eval_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--limit",
+        "-L",
         type=float,
         default=None,
         metavar="N|0<N<1",
@@ -81,6 +87,7 @@ def parse_eval_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--use_cache",
+        "-c",
         type=str,
         default=None,
         metavar="DIR",
@@ -94,12 +101,14 @@ def parse_eval_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--write_out",
+        "-w",
         action="store_true",
         default=False,
         help="Prints the prompt for the first few documents.",
     )
     parser.add_argument(
         "--log_samples",
+        "-s",
         action="store_true",
         default=False,
         help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis. Use with --output_path.",
@@ -127,7 +136,8 @@ def parse_eval_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--verbosity",
-        type=str,
+        "-v",
+        type=str.upper,
         default="INFO",
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
         help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
