@@ -76,6 +76,9 @@ def simple_evaluate(
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
+    :param predict_only: bool
+        If true only model outputs will be generated and returned. Metrics will not be evaluated
+
     :return
         Dictionary of results
     """
@@ -132,6 +135,7 @@ def simple_evaluate(
 
         config = task_obj._config
         if predict_only:
+            log_samples = True
             eval_logger.info(
                 f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
             )
