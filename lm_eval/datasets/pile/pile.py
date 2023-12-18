@@ -38,12 +38,12 @@ math, computer science, and philosophy papers.
 
 _HOMEPAGE = "https://pile.eleuther.ai/"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+# More details at https://arxiv.org/pdf/2201.07311.pdf
+_LICENSE = "Multiple licenses"
 
 _URLS = {
-    "validation": "http://eaidata.bmk.sh/data/pile/val.jsonl.zst",
-    "test": "http://eaidata.bmk.sh/data/pile/test.jsonl.zst",
+    "validation": "https://the-eye.eu/public/AI/pile/val.jsonl.zst",
+    "test": "https://the-eye.eu/public/AI/pile/test.jsonl.zst",
 }
 
 _NAMES = {

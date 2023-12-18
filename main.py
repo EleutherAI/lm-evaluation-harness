@@ -1,38 +1,29 @@
 import argparse
 import json
 import logging
-import fnmatch
+import os
 
-from lm_eval import tasks, evaluator
+from lm_eval import tasks, evaluator, utils
 
 logging.getLogger("openai").setLevel(logging.WARNING)
-
-
-class MultiChoice:
-    def __init__(self, choices):
-        self.choices = choices
-
-    # Simple wildcard support (linux filename patterns)
-    def __contains__(self, values):
-        for value in values.split(","):
-            if len(fnmatch.filter(self.choices, value)) == 0:
-                return False
-
-        return True
-
-    def __iter__(self):
-        for choice in self.choices:
-            yield choice
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True)
     parser.add_argument("--model_args", default="")
-    parser.add_argument("--tasks", default=None, choices=MultiChoice(tasks.ALL_TASKS))
+    parser.add_argument(
+        "--tasks", default=None, choices=utils.MultiChoice(tasks.ALL_TASKS)
+    )
     parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--num_fewshot", type=int, default=0)
-    parser.add_argument("--batch_size", type=int, default=None)
+    parser.add_argument("--batch_size", type=str, default=None)
+    parser.add_argument(
+        "--max_batch_size",
+        type=int,
+        default=None,
+        help="Maximal batch size to try with --batch_size auto",
+    )
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--output_path", default=None)
     parser.add_argument(
@@ -41,23 +32,22 @@ def parse_args():
         type=json.loads,
         help="dict string for custom info used in plotting. Example: '{'model':'gpt2-0shot', 'step': 1500}' ",
     )
-    parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument(
+        "--limit",
+        type=float,
+        default=None,
+        help="Limit the number of examples per task. "
+        "If <1, limit is a percentage of the total number of examples.",
+    )
+    parser.add_argument("--data_sampling", type=float, default=None)
     parser.add_argument("--no_cache", action="store_true")
     parser.add_argument("--decontamination_ngrams_path", default=None)
     parser.add_argument("--description_dict_path", default=None)
     parser.add_argument("--check_integrity", action="store_true")
+    parser.add_argument("--write_out", action="store_true", default=False)
+    parser.add_argument("--output_base_path", type=str, default=None)
 
     return parser.parse_args()
-
-
-# Returns a list containing all values of the source_list that
-# match at least one of the patterns
-def pattern_match(patterns, source_list):
-    task_names = set()
-    for pattern in patterns:
-        for matching in fnmatch.filter(source_list, pattern):
-            task_names.add(matching)
-    return list(task_names)
 
 
 def main():
@@ -73,7 +63,7 @@ def main():
     if args.tasks is None:
         task_names = tasks.ALL_TASKS
     else:
-        task_names = pattern_match(args.tasks.split(","), tasks.ALL_TASKS)
+        task_names = utils.pattern_match(args.tasks.split(","), tasks.ALL_TASKS)
 
     print(f"Selected Tasks: {task_names}")
 
@@ -88,12 +78,15 @@ def main():
         tasks=task_names,
         num_fewshot=args.num_fewshot,
         batch_size=args.batch_size,
+        max_batch_size=args.max_batch_size,
         device=args.device,
         no_cache=args.no_cache,
         limit=args.limit,
         description_dict=description_dict,
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
+        write_out=args.write_out,
+        output_base_path=args.output_base_path,
     )
 
     if args.custom_info:
@@ -103,12 +96,16 @@ def main():
     print(dumped)
 
     if args.output_path:
+        dirname = os.path.dirname(args.output_path)
+        if dirname:
+            os.makedirs(dirname, exist_ok=True)
         with open(args.output_path, "w") as f:
             f.write(dumped)
 
+    batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
     print(
         f"{args.model} ({args.model_args}), limit: {args.limit}, provide_description: {args.provide_description}, "
-        f"num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}"
+        f"num_fewshot: {args.num_fewshot}, batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
     )
     print(evaluator.make_table(results))
 

@@ -51,7 +51,10 @@ The dataset contains questions about the following topics: medicine, nursing, ps
 
 _HOMEPAGE = "https://aghie.github.io/head-qa/"
 
-_LICENSE = "MIT License"
+# The Spanish data comes from the "Ministerio de Sanidad, Consumo y Bienestar Social", as indicated here : https://github.com/aghie/head-qa
+# This Spanish data seems to follow the intellectual property rights stated here : https://www.sanidad.gob.es/avisoLegal/home.htm
+# The English data was translated by the authors of head-qa (https://arxiv.org/pdf/1906.04701.pdf).
+_LICENSE = "Custom license"
 
 _URL = "https://drive.google.com/uc?export=download&confirm=t&id=1a_95N5zQQoUCq8IBNVZgziHbeM-QxG2t"
 

@@ -5,7 +5,13 @@ import collections
 import functools
 import inspect
 import sys
-from typing import List
+import fnmatch
+from typing import List, Union
+
+import gc
+import torch
+
+from omegaconf import OmegaConf
 
 
 class ExitCodeError(Exception):
@@ -15,6 +21,29 @@ class ExitCodeError(Exception):
 def sh(x):
     if os.system(x):
         raise ExitCodeError()
+
+
+def escaped_split(text, sep_char, maxsplit=-1):
+    """Split text into a list on occurrences of the given separation
+    character `sep_char`. The separation character may be escaped by a
+    backslash to avoid splitting at that location.
+
+    The separation character must be a string of size 1.
+
+    If `maxsplit` is given, at most `maxsplit` splits are done (thus,
+    the list will have at most `maxsplit + 1` elements). If `maxsplit`
+    is not specified or less than 0, then there is no limit on the
+    number of splits (all possible splits are made).
+    """
+    assert (
+        len(sep_char) == 1
+    ), "separation string must be a single character for escaped splitting"
+
+    if maxsplit == 0:
+        return text
+    maxsplit = max(0, maxsplit)
+
+    return re.split(r"(?<!\\)" + sep_char, text, maxsplit)
 
 
 def simple_parse_args_string(args_string):
@@ -27,10 +56,7 @@ def simple_parse_args_string(args_string):
     if not args_string:
         return {}
     arg_list = args_string.split(",")
-    args_dict = {}
-    for arg in arg_list:
-        k, v = arg.split("=")
-        args_dict[k] = v
+    args_dict = OmegaConf.to_object(OmegaConf.from_dotlist(arg_list))
     return args_dict
 
 
@@ -39,11 +65,11 @@ def join_iters(iters):
         yield from iter
 
 
-def chunks(iter, n):
+def chunks(iter, n=0, fn=None):
     arr = []
-    for x in iter:
+    for i, x in enumerate(iter):
         arr.append(x)
-        if len(arr) == n:
+        if len(arr) == (fn(i) if fn else n):
             yield arr
             arr = []
 
@@ -58,6 +84,42 @@ def group(arr, fn):
         res[fn(ob)].append(ob)
 
     return list(res.values())
+
+
+def _is_json_task(task_name):
+    return task_name == "json" or task_name.startswith("json=")
+
+
+class MultiChoice:
+    def __init__(self, choices):
+        self.choices = choices
+
+    # Simple wildcard support (linux filename patterns)
+    def __contains__(self, values):
+        for value in values.split(","):
+            if len(fnmatch.filter(self.choices, value)) == 0 and not _is_json_task(
+                value
+            ):
+                return False
+
+        return True
+
+    def __iter__(self):
+        for choice in self.choices:
+            yield choice
+
+
+# Returns a list containing all values of the source_list that
+# match at least one of the patterns
+def pattern_match(patterns, source_list):
+    task_names = set()
+    for pattern in patterns:
+        if _is_json_task(pattern):
+            task_names.add(pattern)
+
+        for matching in fnmatch.filter(source_list, pattern):
+            task_names.add(matching)
+    return sorted(list(task_names))
 
 
 def general_detokenize(string):
@@ -115,6 +177,26 @@ def make_disjoint_window(pair):
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b
+
+
+def select_continuation_from_batch_left_padding(
+    generations: Union[List[List[int]], torch.Tensor], max_context_size: int
+):
+    """Select the continuation from the batch, removing prompts of different lengths.
+    Args:
+        generations (Union[List[List[int]], torch.Tensor]):
+            A tensor or list-of-lists of shape [batch_size, sequence length].
+        max_context_size (int):
+            The size of the biggest context; generations will proceed from that
+            index.
+    Example:
+        PAD     PAD Continue : The dog chased the cat  [every       day of the week]
+        Riddle  me    this   : The  dog chased the  cat [yesterday] PAD PAD PAD PAD
+    Output:
+        [every day of the week]
+        [yesterday]  PAD PAD PAD PAD
+    """
+    return generations[:, max_context_size:]
 
 
 class Reorderer:
@@ -202,3 +284,8 @@ def run_task_tests(task_list: List[str]):
         raise ValueError(
             f"Not all tests for the specified tasks ({task_list}) ran successfully! Error code: {pytest_return_val}"
         )
+
+
+def clear_torch_cache():
+    gc.collect()
+    torch.cuda.empty_cache()

@@ -202,7 +202,7 @@ def construct_requests(self, doc, ctx):
 #### What's a `Request`? What's a `doc`?
 To reiterate, a `doc` is just a `Dict` object that contains information about a document from your corpus. It can contain things like a prompt, question type information, answers and anything else you think will be needed in order to assess your model for a given task. Keep in mind that the fields of this can be basically whatever you want (you can sort this out in `training_docs` \ `validation_docs` \ `test_docs` if you need to customise things - see above), just remember to be consistent with them throughout the rest of the `Task` you write up.
 A `Request` is an object that takes the text prompt you want to present to a model and computes one of a few different types of response. These are evaluated lazily (meaning, only when the result is actually needed). If your task requires generating text you'll need to return a `rf.greedy_until` request otherwise an `rf.loglikelihood` across all labels in a classification tasks will do.
-The function `construct_requests` can return a list of `Request`s or an iterable; it's perfectly fine to `yield` them from something or other. This is particularly handy if you are creating more than one request per `doc` (usually because you're up to something like multi-task learning). The objects this function returns then get consumed one by one and turned into result objects.
+The function `construct_requests` returns a list or tuple of, or singular `Request`s. This is particularly handy if you are creating more than one request per `doc` (usually because you're up to something like multi-task learning). The objects this function returns then get consumed one by one and turned into result objects.
 
 
 ```python
@@ -269,6 +269,19 @@ python main.py \
 	--model gpt3 \
 	--tasks <task-name> \
 	--num_fewshot K
+```
+
+### Checking the Model Outputs
+The `--write_out.py` script mentioned previously can be used to verify that the prompts look as intended. If you also want to save model outputs, you can use the `--write_out` parameter in `main.py` to dump JSON with prompts and completions. The output path can be chosen with `--output_base_path`. It is helpful for debugging and for exploring model outputs.
+
+```sh
+python main.py \
+	--model gpt2 \
+	--model_args device=<device-name> \
+	--tasks <task-name> \
+	--num_fewshot K \
+    --write_out \
+    --output_base_path <path>
 ```
 
 ### Running Unit Tests
