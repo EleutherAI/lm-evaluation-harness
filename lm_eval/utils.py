@@ -13,7 +13,7 @@ import sys
 import time
 from functools import wraps
 from itertools import islice
-from typing import Any, Callable, Iterator, List, Literal, Optional, Union
+from typing import Any, Callable, Iterator, List, Literal, Optional, Type, Union
 
 import torch
 import transformers
@@ -665,8 +665,8 @@ def stop_sequences_criteria(
     )
 
 
-def retry_on_rate_limit_error(
-    on_exception: Exception,
+def retry_on_specific_exceptions(
+    on_exceptions: list[Type[Exception]],
     max_retries: Optional[int] = None,
     backoff_time: float = 3.0,
     backoff_multiplier: float = 1.5,
@@ -678,7 +678,7 @@ def retry_on_rate_limit_error(
     from openai import RateLimitError
 
     # Recommend specifying max_retries to avoid infinite loops!
-    @retry_on_rate_limit_error(RateLimitError, max_retries=3)
+    @retry_on_specific_exceptions([RateLimitError], max_retries=3)
     def completion(...):
         # Wrap OpenAI completion function here
         ...
@@ -693,7 +693,7 @@ def retry_on_rate_limit_error(
             while max_retries is None or attempt < max_retries:
                 try:
                     return func(*args, **kwargs)
-                except on_exception as e:
+                except tuple(on_exceptions) as e:
                     if on_exception_callback is not None:
                         on_exception_callback(e)
                     time.sleep(sleep_time)
