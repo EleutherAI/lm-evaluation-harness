@@ -136,39 +136,22 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
         for f in file_list:
             if f.endswith(".yaml"):
                 yaml_path = os.path.join(root, f)
-                try:
-                    config = utils.load_yaml_config(yaml_path)
+                config = utils.load_yaml_config(yaml_path)
 
-                    if "task" not in config:
-                        continue
+                if "task" not in config:
+                    continue
 
-                    all_configs = check_prompt_config(
-                        config, yaml_path=os.path.dirname(yaml_path)
-                    )
-                    for config in all_configs:
-                        if register_task:
-                            if type(config["task"]) == str:
-                                register_configurable_task(config)
-                        else:
-                            if type(config["task"]) == list:
-                                register_configurable_group(config, yaml_path)
+                all_configs = check_prompt_config(
+                    config, yaml_path=os.path.dirname(yaml_path)
+                )
+                for config in all_configs:
+                    if register_task:
+                        if type(config["task"]) == str:
+                            register_configurable_task(config)
+                    else:
+                        if type(config["task"]) == list:
+                            register_configurable_group(config, yaml_path)
 
-                # Log this silently and show it only when
-                # the user defines the appropriate verbosity.
-                except ModuleNotFoundError as e:
-                    eval_logger.debug(
-                        f"{yaml_path}: {e}. Config will not be added to registry."
-                    )
-                except Exception as error:
-                    import traceback
-
-                    eval_logger.debug(
-                        "Failed to load config in\n"
-                        f"                                 {yaml_path}\n"
-                        "                                 Config will not be added to registry\n"
-                        f"                                 Error: {error}\n"
-                        f"                                 Traceback: {traceback.format_exc()}"
-                    )
     return 0
 
 
