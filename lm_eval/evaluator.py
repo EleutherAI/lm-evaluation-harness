@@ -132,9 +132,15 @@ def simple_evaluate(
 
         config = task_obj._config
         if predict_only:
-            task_obj._config["metric_list"] = [
-                {"metric": "bypass", "aggregation": "null"}
-            ]
+            eval_logger.info(
+                f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
+            )
+            # we have to change the class properties post-hoc. This is pretty hacky.
+            task_obj._metric_fn_list = {"bypass": lambda x: None}
+            task_obj._metric_fn_kwargs = {"bypass": {}}
+            task_obj._aggregation_list = {"bypass": lambda x: -1}
+            config["metric_list"] = [{"metric": "bypass"}]
+
         if config["output_type"] == "generate_until" and gen_kwargs is not None:
             config["generation_kwargs"].update(gen_kwargs)
 
@@ -149,11 +155,11 @@ def simple_evaluate(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
 
-                task_obj._config["num_fewshot"] = num_fewshot
+                config["num_fewshot"] = num_fewshot
+        task_obj._config = config
 
     if check_integrity:
         run_task_tests(task_list=tasks)
-
     results = evaluate(
         lm=lm,
         task_dict=task_dict,
@@ -217,8 +223,15 @@ def evaluate(
     :return
         Dictionary of results
     """
-
     # decontaminate = decontamination_ngrams_path is not None
+
+    for task_name, task in task_dict.items():
+        if type(task) == tuple:
+            _, task = task
+        if not log_samples:
+            assert (
+                "bypass" not in getattr(task, "_metric_fn_list", {}).keys()
+            ), f"log_samples must be True for 'bypass' only tasks: {task_name}"
 
     # stores the final result for each task, for each metric/filter pair.
     results = collections.defaultdict(dict)
