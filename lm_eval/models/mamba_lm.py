@@ -22,12 +22,42 @@ class MambaLMWrapper(HFLM):
     def __init__(
         self,
         pretrained="state-spaces/mamba-130m",
-        # mamba supports most default HFLM kwargs.
-        # however, it does not currently support advanced from_pretrained() kwargs
-        # `parallelize=True`, PEFT, autoGPTQ,
-        # or any sub-configurations of these advanced args.
         **kwargs,
     ) -> None:
+        """
+        Mamba (via the `mamba_ssm` package) supports the following args:
+        ```
+        d_model: int,
+        n_layer: int,
+        vocab_size: int,
+        initializer_cfg=None,
+        pad_vocab_size_multiple: int = 1,
+        ssm_cfg=None,
+        norm_epsilon: float = 1e-5,
+        rms_norm: bool = False,
+        initializer_cfg=None,
+        fused_add_norm=False,
+        residual_in_fp32=False,
+        ```
+        
+        See https://github.com/state-spaces/mamba/blob/main/mamba_ssm/models/mixer_seq_simple.py#L175 for more info.
+        The above can all be passed via `--model_args` or to this __init__() directly
+        but we recommend placing many of these within the config.json file uploaded alongside your
+        Mamba model to the HF Hub instead. 
+        All other HuggingFace from_pretrained() kwargs
+        such as those related to
+        `parallelize=True`, PEFT, autoGPTQ,
+        or any sub-configurations of these advanced args,
+        are unsupported by the `mamba_ssm` package.
+
+        The HFLM arguments
+
+        `backend`, `revision`, `subfolder`, `tokenizer`, `truncation`, `max_length`, 
+        `device`, `dtype`, `batch_size`, `max_batch_size`, `trust_remote_code`, `use_fast_tokenizer`
+
+        Are all supported by Mamba where they do not conflict 
+        with Mamba-specific restrictions such as causal LMs only.
+        """
 
         if "backend" in kwargs:
             # mamba currently only supports causal models
@@ -80,6 +110,7 @@ please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba
             pretrained,
             device=self._device,
             dtype=torch.float16 if dtype == "auto" else utils.get_dtype(dtype),
+            **kwargs,
         )
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
