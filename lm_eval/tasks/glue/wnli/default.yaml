@@ -11,4 +11,4 @@ doc_to_choice: ["False", "True"]
 metric_list:
   - metric: acc
 metadata:
-  - version: 2.0
+  version: 2.0
