@@ -34,7 +34,7 @@
   \ and geographic variables.\n(A) Geodemographics (B) Product differentiation. (C)\
   \ ANSOFF matrix. (D) Brand management.\nA: Let's think step by step. We refer to\
   \ Wikipedia articles on marketing for help. Geodemographics is a natural outcome\
-  \ when combining demographic and geographic variables. The answer is (A)."
+  \ when combining demographic and geographic variables. The answer is (A).\n\n"
 "group": "mmlu_flan_cot_fewshot_other"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_marketing"

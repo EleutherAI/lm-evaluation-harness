@@ -17,8 +17,10 @@ repos:
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: no-commit-to-branch
+        always_run: false
       - id: requirements-txt-fixer
       - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
       - id: fix-byte-order-marker
         exclude: docs/CNAME
       - id: fix-encoding-pragma
@@ -39,7 +41,7 @@ repos:
       - id: codespell
         exclude: >
           (?x)^(
-              .*\.json|ignore.txt|lm_eval/tasks/.*|.*yaml
+              .*\.json|ignore.txt|lm_eval/tasks/.*|.*yaml|.*\.ipynb
           )$
         args: [--check-filenames, --check-hidden, --ignore-words=ignore.txt]
   - repo: https://github.com/pre-commit/mirrors-mypy

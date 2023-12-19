@@ -1,0 +1,3 @@
+"dataset_name": "Korean Language"
+"include": "_default_kmmlu_yaml"
+"task": "kmmlu_korean_language"

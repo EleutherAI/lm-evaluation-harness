@@ -32,7 +32,7 @@
   \ hyperfine interaction with the 13C (nuclear spin $I = \nrac{1}{2}$) which will\
   \ split the spectrum into 2 lines. This will be further split into 4 lines by the\
   \ interaction with three equivalent 1H nuclei. The total number of lines is therefore\
-  \ $2 \\cdot 4 = 8$. The answer is (E)."
+  \ $2 \\cdot 4 = 8$. The answer is (E).\n\n"
 "group": "mmlu_flan_cot_fewshot_stem"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_college_chemistry"
