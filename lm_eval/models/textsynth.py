@@ -47,7 +47,7 @@ def textsynth_completion(**kwargs):
 
 @register_model("textsynth")
 class TextSynthLM(LM):
-    def __init__(self, engine, truncate: bool = False) -> None:
+    def __init__(self, engine, truncate: bool = False, **kwargs) -> None:
         """
         :param engine: str
             TextSynth API engine (e.g. `gptj_6B`)
