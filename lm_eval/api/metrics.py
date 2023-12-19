@@ -13,6 +13,7 @@ import logging
 
 eval_logger = logging.getLogger("lm-eval")
 
+
 # Register Aggregations First
 @register_aggregation("mean")
 def mean(arr):

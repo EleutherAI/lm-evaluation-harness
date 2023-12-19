@@ -1,8 +1,7 @@
 import abc
 import os
 
-import torch
-from typing import Union, List, Tuple, Optional, Type, TypeVar
+from typing import List, Tuple, Optional, Type, TypeVar
 from sqlitedict import SqliteDict
 import json
 import hashlib

@@ -33,14 +33,11 @@ repos:
     hooks:
       # Run the linter.
       - id: ruff
-        args: [ --fix ]
-      # Run the formatter.
+        args:
+          - --fix
+          - --per-file-ignores=__init__.py:F401,lm_eval/tasks/*.py:E721
+        # Run the formatter.
       - id: ruff-format
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        name: isort (python)
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0
     hooks:

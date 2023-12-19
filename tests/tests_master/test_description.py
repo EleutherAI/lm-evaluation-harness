@@ -14,7 +14,6 @@ def test_description():
 
     task_dict = lm_eval.tasks.get_task_dict(task_names)
     for task_name, task in task_dict.items():
-
         # patch description field in task (# TODO: make this much more cleaned up)
         task._config.description = description_dict[task_name]
 

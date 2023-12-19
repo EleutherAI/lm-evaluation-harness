@@ -31,7 +31,7 @@ def handler(signal_received, frame):
 
 
 def sort_13_gram_buckets(working_directory):
-    bucket_file_paths = glob.glob(os.path.join(working_directory, f"*.bkt.txt"))
+    bucket_file_paths = glob.glob(os.path.join(working_directory, "*.bkt.txt"))
 
     for bucket_file_path in tqdm(bucket_file_paths, dynamic_ncols=True):
         sorted_file_path = bucket_file_path + ".sorted"
@@ -49,7 +49,6 @@ parser = argparse.ArgumentParser(description="sort 13gram buckets")
 parser.add_argument("-dir", "--working_directory", default="")
 
 if __name__ == "__main__":
-
     version = 1.00
     print(f"Running version {version}")
 

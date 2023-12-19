@@ -5,7 +5,6 @@ import argparse
 from tqdm import tqdm
 from promptsource.templates import DatasetTemplates
 
-from lm_eval import utils
 
 # from lm_eval.api.registry import ALL_TASKS
 from lm_eval.logger import eval_logger
@@ -22,7 +21,6 @@ def parse_args():
 
 
 if __name__ == "__main__":
-
     args = parse_args()
 
     with open(args.benchmark_path) as file:

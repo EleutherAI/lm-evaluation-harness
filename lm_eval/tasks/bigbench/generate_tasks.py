@@ -173,7 +173,6 @@ all_subtasks = [
 
 
 def main() -> None:
-
     for path, task_type in zip(
         ["multiple_choice", "generate_until"],
         ["multiple_choice_template_yaml", "generate_until_template_yaml"],

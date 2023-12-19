@@ -1,6 +1,6 @@
 from collections import defaultdict
-from typing import List, Tuple, Optional, Literal, Union, Any
-from transformers import AutoTokenizer
+from importlib.util import find_spec
+from typing import List, Tuple, Optional, Literal, Union
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 import copy
@@ -54,12 +54,10 @@ class VLLM(LM):
     ):
         super().__init__()
 
-        try:
-            import vllm
-        except ModuleNotFoundError:
+        if not find_spec("vllm"):
             raise Exception(
-                "attempted to use 'vllm' LM type, but package `vllm` is not installed. \
-please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`",
+                "attempted to use 'vllm' LM type, but package `vllm` is not installed. "
+                "Please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
             )
 
         assert "cuda" in device or device is None, "vLLM only supports CUDA"
@@ -193,8 +191,9 @@ please install vllm via `pip install lm-eval[vllm]` or `pip install -e .[vllm]`"
         for context, continuation in [req.args for req in requests]:
             if context == "":
                 # end of text as context
-                context_enc, continuation_enc = [self.eot_token_id], self.tok_encode(
-                    continuation
+                context_enc, continuation_enc = (
+                    [self.eot_token_id],
+                    self.tok_encode(continuation),
                 )
             else:
                 context_enc, continuation_enc = self._encode_pair(context, continuation)

@@ -2,7 +2,6 @@ import pytest
 from typing import List
 from lm_eval.api.instance import Instance
 import lm_eval.tasks as tasks
-import sys
 import torch
 
 

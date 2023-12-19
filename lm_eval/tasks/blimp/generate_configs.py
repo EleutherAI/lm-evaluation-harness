@@ -73,7 +73,6 @@ all_subtasks = [
 
 def main() -> None:
     for task in all_subtasks:
-
         file_name = f"{task}.yaml"
         try:
             with open(f"{file_name}", "w") as f:

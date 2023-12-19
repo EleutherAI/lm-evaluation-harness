@@ -143,7 +143,7 @@ class MultiChoice:
     def __contains__(self, values) -> bool:
         for value in values.split(","):
             if len(fnmatch.filter(self.choices, value)) == 0:
-                eval_logger.info(f"Available tasks to choose:")
+                eval_logger.info("Available tasks to choose:")
                 for choice in self.choices:
                     eval_logger.info(f"  - {choice}")
                 raise ValueError("'{}' is not in task list".format(value))
@@ -157,7 +157,7 @@ class MultiChoice:
 # Returns a list containing all values of the source_list that
 # match at least one of the patterns
 def pattern_match(patterns, source_list):
-    if type(patterns) == str:
+    if isinstance(patterns, str):
         patterns = [patterns]
 
     task_names = set()
@@ -466,7 +466,7 @@ def import_function(loader, node):
     yaml_path = os.path.dirname(loader.name)
 
     *module_name, function_name = function_name.split(".")
-    if type(module_name) == list:
+    if isinstance(module_name, list):
         module_name = ".".join(module_name)
     module_path = os.path.normpath(os.path.join(yaml_path, "{}.py".format(module_name)))
 
@@ -496,7 +496,7 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
         include_path = yaml_config["include"]
         del yaml_config["include"]
 
-        if type(include_path) == str:
+        if isinstance(include_path, str):
             include_path = [include_path]
 
         # Load from the last one first

@@ -1,6 +1,5 @@
 import argparse
 import numpy as np
-import json
 import os
 import random
 from lm_eval import tasks

@@ -42,7 +42,6 @@ class FilterEnsemble:
     filters: List[Filter]
 
     def apply(self, instances: List[Instance], docs: List[Dataset]) -> None:
-
         resps = [
             inst.resps for inst in instances
         ]  # operate just on the model responses

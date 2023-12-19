@@ -2,7 +2,6 @@ import re
 import string
 import pickle
 import traceback
-from pprint import pprint
 from typing import Iterator, Sequence, TypeVar, List, Tuple
 
 # This is a cpp module. Compile janitor_util.cpp with:
