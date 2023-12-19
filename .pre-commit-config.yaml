@@ -27,11 +27,6 @@ repos:
         args: [--remove]
       - id: mixed-line-ending
         args: [--fix=lf]
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        name: isort (python)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: v0.1.8
@@ -41,6 +36,11 @@ repos:
         args: [ --fix ]
       # Run the formatter.
       - id: ruff-format
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        name: isort (python)
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0
     hooks:
