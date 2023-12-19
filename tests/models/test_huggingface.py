@@ -1,11 +1,15 @@
 from __future__ import annotations
-from pathlib import Path
-import numpy as np
-from lm_eval.models.huggingface import HFLM
-from lm_eval.api.instance import Instance
-import lm_eval.tasks as tasks
+
 import sys
+from pathlib import Path
+
+import numpy as np
 import torch
+
+import lm_eval.tasks as tasks
+from lm_eval.api.instance import Instance
+from lm_eval.models.huggingface import HFLM
+
 
 tasks.initialize_tasks()
 

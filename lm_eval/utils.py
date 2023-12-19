@@ -1,25 +1,23 @@
-import os
-import re
-import sys
-import yaml
-import inspect
-import pathlib
-import functools
-import subprocess
 import collections
-import importlib.util
 import fnmatch
-
-from typing import Iterator, List, Literal, Union, Any, Callable
-
+import functools
 import gc
+import importlib.util
+import inspect
+import logging
+import os
+import pathlib
+import re
+import subprocess
+import sys
+from itertools import islice
+from typing import Any, Callable, Iterator, List, Literal, Union
+
 import torch
 import transformers
-
+import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
-from itertools import islice
 
-import logging
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
@@ -332,7 +330,7 @@ class Grouper:
 
 def make_table(result_dict, column: str = "results"):
     """Generate table of results."""
-    from pytablewriter import MarkdownTableWriter, LatexTableWriter
+    from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
     if column == "results":
         column_name = "Tasks"

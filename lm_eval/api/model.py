@@ -1,16 +1,15 @@
 import abc
-import os
-
-from typing import List, Tuple, Optional, Type, TypeVar
-from sqlitedict import SqliteDict
-import json
 import hashlib
+import json
+import logging
+import os
+from typing import List, Optional, Tuple, Type, TypeVar
 
+from sqlitedict import SqliteDict
 from tqdm import tqdm
 
 from lm_eval import utils
 
-import logging
 
 eval_logger = logging.getLogger("lm-eval")
 

@@ -1,5 +1,7 @@
-from lm_eval import tasks
 from itertools import islice
+
+from lm_eval import tasks
+
 
 ct = 3
 

@@ -1,7 +1,9 @@
+import logging
+
 import evaluate
+
 from lm_eval.api.model import LM
 
-import logging
 
 eval_logger = logging.getLogger("lm-eval")
 

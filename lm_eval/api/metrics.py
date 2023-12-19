@@ -1,15 +1,15 @@
+import logging
 import math
+import random
 from collections.abc import Iterable
 
+import evaluate
 import numpy as np
 import sacrebleu
 import sklearn.metrics
-import random
-import evaluate
 
-from lm_eval.api.registry import register_metric, register_aggregation
+from lm_eval.api.registry import register_aggregation, register_metric
 
-import logging
 
 eval_logger = logging.getLogger("lm-eval")
 

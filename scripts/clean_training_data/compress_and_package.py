@@ -1,14 +1,14 @@
-import glob
 import argparse
+import glob
+import logging
 import os
-import subprocess
 import shutil
+import subprocess
 
 from tqdm import tqdm
 from tqdm_multiprocess import TqdmMultiProcessPool
-
-import logging
 from tqdm_multiprocess.logger import setup_logger_tqdm
+
 
 logger = logging.getLogger(__name__)
 

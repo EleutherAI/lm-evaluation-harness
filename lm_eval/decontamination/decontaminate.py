@@ -1,13 +1,13 @@
-import time
-import random
-import pickle
-import json
-import glob
-import os
 import collections
+import glob
+import json
+import os
+import pickle
+import random
+import time
 
-from .janitor import Janitor, word_ngrams
 from .archiver import ZStdTextReader
+from .janitor import Janitor, word_ngrams
 
 
 # Was used for testing the evaluator decoupled from the full logic below

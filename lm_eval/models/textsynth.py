@@ -13,9 +13,11 @@ Homepage: https://textsynth.com/index.html
 """
 import logging
 import os
-import requests as _requests
 import time
+
+import requests as _requests
 from tqdm import tqdm
+
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 

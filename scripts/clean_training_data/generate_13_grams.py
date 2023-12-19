@@ -21,22 +21,22 @@ Arguments
 """
 
 import argparse
+import glob
 import json
-import pickle
+import logging
 import os
+import pickle
+import signal
 import sys
 from pathlib import Path
-import glob
-import signal
 from signal import SIGINT
 
 from tqdm import tqdm
-
-from lm_eval.decontamination.janitor import Janitor, word_ngrams
-from lm_eval.decontamination.archiver import TextArchive, Reader
-
-import logging
 from tqdm_multiprocess.logger import setup_logger_tqdm
+
+from lm_eval.decontamination.archiver import Reader, TextArchive
+from lm_eval.decontamination.janitor import Janitor, word_ngrams
+
 
 logger = logging.getLogger(__name__)
 

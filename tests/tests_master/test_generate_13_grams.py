@@ -1,13 +1,13 @@
-import os
-from collections import Counter
-import shutil
 import glob
+import logging
+import os
+import shutil
+from collections import Counter
 
+from lm_eval.decontamination.archiver import Archive, TextReader
 from lm_eval.decontamination.janitor import Janitor, word_ngrams
 from scripts.clean_training_data.generate_13_grams import do_ngrams_in_buckets
-from lm_eval.decontamination.archiver import Archive, TextReader
 
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,12 @@
 from itertools import islice
+
 import pytest
-from .utils import new_tasks
+
 import lm_eval.tasks as tasks
 from lm_eval.api.task import ConfigurableTask
+
+from .utils import new_tasks
+
 
 tasks.initialize_tasks()
 # Default Task

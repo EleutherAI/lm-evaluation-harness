@@ -15,18 +15,18 @@ Arguments
 
 import argparse
 import glob
+import logging
 import os
-from pathlib import Path
 import re
 import shutil
+from pathlib import Path
 
 from tqdm import tqdm
 from tqdm_multiprocess import TqdmMultiProcessPool
-
-from scripts.clean_training_data.archiver import TextReader, TextArchive
-
-import logging
 from tqdm_multiprocess.logger import setup_logger_tqdm
+
+from scripts.clean_training_data.archiver import TextArchive, TextReader
+
 
 logger = logging.getLogger(__name__)
 

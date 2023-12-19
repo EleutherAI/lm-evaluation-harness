@@ -1,37 +1,35 @@
 import abc
-from dataclasses import dataclass, asdict
-
-import os
-import re
 import ast
 import logging
+import os
 import random
+import re
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
+from typing import Any, List, Literal, Tuple, Union
 
 import datasets
 import numpy as np
 
-from typing import Union, List, Any, Tuple, Literal
-from collections.abc import Callable
-
 from lm_eval import utils
 from lm_eval.api import samplers
 from lm_eval.api.instance import Instance
-
-from lm_eval.prompts import get_prompt
-from lm_eval.filters import build_filter_ensemble
 from lm_eval.api.metrics import (
+    bits_per_byte,
     mean,
     weighted_perplexity,
-    bits_per_byte,
 )
 from lm_eval.api.registry import (
-    get_metric,
+    AGGREGATION_REGISTRY,
+    DEFAULT_METRIC_REGISTRY,
     get_aggregation,
+    get_metric,
     get_metric_aggregation,
     is_higher_better,
-    DEFAULT_METRIC_REGISTRY,
-    AGGREGATION_REGISTRY,
 )
+from lm_eval.filters import build_filter_ensemble
+from lm_eval.prompts import get_prompt
+
 
 ALL_OUTPUT_TYPES = [
     "loglikelihood",

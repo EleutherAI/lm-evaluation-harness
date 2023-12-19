@@ -1,6 +1,7 @@
 import random
-import lm_eval.tasks
+
 import lm_eval.models
+import lm_eval.tasks
 
 
 def test_description():

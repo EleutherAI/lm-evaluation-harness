@@ -1,16 +1,19 @@
+import copy
 from collections import defaultdict
 from importlib.util import find_spec
-from typing import List, Tuple, Optional, Literal, Union
+from typing import List, Literal, Optional, Tuple, Union
+
+from tqdm import tqdm
+
+from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
-import copy
-from tqdm import tqdm
 from lm_eval.api.registry import register_model
-from lm_eval import utils
+
 
 try:
-    from vllm import LLM, SamplingParams
     from ray.util.multiprocessing import Pool
+    from vllm import LLM, SamplingParams
     from vllm.transformers_utils.tokenizer import get_tokenizer
 except ModuleNotFoundError:
     pass

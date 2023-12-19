@@ -1,15 +1,15 @@
+import copy
 import os
 import time
-from typing import List, Tuple, Optional
-
-import copy
 from collections import defaultdict
+from importlib.util import find_spec
+from typing import List, Optional, Tuple
+
 from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from importlib.util import find_spec
 
 
 def get_result(response, ctxlen: int) -> Tuple[float, bool]:
@@ -89,7 +89,8 @@ class OpenaiCompletionsLM(LM):
         super().__init__()
         self.seed = seed
         try:
-            import openai, tiktoken  # noqa: E401
+            import openai  # noqa: E401
+            import tiktoken
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
@@ -366,7 +367,8 @@ class OpenaiChatCompletionsLM(LM):
         """
         super().__init__()
         try:
-            import openai, tiktoken  # noqa: E401
+            import openai  # noqa: E401
+            import tiktoken
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \

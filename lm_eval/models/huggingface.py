@@ -1,29 +1,28 @@
+import copy
 import os
-from packaging import version
+from collections import defaultdict
+from pathlib import Path
+from typing import List, Literal, Optional, Tuple, Union
+
 import torch
+import torch.nn.functional as F
 import transformers
+from accelerate import Accelerator, DistributedType, find_executable_batch_size
+from packaging import version
+from peft import PeftModel
+from peft import __version__ as PEFT_VERSION
+from tqdm import tqdm
 from transformers.models.auto.modeling_auto import (
     MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
     MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES,
 )
-from peft import __version__ as PEFT_VERSION, PeftModel
-
-import copy
-from collections import defaultdict
-from tqdm import tqdm
-from pathlib import Path
-
-import torch.nn.functional as F
 
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-
 from lm_eval.utils import stop_sequences_criteria
 
-from accelerate import Accelerator, find_executable_batch_size, DistributedType
-from typing import List, Optional, Union, Tuple, Literal
 
 eval_logger = utils.eval_logger
 

@@ -3,8 +3,8 @@ from collections import defaultdict
 from lm_eval.decontamination.janitor import (
     Janitor,
     form_ngrams,
-    word_ngrams,
     split_indices,
+    word_ngrams,
     word_ngrams_indices,
 )
 
