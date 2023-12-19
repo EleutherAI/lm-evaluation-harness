@@ -55,7 +55,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
     @retry_on_specific_exceptions(
         on_exceptions=[anthropic.RateLimitError],
         max_retries=None,  # retry forever, consider changing
-        callback=_exception_callback,
+        on_exception_callback=_exception_callback,
     )
     def completion():
         response = client.completions.create(
@@ -147,6 +147,14 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         raise NotImplementedError("No support for logits.")
 
     def generate_until(self, requests) -> List[str]:
+         try:
+            import anthropic
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
+please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+            )
+        
         if not requests:
             return []
 
