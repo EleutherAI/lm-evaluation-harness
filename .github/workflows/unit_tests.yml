@@ -28,18 +28,8 @@ jobs:
         python-version: 3.8
         cache: pip
         cache-dependency-path: setup.py
-    - name: Install dependencies
-      run: pip install -e '.[linting,testing]' --extra-index-url https://download.pytorch.org/whl/cpu ; export SKIP=no-commit-to-branch # env var deactivates --no-commit-to-branch
     - name: Pre-Commit
       uses: pre-commit/action@v3.0.0
-    - name: Lint with pylint
-      run: python -m pylint --disable=all -e W0311 --jobs=0 --indent-string='    ' **/*.py
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=F,E9,E71,E72,E501,E112,E113,W6 --extend-ignore=F541 --show-source --statistics --exit-zero
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 #       # mypy turned off for now
 #    - name: Lint with mypy
 #      run: mypy . --ignore-missing-imports --check-untyped-defs --explicit-package-bases --warn-unreachable
