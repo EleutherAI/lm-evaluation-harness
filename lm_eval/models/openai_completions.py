@@ -100,7 +100,7 @@ class OpenaiCompletionsLM(LM):
             )
         self.model = model
         self.tokenizer = tiktoken.encoding_for_model(self.model)
-        self.vocab_size = self.tokenizer.vocab
+        self.vocab_size = self.tokenizer.n_vocab
         self.truncate = truncate
         self.end_of_text_token_id = self.tokenizer.eot_token
         self._max_gen_toks = max_gen_toks
