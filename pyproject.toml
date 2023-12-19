@@ -83,6 +83,9 @@ all = [
 [tool.ruff]
 extend-exclude = ["lm_eval/evaluator.py"]
 
+[tool.ruff.lint]
+extend-select = ["I"]
+
 [tool.ruff.isort]
 lines-after-imports = 2
 known-first-party = ["lm_eval"]
