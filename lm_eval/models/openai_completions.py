@@ -346,7 +346,7 @@ please install these via `pip install lm-eval[openai]` or `pip install -e .[open
     @retry_on_specific_exceptions(
         on_exceptions=[openai.OpenAIError],
         max_retries=None,  # retry forever, consider changing
-        callback=_exception_callback,
+        on_exception_callback=_exception_callback,
     )
     def completion():
         return client.chat.completions.create(**kwargs)
