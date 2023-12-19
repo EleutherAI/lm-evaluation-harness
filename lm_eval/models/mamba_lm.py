@@ -39,11 +39,11 @@ class MambaLMWrapper(HFLM):
         fused_add_norm=False,
         residual_in_fp32=False,
         ```
-        
+
         See https://github.com/state-spaces/mamba/blob/main/mamba_ssm/models/mixer_seq_simple.py#L175 for more info.
         The above can all be passed via `--model_args` or to this __init__() directly
         but we recommend placing many of these within the config.json file uploaded alongside your
-        Mamba model to the HF Hub instead. 
+        Mamba model to the HF Hub instead.
         All other HuggingFace from_pretrained() kwargs
         such as those related to
         `parallelize=True`, PEFT, autoGPTQ,
@@ -52,10 +52,10 @@ class MambaLMWrapper(HFLM):
 
         The HFLM arguments
 
-        `backend`, `revision`, `subfolder`, `tokenizer`, `truncation`, `max_length`, 
+        `backend`, `revision`, `subfolder`, `tokenizer`, `truncation`, `max_length`,
         `device`, `dtype`, `batch_size`, `max_batch_size`, `trust_remote_code`, `use_fast_tokenizer`
 
-        Are all supported by Mamba where they do not conflict 
+        Are all supported by Mamba where they do not conflict
         with Mamba-specific restrictions such as causal LMs only.
         """
 
