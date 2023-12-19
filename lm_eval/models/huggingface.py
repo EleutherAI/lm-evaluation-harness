@@ -170,7 +170,7 @@ class HFLM(LM):
                         f"Using `accelerate launch` or `parallelize=True`, device '{device}' will be overridden when placing model."
                     )
                 # TODO: include in warning that `load_in_8bit` etc. affect this too
-                self._device = device
+                self._device = torch.device(device)
 
             # TODO: update this to be less of a hack once subfolder is fixed in HF
             revision = revision + ("/" + subfolder if subfolder is not None else "")
