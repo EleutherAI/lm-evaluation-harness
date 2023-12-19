@@ -718,7 +718,7 @@ def divide(iterable, n) -> List[Iterator]:
 
 
 def retry_on_specific_exceptions(
-    on_exceptions: list[Type[Exception]],
+    on_exceptions: List[Type[Exception]],
     max_retries: Optional[int] = None,
     backoff_time: float = 3.0,
     backoff_multiplier: float = 1.5,
