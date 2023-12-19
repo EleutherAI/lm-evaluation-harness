@@ -147,7 +147,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         raise NotImplementedError("No support for logits.")
 
     def generate_until(self, requests) -> List[str]:
-         try:
+        try:
             import anthropic
         except ModuleNotFoundError:
             raise Exception(
