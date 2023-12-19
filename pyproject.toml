@@ -79,3 +79,10 @@ all = [
     "lm_eval[vllm]",
     "lm_eval[ifeval]",
 ]
+[tool.ruff.isort]
+lines-after-imports = 2
+known-first-party = ["lm_eval"]
+
+[tool.ruff.extend-per-file-ignores]
+"__init__.py" = ["F401","F402","F403"]
+"lm_eval/tasks/*"= ["E721"]
