@@ -7,12 +7,11 @@ from typing import List, Optional, Tuple
 
 
 from tqdm import tqdm
+import transformers
 
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-
-import transformers
 
 
 def get_result(response, ctxlen: int) -> Tuple[float, bool]:
@@ -100,16 +99,10 @@ class OpenaiCompletionsLM(LM):
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )
         self.model = model
-        # self.tokenizer = tiktoken.encoding_for_model(self.model)
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-            self.model,
-            revision="main",
-            trust_remote_code=False,
-            use_fast=True,
-        )
+        self.tokenizer = tiktoken.encoding_for_model(self.model)
         self.vocab_size = self.tokenizer.vocab
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.eos_token
+        self.end_of_text_token_id = self.tokenizer.eot_token
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
 
@@ -366,7 +359,7 @@ def oa_chat_completion(client, **kwargs):
 class OpenaiChatCompletionsLM(LM):
     def __init__(
         self,
-        model: str = "text-davinci-003",
+        model: str = "gpt-3.5-turbo",
         truncate: bool = False,
         base_url: str = None,
         batch_size: int = 1,
@@ -396,7 +389,7 @@ class OpenaiChatCompletionsLM(LM):
         self.temperature = 1
         self.top_p = 1
         self.tokenizer = tiktoken.encoding_for_model(self.model)
-        self.vocab_size = self.tokenizer.vocab
+        self.vocab_size = self.tokenizer.n_vocab
         self.truncate = truncate
         self.end_of_text_token_id = self.tokenizer.eot_token
 
