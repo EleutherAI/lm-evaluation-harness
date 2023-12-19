@@ -395,19 +395,13 @@ class OpenaiChatCompletionsLM(LM):
         self.presence_penalty = 0
         self.temperature = 1
         self.top_p = 1
-        # self.tokenizer = tiktoken.encoding_for_model(self.model)
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-            self.model,
-            revision="main",
-            trust_remote_code=False,
-            use_fast=True,
-        )
+        self.tokenizer = tiktoken.encoding_for_model(self.model)
         self.vocab_size = self.tokenizer.vocab
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.eos_token
+        self.end_of_text_token_id = self.tokenizer.eot_token
 
         # Read from environment variable OPENAI_API_KEY
-        self.client = openai.OpenAI(base_url=self.base_url)  # openai.AsyncOpenAI()
+        self.client = openai.OpenAI()  # openai.AsyncOpenAI()
 
     @property
     def eot_token_id(self):
@@ -555,11 +549,6 @@ class OpenaiChatCompletionsLM(LM):
 
 @register_model("local-chat-completions")
 class LocalChatCompletionsLM(OpenaiChatCompletionsLM):
-    """
-    Implements an OpenAI-style chat completion API for locally-hosted models
-    You can pass in the model name (if Hugging-Face style naming) and tokenizer.
-    """
-
     def __init__(
         self,
         model: str = None,
@@ -568,6 +557,11 @@ class LocalChatCompletionsLM(OpenaiChatCompletionsLM):
         batch_size=None,
     ) -> None:
         """
+        Implements an OpenAI-style chat completion API for locally-hosted models using HuggingFace Tokenizer
+        in place of tiktoken
+        Pass in the model name (if Hugging-Face style naming) and tokenizer. via cli args
+        e.g,
+        lm_eval --model local-chat-completions --tasks gsm8k --model_args model=facebook/opt-125m,base_url=http://{yourip}:8000/v1
 
         :param model: str
             Local model (Using HuggingFace model paths, e.g. facebook/opt-125m)
