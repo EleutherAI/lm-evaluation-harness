@@ -154,7 +154,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
 please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
             )
-        
+
         if not requests:
             return []
 
