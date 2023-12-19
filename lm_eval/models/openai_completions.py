@@ -5,11 +5,14 @@ from collections import defaultdict
 from importlib.util import find_spec
 from typing import List, Optional, Tuple
 
+
 from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
+
+import transformers
 
 
 def get_result(response, ctxlen: int) -> Tuple[float, bool]:
@@ -97,14 +100,20 @@ class OpenaiCompletionsLM(LM):
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )
         self.model = model
-        self.tokenizer = tiktoken.encoding_for_model(self.model)
-        self.vocab_size = self.tokenizer.n_vocab
+        # self.tokenizer = tiktoken.encoding_for_model(self.model)
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            self.model,
+            revision="main",
+            trust_remote_code=False,
+            use_fast=True,
+        )
+        self.vocab_size = self.tokenizer.vocab
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.eot_token
+        self.end_of_text_token_id = self.tokenizer.eos_token
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
 
-        # Read from environment variable OPENAI_API_SECRET_KEY
+        # Read from environment variable OPENAI_API_KEY
         openai.api_key = os.environ["OPENAI_API_KEY"]
 
     @property
@@ -356,7 +365,11 @@ def oa_chat_completion(client, **kwargs):
 @register_model("openai-chat-completions")
 class OpenaiChatCompletionsLM(LM):
     def __init__(
-        self, model: str = "gpt-3.5-turbo", truncate: bool = False, batch_size: int = 1
+        self,
+        model: str = "text-davinci-003",
+        truncate: bool = False,
+        base_url: str = None,
+        batch_size: int = 1,
     ) -> None:
         """
 
@@ -374,6 +387,7 @@ class OpenaiChatCompletionsLM(LM):
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )
+        self.base_url = base_url
         self.model = model
         self.frequency_penalty = 0
         self.logit_bias = None
@@ -381,13 +395,19 @@ class OpenaiChatCompletionsLM(LM):
         self.presence_penalty = 0
         self.temperature = 1
         self.top_p = 1
-        self.tokenizer = tiktoken.encoding_for_model(self.model)
-        self.vocab_size = self.tokenizer.n_vocab
+        # self.tokenizer = tiktoken.encoding_for_model(self.model)
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            self.model,
+            revision="main",
+            trust_remote_code=False,
+            use_fast=True,
+        )
+        self.vocab_size = self.tokenizer.vocab
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.eot_token
+        self.end_of_text_token_id = self.tokenizer.eos_token
 
         # Read from environment variable OPENAI_API_KEY
-        self.client = openai.OpenAI()  # openai.AsyncOpenAI()
+        self.client = openai.OpenAI(base_url=self.base_url)  # openai.AsyncOpenAI()
 
     @property
     def eot_token_id(self):
@@ -480,11 +500,11 @@ class OpenaiChatCompletionsLM(LM):
                             until = [kwargs]
                         elif not isinstance(until, list):
                             raise ValueError(
-                                f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
+                                f"Expected repr(kwargs['until']) to be of type Union[str, list] but got {until}"
                             )
                 else:
                     raise ValueError(
-                        f"Expected `kwargs` to be of type `dict` but got {kwargs}"
+                        f"Expected repr(kwargs) to be of type repr(dict) but got {kwargs}"
                     )
 
                 if "max_gen_toks" in kwargs.keys():
@@ -531,3 +551,57 @@ class OpenaiChatCompletionsLM(LM):
 
     def loglikelihood_rolling(self, requests):
         raise NotImplementedError("No support for logits.")
+
+
+@register_model("local-chat-completions")
+class LocalChatCompletionsLM(OpenaiChatCompletionsLM):
+    """
+    Implements an OpenAI-style chat completion API for locally-hosted models
+    You can pass in the model name (if Hugging-Face style naming) and tokenizer.
+    """
+
+    def __init__(
+        self,
+        model: str = None,
+        base_url: str = None,
+        truncate: bool = False,
+        batch_size=None,
+    ) -> None:
+        """
+
+        :param model: str
+            Local model (Using HuggingFace model paths, e.g. facebook/opt-125m)
+        :param truncate: bool
+            Truncate input if too long (if False and input is too long, throw error)
+        """
+        super(LocalChatCompletionsLM, self).__init__(model, base_url)
+        self.model = model
+        self.base_url = base_url
+        assert self.base_url, "must pass `base_url` to use Local LM!"
+        self.frequency_penalty = 0
+        self.logit_bias = None
+        self.n = 1
+        self.presence_penalty = 0
+        self.temperature = 1
+        self.top_p = 1
+        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+            self.model,
+            revision="main",
+            trust_remote_code=False,
+            use_fast=True,
+        )
+        self.vocab_size = self.tokenizer.vocab
+        self.truncate = truncate
+        self.end_of_text_token_id = self.tokenizer.eos_token
+
+        try:
+            import openai  # noqa: E401
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
+    please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
+            )
+
+        # Read from environment variable OPENAI_API_KEY
+        # Set to EMPTY for local
+        self.client = openai.OpenAI(base_url=self.base_url)
