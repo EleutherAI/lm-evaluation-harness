@@ -51,16 +51,21 @@ We also provide a number of optional dependencies for extended functionality. Ex
 | Name          | Use                                   |
 | ------------- | ------------------------------------- |
 | anthropic     | For using Anthropic's models          |
-| dev           | You probably don't want to use this   |
+| dev           | For linting PRs and contributions     |
 | gptq          | For loading models with GPTQ          |
-| testing       | You probably don't want to use this   |
+| ifeval        | For running the IFEval task           |
+| linting       | For extra linters + dev tools         |
+| mamba         | For loading Mamba SSM models          |
+| math          | For running math task answer checking |
 | multilingual  | For multilingual tokenizers           |
 | openai        | For using OpenAI's models             |
-| promptsource  | For using PromtSource prompts         |
+| promptsource  | For using PromptSource prompts        |
 | sentencepiece | For using the sentencepiece tokenizer |
+| testing       | For running library test suite        |
 | vllm          | For loading models with vLLM          |
-| mamba         | For loading Mamba models              |
-| all           | Loads all extras                      |
+| ------------- | ------------------------------------- |
+| all           | Loads all extras (not recommended)    |
+
 
 ## Basic Usage
 
