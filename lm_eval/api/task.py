@@ -15,7 +15,7 @@ from tqdm import tqdm
 import datasets
 import numpy as np
 
-from typing import Union, List, Any, Tuple, Literal
+from typing import Union, List, Any, Tuple, Literal, Dict
 from collections.abc import Callable
 
 from lm_eval import utils
@@ -47,7 +47,6 @@ ALL_OUTPUT_TYPES = [
     "loglikelihood_rolling",
     "generate_until",
 ]
-
 
 eval_logger = logging.getLogger("lm-eval")
 
@@ -1191,11 +1190,43 @@ class ConfigurableTask(Task):
 
         return result_dict
 
-    def aggregation(self):
+    def aggregation(self) -> Dict:
         return self._aggregation_list
 
-    def higher_is_better(self):
+    def higher_is_better(self) -> Dict:
         return self._higher_is_better
+
+    def get_config(self, key: str) -> Any:
+        return self.config.get(key, None)
+
+    def override_metric(self, metric_name: str) -> None:
+        """
+        Override the default metrics used for evaluation with custom metrics.
+
+        Parameters:
+        - metric_name (str): The name of the custom metric to override. Should be registered in api.metrics.
+        """
+        (
+            self._metric_fn_list,
+            self._aggregation_list,
+            self._metric_fn_kwargs,
+            self._higher_is_better,
+        ) = ({}, {}, {}, {})
+        self._metric_fn_list[metric_name] = get_metric(metric_name)
+        self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
+        self._higher_is_better[metric_name] = is_higher_better(metric_name)
+        self._metric_fn_kwargs[metric_name] = {}
+        self.config["metric_list"] = [{"metric": metric_name}]
+        self.config["process_results"] = None
+
+    def override_config(
+        self, key: str = None, value: Any = None, update: bool = False
+    ) -> None:
+        if update:
+            assert isinstance(value, dict)
+            self.config[key].update(value)
+        else:
+            self.config[key] = value
 
 
 class MultipleChoiceTask(Task):

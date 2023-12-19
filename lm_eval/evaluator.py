@@ -24,6 +24,8 @@ from lm_eval.utils import (
     eval_logger,
 )
 
+# flake8: noqa
+
 
 @positional_deprecated
 def simple_evaluate(
@@ -128,39 +130,37 @@ def simple_evaluate(
     task_dict = lm_eval.tasks.get_task_dict(tasks)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
-        if type(task_obj) == tuple:
+        if isinstance(task_obj, tuple):
             group, task_obj = task_obj
             if task_obj is None:
                 continue
 
-        config = task_obj._config
         if predict_only:
             log_samples = True
             eval_logger.info(
                 f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
             )
             # we have to change the class properties post-hoc. This is pretty hacky.
-            task_obj._metric_fn_list = {"bypass": lambda x: None}
-            task_obj._metric_fn_kwargs = {"bypass": {}}
-            task_obj._aggregation_list = {"bypass": lambda x: -1}
-            config["metric_list"] = [{"metric": "bypass"}]
+            task_obj.override_metrics(metric_name="bypass")
 
-        if config["output_type"] == "generate_until" and gen_kwargs is not None:
-            config["generation_kwargs"].update(gen_kwargs)
+        if (
+            task_obj.get_config("output_type") == "generate_until"
+            and gen_kwargs is not None
+        ):
+            task_obj.override_config(
+                key="generation_kwargs", value=gen_kwargs, update=True
+            )
 
         if num_fewshot is not None:
-            if config["num_fewshot"] == 0:
+            if default_num_fewshot := task_obj.get_config("num_fewshot") == 0:
                 eval_logger.info(
                     f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
                 )
             else:
-                default_num_fewshot = config["num_fewshot"]
                 eval_logger.warning(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
-
-                config["num_fewshot"] = num_fewshot
-        task_obj._config = config
+                task_obj.override_config(key="num_fewshot", value=num_fewshot)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
