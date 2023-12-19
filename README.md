@@ -220,7 +220,7 @@ We expect `output_path` to contain multiple folders that represent individual mo
 You can thus run your evaluation on any number of tasks and models and upload all of the results as projects on Zeno.
 
 ```bash
-python -m lm_eval \
+lm_eval \
     --model hf \
     --model_args pretrained=EleutherAI/gpt-j-6B \
     --tasks hellaswag \
@@ -233,7 +233,7 @@ python -m lm_eval \
 Then, you can upload the resulting data using the `zeno_visualize` script:
 
 ```bash
-python zeno_visualize.py \
+python scripts/zeno_visualize.py \
     --data_path output \
     --project_name "Eleuther Project"
 ```
