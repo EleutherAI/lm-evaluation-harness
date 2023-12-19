@@ -79,6 +79,10 @@ all = [
     "lm_eval[vllm]",
     "lm_eval[ifeval]",
 ]
+
+[tool.ruff]
+extend-exclude = ["lm_eval/evaluator.py"]
+
 [tool.ruff.isort]
 lines-after-imports = 2
 known-first-party = ["lm_eval"]
