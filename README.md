@@ -38,6 +38,7 @@ We also provide a number of optional dependencies for . Extras can be installed 
 | promptsource  | For using PromtSource prompts         |
 | sentencepiece | For using the sentencepiece tokenizer |
 | vllm          | For loading models with vLLM          |
+| zeno          | For visualizing results with Zeno     |
 | all           | Loads all extras                      |
 
 ## Basic Usage
