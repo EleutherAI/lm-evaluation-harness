@@ -38,6 +38,8 @@ repos:
           - --per-file-ignores=__init__.py:F401,lm_eval/tasks/*.py:E721
         # Run the formatter.
       - id: ruff-format
+        args:
+          - --exclude=evaluator.py
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0
     hooks:
