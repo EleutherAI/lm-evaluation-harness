@@ -577,7 +577,7 @@ class LocalChatCompletionsLM(OpenaiChatCompletionsLM):
         )
         self.vocab_size = self.tokenizer.vocab
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.eos_token
+        self.end_of_text_token_id = self.tokenizer.eot_token
 
         try:
             import openai  # noqa: E401
@@ -701,7 +701,6 @@ class LocalChatCompletionsLM(OpenaiChatCompletionsLM):
                         messages=inps,
                         model=self.model,
                         frequency_penalty=self.frequency_penalty,
-                        # logit_bias=self.logit_bias,
                         max_tokens=max_gen_toks,
                         n=self.n,
                         presence_penalty=self.presence_penalty,
