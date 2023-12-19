@@ -216,6 +216,8 @@ Add this key as an environment variable:
 export ZENO_API_KEY=[your api key]
 ```
 
+You'll also need to install the `lm_eval[zeno]` package extra.
+
 To visualize the results, run the eval harness with the `log_samples` and `output_path` flags.
 We expect `output_path` to contain multiple folders that represent individual model names.
 You can thus run your evaluation on any number of tasks and models and upload all of the results as projects on Zeno.
