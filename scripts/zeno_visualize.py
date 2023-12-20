@@ -7,6 +7,8 @@ from pathlib import Path
 import pandas as pd
 from zeno_client import ZenoClient, ZenoMetric
 
+from lm_eval.utils import eval_logger
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -53,9 +55,13 @@ def main():
         tasks.intersection(set(model_tasks))
         
         if task_count != len(tasks):
-            eval_logger.warning(f"All models must have the same tasks. {model} has tasks: {model_tasks} but have already recorded tasks: {tasks}. Taking intersection {tasks}")
+            eval_logger.warning(
+                f"All models must have the same tasks. {model} has tasks: {model_tasks} but have already recorded tasks: {tasks}. Taking intersection {tasks}"
+            )
 
-    assert len(tasks) > 0, "Must provide at least one task in common amongst models to compare."
+    assert (
+        len(tasks) > 0
+    ), "Must provide at least one task in common amongst models to compare."
 
     for task in tasks:
         # Upload data for all models
