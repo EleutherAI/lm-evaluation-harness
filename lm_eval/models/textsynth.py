@@ -155,7 +155,7 @@ class TextSynthLM(LM):
                 self.cache_hook.add_partial("generate_until", (inp, request_args), s)
             else:
                 logger.error(
-                    f"The following response does not contain generated `text`. "
+                    "The following response does not contain generated `text`. "
                     "Got:\n{resp}"
                 )
                 assert False

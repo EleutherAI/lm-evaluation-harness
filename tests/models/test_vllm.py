@@ -1,9 +1,10 @@
-import pytest
 from typing import List
-from lm_eval.api.instance import Instance
-import lm_eval.tasks as tasks
-import sys
+
+import pytest
 import torch
+
+import lm_eval.tasks as tasks
+from lm_eval.api.instance import Instance
 
 
 @pytest.mark.skip(reason="requires CUDA")

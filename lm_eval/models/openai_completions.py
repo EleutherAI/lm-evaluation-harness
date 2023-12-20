@@ -1,6 +1,7 @@
-import os
 import copy
+import os
 from collections import defaultdict
+from importlib.util import find_spec
 from typing import List, Optional, Tuple
 
 from tqdm import tqdm
@@ -44,13 +45,13 @@ def oa_completion(**kwargs):
 
     Retry with back-off until they respond
     """
-    try:
-        import openai, tiktoken  # noqa: E401
-    except ModuleNotFoundError:
+    if not find_spec("openai") or not find_spec("tiktoken"):
         raise Exception(
-            "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
-please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
+            "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. "
+            "Please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`"
         )
+    else:
+        import openai
 
     def _exception_callback(e: Exception, sleep_time: float) -> None:
         import traceback
@@ -92,7 +93,8 @@ class OpenaiCompletionsLM(LM):
         super().__init__()
         self.seed = seed
         try:
-            import openai, tiktoken  # noqa: E401
+            import openai  # noqa: E401
+            import tiktoken
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
@@ -158,8 +160,9 @@ class OpenaiCompletionsLM(LM):
         for context, continuation in [req.args for req in requests]:
             if context == "":
                 # end of text as context
-                context_enc, continuation_enc = [self.eot_token_id], self.tok_encode(
-                    continuation
+                context_enc, continuation_enc = (
+                    [self.eot_token_id],
+                    self.tok_encode(continuation),
                 )
             else:
                 context_enc, continuation_enc = self._encode_pair(context, continuation)
@@ -330,13 +333,13 @@ def oa_chat_completion(client, **kwargs):
 
     Retry with back-off until they respond
     """
-    try:
-        import openai, tiktoken  # noqa: E401
-    except ModuleNotFoundError:
+    if not find_spec("openai") or not find_spec("tiktoken"):
         raise Exception(
-            "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
-please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
+            "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. "
+            "Please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`"
         )
+    else:
+        import openai
 
     def _exception_callback(e: Exception, sleep_time: float) -> None:
         import traceback
@@ -368,7 +371,8 @@ class OpenaiChatCompletionsLM(LM):
         """
         super().__init__()
         try:
-            import openai, tiktoken  # noqa: E401
+            import openai  # noqa: E401
+            import tiktoken
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
