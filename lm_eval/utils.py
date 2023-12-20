@@ -1,25 +1,23 @@
-import os
-import re
-import sys
-import yaml
-import inspect
-import pathlib
-import functools
-import subprocess
 import collections
-import importlib.util
 import fnmatch
-
-from typing import Iterator, List, Literal, Union, Any, Callable
-
+import functools
 import gc
+import importlib.util
+import inspect
+import logging
+import os
+import pathlib
+import re
+import subprocess
+import sys
+from itertools import islice
+from typing import Any, Callable, Iterator, List, Literal, Union
+
 import torch
 import transformers
-
+import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
-from itertools import islice
 
-import logging
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
@@ -143,7 +141,7 @@ class MultiChoice:
     def __contains__(self, values) -> bool:
         for value in values.split(","):
             if len(fnmatch.filter(self.choices, value)) == 0:
-                eval_logger.info(f"Available tasks to choose:")
+                eval_logger.info("Available tasks to choose:")
                 for choice in self.choices:
                     eval_logger.info(f"  - {choice}")
                 raise ValueError("'{}' is not in task list".format(value))
@@ -157,7 +155,7 @@ class MultiChoice:
 # Returns a list containing all values of the source_list that
 # match at least one of the patterns
 def pattern_match(patterns, source_list):
-    if type(patterns) == str:
+    if isinstance(patterns, str):
         patterns = [patterns]
 
     task_names = set()
@@ -332,7 +330,7 @@ class Grouper:
 
 def make_table(result_dict, column: str = "results"):
     """Generate table of results."""
-    from pytablewriter import MarkdownTableWriter, LatexTableWriter
+    from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
     if column == "results":
         column_name = "Tasks"
@@ -466,7 +464,7 @@ def import_function(loader, node):
     yaml_path = os.path.dirname(loader.name)
 
     *module_name, function_name = function_name.split(".")
-    if type(module_name) == list:
+    if isinstance(module_name, list):
         module_name = ".".join(module_name)
     module_path = os.path.normpath(os.path.join(yaml_path, "{}.py".format(module_name)))
 
@@ -496,7 +494,7 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
         include_path = yaml_config["include"]
         del yaml_config["include"]
 
-        if type(include_path) == str:
+        if isinstance(include_path, str):
             include_path = [include_path]
 
         # Load from the last one first

@@ -1,12 +1,10 @@
 import yaml
-import inspect
 import datasets
 
 from tqdm import tqdm
 
 
 def main() -> None:
-
     dataset_path = "EleutherAI/advanced_ai_risk"
     for task in tqdm(datasets.get_dataset_infos(dataset_path).keys()):
         file_name = f"{task}.yaml"

@@ -13,9 +13,11 @@ Homepage: https://textsynth.com/index.html
 """
 import logging
 import os
-import requests as _requests
 import time
+
+import requests as _requests
 from tqdm import tqdm
+
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 
@@ -149,7 +151,7 @@ class TextSynthLM(LM):
                 self.cache_hook.add_partial("generate_until", (inp, request_args), s)
             else:
                 logger.error(
-                    f"The following response does not contain generated `text`. "
+                    "The following response does not contain generated `text`. "
                     "Got:\n{resp}"
                 )
                 assert False

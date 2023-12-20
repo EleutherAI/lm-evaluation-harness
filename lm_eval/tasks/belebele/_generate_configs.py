@@ -23,7 +23,6 @@ def parse_args():
 
 
 if __name__ == "__main__":
-
     args = parse_args()
 
     # get filename of base_yaml so we can `"include": ` it in our other YAMLs.

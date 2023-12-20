@@ -24,7 +24,6 @@ def parse_args():
 
 
 if __name__ == "__main__":
-
     args = parse_args()
 
     # get filename of base_yaml so we can `"include": ` it in our other YAMLs.
@@ -37,7 +36,6 @@ if __name__ == "__main__":
 
     dataset_path = "lukaemon/bbh"
     for task in tqdm(datasets.get_dataset_infos(dataset_path).keys()):
-
         resp = requests.get(
             f"https://raw.githubusercontent.com/suzgunmirac/BIG-Bench-Hard/main/cot-prompts/{task}.txt"
         ).content.decode("utf-8")

@@ -62,7 +62,6 @@ def parse_answer(answer):
 
 
 def process_results(doc, results):
-
     preds, golds = results, doc["answers"]
     max_em = 0
     max_f1 = 0

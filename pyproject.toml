@@ -54,14 +54,7 @@ Homepage = "https://github.com/EleutherAI/lm-evaluation-harness"
 Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [project.optional-dependencies]
-dev = ["black", "flake8", "pre-commit", "pytest", "pytest-cov"]
-linting = [
-    "flake8",
-    "pylint",
-    "mypy",
-    "pre-commit",
-]
-testing = ["pytest", "pytest-cov", "pytest-xdist"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
 sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
@@ -88,3 +81,17 @@ all = [
     "lm_eval[ifeval]",
     "lm_eval[zeno]",
 ]
+
+[tool.ruff]
+extend-exclude = ["lm_eval/evaluator.py", "lm_eval/tasks/*.py"]
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.isort]
+lines-after-imports = 2
+known-first-party = ["lm_eval"]
+
+[tool.ruff.extend-per-file-ignores]
+"__init__.py" = ["F401","F402","F403","I"]
+"lm_eval/tasks/*"= ["E721"]

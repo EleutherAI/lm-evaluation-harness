@@ -3,7 +3,6 @@ from functools import partial
 
 
 def process_docs(dataset, set_answer_type="bool"):
-
     FEATURES = ["title", "abstract", "question", "answer", "answer_type"]
 
     def _categorise_answer(answer_blob):
