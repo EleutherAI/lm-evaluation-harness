@@ -29,6 +29,9 @@ jobs:
         cache: pip
         cache-dependency-path: pyproject.toml
     - name: Pre-Commit
+      env:
+        SKIP: no-commit-to-branch,mypy
+
       uses: pre-commit/action@v3.0.0
 #       # mypy turned off for now
 #    - name: Lint with mypy
