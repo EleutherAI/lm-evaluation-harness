@@ -1,11 +1,12 @@
 import copy
 import os
 import time
-from collections import defaultdict
+
 from importlib.util import find_spec
-from typing import List, Optional, Tuple
+from typing import List, Tuple, Optional, Dict
 
-
+import copy
+from collections import defaultdict
 
 from tqdm import tqdm
 import transformers
@@ -366,7 +367,14 @@ class OpenaiChatCompletionsLM(LM):
         revision: Optional[str] = "main",
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
+        frequency_penalty: Optional[float] = 0,
+        logit_bias: Optional[Dict[str, int]] = None,
+        n: Optional[int] = 1,
+        presence_penalty: Optional[float] = 0,
+        temperature: Optional[float] = 1,
+        top_p: Optional[float] = 1,
         batch_size=None,
+        **gen_kwargs,
     ) -> None:
         """
 
@@ -375,6 +383,7 @@ class OpenaiChatCompletionsLM(LM):
             accessing both OpenAI OR locally-hosted models using
             HuggingFace Tokenizer
             OpenAI API model (e.g. gpt-3.5-turbo)
+            using the **gen_kwargs passed on init
         :param truncate: bool
             Truncate input if too long (if False and input is too long, throw error)
         """
@@ -389,13 +398,8 @@ class OpenaiChatCompletionsLM(LM):
             )
         self.model = model
         self.base_url = base_url
-        self.frequency_penalty = 0
-        self.logit_bias = None
-        self.n = 1
-        self.presence_penalty = 0
-        self.temperature = 1
-        self.top_p = 1
         self.truncate = truncate
+        self.gen_kwargs = gen_kwargs
 
         # if we have a local model, use HF tokenizer over tiktoken
         if self.base_url:
@@ -504,10 +508,12 @@ class OpenaiChatCompletionsLM(LM):
                 contexts, all_gen_kwargs = zip(*chunk)
                 inps = [{"role": "user", "content": context} for context in contexts]
 
-                gen_kwargs = all_gen_kwargs[0]
+                context_gen_kwargs = all_gen_kwargs[0]
                 until = None
-                if isinstance(gen_kwargs, dict):
-                    kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                if isinstance(context_gen_kwargs, dict):
+                    kwargs = copy.deepcopy(
+                        context_gen_kwargs
+                    )  # edge case for repeats > 1
                     if "until" in kwargs.keys():
                         until = kwargs.pop("until")
                         if isinstance(until, str):
@@ -521,21 +527,16 @@ class OpenaiChatCompletionsLM(LM):
                         f"Expected repr(kwargs) to be of type repr(dict) but got {kwargs}"
                     )
 
-                if "max_gen_toks" in kwargs.keys():
-                    max_gen_toks = kwargs.pop("max_gen_toks")
-                else:
-                    max_gen_toks = self.max_gen_toks
+                # TODO: Assert that passed in by user in gen_kwargs match the OpenAI API
+                # e.g. warning if some gen_kwarg (say, do_sample=True) invalid for OpenAI is passed by the user
+                if not until:
+                    until = [self.tok_decode(self.eot_token_id)]
 
                 response = oa_chat_completion(
                     client=self.client,
                     messages=inps,
                     model=self.model,
-                    frequency_penalty=self.frequency_penalty,
-                    max_tokens=max_gen_toks,
-                    n=self.n,
-                    presence_penalty=self.presence_penalty,
-                    temperature=self.temperature,
-                    top_p=self.top_p,
+                    **self.gen_kwargs,
                 )
 
                 for resp, (context, args_) in zip(response.choices, chunk):
