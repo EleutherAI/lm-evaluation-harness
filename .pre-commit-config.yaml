@@ -17,10 +17,6 @@ repos:
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: no-commit-to-branch
-        stages:
-          - pre-commit
-          - pre-push
-          - manual
         always_run: false
       - id: requirements-txt-fixer
       - id: trailing-whitespace
