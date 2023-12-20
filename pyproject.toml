@@ -72,7 +72,6 @@ gptq = ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"]
 anthropic = ["anthropic"]
 openai = ["openai==1.3.9", "tiktoken"]
 vllm = ["vllm"]
-zeno = ["pandas", "zeno-client"]
 ifeval = ["langdetect", "immutabledict"]
 zeno = ["pandas", "zeno-client"]
 all = [
