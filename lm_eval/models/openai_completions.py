@@ -356,16 +356,24 @@ def oa_chat_completion(client, **kwargs):
             backoff_time *= 1.5
 
 
-@register_model("openai-chat-completions")
+@register_model("openai-chat-completions", "local-chat-completions")
 class OpenaiChatCompletionsLM(LM):
     def __init__(
         self,
-        model: str = "gpt-3.5-turbo",
+        model: str = "gpt-3.5-turbo",  # GPT model or Local model using HuggingFace model paths
+        base_url: str = None,
         truncate: bool = False,
+        revision: Optional[str] = "main",
+        trust_remote_code: Optional[bool] = False,
+        use_fast_tokenizer: Optional[bool] = True,
+        batch_size=None,
     ) -> None:
         """
 
         :param model: str
+            Implements an OpenAI-style chat completion API for
+            accessing both OpenAI OR locally-hosted models using
+            HuggingFace Tokenizer
             OpenAI API model (e.g. gpt-3.5-turbo)
         :param truncate: bool
             Truncate input if too long (if False and input is too long, throw error)
@@ -380,19 +388,40 @@ class OpenaiChatCompletionsLM(LM):
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )
         self.model = model
+        self.base_url = base_url
         self.frequency_penalty = 0
         self.logit_bias = None
         self.n = 1
         self.presence_penalty = 0
         self.temperature = 1
         self.top_p = 1
-        self.tokenizer = tiktoken.encoding_for_model(self.model)
-        self.vocab_size = self.tokenizer.n_vocab
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.eot_token
+
+        # if we have a local model, use HF tokenizer over tiktoken
+        if self.base_url:
+            self.revision = revision
+            self.trust_remote_code = trust_remote_code
+            self.use_fast_tokenizer = use_fast_tokenizer
+
+            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+                self.model,
+                revision=self.revision,
+                trust_remote_code=self.trust_remote_code,
+                use_fast_tokenizer=self.use_fast_tokenizer,
+            )
+            self.vocab_size = self.tokenizer.vocab
+            self.end_of_text_token_id = self.tokenizer.eos_token
+        else:
+            self.tokenizer = tiktoken.encoding_for_model(self.model)
+            self.vocab_size = self.tokenizer.n_vocab
+            self.end_of_text_token_id = self.tokenizer.eot_token
 
         # Read from environment variable OPENAI_API_KEY
-        self.client = openai.OpenAI()  # openai.AsyncOpenAI()
+        # Set to EMPTY for local
+        if self.base_url:
+            self.client = openai.OpenAI(base_url=self.base_url)
+        else:
+            self.client = openai.OpenAI()  # openai.AsyncOpenAI()
 
     @property
     def eot_token_id(self):
@@ -502,7 +531,6 @@ class OpenaiChatCompletionsLM(LM):
                     messages=inps,
                     model=self.model,
                     frequency_penalty=self.frequency_penalty,
-                    # logit_bias=self.logit_bias,
                     max_tokens=max_gen_toks,
                     n=self.n,
                     presence_penalty=self.presence_penalty,
@@ -536,201 +564,3 @@ class OpenaiChatCompletionsLM(LM):
 
     def loglikelihood_rolling(self, requests):
         raise NotImplementedError("No support for logits.")
-
-
-@register_model("local-chat-completions")
-class LocalChatCompletionsLM(OpenaiChatCompletionsLM):
-    def __init__(
-        self,
-        model: str = None,
-        base_url: str = None,
-        truncate: bool = False,
-        batch_size=None,
-    ) -> None:
-        """
-        Implements an OpenAI-style chat completion API for locally-hosted models using HuggingFace Tokenizer
-        in place of tiktoken
-        Pass in the model name (if Hugging-Face style naming) and tokenizer. via cli args
-        e.g,
-        lm_eval --model local-chat-completions --tasks gsm8k --model_args model=facebook/opt-125m,base_url=http://{yourip}:8000/v1
-
-        :param model: str
-            Local model (Using HuggingFace model paths, e.g. facebook/opt-125m)
-        :param truncate: bool
-            Truncate input if too long (if False and input is too long, throw error)
-        """
-        super(OpenaiChatCompletionsLM, self).__init__()
-        self.model = model
-        self.base_url = base_url
-        assert self.base_url, "must pass `base_url` to use Local LM!"
-        self.frequency_penalty = 0
-        self.logit_bias = None
-        self.n = 1
-        self.presence_penalty = 0
-        self.temperature = 1
-        self.top_p = 1
-        self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-            self.model,
-            revision="main",
-            trust_remote_code=False,
-            use_fast=True,
-        )
-        self.vocab_size = self.tokenizer.vocab
-        self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.eot_token
-
-        try:
-            import openai  # noqa: E401
-        except ModuleNotFoundError:
-            raise Exception(
-                "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
-    please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
-            )
-
-        # Read from environment variable OPENAI_API_KEY
-        # Set to EMPTY for local
-        self.client = openai.OpenAI(base_url=self.base_url)
-
-        @property
-        def eot_token_id(self):
-            return self.end_of_text_token_id
-
-        @property
-        def max_length(self) -> int:
-            # Note: the OpenAI API supports up to 2049 tokens, with the first token being the first input token
-            return 2048
-
-        @property
-        def max_gen_toks(self) -> int:
-            return 256
-
-        @property
-        def batch_size(self):
-            # Isn't used because we override _loglikelihood_tokens
-            raise NotImplementedError()
-
-        @property
-        def device(self):
-            # Isn't used because we override _loglikelihood_tokens
-            raise NotImplementedError()
-
-        def tok_encode(self, string: str) -> List[int]:
-            return self.tokenizer.encode(string)
-
-        def tok_decode(self, tokens: List[int]) -> str:
-            return self.tokenizer.decode(tokens)
-
-        def _encode_pair(
-            self, context: str, continuation: str
-        ) -> Tuple[List[int], List[int]]:
-            n_spaces = len(context) - len(context.rstrip())
-            if n_spaces > 0:
-                continuation = context[-n_spaces:] + continuation
-                context = context[:-n_spaces]
-            whole_enc = self.tok_encode(context + continuation)
-            context_enc = self.tok_encode(context)
-            context_enc_len = len(context_enc)
-            continuation_enc = whole_enc[context_enc_len:]
-            return context_enc, continuation_enc
-
-        def generate_until(self, requests) -> List[str]:
-            res = defaultdict(list)
-            re_ords = {}
-
-            def _collate(x):
-                toks = self.tok_encode(x[0])
-                return -len(toks), x[0]
-
-            # we group requests by their generation_kwargs,
-            # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
-            # in the same batch.
-            grouper = utils.Grouper(requests, lambda x: str(x.args[1]))
-            for key, reqs in grouper.get_grouped().items():
-                # within each set of reqs for given kwargs, we reorder by token length, descending.
-                re_ords[key] = utils.Reorderer([req.args for req in reqs], _collate)
-
-            def sameuntil_chunks(xs, size):
-                ret = []
-                lastuntil = xs[0][1]
-                for x in xs:
-                    if len(ret) >= size or x[1] != lastuntil:
-                        yield ret, lastuntil
-                        ret = []
-                        lastuntil = x[1]
-                    ret.append(x)
-
-                if ret:
-                    yield ret, lastuntil
-
-            pbar = tqdm(total=len(requests), disable=(self.rank != 0))
-            for key, re_ord in re_ords.items():
-                # n needs to be 1 because messages in
-                # chat completion are not batch but
-                # is regarded as a single conversation.
-                chunks = utils.chunks(re_ord.get_reordered(), n=1)
-                for chunk in chunks:
-                    contexts, all_gen_kwargs = zip(*chunk)
-                    inps = [
-                        {"role": "user", "content": context} for context in contexts
-                    ]
-
-                    gen_kwargs = all_gen_kwargs[0]
-                    until = None
-                    if isinstance(gen_kwargs, dict):
-                        kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                        if "until" in kwargs.keys():
-                            until = kwargs.pop("until")
-                            if isinstance(until, str):
-                                until = [kwargs]
-                            elif not isinstance(until, list):
-                                raise ValueError(
-                                    f"Expected repr(kwargs['until']) to be of type Union[str, list] but got {until}"
-                                )
-                    else:
-                        raise ValueError(
-                            f"Expected repr(kwargs) to be of type repr(dict) but got {kwargs}"
-                        )
-
-                    if "max_gen_toks" in kwargs.keys():
-                        max_gen_toks = kwargs.pop("max_gen_toks")
-                    else:
-                        max_gen_toks = self.max_gen_toks
-
-                    response = oa_chat_completion(
-                        client=self.client,
-                        messages=inps,
-                        model=self.model,
-                        frequency_penalty=self.frequency_penalty,
-                        max_tokens=max_gen_toks,
-                        n=self.n,
-                        presence_penalty=self.presence_penalty,
-                        temperature=self.temperature,
-                        top_p=self.top_p,
-                    )
-
-                    for resp, (context, args_) in zip(response.choices, chunk):
-                        s = resp.message.content
-
-                        if until is not None:
-                            for term in until:
-                                if len(term) > 0:
-                                    s = s.split(term)[0]
-
-                        res[key].append(s)
-
-                        self.cache_hook.add_partial(
-                            "generate_until", (context, {"until": until}), s
-                        )
-                        pbar.update(1)
-                # reorder this group of results back to original unsorted form
-                res[key] = re_ord.get_original(res[key])
-
-            pbar.close()
-
-            return grouper.get_original(res)
-
-        def loglikelihood(self, requests):
-            raise NotImplementedError("No support for logits.")
-
-        def loglikelihood_rolling(self, requests):
-            raise NotImplementedError("No support for logits.")
