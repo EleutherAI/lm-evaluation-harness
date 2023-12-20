@@ -56,7 +56,7 @@ def main():
         
         if task_count != len(tasks):
             eval_logger.warning(
-                f"All models must have the same tasks. {model} has tasks: {model_tasks} but have already recorded tasks: {tasks}. Taking intersection {tasks}"
+                f"All models must have the same tasks. {model} has tasks: {model_tasks} but have already recorded tasks: {old_tasks}. Taking intersection {tasks}"
             )
 
     assert (
