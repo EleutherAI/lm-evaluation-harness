@@ -529,9 +529,6 @@ class OpenaiChatCompletionsLM(LM):
 
                 # TODO: Assert that passed in by user in gen_kwargs match the OpenAI API
                 # e.g. warning if some gen_kwarg (say, do_sample=True) invalid for OpenAI is passed by the user
-                if not until:
-                    until = [self.tok_decode(self.eot_token_id)]
-
                 response = oa_chat_completion(
                     client=self.client,
                     messages=inps,
