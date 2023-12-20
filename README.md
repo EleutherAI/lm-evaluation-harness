@@ -59,6 +59,7 @@ We also provide a number of optional dependencies for extended functionality. Ex
 | promptsource  | For using PromtSource prompts         |
 | sentencepiece | For using the sentencepiece tokenizer |
 | vllm          | For loading models with vLLM          |
+| zeno          | For visualizing results with Zeno     |
 | all           | Loads all extras                      |
 
 ## Basic Usage
@@ -224,6 +225,45 @@ To save evaluation results provide an `--output_path`. We also support logging m
 Additionally, one can provide a directory with `--use_cache` to cache the results of prior runs. This allows you to avoid repeated execution of the same (model, task) pairs for re-scoring.
 
 For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
+
+## Visualizing Results
+
+You can use [Zeno](https://zenoml.com) to visualize the results of your eval harness runs.
+
+First, head to [hub.zenoml.com](hub.zenoml.com) to create an account and get an API key [on your account page](hub.zenoml.com/account).
+Add this key as an environment variable:
+
+```bash
+export ZENO_API_KEY=[your api key]
+```
+
+You'll also need to install the `lm_eval[zeno]` package extra.
+
+To visualize the results, run the eval harness with the `log_samples` and `output_path` flags.
+We expect `output_path` to contain multiple folders that represent individual model names.
+You can thus run your evaluation on any number of tasks and models and upload all of the results as projects on Zeno.
+
+```bash
+lm_eval \
+    --model hf \
+    --model_args pretrained=EleutherAI/gpt-j-6B \
+    --tasks hellaswag \
+    --device cuda:0 \
+    --batch_size 8 \
+    --log_samples \
+    --output_path output/gpt-j-6B
+```
+
+Then, you can upload the resulting data using the `zeno_visualize` script:
+
+```bash
+python scripts/zeno_visualize.py \
+    --data_path output \
+    --project_name "Eleuther Project"
+```
+
+This will use all subfolders in `data_path` as different models and upload all tasks within these model folders to Zeno.
+If you run the eval harness on multiple tasks, the `project_name` will be used as a prefix and one project will be created per task.
 
 ## How to Contribute or Learn More?
 
