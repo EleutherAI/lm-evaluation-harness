@@ -55,6 +55,6 @@ repos:
     hooks:
     - id: mypy
       stages:
-        - pre-commit
+        - commit
       additional_dependencies: [".[sentencepiece,multilingual,promptsource,gptq]", "types-PyYAML", "types-requests"]
       exclude: ^tests/.*$
