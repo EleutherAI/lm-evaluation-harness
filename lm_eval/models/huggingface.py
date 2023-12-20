@@ -1,29 +1,28 @@
+import copy
 import os
-from packaging import version
+from collections import defaultdict
+from pathlib import Path
+from typing import List, Literal, Optional, Tuple, Union
+
 import torch
+import torch.nn.functional as F
 import transformers
+from accelerate import Accelerator, DistributedType, find_executable_batch_size
+from packaging import version
+from peft import PeftModel
+from peft import __version__ as PEFT_VERSION
+from tqdm import tqdm
 from transformers.models.auto.modeling_auto import (
     MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,
     MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES,
 )
-from peft import __version__ as PEFT_VERSION, PeftModel
-
-import copy
-from collections import defaultdict
-from tqdm import tqdm
-from pathlib import Path
-
-import torch.nn.functional as F
 
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
+from lm_eval.utils import stop_sequences_criteria
 
-from lm_eval.utils import MultiTokenEOSCriteria, stop_sequences_criteria
-
-from accelerate import Accelerator, find_executable_batch_size, DistributedType
-from typing import List, Optional, Union, Tuple, Literal
 
 eval_logger = utils.eval_logger
 
@@ -107,9 +106,7 @@ class HFLM(LM):
             eval_logger.warning(
                 "`pretrained` model kwarg is not of type `str`. Many other model arguments may be ignored. Please do not launch via accelerate or use `parallelize=True` if passing an existing model this way."
             )
-            assert (
-                not parallelize
-            ), "`parallelize=True` is not compatible with passing pre-initialized model to `pretrained`"
+            assert not parallelize, "`parallelize=True` is not compatible with passing pre-initialized model to `pretrained`"
             self._model = pretrained
             self._device = self._model.device
 
@@ -279,10 +276,13 @@ class HFLM(LM):
                             "with 'accelerate launch *script*'. "
                             f"Current run will proceed with {accelerator.num_processes} devices."
                         )
-                    assert accelerator.distributed_type in [
-                        DistributedType.FSDP,
-                        DistributedType.MULTI_GPU,
-                    ], "Unsupported distributed type provided. Only DDP and FSDP are supported."
+                    assert (
+                        accelerator.distributed_type
+                        in [
+                            DistributedType.FSDP,
+                            DistributedType.MULTI_GPU,
+                        ]
+                    ), "Unsupported distributed type provided. Only DDP and FSDP are supported."
                     if accelerator.distributed_type == DistributedType.FSDP:
                         self._model = accelerator.prepare(self.model)
                     else:
@@ -417,7 +417,6 @@ class HFLM(LM):
         revision: str = "main",
         trust_remote_code: bool = False,
     ) -> None:
-
         self._config = transformers.AutoConfig.from_pretrained(
             pretrained,
             revision=revision,
@@ -751,8 +750,9 @@ class HFLM(LM):
         for context, continuation in [req.args for req in requests]:
             if context == "":
                 # end of text as context
-                context_enc, continuation_enc = [self.eot_token_id], self.tok_encode(
-                    continuation
+                context_enc, continuation_enc = (
+                    [self.eot_token_id],
+                    self.tok_encode(continuation),
                 )
             else:
                 context_enc, continuation_enc = self._encode_pair(context, continuation)
@@ -995,9 +995,7 @@ class HFLM(LM):
                 greedy_tokens = logits.argmax(dim=-1)
                 cont_toks = torch.tensor(
                     cont_toks, dtype=torch.long, device=self.device
-                ).unsqueeze(
-                    0
-                )  # [1, seq]
+                ).unsqueeze(0)  # [1, seq]
                 max_equal = (greedy_tokens == cont_toks).all()
 
                 # Obtain log-probs at the corresponding continuation token indices

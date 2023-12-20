@@ -3,14 +3,12 @@ import string
 import collections
 import numpy as np
 
-from tqdm import tqdm
-from datasets import Dataset, concatenate_datasets
+from datasets import Dataset
 
 from lm_eval.api.metrics import metric_max_over_ground_truths
 
 
 def doc_to_text(doc):
-
     passage = doc["passage"]
     passage = re.sub(r"(\.|\?|\!|\"|\')\n@highlight\n", r"\1 ", passage)
     passage = re.sub(r"\n@highlight\n", ". ", passage)
@@ -34,7 +32,6 @@ def process_docs(dataset):
         }
         answers = doc.pop("answers")
         for idx, answer in enumerate(answers):
-
             for key in split_doc.keys():
                 if key in doc:
                     split_doc[key].append(doc[key])

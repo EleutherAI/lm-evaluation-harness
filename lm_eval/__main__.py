@@ -1,17 +1,18 @@
+import argparse
+import json
+import logging
 import os
 import re
 import sys
-import json
-import logging
-import argparse
-import numpy as np
-
 from pathlib import Path
 from typing import Union
 
+import numpy as np
+
 from lm_eval import evaluator, utils
-from lm_eval.tasks import initialize_tasks, include_path
 from lm_eval.api.registry import ALL_TASKS
+from lm_eval.tasks import include_path, initialize_tasks
+from lm_eval.utils import make_table
 
 
 def _handle_non_serializable(o):
@@ -170,7 +171,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         task_names = ALL_TASKS
     elif args.tasks == "list":
         eval_logger.info(
-            "Available Tasks:\n - {}".format(f"\n - ".join(sorted(ALL_TASKS)))
+            "Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS)))
         )
         sys.exit()
     else:
@@ -271,9 +272,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
             f"batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
         )
-        print(evaluator.make_table(results))
+        print(make_table(results))
         if "groups" in results:
-            print(evaluator.make_table(results, "groups"))
+            print(make_table(results, "groups"))
 
 
 if __name__ == "__main__":

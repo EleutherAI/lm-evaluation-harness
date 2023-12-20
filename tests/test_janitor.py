@@ -1,11 +1,10 @@
-import re
 from collections import defaultdict
 
 from lm_eval.decontamination.janitor import (
     Janitor,
     form_ngrams,
-    word_ngrams,
     split_indices,
+    word_ngrams,
     word_ngrams_indices,
 )
 
@@ -81,7 +80,6 @@ def test_split_indices():
 
 
 def test_word_ngrams_indices():
-
     sequence = (
         "Hello my name is Bob, I like eating pizza, chicken, chips and ice cream. Maybe I should eat some"
         " more salad but it's so booooring. I just... like eating pizza, chicken, chips and ice cream so much."
@@ -119,9 +117,9 @@ def test_word_ngrams_indices():
 # Assumptions from GPT3 Paper:
 # the 200 characters to remove include punctuation and is actually a half-window
 
+
 # All tests below initially test without any registered contaminants, expecting the same sequence back.
 def test_janitor1():
-
     # First test using a 1gram and expected the first block before the filth to have some remaining
     # characters, but the second block should be completely removed.
 
@@ -165,7 +163,6 @@ def test_janitor1():
 
 
 def test_janitor2():
-
     # Second test using a 1gram and expected the first block before the filth to have some remaining
     # characters, and the second block is longer then 200 characters so should also have some remaining.
 
@@ -214,7 +211,6 @@ def test_janitor2():
 
 
 def test_janitor3():
-
     # Same test as above but with a 6gram.
 
     sequence = (
@@ -262,7 +258,6 @@ def test_janitor3():
 
 
 def test_janitor4():
-
     # This test adds another block to that from the previous. The middle block should be entirely
     # removed as the 200 characters are removed from each side.
 
@@ -318,7 +313,6 @@ def test_janitor4():
 
 
 def test_janitor5():
-
     # Same as above but using multiple different filth 6grams.
 
     sequence = (
@@ -374,7 +368,6 @@ def test_janitor5():
 
 
 def test_janitor6():
-
     # Same as above but now we add 10 filths and expect the same result, the following test does 11.
 
     sequence = (
@@ -438,7 +431,6 @@ def test_janitor6():
 
 
 def test_janitor7():
-
     # Same as above but now we add 9 filths and expect the same result, the following test does 10.
 
     sequence = (

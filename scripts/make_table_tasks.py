@@ -4,8 +4,10 @@ Usage:
 """
 import argparse
 import logging
-from lm_eval import tasks
+
 from pytablewriter import MarkdownTableWriter
+
+from lm_eval import tasks
 
 
 logging.basicConfig(level=logging.INFO)

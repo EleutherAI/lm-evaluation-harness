@@ -94,7 +94,6 @@ LANGUAGES = {
 
 
 def add_regex_pattern(regex_pattern):
-
     if regex_pattern is None:
         return {}
     return {

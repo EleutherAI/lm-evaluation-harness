@@ -1,8 +1,6 @@
 import random
 import itertools
-import json
 import collections
-import sys
 
 import torch
 
@@ -17,8 +15,6 @@ import lm_eval.api.registry
 from lm_eval.utils import (
     positional_deprecated,
     run_task_tests,
-    make_table,
-    create_iterator,
     get_git_commit_hash,
     simple_parse_args_string,
     eval_logger,
@@ -91,7 +87,7 @@ def simple_evaluate(
     if gen_kwargs is not None:
         gen_kwargs = simple_parse_args_string(gen_kwargs)
         eval_logger.warning(
-            f"generation_kwargs specified through cli, these settings will be used over set parameters in yaml tasks."
+            "generation_kwargs specified through cli, these settings will be used over set parameters in yaml tasks."
         )
         if gen_kwargs == "":
             gen_kwargs = None
@@ -118,7 +114,9 @@ def simple_evaluate(
             use_cache
             # each rank receives a different cache db.
             # necessary to avoid multiple writes to cache at once
-            + "_rank" + str(lm.rank) + ".db",
+            + "_rank"
+            + str(lm.rank)
+            + ".db",
         )
 
     task_dict = lm_eval.tasks.get_task_dict(tasks)
@@ -513,9 +511,7 @@ def evaluate(
                                 ) + total_size * current_size / (
                                     (total_size + current_size)
                                     * (total_size + current_size - 1)
-                                ) * (
-                                    results[group][metric] - metric_score
-                                ) ** 2
+                                ) * (results[group][metric] - metric_score) ** 2
                             else:
                                 results[group][metric] = metric_score
                                 results[group][stderr] = var_score
