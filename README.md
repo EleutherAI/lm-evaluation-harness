@@ -52,7 +52,7 @@ We also provide a number of optional dependencies for extended functionality. Ex
 |---------------|---------------------------------------|
 | anthropic     | For using Anthropic's models          |
 | gptq          | For loading models with GPTQ          |
-| testing       | You probably don't want to use this   |
+| dev           | You probably don't want to use this   |
 | multilingual  | For multilingual tokenizers           |
 | openai        | For using OpenAI's models             |
 | promptsource  | For using PromtSource prompts         |
