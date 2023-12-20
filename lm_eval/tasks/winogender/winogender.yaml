@@ -1,13 +1,12 @@
 group:
   - social_bias
-  - winogender
 task: winogender
 dataset_path: oskarvanderwal/winogender
-dataset_name: default
+dataset_name: all
 test_split: test
-doc_to_text: "{{sentence}}\n‘{{pronoun.capitalize()}}’ refers to"
+doc_to_text: "{{sentence}} ‘{{pronoun.capitalize()}}’ refers to the"
 doc_to_target: label
-doc_to_choice: ["{{occupation}}", "{{participant}}"]
+doc_to_choice: "{{[occupation, participant]}}"
 output_type: multiple_choice
 metric_list:
   - metric: acc
