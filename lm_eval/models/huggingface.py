@@ -142,9 +142,7 @@ class HFLM(LM):
                     + [f"cuda:{i}" for i in range(torch.cuda.device_count())]
                     + ["mps", "mps:0"]
                 )
-                if device:
-                    if device not in device_list:
-                        device = int(device)
+                if device and device in device_list:
                     self._device = torch.device(device)
                     eval_logger.info(f"Using device '{device}'")
                     if device in ("mps", "mps:0") and version.parse(
