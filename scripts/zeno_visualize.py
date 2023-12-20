@@ -50,7 +50,7 @@ def main():
         task_count = len(tasks)
         
         model_tasks = tasks_for_model(model, args.data_path)
-        tasks.intersect(set(model_tasks))
+        tasks.intersection(set(model_tasks))
         
         if task_count != len(tasks):
             eval_logger.warning(f"All models must have the same tasks. {model} has tasks: {model_tasks} but have already recorded tasks: {tasks}. Taking intersection {tasks}")
