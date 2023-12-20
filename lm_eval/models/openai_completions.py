@@ -396,7 +396,6 @@ class OpenaiChatCompletionsLM(LM):
         self.model = model
         self.base_url = base_url
         self.truncate = truncate
-        self.kwargs = kwargs
 
         # if we have a local model, use HF tokenizer over tiktoken
         if self.base_url:
