@@ -49,7 +49,7 @@ def main():
         old_tasks = tasks.copy()
         task_count = len(tasks)
         
-        model_tasks = tasks_for_model(model, args.data_path))
+        model_tasks = tasks_for_model(model, args.data_path)
         tasks.intersect(set(model_tasks))
         
         if task_count != len(tasks):
