@@ -1,4 +1,5 @@
 # GLUE
+**NOTE**: GLUE benchmark tasks do not provide publicly accessible labels for their test sets, so we default to the validation sets for all sub-tasks.
 
 ### Paper
 

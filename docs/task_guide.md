@@ -46,8 +46,8 @@ Scoring details:
 - **generation_kwargs** (`dict`, *optional*) — Auxiliary arguments for the `generate` function from HF transformers library. Advanced keyword arguments may not be supported for non-HF LM classes.
 - **repeats** (`int`, *optional*, defaults to 1) — Number of repeated runs through model for each sample. can be used for cases such as self-consistency.
 - **filter_list** (`Union[str, list]`, *optional*) — List of filters to postprocess model outputs. See below for further detail on the filter API.
-- **should_decontaminate** (`bool`, *optional*, defaults to False) -
-- **doc_to_decontamination_query** (`str`, *optional*) —
+- **should_decontaminate** (`bool`, *optional*, defaults to False) - Whether to decontaminate or not.
+- **doc_to_decontamination_query** (`str`, *optional*) — Query for decontamination if `should_decontaminate` is True. If `should_decontaminate` is True but `doc_to_decontamination_query` is `None`, `doc_to_decontamination_query` will follow `doc_to_text`.
 
 Other:
 - **metadata** (`Union[str, list]`, *optional*) — An optional field where arbitrary metadata can be passed. A good example would be `version` that is used to denote the version of the yaml config.
@@ -219,6 +219,49 @@ Aggregation functions:
 * `weighted_perplexity`
 * `bits_per_byte`
 
+### Adding a Multiple Choice Metric
+
+Adding a multiple choice metric has a few steps. To get it working you need to:
+
+1. register a metric function
+2. register an aggregation function
+3. update the `Task` definition to make sure the correct arguments are passed
+
+The default metric and aggregation functions are in `lm_eval/api/metrics.py`, and you can add a function there if it's for general use. The metrics are towards the bottom of the file and look like this:
+
+
+    @register_metric(
+        metric="mcc",
+        higher_is_better=True,
+        output_type="multiple_choice",
+        aggregation="matthews_corrcoef",
+    )
+    def mcc_fn(items):  # This is a passthrough function
+        return items
+
+Note that many of these are passthrough functions, and for multiple choice (at least) this function is never actually called.
+
+Aggregation functions are defined towards the top of the file, here's an example:
+
+    @register_aggregation("matthews_corrcoef")
+    def matthews_corrcoef(items):
+        unzipped_list = list(zip(*items))
+        golds = unzipped_list[0]
+        preds = unzipped_list[1]
+        return sklearn.metrics.matthews_corrcoef(golds, preds)
+
+This function returns a single numeric value. The input is defined in `Task.process_results` in `lm_eval/api/task.py`. There's a section that looks like this:
+
+
+    result_dict = {
+        **({"acc": acc} if "acc" in use_metric else {}),
+        **({"f1": (gold, pred)} if "f1" in use_metric else {}),
+        **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
+        **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
+        **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
+    }
+
+The value here determines the input to the aggregation function, though the name used matches the metric function. These metrics all have simple needs and just need the accuracy or gold and predicted values, but immediately below this there are examples of metrics with more complicated needs you can use as reference.
 
 ## Good Reference Tasks
 

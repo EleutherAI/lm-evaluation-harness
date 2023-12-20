@@ -1,0 +1,3 @@
+"dataset_name": "Political-Science-and-Sociology"
+"include": "_default_kmmlu_yaml"
+"task": "kmmlu_political_science_and_sociology"

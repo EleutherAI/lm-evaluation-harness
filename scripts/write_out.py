@@ -12,7 +12,7 @@ EXAMPLE_DIVIDER = "!!@@##@@!! -- Example {i}\n"
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output_base_path", required=True)
+    parser.add_argument("--output_base_path", "--output_path", required=True)
     parser.add_argument("--tasks", default="all_tasks")
     parser.add_argument("--sets", type=str, default="val")  # example: val,test
     parser.add_argument("--num_fewshot", type=int, default=1)
@@ -51,6 +51,8 @@ def main():
 
     os.makedirs(args.output_base_path, exist_ok=True)
     for task_name, task in task_dict.items():
+        if type(task) == tuple:
+            group_name, task = task
         rnd = random.Random()
         rnd.seed(args.seed)
 

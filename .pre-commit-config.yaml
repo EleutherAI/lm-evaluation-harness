@@ -17,8 +17,10 @@ repos:
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: no-commit-to-branch
+        always_run: false
       - id: requirements-txt-fixer
       - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
       - id: fix-byte-order-marker
         exclude: docs/CNAME
       - id: fix-encoding-pragma
