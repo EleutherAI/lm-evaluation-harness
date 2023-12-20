@@ -1,15 +1,12 @@
 import copy
 import os
 import time
-
-from importlib.util import find_spec
-from typing import List, Tuple, Optional, Dict
-
-import copy
 from collections import defaultdict
+from importlib.util import find_spec
+from typing import Dict, List, Optional, Tuple
 
-from tqdm import tqdm
 import transformers
+from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api.model import LM
