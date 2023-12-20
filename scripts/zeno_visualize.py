@@ -43,13 +43,19 @@ def main():
 
     assert len(models) > 0, "No model directories found in the data_path."
 
-    tasks = tasks_for_model(models[0], args.data_path)
+    tasks = set(tasks_for_model(models[0], args.data_path))
 
     for model in models:  # Make sure that all models have the same tasks.
-        model_tasks = tasks_for_model(model, args.data_path)
-        assert (
-            model_tasks == tasks
-        ), f"All models must have the same tasks.\n\n{model} has tasks: {model_tasks}\n{models[0]} has tasks: {tasks}"
+        old_tasks = tasks.copy()
+        task_count = len(tasks)
+        
+        model_tasks = tasks_for_model(model, args.data_path))
+        tasks.intersect(set(model_tasks))
+        
+        if task_count != len(tasks):
+            eval_logger.warning(f"All models must have the same tasks. {model} has tasks: {model_tasks} but have already recorded tasks: {tasks}. Taking intersection {tasks}")
+
+    assert len(tasks) > 0, "Must provide at least one task in common amongst models to compare."
 
     for task in tasks:
         # Upload data for all models
