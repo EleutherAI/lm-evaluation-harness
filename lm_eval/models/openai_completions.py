@@ -5,6 +5,7 @@ from collections import defaultdict
 from importlib.util import find_spec
 from typing import List, Optional, Tuple
 
+import transformers
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -104,7 +105,7 @@ class OpenaiCompletionsLM(LM):
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
 
-        # Read from environment variable OPENAI_API_SECRET_KEY
+        # Read from environment variable OPENAI_API_KEY
         openai.api_key = os.environ["OPENAI_API_KEY"]
 
     @property
@@ -353,15 +354,26 @@ def oa_chat_completion(client, **kwargs):
             backoff_time *= 1.5
 
 
-@register_model("openai-chat-completions")
+@register_model("openai-chat-completions", "local-chat-completions")
 class OpenaiChatCompletionsLM(LM):
     def __init__(
-        self, model: str = "gpt-3.5-turbo", truncate: bool = False, batch_size: int = 1
+        self,
+        model: str = "gpt-3.5-turbo",  # GPT model or Local model using HuggingFace model paths
+        base_url: str = None,
+        truncate: bool = False,
+        revision: Optional[str] = "main",
+        trust_remote_code: Optional[bool] = False,
+        use_fast_tokenizer: Optional[bool] = True,
+        **kwargs,
     ) -> None:
         """
 
         :param model: str
+            Implements an OpenAI-style chat completion API for
+            accessing both OpenAI OR locally-hosted models using
+            HuggingFace Tokenizer
             OpenAI API model (e.g. gpt-3.5-turbo)
+            using the **gen_kwargs passed on init
         :param truncate: bool
             Truncate input if too long (if False and input is too long, throw error)
         """
@@ -375,19 +387,34 @@ class OpenaiChatCompletionsLM(LM):
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )
         self.model = model
-        self.frequency_penalty = 0
-        self.logit_bias = None
-        self.n = 1
-        self.presence_penalty = 0
-        self.temperature = 1
-        self.top_p = 1
-        self.tokenizer = tiktoken.encoding_for_model(self.model)
-        self.vocab_size = self.tokenizer.n_vocab
+        self.base_url = base_url
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.eot_token
+
+        # if we have a local model, use HF tokenizer over tiktoken
+        if self.base_url:
+            self.revision = revision
+            self.trust_remote_code = trust_remote_code
+            self.use_fast_tokenizer = use_fast_tokenizer
+
+            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+                self.model,
+                revision=self.revision,
+                trust_remote_code=self.trust_remote_code,
+                use_fast_tokenizer=self.use_fast_tokenizer,
+            )
+            self.vocab_size = self.tokenizer.vocab
+            self.end_of_text_token_id = self.tokenizer.eos_token
+        else:
+            self.tokenizer = tiktoken.encoding_for_model(self.model)
+            self.vocab_size = self.tokenizer.n_vocab
+            self.end_of_text_token_id = self.tokenizer.eot_token
 
         # Read from environment variable OPENAI_API_KEY
-        self.client = openai.OpenAI()  # openai.AsyncOpenAI()
+        # Set to EMPTY for local
+        if self.base_url:
+            self.client = openai.OpenAI(base_url=self.base_url)
+        else:
+            self.client = openai.OpenAI()  # openai.AsyncOpenAI()
 
     @property
     def eot_token_id(self):
@@ -474,35 +501,23 @@ class OpenaiChatCompletionsLM(LM):
                 until = None
                 if isinstance(gen_kwargs, dict):
                     kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                    if "do_sample" in kwargs.keys():
+                        kwargs.pop("do_sample")
                     if "until" in kwargs.keys():
                         until = kwargs.pop("until")
                         if isinstance(until, str):
                             until = [kwargs]
                         elif not isinstance(until, list):
                             raise ValueError(
-                                f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
+                                f"Expected repr(kwargs['until']) to be of type Union[str, list] but got {until}"
                             )
                 else:
                     raise ValueError(
-                        f"Expected `kwargs` to be of type `dict` but got {kwargs}"
+                        f"Expected repr(kwargs) to be of type repr(dict) but got {kwargs}"
                     )
 
-                if "max_gen_toks" in kwargs.keys():
-                    max_gen_toks = kwargs.pop("max_gen_toks")
-                else:
-                    max_gen_toks = self.max_gen_toks
-
                 response = oa_chat_completion(
-                    client=self.client,
-                    messages=inps,
-                    model=self.model,
-                    frequency_penalty=self.frequency_penalty,
-                    # logit_bias=self.logit_bias,
-                    max_tokens=max_gen_toks,
-                    n=self.n,
-                    presence_penalty=self.presence_penalty,
-                    temperature=self.temperature,
-                    top_p=self.top_p,
+                    client=self.client, messages=inps, model=self.model, **kwargs
                 )
 
                 for resp, (context, args_) in zip(response.choices, chunk):
