@@ -3,7 +3,7 @@ import os
 import time
 from collections import defaultdict
 from importlib.util import find_spec
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import transformers
 from tqdm import tqdm
@@ -364,13 +364,6 @@ class OpenaiChatCompletionsLM(LM):
         revision: Optional[str] = "main",
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
-        frequency_penalty: Optional[float] = 0,
-        logit_bias: Optional[Dict[str, int]] = None,
-        n: Optional[int] = 1,
-        presence_penalty: Optional[float] = 0,
-        temperature: Optional[float] = 1,
-        top_p: Optional[float] = 1,
-        batch_size=None,
         **kwargs,
     ) -> None:
         """
