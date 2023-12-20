@@ -371,7 +371,7 @@ class OpenaiChatCompletionsLM(LM):
         temperature: Optional[float] = 1,
         top_p: Optional[float] = 1,
         batch_size=None,
-        **gen_kwargs,
+        **kwargs,
     ) -> None:
         """
 
@@ -396,7 +396,7 @@ class OpenaiChatCompletionsLM(LM):
         self.model = model
         self.base_url = base_url
         self.truncate = truncate
-        self.gen_kwargs = gen_kwargs
+        self.kwargs = kwargs
 
         # if we have a local model, use HF tokenizer over tiktoken
         if self.base_url:
@@ -505,12 +505,12 @@ class OpenaiChatCompletionsLM(LM):
                 contexts, all_gen_kwargs = zip(*chunk)
                 inps = [{"role": "user", "content": context} for context in contexts]
 
-                context_gen_kwargs = all_gen_kwargs[0]
+                gen_kwargs = all_gen_kwargs[0]
                 until = None
-                if isinstance(context_gen_kwargs, dict):
-                    kwargs = copy.deepcopy(
-                        context_gen_kwargs
-                    )  # edge case for repeats > 1
+                if isinstance(gen_kwargs, dict):
+                    kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                    if "do_sample" in kwargs.keys():
+                        kwargs.pop("do_sample")
                     if "until" in kwargs.keys():
                         until = kwargs.pop("until")
                         if isinstance(until, str):
@@ -524,13 +524,8 @@ class OpenaiChatCompletionsLM(LM):
                         f"Expected repr(kwargs) to be of type repr(dict) but got {kwargs}"
                     )
 
-                # TODO: Assert that passed in by user in gen_kwargs match the OpenAI API
-                # e.g. warning if some gen_kwarg (say, do_sample=True) invalid for OpenAI is passed by the user
                 response = oa_chat_completion(
-                    client=self.client,
-                    messages=inps,
-                    model=self.model,
-                    **self.gen_kwargs,
+                    client=self.client, messages=inps, model=self.model, **kwargs
                 )
 
                 for resp, (context, args_) in zip(response.choices, chunk):
