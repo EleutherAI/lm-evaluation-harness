@@ -1,20 +1,10 @@
+from typing import Optional, Union
+
 import torch
 
-import transformers
-from transformers import AutoTokenizer
-
-try:
-    from mamba_ssm.models.mixer_seq_simple import MambaLMHeadModel
-    from mamba_ssm.utils.hf import load_config_hf
-except ModuleNotFoundError:
-    pass
-
 from lm_eval import utils
-from lm_eval.api.model import LM
-from lm_eval.models.huggingface import HFLM
 from lm_eval.api.registry import register_model
-
-from typing import Literal, Optional, Union
+from lm_eval.models.huggingface import HFLM
 
 
 @register_model("mamba_ssm")
@@ -77,7 +67,6 @@ class MambaLMWrapper(HFLM):
         pretrained: str,
         **kwargs,
     ) -> None:
-
         try:
             from mamba_ssm.utils.hf import load_config_hf  # noqa: F811
         except ModuleNotFoundError:
@@ -97,7 +86,6 @@ please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba
         # Mamba does not support arbitrary HF from_pretrained() args
         **kwargs,
     ) -> None:
-
         try:
             from mamba_ssm.models.mixer_seq_simple import MambaLMHeadModel  # noqa: F811
         except ModuleNotFoundError:
