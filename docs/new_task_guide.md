@@ -315,6 +315,25 @@ python -m scripts.write_out \
 Open the file specified at the `--output_base_path <path>` and ensure it passes
 a simple eye test.
 
+## Versioning
+
+One key feature in LM Evaluation Harness is the ability to version tasks--that is, mark them with a specific version number that can be bumped whenever a breaking change is made.
+
+This version info can be provided by adding the following to your new task config file:
+
+```
+metadata:
+  version: 0
+```
+
+Now, whenever a change needs to be made to your task in the future, please increase the version number by 1 so that users can differentiate the different task iterations and versions.
+
+If you are incrementing a task's version, please also consider adding a changelog to the task's README.md noting the date, PR number, what version you have updated to, and a one-liner describing the change.
+
+for example,
+
+* \[Dec 25, 2023\] (PR #999) Version 0.0 -> 1.0: Fixed a bug with answer extraction that led to underestimated performance.
+
 ## Checking performance + equivalence
 
 It's now time to check models' performance on your task! In the evaluation harness, we intend to support a wide range of evaluation tasks and setups, but prioritize the inclusion of already-proven benchmarks following the precise evaluation setups in the literature where possible.

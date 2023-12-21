@@ -12,4 +12,4 @@ doc_to_choice: ['True', 'False']
 metric_list:
   - metric: acc
 metadata:
-  - version: 0.0
+  version: 0.0

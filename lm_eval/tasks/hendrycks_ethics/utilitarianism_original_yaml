@@ -13,4 +13,4 @@
 #   - metric: acc
 # TODO: we want this to be implemented as a winograd_schema task type, actually
 # metadata:
-#   - version: 1.0
+#   version: 1.0

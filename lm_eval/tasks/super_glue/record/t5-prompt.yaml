@@ -19,4 +19,4 @@ metric_list:
     aggregation: !function t5_utils.squad_f1_agg
     higher_is_better: true
 metadata:
-  - version: 0.0
+  version: 0.0

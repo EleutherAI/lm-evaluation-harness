@@ -7,4 +7,4 @@ doc_to_text: "Sentence: {{scenario}}\nQuestion: Does the character in this sente
 doc_to_target: label
 doc_to_choice: ['no', 'yes']
 metadata:
-  - version: 1.0
+  version: 1.0
