@@ -1,0 +1,14 @@
+group:
+  - social_bias
+task: bbq
+dataset_path: oskarvanderwal/bbq
+dataset_name: All
+test_split: test
+output_type: multiple_choice
+doc_to_text: "{{context}} {{question}}"
+doc_to_target: !function utils.doc_to_targets
+doc_to_choice: !function utils.doc_to_choice
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

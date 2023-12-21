@@ -1,0 +1,3 @@
+include: bbq_disambig.yaml
+task: bbq_race_x_gender_disambig
+dataset_name: Race_x_gender

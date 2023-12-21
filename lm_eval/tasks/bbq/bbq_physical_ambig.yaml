@@ -1,0 +1,3 @@
+include: bbq_ambig.yaml
+task: bbq_physical_appearance_ambig
+dataset_name: Physical_appearance

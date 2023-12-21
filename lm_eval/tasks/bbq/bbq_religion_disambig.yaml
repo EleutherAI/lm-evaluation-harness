@@ -1,0 +1,3 @@
+include: bbq_disambig.yaml
+task: bbq_religion_disambig
+dataset_name: Religion
