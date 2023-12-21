@@ -18,7 +18,7 @@ New updates and features include:
 
 Please see our updated documentation pages in `docs/` for more details.
 
-Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](discord.gg/eleutherai)!
+Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](https://discord.gg/eleutherai)!
 
 ## Overview
 
