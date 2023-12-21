@@ -376,7 +376,6 @@ class OpenaiChatCompletionsLM(LM):
         super().__init__()
         try:
             import openai  # noqa: E401
-            import tiktoken
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
