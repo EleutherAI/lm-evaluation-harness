@@ -1,11 +1,13 @@
 import argparse
-import numpy as np
-import json
 import os
 import random
+
+import numpy as np
+
 from lm_eval import tasks
-from lm_eval.utils import join_iters, eval_logger
-from lm_eval.tasks import initialize_tasks, include_path
+from lm_eval.tasks import include_path, initialize_tasks
+from lm_eval.utils import eval_logger, join_iters
+
 
 EXAMPLE_DIVIDER = "!!@@##@@!! -- Example {i}\n"
 

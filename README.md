@@ -49,16 +49,16 @@ pip install -e .
 We also provide a number of optional dependencies for extended functionality. Extras can be installed via `pip install -e ".[NAME]"`
 
 | Name          | Use                                   |
-| ------------- | ------------------------------------- |
+|---------------|---------------------------------------|
 | anthropic     | For using Anthropic's models          |
-| dev           | You probably don't want to use this   |
 | gptq          | For loading models with GPTQ          |
-| testing       | You probably don't want to use this   |
+| dev           | You probably don't want to use this   |
 | multilingual  | For multilingual tokenizers           |
 | openai        | For using OpenAI's models             |
 | promptsource  | For using PromtSource prompts         |
 | sentencepiece | For using the sentencepiece tokenizer |
 | vllm          | For loading models with vLLM          |
+| zeno          | For visualizing results with Zeno     |
 | all           | Loads all extras                      |
 
 ## Basic Usage
@@ -155,19 +155,24 @@ lm_eval --model openai-completions \
     --tasks lambada_openai,hellaswag
 ```
 
+We also support using your own local inference server with an implemented version of the OpenAI ChatCompletions endpoint and passing trained HuggingFace artifacts and tokenizers.
+
+```bash
+lm_eval --model local-chat-completions --tasks gsm8k --model_args model=facebook/opt-125m,base_url=http://{yourip}:8000/v1
+```
 Note that for externally hosted models, configs such as `--device` and `--batch_size` should not be used and do not function. Just like you can use `--model_args` to pass arbitrary arguments to the model constructor for local models, you can use it to pass arbitrary arguments to the model API for hosted models. See the documentation of the hosting service for information on what arguments they support.
 
 
-| API or Inference Server     | Implemented?                    | `--model <xxx>` name                                                           | Models supported:                                                                             | Request Types:                                           |
-|-----------------------------|---------------------------------|--------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|----------------------------------------------------------|
-| OpenAI Completions          | :heavy_check_mark:              | `openai-completions`                                              | up to `code-davinci-002`                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| OpenAI ChatCompletions      | :x: Not yet - needs testing!       | N/A                                                                            | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                 | `generate_until` (no logprobs)                             |
-| Anthropic                   | :heavy_check_mark:              | `anthropic`                                                                    | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)  | `generate_until` (no logprobs)                             |
-| Textsynth                   | :heavy_check_mark:                   | `textsynth`                                                                    | [All supported engines](https://textsynth.com/documentation.html#engines)                                                                                           | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Cohere                      | [:hourglass: - blocked on Cohere API bug](https://github.com/EleutherAI/lm-evaluation-harness/pull/395) | N/A                                                                            | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models)                        | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python))                        | :heavy_check_mark:              | `gguf`, `ggml`                                                                 | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)               | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| vLLM                        | :heavy_check_mark:       | `vllm`                                                                         | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
-| Your inference server here! | ...                             | ...                                                                            | ...                                                                                           | ...                                                      |                                | ...                                                      |
+| API or Inference Server                                                                                                   | Implemented?                    | `--model <xxx>` name                                                | Models supported:                                                                             | Request Types:                                             |
+|---------------------------------------------------------------------------------------------------------------------------|---------------------------------|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|------------------------------------------------------------|
+| OpenAI Completions                                                                                                        | :heavy_check_mark:              | `openai-completions` | up to `code-davinci-002`                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| OpenAI ChatCompletions                                                                                                    | :heavy_check_mark:        | `openai-chat-completions`, `local-chat-completions`                                                               | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                 | `generate_until` (no logprobs)                             |
+| Anthropic                                                                                                                 | :heavy_check_mark:              | `anthropic`                                                         | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)  | `generate_until` (no logprobs)                             |
+| Textsynth                                                                                                                 | :heavy_check_mark:                   | `textsynth`                                                         | [All supported engines](https://textsynth.com/documentation.html#engines)                     | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Cohere                                                                                                                    | [:hourglass: - blocked on Cohere API bug](https://github.com/EleutherAI/lm-evaluation-harness/pull/395) | N/A                                                                 | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models)                        | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)) | :heavy_check_mark:              | `gguf`, `ggml`                                                      | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)                   | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| vLLM                                                                                                                      | :heavy_check_mark:       | `vllm`                                                              | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
+| Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-chat-completions` (using `openai-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's ChatCompletions interface                                  | `generate_until`                                           |                                | ...                                                      |
 
 It is on our roadmap to create task variants designed to enable models which do not serve logprobs/loglikelihoods to be compared with generation performance of open-source models.
 
@@ -224,6 +229,45 @@ To save evaluation results provide an `--output_path`. We also support logging m
 Additionally, one can provide a directory with `--use_cache` to cache the results of prior runs. This allows you to avoid repeated execution of the same (model, task) pairs for re-scoring.
 
 For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
+
+## Visualizing Results
+
+You can use [Zeno](https://zenoml.com) to visualize the results of your eval harness runs.
+
+First, head to [hub.zenoml.com](hub.zenoml.com) to create an account and get an API key [on your account page](hub.zenoml.com/account).
+Add this key as an environment variable:
+
+```bash
+export ZENO_API_KEY=[your api key]
+```
+
+You'll also need to install the `lm_eval[zeno]` package extra.
+
+To visualize the results, run the eval harness with the `log_samples` and `output_path` flags.
+We expect `output_path` to contain multiple folders that represent individual model names.
+You can thus run your evaluation on any number of tasks and models and upload all of the results as projects on Zeno.
+
+```bash
+lm_eval \
+    --model hf \
+    --model_args pretrained=EleutherAI/gpt-j-6B \
+    --tasks hellaswag \
+    --device cuda:0 \
+    --batch_size 8 \
+    --log_samples \
+    --output_path output/gpt-j-6B
+```
+
+Then, you can upload the resulting data using the `zeno_visualize` script:
+
+```bash
+python scripts/zeno_visualize.py \
+    --data_path output \
+    --project_name "Eleuther Project"
+```
+
+This will use all subfolders in `data_path` as different models and upload all tasks within these model folders to Zeno.
+If you run the eval harness on multiple tasks, the `project_name` will be used as a prefix and one project will be created per task.
 
 ## How to Contribute or Learn More?
 
