@@ -151,7 +151,7 @@ To call a hosted model, use:
 ```bash
 export OPENAI_API_KEY=YOUR_KEY_HERE
 lm_eval --model openai-completions \
-    --model_args engine=davinci \
+    --model_args model=davinci \
     --tasks lambada_openai,hellaswag
 ```
 
