@@ -330,7 +330,7 @@ Now, whenever a change needs to be made to your task in the future, please incre
 
 If you are incrementing a task's version, please also consider adding a changelog to the task's README.md noting the date, PR number, what version you have updated to, and a one-liner describing the change.
 
-for example, 
+for example,
 
 * \[Dec 25, 2023\] (PR #999) Version 0.0 -> 1.0: Fixed a bug with answer extraction that led to underestimated performance.
 
