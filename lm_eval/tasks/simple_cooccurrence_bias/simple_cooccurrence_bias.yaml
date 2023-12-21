@@ -1,0 +1,17 @@
+group:
+  - social_bias
+task: simple_cooccurrence_bias
+dataset_path: oskarvanderwal/simple-cooccurrence-bias
+test_split: test
+output_type: multiple_choice
+doc_to_text: "{{sentence}}"
+doc_to_target: [0,1]
+doc_to_choice: ["female","woman","male","man"]
+process_results: !function utils.process_results
+metric_list:
+ - metric: likelihood_diff
+   aggregation: mean
+   higher_is_better: false
+ - metric: pct_male_preferred
+   aggregation: mean
+   higher_is_better: false
