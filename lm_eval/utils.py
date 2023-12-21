@@ -11,7 +11,17 @@ import re
 import subprocess
 import sys
 from itertools import islice
-from typing import Any, Callable, Iterator, List, Literal, Union
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import torch
 import transformers
@@ -124,13 +134,21 @@ def chunks(iter, n: int = 0, fn=None):
         yield arr
 
 
-def group(arr, fn):
+def group(arr: Iterable, fn: Callable, values: bool = False) -> Iterable:
     res = collections.defaultdict(list)
 
     for ob in arr:
-        res[fn(ob)].append(ob)
-
-    return list(res.values())
+        try:
+            res[fn(ob)].append(ob)
+        except TypeError:
+            hashable_dict = tuple(
+                (key, tuple(value) if isinstance(value, list) else value)
+                for key, value in sorted(ob[1][1].items())
+            )
+            res[hashable_dict].append(ob)
+    if not values:
+        return res
+    return res.values()
 
 
 class MultiChoice:
@@ -714,3 +732,72 @@ def divide(iterable, n) -> List[Iterator]:
         ret.append(iter(seq[start:stop]))
 
     return ret
+
+
+class ReorderBatch:
+    def __init__(
+        self,
+        arr: List,
+        fn: Callable = lambda x: x,
+        generate: bool = False,
+        batch_size: int = 1,
+    ) -> None:
+        self.batch_size = batch_size
+        self.generate = generate
+        self.fn = fn
+
+        self.reorderlist: List = []
+        self.size = len(arr)
+        self.batch_size = batch_size
+        self.arr_with_indices: Iterable[Any] = tuple(enumerate(arr))  # [indices, (arr)]
+        print("done")
+        if self.generate is True:
+            grouping_fn = lambda x: x[1][1]  # noqa E731
+            self.arr_with_indices = group(
+                self.arr_with_indices, grouping_fn, values=False
+            )  # defaultdict(list) # type: ignore
+
+    def get_batched(
+        self, n: int = 1, batch_fn: Optional[Callable[[int, Iterable], int]] = None
+    ) -> Iterator:
+        """Gets the reordered array"""
+        if self.generate:
+            self.arr_with_indices = self.arr_with_indices
+            for (
+                key,
+                values,
+            ) in self.arr_with_indices.items():  # type: ignore
+                values = self.reorder(values)
+                batch = chunks(values, n=n, fn=batch_fn)
+                return batch
+        else:
+            values = self.reorder(self.arr_with_indices)  # type: ignore
+            batch = chunks(values, n=n, fn=batch_fn)
+            return batch
+
+    def reorder(self, arr: Union[List, Tuple[Tuple[int, Any], ...]]) -> List:
+        arr = sorted(arr, key=lambda x: self.fn(x[1]))
+        self.reorderlist.append([x[0] for x in arr])
+        return [x[1] for x in arr]
+
+    def get_original(self, newarr: List) -> List:
+        try:
+            self.reorderlist = [
+                item for sublist in self.reorderlist for item in sublist
+            ]
+        except TypeError:
+            pass
+
+        res = [None] * self.size
+        cov = [False] * self.size
+
+        for ind, v in zip(self.reorderlist, newarr):
+            res[ind] = v
+            cov[ind] = True
+
+        assert all(cov)
+
+        return res
+
+    def __len__(self):
+        return self.size
