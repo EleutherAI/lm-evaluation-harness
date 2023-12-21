@@ -31,4 +31,4 @@ filter_list:
       - function: "majority_vote"
       - function: "take_first"
 metadata:
-  - version: 0.0
+  version: 0.0
