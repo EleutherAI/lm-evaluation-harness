@@ -18,7 +18,7 @@ New updates and features include:
 
 Please see our updated documentation pages in `docs/` for more details.
 
-Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](discord.gg/eleutherai)!
+Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](https://discord.gg/eleutherai)!
 
 ## Overview
 
@@ -65,7 +65,7 @@ We also provide a number of optional dependencies for extended functionality. Ex
 
 ### Hugging Face `transformers`
 
-To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command:
+To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command (this assumes you are using a CUDA-compatible GPU):
 
 ```bash
 lm_eval --model hf \
