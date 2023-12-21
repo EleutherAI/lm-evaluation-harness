@@ -269,6 +269,8 @@ python scripts/zeno_visualize.py \
 This will use all subfolders in `data_path` as different models and upload all tasks within these model folders to Zeno.
 If you run the eval harness on multiple tasks, the `project_name` will be used as a prefix and one project will be created per task.
 
+You can find an example of this workflow in [examples/visualize-zeno.ipynb](examples/visualize-zeno.ipynb).
+
 ## How to Contribute or Learn More?
 
 For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
