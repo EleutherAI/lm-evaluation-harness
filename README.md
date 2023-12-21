@@ -65,7 +65,7 @@ We also provide a number of optional dependencies for extended functionality. Ex
 
 ### Hugging Face `transformers`
 
-To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command:
+To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command (this assumes you are using a CUDA-compatible GPU):
 
 ```bash
 lm_eval --model hf \
@@ -74,8 +74,6 @@ lm_eval --model hf \
     --device cuda:0 \
     --batch_size 8
 ```
-> [!Note]
-> If you are running this on a device with Apple ARM GPUs such as a Macbook M1, set the device flag to `--device mps:0`.
 
 Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partially trained checkpoints, or to specify the datatype for running a model:
 
