@@ -3,7 +3,7 @@ import os
 import time
 from collections import defaultdict
 from importlib.util import find_spec
-from typing import List, Literal, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from tqdm import tqdm
 
@@ -422,7 +422,7 @@ class OpenaiChatCompletionsLM(LM):
         grouper = utils.Grouper(requests, lambda x: str(x.args[1]))
         for key, reqs in grouper.get_grouped().items():
             # within each set of reqs for given kwargs, we reorder by token length, descending.
-            re_ords[key] = utils.Reorderer([req.args for req in reqs])
+            re_ords[key] = utils.Reorderer([req.args for req in reqs], lambda x: (-len(x[0]), x[0]))
 
         pbar = tqdm(total=len(requests), disable=(self.rank != 0))
         for key, re_ord in re_ords.items():
