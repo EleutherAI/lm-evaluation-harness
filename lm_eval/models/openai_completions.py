@@ -360,6 +360,7 @@ class OpenaiChatCompletionsLM(LM):
         self,
         model: str = "gpt-3.5-turbo",  # GPT model or Local model using HuggingFace model paths
         base_url: str = None,
+        local: bool = False,
         truncate: bool = False,
         revision: Optional[str] = "main",
         trust_remote_code: Optional[bool] = False,
@@ -388,10 +389,11 @@ class OpenaiChatCompletionsLM(LM):
             )
         self.model = model
         self.base_url = base_url
+        self.local = local
         self.truncate = truncate
 
         # if we have a local model, use HF tokenizer over tiktoken
-        if self.base_url:
+        if self.local:
             self.revision = revision
             self.trust_remote_code = trust_remote_code
             self.use_fast_tokenizer = use_fast_tokenizer
