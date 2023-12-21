@@ -27,14 +27,16 @@ repos:
         args: [--remove]
       - id: mixed-line-ending
         args: [--fix=lf]
-  - repo: https://github.com/pycqa/flake8
-    rev: 3.7.9
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.1.8
     hooks:
-      - id: flake8
-  - repo: https://github.com/psf/black
-    rev: 22.3.0
-    hooks:
-      - id: black
+      # Run the linter.
+      - id: ruff
+        args:
+          - --fix
+        # Run the formatter.
+      - id: ruff-format
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0
     hooks:

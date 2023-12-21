@@ -55,15 +55,9 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 
 [project.optional-dependencies]
 anthropic = ["anthropic"]
-dev = ["black", "flake8", "pre-commit", "pytest", "pytest-cov"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
 gptq = ["auto-gptq[triton] @ git+https://github.com/PanQiWei/AutoGPTQ"]
 ifeval = ["langdetect", "immutabledict"]
-linting = [
-    "flake8",
-    "pylint",
-    "mypy",
-    "pre-commit",
-]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
@@ -74,6 +68,7 @@ promptsource = [
 sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm"]
+zeno = ["pandas", "zeno-client"]
 all = [
     "lm_eval[anthropic]",
     "lm_eval[dev]",
@@ -88,4 +83,19 @@ all = [
     "lm_eval[sentencepiece]",
     "lm_eval[testing]",
     "lm_eval[vllm]",
+    "lm_eval[zeno]",
 ]
+
+[tool.ruff]
+extend-exclude = ["lm_eval/evaluator.py", "lm_eval/tasks/*.py"]
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.isort]
+lines-after-imports = 2
+known-first-party = ["lm_eval"]
+
+[tool.ruff.extend-per-file-ignores]
+"__init__.py" = ["F401","F402","F403","I"]
+"lm_eval/tasks/*"= ["E721"]

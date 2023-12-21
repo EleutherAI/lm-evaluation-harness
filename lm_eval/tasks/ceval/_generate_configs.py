@@ -75,7 +75,6 @@ def parse_args():
 
 
 if __name__ == "__main__":
-
     args = parse_args()
 
     # get filename of base_yaml so we can `"include": ` it in our other YAMLs.
@@ -93,7 +92,9 @@ if __name__ == "__main__":
         if args.cot_prompt_path is not None:
             description = cot_file[subject_eng]
         else:
-            description = f"以下是中国关于{subject_zh}的单项选择题，请选出其中的正确答案。\n\n"
+            description = (
+                f"以下是中国关于{subject_zh}的单项选择题，请选出其中的正确答案。\n\n"
+            )
 
         yaml_dict = {
             "include": base_yaml_name,

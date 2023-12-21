@@ -1,12 +1,13 @@
-import unittest
-from unittest.mock import patch
 import hashlib
 import json
 import os
 import pickle
-from lm_eval.models.gguf import GGUFLM
+import unittest
+from unittest.mock import patch
 
 from lm_eval.api.instance import Instance
+from lm_eval.models.gguf import GGUFLM
+
 
 base_url = "https://matthoffner-ggml-llm-api.hf.space"
 

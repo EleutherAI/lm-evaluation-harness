@@ -1,9 +1,12 @@
+import time
+from typing import Any, List, Tuple
+
+from tqdm import tqdm
+
+from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from tqdm import tqdm
-import time
-from lm_eval import utils
-from typing import List, Any, Tuple
+
 
 eval_logger = utils.eval_logger
 

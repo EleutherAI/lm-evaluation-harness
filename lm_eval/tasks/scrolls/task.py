@@ -235,7 +235,6 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
         }
 
     def construct_requests(self, doc, ctx, **kwargs):
-
         request_list = [
             Instance(
                 request_type="loglikelihood",
