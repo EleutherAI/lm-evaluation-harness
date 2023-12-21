@@ -3,7 +3,7 @@ import os
 import time
 from collections import defaultdict
 from importlib.util import find_spec
-from typing import List, Optional, Tuple, Literal
+from typing import List, Literal, Optional, Tuple
 
 import transformers
 from tqdm import tqdm
