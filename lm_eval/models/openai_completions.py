@@ -3,7 +3,7 @@ import os
 import time
 from collections import defaultdict
 from importlib.util import find_spec
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Literal
 
 import transformers
 from tqdm import tqdm
@@ -360,7 +360,7 @@ class OpenaiChatCompletionsLM(LM):
         self,
         model: str = "gpt-3.5-turbo",  # GPT model or Local model using HuggingFace model paths
         base_url: str = None,
-        local: bool = False,
+        tokenizer_backend: Literal["tiktoken", "huggingface"] = "tiktoken",
         truncate: bool = False,
         revision: Optional[str] = "main",
         trust_remote_code: Optional[bool] = False,
@@ -389,11 +389,11 @@ class OpenaiChatCompletionsLM(LM):
             )
         self.model = model
         self.base_url = base_url
-        self.local = local
+        self.tokenizer_backend = tokenizer_backend
         self.truncate = truncate
 
         # if we have a local model, use HF tokenizer over tiktoken
-        if self.local:
+        if self.tokenizer_backend == "huggingface":
             self.revision = revision
             self.trust_remote_code = trust_remote_code
             self.use_fast_tokenizer = use_fast_tokenizer
@@ -406,10 +406,14 @@ class OpenaiChatCompletionsLM(LM):
             )
             self.vocab_size = self.tokenizer.vocab
             self.end_of_text_token_id = self.tokenizer.eos_token
-        else:
+        elif self.tokenizer_backend == "tiktoken":
             self.tokenizer = tiktoken.encoding_for_model(self.model)
             self.vocab_size = self.tokenizer.n_vocab
             self.end_of_text_token_id = self.tokenizer.eot_token
+        else:
+            raise ValueError(
+                f"Expected tokenizer_backend to be one of ['tiktoken', 'huggingface'] but got {self.tokenizer_backend}"
+            )
 
         # Read from environment variable OPENAI_API_KEY
         # Set to EMPTY for local
