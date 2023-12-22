@@ -51,15 +51,20 @@ We also provide a number of optional dependencies for extended functionality. Ex
 | Name          | Use                                   |
 |---------------|---------------------------------------|
 | anthropic     | For using Anthropic's models          |
+| dev           | For linting PRs and contributions     |
 | gptq          | For loading models with GPTQ          |
-| dev           | You probably don't want to use this   |
+| ifeval        | For running the IFEval task           |
+| mamba         | For loading Mamba SSM models          |
+| math          | For running math task answer checking |
 | multilingual  | For multilingual tokenizers           |
 | openai        | For using OpenAI's models             |
-| promptsource  | For using PromtSource prompts         |
+| promptsource  | For using PromptSource prompts        |
 | sentencepiece | For using the sentencepiece tokenizer |
+| testing       | For running library test suite        |
 | vllm          | For loading models with vLLM          |
 | zeno          | For visualizing results with Zeno     |
-| all           | Loads all extras                      |
+|---------------|---------------------------------------|
+| all           | Loads all extras (not recommended)    |
 
 ## Basic Usage
 
@@ -162,7 +167,6 @@ lm_eval --model local-chat-completions --tasks gsm8k --model_args model=facebook
 ```
 Note that for externally hosted models, configs such as `--device` and `--batch_size` should not be used and do not function. Just like you can use `--model_args` to pass arbitrary arguments to the model constructor for local models, you can use it to pass arbitrary arguments to the model API for hosted models. See the documentation of the hosting service for information on what arguments they support.
 
-
 | API or Inference Server                                                                                                   | Implemented?                    | `--model <xxx>` name                                                | Models supported:                                                                             | Request Types:                                             |
 |---------------------------------------------------------------------------------------------------------------------------|---------------------------------|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|------------------------------------------------------------|
 | OpenAI Completions                                                                                                        | :heavy_check_mark:              | `openai-completions` | up to `code-davinci-002`                                                                      | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
@@ -172,7 +176,8 @@ Note that for externally hosted models, configs such as `--device` and `--batch_
 | Cohere                                                                                                                    | [:hourglass: - blocked on Cohere API bug](https://github.com/EleutherAI/lm-evaluation-harness/pull/395) | N/A                                                                 | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models)                        | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)) | :heavy_check_mark:              | `gguf`, `ggml`                                                      | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)                   | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | vLLM                                                                                                                      | :heavy_check_mark:       | `vllm`                                                              | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
-| Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-chat-completions` (using `openai-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's ChatCompletions interface                                  | `generate_until`                                           |                                | ...                                                      |
+| Mamba                       | :heavy_check_mark:       | `mamba_ssm`                                                                      | [Mamba architecture Language Models via the `mamba_ssm` package](https://huggingface.co/state-spaces) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
+| Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-chat-completions` (using `openai-chat-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's ChatCompletions interface                                  | `generate_until`                                           |                                | ...                                                      |
 
 It is on our roadmap to create task variants designed to enable models which do not serve logprobs/loglikelihoods to be compared with generation performance of open-source models.
 
