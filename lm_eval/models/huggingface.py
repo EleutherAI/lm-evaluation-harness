@@ -1055,7 +1055,7 @@ class HFLM(LM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        re_ords = ReorderBatch([reg.args for reg in requests], _collate, generate=True)
+        re_ords = ReorderBatch([reg.args for reg in requests], _collate, grouping=True)
         chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
         for chunk in chunks:
             contexts, all_gen_kwargs = zip(*chunk)

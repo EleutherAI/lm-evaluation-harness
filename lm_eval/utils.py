@@ -746,16 +746,16 @@ class ReorderBatch:
         arr: List,
         sort_fn: Callable = lambda x: x,
         group_fn: Callable = lambda x: x[1][1],
-        generate: bool = False,
+        grouping: bool = False,
     ) -> None:
         self.group_count = 0
-        self.generate = generate
+        self.grouping = grouping
         self.fn = sort_fn
         self.group_fn = group_fn
         self.reorderlist: List = []
         self.size = len(arr)
         self.arr_with_indices: Iterable[Any] = tuple(enumerate(arr))  # [indices, (arr)]
-        if self.generate is True:
+        if self.grouping is True:
             self.group_by_index()
 
     def group_by_index(self) -> None:
@@ -776,7 +776,7 @@ class ReorderBatch:
         Yields:
         Iterator: An iterator over batches of reordered elements.
         """
-        if self.generate:
+        if self.grouping:
             for (
                 key,
                 values,
