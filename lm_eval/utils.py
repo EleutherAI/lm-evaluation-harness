@@ -735,65 +735,97 @@ def divide(iterable, n) -> List[Iterator]:
 
 
 class ReorderBatch:
+    """
+    A class for reordering and batching elements of an array.
+
+    This class allows for sorting an array based on a provided sorting function, grouping elements based on a grouping function, and generating batches from the sorted and grouped data.
+    """
+
     def __init__(
         self,
         arr: List,
-        fn: Callable = lambda x: x,
+        sort_fn: Callable = lambda x: x,
+        group_fn: Callable = lambda x: x[1][1],
         generate: bool = False,
-        batch_size: int = 1,
     ) -> None:
-        self.batch_size = batch_size
+        self.group_count = 0
         self.generate = generate
-        self.fn = fn
-
+        self.fn = sort_fn
+        self.group_fn = group_fn
         self.reorderlist: List = []
         self.size = len(arr)
-        self.batch_size = batch_size
         self.arr_with_indices: Iterable[Any] = tuple(enumerate(arr))  # [indices, (arr)]
-        print("done")
         if self.generate is True:
-            grouping_fn = lambda x: x[1][1]  # noqa E731
-            self.arr_with_indices = group(
-                self.arr_with_indices, grouping_fn, values=False
-            )  # defaultdict(list) # type: ignore
+            self.group_by_index()
+
+    def group_by_index(self) -> None:
+        self.arr_with_indices = self.group(
+            self.arr_with_indices, fn=self.group_fn, values=False
+        )
 
     def get_batched(
         self, n: int = 1, batch_fn: Optional[Callable[[int, Iterable], int]] = None
     ) -> Iterator:
-        """Gets the reordered array"""
+        """
+        Generates and yields batches from the reordered array.
+
+        Parameters:
+        - n (int): The size of each batch. Defaults to 1.
+        - batch_fn (Optional[Callable[[int, Iterable], int]]): A function to determine the size of each batch. Defaults to None.
+
+        Yields:
+        Iterator: An iterator over batches of reordered elements.
+        """
         if self.generate:
-            self.arr_with_indices = self.arr_with_indices
             for (
                 key,
                 values,
             ) in self.arr_with_indices.items():  # type: ignore
-                values = self.reorder(values)
-                batch = chunks(values, n=n, fn=batch_fn)
-                return batch
+                self.group_count += 1
+                values = self._reorder(values)
+                batch = self.get_chunks(values, n=n, fn=batch_fn)
+                yield from batch
         else:
-            values = self.reorder(self.arr_with_indices)  # type: ignore
-            batch = chunks(values, n=n, fn=batch_fn)
-            return batch
+            values = self._reorder(self.arr_with_indices)  # type: ignore
+            batch = self.get_chunks(values, n=n, fn=batch_fn)
+            self.group_count += 1
+            yield from batch
 
-    def reorder(self, arr: Union[List, Tuple[Tuple[int, Any], ...]]) -> List:
+    def _reorder(self, arr: Union[List, Tuple[Tuple[int, Any], ...]]) -> List:
+        """
+        Reorders the elements in the array based on the sorting function.
+
+        Parameters:
+        - arr (Union[List, Tuple[Tuple[int, Any], ...]]): The array or iterable to be reordered.
+
+        Yields:
+        List: Yields reordered elements one by one.
+        """
         arr = sorted(arr, key=lambda x: self.fn(x[1]))
         self.reorderlist.append([x[0] for x in arr])
-        return [x[1] for x in arr]
+        yield from [x[1] for x in arr]
 
     def get_original(self, newarr: List) -> List:
-        try:
-            self.reorderlist = [
-                item for sublist in self.reorderlist for item in sublist
-            ]
-        except TypeError:
-            pass
+        """
+        Restores the original order of elements from the reordered list.
 
+        Parameters:
+        - newarr (List): The reordered array.
+
+        Returns:
+        List: The array with elements restored to their original order.
+        """
         res = [None] * self.size
         cov = [False] * self.size
 
-        for ind, v in zip(self.reorderlist, newarr):
-            res[ind] = v
-            cov[ind] = True
+        assert len(self.reorderlist) == self.group_count
+
+        for group_idx in range(self.group_count):
+            group_indices = self.reorderlist[group_idx - 1]
+
+            for ind, v in zip(group_indices, newarr):
+                res[ind] = v
+                cov[ind] = True
 
         assert all(cov)
 
@@ -801,3 +833,66 @@ class ReorderBatch:
 
     def __len__(self):
         return self.size
+
+    def group(self, arr: Iterable, fn: Callable, values: bool = False) -> Iterable:
+        """
+        Groups elements of an iterable based on a provided function.
+
+        Parameters:
+        - arr (Iterable): The iterable to be grouped.
+        - fn (Callable): The function to determine the grouping.
+        - values (bool): If True, returns the values of the group. Defaults to False.
+
+        Returns:
+        Iterable: An iterable of grouped elements.
+        """
+        res = collections.defaultdict(list)
+        for ob in arr:
+            try:
+                hashable_dict = tuple(
+                    (key, tuple(value) if isinstance(value, list) else value)
+                    for key, value in sorted(ob[1][1].items())
+                )
+                res[hashable_dict].append(ob)
+            except TypeError:
+                res[fn(ob)].append(ob)
+        if not values:
+            return res
+        return res.values()
+
+    def get_chunks(self, iter, n: int = 0, fn=None):
+        """
+        Divides an iterable into chunks of specified size or based on a given function.
+        Useful for batching
+
+        Parameters:
+        - iter: The input iterable to be divided into chunks.
+        - n: An integer representing the size of each chunk. Default is 0.
+        - fn: A function that takes the current index and the iterable as arguments and returns the size of the chunk. Default is None.
+
+        Returns:
+        An iterator that yields chunks of the input iterable.
+
+        Example usage:
+        ```
+        data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        for chunk in chunks(data, 3):
+            print(chunk)
+        ```
+        Output:
+        ```
+        [1, 2, 3]
+        [4, 5, 6]
+        [7, 8, 9]
+        [10]
+        ```
+        """
+        arr = []
+        for i, x in enumerate(iter):
+            arr.append(x)
+            if len(arr) == (fn(i, iter) if fn else n):
+                yield arr
+                arr = []
+
+        if arr:
+            yield arr

@@ -843,6 +843,7 @@ class HFLM(LM):
         res = []
 
         def _collate(x):
+            """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
             # - to know the size of a batch when going through the list, you know the first one is always the batch
@@ -853,7 +854,7 @@ class HFLM(LM):
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
-        re_ord = ReorderBatch(requests, fn=_collate)
+        re_ord = ReorderBatch(requests, sort_fn=_collate)
 
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
@@ -1020,6 +1021,7 @@ class HFLM(LM):
         res = []
 
         def _collate(x):
+            """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
             # - to know the size of a batch when going through the list, you know the first one is always the batch
