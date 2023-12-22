@@ -273,7 +273,7 @@ You can find an example of this workflow in [examples/visualize-zeno.ipynb](exam
 
 ## How to Contribute or Learn More?
 
-For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/big-refactor/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
+For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/main/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
 
 ### Implementing new tasks
 
