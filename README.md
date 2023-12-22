@@ -18,7 +18,7 @@ New updates and features include:
 
 Please see our updated documentation pages in `docs/` for more details.
 
-Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](discord.gg/eleutherai)!
+Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](https://discord.gg/eleutherai)!
 
 ## Overview
 
@@ -65,7 +65,7 @@ We also provide a number of optional dependencies for extended functionality. Ex
 
 ### Hugging Face `transformers`
 
-To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command:
+To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command (this assumes you are using a CUDA-compatible GPU):
 
 ```bash
 lm_eval --model hf \
@@ -151,7 +151,7 @@ To call a hosted model, use:
 ```bash
 export OPENAI_API_KEY=YOUR_KEY_HERE
 lm_eval --model openai-completions \
-    --model_args engine=davinci \
+    --model_args model=davinci \
     --tasks lambada_openai,hellaswag
 ```
 
@@ -268,6 +268,8 @@ python scripts/zeno_visualize.py \
 
 This will use all subfolders in `data_path` as different models and upload all tasks within these model folders to Zeno.
 If you run the eval harness on multiple tasks, the `project_name` will be used as a prefix and one project will be created per task.
+
+You can find an example of this workflow in [examples/visualize-zeno.ipynb](examples/visualize-zeno.ipynb).
 
 ## How to Contribute or Learn More?
 

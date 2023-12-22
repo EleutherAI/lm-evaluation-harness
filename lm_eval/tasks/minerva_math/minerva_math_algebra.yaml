@@ -21,4 +21,4 @@ metric_list:
     higher_is_better: true
 num_fewshot: 0
 metadata:
-  - version: 0.0
+  version: 0.0

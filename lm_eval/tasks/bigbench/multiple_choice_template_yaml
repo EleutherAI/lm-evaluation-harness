@@ -12,4 +12,4 @@ metric_list:
   - metric: acc
   # TODO: brier score and other metrics
 metadata:
-  - version: 0.0
+  version: 0.0
