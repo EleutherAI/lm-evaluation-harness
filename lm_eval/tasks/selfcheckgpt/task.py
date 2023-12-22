@@ -111,16 +111,16 @@ class SelfCheckGpt(Task):
         elif self.selfcheckgpt_type == 'SelfCheckMQAG':
             selfcheckgpt_scores = self.selfcheckgpt.predict(
                 sentences = sentences,
-                sampled_passages = other_responses,
-                )
-        elif self.selfcheckgpt_type == 'SelfCheckNLI':
-            selfcheckgpt_scores = self.selfcheckgpt.predict(
-                sentences = sentences,
                 passage = response_temperature_0,
                 sampled_passages = other_responses,
                 num_questions_per_sent = 5,          # number of questions to be drawn
                 scoring_method = 'bayes_with_alpha', # options = 'counting', 'bayes', 'bayes_with_alpha'
                 beta1 = 0.8, beta2 = 0.8,            # additional params depending on scoring_method
+                )
+        elif self.selfcheckgpt_type == 'SelfCheckNLI':
+            selfcheckgpt_scores = self.selfcheckgpt.predict(
+                sentences = sentences,
+                sampled_passages = other_responses,
                 )
 
         selfcheckgpt_scores_avg = sum(selfcheckgpt_scores) / len(selfcheckgpt_scores) if len(selfcheckgpt_scores) > 0 else 0
