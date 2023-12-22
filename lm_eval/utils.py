@@ -13,7 +13,18 @@ import sys
 import time
 from functools import wraps
 from itertools import islice
-from typing import Any, Callable, Iterator, List, Literal, Optional, Type, Union, Iterable, Tuple
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 import torch
 import transformers
@@ -786,9 +797,7 @@ class Collator:
             self.arr_with_indices, fn=self.group_fn, values=False
         )
 
-    def get_batched(
-        self, n: int = 1, batch_fn: Optional[Callable] = None
-    ) -> Iterator:
+    def get_batched(self, n: int = 1, batch_fn: Optional[Callable] = None) -> Iterator:
         """
         Generates and yields batches from the reordered array.
 
