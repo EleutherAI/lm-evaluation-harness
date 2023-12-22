@@ -13,12 +13,13 @@ import sys
 import time
 from functools import wraps
 from itertools import islice
-from typing import Any, Callable, Iterator, List, Literal, Union, Optional, Type
+from typing import Any, Callable, Iterator, List, Literal, Optional, Type, Union
 
 import torch
 import transformers
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
+
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",

@@ -7,6 +7,7 @@ from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.utils import retry_on_specific_exceptions
 
+
 eval_logger = utils.eval_logger
 
 
