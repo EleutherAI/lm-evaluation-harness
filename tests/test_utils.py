@@ -1,4 +1,4 @@
-from lm_eval.utils import get_rolling_token_windows, make_disjoint_window
+from lm_eval.utils import Collator, get_rolling_token_windows, make_disjoint_window
 
 
 # noinspection DuplicatedCode
@@ -220,3 +220,70 @@ def test_make_disjoint_window():
     )
     assert make_disjoint_window(([1, 2, 3, 4, 5], [4, 5, 6])) == ([1, 2, 3], [4, 5, 6])
     assert make_disjoint_window(([1, 2, 3, 4, 5], [6])) == ([1, 2, 3, 4, 5], [6])
+
+
+class TestCollator:
+    def make_generate_sample(self):
+        strings = ["x" * i for i in range(1, 11)]
+        gen_kwargs1, gen_kwargs2 = (
+            {"temperature": 0},
+            {"temperature": 0, "until": ["nn", "\n\n"]},
+        )
+        args = [
+            (string, gen_kwargs1 if i < len(strings) // 2 else gen_kwargs2)
+            for i, string in enumerate(strings)
+        ]
+
+        return args
+
+    def make_logliklihood_sample(self, start=1, end=11):
+        samples = [
+            (("x", "x"), list(range(1, total_length + 1)))
+            for total_length in range(start, end + 1)
+        ]
+        return samples
+
+    def test_generations(
+        self,
+    ):
+        _collate_gen = lambda x: (-len(x[0]), x[0])  # noqa: E731
+
+        generation_samples = self.make_generate_sample()
+        gens = Collator(generation_samples, _collate_gen, grouping=True)
+        chunks = gens.get_batched(n=8, batch_fn=None)
+        output = []
+        for chunks in chunks:
+            # check batching
+            assert len(chunks) <= 8
+            # check if reorderer is working correctly
+            assert all(
+                len(chunks[i][0]) <= len(chunks[i - 1][0])
+                for i in range(1, len(chunks))
+            )
+            # check if grouping correctly
+            assert all(x[1] == chunks[0][1] for x in chunks)
+            for x in chunks:
+                output.append(x)
+        reordered_output = gens.get_original(output)
+        # check get original
+        assert reordered_output == generation_samples
+
+    def test_logliklihood(self):
+        _collate_log = lambda x: (-len(x[1]), tuple(x[1]))  # noqa: E731
+        loglikelihood_samples = self.make_logliklihood_sample()
+        loglikelihoods = Collator(loglikelihood_samples, _collate_log, grouping=False)
+        chunks = loglikelihoods.get_batched(n=8, batch_fn=None)
+        output = []
+        for chunks in chunks:
+            # check batching
+            assert len(chunks) <= 8
+            # check reorder
+            assert all(
+                len(chunks[i][1]) <= len(chunks[i - 1][1])
+                for i in range(1, len(chunks))
+            )
+            for x in chunks:
+                output.append(x[1])
+        # check indices
+        reordered_output = loglikelihoods.get_original(output)
+        assert reordered_output == [x[1] for x in loglikelihood_samples]

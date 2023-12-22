@@ -20,7 +20,7 @@ from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.utils import ReorderBatch, stop_sequences_criteria
+from lm_eval.utils import Collator, stop_sequences_criteria
 
 
 eval_logger = utils.eval_logger
@@ -854,7 +854,7 @@ class HFLM(LM):
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
-        re_ord = ReorderBatch(requests, sort_fn=_collate)
+        re_ord = Collator(requests, sort_fn=_collate)
 
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
@@ -1055,7 +1055,7 @@ class HFLM(LM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        re_ords = ReorderBatch([reg.args for reg in requests], _collate, grouping=True)
+        re_ords = Collator([reg.args for reg in requests], _collate, grouping=True)
         chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
         for chunk in chunks:
             contexts, all_gen_kwargs = zip(*chunk)

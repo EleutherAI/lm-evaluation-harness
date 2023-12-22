@@ -734,7 +734,7 @@ def divide(iterable, n) -> List[Iterator]:
     return ret
 
 
-class ReorderBatch:
+class Collator:
     """
     A class for reordering and batching elements of an array.
 
@@ -744,15 +744,14 @@ class ReorderBatch:
     def __init__(
         self,
         arr: List,
-        sort_fn: Callable = lambda x: x,
-        group_fn: Callable = lambda x: x[1][1],
+        sort_fn: Callable,
+        group_fn: Callable = lambda x: x[1],
         grouping: bool = False,
     ) -> None:
-        self.group_count = 0
         self.grouping = grouping
         self.fn = sort_fn
-        self.group_fn = group_fn
-        self.reorderlist: List = []
+        self.group_fn = lambda x: group_fn(x[1])  # first index are enumerated indices
+        self.reorder_indices: List = []
         self.size = len(arr)
         self.arr_with_indices: Iterable[Any] = tuple(enumerate(arr))  # [indices, (arr)]
         if self.grouping is True:
@@ -781,14 +780,12 @@ class ReorderBatch:
                 key,
                 values,
             ) in self.arr_with_indices.items():  # type: ignore
-                self.group_count += 1
                 values = self._reorder(values)
                 batch = self.get_chunks(values, n=n, fn=batch_fn)
                 yield from batch
         else:
             values = self._reorder(self.arr_with_indices)  # type: ignore
             batch = self.get_chunks(values, n=n, fn=batch_fn)
-            self.group_count += 1
             yield from batch
 
     def _reorder(self, arr: Union[List, Tuple[Tuple[int, Any], ...]]) -> List:
@@ -802,7 +799,7 @@ class ReorderBatch:
         List: Yields reordered elements one by one.
         """
         arr = sorted(arr, key=lambda x: self.fn(x[1]))
-        self.reorderlist.append([x[0] for x in arr])
+        self.reorder_indices.extend([x[0] for x in arr])
         yield from [x[1] for x in arr]
 
     def get_original(self, newarr: List) -> List:
@@ -818,14 +815,9 @@ class ReorderBatch:
         res = [None] * self.size
         cov = [False] * self.size
 
-        assert len(self.reorderlist) == self.group_count
-
-        for group_idx in range(self.group_count):
-            group_indices = self.reorderlist[group_idx - 1]
-
-            for ind, v in zip(group_indices, newarr):
-                res[ind] = v
-                cov[ind] = True
+        for ind, v in zip(self.reorder_indices, newarr):
+            res[ind] = v
+            cov[ind] = True
 
         assert all(cov)
 
