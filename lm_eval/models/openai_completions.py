@@ -1,6 +1,5 @@
 import copy
 import os
-import time
 from collections import defaultdict
 from importlib.util import find_spec
 from typing import List, Optional, Tuple
@@ -10,6 +9,7 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
+from lm_eval.utils import retry_on_specific_exceptions
 
 
 def get_result(response, ctxlen: int) -> Tuple[float, bool]:
@@ -53,16 +53,20 @@ def oa_completion(**kwargs):
     else:
         import openai
 
-    backoff_time = 3
-    while True:
-        try:
-            return openai.completions.create(**kwargs)
-        except openai.OpenAIError:
-            import traceback
+    def _exception_callback(e: Exception, sleep_time: float) -> None:
+        import traceback
 
-            traceback.print_exc()
-            time.sleep(backoff_time)
-            backoff_time *= 1.5
+        traceback.print_exc()
+
+    @retry_on_specific_exceptions(
+        on_exceptions=[openai.OpenAIError],
+        max_retries=None,  # retry forever, consider changing
+        on_exception_callback=_exception_callback,
+    )
+    def completion():
+        return openai.completions.create(**kwargs)
+
+    return completion()
 
 
 @register_model("openai-completions")
@@ -337,20 +341,20 @@ def oa_chat_completion(client, **kwargs):
     else:
         import openai
 
-    async def _get_completions(**kwargs):
-        chat_completions = await client.chat.completions.create(**kwargs)
-        return chat_completions
+    def _exception_callback(e: Exception, sleep_time: float) -> None:
+        import traceback
 
-    backoff_time = 3
-    while True:
-        try:
-            return client.chat.completions.create(**kwargs)
-        except openai.OpenAIError:
-            import traceback
+        traceback.print_exc()
 
-            traceback.print_exc()
-            time.sleep(backoff_time)
-            backoff_time *= 1.5
+    @retry_on_specific_exceptions(
+        on_exceptions=[openai.OpenAIError],
+        max_retries=None,  # retry forever, consider changing
+        on_exception_callback=_exception_callback,
+    )
+    def completion():
+        return client.chat.completions.create(**kwargs)
+
+    return completion()
 
 
 @register_model("openai-chat-completions", "local-chat-completions")
