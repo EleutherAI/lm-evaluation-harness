@@ -1,8 +1,9 @@
-import transformers
+import random
 
 import torch
 import torch.nn.functional as F
-import random
+import transformers
+
 
 random.seed(42)
 

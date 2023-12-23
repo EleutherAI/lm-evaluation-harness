@@ -2,10 +2,11 @@
 Usage:
    python make_table_tasks.py --output <markdown_filename>
 """
-import logging
-from pytablewriter import MarkdownTableWriter, LatexTableWriter
-import os
 import json
+import logging
+import os
+
+from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
 
 logging.basicConfig(level=logging.INFO)

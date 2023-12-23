@@ -180,7 +180,6 @@ def include_path(task_dir):
 
 
 def initialize_tasks(verbosity="INFO"):
-
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
