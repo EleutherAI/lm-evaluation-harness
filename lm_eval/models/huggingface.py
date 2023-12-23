@@ -1,6 +1,5 @@
 import copy
 import os
-from collections import defaultdict
 from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union
 
@@ -21,7 +20,7 @@ from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.utils import stop_sequences_criteria
+from lm_eval.utils import Collator, stop_sequences_criteria
 
 
 eval_logger = utils.eval_logger
@@ -632,7 +631,7 @@ class HFLM(LM):
         padding_side: str = "left",
         left_truncate_len: int = None,
         truncation: bool = False,
-    ) -> Tuple[List[int], List[int]]:
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         # encode a batch of strings. converts to tensors and pads automatically, unlike tok_encode.
         old_padding_side = self.tokenizer.padding_side
         self.tokenizer.padding_side = padding_side
@@ -842,6 +841,7 @@ class HFLM(LM):
         res = []
 
         def _collate(x):
+            """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
             # - to know the size of a batch when going through the list, you know the first one is always the batch
@@ -852,26 +852,27 @@ class HFLM(LM):
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
-        re_ord = utils.Reorderer(requests, _collate)
+        re_ord = Collator(requests, sort_fn=_collate)
 
-        n_reordered_requests = len(re_ord.get_reordered())
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
-
-        chunks = utils.chunks(
-            re_ord.get_reordered(),
-            n=self.batch_size
+        n_reordered_requests = len(re_ord)
+        batch_size = (
+            self.batch_size
             if self.batch_size != "auto"
             else override_bs
             if override_bs is not None
-            else 0,
-            fn=self._batch_scheduler
+            else 0
+        )
+        batch_fn = (
+            self._batch_scheduler
             if self.batch_size == "auto"
             and n_reordered_requests > 0
             and not override_bs
-            else None,
+            else None
         )
 
+        chunks = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
         pbar = tqdm(total=len(requests), disable=(disable_tqdm or (self.rank != 0)))
         for chunk in chunks:
             inps = []
@@ -1015,10 +1016,10 @@ class HFLM(LM):
         return re_ord.get_original(res)
 
     def generate_until(self, requests: List[Instance]) -> List[str]:
-        res = defaultdict(list)
-        re_ords = {}
+        res = []
 
         def _collate(x):
+            """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
             # - to know the size of a batch when going through the list, you know the first one is always the batch
@@ -1028,14 +1029,6 @@ class HFLM(LM):
             toks = self.tok_encode(x[0])
             return -len(toks), x[0]
 
-        # we group requests by their generation_kwargs,
-        # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
-        # in the same batch.
-        grouper = utils.Grouper(requests, lambda x: str(x.args[1]))
-        for key, reqs in grouper.get_grouped().items():
-            # within each set of reqs for given kwargs, we reorder by token length, descending.
-            re_ords[key] = utils.Reorderer([req.args for req in reqs], _collate)
-
         pbar = tqdm(total=len(requests), disable=(self.rank != 0))
         if self.batch_size == "auto":
             # using rolling window with maximum context
@@ -1044,98 +1037,102 @@ class HFLM(LM):
             print(f"Determined Largest batch size: {batch_size}")
             adaptive_batch_size = batch_size
         # for each different set of kwargs, we execute all requests, by batch.
-        for key, re_ord in re_ords.items():
-            chunks = utils.chunks(
-                re_ord.get_reordered(),
-                n=self.batch_size
-                if self.batch_size != "auto"
-                else adaptive_batch_size
-                if adaptive_batch_size is not None
-                else 0,
-                fn=self._batch_scheduler
-                if self.batch_size == "auto" and not adaptive_batch_size
-                else None,
+        batch_size = (
+            self.batch_size
+            if self.batch_size != "auto"
+            else adaptive_batch_size
+            if adaptive_batch_size is not None
+            else 0
+        )
+        batch_fn = (
+            self._batch_scheduler
+            if self.batch_size == "auto" and not adaptive_batch_size
+            else None
+        )
+
+        # we group requests by their generation_kwargs,
+        # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
+        # in the same batch.
+        re_ords = Collator([reg.args for reg in requests], _collate, grouping=True)
+        chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
+        for chunk in chunks:
+            contexts, all_gen_kwargs = zip(*chunk)
+            # we assume all gen kwargs in the batch are the same
+            # this is safe to assume because the `grouper` object ensures it.
+            gen_kwargs = all_gen_kwargs[0]
+            # unpack our keyword arguments.
+            until = None
+            if isinstance(gen_kwargs, dict):
+                kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                if "until" in kwargs.keys():
+                    until = kwargs.pop("until")
+                    if isinstance(until, str):
+                        until = [kwargs]
+                    elif not isinstance(until, list):
+                        raise ValueError(
+                            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
+                        )
+            else:
+                raise ValueError(
+                    f"Expected `kwargs` to be of type `dict` but got {kwargs}"
+                )
+            if not until:
+                until = [self.tok_decode(self.eot_token_id)]
+            if "max_gen_toks" in kwargs.keys():
+                max_gen_toks = kwargs.pop("max_gen_toks")
+            else:
+                max_gen_toks = self.max_gen_toks
+
+            # set the max length in tokens of inputs ("context_enc")
+            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+                # max len for inputs = max length, minus room to generate the max new tokens
+                max_ctx_len = self.max_length - max_gen_toks
+            elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
+                # max len for inputs = encoder's whole max_length
+                max_ctx_len = self.max_length
+
+            # encode, pad, and truncate contexts for this batch
+            context_enc, attn_masks = self.tok_batch_encode(
+                contexts,
+                left_truncate_len=max_ctx_len,
+                truncation=self.truncation,
             )
-            for chunk in chunks:
-                contexts, all_gen_kwargs = zip(*chunk)
-                # we assume all gen kwargs in the batch are the same
-                # this is safe to assume because the `grouper` object ensures it.
-                gen_kwargs = all_gen_kwargs[0]
-                # unpack our keyword arguments.
-                until = None
-                if isinstance(gen_kwargs, dict):
-                    kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                    if "until" in kwargs.keys():
-                        until = kwargs.pop("until")
-                        if isinstance(until, str):
-                            until = [kwargs]
-                        elif not isinstance(until, list):
-                            raise ValueError(
-                                f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
-                            )
-                else:
-                    raise ValueError(
-                        f"Expected `kwargs` to be of type `dict` but got {kwargs}"
-                    )
-                if not until:
-                    until = [self.tok_decode(self.eot_token_id)]
-                if "max_gen_toks" in kwargs.keys():
-                    max_gen_toks = kwargs.pop("max_gen_toks")
-                else:
-                    max_gen_toks = self.max_gen_toks
+            context_enc = context_enc.to(self.device)
+            attn_masks = attn_masks.to(self.device)
 
-                # set the max length in tokens of inputs ("context_enc")
+            if "max_length" not in kwargs:
+                kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
+
+            # perform batched generation
+            cont = self._model_generate(
+                context=context_enc,
+                attention_mask=attn_masks,
+                stop=until,
+                **kwargs,
+            )
+
+            cont_toks_list = cont.tolist()
+            for cont_toks, context in zip(cont_toks_list, contexts):
+                # discard context + left-padding toks if using causal decoder-only LM
                 if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-                    # max len for inputs = max length, minus room to generate the max new tokens
-                    max_ctx_len = self.max_length - max_gen_toks
-                elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
-                    # max len for inputs = encoder's whole max_length
-                    max_ctx_len = self.max_length
+                    cont_toks = cont_toks[context_enc.shape[1] :]
 
-                # encode, pad, and truncate contexts for this batch
-                context_enc, attn_masks = self.tok_batch_encode(
-                    contexts,
-                    left_truncate_len=max_ctx_len,
-                    truncation=self.truncation,
-                )
-                context_enc = context_enc.to(self.device)
-                attn_masks = attn_masks.to(self.device)
+                s = self.tok_decode(cont_toks)
 
-                if "max_length" not in kwargs:
-                    kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
+                # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
+                for term in until:
+                    if len(term) > 0:
+                        # ignore '' separator,
+                        # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
+                        s = s.split(term)[0]
 
-                # perform batched generation
-                cont = self._model_generate(
-                    context=context_enc,
-                    attention_mask=attn_masks,
-                    stop=until,
-                    **kwargs,
-                )
+                res.append(s)
 
-                cont_toks_list = cont.tolist()
-                for cont_toks, context in zip(cont_toks_list, contexts):
-                    # discard context + left-padding toks if using causal decoder-only LM
-                    if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-                        cont_toks = cont_toks[context_enc.shape[1] :]
-
-                    s = self.tok_decode(cont_toks)
-
-                    # use secondary stop seqs to cut off should-have-been-stopped content post-hoc
-                    for term in until:
-                        if len(term) > 0:
-                            # ignore '' separator,
-                            # for seq2seq case where self.tok_decode(self.eot_token_id) = ''
-                            s = s.split(term)[0]
-
-                    res[key].append(s)
-
-                    self.cache_hook.add_partial(
-                        "generate_until", (context, gen_kwargs), s
-                    )
-                    pbar.update(1)
-            # reorder this group of results back to original unsorted form
-            res[key] = re_ord.get_original(res[key])
+                self.cache_hook.add_partial("generate_until", (context, gen_kwargs), s)
+                pbar.update(1)
+        # reorder this group of results back to original unsorted form
+        res = re_ords.get_original(res)
 
         pbar.close()
 
-        return grouper.get_original(res)
+        return res
