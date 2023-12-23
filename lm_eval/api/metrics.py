@@ -16,7 +16,7 @@ eval_logger = logging.getLogger("lm-eval")
 # Register Aggregations First
 @register_aggregation("null")
 def null(arr):
-    return -1
+    return 999
 
 
 @register_aggregation("mean")
