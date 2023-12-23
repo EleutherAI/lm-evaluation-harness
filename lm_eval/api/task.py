@@ -1208,9 +1208,10 @@ class ConfigurableTask(Task):
         self, key: str = None, value: Any = None, update: bool = False
     ) -> None:
         if update:
-            x = getattr(self._config, key)
-            assert isinstance(x, dict)
-            setattr(self._config, key, x.update(value))
+            current_value = getattr(self._config, key)
+            assert isinstance(current_value, dict)
+            current_value.update(value)
+            setattr(self._config, key, current_value)
         else:
             setattr(self._config, key, value)
 
