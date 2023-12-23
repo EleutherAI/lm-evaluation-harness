@@ -93,7 +93,7 @@ def simple_evaluate(
     if gen_kwargs is not None:
         gen_kwargs = simple_parse_args_string(gen_kwargs)
         eval_logger.warning(
-            "generation_kwargs specified through cli, these settings will be used over set parameters in yaml tasks."
+            "generation_kwargs specified through cli, these settings will update parameters already in yaml tasks. Ensure 'do_sample=True' if using Huggingface for non-greedy decoding!"
         )
         if gen_kwargs == "":
             gen_kwargs = None
@@ -138,6 +138,7 @@ def simple_evaluate(
                 task_obj.override_config(
                     key="generation_kwargs", value=gen_kwargs, update=True
                 )
+
             if predict_only:
                 log_samples = True
                 eval_logger.info(
