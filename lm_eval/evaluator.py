@@ -141,7 +141,7 @@ def simple_evaluate(
                 f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
             )
             # we have to change the class properties post-hoc. This is pretty hacky.
-            task_obj.override_metrics(metric_name="bypass")
+            task_obj.override_metric(metric_name="bypass")
 
         if (
             task_obj.get_config("output_type") == "generate_until"
@@ -522,7 +522,8 @@ def evaluate(
         if bool(results):
             for group, task_list in reversed(task_hierarchy.items()):
                 if task_list == []:
-                    total_size = results[group]["samples"]
+                    # TODO: No samples when bypass
+                    total_size = results[group].get("samples", 999)
                 else:
                     total_size = 0
 
