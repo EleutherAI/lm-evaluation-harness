@@ -1182,7 +1182,7 @@ class ConfigurableTask(Task):
         return self._higher_is_better
 
     def get_config(self, key: str) -> Any:
-        return self.config.get(key, None)
+        return getattr(self._config, key, None)
 
     def override_metric(self, metric_name: str) -> None:
         """
@@ -1201,17 +1201,18 @@ class ConfigurableTask(Task):
         self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
         self._higher_is_better[metric_name] = is_higher_better(metric_name)
         self._metric_fn_kwargs[metric_name] = {}
-        self.config["metric_list"] = [{"metric": metric_name}]
-        self.config["process_results"] = None
+        setattr(self._config, "metric_list", [{"metric": metric_name}])
+        setattr(self._config, "process_results", None)
 
     def override_config(
         self, key: str = None, value: Any = None, update: bool = False
     ) -> None:
         if update:
-            assert isinstance(value, dict)
-            self.config[key].update(value)
+            x = getattr(self._config, key)
+            assert isinstance(x, dict)
+            setattr(self._config, key, x.update(value))
         else:
-            self.config[key] = value
+            setattr(self._config, key, value)
 
 
 class MultipleChoiceTask(Task):

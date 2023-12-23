@@ -133,21 +133,18 @@ def simple_evaluate(
             if task_obj is None:
                 continue
 
-        if predict_only:
-            log_samples = True
-            eval_logger.info(
-                f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
-            )
-            # we have to change the class properties post-hoc. This is pretty hacky.
-            task_obj.override_metric(metric_name="bypass")
-
-        if (
-            task_obj.get_config("output_type") == "generate_until"
-            and gen_kwargs is not None
-        ):
-            task_obj.override_config(
-                key="generation_kwargs", value=gen_kwargs, update=True
-            )
+        if task_obj.get_config("output_type") == "generate_until":
+            if gen_kwargs is not None:
+                task_obj.override_config(
+                    key="generation_kwargs", value=gen_kwargs, update=True
+                )
+            if predict_only:
+                log_samples = True
+                eval_logger.info(
+                    f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
+                )
+                # we have to change the class properties post-hoc. This is pretty hacky.
+                task_obj.override_metric(metric_name="bypass")
 
         if num_fewshot is not None:
             if default_num_fewshot := task_obj.get_config("num_fewshot") == 0:
