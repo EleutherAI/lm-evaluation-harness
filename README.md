@@ -45,26 +45,7 @@ git clone https://github.com/EleutherAI/lm-evaluation-harness
 cd lm-evaluation-harness
 pip install -e .
 ```
-
-We also provide a number of optional dependencies for extended functionality. Extras can be installed via `pip install -e ".[NAME]"`
-
-| Name          | Use                                   |
-|---------------|---------------------------------------|
-| anthropic     | For using Anthropic's models          |
-| dev           | For linting PRs and contributions     |
-| gptq          | For loading models with GPTQ          |
-| ifeval        | For running the IFEval task           |
-| mamba         | For loading Mamba SSM models          |
-| math          | For running math task answer checking |
-| multilingual  | For multilingual tokenizers           |
-| openai        | For using OpenAI's models             |
-| promptsource  | For using PromptSource prompts        |
-| sentencepiece | For using the sentencepiece tokenizer |
-| testing       | For running library test suite        |
-| vllm          | For loading models with vLLM          |
-| zeno          | For visualizing results with Zeno     |
-|---------------|---------------------------------------|
-| all           | Loads all extras (not recommended)    |
+We also provide a number of optional dependencies for extended functionality. A detailed table is available at the end of this document.
 
 ## Basic Usage
 
@@ -299,6 +280,27 @@ We try to prioritize agreement with the procedures used by other groups to decre
 ### Support
 
 The best way to get support is to open an issue on this repo or join the [EleutherAI Discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases. If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
+
+## Optional Extras
+Extras dependencies can be installed via `pip install -e ".[NAME]"`
+
+| Name          | Use                                   |
+|---------------|---------------------------------------|
+| anthropic     | For using Anthropic's models          |
+| dev           | For linting PRs and contributions     |
+| gptq          | For loading models with GPTQ          |
+| ifeval        | For running the IFEval task           |
+| mamba         | For loading Mamba SSM models          |
+| math          | For running math task answer checking |
+| multilingual  | For multilingual tokenizers           |
+| openai        | For using OpenAI's models             |
+| promptsource  | For using PromptSource prompts        |
+| sentencepiece | For using the sentencepiece tokenizer |
+| testing       | For running library test suite        |
+| vllm          | For loading models with vLLM          |
+| zeno          | For visualizing results with Zeno     |
+|---------------|---------------------------------------|
+| all           | Loads all extras (not recommended)    |
 
 ## Cite as
 
