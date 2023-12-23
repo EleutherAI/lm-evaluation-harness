@@ -147,7 +147,7 @@ def simple_evaluate(
                 task_obj.override_metric(metric_name="bypass")
 
         if num_fewshot is not None:
-            if default_num_fewshot := task_obj.get_config("num_fewshot") == 0:
+            if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
                 eval_logger.info(
                     f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
                 )
