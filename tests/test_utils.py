@@ -245,7 +245,7 @@ class TestCollator:
         ]
         return samples
 
-    @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48)])
+    @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 9)])
     def test_generations(self, batch_size, end):
         _collate_gen = lambda x: (-len(x[0]), x[0])  # noqa: E731
 
@@ -255,7 +255,13 @@ class TestCollator:
         output = []
         for chunks in chunks:
             # check batching
-            assert len(chunks) <= batch_size
+            group_one = end // 2
+            group_two = end - end // 2
+            assert (
+                len(chunks) <= batch_size
+                if batch_size != 0
+                else len(chunks) in [group_one, group_two]
+            )
             # check if reorder-er is working correctly
             assert all(
                 len(chunks[i][0]) <= len(chunks[i - 1][0])
@@ -269,7 +275,7 @@ class TestCollator:
         # check get original
         assert reordered_output == generation_samples
 
-    @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48)])
+    @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 3)])
     def test_logliklihood(self, batch_size, end):
         _collate_log = lambda x: (-len(x[1]), tuple(x[1]))  # noqa: E731
         loglikelihood_samples = self.make_logliklihood_sample(int(end))
@@ -278,7 +284,7 @@ class TestCollator:
         output = []
         for chunks in chunks:
             # check batching
-            assert len(chunks) <= batch_size
+            assert len(chunks) <= batch_size if batch_size != 0 else len(chunks) == end
             # check reorder
             assert all(
                 len(chunks[i][1]) <= len(chunks[i - 1][1])
