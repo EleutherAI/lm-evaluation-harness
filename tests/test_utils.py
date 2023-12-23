@@ -238,7 +238,7 @@ class TestCollator:
 
         return args
 
-    def make_logliklihood_sample(self, end=11):
+    def make_loglikelihood_sample(self, end=11):
         samples = [
             (("x", "x"), list(range(1, total_length + 1)))
             for total_length in range(1, end + 1)
@@ -276,9 +276,9 @@ class TestCollator:
         assert reordered_output == generation_samples
 
     @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 3)])
-    def test_logliklihood(self, batch_size, end):
+    def test_loglikelihood(self, batch_size, end):
         _collate_log = lambda x: (-len(x[1]), tuple(x[1]))  # noqa: E731
-        loglikelihood_samples = self.make_logliklihood_sample(int(end))
+        loglikelihood_samples = self.make_loglikelihood_sample(int(end))
         loglikelihoods = Collator(loglikelihood_samples, _collate_log, grouping=False)
         chunks = loglikelihoods.get_batched(n=int(batch_size), batch_fn=None)
         output = []
