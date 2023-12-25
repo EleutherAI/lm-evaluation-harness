@@ -67,7 +67,7 @@ promptsource = [
 ]
 sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
-vllm = ["vllm"]
+vllm = ["vllm<=0.2.5"]
 zeno = ["pandas", "zeno-client"]
 all = [
     "lm_eval[anthropic]",
