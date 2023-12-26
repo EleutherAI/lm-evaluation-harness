@@ -9,7 +9,7 @@ from sqlitedict import SqliteDict
 from tqdm import tqdm
 
 from lm_eval import utils
-
+from lm_eval.api.instance import Instance
 
 eval_logger = logging.getLogger("lm-eval")
 
@@ -29,7 +29,7 @@ class LM(abc.ABC):
         self.cache_hook = CacheHook(None)
 
     @abc.abstractmethod
-    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
         """Compute log-likelihood of generating a continuation from a context.
         Downstream tasks should attempt to use loglikelihood instead of other
         LM calls whenever possible.

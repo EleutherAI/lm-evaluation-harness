@@ -9,7 +9,7 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.utils import retry_on_specific_exceptions
+from lm_eval.utils import retry_on_specific_exceptions, prepare_requests
 
 
 def get_result(response, ctxlen: int) -> Tuple[float, bool]:
@@ -156,19 +156,12 @@ class OpenaiCompletionsLM(LM):
         return context_enc, continuation_enc
 
     def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
-        new_reqs = []
-        for context, continuation in [req.args for req in requests]:
-            if context == "":
-                # end of text as context
-                context_enc, continuation_enc = (
-                    [self.eot_token_id],
-                    self.tok_encode(continuation),
-                )
-            else:
-                context_enc, continuation_enc = self._encode_pair(context, continuation)
-
-            new_reqs.append(((context, continuation), context_enc, continuation_enc))
-
+        new_reqs = prepare_requests(
+            requests=requests,
+            eot_token_id=self.eot_token_id,
+            tok_encode_fn=self.tok_encode,
+            encode_pair_fn=self._encode_pair
+        )
         return self._loglikelihood_tokens(new_reqs)
 
     def _loglikelihood_tokens(
