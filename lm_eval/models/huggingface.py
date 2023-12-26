@@ -67,8 +67,7 @@ class HFLM(LM):
         pretrained: Optional[Union[str, transformers.PreTrainedModel]] = "gpt2",
         backend: Optional[
             Literal["default", "causal", "seq2seq"]
-        ] = "default",
-        # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
+        ] = "default", # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
         revision: Optional[str] = "main",
         subfolder: Optional[str] = None,
         tokenizer: Optional[
@@ -652,7 +651,7 @@ class HFLM(LM):
             encoding["input_ids"] = encoding["input_ids"][:, -left_truncate_len:]
             encoding["attention_mask"] = encoding["attention_mask"][
              :, -left_truncate_len:
-             ]
+            ]
         self.tokenizer.padding_side = old_padding_side
 
         return encoding["input_ids"], encoding["attention_mask"]
@@ -726,7 +725,7 @@ class HFLM(LM):
         return logits
 
     def _encode_pair(
-            self, context: str, continuation: str
+        self, context: str, continuation: str
     ) -> Tuple[List[int], List[int]]:
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
@@ -860,8 +859,8 @@ class HFLM(LM):
         batch_fn = (
             self._batch_scheduler
             if self.batch_size == "auto"
-           and n_reordered_requests > 0
-           and not override_bs
+            and n_reordered_requests > 0
+            and not override_bs
             else None
         )
 

@@ -649,7 +649,7 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
         # For efficiency, we compare the last n tokens where n is the number of tokens in the stop_sequence
         lookback_ids_batch = input_ids[:, self.initial_decoder_input_length:][
          :, -self.sequence_id_len:
-         ]
+        ]
 
         lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
         for i, done in enumerate(self.done_tracker):
