@@ -54,7 +54,7 @@ def escaped_split(text, sep_char, maxsplit=-1):
     number of splits (all possible splits are made).
     """
     assert (
-            len(sep_char) == 1
+        len(sep_char) == 1
     ), "separation string must be a single character for escaped splitting"
 
     if maxsplit == 0:
@@ -555,9 +555,9 @@ def create_iterator(raw_iterator, rank, world_size, limit=None):
 
 
 def pad_and_concat(
-        max_length: int,
-        tensors: List[torch.Tensor],
-        padding_side: Literal["right", "left"] = "right",
+    max_length: int,
+    tensors: List[torch.Tensor],
+    padding_side: Literal["right", "left"] = "right",
 ):
     """
     Method for padding a list of tensors given the maximum tensor
@@ -565,7 +565,7 @@ def pad_and_concat(
     seq2seq models.
     """
     assert (
-            padding_side == "left" or padding_side == "right"
+        padding_side == "left" or padding_side == "right"
     ), f"Unrecognized padding type: '{padding_side}' not 'left' or 'right'"
 
     for i, tensor in enumerate(tensors):
@@ -625,11 +625,11 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
     """Criteria to stop on the specified multi-token sequence."""
 
     def __init__(
-            self,
-            sequence: str,
-            tokenizer: transformers.PreTrainedTokenizer,
-            initial_decoder_input_length: int,
-            batch_size: int,
+        self,
+        sequence: str,
+        tokenizer: transformers.PreTrainedTokenizer,
+        initial_decoder_input_length: int,
+        batch_size: int,
     ) -> None:
         self.initial_decoder_input_length = initial_decoder_input_length
         self.done_tracker = [False] * batch_size
@@ -648,8 +648,8 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
     def __call__(self, input_ids, scores, **kwargs) -> bool:
         # For efficiency, we compare the last n tokens where n is the number of tokens in the stop_sequence
         lookback_ids_batch = input_ids[:, self.initial_decoder_input_length:][
-                             :, -self.sequence_id_len:
-                             ]
+         :, -self.sequence_id_len:
+         ]
 
         lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
         for i, done in enumerate(self.done_tracker):
@@ -659,10 +659,10 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
 
 
 def stop_sequences_criteria(
-        tokenizer: transformers.PreTrainedTokenizer,
-        stop_sequences: List[str],
-        initial_decoder_input_length: int,
-        batch_size: int,
+    tokenizer: transformers.PreTrainedTokenizer,
+    stop_sequences: List[str],
+    initial_decoder_input_length: int,
+    batch_size: int,
 ) -> transformers.StoppingCriteriaList:
     return transformers.StoppingCriteriaList(
         [
@@ -729,11 +729,11 @@ def divide(iterable, n) -> List[Iterator]:
 
 
 def retry_on_specific_exceptions(
-        on_exceptions: List[Type[Exception]],
-        max_retries: Optional[int] = None,
-        backoff_time: float = 3.0,
-        backoff_multiplier: float = 1.5,
-        on_exception_callback: Optional[Callable[[Exception, float], Any]] = None,
+    on_exceptions: List[Type[Exception]],
+    max_retries: Optional[int] = None,
+    backoff_time: float = 3.0,
+    backoff_multiplier: float = 1.5,
+    on_exception_callback: Optional[Callable[[Exception, float], Any]] = None,
 ):
     """Retry on an LLM Provider's rate limit error with exponential backoff
     For example, to use for OpenAI, do the following:
@@ -776,11 +776,11 @@ class Collator:
     """
 
     def __init__(
-            self,
-            arr: List,
-            sort_fn: Callable,
-            group_fn: Callable = lambda x: x[1],
-            grouping: bool = False,
+        self,
+        arr: List,
+        sort_fn: Callable,
+        group_fn: Callable = lambda x: x[1],
+        grouping: bool = False,
     ) -> None:
         self.grouping = grouping
         self.fn = sort_fn
@@ -809,8 +809,8 @@ class Collator:
         """
         if self.grouping:
             for (
-                    key,
-                    values,
+                key,
+                values,
             ) in self.arr_with_indices.items():  # type: ignore
                 values = self._reorder(values)
                 batch = self.get_chunks(values, n=n, fn=batch_fn)

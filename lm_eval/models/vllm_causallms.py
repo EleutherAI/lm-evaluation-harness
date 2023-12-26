@@ -34,26 +34,26 @@ class VLLM(LM):
     _DEFAULT_MAX_LENGTH = 2048
 
     def __init__(
-            self,
-            pretrained="gpt2",
-            dtype: Literal["float16", "bfloat16", "float32", "auto"] = "auto",
-            revision: Optional[str] = None,
-            trust_remote_code: Optional[bool] = False,
-            tokenizer: Optional[str] = None,
-            tokenizer_mode: Literal["auto", "slow"] = "auto",
-            tokenizer_revision: Optional[str] = None,
-            tensor_parallel_size: int = 1,
-            quantization: Optional[Literal["awq"]] = None,
-            max_gen_toks: int = 256,
-            swap_space: int = 4,
-            batch_size: Union[str, int] = 1,
-            max_batch_size=None,
-            max_length: int = None,
-            max_model_len: int = None,
-            seed: int = 1234,
-            gpu_memory_utilization: float = 0.9,
-            device: str = "cuda",
-            data_parallel_size: int = 1,
+        self,
+        pretrained="gpt2",
+        dtype: Literal["float16", "bfloat16", "float32", "auto"] = "auto",
+        revision: Optional[str] = None,
+        trust_remote_code: Optional[bool] = False,
+        tokenizer: Optional[str] = None,
+        tokenizer_mode: Literal["auto", "slow"] = "auto",
+        tokenizer_revision: Optional[str] = None,
+        tensor_parallel_size: int = 1,
+        quantization: Optional[Literal["awq"]] = None,
+        max_gen_toks: int = 256,
+        swap_space: int = 4,
+        batch_size: Union[str, int] = 1,
+        max_batch_size=None,
+        max_length: int = None,
+        max_model_len: int = None,
+        seed: int = 1234,
+        gpu_memory_utilization: float = 0.9,
+        device: str = "cuda",
+        data_parallel_size: int = 1,
     ):
         super().__init__()
 
@@ -65,7 +65,7 @@ class VLLM(LM):
 
         assert "cuda" in device or device is None, "vLLM only supports CUDA"
         assert (
-                max_length is None or max_model_len is None
+            max_length is None or max_model_len is None
         ), "Either max_length or max_model_len may be provided, but not both"
 
         self._max_length = max_model_len if max_model_len is not None else max_length
@@ -117,11 +117,11 @@ class VLLM(LM):
         return self._max_gen_toks
 
     def tok_encode(
-            self,
-            string: str,
-            left_truncate_len=None,
-            add_special_tokens=False,
-            truncation=False,
+        self,
+        string: str,
+        left_truncate_len=None,
+        add_special_tokens=False,
+        truncation=False,
     ):
         """ """
         encoding = self.tokenizer.encode(
@@ -135,12 +135,12 @@ class VLLM(LM):
         return encoding
 
     def _model_generate(
-            self,
-            requests: List[List[int]] = None,
-            generate: bool = False,
-            max_tokens: int = None,
-            stop: Optional[List[str]] = None,
-            **kwargs,
+        self,
+        requests: List[List[int]] = None,
+        generate: bool = False,
+        max_tokens: int = None,
+        stop: Optional[List[str]] = None,
+        **kwargs,
     ):
         if "do_sample" in kwargs.keys():
             kwargs.pop("do_sample")
@@ -175,7 +175,7 @@ class VLLM(LM):
         return outputs
 
     def _encode_pair(
-            self, context: str, continuation: str
+        self, context: str, continuation: str
     ) -> Tuple[List[int], List[int]]:
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
@@ -325,9 +325,9 @@ class VLLM(LM):
         return grouper.get_original(res)
 
     def _loglikelihood_tokens(
-            self,
-            requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
-            disable_tqdm: bool = False,
+        self,
+        requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
+        disable_tqdm: bool = False,
     ) -> List[Tuple[float, bool]]:
         res = []
 
@@ -358,7 +358,7 @@ class VLLM(LM):
             outputs = self._model_generate(requests=inps, generate=False)
 
             for output, ctxlen, (cache_key, context_enc, continuation_enc) in zip(
-                    outputs, ctxlens, chunk
+                outputs, ctxlens, chunk
             ):
                 answer = self._parse_logprobs(
                     (context_enc + continuation_enc),
@@ -407,7 +407,7 @@ class VLLM(LM):
         # Determine if is_greedy
         is_greedy = True
         for token, logprob_dict in zip(
-                tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]
+            tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]
         ):
             # Get the token with the maximum log probability from the logprob_dict
             if logprob_dict:  # Ensure the logprob_dict is not None
