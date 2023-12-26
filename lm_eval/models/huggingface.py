@@ -20,7 +20,8 @@ from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.utils import Collator, stop_sequences_criteria, prepare_requests
+from lm_eval.utils import Collator, prepare_requests, stop_sequences_criteria
+
 
 eval_logger = utils.eval_logger
 
@@ -67,7 +68,7 @@ class HFLM(LM):
         pretrained: Optional[Union[str, transformers.PreTrainedModel]] = "gpt2",
         backend: Optional[
             Literal["default", "causal", "seq2seq"]
-        ] = "default", # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
+        ] = "default",  # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
         revision: Optional[str] = "main",
         subfolder: Optional[str] = None,
         tokenizer: Optional[
@@ -560,10 +561,10 @@ class HFLM(LM):
         if requests:
             _, context_enc, continuation_enc = requests[pos]
             max_length = len(
-                (context_enc + continuation_enc)[-(self.max_length + 1):][:-1]
+                (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1]
             )
-            max_context_enc = len(context_enc[-(self.max_length + 1):])
-            max_cont_enc = len(continuation_enc[-(self.max_length + 1):])
+            max_context_enc = len(context_enc[-(self.max_length + 1) :])
+            max_cont_enc = len(continuation_enc[-(self.max_length + 1) :])
         else:
             max_length = self.max_length
 
@@ -650,7 +651,7 @@ class HFLM(LM):
         if left_truncate_len:
             encoding["input_ids"] = encoding["input_ids"][:, -left_truncate_len:]
             encoding["attention_mask"] = encoding["attention_mask"][
-             :, -left_truncate_len:
+                :, -left_truncate_len:
             ]
         self.tokenizer.padding_side = old_padding_side
 
@@ -713,7 +714,7 @@ class HFLM(LM):
             ), "Must pass input len and cont. len to select scored logits for causal LM"
             # discard right-padding.
             # also discard the input/context tokens. we'll only score continuations.
-            logits = logits[inplen - contlen: inplen]
+            logits = logits[inplen - contlen : inplen]
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
             assert (
                 contlen and not inplen
@@ -724,29 +725,11 @@ class HFLM(LM):
 
         return logits
 
-    def _encode_pair(
-        self, context: str, continuation: str
-    ) -> Tuple[List[int], List[int]]:
-        n_spaces = len(context) - len(context.rstrip())
-        if n_spaces > 0:
-            continuation = context[-n_spaces:] + continuation
-            context = context[:-n_spaces]
-
-        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
-        context_enc = self.tok_encode(context, add_special_tokens=False)
-
-        # whole_enc = self.tok_encode(context + continuation)
-        # context_enc = self.tok_encode(context, add_special_tokens=False)
-        context_enc_len = len(context_enc)
-        continuation_enc = whole_enc[context_enc_len:]
-        return context_enc, continuation_enc
-
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
         new_reqs = prepare_requests(
             requests=requests,
             eot_token_id=self.eot_token_id,
             tok_encode_fn=self.tok_encode,
-            encode_pair_fn=self._encode_pair
         )
         return self._loglikelihood_tokens(new_reqs)
 
@@ -896,14 +879,14 @@ class HFLM(LM):
                 # when too long to fit in context, truncate from the left
                 if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
                     inp = torch.tensor(
-                        (context_enc + continuation_enc)[-(self.max_length + 1):][:-1],
+                        (context_enc + continuation_enc)[-(self.max_length + 1) :][:-1],
                         dtype=torch.long,
                         device=self.device,
                     )
                     (inplen,) = inp.shape
                 elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
                     inp = torch.tensor(
-                        (context_enc)[-self.max_length:],
+                        (context_enc)[-self.max_length :],
                         dtype=torch.long,
                         device=self.device,
                     )
@@ -913,7 +896,7 @@ class HFLM(LM):
                     encoder_attns.append(torch.ones_like(inp))
 
                     cont = torch.tensor(
-                        (continuation_enc)[-self.max_length:],
+                        (continuation_enc)[-self.max_length :],
                         # TODO: left-shift these?
                         # TODO: our code assumes we never end up truncating conts for either model type
                         dtype=torch.long,
@@ -1107,7 +1090,7 @@ class HFLM(LM):
             for cont_toks, context in zip(cont_toks_list, contexts):
                 # discard context + left-padding toks if using causal decoder-only LM
                 if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-                    cont_toks = cont_toks[context_enc.shape[1]:]
+                    cont_toks = cont_toks[context_enc.shape[1] :]
 
                 s = self.tok_decode(cont_toks)
 

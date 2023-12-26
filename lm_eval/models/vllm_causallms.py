@@ -11,6 +11,7 @@ from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.utils import prepare_requests
 
+
 try:
     from ray.util.multiprocessing import Pool
     from vllm import LLM, SamplingParams
@@ -174,27 +175,11 @@ class VLLM(LM):
 
         return outputs
 
-    def _encode_pair(
-        self, context: str, continuation: str
-    ) -> Tuple[List[int], List[int]]:
-        n_spaces = len(context) - len(context.rstrip())
-        if n_spaces > 0:
-            continuation = context[-n_spaces:] + continuation
-            context = context[:-n_spaces]
-
-        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
-        context_enc = self.tok_encode(context, add_special_tokens=False)
-
-        context_enc_len = len(context_enc)
-        continuation_enc = whole_enc[context_enc_len:]
-        return context_enc, continuation_enc
-
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
         new_reqs = prepare_requests(
             requests=requests,
             eot_token_id=self.eot_token_id,
             tok_encode_fn=self.tok_encode,
-            encode_pair_fn=self._encode_pair
         )
         return self._loglikelihood_tokens(new_reqs)
 
@@ -347,7 +332,7 @@ class VLLM(LM):
             inps = []
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
-                inp = (context_enc + continuation_enc)[-(self.max_length):]
+                inp = (context_enc + continuation_enc)[-(self.max_length) :]
                 ctxlen = len(context_enc) - max(
                     0, len(context_enc) + len(continuation_enc) - (self.max_length)
                 )

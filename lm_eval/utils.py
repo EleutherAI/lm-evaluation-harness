@@ -31,6 +31,7 @@ import transformers
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
 
+
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
     datefmt="%Y-%m-%d:%H:%M:%S",
@@ -222,8 +223,8 @@ def get_rolling_token_windows(token_list, prefix_token, max_seq_len, context_len
         window_end = predicted + window_pred_len
 
         yield (
-            token_list[window_end - max_seq_len - 1: window_end - 1],
-            token_list[window_end - window_pred_len: window_end],
+            token_list[window_end - max_seq_len - 1 : window_end - 1],
+            token_list[window_end - window_pred_len : window_end],
         )
         predicted += window_pred_len
 
@@ -647,8 +648,8 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
 
     def __call__(self, input_ids, scores, **kwargs) -> bool:
         # For efficiency, we compare the last n tokens where n is the number of tokens in the stop_sequence
-        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length:][
-         :, -self.sequence_id_len:
+        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length :][
+            :, -self.sequence_id_len :
         ]
 
         lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
@@ -922,21 +923,38 @@ class Collator:
             yield arr
 
 
-def encode_request(context, continuation, eot_token_id, tok_encode_fn, encode_pair_fn):
+def encode_request(context, continuation, eot_token_id, tok_encode_fn):
     """Encodes a single request into token IDs."""
     if context == "":
         # end of text as context
         context_enc = [eot_token_id]
         continuation_enc = tok_encode_fn(continuation)
     else:
-        context_enc, continuation_enc = encode_pair_fn(context, continuation)
+        context_enc, continuation_enc = encode_pair(context, continuation)
     return context_enc, continuation_enc
 
 
-def prepare_requests(requests, eot_token_id, tok_encode_fn, encode_pair_fn):
+def prepare_requests(requests, eot_token_id, tok_encode_fn):
     """Prepares a list of requests for log-likelihood computation."""
     new_reqs = []
     for context, continuation in [req.args for req in requests]:
-        context_enc, continuation_enc = encode_request(context, continuation, eot_token_id, tok_encode_fn, encode_pair_fn)
+        context_enc, continuation_enc = encode_request(
+            context, continuation, eot_token_id, tok_encode_fn
+        )
         new_reqs.append(((context, continuation), context_enc, continuation_enc))
     return new_reqs
+
+
+def encode_pair(context: str, continuation: str, tok_encode: Callable):
+    n_spaces = len(context) - len(context.rstrip())
+    if n_spaces > 0:
+        continuation = context[-n_spaces:] + continuation
+        context = context[:-n_spaces]
+
+    whole_enc = tok_encode(context + continuation, add_special_tokens=False)
+    context_enc = tok_encode(context, add_special_tokens=False)
+
+    context_enc_len = len(context_enc)
+    continuation_enc = whole_enc[context_enc_len:]
+
+    return context_enc, continuation_enc

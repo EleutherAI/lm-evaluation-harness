@@ -11,6 +11,7 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 
+
 eval_logger = logging.getLogger("lm-eval")
 
 T = TypeVar("T", bound="LM")
