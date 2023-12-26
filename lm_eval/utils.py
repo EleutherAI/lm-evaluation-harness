@@ -945,7 +945,9 @@ def encode_request(context, continuation, eot_token_id, tok_encode_fn):
         context_enc = [eot_token_id]
         continuation_enc = tok_encode_fn(continuation)
     else:
-        context_enc, continuation_enc = encode_pair(context, continuation)
+        context_enc, continuation_enc = encode_pair(
+            context=context, continuation=continuation, tok_encode=tok_encode_fn
+        )
     return context_enc, continuation_enc
 
 
