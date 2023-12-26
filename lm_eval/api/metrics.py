@@ -15,8 +15,8 @@ eval_logger = logging.getLogger("lm-eval")
 
 
 # Register Aggregations First
-@register_aggregation("null")
-def null(arr):
+@register_aggregation("bypass")
+def bypass_agg(arr):
     return 999
 
 
@@ -216,7 +216,7 @@ def mean_stderr(arr):
     metric="bypass",
     higher_is_better=True,
     output_type=["loglikelihood", "multiple_choice", "generate_until"],
-    aggregation="null",
+    aggregation="bypass",
 )
 def bypass(items):
     return None
