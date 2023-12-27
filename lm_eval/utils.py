@@ -859,7 +859,8 @@ class Collator:
     def __len__(self):
         return self.size
 
-    def group(self, arr: Iterable, fn: Callable, values: bool = False) -> Iterable:
+    @staticmethod
+    def group(arr: Iterable, fn: Callable, values: bool = False) -> Iterable:
         """
         Groups elements of an iterable based on a provided function.
 
@@ -875,8 +876,13 @@ class Collator:
         for ob in arr:
             try:
                 hashable_dict = tuple(
-                    (key, tuple(value) if isinstance(value, list) else value)
-                    for key, value in sorted(ob[1][1].items())
+                    (
+                        key,
+                        tuple(value)
+                        if isinstance(value, collections.abc.Iterable)
+                        else value,
+                    )
+                    for key, value in sorted(fn(ob).items())
                 )
                 res[hashable_dict].append(ob)
             except TypeError:
@@ -885,7 +891,8 @@ class Collator:
             return res
         return res.values()
 
-    def get_chunks(self, iter, n: int = 0, fn=None):
+    @staticmethod
+    def get_chunks(_iter, n: int = 0, fn=None):
         """
         Divides an iterable into chunks of specified size or based on a given function.
         Useful for batching
@@ -913,9 +920,9 @@ class Collator:
         ```
         """
         arr = []
-        for i, x in enumerate(iter):
+        for i, x in enumerate(_iter):
             arr.append(x)
-            if len(arr) == (fn(i, iter) if fn else n):
+            if len(arr) == (fn(i, _iter) if fn else n):
                 yield arr
                 arr = []
 

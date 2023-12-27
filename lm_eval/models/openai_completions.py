@@ -254,6 +254,7 @@ class OpenaiCompletionsLM(LM):
             list(sameuntil_chunks(re_ord.get_reordered(), self.REQ_CHUNK_SIZE))
         ):
             inps = []
+            self._max_gen_toks = request_args.pop("max_gen_toks", self.max_gen_toks)
             for context, _ in chunk:
                 context_enc = self.tok_encode(context)
                 inp = context_enc[-(self.max_length - self.max_gen_toks) :]
@@ -441,8 +442,7 @@ class OpenaiChatCompletionsLM(LM):
 
                 gen_kwargs = all_gen_kwargs[0]
                 until = None
-                if isinstance(gen_kwargs, dict):
-                    kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                if isinstance(kwargs := copy.deepcopy(gen_kwargs), dict):
                     if "do_sample" in kwargs.keys():
                         kwargs.pop("do_sample")
                     if "until" in kwargs.keys():
@@ -453,6 +453,8 @@ class OpenaiChatCompletionsLM(LM):
                             raise ValueError(
                                 f"Expected repr(kwargs['until']) to be of type Union[str, list] but got {until}"
                             )
+                        kwargs["stop"] = until
+                    kwargs["max_tokens"] = kwargs.pop("max_gen_toks", self.max_gen_toks)
                 else:
                     raise ValueError(
                         f"Expected repr(kwargs) to be of type repr(dict) but got {kwargs}"
