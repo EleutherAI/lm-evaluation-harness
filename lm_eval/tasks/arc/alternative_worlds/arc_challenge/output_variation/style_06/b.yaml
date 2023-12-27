@@ -1,0 +1,6 @@
+include: ../_arc_challenge_alt_yaml
+group: arc_challenge_alt_ov_06
+task: arc_challenge_alt_ov_06b
+doc_to_text: !function ../styles.template_06
+doc_to_choice: !function ../styles.choice_06b
+doc_to_decontamination_query: !function ../styles.template_06
