@@ -1,17 +1,11 @@
-group:
-  - ai2_arc
-task: piqa
-dataset_path: ai2_arc
-dataset_name: ARC-Easy
+dataset_path: piqa
 output_type: multiple_choice
 training_split: train
 validation_split: validation
-test_split: test
-doc_to_text: "Question: {{question}}\nAnswer:"
-doc_to_target: "{{choices.label.index(answerKey)}}"
-doc_to_choice: "{{choices.text}}"
+doc_to_text: "Question: {{goal}}\nAnswer:"
+doc_to_target: label
+doc_to_choice: "{{[sol1, sol2]}}"
 should_decontaminate: true
-doc_to_decontamination_query: "Question: {{question}}\nAnswer:"
 metric_list:
   - metric: acc
     aggregation: mean
@@ -22,3 +16,5 @@ metric_list:
   - metric: brier_score
     aggregation: brier_score
     higher_is_better: false
+metadata:
+  - version: 1.0

@@ -27,7 +27,7 @@ def doc_to_text_base(alphabet, style, doc):
 
 # Full continuation
 def choice_A(doc):
-    return doc["choices"]["text"]
+    return [doc["sol1"], doc["sol2"]]
 
 
 # Letters only
