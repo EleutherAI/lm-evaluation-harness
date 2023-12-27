@@ -1,0 +1,5 @@
+include: _siqa_alt_yaml
+group: siqa_alt_pv
+task: siqa_alt_pv_01
+doc_to_text: "{{context}} {{question}}"
+doc_to_decontamination_query: "{{context}} {{question}}"
