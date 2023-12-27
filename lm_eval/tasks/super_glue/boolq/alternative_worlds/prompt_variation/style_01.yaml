@@ -1,0 +1,5 @@
+include: _boolq_yaml
+group: boolq_alt_pv
+task: boolq_alt_pv_01
+doc_to_text: "{{passage}}\n{{question}}?"
+doc_to_decontamination_query: "{{passage}}\n{{question}}?"
