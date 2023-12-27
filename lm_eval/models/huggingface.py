@@ -201,7 +201,7 @@ class HFLM(LM):
         self.model.eval()
         self.model.tie_weights()
 
-        if (gpus >= 1 or str(self.device) == "mps") and isinstance(pretrained, str):
+        if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) == "mps"):
             if not (parallelize or autogptq or ("device_map" in kwargs)):
                 # place model onto device requested manually,
                 # if not using HF Accelerate or device_map
