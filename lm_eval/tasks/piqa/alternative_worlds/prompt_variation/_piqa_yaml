@@ -1,0 +1,47 @@
+# dataset_path: ai2_arc
+# dataset_name: ARC-Easy
+# output_type: multiple_choice
+# training_split: train
+# validation_split: validation
+# test_split: test
+# doc_to_text: "Question: {{question}}\nAnswer:"
+# doc_to_target: "{{choices.label.index(answerKey)}}"
+# doc_to_choice: "{{choices.text}}"
+# should_decontaminate: true
+# doc_to_decontamination_query: "Question: {{question}}\nAnswer:"
+# metric_list:
+#   - metric: acc
+#     aggregation: mean
+#     higher_is_better: true
+#   - metric: acc_norm
+#     aggregation: mean
+#     higher_is_better: true
+#   - metric: brier_score
+#     aggregation: brier_score
+#     higher_is_better: false
+
+
+
+dataset_path: piqa
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: null
+doc_to_text: "Question: {{goal}}\nAnswer:"
+doc_to_target: label
+doc_to_choice: "{{[sol1, sol2]}}"
+should_decontaminate: true
+doc_to_decontamination_query: goal
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: brier_score
+    aggregation: brier_score
+    higher_is_better: false
+metadata:
+  - version: 1.0
