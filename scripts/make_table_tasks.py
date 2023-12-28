@@ -3,21 +3,55 @@ Usage:
    Writes csv and Markdown table to csv_file, md_file (below).
 """
 import logging
+import os
 from pathlib import Path
+from typing import List, Union
 
 import datasets
 import pandas as pd
 
 from lm_eval import tasks
 from lm_eval.tasks import TASK_REGISTRY
-
-from ..tests.utils import new_tasks
+from lm_eval.utils import load_yaml_config
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 datasets.disable_caching()
 tasks.initialize_tasks()
+
+
+def load_changed_files(file_path: str) -> List[str]:
+    with open(file_path, "r") as f:
+        content = f.read()
+        words_list = [x for x in content.split()]
+    return words_list
+
+
+def parser(full_path: List[str]) -> List[str]:
+    _output = set()
+    for x in full_path:
+        if x.endswith(".yaml"):
+            _output.add(load_yaml_config(x)["task"])
+        elif x.endswith(".py"):
+            path = [str(x) for x in (list(Path(x).parent.glob("*.yaml")))]
+            _output |= {load_yaml_config(x)["task"] for x in path}
+    return list(_output)
+
+
+def new_tasks() -> Union[List[str], None]:
+    FILENAME = ".github/outputs/tasks_all_changed_and_modified_files.txt"
+    if os.path.exists(FILENAME):
+        # If tasks folder has changed then we get the list of files from FILENAME
+        # and parse the yaml files to get the task names.
+        return parser(load_changed_files(FILENAME))
+    elif os.getenv("API") is not None:
+        # Or if API has changed then we set the ENV variable API to True
+        # and run  given tasks.
+        return ["arc_easy", "hellaswag", "piqa", "wikitext"]
+    # if both not true just do arc_easy
+    else:
+        return None
 
 
 def check(tf):
