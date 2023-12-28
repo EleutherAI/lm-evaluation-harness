@@ -33,25 +33,34 @@ def main():
     This scripts expects your results to live in a data folder where subfolders contain results of individual models.
     """
     args = parse_args()
+    zeno_upload(args.data_path, args.project_name)
 
+
+def zeno_upload(data_path: str, project_name: str):
+    """Upload results to be visualized in Zeno.
+
+    Args:
+        data_path (str): path to the results folder.
+        project_name (str): name of the Zeno project to be created.
+    """
     client = ZenoClient(os.environ["ZENO_API_KEY"])
 
     # Get all model subfolders from the parent data folder.
     models = [
         os.path.basename(os.path.normpath(f))
-        for f in os.scandir(Path(args.data_path))
+        for f in os.scandir(Path(data_path))
         if f.is_dir()
     ]
 
     assert len(models) > 0, "No model directories found in the data_path."
 
-    tasks = set(tasks_for_model(models[0], args.data_path))
+    tasks = set(tasks_for_model(models[0], data_path))
 
     for model in models:  # Make sure that all models have the same tasks.
         old_tasks = tasks.copy()
         task_count = len(tasks)
 
-        model_tasks = tasks_for_model(model, args.data_path)
+        model_tasks = tasks_for_model(model, data_path)
         tasks.intersection(set(model_tasks))
 
         if task_count != len(tasks):
@@ -69,18 +78,16 @@ def main():
             model_args = re.sub(
                 "/|=",
                 "__",
-                json.load(open(Path(args.data_path, model, "results.json")))["config"][
+                json.load(open(Path(data_path, model, "results.json")))["config"][
                     "model_args"
                 ],
             )
             with open(
-                Path(args.data_path, model, f"{model_args}_{task}.jsonl"), "r"
+                Path(data_path, model, f"{model_args}_{task}.jsonl"), "r"
             ) as file:
                 data = json.loads(file.read())
 
-            configs = json.load(open(Path(args.data_path, model, "results.json")))[
-                "configs"
-            ]
+            configs = json.load(open(Path(data_path, model, "results.json")))["configs"]
             config = configs[task]
 
             if model_index == 0:  # Only need to assemble data for the first model
@@ -94,7 +101,7 @@ def main():
                         )
                     )
                 project = client.create_project(
-                    name=args.project_name + (f"_{task}" if len(tasks) > 1 else ""),
+                    name=project_name + (f"_{task}" if len(tasks) > 1 else ""),
                     view="text-classification",
                     metrics=metrics,
                 )
