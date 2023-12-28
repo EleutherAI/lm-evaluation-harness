@@ -44,6 +44,7 @@ def maketable(df):
     else:
         task_classes = new_tasks()
         _tasks = [(x, TASK_REGISTRY.get(x)) for x in task_classes]
+    count = 0
     for tname, Task in _tasks:
         task = Task()
         v = [
@@ -66,6 +67,9 @@ def maketable(df):
         ]
         logger.info(v)
         values.append(v)
+        count += 1
+        if count == 10:
+            break
     if not df:
         df = pd.DataFrame(values, columns=headers)
         table = df.to_markdown(index=False)
@@ -85,8 +89,8 @@ def maketable(df):
 
 
 if __name__ == "__main__":
-    csv_file = Path(f"{Path(__file__).parent.parent.resolve()}/docs/task_guide.csv")
-    md_file = Path(f"{Path(__file__).parent.parent.resolve()}/docs/task_guide.md")
+    csv_file = Path(f"{Path(__file__).parent.parent.resolve()}/docs/task_table.csv")
+    md_file = Path(f"{Path(__file__).parent.parent.resolve()}/docs/task_table.md")
 
     try:
         df = pd.read_csv(csv_file)

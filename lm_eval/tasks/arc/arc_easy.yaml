@@ -3,6 +3,7 @@ group:
 task: arc_easy
 dataset_path: ai2_arc
 dataset_name: ARC-Easy
+# test
 output_type: multiple_choice
 training_split: train
 validation_split: validation
