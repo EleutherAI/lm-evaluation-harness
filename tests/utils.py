@@ -45,4 +45,4 @@ def new_tasks() -> Union[List[str], None]:
         return ["arc_easy", "hellaswag", "piqa", "wikitext"]
     # if both not true just do arc_easy
     else:
-        return
+        return None

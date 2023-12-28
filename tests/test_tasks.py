@@ -1,5 +1,6 @@
 from itertools import islice
 
+import datasets
 import pytest
 
 import lm_eval.tasks as tasks
@@ -8,6 +9,7 @@ from lm_eval.api.task import ConfigurableTask
 from .utils import new_tasks
 
 
+datasets.disable_caching()
 tasks.initialize_tasks()
 # Default Task
 TASKS = ["arc_easy"]

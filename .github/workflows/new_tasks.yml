@@ -1,9 +1,6 @@
 name: Tasks Modified
 
 on:
-  push:
-    branches:
-      - 'main'
   pull_request:
     branches:
       - 'main'
@@ -57,13 +54,22 @@ jobs:
         run: |
             python -m pip install --upgrade pip
             pip install -e '.[dev]' --extra-index-url https://download.pytorch.org/whl/cpu
-    #   Install optional git dependencies
-    #       pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
-    #       if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Test with pytest
         # if new tasks are added, run tests on them
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true'
         run: python -m pytest tests/test_tasks.py -s -vv
+        # Edit task table if new tasks added
+        # copied from gpt-neox repo
+      - name: Update Docs
+        if: success()
+        run: |
+          python scripts/make_table_tasks.py
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add docs/task_table.md
+          git add docs/task_table.csv
+          git commit -m "Update Task Table automatically"
+          git push
         # if api is modified, run tests on it
       - name: Test more tasks with pytest
         env:
