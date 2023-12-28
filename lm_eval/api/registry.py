@@ -1,13 +1,29 @@
 import os
-import evaluate
-from lm_eval.api.model import LM
-from lm_eval.api.metrics import HFEvaluateAdaptor
 import logging
+import evaluate
+from functools import partial
+
+from lm_eval.api.model import LM
 
 eval_logger = logging.getLogger("lm-eval")
 
 MODEL_REGISTRY = {}
 
+class HFEvaluateAdaptor:
+    def __init__(self, name, **kwargs):
+
+        self.name = name
+        metric_object = evaluate.load(name)
+        self.hf_evaluate_fn = partial(metric_object.compute, **kwargs)
+
+    def __call__(self, items):
+        refs = list(zip(*items))[0]
+        preds = list(zip(*items))[1]
+
+        return self.hf_evaluate_fn(
+            references=refs,
+            predictions=preds
+            )[self.name]
 
 def register_model(*names):
     # either pass a list or a single alias.
@@ -126,7 +142,7 @@ def get_metric(name, hf_evaluate_metric=False, **kwargs):
             )
 
     try:
-        from lm_eval.metrics import HFEvaluateAdaptor
+        # from lm_eval.metrics import HFEvaluateAdaptor
         return HFEvaluateAdaptor(name, **kwargs)
     except Exception:
         eval_logger.error(

@@ -159,21 +159,6 @@ def acc_mutual_info_fn(items):
     return mean(items)
 
 
-class HFEvaluateAdaptor:
-    def __init__(self, *metric_args, **kwargs):
-
-        metric_object = evaluate.load(*metric_args)
-        self.hf_evaluate_fn = partial(metric_object, **kwargs)
-
-    def __call__(self, items):
-        refs = list(zip(*items))[0]
-        preds = list(zip(*items))[1]
-
-        return self.hf_evaluate_fn(
-            references=refs,
-            predictions=preds
-            )
-
 exact_match = evaluate.load("exact_match")
 
 @register_metric(
