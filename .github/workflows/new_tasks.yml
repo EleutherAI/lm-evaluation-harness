@@ -61,7 +61,7 @@ jobs:
         # Edit task table if new tasks added
         # copied from gpt-neox repo
       - name: Update Docs
-        if: success()
+        if: steps.changed-tasks.outputs.tasks_any_modified == 'true' && steps['Test with pytest'].outcome == 'success'
         run: |
           python scripts/make_table_tasks.py
           git config user.name github-actions
