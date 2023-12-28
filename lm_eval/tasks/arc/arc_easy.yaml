@@ -1,7 +1,6 @@
 group:
   - ai2_arc
 task: arc_easy
-# test
 dataset_path: ai2_arc
 dataset_name: ARC-Easy
 output_type: multiple_choice
