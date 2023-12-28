@@ -449,7 +449,6 @@ def evaluate(
             else:
                 group_name = None
 
-
             metric_fn = task.compute_metric()[metric]
             results[task_name][metric_key] = metric_fn(items)
             results[task_name]["samples"] = len(items)
