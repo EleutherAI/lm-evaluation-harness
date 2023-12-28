@@ -70,7 +70,7 @@ jobs:
           git add docs/task_table.md
           git add docs/task_table.csv
           git commit -m "Update Task Table automatically"
-          git push
+          git push origin HEAD:refs/heads/${{ github.head_ref }}
         # if api is modified, run tests on it
       - name: Test more tasks with pytest
         env:
