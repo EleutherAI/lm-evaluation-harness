@@ -17,7 +17,6 @@ import numpy as np
 
 from typing import Union, List, Any, Tuple, Literal
 from collections.abc import Callable
-from functools import partial
 
 from lm_eval import utils
 from lm_eval.api import samplers
@@ -588,11 +587,11 @@ class ConfigurableTask(Task):
                     metric_name = metric_name.__name__
                 else:
                     metric_fn = get_metric(
-                        metric_name, hf_evaluate_metric
+                        metric_name, hf_evaluate_metric, **kwargs
                     )
 
                 self._metric_fn_kwargs[metric_name] = kwargs
-                self._metric_fn_list[metric_name] = partial(metric_fn, **kwargs) if kwargs != {} else metric_fn
+                self._metric_fn_list[metric_name] = metric_fn
 
         self.download(self.config.dataset_kwargs)
         self._training_docs = None
@@ -1106,6 +1105,8 @@ class ConfigurableTask(Task):
                 gold = type(result)(gold)
 
             for metric in self._metric_fn_list.keys():
+                result_dict[metric] = (gold, result)
+                continue
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
@@ -1141,7 +1142,6 @@ class ConfigurableTask(Task):
                         result_score = self._metric_fn_list[metric](
                             references=[gold],
                             predictions=[result],
-                            **self._metric_fn_kwargs[metric],
                         )
                     except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])

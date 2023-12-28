@@ -1,7 +1,7 @@
 import os
 import evaluate
 from lm_eval.api.model import LM
-
+from lm_eval.api.metrics import HFEvaluateAdaptor
 import logging
 
 eval_logger = logging.getLogger("lm-eval")
@@ -115,7 +115,7 @@ def register_metric(
     return decorate
 
 
-def get_metric(name, hf_evaluate_metric=False):
+def get_metric(name, hf_evaluate_metric=False, **kwargs):
 
     if not hf_evaluate_metric:
         if name in METRIC_FUNCTION_REGISTRY:
@@ -126,8 +126,8 @@ def get_metric(name, hf_evaluate_metric=False):
             )
 
     try:
-        metric_object = evaluate.load(name)
-        return metric_object.compute
+        from lm_eval.metrics import HFEvaluateAdaptor
+        return HFEvaluateAdaptor(name, **kwargs)
     except Exception:
         eval_logger.error(
             f"{name} not found in the evaluate library! Please check https://huggingface.co/evaluate-metric",
