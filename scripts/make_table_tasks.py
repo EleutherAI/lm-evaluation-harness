@@ -10,7 +10,8 @@ import pandas as pd
 
 from lm_eval import tasks
 from lm_eval.tasks import TASK_REGISTRY
-from tests.utils import new_tasks
+
+from ..tests.utils import new_tasks
 
 
 logging.basicConfig(level=logging.INFO)
