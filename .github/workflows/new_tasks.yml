@@ -23,7 +23,7 @@ jobs:
       # and prepends the filter name to the standard output names.
       - name: Check task folders
         id: changed-tasks
-        uses: tj-actions/changed-files@v37.1.2
+        uses: tj-actions/changed-files@v41.0.1
         with:
           # tasks checks the tasks folder and api checks the api folder for changes
           files_yaml: |
@@ -70,7 +70,7 @@ jobs:
           git add docs/task_table.md
           git add docs/task_table.csv
           git commit -m "Update Task Table automatically"
-          git push origin HEAD:refs/heads/${{ github.head_ref }}
+          git push origin ${{ github.head_ref }}
         # if api is modified, run tests on it
       - name: Test more tasks with pytest
         env:
