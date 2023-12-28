@@ -86,7 +86,6 @@ def register_metric(
     metric=None,
     higher_is_better=None,
     output_type=None,
-    # aggregation=None,
 ):
     # TODO: do we want to enforce a certain interface to registered metrics?
     def decorate(fn):
@@ -111,26 +110,6 @@ def register_metric(
                 for _output_type in output_type_list:
                     DEFAULT_METRIC_REGISTRY[_output_type].append(_metric)
 
-        #     # for key, registry in [
-        #     #     ("output_type", OUTPUT_TYPE_REGISTRY),
-        #     #     ("metric", METRIC_REGISTRY),
-        #     #     ("higher_is_better", HIGHER_IS_BETTER_REGISTRY),
-        #     #     ("aggregation", METRIC_AGGREGATION_REGISTRY),
-        #     # ]:
-
-        #     #     if key in args:
-        #     #         value = args[key]
-        #     #         assert (
-        #     #             value not in registry
-        #     #         ), f"{key} named '{value}' conflicts with existing registered {key}!"
-
-        #     #         if key == "metric":
-        #     #             registry[name] = fn
-        #     #         elif key == "aggregation":
-        #     #             registry[name] = AGGREGATION_REGISTRY[value]
-        #     #         else:
-        #     #             registry[name] = value
-
         return fn
 
     return decorate
@@ -153,38 +132,6 @@ def get_metric(name, hf_evaluate_metric=False):
         eval_logger.error(
             f"{name} not found in the evaluate library! Please check https://huggingface.co/evaluate-metric",
         )
-
-
-# def register_aggregation(name):
-#     def decorate(fn):
-#         assert (
-#             name not in AGGREGATION_REGISTRY
-#         ), f"aggregation named '{name}' conflicts with existing registered aggregation!"
-
-#         AGGREGATION_REGISTRY[name] = fn
-#         return fn
-
-#     return decorate
-
-
-# def get_aggregation(name):
-
-#     try:
-#         return AGGREGATION_REGISTRY[name]
-#     except KeyError:
-#         eval_logger.warning(
-#             "{} not a registered aggregation metric!".format(name),
-#         )
-
-
-# def get_metric_aggregation(name):
-
-#     try:
-#         return METRIC_AGGREGATION_REGISTRY[name]
-#     except KeyError:
-#         eval_logger.warning(
-#             "{} metric is not assigned a default aggregation!".format(name),
-#         )
 
 
 def is_higher_better(metric_name):
