@@ -239,7 +239,7 @@ For a full list of supported arguments, check out the [interface](https://github
 
 You can use [Zeno](https://zenoml.com) to visualize the results of your eval harness runs.
 
-First, head to [hub.zenoml.com](hub.zenoml.com) to create an account and get an API key [on your account page](hub.zenoml.com/account).
+First, head to [hub.zenoml.com](https://hub.zenoml.com) to create an account and get an API key [on your account page](https://hub.zenoml.com/account).
 Add this key as an environment variable:
 
 ```bash
