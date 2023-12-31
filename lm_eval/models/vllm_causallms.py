@@ -96,7 +96,8 @@ class VLLM(LM):
             trust_remote_code=trust_remote_code,
             tokenizer_revision=tokenizer_revision,
         )
-        self.batch_size = batch_size
+
+        self.batch_size = "auto" if batch_size.startswith("auto:") else batch_size
         self._max_gen_toks = max_gen_toks
 
     @property
