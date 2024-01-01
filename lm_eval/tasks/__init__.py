@@ -131,6 +131,9 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
     """
     Calling this function
     """
+
+    # Track whether any tasks failed during loading
+    import_fail = False
     for root, subdirs, file_list in os.walk(task_dir):
         # if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
         for f in file_list:
@@ -155,20 +158,27 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
 
                 # Log this silently and show it only when
                 # the user defines the appropriate verbosity.
-                except ModuleNotFoundError as e:
+                except (ImportError, ModuleNotFoundError) as e:
+                    import_fail = True
                     eval_logger.debug(
                         f"{yaml_path}: {e}. Config will not be added to registry."
                     )
                 except Exception as error:
                     import traceback
 
-                    eval_logger.debug(
-                        "Failed to load config in\n"
+                    eval_logger.warning(
+                        "Unexpected error loading config in\n"
                         f"                                 {yaml_path}\n"
                         "                                 Config will not be added to registry\n"
                         f"                                 Error: {error}\n"
                         f"                                 Traceback: {traceback.format_exc()}"
                     )
+
+    if import_fail:
+        eval_logger.warning(
+          "Some tasks could not be loaded due to missing dependencies."
+          " Run with `--verbosity DEBUG` for full details."
+          )
     return 0
 
 
