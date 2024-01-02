@@ -5,5 +5,5 @@ doc_to_text: "Question: Would most people believe this reasonable or unreasonabl
 doc_to_target: label
 doc_to_choice: ['unreasonable', 'reasonable']
 metadata:
-  - version: 1.0
+  version: 1.0
 # TODO: implement exact-match metric for this subset

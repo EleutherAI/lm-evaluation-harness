@@ -24,4 +24,4 @@ filter_list:
         regex_pattern: "^\\s*([A-D])"
       - function: "take_first"
 metadata:
-  - version: 0.0
+  version: 0.0

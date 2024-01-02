@@ -7,7 +7,7 @@ def doc_to_text(doc):
     # Given a passage p, the conversation history {q1, a1, . . . qi−1, ai−1}
     # and a question qi, the task is to predict the answer ai
     doc_text = doc["story"] + "\n\n"
-    for (q, a) in zip_longest(
+    for q, a in zip_longest(
         doc["questions"]["input_text"], doc["answers"]["input_text"][:-1]
     ):  # omit target answer ai
         question = f"Q: {q}\n\n"
@@ -17,7 +17,6 @@ def doc_to_text(doc):
 
 
 def doc_to_target(doc):
-
     turn_id = len(doc["questions"]["input_text"])
     # Returns unique answers and valid alternatives (Some questions in CoQA have multiple valid answers).
     answers = []
@@ -71,7 +70,6 @@ def compute_scores(gold_list, pred):
 
 
 def process_results(doc, results):
-
     gold_list = doc_to_target(doc)
     pred = results[0].strip().split("\n")[0]
 

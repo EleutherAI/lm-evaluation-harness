@@ -7,7 +7,6 @@ import argparse
 
 from tqdm import tqdm
 
-from lm_eval import utils
 from lm_eval.logger import eval_logger
 
 SUBJECTS = {
@@ -82,7 +81,6 @@ def parse_args():
 
 
 if __name__ == "__main__":
-
     args = parse_args()
 
     # get filename of base_yaml so we can `"include": ` it in our "other" YAMLs.
@@ -98,7 +96,6 @@ if __name__ == "__main__":
 
     ALL_CATEGORIES = []
     for subject, category in tqdm(SUBJECTS.items()):
-
         if category not in ALL_CATEGORIES:
             ALL_CATEGORIES.append(category)
 

@@ -2,12 +2,13 @@ import hashlib
 import json
 import os
 import pickle
-import pytest
 import unittest.mock as mock
+
+import pytest
+from openai import OpenAI
 
 import lm_eval.models as models
 
-from openai import OpenAI
 
 client = OpenAI()
 

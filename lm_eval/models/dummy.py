@@ -1,4 +1,5 @@
 import random
+
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 

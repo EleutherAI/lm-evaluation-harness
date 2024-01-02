@@ -1,12 +1,14 @@
-import lm_eval.tasks as tasks
-import lm_eval.models as models
-import lm_eval.evaluator as evaluator
-import random
-import pytest
-import os
-import json
-import hashlib
 import collections
+import hashlib
+import json
+import os
+import random
+
+import pytest
+
+import lm_eval.evaluator as evaluator
+import lm_eval.models as models
+import lm_eval.tasks as tasks
 
 
 os.makedirs("tests/testdata", exist_ok=True)

@@ -22,4 +22,4 @@ metric_list:
     aggregation: !function "t5_utils.agg_mean_3class_f1"
     higher_is_better: true
 metadata:
-  - version: 0.0
+  version: 0.0

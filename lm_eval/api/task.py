@@ -1,33 +1,24 @@
 import abc
-from dataclasses import dataclass, field, asdict
-
-import os
-import re
 import ast
-import yaml
 import logging
-import evaluate
+import os
 import random
-import itertools
-import functools
-from tqdm import tqdm
+import re
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
+from typing import Any, List, Literal, Tuple, Union
 
 import datasets
 import numpy as np
 
-from typing import Union, List, Any, Tuple, Literal
-from collections.abc import Callable
-
 from lm_eval import utils
 from lm_eval.api import samplers
 from lm_eval.api.instance import Instance
-from lm_eval.api.filter import FilterEnsemble
-
-from lm_eval.prompts import get_prompt
-from lm_eval.filters import build_filter_ensemble
 from lm_eval.api.metrics import (
+    bits_per_byte,
     mean,
     weighted_perplexity,
+<<<<<<< HEAD
     bits_per_byte,
 )
 from lm_eval.api.registry import (
@@ -36,7 +27,20 @@ from lm_eval.api.registry import (
     get_aggregation,
     METRIC_REGISTRY,
     DEFAULT_METRIC_REGISTRY,
+=======
 )
+from lm_eval.api.registry import (
+    AGGREGATION_REGISTRY,
+    DEFAULT_METRIC_REGISTRY,
+    get_aggregation,
+    get_metric,
+    get_metric_aggregation,
+    is_higher_better,
+>>>>>>> 4d10ad56b1ffe569467eee2297e2317c99313118
+)
+from lm_eval.filters import build_filter_ensemble
+from lm_eval.prompts import get_prompt
+
 
 ALL_OUTPUT_TYPES = [
     "loglikelihood",
@@ -346,9 +350,7 @@ class Task(abc.ABC):
         elif self.has_validation_docs():
             docs = self.validation_docs()
         else:
-            assert (
-                False
-            ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
         eval_logger.info(f"Building contexts for task on rank {rank}...")
 
@@ -676,9 +678,7 @@ class ConfigurableTask(Task):
         elif self.has_validation_docs():
             self.task_docs = self.validation_docs()
         else:
-            assert (
-                False
-            ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
         # Test One Doc
         self.features = list(self.task_docs.features.keys())
@@ -690,20 +690,20 @@ class ConfigurableTask(Task):
 
         if self.config.doc_to_choice is not None:
             test_choice = self.doc_to_choice(test_doc)
-            if type(test_choice) is not list:
+            if not isinstance(test_choice, list):
                 eval_logger.error("doc_to_choice must return list")
             else:
                 num_choice = len(test_choice)
 
-            if type(test_text) is int:
+            if isinstance(test_text, int):
                 self.multiple_input = num_choice
         else:
             test_choice = None
 
-        if type(test_target) is list:
+        if isinstance(test_target, list):
             self.multiple_target = len(test_target)
         else:
-            if (type(test_target) is int) and (test_choice is not None):
+            if (isinstance(test_target, int)) and (test_choice is not None):
                 test_target = test_choice[test_target]
             else:
                 test_target = str(test_target)
@@ -812,11 +812,11 @@ class ConfigurableTask(Task):
             )
 
         example = self.doc_to_text(doc)
-        if type(example) == str:
+        if isinstance(example, str):
             return labeled_examples + example
-        elif type(example) == list:
+        elif isinstance(example, list):
             return [labeled_examples + ex for ex in example]
-        elif type(example) == int:
+        elif isinstance(example, int):
             if self.config.doc_to_choice is not None:
                 choices = self.doc_to_choice(doc)
                 return labeled_examples + choices[example]
@@ -868,9 +868,9 @@ class ConfigurableTask(Task):
         else:
             doc_to_text = self.config.doc_to_text
 
-        if type(doc_to_text) == int:
+        if isinstance(doc_to_text, int):
             return doc_to_text
-        elif type(doc_to_text) == str:
+        elif isinstance(doc_to_text, str):
             if doc_to_text in self.features:
                 # if self.config.doc_to_choice is not None:
                 #     return self.doc_to_choice(doc)[doc[doc_to_text]]
@@ -902,9 +902,9 @@ class ConfigurableTask(Task):
         else:
             doc_to_target = self.config.doc_to_target
 
-        if type(doc_to_target) == int:
+        if isinstance(doc_to_target, int):
             return doc_to_target
-        elif type(doc_to_target) == str:
+        elif isinstance(doc_to_target, str):
             if doc_to_target in self.features:
                 # if self.config.doc_to_choice is not None:
                 #     return self.doc_to_choice(doc)[doc[doc_to_target]]
@@ -925,7 +925,7 @@ class ConfigurableTask(Task):
                         return target_string
                 else:
                     return target_string
-        elif type(doc_to_target) == list:
+        elif isinstance(doc_to_target, list):
             return doc_to_target
         elif callable(doc_to_target):
             return doc_to_target(doc)
@@ -948,14 +948,14 @@ class ConfigurableTask(Task):
         else:
             doc_to_choice = self.config.doc_to_choice
 
-        if type(doc_to_choice) == str:
+        if isinstance(doc_to_choice, str):
             if doc_to_choice in self.features:
                 return doc[doc_to_choice]
             else:
                 return ast.literal_eval(utils.apply_template(doc_to_choice, doc))
-        elif type(doc_to_choice) == list:
+        elif isinstance(doc_to_choice, list):
             return doc_to_choice
-        elif type(doc_to_choice) == dict:
+        elif isinstance(doc_to_choice, dict):
             return list(doc_to_choice.values())
         elif callable(doc_to_choice):
             return doc_to_choice(doc)
@@ -1186,9 +1186,7 @@ class ConfigurableTask(Task):
                             predictions=[result],
                             **self._metric_fn_kwargs[metric],
                         )
-                    except (
-                        TypeError
-                    ):  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.

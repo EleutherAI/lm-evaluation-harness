@@ -8,12 +8,13 @@ import numpy as np
 import sacrebleu
 import sklearn.metrics
 
-from lm_eval.api.registry import register_metric, register_aggregation
+from lm_eval.api.registry import register_aggregation, register_metric
 
 
 eval_logger = logging.getLogger("lm-eval")
 
 
+# Register Aggregations First
 @register_aggregation("mean")
 def mean(arr):
     return sum(arr) / len(arr)

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import os
 import logging
 import evaluate
@@ -5,6 +6,14 @@ import collections
 from functools import partial
 
 from lm_eval.api.model import LM
+=======
+import logging
+
+import evaluate
+
+from lm_eval.api.model import LM
+
+>>>>>>> 4d10ad56b1ffe569467eee2297e2317c99313118
 
 eval_logger = logging.getLogger("lm-eval")
 
@@ -92,7 +101,6 @@ def register_metric(
 ):
     # TODO: do we want to enforce a certain interface to registered metrics?
     def decorate(fn):
-
         if type(metric) == str:
             metric_list = [metric]
         elif type(metric) == list:
@@ -121,6 +129,7 @@ def register_metric(
     return decorate
 
 
+<<<<<<< HEAD
 def get_metric(name):
 
     if name in METRIC_REGISTRY:
@@ -130,6 +139,16 @@ def get_metric(name):
 
 
 def get_evaluate(name, **kwargs):
+=======
+def get_metric(name, hf_evaluate_metric=False):
+    if not hf_evaluate_metric:
+        if name in METRIC_REGISTRY:
+            return METRIC_REGISTRY[name]
+        else:
+            eval_logger.warning(
+                f"Could not find registered metric '{name}' in lm-eval, searching in HF Evaluate library..."
+            )
+>>>>>>> 4d10ad56b1ffe569467eee2297e2317c99313118
 
     try:
 
