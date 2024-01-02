@@ -1,10 +1,11 @@
-import os
-import logging
-import evaluate
 import collections
+import logging
 from functools import partial
 
+import evaluate
+
 from lm_eval.api.model import LM
+
 
 eval_logger = logging.getLogger("lm-eval")
 
@@ -92,9 +93,9 @@ def register_metric(
 ):
     # TODO: do we want to enforce a certain interface to registered metrics?
     def decorate(fn):
-        if type(metric) == str:
+        if isinstance(metric, str):
             metric_list = [metric]
-        elif type(metric) == list:
+        elif isinstance(metric, list):
             metric_list = metric
 
         for _metric in metric_list:
@@ -107,9 +108,9 @@ def register_metric(
                 METRIC_REGISTRY[_metric]["higher_is_better"] = higher_is_better
 
             if output_type is not None:
-                if type(output_type) == str:
+                if isinstance(output_type, str):
                     output_type_list = [output_type]
-                elif type(output_type) == list:
+                elif isinstance(output_type, list):
                     output_type_list = output_type
 
                 for _output_type in output_type_list:
@@ -121,7 +122,6 @@ def register_metric(
 
 
 def get_metric(name):
-
     if name in METRIC_REGISTRY:
         return METRIC_REGISTRY[name]
     else:
@@ -133,7 +133,6 @@ def get_evaluate(name, **kwargs):
 
         class HFEvaluateAdaptor:
             def __init__(self, name, **kwargs):
-
                 self.name = name
                 metric_object = evaluate.load(name)
                 self.hf_evaluate_fn = partial(metric_object.compute, **kwargs)

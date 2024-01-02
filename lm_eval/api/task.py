@@ -18,31 +18,13 @@ from lm_eval.api.metrics import (
     bits_per_byte,
     mean,
     weighted_perplexity,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> cda25fef4e1df2f4bc2dab3ec6668ae9f5bf7296
-    bits_per_byte,
 )
 from lm_eval.api.registry import (
-    get_metric,
-    get_evaluate,
-    get_aggregation,
+    DEFAULT_METRIC_REGISTRY,
     METRIC_REGISTRY,
-    DEFAULT_METRIC_REGISTRY,
-<<<<<<< HEAD
-=======
-)
-from lm_eval.api.registry import (
-    AGGREGATION_REGISTRY,
-    DEFAULT_METRIC_REGISTRY,
     get_aggregation,
+    get_evaluate,
     get_metric,
-    get_metric_aggregation,
-    is_higher_better,
->>>>>>> 4d10ad56b1ffe569467eee2297e2317c99313118
-=======
->>>>>>> cda25fef4e1df2f4bc2dab3ec6668ae9f5bf7296
 )
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
@@ -603,7 +585,7 @@ class ConfigurableTask(Task):
                     metric_fn = metric_name.__call__
                     metric_name = metric_name.__name__
                 else:
-                    assert type(metric_name) == str
+                    assert isinstance(metric_name, str)
                     if use_hf_evaluate:
                         metric_fn = get_evaluate(metric_name, **kwargs)
                     elif metric_name in METRIC_REGISTRY:
@@ -620,7 +602,6 @@ class ConfigurableTask(Task):
                     self._aggregation_list[metric_name] = metric_fn
                 else:
                     if "aggregation" in metric_config:
-
                         agg_name = metric_config["aggregation"]
                         if isinstance(agg_name, str):
                             self._aggregation_list[metric_name] = get_aggregation(
@@ -1028,7 +1009,6 @@ class ConfigurableTask(Task):
         )
 
     def process_results(self, doc, results):
-
         # Process results returns 1 of X things per doc/results
         # 1. A score
         # 2. Components to be processed later to obtained a score. such as gold and prediction
