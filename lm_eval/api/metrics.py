@@ -8,20 +8,23 @@ import numpy as np
 import sacrebleu
 import sklearn.metrics
 
-from lm_eval.api.registry import register_metric
+from lm_eval.api.registry import register_metric, register_aggregation
 
 
 eval_logger = logging.getLogger("lm-eval")
 
 
+@register_aggregation("mean")
 def mean(arr):
     return sum(arr) / len(arr)
 
 
+@register_aggregation("median")
 def median(arr):
     return arr[len(arr) // 2]
 
 
+@register_aggregation("weighted_mean")
 def weighted_mean(items):
     a, b = zip(*items)
     return sum(a) / sum(b)
@@ -160,6 +163,7 @@ def acc_mutual_info_fn(items):
 
 
 exact_match = evaluate.load("exact_match")
+
 
 @register_metric(
     metric="exact_match",

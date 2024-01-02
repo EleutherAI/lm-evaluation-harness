@@ -1,6 +1,7 @@
 import os
 import logging
 import evaluate
+import collections
 from functools import partial
 
 from lm_eval.api.model import LM
@@ -9,21 +10,6 @@ eval_logger = logging.getLogger("lm-eval")
 
 MODEL_REGISTRY = {}
 
-class HFEvaluateAdaptor:
-    def __init__(self, name, **kwargs):
-
-        self.name = name
-        metric_object = evaluate.load(name)
-        self.hf_evaluate_fn = partial(metric_object.compute, **kwargs)
-
-    def __call__(self, items):
-        refs = list(zip(*items))[0]
-        preds = list(zip(*items))[1]
-
-        return self.hf_evaluate_fn(
-            references=refs,
-            predictions=preds
-            )[self.name]
 
 def register_model(*names):
     # either pass a list or a single alias.
@@ -87,8 +73,8 @@ def register_group(name):
     return decorate
 
 
-METRIC_FUNCTION_REGISTRY = {}
-HIGHER_IS_BETTER_REGISTRY = {}
+METRIC_REGISTRY = collections.defaultdict(dict)
+AGGREGATION_REGISTRY = collections.defaultdict(dict)
 
 DEFAULT_METRIC_REGISTRY = {
     "loglikelihood": [],
@@ -102,6 +88,7 @@ def register_metric(
     metric=None,
     higher_is_better=None,
     output_type=None,
+    aggregation=None,
 ):
     # TODO: do we want to enforce a certain interface to registered metrics?
     def decorate(fn):
@@ -112,10 +99,13 @@ def register_metric(
             metric_list = metric
 
         for _metric in metric_list:
-            METRIC_FUNCTION_REGISTRY[_metric] = fn
+            METRIC_REGISTRY[_metric]["function"] = fn
+
+            if aggregation is not None:
+                METRIC_REGISTRY[_metric]["aggregation"] = aggregation
 
             if higher_is_better is not None:
-                HIGHER_IS_BETTER_REGISTRY[_metric] = higher_is_better
+                METRIC_REGISTRY[_metric]["higher_is_better"] = higher_is_better
 
             if output_type is not None:
                 if type(output_type) == str:
@@ -131,18 +121,33 @@ def register_metric(
     return decorate
 
 
-def get_metric(name, hf_evaluate_metric=False, **kwargs):
+def get_metric(name):
 
-    if not hf_evaluate_metric:
-        if name in METRIC_FUNCTION_REGISTRY:
-            return METRIC_FUNCTION_REGISTRY[name]
-        else:
-            eval_logger.warning(
-                f"Could not find registered metric '{name}' in lm-eval, searching in HF Evaluate library..."
-            )
+    if name in METRIC_REGISTRY:
+        return METRIC_REGISTRY[name]
+    else:
+        eval_logger.error(f"Could not find registered metric '{name}' in lm-eval")
+
+
+def get_evaluate(name, **kwargs):
 
     try:
-        # from lm_eval.metrics import HFEvaluateAdaptor
+
+        class HFEvaluateAdaptor:
+            def __init__(self, name, **kwargs):
+
+                self.name = name
+                metric_object = evaluate.load(name)
+                self.hf_evaluate_fn = partial(metric_object.compute, **kwargs)
+
+            def __call__(self, items):
+                refs = list(zip(*items))[0]
+                preds = list(zip(*items))[1]
+
+                return self.hf_evaluate_fn(references=refs, predictions=preds)[
+                    self.name
+                ]
+
         return HFEvaluateAdaptor(name, **kwargs)
     except Exception:
         eval_logger.error(
@@ -150,10 +155,22 @@ def get_metric(name, hf_evaluate_metric=False, **kwargs):
         )
 
 
-def is_higher_better(metric_name):
+def register_aggregation(name):
+    def decorate(fn):
+        assert (
+            name not in AGGREGATION_REGISTRY
+        ), f"aggregation named '{name}' conflicts with existing registered aggregation!"
+
+        AGGREGATION_REGISTRY[name] = fn
+        return fn
+
+    return decorate
+
+
+def get_aggregation(name):
     try:
-        return HIGHER_IS_BETTER_REGISTRY[metric_name]
+        return AGGREGATION_REGISTRY[name]
     except KeyError:
         eval_logger.warning(
-            f"higher_is_better not specified for metric '{metric_name}'!"
+            "{} not a registered aggregation metric!".format(name),
         )

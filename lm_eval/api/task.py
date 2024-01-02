@@ -32,7 +32,9 @@ from lm_eval.api.metrics import (
 )
 from lm_eval.api.registry import (
     get_metric,
-    is_higher_better,
+    get_evaluate,
+    get_aggregation,
+    METRIC_REGISTRY,
     DEFAULT_METRIC_REGISTRY,
 )
 
@@ -410,7 +412,7 @@ class Task(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def compute_metric(self):
+    def aggregation(self):
         """
         :returns: {str: [metric_score] -> float}
             A dictionary where keys are the names of submetrics and values are
@@ -553,6 +555,7 @@ class ConfigurableTask(Task):
 
         self._metric_fn_list = {}
         self._metric_fn_kwargs = {}
+        self._aggregation_list = {}
         self._higher_is_better = {}
 
         if self.config.metric_list is None:
@@ -561,12 +564,14 @@ class ConfigurableTask(Task):
 
             for metric_name in _metric_list:
                 metric = get_metric(metric_name)
-                self._metric_fn_list[metric_name] = metric
+                self._metric_fn_list[metric_name] = metric["function"]
                 self._metric_fn_kwargs[metric_name] = {}
-                self._higher_is_better[metric_name] = is_higher_better(metric_name)
+                self._aggregation_list = metric["aggregation"]
+                self._higher_is_better[metric_name] = metric["is_higher_better"]
         else:
             for metric_config in self.config.metric_list:
                 assert "metric" in metric_config
+                from_registry = False
                 metric_name = metric_config["metric"]
                 kwargs = {
                     key: metric_config[key]
@@ -574,24 +579,46 @@ class ConfigurableTask(Task):
                     if key
                     not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
                 }
-                hf_evaluate_metric = (
+                use_hf_evaluate = (
                     "hf_evaluate" in metric_config
                     and metric_config["hf_evaluate"] is True
                 )
 
-                # if self.config.process_results is not None:
-                #     self._metric_fn_list[metric_name] = None
-                #     self._metric_fn_kwargs[metric_name] = {}
                 if callable(metric_name):
                     metric_fn = metric_name.__call__
                     metric_name = metric_name.__name__
                 else:
-                    metric_fn = get_metric(
-                        metric_name, hf_evaluate_metric, **kwargs
-                    )
+                    assert type(metric_name) == str
+                    if use_hf_evaluate:
+                        metric_fn = get_evaluate(metric_name, **kwargs)
+                    elif metric_name in METRIC_REGISTRY:
+                        from_registry = True
+                        metric = get_metric(metric_name, **kwargs)
+                        metric_fn = metric["function"]
 
                 self._metric_fn_kwargs[metric_name] = kwargs
                 self._metric_fn_list[metric_name] = metric_fn
+
+                if "aggregation" in metric_config:
+                    agg_name = metric_config["aggregation"]
+                    if isinstance(agg_name, str):
+                        self._aggregation_list[metric_name] = get_aggregation(agg_name)
+                    elif callable(agg_name):  # noqa: E721
+                        self._aggregation_list[metric_name] = agg_name
+                else:
+                    if from_registry:
+                        if "aggregation" in metric:
+                            self._aggregation_list[metric_name] = metric["aggregation"]
+                        else:
+                            self._aggregation_list[metric_name] = metric_fn
+
+                if "higher_is_better" in metric_config:
+                    self._higher_is_better[metric_name] = metric_config[
+                        "higher_is_better"
+                    ]
+                else:
+                    if from_registry:
+                        self._higher_is_better[metric_name] = metric["higher_is_better"]
 
         self.download(self.config.dataset_kwargs)
         self._training_docs = None
@@ -1157,8 +1184,8 @@ class ConfigurableTask(Task):
 
         return result_dict
 
-    def compute_metric(self):
-        return self._metric_fn_list
+    def aggregation(self):
+        return self._aggregation_list
 
     def higher_is_better(self):
         return self._higher_is_better
@@ -1204,7 +1231,7 @@ class MultipleChoiceTask(Task):
             "acc_norm": True,
         }
 
-    def compute_metric(self) -> dict:
+    def aggregation(self) -> dict:
         return {
             "acc": mean,
             "acc_norm": mean,
@@ -1265,7 +1292,7 @@ class PerplexityTask(Task):
             "bits_per_byte": (loglikelihood, bytes_),
         }
 
-    def compute_metric(self) -> dict:
+    def aggregation(self) -> dict:
         return {
             "word_perplexity": weighted_perplexity,
             "byte_perplexity": weighted_perplexity,
