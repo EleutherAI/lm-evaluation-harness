@@ -1184,6 +1184,7 @@ class ConfigurableTask(Task):
                         result_score = self._metric_fn_list[metric](
                             references=[gold],
                             predictions=[result],
+                            **self._metric_fn_kwargs[metric],
                         )
                     except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
