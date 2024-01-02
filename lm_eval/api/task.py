@@ -19,6 +19,9 @@ from lm_eval.api.metrics import (
     mean,
     weighted_perplexity,
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> cda25fef4e1df2f4bc2dab3ec6668ae9f5bf7296
     bits_per_byte,
 )
 from lm_eval.api.registry import (
@@ -27,6 +30,7 @@ from lm_eval.api.registry import (
     get_aggregation,
     METRIC_REGISTRY,
     DEFAULT_METRIC_REGISTRY,
+<<<<<<< HEAD
 =======
 )
 from lm_eval.api.registry import (
@@ -37,6 +41,8 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 >>>>>>> 4d10ad56b1ffe569467eee2297e2317c99313118
+=======
+>>>>>>> cda25fef4e1df2f4bc2dab3ec6668ae9f5bf7296
 )
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
