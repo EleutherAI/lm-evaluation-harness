@@ -76,7 +76,7 @@ class OpenaiCompletionsLM(LM):
 
     def __init__(
         self,
-        model: str = "text-davinci-003",
+        model: str,
         truncate: bool = False,
         max_gen_toks: int = 256,
         batch_size: int = 1,
@@ -86,7 +86,7 @@ class OpenaiCompletionsLM(LM):
         """
 
         :param engine: str
-            OpenAI API engine (e.g. davinci)
+            OpenAI API engine (e.g. gpt-3.5-turbo-instruct)
         :param truncate: bool
             Truncate input if too long (if False and input is too long, throw error)
         """
