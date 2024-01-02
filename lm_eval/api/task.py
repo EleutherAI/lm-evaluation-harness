@@ -571,13 +571,17 @@ class ConfigurableTask(Task):
         else:
             for metric_config in self.config.metric_list:
                 assert "metric" in metric_config
-                from_registry = False
                 metric_name = metric_config["metric"]
                 kwargs = {
                     key: metric_config[key]
                     for key in metric_config
                     if key
-                    not in ["metric", "aggregation", "higher_is_better", "use_hf_evaluate"]
+                    not in [
+                        "metric",
+                        "aggregation",
+                        "higher_is_better",
+                        "use_hf_evaluate",
+                    ]
                 }
                 use_hf_evaluate = (
                     "use_hf_evaluate" in metric_config
@@ -592,7 +596,6 @@ class ConfigurableTask(Task):
                     metric_name = metric_name.__name__
                 else:
                     assert type(metric_name) == str
-                    use_metric_for_agg = True
                     if use_hf_evaluate:
                         metric_fn = get_evaluate(metric_name, **kwargs)
                     elif metric_name in METRIC_REGISTRY:
@@ -602,17 +605,28 @@ class ConfigurableTask(Task):
                 self._metric_fn_kwargs[metric_name] = kwargs
                 self._metric_fn_list[metric_name] = metric_fn
 
-                if "aggregation" in metric_config:
-                    agg_name = metric_config["aggregation"]
-                    if isinstance(agg_name, str):
-                        self._aggregation_list[metric_name] = get_aggregation(agg_name)
-                    elif callable(agg_name):  # noqa: E721
-                        self._aggregation_list[metric_name] = agg_name
+                # Ignores aggregation if the metric set
+                # is a registered metric
+                # for backward compatibility
+                if metric_name in METRIC_REGISTRY and ("aggregation" not in metric):
+                    self._aggregation_list[metric_name] = metric_fn
                 else:
-                    if use_hf_evaluate:
-                        self._aggregation_list[metric_name] = metric_fn
-                    elif (metric_name in METRIC_REGISTRY) and ("aggregation" in metric):
-                        self._aggregation_list[metric_name] = metric["aggregation"]
+                    if "aggregation" in metric_config:
+
+                        agg_name = metric_config["aggregation"]
+                        if isinstance(agg_name, str):
+                            self._aggregation_list[metric_name] = get_aggregation(
+                                agg_name
+                            )
+                        elif callable(agg_name):  # noqa: E721
+                            self._aggregation_list[metric_name] = agg_name
+                    else:
+                        if use_hf_evaluate:
+                            self._aggregation_list[metric_name] = metric_fn
+                        elif (metric_name in METRIC_REGISTRY) and (
+                            "aggregation" in metric
+                        ):
+                            self._aggregation_list[metric_name] = metric["aggregation"]
 
                 if "higher_is_better" in metric_config:
                     self._higher_is_better[metric_name] = metric_config[
