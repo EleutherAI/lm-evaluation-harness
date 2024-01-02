@@ -12,4 +12,4 @@ doc_to_choice: "['''{{answer}}\\nIs the answer correct? yes''', '''{{answer}}\\n
 metric_list:
   - metric: acc
 metadata:
-  - version: 2.0
+  version: 2.0

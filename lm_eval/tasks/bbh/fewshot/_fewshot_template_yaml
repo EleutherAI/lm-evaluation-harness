@@ -18,4 +18,4 @@ generation_kwargs:
   temperature: 0.0
 num_fewshot: 0
 metadata:
-  - version: 0
+  version: 0

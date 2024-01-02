@@ -1,11 +1,12 @@
-from lm_eval.decontamination.archiver import Reader
-import os
-import json
-from functools import reduce
 import glob
-import tqdm
+import json
+import os
+from functools import reduce
 
+import tqdm
 from tqdm_multiprocess import TqdmMultiProcessPool
+
+from lm_eval.decontamination.archiver import Reader
 
 
 def get_file_stats(file_path, tqdm_func, global_tqdm):

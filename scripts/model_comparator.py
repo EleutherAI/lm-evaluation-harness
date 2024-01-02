@@ -1,13 +1,15 @@
 import argparse
-import numpy as np
-import lm_eval.evaluator
-from lm_eval import tasks
-from lm_eval import utils
-import scipy.stats
-from typing import Tuple, Dict, List
-import pandas as pd
-import torch
 import os
+from typing import Dict, List, Tuple
+
+import numpy as np
+import pandas as pd
+import scipy.stats
+import torch
+
+import lm_eval.evaluator
+from lm_eval import tasks, utils
+
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 eval_logger = utils.eval_logger

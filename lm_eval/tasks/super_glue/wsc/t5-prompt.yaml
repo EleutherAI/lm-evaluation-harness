@@ -20,4 +20,4 @@ filter_list:
     filter:
       - function: !function t5_utils.WSCPostprocess
 metadata:
-  - version: 0.0
+  version: 0.0

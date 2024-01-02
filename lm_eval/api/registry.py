@@ -6,6 +6,7 @@ from functools import partial
 
 from lm_eval.api.model import LM
 
+
 eval_logger = logging.getLogger("lm-eval")
 
 MODEL_REGISTRY = {}
@@ -103,6 +104,7 @@ def register_metric(
 
             if aggregation is not None:
                 METRIC_REGISTRY[_metric]["aggregation"] = aggregation
+
 
             if higher_is_better is not None:
                 METRIC_REGISTRY[_metric]["higher_is_better"] = higher_is_better

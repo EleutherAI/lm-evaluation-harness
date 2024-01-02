@@ -2,7 +2,6 @@ import sklearn.metrics
 
 
 def mean_3class_f1(predictions, references):  # This is a passthrough function
-
     string_label = ["entailment", "contradiction", "neutral"]
     predictions = (
         string_label.index(predictions[0]) if predictions[0] in string_label else 0
@@ -13,7 +12,6 @@ def mean_3class_f1(predictions, references):  # This is a passthrough function
 
 
 def agg_mean_3class_f1(items):
-
     predictions, references = zip(*items)
 
     """Computes the unweighted average of the F1 per class."""

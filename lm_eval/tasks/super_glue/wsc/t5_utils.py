@@ -8,7 +8,6 @@ def doc_to_text(x):
 
 
 def _wsc_inputs(x):
-
     words = x["text"].split(" ")
 
     # We would need some special logic to handle the case where the pronoun is the
@@ -55,7 +54,6 @@ def _wsc_inputs(x):
 
 class WSCPostprocess(Filter):
     def __init__(self, **kwargs):
-
         self.determiners = {
             "a",
             "an",
@@ -86,10 +84,8 @@ class WSCPostprocess(Filter):
         return " ".join([w for w in s.split(" ") if w not in self.determiners])
 
     def apply(self, resps, docs):
-
         filtered_resps = []
         for prediction, reference in zip(*(resps, docs["span1_text"])):
-
             prediction = self.clean(prediction[0])
             reference = self.clean(reference)
 

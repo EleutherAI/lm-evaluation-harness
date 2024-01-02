@@ -1,8 +1,8 @@
-from typing import List
-from lm_eval.utils import load_yaml_config
-from pathlib import Path
-from typing import Union
 import os
+from pathlib import Path
+from typing import List, Union
+
+from lm_eval.utils import load_yaml_config
 
 
 # {{{CI}}}
