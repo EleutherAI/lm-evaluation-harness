@@ -449,16 +449,15 @@ def evaluate(
             else:
                 group_name = None
 
-            metric_fn = task.compute_metric()[metric]
-            results[task_name][metric_key] = metric_fn(items)
+            agg_fn = task.aggregation()[metric]
+            results[task_name][metric_key] = agg_fn(items)
             results[task_name]["samples"] = len(items)
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
             if bootstrap_iters > 0:
                 stderr = lm_eval.api.metrics.stderr_for_metric(
-                    # metric=task.aggregation()[metric],
-                    metric=task.compute_metric()[metric],
+                    metric=task.aggregation()[metric],
                     bootstrap_iters=min(bootstrap_iters, 100)
                     if metric in ["bleu", "chrf", "ter"]
                     else bootstrap_iters,
