@@ -108,7 +108,13 @@ class VLLM(LM):
     def max_length(self):
         if self._max_length:  # if max length manually set, return it
             return self._max_length
+        seqlen_config_attrs = ("n_positions", "max_position_embeddings", "n_ctx")
+        for attr in seqlen_config_attrs:
+            if hasattr(self.model.config, attr):
+                return getattr(self.model.config, attr)
         if hasattr(self.tokenizer, "model_max_length"):
+            if self.tokenizer.model_max_length == 1000000000000000019884624838656:
+                return self._DEFAULT_MAX_LENGTH
             return self.tokenizer.model_max_length
         return self._DEFAULT_MAX_LENGTH
 
@@ -404,12 +410,17 @@ class VLLM(LM):
 
         # Calculate continuation_logprobs
         # assume ctxlen always > 1
-        continuation_logprobs = sum(
-            logprob_dict.get(token)
-            for token, logprob_dict in zip(
-                tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]
+        try:
+            continuation_logprobs = sum(
+                logprob_dict.get(token)
+                for token, logprob_dict in zip(
+                    tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]
+                )
             )
-        )
+        except TypeError:
+            print(f"ctxlen: {ctxlen}")
+            print(f"Tokens: {tokens}")
+            print(f"logprob_dict: {continuation_logprobs_dicts}")
 
         # Determine if is_greedy
         is_greedy = True
