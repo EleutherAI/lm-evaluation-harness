@@ -1,9 +1,9 @@
 import copy
-import os
 from collections import defaultdict
 from importlib.util import find_spec
-from typing import List, Optional, Tuple
+from typing import List, Literal, Optional, Tuple
 
+import transformers
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -69,24 +69,33 @@ def oa_completion(**kwargs):
     return completion()
 
 
-@register_model("openai-completions")
+@register_model("openai-completions", "local-completions")
 class OpenaiCompletionsLM(LM):
     REQ_CHUNK_SIZE = 20
     _DEFAULT_MAX_LENGTH = 2048
 
     def __init__(
         self,
-        model: str = "text-davinci-003",
+        model: str = "gpt-3.5-turbo-instruct",
+        tokenizer_backend: Literal["tiktoken", "huggingface"] = "tiktoken",
+        batch_size=1,
+        base_url: str = None,
         truncate: bool = False,
         max_gen_toks: int = 256,
-        batch_size: int = 1,
         seed: int = 1234,
         max_length: Optional[int] = None,
+        revision: Optional[str] = "main",
+        trust_remote_code: Optional[bool] = False,
+        use_fast_tokenizer: Optional[bool] = True,
     ) -> None:
         """
 
-        :param engine: str
-            OpenAI API engine (e.g. davinci)
+        :param model: str
+            Implements an OpenAI-style chat completion API for
+            accessing both OpenAI OR locally-hosted models using
+            HuggingFace Tokenizer
+            OpenAI API model (e.g. gpt-3.5-turbo)
+            using the **gen_kwargs passed on init
         :param truncate: bool
             Truncate input if too long (if False and input is too long, throw error)
         """
@@ -101,15 +110,41 @@ class OpenaiCompletionsLM(LM):
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )
         self.model = model
-        self.tokenizer = tiktoken.encoding_for_model(self.model)
-        self.vocab_size = self.tokenizer.n_vocab
+        self.base_url = base_url
+        self.tokenizer_backend = tokenizer_backend
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.eot_token
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
 
+        # if we have a local model, use HF tokenizer over tiktoken
+        if self.tokenizer_backend == "huggingface":
+            self.revision = revision
+            self.trust_remote_code = trust_remote_code
+            self.use_fast_tokenizer = use_fast_tokenizer
+
+            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+                self.model,
+                revision=self.revision,
+                trust_remote_code=self.trust_remote_code,
+                use_fast_tokenizer=self.use_fast_tokenizer,
+            )
+            self.vocab_size = self.tokenizer.vocab
+            self.end_of_text_token_id = self.tokenizer.eos_token
+        elif self.tokenizer_backend == "tiktoken":
+            self.tokenizer = tiktoken.encoding_for_model(self.model)
+            self.vocab_size = self.tokenizer.n_vocab
+            self.end_of_text_token_id = self.tokenizer.eot_token
+        else:
+            raise ValueError(
+                f"Expected tokenizer_backend to be one of ['tiktoken', 'huggingface'] but got {self.tokenizer_backend}"
+            )
+
         # Read from environment variable OPENAI_API_KEY
-        openai.api_key = os.environ["OPENAI_API_KEY"]
+        # Set to EMPTY for local
+        if self.base_url:
+            self.client = openai.OpenAI(base_url=self.base_url)
+        else:
+            self.client = openai.OpenAI()  # openai.AsyncOpenAI()
 
     @property
     def eot_token_id(self):
