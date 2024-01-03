@@ -1,5 +1,4 @@
 import copy
-from collections import defaultdict
 from importlib.util import find_spec
 from typing import List, Literal, Optional, Tuple, Union
 
@@ -9,6 +8,7 @@ from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
+from lm_eval.utils import Collator
 
 
 try:
@@ -248,8 +248,7 @@ class VLLM(LM):
         return loglikelihoods
 
     def generate_until(self, requests: List[Instance]) -> List[str]:
-        res = defaultdict(list)
-        re_ords = {}
+        res = []
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
@@ -265,84 +264,73 @@ class VLLM(LM):
             #   padded context length. this is useful to simplify the batching logic and more importantly to make
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
-            return -len(_requests[0][1]), tuple(_requests[0][1])
+            return -len(_requests[0][1]), _requests[0][0]
 
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        grouper = utils.Grouper(requests, lambda x: str(x[1]))
-        for key, reqs in grouper.get_grouped().items():
-            # within each set of reqs for given kwargs, we reorder by token length, descending.
-            re_ords[key] = utils.Reorderer(requests, _collate_gen)
+        re_ords = Collator(requests, _collate_gen, grouping=True)
+        chunks = re_ords.get_batched(
+            n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
+        )
 
         pbar = tqdm(total=len(requests), disable=(self.rank != 0))
         # for each different set of kwargs, we execute all requests, by batch.
-        for key, re_ord in re_ords.items():
-            chunks = utils.chunks(
-                re_ord.get_reordered(),
-                n=int(self.batch_size) if self.batch_size != "auto" else 0,
-                fn=None,
-            )
-            for chunk in chunks:
-                context_and_encoding, all_gen_kwargs = zip(*chunk)
-                context, context_encoding = zip(*context_and_encoding)
-                # we assume all gen kwargs in the batch are the same
-                # this is safe to assume because the `grouper` object ensures it.
-                gen_kwargs = all_gen_kwargs[0]
-                # unpack our keyword arguments.
-                until = None
-                if isinstance(gen_kwargs, dict):
-                    kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
-                    if "until" in kwargs.keys():
-                        until = kwargs.pop("until")
-                        if isinstance(until, str):
-                            until = [until]
-                        elif not isinstance(until, list):
-                            raise ValueError(
-                                f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
-                            )
-                else:
-                    raise ValueError(
-                        f"Expected `kwargs` to be of type `dict` but got {gen_kwargs}"
-                    )
-                if not until:
-                    until = [self.tokenizer.decode(self.eot_token_id)]
-                if "max_gen_toks" in kwargs.keys():
-                    max_gen_toks = kwargs.pop("max_gen_toks")
-                else:
-                    max_gen_toks = self.max_gen_toks
-
-                # set the max length in tokens of inputs ("context_enc")
-                # max len for inputs = max length, minus room to generate the max new tokens
-                max_ctx_len = self.max_length - max_gen_toks
-                context_encoding = [x[-max_ctx_len:] for x in context_encoding]
-
-                # TODO: max_length in kwargs
-
-                # perform batched generation
-                cont = self._model_generate(
-                    requests=context_encoding,
-                    generate=True,
-                    max_tokens=max_gen_toks,
-                    stop=until,
-                    **kwargs,
+        for chunk in chunks:
+            context_and_encoding, all_gen_kwargs = zip(*chunk)
+            context, context_encoding = zip(*context_and_encoding)
+            # we assume all gen kwargs in the batch are the same
+            # this is safe to assume because the `grouper` object ensures it.
+            gen_kwargs = all_gen_kwargs[0]
+            # unpack our keyword arguments.
+            until = None
+            if isinstance(gen_kwargs, dict):
+                kwargs = copy.deepcopy(gen_kwargs)  # edge case for repeats > 1
+                if "until" in kwargs.keys():
+                    until = kwargs.pop("until")
+                    if isinstance(until, str):
+                        until = [until]
+                    elif not isinstance(until, list):
+                        raise ValueError(
+                            f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
+                        )
+            else:
+                raise ValueError(
+                    f"Expected `kwargs` to be of type `dict` but got {gen_kwargs}"
                 )
+            if not until:
+                until = [self.tokenizer.decode(self.eot_token_id)]
+            if "max_gen_toks" in kwargs.keys():
+                max_gen_toks = kwargs.pop("max_gen_toks")
+            else:
+                max_gen_toks = self.max_gen_toks
 
-                # cache generations
-                for output, context in zip(cont, context):
-                    generated_text = output.outputs[0].text
-                    res[key].append(generated_text)
-                    self.cache_hook.add_partial(
-                        "generate_until", (context, gen_kwargs), generated_text
-                    )
-                    pbar.update(1)
+            # set the max length in tokens of inputs ("context_enc")
+            # max len for inputs = max length, minus room to generate the max new tokens
+            max_ctx_len = self.max_length - max_gen_toks
+            context_encoding = [x[-max_ctx_len:] for x in context_encoding]
 
-            # reorder this group of results back to original unsorted form
-            res[key] = re_ord.get_original(res[key])
+            # perform batched generation
+            cont = self._model_generate(
+                requests=context_encoding,
+                generate=True,
+                max_tokens=max_gen_toks,
+                stop=until,
+                **kwargs,
+            )
+
+            # cache generations
+            for output, context in zip(cont, context):
+                generated_text = output.outputs[0].text
+                res.append(generated_text)
+                self.cache_hook.add_partial(
+                    "generate_until", (context, gen_kwargs), generated_text
+                )
+                pbar.update(1)
 
         pbar.close()
-
-        return grouper.get_original(res)
+        # reorder all group of results back to original unsorted form
+        return re_ords.get_original(res)
 
     def _loglikelihood_tokens(
         self,
@@ -355,16 +343,15 @@ class VLLM(LM):
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
-        re_ord = utils.Reorderer(requests, _collate)
-
-        chunks = utils.chunks(
-            re_ord.get_reordered(),
-            n=int(self.batch_size) if self.batch_size != "auto" else 0,
-            fn=None,
+        # Reorder requests by length and batch
+        re_ord = utils.Collator(requests, sort_fn=_collate)
+        chunks = re_ord.get_batched(
+            n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
+
         pbar = tqdm(total=len(requests), disable=disable_tqdm)
         for chunk in chunks:
-            inps = []
+            inputs = []
             ctxlens = []
             for cache_key, context_enc, continuation_enc in chunk:
                 inp = (context_enc + continuation_enc)[-(self.max_length) :]
@@ -372,13 +359,13 @@ class VLLM(LM):
                     0, len(context_enc) + len(continuation_enc) - (self.max_length)
                 )
 
-                inps.append(inp)
+                inputs.append(inp)
                 ctxlens.append(ctxlen)
 
-            outputs = self._model_generate(requests=inps, generate=False)
+            outputs = self._model_generate(requests=inputs, generate=False)
 
             for output, ctxlen, (cache_key, _, _), inp in zip(
-                outputs, ctxlens, chunk, inps
+                outputs, ctxlens, chunk, inputs
             ):
                 answer = self._parse_logprobs(
                     tokens=inp,
