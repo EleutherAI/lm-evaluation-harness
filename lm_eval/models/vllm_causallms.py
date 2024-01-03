@@ -86,10 +86,14 @@ class VLLM(LM):
             "quantization": quantization,
             "seed": int(seed),
         }
+        self.batch_size = "auto" if batch_size.startswith("auto:") else batch_size
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
         else:
             self.model_args["worker_use_ray"] = True
+            self.batch_size = "auto"
+            eval_logger.info("Manual batching is not compatible with data parallelism.")
+
             from transformers import AutoConfig
 
             self._config = AutoConfig.from_pretrained(
@@ -102,7 +106,6 @@ class VLLM(LM):
             tokenizer_revision=tokenizer_revision,
         )
 
-        self.batch_size = "auto" if batch_size.startswith("auto:") else batch_size
         self._max_gen_toks = max_gen_toks
 
     @property
