@@ -43,7 +43,7 @@ class VLLM(LM):
         tokenizer_mode: Literal["auto", "slow"] = "auto",
         tokenizer_revision: Optional[str] = None,
         tensor_parallel_size: int = 1,
-        quantization: Optional[Literal["awq"]] = None,
+        quantization: Optional[str] = None,
         max_gen_toks: int = 256,
         swap_space: int = 4,
         batch_size: Union[str, int] = 1,
@@ -90,6 +90,11 @@ class VLLM(LM):
             self.model = LLM(**self.model_args)
         else:
             self.model_args["worker_use_ray"] = True
+            from transformers import AutoConfig
+
+            self._config = AutoConfig.from_pretrained(
+                pretrained, trust_remote_code=trust_remote_code, revision=revision
+            )
         self.tokenizer = get_tokenizer(
             tokenizer if tokenizer else pretrained,
             tokenizer_mode=tokenizer_mode,
@@ -108,15 +113,18 @@ class VLLM(LM):
     def max_length(self):
         if self._max_length:  # if max length manually set, return it
             return self._max_length
-        seqlen_config_attrs = ("n_positions", "max_position_embeddings", "n_ctx")
-        for attr in seqlen_config_attrs:
-            if hasattr(self.model.config, attr):
-                return getattr(self.model.config, attr)
-        if hasattr(self.tokenizer, "model_max_length"):
-            if self.tokenizer.model_max_length == 1000000000000000019884624838656:
-                return self._DEFAULT_MAX_LENGTH
-            return self.tokenizer.model_max_length
-        return self._DEFAULT_MAX_LENGTH
+        if self.data_parallel_size <= 1:
+            return self.model.llm_engine.model_config.max_model_len
+        else:
+            seqlen_config_attrs = ("n_positions", "max_position_embeddings", "n_ctx")
+            for attr in seqlen_config_attrs:
+                if hasattr(self._config, attr):
+                    return getattr(self._config, attr)
+            if hasattr(self.tokenizer, "model_max_length"):
+                if self.tokenizer.model_max_length == 1000000000000000019884624838656:
+                    return self._DEFAULT_MAX_LENGTH
+                return self.tokenizer.model_max_length
+            return self._DEFAULT_MAX_LENGTH
 
     @property
     def max_gen_toks(self):
@@ -177,7 +185,6 @@ class VLLM(LM):
             sampling_params=sampling_params,
             use_tqdm=True if self.batch_size == "auto" else False,
         )
-
         return outputs
 
     def _encode_pair(
@@ -409,18 +416,13 @@ class VLLM(LM):
         continuation_logprobs_dicts = outputs.prompt_logprobs
 
         # Calculate continuation_logprobs
-        # assume ctxlen always > 1
-        try:
-            continuation_logprobs = sum(
-                logprob_dict.get(token)
-                for token, logprob_dict in zip(
-                    tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]
-                )
+        # assume ctxlen always >= 1
+        continuation_logprobs = sum(
+            logprob_dict.get(token)
+            for token, logprob_dict in zip(
+                tokens[ctxlen:], continuation_logprobs_dicts[ctxlen:]
             )
-        except TypeError:
-            print(f"ctxlen: {ctxlen}")
-            print(f"Tokens: {tokens}")
-            print(f"logprob_dict: {continuation_logprobs_dicts}")
+        )
 
         # Determine if is_greedy
         is_greedy = True
