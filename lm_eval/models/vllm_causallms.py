@@ -86,7 +86,11 @@ class VLLM(LM):
             "quantization": quantization,
             "seed": int(seed),
         }
-        self.batch_size = "auto" if batch_size.startswith("auto:") else batch_size
+        self.batch_size = (
+            "auto"
+            if isinstance(batch_size, str) and "auto" in batch_size
+            else batch_size
+        )
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
         else:
