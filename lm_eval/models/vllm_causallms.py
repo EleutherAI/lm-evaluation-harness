@@ -22,9 +22,9 @@ eval_logger = utils.eval_logger
 
 
 # adapted from https://github.com/vllm-project/vllm/issues/367#issuecomment-1788341727
-def run_inference_one_model(model_args: dict, sampling_params, requests: List[int]):
-    # gpu_id = [x for x in gpu_id]
-    # os.environ["CUDA_VISIBLE_DEVICES"]= str(gpu_id)
+def run_inference_one_model(
+    model_args: dict, sampling_params, requests: List[List[int]]
+):
     llm = LLM(**model_args)
     return llm.generate(prompt_token_ids=requests, sampling_params=sampling_params)
 
@@ -377,13 +377,13 @@ class VLLM(LM):
 
             outputs = self._model_generate(requests=inps, generate=False)
 
-            for output, ctxlen, (cache_key, context_enc, continuation_enc) in zip(
-                outputs, ctxlens, chunk
+            for output, ctxlen, (cache_key, _, _), inp in zip(
+                outputs, ctxlens, chunk, inps
             ):
                 answer = self._parse_logprobs(
-                    (context_enc + continuation_enc),
-                    output,
-                    ctxlen,
+                    tokens=inp,
+                    outputs=output,
+                    ctxlen=ctxlen,
                 )
 
                 res.append(answer)
@@ -391,7 +391,7 @@ class VLLM(LM):
                 # partial caching
                 if cache_key is not None:
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
-                    pbar.update(1)
+                pbar.update(1)
         pbar.close()
         return re_ord.get_original(res)
 
@@ -400,9 +400,9 @@ class VLLM(LM):
         """Process logprobs and tokens.
 
         :param tokens: list
-            Tokens from context+continuations
+            Input tokens (potentially left truncated)
         :param outputs: RequestOutput
-            Contains prompt
+            Contains prompt_logprobs
         :param ctxlen: int
             Length of context (so we can slice them away and only keep the predictions)
         :return:
@@ -412,7 +412,7 @@ class VLLM(LM):
                 Whether argmax matches given continuation exactly
         """
 
-        # prompt_logprobs = [None, {}*len(context-1)]
+        # The first prompt_logprobs is None
         continuation_logprobs_dicts = outputs.prompt_logprobs
 
         # Calculate continuation_logprobs
