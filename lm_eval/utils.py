@@ -920,6 +920,7 @@ class Collator:
         ```
         """
         arr = []
+        _iter = tuple(_iter)
         for i, x in enumerate(_iter):
             arr.append(x)
             if len(arr) == (fn(i, _iter) if fn else n):
