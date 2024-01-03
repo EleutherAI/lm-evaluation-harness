@@ -398,7 +398,7 @@ class VLLM(LM):
         """Process logprobs and tokens.
 
         :param tokens: list
-            Input tokens (potentially left truncated)
+            Input tokens (potentially left-truncated)
         :param outputs: RequestOutput
             Contains prompt_logprobs
         :param ctxlen: int
@@ -410,7 +410,7 @@ class VLLM(LM):
                 Whether argmax matches given continuation exactly
         """
 
-        # The first prompt_logprobs is None
+        # The first entry of prompt_logprobs is None because the model has no previous tokens to condition on.
         continuation_logprobs_dicts = outputs.prompt_logprobs
 
         # Calculate continuation_logprobs
