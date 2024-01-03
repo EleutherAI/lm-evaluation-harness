@@ -4,11 +4,16 @@ from typing import List, Literal, Optional, Tuple, Union
 
 from tqdm import tqdm
 
-from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.utils import Collator
+from lm_eval.utils import (
+    Collator,
+    divide,
+    eval_logger,
+    get_rolling_token_windows,
+    make_disjoint_window,
+)
 
 
 try:
@@ -18,7 +23,7 @@ try:
 except ModuleNotFoundError:
     pass
 
-eval_logger = utils.eval_logger
+eval_logger = eval_logger
 
 
 # adapted from https://github.com/vllm-project/vllm/issues/367#issuecomment-1788341727
@@ -178,9 +183,7 @@ class VLLM(LM):
                 temperature=0, prompt_logprobs=2, max_tokens=1
             )
         if self.data_parallel_size > 1:
-            requests = [
-                list(x) for x in utils.divide(requests, self.data_parallel_size)
-            ]
+            requests = [list(x) for x in divide(requests, self.data_parallel_size)]
             inputs = [(self.model_args, sampling_params, req) for req in requests]
 
             with Pool(self.data_parallel_size) as pool:
@@ -232,8 +235,8 @@ class VLLM(LM):
         for (string,) in tqdm([req.args for req in requests]):
             rolling_token_windows = list(
                 map(
-                    utils.make_disjoint_window,
-                    utils.get_rolling_token_windows(
+                    make_disjoint_window,
+                    get_rolling_token_windows(
                         token_list=self.tok_encode(string),
                         prefix_token=self.eot_token_id,
                         max_seq_len=self.max_length - 1,
@@ -352,7 +355,7 @@ class VLLM(LM):
             return -len(toks), tuple(toks)
 
         # Reorder requests by length and batch
-        re_ord = utils.Collator(requests, sort_fn=_collate)
+        re_ord = Collator(requests, sort_fn=_collate)
         chunks = re_ord.get_batched(
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
