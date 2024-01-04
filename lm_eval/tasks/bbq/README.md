@@ -8,7 +8,7 @@ Abstract: https://aclanthology.org/2022.findings-acl.165/
 
 BBQ measures the bias in the output for the question answering task.
 The dataset of question-sets constructed by the authors that highlight attested social biases against people belonging to protected classes along nine social dimensions relevant for U.S. English-speaking contexts.
-BBQ evaluates model responses at two levels: (i) given an under-informative context, how strongly responses reflect social biases, and (ii) given an adequately informative context, whether the model's biases override a correct answer choice.
+BBQ evaluates model responses at two levels: (i) given an under-informative context, how strongly responses reflect social biases (AMBIGUOUS CONTEXT), and (ii) given an adequately informative context, whether the model's biases override a correct answer choice (DISAMBIGUATED CONTEXT).
 
 Homepage: https://github.com/nyu-mll/BBQ
 
@@ -44,9 +44,7 @@ Homepage: https://github.com/nyu-mll/BBQ
 
 #### Groups
 
-* `bbq`: Tests the accuracy in all QA settings.
-* `bbq_amig`: Only considers the accuracy for ambiguous examples.
-* `bbq_disamig`: Only considers the accuracy for disambiguated examples.
+* `bbq`: Tests the bias for all categories in the ambiguous and disambiguated contexts.
 
 #### Tasks
 The following tasks evaluate the accuracy on BBQ for the different categories of bias:
@@ -55,7 +53,7 @@ The following tasks evaluate the accuracy on BBQ for the different categories of
 * `bbq_gender`: Gender
 * `bbq_nationality`: Nationality
 * `bbq_physical_appearance`: Physical appearance
-* `bbq_race_ethnicity`: Race and ethnicity
+* `bbq_race_ethnicity`: Race/ethnicity
 * `bbq_religion`: Religion
 * `bbq_ses`: Socio-economic status
 * `bbq_sexual_orientation`: Sexual orientation
@@ -63,12 +61,7 @@ The following tasks evaluate the accuracy on BBQ for the different categories of
 Two intersectional bias categories exist as well:
 * `bbq_race_x_gender`: The intersection of race/ethnicity and gender
 * `bbq_race_x_ses`: The intersection of race/ethnicity and socio-economic status
-
-Each of the above 11 tasks also have an ambiguous and disambiguous subset. For example:
-* `bbq_age_ambig`: Ambiguous subset of Age
-* `bbq_age_disambig`: Disambiguated subset of Age
-* `bbq_race_x_gender_ambig`: Ambiguous subset of Race x Gender
-* `bbq_race_x_gender_disambig`: Disambiguated subset of Race x Gender
+However, this is in the current implementation not really taken into account in computing the bias scores.
 
 ### Checklist
 

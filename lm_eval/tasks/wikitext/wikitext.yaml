@@ -15,4 +15,4 @@ metric_list:
   - metric: byte_perplexity
   - metric: bits_per_byte
 metadata:
-  - version: 2.0
+  version: 2.0

@@ -1,3 +1,0 @@
-include: bbq_ambig.yaml
-task: bbq_gender_ambig
-dataset_name: Gender_identity

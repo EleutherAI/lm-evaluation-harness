@@ -1,3 +1,0 @@
-include: bbq_ambig.yaml
-task: bbq_race_ethnicity_ambig
-dataset_name: Race_ethnicity

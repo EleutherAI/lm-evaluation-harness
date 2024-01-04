@@ -13,13 +13,13 @@ Homepage: https://textsynth.com/index.html
 """
 import logging
 import os
-import time
 
 import requests as _requests
 from tqdm import tqdm
 
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
+from lm_eval.utils import retry_on_specific_exceptions
 
 
 logger = logging.getLogger(__name__)
@@ -29,21 +29,26 @@ def textsynth_completion(**kwargs):
     """Query TextSynth API for completion.
     Retry with back-off until they respond.
     """
-    backoff_time = 3
-    while True:
-        try:
-            return _requests.post(**kwargs)
-        except _requests.exceptions.RequestException:
-            import traceback
 
-            traceback.print_exc()
-            time.sleep(backoff_time)
-            backoff_time *= 1.5
+    def _exception_callback(e: Exception, sleep_time: float) -> None:
+        import traceback
+
+        traceback.print_exc()
+
+    @retry_on_specific_exceptions(
+        on_exceptions=[_requests.exceptions.RequestException],
+        max_retries=None,  # retry forever, consider changing
+        on_exception_callback=_exception_callback,
+    )
+    def completion():
+        return _requests.post(**kwargs)
+
+    return completion()
 
 
 @register_model("textsynth")
 class TextSynthLM(LM):
-    def __init__(self, engine, truncate: bool = False) -> None:
+    def __init__(self, engine, truncate: bool = False, **kwargs) -> None:
         """
         :param engine: str
             TextSynth API engine (e.g. `gptj_6B`)

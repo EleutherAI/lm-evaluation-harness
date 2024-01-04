@@ -14,4 +14,4 @@ generation_kwargs:
   do_sample: false
   temperature: 0.0
 metadata:
-  - version: 0.0
+  version: 0.0

@@ -1,3 +1,0 @@
-include: bbq.yaml
-task: bbq_disambig
-process_docs: !function utils.filter_disambiguated

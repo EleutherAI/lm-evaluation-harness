@@ -24,4 +24,4 @@ filter_list:
       - function: "take_first"
 num_fewshot: 0
 metadata:
-  - version: 0
+  version: 0

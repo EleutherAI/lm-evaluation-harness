@@ -16,4 +16,4 @@ metric_list:
     aggregation: !function metrics.agg_bleu
     higher_is_better: true
 metadata:
-  - version: 0.0
+  version: 0.0

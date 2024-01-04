@@ -1,3 +1,0 @@
-include: bbq_disambig.yaml
-task: bbq_nationality_disambig
-dataset_name: Nationality
