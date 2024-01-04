@@ -133,6 +133,9 @@ accelerate launch --no_python lm-eval --model ...
 ```
 
 
+**Note: we do not currently support multi-node evaluations natively, and advise using either an externally hosted server to run inference requests against, or creating a custom integration with your distributed framework [as is done for the GPT-NeoX library](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py).**
+
+
 ### Tensor + Data Parallel and Optimized Inference with `vLLM`
 
 We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html). For single-GPU or multi-GPU — tensor parallel, data parallel, or a combination of both — inference, for example:
