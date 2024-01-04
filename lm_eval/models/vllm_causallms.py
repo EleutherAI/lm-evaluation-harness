@@ -17,6 +17,7 @@ from lm_eval.utils import (
 
 
 try:
+    import ray
     from ray.util.multiprocessing import Pool
     from vllm import LLM, SamplingParams
     from vllm.transformers_utils.tokenizer import get_tokenizer
@@ -188,6 +189,8 @@ class VLLM(LM):
 
             with Pool(self.data_parallel_size) as pool:
                 results = pool.starmap(run_inference_one_model, inputs)
+            # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
+            ray.shutdown()
             # flatten results
             return [item for sublist in results for item in sublist]
 
