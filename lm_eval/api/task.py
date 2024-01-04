@@ -87,11 +87,6 @@ class TaskConfig(dict):
     ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
-        if self.dataset_path and os.path.exists(os.path.dirname(self.dataset_path)):
-            import inspect
-            from importlib import import_module
-
-            self.dataset_path = inspect.getfile(import_module(self.dataset_path))
 
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
