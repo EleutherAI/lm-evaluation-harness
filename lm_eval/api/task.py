@@ -698,11 +698,11 @@ class ConfigurableTask(Task):
                 )
 
                 if delimiter_has_whitespace and choice_has_whitespace:
-                    eval_logger.warning(
-                        f'Both target_delimiter and target choice: "{choice}" have whitespace'
+                    eval_logger.debug(
+                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" have whitespace'
                     )
                 elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
-                    eval_logger.warning(
+                    eval_logger.debug(
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
