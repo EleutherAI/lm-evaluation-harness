@@ -248,7 +248,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if results is not None:
         if args.log_samples:
             samples = results.pop("samples")
-        dumped = json.dumps(results, indent=2, default=_handle_non_serializable)
+        dumped = json.dumps(
+            results, indent=2, default=_handle_non_serializable, ensure_ascii=False
+        )
         if args.show_config:
             print(dumped)
 
@@ -264,7 +266,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     )
                     filename = path.joinpath(f"{output_name}.jsonl")
                     samples_dumped = json.dumps(
-                        samples[task_name], indent=2, default=_handle_non_serializable
+                        samples[task_name],
+                        indent=2,
+                        default=_handle_non_serializable,
+                        ensure_ascii=False,
                     )
                     filename.open("w").write(samples_dumped)
 
