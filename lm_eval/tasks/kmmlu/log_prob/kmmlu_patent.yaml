@@ -1,0 +1,3 @@
+dataset_name: Patent
+include: _log_prob_kmmlu_yaml
+task: kmmlu_log_prob_patent
