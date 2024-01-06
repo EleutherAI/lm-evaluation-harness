@@ -20,6 +20,7 @@ generation_kwargs:
     - "Q:"
     - "\n\n"
     - "</s>"
+    - "."
   do_sample: false
   temperature: 0.0
 metadata:
