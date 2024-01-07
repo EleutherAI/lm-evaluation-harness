@@ -684,9 +684,9 @@ class HFLM(LM):
                 tokenize=False,
                 add_generation_prompt=True,
             )
-            split_on_continuation = single_tokenized_conversation.split(continuation)
-            context = split_on_continuation[0]
-            continuation += split_on_continuation[1]
+            rfind_continuation = single_tokenized_conversation.rfind(continuation)
+            context = single_tokenized_conversation[:rfind_continuation]
+            continuation = single_tokenized_conversation[rfind_continuation:]
             req.args = (context, continuation) 
             new_reqs.append(req)
         return new_reqs
