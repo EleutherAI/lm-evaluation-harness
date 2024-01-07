@@ -107,6 +107,15 @@ The full list of supported arguments are provided [here](./docs/interface.md), a
 > [!Note]
 > Just like you can provide a local path to `transformers.AutoModel`, you can also provide a local path to `lm_eval` via `--model_args pretrained=/path/to/model`
 
+### OpenVINO models converted via HuggingFace Optimum
+
+```bash
+lm_eval --model optimum-causal\
+    --model_args pretrained=EleutherAI/pythia-160m,dtype=float32\
+    --task lambada_openai\
+    --device cpu
+```
+
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
 
 To parallelize evaluation of HuggingFace models across multiple GPUs, we leverage the [accelerate 🚀](https://github.com/huggingface/accelerate) library as follows:
