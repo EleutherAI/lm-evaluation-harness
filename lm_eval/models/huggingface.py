@@ -664,10 +664,10 @@ class HFLM(LM):
             return self.tokenizer.decode(tokens, skip_special_tokens=True)
         
     def tok_wrap_chat_template(self, requests: List[Instance], system: bool = False) -> List[Instance]:
-
         new_reqs = []
         for req in requests:
             context, continuation = req.args[0].strip(), req.args[1].strip()
+
             if system:
                 chat = [
                   {"role": "system", "content": system}, 
@@ -684,11 +684,13 @@ class HFLM(LM):
                 tokenize=False,
                 add_generation_prompt=True,
             )
+            
             rfind_continuation = single_tokenized_conversation.rfind(continuation)
             context = single_tokenized_conversation[:rfind_continuation]
             continuation = single_tokenized_conversation[rfind_continuation:]
             req.args = (context, continuation) 
             new_reqs.append(req)
+
         return new_reqs
 
     
