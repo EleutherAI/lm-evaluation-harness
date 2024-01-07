@@ -664,10 +664,13 @@ class HFLM(LM):
             return self.tokenizer.decode(tokens, skip_special_tokens=True)
         
     def tok_wrap_chat_template(self, requests: List[Instance], system: bool = False) -> List[Instance]:
+        """
+        Utility for adding chat templates via the apply_chat_template() method
+        """
         new_reqs = []
         for req in requests:
             context, continuation = req.args[0].strip(), req.args[1].strip()
-
+    
             if system:
                 chat = [
                   {"role": "system", "content": system}, 
@@ -690,7 +693,7 @@ class HFLM(LM):
             continuation = single_tokenized_conversation[rfind_continuation:]
             req.args = (context, continuation) 
             new_reqs.append(req)
-
+    
         return new_reqs
 
     
@@ -774,12 +777,9 @@ class HFLM(LM):
         return context_enc, continuation_enc
 
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
-        #print(requests)
-        print(requests[0])
-        print(requests[0].args)
+        print(f"First element before prompt formatting...\n{requests[0].args}")
         requests = self.tok_wrap_chat_template(requests)
-        print(requests[0])
-        print(requests[0].args)
+        print(f"First element after prompt formatting...\n{requests[0].args}")
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
