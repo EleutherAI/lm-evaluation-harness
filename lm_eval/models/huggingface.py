@@ -667,17 +667,17 @@ class HFLM(LM):
 
         new_reqs = []
         for req in requests:
-            context, continuation = req.args[0], req.args[1]
+            context, continuation = req.args[0].strip(), req.args[1].strip()
             if system:
                 chat = [
-                  {"role": "system", "content": system.strip()}, 
-                  {"role": "user", "content": context.strip()},
-                  {"role": "assistant", "content": continuation.strip()}, 
+                  {"role": "system", "content": system}, 
+                  {"role": "user", "content": context},
+                  {"role": "assistant", "content": continuation}, 
                 ]
             else:
                 chat = [
-                  {"role": "user", "content": context.strip()},
-                  {"role": "assistant", "content": continuation.strip()}, 
+                  {"role": "user", "content": context},
+                  {"role": "assistant", "content": continuation}, 
                 ]
             single_tokenized_conversation = self.tokenizer.apply_chat_template(
                 chat, 
