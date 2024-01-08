@@ -787,16 +787,19 @@ class ConfigurableTask(Task):
             )
 
         example = self.doc_to_text(doc)
-        if isinstance(example, str):
-            return labeled_examples + example
-        elif isinstance(example, list):
-            return [labeled_examples + ex for ex in example]
-        elif isinstance(example, int):
-            if self.config.doc_to_choice is not None:
-                choices = self.doc_to_choice(doc)
-                return labeled_examples + choices[example]
-            else:
-                return labeled_examples + str(example)
+        if self.multiple_input:
+            return labeled_examples
+        else:
+            if isinstance(example, str):
+                return labeled_examples + example
+            elif isinstance(example, list):
+                return [labeled_examples + ex for ex in example]
+            elif isinstance(example, int):
+                if self.config.doc_to_choice is not None:
+                    choices = self.doc_to_choice(doc)
+                    return labeled_examples + choices[example]
+                else:
+                    return labeled_examples + str(example)
 
     def apply_filters(self):
         if hasattr(self, "_filters"):
@@ -952,7 +955,9 @@ class ConfigurableTask(Task):
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)
-                arguments = [(ctx, f"{target_delimiter}{cont}") for ctx in choices]
+                arguments = [
+                    (ctx + choice, f"{target_delimiter}{cont}") for choice in choices
+                ]
             else:
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
