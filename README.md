@@ -12,7 +12,7 @@ New updates and features include:
 - Easier import and sharing of externally-defined task config YAMLs
 - Support for Jinja2 prompt design, easy modification of prompts + prompt imports from Promptsource
 - More advanced configuration options, including output post-processing, answer extraction, and multiple LM generations per document, configurable fewshot settings, and more
-- Speedups and new modeling libraries supported, including: faster data-parallel HF model usage, vLLM support, MPS support with HuggingFace, and more
+- Speedups and new modeling libraries supported, including: faster data-parallel HF model usage, vLLM support, MPS support with Hugging Face, and more
 - Logging and usability changes
 - New tasks including CoT BIG-Bench-Hard, Belebele, user-defined task groupings, and more
 
@@ -29,7 +29,7 @@ This project provides a unified framework to test generative language models on 
 - Support for models loaded via [transformers](https://github.com/huggingface/transformers/) (including quantization via [AutoGPTQ](https://github.com/PanQiWei/AutoGPTQ)), [GPT-NeoX](https://github.com/EleutherAI/gpt-neox), and [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/), with a flexible tokenization-agnostic interface.
 - Support for fast and memory-efficient inference with [vLLM](https://github.com/vllm-project/vllm).
 - Support for commercial APIs including [OpenAI](https://openai.com), and [TextSynth](https://textsynth.com/).
-- Support for evaluation on adapters (e.g. LoRA) supported in [HuggingFace's PEFT library](https://github.com/huggingface/peft).
+- Support for evaluation on adapters (e.g. LoRA) supported in [Hugging Face's PEFT library](https://github.com/huggingface/peft).
 - Support for local models and benchmarks.
 - Evaluation with publicly available prompts ensures reproducibility and comparability between papers.
 - Easy support for custom prompts and evaluation metrics.
@@ -70,7 +70,7 @@ We also provide a number of optional dependencies for extended functionality. Ex
 
 ### Hugging Face `transformers`
 
-To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command (this assumes you are using a CUDA-compatible GPU):
+To evaluate a model hosted on the [Hugging Face Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command (this assumes you are using a CUDA-compatible GPU):
 
 ```bash
 lm_eval --model hf \
@@ -90,7 +90,7 @@ lm_eval --model hf \
     --batch_size 8
 ```
 
-Models that are loaded via both `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) and `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Huggingface are supported.
+Models that are loaded via both `transformers.AutoModelForCausalLM` (autoregressive, decoder-only GPT style models) and `transformers.AutoModelForSeq2SeqLM` (such as encoder-decoder models like T5) in Hugging Face are supported.
 
 Batch size selection can be automated by setting the  ```--batch_size``` flag to ```auto```. This will perform automatic detection of the largest batch size that will fit on your device. On tasks where there is a large difference between the longest and shortest example, it can be helpful to periodically recompute the largest batch size, to gain a further speedup. To do this, append ```:N``` to above flag to automatically recompute the largest batch size ```N``` times. For example, to recompute the batch size 4 times, the command would be:
 
@@ -109,7 +109,7 @@ The full list of supported arguments are provided [here](./docs/interface.md), a
 
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
 
-To parallelize evaluation of HuggingFace models across multiple GPUs, we leverage the [accelerate 🚀](https://github.com/huggingface/accelerate) library as follows:
+To parallelize evaluation of Hugging Face models across multiple GPUs, we leverage the [accelerate 🚀](https://github.com/huggingface/accelerate) library as follows:
 
 ```
 accelerate launch -m lm_eval --model hf \
@@ -145,7 +145,7 @@ lm_eval --model vllm \
 ```
 For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
 
-vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation, and provide a [script](./scripts/model_comparator.py) for checking the validity of vllm results against HF.
+vLLM occasionally differs in output from Hugging Face. We treat Hugging Face as the reference implementation, and provide a [script](./scripts/model_comparator.py) for checking the validity of vllm results against HF.
 
 ### Model APIs and Inference Servers
 
@@ -160,7 +160,7 @@ lm_eval --model openai-completions \
     --tasks lambada_openai,hellaswag
 ```
 
-We also support using your own local inference server with an implemented version of the OpenAI ChatCompletions endpoint and passing trained HuggingFace artifacts and tokenizers.
+We also support using your own local inference server with an implemented version of the OpenAI ChatCompletions endpoint and passing trained Hugging Face artifacts and tokenizers.
 
 ```bash
 lm_eval --model local-chat-completions --tasks gsm8k --model_args model=facebook/opt-125m,base_url=http://{yourip}:8000/v1
@@ -211,7 +211,7 @@ lm_eval --model openai \
 
 ## Advanced Usage Tips
 
-For models loaded with the HuggingFace  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
+For models loaded with the Hugging Face  `transformers` library, any arguments provided via `--model_args` get passed to the relevant constructor directly. This means that anything you can do with `AutoModel` can be done with our library. For example, you can pass a local path via `pretrained=` or use models finetuned with [PEFT](https://github.com/huggingface/peft) by taking the call you would run to evaluate the base model and add `,peft=PATH` to the `model_args` argument:
 ```bash
 lm_eval --model hf \
     --model_args pretrained=EleutherAI/gpt-j-6b,parallelize=True,load_in_4bit=True,peft=nomic-ai/gpt4all-j-lora \
