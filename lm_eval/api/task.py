@@ -1,7 +1,6 @@
 import abc
 import ast
 import logging
-import os
 import random
 import re
 from collections.abc import Callable
@@ -87,12 +86,6 @@ class TaskConfig(dict):
     ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
-        if self.dataset_path and os.path.exists(os.path.dirname(self.dataset_path)):
-            import inspect
-            from importlib import import_module
-
-            self.dataset_path = inspect.getfile(import_module(self.dataset_path))
-
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
@@ -705,11 +698,11 @@ class ConfigurableTask(Task):
                 )
 
                 if delimiter_has_whitespace and choice_has_whitespace:
-                    eval_logger.warning(
-                        f'Both target_delimiter and target choice: "{choice}" have whitespace'
+                    eval_logger.debug(
+                        f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" have whitespace'
                     )
                 elif (not delimiter_has_whitespace) and (not choice_has_whitespace):
-                    eval_logger.warning(
+                    eval_logger.debug(
                         f'Both target_delimiter "{self.config.target_delimiter}" and target choice: "{choice}" do not have whitespace, ignore if the language you are evaluating on does not require/use whitespace'
                     )
 
@@ -794,16 +787,19 @@ class ConfigurableTask(Task):
             )
 
         example = self.doc_to_text(doc)
-        if isinstance(example, str):
-            return labeled_examples + example
-        elif isinstance(example, list):
-            return [labeled_examples + ex for ex in example]
-        elif isinstance(example, int):
-            if self.config.doc_to_choice is not None:
-                choices = self.doc_to_choice(doc)
-                return labeled_examples + choices[example]
-            else:
-                return labeled_examples + str(example)
+        if self.multiple_input:
+            return labeled_examples
+        else:
+            if isinstance(example, str):
+                return labeled_examples + example
+            elif isinstance(example, list):
+                return [labeled_examples + ex for ex in example]
+            elif isinstance(example, int):
+                if self.config.doc_to_choice is not None:
+                    choices = self.doc_to_choice(doc)
+                    return labeled_examples + choices[example]
+                else:
+                    return labeled_examples + str(example)
 
     def apply_filters(self):
         if hasattr(self, "_filters"):
@@ -959,7 +955,9 @@ class ConfigurableTask(Task):
             if self.multiple_input:
                 # If there are multiple inputs, choices are placed in the ctx
                 cont = self.doc_to_target(doc)
-                arguments = [(ctx, f"{target_delimiter}{cont}") for ctx in choices]
+                arguments = [
+                    (ctx + choice, f"{target_delimiter}{cont}") for choice in choices
+                ]
             else:
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
