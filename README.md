@@ -120,11 +120,11 @@ accelerate launch -m lm_eval --model hf \
 ```
 (or via `accelerate launch --no-python lm_eval`).
 
-For cases where your model can fit on a single GPU, this allows you to evaluate on K GPUs K times faster than on one. 
+For cases where your model can fit on a single GPU, this allows you to evaluate on K GPUs K times faster than on one.
 
 **WARNING**: This setup does not work with FSDP model sharding, so in `accelerate config` FSDP must be disabled, or the NO_SHARD FSDP option must be used.
 
-The second way of using `accelerate` for multi-GPU evaluation is when your model is *too large to fit on a single GPU.* 
+The second way of using `accelerate` for multi-GPU evaluation is when your model is *too large to fit on a single GPU.*
 
 In this setting, run the library *outside of the `accelerate` launcher*, but passing `parallelize=True` to `--model_args` as follows:
 
@@ -143,7 +143,7 @@ For more advanced users or even larger models, we allow for the following argume
 - `max_cpu_memory`: the max amount of CPU memory to use when offloading the model weights to RAM.
 - `offload_folder`: a folder where model weights will be offloaded to disk if needed.
 
-These two options (`accelerate launch` and `parallelize=True`) are mutually exclusive. 
+These two options (`accelerate launch` and `parallelize=True`) are mutually exclusive.
 
 ### Tensor + Data Parallel and Optimized Inference with `vLLM`
 
