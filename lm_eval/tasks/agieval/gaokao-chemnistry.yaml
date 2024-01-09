@@ -1,3 +1,0 @@
-include: aqua-rat.yaml
-task: gaokao-chemnistry
-dataset_path: dmayhem93/agieval-gaokao-chemnistry
