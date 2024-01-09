@@ -1,0 +1,3 @@
+include: aqua-rat.yaml
+task: sat-en
+dataset_path: dmayhem93/agieval-sat-en

@@ -1,0 +1,3 @@
+include: aqua-rat.yaml
+task: gaokao-history
+dataset_path: dmayhem93/agieval-gaokao-history

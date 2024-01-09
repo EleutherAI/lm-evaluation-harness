@@ -1,0 +1,3 @@
+include: aqua-rat.yaml
+task: lsat-lr
+dataset_path: dmayhem93/agieval-lsat-lr

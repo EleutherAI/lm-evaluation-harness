@@ -1,0 +1,3 @@
+include: aqua-rat.yaml
+task: logiqa-en
+dataset_path: dmayhem93/agieval-logiqa-en
