@@ -696,7 +696,7 @@ class HFLM(LM):
             generation_kwargs["do_sample"] = False
         # build stopping criteria
         stopping_criteria = stop_sequences_criteria(
-            self.tokenizer, stop, 1, context.shape[0]
+            self.tokenizer, stop, context.shape[1], context.shape[0]
         )
         return self.model.generate(
             input_ids=context,
