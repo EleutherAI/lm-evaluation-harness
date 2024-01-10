@@ -87,7 +87,7 @@ all = [
 ]
 
 [tool.ruff]
-extend-exclude = ["lm_eval/evaluator.py", "lm_eval/tasks/*.py","tests/tests_master/**"]
+extend-exclude = ["lm_eval/evaluator.py", "lm_eval/tasks/*.py"]
 
 [tool.ruff.lint]
 extend-select = ["I"]
