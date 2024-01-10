@@ -271,7 +271,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                         default=_handle_non_serializable,
                         ensure_ascii=False,
                     )
-                    filename.open("w").write(samples_dumped)
+                    filename.write_text(samples_dumped, encoding="utf-8")
 
         print(
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
