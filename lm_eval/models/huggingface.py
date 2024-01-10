@@ -684,11 +684,13 @@ class HFLM(LM):
             context = single_tokenized_conversation[:rfind_continuation]
             continuation = single_tokenized_conversation[rfind_continuation:]
             # remove special chars from continuation
-            continuation = self.tokenizer.decode(self.tokenizer.encode(continuation), skip_special_tokens=True)
+            continuation = self.tokenizer.decode(
+                self.tokenizer.encode(continuation), skip_special_tokens=True
+            )
             req.args = (context, continuation) 
             new_reqs.append(req)
-    
-        return new_reqs
+
+    return new_reqs
 
     
     def _model_call(self, inps, attn_mask=None, labels=None):
