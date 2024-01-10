@@ -673,11 +673,10 @@ class HFLM(LM):
         for req in requests:
             context, continuation = req.args[0].strip(), req.args[1].strip()
 
-            # Regex pattern splits on substrings "; " and ", "
-            elements = re.split('Answer: |Question: ', context.replace('\n', ' '))
+            elements = re.split('Answer:|Question:', context.replace('\n', ' '))
             
             new_elements = []
-            for element in elements[1:]:
+            for element in elements[1:-1]:
                 new_elements.append(element.strip())
             
             new_elements
@@ -688,7 +687,6 @@ class HFLM(LM):
                     chat.append({"role": "user", "content": f"Question: {new_elements[i]} Answer:"})
                 else:
                     chat.append({"role": "assistant", "content": f"{new_elements[i]}"})
-
             #chat = [
             #    #{"role": "system", "content": "You are a helpful, respectful and honest assistant."},
             #    {"role": "user", "content": context},
