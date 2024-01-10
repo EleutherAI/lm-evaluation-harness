@@ -15,12 +15,10 @@ metric_list:
 generation_kwargs:
   until:
     - "Q:"
-    - "\n\n"
     - "</s>"
-    - "."
-  do_sample: false
-  max_gen_toks: 1024
-  temperature: 0.0
+  do_sample: true
+  max_gen_toks: 768
+  temperature: 0.7
 filter_list:
   - name: "get-answer"
     filter:
