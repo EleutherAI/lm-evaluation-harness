@@ -326,6 +326,7 @@ def evaluate(
 
         # put responses from model into a list of length K for each request.
         for x, req in zip(resps, cloned_reqs):
+            print(x)
             req.resps.append(x)
 
         if lm.world_size > 1:
