@@ -667,30 +667,27 @@ class HFLM(LM):
         """
         Utility for adding chat templates via the apply_chat_template() method
         """
-        import re
-
         new_reqs = []
         for req in requests:
             context, continuation = req.args[0].strip(), req.args[1].strip()
 
+            # arc experiment with few-shot formatting
+            """import re
             elements = re.split('Answer:|Question:', context.replace('\n', ' '))
-            
             new_elements = []
             for element in elements[1:-1]:
                 new_elements.append(element.strip())
-            
             new_elements
             chat = []
-            
             for i in range(len(new_elements)):
                 if i % 2 == 0:
                     chat.append({"role": "user", "content": f"Question: {new_elements[i]} Answer:"})
                 else:
-                    chat.append({"role": "assistant", "content": f"{new_elements[i]}"})
-            #chat = [
-            #    #{"role": "system", "content": "You are a helpful, respectful and honest assistant."},
-            #    {"role": "user", "content": context},
-            #]
+                    chat.append({"role": "assistant", "content": f"{new_elements[i]}"})"""
+            chat = [
+                #{"role": "system", "content": "You are a helpful, respectful and honest assistant."},
+                {"role": "user", "content": context},
+            ]
             context = self.tokenizer.apply_chat_template(
                 chat, 
                 tokenize=False,
