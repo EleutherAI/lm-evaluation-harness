@@ -1,3 +1,4 @@
-"dataset_name": "pes_Arab"
+"fewshot_split": "pes_Arab"
 "include": "_default_template_yaml"
 "task": "belebele_pes_Arab"
+"test_split": "pes_Arab"

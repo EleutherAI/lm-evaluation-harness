@@ -1,3 +1,4 @@
-"dataset_name": "plt_Latn"
+"fewshot_split": "plt_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_plt_Latn"
+"test_split": "plt_Latn"

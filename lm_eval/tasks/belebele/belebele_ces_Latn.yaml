@@ -1,3 +1,4 @@
-"dataset_name": "ces_Latn"
+"fewshot_split": "ces_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_ces_Latn"
+"test_split": "ces_Latn"

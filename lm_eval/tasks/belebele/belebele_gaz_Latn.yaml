@@ -1,3 +1,4 @@
-"dataset_name": "gaz_Latn"
+"fewshot_split": "gaz_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_gaz_Latn"
+"test_split": "gaz_Latn"
