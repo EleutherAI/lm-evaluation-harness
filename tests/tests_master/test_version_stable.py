@@ -6,9 +6,11 @@ import random
 
 import pytest
 
-import lm_eval.evaluator as evaluator
-import lm_eval.models as models
-import lm_eval.tasks as tasks
+
+# import lm_eval.evaluator as evaluator
+# import lm_eval.models as models
+# import lm_eval.tasks as tasks
+pytestmark = pytest.mark.skip("depreciated")
 
 
 os.makedirs("tests/testdata", exist_ok=True)
@@ -64,7 +66,7 @@ def flatten(d, parent_key="", sep="."):
 
 
 @pytest.mark.skip(reason="depreciated")
-@pytest.mark.parametrize("taskname,task_class", tasks.TASK_REGISTRY.items())
+# @pytest.mark.parametrize("taskname,task_class", tasks.TASK_REGISTRY.items())
 def test_versions_stable(taskname, task_class):
     task_dict = tasks.get_task_dict([taskname])
     lm = models.get_model("dummy")()

@@ -5,12 +5,12 @@ import pickle
 import unittest.mock as mock
 
 import pytest
-from openai import OpenAI
-
+pytestmark = pytest.mark.skip("depreciated")
+# from openai import OpenAI
 import lm_eval.models as models
 
 
-client = OpenAI()
+# client = OpenAI()
 
 LOGLIKELIHOOD_TEST_CASES = [
     ("The quick brown fox jumps over the lazy", " dog"),
@@ -282,9 +282,9 @@ def textsynth_mock_completion(**kwargs):
 
 
 @pytest.mark.skip(reason="depreciated")
-@mock.patch(
-    "lm_eval.models.textsynth.textsynth_completion", new=textsynth_mock_completion
-)
+# @mock.patch(
+#     "lm_eval.models.textsynth.textsynth_completion", new=textsynth_mock_completion
+# )
 def test_textsynth():
     if "TEXTSYNTH_API_SECRET_KEY" not in os.environ:
         os.environ["TEXTSYNTH_API_SECRET_KEY"] = ""

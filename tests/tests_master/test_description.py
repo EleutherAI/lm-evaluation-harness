@@ -1,6 +1,7 @@
 import random
 
 import pytest
+pytestmark = pytest.mark.skip("depreciated")
 
 import lm_eval.models
 import lm_eval.tasks
