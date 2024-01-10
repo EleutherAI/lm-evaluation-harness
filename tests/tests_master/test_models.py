@@ -12,7 +12,6 @@ import lm_eval.models as models
 
 client = OpenAI()
 
-
 LOGLIKELIHOOD_TEST_CASES = [
     ("The quick brown fox jumps over the lazy", " dog"),
     ("The quick brown fox jumps over the lazy", " cat"),
@@ -61,6 +60,7 @@ LOGLIKELIHOOD_TEST_CASES = [
 # Test HuggingFace Models (GPT-2)
 
 
+@pytest.mark.skip(reason="depreciated")
 def test_gpt2():
     gpt2 = models.get_model("gpt2").create_from_arg_string("device=cpu")
     (
@@ -104,6 +104,7 @@ def test_gpt2():
         assert pred == pytest.approx(tgt, rel=1e-3)
 
 
+@pytest.mark.skip(reason="depreciated")
 def test_gpt2_perplexity():
     gpt2 = models.get_model("gpt2").create_from_arg_string("device=cpu")
     test_string = "We study empirical scaling laws for language model performance on the cross-entropy loss."
@@ -183,6 +184,7 @@ def openai_mock_completion(**kwargs):
     return ret
 
 
+@pytest.mark.skip(reason="depreciated")
 @mock.patch("lm_eval.models.gpt3.oa_completion", new=openai_mock_completion)
 def test_gpt3():
     if "OPENAI_API_SECRET_KEY" not in os.environ:
@@ -232,6 +234,7 @@ def test_gpt3():
         assert pred == pytest.approx(tgt, rel=1e-3)
 
 
+@pytest.mark.skip(reason="depreciated")
 @mock.patch("lm_eval.models.gpt3.oa_completion", new=openai_mock_completion)
 def test_gpt3_perplexity():
     if "OPENAI_API_SECRET_KEY" not in os.environ:
@@ -256,6 +259,7 @@ def test_gpt3_perplexity():
 # Test TextSynth Models (GPT-J)
 
 
+@pytest.mark.skip(reason="depreciated")
 def textsynth_mock_completion(**kwargs):
     # Mock completion function
     # Loads from a cached+pickled response if it exists, otherwise it will actually try to ping
@@ -277,6 +281,7 @@ def textsynth_mock_completion(**kwargs):
     return ret
 
 
+@pytest.mark.skip(reason="depreciated")
 @mock.patch(
     "lm_eval.models.textsynth.textsynth_completion", new=textsynth_mock_completion
 )

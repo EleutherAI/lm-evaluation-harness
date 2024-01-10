@@ -4,6 +4,8 @@ import os
 import shutil
 from collections import Counter
 
+import pytest
+
 from lm_eval.decontamination.archiver import Archive, TextReader
 from lm_eval.decontamination.janitor import Janitor, word_ngrams
 from scripts.clean_training_data.generate_13_grams import do_ngrams_in_buckets
@@ -12,6 +14,7 @@ from scripts.clean_training_data.generate_13_grams import do_ngrams_in_buckets
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.skip(reason="depreciated")
 def test_generate_13_grams_1(caplog):
     data = """A goose (plural geese) is a bird of any of several waterfowl species in the family Anatidae.
     This group comprises the genera Anser (the grey geese and white geese) and Branta (the black geese).

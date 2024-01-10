@@ -63,6 +63,7 @@ def flatten(d, parent_key="", sep="."):
 # make sure eval results for a task version are stable
 
 
+@pytest.mark.skip(reason="depreciated")
 @pytest.mark.parametrize("taskname,task_class", tasks.TASK_REGISTRY.items())
 def test_versions_stable(taskname, task_class):
     task_dict = tasks.get_task_dict([taskname])

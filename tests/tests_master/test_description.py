@@ -1,9 +1,12 @@
 import random
 
+import pytest
+
 import lm_eval.models
 import lm_eval.tasks
 
 
+@pytest.mark.skip(reason="depreciated")
 def test_description():
     seed = 42
     num_examples = 1
