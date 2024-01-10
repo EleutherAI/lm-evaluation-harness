@@ -61,7 +61,7 @@ jobs:
 #                pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
 #        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
-      run: python -m pytest --showlocals -s -vv -n=auto --ignore=tests/tests_master --ignore=tests/extra
+      run: python -m pytest --showlocals -s -vv -n=auto
     - name: Archive artifacts
       uses: actions/upload-artifact@v3
       with:
