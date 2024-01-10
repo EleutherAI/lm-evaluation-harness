@@ -1,3 +1,4 @@
-"dataset_name": "vie_Latn"
+"fewshot_split": "vie_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_vie_Latn"
+"test_split": "vie_Latn"

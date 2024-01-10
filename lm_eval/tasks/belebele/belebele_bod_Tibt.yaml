@@ -1,3 +1,4 @@
-"dataset_name": "bod_Tibt"
+"fewshot_split": "bod_Tibt"
 "include": "_default_template_yaml"
 "task": "belebele_bod_Tibt"
+"test_split": "bod_Tibt"
