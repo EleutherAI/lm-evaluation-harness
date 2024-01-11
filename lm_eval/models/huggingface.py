@@ -685,7 +685,19 @@ class HFLM(LM):
                 else:
                     chat.append({"role": "assistant", "content": f"{new_elements[i]}"})"""
             chat = [
-                #{"role": "system", "content": "You are a helpful, respectful and honest assistant."},
+                {"role": "system", "content": "You are a helpful, respectful and honest assistant."},
+                {"role": "user", "content": context},
+                {"role": "assistant", "content": continuation},
+            ]
+            context = self.tokenizer.apply_chat_template(
+                chat, 
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+            print(context)
+
+            chat = [
+                {"role": "system", "content": "You are a helpful, respectful and honest assistant."},
                 {"role": "user", "content": context},
             ]
             context = self.tokenizer.apply_chat_template(
@@ -693,6 +705,8 @@ class HFLM(LM):
                 tokenize=False,
                 add_generation_prompt=True,
             )
+            print(context)
+            print("\n")
             req.args = (context, continuation) 
             new_reqs.append(req)
     
@@ -734,14 +748,6 @@ class HFLM(LM):
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, 1, context.shape[0]
         )
-        print(self.model.generate(
-            input_ids=context,
-            max_length=max_length,
-            stopping_criteria=stopping_criteria,
-            pad_token_id=self.tokenizer.pad_token_id,
-            use_cache=True,
-            **generation_kwargs,
-        ))
         return self.model.generate(
             input_ids=context,
             max_length=max_length,
