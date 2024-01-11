@@ -683,6 +683,36 @@ class HFLM(LM):
             new_reqs.append(req)
         return new_reqs
     
+    def tok_wrap_chat_template(self, requests: List[Instance]) -> List[Instance]:
+        """
+        Utility for adding chat templates via the apply_chat_template() method
+        """    
+        new_reqs = []
+        for req in requests:
+            context, continuation = req.args[0].strip(), req.args[1]
+            # arc experiment with few-shot formatting
+            import re
+            elements = re.split('Answer:|Question:', context.replace('\n', ' '))
+            new_elements = []
+            for element in elements[1:-1]:
+                new_elements.append(element.strip())
+            new_elements
+            chat = []
+            for i in range(len(new_elements)):
+                if i % 2 == 0:
+                    chat.append({"role": "user", "content": f"Question: {new_elements[i]} Answer:"})
+                else:
+                    chat.append({"role": "assistant", "content": f"{new_elements[i]}"})
+            context = self.tokenizer.apply_chat_template(
+                chat, 
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+            req.args = (context, continuation) 
+            new_reqs.append(req)
+        return new_reqs
+
+
     def _model_call(self, inps, attn_mask=None, labels=None):
         """
         :param inps: torch.Tensor
