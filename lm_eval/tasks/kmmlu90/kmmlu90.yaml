@@ -1,0 +1,3 @@
+dataset_name: sample
+include: _cot_kmmlu_yaml
+task: kmmlu90
