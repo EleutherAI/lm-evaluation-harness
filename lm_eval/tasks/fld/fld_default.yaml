@@ -18,4 +18,4 @@ filter_list:
       - function: remove_whitespace
       - function: take_first
 metadata:
-  version: 1.0
+  version: 2.0
