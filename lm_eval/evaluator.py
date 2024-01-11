@@ -577,6 +577,11 @@ def evaluate(
 
             return results_agg, groups_agg
 
+        print("task_hierarchy")
+        print(task_hierarchy)
+        print("results")
+        print(results)
+
         results_agg = collections.defaultdict(dict)
         groups_agg = collections.defaultdict(dict)
         all_tasks_list = list(task_hierarchy.keys())
