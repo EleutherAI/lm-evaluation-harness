@@ -469,12 +469,12 @@ class HFLM(LM):
             # this is needed because it seems that the default behavior
             # for quantized models now seems to be device_map="auto"
             # which breaks data-parallel mode.
-            if getattr(self, "accelerator"):
+            if hasattr(self, "accelerator"):
                 model_kwargs.update(
                     {"device_map": {"": f"cuda:{self.accelerator.local_process_index}"}}
                 )
             else:
-                model_kwargs.update({"device_map", {"": self.device}})
+                model_kwargs.update({"device_map": {"": str(self.device)}})
 
         if not autogptq:
             if model_kwargs.get("load_in_4bit", None):
