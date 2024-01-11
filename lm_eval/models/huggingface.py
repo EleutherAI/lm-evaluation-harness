@@ -669,23 +669,18 @@ class HFLM(LM):
         """    
         new_reqs = []
         for req in requests:
-            context, continuation = req.args[0].strip(), req.args[1].strip()
+            context, continuation = req.args[0].strip(), req.args[1]
             chat = [
-              {"role": "system", "content": "You are a helpful, respectful and honest assistant."}, 
+              {"role": "system", "content": "You are a helpful assistant."}, 
               {"role": "user", "content": context},
-              {"role": "assistant", "content": continuation}, 
             ]
-            single_tokenized_conversation = self.tokenizer.apply_chat_template(
+            context = self.tokenizer.apply_chat_template(
                 chat, 
                 tokenize=False,
                 add_generation_prompt=True,
             )
-            rfind_continuation = single_tokenized_conversation.rfind(continuation)
-            context = single_tokenized_conversation[:rfind_continuation]
-            continuation = single_tokenized_conversation[rfind_continuation:]
             req.args = (context, continuation) 
             new_reqs.append(req)
-    
         return new_reqs
     
     def _model_call(self, inps, attn_mask=None, labels=None):
