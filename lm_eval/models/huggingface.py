@@ -697,7 +697,7 @@ class HFLM(LM):
             for element in elements[1:-1]:
                 new_elements.append(element.strip())
             new_elements
-            chat = []
+            chat = [{"role": "system", "content": f"You are a helpful and concise assistant."}]
             for i in range(len(new_elements)):
                 if i % 2 == 0:
                     chat.append({"role": "user", "content": f"Question: {new_elements[i]} Answer:"})
