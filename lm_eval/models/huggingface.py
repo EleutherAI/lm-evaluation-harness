@@ -662,28 +662,31 @@ class HFLM(LM):
             return self.tokenizer.decode(tokens)
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
             return self.tokenizer.decode(tokens, skip_special_tokens=True)
-        
+    
     def tok_wrap_chat_template(self, requests: List[Instance]) -> List[Instance]:
         """
         Utility for adding chat templates via the apply_chat_template() method
-        """
+        """    
         new_reqs = []
         for req in requests:
             context, continuation = req.args[0].strip(), req.args[1].strip()
             chat = [
-                {"role": "system", "content": "You are a helpful, respectful and honest assistant."},
-                {"role": "user", "content": context},
+              {"role": "system", "content": "You are a helpful, respectful and honest assistant."}, 
+              {"role": "user", "content": context},
+              {"role": "assistant", "content": continuation}, 
             ]
-            context = self.tokenizer.apply_chat_template(
+            single_tokenized_conversation = self.tokenizer.apply_chat_template(
                 chat, 
                 tokenize=False,
                 add_generation_prompt=True,
             )
+            rfind_continuation = single_tokenized_conversation.rfind(continuation)
+            context = single_tokenized_conversation[:rfind_continuation]
+            continuation = single_tokenized_conversation[rfind_continuation:]
             req.args = (context, continuation) 
             new_reqs.append(req)
     
         return new_reqs
-    
     
     def _model_call(self, inps, attn_mask=None, labels=None):
         """
