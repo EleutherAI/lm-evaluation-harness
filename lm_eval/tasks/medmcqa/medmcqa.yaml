@@ -1,0 +1,18 @@
+task: medmcqa
+dataset_path: medmcqa
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: validation
+doc_to_text: !function utils_medmcqa.doc_to_text
+doc_to_target: cop
+doc_to_choice: [ 'A','B','C','D' ]
+should_decontaminate: true
+doc_to_decontamination_query: "{{question}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
