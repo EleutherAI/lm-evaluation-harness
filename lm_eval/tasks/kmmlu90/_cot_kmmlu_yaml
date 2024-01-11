@@ -13,7 +13,7 @@ generation_kwargs:
   until:
     - "Q:"
     - "</s>"
-  do_sample: true
+  do_sample: false
   max_gen_toks: 768
   temperature: 0.7
 filter_list:
