@@ -133,6 +133,8 @@ class HFLM(LM):
 
             gpus = torch.cuda.device_count()
             accelerator = Accelerator()
+            if accelerator.num_processes > 1:
+                self.accelerator = accelerator
 
             if not (parallelize or accelerator.num_processes > 1):
                 # use user-passed device
@@ -210,7 +212,7 @@ class HFLM(LM):
                     self.model.to(self.device)
                 except ValueError:
                     eval_logger.info(
-                        "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
+                        "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes` or `device_map` is provided`. If the desired GPU is being used, this message is safe to ignore."
                     )
 
         self._create_tokenizer(
@@ -456,12 +458,24 @@ class HFLM(LM):
         if parallelize:
             model_kwargs.update(
                 _get_accelerate_args(
-                    device_map_option,
+                    device_map_option,  # TODO: phase out device_map_option?
                     max_memory_per_gpu,
                     max_cpu_memory,
                     offload_folder,
                 )
             )
+        elif "device_map" not in model_kwargs:
+            # set a device_map to initialize model on the right GPU.
+            # this is needed because it seems that the default behavior
+            # for quantized models now seems to be device_map="auto"
+            # which breaks data-parallel mode.
+            if getattr(self, "accelerator"):
+                model_kwargs.update(
+                    {"device_map": {"": f"cuda:{self.accelerator.local_process_index}"}}
+                )
+            else:
+                model_kwargs.update({"device_map", {"": self.device}})
+
         if not autogptq:
             if model_kwargs.get("load_in_4bit", None):
                 assert (
