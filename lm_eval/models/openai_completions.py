@@ -40,7 +40,7 @@ def get_result(response, ctxlen: int) -> Tuple[float, bool]:
     return continuation_logprobs, is_greedy
 
 
-def oa_completion(client, **kwargs):
+def oa_completion(client, chat: bool = False, **kwargs):
     """Query OpenAI API for completion.
 
     Retry with back-off until they respond
@@ -64,7 +64,10 @@ def oa_completion(client, **kwargs):
         on_exception_callback=_exception_callback,
     )
     def completion():
-        return client.completions.create(**kwargs)
+        if chat:
+            return client.chat.completions.create(**kwargs)
+        else:
+            return client.completions.create(**kwargs)
 
     return completion()
 
@@ -338,35 +341,6 @@ class OpenaiCompletionsLM(LM):
         return loglikelihoods
 
 
-def oa_chat_completion(client, **kwargs):
-    """Query OpenAI API for chat completion.
-
-    Retry with back-off until they respond
-    """
-    if not find_spec("openai") or not find_spec("tiktoken"):
-        raise Exception(
-            "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. "
-            "Please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`"
-        )
-    else:
-        import openai
-
-    def _exception_callback(e: Exception, sleep_time: float) -> None:
-        import traceback
-
-        traceback.print_exc()
-
-    @retry_on_specific_exceptions(
-        on_exceptions=[openai.OpenAIError],
-        max_retries=None,  # retry forever, consider changing
-        on_exception_callback=_exception_callback,
-    )
-    def completion():
-        return client.chat.completions.create(**kwargs)
-
-    return completion()
-
-
 @register_model("openai-chat-completions", "local-chat-completions")
 class OpenaiChatCompletionsLM(LM):
     def __init__(
@@ -469,8 +443,8 @@ class OpenaiChatCompletionsLM(LM):
                         f"Expected repr(kwargs) to be of type repr(dict) but got {kwargs}"
                     )
 
-                response = oa_chat_completion(
-                    client=self.client, messages=inps, model=self.model, **kwargs
+                response = oa_completion(
+                    client=self.client, chat=True, messages=inps, model=self.model, **kwargs
                 )
 
                 for resp, (context, args_) in zip(response.choices, chunk):
