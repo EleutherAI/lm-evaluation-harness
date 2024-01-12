@@ -2,7 +2,7 @@ import copy
 import os
 from collections import defaultdict
 from importlib.util import find_spec
-from typing import List, Optional, Tuple
+from typing import List, Literal, Optional, Tuple
 
 from tqdm import tqdm
 
@@ -74,13 +74,14 @@ def oa_completion(client, chat: bool = False, **kwargs):
 
 @register_model("openai-completions", "local-completions")
 class OpenaiCompletionsLM(LM):
-    REQ_CHUNK_SIZE = 20
     _DEFAULT_MAX_LENGTH = 2048
 
     def __init__(
         self,
         model: str,
         base_url: str = None,
+        tokenizer: Optional[str] = None,
+        tokenizer_backend: Literal["tiktoken", "huggingface"] = "tiktoken",
         truncate: bool = False,
         max_gen_toks: int = 256,
         batch_size: int = 1,
@@ -106,12 +107,29 @@ class OpenaiCompletionsLM(LM):
             )
         self.model = model
         self.base_url = base_url
-        self.tokenizer = tiktoken.encoding_for_model(self.model)
-        self.vocab_size = self.tokenizer.n_vocab
+        self.tokenizer_backend = tokenizer_backend
         self.truncate = truncate
-        self.end_of_text_token_id = self.tokenizer.eot_token
+        self._batch_size = batch_size
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
+
+        # if we have a local model, use HF tokenizer over tiktoken
+        if self.tokenizer_backend == "huggingface":
+            import transformers  # noqa: E401
+
+            self.tokenizer = transformers.AutoTokenizer.from_pretrained(
+                tokenizer if tokenizer else self.model
+            )
+            self.vocab_size = self.tokenizer.vocab
+            self.end_of_text_token_id = self.tokenizer.eos_token
+        elif self.tokenizer_backend == "tiktoken":
+            self.tokenizer = tiktoken.encoding_for_model(self.model)
+            self.vocab_size = self.tokenizer.n_vocab
+            self.end_of_text_token_id = self.tokenizer.eot_token
+        else:
+            raise ValueError(
+                f"Expected tokenizer_backend to be one of ['tiktoken', 'huggingface'] but got {self.tokenizer_backend}"
+            )
 
         # Read from environment variable OPENAI_API_KEY
         # Set to EMPTY for local
@@ -137,9 +155,8 @@ class OpenaiCompletionsLM(LM):
         return self._max_gen_toks
 
     @property
-    def batch_size(self):
-        # Isn't used because we override _loglikelihood_tokens
-        raise NotImplementedError()
+    def batch_size(self) -> int:
+        return self._batch_size
 
     @property
     def device(self):
@@ -196,7 +213,7 @@ class OpenaiCompletionsLM(LM):
         re_ord = utils.Reorderer(requests, _collate)
 
         for chunk in tqdm(
-            list(utils.chunks(re_ord.get_reordered(), self.REQ_CHUNK_SIZE)),
+            list(utils.chunks(re_ord.get_reordered(), self.batch_size)),
             disable=disable_tqdm,
         ):
             inps = []
@@ -262,7 +279,7 @@ class OpenaiCompletionsLM(LM):
 
         # todo: more intelligent batching for heterogeneous `until`
         for chunk, request_args in tqdm(
-            list(sameuntil_chunks(re_ord.get_reordered(), self.REQ_CHUNK_SIZE))
+            list(sameuntil_chunks(re_ord.get_reordered(), self.batch_size))
         ):
             inps = []
             self._max_gen_toks = request_args.pop("max_gen_toks", self.max_gen_toks)
@@ -444,7 +461,11 @@ class OpenaiChatCompletionsLM(LM):
                     )
 
                 response = oa_completion(
-                    client=self.client, chat=True, messages=inps, model=self.model, **kwargs
+                    client=self.client,
+                    chat=True,
+                    messages=inps,
+                    model=self.model,
+                    **kwargs,
                 )
 
                 for resp, (context, args_) in zip(response.choices, chunk):
