@@ -15,14 +15,6 @@ generation_kwargs:
     - "</s>"
   do_sample: false
   max_gen_toks: 768
-  temperature: 0.7
-filter_list:
-  - name: "get-answer"
-    filter:
-      - function: "regex"
-        regex_pattern: "(?<=따라서 정답은)(.*)(?=입니다.)"
-        regex_pattern: "(?<=따라서, 정답은)(.*)(?=입니다.)"
-        regex_pattern: "(?<=정답은)(.*)(?=입니다.)"
-      - function: "take_first"
+  temperature: 0.0
 metadata:
   version: 1.3
