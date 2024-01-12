@@ -1,0 +1,3 @@
+dataset_name: direct
+include: _cot_kmmlu_yaml
+task: kmmlu90_direct

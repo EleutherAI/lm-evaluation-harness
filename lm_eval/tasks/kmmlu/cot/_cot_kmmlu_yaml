@@ -17,7 +17,7 @@ generation_kwargs:
     - "Q:"
     - "</s>"
   do_sample: true
-  max_gen_toks: 2048
+  max_gen_toks: 768
   temperature: 0.7
 filter_list:
   - name: "get-answer"
