@@ -204,15 +204,16 @@ class HFLM(LM):
         self.model.tie_weights()
 
         if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) == "mps"):
-            if not (parallelize or autogptq or ("device_map" in kwargs)):
+            # TODO: can remove this whole snippet except in the mps case, perhaps?
+            if not (parallelize or autogptq or hasattr(self, "accelerator")): 
                 # place model onto device requested manually,
                 # if not using HF Accelerate or device_map
                 # or any other option that preloads model onto device
                 try:
                     self.model.to(self.device)
                 except ValueError:
-                    eval_logger.info(
-                        "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes` or `device_map` is provided`. If the desired GPU is being used, this message is safe to ignore."
+                    eval_logger.debug(
+                        "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes` or `device_map` is provided. If the desired GPU is being used, this message is safe to ignore."
                     )
 
         self._create_tokenizer(
