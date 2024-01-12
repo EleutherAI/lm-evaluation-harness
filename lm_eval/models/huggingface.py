@@ -205,7 +205,7 @@ class HFLM(LM):
 
         if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) == "mps"):
             # TODO: can remove this whole snippet except in the mps case, perhaps?
-            if not (parallelize or autogptq or hasattr(self, "accelerator")): 
+            if not (parallelize or autogptq or hasattr(self, "accelerator")):
                 # place model onto device requested manually,
                 # if not using HF Accelerate or device_map
                 # or any other option that preloads model onto device
