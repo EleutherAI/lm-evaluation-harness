@@ -1,3 +1,11 @@
 dataset_name: direct
 include: _cot_kmmlu_yaml
 task: kmmlu90_direct
+generation_kwargs:
+  until:
+    - "Q:"
+    - "</s>"
+    - "."
+  do_sample: false
+  max_gen_toks: 3
+  temperature: 0.0
