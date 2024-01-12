@@ -69,6 +69,7 @@ sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm<=0.2.5"]
 zeno = ["pandas", "zeno-client"]
+wandb = ["wandb>=0.16.0"]
 all = [
     "lm_eval[anthropic]",
     "lm_eval[dev]",
@@ -84,6 +85,7 @@ all = [
     "lm_eval[testing]",
     "lm_eval[vllm]",
     "lm_eval[zeno]",
+    "lm_eval[wandb]",
 ]
 
 [tool.ruff]
