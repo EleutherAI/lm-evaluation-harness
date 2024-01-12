@@ -40,7 +40,7 @@ def get_result(response, ctxlen: int) -> Tuple[float, bool]:
     return continuation_logprobs, is_greedy
 
 
-def oa_completion(**kwargs):
+def oa_completion(client, **kwargs):
     """Query OpenAI API for completion.
 
     Retry with back-off until they respond
@@ -64,12 +64,12 @@ def oa_completion(**kwargs):
         on_exception_callback=_exception_callback,
     )
     def completion():
-        return openai.completions.create(**kwargs)
+        return client.completions.create(**kwargs)
 
     return completion()
 
 
-@register_model("openai-completions")
+@register_model("openai-completions", "local-completions")
 class OpenaiCompletionsLM(LM):
     REQ_CHUNK_SIZE = 20
     _DEFAULT_MAX_LENGTH = 2048
@@ -77,6 +77,7 @@ class OpenaiCompletionsLM(LM):
     def __init__(
         self,
         model: str,
+        base_url: str = None,
         truncate: bool = False,
         max_gen_toks: int = 256,
         batch_size: int = 1,
@@ -101,6 +102,7 @@ class OpenaiCompletionsLM(LM):
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )
         self.model = model
+        self.base_url = base_url
         self.tokenizer = tiktoken.encoding_for_model(self.model)
         self.vocab_size = self.tokenizer.n_vocab
         self.truncate = truncate
@@ -109,7 +111,12 @@ class OpenaiCompletionsLM(LM):
         self._max_length = max_length
 
         # Read from environment variable OPENAI_API_KEY
+        # Set to EMPTY for local
         openai.api_key = os.environ["OPENAI_API_KEY"]
+        if self.base_url:
+            self.client = openai.OpenAI(base_url=self.base_url)
+        else:
+            self.client = openai.OpenAI()
 
     @property
     def eot_token_id(self):
@@ -203,6 +210,7 @@ class OpenaiCompletionsLM(LM):
                 ctxlens.append(ctxlen)
 
             response = oa_completion(
+                client=self.client,
                 model=self.model,
                 prompt=inps,
                 echo=True,
@@ -265,6 +273,7 @@ class OpenaiCompletionsLM(LM):
             request_args["temperature"] = request_args.get("temperature", 0)
 
             response = oa_completion(
+                client=self.client,
                 model=self.model,
                 prompt=inps,
                 max_tokens=self.max_gen_toks,
