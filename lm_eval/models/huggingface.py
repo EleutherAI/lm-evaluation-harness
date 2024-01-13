@@ -690,7 +690,7 @@ class HFLM(LM):
         new_reqs = []
         for req in requests:
             context = req.args[0].strip()
-            system_prompt = "You are a helpful assistant."
+            #system_prompt = "You are a helpful assistant."
 
             # arc experiment with few-shot formatting
             import re
@@ -699,7 +699,8 @@ class HFLM(LM):
             for element in elements[1:-1]:
                 new_elements.append(element.strip())
             new_elements
-            chat = [{"role": "system", "content": system_prompt}]
+            #chat = [{"role": "system", "content": system_prompt}]
+            chat = []
             for i in range(len(new_elements)):
                 if i % 2 == 0:
                     chat.append({"role": "user", "content": f"Question: {new_elements[i]} Answer:"})
