@@ -1,0 +1,4 @@
+include: arc_easy.yaml
+task: arc_easy_ru
+dataset_path: deepvk/ARC-easy-ru
+dataset_name: null
