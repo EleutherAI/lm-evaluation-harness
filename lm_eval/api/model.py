@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 from lm_eval import utils
 
+
 eval_logger = logging.getLogger("lm-eval")
 
 T = TypeVar("T", bound="LM")
@@ -115,7 +116,7 @@ class LM(abc.ABC):
 
     @classmethod
     def create_from_arg_string(
-            cls: Type[T], arg_string: str, additional_config: Optional[dict] = None
+        cls: Type[T], arg_string: str, additional_config: Optional[dict] = None
     ) -> T:
         """
         Creates an instance of the LM class using the given argument string and additional config.
@@ -249,7 +250,6 @@ class CachingLM:
 
 
 class TemplateLM(LM):
-
     @property
     @abc.abstractmethod
     def eot_token_id(self):
