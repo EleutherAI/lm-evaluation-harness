@@ -99,7 +99,7 @@ class HFLM(LM):
         **kwargs,
     ) -> None:
         super().__init__()
-
+        
         # optionally: take in an already-initialized transformers.PreTrainedModel
         if not isinstance(pretrained, str):
             eval_logger.warning(
@@ -198,8 +198,8 @@ class HFLM(LM):
             )
 
         # access self._model through self.model property outside this method
-        self.model.eval()
-        self.model.tie_weights()
+        if isinstance(self.model, torch.nn.Module): self.model.eval()
+        if isinstance(self.model, torch.nn.Module): self.model.tie_weights()
 
         if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) == "mps"):
             if not (parallelize or autogptq or ("device_map" in kwargs)):
@@ -696,7 +696,7 @@ class HFLM(LM):
             generation_kwargs["do_sample"] = False
         # build stopping criteria
         stopping_criteria = stop_sequences_criteria(
-            self.tokenizer, stop, context.shape[1], context.shape[0]
+            self.tokenizer, stop, 1, context.shape[0]
         )
         return self.model.generate(
             input_ids=context,
