@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 from tqdm import tqdm
 
 from lm_eval import utils
-from lm_eval.api.model import LM
+from lm_eval.api.model import LM, TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.utils import retry_on_specific_exceptions
 
@@ -70,7 +70,7 @@ def oa_completion(**kwargs):
 
 
 @register_model("openai-completions")
-class OpenaiCompletionsLM(LM):
+class OpenaiCompletionsLM(TemplateLM):
     REQ_CHUNK_SIZE = 20
     _DEFAULT_MAX_LENGTH = 2048
 
@@ -141,35 +141,6 @@ class OpenaiCompletionsLM(LM):
 
     def tok_decode(self, tokens: List[int]) -> str:
         return self.tokenizer.decode(tokens)
-
-    def _encode_pair(
-        self, context: str, continuation: str
-    ) -> Tuple[List[int], List[int]]:
-        n_spaces = len(context) - len(context.rstrip())
-        if n_spaces > 0:
-            continuation = context[-n_spaces:] + continuation
-            context = context[:-n_spaces]
-        whole_enc = self.tok_encode(context + continuation)
-        context_enc = self.tok_encode(context)
-        context_enc_len = len(context_enc)
-        continuation_enc = whole_enc[context_enc_len:]
-        return context_enc, continuation_enc
-
-    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
-        new_reqs = []
-        for context, continuation in [req.args for req in requests]:
-            if context == "":
-                # end of text as context
-                context_enc, continuation_enc = (
-                    [self.eot_token_id],
-                    self.tok_encode(continuation),
-                )
-            else:
-                context_enc, continuation_enc = self._encode_pair(context, continuation)
-
-            new_reqs.append(((context, continuation), context_enc, continuation_enc))
-
-        return self._loglikelihood_tokens(new_reqs)
 
     def _loglikelihood_tokens(
         self, requests, disable_tqdm: bool = False
