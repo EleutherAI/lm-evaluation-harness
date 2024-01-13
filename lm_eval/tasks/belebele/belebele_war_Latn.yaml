@@ -1,3 +1,4 @@
-"dataset_name": "war_Latn"
+"fewshot_split": "war_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_war_Latn"
+"test_split": "war_Latn"

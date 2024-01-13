@@ -34,7 +34,7 @@ This project provides a unified framework to test generative language models on 
 - Evaluation with publicly available prompts ensures reproducibility and comparability between papers.
 - Easy support for custom prompts and evaluation metrics.
 
-The Language Model Evaluation Harness is the backend for 🤗 Hugging Face's popular [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard), has been used in [hundreds of papers](https://scholar.google.com/scholar?oi=bibs&hl=en&authuser=2&cites=15052937328817631261,4097184744846514103,17476825572045927382,18443729326628441434,12854182577605049984) is used internally by dozens of companies including NVIDIA, Cohere, Nous Research, Booz Allen Hamilton, and Mosaic ML.
+The Language Model Evaluation Harness is the backend for 🤗 Hugging Face's popular [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard), has been used in [hundreds of papers](https://scholar.google.com/scholar?oi=bibs&hl=en&authuser=2&cites=15052937328817631261,4097184744846514103,1520777361382155671,17476825572045927382,18443729326628441434,14801318227356878622,7890865700763267262,12854182577605049984,15641002901115500560,5104500764547628290), and is used internally by dozens of organizations including NVIDIA, Cohere, BigScience, BigCode, Nous Research, and Mosaic ML.
 
 ## Install
 
@@ -310,14 +310,10 @@ The best way to get support is to open an issue on this repo or join the [Eleuth
 ## Cite as
 
 ```
-@misc{eval-harness,
-  author       = {Gao, Leo and Tow, Jonathan and Abbasi, Baber and Biderman, Stella and Black, Sid and DiPofi, Anthony and Foster, Charles and Golding, Laurence and Hsu, Jeffrey and Le Noac'h, Alain and Li, Haonan and McDonell, Kyle and Muennighoff, Niklas and Ociepa, Chris and Phang, Jason and Reynolds, Laria and Schoelkopf, Hailey and Skowron, Aviya and Sutawika, Lintang and Tang, Eric and Thite, Anish and Wang, Ben and Wang, Kevin and Zou, Andy},
-  title        = {A framework for few-shot language model evaluation},
-  month        = 12,
-  year         = 2023,
-  publisher    = {Zenodo},
-  version      = {v0.4.0},
-  doi          = {10.5281/zenodo.10256836},
-  url          = {https://zenodo.org/records/10256836}
+@article{gao2021framework,
+  title={A framework for few-shot language model evaluation},
+  author={Gao, Leo and Tow, Jonathan and Biderman, Stella and Black, Sid and DiPofi, Anthony and Foster, Charles and Golding, Laurence and Hsu, Jeffrey and McDonell, Kyle and Muennighoff, Niklas and others},
+  journal={Version v0. 0.1. Sept},
+  year={2021}
 }
 ```
