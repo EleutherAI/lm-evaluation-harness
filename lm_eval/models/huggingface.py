@@ -710,7 +710,7 @@ class HFLM(LM):
                 tokenize=False,
                 add_generation_prompt=True,
             )
-            req.args = (context, req.args[1]) 
+            req.args = (context, req.args[1].strip()) 
             new_reqs.append(req)
         return new_reqs
 
