@@ -11,7 +11,9 @@ from optimum.intel.openvino import OVModelForCausalLM
 @register_model("optimum-causal")
 class OptimumLM(HFLM):
     """
-    ???
+    Optimum Intel provides a simple interface to optimize Transformer models and convert them to \
+    OpenVINO™ Intermediate Representation (IR) format to accelerate end-to-end pipelines on \
+    Intel® architectures using OpenVINO™ runtime.
     """
 
     AUTO_MODEL_CLASS = OVModelForCausalLM
