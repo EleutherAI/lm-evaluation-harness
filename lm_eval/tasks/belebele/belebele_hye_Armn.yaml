@@ -1,3 +1,4 @@
-"dataset_name": "hye_Armn"
+"fewshot_split": "hye_Armn"
 "include": "_default_template_yaml"
 "task": "belebele_hye_Armn"
+"test_split": "hye_Armn"

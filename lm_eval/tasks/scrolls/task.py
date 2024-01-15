@@ -108,7 +108,7 @@ def _num_cpu_cores():
 
 
 class _SCROLLSTask(Task):
-    VERSION = 1
+    VERSION = 2
     DATASET_PATH = "tau/scrolls"
     DATASET_NAME = None
     PRUNE_TOKENIZERS = None
