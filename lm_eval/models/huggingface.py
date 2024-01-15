@@ -662,59 +662,34 @@ class HFLM(LM):
             return self.tokenizer.decode(tokens)
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
             return self.tokenizer.decode(tokens, skip_special_tokens=True)
-    
-    def tok_wrap_chat_template(self, requests: List[Instance]) -> List[Instance]:
+
+    def wrap_chat_template(
+        self, requests: List[Instance], generate=False
+    ) -> List[Instance]:
         """
         Utility for adding chat templates via the apply_chat_template() method
-        """    
+        """
+        # TODO: handle repeats > 1 case?
+        # TODO: raise an error if system prompt not compatible with template
         new_reqs = []
         for req in requests:
             context, continuation = req.args[0].strip(), req.args[1]
-            chat = [
-              {"role": "system", "content": "You are a helpful assistant."}, 
-              {"role": "user", "content": context},
-            ]
-            context = self.tokenizer.apply_chat_template(
-                chat, 
-                tokenize=False,
-                add_generation_prompt=True,
-            )
-            req.args = (context, continuation) 
-            new_reqs.append(req)
-        return new_reqs
-    
-    def tok_wrap_chat_template(self, requests: List[Instance]) -> List[Instance]:
-        """
-        Utility for adding chat templates via the apply_chat_template() method
-        """    
-        new_reqs = []
-        for req in requests:
-            context = req.args[0].strip()
-            #system_prompt = "You are a helpful assistant."
-
-            # arc experiment with few-shot formatting
-            import re
-            elements = re.split('Answer:|Question:', context.replace('\n', ' '))
-            new_elements = []
-            for element in elements[1:-1]:
-                new_elements.append(element.strip())
-            new_elements
-            #chat = [{"role": "system", "content": system_prompt}]
             chat = []
-            for i in range(len(new_elements)):
-                if i % 2 == 0:
-                    chat.append({"role": "user", "content": f"Question: {new_elements[i]} Answer:"})
-                else:
-                    chat.append({"role": "assistant", "content": f"{new_elements[i]}"})
+            if self.system_prompt is not None:
+                chat += {"role": "system", "content": "You are a helpful assistant."}
+
+            chat += ({"role": "user", "content": context},)
+            # TODO: expose settings for chat formatting:
+            # - whether some "trigger" / start of assistant response might be placed in assistant's generation for it
+            # - if few-shot, should the fewshots be placed in separate convo turns? provided in user's single turn?...
             context = self.tokenizer.apply_chat_template(
-                chat, 
+                chat,
                 tokenize=False,
                 add_generation_prompt=True,
             )
-            req.args = (context, req.args[1].strip()) 
+            req.args = (context, continuation)
             new_reqs.append(req)
         return new_reqs
-
 
     def _model_call(self, inps, attn_mask=None, labels=None):
         """
@@ -796,10 +771,8 @@ class HFLM(LM):
         return context_enc, continuation_enc
 
     def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
-
-        print("Loglikelihood invoked")
         print(f"First element before prompt formatting...\n{requests[0].args}")
-        requests = self.tok_wrap_chat_template(requests)
+        requests = self.wrap_chat_template(requests)
         print(f"First element after prompt formatting...\n{requests[0].args}")
 
         new_reqs = []
@@ -819,6 +792,8 @@ class HFLM(LM):
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         loglikelihoods = []
+
+        # TODO: add a warning that chat templates are ignored for ppl evals
 
         adaptive_batch_size = None
         if self.batch_size == "auto":
@@ -896,7 +871,6 @@ class HFLM(LM):
         disable_tqdm: bool = False,
         override_bs: int = None,
     ) -> List[Tuple[float, bool]]:
-        # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 
         def _collate(x):
@@ -1075,12 +1049,10 @@ class HFLM(LM):
         return re_ord.get_original(res)
 
     def generate_until(self, requests: List[Instance]) -> List[str]:
-
-        print("Generate_until invoked")
         print(f"First element before prompt formatting...\n{requests[0].args}")
-        requests = self.tok_wrap_chat_template(requests)
+        requests = self.tok_chat_template(requests)
         print(f"First element after prompt formatting...\n{requests[0].args}")
-    
+
         res = []
 
         def _collate(x):
