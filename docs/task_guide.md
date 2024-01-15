@@ -301,6 +301,23 @@ task:
   - hendrycksTest*
 ```
 
+It is also possible to list an existing task in your benchmark configuration with some adjustments. For example, a few tasks from mmlu is included `multimedqa`. There, the `task_alias` and `group_alias` (See [here](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/new_task_guide.md#beautifying-table-display) for more details) are modified to suit the benchmark.
+
+```yaml
+group: multimedqa
+task:
+  - pubmedqa
+  - medmcqa
+  - medqa_4options
+  - task: mmlu_anatomy
+    task_alias: "anatomy (mmlu)"
+    group_alias: null
+  - task: mmlu_clinical_knowledge
+    task_alias: "clinical_knowledge (mmlu)"
+    group_alias: null
+  ...
+```
+
 Alternatively, benchmarks can have tasks that are customizable for each task. They can be defined like how a yaml task is usually set.
 
 ```yaml
