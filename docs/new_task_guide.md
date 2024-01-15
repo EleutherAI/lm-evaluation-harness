@@ -109,7 +109,7 @@ dataset_kwargs:
     validation: /path/to/arrow/validation/data-00000-of-00001.arrow
 ```
 
-Alternatively, if you have previously downaloaded a dataset from huggingface hub and wish to use the local files, you can will need to use `data_dir` under `dataset_kwargs` to point to where the directory is.
+Alternatively, if you have previously downloaded a dataset from huggingface hub (using `save_to_disk()`) and wish to use the local files, you will need to use `data_dir` under `dataset_kwargs` to point to where the directory is.
 
 ```
 dataset_path: hellaswag
