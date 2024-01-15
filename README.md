@@ -109,33 +109,45 @@ The full list of supported arguments are provided [here](./docs/interface.md), a
 
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
 
-To parallelize evaluation of HuggingFace models across multiple GPUs, we leverage the [accelerate 🚀](https://github.com/huggingface/accelerate) library as follows:
+We support two main ways of using Hugging Face's [accelerate 🚀](https://github.com/huggingface/accelerate) library for multi-GPU evaluation.
+
+To perform *data-parallel evaluation* (where each GPU loads a **separate full copy** of the model), we leverage the `accelerate` launcher as follows:
 
 ```
 accelerate launch -m lm_eval --model hf \
     --tasks lambada_openai,arc_easy \
     --batch_size 16
 ```
+(or via `accelerate launch --no-python lm_eval`).
 
-This will perform *data-parallel evaluation*: that is, placing a **single full copy** of your model onto each available GPU and *splitting batches across GPUs* to evaluate on K GPUs K times faster than on one.
+For cases where your model can fit on a single GPU, this allows you to evaluate on K GPUs K times faster than on one.
 
-If your model is *is too large to be run on a single one of your GPUs* then you can use `accelerate` with Fully Sharded Data Parallel (FSDP) that splits the weights of the model across your data parallel ranks. To enable this, ensure you select `YES` when asked ```Do you want to use FullyShardedDataParallel?``` when running `accelerate config`. To enable memory-efficient loading, select `YES` when asked `Do you want each individually wrapped FSDP unit to broadcast module parameters from rank 0 at the start?`. This will ensure only the rank 0 process loads the model and then broadcasts the parameters to the other ranks instead of having each rank load all parameters which can lead to large RAM usage spikes around the start of the script that may cause errors.
+**WARNING**: This setup does not work with FSDP model sharding, so in `accelerate config` FSDP must be disabled, or the NO_SHARD FSDP option must be used.
 
-To pass even more advanced keyword arguments to `accelerate`, we allow for the following arguments as well:
+The second way of using `accelerate` for multi-GPU evaluation is when your model is *too large to fit on a single GPU.*
+
+In this setting, run the library *outside of the `accelerate` launcher*, but passing `parallelize=True` to `--model_args` as follows:
+
+```
+lm_eval --model hf \
+    --tasks lambada_openai,arc_easy \
+    --model_args parallelize=True \
+    --batch_size 16
+```
+
+This means that your model's weights will be split across all available GPUs.
+
+For more advanced users or even larger models, we allow for the following arguments when `parallelize=True` as well:
 - `device_map_option`: How to split model weights across available GPUs. defaults to "auto".
 - `max_memory_per_gpu`: the max GPU memory to use per GPU in loading the model.
 - `max_cpu_memory`: the max amount of CPU memory to use when offloading the model weights to RAM.
 - `offload_folder`: a folder where model weights will be offloaded to disk if needed.
 
-To use `accelerate` with the `lm-eval` command, use
-```
-accelerate launch --no_python lm-eval --model ...
-```
-
+These two options (`accelerate launch` and `parallelize=True`) are mutually exclusive.
 
 ### Tensor + Data Parallel and Optimized Inference with `vLLM`
 
-We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html). For single-GPU or multi-GPU — tensor parallel, data parallel, or a combination of both — inference, for example:
+We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html), especially faster when splitting a model across multiple GPUs. For single-GPU or multi-GPU — tensor parallel, data parallel, or a combination of both — inference, for example:
 
 ```bash
 lm_eval --model vllm \
@@ -219,11 +231,11 @@ lm_eval --model hf \
     --device cuda:0
 ```
 
-[GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,gptq=NAME` (or `,gptq=True` for default names) in the `model_args` argument:
+[GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,autogptq=NAME` (or `,autogptq=True` for default names) in the `model_args` argument:
 
 ```bash
 lm_eval --model hf \
-    --model_args pretrained=model-name-or-path,gptq=model.safetensors,gptq_use_triton=True \
+    --model_args pretrained=model-name-or-path,autogptq=model.safetensors,gptq_use_triton=True \
     --tasks hellaswag
 ```
 
