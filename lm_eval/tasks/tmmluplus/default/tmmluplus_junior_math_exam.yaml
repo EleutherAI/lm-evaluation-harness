@@ -1,0 +1,7 @@
+"dataset_name": "junior_math_exam"
+"description": "以下為國中會考基測數學科的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_STEM"
+"group_alias": "STEM"
+"include": "_default_template_yaml"
+"task": "tmmluplus_junior_math_exam"
+"task_alias": "junior math exam"

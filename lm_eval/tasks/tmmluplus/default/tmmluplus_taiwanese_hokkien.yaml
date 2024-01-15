@@ -1,0 +1,7 @@
+"dataset_name": "taiwanese_hokkien"
+"description": "以下為閩南語的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_social_sciences"
+"group_alias": "social sciences"
+"include": "_default_template_yaml"
+"task": "tmmluplus_taiwanese_hokkien"
+"task_alias": "taiwanese hokkien"

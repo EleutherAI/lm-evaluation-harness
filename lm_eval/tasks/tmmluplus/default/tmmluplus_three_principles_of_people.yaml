@@ -1,0 +1,7 @@
+"dataset_name": "three_principles_of_people"
+"description": "以下為三民主義的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_social_sciences"
+"group_alias": "social sciences"
+"include": "_default_template_yaml"
+"task": "tmmluplus_three_principles_of_people"
+"task_alias": "three principles of people"

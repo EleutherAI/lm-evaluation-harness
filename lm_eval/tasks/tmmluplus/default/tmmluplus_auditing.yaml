@@ -1,0 +1,7 @@
+"dataset_name": "auditing"
+"description": "以下為審計學的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_other"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "tmmluplus_auditing"
+"task_alias": "auditing"
