@@ -1,0 +1,3 @@
+include: arc_easy_ru.yaml
+task: arc_challenge_ru
+dataset_path: deepvk/ARC-challenge-ru
