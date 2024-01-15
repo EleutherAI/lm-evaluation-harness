@@ -99,7 +99,7 @@ dataset_name: null
 dataset_kwargs:
   data_files: /path/to/my/json
 ```
-Or with files already split into seperate directories:
+Or with files already split into separate directories:
 
 ```
 dataset_path: arrow
