@@ -143,6 +143,11 @@ def parse_eval_args() -> argparse.Namespace:
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
         help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
     )
+    parser.add_argument(
+        "--wandb_args",
+        default="",
+        help="Comma separated string arguments passed to wandb.init, e.g. `project=lm-eval,job_type=eval",
+    )
     return parser.parse_args()
 
 
@@ -255,6 +260,53 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             print(dumped)
 
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
+
+        # Add W&B logic
+        if args.wandb_args:
+            import wandb
+            # get wandb args
+            wandb_args_dict = utils.simple_parse_args_string(args.wandb_args)
+
+            # get results and task names
+            _wandb_results = results["results"]
+            task_names = list(_wandb_results.keys())
+
+            # get configs to be logged to wandb
+            configs = results["config"]
+            task_configs = results["configs"]
+            configs.update(task_configs)
+
+            # initialize a W&B run
+            run = wandb.init(config=configs, **wandb_args_dict)
+
+            # remove string valued keys from the results dict
+            wandb_summary = {}
+            for task_name in task_names:
+                task_result = _wandb_results[task_name]
+                for k, v in task_result.items():
+                    if isinstance(v, str):
+                        wandb_summary[f"{task_name}/{k}"] = v
+            for k, v in wandb_summary.items():
+                _task, _k = k.split("/")
+                _wandb_results[_task].pop(_k)
+
+            # update wandb.run.summary with items that were removed
+            run.summary.update(wandb_summary)
+
+            # the following will create a nested panel in the UI
+            wandb_results = {}
+            for task_name, task_results in _wandb_results.items():
+                for k, v in task_results.items():
+                    wandb_results[f"{task_name}/{k}"] = v
+
+            # Log the evaluation metrics to wandb
+            wandb.log(wandb_results)
+
+            if args.log_samples:
+                print(type(samples))
+                print(samples)
+
+
 
         if args.output_path:
             output_path_file.open("w").write(dumped)
