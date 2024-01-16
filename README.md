@@ -107,7 +107,7 @@ The full list of supported arguments are provided [here](./docs/interface.md), a
 > [!Note]
 > Just like you can provide a local path to `transformers.AutoModel`, you can also provide a local path to `lm_eval` via `--model_args pretrained=/path/to/model`
 
-### OpenVINO models converted via HuggingFace Optimum
+### OpenVINO Models Converted via HuggingFace Optimum
 
 ```bash
 lm_eval --model optimum-causal\

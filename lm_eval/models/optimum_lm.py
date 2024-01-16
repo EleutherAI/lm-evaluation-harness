@@ -2,29 +2,30 @@ from pathlib import Path
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
-try:
-    import optimum    
-except ModuleNotFoundError: 
-    raise Exception("package `optimum` is not installed. Install it via `pip install optimum[openvino] ipywidgets pillow torchaudio`")
-from optimum.intel.openvino import OVModelForCausalLM
 
 @register_model("optimum-causal")
 class OptimumLM(HFLM):
     """
-    ???
+    Optimum Intel provides a simple interface to optimize Transformer models and convert them to \
+    OpenVINO™ Intermediate Representation (IR) format to accelerate end-to-end pipelines on \
+    Intel® architectures using OpenVINO™ runtime.
     """
-
-    AUTO_MODEL_CLASS = OVModelForCausalLM
-    device = "cpu"
 
     def __init__(
         self,
         device = "cpu",
         **kwargs,
     ) -> None:
-        super().__init__()
-    
- 
+        
+        if "backend" in kwargs:
+            # optimum currently only supports causal models.
+            assert kwargs["backend"] == "causal"
+        else:
+            raise Exception("Please be sure your model is a `causal` model.")
+
+        assert device == "cpu"
+        super().__init__(device=device, **kwargs)
+
     def _create_model(
         self,
         pretrained: str,
@@ -33,10 +34,14 @@ class OptimumLM(HFLM):
         trust_remote_code = False,
         **kwargs,
     ) -> None:
+        
+        try:
+            import optimum    
+        except ModuleNotFoundError: 
+            raise Exception("package `optimum` is not installed. Please install it via `pip install optimum[openvino] ipywidgets pillow torchaudio`")
+        from optimum.intel.openvino import OVModelForCausalLM
 
         model_kwargs = kwargs if kwargs else {}
-
-        # export=False if pretrained is a directory that contains openvino_model.xml else True
         if Path("/pretrained/openvino_model.xml").exists():
             export = False
         else:
@@ -50,7 +55,5 @@ class OptimumLM(HFLM):
             device = "cpu",
             **model_kwargs,
         )
-        
-        return None
 
      
