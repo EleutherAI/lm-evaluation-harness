@@ -38,7 +38,7 @@ class OptimumLM(HFLM):
         try:
             import optimum    
         except ModuleNotFoundError: 
-            raise Exception("package `optimum` is not installed. Please install it via `pip install optimum[openvino] ipywidgets pillow torchaudio`")
+            raise Exception("package `optimum` is not installed. Please install it via `pip install optimum[openvino]`")
         from optimum.intel.openvino import OVModelForCausalLM
 
         model_kwargs = kwargs if kwargs else {}
