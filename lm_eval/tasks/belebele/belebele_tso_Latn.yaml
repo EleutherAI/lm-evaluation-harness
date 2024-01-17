@@ -1,3 +1,4 @@
-"dataset_name": "tso_Latn"
+"fewshot_split": "tso_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_tso_Latn"
+"test_split": "tso_Latn"

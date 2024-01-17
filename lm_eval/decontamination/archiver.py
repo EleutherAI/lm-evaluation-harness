@@ -1,13 +1,14 @@
-import os
-from typing import Any
-import zstandard
-import json
-import jsonlines
-import io
 import datetime
+import io
+import json
 import mmap
-import tqdm
+import os
 from pathlib import Path
+from typing import Any
+
+import jsonlines
+import tqdm
+import zstandard
 
 
 def json_serial(obj: Any) -> str:

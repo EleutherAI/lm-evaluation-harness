@@ -1,3 +1,4 @@
-"dataset_name": "ell_Grek"
+"fewshot_split": "ell_Grek"
 "include": "_default_template_yaml"
 "task": "belebele_ell_Grek"
+"test_split": "ell_Grek"

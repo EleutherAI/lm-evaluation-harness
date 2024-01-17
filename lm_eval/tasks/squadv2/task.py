@@ -14,7 +14,6 @@ also determine when no answer is supported by the paragraph and abstain from ans
 Homepage: https://rajpurkar.github.io/SQuAD-explorer/
 """
 import datasets
-from evaluate import load
 
 from math import exp
 from functools import partial
@@ -50,7 +49,7 @@ def _squad_agg(key, items):
 
 @register_task("squadv2")
 class SQuAD2(Task):
-    VERSION = 2
+    VERSION = 3
     DATASET_PATH = "squad_v2"
     DATASET_NAME = None
 
@@ -120,14 +119,14 @@ class SQuAD2(Task):
                 doc=doc,
                 arguments=(ctx, {"until": ["\n"]}),
                 idx=0,
-                **kwargs
+                **kwargs,
             ),
             Instance(
                 request_type="loglikelihood",
                 doc=doc,
                 arguments=(ctx, " " + "unanswerable"),
                 idx=0,
-                **kwargs
+                **kwargs,
             ),
         ]
 

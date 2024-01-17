@@ -1,12 +1,15 @@
 from __future__ import annotations
-import pytest
-from pathlib import Path
-import numpy as np
-from lm_eval.models.huggingface import HFLM
-from lm_eval.api.instance import Instance
-import lm_eval.tasks as tasks
+
 import sys
+from pathlib import Path
+
+import numpy as np
 import torch
+
+import lm_eval.tasks as tasks
+from lm_eval.api.instance import Instance
+from lm_eval.models.huggingface import HFLM
+
 
 tasks.initialize_tasks()
 
@@ -106,9 +109,10 @@ class Test_HFLM:
             f.write("\n".join(str(x) for x in _res))
         assert np.allclose(_res, _RES, atol=1e-2)
         # check indices for Multiple Choice
-        argmax_RES, argmax_res = np.argmax(
-            np.array(_RES).reshape(-1, 4), axis=1
-        ), np.argmax(np.array(_res).reshape(-1, 4), axis=1)
+        argmax_RES, argmax_res = (
+            np.argmax(np.array(_RES).reshape(-1, 4), axis=1),
+            np.argmax(np.array(_res).reshape(-1, 4), axis=1),
+        )
         assert (argmax_RES == argmax_res).all()
 
     def test_generate_until(self) -> None:

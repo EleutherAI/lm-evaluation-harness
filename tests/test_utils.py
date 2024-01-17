@@ -1,4 +1,6 @@
-from lm_eval.utils import get_rolling_token_windows, make_disjoint_window
+import pytest
+
+from lm_eval.utils import Collator, get_rolling_token_windows, make_disjoint_window
 
 
 # noinspection DuplicatedCode
@@ -220,3 +222,76 @@ def test_make_disjoint_window():
     )
     assert make_disjoint_window(([1, 2, 3, 4, 5], [4, 5, 6])) == ([1, 2, 3], [4, 5, 6])
     assert make_disjoint_window(([1, 2, 3, 4, 5], [6])) == ([1, 2, 3, 4, 5], [6])
+
+
+class TestCollator:
+    def make_generate_sample(self, end=10):
+        strings = ["x" * i for i in range(1, end + 1)]
+        gen_kwargs1, gen_kwargs2 = (
+            {"temperature": 0},
+            {"temperature": 0, "until": ["nn", "\n\n"]},
+        )
+        args = [
+            (string, gen_kwargs1 if i < len(strings) // 2 else gen_kwargs2)
+            for i, string in enumerate(strings)
+        ]
+
+        return args
+
+    def make_loglikelihood_sample(self, end=11):
+        samples = [
+            (("x", "x"), list(range(1, total_length + 1)))
+            for total_length in range(1, end + 1)
+        ]
+        return samples
+
+    @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 9)])
+    def test_generations(self, batch_size, end):
+        _collate_gen = lambda x: (-len(x[0]), x[0])  # noqa: E731
+
+        generation_samples = self.make_generate_sample(int(end))
+        gens = Collator(generation_samples, _collate_gen, grouping=True)
+        chunks = gens.get_batched(n=int(batch_size), batch_fn=None)
+        output = []
+        for chunks in chunks:
+            # check batching
+            group_one = end // 2
+            group_two = end - end // 2
+            assert (
+                len(chunks) <= batch_size
+                if batch_size != 0
+                else len(chunks) in [group_one, group_two]
+            )
+            # check if reorder-er is working correctly
+            assert all(
+                len(chunks[i][0]) <= len(chunks[i - 1][0])
+                for i in range(1, len(chunks))
+            )
+            # check if grouping correctly
+            assert all(x[1] == chunks[0][1] for x in chunks)
+            for x in chunks:
+                output.append(x)
+        reordered_output = gens.get_original(output)
+        # check get original
+        assert reordered_output == generation_samples
+
+    @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 3)])
+    def test_loglikelihood(self, batch_size, end):
+        _collate_log = lambda x: (-len(x[1]), tuple(x[1]))  # noqa: E731
+        loglikelihood_samples = self.make_loglikelihood_sample(int(end))
+        loglikelihoods = Collator(loglikelihood_samples, _collate_log, grouping=False)
+        chunks = loglikelihoods.get_batched(n=int(batch_size), batch_fn=None)
+        output = []
+        for chunks in chunks:
+            # check batching
+            assert len(chunks) <= batch_size if batch_size != 0 else len(chunks) == end
+            # check reorder
+            assert all(
+                len(chunks[i][1]) <= len(chunks[i - 1][1])
+                for i in range(1, len(chunks))
+            )
+            for x in chunks:
+                output.append(x[1])
+        # check indices
+        reordered_output = loglikelihoods.get_original(output)
+        assert reordered_output == [x[1] for x in loglikelihood_samples]

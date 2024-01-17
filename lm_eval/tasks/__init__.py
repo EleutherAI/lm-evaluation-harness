@@ -61,11 +61,27 @@ def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -
     task_list = [task for task in all_task_list if type(task) == str]
 
     for task_config in config_list:
+
+        base_config = {}
+        task_name_config = {}
+        if "task" in task_config:
+            task_name = task_config["task"]
+            if task_name in ALL_TASKS:
+                task_obj = get_task_dict(task_name)[task_name]
+                if type(task_obj) == tuple:
+                    _, task_obj = task_obj
+
+                if task_obj is not None:
+                    base_config = task_obj._config.to_dict()
+                    task_name_config["task"] = f"{group}_{task_name}"
+
         task_config = utils.load_yaml_config(yaml_path, task_config)
         var_configs = check_prompt_config(
             {
+                **base_config,
                 **task_config,
                 **{"group": group},
+                **task_name_config,
             },
             yaml_path=os.path.dirname(yaml_path),
         )
@@ -131,7 +147,10 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
     """
     Calling this function
     """
-    for root, subdirs, file_list in reversed(list(os.walk(task_dir))):
+
+    # Track whether any tasks failed during loading
+    import_fail = False
+    for root, subdirs, file_list in os.walk(task_dir):
         # if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
         for f in file_list:
             if f.endswith(".yaml"):
@@ -155,20 +174,27 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
 
                 # Log this silently and show it only when
                 # the user defines the appropriate verbosity.
-                except ModuleNotFoundError as e:
+                except (ImportError, ModuleNotFoundError) as e:
+                    import_fail = True
                     eval_logger.debug(
                         f"{yaml_path}: {e}. Config will not be added to registry."
                     )
                 except Exception as error:
                     import traceback
 
-                    eval_logger.debug(
-                        "Failed to load config in\n"
+                    eval_logger.warning(
+                        "Unexpected error loading config in\n"
                         f"                                 {yaml_path}\n"
                         "                                 Config will not be added to registry\n"
                         f"                                 Error: {error}\n"
                         f"                                 Traceback: {traceback.format_exc()}"
                     )
+
+    if import_fail:
+        eval_logger.warning(
+          "Some tasks could not be loaded due to missing dependencies."
+          " Run with `--verbosity DEBUG` for full details."
+          )
     return 0
 
 
@@ -180,7 +206,6 @@ def include_path(task_dir):
 
 
 def initialize_tasks(verbosity="INFO"):
-
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"

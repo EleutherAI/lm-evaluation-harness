@@ -1,3 +1,4 @@
-"dataset_name": "arb_Arab"
+"fewshot_split": "arb_Arab"
 "include": "_default_template_yaml"
 "task": "belebele_arb_Arab"
+"test_split": "arb_Arab"

@@ -14,4 +14,4 @@ metric_list:
   - metric: f1
     aggregation: !function "aggregate.cb_multi_fi"
 metadata:
-  - version: 1.0
+  version: 1.0

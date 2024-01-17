@@ -32,7 +32,7 @@ def build_filter_ensemble(filter_name, components):
     Create a filtering pipeline.
     """
     filters = []
-    for (function, kwargs) in components:
+    for function, kwargs in components:
         if kwargs is None:
             f = get_filter(function)()
         else:

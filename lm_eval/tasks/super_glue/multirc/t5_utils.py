@@ -5,7 +5,6 @@ import sklearn.metrics
 
 
 def f1(predictions, references):  # This is a passthrough function
-
     _prediction = predictions[0]
     _reference = references[0].split("_")[-1]
     string_label = ["False", "True"]
@@ -20,7 +19,6 @@ def f1(predictions, references):  # This is a passthrough function
 
 
 def agg_f1(items):
-
     predictions, references = zip(*items)
     references, predictions = np.asarray(references), np.asarray(predictions)
 
@@ -28,7 +26,6 @@ def agg_f1(items):
 
 
 def em(predictions, references):  # This is a passthrough function
-
     _prediction = predictions[0]
     _group, _reference = references[0].split("_")
     string_label = ["False", "True"]

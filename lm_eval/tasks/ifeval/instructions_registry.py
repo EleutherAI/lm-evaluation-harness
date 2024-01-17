@@ -78,8 +78,7 @@ INSTRUCTION_CONFLICTS = {
     # _KEYWORD + "key_sentences": instructions.KeySentenceChecker,
     _KEYWORD + "forbidden_words": {_KEYWORD + "forbidden_words"},
     _KEYWORD + "letter_frequency": {_KEYWORD + "letter_frequency"},
-    _LANGUAGE
-    + "response_language": {
+    _LANGUAGE + "response_language": {
         _LANGUAGE + "response_language",
         _FORMAT + "multiple_sections",
         _KEYWORD + "existence",
@@ -90,16 +89,14 @@ INSTRUCTION_CONFLICTS = {
         _CHANGE_CASES + "english_lowercase",
     },
     _LENGTH + "number_sentences": {_LENGTH + "number_sentences"},
-    _LENGTH
-    + "number_paragraphs": {
+    _LENGTH + "number_paragraphs": {
         _LENGTH + "number_paragraphs",
         _LENGTH + "nth_paragraph_first_word",
         _LENGTH + "number_sentences",
         _LENGTH + "nth_paragraph_first_word",
     },
     _LENGTH + "number_words": {_LENGTH + "number_words"},
-    _LENGTH
-    + "nth_paragraph_first_word": {
+    _LENGTH + "nth_paragraph_first_word": {
         _LENGTH + "nth_paragraph_first_word",
         _LENGTH + "number_paragraphs",
     },
@@ -110,23 +107,20 @@ INSTRUCTION_CONFLICTS = {
     # _CONTENT + "rephrase_paragraph": instructions.RephraseParagraph,
     _FORMAT + "constrained_response": set(INSTRUCTION_DICT.keys()),
     _FORMAT + "number_highlighted_sections": {_FORMAT + "number_highlighted_sections"},
-    _FORMAT
-    + "multiple_sections": {
+    _FORMAT + "multiple_sections": {
         _FORMAT + "multiple_sections",
         _LANGUAGE + "response_language",
         _FORMAT + "number_highlighted_sections",
     },
     # TODO(tianjianlu): Re-enable rephrasing with preprocessing the message.
     # _FORMAT + "rephrase": instructions.RephraseChecker,
-    _FORMAT
-    + "json_format": set(INSTRUCTION_DICT.keys()).difference(
+    _FORMAT + "json_format": set(INSTRUCTION_DICT.keys()).difference(
         {_KEYWORD + "forbidden_words", _KEYWORD + "existence"}
     ),
     _FORMAT + "title": {_FORMAT + "title"},
     # TODO(tianjianlu): Re-enable with specific prompts.
     # _MULTITURN + "constrained_start": instructions.ConstrainedStartChecker,
-    _COMBINATION
-    + "two_responses": set(INSTRUCTION_DICT.keys()).difference(
+    _COMBINATION + "two_responses": set(INSTRUCTION_DICT.keys()).difference(
         {
             _KEYWORD + "forbidden_words",
             _KEYWORD + "existence",
@@ -135,20 +129,17 @@ INSTRUCTION_CONFLICTS = {
             _PUNCTUATION + "no_comma",
         }
     ),
-    _COMBINATION
-    + "repeat_prompt": set(INSTRUCTION_DICT.keys()).difference(
+    _COMBINATION + "repeat_prompt": set(INSTRUCTION_DICT.keys()).difference(
         {_KEYWORD + "existence", _FORMAT + "title", _PUNCTUATION + "no_comma"}
     ),
     _STARTEND + "end_checker": {_STARTEND + "end_checker"},
-    _CHANGE_CASES
-    + "capital_word_frequency": {
+    _CHANGE_CASES + "capital_word_frequency": {
         _CHANGE_CASES + "capital_word_frequency",
         _CHANGE_CASES + "english_lowercase",
         _CHANGE_CASES + "english_capital",
     },
     _CHANGE_CASES + "english_capital": {_CHANGE_CASES + "english_capital"},
-    _CHANGE_CASES
-    + "english_lowercase": {
+    _CHANGE_CASES + "english_lowercase": {
         _CHANGE_CASES + "english_lowercase",
         _CHANGE_CASES + "english_capital",
     },
