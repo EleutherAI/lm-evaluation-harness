@@ -1,0 +1,10 @@
+group: piqa_alt_ov
+task:
+  - piqa_alt_ov_01
+  - piqa_alt_ov_02
+  - piqa_alt_ov_03
+  - piqa_alt_ov_04
+  - piqa_alt_ov_05
+  - piqa_alt_ov_06
+  - piqa_alt_ov_07
+  - piqa_alt_ov_08

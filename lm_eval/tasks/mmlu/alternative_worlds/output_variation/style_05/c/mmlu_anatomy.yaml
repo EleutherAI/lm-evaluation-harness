@@ -1,0 +1,6 @@
+"dataset_name": "anatomy"
+"description": "The following are multiple choice questions (with answers) about anatomy.\n\
+  \n"
+"group": "mmlu_alt_ov_05c_stem"
+"include": "_template_yaml"
+"task": "mmlu_alt_ov_05c_anatomy"

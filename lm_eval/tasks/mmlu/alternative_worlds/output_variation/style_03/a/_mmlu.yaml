@@ -1,0 +1,6 @@
+group: mmlu_alt_ov_03a
+task:
+  - mmlu_alt_ov_03a_stem
+  - mmlu_alt_ov_03a_other
+  - mmlu_alt_ov_03a_social_sciences
+  - mmlu_alt_ov_03a_humanities

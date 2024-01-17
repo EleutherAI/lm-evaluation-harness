@@ -1,0 +1,4 @@
+"dataset_name": "reasoning_about_colored_objects"
+"description": "Answer extremely simple questions about the colors of objects on a surface.\n\n"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_alt_pv_02_zeroshot_reasoning_about_colored_objects"

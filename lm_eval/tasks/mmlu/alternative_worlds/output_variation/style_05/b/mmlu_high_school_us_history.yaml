@@ -1,0 +1,6 @@
+"dataset_name": "high_school_us_history"
+"description": "The following are multiple choice questions (with answers) about high\
+  \ school us history.\n\n"
+"group": "mmlu_alt_ov_05b_humanities"
+"include": "_template_yaml"
+"task": "mmlu_alt_ov_05b_high_school_us_history"

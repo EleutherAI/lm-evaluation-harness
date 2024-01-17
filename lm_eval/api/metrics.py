@@ -2,6 +2,7 @@ import logging
 import math
 import random
 from collections.abc import Iterable
+from collections import defaultdict
 
 import evaluate
 import numpy as np
@@ -108,6 +109,39 @@ def ter(items):
     preds = list(zip(*items))[1]
     refs, preds = _sacreformat(refs, preds)
     return sacrebleu.corpus_ter(preds, refs).score
+
+
+@register_aggregation("brier_score")
+def brier_score(items):  # This is a passthrough function
+
+    # Certain datasets like arc_easy can have a different number of choices.
+    golds, predictions = list(zip(*items))
+
+    pred_group = defaultdict(list)
+    gold_group = defaultdict(list)
+    for gold, pred in zip(golds, predictions):
+        pred_group[len(pred)].append(pred)
+        gold_group[len(pred)].append(gold)
+
+    total_size = 0
+    average = 0
+    for g, p in zip(gold_group.values(), pred_group.values()):
+        _p = np.array(p)
+        _g = np.array(g)
+        average += np.mean(np.sum((_p - _g) ** 2, axis=1)) * len(_g)
+        total_size += len(_g)
+
+    return average / total_size
+
+
+@register_metric(
+    metric="brier_score",
+    higher_is_better=False,
+    output_type=["multiple_choice"],
+    aggregation="brier_score",
+)
+def brier_score_fn(items):  # This is a passthrough function
+    return items
 
 
 @register_metric(

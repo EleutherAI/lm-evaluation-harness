@@ -1,0 +1,7 @@
+include: ../_hellaswag_alt_yaml
+group: hellaswag_08
+group_alias: style_08
+task: hellaswag_08a
+task_alias: a
+doc_to_text: !function ../styles.template_08
+doc_to_choice: !function ../styles.choice_08a

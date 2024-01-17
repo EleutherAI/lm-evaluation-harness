@@ -1,0 +1,5 @@
+include: _arc_challenge_alt_yaml
+group: arc_challenge_alt_pv
+task: arc_challenge_alt_pv_03
+doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_decontamination_query: "Question: {{question}}\nAnswer:"

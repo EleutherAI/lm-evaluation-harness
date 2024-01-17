@@ -1,0 +1,5 @@
+group: mmlu_alt_pv
+task:
+  - mmlu_alt_pv_01
+  - mmlu_alt_pv_02
+  - mmlu_alt_pv_03

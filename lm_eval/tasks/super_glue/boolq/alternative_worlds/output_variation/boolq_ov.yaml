@@ -1,0 +1,10 @@
+group: boolq_alt_ov
+task:
+  - boolq_alt_ov_01
+  - boolq_alt_ov_02
+  - boolq_alt_ov_03
+  - boolq_alt_ov_04
+  - boolq_alt_ov_05
+  - boolq_alt_ov_06
+  - boolq_alt_ov_07
+  - boolq_alt_ov_08

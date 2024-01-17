@@ -1,0 +1,5 @@
+include: _piqa_yaml
+group: piqa_alt_pv
+task: piqa_alt_pv_01
+doc_to_text: "{{goal}}"
+doc_to_decontamination_query: "{{goal}}"

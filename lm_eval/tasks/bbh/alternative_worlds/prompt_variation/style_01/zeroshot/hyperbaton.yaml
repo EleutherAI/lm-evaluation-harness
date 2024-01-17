@@ -1,0 +1,4 @@
+"dataset_name": "hyperbaton"
+"description": "Order adjectives correctly in English sentences.\n\n"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_alt_pv_01_zeroshot_hyperbaton"
