@@ -1,0 +1,19 @@
+task: polish_ppc_multiple_choice
+dataset_path: sdadas/ppc
+dataset_name: Polish Paraphrase Corpus
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "Zdanie A: \"{{sentence_A}}\"\nZdanie B: \"{{sentence_B}}\"\nPytanie: jaka jest zależność między zdaniami A i B? Możliwe odpowiedzi:\nA - znaczą dokładnie to samo\nB - mają podobne znaczenie\nC - mają różne znaczenie\nPrawidłowa odpowiedź:"
+doc_to_target: "{{label|int - 1}}"
+doc_to_choice: ["A", "B", "C"]
+should_decontaminate: true
+doc_to_decontamination_query: "{{sentence_A}} {{sentence_B}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true

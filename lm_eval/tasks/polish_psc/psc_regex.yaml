@@ -1,0 +1,41 @@
+task: polish_psc_regex
+dataset_path: allegro/klej-psc
+dataset_name: klej-psc
+output_type: greedy_until
+training_split: train
+validation_split: null
+test_split: test
+doc_to_text: "Fragment 1: \"{{extract_text}}\"\nFragment 2: \"{{summary_text}}\"\nPytanie: jaka jest zależność między fragmentami 1 i 2?\nMożliwe odpowiedzi:\nA - wszystkie odpowiedzi poprawne\nB - dotyczą tego samego artykułu\nC - dotyczą różnych artykułów\nD - brak poprawnej odpowiedzi\nPrawidłowa odpowiedź:"
+doc_to_target: "{{label|int + 1}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{extract_text}} {{summary_text}}"
+generation_kwargs:
+  until:
+    - "."
+    - ","
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 50
+filter_list:
+  - name: "score-first"
+    filter:
+      - function: "regex"
+        regex_pattern: "(\\b[ABCD]\\b)"
+      - function: "take_first"
+      - function: "map"
+        mapping_dict:
+          A: 0
+          B: 1
+          C: 2
+          D: 3
+        default_value: -1
+      - function: "take_first"
+metric_list:
+  - metric: f1
+    aggregation: mean
+    higher_is_better: true
+    hf_evaluate: true
+    average: micro
+  - metric: accuracy
+    aggregation: mean
+    higher_is_better: true
