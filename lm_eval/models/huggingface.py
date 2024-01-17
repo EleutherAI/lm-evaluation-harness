@@ -201,8 +201,7 @@ class HFLM(LM):
 
         # access self._model through self.model property outside this method
         if isinstance(self.model, torch.nn.Module): 
-            self.model.eval()
-        if isinstance(self.model, torch.nn.Module): 
+            self.model.eval() 
             self.model.tie_weights()
 
         if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) == "mps"):
