@@ -17,6 +17,7 @@ generation_kwargs:
     - "</s>"
     - "Q"
     - "\n\n"
+    - "<0x0A>"
   do_sample: false
   temperature: 0.0
 filter_list:

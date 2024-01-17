@@ -399,7 +399,7 @@ def evaluate(
             if type(items[0]) == tuple:
                 numitem = len(items[0])
 
-            if isinstance(items[0], (str, list)):
+            if isinstance(items[0], (str, list, tuple)):
                 # handle the string case
                 gathered_items = [None] * lm.accelerator.num_processes
                 torch.distributed.all_gather_object(gathered_items, items)
@@ -492,6 +492,8 @@ def evaluate(
                         ]:
                             stderr = "_stderr,".join(metric.split(","))
                             stderr_score = results[task][stderr]
+                            if isinstance(stderr_score, str):
+                                stderr_score = 0
                             var_score = stderr_score**2
                             metric_score = results[task][metric]
 
