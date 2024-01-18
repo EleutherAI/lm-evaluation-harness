@@ -72,7 +72,7 @@ def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -
                     _, task_obj = task_obj
 
                 if task_obj is not None:
-                    base_config = task_obj._config.to_dict()
+                    base_config = task_obj._config.to_dict(keep_callable=True)
                     task_name_config["task"] = f"{group}_{task_name}"
 
         task_config = utils.load_yaml_config(yaml_path, task_config)

@@ -2,7 +2,7 @@ group:
   - polemo2
 task: polemo2_in
 dataset_path: allegro/klej-polemo2-in
-dataset_name: klej-polemo2-in
+dataset_name: null
 output_type: generate_until
 training_split: train
 validation_split: validation
