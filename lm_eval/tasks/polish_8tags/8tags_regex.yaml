@@ -1,7 +1,7 @@
 task: polish_8tags_regex
 dataset_path: sdadas/8tags
-dataset_name: 8tags
-output_type: greedy_until
+dataset_name: null
+output_type: generate_until
 training_split: train
 validation_split: validation
 test_split: test

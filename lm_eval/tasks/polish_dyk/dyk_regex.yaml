@@ -1,7 +1,7 @@
 task: polish_dyk_regex
 dataset_path: allegro/klej-dyk
-dataset_name: klej-dyk
-output_type: greedy_until
+dataset_name: null
+output_type: generate_until
 training_split: train
 validation_split: null
 test_split: test

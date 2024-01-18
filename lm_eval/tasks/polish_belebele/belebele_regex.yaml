@@ -1,6 +1,6 @@
 task: polish_belebele_regex
 dataset_path: facebook/belebele
-output_type: greedy_until
+output_type: generate_until
 training_split: null
 validation_split: null
 test_split: pol_Latn

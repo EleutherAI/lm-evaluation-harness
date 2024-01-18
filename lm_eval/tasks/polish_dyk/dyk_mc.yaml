@@ -1,6 +1,6 @@
 task: polish_dyk_multiple_choice
 dataset_path: allegro/klej-dyk
-dataset_name: Czy wiesz?
+dataset_name: null
 output_type: multiple_choice
 training_split: train
 validation_split: null

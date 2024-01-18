@@ -1,6 +1,6 @@
 task: polish_psc_multiple_choice
 dataset_path: allegro/klej-psc
-dataset_name: Polish Summaries Corpus
+dataset_name: null
 output_type: multiple_choice
 training_split: train
 validation_split: null

@@ -1,6 +1,6 @@
 task: polish_ppc_multiple_choice
 dataset_path: sdadas/ppc
-dataset_name: Polish Paraphrase Corpus
+dataset_name: null
 output_type: multiple_choice
 training_split: train
 validation_split: validation
