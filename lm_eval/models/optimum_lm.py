@@ -42,7 +42,8 @@ class OptimumLM(HFLM):
         from optimum.intel.openvino import OVModelForCausalLM
 
         model_kwargs = kwargs if kwargs else {}
-        if Path("/pretrained/openvino_model.xml").exists():
+        model_file = Path(pretrained)/"openvino_model.xml"
+        if model_file.exists():
             export = False
         else:
             export = True
