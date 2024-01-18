@@ -1,4 +1,3 @@
 include: polemo2_in_mc.yaml
 task: polemo2_out_multiple_choice
 dataset_path: allegro/klej-polemo2-out
-dataset_name: klej-polemo2-out
