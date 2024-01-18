@@ -27,6 +27,6 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
     regexes_to_ignore:
-    - "\ban|a|the\b"
+    - "\\b(?:The |the |An |A |The |a |an )"
 metadata:
-  version: 2.0
+  version: 3.0
