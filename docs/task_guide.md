@@ -380,4 +380,4 @@ task:
         ignore_punctuation: true
 ```
 
-Calling the benchmark is done the same way we would call any task with `--tasks`. Benchmarks can be added in `lm_eval/benchmarks/`
+Calling the benchmark is done the same way we would call any task with `--tasks`. Benchmarks can be added in `lm_eval/tasks/benchmarks/`
