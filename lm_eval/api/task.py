@@ -111,8 +111,8 @@ class TaskConfig(dict):
                 }
 
         # TODO: how to make TaskConfigs be de- and re-serializable, even when using the !function constructor?
-        if self.dataset_kwargs is None:
-            self.dataset_kwargs = {"trust_remote_code": True}
+        # if self.dataset_kwargs is None:
+        #     self.dataset_kwargs = {"trust_remote_code": True}
 
     def __getitem__(self, item):
         return getattr(self, item)
