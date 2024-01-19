@@ -3,7 +3,7 @@ dataset_path: nq_open
 output_type: generate_until
 training_split: train
 validation_split: validation
-description: "Answer these questions:\n"
+description: "Answer these questions:\n\n"
 doc_to_text: "Q: {{question}}?\nA:"
 doc_to_target: "{{answer}}" # TODO: should be multi-target
 fewshot_delimiter: "\n"
@@ -27,6 +27,6 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
     regexes_to_ignore:
-    - "\ban|a|the\b"
+    - "\\b(?:The |the |An |A |The |a |an )"
 metadata:
-  version: 1.0
+  version: 3.0
