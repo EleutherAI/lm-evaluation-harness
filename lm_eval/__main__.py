@@ -10,8 +10,7 @@ from typing import Union
 import numpy as np
 
 from lm_eval import evaluator, utils
-from lm_eval.api.registry import ALL_TASKS
-from lm_eval.tasks import include_path, initialize_tasks
+from lm_eval.tasks import initialize_tasks
 from lm_eval.utils import make_table
 
 
@@ -156,24 +155,23 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-    initialize_tasks(args.verbosity)
+    # initialize_tasks(args.verbosity)
+    ALL_TASKS = initialize_tasks(args.verbosity, include_path=args.include_path)
 
     if args.limit:
         eval_logger.warning(
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
-    if args.include_path is not None:
-        eval_logger.info(f"Including path: {args.include_path}")
-        include_path(args.include_path)
 
     if args.tasks is None:
-        task_names = ALL_TASKS
+        eval_logger.error(
+            "Need to specify task to evaluate."
+        )
     elif args.tasks == "list":
         eval_logger.info(
             "Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS)))
         )
-        sys.exit()
     else:
         if os.path.isdir(args.tasks):
             import glob
