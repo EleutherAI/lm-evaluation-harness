@@ -56,17 +56,27 @@ def register_configurable_task(config: Dict[str, str]) -> int:
 
 def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -> int:
     group = config["group"]
-    all_task_list = config["task"]
-    config_list = [task for task in all_task_list if type(task) != str]
-    task_list = [task for task in all_task_list if type(task) == str]
 
-    for task_config in config_list:
+    if group not in ["grouptest", "arc_stuff"]:
+        return 0
 
+    task_config_list = []
+    group_config_list = []
+    registered_task_or_group_list = []
+    for task in config["task"]:
+        if isinstance(task, str):
+            registered_task_or_group_list.append(task)
+        elif list(task.keys()) == ["group", "task"]:
+            group_config_list.append(task)
+        else:
+            task_config_list.append(task)
+
+    for task_config in task_config_list:
         base_config = {}
         task_name_config = {}
         if "task" in task_config:
             task_name = task_config["task"]
-            if task_name in ALL_TASKS:
+            if task_name in TASK_REGISTRY:
                 task_obj = get_task_dict(task_name)[task_name]
                 if type(task_obj) == tuple:
                     _, task_obj = task_obj
@@ -74,6 +84,8 @@ def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -
                 if task_obj is not None:
                     base_config = task_obj._config.to_dict(keep_callable=True)
                     task_name_config["task"] = f"{group}_{task_name}"
+            # elif task_name in GROUP_REGISTRY:
+
 
         task_config = utils.load_yaml_config(yaml_path, task_config)
         var_configs = check_prompt_config(
@@ -88,7 +100,16 @@ def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -
         for config in var_configs:
             register_configurable_task(config)
 
-    task_names = utils.pattern_match(task_list, ALL_TASKS)
+    for group_config in group_config_list:
+        sub_group = group_config["group"]
+        register_configurable_group(group_config, yaml_path)
+        if group in GROUP_REGISTRY:
+            GROUP_REGISTRY[group].append(sub_group)
+        else:
+            GROUP_REGISTRY[group] = [sub_group]
+            ALL_TASKS.add(group)
+
+    task_names = utils.pattern_match(registered_task_or_group_list, ALL_TASKS)
     for task in task_names:
         if (task in TASK_REGISTRY) or (task in GROUP_REGISTRY):
             if group in GROUP_REGISTRY:
@@ -143,7 +164,7 @@ def get_task_name_from_config(task_config: Dict[str, str]) -> str:
         return "{dataset_path}".format(**task_config)
 
 
-def include_task_folder(task_dir: str, register_task: bool = True) -> None:
+def include_task_folder(task_dir: str, register_task: bool = True, task_name: str = None) -> None:
     """
     Calling this function
     """
@@ -198,18 +219,18 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
     return 0
 
 
-def include_path(task_dir):
-    include_task_folder(task_dir)
+def include_path(task_dir, task_name=None):
+    include_task_folder(task_dir, task_name=task_name)
     # Register Benchmarks after all tasks have been added
-    include_task_folder(task_dir, register_task=False)
+    include_task_folder(task_dir, register_task=False, task_name=task_name)
     return 0
 
 
-def initialize_tasks(verbosity="INFO"):
+def initialize_tasks(verbosity="INFO", task_name=None):
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
-    include_path(task_dir)
+    include_path(task_dir, task_name=task_name)
 
 
 def get_task(task_name, config):
