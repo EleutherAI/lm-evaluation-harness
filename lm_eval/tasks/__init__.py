@@ -36,10 +36,10 @@ def is_group(task):
     return False
 
 
-def load_task_or_group(ALL_TASKS, task_name: str=None, task_config: dict=None) -> ConfigurableTask:
+def load_task_or_group(ALL_TASKS, task_name_or_config: Union[str, dict] = None) -> ConfigurableTask:
 
-    if task_name is not None:
-        task_info = ALL_TASKS[task_name]
+    if isinstance(task_name_or_config, str):
+        task_info = ALL_TASKS[task_name_or_config]
         yaml_path = task_info["yaml_path"]
         task_type = task_info["type"]
         subtask_list = task_info["task"] if "task" in task_info else -1
@@ -52,18 +52,19 @@ def load_task_or_group(ALL_TASKS, task_name: str=None, task_config: dict=None) -
                 group_name = task_config["group"]
                 subtask_list = task_config["task"]
             else:
-                group_name = task_name
+                group_name = task_name_or_config
 
             all_subtasks = {}
             for task_or_config in subtask_list:
                 if isinstance(task_or_config, str):
-                    task_object = load_task_or_group(ALL_TASKS, task_name=task_or_config)
+                    all_subtasks[task_or_config] = (group_name, None)
+                    task_object = load_task_or_group(ALL_TASKS, task_name_or_config=task_or_config)
                 elif isinstance(task_or_config, dict):
-
                     if "group" in task_or_config:
                         all_subtasks[task_or_config["group"]] = (group_name, None)
-
-                    task_object = load_task_or_group(ALL_TASKS, task_config=task_or_config)
+                    elif "task" in task_or_config:
+                        all_subtasks[task_or_config["task"]] = (group_name, None)
+                    task_object = load_task_or_group(ALL_TASKS, task_name_or_config=task_or_config)
 
                 if isinstance(task_object, dict):
                     all_subtasks = {**task_object, **all_subtasks}
@@ -75,18 +76,17 @@ def load_task_or_group(ALL_TASKS, task_name: str=None, task_config: dict=None) -
                     # else:
                     #     all_subtasks[task_name] = task_object
             return all_subtasks
-    else:
-        assert task_config is not None
-        if is_group(task_config):
-            group_name = task_config["group"]
-            subtask_list = task_config["task"]
+    elif isinstance(task_name_or_config, dict):
+        if is_group(task_name_or_config):
+            group_name = task_name_or_config["group"]
+            subtask_list = task_name_or_config["task"]
             all_subtasks = {}
             for task_or_config in subtask_list:
                 if isinstance(task_or_config, str):
-                    task_object = load_task_or_group(ALL_TASKS, task_name=task_or_config)
+                    task_object = load_task_or_group(ALL_TASKS, task_name_or_config=task_or_config)
                     task_name = task_or_config
                 elif isinstance(task_or_config, dict):
-                    task_object = load_task_or_group(ALL_TASKS, task_config=task_or_config)
+                    task_object = load_task_or_group(ALL_TASKS, task_name_or_config=task_or_config)
 
                 if isinstance(task_object, dict):
                     all_subtasks = {**task_object, **all_subtasks}
@@ -96,7 +96,7 @@ def load_task_or_group(ALL_TASKS, task_name: str=None, task_config: dict=None) -
             return all_subtasks
         else:
             task_type = "task"
-            task_name = task_config["task"]
+            task_name = task_name_or_config["task"]
             base_task_info = ALL_TASKS[task_name]
             base_yaml_path = base_task_info["yaml_path"]
             base_task_config = utils.load_yaml_config(base_yaml_path)
@@ -104,7 +104,7 @@ def load_task_or_group(ALL_TASKS, task_name: str=None, task_config: dict=None) -
             return ConfigurableTask(
                 config={
                     **base_task_config,
-                    **task_config,
+                    **task_name_or_config,
                 }
             )
 
