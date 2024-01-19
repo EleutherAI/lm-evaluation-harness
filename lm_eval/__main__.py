@@ -176,22 +176,24 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         if os.path.isdir(args.tasks):
             import glob
 
-            task_names = []
+            loaded_task_list = []
             yaml_path = os.path.join(args.tasks, "*.yaml")
             for yaml_file in glob.glob(yaml_path):
                 config = utils.load_yaml_config(yaml_file)
-                task_names.append(config)
+                loaded_task_list.append(config)
         else:
-            tasks_list = args.tasks.split(",")
-            task_names = utils.pattern_match(tasks_list, ALL_TASKS.keys())
-            for task in [task for task in tasks_list if task not in task_names]:
+            input_task_list = args.tasks.split(",")
+            loaded_task_list = utils.pattern_match(input_task_list, ALL_TASKS.keys())
+            for task in [
+                task for task in input_task_list if task not in loaded_task_list
+            ]:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
-                    task_names.append(config)
+                    loaded_task_list.append(config)
             task_missing = [
                 task
-                for task in tasks_list
-                if task not in task_names and "*" not in task
+                for task in input_task_list
+                if task not in loaded_task_list and "*" not in task
             ]  # we don't want errors if a wildcard ("*") task name was used
 
             if task_missing:
@@ -224,26 +226,33 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     elif args.log_samples and not args.output_path:
         assert args.output_path, "Specify --output_path"
 
-    eval_logger.info(f"Selected Tasks: {task_names}")
+    eval_logger.info(f"Selected Tasks: {loaded_task_list}")
     eval_logger.info("Loading selected tasks...")
 
-    task_objects = {}
-    for task in task_names:
+    all_tasks = {}
+    for task in loaded_task_list:
+        task_object = load_task_or_group(
+            ALL_TASKS,
+            task_name_or_config=task,
+        )
         if isinstance(task, str):
-            task_objects[task] = load_task_or_group(
-                ALL_TASKS,
-                task_name=task,
-            )
+            task_name = task
         elif isinstance(task, dict):
-            task_objects[task["task"]] = load_task_or_group(
-                ALL_TASKS,
-                task_config=task,
-            )
+            task_name = task["task"]
+
+        if isinstance(task_object, dict):
+            all_tasks = {**task_object, **all_tasks}
+        else:
+            all_tasks[task_name] = task_object
+
+    # for key, value in all_tasks.items():
+    #     print(key, value)
+    # import sys; sys.exit()
 
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
-        tasks=task_objects,
+        tasks=all_tasks,
         num_fewshot=args.num_fewshot,
         batch_size=args.batch_size,
         max_batch_size=args.max_batch_size,
