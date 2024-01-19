@@ -235,10 +235,10 @@ def get_task_and_group(task_dir: str):
                     # This is a group config
                     tasks_and_groups[config["group"]] = {
                         "type": "group",
-                        "task": -1, # This signals that 
-                                    # we don't need to know 
-                                    # the task list for indexing 
-                                    # as it can be loaded 
+                        "task": -1, # This signals that
+                                    # we don't need to know
+                                    # the task list for indexing
+                                    # as it can be loaded
                                     # when called.
                         "yaml_path": yaml_path,
                     }
