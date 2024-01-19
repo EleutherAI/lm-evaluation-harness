@@ -30,10 +30,31 @@ from .scrolls.task import (
 eval_logger = utils.eval_logger
 
 
-def load_task_or_group(yaml_path: str) -> ConfigurableTask:
+def is_group(task):
+    if list(task.keys()) == ["group", "task"]:
+        return True
+    return False
 
-    config = utils.load_yaml_config(yaml_path)
-    return ConfigurableTask(config=config)
+
+def load_task_or_group(ALL_TASKS, task_name: str=None, task_config: dict=None) -> ConfigurableTask:
+
+    if task_name is not None:
+        yaml_path = ALL_TASKS[task_name]["yaml_path"]
+        task_type = ALL_TASKS[task_name]["type"]
+        task_config = utils.load_yaml_config(yaml_path)
+    else:
+        assert task_config is not None
+        if is_group(task_config):
+            task_type = "group"
+        else:
+            task_type = "task"
+
+    if task_type == "task":
+        return ConfigurableTask(config=task_config)
+    # else:
+    #     for task in task_list:
+    #         do some recursion here.
+    #     return (group, ConfigurableTask(config=config))
 
 
 def register_configurable_task(config: Dict[str, str]) -> int:
@@ -73,7 +94,7 @@ def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -
     for task in config["task"]:
         if isinstance(task, str):
             registered_task_or_group_list.append(task)
-        elif list(task.keys()) == ["group", "task"]:
+        elif is_group(task):
             group_config_list.append(task)
         else:
             task_config_list.append(task)
