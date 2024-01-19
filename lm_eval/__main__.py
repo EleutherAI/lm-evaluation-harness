@@ -165,7 +165,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
-        import sys; sys.exit()
+        import sys
+
+        sys.exit()
     elif args.tasks == "list":
         eval_logger.info(
             "Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS.keys())))
