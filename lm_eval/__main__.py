@@ -3,14 +3,13 @@ import json
 import logging
 import os
 import re
-import sys
 from pathlib import Path
 from typing import Union
 
 import numpy as np
 
 from lm_eval import evaluator, utils
-from lm_eval.tasks import initialize_tasks
+from lm_eval.tasks import initialize_tasks, load_task_or_group
 from lm_eval.utils import make_table
 
 
@@ -165,9 +164,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         )
 
     if args.tasks is None:
-        eval_logger.error(
-            "Need to specify task to evaluate."
-        )
+        eval_logger.error("Need to specify task to evaluate.")
+        import sys; sys.exit()
     elif args.tasks == "list":
         eval_logger.info(
             "Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS)))
@@ -225,11 +223,15 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         assert args.output_path, "Specify --output_path"
 
     eval_logger.info(f"Selected Tasks: {task_names}")
+    eval_logger.info("Loading selected tasks...")
+
+    for task in task_names:
+        task_objects = load_task_or_group(ALL_TASKS[task])
 
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
-        tasks=task_names,
+        tasks=task_objects,
         num_fewshot=args.num_fewshot,
         batch_size=args.batch_size,
         max_batch_size=args.max_batch_size,
