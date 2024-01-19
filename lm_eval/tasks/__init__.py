@@ -198,6 +198,7 @@ def initialize_tasks(verbosity="INFO"):
 
 def get_task(task_name, config):
     try:
+        print(task_name, config)
         return TASK_REGISTRY[task_name](config=config)
     except KeyError:
         eval_logger.info("Available tasks:")
