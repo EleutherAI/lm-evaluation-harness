@@ -9,7 +9,7 @@ from typing import Union
 import numpy as np
 
 from lm_eval import evaluator, utils
-from lm_eval.tasks import initialize_tasks, load_task_or_group
+from lm_eval.tasks import TaskManager
 from lm_eval.utils import make_table
 
 
@@ -155,7 +155,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     # initialize_tasks(args.verbosity)
-    ALL_TASKS = initialize_tasks(args.verbosity, include_path=args.include_path)
+    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
     if args.limit:
         eval_logger.warning(
@@ -170,7 +170,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         sys.exit()
     elif args.tasks == "list":
         eval_logger.info(
-            "Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS.keys())))
+            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks()))
         )
     else:
         if os.path.isdir(args.tasks):
@@ -183,7 +183,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 loaded_task_list.append(config)
         else:
             input_task_list = args.tasks.split(",")
-            loaded_task_list = utils.pattern_match(input_task_list, ALL_TASKS.keys())
+            loaded_task_list = utils.pattern_match(input_task_list, task_manager.all_tasks())
             for task in [
                 task for task in input_task_list if task not in loaded_task_list
             ]:
@@ -229,25 +229,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Selected Tasks: {loaded_task_list}")
     eval_logger.info("Loading selected tasks...")
 
-    all_tasks = {}
-    for task in loaded_task_list:
-        task_object = load_task_or_group(
-            ALL_TASKS,
-            task_name_or_config=task,
-        )
-        if isinstance(task, str):
-            task_name = task
-        elif isinstance(task, dict):
-            task_name = task["task"]
+    all_tasks = task_manager.load_task_or_group(loaded_task_list)
 
-        if isinstance(task_object, dict):
-            all_tasks = {**task_object, **all_tasks}
-        else:
-            all_tasks[task_name] = task_object
-
-    # for key, value in all_tasks.items():
-    #     print(key, value)
-    # import sys; sys.exit()
+    for key, value in all_tasks.items():
+        print(key, value)
+    import sys; sys.exit()
 
     results = evaluator.simple_evaluate(
         model=args.model,
