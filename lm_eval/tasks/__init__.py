@@ -198,101 +198,37 @@ class TaskManager(abc.ABC):
         return tasks_and_groups
 
 
-def check_prompt_config(
-    config: Dict[str, str], yaml_path: str = None
-) -> List[Dict[str, str]]:
-    all_configs = []
-    if "use_prompt" in config:
-        prompt_list = prompts.load_prompt_list(
-            use_prompt=config["use_prompt"],
-            dataset_name=config["dataset_path"],
-            subset_name=config["dataset_name"] if "dataset_name" in config else None,
-            yaml_path=yaml_path,
-        )
-        for idx, prompt_variation in enumerate(prompt_list):
-            all_configs.append(
-                {
-                    **config,
-                    **{"use_prompt": prompt_variation},
-                    **{
-                        "task": "_".join(
-                            [
-                                config["task"]
-                                if "task" in config
-                                else get_task_name_from_config(config),
-                                prompt_variation.split("/")[-1]
-                                if ".yaml" in prompt_variation
-                                else prompt_variation,
-                            ]
-                        )
-                    },
-                    **{"output_type": "generate_until"},
-                }
-            )
-    else:
-        all_configs.append(config)
-    return all_configs
-
-# # TODO: pass num_fewshot and other cmdline overrides in a better way
-# def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
-#     config = {**kwargs}
-
-#     task_name_from_registry_dict = {}
-#     task_name_from_config_dict = {}
-#     task_name_from_object_dict = {}
-
-#     if type(task_name_list) != list:
-#         task_name_list = [task_name_list]
-
-#     for task_element in task_name_list:
-#         if isinstance(task_element, str):
-#             if task_element in GROUP_REGISTRY:
-#                 group_name = task_element
-#                 for task_name in GROUP_REGISTRY[task_element]:
-#                     if task_name not in task_name_from_registry_dict:
-#                         task_obj = get_task_dict(task_name)
-#                         if task_name in task_obj.keys():
-#                             task_dict = {
-#                                 task_name: (group_name, task_obj[task_name]),
-#                             }
-#                         else:
-#                             task_dict = {
-#                                 task_name: (group_name, None),
-#                                 **task_obj,
-#                             }
-
-#                         task_name_from_registry_dict = {
-#                             **task_name_from_registry_dict,
-#                             **task_dict,
-#                         }
-#             else:
-#                 task_name = task_element
-#                 if task_name not in task_name_from_registry_dict:
-#                     task_name_from_registry_dict = {
-#                         **task_name_from_registry_dict,
-#                         task_name: get_task(task_name=task_element, config=config),
-#                     }
-
-#         elif isinstance(task_element, dict):
-#             task_element.update(config)
-#             task_name_from_config_dict = {
-#                 **task_name_from_config_dict,
-#                 get_task_name_from_config(task_element): ConfigurableTask(
-#                     config=task_element
-#                 ),
-#             }
-
-#         elif isinstance(task_element, Task):
-#             task_name_from_object_dict = {
-#                 **task_name_from_object_dict,
-#                 get_task_name_from_object(task_element): task_element,
-#             }
-
-#     assert set(task_name_from_registry_dict.keys()).isdisjoint(
-#         set(task_name_from_object_dict.keys())
-#     )
-#     return {
-#         **task_name_from_registry_dict,
-#         **task_name_from_config_dict,
-#         **task_name_from_object_dict,
-#     }
+# def check_prompt_config(
+#     config: Dict[str, str], yaml_path: str = None
+# ) -> List[Dict[str, str]]:
+#     all_configs = []
+#     if "use_prompt" in config:
+#         prompt_list = prompts.load_prompt_list(
+#             use_prompt=config["use_prompt"],
+#             dataset_name=config["dataset_path"],
+#             subset_name=config["dataset_name"] if "dataset_name" in config else None,
+#             yaml_path=yaml_path,
+#         )
+#         for idx, prompt_variation in enumerate(prompt_list):
+#             all_configs.append(
+#                 {
+#                     **config,
+#                     **{"use_prompt": prompt_variation},
+#                     **{
+#                         "task": "_".join(
+#                             [
+#                                 config["task"]
+#                                 if "task" in config
+#                                 else get_task_name_from_config(config),
+#                                 prompt_variation.split("/")[-1]
+#                                 if ".yaml" in prompt_variation
+#                                 else prompt_variation,
+#                             ]
+#                         )
+#                     },
+#                     **{"output_type": "generate_until"},
+#                 }
+#             )
+#     else:
+#         all_configs.append(config)
+#     return all_configs
