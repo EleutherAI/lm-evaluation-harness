@@ -45,7 +45,7 @@ class TaskManager(abc.ABC):
 
         self.verbosity = verbosity
         self.include_path = include_path
-        self.eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+        self.logger = eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
         self.ALL_TASKS = self.initialize_tasks(
             include_path=include_path
@@ -66,9 +66,8 @@ class TaskManager(abc.ABC):
 
         return ALL_TASKS
 
-    @property
     def all_tasks(self):
-        return sorted(self.ALL_TASKS.keys())
+        return sorted(list(self.ALL_TASKS.keys()))
 
     def _load_individual_task_or_group(self, task_name_or_config: Union[str, dict] = None) -> ConfigurableTask:
 
@@ -93,13 +92,13 @@ class TaskManager(abc.ABC):
                 for task_or_config in subtask_list:
                     if isinstance(task_or_config, str):
                         all_subtasks[task_or_config] = (group_name, None)
-                        task_object = self._load_individual_task_or_group(self.ALL_TASKS, task_name_or_config=task_or_config)
+                        task_object = self._load_individual_task_or_group(task_name_or_config=task_or_config)
                     elif isinstance(task_or_config, dict):
                         if "group" in task_or_config:
                             all_subtasks[task_or_config["group"]] = (group_name, None)
                         elif "task" in task_or_config:
                             all_subtasks[task_or_config["task"]] = (group_name, None)
-                        task_object = self._load_individual_task_or_group(self.ALL_TASKS, task_name_or_config=task_or_config)
+                        task_object = self._load_individual_task_or_group(task_name_or_config=task_or_config)
 
                     if isinstance(task_object, dict):
                         all_subtasks = {**task_object, **all_subtasks}
@@ -118,10 +117,10 @@ class TaskManager(abc.ABC):
                 all_subtasks = {}
                 for task_or_config in subtask_list:
                     if isinstance(task_or_config, str):
-                        task_object = self._load_individual_task_or_group(self.ALL_TASKS, task_name_or_config=task_or_config)
+                        task_object = self._load_individual_task_or_group(task_name_or_config=task_or_config)
                         task_name = task_or_config
                     elif isinstance(task_or_config, dict):
-                        task_object = self._load_individual_task_or_group(self.ALL_TASKS, task_name_or_config=task_or_config)
+                        task_object = self._load_individual_task_or_group(task_name_or_config=task_or_config)
 
                     if isinstance(task_object, dict):
                         all_subtasks = {**task_object, **all_subtasks}
