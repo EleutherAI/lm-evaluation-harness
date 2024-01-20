@@ -477,10 +477,6 @@ def evaluate(
                     total_size = 0
 
                     for task in task_list:
-                        print("###")
-                        print(task)
-                        print(metrics)
-                        print("###")
                         metrics = results[task].copy()
 
                         if "alias" in metrics:
@@ -492,6 +488,7 @@ def evaluate(
                         if weight_by_size:
                             current_size = metrics.pop("samples")
                         else:
+                            metrics.pop("samples")
                             current_size = 1
 
                         all_stderr = []
