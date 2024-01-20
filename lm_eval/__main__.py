@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+import sys
 from pathlib import Path
 from typing import Union
 
@@ -165,8 +166,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
-        import sys
-
         sys.exit()
     elif args.tasks == "list":
         eval_logger.info(
@@ -183,7 +182,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 loaded_task_list.append(config)
         else:
             input_task_list = args.tasks.split(",")
-            loaded_task_list = utils.pattern_match(input_task_list, task_manager.all_tasks())
+            loaded_task_list = utils.pattern_match(
+                input_task_list, task_manager.all_tasks()
+            )
             for task in [
                 task for task in input_task_list if task not in loaded_task_list
             ]:
@@ -230,10 +231,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info("Loading selected tasks...")
 
     all_tasks = task_manager.load_task_or_group(loaded_task_list)
-
-    for key, value in all_tasks.items():
-        print(key, value)
-    import sys; sys.exit()
 
     results = evaluator.simple_evaluate(
         model=args.model,
