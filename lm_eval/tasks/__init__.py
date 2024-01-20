@@ -158,7 +158,7 @@ class TaskManager(abc.ABC):
                 task_name = task["task"]
 
             if isinstance(task_object, dict):
-                all_loaded_tasks = {**task_object, **self.ALL_TASKS}
+                all_loaded_tasks = {**task_object, **self.all_loaded_tasks}
             else:
                 all_loaded_tasks[task_name] = task_object
         
