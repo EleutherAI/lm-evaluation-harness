@@ -38,6 +38,7 @@ def simple_evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     gen_kwargs: str = None,
+    weight_by_size: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -155,6 +156,7 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
+        weight_by_size=weight_by_size,
     )
 
     if lm.rank == 0:
@@ -192,6 +194,7 @@ def evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
+    weight_by_size: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -474,17 +477,22 @@ def evaluate(
                     total_size = 0
 
                     for task in task_list:
+                        print("###")
+                        print(task)
+                        print(metrics)
+                        print("###")
                         metrics = results[task].copy()
 
                         if "alias" in metrics:
                             metrics.pop("alias")
 
-                        current_size = metrics.pop("samples")
                         # TODO: There should be a way for users
                         #       to toggle between weighted and
                         #       unweighted averaging
-                        # For unweighted averaging, use:
-                        #     current_size = 1
+                        if weight_by_size:
+                            current_size = metrics.pop("samples")
+                        else:
+                            current_size = 1
 
                         all_stderr = []
                         for metric in [
