@@ -80,6 +80,8 @@ class TaskConfig(dict):
     filter_list: Union[str, list] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
+    take_first_n: int = None
+    take_last_n: int = None
 
     metadata: Union[
         str, list
@@ -561,7 +563,7 @@ class ConfigurableTask(Task):
                     key: metric_config[key]
                     for key in metric_config
                     if key
-                    not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
+                    not in ["metric", "aggregation", "higher_is_better", "hf_evaluate", "name"]
                 }
                 hf_evaluate_metric = (
                     "hf_evaluate" in metric_config
@@ -573,7 +575,7 @@ class ConfigurableTask(Task):
                     self._metric_fn_kwargs[metric_name] = {}
                 elif callable(metric_name):
                     metric_fn = metric_name.__call__
-                    metric_name = metric_name.__name__
+                    metric_name = metric_config["name"] if "name" in metric_config else metric_name.__name__
                     self._metric_fn_list[metric_name] = metric_fn
                     self._metric_fn_kwargs[metric_name] = kwargs
                 else:
@@ -613,6 +615,10 @@ class ConfigurableTask(Task):
                     self._higher_is_better[metric_name] = is_higher_better(metric_name)
 
         self.download(self.config.dataset_kwargs)
+        if self.config.take_first_n is not None:
+            self.dataset['test'] = self.dataset['test'].select(list(range(self.config.take_first_n)))
+        if self.config.take_last_n is not None:
+            self.dataset['test'] = self.dataset['test'].select(list(range(len(self.dataset['test']) - self.config.take_last_n, len(self.dataset['test']))))
         self._training_docs = None
         self._fewshot_docs = None
 
