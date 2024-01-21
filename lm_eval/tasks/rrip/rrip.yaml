@@ -1,0 +1,21 @@
+group:
+  - legal_benchmark
+task: rrip
+dataset_path: eduagarcia/cnj_benchmarks
+dataset_name: rrip
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+description: "Abaixo contém frases extraidas de petições de ações cíveis de um Tribunal, seu trabalho é classificar o papel retórico:\
+  \ da frase em uma das seguintes classes: 'Identificação', 'Fatos', 'Argumentos', 'Fundamentação', 'Jurisprudência', 'Pedidos' ou 'Valor da Causa', se não pertencer a nenhuma das anteriores\
+  \ classficar como 'Outros'.\n\n"
+doc_to_text: "Frase: {{sentence}}\nA classificação da frase é:"
+doc_to_target: !function util.doc_to_target
+doc_to_choice: ['Identificação', 'Fatos', 'Argumentos', 'Fundamentação', 'Jurisprudência', 'Pedidos', 'Valor da Causa', 'Outros']
+metric_list:
+  - metric: acc
+  - metric: f1
+    aggregation: f1_macro
+metadata:
+  version: 1.0

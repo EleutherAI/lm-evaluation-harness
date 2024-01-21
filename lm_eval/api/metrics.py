@@ -51,6 +51,23 @@ def f1_score(items):
 
     return np.max(fscore)
 
+@register_aggregation("f1_macro")
+def f1_macro_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = sklearn.metrics.f1_score(golds, preds, average='macro')
+
+    return fscore
+
+@register_aggregation("acc")
+def acc_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    acc_score = sklearn.metrics.accuracy_score(golds, preds)
+
+    return acc_score
 
 @register_aggregation("matthews_corrcoef")
 def matthews_corrcoef(items):
@@ -226,6 +243,15 @@ def mcc_fn(items):  # This is a passthrough function
 def f1_fn(items):  # This is a passthrough function
     return items
 
+@register_metric(
+    metric="f1_macro",
+    higher_is_better=True,
+    output_type="multiple_choice",
+    aggregation="f1_macro",
+)
+def f1_macro_fn(items):  # This is a passthrough function
+    return items
+
 
 @register_metric(
     metric="bleu",
@@ -398,6 +424,8 @@ def stderr_for_metric(metric, bootstrap_iters):
         median,
         matthews_corrcoef,
         f1_score,
+        f1_macro_score,
+        acc_score,
         perplexity,
         bleu,
         chrf,

@@ -1,0 +1,27 @@
+dataset_path: eduagarcia-temp/oab_exams_no_train # a copy of `eduagarcia/oab_exams_no_train` with few-shot dev split
+task: oab_exams_generate
+test_split: test
+fewshot_split: validation
+fewshot_config:
+  sampler: first_n
+description: "As perguntas a seguir são questões de multipla escolha do Exame de Ordem da Ordem dos Advogados do Brasil (OAB).\n\n"
+output_type: generate_until
+doc_to_text: !function util.doc_to_text
+doc_to_target: "{{answerKey}}"
+should_decontaminate: true
+doc_to_decontamination_query: !function util.doc_to_text
+filter_list:
+  - name: take_first_letter
+    filter:
+      - function: remove_whitespace
+      - function: "regex"
+        regex_pattern: "(\\b[ABCD]\\b)"
+      - function: take_first
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 0.1
