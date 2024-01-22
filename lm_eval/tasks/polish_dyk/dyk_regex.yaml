@@ -6,7 +6,7 @@ training_split: train
 validation_split: null
 test_split: test
 doc_to_text: "Pytanie: \"{{question}}\"\nSugerowana odpowiedź: \"{{answer}}\"\nCzy sugerowana odpowiedź na zadane pytanie jest poprawna? Możliwe opcje:\nA - brakuje sugerowanej odpowiedzi\nB - nie, sugerowana odpowiedź nie jest poprawna\nC - tak, sugerowana odpowiedź jest poprawna\nD - brakuje pytania\nPrawidłowa opcja:"
-doc_to_target: "{{target|int+1}}"
+doc_to_target: "{{{0: 'A', 1: 'B', 2: 'C', 3: 'D'}.get(target|int + 1)}}"
 should_decontaminate: true
 doc_to_decontamination_query: "{{question}} {{answer}}"
 generation_kwargs:
@@ -22,20 +22,7 @@ filter_list:
       - function: "regex"
         regex_pattern: "(\\b[ABCD]\\b)"
       - function: "take_first"
-      - function: "map"
-        mapping_dict:
-          A: 0
-          B: 1
-          C: 2
-          D: 3
-        default_value: -1
-      - function: "take_first"
 metric_list:
-  - metric: f1
-    aggregation: mean
-    higher_is_better: true
-    hf_evaluate: true
-    average: micro
-  - metric: accuracy
+  - metric: exact_match
     aggregation: mean
     higher_is_better: true

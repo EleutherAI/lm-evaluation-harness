@@ -6,7 +6,7 @@ training_split: train
 validation_split: validation
 test_split: test
 doc_to_text: "Zdanie A: \"{{sentence_A}}\"\nZdanie B: \"{{sentence_B}}\"\nPytanie: jaka jest zależność między zdaniami A i B? Możliwe odpowiedzi:\nA - wszystkie odpowiedzi poprawne\nB - znaczą dokładnie to samo\nC - mają podobne znaczenie\nD - mają różne znaczenie\nPrawidłowa odpowiedź:"
-doc_to_target: "{{label|int}}"
+doc_to_target: "{{{0: 'A', 1: 'B', 2: 'C', 3: 'D'}.get(label|int)}}"
 should_decontaminate: true
 doc_to_decontamination_query: "{{sentence_A}} {{sentence_B}}"
 generation_kwargs:
@@ -22,20 +22,7 @@ filter_list:
       - function: "regex"
         regex_pattern: "(\\b[ABCD]\\b)"
       - function: "take_first"
-      - function: "map"
-        mapping_dict:
-          A: 0
-          B: 1
-          C: 2
-          D: 3
-        default_value: -1
-      - function: "take_first"
 metric_list:
-  - metric: f1
-    aggregation: mean
-    higher_is_better: true
-    hf_evaluate: true
-    average: micro
-  - metric: accuracy
+  - metric: exact_match
     aggregation: mean
     higher_is_better: true

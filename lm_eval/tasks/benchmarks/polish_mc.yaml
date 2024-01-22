@@ -1,0 +1,9 @@
+group: polish_mc
+task:
+  - belebele_pol_Latn
+  - polemo2_in_multiple_choice
+  - polemo2_out_multiple_choice
+  - polish_8tags_multiple_choice
+  - polish_dyk_multiple_choice
+  - polish_ppc_multiple_choice
+  - polish_psc_multiple_choice

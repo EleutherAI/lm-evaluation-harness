@@ -6,7 +6,7 @@ training_split: train
 validation_split: validation
 test_split: test
 doc_to_text: "Tytuł: \"{{sentence}}\"\nPytanie: jaka kategoria najlepiej pasuje do podanego tytułu?\nMożliwe odpowiedzi:\nA - film\nB - historia\nC - jedzenie\nD - medycyna\nE - motoryzacja\nF - praca\nG - sport\nH - technologie\nPrawidłowa odpowiedź:"
-doc_to_target: "{{label|int}}"
+doc_to_target: "{{{0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H'}.get(label)}}"
 should_decontaminate: true
 doc_to_decontamination_query: "{{sentence}}"
 generation_kwargs:
@@ -22,24 +22,7 @@ filter_list:
       - function: "regex"
         regex_pattern: "(\\b[ABCDEFGH]\\b)"
       - function: "take_first"
-      - function: "map"
-        mapping_dict:
-          A: 0
-          B: 1
-          C: 2
-          D: 3
-          E: 4
-          F: 5
-          G: 6
-          H: 7
-        default_value: -1
-      - function: "take_first"
 metric_list:
-  - metric: f1
-    aggregation: mean
-    higher_is_better: true
-    hf_evaluate: true
-    average: micro
-  - metric: accuracy
+  - metric: exact_match
     aggregation: mean
     higher_is_better: true

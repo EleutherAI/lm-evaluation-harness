@@ -1,0 +1,9 @@
+group: polish_generate
+task:
+  - polemo2_in
+  - polemo2_out
+  - polish_8tags_regex
+  - polish_belebele_regex
+  - polish_dyk_regex
+  - polish_ppc_regex
+  - polish_psc_regex
