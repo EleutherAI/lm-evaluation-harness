@@ -71,7 +71,7 @@ class TaskManager(abc.ABC):
         return False
 
     def _config_is_task(self, config):
-        if list(config.keys()) == ["group", "task"]:
+        if set(config.keys()) <= ["group", "task", "weight_by_size"]:
             return False
         return True
 
