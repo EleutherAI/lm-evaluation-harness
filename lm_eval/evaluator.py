@@ -492,10 +492,13 @@ def evaluate(
                         ]:
                             stderr = "_stderr,".join(metric.split(","))
                             stderr_score = results[task][stderr]
-                            var_score = stderr_score**2
-                            metric_score = results[task][metric]
+                            if stderr_score == "N/A":
+                                var_score = "N/A"
+                            else:
+                                var_score = stderr_score**2
+                                all_stderr.append(stderr)
 
-                            all_stderr.append(stderr)
+                            metric_score = results[task][metric]
 
                             if metric in results[group]:
                                 results[group][metric] = (
