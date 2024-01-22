@@ -18,8 +18,10 @@ class OptimumLM(HFLM):
         **kwargs,
     ) -> None:
         if "backend" in kwargs:
-            "Only CausalLM models are supported with OpenVINO at the moment"
+            # optimum currently only supports causal models.
             assert kwargs["backend"] == "causal"
+        else:
+            raise Exception("Please be sure your model is a `causal` model.")
 
         self.openvino_device = device
         super().__init__(device="cpu", **kwargs)
@@ -39,7 +41,7 @@ class OptimumLM(HFLM):
         from optimum.intel.openvino import OVModelForCausalLM
 
         model_kwargs = kwargs if kwargs else {}
-        model_file = Path(pretrained) / "openvino_model.xml"
+        model_file = Path(pretrained)/"openvino_model.xml"
         if model_file.exists():
             export = False
         else:
