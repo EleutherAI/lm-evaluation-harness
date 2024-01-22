@@ -122,7 +122,6 @@ class TaskManager(abc.ABC):
                 group_name = name_or_config["group"]
                 subtask_list = name_or_config["task"]
 
-        # What if group name is not registed/is new?
         if (self._name_is_registered(group_name) is False) or (self._get_yaml_path(group_name) == -1):
             all_subtasks = {group_name: (parent_name, None)}
         else:
