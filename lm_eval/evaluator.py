@@ -492,10 +492,13 @@ def evaluate(
                         ]:
                             stderr = "_stderr,".join(metric.split(","))
                             stderr_score = results[task][stderr]
-                            var_score = stderr_score**2
-                            metric_score = results[task][metric]
+                            if stderr_score == "N/A":
+                                var_score = "N/A"
+                            else:
+                                var_score = stderr_score**2
+                                all_stderr.append(stderr)
 
-                            all_stderr.append(stderr)
+                            metric_score = results[task][metric]
 
                             if metric in results[group]:
                                 results[group][metric] = (
@@ -503,15 +506,20 @@ def evaluate(
                                     + metric_score * current_size
                                 ) / (total_size + current_size)
                                 # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                                results[group][stderr] = (
-                                    (total_size - 1) * results[group][stderr]
-                                    + (current_size - 1) * var_score
-                                ) / (
-                                    total_size + current_size - 1
-                                ) + total_size * current_size / (
-                                    (total_size + current_size)
-                                    * (total_size + current_size - 1)
-                                ) * (results[group][metric] - metric_score) ** 2
+                                if var_score == "N/A":
+                                    results[group][stderr] = "N/A"
+                                else:
+                                    results[group][stderr] = (
+                                        (total_size - 1) * results[group][stderr]
+                                        + (current_size - 1) * var_score
+                                    ) / (
+                                        total_size + current_size - 1
+                                    ) + total_size * current_size / (
+                                        (total_size + current_size)
+                                        * (total_size + current_size - 1)
+                                    ) * (
+                                        results[group][metric] - metric_score
+                                    ) ** 2
                             else:
                                 results[group][metric] = metric_score
                                 results[group][stderr] = var_score
