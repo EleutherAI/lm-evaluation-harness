@@ -3,7 +3,7 @@ import abc
 import yaml
 import collections
 
-from functools import partial, lru_cache
+from functools import partial
 from typing import List, Union, Dict
 
 from lm_eval import utils
@@ -88,7 +88,6 @@ class TaskManager(abc.ABC):
         assert self._name_is_task(name) == False
         return self.ALL_TASKS[name]["task"]
 
-    @lru_cache(None)
     def _load_individual_task_or_group(self, name_or_config: Union[str, dict] = None, parent_name: str = None) -> ConfigurableTask:
 
         def load_task(config, task, group=None):
@@ -118,12 +117,13 @@ class TaskManager(abc.ABC):
                         }
                 else:
                     task_config = name_or_config
-                return load_task(task_config, task=name_or_config, group=parent_name)
+                return load_task(task_config, task=task_name, group=parent_name)
             else:
                 group_name = name_or_config["group"]
                 subtask_list = name_or_config["task"]
 
-        if self._get_yaml_path(group_name) == -1:
+        # What if group name is not registed/is new?
+        if (self._name_is_registered(group_name) is False) or (self._get_yaml_path(group_name) == -1):
             all_subtasks = {group_name: (parent_name, None)}
         else:
             all_subtasks = {}
