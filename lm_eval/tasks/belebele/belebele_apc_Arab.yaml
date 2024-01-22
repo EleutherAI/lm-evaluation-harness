@@ -1,3 +1,4 @@
-"dataset_name": "apc_Arab"
+"fewshot_split": "apc_Arab"
 "include": "_default_template_yaml"
 "task": "belebele_apc_Arab"
+"test_split": "apc_Arab"

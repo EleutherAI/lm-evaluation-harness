@@ -164,6 +164,7 @@ def generate_dataset(
         {
             "id": ids,
             "data": instance,
+            "input_len": [len(x) for x in instance],
             "labels": labels,
             "output_type": config["output_type"],
         }
@@ -181,26 +182,30 @@ def generate_system_df(data, config):
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno as a system.
     """
     ids = [x["doc_id"] for x in data]
-    answers = [""] * len(ids)
+    system_dict = {"id": ids}
+    system_dict["output"] = [""] * len(ids)
 
     if config["output_type"] == "loglikelihood":
-        answers = [
+        system_dict["output"] = [
             "correct" if x["filtered_resps"][0][1] is True else "incorrect"
             for x in data
         ]
     elif config["output_type"] == "multiple_choice":
-        answers = [", ".join([str(y[0]) for y in x["filtered_resps"]]) for x in data]
+        system_dict["output"] = [
+            ", ".join([str(y[0]) for y in x["filtered_resps"]]) for x in data
+        ]
+        system_dict["num_answers"] = [len(x["filtered_resps"]) for x in data]
     elif config["output_type"] == "loglikelihood_rolling":
-        answers = [str(x["filtered_resps"][0]) for x in data]
+        system_dict["output"] = [str(x["filtered_resps"][0]) for x in data]
     elif config["output_type"] == "generate_until":
-        answers = [str(x["filtered_resps"][0]) for x in data]
+        system_dict["output"] = [str(x["filtered_resps"][0]) for x in data]
+        system_dict["output_length"] = [len(str(x["filtered_resps"][0])) for x in data]
 
     metrics = {}
     for metric in config["metric_list"]:
         if "aggregation" in metric and metric["aggregation"] == "mean":
             metrics[metric["metric"]] = [x[metric["metric"]] for x in data]
 
-    system_dict = {"id": ids, "output": answers}
     system_dict.update(metrics)
     system_df = pd.DataFrame(system_dict)
     return system_df

@@ -1,3 +1,4 @@
-"dataset_name": "npi_Deva"
+"fewshot_split": "npi_Deva"
 "include": "_default_template_yaml"
 "task": "belebele_npi_Deva"
+"test_split": "npi_Deva"

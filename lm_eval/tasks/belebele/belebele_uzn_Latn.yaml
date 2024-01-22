@@ -1,3 +1,4 @@
-"dataset_name": "uzn_Latn"
+"fewshot_split": "uzn_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_uzn_Latn"
+"test_split": "uzn_Latn"

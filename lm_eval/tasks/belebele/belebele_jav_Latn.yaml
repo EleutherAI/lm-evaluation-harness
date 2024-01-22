@@ -1,3 +1,4 @@
-"dataset_name": "jav_Latn"
+"fewshot_split": "jav_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_jav_Latn"
+"test_split": "jav_Latn"
