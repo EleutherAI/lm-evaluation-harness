@@ -1,3 +1,6 @@
 include: aqua-rat.yaml
-task: gaokao-mathqa
-dataset_path: dmayhem93/agieval-gaokao-mathqa
+group:
+  - agieval
+  - agieval_cn
+task: agieval_gaokao_mathqa
+dataset_path: hails/agieval-gaokao-mathqa

@@ -1,3 +1,7 @@
 include: aqua-rat.yaml
-task: sat-en-without-passage
-dataset_path: dmayhem93/agieval-sat-en-without-passage
+group:
+  - agieval
+  - agieval_nous
+  - agieval_en
+task: agieval_sat_en_without_passage
+dataset_path: hails/agieval-sat-en-without-passage

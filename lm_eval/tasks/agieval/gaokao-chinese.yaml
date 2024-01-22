@@ -1,3 +1,6 @@
 include: aqua-rat.yaml
-task: gaokao-chinese
-dataset_path: dmayhem93/agieval-gaokao-chinese
+group:
+  - agieval
+  - agieval_cn
+task: agieval_gaokao_chinese
+dataset_path: hails/agieval-gaokao-chinese

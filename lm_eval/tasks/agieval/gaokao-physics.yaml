@@ -1,3 +1,6 @@
 include: aqua-rat.yaml
-task: gaokao-physics
-dataset_path: dmayhem93/agieval-gaokao-physics
+group:
+  - agieval
+  - agieval_cn
+task: agieval_gaokao_physics
+dataset_path: hails/agieval-gaokao-physics
