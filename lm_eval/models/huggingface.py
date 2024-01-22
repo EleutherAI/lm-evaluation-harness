@@ -705,10 +705,6 @@ class HFLM(LM):
                 return self.model(inps).logits
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
-        # we require users to pass do_sample=True explicitly
-        # for non-greedy gen. This should be reevaluated when considering beam search.
-        if "do_sample" not in generation_kwargs:
-            generation_kwargs["do_sample"] = False
         # build stopping criteria
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, context.shape[1], context.shape[0]
