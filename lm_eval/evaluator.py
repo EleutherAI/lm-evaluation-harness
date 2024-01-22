@@ -506,15 +506,20 @@ def evaluate(
                                     + metric_score * current_size
                                 ) / (total_size + current_size)
                                 # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                                results[group][stderr] = (
-                                    (total_size - 1) * results[group][stderr]
-                                    + (current_size - 1) * var_score
-                                ) / (
-                                    total_size + current_size - 1
-                                ) + total_size * current_size / (
-                                    (total_size + current_size)
-                                    * (total_size + current_size - 1)
-                                ) * (results[group][metric] - metric_score) ** 2
+                                if var_score == "N/A":
+                                    results[group][stderr] = "N/A"
+                                else:
+                                    results[group][stderr] = (
+                                        (total_size - 1) * results[group][stderr]
+                                        + (current_size - 1) * var_score
+                                    ) / (
+                                        total_size + current_size - 1
+                                    ) + total_size * current_size / (
+                                        (total_size + current_size)
+                                        * (total_size + current_size - 1)
+                                    ) * (
+                                        results[group][metric] - metric_score
+                                    ) ** 2
                             else:
                                 results[group][metric] = metric_score
                                 results[group][stderr] = var_score
