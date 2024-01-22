@@ -9,7 +9,7 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.utils import retry_on_specific_exceptions, eval_logger
+from lm_eval.utils import eval_logger, retry_on_specific_exceptions
 
 
 def get_result(response, ctxlen: int) -> Tuple[float, bool]:
@@ -123,10 +123,11 @@ class OpenaiCompletionsLM(LM):
             self.vocab_size = self.tokenizer.vocab
             self.end_of_text_token_id = self.tokenizer.eos_token
         elif self.tokenizer_backend == "tiktoken":
-            if self.base_url: 
+            if self.base_url:
                 eval_logger.warning(
                     f"Passed `base_url={self.base_url}` but using Tiktoken tokenizer backend. " 
-                    "Pass `tokenizer_backend=huggingface` and provide the HF tokenizer name if your model does not use Tiktoken.")
+                    "Pass `tokenizer_backend=huggingface` and provide the HF tokenizer name if your model does not use Tiktoken."
+                )
             
             self.tokenizer = tiktoken.encoding_for_model(self.model)
             self.vocab_size = self.tokenizer.n_vocab
