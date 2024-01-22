@@ -42,7 +42,7 @@ class MambaLMWrapper(HFLM):
 
         The HFLM arguments
 
-        `backend`, `revision`, `subfolder`, `tokenizer`, `truncation`, `max_length`,
+        `backend`, `tokenizer`, `truncation`, `max_length`,
         `device`, `dtype`, `batch_size`, `max_batch_size`, `trust_remote_code`, `use_fast_tokenizer`
 
         Are all supported by Mamba where they do not conflict
@@ -98,7 +98,6 @@ please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba
             pretrained,
             device=self._device,
             dtype=torch.float16 if dtype == "auto" else utils.get_dtype(dtype),
-            **kwargs,
         )
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
