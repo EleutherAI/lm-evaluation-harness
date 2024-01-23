@@ -123,7 +123,7 @@ def simple_evaluate(
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
         if type(task_obj) == tuple:
-            group, task_obj = task_obj
+            _, task_obj = task_obj
             if task_obj is None:
                 continue
 
@@ -484,12 +484,11 @@ def evaluate(
                         if "alias" in metrics:
                             metrics.pop("alias")
 
-                        current_size = metrics.pop("samples")
-                        # TODO: There should be a way for users
-                        #       to toggle between weighted and
-                        #       unweighted averaging
-                        # For unweighted averaging, use:
-                        #     current_size = 1
+                        if configs[task]["weight_by_size"]:
+                            current_size = metrics.pop("samples")
+                        else:
+                            metrics.pop("samples")
+                            current_size = 1
 
                         all_stderr = []
                         for metric in [

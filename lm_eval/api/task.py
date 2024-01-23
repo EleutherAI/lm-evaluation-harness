@@ -80,6 +80,7 @@ class TaskConfig(dict):
     filter_list: Union[str, list] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
+    weight_by_size: bool = False
 
     metadata: Union[
         str, list
