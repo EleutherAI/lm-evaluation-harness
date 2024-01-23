@@ -204,10 +204,6 @@ class TaskManager(abc.ABC):
                             "yaml_path": yaml_path,
                         }
                     elif set(config.keys()) <= set(GROUP_KEYS):
-                        print("###")
-                        print(config["group"])
-                        print(config)
-                        print("###")
                         # This is a group config
                         tasks_and_groups[config["group"]] = {
                             "type": "group",
