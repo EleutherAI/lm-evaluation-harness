@@ -485,7 +485,7 @@ def evaluate(
                         if "alias" in metrics:
                             metrics.pop("alias")
 
-                        if weight_by_size:
+                        if configs[task]["weight_by_size"]:
                             current_size = metrics.pop("samples")
                         else:
                             metrics.pop("samples")
