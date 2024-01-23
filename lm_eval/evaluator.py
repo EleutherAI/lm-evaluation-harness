@@ -38,6 +38,7 @@ def simple_evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     gen_kwargs: str = None,
+    weight_by_size: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -155,6 +156,7 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
+        weight_by_size=weight_by_size,
     )
 
     if lm.rank == 0:
@@ -197,6 +199,7 @@ def evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
+    weight_by_size: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
