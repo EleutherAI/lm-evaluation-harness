@@ -81,7 +81,6 @@ class TaskConfig(dict):
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
     weight_by_size: bool = False
-
     metadata: Union[
         str, list
     ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
