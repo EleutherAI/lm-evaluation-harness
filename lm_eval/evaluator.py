@@ -38,7 +38,6 @@ def simple_evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     gen_kwargs: str = None,
-    weight_by_size: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -124,7 +123,7 @@ def simple_evaluate(
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
         if type(task_obj) == tuple:
-            group, task_obj = task_obj
+            _, task_obj = task_obj
             if task_obj is None:
                 continue
 
@@ -156,7 +155,6 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
-        weight_by_size=weight_by_size,
     )
 
     if lm.rank == 0:
@@ -482,9 +480,6 @@ def evaluate(
                         if "alias" in metrics:
                             metrics.pop("alias")
 
-                        # TODO: There should be a way for users
-                        #       to toggle between weighted and
-                        #       unweighted averaging
                         if weight_by_size:
                             current_size = metrics.pop("samples")
                         else:
