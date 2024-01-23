@@ -438,8 +438,7 @@ class VLLM(LM):
         # sampling_params
         do_sample = kwargs.pop("do_sample", False)
         if do_sample is not True:
-            kwargs["temperature"] = 0
-            kwargs["top_k"] = -1
+            kwargs["temperature"] = 0.0
         # hf defaults
         kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
         kwargs["spaces_between_special_tokens"] = kwargs.get(
