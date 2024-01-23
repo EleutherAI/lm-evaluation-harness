@@ -24,7 +24,7 @@ def test_evaluator(model_id, task):
         tokenizer.save_pretrained(tmpdirname)
 
 
-        lm = models.get_model("optimum-causal").create_from_arg_string(
+        lm = models.get_model("openvino-causal").create_from_arg_string(
                 f"pretrained={tmpdirname}",
                 {
                     "batch_size": 1,
