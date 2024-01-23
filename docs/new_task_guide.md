@@ -232,6 +232,10 @@ If you would like to run evaluation on all prompt templates, you can simply call
 use_prompt: "promptsource:*"
 ```
 
+### Weighting evaluation based on task size
+
+By default, all tasks are aggregated by simple average (A group of 2 task with the same metric will simply be summed and divided by 2 for its group metric). You might find it necessary to aggregate multiple task scores by their weight. To do this, you can set within the task config `weight_by_size` to `True` to have its scores be weighted by the number of samples it has.
+
 ### Setting metrics
 
 You're almost done! Now we need to choose how to score our task.
