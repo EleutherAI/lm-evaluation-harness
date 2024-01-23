@@ -13,15 +13,17 @@ from lm_eval.api.task import TaskConfig, Task, ConfigurableTask
 import logging
 
 # import python tasks
-from .squadv2.task import SQuAD2
-from .scrolls.task import (
-    QuALITY,
-    NarrativeQA,
-    ContractNLI,
-    GovReport,
-    SummScreenFD,
-    QMSum,
-)
+import squadv2
+import scrolls
+python_tasks = {
+    "squadv2": squadv2.task.SQuAD2,
+    "scrolls_quality": scrolls.task.QuALITY,
+    "scrolls_narrativeqa": scrolls.task.NarrativeQA,
+    "scrolls_contractnli": scrolls.task.ContractNLI,
+    "scrolls_govreport": scrolls.task.GovReport,
+    "scrolls_summscreenfd": scrolls.task.SummScreenFD,
+    "scrolls_qmsum": scrolls.task.QMSum,
+}
 
 eval_logger = utils.eval_logger
 
@@ -41,6 +43,7 @@ class TaskManager(abc.ABC):
         self.ALL_TASKS = self.initialize_tasks(
             include_path=include_path
             )
+            #  + {k:v, "type":"task" for k,v in python_tasks.items()}
 
     def initialize_tasks(self, include_path=None):
 

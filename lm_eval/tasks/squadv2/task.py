@@ -47,7 +47,7 @@ def _squad_agg(key, items):
     return _squad_metric(predictions=predictions, references=references).get(key, 0)
 
 
-@register_task("squadv2")
+# @register_task("squadv2")
 class SQuAD2(Task):
     VERSION = 3
     DATASET_PATH = "squad_v2"
