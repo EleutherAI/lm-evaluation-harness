@@ -192,7 +192,7 @@ Note that for externally hosted models, configs such as `--device` and `--batch_
 | Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions` (using `openai-chat-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's ChatCompletions interface                                  | `generate_until`                                           |                                | ...                |
 | `local-completions` (using `openai-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's Completions interface                                  | `generate_until`                                           |                                | ...                                                      |
 
-Models which do not supply logits or logprobs can be used with tasks of type `generate_until` only, while models that are local or APIs that supply logprobs/logits can be run on all task types: `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
+Models which do not supply logits or logprobs can be used with tasks of type `generate_until` only, while local models, or APIs that supply logprobs/logits of their prompts, can be run on all task types: `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
 
 For more information on the different task `output_types` and model request types, see [our documentation](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/model_guide.md#interface).
 
