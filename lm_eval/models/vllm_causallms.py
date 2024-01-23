@@ -436,14 +436,13 @@ class VLLM(LM):
     @staticmethod
     def modify_gen_kwargs(kwargs: dict) -> dict:
         # sampling_params
-        if "do_sample" in kwargs:
-            do_sample = kwargs.pop("do_sample")
-            if do_sample is False:
-                kwargs["temperature"] = 0
-                kwargs["top_k"] = -1
-            # hf defaults
-            kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
-            kwargs["spaces_between_special_tokens"] = kwargs.get(
-                "spaces_between_special_tokens", False
-            )
+        do_sample = kwargs.pop("do_sample", False)
+        if do_sample is not True:
+            kwargs["temperature"] = 0
+            kwargs["top_k"] = -1
+        # hf defaults
+        kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
+        kwargs["spaces_between_special_tokens"] = kwargs.get(
+            "spaces_between_special_tokens", False
+        )
         return kwargs
