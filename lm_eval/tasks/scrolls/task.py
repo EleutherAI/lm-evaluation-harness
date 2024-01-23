@@ -279,7 +279,7 @@ class _SCROLLSSummaryTask(_SCROLLSTask):
         return f"{doc['input']}\n\nQuestion: What is a summary of the preceding text?\nAnswer:"
 
 
-@register_task("scrolls_qasper")
+# @register_task("scrolls_qasper")
 class Qasper(_SCROLLSTask):
     """A Dataset of Information-Seeking Questions and Answers Anchored in Research Papers
     https://arxiv.org/abs/2105.03011
