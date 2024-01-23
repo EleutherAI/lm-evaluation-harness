@@ -1,0 +1,4 @@
+"fewshot_split": "default"
+"include": "_default_template_yaml"
+"task": "belebele_default"
+"test_split": "default"

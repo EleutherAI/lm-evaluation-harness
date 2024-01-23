@@ -118,7 +118,7 @@ class TaskConfig(dict):
     def __setitem__(self, item, value):
         return setattr(self, item, value)
 
-    def to_dict(self):
+    def to_dict(self, keep_callable=False):
         """dumps the current config as a dictionary object, as a printable format.
         null fields will not be printed.
         Used for dumping results alongside full task configuration
@@ -134,8 +134,11 @@ class TaskConfig(dict):
             if v is None:
                 cfg_dict.pop(k)
             elif isinstance(v, Callable):
-                # TODO: this should handle Promptsource template objects as a separate case?
-                cfg_dict[k] = str(v)
+                if keep_callable:
+                    cfg_dict[k] = v
+                else:
+                    # TODO: this should handle Promptsource template objects as a separate case?
+                    cfg_dict[k] = str(v)
         return cfg_dict
 
 
@@ -527,6 +530,10 @@ class ConfigurableTask(Task):
                 "Must pass a config to ConfigurableTask, either in cls.CONFIG or `config` kwarg"
             )
 
+        if isinstance(self.config.metadata, dict):
+            if "version" in self.config.metadata:
+                self.VERSION = self.config.metadata["version"]
+
         if self.config.output_type is not None:
             assert self.config.output_type in ALL_OUTPUT_TYPES
             self.OUTPUT_TYPE = self.config.output_type
@@ -755,6 +762,8 @@ class ConfigurableTask(Task):
 
     def fewshot_docs(self):
         if self.config.fewshot_split is not None:
+            if self.config.process_docs is not None:
+                return self.config.process_docs(self.dataset[self.config.fewshot_split])
             return self.dataset[self.config.fewshot_split]
         else:
             if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
@@ -1131,27 +1140,36 @@ class ConfigurableTask(Task):
                         # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
                         # print(gold)
                         gold = [gold]
-                    for gold_option in gold:
-                        try:
-                            result_score = self._metric_fn_list[metric](
-                                references=[gold_option],
-                                predictions=[result],
-                                **self._metric_fn_kwargs[metric],
-                            )
-                        except (
-                            TypeError
-                        ):  # TODO: this is hacky and I don't want to do it
-                            result_score = self._metric_fn_list[metric](
-                                [gold_option, result]
-                            )
-                        if isinstance(result_score, dict):
-                            # TODO: this handles the case where HF evaluate returns a dict.
-                            result_score = result_score[metric]
-                        scores.append(result_score)
-                    if any(scores):
-                        result_score = 1.0
+                    if metric == "exact_match":
+                        result = [result for _ in range(len(gold))]
+                        scores = self._metric_fn_list[metric](
+                            references=gold,
+                            predictions=result,
+                            **self._metric_fn_kwargs[metric],
+                        )[metric]
+                        result_score = 1.0 if scores > 0.0 else 0.0
                     else:
-                        result_score = 0.0
+                        for gold_option in gold:
+                            try:
+                                result_score = self._metric_fn_list[metric](
+                                    references=[gold_option],
+                                    predictions=[result],
+                                    **self._metric_fn_kwargs[metric],
+                                )
+                            except (
+                                TypeError
+                            ):  # TODO: this is hacky and I don't want to do it
+                                result_score = self._metric_fn_list[metric](
+                                    [gold_option, result]
+                                )
+                            if isinstance(result_score, dict):
+                                # TODO: this handles the case where HF evaluate returns a dict.
+                                result_score = result_score[metric]
+                            scores.append(result_score)
+                        if any(scores):
+                            result_score = 1.0
+                        else:
+                            result_score = 0.0
                 else:
                     try:
                         result_score = self._metric_fn_list[metric](

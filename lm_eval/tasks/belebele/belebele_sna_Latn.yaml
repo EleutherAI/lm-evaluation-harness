@@ -1,3 +1,4 @@
-"dataset_name": "sna_Latn"
+"fewshot_split": "sna_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_sna_Latn"
+"test_split": "sna_Latn"

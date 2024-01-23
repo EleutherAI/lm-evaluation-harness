@@ -1,3 +1,4 @@
-"dataset_name": "srp_Cyrl"
+"fewshot_split": "srp_Cyrl"
 "include": "_default_template_yaml"
 "task": "belebele_srp_Cyrl"
+"test_split": "srp_Cyrl"
