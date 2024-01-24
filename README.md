@@ -107,19 +107,6 @@ The full list of supported arguments are provided [here](./docs/interface.md), a
 > [!Note]
 > Just like you can provide a local path to `transformers.AutoModel`, you can also provide a local path to `lm_eval` via `--model_args pretrained=/path/to/model`
 
-### OpenVINO Models Converted via HuggingFace Optimum
-
-In order to use Optimum Intel which optimizes Transformer models and convert them to \
-OpenVINO™ Intermediate Representation (IR) format to accelerate end-to-end pipelines on \
-Intel® architectures, you can call `openvino-causal`. Optimum currently only supports causal models.
-
-```bash
-lm_eval --model openvino-causal\
-    --model_args pretrained=EleutherAI/pythia-160m,dtype=float32\
-    --task lambada_openai\
-    --device cpu
-```
-
 #### Multi-GPU Evaluation with Hugging Face `accelerate`
 
 We support two main ways of using Hugging Face's [accelerate 🚀](https://github.com/huggingface/accelerate) library for multi-GPU evaluation.
@@ -202,8 +189,8 @@ Note that for externally hosted models, configs such as `--device` and `--batch_
 | [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)) | :heavy_check_mark:              | `gguf`, `ggml`                                                      | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)                   | `generate_until`, `loglikelihood`, (perplexity evaluation not yet implemented) |
 | vLLM                                                                                                                      | :heavy_check_mark:       | `vllm`                                                              | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | Mamba                       | :heavy_check_mark:       | `mamba_ssm`                                                                      | [Mamba architecture Language Models via the `mamba_ssm` package](https://huggingface.co/state-spaces) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
-| Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions` (using `openai-chat-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's ChatCompletions interface                                  | `generate_until`                                           |                                | ...                |
-| `local-completions` (using `openai-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's Completions interface                                  | `generate_until`                                           |                                | ...                                                      |
+| Huggingface Optimum (Causal LMs)    | ✔️         | `openvino-causal`                                 |     Any decoder-only AutoModelForCausalLM converted with Huggingface Optimum into OpenVINO™ Intermediate Representation (IR) format                           |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
+| Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions` (using `openai-chat-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's Completions or ChatCompletions interface                                  | `generate_until`                                           |                                | ...                |
 
 Models which do not supply logits or logprobs can be used with tasks of type `generate_until` only, while local models, or APIs that supply logprobs/logits of their prompts, can be run on all task types: `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
 
