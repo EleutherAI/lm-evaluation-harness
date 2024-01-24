@@ -58,6 +58,7 @@ We also provide a number of optional dependencies for extended functionality. Ex
 | math          | For running math task answer checking |
 | multilingual  | For multilingual tokenizers           |
 | openai        | For using OpenAI's models             |
+| optimum       | For running Intel OpenVINO models     |
 | promptsource  | For using PromptSource prompts        |
 | sentencepiece | For using the sentencepiece tokenizer |
 | testing       | For running library test suite        |
