@@ -85,9 +85,9 @@ class WSCPostprocess(Filter):
 
     def apply(self, resps, docs):
         filtered_resps = []
-        for prediction, reference in zip(*(resps, docs["span1_text"])):
+        for prediction, reference in zip(*(resps, docs)):
             prediction = self.clean(prediction[0])
-            reference = self.clean(reference)
+            reference = self.clean(reference["span1_text"])
 
             if ("'" in prediction) != ("'" in reference):
                 # referent is "Bob's hat" as predicting the referent.
