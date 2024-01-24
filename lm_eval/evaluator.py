@@ -158,11 +158,16 @@ def simple_evaluate(
     )
 
     if lm.rank == 0:
+        if isinstance(model, str):
+            model_name = model
+        elif hasattr(model, "config") and hasattr(model.config, "_name_or_path"):
+            model_name = model.config._name_or_path
+        else:
+            model_name = type(model).__name__
+
         # add info about the model and few shot config
         results["config"] = {
-            "model": model
-            if isinstance(model, str)
-            else model.model.config._name_or_path,
+            "model": model_name,
             "model_args": model_args,
             "batch_size": batch_size,
             "batch_sizes": list(lm.batch_sizes.values())
@@ -399,7 +404,7 @@ def evaluate(
             if type(items[0]) == tuple:
                 numitem = len(items[0])
 
-            if isinstance(items[0], (str, list)):
+            if isinstance(items[0], (str, list, tuple)):
                 # handle the string case
                 gathered_items = [None] * lm.accelerator.num_processes
                 torch.distributed.all_gather_object(gathered_items, items)
@@ -492,10 +497,13 @@ def evaluate(
                         ]:
                             stderr = "_stderr,".join(metric.split(","))
                             stderr_score = results[task][stderr]
-                            var_score = stderr_score**2
-                            metric_score = results[task][metric]
+                            if stderr_score == "N/A":
+                                var_score = "N/A"
+                            else:
+                                var_score = stderr_score**2
+                                all_stderr.append(stderr)
 
-                            all_stderr.append(stderr)
+                            metric_score = results[task][metric]
 
                             if metric in results[group]:
                                 results[group][metric] = (
@@ -503,15 +511,20 @@ def evaluate(
                                     + metric_score * current_size
                                 ) / (total_size + current_size)
                                 # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                                results[group][stderr] = (
-                                    (total_size - 1) * results[group][stderr]
-                                    + (current_size - 1) * var_score
-                                ) / (
-                                    total_size + current_size - 1
-                                ) + total_size * current_size / (
-                                    (total_size + current_size)
-                                    * (total_size + current_size - 1)
-                                ) * (results[group][metric] - metric_score) ** 2
+                                if var_score == "N/A":
+                                    results[group][stderr] = "N/A"
+                                else:
+                                    results[group][stderr] = (
+                                        (total_size - 1) * results[group][stderr]
+                                        + (current_size - 1) * var_score
+                                    ) / (
+                                        total_size + current_size - 1
+                                    ) + total_size * current_size / (
+                                        (total_size + current_size)
+                                        * (total_size + current_size - 1)
+                                    ) * (
+                                        results[group][metric] - metric_score
+                                    ) ** 2
                             else:
                                 results[group][metric] = metric_score
                                 results[group][stderr] = var_score
