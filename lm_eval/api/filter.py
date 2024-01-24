@@ -46,6 +46,7 @@ class FilterEnsemble:
         resps = [
             inst.resps for inst in instances
         ]  # operate just on the model responses
+        docs = [inst.doc for inst in instances]
         for f in self.filters:
             # apply filters in sequence
             resps = f.apply(resps, docs)
