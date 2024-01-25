@@ -1,12 +1,11 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List
-
-from datasets import Dataset
 
 from lm_eval.api.instance import Instance
 
 
-class Filter:
+class Filter(ABC):
     """
     Filter classes operate on a per-task level.
     They take all model outputs (`instance.resps` for all `task.instances`)
@@ -20,6 +19,7 @@ class Filter:
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
+    @abstractmethod
     def apply(self, resps, docs):
         """
         Defines the operation to perform on a list of the `inst.resps` properties of `Instance` objects.
@@ -42,10 +42,10 @@ class FilterEnsemble:
     name: str
     filters: List[Filter]
 
-    def apply(self, instances: List[Instance], docs: List[Dataset]) -> None:
-        resps = [
-            inst.resps for inst in instances
-        ]  # operate just on the model responses
+    def apply(self, instances: List[Instance]) -> None:
+        resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
+        resps, docs = list(resps), list(docs)
+
         for f in self.filters:
             # apply filters in sequence
             resps = f.apply(resps, docs)
