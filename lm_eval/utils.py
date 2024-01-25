@@ -472,37 +472,37 @@ def get_git_commit_hash():
     return git_hash
 
 
-def simple_load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
-    def ignore_constructor(loader, node):
-        return node
+def ignore_constructor(loader, node):
+    return node
 
-    yaml.add_constructor("!function", ignore_constructor)
-    with open(yaml_path, "rb") as file:
-        yaml_config = yaml.full_load(file)
-    return yaml_config
+def import_function(loader, node):
+    function_name = loader.construct_scalar(node)
+    yaml_path = os.path.dirname(loader.name)
+
+    *module_name, function_name = function_name.split(".")
+    if isinstance(module_name, list):
+        module_name = ".".join(module_name)
+    module_path = os.path.normpath(
+        os.path.join(yaml_path, "{}.py".format(module_name))
+    )
+
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    function = getattr(module, function_name)
+    return function
 
 
-def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
-    def import_function(loader, node):
-        function_name = loader.construct_scalar(node)
-        yaml_path = os.path.dirname(loader.name)
+def load_yaml_config(mode="simple", yaml_path=None, yaml_config=None, yaml_dir=None):
 
-        *module_name, function_name = function_name.split(".")
-        if isinstance(module_name, list):
-            module_name = ".".join(module_name)
-        module_path = os.path.normpath(
-            os.path.join(yaml_path, "{}.py".format(module_name))
-        )
-
-        spec = importlib.util.spec_from_file_location(module_name, module_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        function = getattr(module, function_name)
-        return function
+    if mode == "simple":
+        constuctor_fn = ignore_constructor
+    elif mode == "full":
+        constuctor_fn = import_function
 
     # Add the import_function constructor to the YAML loader
-    yaml.add_constructor("!function", import_function)
+    yaml.add_constructor("!function", constuctor_fn)
     if yaml_config is None:
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.full_load(file)
@@ -530,7 +530,7 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
                 path = os.path.join(yaml_dir, path)
 
             try:
-                included_yaml_config = load_yaml_config(path)
+                included_yaml_config = load_yaml_config(mode=mode, yaml_path=path)
                 final_yaml_config.update(included_yaml_config)
             except Exception as ex:
                 # If failed to load, ignore
