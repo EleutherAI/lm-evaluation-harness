@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import sys
+import copy
 from pathlib import Path
 from typing import Union
 
@@ -13,6 +14,7 @@ from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
 from lm_eval.tasks import include_path, initialize_tasks
 from lm_eval.utils import make_table
+from lm_eval.api.wandb import log_eval_result
 
 
 def _handle_non_serializable(o):
@@ -263,50 +265,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
         # Add W&B logic
         if args.wandb_args:
-            import wandb
-            # get wandb args
             wandb_args_dict = utils.simple_parse_args_string(args.wandb_args)
-
-            # get results and task names
-            _wandb_results = results["results"]
-            task_names = list(_wandb_results.keys())
-
-            # get configs to be logged to wandb
-            configs = results["config"]
-            task_configs = results["configs"]
-            configs.update(task_configs)
-
-            # initialize a W&B run
-            run = wandb.init(config=configs, **wandb_args_dict)
-
-            # remove string valued keys from the results dict
-            wandb_summary = {}
-            for task_name in task_names:
-                task_result = _wandb_results[task_name]
-                for k, v in task_result.items():
-                    if isinstance(v, str):
-                        wandb_summary[f"{task_name}/{k}"] = v
-            for k, v in wandb_summary.items():
-                _task, _k = k.split("/")
-                _wandb_results[_task].pop(_k)
-
-            # update wandb.run.summary with items that were removed
-            run.summary.update(wandb_summary)
-
-            # the following will create a nested panel in the UI
-            wandb_results = {}
-            for task_name, task_results in _wandb_results.items():
-                for k, v in task_results.items():
-                    wandb_results[f"{task_name}/{k}"] = v
-
-            # Log the evaluation metrics to wandb
-            wandb.log(wandb_results)
-
-            if args.log_samples:
-                print(type(samples))
-                print(samples)
-
-
+            wandb_results = copy.deepcopy(results)
+            log_eval_result(wandb_args_dict, wandb_results)
 
         if args.output_path:
             output_path_file.open("w").write(dumped)
