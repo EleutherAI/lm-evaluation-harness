@@ -29,7 +29,9 @@ def get_filter(filter_name):
         return filter_name
 
 
-def build_filter_ensemble(filter_name: str, components: List) -> FilterEnsemble:
+def build_filter_ensemble(
+    filter_name: str, components: List[List[str]]
+) -> FilterEnsemble:
     """
     Create a filtering pipeline.
     """
