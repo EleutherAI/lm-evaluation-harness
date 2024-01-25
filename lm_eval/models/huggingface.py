@@ -705,6 +705,9 @@ class HFLM(LM):
                 return self.model(inps).logits
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
+        do_sample = kwargs.pop("do_sample", None)
+        if do_sample is False and "temperature" not in kwargs:
+            kwargs["temperature"] = 0.0
         # build stopping criteria
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, context.shape[1], context.shape[0]
