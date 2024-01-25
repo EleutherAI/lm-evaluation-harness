@@ -82,7 +82,7 @@ def clean(s: str) -> str:
     return " ".join([w for w in s.split(" ") if w not in DETERMINERS])
 
 
-def apply(docs: dict, resps: List):
+def process_results(docs: dict, resps: List):
     prediction = clean(resps[0])
     reference = clean(docs["span1_text"])
 
