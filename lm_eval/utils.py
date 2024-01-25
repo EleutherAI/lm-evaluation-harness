@@ -475,6 +475,7 @@ def get_git_commit_hash():
 def ignore_constructor(loader, node):
     return node
 
+
 def import_function(loader, node):
     function_name = loader.construct_scalar(node)
     yaml_path = os.path.dirname(loader.name)
@@ -482,9 +483,7 @@ def import_function(loader, node):
     *module_name, function_name = function_name.split(".")
     if isinstance(module_name, list):
         module_name = ".".join(module_name)
-    module_path = os.path.normpath(
-        os.path.join(yaml_path, "{}.py".format(module_name))
-    )
+    module_path = os.path.normpath(os.path.join(yaml_path, "{}.py".format(module_name)))
 
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     module = importlib.util.module_from_spec(spec)
@@ -495,7 +494,6 @@ def import_function(loader, node):
 
 
 def load_yaml_config(mode="simple", yaml_path=None, yaml_config=None, yaml_dir=None):
-
     if mode == "simple":
         constuctor_fn = ignore_constructor
     elif mode == "full":
