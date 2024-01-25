@@ -1,3 +1,5 @@
+from typing import List
+
 from lm_eval.api.filter import FilterEnsemble
 from . import selection
 from . import extraction
@@ -27,7 +29,9 @@ def get_filter(filter_name):
         return filter_name
 
 
-def build_filter_ensemble(filter_name, components):
+def build_filter_ensemble(
+    filter_name: str, components: List[List[str]]
+) -> FilterEnsemble:
     """
     Create a filtering pipeline.
     """
