@@ -165,10 +165,9 @@ class TaskManager(abc.ABC):
                 group_name = name_or_config["group"]
                 subtask_list = name_or_config["task"]
 
-        if (self._name_is_registered(group_name) is False) or (self._get_yaml_path(group_name) == -1):
+        all_subtasks = {}
+        if (parent_name is not None) and ((self._name_is_registered(group_name) is False) or (self._get_yaml_path(group_name) == -1)):
             all_subtasks = {group_name: (parent_name, None)}
-        else:
-            all_subtasks = {}
 
         fn = partial(self._load_individual_task_or_group, parent_name=group_name, update_config=update_config)
         all_subtasks = {**all_subtasks, **dict(collections.ChainMap(*map(fn, subtask_list)))}

@@ -40,6 +40,7 @@ ALL_OUTPUT_TYPES = [
 
 eval_logger = logging.getLogger("lm-eval")
 
+
 @dataclass
 class GroupConfig(dict):
     group: str = None
