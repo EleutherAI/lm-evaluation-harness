@@ -70,7 +70,8 @@ class TaskManager(abc.ABC):
         return False
 
     def _name_is_task(self, name):
-        if self._name_is_registered(name) and ("task" in self.ALL_TASKS[name]["type"]):
+        # if self._name_is_registered(name) and ("task" in self.ALL_TASKS[name]["type"]):
+        if "task" in self.ALL_TASKS[name]["type"]:
             return True
         return False
 
@@ -109,8 +110,8 @@ class TaskManager(abc.ABC):
             update_config: dict = None
         ) -> ConfigurableTask:
 
-        def load_task(config, task, group=None, is_python_class=False):
-            if is_python_class:
+        def load_task(config, task, group=None):
+            if self._config_is_python_task(config):
                 task_object = config["class"]()
             else:
                 task_object = ConfigurableTask(config=config)
@@ -124,10 +125,7 @@ class TaskManager(abc.ABC):
                 name_or_config = {"task": name_or_config, **update_config}
             elif self._name_is_task(name_or_config):
                 task_config = self._get_config(name_or_config)
-                is_python_class=False
-                if self._name_is_python_task(name_or_config):
-                    is_python_class=True
-                return load_task(task_config, task=name_or_config, group=parent_name, is_python_class=is_python_class)
+                return load_task(task_config, task=name_or_config, group=parent_name)
             else:
                 group_name = name_or_config
                 subtask_list = self._get_tasklist(name_or_config)
@@ -145,22 +143,22 @@ class TaskManager(abc.ABC):
             if self._config_is_task(name_or_config):
                 name = name_or_config["task"]
                 # If the name is registered as a group
-                if self._name_is_task(name) is False:
-                    group_name = name
-                    update_config = {k:v for k,v in name_or_config.items() if k != "task"}
-                    subtask_list = self._get_tasklist(name)
-                    if subtask_list == -1:
-                        subtask_list = self._get_config(name)["task"]
-                else:
-                    if self._name_is_registered(name):
+                if self._name_is_registered(name):
+                    if self._name_is_task(name) is False:
+                        group_name = name
+                        update_config = {k:v for k,v in name_or_config.items() if k != "task"}
+                        subtask_list = self._get_tasklist(name)
+                        if subtask_list == -1:
+                            subtask_list = self._get_config(name)["task"]
+                    else:
                         base_task_config = self._get_config(name)
                         task_config={
                                 **base_task_config,
                                 **name_or_config,
                             }
-                    else:
-                        task_config = name_or_config
-                    return load_task(task_config, task=name, group=parent_name)
+                else:
+                    task_config = name_or_config
+                return load_task(task_config, task=name, group=parent_name)
             else:
                 group_name = name_or_config["group"]
                 subtask_list = name_or_config["task"]
@@ -213,6 +211,9 @@ class TaskManager(abc.ABC):
                                         # when called.
                             "yaml_path": yaml_path,
                         }
+
+                        # for task in config["task"]:
+                        #     if "task"
                     else:
                         # This is a task config
                         task = config["task"]
