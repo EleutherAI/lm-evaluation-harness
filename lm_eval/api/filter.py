@@ -43,10 +43,9 @@ class FilterEnsemble:
     filters: List[Filter]
 
     def apply(self, instances: List[Instance]) -> None:
-        resps = [
-            inst.resps for inst in instances
-        ]  # operate just on the model responses
-        docs = [inst.doc for inst in instances]
+        resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
+        resps, docs = list(resps), list(docs)
+
         for f in self.filters:
             # apply filters in sequence
             resps = f.apply(resps, docs)
