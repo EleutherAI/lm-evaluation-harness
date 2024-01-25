@@ -1,0 +1,18 @@
+dataset_path: hails/mmlu_no_train
+test_split: test
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+output_type: generate_until
+doc_to_text: !function ../../../styles.template_05
+doc_to_target: !function ../../../styles.target_05a
+generation_kwargs:
+  until:
+    - "</s>"
+    - "<0x0A>"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

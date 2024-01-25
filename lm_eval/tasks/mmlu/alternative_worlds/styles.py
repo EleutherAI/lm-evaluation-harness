@@ -14,11 +14,12 @@ def doc_to_text_base(alphabet, style, doc):
     else:
         choice_string = "{} {}"
 
-    doc_to_text = "\n\n".join(
+    doc_to_text = "\n".join(
         [
-            "Question: " + doc["question"].strip() + "\nAnswer:",
+            "Question: " + doc["question"].strip()
         ]
-        + [choice_string.format(i, j) for i, j in zip(letter_list, choices)]
+        + [" ".join(choice_string.format(i, j) for i, j in zip(letter_list, choices))]
+        + ["Answer:"]
     )
 
     return doc_to_text
@@ -28,6 +29,8 @@ def doc_to_text_base(alphabet, style, doc):
 def choice_A(doc):
     return doc["choices"]
 
+def answer_A(doc):
+    return doc["choices"][doc["answer"]]
 
 # Letters only
 def choice_B(alphabet, style, doc):
@@ -41,6 +44,16 @@ def choice_B(alphabet, style, doc):
 
     return letter_list
 
+def answer_B(alphabet, style, doc):
+
+    choices = doc["choices"]
+    num = len(choices)
+
+    letter_list = [style.format(letter) for letter in alphabet[0:num]]
+    if "\t" in style:
+        letter_list = [letter.replace("\t", "") for letter in letter_list]
+
+    return letter_list[doc["answer"]]
 
 # Letters + Full continuation
 def choice_C(alphabet, style, doc):
@@ -53,6 +66,17 @@ def choice_C(alphabet, style, doc):
         letter_list = [letter + " " for letter in letter_list]
 
     return [letter + choice for letter, choice in zip(letter_list, choices)]
+
+def answer_C(alphabet, style, doc):
+
+    choices = doc["choices"]
+    num = len(choices)
+
+    letter_list = [style.format(letter) for letter in alphabet[0:num]]
+    if "\t" not in style:
+        letter_list = [letter + " " for letter in letter_list]
+
+    return [letter + choice for letter, choice in zip(letter_list, choices)][doc["answer"]]
 
 
 template_01 = partial(doc_to_text_base, string.ascii_lowercase, "({})")
@@ -72,6 +96,7 @@ choice_04a = choice_A
 choice_04b = partial(choice_B, string.ascii_lowercase, "{}\t")
 choice_04c = partial(choice_C, string.ascii_lowercase, "{}\t")
 template_05 = partial(doc_to_text_base, string.ascii_uppercase, "({})")
+target_05a = answer_A
 choice_05a = choice_A
 choice_05b = partial(choice_B, string.ascii_uppercase, "({})")
 choice_05c = partial(choice_C, string.ascii_uppercase, "({})")

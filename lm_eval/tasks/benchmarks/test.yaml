@@ -1,0 +1,13 @@
+group: grouptest
+task:
+  - boolq
+  - group: arc_stuff
+    task:
+      - arc_challenge
+      - glue
+      - task: arc_easy
+        metric_list:
+          - metric: acc
+        num_fewshot: 3
+  # - task: mmlu
+  #   num_fewshot: 2

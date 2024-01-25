@@ -1,0 +1,8 @@
+"dataset_name": "nutrition"
+"description": "The following are multiple choice questions (with answers) about nutrition.\n\
+  \n"
+"group": "mmlu_other_generative"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "mmlu_nutrition_generative"
+"task_alias": "nutrition"

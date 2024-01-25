@@ -1,6 +1,0 @@
-include: ../_boolq_alt_ov_yaml
-group: boolq_alt_ov_02
-task: boolq_alt_ov_02c
-doc_to_text: !function ../styles.template_02
-doc_to_choice: !function ../styles.choice_02c
-doc_to_decontamination_query: !function ../styles.template_02

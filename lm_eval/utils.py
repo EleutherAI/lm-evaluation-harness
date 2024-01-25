@@ -497,11 +497,20 @@ def import_function(loader, node):
     return function
 
 
-# Add the import_function constructor to the YAML loader
-yaml.add_constructor("!function", import_function)
+def ignore_constructor(loader, node):
+    return node
+
+
+def simple_load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
+    yaml.add_constructor("!function", ignore_constructor)
+    with open(yaml_path, "rb") as file:
+        yaml_config = yaml.full_load(file)
+    return yaml_config
 
 
 def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
+    # Add the import_function constructor to the YAML loader
+    yaml.add_constructor("!function", import_function)
     if yaml_config is None:
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.full_load(file)

@@ -38,6 +38,7 @@ def simple_evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     gen_kwargs: str = None,
+    weight_by_size: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -46,8 +47,8 @@ def simple_evaluate(
     :param model_args: Optional[str]
         String arguments for each model class, see LM.create_from_arg_string.
         Ignored if `model` argument is a LM object.
-    :param tasks: list[Union[str, Task]]
-        List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
+    :param tasks: list[Task]
+        List of Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param num_fewshot: int
         Number of examples in few-shot context
     :param batch_size: int or str, optional
@@ -119,7 +120,7 @@ def simple_evaluate(
             + ".db",
         )
 
-    task_dict = lm_eval.tasks.get_task_dict(tasks)
+    task_dict = tasks
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
         if type(task_obj) == tuple:
@@ -155,6 +156,7 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
+        weight_by_size=weight_by_size,
     )
 
     if lm.rank == 0:
@@ -192,6 +194,7 @@ def evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
+    weight_by_size: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -479,12 +482,14 @@ def evaluate(
                         if "alias" in metrics:
                             metrics.pop("alias")
 
-                        current_size = metrics.pop("samples")
                         # TODO: There should be a way for users
                         #       to toggle between weighted and
                         #       unweighted averaging
-                        # For unweighted averaging, use:
-                        #     current_size = 1
+                        if weight_by_size:
+                            current_size = metrics.pop("samples")
+                        else:
+                            metrics.pop("samples")
+                            current_size = 1
 
                         # TODO: Tasks like brier score for individual
                         # tasks have no stderr since the score is

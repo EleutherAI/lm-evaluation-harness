@@ -1,0 +1,6 @@
+"dataset_name": "astronomy"
+"description": "The following are multiple choice questions (with answers) about astronomy.\n\
+  \n"
+"group": "mmlu_alt_ov_05a_stem_generative"
+"include": "_template_yaml"
+"task": "mmlu_alt_ov_05a_astronomy_generative"

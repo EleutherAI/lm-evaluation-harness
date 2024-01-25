@@ -10,8 +10,7 @@ from typing import Union
 import numpy as np
 
 from lm_eval import evaluator, utils
-from lm_eval.api.registry import ALL_TASKS
-from lm_eval.tasks import include_path, initialize_tasks
+from lm_eval.tasks import TaskManager
 from lm_eval.utils import make_table
 
 
@@ -156,44 +155,46 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-    initialize_tasks(args.verbosity)
+    # initialize_tasks(args.verbosity)
+    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
     if args.limit:
         eval_logger.warning(
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
-    if args.include_path is not None:
-        eval_logger.info(f"Including path: {args.include_path}")
-        include_path(args.include_path)
 
     if args.tasks is None:
-        task_names = ALL_TASKS
+        eval_logger.error("Need to specify task to evaluate.")
+        sys.exit()
     elif args.tasks == "list":
         eval_logger.info(
-            "Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS)))
+            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks()))
         )
-        sys.exit()
     else:
         if os.path.isdir(args.tasks):
             import glob
 
-            task_names = []
+            loaded_task_list = []
             yaml_path = os.path.join(args.tasks, "*.yaml")
             for yaml_file in glob.glob(yaml_path):
                 config = utils.load_yaml_config(yaml_file)
-                task_names.append(config)
+                loaded_task_list.append(config)
         else:
-            tasks_list = args.tasks.split(",")
-            task_names = utils.pattern_match(tasks_list, ALL_TASKS)
-            for task in [task for task in tasks_list if task not in task_names]:
+            input_task_list = args.tasks.split(",")
+            loaded_task_list = utils.pattern_match(
+                input_task_list, task_manager.all_tasks()
+            )
+            for task in [
+                task for task in input_task_list if task not in loaded_task_list
+            ]:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
-                    task_names.append(config)
+                    loaded_task_list.append(config)
             task_missing = [
                 task
-                for task in tasks_list
-                if task not in task_names and "*" not in task
+                for task in input_task_list
+                if task not in loaded_task_list and "*" not in task
             ]  # we don't want errors if a wildcard ("*") task name was used
 
             if task_missing:
@@ -226,12 +227,15 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     elif args.log_samples and not args.output_path:
         assert args.output_path, "Specify --output_path"
 
-    eval_logger.info(f"Selected Tasks: {task_names}")
+    eval_logger.info(f"Selected Tasks: {loaded_task_list}")
+    eval_logger.info("Loading selected tasks...")
+
+    all_tasks = task_manager.load_task_or_group(loaded_task_list)
 
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
-        tasks=task_names,
+        tasks=all_tasks,
         num_fewshot=args.num_fewshot,
         batch_size=args.batch_size,
         max_batch_size=args.max_batch_size,

@@ -1,0 +1,6 @@
+group: mmlu_alt_ov_05a_generative
+task:
+  - mmlu_alt_ov_05a_stem_generative
+  - mmlu_alt_ov_05a_other_generative
+  - mmlu_alt_ov_05a_social_sciences_generative
+  - mmlu_alt_ov_05a_humanities_generative
