@@ -252,6 +252,9 @@ Additionally, one can provide a directory with `--use_cache` to cache the result
 
 For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
 
+> [!Tip]
+> Running lm-evaluation-harness as an external library and can't find (almost) any tasks available? run `lm_eval.tasks.initialize_tasks()` to load the library's stock tasks before calling `lm_eval.evaluate()` or `lm_eval.simple_evaluate()` !
+
 ## Visualizing Results
 
 You can use [Zeno](https://zenoml.com) to visualize the results of your eval harness runs.
