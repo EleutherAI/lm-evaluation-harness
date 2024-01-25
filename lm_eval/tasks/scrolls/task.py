@@ -224,9 +224,10 @@ class _SCROLLSMultipleChoiceTask(_SCROLLSTask):
     def process_results(self, doc, results):
         gold = doc["gold"]
 
-        acc = 1.0 if np.argmax(results) == gold else 0.0
+        lls, _ = zip(*results)
+        acc = 1.0 if np.argmax(lls) == gold else 0.0
         completion_len = np.array([float(len(i)) for i in doc["choices"]])
-        acc_norm = 1.0 if np.argmax(results / completion_len) == gold else 0.0
+        acc_norm = 1.0 if np.argmax(lls / completion_len) == gold else 0.0
 
         return {
             "acc": acc,
