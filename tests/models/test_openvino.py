@@ -1,6 +1,5 @@
 import os
 import tempfile
-import lm_eval.base as base
 import lm_eval.tasks as tasks
 import lm_eval.models as models
 import lm_eval.evaluator as evaluator
