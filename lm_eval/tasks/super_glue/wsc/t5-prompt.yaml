@@ -10,7 +10,6 @@ doc_to_text: !function "t5_utils.doc_to_text"
 process_results: !function "t5_utils.process_results"
 doc_to_target: label
 generation_kwargs:
-  max_gen_toks: 10
   until:
     - "</s>"
 metric_list:
