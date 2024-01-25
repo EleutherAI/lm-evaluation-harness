@@ -4,7 +4,7 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
 
-@register_model("openvino-causal")
+@register_model("openvino")
 class OptimumLM(HFLM):
     """
     Optimum Intel provides a simple interface to optimize Transformer models and convert them to \
@@ -20,12 +20,12 @@ class OptimumLM(HFLM):
         
         if "backend" in kwargs:
             # optimum currently only supports causal models
-            assert kwargs["backend"] == "causal"
+            assert kwargs["backend"] == "causal", "Currently, only OVModelForCausalLM is supported."
 
         self.openvino_device = device
         
         super().__init__(
-            device = "cpu",
+            device = self.openvino_device,
             backend = kwargs.get("backend", "causal"),
             **kwargs,
         )
