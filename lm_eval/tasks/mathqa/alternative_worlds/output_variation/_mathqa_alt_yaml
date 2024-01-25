@@ -1,0 +1,10 @@
+dataset_path: math_qa
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_target: "{{['a', 'b', 'c', 'd', 'e'].index(correct)}}"
+metric_list:
+  - metric: acc
+  - metric: acc_norm
+  - metric: brier_score

@@ -1,0 +1,5 @@
+group: mmlu_alt_ov_03
+task:
+  - mmlu_alt_ov_03a
+  - mmlu_alt_ov_03b
+  - mmlu_alt_ov_03c

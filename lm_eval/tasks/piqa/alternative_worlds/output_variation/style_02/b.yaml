@@ -1,0 +1,6 @@
+include: ../_piqa_alt_ov_yaml
+group: piqa_alt_ov_02
+task: piqa_alt_ov_02b
+doc_to_text: !function ../styles.template_02
+doc_to_choice: !function ../styles.choice_02b
+doc_to_decontamination_query: !function ../styles.template_02

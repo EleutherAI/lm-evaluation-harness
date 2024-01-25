@@ -1,0 +1,6 @@
+group: mmlu_alt_pv_02
+task:
+  - mmlu_alt_pv_02_stem
+  - mmlu_alt_pv_02_other
+  - mmlu_alt_pv_02_social_sciences
+  - mmlu_alt_pv_02_humanities

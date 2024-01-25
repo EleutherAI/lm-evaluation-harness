@@ -1,0 +1,10 @@
+group: siqa_alt_ov
+task:
+  - siqa_alt_ov_01
+  - siqa_alt_ov_02
+  - siqa_alt_ov_03
+  - siqa_alt_ov_04
+  - siqa_alt_ov_05
+  - siqa_alt_ov_06
+  - siqa_alt_ov_07
+  - siqa_alt_ov_08

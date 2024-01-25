@@ -1,0 +1,5 @@
+group: bbh_alt_pv_zeroshot
+task:
+  - bbh_alt_pv_01_zeroshot
+  - bbh_alt_pv_02_zeroshot
+  - bbh_alt_pv_03_zeroshot

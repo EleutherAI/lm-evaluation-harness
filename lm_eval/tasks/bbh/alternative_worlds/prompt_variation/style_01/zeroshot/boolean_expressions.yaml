@@ -1,0 +1,6 @@
+"dataset_name": "boolean_expressions"
+"description": "Evaluate the result of a random Boolean expression.\n\n"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_alt_pv_01_zeroshot_boolean_expressions"
+"doc_to_target": target
+"doc_to_choice": ["True", "False"]

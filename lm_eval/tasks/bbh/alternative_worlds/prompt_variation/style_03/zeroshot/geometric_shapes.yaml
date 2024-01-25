@@ -1,0 +1,4 @@
+"dataset_name": "geometric_shapes"
+"description": "Name geometric shapes from their SVG paths.\n\n"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_alt_pv_03_zeroshot_geometric_shapes"

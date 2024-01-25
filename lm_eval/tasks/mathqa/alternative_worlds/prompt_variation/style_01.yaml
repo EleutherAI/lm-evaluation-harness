@@ -1,0 +1,16 @@
+group: mathqa_alt_pv
+task: mathqa_alt_pv_01
+dataset_path: math_qa
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "{{Problem}}"
+doc_to_target: "{{['a', 'b', 'c', 'd', 'e'].index(correct)}}"
+doc_to_choice: !function ../../utils.doc_to_choice
+should_decontaminate: true
+doc_to_decontamination_query: "{{Problem}}"
+metric_list:
+  - metric: acc
+  - metric: acc_norm
+  - metric: brier_score

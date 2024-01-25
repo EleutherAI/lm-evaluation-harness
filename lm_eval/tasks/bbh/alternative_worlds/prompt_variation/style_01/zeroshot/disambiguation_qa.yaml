@@ -1,0 +1,4 @@
+"dataset_name": "disambiguation_qa"
+"description": "Clarify the meaning of sentences with ambiguous pronouns.\n\n"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_alt_pv_01_zeroshot_disambiguation_qa"

@@ -1,0 +1,4 @@
+include: _template_03_yaml
+task: arithmetic_4ds_alt_03
+dataset_name: arithmetic_4ds
+task_alias: 4ds

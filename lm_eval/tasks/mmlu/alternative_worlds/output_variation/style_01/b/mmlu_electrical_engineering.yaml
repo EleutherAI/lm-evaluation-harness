@@ -1,0 +1,6 @@
+"dataset_name": "electrical_engineering"
+"description": "The following are multiple choice questions (with answers) about electrical\
+  \ engineering.\n\n"
+"group": "mmlu_alt_ov_01b_stem"
+"include": "_template_yaml"
+"task": "mmlu_alt_ov_01b_electrical_engineering"

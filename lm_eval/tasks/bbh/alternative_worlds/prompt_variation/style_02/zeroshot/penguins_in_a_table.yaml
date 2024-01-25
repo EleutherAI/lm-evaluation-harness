@@ -1,0 +1,4 @@
+"dataset_name": "penguins_in_a_table"
+"description": "Answer questions about a table of penguins and their attributes.\n\n"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_alt_pv_02_zeroshot_penguins_in_a_table"

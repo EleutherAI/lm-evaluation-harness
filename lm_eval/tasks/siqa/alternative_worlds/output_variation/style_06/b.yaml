@@ -1,0 +1,6 @@
+include: ../_siqa_alt_yaml
+group: siqa_alt_ov_06
+task: siqa_alt_ov_06b
+doc_to_text: !function ../styles.template_06
+doc_to_choice: !function ../styles.choice_06b
+doc_to_decontamination_query: !function ../styles.template_06

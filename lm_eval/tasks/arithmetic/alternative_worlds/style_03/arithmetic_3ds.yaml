@@ -1,0 +1,4 @@
+include: _template_03_yaml
+task: arithmetic_3ds_alt_03
+dataset_name: arithmetic_3ds
+task_alias: 3ds

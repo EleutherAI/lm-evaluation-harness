@@ -1,0 +1,6 @@
+"dataset_name": "web_of_lies"
+"description": "Evaluate a random boolean function expressed as a word problem.\n\n"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_alt_pv_02_zeroshot_web_of_lies"
+"doc_to_target": target
+"doc_to_choice": ["Yes", "No"]
