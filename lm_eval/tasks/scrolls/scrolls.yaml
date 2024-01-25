@@ -1,16 +1,16 @@
 group: scrolls
 task:
-  # - task: scrolls_qasper
-  #   class: !function task.Qasper
+  - task: scrolls_qasper
+    class: !function task.Qasper
   - task: scrolls_quality
     class: !function task.QuALITY
-  # - scrolls_narrativeqa
-  #   class: !function task.NarrativeQA
-  # - scrolls_contractnli
-  #   class: !function task.ContractNLI
-  # - scrolls_govreport
-  #   class: !function task.GovReport
-  # - scrolls_summscreenfd
-  #   class: !function task.SummScreenFD
-  # - scrolls_qmsum
-  #   class: !function task.QMSum
+  - task: scrolls_narrativeqa
+    class: !function task.NarrativeQA
+  - task: scrolls_contractnli
+    class: !function task.ContractNLI
+  - task: scrolls_govreport
+    class: !function task.GovReport
+  - task: scrolls_summscreenfd
+    class: !function task.SummScreenFD
+  - task: scrolls_qmsum
+    class: !function task.QMSum

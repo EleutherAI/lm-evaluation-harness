@@ -279,7 +279,6 @@ class _SCROLLSSummaryTask(_SCROLLSTask):
         return f"{doc['input']}\n\nQuestion: What is a summary of the preceding text?\nAnswer:"
 
 
-# @register_task("scrolls_qasper")
 class Qasper(_SCROLLSTask):
     """A Dataset of Information-Seeking Questions and Answers Anchored in Research Papers
     https://arxiv.org/abs/2105.03011
@@ -337,7 +336,6 @@ class Qasper(_SCROLLSTask):
             )
 
 
-# @register_task("scrolls_quality")
 class QuALITY(_SCROLLSMultipleChoiceTask):
     """QuALITY: Question Answering with Long Input Texts, Yes!
     https://arxiv.org/abs/2112.08608
@@ -366,7 +364,6 @@ class QuALITY(_SCROLLSMultipleChoiceTask):
         return [doc]
 
 
-# @register_task("scrolls_narrativeqa")
 class NarrativeQA(_SCROLLSTask):
     """The NarrativeQA Reading Comprehension Challenge
     https://arxiv.org/abs/1712.07040
@@ -400,7 +397,6 @@ class NarrativeQA(_SCROLLSTask):
         )
 
 
-# @register_task("scrolls_contractnli")
 class ContractNLI(_SCROLLSMultipleChoiceTask):
     """ContractNLI: A Dataset for Document-level Natural Language Inference for Contracts
     https://arxiv.org/abs/1712.07040
@@ -419,7 +415,6 @@ class ContractNLI(_SCROLLSMultipleChoiceTask):
         return f"{doc['text']}\n\nHypothesis: {doc['question']}\nConclusion:"
 
 
-# @register_task("scrolls_govreport")
 class GovReport(_SCROLLSSummaryTask):
     """Efficient Attentions for Long Document Summarization
     https://arxiv.org/abs/2104.02112
@@ -433,7 +428,6 @@ class GovReport(_SCROLLSSummaryTask):
     DATASET_NAME = "gov_report"
 
 
-# @register_task("scrolls_summscreenfd")
 class SummScreenFD(_SCROLLSSummaryTask):
     """SummScreen: A Dataset for Abstractive Screenplay Summarization
     https://arxiv.org/abs/2104.07091
@@ -442,7 +436,6 @@ class SummScreenFD(_SCROLLSSummaryTask):
     DATASET_NAME = "summ_screen_fd"
 
 
-# @register_task("scrolls_qmsum")
 class QMSum(_SCROLLSSummaryTask):
     """QMSum: A New Benchmark for Query-based Multi-domain
     Meeting Summarization
