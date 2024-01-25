@@ -124,7 +124,7 @@ def simple_evaluate(
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
         if type(task_obj) == tuple:
-            group, task_obj = task_obj
+            _, task_obj = task_obj
             if task_obj is None:
                 continue
 
@@ -160,11 +160,16 @@ def simple_evaluate(
     )
 
     if lm.rank == 0:
+        if isinstance(model, str):
+            model_name = model
+        elif hasattr(model, "config") and hasattr(model.config, "_name_or_path"):
+            model_name = model.config._name_or_path
+        else:
+            model_name = type(model).__name__
+
         # add info about the model and few shot config
         results["config"] = {
-            "model": model
-            if isinstance(model, str)
-            else model.model.config._name_or_path,
+            "model": model_name,
             "model_args": model_args,
             "batch_size": batch_size,
             "batch_sizes": list(lm.batch_sizes.values())
@@ -482,10 +487,7 @@ def evaluate(
                         if "alias" in metrics:
                             metrics.pop("alias")
 
-                        # TODO: There should be a way for users
-                        #       to toggle between weighted and
-                        #       unweighted averaging
-                        if weight_by_size:
+                        if ("weight_by_size" in configs) and configs[task]["weight_by_size"]:
                             current_size = metrics.pop("samples")
                         else:
                             metrics.pop("samples")

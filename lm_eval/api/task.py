@@ -40,6 +40,21 @@ ALL_OUTPUT_TYPES = [
 
 eval_logger = logging.getLogger("lm-eval")
 
+@dataclass
+class GroupConfig(dict):
+    group: str = None
+    task: Union[str, list] = None
+    weight_by_size: bool = False
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+    def __setitem__(self, item, value):
+        return setattr(self, item, value)
+
+    def to_dict(self):
+        return asdict(self)
+
 
 @dataclass
 class TaskConfig(dict):
@@ -80,7 +95,7 @@ class TaskConfig(dict):
     filter_list: Union[str, list] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
-
+    weight_by_size: bool = False
     metadata: Union[
         str, list
     ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks

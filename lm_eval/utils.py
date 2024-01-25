@@ -480,28 +480,10 @@ def get_git_commit_hash():
     return git_hash
 
 
-def import_function(loader, node):
-    function_name = loader.construct_scalar(node)
-    yaml_path = os.path.dirname(loader.name)
-
-    *module_name, function_name = function_name.split(".")
-    if isinstance(module_name, list):
-        module_name = ".".join(module_name)
-    module_path = os.path.normpath(os.path.join(yaml_path, "{}.py".format(module_name)))
-
-    spec = importlib.util.spec_from_file_location(module_name, module_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-
-    function = getattr(module, function_name)
-    return function
-
-
-def ignore_constructor(loader, node):
-    return node
-
-
 def simple_load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
+    def ignore_constructor(loader, node):
+        return node
+
     yaml.add_constructor("!function", ignore_constructor)
     with open(yaml_path, "rb") as file:
         yaml_config = yaml.full_load(file)
@@ -509,6 +491,24 @@ def simple_load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
 
 
 def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
+    def import_function(loader, node):
+        function_name = loader.construct_scalar(node)
+        yaml_path = os.path.dirname(loader.name)
+
+        *module_name, function_name = function_name.split(".")
+        if isinstance(module_name, list):
+            module_name = ".".join(module_name)
+        module_path = os.path.normpath(
+            os.path.join(yaml_path, "{}.py".format(module_name))
+        )
+
+        spec = importlib.util.spec_from_file_location(module_name, module_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        function = getattr(module, function_name)
+        return function
+
     # Add the import_function constructor to the YAML loader
     yaml.add_constructor("!function", import_function)
     if yaml_config is None:

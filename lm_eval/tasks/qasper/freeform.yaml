@@ -1,6 +1,6 @@
 group: qasper
 task: qasper_freeform
-dataset_path: qasper
+dataset_path: allenai/qasper
 output_type: generate_until
 training_split: train
 validation_split: validation
