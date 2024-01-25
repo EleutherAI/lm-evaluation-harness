@@ -96,7 +96,7 @@ class TaskManager(abc.ABC):
     def _get_config(self, name):
         assert name in self.ALL_TASKS
         yaml_path = self._get_yaml_path(name)
-        return utils.load_yaml_config(yaml_path)
+        return utils.load_yaml_config("full", yaml_path)
 
     def _get_tasklist(self, name):
         assert self._name_is_task(name) == False
@@ -196,7 +196,7 @@ class TaskManager(abc.ABC):
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
-                    config = utils.simple_load_yaml_config(yaml_path)
+                    config = utils.load_yaml_config("simple", yaml_path)
                     if set(config.keys()) == set(PYTHON_TASK_KEYS):
                         # This is a python class config
                         tasks_and_groups[config["task"]] = {
