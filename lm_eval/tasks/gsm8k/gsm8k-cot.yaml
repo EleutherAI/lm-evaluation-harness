@@ -23,13 +23,14 @@ metric_list:
     ignore_punctuation: false
     regexes_to_ignore:
       - ","
+      - "\\.$"
       - "\\$"
       - "(?s).*#### "
       - "\n\n"
 generation_kwargs:
   until:
     - "Q:"
-    - "\n\n"
+    - "</s>"
   do_sample: false
 repeats: 1
 num_fewshot: 0
@@ -37,7 +38,7 @@ filter_list:
   - name: "get-answer"
     filter:
       - function: "regex"
-        regex_pattern: "The answer is (\\-?[0-9\\.\\,]+)."
+        regex_pattern: "The answer is (\\-?[$0-9\\.\\,]+)."
       - function: "take_first"
 metadata:
   version: 2.0

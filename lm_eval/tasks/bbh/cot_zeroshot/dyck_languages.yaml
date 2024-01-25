@@ -1,5 +1,12 @@
 "dataset_name": "dyck_languages"
-"description": "Correctly close a Dyck-n word.\n\n"
-"doc_to_text": "Q: {{input}}\nA: Let's think step by step.\n"
+"description": "Correctly close a Dyck-n word. The answer should be the remaining part, without the input.\n\n"
+"doc_to_text": "Q: {{input}}\nA: Let's think step by step."
 "include": "_cot_zeroshot_template_yaml"
 "task": "bbh_cot_zeroshot_dyck_languages"
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        group_select: -1
+        regex_pattern: "(?<= )([\" \\[\\(<{}>\\)\\]]+)"
+      - function: "take_last"

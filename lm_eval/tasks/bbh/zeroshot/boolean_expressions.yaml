@@ -3,3 +3,11 @@
 "doc_to_text": "Q: {{input}}\nA:"
 "include": "_zeroshot_template_yaml"
 "task": "bbh_zeroshot_boolean_expressions"
+
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        group_select: -1
+        regex_pattern: "(True|False)"
+      - function: "take_last"
