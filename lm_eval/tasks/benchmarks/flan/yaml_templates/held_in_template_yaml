@@ -9,3 +9,5 @@ generation_kwargs:
     - "</s>"
   do_sample: false
   temperature: 0.0
+metadata:
+  version: 1.0

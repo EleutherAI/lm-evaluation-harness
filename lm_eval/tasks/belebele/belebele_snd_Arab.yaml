@@ -1,3 +1,4 @@
-"dataset_name": "snd_Arab"
+"fewshot_split": "snd_Arab"
 "include": "_default_template_yaml"
 "task": "belebele_snd_Arab"
+"test_split": "snd_Arab"
