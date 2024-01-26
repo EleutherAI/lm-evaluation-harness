@@ -1,35 +1,38 @@
-import os
-import tempfile
-import lm_eval.tasks as tasks
-import lm_eval.models as models
-import lm_eval.evaluator as evaluator
 import random
-import pytest
+import tempfile
 
-from transformers import AutoTokenizer
+import pytest
 from optimum.intel import OVModelForCausalLM
+from transformers import AutoTokenizer
+
+import lm_eval.evaluator as evaluator
+import lm_eval.models as models
+import lm_eval.tasks as tasks
+
 
 SUPPORTED_ARCHITECTURES_TASKS = {
-        "facebook/opt-125m": "lambada_openai",
-        "hf-internal-testing/tiny-random-gpt2": "wikitext"
+    "facebook/opt-125m": "lambada_openai",
+    "hf-internal-testing/tiny-random-gpt2": "wikitext",
 }
+
 
 @pytest.mark.parametrize("model_id,task", SUPPORTED_ARCHITECTURES_TASKS.items())
 def test_evaluator(model_id, task):
     with tempfile.TemporaryDirectory() as tmpdirname:
-        model = OVModelForCausalLM.from_pretrained(model_id, export=True, use_cache=True)
+        model = OVModelForCausalLM.from_pretrained(
+            model_id, export=True, use_cache=True
+        )
         model.save_pretrained(tmpdirname)
         tokenizer = AutoTokenizer.from_pretrained(model_id)
         tokenizer.save_pretrained(tmpdirname)
 
-
         lm = models.get_model("openvino-causal").create_from_arg_string(
-                f"pretrained={tmpdirname}",
-                {
-                    "batch_size": 1,
-                    "device": "cpu",
-                },
-            )
+            f"pretrained={tmpdirname}",
+            {
+                "batch_size": 1,
+                "device": "cpu",
+            },
+        )
 
         task_dict = tasks.get_task_dict([task])
 
