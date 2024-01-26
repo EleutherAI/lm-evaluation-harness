@@ -69,6 +69,11 @@ class TaskManager(abc.ABC):
             return True
         return False
 
+    def _config_is_group(self, config):
+        if ("task" in config) and isinstance(config["task"], list):
+            return True
+        return False
+
     def _config_is_python_task(self, config):
         if "class" in config:
             return True
@@ -91,10 +96,17 @@ class TaskManager(abc.ABC):
             self,
             name_or_config: Union[str, dict] = None,
             parent_name: str = None,
-            update_config: dict = None
+            update_config: dict = None,
+            yaml_path: str = None,
         ) -> ConfigurableTask:
 
-        def load_task(config, task, group=None):
+        def load_task(config, task, group=None, yaml_path=None):
+            if "include" in config:
+                assert yaml_path is not None
+                config = {
+                    **utils.load_yaml_config("full", yaml_path, yaml_config=config),
+                    **config
+                }
             if self._config_is_python_task(config):
                 task_object = config["class"]()
             else:
@@ -115,6 +127,10 @@ class TaskManager(abc.ABC):
                 subtask_list = self._get_tasklist(name_or_config)
                 if subtask_list == -1:
                     subtask_list = self._get_config(name_or_config)["task"]
+
+                # This checks if we're at the root.
+                if parent_name is None:
+                    yaml_path = self._get_yaml_path(group_name)
 
         if isinstance(name_or_config, dict):
 
@@ -142,7 +158,7 @@ class TaskManager(abc.ABC):
                             }
                 else:
                     task_config = name_or_config
-                return load_task(task_config, task=name, group=parent_name)
+                return load_task(task_config, task=name, group=parent_name, yaml_path=yaml_path)
             else:
                 group_name = name_or_config["group"]
                 subtask_list = name_or_config["task"]
@@ -151,7 +167,7 @@ class TaskManager(abc.ABC):
         if (parent_name is not None) and ((self._name_is_registered(group_name) is False) or (self._get_yaml_path(group_name) == -1)):
             all_subtasks = {group_name: (parent_name, None)}
 
-        fn = partial(self._load_individual_task_or_group, parent_name=group_name, update_config=update_config)
+        fn = partial(self._load_individual_task_or_group, parent_name=group_name, update_config=update_config, yaml_path=yaml_path)
         all_subtasks = {**all_subtasks, **dict(collections.ChainMap(*map(fn, subtask_list)))}
         return all_subtasks
 
@@ -178,13 +194,13 @@ class TaskManager(abc.ABC):
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
                     config = utils.load_yaml_config("simple", yaml_path)
-                    if set(config.keys()) == set(PYTHON_TASK_KEYS):
+                    if self._config_is_python_task(config):
                         # This is a python class config
                         tasks_and_groups[config["task"]] = {
                             "type": "python_task",
                             "yaml_path": yaml_path,
                         }
-                    elif set(config.keys()) <= set(GROUP_KEYS):
+                    elif self._config_is_group(config):
                         # This is a group config
                         tasks_and_groups[config["group"]] = {
                             "type": "group",
@@ -196,34 +212,35 @@ class TaskManager(abc.ABC):
                             "yaml_path": yaml_path,
                         }
 
-                        # for task in config["task"]:
-                        #     if "task"
-                    else:
+                        # for config in config["task"]:
+                        #     if isinstance(config, dict) and self._config_is_task(config):
+                        #         config["task"]
+
+                    elif self._config_is_task(config):
                         # This is a task config
-                        try:
-                            task = config["task"]
-                            tasks_and_groups[task] = {
-                                "type": "task",
-                                "yaml_path": yaml_path,
-                                }
+                        task = config["task"]
+                        tasks_and_groups[task] = {
+                            "type": "task",
+                            "yaml_path": yaml_path,
+                            }
 
-                            if "group" in config:
-                                groups = config["group"]
-                                if isinstance(config["group"], str):
-                                    groups = [groups]
+                        if "group" in config:
+                            groups = config["group"]
+                            if isinstance(config["group"], str):
+                                groups = [groups]
 
-                                for group in groups:
-                                    if group not in tasks_and_groups:
-                                        tasks_and_groups[group] = {
-                                            "type": "group",
-                                            "task": [task],
-                                            "yaml_path": -1,
-                                        }
-                                    else:
-                                        tasks_and_groups[group]["task"].append(task)
-                        except:
-                            pass
-                            # self.logger.debug(f"File {f} in {root} could not be loaded")
+                            for group in groups:
+                                if group not in tasks_and_groups:
+                                    tasks_and_groups[group] = {
+                                        "type": "group",
+                                        "task": [task],
+                                        "yaml_path": -1,
+                                    }
+                                else:
+                                    tasks_and_groups[group]["task"].append(task)
+                    else:
+                        self.logger.debug(f"File {f} in {root} could not be loaded")
+
         return tasks_and_groups
 
 
