@@ -81,22 +81,34 @@ Please make sure to cite all the individual datasets in your paper when you use 
 
 - `agieval`: Evaluates all tasks listed below.
 
+- `agieval_en`: Evaluates all English subtasks: `agieval_aqua_rat`, `agieval_gaokao_english`, `agieval_logiqa_en`, `agieval_lsat_*`, `agieval_sat_*`, `agieval_math`
+
+- `agieval_cn`: Evaluates all Chinese subtasks:
+`agieval_gaokao_biology`, `agieval_gaokao_chemistry`, `agieval_gaokao_chinese`, `agieval_gaokao_geography`,
+`agieval_gaokao_history`, `agieval_gaokao_mathqa`, `agieval_gaokao_mathcloze`, `agieval_gaokao_physics`, `agieval_jec_qa_ca`, `agieval_jec_qa_kd`, `agieval_logiqa_zh`
+
+- `agieval_nous`: Evaluates a specific subset of AGIEval tasks (multiple-choice and english-only), namely those in https://github.com/teknium1/LLM-Benchmark-Logs/blob/main/benchmark-logs/Mistral-7B-Base.md
+
 #### Tasks
 
-- `aqua-rat`
-- `gaokao-biology`
-- `gaokao-chemistry`
-- `gaokao-chinese`
-- `gaokao-english`
-- `gaokao-geography`
-- `gaokao-history`
-- `gaokao-mathqa`
-- `gaokao-physics`
-- `logiqa-en`
-- `logiqa-zh`
-- `lsat-ar`
-- `lsat-lr`
-- `lsat-rc`
-- `sat-en`
-- `sat-en-without-passage`
-- `sat-math`
+- `agieval_aqua_rat`
+- `agieval_gaokao_biology`
+- `agieval_gaokao_chemistry`
+- `agieval_gaokao_chinese`
+- `agieval_gaokao_english`
+- `agieval_gaokao_geography`
+- `agieval_gaokao_history`
+- `agieval_gaokao_mathqa`
+- `agieval_gaokao_mathcloze`
+- `agieval_gaokao_physics`
+- `agieval_jec_qa_ca`
+- `agieval_jec_qa_kd`
+- `agieval_logiqa_en`
+- `agieval_logiqa_zh`
+- `agieval_lsat_ar`
+- `agieval_lsat_lr`
+- `agieval_lsat_rc`
+- `agieval_sat_en`
+- `agieval_sat_en_without_passage`
+- `agieval_sat_math`
+- `agieval_math`
