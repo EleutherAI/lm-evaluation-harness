@@ -3,7 +3,7 @@ import numpy as np
 import transformers.data.metrics.squad_metrics as squad_metrics
 
 from abc import abstractmethod
-import evaluate
+from datasets import load_metric
 from transformers import AutoTokenizer
 from functools import reduce
 
@@ -117,7 +117,8 @@ class _SCROLLSTask(Task):
 
     def __init__(self):
         super().__init__()
-        self.metric = evaluate.load(_download_metric(), config_name=self.DATASET_NAME)
+        if self.DATASET_NAME is not None:
+            self.metric = load_metric(_download_metric(), config_name=self.DATASET_NAME)
 
     def has_training_docs(self):
         return True
