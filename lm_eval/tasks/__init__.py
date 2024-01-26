@@ -30,6 +30,8 @@ class TaskManager(abc.ABC):
             include_path=include_path
             )
 
+        self.task_group_map = collections.defaultdict(list)
+
     def initialize_tasks(self, include_path=None):
 
         all_paths = [os.path.dirname(os.path.abspath(__file__)) + "/"]
@@ -103,10 +105,13 @@ class TaskManager(abc.ABC):
         def load_task(config, task, group=None, yaml_path=None):
             if "include" in config:
                 assert yaml_path is not None
-                config = {
-                    **utils.load_yaml_config("full", yaml_path, yaml_config=config),
-                    **config
-                }
+                config.update(
+                    utils.load_yaml_config(
+                        "full",
+                        yaml_path,
+                        yaml_config={"include": config.pop("include")}
+                    )
+                )
             if self._config_is_python_task(config):
                 task_object = config["class"]()
             else:
@@ -152,6 +157,14 @@ class TaskManager(abc.ABC):
                             subtask_list = self._get_config(name)["task"]
                     else:
                         base_task_config = self._get_config(name)
+
+                        # Check if this is a duplicate.
+                        if parent_name is not None:
+                            num_duplicate = len(list(filter(lambda x: x.startswith(name), self.task_group_map[parent_name])))
+                            if num_duplicate > 0:
+                                name = f"{name}-{num_duplicate}"
+                            self.task_group_map[parent_name].append(name)
+
                         task_config={
                                 **base_task_config,
                                 **name_or_config,
