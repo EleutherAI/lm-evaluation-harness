@@ -62,6 +62,7 @@ mamba = ["mamba_ssm", "causal-conv1d==1.0.2"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
 openai = ["openai==1.3.9", "tiktoken"]
+optimum = ["optimum[openvino]"]
 promptsource = [
     "promptsource @ git+https://github.com/bigscience-workshop/promptsource.git#egg=promptsource"
 ]
