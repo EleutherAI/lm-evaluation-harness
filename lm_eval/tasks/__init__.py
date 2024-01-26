@@ -12,23 +12,6 @@ from lm_eval.api.task import TaskConfig, Task, ConfigurableTask
 
 import logging
 
-# # import python tasks
-# import squadv2.task
-# import scrolls.task
-# python_tasks = {
-#     "squadv2": squadv2.task.SQuAD2,
-#     "scrolls_quality": scrolls.task.QuALITY,
-#     "scrolls_narrativeqa": scrolls.task.NarrativeQA,
-#     "scrolls_contractnli": scrolls.task.ContractNLI,
-#     "scrolls_govreport": scrolls.task.GovReport,
-#     "scrolls_summscreenfd": scrolls.task.SummScreenFD,
-#     "scrolls_qmsum": scrolls.task.QMSum,
-# }
-
-eval_logger = utils.eval_logger
-
-GROUP_KEYS = ["group", "task", "weight_by_size"]
-PYTHON_TASK_KEYS = ["task", "class"]
 
 class TaskManager(abc.ABC):
 
@@ -40,7 +23,8 @@ class TaskManager(abc.ABC):
 
         self.verbosity = verbosity
         self.include_path = include_path
-        self.logger = eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+        self.logger = utils.eval_logger
+        self.logger.setLevel(getattr(logging, f"{verbosity}"))
 
         self.ALL_TASKS = self.initialize_tasks(
             include_path=include_path
@@ -81,12 +65,12 @@ class TaskManager(abc.ABC):
         return False
 
     def _config_is_task(self, config):
-        if set(config.keys()) <= set(GROUP_KEYS):
-            return False
-        return True
+        if ("task" in config) and isinstance(config["task"], str):
+            return True
+        return False
 
     def _config_is_python_task(self, config):
-        if set(config.keys()) == set(PYTHON_TASK_KEYS):
+        if "class" in config:
             return True
         return False
 
@@ -216,27 +200,30 @@ class TaskManager(abc.ABC):
                         #     if "task"
                     else:
                         # This is a task config
-                        task = config["task"]
-                        tasks_and_groups[task] = {
-                            "type": "task",
-                            "yaml_path": yaml_path,
-                            }
+                        try:
+                            task = config["task"]
+                            tasks_and_groups[task] = {
+                                "type": "task",
+                                "yaml_path": yaml_path,
+                                }
 
-                        if "group" in config:
-                            groups = config["group"]
-                            if isinstance(config["group"], str):
-                                groups = [groups]
+                            if "group" in config:
+                                groups = config["group"]
+                                if isinstance(config["group"], str):
+                                    groups = [groups]
 
-                            for group in groups:
-                                if group not in tasks_and_groups:
-                                    tasks_and_groups[group] = {
-                                        "type": "group",
-                                        "task": [task],
-                                        "yaml_path": -1,
-                                    }
-                                else:
-                                    tasks_and_groups[group]["task"].append(task)
-
+                                for group in groups:
+                                    if group not in tasks_and_groups:
+                                        tasks_and_groups[group] = {
+                                            "type": "group",
+                                            "task": [task],
+                                            "yaml_path": -1,
+                                        }
+                                    else:
+                                        tasks_and_groups[group]["task"].append(task)
+                        except:
+                            pass
+                            # self.logger.debug(f"File {f} in {root} could not be loaded")
         return tasks_and_groups
 
 
