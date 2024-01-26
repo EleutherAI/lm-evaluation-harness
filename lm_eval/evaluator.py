@@ -511,7 +511,7 @@ def evaluate(
                                     + metric_score * current_size
                                 ) / (total_size + current_size)
                                 # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                                if var_score == "N/A":
+                                if var_score == "N/A" or results[group][stderr] == "N/A":
                                     results[group][stderr] = "N/A"
                                 else:
                                     results[group][stderr] = (
