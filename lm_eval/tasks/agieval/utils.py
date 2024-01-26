@@ -1,6 +1,12 @@
 # Answer parsing and normalization code, from
 # https://github.com/ruixiangcui/AGIEval/blob/main/src/
 # math_equivalence.py and post_process.py
+from typing import Dict, List
+
+import re
+
+import numpy as np
+
 def parse_math_answer(raw_string):
 
     def remove_boxed(s):
@@ -64,7 +70,6 @@ def parse_math_answer(raw_string):
                 last_match = matches[-1]
         return last_match
 
-    raw_string = remove_few_shot_prefix(raw_string)
     if "\\boxed" in raw_string:
         answer = remove_boxed(last_boxed_only_string(raw_string))
     else:
@@ -238,9 +243,9 @@ def is_equiv(str1, str2, verbose=False):
 
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     candidate = results[0]
-    print(candidate)
+
     answer = parse_math_answer(candidate)
-    gold = parse_math_answer(doc["gold"])
+    gold = parse_math_answer(doc["answer"])
 
     if is_equiv(answer, gold):
         retval = 1
@@ -251,3 +256,19 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
         "acc": retval,
     }
     return results
+
+# use a custom process_results() function, because AGIEval can have multiple valid answers
+def process_results_mcqa(doc, results):
+
+        results = [result[0] for result in results]
+
+        gold = doc["gold"]
+
+        acc = 1.0 if int(np.argmax(results)) in gold else 0.0
+        completion_len = np.array([float(len(i)) for i in doc["choices"]])
+        acc_norm = 1.0 if int(np.argmax(results / completion_len)) in gold else 0.0
+
+        return {
+            "acc": acc,
+            "acc_norm": acc_norm,
+        }

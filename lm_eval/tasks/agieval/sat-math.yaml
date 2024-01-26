@@ -3,5 +3,5 @@ group:
   - agieval
   - agieval_nous
   - agieval_en
-task: sat-math
+task: agieval_sat_math
 dataset_path: hails/agieval-sat-math

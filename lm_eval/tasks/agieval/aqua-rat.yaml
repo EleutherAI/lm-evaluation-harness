@@ -1,7 +1,7 @@
 group:
   - agieval
-  - agieval_nous
   - agieval_en
+  - agieval_nous
 task: agieval_aqua_rat
 dataset_path: hails/agieval-aqua-rat
 dataset_name: null
@@ -10,8 +10,9 @@ training_split: null
 validation_split: null
 test_split: test
 doc_to_text: "{{query}}"
-doc_to_target: "{{gold[0]}}"
+doc_to_target: "{{gold}}"
 doc_to_choice: "{{choices}}"
+process_results: !function utils.process_results_mcqa
 metric_list:
   - metric: acc
     aggregation: mean

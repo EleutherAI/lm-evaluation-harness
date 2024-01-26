@@ -9,8 +9,8 @@ training_split: null
 validation_split: null
 test_split: test
 doc_to_text: "{{query}}"
-doc_to_target: "{{gold[0]}}"
-process_results: !function math_utils.process_results
+doc_to_target: "{{answer}}"
+process_results: !function utils.process_results
 generation_kwargs:
   max_gen_toks: 32
   do_sample: False

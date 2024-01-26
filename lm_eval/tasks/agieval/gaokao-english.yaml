@@ -1,6 +1,6 @@
 include: aqua-rat.yaml
 group:
   - agieval
-  - agieval_en
+  - agieval_cn # categorizing as CN because the AGIEval paper does so
 task: agieval_gaokao_english
 dataset_path: hails/agieval-gaokao-english
