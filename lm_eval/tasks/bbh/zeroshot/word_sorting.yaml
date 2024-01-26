@@ -1,5 +1,12 @@
 "dataset_name": "word_sorting"
-"description": "Sort a list of words.\n\n"
+"description": "Sort a list of words. You should end your response with the sorted list of word, seperated by comma.\n\n"
 "doc_to_text": "Q: {{input}}\nA:"
 "include": "_zeroshot_template_yaml"
 "task": "bbh_zeroshot_word_sorting"
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        group_select: -1
+        regex_pattern: ":[\n` ]*([^\n]+)"
+      - function: "take_last"

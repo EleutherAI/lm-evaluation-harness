@@ -5,9 +5,16 @@ fewshot_split: dev
 output_type: generate_until
 doc_to_text: "Q: {{question.strip()}}\n(A) {{choices[0]}} (B) {{choices[1]}} (C) {{choices[2]}} (D) {{choices[3]}}\nA: "
 doc_to_target: "{{['(A)', '(B)', '(C)', '(D)'][answer]}}"
+filter_list:
+  - name: "get-answer"
+    filter:
+      - function: "regex"
+        regex_pattern: "(\\([A-Z]\\))"
+      - function: "take_first"
 generation_kwargs:
   until:
     - "</s>"
+    - "Q:"
 metric_list:
   - metric: exact_match
     aggregation: mean

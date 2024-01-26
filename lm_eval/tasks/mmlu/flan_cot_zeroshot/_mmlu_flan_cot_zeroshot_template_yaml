@@ -8,11 +8,16 @@ filter_list:
   - name: "get-answer"
     filter:
       - function: "regex"
-        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
-      - function: "take_first"
+        group_select: -1
+        regex_pattern: "(\\([A-Z]\\))"
+      - function: "take_last"
 generation_kwargs:
+  max_gen_toks: 2048
   until:
     - "</s>"
+    - "<|im_end|>"
+    - "[PAD]"
+    - "Q:"
   do_sample: false
   temperature: 0.0
 num_fewshot: 0
@@ -22,5 +27,9 @@ metric_list:
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
+    regexes_to_ignore:
+      - "<\\|im_end\\|>"
+      - "<\\/s>"
+      - "\\[PAD\\]"
 metadata:
   version: 0.0
