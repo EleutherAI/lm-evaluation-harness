@@ -6,9 +6,11 @@ from optimum.intel import OVModelForCausalLM
 from transformers import AutoTokenizer
 
 import lm_eval.evaluator as evaluator
-import lm_eval.models as models
 import lm_eval.tasks as tasks
+from lm_eval.api.registry import get_model
 
+
+tasks.initialize_tasks()
 
 SUPPORTED_ARCHITECTURES_TASKS = {
     "facebook/opt-125m": "lambada_openai",
@@ -26,7 +28,7 @@ def test_evaluator(model_id, task):
         tokenizer = AutoTokenizer.from_pretrained(model_id)
         tokenizer.save_pretrained(tmpdirname)
 
-        lm = models.get_model("openvino-causal").create_from_arg_string(
+        lm = get_model("openvino").create_from_arg_string(
             f"pretrained={tmpdirname}",
             {
                 "batch_size": 1,
@@ -34,10 +36,8 @@ def test_evaluator(model_id, task):
             },
         )
 
-        task_dict = tasks.get_task_dict([task])
-
         def ll_fn(reqs):
-            for ctx, cont in reqs:
+            for ctx, cont in [req.args for req in reqs]:
                 if len(ctx) == 0:
                     continue
                 # space convention
@@ -53,7 +53,7 @@ def test_evaluator(model_id, task):
             return res
 
         def ll_perp_fn(reqs):
-            for (string,) in reqs:
+            for (string,) in [req.args for req in reqs]:
                 assert isinstance(string, str)
 
             res = []
@@ -67,11 +67,10 @@ def test_evaluator(model_id, task):
         lm.loglikelihood_rolling = ll_perp_fn
 
         limit = 10
-        evaluator.evaluate(
-            lm=lm,
-            task_dict=task_dict,
+        evaluator.simple_evaluate(
+            model=lm,
+            tasks=[task],
             num_fewshot=0,
             limit=limit,
             bootstrap_iters=10,
-            description_dict=None,
         )
