@@ -25,7 +25,7 @@ from lm_eval.utils import (
 def simple_evaluate(
     model,
     model_args=None,
-    tasks=[],
+    tasks=None,
     num_fewshot=None,
     batch_size=None,
     max_batch_size=None,
@@ -80,6 +80,8 @@ def simple_evaluate(
         1234
     )  # TODO: this may affect training runs that are run with evaluation mid-run.
 
+    if tasks is None:
+        tasks = []
     assert (
         tasks != []
     ), "No tasks specified, or no tasks found. Please verify the task names."

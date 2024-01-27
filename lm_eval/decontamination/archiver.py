@@ -30,7 +30,9 @@ class Archive:
         self.cctx = zstandard.ZstdCompressor(level=compression_level)
         self.compressor = self.cctx.stream_writer(self.fh)
 
-    def add_data(self, data, meta={}) -> None:
+    def add_data(self, data, meta=None) -> None:
+        if meta is None:
+            meta = {}
         self.compressor.write(
             json.dumps({"text": data, "meta": meta}, default=json_serial).encode(
                 "UTF-8"
