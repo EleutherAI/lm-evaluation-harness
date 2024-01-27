@@ -25,24 +25,44 @@ def median(arr):
     return arr[len(arr) // 2]
 
 
-# Certain metrics must be calculated across all documents in a benchmark.
-# We use them as aggregation metrics, paired with no-op passthrough metric fns.
-@register_aggregation("perplexity")
+@register_aggregation("weighted_mean")
+def weighted_mean(items):
+    a, b = zip(*items)
+    return sum(a) / sum(b)
+
+
+@register_metric(
+    metric="perplexity",
+    higher_is_better=False,
+    output_type="loglikelihood",
+)
 def perplexity(items):
     return math.exp(-mean(items))
 
 
-@register_aggregation("weighted_perplexity")
-def weighted_perplexity(items):
+@register_metric(
+    metric=["word_perplexity", "byte_perplexity"],
+    higher_is_better=False,
+    output_type="loglikelihood_rolling",
+)
+def weighted_perplexity(items):  # This is a passthrough function
     return math.exp(-weighted_mean(items))
 
 
-@register_aggregation("bits_per_byte")
+@register_metric(
+    metric="bits_per_byte",
+    higher_is_better=False,
+    output_type="loglikelihood_rolling",
+)
 def bits_per_byte(items):
     return -weighted_mean(items) / math.log(2)
 
 
-@register_aggregation("f1")
+@register_metric(
+    metric="f1",
+    higher_is_better=True,
+    output_type="multiple_choice",
+)
 def f1_score(items):
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
@@ -52,16 +72,23 @@ def f1_score(items):
     return np.max(fscore)
 
 
-@register_aggregation("matthews_corrcoef")
+@register_metric(
+    metric="mcc",
+    higher_is_better=True,
+    output_type="multiple_choice",
+)
 def matthews_corrcoef(items):
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
-    # print(preds)
     return sklearn.metrics.matthews_corrcoef(golds, preds)
 
 
-@register_aggregation("bleu")
+@register_metric(
+    metric="bleu",
+    higher_is_better=True,
+    output_type="generate_until",
+)
 def bleu(items):
     """The Bilingual Evaluation Understudy Score, or BLEU for short, is a metric
     for evaluating a generated sentence to a reference sentence. It counts matching
@@ -79,7 +106,11 @@ def bleu(items):
     return sacrebleu.corpus_bleu(preds, refs).score
 
 
-@register_aggregation("chrf")
+@register_metric(
+    metric="chrf",
+    higher_is_better=True,
+    output_type="generate_until",
+)
 def chrf(items):
     """chrF++ is a tool for automatic evaluation of machine translation output
     based on character n-gram precision and recall enhanced with word n-grams.
@@ -94,7 +125,11 @@ def chrf(items):
     return sacrebleu.corpus_chrf(preds, refs).score
 
 
-@register_aggregation("ter")
+@register_metric(
+    metric="ter",
+    higher_is_better=True,
+    output_type="generate_until",
+)
 def ter(items):
     """Translation Error Rate is an error metric for machine translation that
     measures the number of edits required to change a system output into one
@@ -111,33 +146,21 @@ def ter(items):
 
 
 @register_metric(
-    metric="acc",
+    metric=["acc", "acc_norm"],
     higher_is_better=True,
     output_type=["loglikelihood", "multiple_choice"],
-    aggregation="mean",
 )
-def acc_fn(items):  # This is a passthrough function
-    return items
-
-
-@register_metric(
-    metric="acc_norm",
-    higher_is_better=True,
-    output_type=["loglikelihood", "multiple_choice"],
-    aggregation="mean",
-)
-def acc_norm_fn(items):  # This is a passthrough function
-    return items
+def aggregate_acc_fn(items):
+    return mean(items)
 
 
 @register_metric(
     metric="acc_mutual_info",
     higher_is_better=True,
     output_type="multiple_choice",
-    aggregation="mean",
 )
-def acc_mutual_info_fn(items):  # This is a passthrough function
-    return items
+def acc_mutual_info_fn(items):
+    return mean(items)
 
 
 exact_match = evaluate.load("exact_match")
@@ -147,50 +170,9 @@ exact_match = evaluate.load("exact_match")
     metric="exact_match",
     higher_is_better=True,
     output_type="generate_until",
-    aggregation="mean",
 )
-def exact_match_fn(**kwargs):
+def hf_evaluate_fn(**kwargs):
     return exact_match.compute(**kwargs)
-
-
-@register_metric(
-    metric="perplexity",
-    higher_is_better=False,
-    output_type="loglikelihood",
-    aggregation="perplexity",
-)
-def perplexity_fn(items):  # This is a passthrough function
-    return items
-
-
-@register_metric(
-    metric="word_perplexity",
-    higher_is_better=False,
-    output_type="loglikelihood_rolling",
-    aggregation="weighted_perplexity",
-)
-def word_perplexity_fn(items):  # This is a passthrough function
-    return items
-
-
-@register_metric(
-    metric="byte_perplexity",
-    higher_is_better=False,
-    output_type="loglikelihood_rolling",
-    aggregation="weighted_perplexity",
-)
-def byte_perplexity_fn(items):  # This is a passthrough function
-    return items
-
-
-@register_metric(
-    metric="bits_per_byte",
-    higher_is_better=False,
-    output_type="loglikelihood_rolling",
-    aggregation="bits_per_byte",
-)
-def bits_per_byte_fn(items):  # This is a passthrough function
-    return items
 
 
 def pop_stddev(arr):
@@ -208,60 +190,9 @@ def mean_stderr(arr):
 
 
 @register_metric(
-    metric="mcc",
-    higher_is_better=True,
-    output_type="multiple_choice",
-    aggregation="matthews_corrcoef",
-)
-def mcc_fn(items):  # This is a passthrough function
-    return items
-
-
-@register_metric(
-    metric="f1",
-    higher_is_better=True,
-    output_type="multiple_choice",
-    aggregation="f1",
-)
-def f1_fn(items):  # This is a passthrough function
-    return items
-
-
-@register_metric(
-    metric="bleu",
-    higher_is_better=True,
-    output_type="generate_until",
-    aggregation="bleu",
-)
-def bleu_fn(items):  # This is a passthrough function
-    return items
-
-
-@register_metric(
-    metric="chrf",
-    higher_is_better=True,
-    output_type="generate_until",
-    aggregation="chrf",
-)
-def chrf_fn(items):  # This is a passthrough function
-    return items
-
-
-@register_metric(
-    metric="ter",
-    higher_is_better=True,
-    output_type="generate_until",
-    aggregation="ter",
-)
-def ter_fn(items):  # This is a passthrough function
-    return items
-
-
-@register_metric(
     metric="acc_all",
     higher_is_better=True,
     output_type="loglikelihood",
-    aggregation="mean",
 )
 def acc_all(items):
     # Only count as correct if all answers are labeled correctly for each question
@@ -307,11 +238,6 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
         score = metric_fn(prediction, ground_truth)
         scores_for_ground_truths.append(score)
     return max(scores_for_ground_truths)
-
-
-def weighted_mean(items):
-    a, b = zip(*items)
-    return sum(a) / sum(b)
 
 
 def is_non_str_iterable(obj):

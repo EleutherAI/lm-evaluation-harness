@@ -1,4 +1,6 @@
+import collections
 import logging
+from functools import partial
 
 import evaluate
 
@@ -72,64 +74,78 @@ def register_group(name):
     return decorate
 
 
-OUTPUT_TYPE_REGISTRY = {}
-METRIC_REGISTRY = {}
-METRIC_AGGREGATION_REGISTRY = {}
-AGGREGATION_REGISTRY = {}
-HIGHER_IS_BETTER_REGISTRY = {}
+METRIC_REGISTRY = collections.defaultdict(dict)
+AGGREGATION_REGISTRY = collections.defaultdict(dict)
 
 DEFAULT_METRIC_REGISTRY = {
-    "loglikelihood": [
-        "perplexity",
-        "acc",
-    ],
-    "loglikelihood_rolling": ["word_perplexity", "byte_perplexity", "bits_per_byte"],
-    "multiple_choice": ["acc", "acc_norm"],
-    "generate_until": ["exact_match"],
+    "loglikelihood": [],
+    "loglikelihood_rolling": [],
+    "multiple_choice": [],
+    "generate_until": [],
 }
 
 
-def register_metric(**args):
+def register_metric(
+    metric=None,
+    higher_is_better=None,
+    output_type=None,
+    aggregation=None,
+):
     # TODO: do we want to enforce a certain interface to registered metrics?
     def decorate(fn):
-        assert "metric" in args
-        name = args["metric"]
+        if isinstance(metric, str):
+            metric_list = [metric]
+        elif isinstance(metric, list):
+            metric_list = metric
 
-        for key, registry in [
-            ("metric", METRIC_REGISTRY),
-            ("higher_is_better", HIGHER_IS_BETTER_REGISTRY),
-            ("aggregation", METRIC_AGGREGATION_REGISTRY),
-        ]:
-            if key in args:
-                value = args[key]
-                assert (
-                    value not in registry
-                ), f"{key} named '{value}' conflicts with existing registered {key}!"
+        for _metric in metric_list:
+            METRIC_REGISTRY[_metric]["function"] = fn
 
-                if key == "metric":
-                    registry[name] = fn
-                elif key == "aggregation":
-                    registry[name] = AGGREGATION_REGISTRY[value]
-                else:
-                    registry[name] = value
+            if aggregation is not None:
+                METRIC_REGISTRY[_metric]["aggregation"] = aggregation
+
+            if higher_is_better is not None:
+                METRIC_REGISTRY[_metric]["higher_is_better"] = higher_is_better
+
+            if output_type is not None:
+                if isinstance(output_type, str):
+                    output_type_list = [output_type]
+                elif isinstance(output_type, list):
+                    output_type_list = output_type
+
+                for _output_type in output_type_list:
+                    DEFAULT_METRIC_REGISTRY[_output_type].append(_metric)
 
         return fn
 
     return decorate
 
 
-def get_metric(name, hf_evaluate_metric=False):
-    if not hf_evaluate_metric:
-        if name in METRIC_REGISTRY:
-            return METRIC_REGISTRY[name]
-        else:
-            eval_logger.warning(
-                f"Could not find registered metric '{name}' in lm-eval, searching in HF Evaluate library..."
-            )
+def get_metric(name):
+    if name in METRIC_REGISTRY:
+        return METRIC_REGISTRY[name]
+    else:
+        eval_logger.error(f"Could not find registered metric '{name}' in lm-eval")
 
+
+def get_evaluate(name, **kwargs):
     try:
-        metric_object = evaluate.load(name)
-        return metric_object.compute
+
+        class HFEvaluateAdaptor:
+            def __init__(self, name, **kwargs):
+                self.name = name
+                metric_object = evaluate.load(name)
+                self.hf_evaluate_fn = partial(metric_object.compute, **kwargs)
+
+            def __call__(self, items):
+                refs = list(zip(*items))[0]
+                preds = list(zip(*items))[1]
+
+                return self.hf_evaluate_fn(references=refs, predictions=preds)[
+                    self.name
+                ]
+
+        return HFEvaluateAdaptor(name, **kwargs)
     except Exception:
         eval_logger.error(
             f"{name} not found in the evaluate library! Please check https://huggingface.co/evaluate-metric",
@@ -154,22 +170,4 @@ def get_aggregation(name):
     except KeyError:
         eval_logger.warning(
             "{} not a registered aggregation metric!".format(name),
-        )
-
-
-def get_metric_aggregation(name):
-    try:
-        return METRIC_AGGREGATION_REGISTRY[name]
-    except KeyError:
-        eval_logger.warning(
-            "{} metric is not assigned a default aggregation!".format(name),
-        )
-
-
-def is_higher_better(metric_name):
-    try:
-        return HIGHER_IS_BETTER_REGISTRY[metric_name]
-    except KeyError:
-        eval_logger.warning(
-            f"higher_is_better not specified for metric '{metric_name}'!"
         )

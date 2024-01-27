@@ -19,12 +19,11 @@ from lm_eval.api.metrics import (
     weighted_perplexity,
 )
 from lm_eval.api.registry import (
-    AGGREGATION_REGISTRY,
     DEFAULT_METRIC_REGISTRY,
+    METRIC_REGISTRY,
     get_aggregation,
+    get_evaluate,
     get_metric,
-    get_metric_aggregation,
-    is_higher_better,
 )
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
@@ -554,12 +553,11 @@ class ConfigurableTask(Task):
             _metric_list = DEFAULT_METRIC_REGISTRY[self.config.output_type]
 
             for metric_name in _metric_list:
-                self._metric_fn_list[metric_name] = get_metric(metric_name)
+                metric = get_metric(metric_name)
+                self._metric_fn_list[metric_name] = metric["function"]
                 self._metric_fn_kwargs[metric_name] = {}
-                self._aggregation_list[metric_name] = get_metric_aggregation(
-                    metric_name
-                )
-                self._higher_is_better[metric_name] = is_higher_better(metric_name)
+                self._aggregation_list = metric["aggregation"]
+                self._higher_is_better[metric_name] = metric["is_higher_better"]
         else:
             for metric_config in self.config.metric_list:
                 assert "metric" in metric_config
@@ -568,56 +566,63 @@ class ConfigurableTask(Task):
                     key: metric_config[key]
                     for key in metric_config
                     if key
-                    not in ["metric", "aggregation", "higher_is_better", "hf_evaluate"]
+                    not in [
+                        "metric",
+                        "aggregation",
+                        "higher_is_better",
+                        "use_hf_evaluate",
+                    ]
                 }
-                hf_evaluate_metric = (
-                    "hf_evaluate" in metric_config
-                    and metric_config["hf_evaluate"] is True
+                use_hf_evaluate = (
+                    "use_hf_evaluate" in metric_config
+                    and metric_config["use_hf_evaluate"] is True
                 )
 
                 if self.config.process_results is not None:
-                    self._metric_fn_list[metric_name] = None
-                    self._metric_fn_kwargs[metric_name] = {}
+                    metric_fn = None
+                    kwargs = {}
                 elif callable(metric_name):
                     metric_fn = metric_name.__call__
                     metric_name = metric_name.__name__
-                    self._metric_fn_list[metric_name] = metric_fn
-                    self._metric_fn_kwargs[metric_name] = kwargs
                 else:
-                    self._metric_fn_list[metric_name] = get_metric(
-                        metric_name, hf_evaluate_metric
-                    )
-                    self._metric_fn_kwargs[metric_name] = kwargs
+                    assert isinstance(metric_name, str)
+                    if use_hf_evaluate:
+                        metric_fn = get_evaluate(metric_name, **kwargs)
+                    elif metric_name in METRIC_REGISTRY:
+                        metric = get_metric(metric_name, **kwargs)
+                        metric_fn = metric["function"]
 
-                if "aggregation" in metric_config:
-                    agg_name = metric_config["aggregation"]
-                    if isinstance(agg_name, str):
-                        self._aggregation_list[metric_name] = get_aggregation(agg_name)
-                    elif callable(agg_name):  # noqa: E721
-                        self._aggregation_list[metric_name] = metric_config[
-                            "aggregation"
-                        ]
+                self._metric_fn_kwargs[metric_name] = kwargs
+                self._metric_fn_list[metric_name] = metric_fn
+
+                # Ignores aggregation if the metric set
+                # is a registered metric
+                # for backward compatibility
+                if metric_name in METRIC_REGISTRY and ("aggregation" not in metric):
+                    self._aggregation_list[metric_name] = metric_fn
                 else:
-                    INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
-                    metric_agg = get_metric_aggregation(metric_name)
-                    eval_logger.warning(
-                        f"[Task: {self._config.task}] metric {metric_name} is defined, but aggregation is not. "
-                        f"using default "
-                        f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
-                    )
-                    self._aggregation_list[metric_name] = metric_agg
+                    if "aggregation" in metric_config:
+                        agg_name = metric_config["aggregation"]
+                        if isinstance(agg_name, str):
+                            self._aggregation_list[metric_name] = get_aggregation(
+                                agg_name
+                            )
+                        elif callable(agg_name):  # noqa: E721
+                            self._aggregation_list[metric_name] = agg_name
+                    else:
+                        if use_hf_evaluate:
+                            self._aggregation_list[metric_name] = metric_fn
+                        elif (metric_name in METRIC_REGISTRY) and (
+                            "aggregation" in metric
+                        ):
+                            self._aggregation_list[metric_name] = metric["aggregation"]
 
                 if "higher_is_better" in metric_config:
                     self._higher_is_better[metric_name] = metric_config[
                         "higher_is_better"
                     ]
                 else:
-                    eval_logger.warning(
-                        f"[Task: {self._config.task}] metric {metric_name} is defined, but higher_is_better is not. "
-                        f"using default "
-                        f"higher_is_better={is_higher_better(metric_name)}"
-                    )
-                    self._higher_is_better[metric_name] = is_higher_better(metric_name)
+                    self._higher_is_better[metric_name] = metric["higher_is_better"]
 
         self.download(self.config.dataset_kwargs)
         self._training_docs = None
@@ -1010,6 +1015,9 @@ class ConfigurableTask(Task):
         )
 
     def process_results(self, doc, results):
+        # Process results returns 1 of X things per doc/results
+        # 1. A score
+        # 2. Components to be processed later to obtained a score. such as gold and prediction
         if callable(self.config.process_results):
             return self.config.process_results(doc, results)
 
@@ -1099,12 +1107,13 @@ class ConfigurableTask(Task):
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
                 exact_match = int(is_greedy[gold]) if gold != -100 else 0
 
+            # gold, lls, is_greedy, completion_len
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
-                **({"f1": (gold, pred)} if "f1" in use_metric else {}),
-                **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
+                **({"f1": (gold, pred)} if "f1" in use_metric else {}),
+                **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
             }
 
             if "acc_mutual_info" in use_metric:
@@ -1130,6 +1139,8 @@ class ConfigurableTask(Task):
                 gold = type(result)(gold)
 
             for metric in self._metric_fn_list.keys():
+                result_dict[metric] = (gold, result)
+                continue
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
