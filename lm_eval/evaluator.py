@@ -122,7 +122,7 @@ def simple_evaluate(
     task_dict = lm_eval.tasks.get_task_dict(tasks)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
-        if type(task_obj) == tuple:
+        if isinstance(task_obj, tuple):
             group, task_obj = task_obj
             if task_obj is None:
                 continue
@@ -242,7 +242,7 @@ def evaluate(
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
-        if type(task) == tuple:
+        if isinstance(task, tuple):
             group_name, task = task
             task_hierarchy[group_name].append(task_name)
             versions[group_name] = "N/A"
@@ -339,7 +339,7 @@ def evaluate(
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_name, task in task_dict.items():
-        if type(task) == tuple:
+        if isinstance(task, tuple):
             group, task = task
             if task is None:
                 continue
@@ -350,7 +350,7 @@ def evaluate(
 
     # unpack results and sort back in order and return control to Task
     for task_name, task in task_dict.items():
-        if type(task) == tuple:
+        if isinstance(task, tuple):
             group, task = task
             if task is None:
                 continue
@@ -401,7 +401,7 @@ def evaluate(
         vals_torch = collections.defaultdict(list)
         for (task_name, key, metric), items in vals.items():
             numitem = 0
-            if type(items[0]) == tuple:
+            if isinstance(items[0], tuple):
                 numitem = len(items[0])
 
             if isinstance(items[0], (str, list, tuple)):
@@ -447,7 +447,7 @@ def evaluate(
             task = task_dict[task_name]
             metric_key = metric + "," + key
 
-            if type(task) == tuple:
+            if isinstance(task, tuple):
                 group_name, task = task
             else:
                 group_name = None
