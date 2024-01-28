@@ -171,7 +171,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         task_names = ALL_TASKS
     elif args.tasks == "list":
         eval_logger.info(
-            "Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS)))
+            f"Available Tasks:\n - {(os.linesep + ' - ').join(sorted(ALL_TASKS))}"
         )
         sys.exit()
     else:
