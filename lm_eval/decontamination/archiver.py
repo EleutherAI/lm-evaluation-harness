@@ -110,7 +110,7 @@ class TextReader:
     def read_tqdm(self, update_frequency: int = 10000):
         current_file_position = 0
         line_counter = 0
-        with open(self.file_path, "r") as fh, tqdm.tqdm(
+        with open(self.file_path, "r", encoding="utf-8") as fh, tqdm.tqdm(
             total=os.path.getsize(self.file_path),
             dynamic_ncols=True,
             unit="byte",
