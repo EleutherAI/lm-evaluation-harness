@@ -69,18 +69,20 @@ def main():
             model_args = re.sub(
                 "/|=",
                 "__",
-                json.load(open(Path(args.data_path, model, "results.json")))["config"][
-                    "model_args"
-                ],
+                json.load(
+                    open(Path(args.data_path, model, "results.json"), encoding="utf-8")
+                )["config"]["model_args"],
             )
             with open(
-                Path(args.data_path, model, f"{model_args}_{task}.jsonl"), "r"
+                Path(args.data_path, model, f"{model_args}_{task}.jsonl"),
+                "r",
+                encoding="utf-8",
             ) as file:
                 data = json.loads(file.read())
 
-            configs = json.load(open(Path(args.data_path, model, "results.json")))[
-                "configs"
-            ]
+            configs = json.load(
+                open(Path(args.data_path, model, "results.json"), encoding="utf-8")
+            )["configs"]
             config = configs[task]
 
             if model_index == 0:  # Only need to assemble data for the first model
@@ -124,7 +126,9 @@ def tasks_for_model(model: str, data_path: str):
         list: A list of tasks for the model.
     """
     dir_path = Path(data_path, model)
-    config = (json.load(open(Path(dir_path, "results.json")))["configs"],)
+    config = (
+        json.load(open(Path(dir_path, "results.json"), encoding="utf-8"))["configs"],
+    )
     return list(config[0].keys())
 
 

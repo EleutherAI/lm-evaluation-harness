@@ -119,7 +119,7 @@ class Buckets:
 
 
 def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
-    pile_statistics = json.load(open("pile_statistics.json", "r"))
+    pile_statistics = json.load(open("pile_statistics.json", "r", encoding="utf-8"))
     pile_document_count = pile_statistics["Document Count"]
     start_offsets = pile_statistics["File Start Offsets"]
 
@@ -212,4 +212,4 @@ if __name__ == "__main__":
 
     info_dict = {"title": "dataset ngrams", "ngram_size": 13}
     info_dict_path = os.path.join(args.working_directory, "info.json")
-    json.dump(info_dict, open(info_dict_path, "w"))
+    json.dump(info_dict, open(info_dict_path, "w", encoding="utf-8"))
