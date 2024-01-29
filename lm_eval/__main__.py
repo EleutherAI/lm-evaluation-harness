@@ -1,10 +1,10 @@
 import argparse
+import copy
 import json
 import logging
 import os
 import re
 import sys
-import copy
 from pathlib import Path
 from typing import Union
 
@@ -12,9 +12,9 @@ import numpy as np
 
 from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
+from lm_eval.api.wandb import log_eval_result, log_eval_samples
 from lm_eval.tasks import include_path, initialize_tasks
 from lm_eval.utils import make_table
-from lm_eval.api.wandb import log_eval_result
 
 
 def _handle_non_serializable(o):
@@ -268,6 +268,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             wandb_args_dict = utils.simple_parse_args_string(args.wandb_args)
             wandb_results = copy.deepcopy(results)
             log_eval_result(wandb_args_dict, wandb_results)
+
+            if args.log_samples:
+                log_eval_samples(samples)
 
         if args.output_path:
             output_path_file.open("w").write(dumped)

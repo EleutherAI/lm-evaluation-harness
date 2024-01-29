@@ -1,6 +1,6 @@
-import re
 import copy
-import logging
+import re
+
 from packaging.version import Version
 
 
@@ -8,6 +8,7 @@ IS_WANDB_AVAILABLE = False
 
 try:
     import wandb
+
     assert Version(wandb.__version__) >= Version("0.13.6")
     if Version(wandb.__version__) < Version("0.13.6"):
         wandb.require("report-editing:v0")
@@ -20,15 +21,15 @@ except:
     IS_WANDB_AVAILABLE = False
 
 if IS_WANDB_AVAILABLE:
-    import wandb.apis.reports as wr
+    pass
 
 
 def remove_none_pattern(input_string):
     # Define the pattern to match ',none' at the end of the string
-    pattern = re.compile(r',none$')
+    pattern = re.compile(r",none$")
 
     # Use sub() to replace ',none' with an empty string
-    result = re.sub(pattern, '', input_string)
+    result = re.sub(pattern, "", input_string)
 
     # check if the input_string changed
     removed = result != input_string
@@ -101,3 +102,68 @@ def log_eval_result(wandb_args_dict, results):
     run.summary.update(wandb_summary)
     # Log the evaluation metrics to wandb
     wandb.log(wandb_results)
+
+
+def flatten_dict(d, parent_key='', sep='_'):
+    """
+    Flatten a nested dictionary.
+
+    Parameters:
+    - d (dict): The nested dictionary to be flattened.
+    - parent_key (str, optional): The key from the parent dictionary (used for recursion). Defaults to an empty string.
+    - sep (str, optional): The separator used between keys when generating the flattened keys. Defaults to '_'.
+
+    Returns:
+    - dict: A flattened dictionary.
+    """
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+
+def remove_keys_with_substrings(d, substrings_to_remove):
+    """
+    Remove keys containing specified substrings from a dictionary.
+
+    Parameters:
+    - d (dict): The original dictionary.
+    - substrings_to_remove (list): List of substrings to be removed from keys.
+
+    Returns:
+    - dict: The modified dictionary.
+    """
+    return {key: value for key, value in d.items() if not any(substring in key for substring in substrings_to_remove)}
+
+
+def log_eval_samples(log_samples):
+    assert wandb.run is not None
+
+    task_names = list(log_samples.keys())
+    for task_name in task_names:
+        eval_preds = log_samples[task_name]
+
+        _eval_preds = []
+        for eval_pred in eval_preds:
+            eval_pred = flatten_dict(eval_pred)
+            eval_pred = remove_keys_with_substrings(
+                eval_pred,
+                substrings_to_remove=['resps',],
+            )
+            _eval_preds.append(eval_pred)
+
+        # initialize a new W&B Table
+        columns = list(_eval_preds[0].keys())
+        table = wandb.Table(columns=columns)
+        # TODO: handle columns with list data in a better way
+        for _eval_pred in _eval_preds:
+            table.add_data(*_eval_pred.values())
+
+        # log the table to W&B
+        wandb.run.log({f"{task_name}_eval_results": table})
+
+        del _eval_preds
