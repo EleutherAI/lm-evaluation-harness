@@ -56,7 +56,6 @@ class TaskManager(abc.ABC):
         return False
 
     def _name_is_task(self, name):
-        # if self._name_is_registered(name) and ("task" in self.ALL_TASKS[name]["type"]):
         if "task" in self.ALL_TASKS[name]["type"]:
             return True
         return False
@@ -94,6 +93,15 @@ class TaskManager(abc.ABC):
         assert self._name_is_task(name) == False
         return self.ALL_TASKS[name]["task"]
 
+    def _process_alias(self, config, group=None):
+        # If the group is not the same as the original 
+        # group which the group alias was intended for,
+        # Set the group_alias to None instead.
+        if ("group_alias" in config) and ("group" in config) and group is not None:
+            if config["group"] != group:
+                config["group_alias"] = None
+        return config
+
     def _load_individual_task_or_group(
             self,
             name_or_config: Union[str, dict] = None,
@@ -115,6 +123,7 @@ class TaskManager(abc.ABC):
             if self._config_is_python_task(config):
                 task_object = config["class"]()
             else:
+                config = self._process_alias(config, group=group)
                 task_object = ConfigurableTask(config=config)
             if group is not None:
                 task_object = (group, task_object)
