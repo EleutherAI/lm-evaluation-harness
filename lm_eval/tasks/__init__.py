@@ -43,7 +43,7 @@ def register_configurable_task(config: Dict[str, str]) -> int:
     if "group" in config:
         if config["group"] == config["task"]:
             raise ValueError("task and group name cannot be the same")
-        elif type(config["group"]) == str:
+        elif isinstance(config["group"], str):
             group_name = [config["group"]]
         else:
             group_name = config["group"]
@@ -57,8 +57,8 @@ def register_configurable_task(config: Dict[str, str]) -> int:
 def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -> int:
     group = config["group"]
     all_task_list = config["task"]
-    config_list = [task for task in all_task_list if type(task) != str]
-    task_list = [task for task in all_task_list if type(task) == str]
+    config_list = [task for task in all_task_list if not isinstance(task, str)]
+    task_list = [task for task in all_task_list if isinstance(task, str)]
 
     for task_config in config_list:
 
@@ -68,7 +68,7 @@ def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -
             task_name = task_config["task"]
             if task_name in ALL_TASKS:
                 task_obj = TASK_REGISTRY[task_name]
-                if type(task_obj) == tuple:
+                if isinstance(task_obj, tuple):
                     _, task_obj = task_obj
 
                 if task_obj is not None:
@@ -166,10 +166,10 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
                     )
                     for config in all_configs:
                         if register_task:
-                            if type(config["task"]) == str:
+                            if isinstance(config["task"], str):
                                 register_configurable_task(config)
                         else:
-                            if type(config["task"]) == list:
+                            if isinstance(config["task"], list):
                                 register_configurable_group(config, yaml_path)
 
                 # Log this silently and show it only when
@@ -243,7 +243,7 @@ def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
     task_name_from_config_dict = {}
     task_name_from_object_dict = {}
 
-    if type(task_name_list) != list:
+    if not isinstance(task_name_list, list):
         task_name_list = [task_name_list]
 
     for task_element in task_name_list:

@@ -1,0 +1,3 @@
+include: _default_yaml
+task: m_mmlu_de
+dataset_name: de 
