@@ -1,9 +1,12 @@
 import copy
 import logging
 import re
+import json
+from datetime import datetime
 
 from packaging.version import Version
 
+from lm_eval import utils
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +29,7 @@ except Exception as e:
     IS_WANDB_AVAILABLE = False
 
 if IS_WANDB_AVAILABLE:
-    pass
+    import wandb.apis.reports as wr
 
 
 def remove_none_pattern(input_string):
@@ -40,73 +43,6 @@ def remove_none_pattern(input_string):
     removed = result != input_string
 
     return result, removed
-
-
-def get_config(results):
-    task_configs = results.get("configs", {})
-    cli_configs = results.get("config", {})
-    configs = {
-        "task_configs": task_configs,
-        "cli_configs": cli_configs,
-    }
-
-    return configs
-
-
-def sanitize_results_dict(results):
-    """
-    Remove string valued keys from the results dict as they don't render in the workspace.
-    Log these key-value pairs to wandb.summary.
-    """
-    _results = results.get("results", dict())
-    task_names = list(_results.keys())
-
-    # Remove None from the metric string name
-    tmp_results = copy.deepcopy(_results)
-    for task in task_names:
-        task_result = tmp_results.get(task, dict())
-        for metric_name, metric_value in task_result.items():
-            _metric_name, removed = remove_none_pattern(metric_name)
-            if removed:
-                _results[task][_metric_name] = metric_value
-                _results[task].pop(metric_name)
-
-    # remove string valued keys from the results dict
-    wandb_summary = {}
-    for task in task_names:
-        task_result = _results.get(task, dict())
-        for metric_name, metric_value in task_result.items():
-            if isinstance(metric_value, str):
-                wandb_summary[f"{task}/{metric_name}"] = metric_value
-
-    for summary_metric, summary_value in wandb_summary.items():
-        _task, _summary_metric = summary_metric.split("/")
-        _results[_task].pop(_summary_metric)
-
-    tmp_results = copy.deepcopy(_results)
-    for task_name, task_results in tmp_results.items():
-        for metric_name, metric_value in task_results.items():
-            _results[f"{task_name}/{metric_name}"] = metric_value
-            _results[task_name].pop(metric_name)
-    for task in task_names:
-        _results.pop(task)
-
-    return wandb_summary, _results
-
-
-def log_eval_result(wandb_args_dict, results):
-    # initialize a W&B run
-    run = wandb.init(**wandb_args_dict)
-
-    # Log configs to wandb
-    configs = get_config(results)
-    run.config.update(configs)
-
-    wandb_summary, wandb_results = sanitize_results_dict(results)
-    # update wandb.run.summary with items that were removed
-    run.summary.update(wandb_summary)
-    # Log the evaluation metrics to wandb
-    wandb.log(wandb_results)
 
 
 def flatten_dict(d, parent_key="", sep="_"):
@@ -149,32 +85,167 @@ def remove_keys_with_substrings(d, substrings_to_remove):
     }
 
 
-def log_eval_samples(log_samples):
-    assert wandb.run is not None
+class WandbLogger:
+    def __init__(self, results, args):
+        self.results = copy.deepcopy(results)
+        self.wandb_args = utils.simple_parse_args_string(args.wandb_args)
 
-    task_names = list(log_samples.keys())
-    for task_name in task_names:
-        eval_preds = log_samples[task_name]
+        self.task_names = list(results.get("results", {}).keys())
+        
 
-        _eval_preds = []
-        for eval_pred in eval_preds:
-            eval_pred = flatten_dict(eval_pred)
-            eval_pred = remove_keys_with_substrings(
-                eval_pred,
-                substrings_to_remove=[
-                    "resps",
-                ],
-            )
-            _eval_preds.append(eval_pred)
+    def log_eval_result(self):
+        # initialize a W&B run
+        self.run = wandb.init(**self.wandb_args)
 
-        # initialize a new W&B Table
-        columns = list(_eval_preds[0].keys())
-        table = wandb.Table(columns=columns)
-        # TODO: handle columns with list data in a better way
-        for _eval_pred in _eval_preds:
-            table.add_data(*_eval_pred.values())
+        # Log configs to wandb
+        configs = self.get_config()
+        self.run.config.update(configs)
 
-        # log the table to W&B
-        wandb.run.log({f"{task_name}_eval_results": table})
+        wandb_summary, wandb_results = self.sanitize_results_dict()
+        # update wandb.run.summary with items that were removed
+        self.run.summary.update(wandb_summary)
+        # Log the evaluation metrics to wandb
+        self.run.log(wandb_results)
 
-        del _eval_preds
+    def log_eval_samples(self, samples):
+        assert self.run is not None
+
+        for task_name in self.task_names:
+            eval_preds = samples[task_name]
+
+            _eval_preds = []
+            for eval_pred in eval_preds:
+                eval_pred = flatten_dict(eval_pred)
+                eval_pred = remove_keys_with_substrings(
+                    eval_pred,
+                    substrings_to_remove=[
+                        "resps",
+                    ],
+                )
+                _eval_preds.append(eval_pred)
+
+            # initialize a new W&B Table
+            columns = list(_eval_preds[0].keys())
+            table = wandb.Table(columns=columns)
+            # TODO: handle columns with list data in a better way
+            for _eval_pred in _eval_preds:
+                table.add_data(*_eval_pred.values())
+
+            # log the table to W&B
+            self.run.log({f"{task_name}_eval_results": table})
+
+            del _eval_preds
+
+    def get_config(self):
+        task_configs = self.results.get("configs", {})
+        cli_configs = self.results.get("config", {})
+        configs = {
+            "task_configs": task_configs,
+            "cli_configs": cli_configs,
+        }
+
+        return configs
+
+    def sanitize_results_dict(self):
+        """
+        Remove string valued keys from the results dict as they don't render in the workspace.
+        Log these key-value pairs to wandb.summary.
+        """
+        _results = self.results.get("results", dict())
+
+        # Remove None from the metric string name
+        tmp_results = copy.deepcopy(_results)
+        for task_name in self.task_names:
+            task_result = tmp_results.get(task_name, dict())
+            for metric_name, metric_value in task_result.items():
+                _metric_name, removed = remove_none_pattern(metric_name)
+                if removed:
+                    _results[task_name][_metric_name] = metric_value
+                    _results[task_name].pop(metric_name)
+
+        # remove string valued keys from the results dict
+        wandb_summary = {}
+        for task in self.task_names:
+            task_result = _results.get(task, dict())
+            for metric_name, metric_value in task_result.items():
+                if isinstance(metric_value, str):
+                    wandb_summary[f"{task}/{metric_name}"] = metric_value
+
+        for summary_metric, summary_value in wandb_summary.items():
+            _task, _summary_metric = summary_metric.split("/")
+            _results[_task].pop(_summary_metric)
+
+        tmp_results = copy.deepcopy(_results)
+        for task_name, task_results in tmp_results.items():
+            for metric_name, metric_value in task_results.items():
+                _results[f"{task_name}/{metric_name}"] = metric_value
+                _results[task_name].pop(metric_name)
+        for task in self.task_names:
+            _results.pop(task)
+
+        return wandb_summary, _results
+
+    def prepare_report_by_task(self, results):
+        _results = results.get("results", dict())
+        task_names = list(_results.keys())
+        task_configs = results.get("configs", {}) # TODO: get metadata
+
+        blocks = []
+        for task_name in task_names:
+            blocks.append(wr.H2(task_name))
+            blocks.append(wr.MarkdownBlock("a"))
+
+        return blocks
+
+    def write_to_report(self, wandb_args_dict, results):
+        wandb_project = wandb_args_dict.get("project", "lm-eval-harness")
+        wandb_entity = wandb_args_dict.get("entity", None)
+        report = wr.Report(
+            project=wandb_project,
+            entity=wandb_entity,
+            title=f"({datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}) - Evaluation report",
+            description=f"Evaluation run by: {wandb.run.entity} logged to {wandb.run.url}",
+        )
+
+        results_md = utils.make_table(results)
+        task_blocks = prepare_report_by_task(results)
+
+        blocks = (
+            [
+                wr.TableOfContents(),
+                wr.H1("Complete Evaluation Results"),
+                wr.MarkdownBlock(results_md),
+                wr.H1("Evaluation Results By Task"),
+            ]
+            + task_blocks
+            + [
+                wr.H1("Evaluation Runs"),
+                # wr.WeaveBlockSummaryTable(
+                #     project=wandb_project,
+                #     entity=wandb_entity,
+                #     table_name=f"{run.name}_results_table",
+                # ),
+                # wr.PanelGrid(
+                #     runsets=[
+                #         wr.Runset(
+                #             project=wandb_project, entity=wandb_entity,
+                #         ).set_filters_with_python_expr(f'Name == "{str(run.name)}"'),
+                #     ]
+                # ),
+                wr.PanelGrid(
+                    runsets=[
+                        wr.Runset(
+                            project=wandb_project, entity=wandb_entity,
+                        ).set_filters_with_python_expr(f'Name == "{str(wandb.run.name)}"'),
+                    ]
+                ),
+                wr.H1("Evaluation Config"),
+                wr.CodeBlock(
+                    json.dumps(results["config"], indent=5).split("\n"), language="json"
+                ),
+            ]
+        )
+    
+        report.blocks = blocks
+        report.save()
+        print(f"Check out the autogenerated report at: {report.url}")
