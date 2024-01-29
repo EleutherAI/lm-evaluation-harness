@@ -705,7 +705,7 @@ class HFLM(LM):
                 return self.model(inps).logits
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
-        # if do_sample is false and temp==0.0: 
+        # if do_sample is false and temp==0.0:
         # remove temperature, as do_sample=False takes care of this
         # and we don't want a warning from HF
         do_sample = generation_kwargs.get("do_sample", None)
