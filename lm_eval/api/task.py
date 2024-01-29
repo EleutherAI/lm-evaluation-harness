@@ -141,6 +141,8 @@ class TaskConfig(dict):
                     cfg_dict[k] = v
             elif callable(v):
                 cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
+            else:
+                cfg_dict[k] = str(v)
         return cfg_dict
 
     def serialize_function(
