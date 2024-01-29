@@ -1,10 +1,14 @@
 import copy
+import logging
 import re
 
 from packaging.version import Version
 
 
+logger = logging.getLogger(__name__)
+
 IS_WANDB_AVAILABLE = False
+
 
 try:
     import wandb
@@ -13,10 +17,11 @@ try:
     if Version(wandb.__version__) < Version("0.13.6"):
         wandb.require("report-editing:v0")
     IS_WANDB_AVAILABLE = True
-except:
+except Exception as e:
     logger.warning(
         "To use the wandb reporting functionality please install wandb>=0.13.6.\n"
-        "To install the latest version of wandb run `pip install wandb --upgrade`"
+        "To install the latest version of wandb run `pip install wandb --upgrade`\n"
+        f"{e}"
     )
     IS_WANDB_AVAILABLE = False
 
@@ -104,7 +109,7 @@ def log_eval_result(wandb_args_dict, results):
     wandb.log(wandb_results)
 
 
-def flatten_dict(d, parent_key='', sep='_'):
+def flatten_dict(d, parent_key="", sep="_"):
     """
     Flatten a nested dictionary.
 
@@ -137,7 +142,11 @@ def remove_keys_with_substrings(d, substrings_to_remove):
     Returns:
     - dict: The modified dictionary.
     """
-    return {key: value for key, value in d.items() if not any(substring in key for substring in substrings_to_remove)}
+    return {
+        key: value
+        for key, value in d.items()
+        if not any(substring in key for substring in substrings_to_remove)
+    }
 
 
 def log_eval_samples(log_samples):
@@ -152,7 +161,9 @@ def log_eval_samples(log_samples):
             eval_pred = flatten_dict(eval_pred)
             eval_pred = remove_keys_with_substrings(
                 eval_pred,
-                substrings_to_remove=['resps',],
+                substrings_to_remove=[
+                    "resps",
+                ],
             )
             _eval_preds.append(eval_pred)
 
