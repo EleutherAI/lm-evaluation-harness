@@ -5,19 +5,13 @@ task:
   - medqa_4options
   - task: mmlu_anatomy
     task_alias: "anatomy (mmlu)"
-    group_alias: null
   - task: mmlu_clinical_knowledge
     task_alias: "clinical_knowledge (mmlu)"
-    group_alias: null
   - task: mmlu_college_medicine
     task_alias: "college_medicine (mmlu)"
-    group_alias: null
   - task: mmlu_medical_genetics
     task_alias: "medical_genetics (mmlu)"
-    group_alias: null
   - task: mmlu_professional_medicine
     task_alias: "professional_medicine (mmlu)"
-    group_alias: null
   - task: mmlu_college_biology
     task_alias: "college_biology (mmlu)"
-    group_alias: null
