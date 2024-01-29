@@ -138,7 +138,7 @@ class TaskConfig(dict):
                             metric_dict[metric_key] = self.serialize_function(
                                 metric_value, keep_callable=keep_callable
                             )
-                    cfg_dict[k] = v
+                cfg_dict[k] = v
             elif callable(v):
                 cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
         return cfg_dict
