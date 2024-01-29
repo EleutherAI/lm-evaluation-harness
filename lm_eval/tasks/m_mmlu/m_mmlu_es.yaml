@@ -1,3 +1,0 @@
-include: _default_yaml
-task: m_mmlu_es
-dataset_name: es 
