@@ -148,6 +148,11 @@ class TaskConfig(dict):
     def serialize_function(
         self, value: Union[Callable, str], keep_callable=False
     ) -> Union[Callable, str]:
+        """Serializes a given function or string.
+
+        If 'keep_callable' is True, the original callable is returned.
+        Otherwise, attempts to return the source code of the callable using 'getsource'.
+        """
         if keep_callable:
             return value
         else:
