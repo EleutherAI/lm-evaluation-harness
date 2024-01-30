@@ -184,7 +184,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             task_names = task_manager.match_tasks(input_task_list)
             task_manager.match(input_task_list)
             for task in [
-                task for task in input_task_list if task not in loaded_task_list
+                task for task in input_task_list if task not in task_names
             ]:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
