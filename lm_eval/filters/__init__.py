@@ -38,6 +38,8 @@ def build_filter_ensemble(
     """
     filters = []
     for function, kwargs in components:
+        if kwargs is None:
+            kwargs = {}
         # create a filter given its name in the registry
         f = partial(get_filter(function), **kwargs)
         # add the filter as a pipeline step
