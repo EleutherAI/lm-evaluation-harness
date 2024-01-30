@@ -7,11 +7,14 @@ import torch
 import numpy as np
 
 import lm_eval.api
-import lm_eval.tasks
 import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry
 
+from lm_eval.tasks import (
+    get_task_dict,
+    TaskManager
+)
 from lm_eval.utils import (
     positional_deprecated,
     run_task_tests,
@@ -39,7 +42,7 @@ def simple_evaluate(
     log_samples: bool = True,
     gen_kwargs: str = None,
     weight_by_size: bool = False,
-    task_manager: lm_eval.tasks.TaskManager = None,
+    task_manager: TaskManager = None,
     verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -123,9 +126,9 @@ def simple_evaluate(
         )
 
     if task_manager is None:
-        task_manager = lm_eval.tasks.TaskManager(verbosity)
+        task_manager = TaskManager(verbosity)
 
-    task_dict = lm_eval.tasks.get_task_dict(tasks)
+    task_dict = get_task_dict(tasks, task_manager)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
         if type(task_obj) == tuple:
