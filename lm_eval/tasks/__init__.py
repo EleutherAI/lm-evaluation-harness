@@ -94,7 +94,7 @@ class TaskManager(abc.ABC):
         return self.ALL_TASKS[name]["task"]
 
     def _process_alias(self, config, group=None):
-        # If the group is not the same as the original 
+        # If the group is not the same as the original
         # group which the group alias was intended for,
         # Set the group_alias to None instead.
         if ("group_alias" in config) and ("group" in config) and group is not None:
@@ -138,9 +138,12 @@ class TaskManager(abc.ABC):
                 return load_task(task_config, task=name_or_config, group=parent_name)
             else:
                 group_name = name_or_config
+                group_config = self._get_config(name_or_config)
                 subtask_list = self._get_tasklist(name_or_config)
                 if subtask_list == -1:
-                    subtask_list = self._get_config(name_or_config)["task"]
+                    subtask_list = group_config["task"]
+
+                update_config = {k:v for k,v in group_config.items() if (k != "task") and (k != "group")}
 
                 # This checks if we're at the root.
                 if parent_name is None:
@@ -184,6 +187,7 @@ class TaskManager(abc.ABC):
             else:
                 group_name = name_or_config["group"]
                 subtask_list = name_or_config["task"]
+                update_config = {k:v for k,v in name_or_config.items() if k != "task"}
 
         all_subtasks = {}
         if (parent_name is not None) and ((self._name_is_registered(group_name) is False) or (self._get_yaml_path(group_name) == -1)):
