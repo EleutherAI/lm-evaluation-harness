@@ -1,6 +1,5 @@
 import os
 import abc
-import yaml
 import collections
 
 from functools import partial
