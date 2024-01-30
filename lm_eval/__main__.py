@@ -155,7 +155,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-    # initialize_tasks(args.verbosity)
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
     if args.limit:
@@ -175,26 +174,25 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         if os.path.isdir(args.tasks):
             import glob
 
-            loaded_task_list = []
+            task_names = []
             yaml_path = os.path.join(args.tasks, "*.yaml")
             for yaml_file in glob.glob(yaml_path):
                 config = utils.load_yaml_config(yaml_file)
-                loaded_task_list.append(config)
+                task_names.append(config)
         else:
             input_task_list = args.tasks.split(",")
-            loaded_task_list = utils.pattern_match(
-                input_task_list, task_manager.all_tasks()
-            )
+            task_names = task_manager.match_tasks(input_task_list)
+            task_manager.match(input_task_list)
             for task in [
                 task for task in input_task_list if task not in loaded_task_list
             ]:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
-                    loaded_task_list.append(config)
+                    task_names.append(config)
             task_missing = [
                 task
                 for task in input_task_list
-                if task not in loaded_task_list and "*" not in task
+                if task not in task_names and "*" not in task
             ]  # we don't want errors if a wildcard ("*") task name was used
 
             if task_missing:
@@ -227,15 +225,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     elif args.log_samples and not args.output_path:
         assert args.output_path, "Specify --output_path"
 
-    eval_logger.info(f"Selected Tasks: {loaded_task_list}")
+    eval_logger.info(f"Selected Tasks: {task_names}")
     eval_logger.info("Loading selected tasks...")
-
-    all_tasks = task_manager.load_task_or_group(loaded_task_list)
 
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
-        tasks=all_tasks,
+        tasks=task_names,
         num_fewshot=args.num_fewshot,
         batch_size=args.batch_size,
         max_batch_size=args.max_batch_size,
@@ -247,6 +243,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         write_out=args.write_out,
         log_samples=args.log_samples,
         gen_kwargs=args.gen_kwargs,
+        task_manager=task_manager,
     )
 
     if results is not None:
