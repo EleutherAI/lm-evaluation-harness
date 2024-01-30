@@ -253,7 +253,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
 
         if args.output_path:
-            output_path_file.open("w").write(dumped)
+            output_path_file.open("w", encoding="utf-8").write(dumped)
 
             if args.log_samples:
                 for task_name, config in results["configs"].items():

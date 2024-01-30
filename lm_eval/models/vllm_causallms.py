@@ -170,18 +170,12 @@ class VLLM(LM):
         stop: Optional[List[str]] = None,
         **kwargs,
     ):
-        if "do_sample" in kwargs.keys():
-            kwargs.pop("do_sample")
         if generate:
-            # hf defaults
-            kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
-            kwargs["spaces_between_special_tokens"] = kwargs.get(
-                "spaces_between_special_tokens", False
-            )
+            kwargs = self.modify_gen_kwargs(kwargs)
             sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
         else:
             sampling_params = SamplingParams(
-                temperature=0, prompt_logprobs=2, max_tokens=1
+                temperature=0, prompt_logprobs=1, max_tokens=1
             )
         if self.data_parallel_size > 1:
             requests = [list(x) for x in divide(requests, self.data_parallel_size)]
@@ -438,3 +432,16 @@ class VLLM(LM):
                     break
 
         return continuation_logprobs, is_greedy
+
+    @staticmethod
+    def modify_gen_kwargs(kwargs: dict) -> dict:
+        # sampling_params
+        do_sample = kwargs.pop("do_sample", None)
+        if do_sample is False or "temperature" not in kwargs:
+            kwargs["temperature"] = 0.0
+        # hf defaults
+        kwargs["skip_special_tokens"] = kwargs.get("skip_special_tokens", False)
+        kwargs["spaces_between_special_tokens"] = kwargs.get(
+            "spaces_between_special_tokens", False
+        )
+        return kwargs

@@ -28,7 +28,7 @@ from lm_eval.utils import (
 def simple_evaluate(
     model,
     model_args=None,
-    tasks=[],
+    tasks=None,
     num_fewshot=None,
     batch_size=None,
     max_batch_size=None,
@@ -86,6 +86,8 @@ def simple_evaluate(
         1234
     )  # TODO: this may affect training runs that are run with evaluation mid-run.
 
+    if tasks is None:
+        tasks = []
     assert (
         tasks != []
     ), "No tasks specified, or no tasks found. Please verify the task names."
@@ -131,7 +133,7 @@ def simple_evaluate(
     task_dict = get_task_dict(tasks, task_manager)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
-        if type(task_obj) == tuple:
+        if isinstance(task_obj, tuple):
             _, task_obj = task_obj
             if task_obj is None:
                 continue
@@ -253,7 +255,7 @@ def evaluate(
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
-        if type(task) == tuple:
+        if isinstance(task, tuple):
             group_name, task = task
             task_hierarchy[group_name].append(task_name)
             versions[group_name] = "N/A"
@@ -327,7 +329,7 @@ def evaluate(
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
     for reqtype, reqs in requests.items():
-        eval_logger.info("Running {} requests".format(reqtype))
+        eval_logger.info(f"Running {reqtype} requests")
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []
         for req in reqs:
@@ -350,7 +352,7 @@ def evaluate(
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_name, task in task_dict.items():
-        if type(task) == tuple:
+        if isinstance(task, tuple):
             group, task = task
             if task is None:
                 continue
@@ -361,7 +363,7 @@ def evaluate(
 
     # unpack results and sort back in order and return control to Task
     for task_name, task in task_dict.items():
-        if type(task) == tuple:
+        if isinstance(task, tuple):
             group, task = task
             if task is None:
                 continue
@@ -412,7 +414,7 @@ def evaluate(
         vals_torch = collections.defaultdict(list)
         for (task_name, key, metric), items in vals.items():
             numitem = 0
-            if type(items[0]) == tuple:
+            if isinstance(items[0], tuple):
                 numitem = len(items[0])
 
             if isinstance(items[0], (str, list, tuple)):
@@ -458,7 +460,7 @@ def evaluate(
             task = task_dict[task_name]
             metric_key = metric + "," + key
 
-            if type(task) == tuple:
+            if isinstance(task, tuple):
                 group_name, task = task
             else:
                 group_name = None
@@ -521,7 +523,7 @@ def evaluate(
                                     + metric_score * current_size
                                 ) / (total_size + current_size)
                                 # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                                if var_score == "N/A":
+                                if var_score == "N/A" or results[group][stderr] == "N/A":
                                     results[group][stderr] = "N/A"
                                 else:
                                     results[group][stderr] = (
