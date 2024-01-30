@@ -74,7 +74,12 @@ class TaskConfig(dict):
     num_fewshot: int = None
     # scoring options
     metric_list: list = None
-    output_type: str = "generate_until"
+    output_type: Literal[
+        "loglikelihood",
+        "loglikelihood_rolling",
+        "generate_until",
+        "multiple_choice",
+    ] = "generate_until"
     generation_kwargs: dict = None
     repeats: int = 1
     filter_list: Union[str, list] = None

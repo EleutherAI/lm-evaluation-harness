@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Union
+from functools import partial
 
 from lm_eval.api.filter import FilterEnsemble
 from . import selection
@@ -22,7 +23,7 @@ FILTER_REGISTRY = {
 }
 
 
-def get_filter(filter_name):
+def get_filter(filter_name: str) -> Union[type, str]:
     if filter_name in FILTER_REGISTRY:
         return FILTER_REGISTRY[filter_name]
     else:
@@ -38,10 +39,9 @@ def build_filter_ensemble(
     filters = []
     for function, kwargs in components:
         if kwargs is None:
-            f = get_filter(function)()
-        else:
-            # create a filter given its name in the registry
-            f = get_filter(function)(**kwargs)  # TODO: pass kwargs to filters properly
+            kwargs = {}
+        # create a filter given its name in the registry
+        f = partial(get_filter(function), **kwargs)
         # add the filter as a pipeline step
         filters.append(f)
 
