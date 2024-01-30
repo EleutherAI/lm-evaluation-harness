@@ -105,6 +105,36 @@ class WandbLogger:
         self.run.summary.update(wandb_summary)
         # Log the evaluation metrics to wandb
         self.run.log(self.wandb_results)
+        # Log the evaluation metrics as Table
+        self.get_eval_wandb_table()
+
+    def get_eval_wandb_table(self):
+        columns = ["Task", "Version", "Filter", "num_fewshot", "Metric", "Value", "Stderr"]
+        table = wandb.Table(columns=columns)
+        results = copy.deepcopy(self.results)
+
+        for k, dic in results.get("results").items():
+            version = results.get("versions").get(k)
+            n = results.get("n-shot").get(k)
+
+            if "alias" in dic:
+                k = dic.pop("alias")
+
+            for (mf), v in dic.items():
+                m, _, f = mf.partition(",")
+                if m.endswith("_stderr"):
+                    continue
+
+                if m + "_stderr" + "," + f in dic:
+                    se = dic[m + "_stderr" + "," + f]
+                    if se != "N/A":
+                        se = "%.4f" % se
+                    table.add_data(*[k, version, f, n, m, v, se])
+                else:
+                    table.add_data(*[k, version, f, n, m, v, ""])
+
+        # log the table to W&B
+        self.run.log({f"evaluation/eval_results": table})
 
     def log_eval_samples(self, samples):
         assert self.run is not None
@@ -190,7 +220,6 @@ class WandbLogger:
         blocks = []
         for task_name in self.task_names:
             blocks.append(wr.H2(task_name))
-            blocks.append(wr.P("a"))
             panels = []
             for metric_name, metric_value in results.items():
                 if task_name in metric_name:
@@ -253,6 +282,7 @@ class WandbLogger:
                 wr.CodeBlock(
                     json.dumps(self.results["config"], indent=5).split("\n"), language="json"
                 ),
+                wr.H1("Task Appendix")
             ]
         )
 
