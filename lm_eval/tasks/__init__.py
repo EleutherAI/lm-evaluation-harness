@@ -145,10 +145,16 @@ class TaskManager(abc.ABC):
 
                 # This checks if we're at the root.
                 if parent_name is None:
-                    update_config = {
-                        k:v for k,v in self._get_config(name_or_config).items() if k not in ["task", "group"]
-                    }
+                    group_config = self._get_config(name_or_config)
+                    if set(group_config.keys()) > set(["task", "group"]):
+                        update_config = {
+                            k:v for k,v in group_config.items() if k not in ["task", "group"]
+                        }
                     yaml_path = self._get_yaml_path(group_name)
+
+                    if "group_alias" in update_config:
+                        group_name = update_config["group_alias"]
+                        update_config.pop("group_alias")
 
         if isinstance(name_or_config, dict):
 
@@ -188,10 +194,14 @@ class TaskManager(abc.ABC):
             else:
                 group_name = name_or_config["group"]
                 subtask_list = name_or_config["task"]
-                update_config = {k:v for k,v in name_or_config.items() if k != "task"}
+                # update_config = {k:v for k,v in name_or_config.items() if k != "task"}
+                if set(name_or_config.keys()) > set(["task", "group"]):
+                    update_config = {
+                        k:v for k,v in name_or_config.items() if k not in ["task", "group"]
+                    }
 
         all_subtasks = {}
-        if (parent_name is not None) and ((self._name_is_registered(group_name) is False) or (self._get_yaml_path(group_name) == -1)):
+        if (parent_name is not None):
             all_subtasks = {group_name: (parent_name, None)}
 
         fn = partial(self._load_individual_task_or_group, parent_name=group_name, update_config=update_config, yaml_path=yaml_path)
