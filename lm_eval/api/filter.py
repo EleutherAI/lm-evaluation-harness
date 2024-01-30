@@ -48,8 +48,7 @@ class FilterEnsemble:
 
         for f in self.filters:
             # apply filters in sequence
-            f_init = f()
-            resps = f_init.apply(resps, docs)
+            resps = f().apply(resps, docs)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
         # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.
