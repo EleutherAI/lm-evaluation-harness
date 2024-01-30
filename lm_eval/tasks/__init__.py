@@ -179,6 +179,7 @@ class TaskManager(abc.ABC):
 
                         # Check if this is a duplicate.
                         if parent_name is not None:
+                            name_or_config["group"] = parent_name
                             num_duplicate = len(list(filter(lambda x: x.startswith(name), self.task_group_map[parent_name])))
                             if num_duplicate > 0:
                                 name = f"{name}-{num_duplicate}"

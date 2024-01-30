@@ -1,7 +1,9 @@
 group: flan_held_in
+group_alias: Flan (Held-In)
 task:
   # ANLI R1
   - group: anli_r1_flan
+    group_alias: ANLI R1
     task:
       - task: anli_r1
         task_alias: prompt-0
@@ -50,6 +52,7 @@ task:
         doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
   # ANLI R2
   - group: anli_r2_flan
+    group_alias: ANLI R2
     task:
       - task: anli_r2
         task_alias: prompt-0
@@ -98,6 +101,7 @@ task:
         doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
   # ANLI R3
   - group: anli_r3_flan
+    group_alias: ANLI R3
     task:
       - task: anli_r3
         task_alias: prompt-0
@@ -146,6 +150,7 @@ task:
         doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
   # Arc Easy
   - group: arc_easy_flan
+    group_alias: Arc Easy
     task:
       - task: arc_easy
         task_alias: prompt-0
@@ -184,6 +189,7 @@ task:
         doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
   # Arc Challenge
   - group: arc_challenge_flan
+    group_alias: Arc Challenge
     task:
       - task: arc_challenge
         task_alias: prompt-0
@@ -222,6 +228,7 @@ task:
         doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
   # BoolQ
   - group: boolq_flan
+    group_alias: BoolQ
     task:
       - task: boolq
         task_alias: prompt-0
@@ -275,6 +282,7 @@ task:
         doc_to_target: "{{['no', 'yes'][label]}}"
   # RTE
   - group: rte_flan
+    group_alias: RTE
     task:
       - task: rte
         task_alias: prompt-0
