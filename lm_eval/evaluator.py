@@ -208,7 +208,6 @@ def evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
-    weight_by_size: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -496,11 +495,7 @@ def evaluate(
                         if "alias" in metrics:
                             metrics.pop("alias")
 
-                        if ("weight_by_size" in configs) and configs[task]["weight_by_size"]:
-                            current_size = metrics.pop("samples")
-                        else:
-                            metrics.pop("samples")
-                            current_size = 1
+                        current_size = metrics.pop("samples")
 
                         all_stderr = []
                         for metric in [
