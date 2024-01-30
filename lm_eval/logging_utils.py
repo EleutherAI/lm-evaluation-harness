@@ -186,12 +186,24 @@ class WandbLogger:
 
     def prepare_report_by_task(self, results):
         _results = results.get("results", dict())
-        task_configs = results.get("configs", {}) # TODO: get metadata
 
         blocks = []
         for task_name in self.task_names:
             blocks.append(wr.H2(task_name))
-            blocks.append(wr.MarkdownBlock("a"))
+            blocks.append(wr.P("a"))
+            panels = []
+            for metric_name, metric_value in results.items():
+                if task_name in metric_name:
+                    panels.append(
+                        wr.ScalarChart(
+                            title=f"{metric_name}",
+                            metric=f"{metric_name}",
+                            font_size="large",
+                        )
+                    )
+            blocks.append(
+                wr.PanelGrid(panels=panels)
+            )
 
         return blocks
 
