@@ -231,6 +231,9 @@ class TaskManager(abc.ABC):
         )
         return all_loaded_tasks
 
+    def load_config(self, config: Dict):
+        return self._load_individual_task_or_group(config)
+
     def _get_task_and_group(self, task_dir: str):
         tasks_and_groups = collections.defaultdict()
         for root, _, file_list in os.walk(task_dir):
@@ -332,9 +335,7 @@ def get_task_dict(task_name_list: List[Union[str, Dict, Task]], task_manager: Ta
         if isinstance(task_element, dict):
             task_name_from_config_dict = {
                 **task_name_from_config_dict,
-                get_task_name_from_config(task_element): ConfigurableTask(
-                    config=task_element
-                ),
+                **task_manager.load_config(config=task_element),
             }
 
         elif isinstance(task_element, Task):
@@ -351,38 +352,3 @@ def get_task_dict(task_name_list: List[Union[str, Dict, Task]], task_manager: Ta
         **task_name_from_config_dict,
         **task_name_from_object_dict,
     }
-
-# def check_prompt_config(
-#     config: Dict[str, str], yaml_path: str = None
-# ) -> List[Dict[str, str]]:
-#     all_configs = []
-#     if "use_prompt" in config:
-#         prompt_list = prompts.load_prompt_list(
-#             use_prompt=config["use_prompt"],
-#             dataset_name=config["dataset_path"],
-#             subset_name=config["dataset_name"] if "dataset_name" in config else None,
-#             yaml_path=yaml_path,
-#         )
-#         for idx, prompt_variation in enumerate(prompt_list):
-#             all_configs.append(
-#                 {
-#                     **config,
-#                     **{"use_prompt": prompt_variation},
-#                     **{
-#                         "task": "_".join(
-#                             [
-#                                 config["task"]
-#                                 if "task" in config
-#                                 else get_task_name_from_config(config),
-#                                 prompt_variation.split("/")[-1]
-#                                 if ".yaml" in prompt_variation
-#                                 else prompt_variation,
-#                             ]
-#                         )
-#                     },
-#                     **{"output_type": "generate_until"},
-#                 }
-#             )
-#     else:
-#         all_configs.append(config)
-#     return all_configs
