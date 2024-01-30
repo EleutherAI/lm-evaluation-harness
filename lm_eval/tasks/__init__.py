@@ -6,7 +6,7 @@ from functools import partial
 from typing import List, Union, Dict
 
 from lm_eval import utils
-from lm_eval.api.task import ConfigurableTask
+from lm_eval.api.task import Task, ConfigurableTask
 
 import logging
 
@@ -47,6 +47,11 @@ class TaskManager(abc.ABC):
 
     def all_tasks(self):
         return sorted(list(self.ALL_TASKS.keys()))
+
+    def match_tasks(self, task_list):
+        return utils.pattern_match(
+            task_list, self.all_tasks()
+        )
 
     def _name_is_registered(self, name):
         if name in self.ALL_TASKS:
@@ -284,6 +289,65 @@ class TaskManager(abc.ABC):
 
         return tasks_and_groups
 
+
+def get_task_name_from_config(task_config: Dict[str, str]) -> str:
+    if "task" in task_config:
+        return task_config["task"]
+    if "dataset_name" in task_config:
+        return "{dataset_path}_{dataset_name}".format(**task_config)
+    else:
+        return "{dataset_path}".format(**task_config)
+
+def get_task_name_from_object(task_object):
+    if hasattr(task_object, "_config"):
+        return task_object._config["task"]
+
+    # TODO: scrap this
+    # this gives a mechanism for non-registered tasks to have a custom name anyways when reporting
+    return (
+        task_object.EVAL_HARNESS_NAME
+        if hasattr(task_object, "EVAL_HARNESS_NAME")
+        else type(task_object).__name__
+    )
+
+# TODO: pass num_fewshot and other cmdline overrides in a better way
+def get_task_dict(task_name_list: List[Union[str, Dict, Task]], task_manager: TaskManager):
+
+    task_name_from_string_dict = {}
+    task_name_from_config_dict = {}
+    task_name_from_object_dict = {}
+
+    if isinstance(task_name_list, str):
+        task_name_list = [task_name_list]
+
+    string_task_name_list = [task for task in task_name_list if isinstance(task, str)]
+    others_task_name_list = [task for task in task_name_list if ~isinstance(task, str)]
+    if len(string_task_name_list) > 0:
+        task_name_from_string_dict = task_manager.load_task_or_group(string_task_name_list)
+
+    for task_element in others_task_name_list:
+        if isinstance(task_element, dict):
+            task_name_from_config_dict = {
+                **task_name_from_config_dict,
+                get_task_name_from_config(task_element): ConfigurableTask(
+                    config=task_element
+                ),
+            }
+
+        elif isinstance(task_element, Task):
+            task_name_from_object_dict = {
+                **task_name_from_object_dict,
+                get_task_name_from_object(task_element): task_element,
+            }
+
+    assert set(task_name_from_string_dict.keys()).isdisjoint(
+        set(task_name_from_object_dict.keys())
+    )
+    return {
+        **task_name_from_string_dict,
+        **task_name_from_config_dict,
+        **task_name_from_object_dict,
+    }
 
 # def check_prompt_config(
 #     config: Dict[str, str], yaml_path: str = None
