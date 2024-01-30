@@ -90,7 +90,10 @@ class TaskManager(abc.ABC):
     def _get_config(self, name):
         assert name in self.ALL_TASKS
         yaml_path = self._get_yaml_path(name)
-        return utils.load_yaml_config("full", yaml_path)
+        if yaml_path == -1:
+            return {}
+        else:
+            return utils.load_yaml_config("full", yaml_path)
 
     def _get_tasklist(self, name):
         assert self._name_is_task(name) == False
@@ -155,7 +158,7 @@ class TaskManager(abc.ABC):
                         }
                     yaml_path = self._get_yaml_path(group_name)
 
-                    if "group_alias" in update_config:
+                    if (update_config is not None) and ("group_alias" in update_config):
                         group_name = update_config["group_alias"]
                         update_config.pop("group_alias")
 
