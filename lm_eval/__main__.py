@@ -12,8 +12,8 @@ import numpy as np
 
 from lm_eval import evaluator, utils
 from lm_eval.api.registry import ALL_TASKS
-from lm_eval.api.wandb import WandbLogger
 from lm_eval.tasks import include_path, initialize_tasks
+from lm_eval.logging_utils import WandbLogger
 from lm_eval.utils import make_table
 
 
@@ -263,13 +263,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
 
-        # Add W&B logic
+        # Add W&B logging
         if args.wandb_args:
             wandb_logger = WandbLogger(results, args)
             wandb_logger.log_eval_result()
-
             if args.log_samples:
                 wandb_logger.log_eval_samples(samples)
+            wandb_logger.write_to_report()
 
         if args.output_path:
             output_path_file.open("w").write(dumped)
