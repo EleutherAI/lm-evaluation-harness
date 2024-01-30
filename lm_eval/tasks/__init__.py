@@ -138,15 +138,16 @@ class TaskManager(abc.ABC):
                 return load_task(task_config, task=name_or_config, group=parent_name)
             else:
                 group_name = name_or_config
-                group_config = self._get_config(name_or_config)
                 subtask_list = self._get_tasklist(name_or_config)
                 if subtask_list == -1:
+                    group_config = self._get_config(name_or_config)
                     subtask_list = group_config["task"]
-
-                update_config = {k:v for k,v in group_config.items() if (k != "task") and (k != "group")}
 
                 # This checks if we're at the root.
                 if parent_name is None:
+                    update_config = {
+                        k:v for k,v in self._get_config(name_or_config).items() if k not in ["task", "group"]
+                    }
                     yaml_path = self._get_yaml_path(group_name)
 
         if isinstance(name_or_config, dict):
@@ -160,14 +161,14 @@ class TaskManager(abc.ABC):
             if self._config_is_task(name_or_config):
                 name = name_or_config["task"]
                 # If the name is registered as a group
-                if self._name_is_registered(name):
-                    if self._name_is_task(name) is False:
-                        group_name = name
-                        update_config = {k:v for k,v in name_or_config.items() if k != "task"}
-                        subtask_list = self._get_tasklist(name)
-                        if subtask_list == -1:
-                            subtask_list = self._get_config(name)["task"]
-                    else:
+                if self._name_is_task(name) is False:
+                    group_name = name
+                    update_config = {k:v for k,v in name_or_config.items() if k != "task"}
+                    subtask_list = self._get_tasklist(name)
+                    if subtask_list == -1:
+                        subtask_list = self._get_config(name)["task"]
+                else:
+                    if self._name_is_registered(name):
                         base_task_config = self._get_config(name)
 
                         # Check if this is a duplicate.
@@ -181,9 +182,9 @@ class TaskManager(abc.ABC):
                                 **base_task_config,
                                 **name_or_config,
                             }
-                else:
-                    task_config = name_or_config
-                return load_task(task_config, task=name, group=parent_name, yaml_path=yaml_path)
+                    else:
+                        task_config = name_or_config
+                    return load_task(task_config, task=name, group=parent_name, yaml_path=yaml_path)
             else:
                 group_name = name_or_config["group"]
                 subtask_list = name_or_config["task"]
