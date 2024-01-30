@@ -41,7 +41,6 @@ def simple_evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     gen_kwargs: str = None,
-    weight_by_size: bool = False,
     task_manager: TaskManager = None,
     verbosity: str = "INFO",
 ):
