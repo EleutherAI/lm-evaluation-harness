@@ -187,9 +187,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
             task_missing = [
-                task
-                for task in task_list
-                if task not in task_names and "*" not in task
+                task for task in task_list if task not in task_names and "*" not in task
             ]  # we don't want errors if a wildcard ("*") task name was used
 
             if task_missing:
