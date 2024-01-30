@@ -303,7 +303,7 @@ task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 Passing `--tasks /path/to/yaml/file` is also accepted.
 
 
-### Advance Group Configs
+### Advanced Group Configs
 
 You can make more complete group config while also tailoring parameters for individual tasks.
 
