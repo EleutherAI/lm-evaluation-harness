@@ -238,9 +238,14 @@ class TaskManager(abc.ABC):
                             "yaml_path": yaml_path,
                         }
 
+                        # # Registered the level 1 tasks from a group config
                         # for config in config["task"]:
                         #     if isinstance(config, dict) and self._config_is_task(config):
-                        #         config["task"]
+                        #         task = config["task"]
+                        #         tasks_and_groups[task] = {
+                        #             "type": "task",
+                        #             "yaml_path": yaml_path,
+                        #             }
 
                     elif self._config_is_task(config):
                         # This is a task config
