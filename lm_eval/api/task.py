@@ -42,22 +42,6 @@ eval_logger = logging.getLogger("lm-eval")
 
 
 @dataclass
-class GroupConfig(dict):
-    group: str = None
-    task: Union[str, list] = None
-    weight_by_size: bool = False
-
-    def __getitem__(self, item):
-        return getattr(self, item)
-
-    def __setitem__(self, item, value):
-        return setattr(self, item, value)
-
-    def to_dict(self):
-        return asdict(self)
-
-
-@dataclass
 class TaskConfig(dict):
     # task naming/registry
     task: str = None
