@@ -240,9 +240,9 @@ class HFLM(LM):
                 # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
                 self.tokenizer.pad_token = "<|endoftext|>"
             elif (
-+                self.tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
-+                or self.tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
-+            ):
+                self.tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
+                or self.tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
+            ):
                 # The RWKV world tokenizer, does not allow for adding special tokens / setting the pad token (which is set as 0)
                 # The additional tokenizer name check is needed, as there exists rwkv4 models with neox tokenizer
                 # ---
