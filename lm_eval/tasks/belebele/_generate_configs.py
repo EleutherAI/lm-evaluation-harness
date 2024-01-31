@@ -42,7 +42,7 @@ if __name__ == "__main__":
     print(query())
     languages = [split["split"] for split in query()]
 
-    for lang in tqdm(languages):
+    for lang in tqdm([lang for lang in languages if "default" not in lang]):
         yaml_dict = {
             "include": base_yaml_name,
             "task": f"belebele_{args.task_prefix}_{lang}"
