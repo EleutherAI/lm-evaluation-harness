@@ -1,7 +1,10 @@
 import copy
 import logging
 import re
+import os
 import json
+import glob
+import pandas as pd
 from datetime import datetime
 
 from packaging.version import Version
@@ -43,46 +46,6 @@ def remove_none_pattern(input_string):
     removed = result != input_string
 
     return result, removed
-
-
-def flatten_dict(d, parent_key="", sep="_"):
-    """
-    Flatten a nested dictionary.
-
-    Parameters:
-    - d (dict): The nested dictionary to be flattened.
-    - parent_key (str, optional): The key from the parent dictionary (used for recursion). Defaults to an empty string.
-    - sep (str, optional): The separator used between keys when generating the flattened keys. Defaults to '_'.
-
-    Returns:
-    - dict: A flattened dictionary.
-    """
-    items = []
-    for k, v in d.items():
-        new_key = f"{parent_key}{sep}{k}" if parent_key else k
-        if isinstance(v, dict):
-            items.extend(flatten_dict(v, new_key, sep=sep).items())
-        else:
-            items.append((new_key, v))
-    return dict(items)
-
-
-def remove_keys_with_substrings(d, substrings_to_remove):
-    """
-    Remove keys containing specified substrings from a dictionary.
-
-    Parameters:
-    - d (dict): The original dictionary.
-    - substrings_to_remove (list): List of substrings to be removed from keys.
-
-    Returns:
-    - dict: The modified dictionary.
-    """
-    return {
-        key: value
-        for key, value in d.items()
-        if not any(substring in key for substring in substrings_to_remove)
-    }
 
 
 class WandbLogger:
@@ -136,40 +99,63 @@ class WandbLogger:
         # log the table to W&B
         self.run.log({f"evaluation/eval_results": table})
 
-    def log_eval_samples(self, samples):
-        assert self.run is not None
+    def generate_dataset(self, data, config):
+        """Generate a Zeno dataset from evaluation data.
 
+        Args:
+            data: The data to generate a dataset for.
+            config: The configuration of the task.
+
+        Returns:
+            pd.Dataframe: A dataframe that is ready to be uploaded to Zeno.
+        """
+        ids = [x["doc_id"] for x in data]
+        labels = [x["target"] for x in data]
+        instance = [""] * len(ids)
+
+        metrics_list = config["metric_list"]
+        metrics = {}
+        for metric in metrics_list:
+            metric = metric.get("metric")
+            metrics[metric] = [x[metric] for x in data]
+        
+        if config["output_type"] == "loglikelihood":
+            instance = [x["arguments"][0][0] for x in data]
+            labels = [x["arguments"][0][1] for x in data]
+        elif config["output_type"] == "multiple_choice":
+            instance = [
+                x["arguments"][0][0]
+                + "\n\n"
+                + "\n".join([f"- {y[1]}" for y in x["arguments"]])
+                for x in data
+            ]
+        elif config["output_type"] == "loglikelihood_rolling":
+            instance = [x["arguments"][0][0] for x in data]
+        elif config["output_type"] == "generate_until":
+            instance = [x["arguments"][0][0] for x in data]
+
+        df_data = {
+            "id": ids,
+            "data": instance,
+            "input_len": [len(x) for x in instance],
+            "labels": labels,
+            "output_type": config["output_type"],
+        }
+        df_data.update(metrics)
+
+        return pd.DataFrame(df_data)
+
+    def log_eval_samples(self, samples):
         for task_name in self.task_names:
             eval_preds = samples[task_name]
-
-            _eval_preds = []
-            for eval_pred in eval_preds:
-                eval_pred = flatten_dict(eval_pred)
-                eval_pred = remove_keys_with_substrings(
-                    eval_pred,
-                    substrings_to_remove=[
-                        "resps",
-                    ],
-                )
-                _eval_preds.append(eval_pred)
-
-            # initialize a new W&B Table
-            columns = list(_eval_preds[0].keys())
-            table = wandb.Table(columns=columns)
-            # TODO: handle columns with list data in a better way
-            for _eval_pred in _eval_preds:
-                table.add_data(*_eval_pred.values())
-
-            # log the table to W&B
-            self.run.log({f"{task_name}_eval_results": table})
-
-            del _eval_preds
+            df = self.generate_dataset(eval_preds, self.task_configs.get(task_name))
+            self.run.log({f"{task_name}_eval_results": df})
 
     def get_config(self):
-        task_configs = self.results.get("configs", {})
+        self.task_configs = self.results.get("configs", {})
         cli_configs = self.results.get("config", {})
         configs = {
-            "task_configs": task_configs,
+            "task_configs": self.task_configs,
             "cli_configs": cli_configs,
         }
 
@@ -237,8 +223,8 @@ class WandbLogger:
         return blocks
 
     def write_to_report(self):
-        wandb_project = self.wandb_args.get("project", "lm-eval-harness")
-        wandb_entity = self.wandb_args.get("entity", None)
+        wandb_project = self.run.project
+        wandb_entity = self.run.entity
         report = wr.Report(
             project=wandb_project,
             entity=wandb_entity,
@@ -253,36 +239,27 @@ class WandbLogger:
             [
                 wr.TableOfContents(),
                 wr.H1("Complete Evaluation Results"),
-                wr.MarkdownBlock(results_md),
-                wr.H1("Evaluation Results By Task"),
-            ]
-            + task_blocks
-            + [
-                wr.H1("Evaluation Runs"),
                 # wr.WeaveBlockSummaryTable(
                 #     project=wandb_project,
                 #     entity=wandb_entity,
-                #     table_name=f"{run.name}_results_table",
+                #     table_name=f"run-{self.run.id}-evaluationeval_results",
                 # ),
                 # wr.PanelGrid(
                 #     runsets=[
                 #         wr.Runset(
                 #             project=wandb_project, entity=wandb_entity,
-                #         ).set_filters_with_python_expr(f'Name == "{str(run.name)}"'),
+                #         ).set_filters_with_python_expr(f'Name == "{str(self.run.name)}"'),
                 #     ]
                 # ),
-                wr.PanelGrid(
-                    runsets=[
-                        wr.Runset(
-                            project=wandb_project, entity=wandb_entity,
-                        ).set_filters_with_python_expr(f'Name == "{str(self.run.name)}"'),
-                    ]
-                ),
+                wr.H1("Evaluation Results By Task"),
+            ]
+            + task_blocks
+            + [
                 wr.H1("Evaluation Config"),
                 wr.CodeBlock(
                     json.dumps(self.results["config"], indent=5).split("\n"), language="json"
                 ),
-                wr.H1("Task Appendix")
+                # TODO: Add appendix
             ]
         )
 
