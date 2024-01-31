@@ -140,9 +140,12 @@ def simple_evaluate(
                 )
             else:
                 default_num_fewshot = config["num_fewshot"]
-                eval_logger.warning(
-                    f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
-                )
+                if default_num_fewshot:
+                    # warn a user, if a specific num_fewshot > 0 was specified.
+                    # if unspecified in config, no warning message
+                    eval_logger.warning(
+                        f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
+                    )
 
                 task_obj._config["num_fewshot"] = num_fewshot
 
