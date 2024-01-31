@@ -705,10 +705,12 @@ class HFLM(LM):
                 return self.model(inps).logits
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
-        # we require users to pass do_sample=True explicitly
-        # for non-greedy gen. This should be reevaluated when considering beam search.
-        if "do_sample" not in generation_kwargs:
-            generation_kwargs["do_sample"] = False
+        # if do_sample is false and temp==0.0:
+        # remove temperature, as do_sample=False takes care of this
+        # and we don't want a warning from HF
+        do_sample = generation_kwargs.get("do_sample", None)
+        if do_sample is False and "temperature" == 0.0:
+            generation_kwargs.pop("temperature", 0.0)
         # build stopping criteria
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, context.shape[1], context.shape[0]
