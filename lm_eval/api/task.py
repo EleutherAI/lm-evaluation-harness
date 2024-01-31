@@ -5,6 +5,7 @@ import random
 import re
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
+from inspect import getsource
 from typing import Any, List, Literal, Tuple, Union
 
 import datasets
@@ -36,7 +37,6 @@ ALL_OUTPUT_TYPES = [
     "loglikelihood_rolling",
     "generate_until",
 ]
-
 
 eval_logger = logging.getLogger("lm-eval")
 
@@ -74,7 +74,12 @@ class TaskConfig(dict):
     num_fewshot: int = None
     # scoring options
     metric_list: list = None
-    output_type: str = "generate_until"
+    output_type: Literal[
+        "loglikelihood",
+        "loglikelihood_rolling",
+        "generate_until",
+        "multiple_choice",
+    ] = "generate_until"
     generation_kwargs: dict = None
     repeats: int = 1
     filter_list: Union[str, list] = None
@@ -110,17 +115,13 @@ class TaskConfig(dict):
                     "do_sample": False,
                 }
 
-        # TODO: how to make TaskConfigs be de- and re-serializable, even when using the !function constructor?
-        # if self.dataset_kwargs is None:
-        #     self.dataset_kwargs = {"trust_remote_code": True}
-
     def __getitem__(self, item):
         return getattr(self, item)
 
     def __setitem__(self, item, value):
         return setattr(self, item, value)
 
-    def to_dict(self, keep_callable=False):
+    def to_dict(self, keep_callable: bool = False) -> dict:
         """dumps the current config as a dictionary object, as a printable format.
         null fields will not be printed.
         Used for dumping results alongside full task configuration
@@ -135,13 +136,33 @@ class TaskConfig(dict):
         for k, v in list(cfg_dict.items()):
             if v is None:
                 cfg_dict.pop(k)
-            elif isinstance(v, Callable):
-                if keep_callable:
-                    cfg_dict[k] = v
-                else:
-                    # TODO: this should handle Promptsource template objects as a separate case?
-                    cfg_dict[k] = str(v)
+            elif k == "metric_list":
+                for metric_dict in v:
+                    for metric_key, metric_value in metric_dict.items():
+                        if callable(metric_value):
+                            metric_dict[metric_key] = self.serialize_function(
+                                metric_value, keep_callable=keep_callable
+                            )
+                cfg_dict[k] = v
+            elif callable(v):
+                cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
         return cfg_dict
+
+    def serialize_function(
+        self, value: Union[Callable, str], keep_callable=False
+    ) -> Union[Callable, str]:
+        """Serializes a given function or string.
+
+        If 'keep_callable' is True, the original callable is returned.
+        Otherwise, attempts to return the source code of the callable using 'getsource'.
+        """
+        if keep_callable:
+            return value
+        else:
+            try:
+                return getsource(value)
+            except (TypeError, OSError):
+                return str(value)
 
 
 class Task(abc.ABC):
@@ -492,7 +513,7 @@ class Task(abc.ABC):
     def apply_filters(self):
         if hasattr(self, "_filters"):
             for f in self._filters:
-                f.apply(self._instances, None)
+                f.apply(self._instances)
         else:
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances
@@ -628,16 +649,15 @@ class ConfigurableTask(Task):
         if self.config.filter_list is not None:
             self._filters = []
             for filter_config in self.config.filter_list:
-                for filter_pipeline in filter_config:
-                    filter_name = filter_config["name"]
-                    filter_functions = filter_config["filter"]
-                    components = []
-                    for function in filter_functions:
-                        kwargs = {
-                            key: function[key] for key in function if key != "function"
-                        }
-                        components.append([function["function"], kwargs])
-                    filter_pipeline = build_filter_ensemble(filter_name, components)
+                filter_name = filter_config["name"]
+                filter_functions = filter_config["filter"]
+                components = []
+                for function in filter_functions:
+                    kwargs = {
+                        key: function[key] for key in function if key != "function"
+                    }
+                    components.append([function["function"], kwargs])
+                filter_pipeline = build_filter_ensemble(filter_name, components)
                 self._filters.append(filter_pipeline)
         else:
             self._filters = [build_filter_ensemble("none", [["take_first", None]])]
@@ -815,7 +835,7 @@ class ConfigurableTask(Task):
     def apply_filters(self):
         if hasattr(self, "_filters"):
             for f in self._filters:
-                f.apply(self._instances, self.task_docs)
+                f.apply(self._instances)
         else:
             eval_logger.warning("No filter defined, passing through instances")
             return self._instances

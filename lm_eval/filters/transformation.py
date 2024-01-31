@@ -24,7 +24,7 @@ class UppercaseFilter(Filter):
 
 
 class MapFilter(Filter):
-    def __init__(self, mapping_dict: dict = {}, default_value=None) -> None:
+    def __init__(self, mapping_dict: dict = None, default_value=None) -> None:
         """
         Initializes the MapFilter with a given mapping dictionary and default value.
 
@@ -37,6 +37,8 @@ class MapFilter(Filter):
         Example:
         mapper = MapFilter({'A': 1, 'B': 2}, default_value=0)
         """
+        if mapping_dict is None:
+            mapping_dict = {}
         assert isinstance(
             mapping_dict, dict
         ), "Provided mapping_dict is not a dictionary"
