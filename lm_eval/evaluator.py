@@ -93,7 +93,7 @@ def simple_evaluate(
     if gen_kwargs is not None:
         gen_kwargs = simple_parse_args_string(gen_kwargs)
         eval_logger.warning(
-            "generation_kwargs specified through cli, these settings will update parameters already in yaml tasks. Ensure 'do_sample=True' if using Huggingface for non-greedy decoding!"
+            "generation_kwargs specified through cli, these settings will update set parameters in yaml tasks. Ensure 'do_sample=True' for non-greedy decoding!"
         )
         if gen_kwargs == "":
             gen_kwargs = None
