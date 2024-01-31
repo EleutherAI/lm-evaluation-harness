@@ -201,8 +201,6 @@ class WandbLogger:
         return wandb_summary, _results
 
     def prepare_report_by_task(self, results):
-        _results = results.get("results", dict())
-
         blocks = []
         for task_name in self.task_names:
             blocks.append(wr.H2(task_name))
@@ -216,9 +214,29 @@ class WandbLogger:
                             font_size="large",
                         )
                     )
-            blocks.append(
-                wr.PanelGrid(panels=panels)
+            _results = {
+                "results": {f"{task_name}": self.results.get("results").get(task_name)},
+                "versions": {f"{task_name}": self.results.get("versions").get(task_name)},
+                "n-shot": {f"{task_name}": self.results.get("n-shot").get(task_name)}
+            }
+            results_md = utils.make_table(_results)
+            blocks.extend(
+                [wr.MarkdownBlock(results_md), wr.PanelGrid(panels=panels)]
             )
+            # blocks.extend([
+            #     wr.WeaveBlockSummaryTable(
+            #         project=self.run.project,
+            #         entity=self.run.entity,
+            #         table_name=f"{task_name}_eval_results",
+            #     ),
+            #     wr.PanelGrid(
+            #         runsets=[
+            #             wr.Runset(
+            #                 project=self.run.project, entity=self.run.entity,
+            #             ).set_filters_with_python_expr(f'Name == "{str(self.run.name)}"'),
+            #         ]
+            #     ),
+            # ])
 
         return blocks
 
@@ -226,8 +244,8 @@ class WandbLogger:
         wandb_project = self.run.project
         wandb_entity = self.run.entity
         report = wr.Report(
-            project=wandb_project,
-            entity=wandb_entity,
+            project=self.run.project,
+            entity=self.run.entity,
             title=f"({datetime.now().strftime('%Y-%m-%d %H:%M:%S')}) xxx - Evaluation report",
             description=f"Evaluation run by: {self.run.entity} logged to {self.run.url}",
         )
@@ -239,18 +257,18 @@ class WandbLogger:
             [
                 wr.TableOfContents(),
                 wr.H1("Complete Evaluation Results"),
-                # wr.WeaveBlockSummaryTable(
-                #     project=wandb_project,
-                #     entity=wandb_entity,
-                #     table_name=f"run-{self.run.id}-evaluationeval_results",
-                # ),
-                # wr.PanelGrid(
-                #     runsets=[
-                #         wr.Runset(
-                #             project=wandb_project, entity=wandb_entity,
-                #         ).set_filters_with_python_expr(f'Name == "{str(self.run.name)}"'),
-                #     ]
-                # ),
+                wr.WeaveBlockSummaryTable(
+                    project=self.run.project,
+                    entity=self.run.entity,
+                    table_name=f"evaluation/eval_results",
+                ),
+                wr.PanelGrid(
+                    runsets=[
+                        wr.Runset(
+                            project=self.run.project, entity=self.run.entity,
+                        ).set_filters_with_python_expr(f'Name == "{str(self.run.name)}"'),
+                    ]
+                ),
                 wr.H1("Evaluation Results By Task"),
             ]
             + task_blocks
