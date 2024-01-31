@@ -4,7 +4,7 @@ import dill
 
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 
-OVERRIDE_PATH = os.getenv("LM_HARNESSS_CACHE_PATH")
+OVERRIDE_PATH = os.getenv("LM_HARNESS_CACHE_PATH")
 
 
 PATH = OVERRIDE_PATH if OVERRIDE_PATH else f"{MODULE_DIR}/.cache"
