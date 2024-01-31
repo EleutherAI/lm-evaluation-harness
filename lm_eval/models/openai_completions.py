@@ -74,7 +74,6 @@ def oa_completion(client, chat: bool = False, **kwargs):
 
 @register_model("openai-completions", "local-completions")
 class OpenaiCompletionsLM(TemplateLM):
-    REQ_CHUNK_SIZE = 20
     _DEFAULT_MAX_LENGTH = 2048
 
     def __init__(
