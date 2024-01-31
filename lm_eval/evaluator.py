@@ -1,3 +1,5 @@
+import math
+from typing import TYPE_CHECKING
 import random
 import itertools
 import collections
@@ -20,17 +22,24 @@ from lm_eval.utils import (
     eval_logger,
 )
 
+if TYPE_CHECKING:
+    from lm_eval.api.model import LM
+    from lm_eval.tasks import Task
+
 
 @positional_deprecated
 def simple_evaluate(
     model,
     model_args=None,
-    tasks=None,
+    model_arg_dict=None,
+    tasks=[],
     num_fewshot=None,
     batch_size=None,
     max_batch_size=None,
     device=None,
     use_cache=None,
+    use_builder_cache=False,
+    rewrite_builder_cache=False,
     limit=None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
@@ -80,8 +89,6 @@ def simple_evaluate(
         1234
     )  # TODO: this may affect training runs that are run with evaluation mid-run.
 
-    if tasks is None:
-        tasks = []
     assert (
         tasks != []
     ), "No tasks specified, or no tasks found. Please verify the task names."
@@ -97,14 +104,26 @@ def simple_evaluate(
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
-        lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
-            model_args,
-            {
-                "batch_size": batch_size,
-                "max_batch_size": max_batch_size,
-                "device": device,
-            },
-        )
+
+        if model_arg_dict:
+            lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
+                model_arg_dict,
+                {
+                    "batch_size": batch_size,
+                    "max_batch_size": max_batch_size,
+                    "device": device,
+                },
+            )
+
+        else:
+            lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
+                model_args,
+                {
+                    "batch_size": batch_size,
+                    "max_batch_size": max_batch_size,
+                    "device": device,
+                },
+            )
     else:
         assert isinstance(model, lm_eval.api.model.LM)
         lm = model
@@ -116,9 +135,7 @@ def simple_evaluate(
             use_cache
             # each rank receives a different cache db.
             # necessary to avoid multiple writes to cache at once
-            + "_rank"
-            + str(lm.rank)
-            + ".db",
+            + "_rank" + str(lm.rank) + ".db",
         )
 
     task_dict = lm_eval.tasks.get_task_dict(tasks)
@@ -153,6 +170,8 @@ def simple_evaluate(
         lm=lm,
         task_dict=task_dict,
         limit=limit,
+        use_builder_cache=use_builder_cache,
+        rewrite_builder_cache=rewrite_builder_cache,
         bootstrap_iters=bootstrap_iters,
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
@@ -192,9 +211,11 @@ decontaminate_suffix = "_decontaminate"
 
 @positional_deprecated
 def evaluate(
-    lm,
+    lm: "LM",
     task_dict,
     limit=None,
+    use_builder_cache=False,
+    rewrite_builder_cache=False,
     bootstrap_iters: int = 100000,
     decontamination_ngrams_path=None,
     write_out: bool = False,
@@ -244,6 +265,8 @@ def evaluate(
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
+        task: Task
+
         if isinstance(task, tuple):
             group_name, task = task
             task_hierarchy[group_name].append(task_name)
@@ -282,9 +305,19 @@ def evaluate(
                 task_docs = task.validation_docs()
             else:
                 raise RuntimeError("Task has neither test_docs nor validation_docs")
-            limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
 
-        task.build_all_requests(limit=limit, rank=lm.rank, world_size=lm.world_size)
+            num_docs = len(task_docs) * limit
+            # ceil to prevent limit being equal to 0
+            limit = int(math.ceil(num_docs)) if limit < 1.0 else int(limit)
+
+        task.build_all_requests(
+            task_name=task_name,
+            limit=limit,
+            rank=lm.rank,
+            world_size=lm.world_size,
+            use_builder_cache=use_builder_cache,
+            rewrite_builder_cache=rewrite_builder_cache,
+        )
 
         eval_logger.debug(
             f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
@@ -442,7 +475,6 @@ def evaluate(
         vals = vals_torch
 
     if lm.rank == 0:
-
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
@@ -513,7 +545,10 @@ def evaluate(
                                     + metric_score * current_size
                                 ) / (total_size + current_size)
                                 # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                                if var_score == "N/A" or results[group][stderr] == "N/A":
+                                if (
+                                    var_score == "N/A"
+                                    or results[group][stderr] == "N/A"
+                                ):
                                     results[group][stderr] = "N/A"
                                 else:
                                     results[group][stderr] = (

@@ -10,6 +10,7 @@ from typing import Any, List, Literal, Tuple, Union
 
 import datasets
 import numpy as np
+from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers
@@ -29,6 +30,7 @@ from lm_eval.api.registry import (
 )
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
+from lm_eval.caching.cache import save_to_cache, load_from_cache
 
 
 ALL_OUTPUT_TYPES = [
@@ -351,20 +353,71 @@ class Task(abc.ABC):
     def doc_to_target(self, doc):
         pass
 
-    def build_all_requests(self, limit=None, rank=None, world_size=None) -> None:
+    def build_all_requests(
+        self,
+        task_name,
+        limit=None,
+        rank=None,
+        world_size=None,
+        use_builder_cache=False,
+        rewrite_builder_cache=False,
+    ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
+
+        # used with caching
+        og_limit = limit
+
+        cache_key = f"requests-{task_name}"
+
+        cached_instances = load_from_cache(file_name=cache_key)
+
+        if use_builder_cache and cached_instances and not rewrite_builder_cache:
+            cached_instances = cached_instances[:limit]
+
+            flattened_instances = [
+                instance
+                for instance_group in cached_instances
+                for instance in instance_group
+            ]
+
+            self._instances = flattened_instances
+            return
+
         if self.has_test_docs():
             docs = self.test_docs()
         elif self.has_validation_docs():
             docs = self.validation_docs()
         else:
-            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+            assert (
+                False
+            ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
-        eval_logger.info(f"Building contexts for task on rank {rank}...")
+        eval_logger.info(f"Task: {task_name} - Building contexts on rank {rank}...")
 
         instances = []
-        for doc_id, doc in utils.create_iterator(
-            enumerate(docs), rank, world_size, limit
+
+        # process all documents when caching is specified for simplicity
+        if (
+            use_builder_cache
+            and (not cached_instances or rewrite_builder_cache)
+            and limit is not None
+        ):
+            limit = None
+
+        doc_id_docs = list(
+            utils.create_iterator(
+                enumerate(docs),
+                rank,
+                world_size,
+                limit,
+            )
+        )
+
+        num_docs = len(doc_id_docs)
+
+        for doc_id, doc in tqdm(
+            doc_id_docs,
+            total=num_docs,
         ):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(
@@ -382,10 +435,24 @@ class Task(abc.ABC):
             if not isinstance(inst, list):
                 inst = [inst]
 
-            instances.extend(inst)
+            instances.append(inst)
 
-        self._instances = instances
+        # now flatten, this is to allow slicing to work with pickles
+
+        sliced_instances = instances[:og_limit]
+
+        flattened_instances = [
+            instance
+            for instance_group in sliced_instances
+            for instance in instance_group
+        ]
+
+        self._instances = flattened_instances
+
         assert len(self._instances) != 0, "task.build_requests() did not find any docs!"
+
+        if use_builder_cache and (not cached_instances or rewrite_builder_cache):
+            save_to_cache(file_name=cache_key, obj=instances)
 
     @abc.abstractmethod
     def construct_requests(self, doc, ctx, **kwargs):
@@ -682,7 +749,9 @@ class ConfigurableTask(Task):
         elif self.has_validation_docs():
             self.task_docs = self.validation_docs()
         else:
-            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+            assert (
+                False
+            ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
         # Test One Doc
         self.features = list(self.task_docs.features.keys())
@@ -1199,7 +1268,9 @@ class ConfigurableTask(Task):
                             predictions=[result],
                             **self._metric_fn_kwargs[metric],
                         )
-                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                    except (
+                        TypeError
+                    ):  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.

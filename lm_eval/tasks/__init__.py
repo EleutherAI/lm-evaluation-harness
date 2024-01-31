@@ -26,6 +26,9 @@ from .scrolls.task import (
     QMSum,
 )
 
+from lm_eval.caching.cache import save_to_cache, load_from_cache
+from tqdm import tqdm
+
 eval_logger = utils.eval_logger
 
 
@@ -61,7 +64,6 @@ def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -
     task_list = [task for task in all_task_list if isinstance(task, str)]
 
     for task_config in config_list:
-
         base_config = {}
         task_name_config = {}
         if "task" in task_config:
@@ -150,7 +152,13 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
 
     # Track whether any tasks failed during loading
     import_fail = False
-    for root, subdirs, file_list in os.walk(task_dir):
+    # Convert os.walk to a list
+    walk_list = list(os.walk(task_dir))
+
+    # Now use tqdm to iterate over the list
+    for root, subdirs, file_list in tqdm(
+        walk_list, desc="Processing task configuration directories", unit="dir"
+    ):
         # if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
         for f in file_list:
             if f.endswith(".yaml"):
@@ -192,32 +200,80 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
 
     if import_fail:
         eval_logger.warning(
-          "Some tasks could not be loaded due to missing dependencies."
-          " Run with `--verbosity DEBUG` for full details."
-          )
+            "Some tasks could not be loaded due to missing dependencies."
+            " Run with `--verbosity DEBUG` for full details."
+        )
     return 0
 
 
-def include_path(task_dir):
+def include_path(task_dir, use_cache=False, rewrite_cache=False) -> None:
+    prefix = "registry-"
+
+    task_registry_file_name = f"{prefix}TASK_REGISTRY"
+    cached_group_registry_file_name = f"{prefix}GROUP_REGISTRY"
+    cached_all_tasks_file_name = f"{prefix}ALL_TASKS"
+
+    cached_task_registry: dict = load_from_cache(file_name=task_registry_file_name)
+    cached_group_registry: dict = load_from_cache(
+        file_name=cached_group_registry_file_name
+    )
+    cached_all_tasks: set = load_from_cache(file_name=cached_all_tasks_file_name)
+
+    caches_exist = cached_task_registry and cached_group_registry and cached_all_tasks
+
+    if not rewrite_cache and caches_exist:
+        for key, value in cached_task_registry.items():
+            TASK_REGISTRY[key] = value
+
+        for key, value in cached_group_registry.items():
+            GROUP_REGISTRY[key] = value
+
+        for key in cached_all_tasks:
+            ALL_TASKS.add(key)
+
+        return
+
     include_task_folder(task_dir)
     # Register Benchmarks after all tasks have been added
     include_task_folder(task_dir, register_task=False)
-    return 0
+
+    if use_cache and (
+        # if not already cached, cache
+        not caches_exist
+        or rewrite_cache
+    ):
+        print("Rewriting tasks caches...")
+        save_to_cache(file_name=task_registry_file_name, obj=TASK_REGISTRY)
+        save_to_cache(file_name=cached_group_registry_file_name, obj=GROUP_REGISTRY)
+        save_to_cache(file_name=cached_all_tasks_file_name, obj=ALL_TASKS)
+
+    return
 
 
-def initialize_tasks(verbosity="INFO"):
+def initialize_tasks(
+    verbosity="INFO", use_cache: bool = False, rewrite_cache: bool = False
+):
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
-    include_path(task_dir)
+    include_path(task_dir, use_cache, rewrite_cache)
 
 
 def get_task(task_name, config):
     try:
-        return TASK_REGISTRY[task_name](config=config)
+        configurable_task_factory = TASK_REGISTRY[task_name]
+
+        task = configurable_task_factory(config=config)
+
+        return task
     except KeyError:
         eval_logger.info("Available tasks:")
-        eval_logger.info(list(TASK_REGISTRY) + list(GROUP_REGISTRY))
+
+        all_tasks = list(TASK_REGISTRY) + list(GROUP_REGISTRY)
+
+        all_tasks.sort()
+
+        eval_logger.info(all_tasks)
         raise KeyError(f"Missing task {task_name}")
 
 
@@ -270,10 +326,31 @@ def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
             else:
                 task_name = task_element
                 if task_name not in task_name_from_registry_dict:
+                    cache_key = f"raw-{task_name}"
+
+                    if task_name == "lambada_openai":
+                        a = 2
+
+                    cached_task_name_from_registry_dict = load_from_cache(
+                        file_name=cache_key
+                    )
+
+                    if cached_task_name_from_registry_dict:
+                        task_name_from_registry_dict = {
+                            **task_name_from_registry_dict,
+                            **cached_task_name_from_registry_dict,
+                        }
+
+                        continue
+
                     task_name_from_registry_dict = {
                         **task_name_from_registry_dict,
                         task_name: get_task(task_name=task_element, config=config),
                     }
+
+                    save_to_cache(file_name=cache_key, obj=task_name_from_registry_dict)
+
+                    pass
 
         elif isinstance(task_element, dict):
             task_element.update(config)
@@ -293,6 +370,7 @@ def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
     assert set(task_name_from_registry_dict.keys()).isdisjoint(
         set(task_name_from_object_dict.keys())
     )
+
     return {
         **task_name_from_registry_dict,
         **task_name_from_config_dict,
