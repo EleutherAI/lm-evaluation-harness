@@ -7,6 +7,7 @@ training_split: train
 validation_split: validation
 output_type: generate_until
 doc_to_text: !function "t5_utils.doc_to_text"
+process_results: !function "t5_utils.process_results"
 doc_to_target: label
 generation_kwargs:
   until:
@@ -15,9 +16,5 @@ metric_list:
   - metric: accuracy
     aggregation: mean
     higher_is_better: true
-filter_list:
-  - name: "wsc_postprocessor"
-    filter:
-      - function: !function t5_utils.WSCPostprocess
 metadata:
-  version: 0.0
+  version: 1.0

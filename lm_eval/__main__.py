@@ -183,7 +183,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         task_names = ALL_TASKS
     elif args.tasks == "list":
         eval_logger.info(
-            "Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS)))
+            f"Available Tasks:\n - {(os.linesep + ' - ').join(sorted(ALL_TASKS))}"
         )
         sys.exit()
     else:
@@ -259,14 +259,16 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if results is not None:
         if args.log_samples:
             samples = results.pop("samples")
-        dumped = json.dumps(results, indent=2, default=_handle_non_serializable)
+        dumped = json.dumps(
+            results, indent=2, default=_handle_non_serializable, ensure_ascii=False
+        )
         if args.show_config:
             print(dumped)
 
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
 
         if args.output_path:
-            output_path_file.open("w").write(dumped)
+            output_path_file.open("w", encoding="utf-8").write(dumped)
 
             if args.log_samples:
                 for task_name, config in results["configs"].items():
@@ -275,9 +277,12 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     )
                     filename = path.joinpath(f"{output_name}.jsonl")
                     samples_dumped = json.dumps(
-                        samples[task_name], indent=2, default=_handle_non_serializable
+                        samples[task_name],
+                        indent=2,
+                        default=_handle_non_serializable,
+                        ensure_ascii=False,
                     )
-                    filename.open("w").write(samples_dumped)
+                    filename.write_text(samples_dumped, encoding="utf-8")
 
         print(
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "

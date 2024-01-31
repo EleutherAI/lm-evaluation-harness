@@ -1,3 +1,4 @@
-"dataset_name": "lin_Latn"
+"fewshot_split": "lin_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_lin_Latn"
+"test_split": "lin_Latn"

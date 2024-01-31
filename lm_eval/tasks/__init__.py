@@ -43,7 +43,7 @@ def register_configurable_task(config: Dict[str, str]) -> int:
     if "group" in config:
         if config["group"] == config["task"]:
             raise ValueError("task and group name cannot be the same")
-        elif type(config["group"]) == str:
+        elif isinstance(config["group"], str):
             group_name = [config["group"]]
         else:
             group_name = config["group"]
@@ -57,15 +57,31 @@ def register_configurable_task(config: Dict[str, str]) -> int:
 def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -> int:
     group = config["group"]
     all_task_list = config["task"]
-    config_list = [task for task in all_task_list if type(task) != str]
-    task_list = [task for task in all_task_list if type(task) == str]
+    config_list = [task for task in all_task_list if not isinstance(task, str)]
+    task_list = [task for task in all_task_list if isinstance(task, str)]
 
     for task_config in config_list:
+
+        base_config = {}
+        task_name_config = {}
+        if "task" in task_config:
+            task_name = task_config["task"]
+            if task_name in ALL_TASKS:
+                task_obj = TASK_REGISTRY[task_name]
+                if isinstance(task_obj, tuple):
+                    _, task_obj = task_obj
+
+                if task_obj is not None:
+                    base_config = task_obj.CONFIG.to_dict(keep_callable=True)
+                    task_name_config["task"] = f"{group}_{task_name}"
+
         task_config = utils.load_yaml_config(yaml_path, task_config)
         var_configs = check_prompt_config(
             {
+                **base_config,
                 **task_config,
                 **{"group": group},
+                **task_name_config,
             },
             yaml_path=os.path.dirname(yaml_path),
         )
@@ -131,6 +147,9 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
     """
     Calling this function
     """
+
+    # Track whether any tasks failed during loading
+    import_fail = False
     for root, subdirs, file_list in os.walk(task_dir):
         # if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
         for f in file_list:
@@ -147,28 +166,35 @@ def include_task_folder(task_dir: str, register_task: bool = True) -> None:
                     )
                     for config in all_configs:
                         if register_task:
-                            if type(config["task"]) == str:
+                            if isinstance(config["task"], str):
                                 register_configurable_task(config)
                         else:
-                            if type(config["task"]) == list:
+                            if isinstance(config["task"], list):
                                 register_configurable_group(config, yaml_path)
 
                 # Log this silently and show it only when
                 # the user defines the appropriate verbosity.
-                except ModuleNotFoundError as e:
+                except (ImportError, ModuleNotFoundError) as e:
+                    import_fail = True
                     eval_logger.debug(
                         f"{yaml_path}: {e}. Config will not be added to registry."
                     )
                 except Exception as error:
                     import traceback
 
-                    eval_logger.debug(
-                        "Failed to load config in\n"
+                    eval_logger.warning(
+                        "Unexpected error loading config in\n"
                         f"                                 {yaml_path}\n"
                         "                                 Config will not be added to registry\n"
                         f"                                 Error: {error}\n"
                         f"                                 Traceback: {traceback.format_exc()}"
                     )
+
+    if import_fail:
+        eval_logger.warning(
+          "Some tasks could not be loaded due to missing dependencies."
+          " Run with `--verbosity DEBUG` for full details."
+          )
     return 0
 
 
@@ -217,7 +243,7 @@ def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
     task_name_from_config_dict = {}
     task_name_from_object_dict = {}
 
-    if type(task_name_list) != list:
+    if not isinstance(task_name_list, list):
         task_name_list = [task_name_list]
 
     for task_element in task_name_list:

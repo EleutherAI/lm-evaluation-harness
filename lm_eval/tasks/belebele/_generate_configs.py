@@ -8,7 +8,7 @@ import requests
 
 from tqdm import tqdm
 
-from lm_eval.logger import eval_logger
+from lm_eval.utils import logging
 
 API_URL = "https://datasets-server.huggingface.co/splits?dataset=facebook/belebele"
 
@@ -27,20 +27,20 @@ if __name__ == "__main__":
 
     # get filename of base_yaml so we can `"include": ` it in our other YAMLs.
     base_yaml_name = os.path.split(args.base_yaml_path)[-1]
-    with open(args.base_yaml_path) as f:
+    with open(args.base_yaml_path, encoding="utf-8") as f:
         base_yaml = yaml.full_load(f)
 
     if args.cot_prompt_path is not None:
         import json
 
-        with open(args.cot_prompt_path) as f:
+        with open(args.cot_prompt_path, encoding="utf-8") as f:
             cot_file = json.load(f)
 
     def query():
         response = requests.get(API_URL)
         return response.json()["splits"]
-
-    languages = [split["config"] for split in query()]
+    print(query())
+    languages = [split["split"] for split in query()]
 
     for lang in tqdm(languages):
         yaml_dict = {
@@ -48,12 +48,13 @@ if __name__ == "__main__":
             "task": f"belebele_{args.task_prefix}_{lang}"
             if args.task_prefix != ""
             else f"belebele_{lang}",
-            "dataset_name": lang,
+            "test_split": lang,
+            "fewshot_split":lang,
         }
 
         file_save_path = args.save_prefix_path + f"_{lang}.yaml"
-        eval_logger.info(f"Saving yaml for subset {lang} to {file_save_path}")
-        with open(file_save_path, "w") as yaml_file:
+        logging.info(f"Saving yaml for subset {lang} to {file_save_path}")
+        with open(file_save_path, "w", encoding="utf-8") as yaml_file:
             yaml.dump(
                 yaml_dict,
                 yaml_file,

@@ -69,18 +69,20 @@ def main():
             model_args = re.sub(
                 "/|=",
                 "__",
-                json.load(open(Path(args.data_path, model, "results.json")))["config"][
-                    "model_args"
-                ],
+                json.load(
+                    open(Path(args.data_path, model, "results.json"), encoding="utf-8")
+                )["config"]["model_args"],
             )
             with open(
-                Path(args.data_path, model, f"{model_args}_{task}.jsonl"), "r"
+                Path(args.data_path, model, f"{model_args}_{task}.jsonl"),
+                "r",
+                encoding="utf-8",
             ) as file:
                 data = json.loads(file.read())
 
-            configs = json.load(open(Path(args.data_path, model, "results.json")))[
-                "configs"
-            ]
+            configs = json.load(
+                open(Path(args.data_path, model, "results.json"), encoding="utf-8")
+            )["configs"]
             config = configs[task]
 
             if model_index == 0:  # Only need to assemble data for the first model
@@ -124,7 +126,9 @@ def tasks_for_model(model: str, data_path: str):
         list: A list of tasks for the model.
     """
     dir_path = Path(data_path, model)
-    config = (json.load(open(Path(dir_path, "results.json")))["configs"],)
+    config = (
+        json.load(open(Path(dir_path, "results.json"), encoding="utf-8"))["configs"],
+    )
     return list(config[0].keys())
 
 
@@ -164,6 +168,7 @@ def generate_dataset(
         {
             "id": ids,
             "data": instance,
+            "input_len": [len(x) for x in instance],
             "labels": labels,
             "output_type": config["output_type"],
         }
@@ -181,26 +186,30 @@ def generate_system_df(data, config):
         pd.Dataframe: A dataframe that is ready to be uploaded to Zeno as a system.
     """
     ids = [x["doc_id"] for x in data]
-    answers = [""] * len(ids)
+    system_dict = {"id": ids}
+    system_dict["output"] = [""] * len(ids)
 
     if config["output_type"] == "loglikelihood":
-        answers = [
+        system_dict["output"] = [
             "correct" if x["filtered_resps"][0][1] is True else "incorrect"
             for x in data
         ]
     elif config["output_type"] == "multiple_choice":
-        answers = [", ".join([str(y[0]) for y in x["filtered_resps"]]) for x in data]
+        system_dict["output"] = [
+            ", ".join([str(y[0]) for y in x["filtered_resps"]]) for x in data
+        ]
+        system_dict["num_answers"] = [len(x["filtered_resps"]) for x in data]
     elif config["output_type"] == "loglikelihood_rolling":
-        answers = [str(x["filtered_resps"][0]) for x in data]
+        system_dict["output"] = [str(x["filtered_resps"][0]) for x in data]
     elif config["output_type"] == "generate_until":
-        answers = [str(x["filtered_resps"][0]) for x in data]
+        system_dict["output"] = [str(x["filtered_resps"][0]) for x in data]
+        system_dict["output_length"] = [len(str(x["filtered_resps"][0])) for x in data]
 
     metrics = {}
     for metric in config["metric_list"]:
         if "aggregation" in metric and metric["aggregation"] == "mean":
             metrics[metric["metric"]] = [x[metric["metric"]] for x in data]
 
-    system_dict = {"id": ids, "output": answers}
     system_dict.update(metrics)
     system_df = pd.DataFrame(system_dict)
     return system_df

@@ -22,12 +22,13 @@ def load_changed_files(file_path: str) -> List[str]:
 # checks the txt file for list of changed files.
 # if file ends with .yaml then check yaml for task name
 # if file ends with .py then parse the folder for all yaml files
+# skips benchmarks folder
 def parser(full_path: List[str]) -> List[str]:
     _output = set()
     for x in full_path:
-        if x.endswith(".yaml"):
+        if x.endswith(".yaml") and "benchmarks" not in x:
             _output.add(load_yaml_config(x)["task"])
-        elif x.endswith(".py"):
+        elif x.endswith(".py") and "benchmarks" not in x:
             path = [str(x) for x in (list(Path(x).parent.glob("*.yaml")))]
             _output |= {load_yaml_config(x)["task"] for x in path}
     return list(_output)

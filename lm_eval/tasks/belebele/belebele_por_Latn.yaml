@@ -1,3 +1,4 @@
-"dataset_name": "por_Latn"
+"fewshot_split": "por_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_por_Latn"
+"test_split": "por_Latn"
