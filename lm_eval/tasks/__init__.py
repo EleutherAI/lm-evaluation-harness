@@ -1,230 +1,378 @@
 import os
-import yaml
+import abc
+import collections
+
+from functools import partial
 from typing import List, Union, Dict
 
 from lm_eval import utils
-from lm_eval import prompts
-from lm_eval.api.task import TaskConfig, Task, ConfigurableTask
-from lm_eval.api.registry import (
-    register_task,
-    register_group,
-    TASK_REGISTRY,
-    GROUP_REGISTRY,
-    ALL_TASKS,
-)
+from lm_eval.api.task import Task, ConfigurableTask
 
 import logging
 
-# import python tasks
-from .squadv2.task import SQuAD2
-from .scrolls.task import (
-    QuALITY,
-    NarrativeQA,
-    ContractNLI,
-    GovReport,
-    SummScreenFD,
-    QMSum,
-)
 
-eval_logger = utils.eval_logger
+class TaskManager:
+    """TaskManager indexes all tasks from the default `lm_eval/tasks/`
+    and an optional directory if provided.
 
+    """
+    def __init__(
+        self,
+        verbosity="INFO",
+        include_path=None
+        ) -> None:
 
-def register_configurable_task(config: Dict[str, str]) -> int:
-    SubClass = type(
-        config["task"] + "ConfigurableTask",
-        (ConfigurableTask,),
-        {"CONFIG": TaskConfig(**config)},
-    )
+        self.verbosity = verbosity
+        self.include_path = include_path
+        self.logger = utils.eval_logger
+        self.logger.setLevel(getattr(logging, f"{verbosity}"))
 
-    if "task" in config:
-        task_name = "{}".format(config["task"])
-        register_task(task_name)(SubClass)
-
-    if "group" in config:
-        if config["group"] == config["task"]:
-            raise ValueError("task and group name cannot be the same")
-        elif isinstance(config["group"], str):
-            group_name = [config["group"]]
-        else:
-            group_name = config["group"]
-
-        for group in group_name:
-            register_group(group)(SubClass)
-
-    return 0
-
-
-def register_configurable_group(config: Dict[str, str], yaml_path: str = None) -> int:
-    group = config["group"]
-    all_task_list = config["task"]
-    config_list = [task for task in all_task_list if not isinstance(task, str)]
-    task_list = [task for task in all_task_list if isinstance(task, str)]
-
-    for task_config in config_list:
-
-        base_config = {}
-        task_name_config = {}
-        if "task" in task_config:
-            task_name = task_config["task"]
-            if task_name in ALL_TASKS:
-                task_obj = TASK_REGISTRY[task_name]
-                if isinstance(task_obj, tuple):
-                    _, task_obj = task_obj
-
-                if task_obj is not None:
-                    base_config = task_obj.CONFIG.to_dict(keep_callable=True)
-                    task_name_config["task"] = f"{group}_{task_name}"
-
-        task_config = utils.load_yaml_config(yaml_path, task_config)
-        var_configs = check_prompt_config(
-            {
-                **base_config,
-                **task_config,
-                **{"group": group},
-                **task_name_config,
-            },
-            yaml_path=os.path.dirname(yaml_path),
-        )
-        for config in var_configs:
-            register_configurable_task(config)
-
-    task_names = utils.pattern_match(task_list, ALL_TASKS)
-    for task in task_names:
-        if (task in TASK_REGISTRY) or (task in GROUP_REGISTRY):
-            if group in GROUP_REGISTRY:
-                GROUP_REGISTRY[group].append(task)
-            else:
-                GROUP_REGISTRY[group] = [task]
-                ALL_TASKS.add(group)
-
-    return 0
-
-
-def check_prompt_config(
-    config: Dict[str, str], yaml_path: str = None
-) -> List[Dict[str, str]]:
-    all_configs = []
-    if "use_prompt" in config:
-        prompt_list = prompts.load_prompt_list(
-            use_prompt=config["use_prompt"],
-            dataset_name=config["dataset_path"],
-            subset_name=config["dataset_name"] if "dataset_name" in config else None,
-            yaml_path=yaml_path,
-        )
-        for idx, prompt_variation in enumerate(prompt_list):
-            all_configs.append(
-                {
-                    **config,
-                    **{"use_prompt": prompt_variation},
-                    **{
-                        "task": "_".join(
-                            [
-                                config["task"]
-                                if "task" in config
-                                else get_task_name_from_config(config),
-                                prompt_variation.split("/")[-1]
-                                if ".yaml" in prompt_variation
-                                else prompt_variation,
-                            ]
-                        )
-                    },
-                    **{"output_type": "generate_until"},
-                }
+        self._task_index = self.initialize_tasks(
+            include_path=include_path
             )
-    else:
-        all_configs.append(config)
-    return all_configs
+        self._all_tasks = sorted(list(self._task_index.keys()))
 
+        self.task_group_map = collections.defaultdict(list)
+
+    def initialize_tasks(self, include_path: str = None):
+        """Creates an dictionary of tasks index.
+
+        :param include_path: str = None
+            An additional path to be searched for tasks
+
+        :return
+            Dictionary of task names as key and task metadata
+        """
+        all_paths = [os.path.dirname(os.path.abspath(__file__)) + "/"]
+        if include_path is not None:
+            if isinstance(include_path, str):
+                include_path = [include_path]
+            all_paths.extend(include_path)
+
+        task_index = {}
+        for task_dir in all_paths:
+            tasks = self._get_task_and_group(task_dir)
+            task_index = {**tasks, **task_index}
+
+        return task_index
+
+    @property
+    def all_tasks(self):
+        return self._all_tasks
+
+    @property
+    def task_index(self):
+        return self._task_index
+
+    def match_tasks(self, task_list):
+        return utils.pattern_match(
+            task_list, self.all_tasks
+        )
+
+    def _name_is_registered(self, name):
+        if name in self.all_tasks:
+            return True
+        return False
+
+    def _name_is_task(self, name):
+        if self._name_is_registered(name) and ("task" in self.task_index[name]["type"]):
+            return True
+        return False
+
+    def _name_is_group(self, name):
+        if self._name_is_registered(name) and (self.task_index[name]["type"] == "group"):
+            return True
+        return False
+
+    def _name_is_python_task(self, name):
+        if self._name_is_registered(name) and (self.task_index[name]["type"] == "python_task"):
+            return True
+        return False
+
+    def _config_is_task(self, config):
+        if ("task" in config) and isinstance(config["task"], str):
+            return True
+        return False
+
+    def _config_is_group(self, config):
+        if ("task" in config) and isinstance(config["task"], list):
+            return True
+        return False
+
+    def _config_is_python_task(self, config):
+        if "class" in config:
+            return True
+        return False
+
+    def _get_yaml_path(self, name):
+        assert name in self.task_index
+        return self.task_index[name]["yaml_path"]
+
+    def _get_config(self, name):
+        assert name in self.task_index
+        yaml_path = self._get_yaml_path(name)
+        if yaml_path == -1:
+            return {}
+        else:
+            return utils.load_yaml_config(yaml_path, mode="full")
+
+    def _get_tasklist(self, name):
+        assert self._name_is_task(name) == False
+        return self.task_index[name]["task"]
+
+    def _process_alias(self, config, group=None):
+        # If the group is not the same as the original
+        # group which the group alias was intended for,
+        # Set the group_alias to None instead.
+        if ("group_alias" in config) and ("group" in config) and group is not None:
+            if config["group"] != group:
+                config["group_alias"] = None
+        return config
+
+    def _load_individual_task_or_group(
+            self,
+            name_or_config: Union[str, dict] = None,
+            parent_name: str = None,
+            update_config: dict = None,
+            yaml_path: str = None,
+        ) -> ConfigurableTask:
+        def load_task(config, task, group=None, yaml_path=None):
+            if "include" in config:
+                assert yaml_path is not None
+                config.update(
+                    utils.load_yaml_config(
+                        yaml_path,
+                        yaml_config={"include": config.pop("include")},
+                        mode="full",
+                    )
+                )
+            if self._config_is_python_task(config):
+                task_object = config["class"]()
+            else:
+                config = self._process_alias(config, group=group)
+                task_object = ConfigurableTask(config=config)
+            if group is not None:
+                task_object = (group, task_object)
+            return {task: task_object}
+
+        if isinstance(name_or_config, str):
+            if update_config is not None:
+                # Process name_or_config as a dict instead
+                name_or_config = {"task": name_or_config, **update_config}
+            elif self._name_is_task(name_or_config):
+                task_config = self._get_config(name_or_config)
+                return load_task(task_config, task=name_or_config, group=parent_name)
+            else:
+                group_name = name_or_config
+                subtask_list = self._get_tasklist(name_or_config)
+                if subtask_list == -1:
+                    group_config = self._get_config(name_or_config)
+                    subtask_list = group_config["task"]
+
+                # This checks if we're at the root.
+                if parent_name is None:
+                    group_config = self._get_config(name_or_config)
+                    if set(group_config.keys()) > set(["task", "group"]):
+                        update_config = {
+                            k:v for k,v in group_config.items() if k not in ["task", "group"]
+                        }
+                    yaml_path = self._get_yaml_path(group_name)
+
+                    if (update_config is not None) and ("group_alias" in update_config):
+                        group_name = update_config["group_alias"]
+                        update_config.pop("group_alias")
+
+        if isinstance(name_or_config, dict):
+
+            if update_config is not None:
+                name_or_config={
+                    **name_or_config,
+                    **update_config,
+                }
+
+            if self._config_is_task(name_or_config):
+                name = name_or_config["task"]
+                # If the name is registered as a group
+                # if self._name_is_task(name) is False:
+                if self._name_is_group(name):
+                    group_name = name
+                    update_config = {k:v for k,v in name_or_config.items() if k != "task"}
+                    subtask_list = self._get_tasklist(name)
+                    if subtask_list == -1:
+                        subtask_list = self._get_config(name)["task"]
+                else:
+                    if self._name_is_registered(name):
+                        base_task_config = self._get_config(name)
+
+                        # Check if this is a duplicate.
+                        if parent_name is not None:
+                            name_or_config["group"] = parent_name
+                            num_duplicate = len(list(filter(lambda x: x.startswith(name), self.task_group_map[parent_name])))
+                            if num_duplicate > 0:
+                                name = f"{name}-{num_duplicate}"
+                            self.task_group_map[parent_name].append(name)
+
+                        task_config={
+                                **base_task_config,
+                                **name_or_config,
+                            }
+                    else:
+                        task_config = name_or_config
+                    return load_task(task_config, task=name, group=parent_name, yaml_path=yaml_path)
+            else:
+                group_name = name_or_config["group"]
+                subtask_list = name_or_config["task"]
+                # update_config = {k:v for k,v in name_or_config.items() if k != "task"}
+                if set(name_or_config.keys()) > set(["task", "group"]):
+                    update_config = {
+                        k:v for k,v in name_or_config.items() if k not in ["task", "group"]
+                    }
+
+        all_subtasks = {}
+        if (parent_name is not None):
+            all_subtasks = {group_name: (parent_name, None)}
+
+        fn = partial(self._load_individual_task_or_group, parent_name=group_name, update_config=update_config, yaml_path=yaml_path)
+        all_subtasks = {**all_subtasks, **dict(collections.ChainMap(*map(fn, subtask_list)))}
+        return all_subtasks
+
+
+    def load_task_or_group(self, task_list: Union[str, list] = None) -> dict:
+        """Loads a dictionary of task objects from a list
+
+        :param task_list: Union[str, list] = None
+            Single string or list of string of task names to be loaded
+
+        :return
+            Dictionary of task objects
+        """
+        if isinstance(task_list, str):
+            task_list = [task_list]
+
+        all_loaded_tasks = dict(
+            collections.ChainMap(
+                *map(
+                    self._load_individual_task_or_group,
+                    task_list
+                )
+            )
+        )
+        return all_loaded_tasks
+
+    def load_config(self, config: Dict):
+        return self._load_individual_task_or_group(config)
+
+    def _get_task_and_group(self, task_dir: str):
+        """Creates an dictionary of tasks index with the following metadata,
+        - `type`, that can be either `task`, `python_task`, or `group`.
+            `task` refer to regular task configs, `python_task` are special
+            yaml files that only consists of `task` and `class` parameters.
+            `group` are group configs.
+        - `yaml_path`, path to the yaml file. If the entry is a `group` that
+            was configured through a task config, the yaml_path will be -1
+            and all subtasks will be listed in `task` (see below)
+        - `task`, reserved for entries with `type` as `group`. This will list
+            all subtasks. When a group config is created (as opposed to task
+            config having `group` parameter set), this will be set to -1 to
+            avoid recursive indexing. The whole list of subtasks will be loaded
+            at evaluation.
+
+        :param task_dir: str
+            A directory to check for tasks
+
+        :return
+            Dictionary of task names as key and task metadata
+        """
+        tasks_and_groups = collections.defaultdict()
+        for root, _, file_list in os.walk(task_dir):
+            for f in file_list:
+                if f.endswith(".yaml"):
+                    yaml_path = os.path.join(root, f)
+                    config = utils.load_yaml_config(yaml_path, mode="simple")
+                    if self._config_is_python_task(config):
+                        # This is a python class config
+                        tasks_and_groups[config["task"]] = {
+                            "type": "python_task",
+                            "yaml_path": yaml_path,
+                        }
+                    elif self._config_is_group(config):
+                        # This is a group config
+                        tasks_and_groups[config["group"]] = {
+                            "type": "group",
+                            "task": -1, # This signals that
+                                        # we don't need to know
+                                        # the task list for indexing
+                                        # as it can be loaded
+                                        # when called.
+                            "yaml_path": yaml_path,
+                        }
+
+                        # # Registered the level 1 tasks from a group config
+                        # for config in config["task"]:
+                        #     if isinstance(config, dict) and self._config_is_task(config):
+                        #         task = config["task"]
+                        #         tasks_and_groups[task] = {
+                        #             "type": "task",
+                        #             "yaml_path": yaml_path,
+                        #             }
+
+                    elif self._config_is_task(config):
+                        # This is a task config
+                        task = config["task"]
+                        tasks_and_groups[task] = {
+                            "type": "task",
+                            "yaml_path": yaml_path,
+                            }
+
+                        if "group" in config:
+                            groups = config["group"]
+                            if isinstance(config["group"], str):
+                                groups = [groups]
+
+                            for group in groups:
+                                if group not in tasks_and_groups:
+                                    tasks_and_groups[group] = {
+                                        "type": "group",
+                                        "task": [task],
+                                        "yaml_path": -1,
+                                    }
+                                else:
+                                    tasks_and_groups[group]["task"].append(task)
+                    else:
+                        self.logger.debug(f"File {f} in {root} could not be loaded")
+
+        return tasks_and_groups
+
+def include_path(task_dir):
+    logger = utils.eval_logger
+    logger.setLevel(getattr(logging, "INFO"))
+    logger.info(
+        "To still use tasks loaded from args.include_path,"
+        "see an example of the new TaskManager API in https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
+    )
+    return 0
+
+def initialize_tasks(verbosity="INFO"):
+    logger = utils.eval_logger
+    logger.setLevel(getattr(logging, f"{verbosity}"))
+    logger.info(
+        "lm_eval.tasks.initialize_tasks() is deprecated and no longer necessary. "
+        "It will be removed in v0.4.2 release. "
+        "TaskManager will instead be used."
+    )
+    return 0
 
 def get_task_name_from_config(task_config: Dict[str, str]) -> str:
+    if "task" in task_config:
+        return task_config["task"]
     if "dataset_name" in task_config:
         return "{dataset_path}_{dataset_name}".format(**task_config)
     else:
         return "{dataset_path}".format(**task_config)
 
-
-def include_task_folder(task_dir: str, register_task: bool = True) -> None:
-    """
-    Calling this function
-    """
-
-    # Track whether any tasks failed during loading
-    import_fail = False
-    for root, subdirs, file_list in os.walk(task_dir):
-        # if (subdirs == [] or subdirs == ["__pycache__"]) and (len(file_list) > 0):
-        for f in file_list:
-            if f.endswith(".yaml"):
-                yaml_path = os.path.join(root, f)
-                try:
-                    config = utils.load_yaml_config(yaml_path)
-
-                    if "task" not in config:
-                        continue
-
-                    all_configs = check_prompt_config(
-                        config, yaml_path=os.path.dirname(yaml_path)
-                    )
-                    for config in all_configs:
-                        if register_task:
-                            if isinstance(config["task"], str):
-                                register_configurable_task(config)
-                        else:
-                            if isinstance(config["task"], list):
-                                register_configurable_group(config, yaml_path)
-
-                # Log this silently and show it only when
-                # the user defines the appropriate verbosity.
-                except (ImportError, ModuleNotFoundError) as e:
-                    import_fail = True
-                    eval_logger.debug(
-                        f"{yaml_path}: {e}. Config will not be added to registry."
-                    )
-                except Exception as error:
-                    import traceback
-
-                    eval_logger.warning(
-                        "Unexpected error loading config in\n"
-                        f"                                 {yaml_path}\n"
-                        "                                 Config will not be added to registry\n"
-                        f"                                 Error: {error}\n"
-                        f"                                 Traceback: {traceback.format_exc()}"
-                    )
-
-    if import_fail:
-        eval_logger.warning(
-          "Some tasks could not be loaded due to missing dependencies."
-          " Run with `--verbosity DEBUG` for full details."
-          )
-    return 0
-
-
-def include_path(task_dir):
-    include_task_folder(task_dir)
-    # Register Benchmarks after all tasks have been added
-    include_task_folder(task_dir, register_task=False)
-    return 0
-
-
-def initialize_tasks(verbosity="INFO"):
-    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
-
-    task_dir = os.path.dirname(os.path.abspath(__file__)) + "/"
-    include_path(task_dir)
-
-
-def get_task(task_name, config):
-    try:
-        return TASK_REGISTRY[task_name](config=config)
-    except KeyError:
-        eval_logger.info("Available tasks:")
-        eval_logger.info(list(TASK_REGISTRY) + list(GROUP_REGISTRY))
-        raise KeyError(f"Missing task {task_name}")
-
-
 def get_task_name_from_object(task_object):
-    for name, class_ in TASK_REGISTRY.items():
-        if class_ is task_object:
-            return name
+    if hasattr(task_object, "config"):
+        return task_object._config["task"]
 
     # TODO: scrap this
     # this gives a mechanism for non-registered tasks to have a custom name anyways when reporting
@@ -234,54 +382,40 @@ def get_task_name_from_object(task_object):
         else type(task_object).__name__
     )
 
+def get_task_dict(task_name_list: List[Union[str, Dict, Task]], task_manager: TaskManager = None):
+    """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
-# TODO: pass num_fewshot and other cmdline overrides in a better way
-def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
-    config = {**kwargs}
+    :param task_name_list: List[Union[str, Dict, Task]]
+        Name of model or LM object, see lm_eval.models.get_model
+    :param task_manager: TaskManager = None
+        A TaskManager object that stores indexed tasks. If not set,
+        task_manager will load one. This should be set by the user
+        if there are additional paths that want to be included
+        via `include_path`
 
-    task_name_from_registry_dict = {}
+    :return
+        Dictionary of task objects
+    """
+    task_name_from_string_dict = {}
     task_name_from_config_dict = {}
     task_name_from_object_dict = {}
 
-    if not isinstance(task_name_list, list):
+    if isinstance(task_name_list, str):
         task_name_list = [task_name_list]
 
-    for task_element in task_name_list:
-        if isinstance(task_element, str):
-            if task_element in GROUP_REGISTRY:
-                group_name = task_element
-                for task_name in GROUP_REGISTRY[task_element]:
-                    if task_name not in task_name_from_registry_dict:
-                        task_obj = get_task_dict(task_name)
-                        if task_name in task_obj.keys():
-                            task_dict = {
-                                task_name: (group_name, task_obj[task_name]),
-                            }
-                        else:
-                            task_dict = {
-                                task_name: (group_name, None),
-                                **task_obj,
-                            }
+    string_task_name_list = [task for task in task_name_list if isinstance(task, str)]
+    others_task_name_list = [task for task in task_name_list if ~isinstance(task, str)]
+    if len(string_task_name_list) > 0:
+        if task_manager is None:
+            task_manager = TaskManager()
 
-                        task_name_from_registry_dict = {
-                            **task_name_from_registry_dict,
-                            **task_dict,
-                        }
-            else:
-                task_name = task_element
-                if task_name not in task_name_from_registry_dict:
-                    task_name_from_registry_dict = {
-                        **task_name_from_registry_dict,
-                        task_name: get_task(task_name=task_element, config=config),
-                    }
+        task_name_from_string_dict = task_manager.load_task_or_group(string_task_name_list)
 
-        elif isinstance(task_element, dict):
-            task_element.update(config)
+    for task_element in others_task_name_list:
+        if isinstance(task_element, dict):
             task_name_from_config_dict = {
                 **task_name_from_config_dict,
-                get_task_name_from_config(task_element): ConfigurableTask(
-                    config=task_element
-                ),
+                **task_manager.load_config(config=task_element),
             }
 
         elif isinstance(task_element, Task):
@@ -290,11 +424,11 @@ def get_task_dict(task_name_list: List[Union[str, Dict, Task]], **kwargs):
                 get_task_name_from_object(task_element): task_element,
             }
 
-    assert set(task_name_from_registry_dict.keys()).isdisjoint(
+    assert set(task_name_from_string_dict.keys()).isdisjoint(
         set(task_name_from_object_dict.keys())
     )
     return {
-        **task_name_from_registry_dict,
+        **task_name_from_string_dict,
         **task_name_from_config_dict,
         **task_name_from_object_dict,
     }

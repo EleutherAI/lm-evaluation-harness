@@ -4,20 +4,24 @@ import collections
 
 import torch
 
+import logging
 import numpy as np
 
 import lm_eval.api
-import lm_eval.tasks
 import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry
 
+from lm_eval.tasks import (
+    get_task_dict,
+    TaskManager
+)
 from lm_eval.utils import (
     positional_deprecated,
     run_task_tests,
     get_git_commit_hash,
     simple_parse_args_string,
-    eval_logger,
+    eval_logger
 )
 
 
@@ -38,6 +42,8 @@ def simple_evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     gen_kwargs: str = None,
+    task_manager: TaskManager = None,
+    verbosity: str = "INFO",
     predict_only: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -47,7 +53,7 @@ def simple_evaluate(
     :param model_args: Optional[str]
         String arguments for each model class, see LM.create_from_arg_string.
         Ignored if `model` argument is a LM object.
-    :param tasks: list[Union[str, Task]]
+    :param tasks: list[Union[str, dict, Task]]
         List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param num_fewshot: int
         Number of examples in few-shot context
@@ -83,6 +89,8 @@ def simple_evaluate(
     torch.manual_seed(
         1234
     )  # TODO: this may affect training runs that are run with evaluation mid-run.
+
+    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     if tasks is None:
         tasks = []
@@ -125,11 +133,18 @@ def simple_evaluate(
             + ".db",
         )
 
-    task_dict = lm_eval.tasks.get_task_dict(tasks)
+    if task_manager is None:
+        task_manager = TaskManager(verbosity)
+
+    eval_logger.info(
+        "get_task_dict has been updated to accept an optional argument, `task_manager`"
+        "Read more here: https://github.com/EleutherAI/lm-evaluation-harness/blob/recursive-groups/docs/interface.md#external-library-usage"
+        )
+    task_dict = get_task_dict(tasks, task_manager)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
         if isinstance(task_obj, tuple):
-            group, task_obj = task_obj
+            _, task_obj = task_obj
             if task_obj is None:
                 continue
 
@@ -169,6 +184,7 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
+        verbosity=verbosity,
     )
 
     if lm.rank == 0:
@@ -211,6 +227,7 @@ def evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
+    verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -230,6 +247,7 @@ def evaluate(
         Dictionary of results
     """
 
+    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
     # decontaminate = decontamination_ngrams_path is not None
 
     for task_name, task in task_dict.items():
@@ -511,11 +529,6 @@ def evaluate(
                             metrics.pop("alias")
 
                         current_size = metrics.pop("samples")
-                        # TODO: There should be a way for users
-                        #       to toggle between weighted and
-                        #       unweighted averaging
-                        # For unweighted averaging, use:
-                        #     current_size = 1
 
                         all_stderr = []
                         for metric in [
