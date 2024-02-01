@@ -945,7 +945,9 @@ def pooled_variance(
     n_x: int, m_y: int, var_x: float, var_y: float, x_bar: float, y_bar: float
 ) -> float:
     """
-    Calculate the pooled variance and adjusted term for mean differences.
+    Calculate the pooled variance and adjusted term for mean differences using the formula:
+
+    $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
 
     :param n_x: Size of the first sample
     :param m_y: Size of the second sample
@@ -955,7 +957,6 @@ def pooled_variance(
     :param y_bar: Mean of the second sample
     :return: Adjusted pooled variance
     """
-    # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
     if n_x + m_y == 0:
         return 0
     pooled_var = ((n_x - 1) * var_x + (m_y - 1) * var_y) / (n_x + m_y - 1)

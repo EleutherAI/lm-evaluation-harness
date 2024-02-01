@@ -167,7 +167,11 @@ def simple_evaluate(
                 eval_logger.warning(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
-                task_obj.override_config(key="num_fewshot", value=num_fewshot)
+                # backward compatibility with task
+                try:
+                    task_obj.override_config(key="num_fewshot", value=num_fewshot)
+                except AttributeError:
+                    setattr(task_obj._config, "num_fewshot", num_fewshot)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -506,7 +510,7 @@ def evaluate(
                 )
 
         if bool(results):
-            # Update group results with weighted averages and variances
+            # Pool group results with weighted averages and variances
             for group, task_list in reversed(task_hierarchy.items()):
                 if not task_list:
                     # TODO: No samples when bypass
@@ -545,7 +549,6 @@ def evaluate(
                                     y_bar=metric_score,
                                 )
                                 # Update variance
-                                # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
                                 if (
                                     var_score == "N/A"
                                     or results[group][stderr] == "N/A"
