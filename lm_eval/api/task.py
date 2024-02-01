@@ -436,6 +436,9 @@ class Task(abc.ABC):
         """
         pass
 
+    def get_config(self, key: str) -> Any:
+        return getattr(self._config, key, None)
+
     @classmethod
     def count_bytes(cls, doc):
         """Used for byte-level perplexity metrics in rolling loglikelihood"""
