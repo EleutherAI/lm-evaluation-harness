@@ -4,7 +4,12 @@ from typing import Literal, Tuple
 
 @dataclass
 class Instance:
-    request_type: Literal["loglikelihood", "loglikelihood_rolling", "generate_until"]
+    request_type: Literal[
+        "loglikelihood",
+        "loglikelihood_rolling",
+        "generate_until",
+        "multiple_choice",
+    ]
     doc: dict
     arguments: tuple
     idx: int

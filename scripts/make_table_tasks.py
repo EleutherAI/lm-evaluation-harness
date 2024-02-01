@@ -11,14 +11,13 @@ import datasets
 import pandas as pd
 
 from lm_eval import tasks
-from lm_eval.tasks import TASK_REGISTRY
 from lm_eval.utils import load_yaml_config
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 datasets.disable_caching()
-tasks.initialize_tasks()
+task_manager = tasks.TaskManager
 
 
 def load_changed_files(file_path: str) -> List[str]:
@@ -74,11 +73,11 @@ def maketable(df):
     ]
     values = []
     if not df:
-        _tasks = tasks.TASK_REGISTRY.items()
+        _tasks = task_manager.TASK_REGISTRY.items()
         _tasks = sorted(_tasks, key=lambda x: x[0])
     else:
         task_classes = new_tasks()
-        _tasks = [(x, TASK_REGISTRY.get(x)) for x in task_classes]
+        _tasks = [(x, task_manager.TASK_REGISTRY.get(x)) for x in task_classes]
     count = 0
     for tname, Task in _tasks:
         task = Task()
