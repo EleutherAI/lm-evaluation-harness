@@ -232,10 +232,6 @@ If you would like to run evaluation on all prompt templates, you can simply call
 use_prompt: "promptsource:*"
 ```
 
-### Weighting evaluation based on task size
-
-By default, all tasks are aggregated by simple average (A group of 2 task with the same metric will simply be summed and divided by 2 for its group metric). You might find it necessary to aggregate multiple task scores by their weight. To do this, you can set within the task config `weight_by_size` to `True` to have its scores be weighted by the number of samples it has.
-
 ### Setting metrics
 
 You're almost done! Now we need to choose how to score our task.
@@ -294,7 +290,7 @@ This will add your task to the `group1` and `group2` groups, enabling people to 
 
 If your task is not in the `lm_eval/tasks` folder, you'll need to tell the Eval Harness where to look for YAML files.
 
-You can do this via the `--include_path` argument in `__main__.py`. This command will be used to initialize the `TaskManager` object which you can also use for you custom scripts.
+You can do this via the `--include_path` argument in `__main__.py`. This command will be used to initialize the `TaskManager` object which you can also use for your custom scripts.
 
 ```python
 task_manager = TaskManager(args.verbosity, include_path=args.include_path)
