@@ -85,9 +85,7 @@ class TaskConfig(dict):
     filter_list: Union[str, list] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
-    metadata: Union[
-        str, list
-    ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+    metadata: dict = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
         if self.generation_kwargs is not None:
