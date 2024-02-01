@@ -510,6 +510,7 @@ def evaluate(
                 )
 
         if bool(results):
+            # Update group results with weighted averages and variances
             for group, task_list in reversed(task_hierarchy.items()):
                 if not task_list:
                     # TODO: No samples when bypass
@@ -540,10 +541,16 @@ def evaluate(
                             metric_score = results[task][metric]
 
                             if metric in results[group]:
-                                results[group][metric] = (
+                                # Update metric mean
+                                total_samples = total_size + current_size
+                                weighted_metric_sum = (
                                     results[group][metric] * total_size
-                                    + metric_score * current_size
-                                ) / (total_size + current_size)
+                                ) + (metric_score * current_size)
+                                results[group][metric] = (
+                                    weighted_metric_sum / total_samples
+                                )
+
+                                # Update variance/stderr
                                 # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
                                 if (
                                     var_score == "N/A"
@@ -551,15 +558,20 @@ def evaluate(
                                 ):
                                     results[group][stderr] = "N/A"
                                 else:
-                                    results[group][stderr] = (
+                                    pooled_variance = (
                                         (total_size - 1) * results[group][stderr]
                                         + (current_size - 1) * var_score
-                                    ) / (
-                                        total_size + current_size - 1
-                                    ) + total_size * current_size / (
+                                    ) / (total_size + current_size - 1)
+                                    correction_factor = (total_size * current_size) / (
                                         (total_size + current_size)
                                         * (total_size + current_size - 1)
-                                    ) * (results[group][metric] - metric_score) ** 2
+                                    )
+                                    squared_means_diff = (
+                                        results[group][metric] - metric_score
+                                    ) ** 2
+                                    results[group][stderr] = pooled_variance + (
+                                        correction_factor * squared_means_diff
+                                    )
                             else:
                                 results[group][metric] = metric_score
                                 results[group][stderr] = var_score
