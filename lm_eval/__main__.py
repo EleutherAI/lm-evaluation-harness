@@ -10,7 +10,7 @@ from typing import Union
 import numpy as np
 
 from lm_eval import evaluator, utils
-from lm_eval.tasks import TaskManager
+from lm_eval.tasks import TaskManager, include_path, initialize_tasks
 from lm_eval.utils import make_table
 
 
@@ -167,6 +167,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if (args.log_samples or args.predict_only) and not args.output_path:
         assert args.output_path, "Specify --output_path"
 
+    initialize_tasks(args.verbosity)
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
     if args.limit:
@@ -174,6 +175,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
+    if args.include_path is not None:
+        eval_logger.info(f"Including path: {args.include_path}")
+        include_path(args.include_path)
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
