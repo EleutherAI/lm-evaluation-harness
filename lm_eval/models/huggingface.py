@@ -372,7 +372,7 @@ class HFLM(LM):
 
     def _get_backend(
         self,
-        config: transformers.PretrainedConfig,
+        config: Union[transformers.PretrainedConfig, transformers.AutoConfig],
         backend: Optional[Literal["default", "causal", "seq2seq"]] = "default",
         trust_remote_code: Optional[bool] = False,
     ) -> None:
