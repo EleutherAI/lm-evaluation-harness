@@ -67,7 +67,7 @@ my_model = initialize_my_model() # create your model (could be running finetunin
 # - `Your_LM.generate_until()`
 lm_obj = Your_LM(model=my_model, batch_size=16)
 
-# indexes all tasks from the `lm_eval/tasks` subdirectory. 
+# indexes all tasks from the `lm_eval/tasks` subdirectory.
 # Alternatively, you can set `TaskManager(include_path="path/to/my/custom/task/configs")`
 # to include a set of tasks in a separate directory.
 task_manager = lm_eval.tasks.TaskManager()
@@ -109,13 +109,13 @@ my_model = initialize_my_model()
 # - `Your_LM.generate_until()`
 lm_obj = Your_LM(model=my_model, batch_size=16)
 
-# The task_manager indexes tasks including ones 
+# The task_manager indexes tasks including ones
 # specified by the user through `include_path`
 task_manager = lm_eval.tasks.TaskManager(
     include_path="/path/to/custom/yaml"
     )
 
-# To get a task dict for `evaluate` 
+# To get a task dict for `evaluate`
 task_dict = lm_eval.tasks.get_task_dict(
     [
         "mmlu", # A stock task
@@ -125,7 +125,7 @@ task_dict = lm_eval.tasks.get_task_dict(
             "doc_to_text": ...,
             },
         MyTask1 # A task object from `lm_eval.task.Task`
-        ], 
+        ],
     task_manager # A task manager that allows lm_eval to
                  # load the task during evaluation.
                  # If none is provided, `get_task_dict`
