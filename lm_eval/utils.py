@@ -495,7 +495,7 @@ def import_function(loader, node):
 
 def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"):
     if mode == "simple":
-        constuctor_fn = ignore_constructor
+        constructor_fn = ignore_constructor
     elif mode == "full":
         constructor_fn = import_function
 
