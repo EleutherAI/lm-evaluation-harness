@@ -483,40 +483,35 @@ def evaluate(
         vals = vals_torch
 
     if lm.rank == 0:
-
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
-            metric_key = metric + "," + key
+            group_name, task = task if isinstance(task, tuple) else (None, task)
 
-            if isinstance(task, tuple):
-                group_name, task = task
-            else:
-                group_name = None
-
+            metric_key = f"{metric},{key}"
             agg_fn = task.aggregation()[metric]
+
             results[task_name][metric_key] = agg_fn(items)
             results[task_name]["samples"] = len(items)
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
             if bootstrap_iters > 0:
-                stderr = lm_eval.api.metrics.stderr_for_metric(
-                    metric=task.aggregation()[metric],
+                stderr_fn = lm_eval.api.metrics.stderr_for_metric(
+                    metric=agg_fn,
                     bootstrap_iters=min(bootstrap_iters, 100)
                     if metric in ["bleu", "chrf", "ter"]
                     else bootstrap_iters,
                 )
 
-                if stderr is not None and len(items) > 1:
-                    results[task_name][metric + "_stderr" + "," + key] = stderr(items)
-                else:
-                    results[task_name][metric + "_stderr" + "," + key] = "N/A"
+                results[task_name][f"{metric}_stderr,{key}"] = (
+                    stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
+                )
 
         if bool(results):
             for group, task_list in reversed(task_hierarchy.items()):
-                if task_list == []:
+                if not task_list:
                     # TODO: No samples when bypass
                     total_size = results[group].get("samples", 999)
                 else:
@@ -531,9 +526,9 @@ def evaluate(
                         current_size = metrics.pop("samples")
 
                         all_stderr = []
-                        for metric in [
-                            key for key in metrics.keys() if "_stderr" not in key
-                        ]:
+                        for metric in filter(
+                            lambda key: "_stderr" not in key, metrics.keys()
+                        ):
                             stderr = "_stderr,".join(metric.split(","))
                             stderr_score = results[task][stderr]
                             if stderr_score == "N/A":
@@ -550,7 +545,10 @@ def evaluate(
                                     + metric_score * current_size
                                 ) / (total_size + current_size)
                                 # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                                if var_score == "N/A" or results[group][stderr] == "N/A":
+                                if (
+                                    var_score == "N/A"
+                                    or results[group][stderr] == "N/A"
+                                ):
                                     results[group][stderr] = "N/A"
                                 else:
                                     results[group][stderr] = (
@@ -561,15 +559,15 @@ def evaluate(
                                     ) + total_size * current_size / (
                                         (total_size + current_size)
                                         * (total_size + current_size - 1)
-                                    ) * (
-                                        results[group][metric] - metric_score
-                                    ) ** 2
+                                    ) * (results[group][metric] - metric_score) ** 2
                             else:
                                 results[group][metric] = metric_score
                                 results[group][stderr] = var_score
 
+                        # Update the total size for the group
                         total_size += current_size
 
+                    # Convert variance to standard error for each metric
                     for stderr in all_stderr:
                         results[group][stderr] = np.sqrt(results[group][stderr])
 
