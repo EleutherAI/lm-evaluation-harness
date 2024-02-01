@@ -294,7 +294,7 @@ This will add your task to the `group1` and `group2` groups, enabling people to 
 
 If your task is not in the `lm_eval/tasks` folder, you'll need to tell the Eval Harness where to look for YAML files.
 
-You can do this via the `--include_path` argument in `__main__.py`. This command will be used to initialize the `TaskManager` object which you can also use for you custom scripts.
+You can do this via the `--include_path` argument in `__main__.py`. This command will be used to initialize the `TaskManager` object which you can also use for your custom scripts.
 
 ```python
 task_manager = TaskManager(args.verbosity, include_path=args.include_path)
