@@ -1,27 +1,22 @@
-import random
-import itertools
 import collections
+import itertools
+import logging
+import random
 
+import numpy as np
 import torch
 
-import logging
-import numpy as np
-
 import lm_eval.api
-import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry
-
-from lm_eval.tasks import (
-    get_task_dict,
-    TaskManager
-)
+import lm_eval.models
+from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
+    eval_logger,
+    get_git_commit_hash,
     positional_deprecated,
     run_task_tests,
-    get_git_commit_hash,
     simple_parse_args_string,
-    eval_logger
 )
 
 
@@ -138,8 +133,8 @@ def simple_evaluate(
 
     eval_logger.info(
         "get_task_dict has been updated to accept an optional argument, `task_manager`"
-        "Read more here: https://github.com/EleutherAI/lm-evaluation-harness/blob/recursive-groups/docs/interface.md#external-library-usage"
-        )
+        "Read more here:https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
+    )
     task_dict = get_task_dict(tasks, task_manager)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
@@ -303,7 +298,7 @@ def evaluate(
             if not n_shot:
                 n_shot = configs[task_name]["num_fewshot"]
         else:
-            n_shot = 0 # TODO: is this always right?
+            n_shot = 0  # TODO: is this always right?
         num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
@@ -659,7 +654,9 @@ def evaluate(
 
         for group_name, task_list in task_hierarchy.items():
             if task_list != []:
-                num_fewshot[group_name] = num_fewshot[task_list[0]] # TODO: validate this
+                num_fewshot[group_name] = num_fewshot[
+                    task_list[0]
+                ]  # TODO: validate this
 
         results_dict = {
             "results": dict(results_agg.items()),
