@@ -19,9 +19,9 @@ def task_class():
     task_classes = new_tasks()
     # Check if task_classes is empty
     if task_classes:
-        return list(task_manager.load_task_or_group(task_classes))
+        return list(task_manager.load_task_or_group(task_classes).values())
     else:
-        return list(task_manager.load_task_or_group(TASKS))
+        return list(task_manager.load_task_or_group(TASKS).values())
 
 
 @pytest.fixture()
