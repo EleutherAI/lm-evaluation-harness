@@ -35,10 +35,13 @@ class TaskManager(abc.ABC):
         self.task_group_map = collections.defaultdict(list)
 
     def initialize_tasks(self, include_path: str = None):
-        """
-        :param include_path: str
-            optional additional directory to include
-            for task/group config indexing 
+        """Creates an dictionary of tasks index.
+
+        :param include_path: str = None
+            An additional path to be searched for tasks
+
+        :return
+            Dictionary of task names as key and task metadata
         """
         all_paths = [os.path.dirname(os.path.abspath(__file__)) + "/"]
         if include_path is not None:
@@ -128,10 +131,6 @@ class TaskManager(abc.ABC):
             update_config: dict = None,
             yaml_path: str = None,
         ) -> ConfigurableTask:
-        """
-        :param task_list: Union[str, list]
-            Does something
-        """
         def load_task(config, task, group=None, yaml_path=None):
             if "include" in config:
                 assert yaml_path is not None
@@ -233,9 +232,13 @@ class TaskManager(abc.ABC):
 
 
     def load_task_or_group(self, task_list: Union[str, list] = None) -> dict:
-        """
-        :param task_list: Union[str, list]
-            Does something
+        """Loads a dictionary of task objects from a list
+
+        :param task_list: Union[str, list] = None
+            Single string or list of string of task names to be loaded
+
+        :return
+            Dictionary of task objects
         """
         if isinstance(task_list, str):
             task_list = [task_list]
@@ -254,6 +257,26 @@ class TaskManager(abc.ABC):
         return self._load_individual_task_or_group(config)
 
     def _get_task_and_group(self, task_dir: str):
+        """Creates an dictionary of tasks index with the following metadata,
+        - `type`, that can be either `task`, `python_task`, or `group`.
+            `task` refer to regular task configs, `python_task` are special 
+            yaml files that only consists of `task` and `class` parameters.
+            `group` are group configs.
+        - `yaml_path`, path to the yaml file. If the entry is a `group` that 
+            was configured through a task config, the yaml_path will be -1 
+            and all subtasks will be listed in `task` (see below)
+        - `task`, reserved for entries with `type` as `group`. This will list
+            all subtasks. When a group config is created (as opposed to task 
+            config having `group` parameter set), this will be set to -1 to 
+            avoid recursive indexing. The whole list of subtasks will be loaded 
+            at evaluation.
+
+        :param task_dir: str
+            A directory to check for tasks
+
+        :return
+            Dictionary of task names as key and task metadata
+        """
         tasks_and_groups = collections.defaultdict()
         for root, _, file_list in os.walk(task_dir):
             for f in file_list:
