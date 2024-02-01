@@ -357,7 +357,7 @@ class Task(abc.ABC):
         else:
             assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
-        eval_logger.info(f"Building contexts for task on rank {rank}...")
+        eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
 
         instances = []
         for doc_id, doc in utils.create_iterator(
