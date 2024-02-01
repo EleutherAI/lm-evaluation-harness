@@ -44,6 +44,8 @@ This mode supports a number of command-line arguments, the details of which can 
 
 * `--include_path` : Accepts a path to a folder. If passed, then all YAML files containing `lm-eval`` compatible task configurations will be added to the task registry as available tasks. Used for when one is writing config files for their own task in a folder other than `lm_eval/tasks/`
 
+* `--predict_only`: Generates the model outputs without computing metrics. Use with `--log_samples` to retrieve decoded results.
+
 ## External Library Usage
 
 We also support using the library's external API for use within model training loops or other scripts.
