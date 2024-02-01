@@ -335,7 +335,6 @@ def get_task_name_from_object(task_object):
         else type(task_object).__name__
     )
 
-# TODO: pass num_fewshot and other cmdline overrides in a better way
 def get_task_dict(task_name_list: List[Union[str, Dict, Task]], task_manager: TaskManager):
 
     task_name_from_string_dict = {}
