@@ -551,11 +551,7 @@ class NEURON_HF(LM):
 
         chunks = utils.chunks(
             re_ord.get_reordered(),
-            n=self.batch_size
-            if self.batch_size != "auto"
-            else override_bs
-            if override_bs is not None
-            else 0,
+            n=self.batch_size,
             fn=None,
         )
 
