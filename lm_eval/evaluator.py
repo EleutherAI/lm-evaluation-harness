@@ -6,7 +6,6 @@ import random
 import numpy as np
 import torch
 
-import lm_eval.api
 import lm_eval.api.metrics
 import lm_eval.api.registry
 import lm_eval.models
@@ -653,7 +652,7 @@ def evaluate(
             groups_agg = {**groups_agg, **_groups_agg}
 
         for group_name, task_list in task_hierarchy.items():
-            if task_list != []:
+            if task_list:
                 num_fewshot[group_name] = num_fewshot[
                     task_list[0]
                 ]  # TODO: validate this
