@@ -8,7 +8,7 @@ from lm_eval.api.task import ConfigurableTask
 from .utils import new_tasks
 
 
-tasks.initialize_tasks()
+task_manager = tasks.TaskManager()
 # Default Task
 TASKS = ["arc_easy"]
 
@@ -19,9 +19,9 @@ def task_class():
     task_classes = new_tasks()
     # Check if task_classes is empty
     if task_classes:
-        return [tasks.TASK_REGISTRY.get(x)() for x in task_classes]
+        return list(task_manager.load_task_or_group(task_classes).values())
     else:
-        return [tasks.TASK_REGISTRY.get(x)() for x in TASKS]
+        return list(task_manager.load_task_or_group(TASKS).values())
 
 
 @pytest.fixture()

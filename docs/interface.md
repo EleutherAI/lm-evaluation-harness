@@ -61,14 +61,25 @@ import lm_eval
 
 my_model = initialize_my_model() # create your model (could be running finetuning with some custom modeling code)
 ...
-lm_obj = Your_LM(model=my_model, batch_size=16) # instantiate an LM subclass that takes your initialized model and can run `Your_LM.loglikelihood()`, `Your_LM.loglikelihood_rolling()`, `Your_LM.generate_until()`
+# instantiate an LM subclass that takes your initialized model and can run
+# - `Your_LM.loglikelihood()`
+# - `Your_LM.loglikelihood_rolling()`
+# - `Your_LM.generate_until()`
+lm_obj = Your_LM(model=my_model, batch_size=16)
 
-lm_eval.tasks.initialize_tasks() # register all tasks from the `lm_eval/tasks` subdirectory. Alternatively, can call `lm_eval.tasks.include_path("path/to/my/custom/task/configs")` to only register a set of tasks in a separate directory.
+# indexes all tasks from the `lm_eval/tasks` subdirectory.
+# Alternatively, you can set `TaskManager(include_path="path/to/my/custom/task/configs")`
+# to include a set of tasks in a separate directory.
+task_manager = lm_eval.tasks.TaskManager()
 
+# Setting `task_manager` to the one above is optional and should generally be done
+# if you want to include tasks from paths other than ones in `lm_eval/tasks`.
+# `simple_evaluate` will instantiate its own task_manager is the it is set to None here.
 results = lm_eval.simple_evaluate( # call simple_evaluate
     model=lm_obj,
     tasks=["taskname1", "taskname2"],
     num_fewshot=0,
+    task_manager=task_manager,
     ...
 )
 ```
@@ -84,18 +95,49 @@ As a brief example usage of `evaluate()`:
 ```python
 import lm_eval
 
-from my_tasks import MyTask1 # suppose you've defined a custom lm_eval.api.Task subclass in your own external codebase
+# suppose you've defined a custom lm_eval.api.Task subclass in your own external codebase
+from my_tasks import MyTask1
 ...
 
-my_model = initialize_my_model() # create your model (could be running finetuning with some custom modeling code)
+# create your model (could be running finetuning with some custom modeling code)
+my_model = initialize_my_model()
 ...
-lm_obj = Your_LM(model=my_model, batch_size=16) # instantiate an LM subclass that takes your initialized model and can run `Your_LM.loglikelihood()`, `Your_LM.loglikelihood_rolling()`, `Your_LM.generate_until()`
 
-lm_eval.tasks.initialize_tasks() # register all tasks from the `lm_eval/tasks` subdirectory. Alternatively, can call `lm_eval.tasks.include_path("path/to/my/custom/task/configs")` to only register a set of tasks in a separate directory.
+# instantiate an LM subclass that takes your initialized model and can run
+# - `Your_LM.loglikelihood()`
+# - `Your_LM.loglikelihood_rolling()`
+# - `Your_LM.generate_until()`
+lm_obj = Your_LM(model=my_model, batch_size=16)
+
+# The task_manager indexes tasks including ones
+# specified by the user through `include_path`
+task_manager = lm_eval.tasks.TaskManager(
+    include_path="/path/to/custom/yaml"
+    )
+
+# To get a task dict for `evaluate`
+task_dict = lm_eval.tasks.get_task_dict(
+    [
+        "mmlu", # A stock task
+        "my_custom_task", # A custom task
+        {
+            "task": ..., # A dict that configures a task
+            "doc_to_text": ...,
+            },
+        MyTask1 # A task object from `lm_eval.task.Task`
+        ],
+    task_manager # A task manager that allows lm_eval to
+                 # load the task during evaluation.
+                 # If none is provided, `get_task_dict`
+                 # will instantiated one itself, but this
+                 # only includes the stock tasks so users
+                 # will need to set this if including
+                 # custom paths is required.
+    )
 
 def evaluate(
     lm=lm_obj,
-    task_dict={"mytask1": MyTask1},
+    task_dict=task_dict,
     ...
 ):
 ```
