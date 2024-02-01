@@ -75,7 +75,12 @@ class TaskManager(abc.ABC):
         return False
 
     def _name_is_task(self, name):
-        if "task" in self.task_index[name]["type"]:
+        if self._name_is_registered(name) and ("task" in self.task_index[name]["type"]):
+            return True
+        return False
+
+    def _name_is_group(self, name):
+        if self._name_is_registered(name) and (self.task_index[name]["type"] == "group"):
             return True
         return False
 
@@ -188,7 +193,8 @@ class TaskManager(abc.ABC):
             if self._config_is_task(name_or_config):
                 name = name_or_config["task"]
                 # If the name is registered as a group
-                if self._name_is_task(name) is False:
+                # if self._name_is_task(name) is False:
+                if self._name_is_group(name):
                     group_name = name
                     update_config = {k:v for k,v in name_or_config.items() if k != "task"}
                     subtask_list = self._get_tasklist(name)

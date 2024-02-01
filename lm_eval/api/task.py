@@ -308,7 +308,7 @@ class Task(abc.ABC):
             return self.validation_docs()
         else:
             eval_logger.warning(
-                "has_training_docs and has_validation_docs are False"
+                f"[Task: {self.config.task}] has_training_docs and has_validation_docs are False"
                 ", using test_docs as fewshot_docs but this is not recommended."
             )
             return self.test_docs()
@@ -624,7 +624,7 @@ class ConfigurableTask(Task):
                     INV_AGG_REGISTRY = {v: k for k, v in AGGREGATION_REGISTRY.items()}
                     metric_agg = get_metric_aggregation(metric_name)
                     eval_logger.warning(
-                        f"[Task: {self._config.task}] metric {metric_name} is defined, but aggregation is not. "
+                        f"[Task: {self.config.task}] metric {metric_name} is defined, but aggregation is not. "
                         f"using default "
                         f"aggregation={INV_AGG_REGISTRY[metric_agg]}"
                     )
@@ -636,7 +636,7 @@ class ConfigurableTask(Task):
                     ]
                 else:
                     eval_logger.warning(
-                        f"[Task: {self._config.task}] metric {metric_name} is defined, but higher_is_better is not. "
+                        f"[Task: {self.config.task}] metric {metric_name} is defined, but higher_is_better is not. "
                         f"using default "
                         f"higher_is_better={is_higher_better(metric_name)}"
                     )
