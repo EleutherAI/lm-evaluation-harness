@@ -500,7 +500,7 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full
         constructor_fn = import_function
 
     # Add the import_function constructor to the YAML loader
-    yaml.add_constructor("!function", constuctor_fn)
+    yaml.add_constructor("!function", constructor_fn)
     if yaml_config is None:
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.full_load(file)
