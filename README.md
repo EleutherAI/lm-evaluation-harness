@@ -45,27 +45,7 @@ git clone https://github.com/EleutherAI/lm-evaluation-harness
 cd lm-evaluation-harness
 pip install -e .
 ```
-
-We also provide a number of optional dependencies for extended functionality. Extras can be installed via `pip install -e ".[NAME]"`
-
-| Name          | Use                                   |
-|---------------|---------------------------------------|
-| anthropic     | For using Anthropic's models          |
-| dev           | For linting PRs and contributions     |
-| gptq          | For loading models with GPTQ          |
-| ifeval        | For running the IFEval task           |
-| mamba         | For loading Mamba SSM models          |
-| math          | For running math task answer checking |
-| multilingual  | For multilingual tokenizers           |
-| openai        | For using OpenAI's models             |
-| optimum       | For running Intel OpenVINO models     |
-| promptsource  | For using PromptSource prompts        |
-| sentencepiece | For using the sentencepiece tokenizer |
-| testing       | For running library test suite        |
-| vllm          | For loading models with vLLM          |
-| zeno          | For visualizing results with Zeno     |
-|---------------|---------------------------------------|
-| all           | Loads all extras (not recommended)    |
+We also provide a number of optional dependencies for extended functionality. A detailed table is available at the end of this document.
 
 ## Basic Usage
 
@@ -204,6 +184,8 @@ A number of other libraries contain scripts for calling the eval harness through
 To create your own custom integration you can follow instructions from [this tutorial](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage).
 
 ### Additional Features
+> [!Note]
+> For tasks unsuitable for direct evaluation — either due risks associated with executing untrusted code or complexities in the evaluation process — the `--predict_only` flag is available to obtain decoded generations for post-hoc evaluation.
 
 If you have a Metal compatible Mac, you can run the eval harness using the MPS back-end by replacing `--device cuda:0` with `--device mps` (requires PyTorch version 2.1 or higher).
 
@@ -254,7 +236,7 @@ Additionally, one can provide a directory with `--use_cache` to cache the result
 For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
 
 > [!Tip]
-> Running lm-evaluation-harness as an external library and can't find (almost) any tasks available? run `lm_eval.tasks.initialize_tasks()` to load the library's stock tasks before calling `lm_eval.evaluate()` or `lm_eval.simple_evaluate()` !
+> Running lm-evaluation-harness as an external library and can't find (almost) any tasks available? Run `lm_eval.tasks.initialize_tasks()` to load the library's stock tasks before calling `lm_eval.evaluate()` or `lm_eval.simple_evaluate()` !
 
 ## Visualizing Results
 
@@ -318,6 +300,28 @@ We try to prioritize agreement with the procedures used by other groups to decre
 ### Support
 
 The best way to get support is to open an issue on this repo or join the [EleutherAI Discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases. If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
+
+## Optional Extras
+Extras dependencies can be installed via `pip install -e ".[NAME]"`
+
+| Name          | Use                                   |
+|---------------|---------------------------------------|
+| anthropic     | For using Anthropic's models          |
+| dev           | For linting PRs and contributions     |
+| gptq          | For loading models with GPTQ          |
+| ifeval        | For running the IFEval task           |
+| mamba         | For loading Mamba SSM models          |
+| math          | For running math task answer checking |
+| multilingual  | For multilingual tokenizers           |
+| openai        | For using OpenAI's models             |
+| optimum       | For running Intel OpenVINO models     |
+| promptsource  | For using PromptSource prompts        |
+| sentencepiece | For using the sentencepiece tokenizer |
+| testing       | For running library test suite        |
+| vllm          | For loading models with vLLM          |
+| zeno          | For visualizing results with Zeno     |
+|---------------|---------------------------------------|
+| all           | Loads all extras (not recommended)    |
 
 ## Cite as
 

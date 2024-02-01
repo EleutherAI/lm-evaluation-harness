@@ -239,6 +239,16 @@ class HFLM(LM):
             if self.config.model_type == "qwen":
                 # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
                 self.tokenizer.pad_token = "<|endoftext|>"
+            elif (
+                self.tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
+                or self.tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
+            ):
+                # The RWKV world tokenizer, does not allow for adding special tokens / setting the pad token (which is set as 0)
+                # The additional tokenizer name check is needed, as there exists rwkv4 models with neox tokenizer
+                # ---
+                # Note that the world tokenizer class name, might change in the future for the final huggingface merge
+                # https://github.com/huggingface/transformers/pull/26963
+                assert self.tokenizer.pad_token_id == 0
             else:
                 self.tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
 
@@ -705,10 +715,14 @@ class HFLM(LM):
                 return self.model(inps).logits
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
-        # we require users to pass do_sample=True explicitly
-        # for non-greedy gen. This should be reevaluated when considering beam search.
-        if "do_sample" not in generation_kwargs:
-            generation_kwargs["do_sample"] = False
+        # temperature = 0.0 if not set
+        # if do_sample is false and temp==0.0:
+        # remove temperature, as do_sample=False takes care of this
+        # and we don't want a warning from HF
+        generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
+        do_sample = generation_kwargs.get("do_sample", None)
+        if do_sample is False and generation_kwargs.get("temperature") == 0.0:
+            generation_kwargs.pop("temperature")
         # build stopping criteria
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, context.shape[1], context.shape[0]
