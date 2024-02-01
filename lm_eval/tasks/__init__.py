@@ -109,7 +109,7 @@ class TaskManager(abc.ABC):
         if yaml_path == -1:
             return {}
         else:
-            return utils.load_yaml_config("full", yaml_path)
+            return utils.load_yaml_config(yaml_path, mode="full")
 
     def _get_tasklist(self, name):
         assert self._name_is_task(name) == False
@@ -136,9 +136,9 @@ class TaskManager(abc.ABC):
                 assert yaml_path is not None
                 config.update(
                     utils.load_yaml_config(
-                        "full",
                         yaml_path,
-                        yaml_config={"include": config.pop("include")}
+                        yaml_config={"include": config.pop("include")},
+                        mode="full",
                     )
                 )
             if self._config_is_python_task(config):
@@ -282,7 +282,7 @@ class TaskManager(abc.ABC):
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
-                    config = utils.load_yaml_config("simple", yaml_path)
+                    config = utils.load_yaml_config(yaml_path, mode="simple")
                     if self._config_is_python_task(config):
                         # This is a python class config
                         tasks_and_groups[config["task"]] = {

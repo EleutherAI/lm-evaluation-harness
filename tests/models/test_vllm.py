@@ -6,7 +6,9 @@ import torch
 import lm_eval.tasks as tasks
 from lm_eval.api.instance import Instance
 
+
 task_manager = tasks.TaskManager()
+
 
 @pytest.mark.skip(reason="requires CUDA")
 class TEST_VLLM:
