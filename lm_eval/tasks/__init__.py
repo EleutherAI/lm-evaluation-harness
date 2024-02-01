@@ -11,7 +11,7 @@ from lm_eval.api.task import Task, ConfigurableTask
 import logging
 
 
-class TaskManager(abc.ABC):
+class TaskManager:
     """TaskManager indexes all tasks from the default `lm_eval/tasks/`
     and an optional directory if provided.
 
