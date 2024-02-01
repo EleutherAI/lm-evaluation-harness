@@ -4,6 +4,7 @@ import collections
 
 import torch
 
+import logging
 import numpy as np
 
 import lm_eval.api
@@ -20,7 +21,7 @@ from lm_eval.utils import (
     run_task_tests,
     get_git_commit_hash,
     simple_parse_args_string,
-    eval_logger,
+    eval_logger
 )
 
 
@@ -88,6 +89,8 @@ def simple_evaluate(
     torch.manual_seed(
         1234
     )  # TODO: this may affect training runs that are run with evaluation mid-run.
+
+    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
     if tasks is None:
         tasks = []
@@ -177,7 +180,7 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
-        weight_by_size=weight_by_size,
+        verbosity=verbosity,
     )
 
     if lm.rank == 0:
@@ -220,6 +223,7 @@ def evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
+    verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -238,7 +242,8 @@ def evaluate(
     :return
         Dictionary of results
     """
-
+    
+    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
     # decontaminate = decontamination_ngrams_path is not None
 
     for task_name, task in task_dict.items():
