@@ -280,9 +280,12 @@ def evaluate(
         configs[task_name] = dict(task.dump_config())
 
         if "num_fewshot" in configs[task_name]:
-            n_shot = configs[task_name]["num_fewshot"]
+            if configs[task_name]["metadata"]:
+                n_shot = configs[task_name]["metadata"].get("num_fewshot", None)
+            if not n_shot:
+                n_shot = configs[task_name]["num_fewshot"]
         else:
-            n_shot = 0
+            n_shot = 0 # TODO: is this always right?
         num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
@@ -633,7 +636,7 @@ def evaluate(
 
         for group_name, task_list in task_hierarchy.items():
             if task_list != []:
-                num_fewshot[group_name] = num_fewshot[task_list[0]]
+                num_fewshot[group_name] = num_fewshot[task_list[0]] # TODO: validate this
 
         results_dict = {
             "results": dict(results_agg.items()),
