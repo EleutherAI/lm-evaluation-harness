@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 from typing import List, Union
 
 from lm_eval.utils import load_yaml_config
