@@ -242,7 +242,7 @@ def evaluate(
     :return
         Dictionary of results
     """
-    
+
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
     # decontaminate = decontamination_ngrams_path is not None
 

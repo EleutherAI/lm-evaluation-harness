@@ -12,7 +12,7 @@ import logging
 
 
 class TaskManager(abc.ABC):
-    """TaskManager indexes all tasks from the default `lm_eval/tasks/` 
+    """TaskManager indexes all tasks from the default `lm_eval/tasks/`
     and an optional directory if provided.
 
     """
@@ -259,16 +259,16 @@ class TaskManager(abc.ABC):
     def _get_task_and_group(self, task_dir: str):
         """Creates an dictionary of tasks index with the following metadata,
         - `type`, that can be either `task`, `python_task`, or `group`.
-            `task` refer to regular task configs, `python_task` are special 
+            `task` refer to regular task configs, `python_task` are special
             yaml files that only consists of `task` and `class` parameters.
             `group` are group configs.
-        - `yaml_path`, path to the yaml file. If the entry is a `group` that 
-            was configured through a task config, the yaml_path will be -1 
+        - `yaml_path`, path to the yaml file. If the entry is a `group` that
+            was configured through a task config, the yaml_path will be -1
             and all subtasks will be listed in `task` (see below)
         - `task`, reserved for entries with `type` as `group`. This will list
-            all subtasks. When a group config is created (as opposed to task 
-            config having `group` parameter set), this will be set to -1 to 
-            avoid recursive indexing. The whole list of subtasks will be loaded 
+            all subtasks. When a group config is created (as opposed to task
+            config having `group` parameter set), this will be set to -1 to
+            avoid recursive indexing. The whole list of subtasks will be loaded
             at evaluation.
 
         :param task_dir: str
@@ -366,7 +366,7 @@ def get_task_dict(task_name_list: List[Union[str, Dict, Task]], task_manager: Ta
     :param task_manager: TaskManager = None
         A TaskManager object that stores indexed tasks. If not set,
         task_manager will load one. This should be set by the user
-        if there are additional paths that want to be included 
+        if there are additional paths that want to be included
         via `include_path`
 
     :return
