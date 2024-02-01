@@ -335,8 +335,20 @@ def get_task_name_from_object(task_object):
         else type(task_object).__name__
     )
 
-def get_task_dict(task_name_list: List[Union[str, Dict, Task]], task_manager: TaskManager):
+def get_task_dict(task_name_list: List[Union[str, Dict, Task]], task_manager: TaskManager = None):
+    """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
+    :param task_name_list: List[Union[str, Dict, Task]]
+        Name of model or LM object, see lm_eval.models.get_model
+    :param task_manager: TaskManager = None
+        A TaskManager object that stores indexed tasks. If not set,
+        task_manager will load one. This should be set by the user
+        if there are additional paths that want to be included 
+        via `include_path`
+
+    :return
+        Dictionary of task objects
+    """
     task_name_from_string_dict = {}
     task_name_from_config_dict = {}
     task_name_from_object_dict = {}
@@ -347,6 +359,9 @@ def get_task_dict(task_name_list: List[Union[str, Dict, Task]], task_manager: Ta
     string_task_name_list = [task for task in task_name_list if isinstance(task, str)]
     others_task_name_list = [task for task in task_name_list if ~isinstance(task, str)]
     if len(string_task_name_list) > 0:
+        if task_manager is None:
+            task_manager = TaskManager()
+
         task_name_from_string_dict = task_manager.load_task_or_group(string_task_name_list)
 
     for task_element in others_task_name_list:
