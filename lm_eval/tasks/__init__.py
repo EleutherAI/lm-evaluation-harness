@@ -12,7 +12,10 @@ import logging
 
 
 class TaskManager(abc.ABC):
+    """TaskManager indexes all tasks from the default `lm_eval/tasks/` 
+    and an optional directory if provided.
 
+    """
     def __init__(
         self,
         verbosity="INFO",
@@ -24,47 +27,57 @@ class TaskManager(abc.ABC):
         self.logger = utils.eval_logger
         self.logger.setLevel(getattr(logging, f"{verbosity}"))
 
-        self.ALL_TASKS = self.initialize_tasks(
+        self._task_index = self.initialize_tasks(
             include_path=include_path
             )
+        self._all_tasks = sorted(list(self._task_index.keys()))
 
         self.task_group_map = collections.defaultdict(list)
 
-    def initialize_tasks(self, include_path=None):
-
+    def initialize_tasks(self, include_path: str = None):
+        """
+        :param include_path: str
+            optional additional directory to include
+            for task/group config indexing 
+        """
         all_paths = [os.path.dirname(os.path.abspath(__file__)) + "/"]
         if include_path is not None:
             if isinstance(include_path, str):
                 include_path = [include_path]
             all_paths.extend(include_path)
 
-        ALL_TASKS = {}
+        task_index = {}
         for task_dir in all_paths:
             tasks = self._get_task_and_group(task_dir)
-            ALL_TASKS = {**tasks, **ALL_TASKS}
+            task_index = {**tasks, **task_index}
 
-        return ALL_TASKS
+        return task_index
 
+    @property
     def all_tasks(self):
-        return sorted(list(self.ALL_TASKS.keys()))
+        return self._all_tasks
+
+    @property
+    def task_index(self):
+        return self._task_index
 
     def match_tasks(self, task_list):
         return utils.pattern_match(
-            task_list, self.all_tasks()
+            task_list, self.all_tasks
         )
 
     def _name_is_registered(self, name):
-        if name in self.ALL_TASKS:
+        if name in self.all_tasks:
             return True
         return False
 
     def _name_is_task(self, name):
-        if "task" in self.ALL_TASKS[name]["type"]:
+        if "task" in self.task_index[name]["type"]:
             return True
         return False
 
     def _name_is_python_task(self, name):
-        if self._name_is_registered(name) and (self.ALL_TASKS[name]["type"] == "python_task"):
+        if self._name_is_registered(name) and (self.task_index[name]["type"] == "python_task"):
             return True
         return False
 
@@ -84,11 +97,11 @@ class TaskManager(abc.ABC):
         return False
 
     def _get_yaml_path(self, name):
-        assert name in self.ALL_TASKS
-        return self.ALL_TASKS[name]["yaml_path"]
+        assert name in self.task_index
+        return self.task_index[name]["yaml_path"]
 
     def _get_config(self, name):
-        assert name in self.ALL_TASKS
+        assert name in self.task_index
         yaml_path = self._get_yaml_path(name)
         if yaml_path == -1:
             return {}
@@ -97,7 +110,7 @@ class TaskManager(abc.ABC):
 
     def _get_tasklist(self, name):
         assert self._name_is_task(name) == False
-        return self.ALL_TASKS[name]["task"]
+        return self.task_index[name]["task"]
 
     def _process_alias(self, config, group=None):
         # If the group is not the same as the original
@@ -115,7 +128,10 @@ class TaskManager(abc.ABC):
             update_config: dict = None,
             yaml_path: str = None,
         ) -> ConfigurableTask:
-
+        """
+        :param task_list: Union[str, list]
+            Does something
+        """
         def load_task(config, task, group=None, yaml_path=None):
             if "include" in config:
                 assert yaml_path is not None
@@ -217,7 +233,10 @@ class TaskManager(abc.ABC):
 
 
     def load_task_or_group(self, task_list: Union[str, list] = None) -> dict:
-
+        """
+        :param task_list: Union[str, list]
+            Does something
+        """
         if isinstance(task_list, str):
             task_list = [task_list]
 
