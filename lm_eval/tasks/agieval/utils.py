@@ -244,10 +244,11 @@ def is_equiv(str1, str2, verbose=False):
 def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     candidate = results[0]
 
-    answer = parse_math_answer(candidate)
-    gold = parse_math_answer(doc["answer"])
+    gold = doc["answer"]
 
-    if is_equiv(answer, gold):
+    if not gold:
+        print(doc, candidate, gold)
+    if is_equiv(candidate, gold):
         retval = 1
     else:
         retval = 0
