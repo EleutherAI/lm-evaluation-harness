@@ -145,7 +145,7 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
     return items
 
 
-exact_match = evaluate.load("exact_match")
+#exact_match = evaluate.load("exact_match")
 
 
 @register_metric(
