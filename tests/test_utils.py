@@ -2,10 +2,10 @@ import pytest
 
 from lm_eval.utils import (
     Collator,
-    combined_mean,
     get_rolling_token_windows,
     make_disjoint_window,
     pooled_variance,
+    weighted_mean,
 )
 
 
@@ -316,7 +316,7 @@ class TestCollator:
                 current_n, current_mean, current_variance = n, mean, variance
             else:
                 new_n = current_n + n
-                new_mean = combined_mean(current_n, n, current_mean, mean)
+                new_mean = weighted_mean(current_n, n, current_mean, mean)
                 current_variance = pooled_variance(
                     current_n, n, current_variance, variance, current_mean, mean
                 )

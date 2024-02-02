@@ -11,13 +11,13 @@ import lm_eval.api.registry
 import lm_eval.models
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
-    combined_mean,
     eval_logger,
     get_git_commit_hash,
     pooled_variance,
     positional_deprecated,
     run_task_tests,
     simple_parse_args_string,
+    weighted_mean,
 )
 
 
@@ -534,7 +534,7 @@ def evaluate(
 
                             if metric in results[group]:
                                 # Update metric mean
-                                results[group][metric] = combined_mean(
+                                results[group][metric] = weighted_mean(
                                     n_x=total_size,
                                     m_y=current_size,
                                     x_bar=results[group][metric],

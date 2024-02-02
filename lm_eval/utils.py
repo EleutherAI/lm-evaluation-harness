@@ -968,7 +968,7 @@ def pooled_variance(
     return adjusted_pooled_variance
 
 
-def combined_mean(n_x: int, m_y: int, x_bar: float, y_bar: float) -> float:
+def weighted_mean(n_x: int, m_y: int, x_bar: float, y_bar: float) -> float:
     """
     Calculate the combined weighted mean of two datasets.
 
