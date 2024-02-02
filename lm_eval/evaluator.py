@@ -2,6 +2,7 @@ import collections
 import itertools
 import logging
 import random
+from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -17,6 +18,11 @@ from lm_eval.utils import (
     run_task_tests,
     simple_parse_args_string,
 )
+
+
+if TYPE_CHECKING:
+    from lm_eval.api.model import LM
+    from lm_eval.api.task import Task
 
 
 @positional_deprecated
@@ -214,10 +220,10 @@ decontaminate_suffix = "_decontaminate"
 
 @positional_deprecated
 def evaluate(
-    lm,
-    task_dict,
-    limit=None,
-    bootstrap_iters: int = 100000,
+    lm: "LM",
+    task_dict: Dict[str, Union["Task", Tuple[str, "Task"]]],
+    limit: Optional[int] = None,
+    bootstrap_iters: Optional[int] = 100000,
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
