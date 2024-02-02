@@ -736,9 +736,30 @@ class ConfigurableTask(Task):
                     )
 
     def download(self, dataset_kwargs=None) -> None:
+        """
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
+            **dataset_kwargs if dataset_kwargs is not None else {},
+        )
+        """
+        print(self.DATASET_NAME)
+        dataset_kwargs = {}
+        if "cmmlu" in self.DATASET_PATH:
+            dataset_kwargs['data_files'] = {
+                'dev': self.DATASET_PATH+"/"+self.DATASET_NAME+"/1.0.1/efcc940752ea4a1ea94d2727f11f83858d64fc8e/cmmlu-dev.arrow",
+                'test': self.DATASET_PATH + "/" + self.DATASET_NAME + "/1.0.1/efcc940752ea4a1ea94d2727f11f83858d64fc8e/cmmlu-test.arrow",
+            }
+        elif "ceval" in self.DATASET_PATH:
+            dataset_kwargs['data_files'] = {
+                'val': self.DATASET_PATH+"/"+self.DATASET_NAME+"/1.0.0/3923b519fd180e689d0961bf3a032ece929742f3/ceval-exam-val.arrow",
+                'dev': self.DATASET_PATH + "/" + self.DATASET_NAME + "/1.0.0/3923b519fd180e689d0961bf3a032ece929742f3/ceval-exam-val.arrow"
+            }
+        else:
+            raise ValueError("Only Support cmmlu and ceval-valid datasets")
+
+        self.dataset = datasets.load_dataset(
+            "arrow",
             **dataset_kwargs if dataset_kwargs is not None else {},
         )
 

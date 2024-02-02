@@ -1,5 +1,5 @@
 group: ceval-valid
-dataset_path: ceval/ceval-exam
+dataset_path: /workspace/ceval
 validation_split: val
 fewshot_split: dev
 fewshot_config:
