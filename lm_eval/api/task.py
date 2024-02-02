@@ -528,6 +528,20 @@ class Task(abc.ABC):
         # (num_fewshot)
         return self.config.to_dict()
 
+    def set_config(self, key: str, value: Any, update: bool = False) -> None:
+        if key is None:
+            raise ValueError("Key must be provided.")
+
+        if update:
+            current_value = getattr(self._config, key, {})
+            if not isinstance(current_value, dict):
+                raise TypeError(
+                    f"Expected a dict for key '{key}', got {type(current_value).__name__} instead."
+                )
+            current_value.update(value)
+        else:
+            setattr(self._config, key, value)
+
 
 class ConfigurableTask(Task):
     VERSION = "Yaml"
@@ -1241,17 +1255,6 @@ class ConfigurableTask(Task):
         self._metric_fn_kwargs[metric_name] = {}
         setattr(self._config, "metric_list", [{"metric": metric_name}])
         setattr(self._config, "process_results", None)
-
-    def override_config(
-        self, key: str = None, value: Any = None, update: bool = False
-    ) -> None:
-        if update:
-            current_value = getattr(self._config, key)
-            assert isinstance(current_value, dict)
-            current_value.update(value)
-            setattr(self._config, key, current_value)
-        else:
-            setattr(self._config, key, value)
 
 
 class MultipleChoiceTask(Task):

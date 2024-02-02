@@ -146,7 +146,7 @@ def simple_evaluate(
 
         if task_obj.get_config("output_type") == "generate_until":
             if gen_kwargs is not None:
-                task_obj.override_config(
+                task_obj.set_config(
                     key="generation_kwargs", value=gen_kwargs, update=True
                 )
 
@@ -168,10 +168,7 @@ def simple_evaluate(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
                 # backward compatibility with task
-                try:
-                    task_obj.override_config(key="num_fewshot", value=num_fewshot)
-                except AttributeError:
-                    setattr(task_obj._config, "num_fewshot", num_fewshot)
+                task_obj.set_config(key="num_fewshot", value=num_fewshot)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -297,13 +294,8 @@ def evaluate(
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
-        n_shot = 0  # Default value
-        if "num_fewshot" in configs[task_name]:
-            n_shot = configs[task_name]["num_fewshot"]
-        elif "metadata" in configs[task_name] and (
-            metadata := configs[task_name]["metadata"]
-        ):
-            n_shot = metadata.get("num_fewshot", n_shot)
+        if (n_shot := configs[task_name].get("num_fewshot")) is None:
+            n_shot = configs[task_name].get("metadata", {}).get("num_fewshot", 0)
 
         num_fewshot[task_name] = n_shot
 
