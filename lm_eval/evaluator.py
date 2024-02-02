@@ -293,9 +293,12 @@ def evaluate(
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
-        if (n_shot := configs[task_name].get("num_fewshot")) is None:
+        # Number of few-shots for printing.
+        n_shot = configs[task_name].get("num_fewshot")
+        if n_shot == 0:
             n_shot = configs[task_name].get("metadata", {}).get("num_fewshot", 0)
-
+        else:
+            n_shot = n_shot if n_shot is not None else 0
         num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
