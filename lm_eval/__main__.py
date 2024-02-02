@@ -184,8 +184,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         sys.exit()
     elif args.tasks == "list":
         eval_logger.info(
-            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks()))
+            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks))
         )
+        sys.exit()
     else:
         if os.path.isdir(args.tasks):
             import glob
