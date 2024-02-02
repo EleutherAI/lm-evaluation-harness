@@ -970,7 +970,7 @@ def pooled_variance(
 
 def combined_mean(n_x: int, m_y: int, x_bar: float, y_bar: float) -> float:
     """
-    Calculate the combined mean of two datasets.
+    Calculate the combined weighted mean of two datasets.
 
     :param n_x: Size of the first sample
     :param m_y: Size of the second sample
