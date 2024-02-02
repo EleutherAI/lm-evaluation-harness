@@ -2,7 +2,7 @@ import collections
 import itertools
 import logging
 import random
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 import torch
@@ -20,16 +20,11 @@ from lm_eval.utils import (
 )
 
 
-if TYPE_CHECKING:
-    from lm_eval.api.model import LM
-    from lm_eval.api.task import Task
-
-
 @positional_deprecated
 def simple_evaluate(
-    model: Union[str, "LM"],
+    model,
     model_args: Optional[str] = None,
-    tasks: List[Union[str, Dict, Task]] = None,
+    tasks=None,
     num_fewshot: Optional[int] = None,
     batch_size: Optional[int] = None,
     max_batch_size: Optional[int] = None,
@@ -220,8 +215,8 @@ decontaminate_suffix = "_decontaminate"
 
 @positional_deprecated
 def evaluate(
-    lm: "LM",
-    task_dict: Dict[str, Union["Task", Tuple[str, "Task"]]],
+    lm,
+    task_dict,
     limit: Optional[int] = None,
     bootstrap_iters: Optional[int] = 100000,
     decontamination_ngrams_path=None,
