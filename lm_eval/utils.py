@@ -945,7 +945,7 @@ def pooled_variance(
     n_x: int, m_y: int, var_x: float, var_y: float, x_bar: float, y_bar: float
 ) -> float:
     """
-    Calculate the pooled variance and adjusted term for mean differences using the formula:
+    Calculate the pooled variance adjusted for mean differences using the formula:
 
     $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
 
