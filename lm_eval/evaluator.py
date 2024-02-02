@@ -2,7 +2,7 @@ import collections
 import itertools
 import logging
 import random
-from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -27,15 +27,15 @@ if TYPE_CHECKING:
 
 @positional_deprecated
 def simple_evaluate(
-    model,
-    model_args=None,
-    tasks=None,
-    num_fewshot=None,
-    batch_size=None,
-    max_batch_size=None,
-    device=None,
-    use_cache=None,
-    limit=None,
+    model: Union[str, "LM"],
+    model_args: Optional[str] = None,
+    tasks: List[Union[str, Dict, Task]] = None,
+    num_fewshot: Optional[int] = None,
+    batch_size: Optional[int] = None,
+    max_batch_size: Optional[int] = None,
+    device: Optional[str] = None,
+    use_cache: Optional[str] = None,
+    limit: Optional[Union[int, float]] = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
     decontamination_ngrams_path=None,
