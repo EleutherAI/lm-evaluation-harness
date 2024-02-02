@@ -1,0 +1,13 @@
+include: gsm8k.yaml
+group:
+  - math_word_problems
+task: gsm8k-ru
+dataset_path: deepvk/gsm8k-ru
+dataset_name: null
+doc_to_text: "Вопрос: {{question}}\nОтвет:"
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "Вопрос:"
+  do_sample: false
+  temperature: 0.0
