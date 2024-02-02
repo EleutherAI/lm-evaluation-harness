@@ -1,6 +1,12 @@
 import pytest
 
-from lm_eval.utils import Collator, get_rolling_token_windows, make_disjoint_window
+from lm_eval.utils import (
+    Collator,
+    combined_mean,
+    get_rolling_token_windows,
+    make_disjoint_window,
+    pooled_variance,
+)
 
 
 # noinspection DuplicatedCode
@@ -295,3 +301,25 @@ class TestCollator:
         # check indices
         reordered_output = loglikelihoods.get_original(output)
         assert reordered_output == [x[1] for x in loglikelihood_samples]
+
+    def test_pooled_variance(self, n_x, m_y, var_x, var_y, x_bar, y_bar, expected):
+        datasets = [
+            [6, 30.66667, 8.555555],
+            [7, 31.14286, 13.26531],
+            [3, 40.33333, 1.555555],
+        ]
+        current_n = 0
+        current_mean = 0
+        current_variance = 0
+        for n, mean, variance in datasets:
+            if current_n == 0:
+                current_n, current_mean, current_variance = n, mean, variance
+            else:
+                new_n = current_n + n
+                new_mean = combined_mean(current_n, n, current_mean, mean)
+                current_variance = pooled_variance(
+                    current_n, n, current_variance, variance, current_mean, mean
+                )
+                current_n, current_mean = new_n, new_mean
+
+        assert current_variance == pytest.approx(22.804053)
