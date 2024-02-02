@@ -302,7 +302,7 @@ class TestCollator:
         reordered_output = loglikelihoods.get_original(output)
         assert reordered_output == [x[1] for x in loglikelihood_samples]
 
-    def test_pooled_variance(self, n_x, m_y, var_x, var_y, x_bar, y_bar, expected):
+    def test_pooled_variance(self):
         datasets = [
             [6, 30.66667, 8.555555],
             [7, 31.14286, 13.26531],
