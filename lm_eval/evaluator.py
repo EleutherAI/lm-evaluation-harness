@@ -13,11 +13,9 @@ from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     eval_logger,
     get_git_commit_hash,
-    pooled_variance,
     positional_deprecated,
     run_task_tests,
     simple_parse_args_string,
-    weighted_mean,
 )
 
 
@@ -536,32 +534,29 @@ def evaluate(
                             metric_score = results[task][metric]
 
                             if metric in results[group]:
-                                # Update metric mean
-                                results[group][metric] = weighted_mean(
-                                    n_x=total_size,
-                                    m_y=current_size,
-                                    x_bar=results[group][metric],
-                                    y_bar=metric_score,
-                                )
-                                # Update variance
+                                results[group][metric] = (
+                                    results[group][metric] * total_size
+                                    + metric_score * current_size
+                                ) / (total_size + current_size)
+                                # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
                                 if (
                                     var_score == "N/A"
                                     or results[group][stderr] == "N/A"
                                 ):
                                     results[group][stderr] = "N/A"
                                 else:
-                                    results[group][stderr] = pooled_variance(
-                                        n_x=total_size,
-                                        m_y=current_size,
-                                        var_x=results[group][stderr],
-                                        var_y=var_score,
-                                        x_bar=results[group][metric],
-                                        y_bar=metric_score,
-                                    )
+                                    results[group][stderr] = (
+                                        (total_size - 1) * results[group][stderr]
+                                        + (current_size - 1) * var_score
+                                    ) / (
+                                        total_size + current_size - 1
+                                    ) + total_size * current_size / (
+                                        (total_size + current_size)
+                                        * (total_size + current_size - 1)
+                                    ) * (results[group][metric] - metric_score) ** 2
                             else:
                                 results[group][metric] = metric_score
                                 results[group][stderr] = var_score
-
                         # Update the total size for the group
                         total_size += current_size
 
