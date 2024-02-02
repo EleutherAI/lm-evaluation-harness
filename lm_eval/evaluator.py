@@ -293,7 +293,7 @@ def evaluate(
         configs[task_name] = dict(task.dump_config())
 
         # Number of few-shots for printing.
-        if (n_shot := configs[task_name].get("num_fewshot")) is None or n_shot == 0:
+        if (n_shot := configs[task_name].get("num_fewshot")) == 0:
             n_shot = configs[task_name].get("metadata", {}).get("num_fewshot", 0)
         num_fewshot[task_name] = n_shot
 
