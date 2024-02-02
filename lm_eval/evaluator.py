@@ -167,7 +167,6 @@ def simple_evaluate(
                 eval_logger.warning(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
-                # backward compatibility with task
                 task_obj.set_config(key="num_fewshot", value=num_fewshot)
 
     if check_integrity:
