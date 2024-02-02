@@ -961,8 +961,8 @@ def pooled_variance(
         return 0.0
     pooled_var = ((n_x - 1) * var_x + (m_y - 1) * var_y) / (n_x + m_y - 1)
     mean_difference_squared = (x_bar - y_bar) ** 2
-    mean_difference_adjustment = (
-        n_x * m_y * mean_difference_squared / ((n_x + m_y) * (n_x + m_y - 1))
+    mean_difference_adjustment = (n_x * m_y * mean_difference_squared) / (
+        (n_x + m_y) * (n_x + m_y - 1)
     )
     adjusted_pooled_variance = pooled_var + mean_difference_adjustment
     return adjusted_pooled_variance
