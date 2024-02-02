@@ -297,13 +297,14 @@ def evaluate(
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
+        n_shot = 0  # Default value
         if "num_fewshot" in configs[task_name]:
-            if configs[task_name]["metadata"]:
-                n_shot = configs[task_name]["metadata"].get("num_fewshot", None)
-            if not n_shot:
-                n_shot = configs[task_name]["num_fewshot"]
-        else:
-            n_shot = 0  # TODO: is this always right?
+            n_shot = configs[task_name]["num_fewshot"]
+        elif "metadata" in configs[task_name] and (
+            metadata := configs[task_name]["metadata"]
+        ):
+            n_shot = metadata.get("num_fewshot", n_shot)
+
         num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
