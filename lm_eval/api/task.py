@@ -511,6 +511,7 @@ class Task(abc.ABC):
         return description + labeled_examples + example
 
     def apply_filters(self):
+        """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
                 f.apply(self._instances)
@@ -519,16 +520,13 @@ class Task(abc.ABC):
             return self._instances
 
     def dump_config(self) -> dict:
-        """Returns a dictionary representing the task's config.
-
-        :returns: str
-            The fewshot context.
-        """
+        """Returns the config as a dictionary."""
         # TODO: this should only return the overrides applied to a non-YAML task's configuration.
         # (num_fewshot)
         return self.config.to_dict()
 
     def set_config(self, key: str, value: Any, update: bool = False) -> None:
+        """Set or update the configuration for a given key."""
         if key is None:
             raise ValueError("Key must be provided.")
 
@@ -847,6 +845,7 @@ class ConfigurableTask(Task):
                     return labeled_examples + str(example)
 
     def apply_filters(self):
+        """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
                 f.apply(self._instances)
