@@ -314,11 +314,12 @@ def evaluate(
                     if shuffle == "unigram":
                         doc['query'] = unigram_shuffle(doc['query'], task_name)
                         doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+                elif task_name == "winogrande":
+                    if shuffle == "unigram":
+                        doc['sentence'] = unigram_shuffle(doc['sentence'], task_name)
                 else:
                     if shuffle == "unigram":
                         doc['query'] = unigram_shuffle(doc['query'], task_name)
-                        doc['query'] = doc['query'] 
-                    
                     """
                 elif shuffle == "bigram":
                     doc['query'] = bigram_shuffle(doc['query'])
