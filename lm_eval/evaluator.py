@@ -514,17 +514,6 @@ def evaluate(
                 else:
                     results[task_name][metric + "_stderr" + "," + key] = "N/A"
 
-        def pooled_sample_err(stderrs, sizes):
-            # https://en.wikipedia.org/wiki/Pooled_variance
-            # TODO: should we instead apply the same bootstrapping to groups, for those which weight by size?
-            pooled_sample_var = (sum([(size - 1) * stderr ** 2 for size, stderr in zip(sizes, stderrs)])) / (sum(sizes) - len(sizes))
-
-            return np.sqrt(pooled_sample_var)
-
-        def aggregate_metrics(metrics, sizes):
-            # TODO: does not hold for non-agg metrics
-            return sum([metric * size for metric, size in zip(metrics, sizes)]) / sum(sizes)
-
         if bool(results):
             for group, task_list in reversed(task_hierarchy.items()):
                 for metric in [
@@ -538,12 +527,14 @@ def evaluate(
                     sizes = [results[task]["samples"] for task in task_list]
 
                     # compute group's pooled metric and stderr
-                    results[group][metric] = aggregate_metrics(metrics, sizes)
+                    results[group][metric] = lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
                     # TODO: calculate grouped metric using aggregation fn
                     if "N/A" in stderrs:
                         results[group][stderr] = "N/A"
                     else:
-                        results[group][stderr] = pooled_sample_err(stderrs, sizes)
+                        results[group][stderr] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
+                        # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
+                        # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
 
                     results[group]["samples"] = sum(sizes)
 
