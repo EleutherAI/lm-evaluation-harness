@@ -501,14 +501,14 @@ def import_function(loader, node):
     return function
 
 
-def load_yaml_config(mode="simple", yaml_path=None, yaml_config=None, yaml_dir=None):
+def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"):
     if mode == "simple":
-        constuctor_fn = ignore_constructor
+        constructor_fn = ignore_constructor
     elif mode == "full":
-        constuctor_fn = import_function
+        constructor_fn = import_function
 
     # Add the import_function constructor to the YAML loader
-    yaml.add_constructor("!function", constuctor_fn)
+    yaml.add_constructor("!function", constructor_fn)
     if yaml_config is None:
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.full_load(file)
@@ -536,7 +536,7 @@ def load_yaml_config(mode="simple", yaml_path=None, yaml_config=None, yaml_dir=N
                 path = os.path.join(yaml_dir, path)
 
             try:
-                included_yaml_config = load_yaml_config(mode=mode, yaml_path=path)
+                included_yaml_config = load_yaml_config(yaml_path=path, mode=mode)
                 final_yaml_config.update(included_yaml_config)
             except Exception as ex:
                 # If failed to load, ignore

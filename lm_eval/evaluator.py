@@ -4,20 +4,24 @@ import collections
 
 import torch
 
+import logging
 import numpy as np
 
 import lm_eval.api
-import lm_eval.tasks
 import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry
 
+from lm_eval.tasks import (
+    get_task_dict,
+    TaskManager
+)
 from lm_eval.utils import (
     positional_deprecated,
     run_task_tests,
     get_git_commit_hash,
     simple_parse_args_string,
-    eval_logger,
+    eval_logger
 )
 
 
@@ -25,7 +29,7 @@ from lm_eval.utils import (
 def simple_evaluate(
     model,
     model_args=None,
-    tasks=[],
+    tasks=None,
     num_fewshot=None,
     batch_size=None,
     max_batch_size=None,
@@ -38,7 +42,9 @@ def simple_evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     gen_kwargs: str = None,
-    weight_by_size: bool = False,
+    task_manager: TaskManager = None,
+    verbosity: str = "INFO",
+    predict_only: bool = False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -47,8 +53,8 @@ def simple_evaluate(
     :param model_args: Optional[str]
         String arguments for each model class, see LM.create_from_arg_string.
         Ignored if `model` argument is a LM object.
-    :param tasks: list[Task]
-        List of Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
+    :param tasks: list[Union[str, dict, Task]]
+        List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param num_fewshot: int
         Number of examples in few-shot context
     :param batch_size: int or str, optional
@@ -72,6 +78,9 @@ def simple_evaluate(
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
+    :param predict_only: bool
+        If true only model outputs will be generated and returned. Metrics will not be evaluated
+
     :return
         Dictionary of results
     """
@@ -81,6 +90,10 @@ def simple_evaluate(
         1234
     )  # TODO: this may affect training runs that are run with evaluation mid-run.
 
+    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+
+    if tasks is None:
+        tasks = []
     assert (
         tasks != []
     ), "No tasks specified, or no tasks found. Please verify the task names."
@@ -88,7 +101,7 @@ def simple_evaluate(
     if gen_kwargs is not None:
         gen_kwargs = simple_parse_args_string(gen_kwargs)
         eval_logger.warning(
-            "generation_kwargs specified through cli, these settings will be used over set parameters in yaml tasks."
+            "generation_kwargs specified through cli, these settings will update set parameters in yaml tasks. Ensure 'do_sample=True' for non-greedy decoding!"
         )
         if gen_kwargs == "":
             gen_kwargs = None
@@ -120,30 +133,45 @@ def simple_evaluate(
             + ".db",
         )
 
-    task_dict = tasks
+    if task_manager is None:
+        task_manager = TaskManager(verbosity)
+
+    eval_logger.info(
+        "get_task_dict has been updated to accept an optional argument, `task_manager`"
+        "Read more here: https://github.com/EleutherAI/lm-evaluation-harness/blob/recursive-groups/docs/interface.md#external-library-usage"
+        )
+    task_dict = get_task_dict(tasks, task_manager)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
-        if type(task_obj) == tuple:
+        if isinstance(task_obj, tuple):
             _, task_obj = task_obj
             if task_obj is None:
                 continue
 
-        config = task_obj._config
-        if config["output_type"] == "generate_until" and gen_kwargs is not None:
-            config["generation_kwargs"].update(gen_kwargs)
+        if task_obj.get_config("output_type") == "generate_until":
+            if gen_kwargs is not None:
+                task_obj.override_config(
+                    key="generation_kwargs", value=gen_kwargs, update=True
+                )
+
+            if predict_only:
+                log_samples = True
+                eval_logger.info(
+                    f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
+                )
+                # we have to change the class properties post-hoc. This is pretty hacky.
+                task_obj.override_metric(metric_name="bypass")
 
         if num_fewshot is not None:
-            if config["num_fewshot"] == 0:
+            if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
                 eval_logger.info(
                     f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
                 )
             else:
-                default_num_fewshot = config["num_fewshot"]
                 eval_logger.warning(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
-
-                task_obj._config["num_fewshot"] = num_fewshot
+                task_obj.override_config(key="num_fewshot", value=num_fewshot)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -156,7 +184,7 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
-        weight_by_size=weight_by_size,
+        verbosity=verbosity,
     )
 
     if lm.rank == 0:
@@ -199,7 +227,7 @@ def evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
-    weight_by_size: bool = False,
+    verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -219,7 +247,16 @@ def evaluate(
         Dictionary of results
     """
 
+    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
     # decontaminate = decontamination_ngrams_path is not None
+
+    for task_name, task in task_dict.items():
+        if isinstance(task, tuple):
+            _, task = task
+        if not log_samples:
+            assert (
+                "bypass" not in getattr(task, "_metric_fn_list", {}).keys()
+            ), f"log_samples must be True for 'bypass' only tasks: {task_name}"
 
     # stores the final result for each task, for each metric/filter pair.
     results = collections.defaultdict(dict)
@@ -245,7 +282,7 @@ def evaluate(
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
-        if type(task) == tuple:
+        if isinstance(task, tuple):
             group_name, task = task
             task_hierarchy[group_name].append(task_name)
             versions[group_name] = "N/A"
@@ -261,9 +298,12 @@ def evaluate(
         configs[task_name] = dict(task.dump_config())
 
         if "num_fewshot" in configs[task_name]:
-            n_shot = configs[task_name]["num_fewshot"]
+            if configs[task_name]["metadata"]:
+                n_shot = configs[task_name]["metadata"].get("num_fewshot", None)
+            if not n_shot:
+                n_shot = configs[task_name]["num_fewshot"]
         else:
-            n_shot = 0
+            n_shot = 0 # TODO: is this always right?
         num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
@@ -319,7 +359,7 @@ def evaluate(
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
     for reqtype, reqs in requests.items():
-        eval_logger.info("Running {} requests".format(reqtype))
+        eval_logger.info(f"Running {reqtype} requests")
         # create `K` copies of each request `req` based off `K = req.repeats`
         cloned_reqs = []
         for req in reqs:
@@ -342,7 +382,7 @@ def evaluate(
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_name, task in task_dict.items():
-        if type(task) == tuple:
+        if isinstance(task, tuple):
             group, task = task
             if task is None:
                 continue
@@ -353,7 +393,7 @@ def evaluate(
 
     # unpack results and sort back in order and return control to Task
     for task_name, task in task_dict.items():
-        if type(task) == tuple:
+        if isinstance(task, tuple):
             group, task = task
             if task is None:
                 continue
@@ -404,7 +444,7 @@ def evaluate(
         vals_torch = collections.defaultdict(list)
         for (task_name, key, metric), items in vals.items():
             numitem = 0
-            if type(items[0]) == tuple:
+            if isinstance(items[0], tuple):
                 numitem = len(items[0])
 
             if isinstance(items[0], (str, list, tuple)):
@@ -450,7 +490,7 @@ def evaluate(
             task = task_dict[task_name]
             metric_key = metric + "," + key
 
-            if type(task) == tuple:
+            if isinstance(task, tuple):
                 group_name, task = task
             else:
                 group_name = None
@@ -477,7 +517,8 @@ def evaluate(
         if bool(results):
             for group, task_list in reversed(task_hierarchy.items()):
                 if task_list == []:
-                    total_size = results[group]["samples"]
+                    # TODO: No samples when bypass
+                    total_size = results[group].get("samples", 999)
                 else:
                     total_size = 0
 
@@ -487,16 +528,7 @@ def evaluate(
                         if "alias" in metrics:
                             metrics.pop("alias")
 
-                        if ("weight_by_size" in configs) and configs[task]["weight_by_size"]:
-                            current_size = metrics.pop("samples")
-                        else:
-                            metrics.pop("samples")
-                            current_size = 1
-
-                        # TODO: Tasks like brier score for individual
-                        # tasks have no stderr since the score is
-                        # itself an aggregation. But it's possible to
-                        # calculate the stderr over groups
+                        current_size = metrics.pop("samples")
 
                         all_stderr = []
                         for metric in [
@@ -518,7 +550,7 @@ def evaluate(
                                     + metric_score * current_size
                                 ) / (total_size + current_size)
                                 # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                                if var_score == "N/A":
+                                if var_score == "N/A" or results[group][stderr] == "N/A":
                                     results[group][stderr] = "N/A"
                                 else:
                                     results[group][stderr] = (
@@ -617,7 +649,7 @@ def evaluate(
 
         for group_name, task_list in task_hierarchy.items():
             if task_list != []:
-                num_fewshot[group_name] = num_fewshot[task_list[0]]
+                num_fewshot[group_name] = num_fewshot[task_list[0]] # TODO: validate this
 
         results_dict = {
             "results": dict(results_agg.items()),

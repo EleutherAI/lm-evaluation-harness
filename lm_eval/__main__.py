@@ -10,7 +10,7 @@ from typing import Union
 import numpy as np
 
 from lm_eval import evaluator, utils
-from lm_eval.tasks import TaskManager
+from lm_eval.tasks import TaskManager, include_path, initialize_tasks
 from lm_eval.utils import make_table
 
 
@@ -142,6 +142,13 @@ def parse_eval_args() -> argparse.Namespace:
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
         help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
     )
+    parser.add_argument(
+        "--predict_only",
+        "-x",
+        action="store_true",
+        default=False,
+        help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
+    )
     return parser.parse_args()
 
 
@@ -155,7 +162,12 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-    # initialize_tasks(args.verbosity)
+    if args.predict_only:
+        args.log_samples = True
+    if (args.log_samples or args.predict_only) and not args.output_path:
+        assert args.output_path, "Specify --output_path"
+
+    initialize_tasks(args.verbosity)
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
     if args.limit:
@@ -169,7 +181,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         sys.exit()
     elif args.tasks == "list":
         eval_logger.info(
-            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks()))
+            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks))
         )
     else:
         if os.path.isdir(args.tasks):
@@ -181,20 +193,14 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 config = utils.load_yaml_config(yaml_file)
                 loaded_task_list.append(config)
         else:
-            input_task_list = args.tasks.split(",")
-            loaded_task_list = utils.pattern_match(
-                input_task_list, task_manager.all_tasks()
-            )
-            for task in [
-                task for task in input_task_list if task not in loaded_task_list
-            ]:
+            task_list = args.tasks.split(",")
+            task_names = task_manager.match_tasks(task_list)
+            for task in [task for task in task_list if task not in task_names]:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     loaded_task_list.append(config)
             task_missing = [
-                task
-                for task in input_task_list
-                if task not in loaded_task_list and "*" not in task
+                task for task in task_list if task not in task_names and "*" not in task
             ]  # we don't want errors if a wildcard ("*") task name was used
 
             if task_missing:
@@ -224,13 +230,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         else:
             path.mkdir(parents=True, exist_ok=True)
             output_path_file = path.joinpath("results.json")
-    elif args.log_samples and not args.output_path:
-        assert args.output_path, "Specify --output_path"
 
-    eval_logger.info(f"Selected Tasks: {loaded_task_list}")
+    eval_logger.info(f"Selected Tasks: {task_names}")
     eval_logger.info("Loading selected tasks...")
-
-    all_tasks = task_manager.load_task_or_group(loaded_task_list)
 
     results = evaluator.simple_evaluate(
         model=args.model,
@@ -247,6 +249,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         write_out=args.write_out,
         log_samples=args.log_samples,
         gen_kwargs=args.gen_kwargs,
+        task_manager=task_manager,
+        predict_only=args.predict_only,
     )
 
     if results is not None:
@@ -261,7 +265,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
 
         if args.output_path:
-            output_path_file.open("w").write(dumped)
+            output_path_file.open("w", encoding="utf-8").write(dumped)
 
             if args.log_samples:
                 for task_name, config in results["configs"].items():

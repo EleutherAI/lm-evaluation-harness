@@ -1,0 +1,331 @@
+group: flan_held_in
+group_alias: Flan (Held-In)
+task:
+  # ANLI R1
+  - group: anli_r1_flan
+    group_alias: ANLI R1
+    task:
+      - task: anli_r1
+        task_alias: prompt-0
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nChoose your answer: based on the paragraph above can we conclude that \"{{hypothesis}}\"?\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nI think the answer is"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r1
+        task_alias: prompt-1
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nBased on that paragraph can we conclude that this sentence is true?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r1
+        task_alias: prompt-2
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nCan we draw the following conclusion?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r1
+        task_alias: prompt-3
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\nDoes this next sentence follow, given the preceding text?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r1
+        task_alias: prompt-4
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\nCan we infer the following?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nThe answer is:"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r1
+        task_alias: prompt-5
+        include: _held_in_template_yaml
+        doc_to_text: "Read the following paragraph and determine if the hypothesis is true:\n\n{{premise}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nHypothesis: {{hypothesis}}\n\n\n"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r1
+        task_alias: prompt-6
+        include: _held_in_template_yaml
+        doc_to_text: "Read the text and determine if the sentence is true (see options at the end):\n\n{{premise}}\n\nSentence: {{hypothesis}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r1
+        task_alias: prompt-7
+        include: _held_in_template_yaml
+        doc_to_text: "Can we draw the following hypothesis from the context (see options)? \n\nContext:\n\n{{premise}}\n\nHypothesis: {{hypothesis}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r1
+        task_alias: prompt-8
+        include: _held_in_template_yaml
+        doc_to_text: "Choose from options: Determine if the sentence is true based on the text below:\n{{hypothesis}}\n\n{{premise}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+  # ANLI R2
+  - group: anli_r2_flan
+    group_alias: ANLI R2
+    task:
+      - task: anli_r2
+        task_alias: prompt-0
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nChoose your answer: based on the paragraph above can we conclude that \"{{hypothesis}}\"?\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nI think the answer is"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r2
+        task_alias: prompt-1
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nBased on that paragraph can we conclude that this sentence is true?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r2
+        task_alias: prompt-2
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nCan we draw the following conclusion?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r2
+        task_alias: prompt-3
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\nDoes this next sentence follow, given the preceding text?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r2
+        task_alias: prompt-4
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\nCan we infer the following?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nThe answer is:"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r2
+        task_alias: prompt-5
+        include: _held_in_template_yaml
+        doc_to_text: "Read the following paragraph and determine if the hypothesis is true:\n\n{{premise}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nHypothesis: {{hypothesis}}\n\n\n"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r2
+        task_alias: prompt-6
+        include: _held_in_template_yaml
+        doc_to_text: "Read the text and determine if the sentence is true (see options at the end):\n\n{{premise}}\n\nSentence: {{hypothesis}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r2
+        task_alias: prompt-7
+        include: _held_in_template_yaml
+        doc_to_text: "Can we draw the following hypothesis from the context (see options)? \n\nContext:\n\n{{premise}}\n\nHypothesis: {{hypothesis}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r2
+        task_alias: prompt-8
+        include: _held_in_template_yaml
+        doc_to_text: "Choose from options: Determine if the sentence is true based on the text below:\n{{hypothesis}}\n\n{{premise}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+  # ANLI R3
+  - group: anli_r3_flan
+    group_alias: ANLI R3
+    task:
+      - task: anli_r3
+        task_alias: prompt-0
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nChoose your answer: based on the paragraph above can we conclude that \"{{hypothesis}}\"?\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nI think the answer is"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r3
+        task_alias: prompt-1
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nBased on that paragraph can we conclude that this sentence is true?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r3
+        task_alias: prompt-2
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nCan we draw the following conclusion?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r3
+        task_alias: prompt-3
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\nDoes this next sentence follow, given the preceding text?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r3
+        task_alias: prompt-4
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\nCan we infer the following?\n{{hypothesis}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nThe answer is:"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r3
+        task_alias: prompt-5
+        include: _held_in_template_yaml
+        doc_to_text: "Read the following paragraph and determine if the hypothesis is true:\n\n{{premise}}\n\nOPTIONS:\n- Yes\n- It's impossible to say\n- No\nHypothesis: {{hypothesis}}\n\n\n"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r3
+        task_alias: prompt-6
+        include: _held_in_template_yaml
+        doc_to_text: "Read the text and determine if the sentence is true (see options at the end):\n\n{{premise}}\n\nSentence: {{hypothesis}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r3
+        task_alias: prompt-7
+        include: _held_in_template_yaml
+        doc_to_text: "Can we draw the following hypothesis from the context (see options)? \n\nContext:\n\n{{premise}}\n\nHypothesis: {{hypothesis}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+      - task: anli_r3
+        task_alias: prompt-8
+        include: _held_in_template_yaml
+        doc_to_text: "Choose from options: Determine if the sentence is true based on the text below:\n{{hypothesis}}\n\n{{premise}}\nOPTIONS:\n- Yes\n- It's impossible to say\n- No"
+        doc_to_target: "{{[\"Yes\", \"It's impossible to say\", \"No\"][label]}}"
+  # Arc Easy
+  - group: arc_easy_flan
+    group_alias: Arc Easy
+    task:
+      - task: arc_easy
+        task_alias: prompt-0
+        include: _held_in_template_yaml
+        doc_to_text: "{{question}}\n\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_easy
+        task_alias: prompt-1
+        include: _held_in_template_yaml
+        doc_to_text: "Question: {{question}}\nOPTIONS:\n- {{choices.text|join('\n- ')}}\nAnswer:"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_easy
+        task_alias: prompt-2
+        include: _held_in_template_yaml
+        doc_to_text: "Question: {{question}}\n\nWhat is the correct answer to the question from the following choices?\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_easy
+        task_alias: prompt-3
+        include: _held_in_template_yaml
+        doc_to_text: "Q: {{question}}\nWhat is the correct answer to this question?\nOPTIONS:\n- {{choices.text|join('\n- ')}}...A:"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_easy
+        task_alias: prompt-4
+        include: _held_in_template_yaml
+        doc_to_text: "Choose your answer?\n\n{{question}}\n\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_easy
+        task_alias: prompt-5
+        include: _held_in_template_yaml
+        doc_to_text: "Answer the question\n\n{{question}}\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_easy
+        task_alias: prompt-6
+        include: _held_in_template_yaml
+        doc_to_text: "{{question}}\n\nPick the answer from these options\n\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+  # Arc Challenge
+  - group: arc_challenge_flan
+    group_alias: Arc Challenge
+    task:
+      - task: arc_challenge
+        task_alias: prompt-0
+        include: _held_in_template_yaml
+        doc_to_text: "{{question}}\n\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_challenge
+        task_alias: prompt-1
+        include: _held_in_template_yaml
+        doc_to_text: "Question: {{question}}\nOPTIONS:\n- {{choices.text|join('\n- ')}}\nAnswer:"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_challenge
+        task_alias: prompt-2
+        include: _held_in_template_yaml
+        doc_to_text: "Question: {{question}}\n\nWhat is the correct answer to the question from the following choices?\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_challenge
+        task_alias: prompt-3
+        include: _held_in_template_yaml
+        doc_to_text: "Q: {{question}}\nWhat is the correct answer to this question?\nOPTIONS:\n- {{choices.text|join('\n- ')}}...A:"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_challenge
+        task_alias: prompt-4
+        include: _held_in_template_yaml
+        doc_to_text: "Choose your answer?\n\n{{question}}\n\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_challenge
+        task_alias: prompt-5
+        include: _held_in_template_yaml
+        doc_to_text: "Answer the question\n\n{{question}}\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+      - task: arc_challenge
+        task_alias: prompt-6
+        include: _held_in_template_yaml
+        doc_to_text: "{{question}}\n\nPick the answer from these options\n\nOPTIONS:\n- {{choices.text|join('\n- ')}}"
+        doc_to_target: "{{choices.text[choices.label.index(answerKey)]}}"
+  # BoolQ
+  - group: boolq_flan
+    group_alias: BoolQ
+    task:
+      - task: boolq
+        task_alias: prompt-0
+        include: _held_in_template_yaml
+        doc_to_text: "{{passage}}\n\nCan we conclude that {{question}}?\n\nOPTIONS:\n- no\n- yes"
+        doc_to_target: "{{['no', 'yes'][label]}}"
+      - task: boolq
+        task_alias: prompt-1
+        include: _held_in_template_yaml
+        doc_to_text: "{{passage}}\n\nIs it true that {{question}}?\n\nOPTIONS:\n- no\n- yes"
+        doc_to_target: "{{['no', 'yes'][label]}}"
+      - task: boolq
+        task_alias: prompt-2
+        include: _held_in_template_yaml
+        doc_to_text: "{{passage}}\n\n{{question}}?\n\nOPTIONS:\n- no\n- yes"
+        doc_to_target: "{{['no', 'yes'][label]}}"
+      - task: boolq
+        task_alias: prompt-3
+        include: _held_in_template_yaml
+        doc_to_text: "Text: {{passage}}\n\nQuestion: {{question}}?\n\nOPTIONS:\n- no\n- yes"
+        doc_to_target: "{{['no', 'yes'][label]}}"
+      - task: boolq
+        task_alias: prompt-4
+        include: _held_in_template_yaml
+        doc_to_text: "{{passage}}\n\nWhat's the best answer to this question: {{question}}?\n\nOPTIONS:\n- no\n- yes"
+        doc_to_target: "{{['no', 'yes'][label]}}"
+      - task: boolq
+        task_alias: prompt-5
+        include: _held_in_template_yaml
+        doc_to_text: "{{passage}}\nBased on the above text what's the best answer to this question: {{question}}?\n\nOPTIONS:\n- no\n- yes"
+        doc_to_target: "{{['no', 'yes'][label]}}"
+      - task: boolq
+        task_alias: prompt-6
+        include: _held_in_template_yaml
+        doc_to_text: "{{passage}}\nAnswer this question making sure that the answer is supposed by the text: {{question}}?\n\nOPTIONS:\n- no\n- yes"
+        doc_to_target: "{{['no', 'yes'][label]}}"
+      - task: boolq
+        task_alias: prompt-7
+        include: _held_in_template_yaml
+        doc_to_text: "{{passage}}\n\nIs the following statement correct based on the text\n\n{{question}}\n\nOPTIONS:\n- no\n- yes"
+        doc_to_target: "{{['no', 'yes'][label]}}"
+      - task: boolq
+        task_alias: prompt-8
+        include: _held_in_template_yaml
+        doc_to_text: "{{passage}}\n\nIs this statement correct \"{{question}}\"?\n\nOPTIONS:\n- no\n- yes"
+        doc_to_target: "{{['no', 'yes'][label]}}"
+      - task: boolq
+        task_alias: prompt-9
+        include: _held_in_template_yaml
+        doc_to_text: "Is it true that {{question}} based on the following text?\n\n{{passage}}\n\nOPTIONS:\n- no\n- yes"
+        doc_to_target: "{{['no', 'yes'][label]}}"
+  # RTE
+  - group: rte_flan
+    group_alias: RTE
+    task:
+      - task: rte
+        task_alias: prompt-0
+        include: _held_in_template_yaml
+        doc_to_text: "{{sentence1}}\n\nQuestion with options: Based on the paragraph above can we conclude that \"{{sentence2}}\"?\n\nOPTIONS:\n- yes\n- no"
+        doc_to_target: "{{['yes', 'no'][label]}}"
+      - task: rte
+        task_alias: prompt-1
+        include: _held_in_template_yaml
+        doc_to_text: "{{sentence1}}\n\nBased on that paragraph can we conclude that the sentence below is true?\n{{sentence2}}\n\nOPTIONS:\n- yes\n- no"
+        doc_to_target: "{{['yes', 'no'][label]}}"
+      - task: rte
+        task_alias: prompt-2
+        include: _held_in_template_yaml
+        doc_to_text: "{{sentence1}}\n\nQ with options: Can we draw the following conclusion?\n{{sentence2}}\n\nOPTIONS:\n- yes\n- no"
+        doc_to_target: "{{['yes', 'no'][label]}}"
+      - task: rte
+        task_alias: prompt-3
+        include: _held_in_template_yaml
+        doc_to_text: "{{sentence1}}\nDoes this next sentence follow, given the preceding text?\n{{sentence2}}\n\nOPTIONS:\n- yes\n- no"
+        doc_to_target: "{{['yes', 'no'][label]}}"
+      - task: rte
+        task_alias: prompt-4
+        include: _held_in_template_yaml
+        doc_to_text: "{{sentence1}}\nOPTIONS:\n- yes\n- no\nQuestion: Can we infer the following?\n{{sentence2}}"
+        doc_to_target: "{{['yes', 'no'][label]}}"
+      - task: rte
+        task_alias: prompt-5
+        include: _held_in_template_yaml
+        doc_to_text: "Read the following paragraph and determine if the hypothesis is true. Select from options at the end:\n\n{{sentence1}}\n\nHypothesis: {{sentence2}}\nOPTIONS:\n- yes\n- no\nThe answer is"
+        doc_to_target: "{{['yes', 'no'][label]}}"
+      - task: rte
+        task_alias: prompt-6
+        include: _held_in_template_yaml
+        doc_to_text: "Read the text and determine if the sentence is true:\n\n{{sentence1}}\n\nSentence: {{sentence2}}\nOPTIONS:\n- yes\n- no\nA:"
+        doc_to_target: "{{['yes', 'no'][label]}}"
+      - task: rte
+        task_alias: prompt-7
+        include: _held_in_template_yaml
+        doc_to_text: "Question with options: can we draw the following hypothesis from the context? \n\nContext:\n\n{{sentence1}}\n\nHypothesis: {{sentence2}}\nOPTIONS:\n- yes\n- no\nA:"
+        doc_to_target: "{{['yes', 'no'][label]}}"
+      - task: rte
+        task_alias: prompt-8
+        include: _held_in_template_yaml
+        doc_to_text: "Determine if the sentence is true based on the text below. Choose from options.\n{{sentence2}}\n\n{{sentence1}}\nOPTIONS:\n- yes\n- no"
+        doc_to_target: "{{['yes', 'no'][label]}}"
