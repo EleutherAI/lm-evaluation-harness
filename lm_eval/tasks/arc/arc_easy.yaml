@@ -12,6 +12,7 @@ doc_to_target: "{{choices.label.index(answerKey)}}"
 doc_to_choice: "{{choices.text}}"
 should_decontaminate: true
 doc_to_decontamination_query: "Question: {{question}}\nAnswer:"
+num_fewshot: 25
 metric_list:
   - metric: acc
     aggregation: mean
