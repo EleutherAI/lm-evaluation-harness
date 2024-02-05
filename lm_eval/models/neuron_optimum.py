@@ -170,7 +170,7 @@ class CustomNeuronModelForCausalLM(NeuronModelForCausalLM):
         return output_ids[:batch_size, :]
 
 
-@register_model("optimum-neuron")
+@register_model("neuronx")
 class NEURON_HF(LM):
     """
     Enables usage with on AWS Neuron
