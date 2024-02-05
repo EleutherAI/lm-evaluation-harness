@@ -320,6 +320,9 @@ def evaluate(
                 else:
                     if shuffle == "unigram":
                         doc['query'] = unigram_shuffle(doc['query'], task_name)
+                        if task_name == "hellaswag":
+                            for i in range(len(doc["choices"])):
+                                doc["choices"][i] = unigram_shuffle(doc["choices"][i], task_name)
                     """
                 elif shuffle == "bigram":
                     doc['query'] = bigram_shuffle(doc['query'])
