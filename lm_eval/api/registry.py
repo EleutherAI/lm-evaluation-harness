@@ -152,18 +152,14 @@ def get_aggregation(name):
     try:
         return AGGREGATION_REGISTRY[name]
     except KeyError:
-        eval_logger.warning(
-            "{} not a registered aggregation metric!".format(name),
-        )
+        eval_logger.warning(f"{name} not a registered aggregation metric!")
 
 
 def get_metric_aggregation(name):
     try:
         return METRIC_AGGREGATION_REGISTRY[name]
     except KeyError:
-        eval_logger.warning(
-            "{} metric is not assigned a default aggregation!".format(name),
-        )
+        eval_logger.warning(f"{name} metric is not assigned a default aggregation!")
 
 
 def is_higher_better(metric_name):
