@@ -41,5 +41,6 @@ metric_list:
   - metric: accuracy
     aggregation: mean
     higher_is_better: true
+    hf_evaluate: true
 metadata:
   version: 1.0
