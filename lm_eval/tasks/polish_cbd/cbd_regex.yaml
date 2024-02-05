@@ -1,0 +1,30 @@
+task: polish_cbd_regex
+dataset_path: ptaszynski/PolishCyberbullyingDataset
+dataset_name: null
+output_type: generate_until
+training_split: v2_training_anonymized
+validation_split: null
+test_split: v2_test_anonymized
+doc_to_text: "Wypowiedź: \"{{TEXT}}\"\nPytanie: Jaka kategoria najlepiej pasuje do podanej wypowiedzi?\nMożliwe odpowiedzi:\nA - nieszkodliwa\nB - szyderstwo\nC - obelga\nD - insynuacja\nE - groźba\nF - molestowanie\nPrawidłowa odpowiedź:"
+doc_to_target: "{{{'szyderstwo': 'B', 'obelga': 'C', 'insynuacja': 'D', 'grozba': 'E', 'molestowanie': 'F'}.get(CATEGORIES, 'A')}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{TEXT}}"
+generation_kwargs:
+  until:
+    - "."
+    - ","
+    - ";"
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 50
+filter_list:
+  - name: "score-first"
+    filter:
+      - function: "regex"
+        regex_pattern: "(\\b[ABCDEF]\\b)"
+      - function: "take_first"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true

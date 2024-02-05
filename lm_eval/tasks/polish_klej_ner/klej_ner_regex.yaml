@@ -1,0 +1,30 @@
+task: polish_klej_ner_regex
+dataset_path: allegro/klej-nkjp-ner
+dataset_name: null
+output_type: generate_until
+training_split: train
+validation_split: valid
+test_split: test
+doc_to_text: "Zdanie: \"{{sentence}}\"\nPytanie: Jakiego rodzaju jest nazwana jednostka, jeżeli występuje w podanym zdaniu?\nMożliwe odpowiedzi:\nA - Brak nazwanej jednostki\nB - Nazwa miejsca\nC - Nazwa osoby\nD - Nazwa organizacji\nE - Czas\nF - Nazwa geograficzna\nPrawidłowa odpowiedź:"
+doc_to_target: "{{{'noEntity': 'A', 'placeName': 'B', 'persName': 'C', 'orgName': 'D', 'time': 'E', 'geogName': 'F'}.get(target)}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{sentence}}"
+generation_kwargs:
+  until:
+    - "."
+    - ","
+    - ";"
+    - "\n"
+  do_sample: false
+  temperature: 0.0
+  max_gen_toks: 50
+filter_list:
+  - name: "score-first"
+    filter:
+      - function: "regex"
+        regex_pattern: "(\\b[ABCDEF]\\b)"
+      - function: "take_first"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true

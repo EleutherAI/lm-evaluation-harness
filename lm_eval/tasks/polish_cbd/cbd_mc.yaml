@@ -1,0 +1,19 @@
+task: polish_cbd_multiple_choice
+dataset_path: ptaszynski/PolishCyberbullyingDataset
+dataset_name: null
+output_type: multiple_choice
+training_split: v2_training_anonymized
+validation_split: null
+test_split: v2_test_anonymized
+doc_to_text: "Wypowiedź: \"{{TEXT}}\"\nPytanie: Czy wypowiedź jest przejawem cyberprzemocy, lub jest krzywdząca wobec innych?\nOdpowiedz krótko \"Tak\" lub \"Nie\". Prawidłowa odpowiedź:"
+doc_to_target: "{{GENERAL TAG|int}}"
+doc_to_choice: ["Nie", "Tak"]
+should_decontaminate: true
+doc_to_decontamination_query: "{{TEXT}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
