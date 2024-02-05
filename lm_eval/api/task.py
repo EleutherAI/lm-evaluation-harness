@@ -101,14 +101,7 @@ class TaskConfig(dict):
     filter_list: Union[str, list] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
-<<<<<<< HEAD
-    weight_by_size: bool = False
-    metadata: Union[
-        str, list
-    ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
-=======
     metadata: dict = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
->>>>>>> 7411947112117e0339fe207fb620a70bcec22690
 
     def __post_init__(self) -> None:
         if self.generation_kwargs is not None:
@@ -135,13 +128,6 @@ class TaskConfig(dict):
                     "do_sample": False,
                 }
 
-<<<<<<< HEAD
-        # TODO: how to make TaskConfigs be de- and re-serializable, even when using the !function constructor?
-        # if self.dataset_kwargs is None:
-        #     self.dataset_kwargs = {"trust_remote_code": True}
-
-=======
->>>>>>> 7411947112117e0339fe207fb620a70bcec22690
     def __getitem__(self, item):
         return getattr(self, item)
 
