@@ -536,24 +536,14 @@ def evaluate(
                     metrics = [results[task][metric] for task in task_list] # TODO: copy?
                     stderrs = [results[task][stderr] for task in task_list]
                     sizes = [results[task]["samples"] for task in task_list]
+
                     # compute group's pooled metric and stderr
                     results[group][metric] = aggregate_metrics(metrics, sizes)
                     # TODO: calculate grouped metric using aggregation fn
                     if "N/A" in stderrs:
                         results[group][stderr] = "N/A"
                     else:
-                        print(metrics)
-                        stderr_fn = lm_eval.api.metrics.stderr_for_metric(
-                            metric=task_dict[task_list[0]][1].aggregation()[metric.split(",")[0]],
-                            bootstrap_iters=min(bootstrap_iters, 100)
-                            if metric in ["bleu", "chrf", "ter"]
-                            else bootstrap_iters,
-                        )
-
-                        items = [vals[(task, metric.split(",")[1], metric.split(",")[0])] for task in task_list]
-                        print(items, len(items))
-                        results[group][stderr] = stderr_fn(list(itertools.chain.from_iterable(items)))
-                        #results[group][stderr] = pooled_sample_err(stderrs, sizes)
+                        results[group][stderr] = pooled_sample_err(stderrs, sizes)
 
                     results[group]["samples"] = sum(sizes)
 
