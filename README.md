@@ -54,6 +54,7 @@ We also provide a number of optional dependencies for extended functionality. Ex
 | dev           | For linting PRs and contributions     |
 | gptq          | For loading models with GPTQ          |
 | ifeval        | For running the IFEval task           |
+| neuronx       | For running on AWS inf2 instances     |
 | mamba         | For loading Mamba SSM models          |
 | math          | For running math task answer checking |
 | multilingual  | For multilingual tokenizers           |
