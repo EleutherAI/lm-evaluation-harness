@@ -472,6 +472,10 @@ def get_git_commit_hash():
     return git_hash
 
 
+def ignore_constructor(loader, node):
+    return node
+
+
 def import_function(loader, node):
     function_name = loader.construct_scalar(node)
     yaml_path = os.path.dirname(loader.name)
@@ -489,11 +493,14 @@ def import_function(loader, node):
     return function
 
 
-# Add the import_function constructor to the YAML loader
-yaml.add_constructor("!function", import_function)
+def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"):
+    if mode == "simple":
+        constructor_fn = ignore_constructor
+    elif mode == "full":
+        constructor_fn = import_function
 
-
-def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
+    # Add the import_function constructor to the YAML loader
+    yaml.add_constructor("!function", constructor_fn)
     if yaml_config is None:
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.full_load(file)
@@ -521,7 +528,7 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
                 path = os.path.join(yaml_dir, path)
 
             try:
-                included_yaml_config = load_yaml_config(path)
+                included_yaml_config = load_yaml_config(yaml_path=path, mode=mode)
                 final_yaml_config.update(included_yaml_config)
             except Exception as ex:
                 # If failed to load, ignore
@@ -636,6 +643,7 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
         self.done_tracker = [False] * batch_size
         self.sequence = sequence
         self.sequence_ids = tokenizer.encode(sequence, add_special_tokens=False)
+        # print(sequence, self.sequence_ids)
         # we look back for 2 more tokens than it takes to encode our stop sequence
         # because tokenizers suck, and a model might generate `['\n', '\n']` but our `sequence` is `['\n\n']`
         # and we don't want to mistakenly not stop a generation because our
@@ -643,16 +651,18 @@ class MultiTokenEOSCriteria(transformers.StoppingCriteria):
 
         # NOTE: there is a minor danger that this will end up looking back 2 tokens into the past, into the inputs to the model,
         # and stopping generation immediately as a result. With only 2 extra tokens of lookback, this risk is minimized
+        # Additionally, in lookback_ids_batch we should prevent ever looking back into the inputs as described.
         self.sequence_id_len = len(self.sequence_ids) + 2
         self.tokenizer = tokenizer
 
     def __call__(self, input_ids, scores, **kwargs) -> bool:
         # For efficiency, we compare the last n tokens where n is the number of tokens in the stop_sequence
-        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length :][
-            :, -self.sequence_id_len :
-        ]
+        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length :]
+
+        lookback_ids_batch = lookback_ids_batch[:, -self.sequence_id_len :]
 
         lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
+
         for i, done in enumerate(self.done_tracker):
             if not done:
                 self.done_tracker[i] = self.sequence in lookback_tokens_batch[i]

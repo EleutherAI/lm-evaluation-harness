@@ -11,20 +11,21 @@ from lm_eval.api.instance import Instance
 from lm_eval.models.huggingface import HFLM
 
 
-tasks.initialize_tasks()
+task_manager = tasks.TaskManager()
 
 
 class Test_HFLM:
     torch.use_deterministic_algorithms(True)
+    task_list = task_manager.load_task_or_group(["arc_easy", "gsm8k", "wikitext"])
     version_minor = sys.version_info.minor
-    multiple_choice_task = tasks.TASK_REGISTRY.get("arc_easy")()  # type: ignore
+    multiple_choice_task = task_list["arc_easy"]  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
-    generate_until_task = tasks.TASK_REGISTRY.get("gsm8k")()  # type: ignore
+    generate_until_task = task_list["gsm8k"]  # type: ignore
     generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
     generate_until_task._config.generation_kwargs["max_gen_toks"] = 10
     generate_until: list[Instance] = generate_until_task.instances
-    rolling_task = tasks.TASK_REGISTRY.get("wikitext")()  # type: ignore
+    rolling_task = task_list["wikitext"]  # type: ignore
     rolling_task.build_all_requests(limit=10, rank=0, world_size=1)
     ROLLING: list[Instance] = rolling_task.instances
 

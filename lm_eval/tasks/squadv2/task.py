@@ -19,9 +19,8 @@ from math import exp
 from functools import partial
 from packaging import version
 
-from lm_eval.api.task import Task
+from lm_eval.api.task import ConfigurableTask
 from lm_eval.api.instance import Instance
-from lm_eval.api.registry import register_task
 
 _CITATION = """
 @misc{rajpurkar2018know,
@@ -47,11 +46,13 @@ def _squad_agg(key, items):
     return _squad_metric(predictions=predictions, references=references).get(key, 0)
 
 
-@register_task("squadv2")
-class SQuAD2(Task):
-    VERSION = 2
+class SQuAD2(ConfigurableTask):
+    VERSION = 3
     DATASET_PATH = "squad_v2"
     DATASET_NAME = None
+
+    def __init__(self):
+        super().__init__(config={'metadata': {'version': self.VERSION}})
 
     # HF changed squad on us so we have to make sure we aren't running the old one
     assert version.parse(datasets.__version__) >= version.parse(

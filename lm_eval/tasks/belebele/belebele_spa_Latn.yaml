@@ -1,3 +1,4 @@
-"dataset_name": "spa_Latn"
+"fewshot_split": "spa_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_spa_Latn"
+"test_split": "spa_Latn"
