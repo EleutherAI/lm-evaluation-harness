@@ -1,0 +1,4 @@
+"dataset_name": "electrical_engineering"
+"description": "Do the evaluatio for the stem \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_electrical_engineering"

@@ -1,0 +1,4 @@
+"dataset_name": "astronomy"
+"description": "Do the evaluatio for the stem \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_astronomy"

@@ -1,0 +1,4 @@
+"dataset_name": "high_school_world_history"
+"description": "Do the evaluatio for the humanities \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_high_school_world_history"

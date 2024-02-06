@@ -1,0 +1,4 @@
+"dataset_name": "miscellaneous"
+"description": "Do the evaluatio for the other \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_miscellaneous"

@@ -1,0 +1,4 @@
+"dataset_name": "global_facts"
+"description": "Do the evaluatio for the other \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_global_facts"

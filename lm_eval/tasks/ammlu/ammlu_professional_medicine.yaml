@@ -1,0 +1,4 @@
+"dataset_name": "professional_medicine"
+"description": "Do the evaluatio for the other \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_professional_medicine"

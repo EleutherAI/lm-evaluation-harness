@@ -1,0 +1,4 @@
+"dataset_name": "abstract_algebra"
+"description": "Do the evaluatio for the stem \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_abstract_algebra"

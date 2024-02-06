@@ -1,0 +1,4 @@
+"dataset_name": "college_mathematics"
+"description": "Do the evaluatio for the stem \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_college_mathematics"
