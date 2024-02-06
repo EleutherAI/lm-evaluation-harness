@@ -282,6 +282,7 @@ def evaluate(
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
+        print(task_name, task, task_dict)
         if isinstance(task, tuple):
             group_name, task = task
             task_hierarchy[group_name].append(task_name)
@@ -515,7 +516,13 @@ def evaluate(
                     results[task_name][metric + "_stderr" + "," + key] = "N/A"
 
         if bool(results):
-            for group, task_list in reversed(task_hierarchy.items()):
+            for group, task_list in task_hierarchy.items():
+                if len(task_list) == 0:
+                    # task_hierarchy entries are either
+                    # `group_name: [subtask1, subtask2, ...]`
+                    # or `task_name: []`.
+                    # we only want to operate on groups here.
+                    continue
                 for metric in [
                     key for key in results[task_list[0]].keys() if "_stderr" not in key and key not in ["alias", "samples"]
                 ]: # TODO: what if tasks don't all share the same metrics
