@@ -76,7 +76,6 @@ all = [
     "lm_eval[gptq]",
     "lm_eval[hf_transfer]",
     "lm_eval[ifeval]",
-    "lm_eval[linting]",
     "lm_eval[mamba]",
     "lm_eval[math]",
     "lm_eval[multilingual]",
