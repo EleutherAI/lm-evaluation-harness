@@ -458,7 +458,7 @@ def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None)
 
     ### don't use this unless a statistician has told you it's the right thing to do ###
 
-    # accumulators: we'll aggregate pairwise N times
+    # accumulators: we'll aggregate pairwise N - 1 times
     variance = stderrs[0] ** 2
     curr_size = sizes[0]
     curr_score = metrics[0]
