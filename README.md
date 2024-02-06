@@ -198,7 +198,7 @@ If you have a Metal compatible Mac, you can run the eval harness using the MPS b
 > You can inspect what the LM inputs look like by running the following command:
 > ```bash
 > python write_out.py \
->     --tasks all_tasks \
+>     --tasks <task1,task2,...> \
 >     --num_fewshot 5 \
 >     --num_examples 10 \
 >     --output_base_path /path/to/output/folder
