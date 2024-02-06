@@ -59,7 +59,9 @@ class TaskConfig(dict):
     training_split: str = None
     validation_split: str = None
     test_split: str = None
-    fewshot_split: str = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+    fewshot_split: str = (
+        None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+    )
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
     process_docs: Callable = None
@@ -87,7 +89,9 @@ class TaskConfig(dict):
     filter_list: Union[str, list] = None
     should_decontaminate: bool = False
     doc_to_decontamination_query: str = None
-    metadata: dict = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+    metadata: dict = (
+        None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
+    )
 
     def __post_init__(self) -> None:
         if self.generation_kwargs is not None:
@@ -108,9 +112,11 @@ class TaskConfig(dict):
             if self.output_type == "generate_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
                 self.generation_kwargs = {
-                    "until": None
-                    if self.fewshot_delimiter is None
-                    else [self.fewshot_delimiter],
+                    "until": (
+                        None
+                        if self.fewshot_delimiter is None
+                        else [self.fewshot_delimiter]
+                    ),
                     "do_sample": False,
                 }
 
@@ -356,8 +362,8 @@ class Task(abc.ABC):
         limit=None,
         rank=None,
         world_size=None,
-        use_builder_cache=False,
-        rewrite_builder_cache=False,
+        cache_requests=False,
+        rewrite_requests_cache=False,
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
 
@@ -368,7 +374,7 @@ class Task(abc.ABC):
 
         cached_instances = load_from_cache(file_name=cache_key)
 
-        if use_builder_cache and cached_instances and not rewrite_builder_cache:
+        if cache_requests and cached_instances and not rewrite_requests_cache:
             cached_instances = cached_instances[:limit]
 
             flattened_instances = [
@@ -395,8 +401,8 @@ class Task(abc.ABC):
 
         # process all documents when caching is specified for simplicity
         if (
-            use_builder_cache
-            and (not cached_instances or rewrite_builder_cache)
+            cache_requests
+            and (not cached_instances or rewrite_requests_cache)
             and limit is not None
         ):
             limit = None
@@ -448,7 +454,7 @@ class Task(abc.ABC):
 
         assert len(self._instances) != 0, "task.build_requests() did not find any docs!"
 
-        if use_builder_cache and (not cached_instances or rewrite_builder_cache):
+        if cache_requests and (not cached_instances or rewrite_requests_cache):
             save_to_cache(file_name=cache_key, obj=instances)
 
     @abc.abstractmethod

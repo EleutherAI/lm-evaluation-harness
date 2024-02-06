@@ -32,15 +32,14 @@ if TYPE_CHECKING:
 def simple_evaluate(
     model,
     model_args=None,
-    model_arg_dict=None,
     tasks=[],
     num_fewshot=None,
     batch_size=None,
     max_batch_size=None,
     device=None,
     use_cache=None,
-    use_builder_cache=False,
-    rewrite_builder_cache=False,
+    cache_requests=False,
+    rewrite_requests_cache=False,
     limit=None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
@@ -116,9 +115,9 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
 
-        if model_arg_dict:
+        elif type(model_args) == dict:
             lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
-                model_arg_dict,
+                model_args,
                 {
                     "batch_size": batch_size,
                     "max_batch_size": max_batch_size,
@@ -196,8 +195,8 @@ def simple_evaluate(
         lm=lm,
         task_dict=task_dict,
         limit=limit,
-        use_builder_cache=use_builder_cache,
-        rewrite_builder_cache=rewrite_builder_cache,
+        cache_requests=cache_requests,
+        rewrite_requests_cache=rewrite_requests_cache,
         bootstrap_iters=bootstrap_iters,
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
@@ -241,8 +240,8 @@ def evaluate(
     lm: "LM",
     task_dict,
     limit=None,
-    use_builder_cache=False,
-    rewrite_builder_cache=False,
+    cache_requests=False,
+    rewrite_requests_cache=False,
     bootstrap_iters: int = 100000,
     decontamination_ngrams_path=None,
     write_out: bool = False,
@@ -355,8 +354,8 @@ def evaluate(
             limit=limit,
             rank=lm.rank,
             world_size=lm.world_size,
-            use_builder_cache=use_builder_cache,
-            rewrite_builder_cache=rewrite_builder_cache,
+            cache_requests=cache_requests,
+            rewrite_requests_cache=rewrite_requests_cache,
         )
 
         eval_logger.debug(

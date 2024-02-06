@@ -50,29 +50,21 @@ def run_model(model: str, device: str):
 
     print("Initializing tasks...")
 
-    tasks_class.initialize_tasks(use_cache=True, rewrite_cache=False)
+    # tasks_class.initialize_tasks(use_cache=True, rewrite_cache=False)
+    # tasks_class.initialize_tasks()
 
     print("Tasks initialized")
 
     eval_data = simple_evaluate(
         model="hf-auto",
-        # model_args=",".join(
-        #     [
-        #         f"pretrained={model}",
-        #         f"revision={revision}" if revision else "",
-        #         # "batch_size=16",
-        #         # "num_beams=5",
-        #         # "parallelize=True",
-        #     ]
-        # ),
-        model_arg_dict={
+        model_args={
             "pretrained": model,
             "tokenizer": tokenizer,
         },
         limit=0.01,
         device=device,
-        use_builder_cache=True,
-        rewrite_builder_cache=False,
+        cache_requests=True,
+        rewrite_requests_cache=False,
         tasks=tasks,
         write_out=True,
     )
