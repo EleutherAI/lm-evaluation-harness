@@ -509,22 +509,30 @@ def evaluate(
                     # we only want to operate on groups here.
                     continue
                 for metric in [
-                    key for key in results[task_list[0]].keys() if "_stderr" not in key and key not in ["alias", "samples"]
-                ]: # TODO: what if tasks don't all share the same metrics
+                    key
+                    for key in results[task_list[0]].keys()
+                    if "_stderr" not in key and key not in ["alias", "samples"]
+                ]:  # TODO: what if tasks don't all share the same metrics
                     stderr = "_stderr,".join(metric.split(","))
 
                     # gather metrics, sizes, and stderrs from subtasks
-                    metrics = [results[task][metric] for task in task_list] # TODO: copy?
+                    metrics = [
+                        results[task][metric] for task in task_list
+                    ]  # TODO: copy?
                     stderrs = [results[task][stderr] for task in task_list]
                     sizes = [results[task]["samples"] for task in task_list]
 
                     # compute group's pooled metric and stderr
-                    results[group][metric] = lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
+                    results[group][
+                        metric
+                    ] = lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
                     # TODO: calculate grouped metric using aggregation fn
                     if "N/A" in stderrs:
                         results[group][stderr] = "N/A"
                     else:
-                        results[group][stderr] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
+                        results[group][
+                            stderr
+                        ] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
                         # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
                         # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
                         # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
