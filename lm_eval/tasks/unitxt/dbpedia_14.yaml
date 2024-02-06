@@ -1,0 +1,26 @@
+group:
+- unitxt
+task: unitxt_dbpedia_14
+dataset_path: unitxt/data
+dataset_name: card=cards.dbpedia_14,template=templates.classification.multi_class.default
+output_type: generate_until
+training_split: train
+validation_split: test
+doc_to_text: '{{source}}'
+doc_to_target: target
+process_results: !function 'unitxt_wrapper.process_results'
+generation_kwargs:
+  until:
+  - </s>
+metric_list:
+- metric: unitxt_f1_micro
+  aggregation: unitxt
+  higher_is_better: true
+- metric: unitxt_accuracy
+  aggregation: unitxt
+  higher_is_better: true
+- metric: unitxt_f1_macro
+  aggregation: unitxt
+  higher_is_better: true
+metadata:
+  version: 1.0
