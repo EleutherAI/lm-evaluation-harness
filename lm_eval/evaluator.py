@@ -282,7 +282,6 @@ def evaluate(
 
     # get lists of each type of request
     for task_name, task in task_dict.items():
-        print(task_name, task, task_dict)
         if isinstance(task, tuple):
             group_name, task = task
             task_hierarchy[group_name].append(task_name)
