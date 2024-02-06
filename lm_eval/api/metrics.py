@@ -2,6 +2,7 @@ import logging
 import math
 import random
 from collections.abc import Iterable
+from typing import List
 
 import evaluate
 import numpy as np
@@ -425,3 +426,64 @@ def stderr_for_metric(metric, bootstrap_iters):
     stderr = {mean: mean_stderr, acc_all: acc_all_stderr}
 
     return stderr.get(metric, None)
+
+
+def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
+    # Used to aggregate bootstrapped stderrs across subtasks in a group,
+    # when we are weighting by the size of each subtask.
+    #
+
+    assert len(stderrs) == len(sizes)
+
+    # formula source: https://en.wikipedia.org/wiki/Pooled_variance
+    # this empirically matches running `stderr_for_metric` on all instances
+    # from the subtasks concatenated with each other.
+    pooled_sample_var = (
+        sum([(size - 1) * stderr**2 for size, stderr in zip(sizes, stderrs)])
+    ) / (sum(sizes) - len(sizes))
+
+    return np.sqrt(pooled_sample_var)
+
+
+def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
+    assert (
+        metrics is not None
+    ), "Need to pass a list of each subtask's metric for this stderr aggregation"
+    assert len(stderrs) == len(sizes) and len(sizes) == len(metrics)
+
+    # See https://github.com/EleutherAI/lm-evaluation-harness/pull/1390 for more documentation.
+    # This formula depends on sample means.
+    # removed because it seems to give erroneously huge stderrs for groupings of tasks
+    # and does not seem to match up with bootstrap-calculated stderrs for groups.
+
+    ### don't use this unless a statistician has told you it's the right thing to do ###
+
+    # accumulators: we'll aggregate pairwise N - 1 times
+    variance = stderrs[0] ** 2
+    curr_size = sizes[0]
+    curr_score = metrics[0]
+
+    for stderr, size, score in zip(stderrs[1:], sizes[1:], metrics[1:]):
+        curr_score = ((curr_score * curr_size) + (score * size)) / (
+            curr_size + size
+        )  # NOTE: this assumes our aggregation fn is "mean"
+
+        variance = ((curr_size - 1) * variance + (size - 1) * (stderr**2)) / (
+            curr_size + size - 1
+        ) + curr_size * size / ((curr_size + size) * (curr_size + size - 1)) * (
+            curr_score - score
+        ) ** 2
+
+    return np.sqrt(variance)
+
+
+def aggregate_subtask_metrics(metrics, sizes, weight_by_size=True):
+    # A helper function that is used to aggregate
+    # subtask scores cross-task.
+    # TODO: does not hold for non-mean aggregations
+    if weight_by_size:
+        sizes = [1] * len(sizes)
+
+    assert len(metrics) == len(sizes)
+
+    return sum([metric * size for metric, size in zip(metrics, sizes)]) / sum(sizes)
