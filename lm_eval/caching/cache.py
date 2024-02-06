@@ -9,6 +9,8 @@ OVERRIDE_PATH = os.getenv("LM_HARNESS_CACHE_PATH")
 
 PATH = OVERRIDE_PATH if OVERRIDE_PATH else f"{MODULE_DIR}/.cache"
 
+FILE_SUFFIX = ".pickle"
+
 
 def load_from_cache(file_name):
     try:
@@ -27,8 +29,18 @@ def save_to_cache(file_name, obj):
     if not os.path.exists(PATH):
         os.mkdir(PATH)
 
-    file_path = f"{PATH}/{file_name}.pickle"
+    file_path = f"{PATH}/{file_name}{FILE_SUFFIX}"
 
     print(f"Saving {file_path} to cache...")
     with open(file_path, "wb") as file:
         file.write(dill.dumps(obj))
+
+
+# NOTE the "key" param is to allow for flexibility
+def delete_cache(key: str = ""):
+    files = os.listdir(PATH)
+
+    for file in files:
+        if file.startswith(key) and file.endswith(FILE_SUFFIX):
+            file_path = f"{PATH}/{file}"
+            os.unlink(file_path)

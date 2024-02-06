@@ -48,13 +48,6 @@ def run_model(model: str, device: str):
         # "winogrande"
     ]
 
-    print("Initializing tasks...")
-
-    # tasks_class.initialize_tasks(use_cache=True, rewrite_cache=False)
-    # tasks_class.initialize_tasks()
-
-    print("Tasks initialized")
-
     eval_data = simple_evaluate(
         model="hf-auto",
         model_args={
@@ -64,7 +57,8 @@ def run_model(model: str, device: str):
         limit=0.01,
         device=device,
         cache_requests=True,
-        rewrite_requests_cache=False,
+        rewrite_requests_cache=True,
+        delete_requests_cache=True,
         tasks=tasks,
         write_out=True,
     )

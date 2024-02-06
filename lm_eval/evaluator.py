@@ -1,5 +1,5 @@
 import math
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 import random
 import itertools
 import collections
@@ -27,11 +27,13 @@ if TYPE_CHECKING:
     from lm_eval.api.model import LM
     from lm_eval.tasks import Task
 
+from lm_eval.caching.cache import delete_cache
+
 
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args=None,
+    model_args: Union[str, dict, None] = None,
     tasks=[],
     num_fewshot=None,
     batch_size=None,
@@ -40,6 +42,7 @@ def simple_evaluate(
     use_cache=None,
     cache_requests=False,
     rewrite_requests_cache=False,
+    delete_requests_cache=False,
     limit=None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
@@ -55,7 +58,7 @@ def simple_evaluate(
 
     :param model: Union[str, LM]
         Name of model or LM object, see lm_eval.models.get_model
-    :param model_args: Optional[str]
+    :param model_args: Optional[str, dict]
         String arguments for each model class, see LM.create_from_arg_string.
         Ignored if `model` argument is a LM object.
     :param tasks: list[Union[str, dict, Task]]
@@ -70,6 +73,12 @@ def simple_evaluate(
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
     :param use_cache: str, optional
         A path to a sqlite db file for caching model responses. `None` if not caching.
+    :param cache_requests: bool, optional
+        Speed up evaluation by caching the building of dataset requests. `None` if not caching.
+    :param rewrite_requests_cache: bool, optional
+        Rewrites all of the request cache if set to `True`. `None` if not desired.
+    :param delete_requests_cache: bool, optional
+        Deletes all of the request cache if set to `True`. `None` if not desired.
     :param limit: int or float, optional
         Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param bootstrap_iters:
@@ -96,6 +105,10 @@ def simple_evaluate(
     )  # TODO: this may affect training runs that are run with evaluation mid-run.
 
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+
+    if delete_requests_cache:
+        eval_logger.info("Deleting requests cache...")
+        delete_cache()
 
     if tasks is None:
         tasks = []

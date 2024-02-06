@@ -93,6 +93,13 @@ def parse_eval_args() -> argparse.Namespace:
         metavar="DIR",
         help="A path to a sqlite db file for caching model responses. `None` if not caching.",
     )
+    parser.add_argument(
+        "--cache_requests",
+        type=str,
+        default=None,
+        choices=["true", "refresh", "delete"],
+        help="Speed up evaluation by caching the building of dataset requests. `None` if not caching.",
+    )
     parser.add_argument("--decontamination_ngrams_path", default=None)  # TODO: not used
     parser.add_argument(
         "--check_integrity",
@@ -247,6 +254,15 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         max_batch_size=args.max_batch_size,
         device=args.device,
         use_cache=args.use_cache,
+        #
+        cache_requests=(
+            True
+            if args.cache_requests == "true" or args.cache_requests == "refresh"
+            else False
+        ),
+        rewrite_requests_cache=True if args.cache_requests == "refresh" else False,
+        delete_requests_cache=True if args.delete_requests_cache == "delete" else False,
+        #
         limit=args.limit,
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
