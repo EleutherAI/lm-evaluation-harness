@@ -6,7 +6,7 @@ training_split: train
 validation_split: null
 test_split: test
 doc_to_text: "Wypowiedź: \"{{TEXT}}\"\nPytanie: Jaka kategoria najlepiej pasuje do podanej wypowiedzi?\nMożliwe odpowiedzi:\nA - nieszkodliwa\nB - szyderstwo\nC - obelga\nD - insynuacja\nE - groźba\nF - molestowanie\nPrawidłowa odpowiedź:"
-doc_to_target: "{{{'nieszkodliwa': 'A', 'szyderstwo': 'B', 'obelga': 'C', 'insynuacja': 'D', 'grozba': 'E', 'molestowanie': 'F'}.get(CATEGORIES)}}"
+doc_to_target: "{{{'szyderstwo': 'B', 'obelga': 'C', 'insynuacja': 'D', 'grozba': 'E', 'molestowanie': 'F'}.get(CATEGORIES, 'A')}}"
 should_decontaminate: true
 doc_to_decontamination_query: "{{TEXT}}"
 generation_kwargs:

@@ -8,7 +8,7 @@ test_split: test
 fewshot_split: train
 doc_to_text: "Zdanie: \"{{sentence}}\"\nJakiego rodzaju jest nazwana jednostka, jeżeli występuje w podanym zdaniu?\nMożliwe odpowiedzi: Brak nazwanej jednostki, Nazwa miejsca, Nazwa osoby, Nazwa organizacji, Czas, Nazwa geograficzna.\nRodzaj:"
 doc_to_target: "{{{'noEntity': 0, 'placeName': 1, 'persName': 2, 'orgName': 3, 'time': 4, 'geogName': 5}.get(target)}}"
-doc_to_choice: ["Brak jednostki", "Nazwa miejsca", "Nazwa osoby", "Nazwa organizacji", "Czas", "Nazwa geograficzna"]
+doc_to_choice: ["Brak nazwanej jednostki", "Nazwa miejsca", "Nazwa osoby", "Nazwa organizacji", "Czas", "Nazwa geograficzna"]
 should_decontaminate: true
 doc_to_decontamination_query: "{{sentence}}"
 metric_list:
