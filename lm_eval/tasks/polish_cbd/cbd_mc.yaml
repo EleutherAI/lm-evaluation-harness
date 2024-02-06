@@ -2,9 +2,9 @@ task: polish_cbd_multiple_choice
 dataset_path: ptaszynski/PolishCyberbullyingDataset
 dataset_name: null
 output_type: multiple_choice
-training_split: v2_training_anonymized
+training_split: train
 validation_split: null
-test_split: v2_test_anonymized
+test_split: test
 doc_to_text: "Wypowiedź: \"{{TEXT}}\"\nPytanie: Czy wypowiedź jest przejawem cyberprzemocy, lub jest krzywdząca wobec innych?\nOdpowiedz krótko \"Tak\" lub \"Nie\". Prawidłowa odpowiedź:"
 doc_to_target: "{{GENERAL TAG|int}}"
 doc_to_choice: ["Nie", "Tak"]

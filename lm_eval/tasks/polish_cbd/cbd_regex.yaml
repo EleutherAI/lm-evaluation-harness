@@ -2,11 +2,11 @@ task: polish_cbd_regex
 dataset_path: ptaszynski/PolishCyberbullyingDataset
 dataset_name: null
 output_type: generate_until
-training_split: v2_training_anonymized
+training_split: train
 validation_split: null
-test_split: v2_test_anonymized
+test_split: test
 doc_to_text: "Wypowiedź: \"{{TEXT}}\"\nPytanie: Jaka kategoria najlepiej pasuje do podanej wypowiedzi?\nMożliwe odpowiedzi:\nA - nieszkodliwa\nB - szyderstwo\nC - obelga\nD - insynuacja\nE - groźba\nF - molestowanie\nPrawidłowa odpowiedź:"
-doc_to_target: "{{{'szyderstwo': 'B', 'obelga': 'C', 'insynuacja': 'D', 'grozba': 'E', 'molestowanie': 'F'}.get(CATEGORIES, 'A')}}"
+doc_to_target: "{{{'nieszkodliwa': 'A', 'szyderstwo': 'B', 'obelga': 'C', 'insynuacja': 'D', 'grozba': 'E', 'molestowanie': 'F'}.get(CATEGORIES)}}"
 should_decontaminate: true
 doc_to_decontamination_query: "{{TEXT}}"
 generation_kwargs:
@@ -14,7 +14,6 @@ generation_kwargs:
     - "."
     - ","
     - ";"
-    - "\n"
   do_sample: false
   temperature: 0.0
   max_gen_toks: 50
