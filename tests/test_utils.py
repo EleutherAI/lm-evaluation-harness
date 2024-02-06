@@ -2,9 +2,9 @@ import pytest
 
 from lm_eval.utils import (
     Collator,
+    calculate_combined_variance,
     get_rolling_token_windows,
     make_disjoint_window,
-    pooled_variance,
     weighted_mean,
 )
 
@@ -302,7 +302,7 @@ class TestCollator:
         reordered_output = loglikelihoods.get_original(output)
         assert reordered_output == [x[1] for x in loglikelihood_samples]
 
-    def test_pooled_variance(self):
+    def test_calculate_combined_variance(self):
         datasets = [
             [6, 30.66667, 8.555555],
             [7, 31.14286, 13.26531],
@@ -317,7 +317,7 @@ class TestCollator:
             else:
                 new_n = current_n + n
                 new_mean = weighted_mean(current_n, n, current_mean, mean)
-                current_variance = pooled_variance(
+                current_variance = calculate_combined_variance(
                     current_n, n, current_variance, variance, current_mean, mean
                 )
                 current_n, current_mean = new_n, new_mean
