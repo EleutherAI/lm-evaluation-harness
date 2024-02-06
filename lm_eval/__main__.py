@@ -1,5 +1,4 @@
 import argparse
-import copy
 import json
 import logging
 import os
@@ -11,8 +10,8 @@ from typing import Union
 import numpy as np
 
 from lm_eval import evaluator, utils
-from lm_eval.tasks import TaskManager, include_path, initialize_tasks
 from lm_eval.logging_utils import WandbLogger
+from lm_eval.tasks import TaskManager, include_path, initialize_tasks
 from lm_eval.utils import make_table
 
 

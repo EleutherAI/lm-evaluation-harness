@@ -1,15 +1,14 @@
 import copy
+import json
 import logging
 import re
-import os
-import json
-import glob
-import pandas as pd
 from datetime import datetime
 
+import pandas as pd
 from packaging.version import Version
 
 from lm_eval import utils
+
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +71,15 @@ class WandbLogger:
         self.get_eval_wandb_table()
 
     def get_eval_wandb_table(self):
-        columns = ["Task", "Version", "Filter", "num_fewshot", "Metric", "Value", "Stderr"]
+        columns = [
+            "Task",
+            "Version",
+            "Filter",
+            "num_fewshot",
+            "Metric",
+            "Value",
+            "Stderr",
+        ]
         table = wandb.Table(columns=columns)
         results = copy.deepcopy(self.results)
 
@@ -97,7 +104,7 @@ class WandbLogger:
                     table.add_data(*[k, version, f, n, m, v, ""])
 
         # log the table to W&B
-        self.run.log({f"evaluation/eval_results": table})
+        self.run.log({"evaluation/eval_results": table})
 
     def generate_dataset(self, data, config):
         """Generate a Zeno dataset from evaluation data.
@@ -118,7 +125,7 @@ class WandbLogger:
         for metric in metrics_list:
             metric = metric.get("metric")
             metrics[metric] = [x[metric] for x in data]
-        
+
         if config["output_type"] == "loglikelihood":
             instance = [x["arguments"][0][0] for x in data]
             labels = [x["arguments"][0][1] for x in data]
@@ -216,13 +223,13 @@ class WandbLogger:
                     )
             _results = {
                 "results": {f"{task_name}": self.results.get("results").get(task_name)},
-                "versions": {f"{task_name}": self.results.get("versions").get(task_name)},
-                "n-shot": {f"{task_name}": self.results.get("n-shot").get(task_name)}
+                "versions": {
+                    f"{task_name}": self.results.get("versions").get(task_name)
+                },
+                "n-shot": {f"{task_name}": self.results.get("n-shot").get(task_name)},
             }
             results_md = utils.make_table(_results)
-            blocks.extend(
-                [wr.MarkdownBlock(results_md), wr.PanelGrid(panels=panels)]
-            )
+            blocks.extend([wr.MarkdownBlock(results_md), wr.PanelGrid(panels=panels)])
             # blocks.extend([
             #     wr.WeaveBlockSummaryTable(
             #         project=self.run.project,
@@ -260,13 +267,16 @@ class WandbLogger:
                 wr.WeaveBlockSummaryTable(
                     project=self.run.project,
                     entity=self.run.entity,
-                    table_name=f"evaluation/eval_results",
+                    table_name="evaluation/eval_results",
                 ),
                 wr.PanelGrid(
                     runsets=[
                         wr.Runset(
-                            project=self.run.project, entity=self.run.entity,
-                        ).set_filters_with_python_expr(f'Name == "{str(self.run.name)}"'),
+                            project=self.run.project,
+                            entity=self.run.entity,
+                        ).set_filters_with_python_expr(
+                            f'Name == "{str(self.run.name)}"'
+                        ),
                     ]
                 ),
                 wr.H1("Evaluation Results By Task"),
@@ -275,7 +285,8 @@ class WandbLogger:
             + [
                 wr.H1("Evaluation Config"),
                 wr.CodeBlock(
-                    json.dumps(self.results["config"], indent=5).split("\n"), language="json"
+                    json.dumps(self.results["config"], indent=5).split("\n"),
+                    language="json",
                 ),
                 # TODO: Add appendix
             ]
