@@ -261,7 +261,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             else False
         ),
         rewrite_requests_cache=True if args.cache_requests == "refresh" else False,
-        delete_requests_cache=True if args.delete_requests_cache == "delete" else False,
+        delete_requests_cache=True if args.cache_requests == "delete" else False,
         #
         limit=args.limit,
         decontamination_ngrams_path=args.decontamination_ngrams_path,
