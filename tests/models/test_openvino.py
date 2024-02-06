@@ -6,11 +6,8 @@ from optimum.intel import OVModelForCausalLM
 from transformers import AutoTokenizer
 
 import lm_eval.evaluator as evaluator
-import lm_eval.tasks as tasks
 from lm_eval.api.registry import get_model
 
-
-tasks.initialize_tasks()
 
 SUPPORTED_ARCHITECTURES_TASKS = {
     "facebook/opt-125m": "lambada_openai",

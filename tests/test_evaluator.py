@@ -6,10 +6,8 @@ import pytest
 # import lm_eval.models as models
 import lm_eval.api as api
 import lm_eval.evaluator as evaluator
-import lm_eval.tasks as tasks
+from lm_eval import tasks
 
-
-tasks.initialize_tasks()
 
 # TODO: more fine grained unit tests rather than this big honking integration
 # test once we break evaluator into smaller, more manageable pieces
@@ -46,7 +44,8 @@ def test_evaluator(task_name: List[str], limit: int, model: str, model_args: str
             "device": None,
         },
     )
-    task_dict = tasks.get_task_dict(task_name, num_fewshot=0)
+    task_manager = tasks.TaskManager()
+    task_dict = tasks.get_task_dict(task_name, task_manager)
 
     e2 = evaluator.evaluate(
         lm=lm,
