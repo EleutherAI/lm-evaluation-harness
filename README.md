@@ -314,6 +314,7 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | anthropic     | For using Anthropic's models          |
 | dev           | For linting PRs and contributions     |
 | gptq          | For loading models with GPTQ          |
+| hf_transfer   | For speeding up HF Hub file downloads |
 | ifeval        | For running the IFEval task           |
 | neuronx       | For running on AWS inf2 instances     |
 | mamba         | For loading Mamba SSM models          |
