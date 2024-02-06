@@ -248,8 +248,6 @@ class WandbLogger:
         return blocks
 
     def write_to_report(self):
-        wandb_project = self.run.project
-        wandb_entity = self.run.entity
         report = wr.Report(
             project=self.run.project,
             entity=self.run.entity,
@@ -257,7 +255,6 @@ class WandbLogger:
             description=f"Evaluation run by: {self.run.entity} logged to {self.run.url}",
         )
 
-        results_md = utils.make_table(self.results)
         task_blocks = self.prepare_report_by_task(self.wandb_results)
 
         blocks = (
