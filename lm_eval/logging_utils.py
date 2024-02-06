@@ -9,11 +9,7 @@ from packaging.version import Version
 
 from lm_eval import utils
 
-
 logger = logging.getLogger(__name__)
-
-IS_WANDB_AVAILABLE = False
-
 
 try:
     import wandb
@@ -28,10 +24,6 @@ except Exception as e:
         "To install the latest version of wandb run `pip install wandb --upgrade`\n"
         f"{e}"
     )
-    IS_WANDB_AVAILABLE = False
-
-if IS_WANDB_AVAILABLE:
-    import wandb.apis.reports as wr
 
 
 def remove_none_pattern(input_string):
@@ -208,6 +200,8 @@ class WandbLogger:
         return wandb_summary, _results
 
     def prepare_report_by_task(self, results):
+        import wandb.apis.reports as wr
+
         blocks = []
         for task_name in self.task_names:
             blocks.append(wr.H2(task_name))
@@ -230,28 +224,17 @@ class WandbLogger:
             }
             results_md = utils.make_table(_results)
             blocks.extend([wr.MarkdownBlock(results_md), wr.PanelGrid(panels=panels)])
-            # blocks.extend([
-            #     wr.WeaveBlockSummaryTable(
-            #         project=self.run.project,
-            #         entity=self.run.entity,
-            #         table_name=f"{task_name}_eval_results",
-            #     ),
-            #     wr.PanelGrid(
-            #         runsets=[
-            #             wr.Runset(
-            #                 project=self.run.project, entity=self.run.entity,
-            #             ).set_filters_with_python_expr(f'Name == "{str(self.run.name)}"'),
-            #         ]
-            #     ),
-            # ])
+            # TODO: Add results table
 
         return blocks
 
     def write_to_report(self):
+        import wandb.apis.reports as wr
+
         report = wr.Report(
             project=self.run.project,
             entity=self.run.entity,
-            title=f"({datetime.now().strftime('%Y-%m-%d %H:%M:%S')}) xxx - Evaluation report",
+            title=f"({datetime.now().strftime('%Y-%m-%d %H:%M:%S')}) {self.run.id} - Evaluation report",
             description=f"Evaluation run by: {self.run.entity} logged to {self.run.url}",
         )
 
