@@ -1,4 +1,4 @@
 "dataset_name": "high_school_statistics"
-"description": "Do the evaluatio for the stem \n\n"
+"description": "فم بعملية التقييم في مجال ألعلوم وتقنية المعلومات و الرياضيات \n\n"
 "include": "_default_template_yaml"
 "task": "ammlu_high_school_statistics"
