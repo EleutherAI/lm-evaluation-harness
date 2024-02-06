@@ -23,6 +23,7 @@ dependencies = [
     "evaluate",
     "datasets>=2.14.0",
     "evaluate>=0.4.0",
+    "hf_transfer",
     "jsonlines",
     "numexpr",
     "peft>=0.2.0",
