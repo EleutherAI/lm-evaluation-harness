@@ -10,10 +10,13 @@ from . import optimum_lm
 from . import neuron_optimum
 # TODO: implement __all__
 
+
 import os
+
 try:
     # enabling faster model download
     import hf_transfer
+
     os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
 except ImportError:
     pass

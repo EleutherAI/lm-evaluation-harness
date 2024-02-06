@@ -23,7 +23,6 @@ dependencies = [
     "evaluate",
     "datasets>=2.14.0",
     "evaluate>=0.4.0",
-    "hf_transfer",
     "jsonlines",
     "numexpr",
     "peft>=0.2.0",
@@ -58,6 +57,7 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 anthropic = ["anthropic"]
 dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
+hf_transfer = ["hf_transfer"]
 ifeval = ["langdetect", "immutabledict"]
 neuronx = ["optimum[neuronx]"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2"]
@@ -74,6 +74,7 @@ all = [
     "lm_eval[anthropic]",
     "lm_eval[dev]",
     "lm_eval[gptq]",
+    "lm_eval[hf_transfer]",
     "lm_eval[ifeval]",
     "lm_eval[linting]",
     "lm_eval[mamba]",
