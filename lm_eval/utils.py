@@ -941,7 +941,7 @@ class Collator:
             yield arr
 
 
-def pooled_variance(
+def calculate_combined_variance(
     n_x: int, m_y: int, var_x: float, var_y: float, x_bar: float, y_bar: float
 ) -> float:
     """
