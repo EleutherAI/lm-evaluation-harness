@@ -540,6 +540,7 @@ def evaluate(
                     else:
                         results[group][stderr] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
                         # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
+                        # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line: 
                         # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
 
                     results[group]["samples"] = sum(sizes)
