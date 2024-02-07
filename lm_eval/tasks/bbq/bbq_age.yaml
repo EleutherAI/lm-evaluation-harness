@@ -1,3 +1,0 @@
-include: bbq.yaml
-task: bbq_age
-dataset_name: Age

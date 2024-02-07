@@ -1,3 +1,0 @@
-include: bbq.yaml
-task: bbq_race_x_ses
-dataset_name: Race_x_SES

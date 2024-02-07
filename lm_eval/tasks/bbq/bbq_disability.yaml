@@ -1,3 +1,0 @@
-include: bbq.yaml
-task: bbq_disability
-dataset_name: Disability_status

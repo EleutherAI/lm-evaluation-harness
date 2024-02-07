@@ -1,3 +1,0 @@
-include: bbq.yaml
-task: bbq_gender
-dataset_name: Gender_identity

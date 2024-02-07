@@ -1,16 +1,15 @@
 group:
   - social_bias
-task: bbq
+task: bbq_multiple_choice
 dataset_path: oskarvanderwal/bbq
 dataset_name: All
 test_split: test
-output_type: generate_until
+output_type: multiple_choice
 process_docs: !function utils.process_docs
-process_results: !function utils.process_results_generate_until
+process_results: !function utils.process_results_multiple_choice
 doc_to_text: "{{context}}\n\nQ: {{question}}\nA:"
 doc_to_target: !function utils.doc_to_targets
-metadata:
-  version: 1.0
+doc_to_choice: !function utils.doc_to_choice
 metric_list:
   - metric: acc
     aggregation: mean

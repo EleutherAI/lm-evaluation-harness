@@ -1,3 +1,0 @@
-include: bbq.yaml
-task: bbq_nationality
-dataset_name: Nationality
