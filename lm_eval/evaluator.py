@@ -323,6 +323,7 @@ def evaluate(
                         if task_name == "hellaswag":
                             for i in range(len(doc["choices"])):
                                 doc["choices"][i] = unigram_shuffle(doc["choices"][i], task_name)
+                    ## Different type of shuffles if needed
                     """
                 elif shuffle == "bigram":
                     doc['query'] = bigram_shuffle(doc['query'])
@@ -331,11 +332,12 @@ def evaluate(
                     doc['query'] = trigram_shuffle(doc['query'])
                     doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
                     """
-            # Truthful taska are accessed using 'question'
+            # Truthful tasks are accessed using 'question'
             else:
                 if shuffle == "unigram":
                     doc['question'] = unigram_shuffle(doc['question'], task_name)
                     doc['question'] = doc['question']
+                    ## Different types of shuffles if needed
                     """
                 elif shuffle == "bigram":
                     doc['question'] = bigram_shuffle(doc['question'])
