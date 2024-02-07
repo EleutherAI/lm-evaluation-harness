@@ -1,11 +1,9 @@
 group: 
     - kmmlu
-    - kmmlu_hard_cot
-dataset_path: HAERAE-HUB/KMMLU-HARD
+    - kmmlu_cot
+dataset_path:HAERAE-HUB/KMMLU-HARD
 output_type: generate_until
 test_split: test
-fewshot_split: dev
-doc_to_target: "{{['A', 'B', 'C', 'D'][answer-1]}}"
 metric_list:
   - metric: exact_match
     aggregation: mean
@@ -26,8 +24,6 @@ filter_list:
         regex_pattern: "(?<=따라서 정답은)(.*)(?=입니다.)"
         regex_pattern: "(?<=따라서, 정답은)(.*)(?=입니다.)"
         regex_pattern: "(?<=정답은)(.*)(?=입니다.)"
-        regex_pattern: "(?<=답은)(.*)(?=입니다.)"
-        regex_pattern: "(?<=답은)(.*)(?=\\))"
       - function: "take_first"
 metadata:
-  version: 1.3
+  version: 1.4

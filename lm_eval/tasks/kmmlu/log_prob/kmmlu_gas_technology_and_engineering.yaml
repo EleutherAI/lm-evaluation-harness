@@ -1,3 +1,0 @@
-dataset_name: Gas-Technology-and-Engineering
-include: _log_prob_kmmlu_yaml
-task: kmmlu_log_prob_gas_technology_and_engineering

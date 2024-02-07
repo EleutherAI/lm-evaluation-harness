@@ -1,3 +1,0 @@
-dataset_name: Telecommunications-and-Wireless-Technology
-include: _log_prob_kmmlu_yaml
-task: kmmlu_log_prob_telecommunications_and_wireless_technology

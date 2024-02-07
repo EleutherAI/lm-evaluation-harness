@@ -1,132 +1,126 @@
-dataset_name: Math
-doc_to_text: "Q.\uC774\uCC28\uBC29\uC815\uC2DD x2 - 5x + 3 = 0\uC758 \uB450 \uADFC\
-  \uC774 log5\u03B1\uC640 log5\u03B2\uC77C \uB54C, log\u03B1\u03B2 + log\u03B2\u03B1\
-  \uC758 \uAC12\uC740?\nA.17/3\nB. 19/3\nC. 21/5\nD.23/5\n\uC815\uB2F5:\uC774\uCC28\
-  \uBC29\uC815\uC2DD \\( x^2 - 5x + 3 = 0 \\)\uC758 \uB450 \uADFC\uC774 \\( \\log_5\
-  \ \\alpha \\)\uC640 \\( \\log_5 \\beta \\)\uC77C \uB54C, \\( \\log \\alpha \\beta\
-  \ + \\log \\beta \\alpha \\)\uC758 \uAC12\uC744 \uCC3E\uB294 \uBB38\uC81C\uC785\uB2C8\
-  \uB2E4.\n\uC774\uCC28\uBC29\uC815\uC2DD\uC758 \uD574\uC5D0 \uB300\uD55C \uBE44\uC5D0\
-  \uD0C0\uC758 \uACF5\uC2DD\uC5D0 \uB530\uB974\uBA74, \uB450 \uADFC\uC758 \uD569\uC740\
-  \ \\(-\\frac{b}{a}\\)\uC774\uACE0, \uB450 \uADFC\uC758 \uACF1\uC740 \\(\\frac{c}{a}\\\
-  )\uC785\uB2C8\uB2E4. \uC5EC\uAE30\uC11C \\(a\\), \\(b\\), \\(c\\)\uB294 \uAC01\uAC01\
-  \ \uC774\uCC28\uBC29\uC815\uC2DD\uC758 \uACC4\uC218\uC785\uB2C8\uB2E4.\n\uC8FC\uC5B4\
-  \uC9C4 \uBC29\uC815\uC2DD \\( x^2 - 5x + 3 = 0 \\)\uC5D0\uC11C, \\(a = 1\\), \\\
-  (b = -5\\), \\(c = 3\\)\uC774\uBBC0\uB85C, \uB450 \uADFC\uC758 \uD569\uC740 \\(5\\\
-  )\uC774\uACE0, \uB450 \uADFC\uC758 \uACF1\uC740 \\(3\\)\uC785\uB2C8\uB2E4.\n\uC774\
-  \uC81C, \\( \\log_5 \\alpha \\)\uC640 \\( \\log_5 \\beta \\)\uAC00 \uADFC\uC774\uBBC0\
-  \uB85C \uB2E4\uC74C\uACFC \uAC19\uC740 \uB450 \uC870\uAC74\uC744 \uAC16\uC2B5\uB2C8\
-  \uB2E4:\n1. \\( \\log_5 \\alpha + \\log_5 \\beta = 5 \\)\n2. \\( \\log_5 \\alpha\
-  \ \\cdot \\log_5 \\beta = 3 \\)\n\uB85C\uADF8\uC758 \uC131\uC9C8\uC5D0 \uB530\uB77C\
-  , \\( \\log \\alpha \\beta + \\log \\beta \\alpha \\)\uB294 \\( \\log \\alpha^2\
-  \ \\beta^2 \\)\uB85C \uD45C\uD604\uD560 \uC218 \uC788\uACE0, \uC774\uB294 \\( \\\
-  log (\\alpha \\beta)^2 \\)\uC640 \uAC19\uC2B5\uB2C8\uB2E4.\n\\( \\alpha \\beta =\
-  \ 5^3 \\) \uC774\uBBC0\uB85C (\uADFC\uC758 \uACF1\uC5D0\uC11C), \uC774\uB294 \uB2E4\
-  \uC74C\uACFC \uAC19\uC774 \uB429\uB2C8\uB2E4:\n\\[ \\log 5^6 \\]\n\\[ 6 \\cdot \\\
-  log 5 \\]\n\\( \\log 5 \\)\uB294 1\uC774\uBBC0\uB85C, \uC774 \uC2DD\uC740 \uB2E8\
-  \uC21C\uD788 6\uC774 \uB429\uB2C8\uB2E4. \uADF8\uB7EC\uB098 \uC8FC\uC5B4\uC9C4 \uC2DD\
-  \uC5D0\uB294 \\( \\log_5 \\alpha \\)\uC640 \\( \\log_5 \\beta \\)\uB85C \uB098\uB204\
-  \uB294 \uCD94\uAC00 \uC5F0\uC0B0\uACFC \uC774\uCC28\uC2DD \uC804\uAC1C\uAC00 \uD3EC\
-  \uD568\uB418\uC5B4 \uC788\uC2B5\uB2C8\uB2E4.\n\uC774\uBBF8\uC9C0\uC5D0\uC11C \uBCF4\
-  \uC5EC\uC9C0\uB294 \uC2DD\uC5D0 \uB530\uB77C \uACC4\uC0B0\uC744 \uD574\uBCF4\uBA74\
-  , \uBD84\uC218\uC758 \uD615\uD0DC\uB85C \uB098\uD0C0\uB098\uB294 \uB450 \uB85C\uADF8\
-  \uC758 \uD569\uC740 \uC2E4\uC81C\uB85C \uB85C\uADF8\uC758 \uBC95\uCE59\uC744 \uC0AC\
-  \uC6A9\uD558\uC5EC \uB2E8\uC21C\uD654\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uADF8\
-  \uB9AC\uACE0 \uC774\uCC28\uC2DD\uC758 \uC804\uAC1C\uB294 \uADFC\uC758 \uD569\uACFC\
-  \ \uADFC\uC758 \uACF1\uC73C\uB85C \uD45C\uD604\uB41C \uAC12\uC744 \uC0AC\uC6A9\uD558\
-  \uC5EC \uACC4\uC0B0\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.\n\uCD5C\uC885\uC801\uC73C\
-  \uB85C, \uC774 \uC2DD\uC740 \uADFC\uC758 \uD569\uACFC \uADFC\uC758 \uACF1\uC758\
-  \ \uAD00\uACC4\uB97C \uC0AC\uC6A9\uD558\uC5EC \uD574\uB97C \uAD6C\uD560 \uC218 \uC788\
-  \uC73C\uBA70, \uC2DD\uC744 \uB2E8\uC21C\uD654\uD55C \uACB0\uACFC \\( \\frac{19}{3}\
-  \ \\)\uC774 \uB2F5\uC73C\uB85C \uB098\uC62C \uAC83\uC785\uB2C8\uB2E4.\n\uB530\uB77C\
-  \uC11C, \uC815\uB2F5\uC740 (B)\uC785\uB2C8\uB2E4.\n\nQ.\uC88C\uD45C\uD3C9\uBA74\uC5D0\
-  \uC11C \uC6D0 (x-1)2 + (y-1)2 = 1\uC744 y\uCD95\uC5D0 \uB300\uD558\uC5EC \uB300\uCE6D\
-  \uC774\uB3D9\uD55C \uD6C4 y\uCD95\uC758 \uBC29\uD5A5\uC73C\uB85C 1\uB9CC\uD07C \uD3C9\
-  \uD589\uC774\uB3D9\uD55C \uC6D0 \uC704\uC758 \uC784\uC758\uC758 \uC810\uACFC \uC6D0\
-  \uC810 \uC0AC\uC774\uC758 \uAC70\uB9AC\uC758 \uCD5C\uB313\uAC12\uC744 a, \uCD5C\uC19F\
-  \uAC12\uC744 b\uB77C \uD560 \uB54C, a+b\uC758 \uAC12\uC740?\nA.\u221A5\nB. 2\u221A\
-  5\nC. 3\u221A5\nD.4\u221A5\n\uC815\uB2F5:\uBA3C\uC800, \uC8FC\uC5B4\uC9C4 \uC6D0\
-  \uC758 \uC911\uC2EC\uC740 (1, 1)\uC774\uACE0 \uBC18\uC9C0\uB984\uC740 1\uC785\uB2C8\
-  \uB2E4. \n\uADF8\uB7F0 \uB2E4\uC74C \uC6D0\uC744 y\uCD95\uC5D0 \uB300\uD558\uC5EC\
-  \ \uB300\uCE6D\uC774\uB3D9\uD558\uBA74, \uC6D0\uC758 \uC911\uC2EC\uC740 (-1, 1)\uC774\
-  \ \uB429\uB2C8\uB2E4. \uC774\uB294 y\uCD95\uC5D0 \uB300\uD574 \uB300\uCE6D\uC774\
-  \uAE30 \uB54C\uBB38\uC5D0 x\uC88C\uD45C\uB9CC \uBC14\uB00C\uACE0 y\uC88C\uD45C\uB294\
-  \ \uADF8\uB300\uB85C\uC785\uB2C8\uB2E4.\n\uADF8 \uB2E4\uC74C\uC73C\uB85C \uC6D0\uC744\
-  \ y\uCD95\uC758 \uBC29\uD5A5\uC73C\uB85C 1\uB9CC\uD07C \uD3C9\uD589\uC774\uB3D9\uD558\
-  \uBA74, \uC6D0\uC758 \uC911\uC2EC\uC740 (-1, 2)\uAC00 \uB429\uB2C8\uB2E4. \uC774\
-  \uB294 y\uCD95\uC758 \uBC29\uD5A5\uC73C\uB85C \uD3C9\uD589\uC774\uB3D9\uD558\uAE30\
-  \ \uB54C\uBB38\uC5D0 y\uC88C\uD45C\uB9CC \uBC14\uB00C\uACE0 x\uC88C\uD45C\uB294\
-  \ \uADF8\uB300\uB85C\uC785\uB2C8\uB2E4.\n\uC774\uC81C \uC6D0\uC810\uACFC \uC774\uB3D9\
-  \uD55C \uC6D0 \uC704\uC758 \uC784\uC758\uC758 \uC810\uACFC\uC758 \uAC70\uB9AC\uC758\
-  \ \uCD5C\uB313\uAC12\uACFC \uCD5C\uC19F\uAC12\uC744 \uAD6C\uD574\uC57C \uD569\uB2C8\
-  \uB2E4. \uC6D0\uC758 \uBC18\uC9C0\uB984\uC774 1\uC774\uBBC0\uB85C, \uC6D0\uC810\uACFC\
-  \ \uC6D0 \uC704\uC758 \uC810 \uC0AC\uC774\uC758 \uAC70\uB9AC\uC758 \uCD5C\uB313\uAC12\
-  \uC740 \uC911\uC2EC\uC5D0\uC11C \uC6D0\uC810\uAE4C\uC9C0\uC758 \uAC70\uB9AC\uC5D0\
-  \ \uBC18\uC9C0\uB984\uC744 \uB354\uD55C \uAC12\uC774\uACE0, \uCD5C\uC19F\uAC12\uC740\
-  \ \uC911\uC2EC\uC5D0\uC11C \uC6D0\uC810\uAE4C\uC9C0\uC758 \uAC70\uB9AC\uC5D0\uC11C\
-  \ \uBC18\uC9C0\uB984\uC744 \uBE80 \uAC12\uC785\uB2C8\uB2E4.\n\uC6D0\uC758 \uC911\
-  \uC2EC (-1, 2)\uC640 \uC6D0\uC810 (0, 0) \uC0AC\uC774\uC758 \uAC70\uB9AC\uB294 \u221A\
-  ((-1-0)^2 + (2-0)^2) = \u221A5\uC785\uB2C8\uB2E4.\n\uB530\uB77C\uC11C, \uC815\uB2F5\
-  \uC740 (B)\uC785\uB2C8\uB2E4.\n\nQ.log3(-n3 + 15n2 - 66n + 80)\uC758 \uAC12\uC774\
-  \ \uC874\uC7AC\uD558\uB3C4\uB85D \uD558\uB294 \uBAA8\uB4E0 \uC790\uC5F0\uC218 n\uC758\
-  \ \uAC12\uC758 \uD569\uC740?\nA.8\nB. 10\nC. 12\nD.14\n\uC815\uB2F5:\uBB38\uC81C\
-  \uB294 log3(-n\xB3 + 15n\xB2 - 66n + 80)\uC758 \uAC12\uC774 \uC874\uC7AC\uD558\uB3C4\
-  \uB85D \uD558\uB294 \uBAA8\uB4E0 \uC790\uC5F0\uC218 n\uC758 \uD569\uC744 \uAD6C\uD558\
-  \uB294 \uAC83\uC774\uC5C8\uC2B5\uB2C8\uB2E4.\n\uC6B0\uC120, \uB85C\uADF8 \uD568\uC218\
-  \ \uB0B4\uBD80\uC758 \uAC12\uC774 \uC591\uC218\uAC00 \uB418\uC5B4\uC57C \uD569\uB2C8\
-  \uB2E4. \uC989, -n\xB3 + 15n\xB2 - 66n + 80 > 0 \uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4\
-  .\n\uC774 \uBD80\uB4F1\uC2DD\uC744 \uD480\uAE30 \uC704\uD574\uC11C\uB294, \uC6B0\
-  \uC120 \uC8FC\uC5B4\uC9C4 \uC2DD\uC744 \uC778\uC218\uBD84\uD574\uD560 \uD544\uC694\
-  \uAC00 \uC788\uC2B5\uB2C8\uB2E4. \uC2DD\uC744 \uC778\uC218\uBD84\uD574\uD574\uBCF4\
-  \uACA0\uC2B5\uB2C8\uB2E4:\n- -n\xB3 + 15n\xB2 - 66n + 80\n- = -(n\xB3 - 15n\xB2\
-  \ + 66n - 80)\n\uC774\uC81C n\xB3 - 15n\xB2 + 66n - 80 = 0\uC758 \uD574\uB97C \uAD6C\
-  \uD574\uC57C \uD569\uB2C8\uB2E4. \uC774\uB294 3\uCC28 \uBC29\uC815\uC2DD\uC774\uBBC0\
-  \uB85C, \uD574\uB97C \uCC3E\uAE30 \uC704\uD574\uC11C\uB294 \uC2E4\uC81C \uACC4\uC0B0\
-  \uC774 \uD544\uC694\uD569\uB2C8\uB2E4. \uC6B0\uC120 \uAC04\uB2E8\uD55C \uC815\uC218\
-  \uD574\uB97C \uCC3E\uAE30 \uC704\uD574 n = 1, 2, 3, ... \uB4F1\uC744 \uB300\uC785\
-  \uD574 \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4.\n1, 2, 3, ... \uB4F1\uC744 \uB300\
-  \uC785\uD574 \uBCF4\uBA70 \uC2DD\uC774 0\uC774 \uB418\uB294 n\uC758 \uAC12\uC744\
-  \ \uCC3E\uC544\uBCF4\uACA0\uC2B5\uB2C8\uB2E4. \uADF8\uB9AC\uACE0 \uADF8 \uAC12\uB4E4\
-  \uC744 \uAE30\uBC18\uC73C\uB85C \uBD80\uB4F1\uC2DD -n\xB3 + 15n\xB2 - 66n + 80 >\
-  \ 0\uC744 \uB9CC\uC871\uD558\uB294 n\uC758 \uBC94\uC704\uB97C \uD655\uC778\uD560\
-  \ \uC218 \uC788\uC2B5\uB2C8\uB2E4.\n\uC774\uC81C \uD544\uC694\uD55C \uACC4\uC0B0\
-  \uC744 \uD574\uBCF4\uACA0\uC2B5\uB2C8\uB2E4.\n\uBC29\uC815\uC2DD -n\xB3 + 15n\xB2\
-  \ - 66n + 80 > 0\uC744 \uB9CC\uC871\uD558\uB294 n\uC758 \uAC12\uC740 1, 6, 7\uC785\
-  \uB2C8\uB2E4. \uC774\uB294 \uC774\uB4E4 \uAC12\uC5D0 \uB300\uD574 \uBC29\uC815\uC2DD\
-  \uC758 \uACB0\uACFC\uAC00 \uC591\uC218\uAC00 \uB418\uB294 \uAC83\uC744 \uC758\uBBF8\
-  \uD569\uB2C8\uB2E4.\n\uB530\uB77C\uC11C, \uC815\uB2F5\uC740 (D)\uC785\uB2C8\uB2E4\
-  .\n\nQ.\uC810 C(2, -1)\uC744 \uC911\uC2EC\uC73C\uB85C \uD558\uACE0 \uBC18\uC9C0\uB984\
-  \uC758 \uAE38\uC774\uAC00 \u221A17\uC778 \uC6D0 \uC704\uC758 \uC810 P(3, 3)\uC5D0\
-  \uC11C\uC758 \uC811\uC120\uACFC \uC810 Q(6, -2)\uC5D0\uC11C\uC758 \uC811\uC120\uC774\
-  \ \uB9CC\uB098\uB294 \uC810\uC744 R\uC774\uB77C \uD560 \uB54C, \uC0AC\uAC01\uD615\
-  \ CQRP\uC758 \uB113\uC774\uB294?\nA.\u221A17\nB. 2\u221A17\nC. 17\nD.34\n\uC815\uB2F5\
-  :\uBA3C\uC800, \uC810 C(2, -1)\uC744 \uC911\uC2EC\uC73C\uB85C \uD558\uACE0 \uBC18\
-  \uC9C0\uB984\uC758 \uAE38\uC774\uAC00 \u221A17\uC778 \uC6D0 \uC704\uC758 \uC810\
-  \ P(3, 3)\uC5D0\uC11C\uC758 \uC811\uC120\uACFC \uC810 Q(6, -2)\uC5D0\uC11C\uC758\
-  \ \uC811\uC120\uC774 \uB9CC\uB098\uB294 \uC810\uC744 R\uC774\uB77C \uD560 \uB54C\
-  , \uC774 \uC810\uB4E4\uC774 \uC774\uB8E8\uB294 \uC0AC\uAC01\uD615 CQRP\uC758 \uB113\
-  \uC774\uB97C \uAD6C\uD558\uB294 \uBB38\uC81C\uC785\uB2C8\uB2E4.\n\uC6D0\uC758 \uC911\
-  \uC2EC\uACFC \uC811\uC810\uC744 \uC787\uB294 \uC120\uBD84\uC740 \uC811\uC120\uC5D0\
-  \ \uC218\uC9C1\uC774\uB77C\uB294 \uC131\uC9C8\uC744 \uC774\uC6A9\uD558\uBA74, \uC810\
-  \ P\uC5D0\uC11C\uC758 \uC811\uC120\uC758 \uAE30\uC6B8\uAE30\uB294 PC\uC640 \uC218\
-  \uC9C1\uC774\uBBC0\uB85C, \uC810 P\uC640 C\uC758 \uC88C\uD45C\uB97C \uC774\uC6A9\
-  \uD558\uC5EC PC\uC758 \uAE30\uC6B8\uAE30\uB97C \uAD6C\uD558\uBA74, PC\uC758 \uAE30\
-  \uC6B8\uAE30\uB294 (3 - (-1)) / (3 - 2) = 4 \uC774\uACE0, \uC774\uC5D0 \uC218\uC9C1\
-  \uC778 \uC811\uC120\uC758 \uAE30\uC6B8\uAE30\uB294 -1/4\uAC00 \uB429\uB2C8\uB2E4\
-  .\n\uB9C8\uCC2C\uAC00\uC9C0\uB85C \uC810 Q\uC5D0\uC11C\uC758 \uC811\uC120\uC758\
-  \ \uAE30\uC6B8\uAE30\uB97C \uAD6C\uD558\uBA74, \uC810 Q\uC640 C\uC758 \uC88C\uD45C\
-  \uB97C \uC774\uC6A9\uD558\uC5EC QC\uC758 \uAE30\uC6B8\uAE30\uB294 (-2 - (-1)) /\
-  \ (6 - 2) = -1/4 \uC774\uACE0, \uC774\uC5D0 \uC218\uC9C1\uC778 \uC811\uC120\uC758\
-  \ \uAE30\uC6B8\uAE30\uB294 4\uAC00 \uB429\uB2C8\uB2E4.\n\uB530\uB77C\uC11C, \uC815\
-  \uB2F5\uC740 (C)\uC785\uB2C8\uB2E4.\n\nQ.x3 - 1 = 0\uC758 \uD55C \uD5C8\uADFC\uC744\
-  \ \u03C9\uB77C \uD560 \uB54C, \u03C9 + \u03C93 + \u03C95 + \u2026 + \u03C92017 +\
-  \ \u03C92019\uC744 \uAC04\uB2E8\uD788 \uD558\uBA74?\nA.0\nB. \u03C9\nC. \u03C9+1\n\
-  D.1\n\uC815\uB2F5:x^3 - 1 = 0\uC758 \uD55C \uD5C8\uADFC\uC744 \u03C9\uB77C\uACE0\
-  \ \uD558\uC600\uC73C\uBBC0\uB85C, \u03C9^3 = 1\uC774 \uB429\uB2C8\uB2E4.\n\uC774\
-  \uC81C, \uC8FC\uC5B4\uC9C4 \uC2DD\uC744 \uBCF4\uBA74 \u03C9 + \u03C9^3 + \u03C9\
-  ^5 + ... + \u03C92017 + \u03C92019 \uC785\uB2C8\uB2E4.\n\u03C9^3 = 1\uC774\uBBC0\
-  \uB85C, \u03C9^3, \u03C9^6, \u03C9^9, ..., \u03C92016\uC740 \uBAA8\uB450 1\uC774\
-  \ \uB429\uB2C8\uB2E4.\n\uB530\uB77C\uC11C, \uC815\uB2F5\uC740 (C)\uC785\uB2C8\uB2E4\
-  .\n\nQ.{{question.strip()}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\n\uC815\uB2F5\
-  \uFF1A"
+dataset_name: math
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_math
+task: kmmlu_cot_math
+doct_to_text: '질문: 이차방정식 x2 - 5x + 3 = 0의 두 근이 log5α와 log5β일 때, logαβ + logβα의 값은?
+
+  A.17/3
+
+  B.19/3
+
+  C.21/5
+
+  D.23/5
+
+  정답: 차근 차근 생각해봅시다. 수학 관련 정보를 위해 위키피디아를 참조하겠습니다. 이차방정식 \( x^2 - 5x + 3 = 0 \)의 두 근이
+  \( \log_5 \alpha \)와 \( \log_5 \beta \)일 때, \( \log \alpha \beta + \log \beta \alpha
+  \)의 값을 찾는 문제입니다. 이차방정식의 해에 대한 비에타의 공식에 따르면, 두 근의 합은 \(-\frac{b}{a}\)이고, 두 근의 곱은
+  \(\frac{c}{a}\)입니다. 여기서 \(a\), \(b\), \(c\)는 각각 이차방정식의 계수입니다. 주어진 방정식 \( x^2 - 5x
+  + 3 = 0 \)에서, \(a = 1\), \(b = -5\), \(c = 3\)이므로, 두 근의 합은 \(5\)이고, 두 근의 곱은 \(3\)입니다.
+  이제, \( \log_5 \alpha \)와 \( \log_5 \beta \)가 근이므로 다음과 같은 두 조건을 갖습니다: 1. \( \log_5
+  \alpha + \log_5 \beta = 5 \) 2. \( \log_5 \alpha \cdot \log_5 \beta = 3 \) 로그의 성질에
+  따라, \( \log \alpha \beta + \log \beta \alpha \)는 \( \log \alpha^2 \beta^2 \)로 표현할
+  수 있고, 이는 \( \log (\alpha \beta)^2 \)와 같습니다. \( \alpha \beta = 5^3 \) 이므로 (근의 곱에서),
+  이는 다음과 같이 됩니다: \[ \log 5^6 \] \[ 6 \cdot \log 5 \] \( \log 5 \)는 1이므로, 이 식은 단순히
+  6이 됩니다. 그러나 주어진 식에는 \( \log_5 \alpha \)와 \( \log_5 \beta \)로 나누는 추가 연산과 이차식 전개가
+  포함되어 있습니다. 이미지에서 보여지는 식에 따라 계산을 해보면, 분수의 형태로 나타나는 두 로그의 합은 실제로 로그의 법칙을 사용하여 단순화할
+  수 있습니다. 그리고 이차식의 전개는 근의 합과 근의 곱으로 표현된 값을 사용하여 계산할 수 있습니다. 최종적으로, 이 식은 근의 합과 근의 곱의
+  관계를 사용하여 해를 구할 수 있으며, 식을 단순화한 결과 \( \frac{19}{3} \)이 답으로 나올 것입니다. 따라서, 정답은 (B) 입니다.
+
+
+  질문: 좌표평면에서 원 (x-1)2 + (y-1)2 = 1을 y축에 대하여 대칭이동한 후 y축의 방향으로 1만큼 평행이동한 원 위의 임의의 점과
+  원점 사이의 거리의 최댓값을 a, 최솟값을 b라 할 때, a+b의 값은?
+
+  A.√5
+
+  B.2√5
+
+  C.3√5
+
+  D.4√5
+
+  정답: 차근 차근 생각해봅시다. 수학 관련 정보를 위해 위키피디아를 참조하겠습니다. 먼저, 주어진 원의 중심은 (1, 1)이고 반지름은 1입니다.
+  그런 다음 원을 y축에 대하여 대칭이동하면, 원의 중심은 (-1, 1)이 됩니다. 이는 y축에 대해 대칭이기 때문에 x좌표만 바뀌고 y좌표는 그대로입니다.
+  그 다음으로 원을 y축의 방향으로 1만큼 평행이동하면, 원의 중심은 (-1, 2)가 됩니다. 이는 y축의 방향으로 평행이동하기 때문에 y좌표만
+  바뀌고 x좌표는 그대로입니다. 이제 원점과 이동한 원 위의 임의의 점과의 거리의 최댓값과 최솟값을 구해야 합니다. 원의 반지름이 1이므로, 원점과
+  원 위의 점 사이의 거리의 최댓값은 중심에서 원점까지의 거리에 반지름을 더한 값이고, 최솟값은 중심에서 원점까지의 거리에서 반지름을 뺀 값입니다.
+  원의 중심 (-1, 2)와 원점 (0, 0) 사이의 거리는 √((-1-0)^2 + (2-0)^2) = √5입니다.   거리의 최댓값은 √5 +
+  1, 최솟값은 √5 - 1입니다. 그러므로 a+b의 값은 (√5 + 1) + (√5 - 1) = 2√5입니다. 따라서, 정답은 (B) 입니다.
+
+
+  질문: log3(-n3 + 15n2 - 66n + 80)의 값이 존재하도록 하는 모든 자연수 n의 값의 합은?
+
+  A.8
+
+  B.10
+
+  C.12
+
+  D.14
+
+  정답: 차근 차근 생각해봅시다. 수학 관련 정보를 위해 위키피디아를 참조하겠습니다. 문제는 log3(-n³ + 15n² - 66n + 80)의
+  값이 존재하도록 하는 모든 자연수 n의 합을 구하는 것이었습니다. 우선, 로그 함수 내부의 값이 양수가 되어야 합니다. 즉, -n³ + 15n²
+  - 66n + 80 > 0 이어야 합니다. 이 부등식을 풀기 위해서는, 우선 주어진 식을 인수분해할 필요가 있습니다. 식을 인수분해해보겠습니다:
+  - -n³ + 15n² - 66n + 80 - = -(n³ - 15n² + 66n - 80) 이제 n³ - 15n² + 66n - 80 = 0의
+  해를 구해야 합니다. 이는 3차 방정식이므로, 해를 찾기 위해서는 실제 계산이 필요합니다. 우선 간단한 정수해를 찾기 위해 n = 1, 2, 3,
+  ... 등을 대입해 볼 수 있습니다. 1, 2, 3, ... 등을 대입해 보며 식이 0이 되는 n의 값을 찾아보겠습니다. 그리고 그 값들을 기반으로
+  부등식 -n³ + 15n² - 66n + 80 > 0을 만족하는 n의 범위를 확인할 수 있습니다. 이제 필요한 계산을 해보겠습니다. 방정식 -n³
+  + 15n² - 66n + 80 > 0을 만족하는 n의 값은 1, 6, 7입니다. 이는 이들 값에 대해 방정식의 결과가 양수가 되는 것을 의미합니다.  ,
+  이러한 n의 값들의 합은 1 + 6 + 7 = 14입니다. 따라서, 정답은 (D) 입니다.
+
+
+  질문: 점 C(2, -1)을 중심으로 하고 반지름의 길이가 √17인 원 위의 점 P(3, 3)에서의 접선과 점 Q(6, -2)에서의 접선이 만나는
+  점을 R이라 할 때, 사각형 CQRP의 넓이는?
+
+  A.√17
+
+  B.2√17
+
+  C.17
+
+  D.34
+
+  정답: 차근 차근 생각해봅시다. 수학 관련 정보를 위해 위키피디아를 참조하겠습니다. 먼저, 점 C(2, -1)을 중심으로 하고 반지름의 길이가
+  √17인 원 위의 점 P(3, 3)에서의 접선과 점 Q(6, -2)에서의 접선이 만나는 점을 R이라 할 때, 이 점들이 이루는 사각형 CQRP의
+  넓이를 구하는 문제입니다. 원의 중심과 접점을 잇는 선분은 접선에 수직이라는 성질을 이용하면, 점 P에서의 접선의 기울기는 PC와 수직이므로,
+  점 P와 C의 좌표를 이용하여 PC의 기울기를 구하면, PC의 기울기는 (3 - (-1)) / (3 - 2) = 4 이고, 이에 수직인 접선의
+  기울기는 -1/4가 됩니다. 마찬가지로 점 Q에서의 접선의 기울기를 구하면, 점 Q와 C의 좌표를 이용하여 QC의 기울기는 (-2 - (-1))
+  / (6 - 2) = -1/4 이고, 이에 수직인 접선의 기울기는 4가 됩니다.   점 P에서의 접선의 방정식은 y - 3 = -1/4 * (x
+  - 3), 점 Q에서의 접선의 방정식은 y + 2 = 4 * (x - 6) 이 됩니다. 이 두 접선이 만나는 점 R을 구하기 위해 두 접선의 방정식을
+  연립하여 풀면, x = 8/3, y = 5/3가 됩니다. 그리고 원의 중심 C와 점 P, Q, R의 거리를 구하면 CP = CQ = √17, CR
+  = √((8/3 - 2)^2 + (5/3 - (-1))^2) = √17이 됩니다.  , 사각형 CQRP는 실제로는 정사각형이며, 그 넓이는 한
+  변의 길이의 제곱이므로 17이 됩니다. 따라서, 정답은 (C) 입니다.
+
+
+  질문: x3 - 1 = 0의 한 허근을 ω라 할 때, ω + ω3 + ω5 + … + ω2017 + ω2019을 간단히 하면?
+
+  A.0
+
+  B.ω
+
+  C.ω+1
+
+  D.1
+
+  정답: 차근 차근 생각해봅시다. 수학 관련 정보를 위해 위키피디아를 참조하겠습니다. x^3 - 1 = 0의 한 허근을 ω라고 하였으므로, ω^3
+  = 1이 됩니다. 이제, 주어진 식을 보면 ω + ω^3 + ω^5 + ... + ω2017 + ω2019 입니다. ω^3 = 1이므로, ω^3,
+  ω^6, ω^9, ..., ω2016은 모두 1이 됩니다.  , 주어진 식은 ω + 1 + ω^2 + ω^4 + ... + ω2018 + ω2020이
+  됩니다. ω^3 = 1이므로, ω^3, ω^6, ω^9, ..., ω2016은 모두 1이 됩니다.  , ω^2 + ω^4 + ... + ω2018
+  = (ω^2 + ω^4 + ... + ω2016) + ω^2017 + ω^2019 = ω^2017 + ω^2019 입니다. 주어진 식에 ω^2017
+  + ω^2019를 대입하면 ω + 1 + (ω^2017 + ω^2019) + ω^2018 + ω^2020이 됩니다. ω^3 = 1이므로 ω^3n
+  = 1 (n은 3의 배수) 입니다.  , ω^2018 = ω^3*672 = 1이고 ω^2020 = ω^3*670 = 1입니다. 주어진 식에 대입하면
+  ω + 1 + (ω^2017 + ω^2019) + 1 + 1이 됩니다. ω^2017 + ω^2019 = ω^2 + ω^4 = (ω^2 + ω^4
+  + ω^6 + ... + ω2016) + ω2017 + ω2019 = ω2017 + ω2019 입니다.  , ω^2017 + ω^2019 = ω
+  + 1 입니다. 주어진 식에 ω + 1을 대입하면 ω + 1 + ω + 1 + 1 + 1이 됩니다. 따라서, 정답은 (C) 입니다.
+
+
+  질문: {question}
+
+  A.{A}
+
+  B.{B}
+
+  C.{C}
+
+  D.{D}
+
+  정답:'

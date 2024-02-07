@@ -1,3 +1,0 @@
-dataset_name: Aviation-Engineering-and-Maintenance
-include: _log_prob_kmmlu_yaml
-task: kmmlu_log_prob_aviation_engineering_and_maintenance

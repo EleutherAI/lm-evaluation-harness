@@ -1,145 +1,115 @@
-dataset_name: Telecommunications-and-Wireless-Technology
-doc_to_text: "Q.\uC8FC\uD30C\uC218 \uB300\uC5ED\uC5D0 \uB530\uB978 RFID \uD2B9\uC9D5\
-  \ \uC911 \uD2C0\uB9B0 \uAC83\uC740?\nA.UHF\uB300\uC5ED : 900\u3392 \uB300\uC5ED\uACFC\
-  \ 433\u3392 \uB300\uC5ED\uC774 \uC0AC\uC6A9\uB428\nB. 13.56\u3392 : ISM \uBC34\uB4DC\
-  \ \uB300\uC5ED\uC73C\uB85C UHF\uB300\uC5ED\uBCF4\uB2E4 \uC778\uC2DD\uAC70\uB9AC\uAC00\
-  \ \uC9E7\uC74C\nC. 2.45\u3393 : \uB2A5\uB3D9\uD615\uACFC \uC218\uB3D9\uD615\uC758\
-  \ \uB450 \uAC00\uC9C0 \uD615\uD0DC\uAC00 \uC0AC\uC6A9\uB428\nD.135\u3391 \uBBF8\uB9CC\
-  \ : \uC790\uAE30\uC7A5\uC774 \uC544\uB2CC \uC804\uAE30\uC7A5 \uACB0\uD569\uC73C\uB85C\
-  \ \uB3D9\uC791\uD568\n\uC815\uB2F5:RFID(Radio Frequency Identification)\uB294 \uBB34\
-  \uC120 \uC8FC\uD30C\uC218 \uC2E0\uD638\uB97C \uC0AC\uC6A9\uD558\uC5EC \uD0DC\uADF8\
-  \uC5D0 \uC800\uC7A5\uB41C \uC815\uBCF4\uB97C \uC77D\uAC70\uB098 \uC4F0\uB294 \uAE30\
-  \uC220\uC785\uB2C8\uB2E4. RFID \uC2DC\uC2A4\uD15C\uC740 \uC8FC\uD30C\uC218 \uB300\
-  \uC5ED\uC5D0 \uB530\uB77C \uB2E4\uC591\uD55C \uD2B9\uC9D5\uC744 \uAC00\uC9C0\uBA70\
-  , \uC774\uB294 \uC2DC\uC2A4\uD15C\uC758 \uC131\uB2A5\uACFC \uC6A9\uB3C4\uC5D0 \uC601\
-  \uD5A5\uC744 \uBBF8\uCE69\uB2C8\uB2E4.\n(A) UHF \uB300\uC5ED: UHF(Ultra High Frequency)\
-  \ \uB300\uC5ED\uC740 300 MHz\uC5D0\uC11C 3 GHz \uC0AC\uC774\uC758 \uC8FC\uD30C\uC218\
-  \uB97C \uD3EC\uD568\uD569\uB2C8\uB2E4. RFID\uC5D0\uC11C\uB294 \uC8FC\uB85C 860 MHz\uC5D0\
-  \uC11C 960 MHz \uBC94\uC704\uAC00 \uC0AC\uC6A9\uB418\uBA70, 433 MHz \uB300\uC5ED\
-  \uB3C4 \uC0AC\uC6A9\uB418\uB294 \uACBD\uC6B0\uAC00 \uC788\uC2B5\uB2C8\uB2E4.\n\uB530\
-  \uB77C\uC11C, \uC815\uB2F5\uC740 (D)\uC785\uB2C8\uB2E4.\n\nQ.\uD604\uC7AC \uAD6D\
-  \uB0B4\uC5D0\uC11C \uD56D\uB9CC \uC9C0\uC5ED\uC5D0\uB9CC \uC81C\uD55C\uC801\uC73C\
-  \uB85C \uC0AC\uC6A9\uB418\uB294 \uBC18\uB2A5\uB3D9\uD615 RFID \uC2DC\uC2A4\uD15C\
-  \uC758 \uC8FC\uD30C\uC218 \uB300\uC5ED\uC740?\nA.433\u3392 \uB300\uC5ED\nB. 900\u3392\
-  \ \uB300\uC5ED\nC. 13.56\u3392 \uB300\uC5ED\nD.2.45\u3393 \uB300\uC5ED\n\uC815\uB2F5\
-  :\uBA3C\uC800, RFID \uC2DC\uC2A4\uD15C\uC5D0 \uB300\uD574 \uC774\uD574\uD574\uC57C\
-  \ \uD569\uB2C8\uB2E4. RFID\uB294 Radio Frequency Identification\uC758 \uC57D\uC790\
-  \uB85C, \uBB34\uC120 \uC8FC\uD30C\uC218\uB97C \uC774\uC6A9\uD558\uC5EC \uC815\uBCF4\
-  \uB97C \uC800\uC7A5\uD558\uACE0 \uC77D\uB294 \uC2DC\uC2A4\uD15C\uC744 \uB9D0\uD569\
-  \uB2C8\uB2E4. \uC774 \uC2DC\uC2A4\uD15C\uC740 \uD0DC\uADF8, \uB9AC\uB354\uAE30,\
-  \ \uADF8\uB9AC\uACE0 \uAD00\uB828\uB41C \uB370\uC774\uD130\uBCA0\uC774\uC2A4\uB85C\
-  \ \uAD6C\uC131\uB418\uC5B4 \uC788\uC2B5\uB2C8\uB2E4.\n\uD0DC\uADF8\uB294 \uBB3C\uCCB4\
-  \uC5D0 \uBD80\uCC29\uB418\uBA70, \uC8FC\uD30C\uC218\uB97C \uD1B5\uD574 \uC815\uBCF4\
-  \uB97C \uC804\uC1A1\uD569\uB2C8\uB2E4. \uB9AC\uB354\uAE30\uB294 \uD0DC\uADF8\uC758\
-  \ \uC815\uBCF4\uB97C \uC77D\uC5B4 \uB370\uC774\uD130\uBCA0\uC774\uC2A4\uC5D0 \uC800\
-  \uC7A5\uD558\uAC70\uB098 \uCC98\uB9AC\uD569\uB2C8\uB2E4. \uC774\uB7EC\uD55C RFID\
-  \ \uC2DC\uC2A4\uD15C\uC740 \uBB3C\uB958, \uC720\uD1B5, \uBCF4\uC548 \uB4F1 \uB2E4\
-  \uC591\uD55C \uBD84\uC57C\uC5D0\uC11C \uD65C\uC6A9\uB418\uACE0 \uC788\uC2B5\uB2C8\
-  \uB2E4.\n\uB2E4\uC74C\uC73C\uB85C, \uBC18\uB2A5\uB3D9\uD615 RFID\uC5D0 \uB300\uD574\
-  \ \uC54C\uC544\uBCF4\uACA0\uC2B5\uB2C8\uB2E4. \uBC18\uB2A5\uB3D9\uD615 RFID\uB294\
-  \ \uD0DC\uADF8\uAC00 \uB9AC\uB354\uAE30\uC758 \uC2E0\uD638\uB97C \uBC1B\uC544 \uADF8\
-  \ \uC5D0\uB108\uC9C0\uB97C \uC774\uC6A9\uD574 \uC815\uBCF4\uB97C \uB418\uB3CC\uB824\
-  \ \uBCF4\uB0B4\uB294 \uD615\uD0DC\uC758 RFID\uB97C \uB9D0\uD569\uB2C8\uB2E4. \uC774\
-  \uB7EC\uD55C \uBC18\uB2A5\uB3D9\uD615 RFID\uB294 \uC8FC\uB85C \uBB3C\uB958 \uD2B8\
-  \uB798\uD0B9, \uCC28\uB7C9 \uD2B8\uB798\uD0B9, \uC790\uC0B0 \uAD00\uB9AC \uB4F1\uC5D0\
-  \ \uD65C\uC6A9\uB429\uB2C8\uB2E4.\n\uC774\uC81C, \uC8FC\uD30C\uC218 \uB300\uC5ED\
-  \uC5D0 \uB300\uD574 \uC54C\uC544\uBCF4\uACA0\uC2B5\uB2C8\uB2E4. RFID\uB294 \uC0AC\
-  \uC6A9 \uBAA9\uC801\uC5D0 \uB530\uB77C \uB2E4\uC591\uD55C \uC8FC\uD30C\uC218 \uB300\
-  \uC5ED\uC744 \uC0AC\uC6A9\uD569\uB2C8\uB2E4. \uC77C\uBC18\uC801\uC73C\uB85C, \uB0AE\
-  \uC740 \uC8FC\uD30C\uC218 \uB300\uC5ED\uC740 \uC9E7\uC740 \uAC70\uB9AC\uC5D0\uC11C\
-  \ \uC791\uB3D9\uD558\uBA70, \uB192\uC740 \uC8FC\uD30C\uC218 \uB300\uC5ED\uC740 \uB354\
-  \ \uB113\uC740 \uAC70\uB9AC\uC5D0\uC11C \uC791\uB3D9\uD569\uB2C8\uB2E4.\n\uAD6D\uB0B4\
-  \uC5D0\uC11C \uD56D\uB9CC \uC9C0\uC5ED\uC5D0 \uC81C\uD55C\uC801\uC73C\uB85C \uC0AC\
-  \uC6A9\uB418\uB294 \uBC18\uB2A5\uB3D9\uD615 RFID \uC2DC\uC2A4\uD15C\uC740 433\u3392\
-  \ \uB300\uC5ED\uC744 \uC0AC\uC6A9\uD569\uB2C8\uB2E4. \uC774 \uC8FC\uD30C\uC218 \uB300\
-  \uC5ED\uC740 \uAD6D\uC81C\uC801\uC73C\uB85C \uC790\uC720\uB86D\uAC8C \uC0AC\uC6A9\
-  \uD560 \uC218 \uC788\uB294 ISM \uB300\uC5ED \uC911 \uD558\uB098\uC774\uBA70, \uC774\
-  \ \uB300\uC5ED\uC744 \uC0AC\uC6A9\uD558\uB294 RFID \uC2DC\uC2A4\uD15C\uC740 \uC8FC\
-  \uB85C \uCC28\uB7C9 \uCD94\uC801, \uCEE8\uD14C\uC774\uB108 \uCD94\uC801 \uB4F1\uC5D0\
-  \ \uD65C\uC6A9\uB429\uB2C8\uB2E4.\n\uB530\uB77C\uC11C, \uC815\uB2F5\uC740 (A)\uC785\
-  \uB2C8\uB2E4.\n\nQ.\uB9AC\uB354\uC758 \uC548\uD14C\uB098 \uCD9C\uB825\uC774 0.5W\uB77C\
-  \uACE0 \uD560 \uB54C dBm\uC758 \uD658\uC0B0 \uAC12\uC740? (\uB2E8,log105\u2252 0.7)\n\
-  A.0.7 dBm\nB. -7 dBm\nC. 27 dBm\nD.37 dBm\n\uC815\uB2F5:\uBA3C\uC800, dBm\uC740\
-  \ \uC804\uB825\uC744 \uB098\uD0C0\uB0B4\uB294 \uB2E8\uC704\uB85C, 1mW\uB97C \uAE30\
-  \uC900\uC73C\uB85C \uD55C \uB85C\uADF8 \uC2A4\uCF00\uC77C\uC785\uB2C8\uB2E4. dBm\uC758\
-  \ \uACC4\uC0B0 \uACF5\uC2DD\uC740 \uB2E4\uC74C\uACFC \uAC19\uC2B5\uB2C8\uB2E4: \n\
-  dBm = 10 * log10(\uC804\uB825(W) / 1mW)\n\uC774 \uBB38\uC81C\uC5D0\uC11C\uB294 \uB9AC\
-  \uB354\uC758 \uC548\uD14C\uB098 \uCD9C\uB825\uC774 0.5W\uB85C \uC8FC\uC5B4\uC84C\
-  \uC2B5\uB2C8\uB2E4. \uADF8\uB7F0\uB370, dBm\uC740 mW\uB97C \uAE30\uC900\uC73C\uB85C\
-  \ \uD558\uBBC0\uB85C, \uC774 \uAC12\uC744 mW\uB85C \uBCC0\uD658\uD574\uC57C \uD569\
-  \uB2C8\uB2E4. \n1W = 1000mW \uC774\uBBC0\uB85C, 0.5W = 500mW\uC785\uB2C8\uB2E4.\
-  \ \n\uC774\uC81C dBm\uB85C \uBCC0\uD658\uD574\uBCF4\uACA0\uC2B5\uB2C8\uB2E4. \n\
-  dBm = 10 * log10(500mW / 1mW) \n     = 10 * log10(500)\n     = 10 * 2.7 (log105\u2252\
-  \ 0.7\uC774\uBBC0\uB85C, log10(500)\uB294 log10(5) + log10(100)\uC73C\uB85C \uACC4\
-  \uC0B0\uD560 \uC218 \uC788\uC73C\uBA70, \uC774\uB97C \uD1B5\uD574 \uC57D 2.7\uB85C\
-  \ \uCD94\uC815\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.)\n\uB530\uB77C\uC11C, \uC815\
-  \uB2F5\uC740 (C)\uC785\uB2C8\uB2E4.\n\nQ.\uD6C4\uBC29 \uC0B0\uB780(back-scattering)\
-  \ \uBC29\uC2DD\uC5D0 \uB300\uD55C \uC124\uBA85\uC73C\uB85C \uD2C0\uB9B0 \uAC83\uC740\
-  ?\nA.\uB9AC\uB354\uC640 \uD0DC\uADF8\uB294 \uC804\uC790\uD30C \uACB0\uD569 \uBC29\
-  \uC2DD\uC774\uB2E4.\nB. \uC548\uD14C\uB098\uB97C \uD1B5\uD55C \uC6D0\uAC70\uB9AC\
-  \uC7A5\uC5D0\uC11C\uC758 \uC804\uC790\uAE30\uD30C\uC5D0 \uC758\uD574 \uC774\uB8E8\
-  \uC5B4\uC9C0\uBBC0\uB85C \uC6D0\uAC70\uB9AC\uC7A5 \uC870\uAC74\uC778 \u03BB/2\u03C0\
-  \uBCF4\uB2E4 \uAC00\uAE4C\uC6B4 \uAC70\uB9AC\uC5D0\uC11C \uC774\uB8E8\uC5B4\uC9C4\
-  \uB2E4.\nC. UHF \uC218\uB3D9\uD0DC\uADF8\uC5D0\uC11C \uC774\uC6A9\uD55C\uB2E4.\n\
-  D.\uD0DC\uADF8\uC758 \uB808\uC774\uB354 \uB2E8\uBA74\uC801(RCS: radar cross section)\uC744\
-  \ \uBCC0\uD654\uC2DC\uD0A4\uB294 \uBC29\uC2DD\uC774\uB2E4.\n\uC815\uB2F5:\uBA3C\uC800\
-  , \uD6C4\uBC29 \uC0B0\uB780(back-scattering) \uBC29\uC2DD\uC774\uB780 RFID \uAE30\
-  \uC220\uC5D0\uC11C \uB9AC\uB354\uC640 \uD0DC\uADF8 \uAC04\uC758 \uD1B5\uC2E0 \uBC29\
-  \uC2DD \uC911 \uD558\uB098\uC785\uB2C8\uB2E4. \uB9AC\uB354\uC5D0\uC11C \uC804\uC1A1\
-  \uD55C \uC804\uC790\uAE30\uD30C\uB97C \uD0DC\uADF8\uAC00 \uBC18\uC0AC\uD558\uC5EC\
-  \ \uB2E4\uC2DC \uB9AC\uB354\uB85C \uC804\uC1A1\uD558\uB294 \uBC29\uC2DD\uC73C\uB85C\
-  , UHF \uC218\uB3D9\uD0DC\uADF8\uC5D0\uC11C \uC774\uC6A9\uB429\uB2C8\uB2E4. \uC774\
-  \ \uBC29\uC2DD\uC5D0\uC11C\uB294 \uB9AC\uB354\uC640 \uD0DC\uADF8\uAC00 \uC804\uC790\
-  \uD30C \uACB0\uD569 \uBC29\uC2DD\uC73C\uB85C \uD1B5\uC2E0\uD558\uBA70, \uD0DC\uADF8\
-  \uC758 \uB808\uC774\uB354 \uB2E8\uBA74\uC801(RCS: radar cross section)\uC744 \uBCC0\
-  \uD654\uC2DC\uD0A4\uB294 \uBC29\uC2DD\uC785\uB2C8\uB2E4.\n\uC774\uC81C \uC120\uD0DD\
-  \uC9C0\uB97C \uD558\uB098\uC529 \uC0B4\uD3B4\uBCF4\uACA0\uC2B5\uB2C8\uB2E4.\n(A)\
-  \ \uB9AC\uB354\uC640 \uD0DC\uADF8\uB294 \uC804\uC790\uD30C \uACB0\uD569 \uBC29\uC2DD\
-  \uC774\uB2E4.\n- \uC774\uB294 \uC633\uC740 \uC124\uBA85\uC785\uB2C8\uB2E4. \uD6C4\
-  \uBC29 \uC0B0\uB780 \uBC29\uC2DD\uC740 \uB9AC\uB354\uC640 \uD0DC\uADF8\uAC00 \uC804\
-  \uC790\uD30C \uACB0\uD569 \uBC29\uC2DD\uC73C\uB85C \uD1B5\uC2E0\uD569\uB2C8\uB2E4\
-  .\n(B) \uC548\uD14C\uB098\uB97C \uD1B5\uD55C \uC6D0\uAC70\uB9AC\uC7A5\uC5D0\uC11C\
-  \uC758 \uC804\uC790\uAE30\uD30C\uC5D0 \uC758\uD574 \uC774\uB8E8\uC5B4\uC9C0\uBBC0\
-  \uB85C \uC6D0\uAC70\uB9AC\uC7A5 \uC870\uAC74\uC778 \u03BB/2\u03C0\uBCF4\uB2E4 \uAC00\
-  \uAE4C\uC6B4 \uAC70\uB9AC\uC5D0\uC11C \uC774\uB8E8\uC5B4\uC9C4\uB2E4.\n- \uC774\uB294\
-  \ \uC633\uC9C0 \uC54A\uC740 \uC124\uBA85\uC785\uB2C8\uB2E4. \uD6C4\uBC29 \uC0B0\uB780\
-  \ \uBC29\uC2DD\uC740 \uC548\uD14C\uB098\uB97C \uD1B5\uD55C \uC6D0\uAC70\uB9AC\uC7A5\
-  \uC5D0\uC11C\uC758 \uC804\uC790\uAE30\uD30C\uC5D0 \uC758\uD574 \uC774\uB8E8\uC5B4\
-  \uC9C0\uB294 \uAC83\uC740 \uB9DE\uC9C0\uB9CC, \uC6D0\uAC70\uB9AC\uC7A5 \uC870\uAC74\
-  \uC778 \u03BB/2\u03C0\uBCF4\uB2E4 \uBA3C \uAC70\uB9AC\uC5D0\uC11C \uC774\uB8E8\uC5B4\
-  \uC9D1\uB2C8\uB2E4.\n(C) UHF \uC218\uB3D9\uD0DC\uADF8\uC5D0\uC11C \uC774\uC6A9\uD55C\
-  \uB2E4.\n- \uC774\uB294 \uC633\uC740 \uC124\uBA85\uC785\uB2C8\uB2E4. UHF \uC218\uB3D9\
-  \uD0DC\uADF8\uB294 \uD6C4\uBC29 \uC0B0\uB780 \uBC29\uC2DD\uC744 \uC774\uC6A9\uD558\
-  \uC5EC \uB9AC\uB354\uC640 \uD1B5\uC2E0\uD569\uB2C8\uB2E4.\n(D) \uD0DC\uADF8\uC758\
-  \ \uB808\uC774\uB354 \uB2E8\uBA74\uC801(RCS: radar cross section)\uC744 \uBCC0\uD654\
-  \uC2DC\uD0A4\uB294 \uBC29\uC2DD\uC774\uB2E4.\n- \uC774\uB294 \uC633\uC740 \uC124\
-  \uBA85\uC785\uB2C8\uB2E4. \uD6C4\uBC29 \uC0B0\uB780 \uBC29\uC2DD\uC740 \uD0DC\uADF8\
-  \uC758 \uB808\uC774\uB354 \uB2E8\uBA74\uC801\uC744 \uBCC0\uD654\uC2DC\uD0A4\uB294\
-  \ \uBC29\uC2DD\uC73C\uB85C \uB3D9\uC791\uD569\uB2C8\uB2E4.\n\uB530\uB77C\uC11C,\
-  \ \uC815\uB2F5\uC740 (B)\uC785\uB2C8\uB2E4.\n\nQ.\uC804\uC790\uD30C\uAC00 \uC790\
-  \uC720\uACF5\uAC04\uC744 \uC9C4\uD589\uD560 \uB54C \uAC70\uB9AC\uC640 \uC804\uB825\
-  \ \uBC00\uB3C4\uC640\uC758 \uAD00\uACC4\uB294?\nA.\uAC70\uB9AC\uAC00 2\uBC30\uAC00\
-  \ \uB418\uBA74 \uC804\uB825 \uBC00\uB3C4\uB3C4 \uE0352\uBC30\uAC00 \uB41C\uB2E4\
-  .\nB. \uAC70\uB9AC\uAC00 2\uBC30\uAC00 \uB418\uBA74 \uC804\uB825 \uBC00\uB3C4\uB294\
-  \ 1/2\uBC30\uAC00 \uB41C\uB2E4.\nC. \uAC70\uB9AC\uAC00 2\uBC30\uAC00 \uB418\uBA74\
-  \ \uC804\uB825 \uBC00\uB3C4\uB294 4\uBC30\uAC00 \uB41C\uB2E4.\nD.\uAC70\uB9AC\uAC00\
-  \ 2\uBC30\uAC00 \uB418\uBA74 \uC804\uB825 \uBC00\uB3C4\uB294 1/4\uBC30\uAC00 \uB41C\
-  \uB2E4.\n\uC815\uB2F5:\uC804\uC790\uD30C\uAC00 \uC790\uC720\uACF5\uAC04\uC744 \uC9C4\
-  \uD589\uD560 \uB54C, \uAC70\uB9AC\uC640 \uC804\uB825 \uBC00\uB3C4\uC640\uC758 \uAD00\
-  \uACC4\uB97C \uC774\uD574\uD558\uAE30 \uC704\uD574\uC11C\uB294 \uC804\uC790\uAE30\
-  \uD30C\uC758 \uD2B9\uC131\uC744 \uACE0\uB824\uD574\uC57C \uD569\uB2C8\uB2E4.\n\uC804\
-  \uC790\uAE30\uD30C\uB294 \uC804\uAE30\uC7A5\uACFC \uC790\uAE30\uC7A5\uC774 \uC11C\
-  \uB85C \uC218\uC9C1\uC73C\uB85C \uC9C4\uB3D9\uD558\uBA70 \uACF5\uAC04\uC744 \uC804\
-  \uD30C\uD558\uB294 \uD30C\uB3D9\uC785\uB2C8\uB2E4. \uC774 \uB54C, \uC804\uC790\uAE30\
-  \uD30C\uC758 \uC804\uB825 \uBC00\uB3C4\uB294 \uC804\uAE30\uC7A5\uACFC \uC790\uAE30\
-  \uC7A5\uC758 \uC81C\uACF1\uC5D0 \uBE44\uB840\uD569\uB2C8\uB2E4.\n\uC804\uB825 \uBC00\
-  \uB3C4\uB97C P, \uC804\uAE30\uC7A5\uC744 E, \uC790\uAE30\uC7A5\uC744 H\uB77C\uACE0\
-  \ \uD558\uBA74,\nP = (E^2 + H^2) / 2\n\uB85C \uB098\uD0C0\uB0BC \uC218 \uC788\uC2B5\
-  \uB2C8\uB2E4.\n\uC774\uB54C, \uC804\uC790\uAE30\uD30C\uC758 \uC138\uAE30\uB294 \uAC70\
-  \uB9AC\uC5D0 \uB530\uB77C \uC9C0\uC218\uC801\uC73C\uB85C \uAC10\uC18C\uD569\uB2C8\
-  \uB2E4. \uC989, \uAC70\uB9AC\uAC00 r\uBC30 \uC99D\uAC00\uD558\uBA74, \uC804\uC790\
-  \uAE30\uD30C\uC758 \uC138\uAE30\uB294 1/r^2\uBC30 \uAC10\uC18C\uD569\uB2C8\uB2E4\
-  .\n\uB530\uB77C\uC11C, \uC815\uB2F5\uC740 (D)\uC785\uB2C8\uB2E4.\n\nQ.{{question.strip()}}\n\
-  A. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\n\uC815\uB2F5\uFF1A"
+dataset_name: telecommunications_and_wireless_technology
 include: _cot_kmmlu_yaml
-task: kmmlu_hard_cot_telecommunications_and_wireless_technology
+task: kmmlu_cot_telecommunications_and_wireless_technology
+doct_to_text: '질문: 주파수 대역에 따른 RFID 특징 중 틀린 것은?
+
+  A.UHF대역 : 900㎒ 대역과 433㎒ 대역이 사용됨
+
+  B.13.56㎒ : ISM 밴드 대역으로 UHF대역보다 인식거리가 짧음
+
+  C.2.45㎓ : 능동형과 수동형의 두 가지 형태가 사용됨
+
+  D.135㎑ 미만 : 자기장이 아닌 전기장 결합으로 동작함
+
+  정답: 차근 차근 생각해봅시다. 무선 정보통신 관련 정보를 위해 위키피디아를 참조하겠습니다. RFID(Radio Frequency Identification)는
+  무선 주파수 신호를 사용하여 태그에 저장된 정보를 읽거나 쓰는 기술입니다. RFID 시스템은 주파수 대역에 따라 다양한 특징을 가지며, 이는 시스템의
+  성능과 용도에 영향을 미칩니다. (A) UHF 대역: UHF(Ultra High Frequency) 대역은 300 MHz에서 3 GHz 사이의
+  주파수를 포함합니다. RFID에서는 주로 860 MHz에서 960 MHz 범위가 사용되며, 433 MHz 대역도 사용되는 경우가 있습니다.   이
+  선택지는 올바릅니다. (B) 13.56 MHz: 이 주파수는 HF(High Frequency) 대역에 속하며, ISM(Industrial, Scientific,
+  and Medical) 밴드로도 알려져 있습니다. UHF 대역보다 인식 거리가 짧은 것이 일반적이므로, 이 선택지도 올바릅니다. (C) 2.45
+  GHz: 이 주파수는 또한 ISM 밴드에 속하며, RFID에서는 주로 능동형 태그에 사용됩니다. 수동형 태그도 이 주파수를 사용할 수 있지만,
+  일반적으로 능동형 태그가 더 널리 사용됩니다. 이 선택지도 올바르다고 볼 수 있습니다. (D) 135 KHz 미만: 이 주파수는 LF(Low Frequency)
+  대역에 속합니다. LF RFID 시스템은 주로 자기장 결합을 사용하여 동작하며, 전기장 결합은 주로 더 높은 주파수 대역에서 사용됩니다.   이
+  선택지는 잘못된 정보를 제공하고 있습니다. 따라서, 정답은 (D) 입니다.
+
+
+  질문: 현재 국내에서 항만 지역에만 제한적으로 사용되는 반능동형 RFID 시스템의 주파수 대역은?
+
+  A.433㎒ 대역
+
+  B.900㎒ 대역
+
+  C.13.56㎒ 대역
+
+  D.2.45㎓ 대역
+
+  정답: 차근 차근 생각해봅시다. 무선 정보통신 관련 정보를 위해 위키피디아를 참조하겠습니다. 먼저, RFID 시스템에 대해 이해해야 합니다. RFID는
+  Radio Frequency Identification의 약자로, 무선 주파수를 이용하여 정보를 저장하고 읽는 시스템을 말합니다. 이 시스템은
+  태그, 리더기, 그리고 관련된 데이터베이스로 구성되어 있습니다. 태그는 물체에 부착되며, 주파수를 통해 정보를 전송합니다. 리더기는 태그의 정보를
+  읽어 데이터베이스에 저장하거나 처리합니다. 이러한 RFID 시스템은 물류, 유통, 보안 등 다양한 분야에서 활용되고 있습니다. 다음으로, 반능동형
+  RFID에 대해 알아보겠습니다. 반능동형 RFID는 태그가 리더기의 신호를 받아 그 에너지를 이용해 정보를 되돌려 보내는 형태의 RFID를 말합니다.
+  이러한 반능동형 RFID는 주로 물류 트래킹, 차량 트래킹, 자산 관리 등에 활용됩니다. 이제, 주파수 대역에 대해 알아보겠습니다. RFID는
+  사용 목적에 따라 다양한 주파수 대역을 사용합니다. 일반적으로, 낮은 주파수 대역은 짧은 거리에서 작동하며, 높은 주파수 대역은 더 넓은 거리에서
+  작동합니다. 국내에서 항만 지역에 제한적으로 사용되는 반능동형 RFID 시스템은 433㎒ 대역을 사용합니다. 이 주파수 대역은 국제적으로 자유롭게
+  사용할 수 있는 ISM 대역 중 하나이며, 이 대역을 사용하는 RFID 시스템은 주로 차량 추적, 컨테이너 추적 등에 활용됩니다. 따라서, 정답은
+  (A) 입니다.
+
+
+  질문: 리더의 안테나 출력이 0.5W라고 할 때 dBm의 환산 값은? (단,log105≒ 0.7)
+
+  A.0.7 dOPTIONm
+
+  B.-7 dOPTIONm
+
+  C.27 dOPTIONm
+
+  D.37 dOPTIONm
+
+  정답: 차근 차근 생각해봅시다. 무선 정보통신 관련 정보를 위해 위키피디아를 참조하겠습니다. 먼저, dBm은 전력을 나타내는 단위로, 1mW를
+  기준으로 한 로그 스케일입니다. dBm의 계산 공식은 다음과 같습니다: dBm = 10 * log10(전력(W) / 1mW) 이 문제에서는 리더의
+  안테나 출력이 0.5W로 주어졌습니다. 그런데, dBm은 mW를 기준으로 하므로, 이 값을 mW로 변환해야 합니다. 1W = 1000mW 이므로,
+  0.5W = 500mW입니다. 이제 dBm로 변환해보겠습니다. dBm = 10 * log10(500mW / 1mW) = 10 * log10(500)
+  = 10 * 2.7 (log105≒ 0.7이므로, log10(500)는 log10(5) + log10(100)으로 계산할 수 있으며, 이를 통해
+  약 2.7로 추정할 수 있습니다.)  , dBm은 약 27입니다. 이는 선택지 C와 일치합니다. 따라서, 정답은 (C) 입니다.
+
+
+  질문: 후방 산란(back-scattering) 방식에 대한 설명으로 틀린 것은?
+
+  A.리더와 태그는 전자파 결합 방식이다.
+
+  B.안테나를 통한 원거리장에서의 전자기파에 의해 이루어지므로 원거리장 조건인 λ/2π보다 가까운 거리에서 이루어진다.
+
+  C.UHF 수동태그에서 이용한다.
+
+  D.태그의 레이더 단면적(ROPTIONS: radar cross section)을 변화시키는 방식이다.
+
+  정답: 차근 차근 생각해봅시다. 무선 정보통신 관련 정보를 위해 위키피디아를 참조하겠습니다. 먼저, 후방 산란(back-scattering) 방식이란
+  RFID 기술에서 리더와 태그 간의 통신 방식 중 하나입니다. 리더에서 전송한 전자기파를 태그가 반사하여 다시 리더로 전송하는 방식으로, UHF
+  수동태그에서 이용됩니다. 이 방식에서는 리더와 태그가 전자파 결합 방식으로 통신하며, 태그의 레이더 단면적(RCS: radar cross section)을
+  변화시키는 방식입니다. 이제 선택지를 하나씩 살펴보겠습니다. (A) 리더와 태그는 전자파 결합 방식이다. - 이는 옳은 설명입니다. 후방 산란
+  방식은 리더와 태그가 전자파 결합 방식으로 통신합니다. (B) 안테나를 통한 원거리장에서의 전자기파에 의해 이루어지므로 원거리장 조건인 λ/2π보다
+  가까운 거리에서 이루어진다. - 이는 옳지 않은 설명입니다. 후방 산란 방식은 안테나를 통한 원거리장에서의 전자기파에 의해 이루어지는 것은 맞지만,
+  원거리장 조건인 λ/2π보다 먼 거리에서 이루어집니다. (C) UHF 수동태그에서 이용한다. - 이는 옳은 설명입니다. UHF 수동태그는 후방
+  산란 방식을 이용하여 리더와 통신합니다. (D) 태그의 레이더 단면적(RCS: radar cross section)을 변화시키는 방식이다. -
+  이는 옳은 설명입니다. 후방 산란 방식은 태그의 레이더 단면적을 변화시키는 방식으로 동작합니다. 따라서, 정답은 (B) 입니다.
+
+
+  질문: 전자파가 자유공간을 진행할 때 거리와 전력 밀도와의 관계는?
+
+  A.거리가 2배가 되면 전력 밀도도 2배가 된다.
+
+  B.거리가 2배가 되면 전력 밀도는 1/2배가 된다.
+
+  C.거리가 2배가 되면 전력 밀도는 4배가 된다.
+
+  D.거리가 2배가 되면 전력 밀도는 1/4배가 된다.
+
+  정답: 차근 차근 생각해봅시다. 무선 정보통신 관련 정보를 위해 위키피디아를 참조하겠습니다. 전자파가 자유공간을 진행할 때, 거리와 전력 밀도와의
+  관계를 이해하기 위해서는 전자기파의 특성을 고려해야 합니다. 전자기파는 전기장과 자기장이 서로 수직으로 진동하며 공간을 전파하는 파동입니다. 이
+  때, 전자기파의 전력 밀도는 전기장과 자기장의 제곱에 비례합니다. 전력 밀도를 P, 전기장을 E, 자기장을 H라고 하면, P = (E^2 + H^2)
+  / 2 로 나타낼 수 있습니다. 이때, 전자기파의 세기는 거리에 따라 지수적으로 감소합니다. 즉, 거리가 r배 증가하면, 전자기파의 세기는 1/r^2배
+  감소합니다.  , 거리가 2배가 되면, 전자기파의 세기는 1/4배가 됩니다. 그리고 전력 밀도는 전기장과 자기장의 제곱에 비례하므로, 거리가 2배가
+  되면 전력 밀도는 1/4배가 됩니다. 따라서, 정답은 (D) 입니다.
+
+
+  질문: {question}
+
+  A.{A}
+
+  B.{B}
+
+  C.{C}
+
+  D.{D}
+
+  정답:'
