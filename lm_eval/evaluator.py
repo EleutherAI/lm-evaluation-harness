@@ -515,65 +515,35 @@ def evaluate(
                     results[task_name][metric + "_stderr" + "," + key] = "N/A"
 
         if bool(results):
-            for group, task_list in reversed(task_hierarchy.items()):
-                if task_list == []:
-                    # TODO: No samples when bypass
-                    total_size = results[group].get("samples", 999)
-                else:
-                    total_size = 0
+            for group, task_list in task_hierarchy.items():
+                if len(task_list) == 0:
+                    # task_hierarchy entries are either
+                    # `group_name: [subtask1, subtask2, ...]`
+                    # or `task_name: []`.
+                    # we only want to operate on groups here.
+                    continue
+                for metric in [
+                    key for key in results[task_list[0]].keys() if "_stderr" not in key and key not in ["alias", "samples"]
+                ]: # TODO: what if tasks don't all share the same metrics
+                    stderr = "_stderr,".join(metric.split(","))
 
-                    for task in task_list:
-                        metrics = results[task].copy()
+                    # gather metrics, sizes, and stderrs from subtasks
+                    metrics = [results[task][metric] for task in task_list] # TODO: copy?
+                    stderrs = [results[task][stderr] for task in task_list]
+                    sizes = [results[task]["samples"] for task in task_list]
 
-                        if "alias" in metrics:
-                            metrics.pop("alias")
+                    # compute group's pooled metric and stderr
+                    results[group][metric] = lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
+                    # TODO: calculate grouped metric using aggregation fn
+                    if "N/A" in stderrs:
+                        results[group][stderr] = "N/A"
+                    else:
+                        results[group][stderr] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
+                        # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
+                        # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
+                        # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
 
-                        current_size = metrics.pop("samples")
-
-                        all_stderr = []
-                        for metric in [
-                            key for key in metrics.keys() if "_stderr" not in key
-                        ]:
-                            stderr = "_stderr,".join(metric.split(","))
-                            stderr_score = results[task][stderr]
-                            if stderr_score == "N/A":
-                                var_score = "N/A"
-                            else:
-                                var_score = stderr_score**2
-                                all_stderr.append(stderr)
-
-                            metric_score = results[task][metric]
-
-                            if metric in results[group]:
-                                results[group][metric] = (
-                                    results[group][metric] * total_size
-                                    + metric_score * current_size
-                                ) / (total_size + current_size)
-                                # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                                if var_score == "N/A" or results[group][stderr] == "N/A":
-                                    results[group][stderr] = "N/A"
-                                else:
-                                    results[group][stderr] = (
-                                        (total_size - 1) * results[group][stderr]
-                                        + (current_size - 1) * var_score
-                                    ) / (
-                                        total_size + current_size - 1
-                                    ) + total_size * current_size / (
-                                        (total_size + current_size)
-                                        * (total_size + current_size - 1)
-                                    ) * (
-                                        results[group][metric] - metric_score
-                                    ) ** 2
-                            else:
-                                results[group][metric] = metric_score
-                                results[group][stderr] = var_score
-
-                        total_size += current_size
-
-                    for stderr in all_stderr:
-                        results[group][stderr] = np.sqrt(results[group][stderr])
-
-                results[group]["samples"] = total_size
+                    results[group]["samples"] = sum(sizes)
 
         def print_tasks(task_hierarchy, results, tab=0):
             results_agg = collections.defaultdict(dict)

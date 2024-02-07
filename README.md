@@ -45,6 +45,7 @@ git clone https://github.com/EleutherAI/lm-evaluation-harness
 cd lm-evaluation-harness
 pip install -e .
 ```
+
 We also provide a number of optional dependencies for extended functionality. A detailed table is available at the end of this document.
 
 ## Basic Usage
@@ -174,6 +175,7 @@ Note that for externally hosted models, configs such as `--device` and `--batch_
 | vLLM                                                                                                                      | :heavy_check_mark:       | `vllm`                                                              | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | Mamba                       | :heavy_check_mark:       | `mamba_ssm`                                                                      | [Mamba architecture Language Models via the `mamba_ssm` package](https://huggingface.co/state-spaces) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
 | Huggingface Optimum (Causal LMs)    | ✔️         | `openvino`                                 |     Any decoder-only AutoModelForCausalLM converted with Huggingface Optimum into OpenVINO™ Intermediate Representation (IR) format                           |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
+| Neuron via AWS Inf2 (Causal LMs)    | ✔️         | `neuronx`                                 |     Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2)                         |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
 | Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions` (using `openai-chat-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's Completions or ChatCompletions interface                                  | `generate_until`                                           |                                | ...                |
 
 Models which do not supply logits or logprobs can be used with tasks of type `generate_until` only, while local models, or APIs that supply logprobs/logits of their prompts, can be run on all task types: `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
@@ -196,7 +198,7 @@ If you have a Metal compatible Mac, you can run the eval harness using the MPS b
 > You can inspect what the LM inputs look like by running the following command:
 > ```bash
 > python write_out.py \
->     --tasks all_tasks \
+>     --tasks <task1,task2,...> \
 >     --num_fewshot 5 \
 >     --num_examples 10 \
 >     --output_base_path /path/to/output/folder
@@ -312,7 +314,9 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | anthropic     | For using Anthropic's models          |
 | dev           | For linting PRs and contributions     |
 | gptq          | For loading models with GPTQ          |
+| hf_transfer   | For speeding up HF Hub file downloads |
 | ifeval        | For running the IFEval task           |
+| neuronx       | For running on AWS inf2 instances     |
 | mamba         | For loading Mamba SSM models          |
 | math          | For running math task answer checking |
 | multilingual  | For multilingual tokenizers           |
