@@ -7,6 +7,9 @@ import lm_eval.tasks as tasks
 from lm_eval.api.instance import Instance
 
 
+task_manager = tasks.TaskManager()
+
+
 @pytest.mark.skip(reason="requires CUDA")
 class TEST_VLLM:
     vllm = pytest.importorskip("vllm")
@@ -17,15 +20,15 @@ class TEST_VLLM:
     except ModuleNotFoundError:
         pass
     torch.use_deterministic_algorithms(True)
-    tasks.initialize_tasks()
-    multiple_choice_task = tasks.TASK_REGISTRY.get("arc_easy")()  # type: ignore
+    task_list = task_manager.load_task_or_group(["arc_easy", "gsm8k", "wikitext"])
+    multiple_choice_task = task_list["arc_easy"]  # type: ignore
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: List[Instance] = multiple_choice_task.instances
-    generate_until_task = tasks.TASK_REGISTRY.get("gsm8k")()  # type: ignore
+    generate_until_task = task_list["gsm8k"]  # type: ignore
     generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
     generate_until_task._config.generation_kwargs["max_gen_toks"] = 10
     generate_until: List[Instance] = generate_until_task.instances
-    rolling_task = tasks.TASK_REGISTRY.get("wikitext")()  # type: ignore
+    rolling_task = task_list["wikitext"]  # type: ignore
     rolling_task.build_all_requests(limit=10, rank=0, world_size=1)
     ROLLING: List[Instance] = rolling_task.instances
 

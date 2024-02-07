@@ -472,6 +472,10 @@ def get_git_commit_hash():
     return git_hash
 
 
+def ignore_constructor(loader, node):
+    return node
+
+
 def import_function(loader, node):
     function_name = loader.construct_scalar(node)
     yaml_path = os.path.dirname(loader.name)
@@ -489,11 +493,14 @@ def import_function(loader, node):
     return function
 
 
-# Add the import_function constructor to the YAML loader
-yaml.add_constructor("!function", import_function)
+def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"):
+    if mode == "simple":
+        constructor_fn = ignore_constructor
+    elif mode == "full":
+        constructor_fn = import_function
 
-
-def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
+    # Add the import_function constructor to the YAML loader
+    yaml.add_constructor("!function", constructor_fn)
     if yaml_config is None:
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.full_load(file)
@@ -521,7 +528,7 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
                 path = os.path.join(yaml_dir, path)
 
             try:
-                included_yaml_config = load_yaml_config(path)
+                included_yaml_config = load_yaml_config(yaml_path=path, mode=mode)
                 final_yaml_config.update(included_yaml_config)
             except Exception as ex:
                 # If failed to load, ignore
