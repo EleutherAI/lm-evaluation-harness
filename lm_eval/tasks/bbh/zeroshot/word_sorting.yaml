@@ -4,9 +4,10 @@
 "include": "_zeroshot_template_yaml"
 "task": "bbh_zeroshot_word_sorting"
 filter_list:
-  - name: "get-answer"
+  - name: "strict-match"
     filter:
-      - function: "regex"
-        group_select: -1
-        regex_pattern: ":[\n` ]*([^\n]+)"
-      - function: "take_last"
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.WordSortFilter
+      - function: "take_first"

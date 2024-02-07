@@ -5,9 +5,14 @@
 "task": "bbh_cot_zeroshot_boolean_expressions"
 
 filter_list:
-  - name: "get-answer"
+  - name: "flexible-extract"
     filter:
       - function: "regex"
         group_select: -1
-        regex_pattern: "(True|False)"
-      - function: "take_last"
+        regex_pattern: "\\b(True|False)\\b"
+      - function: "take_first"
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+      - function: "take_first"

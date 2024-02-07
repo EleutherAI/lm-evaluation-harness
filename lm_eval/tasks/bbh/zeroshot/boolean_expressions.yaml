@@ -5,9 +5,12 @@
 "task": "bbh_zeroshot_boolean_expressions"
 
 filter_list:
-  - name: "get-answer"
+  - name: "strict-match"
+    filter:
+      - function: "take_first"
+  - name: "flexible-extract"
     filter:
       - function: "regex"
-        group_select: -1
-        regex_pattern: "(True|False)"
-      - function: "take_last"
+        group_select: 0
+        regex_pattern: "\\b(True|False)\\b"
+      - function: "take_first"

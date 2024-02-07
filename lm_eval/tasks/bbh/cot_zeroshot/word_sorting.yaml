@@ -4,9 +4,12 @@
 "include": "_cot_zeroshot_template_yaml"
 "task": "bbh_cot_zeroshot_word_sorting"
 filter_list:
-  - name: "get-answer"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.WordSortFilter
+      - function: "take_first"
+  - name: "strict-match"
     filter:
       - function: "regex"
-        group_select: -1
-        regex_pattern: ":[\n` ]*([^\n]+)"
-      - function: "take_last"
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+      - function: "take_first"

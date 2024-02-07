@@ -4,10 +4,12 @@
 "include": "_zeroshot_template_yaml"
 "task": "bbh_zeroshot_object_counting"
 filter_list:
-  - name: "get-answer"
+  - name: "strict-match"
     filter:
-      - function: "regex"
-        group_select: -1
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.NumberParseRegexFilter
+        group_select: 0
         regex_pattern: "([-0-9]+)"
-      - function: "take_last"
-
+      - function: "take_first"

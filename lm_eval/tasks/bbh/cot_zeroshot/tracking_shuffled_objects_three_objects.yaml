@@ -4,9 +4,16 @@
 "include": "_cot_zeroshot_template_yaml"
 "task": "bbh_cot_zeroshot_tracking_shuffled_objects_three_objects"
 filter_list:
-  - name: "get-answer"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.MultiChoiceRegexFilter
+        group_select: -1
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: "(\\([A-Z]\\))"
+      - function: "take_first"
+  - name: "strict-match"
     filter:
       - function: "regex"
-        group_select: -1
-        regex_pattern: "(\\([A-Z]\\))"
-      - function: "take_last"
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+      - function: "take_first"

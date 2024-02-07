@@ -5,9 +5,17 @@
 "task": "bbh_cot_zeroshot_sports_understanding"
 
 filter_list:
-  - name: "get-answer"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.MapRegexFilter
+        group_select: -1
+        ignore_case: true
+        regex_pattern_to_value:
+          \b(no|not plausible)\b: "no"
+          \b(yes|plausible)\b: "yes"
+      - function: "take_first"
+  - name: "strict-match"
     filter:
       - function: "regex"
-        group_select: -1
-        regex_pattern: "(Yes|No|yes|no)"
-      - function: "take_last"
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+      - function: "take_first"

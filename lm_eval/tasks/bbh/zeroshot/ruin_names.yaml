@@ -4,9 +4,14 @@
 "include": "_zeroshot_template_yaml"
 "task": "bbh_zeroshot_ruin_names"
 filter_list:
-  - name: "get-answer"
+  - name: "strict-match"
     filter:
-      - function: "regex"
-        group_select: -1
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.MultiChoiceRegexFilter
+        group_select: 0
+        ignore_case: true
+        ignore_punctuation: true
         regex_pattern: "(\\([A-Z]\\))"
-      - function: "take_last"
+      - function: "take_first"

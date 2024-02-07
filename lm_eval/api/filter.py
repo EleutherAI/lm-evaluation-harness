@@ -14,6 +14,7 @@ class Filter:
     In a single run, one can configure any number of separate filters or lists of filters.
 
     """
+    apply_get_first_arguments = False
 
     def __init__(self, *args, **kwargs) -> None:
         """
@@ -48,7 +49,13 @@ class FilterEnsemble:
         ]  # operate just on the model responses
         for f in self.filters:
             # apply filters in sequence
-            resps = f.apply(resps, docs)
+            if f.apply_get_first_arguments:
+                first_arguments = [
+                    inst.arguments[0] for inst in instances
+                ]
+                resps = f.apply(resps, first_arguments)
+            else:
+                resps = f.apply(resps, docs)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
         # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.

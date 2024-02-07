@@ -4,9 +4,15 @@
 "include": "_zeroshot_template_yaml"
 "task": "bbh_zeroshot_web_of_lies"
 filter_list:
-  - name: "get-answer"
+  - name: "strict-match"
     filter:
-      - function: "regex"
-        group_select: -1
-        regex_pattern: "(Yes|No|yes|no)"
-      - function: "take_last"
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.MapRegexFilter
+        group_select: 0
+        ignore_case: true
+        regex_pattern_to_value:
+          \b(no|does not tell the truth|is not telling the truth)\b: "no"
+          \b(yes|tells the truth|is telling the truth)\b: "yes"
+      - function: "take_first"

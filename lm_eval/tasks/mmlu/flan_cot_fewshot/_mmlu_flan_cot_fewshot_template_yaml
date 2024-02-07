@@ -8,12 +8,11 @@ filter_list:
   - name: "get-answer"
     filter:
       - function: "regex"
-        regex_pattern: "(?<=answer is )(\\([A-Z]\\))(?=.)|(?<=answer: )(\\([A-Z]\\))(?=.)"
+        regex_pattern: "(?<=The answer is )(.*)(?=.)"
       - function: "take_first"
 generation_kwargs:
   until:
     - "</s>"
-    - "Q:"
   do_sample: false
   temperature: 0.0
 num_fewshot: 0

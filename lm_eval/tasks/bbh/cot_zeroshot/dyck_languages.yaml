@@ -4,9 +4,14 @@
 "include": "_cot_zeroshot_template_yaml"
 "task": "bbh_cot_zeroshot_dyck_languages"
 filter_list:
-  - name: "get-answer"
+  - name: "flexible-extract"
     filter:
       - function: "regex"
         group_select: -1
-        regex_pattern: "(?<= )([\" \\[\\(<{}>\\)\\]]+)"
-      - function: "take_last"
+        regex_pattern: "(?<= )([\" \\[\\(<{}>\\)\\]]+)|([\" \\[\\(<{}>\\)\\]]+)"
+      - function: "take_first"
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+      - function: "take_first"

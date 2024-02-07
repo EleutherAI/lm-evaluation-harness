@@ -19,6 +19,7 @@ generation_kwargs:
   until:
     - "</s>"
     - "Q:"
+    - "<|im_end|>"
   do_sample: false
   temperature: 0.0
 num_fewshot: 0
