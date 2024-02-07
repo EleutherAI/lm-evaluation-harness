@@ -14,7 +14,7 @@ for run_id in run_ids:
     inspect run and get metrics
     metrics.append(metric)
 
-assert same metrics 
+assert same metrics
 find all the similar metrics and keep a tab of missing metrics.
 
 get the configs too for run comparator
@@ -29,11 +29,11 @@ test with: ayush-thakur/lm-eval-harness-integration/cw53qh3d,ayush-thakur/lm-eva
 """
 
 import argparse
-import wandb
 import logging
 from datetime import datetime
+
+import wandb
 import wandb.apis.reports as wr
-from lm_eval import utils
 
 
 logger = logging.getLogger(__name__)
@@ -46,10 +46,10 @@ def parse_args():
         description="Provide a list of wandb run ids or report URLs to generate a report comparing different evaluation runs."
     )
     parser.add_argument(
-        'runs', 
-        metavar='STRING',
-        type=lambda s: s.split(','),
-        help='A list of W&B run_paths or report URLs separated by commas'
+        "runs",
+        metavar="STRING",
+        type=lambda s: s.split(","),
+        help="A list of W&B run_paths or report URLs separated by commas",
     )
     parser.add_argument(
         "--wandb_project",
@@ -57,7 +57,7 @@ def parse_args():
     )
     parser.add_argument(
         "--wandb_entity",
-        help="The wandb entity.", # TODO: better desp
+        help="The wandb entity.",  # TODO: better desp
     )
     return parser.parse_args()
 
@@ -74,16 +74,16 @@ def find_common_and_uncommon_items(tasks, run_paths):
                 if item not in uncommon_items_with_indices:
                     uncommon_items_with_indices[item] = [run_paths[i]]
                 else:
-                    uncommon_items_with_indices[item].append(run_path[i])
+                    uncommon_items_with_indices[item].append(run_paths[i])
 
     return common_items, uncommon_items_with_indices
-    
+
 
 def main():
     args = parse_args()
     run_paths = args.runs
     print("Comparing evaluation results with W&B run ids: ", run_paths)
-    assert type(run_paths) == list
+    assert isinstance(run_paths, list)
 
     eval_runs = {}
     for run_path in run_paths:
@@ -111,7 +111,7 @@ def main():
             for summary_key in summary_keys:
                 if task in summary_key:
                     value = summary[summary_key]
-                    if type(value) == float or type(value) == int:
+                    if isinstance(value, float) or isinstance(value, int):
                         eval_metrics[summary_key] = value
 
         eval_runs[run_path]["eval_metrics"] = eval_metrics
@@ -121,7 +121,9 @@ def main():
     all_tasks = [value["tasks"] for value in eval_runs.values()]
     print("All tasks: ", all_tasks)
 
-    common_tasks, uncommon_tasks_with_run_ids = find_common_and_uncommon_items(all_tasks, run_paths)
+    common_tasks, uncommon_tasks_with_run_ids = find_common_and_uncommon_items(
+        all_tasks, run_paths
+    )
     print(common_tasks)
     print(uncommon_tasks_with_run_ids)
 
@@ -148,47 +150,44 @@ def main():
     print(report)
 
     run_urls = [value["url"] for value in eval_runs.values()]
-    run_urls_str =  "\n" + "* " + "\n* ".join(run_urls) + "\n"
-    tasks_str =  "\n" + "* " + "\n* ".join(sorted(common_tasks)) + "\n"
+    run_urls_str = "\n" + "* " + "\n* ".join(run_urls) + "\n"
+    tasks_str = "\n" + "* " + "\n* ".join(sorted(common_tasks)) + "\n"
 
-    blocks = (
-        [
-            wr.TableOfContents(),
-            wr.MarkdownBlock(
-                "This report is comparing the evaluation results from the following evaluation runs: "
-                f"{run_urls_str}"
-            ),
-            wr.H2("Comparing Evaluation Results by Common Tasks")
-            wr.MarkdownBlock(
-                "The following tasks are common in the provided evaluation runs: "
-                f"{tasks_str}"
-            ),
-            
-            # wr.H1("Complete Evaluation Results"),
-            # wr.WeaveBlockSummaryTable(
-            #     project=self.run.project,
-            #     entity=self.run.entity,
-            #     table_name="evaluation/eval_results",
-            # ),
-            # wr.PanelGrid(
-            #     runsets=[
-            #         wr.Runset(
-            #             project=self.run.project,
-            #             entity=self.run.entity,
-            #         ).set_filters_with_python_expr(
-            #             f'Name == "{str(self.run.name)}"'
-            #         ),
-            #     ]
-            # ),
-            wr.H1("Evaluation Results By Task"),
-        ]
-    )
+    blocks = [
+        wr.TableOfContents(),
+        wr.MarkdownBlock(
+            "This report is comparing the evaluation results from the following evaluation runs: "
+            f"{run_urls_str}"
+        ),
+        wr.H2("Comparing Evaluation Results by Common Tasks"),
+        wr.MarkdownBlock(
+            "The following tasks are common in the provided evaluation runs: "
+            f"{tasks_str}"
+        ),
+        # wr.H1("Complete Evaluation Results"),
+        # wr.WeaveBlockSummaryTable(
+        #     project=self.run.project,
+        #     entity=self.run.entity,
+        #     table_name="evaluation/eval_results",
+        # ),
+        # wr.PanelGrid(
+        #     runsets=[
+        #         wr.Runset(
+        #             project=self.run.project,
+        #             entity=self.run.entity,
+        #         ).set_filters_with_python_expr(
+        #             f'Name == "{str(self.run.name)}"'
+        #         ),
+        #     ]
+        # ),
+        wr.H1("Evaluation Results By Task"),
+    ]
 
     report.blocks = blocks
     report.save()
     wandb.termlog(f"📝 Check out the autogenerated report at: {report.url}")
 
-    
+
 # def prepare_report_by_task(tasks, results):
 #     blocks = []
 #     for task_name in self.task_names:
@@ -215,7 +214,7 @@ def main():
 #         # TODO: Add results table
 
 #     return blocks
-    
+
 
 if __name__ == "__main__":
     main()
