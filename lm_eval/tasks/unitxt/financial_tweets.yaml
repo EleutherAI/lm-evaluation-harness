@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_financial_tweets
+task: financial_tweets
 dataset_path: unitxt/data
 dataset_name: card=cards.financial_tweets,template=templates.classification.multi_class.default
 output_type: generate_until

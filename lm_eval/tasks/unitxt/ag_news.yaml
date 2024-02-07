@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_ag_news
+task: ag_news
 dataset_path: unitxt/data
 dataset_name: card=cards.ag_news,template=templates.classification.multi_class.default
 output_type: generate_until

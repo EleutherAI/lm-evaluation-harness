@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_banking77
+task: banking77
 dataset_path: unitxt/data
 dataset_name: card=cards.banking77,template=templates.classification.multi_class.default
 output_type: generate_until

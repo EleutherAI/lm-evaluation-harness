@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_stsb
+task: stsb
 dataset_path: unitxt/data
 dataset_name: card=cards.stsb,template=templates.regression.two_texts.simple
 output_type: generate_until

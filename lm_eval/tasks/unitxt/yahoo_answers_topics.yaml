@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_yahoo_answers_topics
+task: yahoo_answers_topics
 dataset_path: unitxt/data
 dataset_name: card=cards.yahoo_answers_topics,template=templates.classification.multi_class.default
 output_type: generate_until

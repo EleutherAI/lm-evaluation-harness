@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_ethos_binary
+task: ethos_binary
 dataset_path: unitxt/data
 dataset_name: card=cards.ethos_binary,template=templates.classification.multi_class.default
 output_type: generate_until

@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_unfair_tos
+task: unfair_tos
 dataset_path: unitxt/data
 dataset_name: card=cards.unfair_tos,template=templates.classification.multi_label.default
 output_type: generate_until

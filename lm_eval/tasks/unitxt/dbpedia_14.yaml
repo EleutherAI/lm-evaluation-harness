@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_dbpedia_14
+task: dbpedia_14
 dataset_path: unitxt/data
 dataset_name: card=cards.dbpedia_14,template=templates.classification.multi_class.default
 output_type: generate_until

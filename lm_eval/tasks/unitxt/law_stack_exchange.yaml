@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_law_stack_exchange
+task: law_stack_exchange
 dataset_path: unitxt/data
 dataset_name: card=cards.law_stack_exchange,template=templates.classification.multi_class.default
 output_type: generate_until

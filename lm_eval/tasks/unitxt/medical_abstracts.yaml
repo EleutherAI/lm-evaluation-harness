@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_medical_abstracts
+task: medical_abstracts
 dataset_path: unitxt/data
 dataset_name: card=cards.medical_abstracts,template=templates.classification.multi_class.default
 output_type: generate_until

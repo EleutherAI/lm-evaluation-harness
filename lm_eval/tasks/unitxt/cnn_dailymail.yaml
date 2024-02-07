@@ -1,8 +1,8 @@
 group:
 - unitxt
-task: unitxt_cnn_dailymail
+task: cnn_dailymail
 dataset_path: unitxt/data
-dataset_name: card=cards.cnn_dailymail,template=templates.qa.contextual.simple
+dataset_name: card=cards.cnn_dailymail,template=templates.summarization.abstractive.full
 output_type: generate_until
 training_split: train
 validation_split: test

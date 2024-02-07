@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_claim_stance_topic
+task: claim_stance_topic
 dataset_path: unitxt/data
 dataset_name: card=cards.claim_stance_topic,template=templates.classification.multi_class.default
 output_type: generate_until

@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_ledgar
+task: ledgar
 dataset_path: unitxt/data
 dataset_name: card=cards.ledgar,template=templates.classification.multi_class.default
 output_type: generate_until

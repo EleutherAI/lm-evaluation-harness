@@ -1,6 +1,6 @@
 group:
 - unitxt
-task: unitxt_argument_topic
+task: argument_topic
 dataset_path: unitxt/data
 dataset_name: card=cards.argument_topic,template=templates.classification.multi_class.default
 output_type: generate_until

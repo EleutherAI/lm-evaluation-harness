@@ -1,8 +1,8 @@
 group:
 - unitxt
-task: unitxt_xsum
+task: xsum
 dataset_path: unitxt/data
-dataset_name: card=cards.xsum,template=templates.qa.contextual.simple
+dataset_name: card=cards.xsum,template=templates.summarization.abstractive.full
 output_type: generate_until
 training_split: train
 validation_split: test
