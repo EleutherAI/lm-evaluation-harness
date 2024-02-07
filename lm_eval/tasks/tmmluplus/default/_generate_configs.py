@@ -121,7 +121,7 @@ if __name__ == "__main__":
     args = parse_args()
     from pathlib import Path
     # Initializationz
-    SUBJECT_FILE = Path(__file__).parent / Path(args.subject_file) 
+    SUBJECT_FILE = Path(__file__).parent / Path(args.subject_file)
 
     df = pd.read_csv(SUBJECT_FILE, delimiter="\t")
 
