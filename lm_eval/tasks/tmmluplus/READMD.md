@@ -545,6 +545,14 @@ configs:
       path: "data/taiwanese_hokkien_val.csv"
     - split: test
       path: "data/taiwanese_hokkien_test.csv"
+  - config_name: linear_algebra
+    datafiles:
+    - split: train
+      path: "data/linear_algebra_dev.csv"
+    - split: validation
+      path: "data/linear_algebra_val.csv"
+    - split: test
+      path: "data/linear_algebra_test.csv"
 ---
 # TMMLU+ : Large scale traditional chinese massive multitask language understanding
 
@@ -567,12 +575,13 @@ task_list = [
              'education_(profession_level)', 'economics', 'veterinary_pharmacology', 'nautical_science', 'occupational_therapy_for_psychological_disorders',
              'basic_medical_science', 'macroeconomics', 'trade', 'chinese_language_and_literature', 'tve_design', 'junior_science_exam', 'junior_math_exam', 'junior_chinese_exam',
              'junior_social_studies', 'tve_mathematics', 'tve_chinese_language', 'tve_natural_sciences', 'junior_chemistry', 'music', 'education', 'three_principles_of_people',
-             'taiwanese_hokkien'
+             'taiwanese_hokkien', 
+             'linear_algebra'
             ]
 for task in task_list:
-  val = load_dataset('ikala/tmmluplus', task)['validation']
-  dev = load_dataset('ikala/tmmluplus', task)['train']
-  test = load_dataset('ikala/tmmluplus', task)['test']
+  val = load_dataset('ZoneTwelve/tmmluplus', task)['validation']
+  dev = load_dataset('ZoneTwelve/tmmluplus', task)['train']
+  test = load_dataset('ZoneTwelve/tmmluplus', task)['test']
 ```
 
 For each dataset split
@@ -649,3 +658,7 @@ Results via [ievals](https://github.com/iKala/ievals) ( settings : 0-shot direct
   year={2023}
 }
 ```
+
+> CONTENT WARNING
+> This is a modification of ikala/tmmluplus, with minor alterations made to facilitate the implementation for lm-evaluation-harness purposes.
+> [More details on Discussions](https://huggingface.co/datasets/ZoneTwelve/tmmluplus/discussions/1)
