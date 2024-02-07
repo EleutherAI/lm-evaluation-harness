@@ -1,5 +1,6 @@
 import copy
 import os
+from datetime import timedelta
 from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union
 
@@ -137,7 +138,7 @@ class HFLM(LM):
             assert isinstance(batch_size, (int, str))
 
             gpus = torch.cuda.device_count()
-            accelerator_kwargs = InitProcessGroupKwargs(timeout={"weeks": 52})
+            accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
             accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
             if accelerator.num_processes > 1:
                 self.accelerator = accelerator
