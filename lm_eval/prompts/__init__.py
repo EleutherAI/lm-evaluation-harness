@@ -69,7 +69,6 @@ def get_prompt(prompt_id: str, dataset_name: str = None, subset_name: str = None
 def load_prompt_list(
     use_prompt: str, dataset_name=None, subset_name=None, yaml_path=None, **kwargs
 ):
-
     category_name, prompt_name = use_prompt.split(":")
 
     if category_name == "promptsource":
@@ -113,13 +112,12 @@ class PromptString:
         self.prompt_string = prompt_string
 
     def apply(self, doc):
-
         doc_to_text = self.prompt_string["doc_to_text"]
         doc_to_target = self.prompt_string["doc_to_target"]
 
         # TODO need a way to process doc_to_choice
         if "doc_to_choice" in self.prompt_string:
-            raise "Not yet implemented to accept doc_to_choice"
+            raise Exception("Not yet implemented to accept doc_to_choice")
 
         text_string = utils.apply_template(doc_to_text, doc)
         target_string = utils.apply_template(doc_to_target, doc)

@@ -3,7 +3,6 @@ from functools import partial
 
 
 def process_docs(dataset, set_answer_type="bool"):
-
     FEATURES = ["title", "abstract", "question", "answer", "answer_type"]
 
     def _categorise_answer(answer_blob):
@@ -51,7 +50,7 @@ def process_docs(dataset, set_answer_type="bool"):
                     obs_list["abstract"].append(abstract)
                     obs_list["question"].append(question)
                     obs_list["answer_type"].append(answer_type)
-                    if type(answer) == list:
+                    if isinstance(answer, list):
                         answer = ", ".join(answer)
                     obs_list["answer"].append(answer)
 

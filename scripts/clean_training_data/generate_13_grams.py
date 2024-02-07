@@ -21,22 +21,22 @@ Arguments
 """
 
 import argparse
+import glob
 import json
-import pickle
+import logging
 import os
+import pickle
+import signal
 import sys
 from pathlib import Path
-import glob
-import signal
 from signal import SIGINT
 
 from tqdm import tqdm
-
-from lm_eval.decontamination.janitor import Janitor, word_ngrams
-from lm_eval.decontamination.archiver import TextArchive, Reader
-
-import logging
 from tqdm_multiprocess.logger import setup_logger_tqdm
+
+from lm_eval.decontamination.archiver import Reader, TextArchive
+from lm_eval.decontamination.janitor import Janitor, word_ngrams
+
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +89,7 @@ class Buckets:
             os.path.join(directory, f"ngrams_{i}.bkt.txt") for i in range(num_buckets)
         ]
         self.buckets = list(map(TextArchive, self.bucket_files))
-        self.checkpoint_file = os.path.join(directory, f"bucket_offsets.ckpt")
+        self.checkpoint_file = os.path.join(directory, "bucket_offsets.ckpt")
 
         if os.path.exists(self.checkpoint_file):
             self.bucket_offsets = pickle.load(open(self.checkpoint_file, "rb"))
@@ -119,8 +119,7 @@ class Buckets:
 
 
 def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
-
-    pile_statistics = json.load(open("pile_statistics.json", "r"))
+    pile_statistics = json.load(open("pile_statistics.json", "r", encoding="utf-8"))
     pile_document_count = pile_statistics["Document Count"]
     start_offsets = pile_statistics["File Start Offsets"]
 
@@ -130,13 +129,13 @@ def do_ngrams_in_buckets(n_value, working_directory, bucket_count):
     logger.info(f"Generating {n_value}-grams and bucketing.")
 
     # Done file
-    done_file = os.path.join(output_directory, f"ngram_buckets.done")
+    done_file = os.path.join(output_directory, "ngram_buckets.done")
     if os.path.exists(done_file):
         logger.info("ngrams already generated and bucketed, skipping")
         return
 
     # Checkpoint
-    checkpoint_file = os.path.join(working_directory, f"pile_offset.ckpt")
+    checkpoint_file = os.path.join(working_directory, "pile_offset.ckpt")
     if os.path.exists(checkpoint_file):
         checkpoint_offset = pickle.load(open(checkpoint_file, "rb"))
         iterate = True
@@ -213,4 +212,4 @@ if __name__ == "__main__":
 
     info_dict = {"title": "dataset ngrams", "ngram_size": 13}
     info_dict_path = os.path.join(args.working_directory, "info.json")
-    json.dump(info_dict, open(info_dict_path, "w"))
+    json.dump(info_dict, open(info_dict_path, "w", encoding="utf-8"))

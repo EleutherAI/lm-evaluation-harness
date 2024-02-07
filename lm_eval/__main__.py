@@ -1,17 +1,17 @@
+import argparse
+import json
+import logging
 import os
 import re
 import sys
-import json
-import logging
-import argparse
-import numpy as np
-
 from pathlib import Path
 from typing import Union
 
+import numpy as np
+
 from lm_eval import evaluator, utils
-from lm_eval.tasks import initialize_tasks, include_path
-from lm_eval.api.registry import ALL_TASKS
+from lm_eval.tasks import TaskManager, include_path, initialize_tasks
+from lm_eval.utils import make_table
 
 
 def _handle_non_serializable(o):
@@ -25,73 +25,93 @@ def _handle_non_serializable(o):
 
 def parse_eval_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("--model", default="hf", help="Name of model e.g. `hf`")
+    parser.add_argument("--model", "-m", default="hf", help="Name of model e.g. `hf`")
     parser.add_argument(
         "--tasks",
+        "-t",
         default=None,
+        metavar="task1,task2",
         help="To get full list of tasks, use the command lm-eval --tasks list",
     )
     parser.add_argument(
         "--model_args",
+        "-a",
         default="",
-        help="String arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
+        help="Comma separated string arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
     )
     parser.add_argument(
         "--num_fewshot",
+        "-f",
         type=int,
         default=None,
+        metavar="N",
         help="Number of examples in few-shot context",
     )
-    parser.add_argument("--batch_size", type=str, default=1)
+    parser.add_argument(
+        "--batch_size",
+        "-b",
+        type=str,
+        default=1,
+        metavar="auto|auto:N|N",
+        help="Acceptable values are 'auto', 'auto:N' or N, where N is an integer. Default 1.",
+    )
     parser.add_argument(
         "--max_batch_size",
         type=int,
         default=None,
-        help="Maximal batch size to try with --batch_size auto",
+        metavar="N",
+        help="Maximal batch size to try with --batch_size auto.",
     )
     parser.add_argument(
         "--device",
         type=str,
         default=None,
-        help="Device to use (e.g. cuda, cuda:0, cpu)",
+        help="Device to use (e.g. cuda, cuda:0, cpu).",
     )
     parser.add_argument(
         "--output_path",
+        "-o",
         default=None,
         type=str,
-        metavar="= [dir/file.jsonl] [DIR]",
+        metavar="DIR|DIR/file.json",
         help="The path to the output file where the result metrics will be saved. If the path is a directory and log_samples is true, the results will be saved in the directory. Else the parent directory will be used.",
     )
     parser.add_argument(
         "--limit",
+        "-L",
         type=float,
         default=None,
+        metavar="N|0<N<1",
         help="Limit the number of examples per task. "
         "If <1, limit is a percentage of the total number of examples.",
     )
     parser.add_argument(
         "--use_cache",
+        "-c",
         type=str,
         default=None,
+        metavar="DIR",
         help="A path to a sqlite db file for caching model responses. `None` if not caching.",
     )
     parser.add_argument("--decontamination_ngrams_path", default=None)  # TODO: not used
     parser.add_argument(
         "--check_integrity",
         action="store_true",
-        help="Whether to run the relevant part of the test suite for the tasks",
+        help="Whether to run the relevant part of the test suite for the tasks.",
     )
     parser.add_argument(
         "--write_out",
+        "-w",
         action="store_true",
         default=False,
-        help="Prints the prompt for the first few documents",
+        help="Prints the prompt for the first few documents.",
     )
     parser.add_argument(
         "--log_samples",
+        "-s",
         action="store_true",
         default=False,
-        help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis",
+        help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis. Use with --output_path.",
     )
     parser.add_argument(
         "--show_config",
@@ -103,21 +123,31 @@ def parse_eval_args() -> argparse.Namespace:
         "--include_path",
         type=str,
         default=None,
+        metavar="DIR",
         help="Additional path to include if there are external tasks to include.",
     )
     parser.add_argument(
         "--gen_kwargs",
-        default="",
+        default=None,
         help=(
             "String arguments for model generation on greedy_until tasks,"
-            " e.g. `temperature=0,top_k=0,top_p=0`"
+            " e.g. `temperature=0,top_k=0,top_p=0`."
         ),
     )
     parser.add_argument(
         "--verbosity",
-        type=str,
+        "-v",
+        type=str.upper,
         default="INFO",
-        help="Log error when tasks are not registered.",
+        metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
+        help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
+    )
+    parser.add_argument(
+        "--predict_only",
+        "-x",
+        action="store_true",
+        default=False,
+        help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
     )
     return parser.parse_args()
 
@@ -132,7 +162,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+    if args.predict_only:
+        args.log_samples = True
+    if (args.log_samples or args.predict_only) and not args.output_path:
+        assert args.output_path, "Specify --output_path"
+
     initialize_tasks(args.verbosity)
+    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
     if args.limit:
         eval_logger.warning(
@@ -144,10 +180,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         include_path(args.include_path)
 
     if args.tasks is None:
-        task_names = ALL_TASKS
+        eval_logger.error("Need to specify task to evaluate.")
+        sys.exit()
     elif args.tasks == "list":
         eval_logger.info(
-            "Available Tasks:\n - {}".format(f"\n - ".join(sorted(ALL_TASKS)))
+            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks))
         )
         sys.exit()
     else:
@@ -160,16 +197,14 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 config = utils.load_yaml_config(yaml_file)
                 task_names.append(config)
         else:
-            tasks_list = args.tasks.split(",")
-            task_names = utils.pattern_match(tasks_list, ALL_TASKS)
-            for task in [task for task in tasks_list if task not in task_names]:
+            task_list = args.tasks.split(",")
+            task_names = task_manager.match_tasks(task_list)
+            for task in [task for task in task_list if task not in task_names]:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
             task_missing = [
-                task
-                for task in tasks_list
-                if task not in task_names and "*" not in task
+                task for task in task_list if task not in task_names and "*" not in task
             ]  # we don't want errors if a wildcard ("*") task name was used
 
             if task_missing:
@@ -179,7 +214,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     f"{utils.SPACING}Try `lm-eval --tasks list` for list of available tasks",
                 )
                 raise ValueError(
-                    f"Tasks {missing} were not found. Try `lm-eval --tasks list` for list of available tasks."
+                    f"Tasks not found: {missing}. Try `lm-eval --tasks list` for list of available tasks, or '--verbosity DEBUG' to troubleshoot task registration issues."
                 )
 
     if args.output_path:
@@ -199,10 +234,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         else:
             path.mkdir(parents=True, exist_ok=True)
             output_path_file = path.joinpath("results.json")
-    elif args.log_samples and not args.output_path:
-        assert args.output_path, "Specify --output_path"
 
     eval_logger.info(f"Selected Tasks: {task_names}")
+    eval_logger.info("Loading selected tasks...")
 
     results = evaluator.simple_evaluate(
         model=args.model,
@@ -219,19 +253,23 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         write_out=args.write_out,
         log_samples=args.log_samples,
         gen_kwargs=args.gen_kwargs,
+        task_manager=task_manager,
+        predict_only=args.predict_only,
     )
 
     if results is not None:
         if args.log_samples:
             samples = results.pop("samples")
-        dumped = json.dumps(results, indent=2, default=_handle_non_serializable)
+        dumped = json.dumps(
+            results, indent=2, default=_handle_non_serializable, ensure_ascii=False
+        )
         if args.show_config:
             print(dumped)
 
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
 
         if args.output_path:
-            output_path_file.open("w").write(dumped)
+            output_path_file.open("w", encoding="utf-8").write(dumped)
 
             if args.log_samples:
                 for task_name, config in results["configs"].items():
@@ -240,17 +278,20 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     )
                     filename = path.joinpath(f"{output_name}.jsonl")
                     samples_dumped = json.dumps(
-                        samples[task_name], indent=2, default=_handle_non_serializable
+                        samples[task_name],
+                        indent=2,
+                        default=_handle_non_serializable,
+                        ensure_ascii=False,
                     )
-                    filename.open("w").write(samples_dumped)
+                    filename.write_text(samples_dumped, encoding="utf-8")
 
         print(
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
             f"batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
         )
-        print(evaluator.make_table(results))
+        print(make_table(results))
         if "groups" in results:
-            print(evaluator.make_table(results, "groups"))
+            print(make_table(results, "groups"))
 
 
 if __name__ == "__main__":

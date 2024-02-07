@@ -1,3 +1,4 @@
-"dataset_name": "kac_Latn"
+"fewshot_split": "kac_Latn"
 "include": "_default_template_yaml"
 "task": "belebele_kac_Latn"
+"test_split": "kac_Latn"

@@ -6,7 +6,6 @@ from rouge_score import rouge_scorer, scoring
 
 
 def process_results_mc2(doc, results):
-
     lls, is_greedy = zip(*results)
 
     # Split on the first `0` as everything before it is true (`1`).
@@ -20,7 +19,6 @@ def process_results_mc2(doc, results):
 
 
 def process_docs_gen(dataset: datasets.Dataset) -> datasets.Dataset:
-
     return dataset.map(preprocess_function)
 
 
@@ -49,7 +47,6 @@ def preprocess_function(examples):
 
 
 def process_results_gen(doc, results):
-
     completion = results[0]
     true_refs, false_refs = doc["correct_answers"], doc["incorrect_answers"]
     all_refs = true_refs + false_refs

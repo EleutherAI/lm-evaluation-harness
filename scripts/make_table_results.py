@@ -2,10 +2,11 @@
 Usage:
    python make_table_tasks.py --output <markdown_filename>
 """
-import logging
-from pytablewriter import MarkdownTableWriter, LatexTableWriter
-import os
 import json
+import logging
+import os
+
+from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
 
 logging.basicConfig(level=logging.INFO)
@@ -60,14 +61,14 @@ if __name__ == "__main__":
         if not filenames:
             continue
         path_readme = os.path.join(dirpath, "README.md")
-        with open(path_readme, "w") as f:
+        with open(path_readme, "w", encoding="utf-8") as f:
             # get path name, only last folder
             path_name = dirpath.split("/")[-1]
             f.write(f"# {path_name} \n\n")
         for filename in sorted([f for f in filenames if f.endswith(".json")]):
             path = os.path.join(dirpath, filename)
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 result_dict = json.load(f)
-            with open(path_readme, "a") as f:
+            with open(path_readme, "a", encoding="utf-8") as f:
                 f.write(f"## {filename} \n")
                 f.write(f"{make_table(result_dict)} \n")

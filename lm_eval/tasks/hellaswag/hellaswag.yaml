@@ -10,7 +10,7 @@ test_split: null
 process_docs: !function utils.process_docs
 doc_to_text: "{{query}}"
 doc_to_target: "{{label}}"
-doc_to_choice: "{{choices}}"
+doc_to_choice: "choices"
 metric_list:
   - metric: acc
     aggregation: mean
@@ -19,4 +19,4 @@ metric_list:
     aggregation: mean
     higher_is_better: true
 metadata:
-  - version: 1.0
+  version: 1.0

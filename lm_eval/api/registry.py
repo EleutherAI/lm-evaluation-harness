@@ -1,8 +1,9 @@
-import os
+import logging
+
 import evaluate
+
 from lm_eval.api.model import LM
 
-import logging
 
 eval_logger = logging.getLogger("lm-eval")
 
@@ -91,7 +92,6 @@ DEFAULT_METRIC_REGISTRY = {
 def register_metric(**args):
     # TODO: do we want to enforce a certain interface to registered metrics?
     def decorate(fn):
-
         assert "metric" in args
         name = args["metric"]
 
@@ -100,7 +100,6 @@ def register_metric(**args):
             ("higher_is_better", HIGHER_IS_BETTER_REGISTRY),
             ("aggregation", METRIC_AGGREGATION_REGISTRY),
         ]:
-
             if key in args:
                 value = args[key]
                 assert (
@@ -120,7 +119,6 @@ def register_metric(**args):
 
 
 def get_metric(name, hf_evaluate_metric=False):
-
     if not hf_evaluate_metric:
         if name in METRIC_REGISTRY:
             return METRIC_REGISTRY[name]
@@ -151,23 +149,17 @@ def register_aggregation(name):
 
 
 def get_aggregation(name):
-
     try:
         return AGGREGATION_REGISTRY[name]
     except KeyError:
-        eval_logger.warning(
-            "{} not a registered aggregation metric!".format(name),
-        )
+        eval_logger.warning(f"{name} not a registered aggregation metric!")
 
 
 def get_metric_aggregation(name):
-
     try:
         return METRIC_AGGREGATION_REGISTRY[name]
     except KeyError:
-        eval_logger.warning(
-            "{} metric is not assigned a default aggregation!".format(name),
-        )
+        eval_logger.warning(f"{name} metric is not assigned a default aggregation!")
 
 
 def is_higher_better(metric_name):

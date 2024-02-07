@@ -1,0 +1,27 @@
+group:
+  - kobest
+task: kobest_hellaswag
+dataset_path: skt/kobest_v1
+dataset_name: hellaswag
+training_split: train
+validation_split: validation
+output_type: multiple_choice
+test_split: test
+doc_to_text: "{{query}}"
+doc_to_target: "{{label}}"
+process_docs: !function utils.hellaswag_process_doc
+doc_to_choice: "choices"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: True
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: True
+  - metric: f1
+    aggregation: !function utils.macro_f1_score
+    average: macro
+    hf_evaluate: true
+    higher_is_better: True
+metadata:
+  version: 1.0

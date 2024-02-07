@@ -4,7 +4,7 @@ The `lm-evaluation-harness` is meant to be an extensible and flexible framework 
 
 These YAML configuration files, along with the current codebase commit hash, are intended to be shareable such that providing the YAML config enables another researcher to precisely replicate the evaluation setup used by another, in the case that the prompt or setup differs from standard `lm-eval` task implementations.
 
-While adding a standard evaluation task on a new dataset can be occasionally as simple as swapping out a Hugging Face dataset path in an existing file, more specialized evaluation setups. Here we'll provide a crash course on the more advanced logic implementable in YAML form available to users.
+While adding a standard evaluation task on a new dataset can be occasionally as simple as swapping out a Hugging Face dataset path in an existing file, more specialized evaluation setups also exist. Here we'll provide a crash course on the more advanced logic implementable in YAML form available to users.
 
 If your intended task relies on features beyond what are described in this guide, we'd love to hear about it! Feel free to open an issue describing the scenario on Github, create a PR to the project with a proposed implementation, or ask in the `#lm-thunderdome` channel on the EleutherAI discord.
 
@@ -46,11 +46,11 @@ Scoring details:
 - **generation_kwargs** (`dict`, *optional*) — Auxiliary arguments for the `generate` function from HF transformers library. Advanced keyword arguments may not be supported for non-HF LM classes.
 - **repeats** (`int`, *optional*, defaults to 1) — Number of repeated runs through model for each sample. can be used for cases such as self-consistency.
 - **filter_list** (`Union[str, list]`, *optional*) — List of filters to postprocess model outputs. See below for further detail on the filter API.
-- **should_decontaminate** (`bool`, *optional*, defaults to False) -
-- **doc_to_decontamination_query** (`str`, *optional*) —
+- **should_decontaminate** (`bool`, *optional*, defaults to False) - Whether to decontaminate or not.
+- **doc_to_decontamination_query** (`str`, *optional*) — Query for decontamination if `should_decontaminate` is True. If `should_decontaminate` is True but `doc_to_decontamination_query` is `None`, `doc_to_decontamination_query` will follow `doc_to_text`.
 
 Other:
-- **metadata** (`Union[str, list]`, *optional*) — An optional field where arbitrary metadata can be passed. A good example would be `version` that is used to denote the version of the yaml config.
+- **metadata** (`dict`, *optional*) — An optional field where arbitrary metadata can be passed. Most tasks should include a `version` key in this field that is used to denote the version of the yaml config. Other special metadata keys are: `num_fewshot`, to override the printed `n-shot` table column for a task.
 
 ## Filters
 
@@ -219,6 +219,49 @@ Aggregation functions:
 * `weighted_perplexity`
 * `bits_per_byte`
 
+### Adding a Multiple Choice Metric
+
+Adding a multiple choice metric has a few steps. To get it working you need to:
+
+1. register a metric function
+2. register an aggregation function
+3. update the `Task` definition to make sure the correct arguments are passed
+
+The default metric and aggregation functions are in `lm_eval/api/metrics.py`, and you can add a function there if it's for general use. The metrics are towards the bottom of the file and look like this:
+
+
+    @register_metric(
+        metric="mcc",
+        higher_is_better=True,
+        output_type="multiple_choice",
+        aggregation="matthews_corrcoef",
+    )
+    def mcc_fn(items):  # This is a passthrough function
+        return items
+
+Note that many of these are passthrough functions, and for multiple choice (at least) this function is never actually called.
+
+Aggregation functions are defined towards the top of the file, here's an example:
+
+    @register_aggregation("matthews_corrcoef")
+    def matthews_corrcoef(items):
+        unzipped_list = list(zip(*items))
+        golds = unzipped_list[0]
+        preds = unzipped_list[1]
+        return sklearn.metrics.matthews_corrcoef(golds, preds)
+
+This function returns a single numeric value. The input is defined in `Task.process_results` in `lm_eval/api/task.py`. There's a section that looks like this:
+
+
+    result_dict = {
+        **({"acc": acc} if "acc" in use_metric else {}),
+        **({"f1": (gold, pred)} if "f1" in use_metric else {}),
+        **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
+        **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
+        **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
+    }
+
+The value here determines the input to the aggregation function, though the name used matches the metric function. These metrics all have simple needs and just need the accuracy or gold and predicted values, but immediately below this there are examples of metrics with more complicated needs you can use as reference.
 
 ## Good Reference Tasks
 
@@ -256,6 +299,23 @@ task:
   - logiqa
   - blimp
   - hendrycksTest*
+```
+
+It is also possible to list an existing task in your benchmark configuration with some adjustments. For example, a few tasks from mmlu is included `multimedqa`. There, the `task_alias` and `group_alias` (See [here](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/new_task_guide.md#beautifying-table-display) for more details) are modified to suit the benchmark.
+
+```yaml
+group: multimedqa
+task:
+  - pubmedqa
+  - medmcqa
+  - medqa_4options
+  - task: mmlu_anatomy
+    task_alias: "anatomy (mmlu)"
+    group_alias: null
+  - task: mmlu_clinical_knowledge
+    task_alias: "clinical_knowledge (mmlu)"
+    group_alias: null
+  ...
 ```
 
 Alternatively, benchmarks can have tasks that are customizable for each task. They can be defined like how a yaml task is usually set.
@@ -320,4 +380,4 @@ task:
         ignore_punctuation: true
 ```
 
-Calling the benchmark is done the same way we would call any task with `--tasks`. Benchmarks can be added in `lm_eval/benchmarks/`
+Calling the benchmark is done the same way we would call any task with `--tasks`. Benchmarks can be added in `lm_eval/tasks/benchmarks/`

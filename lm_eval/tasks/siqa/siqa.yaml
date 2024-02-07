@@ -1,0 +1,19 @@
+task: social_iqa
+dataset_path: social_i_qa
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+doc_to_text: "Q: {{context}} {{question}}\nA:"
+target_delimiter: " "
+doc_to_choice:
+  - "{{answerA}}"
+  - "{{answerB}}"
+  - "{{answerC}}"
+doc_to_target: "{{ (label|int) - 1 }}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0.0

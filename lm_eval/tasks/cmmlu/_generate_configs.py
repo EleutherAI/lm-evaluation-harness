@@ -90,25 +90,26 @@ def parse_args():
 
 
 if __name__ == "__main__":
-
     args = parse_args()
 
     # get filename of base_yaml so we can `"include": ` it in our other YAMLs.
     base_yaml_name = os.path.split(args.base_yaml_path)[-1]
-    with open(args.base_yaml_path) as f:
+    with open(args.base_yaml_path, encoding="utf-8") as f:
         base_yaml = yaml.full_load(f)
 
     if args.cot_prompt_path is not None:
         import json
 
-        with open(args.cot_prompt_path) as f:
+        with open(args.cot_prompt_path, encoding="utf-8") as f:
             cot_file = json.load(f)
 
     for subject_eng, subject_zh in tqdm(SUBJECTS.items()):
         if args.cot_prompt_path is not None:
             description = cot_file[subject_eng]
         else:
-            description = f"以下是关于{subject_zh}的单项选择题，请直接给出正确答案的选项。\n\n"
+            description = (
+                f"以下是关于{subject_zh}的单项选择题，请直接给出正确答案的选项。\n\n"
+            )
 
         yaml_dict = {
             "include": base_yaml_name,
@@ -121,7 +122,7 @@ if __name__ == "__main__":
 
         file_save_path = args.save_prefix_path + f"_{subject_eng}.yaml"
         eval_logger.info(f"Saving yaml for subset {subject_eng} to {file_save_path}")
-        with open(file_save_path, "w") as yaml_file:
+        with open(file_save_path, "w", encoding="utf-8") as yaml_file:
             yaml.dump(
                 yaml_dict,
                 yaml_file,
