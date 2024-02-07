@@ -85,7 +85,7 @@ def get_metrics_per_task(data, tasks):
 
     for d in data:
         for key, value in d.items():
-            task = key.split('/')[0]
+            task = key.split("/")[0]
             if task in tasks:
                 metrics_per_task[task].add(key)
 
@@ -101,11 +101,10 @@ def prepare_report_by_task(tasks, run_ids, metrics_by_tasks):
         for run_id in run_ids:
             runsets.append(
                 wr.Runset(
-                    project=wandb_project,
-                    entity=wandb_entity
+                    project=wandb_project, entity=wandb_entity
                 ).set_filters_with_python_expr(f"ID == {run_id}")
             )
-        
+
         panels = []
         metrics = metrics_by_tasks[task]
         for metric in metrics:
@@ -117,7 +116,7 @@ def prepare_report_by_task(tasks, run_ids, metrics_by_tasks):
                 panels=panels,
             )
         )
-        
+
     return task_blocks
 
 
@@ -192,11 +191,7 @@ def main():
     run_urls_str = "\n" + "* " + "\n* ".join(run_urls) + "\n"
     tasks_str = "\n" + "* " + "\n* ".join(sorted(common_tasks)) + "\n"
 
-    task_blocks = prepare_report_by_task(
-        common_tasks,
-        run_ids,
-        metrics_by_tasks
-    )
+    task_blocks = prepare_report_by_task(common_tasks, run_ids, metrics_by_tasks)
 
     # comparer_block = get_run_comparison_block(run_ids)
 
@@ -231,12 +226,11 @@ def get_run_comparison_block(run_ids):
     for run_id in run_ids:
         runsets.append(
             wr.Runset(
-                project=wandb_project,
-                entity=wandb_entity
+                project=wandb_project, entity=wandb_entity
             ).set_filters_with_python_expr(f"ID == {run_id}")
         )
-    
-    panels = [wr.RunComparer(diff_only='split')]
+
+    panels = [wr.RunComparer(diff_only="split")]
 
     comparer_block = [wr.PanelGrid(runsets=runsets, panels=panels)]
     return comparer_block
