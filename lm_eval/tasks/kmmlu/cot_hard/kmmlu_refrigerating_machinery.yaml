@@ -1,7 +1,5 @@
 dataset_name: refrigerating_machinery
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_refrigerating_machinery
-doct_to_text: '질문: 보일러 입구의 압력이 9800 kN/m2 이고, 응축기의 압력이 4900 N/m2 일 때 펌프 일은 약 몇 kJ/kg
+doc_to_text: '질문: 보일러 입구의 압력이 9800 kN/m2 이고, 응축기의 압력이 4900 N/m2 일 때 펌프 일은 약 몇 kJ/kg
   인가? (단, 물의 비체적은 0.001 m3/kg 이다.)
 
   A.-9.79
@@ -106,14 +104,16 @@ doct_to_text: '질문: 보일러 입구의 압력이 9800 kN/m2 이고, 응축�
   - 200.15K) / 200.15K = 0.5kJ입니다. 따라서, 정답은 (D) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_refrigerating_machinery

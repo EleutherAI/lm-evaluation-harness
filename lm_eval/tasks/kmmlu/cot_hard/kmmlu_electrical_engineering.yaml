@@ -1,7 +1,5 @@
 dataset_name: electrical_engineering
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_electrical_engineering
-doct_to_text: '질문: 곡선도로 조명상 조명기구의 배치 조건이 가장 적당한 것은?
+doc_to_text: '질문: 곡선도로 조명상 조명기구의 배치 조건이 가장 적당한 것은?
 
   A.양측 배치의 경우는 지그재그식으로 한다.
 
@@ -111,14 +109,16 @@ doct_to_text: '질문: 곡선도로 조명상 조명기구의 배치 조건이 �
   방식을 사용하며, 흑체의 방사율을 1로 설정하여 보정하는 원리를 기반으로 합니다. 따라서, 정답은 (A) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_electrical_engineering

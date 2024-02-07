@@ -1,7 +1,5 @@
 dataset_name: maritime_engineering
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_maritime_engineering
-doct_to_text: '질문: 복원력을 갖는 안정 평형 상태인 선박의 메타센터 높이의 조건은?
+doc_to_text: '질문: 복원력을 갖는 안정 평형 상태인 선박의 메타센터 높이의 조건은?
 
   A.GM ＞ 0
 
@@ -116,14 +114,16 @@ doct_to_text: '질문: 복원력을 갖는 안정 평형 상태인 선박의 메
   효과를 나타내지 않습니다. 아르곤은 주로 산업 공정에서 보호 가스로 사용됩니다. 따라서, 정답은 (B) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_maritime_engineering

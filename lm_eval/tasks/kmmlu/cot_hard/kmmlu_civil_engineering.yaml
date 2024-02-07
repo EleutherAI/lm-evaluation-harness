@@ -1,7 +1,5 @@
 dataset_name: civil_engineering
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_civil_engineering
-doct_to_text: '질문: 도시의 새로운 계획 패러다임의 방향이 아닌 것은?
+doc_to_text: '질문: 도시의 새로운 계획 패러다임의 방향이 아닌 것은?
 
   A.도 · 농 통합적 계획으로의 전환
 
@@ -116,14 +114,16 @@ doct_to_text: '질문: 도시의 새로운 계획 패러다임의 방향이 아�
   협약(covenant)이 가장 적절한 선택입니다. 따라서, 정답은 (A) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_civil_engineering

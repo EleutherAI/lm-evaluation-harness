@@ -1,7 +1,5 @@
 dataset_name: public_safety
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_public_safety
-doct_to_text: '질문: 산업안전보건법령상 법령 요지의 게시 등과 안전ㆍ보건표지의 부착 등에 관한 설명으로 옳지 않은 것은?
+doc_to_text: '질문: 산업안전보건법령상 법령 요지의 게시 등과 안전ㆍ보건표지의 부착 등에 관한 설명으로 옳지 않은 것은?
 
   A.근로자대표는 작업환경측정의 결과를 통지할 것을 사업주에게 요청할 수 있고, 사업주는 이에 성실히 응하여야 한다.
 
@@ -110,14 +108,16 @@ doct_to_text: '질문: 산업안전보건법령상 법령 요지의 게시 등�
   따라서, 정답은 (B) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_public_safety

@@ -1,7 +1,5 @@
 dataset_name: geomatics
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_geomatics
-doct_to_text: '질문: 일람도 제도에서 붉은색 0.2mm 폭의 2선으로 제도하는 것은?
+doc_to_text: '질문: 일람도 제도에서 붉은색 0.2mm 폭의 2선으로 제도하는 것은?
 
   A.수도용지
 
@@ -97,14 +95,16 @@ doct_to_text: '질문: 일람도 제도에서 붉은색 0.2mm 폭의 2선으로 
   입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_geomatics

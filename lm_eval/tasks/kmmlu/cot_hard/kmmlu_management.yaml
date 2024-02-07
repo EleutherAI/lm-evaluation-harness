@@ -1,7 +1,5 @@
 dataset_name: management
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_management
-doct_to_text: '질문: ERP 도입의 최종 목적으로 가장 적합한 것은 무엇인가?
+doc_to_text: '질문: ERP 도입의 최종 목적으로 가장 적합한 것은 무엇인가?
 
   A.조직문화 혁신
 
@@ -94,14 +92,16 @@ doct_to_text: '질문: ERP 도입의 최종 목적으로 가장 적합한 것은
   시스템을 구축하는 것은 물류 시스템의 효율성을 높일 수 있지만, 이는 통합적인 관리가 어려울 수 있습니다. 따라서, 정답은 (B) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_management

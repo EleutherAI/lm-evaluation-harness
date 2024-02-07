@@ -1,7 +1,5 @@
 dataset_name: gas_technology_and_engineering
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_gas_technology_and_engineering
-doct_to_text: '질문: 건축물 내 도시가스 매설배관으로 부적합한 것은?
+doc_to_text: '질문: 건축물 내 도시가스 매설배관으로 부적합한 것은?
 
   A.동관
 
@@ -105,14 +103,16 @@ doct_to_text: '질문: 건축물 내 도시가스 매설배관으로 부적합�
   가스의 재해 방지용으로서의 흡수제나 재해제로서 적합하지 않습니다. 따라서, 정답은 (D) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_gas_technology_and_engineering

@@ -1,7 +1,5 @@
 dataset_name: math
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_math
-doct_to_text: '질문: 이차방정식 x2 - 5x + 3 = 0의 두 근이 log5α와 log5β일 때, logαβ + logβα의 값은?
+doc_to_text: '질문: 이차방정식 x2 - 5x + 3 = 0의 두 근이 log5α와 log5β일 때, logαβ + logβα의 값은?
 
   A.17/3
 
@@ -113,14 +111,16 @@ doct_to_text: '질문: 이차방정식 x2 - 5x + 3 = 0의 두 근이 log5α와 l
   + 1 입니다. 주어진 식에 ω + 1을 대입하면 ω + 1 + ω + 1 + 1 + 1이 됩니다. 따라서, 정답은 (C) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_math

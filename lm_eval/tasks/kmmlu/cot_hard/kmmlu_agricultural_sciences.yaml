@@ -1,7 +1,5 @@
 dataset_name: agricultural_sciences
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_agricultural_sciences
-doct_to_text: '질문: 지하발아형 종자가 아닌 것은?
+doc_to_text: '질문: 지하발아형 종자가 아닌 것은?
 
   A.콩
 
@@ -100,14 +98,16 @@ doct_to_text: '질문: 지하발아형 종자가 아닌 것은?
   따라서, 정답은 (C) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_agricultural_sciences

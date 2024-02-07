@@ -1,7 +1,5 @@
 dataset_name: political_science_and_sociology
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_political_science_and_sociology
-doct_to_text: '질문: 실질소득이 증가할수록 해당 재화에 대한 수요가 감소하는 재화를 지칭하는 용어로 옳은 것은?
+doc_to_text: '질문: 실질소득이 증가할수록 해당 재화에 대한 수요가 감소하는 재화를 지칭하는 용어로 옳은 것은?
 
   A.대체재
 
@@ -110,14 +108,16 @@ doct_to_text: '질문: 실질소득이 증가할수록 해당 재화에 대한 �
   따라서, 정답은 (D) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_political_science_and_sociology

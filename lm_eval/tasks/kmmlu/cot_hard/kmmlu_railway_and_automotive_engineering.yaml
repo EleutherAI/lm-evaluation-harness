@@ -1,7 +1,5 @@
 dataset_name: railway_and_automotive_engineering
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_railway_and_automotive_engineering
-doct_to_text: '질문: 경유를 사용하는 자동차에서 배출되는 오염물질과 가장 거리가 먼 것은?
+doc_to_text: '질문: 경유를 사용하는 자동차에서 배출되는 오염물질과 가장 거리가 먼 것은?
 
   A.매연
 
@@ -105,14 +103,16 @@ doct_to_text: '질문: 경유를 사용하는 자동차에서 배출되는 오�
   유체 커플링의 특성 때문입니다. 따라서, 정답은 (A) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_railway_and_automotive_engineering

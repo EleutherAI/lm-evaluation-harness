@@ -1,7 +1,5 @@
 dataset_name: chemical_engineering
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_chemical_engineering
-doct_to_text: '질문: 이상기체의 내부에너지에 대한 설명으로 옳은 것은?
+doc_to_text: '질문: 이상기체의 내부에너지에 대한 설명으로 옳은 것은?
 
   A.온도만의 함수이다.
 
@@ -108,14 +106,16 @@ doct_to_text: '질문: 이상기체의 내부에너지에 대한 설명으로 �
   = -(10×10^5 Pa)(0.05m^3)ln((1×10^5 Pa)/(10×10^5 Pa)) = 0입니다. 따라서, 정답은 (A) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_chemical_engineering

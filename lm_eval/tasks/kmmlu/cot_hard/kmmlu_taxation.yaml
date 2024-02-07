@@ -1,7 +1,5 @@
 dataset_name: taxation
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_taxation
-doct_to_text: '질문: 지방세기본법 상 서류의 송달에 대한 설명으로 옳은 것은?
+doc_to_text: '질문: 지방세기본법 상 서류의 송달에 대한 설명으로 옳은 것은?
 
   A.연대 납세의무자에게 대표자가 없으면 납세의 고지와 독촉에 관한 서류는 연대 납세의무자 중 지방세를 징수하기 유리한 자에게만 송달하여야 한다.
 
@@ -120,14 +118,16 @@ doct_to_text: '질문: 지방세기본법 상 서류의 송달에 대한 설명�
   물품을 의미합니다. 이 또한 국가의 안전보장을 위해 필요한 물품이므로 면세 대상에 해당할 것으로 보입니다. 따라서, 정답은 (A) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_taxation

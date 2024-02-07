@@ -1,7 +1,5 @@
 dataset_name: health
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_health
-doct_to_text: '질문: 도나베디안 (Donabedian) 의 보건의료 서비스 질 평가 중 구조적 접근은?
+doc_to_text: '질문: 도나베디안 (Donabedian) 의 보건의료 서비스 질 평가 중 구조적 접근은?
 
   A.면허제도
 
@@ -104,14 +102,16 @@ doct_to_text: '질문: 도나베디안 (Donabedian) 의 보건의료 서비스 �
   실시하는 것이 일반적입니다.  , 국민건강증진기금의 사용 범위에는 포함되지 않을 수 있습니다. 따라서, 정답은 (D) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_health

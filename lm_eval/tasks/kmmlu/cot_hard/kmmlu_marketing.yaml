@@ -1,7 +1,5 @@
 dataset_name: marketing
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_marketing
-doct_to_text: '질문: e-CRM상에서 고객유지를 위한 전략으로 맞지 않는 것은?
+doc_to_text: '질문: e-CRM상에서 고객유지를 위한 전략으로 맞지 않는 것은?
 
   A.주문에 대한 신속하고 정확한 대응
 
@@ -109,14 +107,16 @@ doct_to_text: '질문: e-CRM상에서 고객유지를 위한 전략으로 맞지
   대응력을 갖추면 고객의 불만이나 반대를 효과적으로 처리할 수 있습니다. 따라서, 정답은 (A) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_marketing

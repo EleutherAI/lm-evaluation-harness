@@ -1,7 +1,5 @@
 dataset_name: telecommunications_and_wireless_technology
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_telecommunications_and_wireless_technology
-doct_to_text: '질문: 주파수 대역에 따른 RFID 특징 중 틀린 것은?
+doc_to_text: '질문: 주파수 대역에 따른 RFID 특징 중 틀린 것은?
 
   A.UHF대역 : 900㎒ 대역과 433㎒ 대역이 사용됨
 
@@ -102,14 +100,16 @@ doct_to_text: '질문: 주파수 대역에 따른 RFID 특징 중 틀린 것은?
   되면 전력 밀도는 1/4배가 됩니다. 따라서, 정답은 (D) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_telecommunications_and_wireless_technology

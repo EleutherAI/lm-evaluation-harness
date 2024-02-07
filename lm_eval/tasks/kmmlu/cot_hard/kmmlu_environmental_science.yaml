@@ -1,7 +1,5 @@
 dataset_name: environmental_science
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_environmental_science
-doct_to_text: '질문: 혐기성 소화에서 독성을 유발 시킬 수 있느 물질의 농도(mg/L)로 가장 적절한 것은?
+doc_to_text: '질문: 혐기성 소화에서 독성을 유발 시킬 수 있느 물질의 농도(mg/L)로 가장 적절한 것은?
 
   A.Fe : 1000
 
@@ -103,14 +101,16 @@ doct_to_text: '질문: 혐기성 소화에서 독성을 유발 시킬 수 있느
   하나입니다. 따라서, 정답은 (C) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_environmental_science

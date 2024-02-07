@@ -1,7 +1,5 @@
 dataset_name: education
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_education
-doct_to_text: '질문: 신 교육 사회학에 대한 설명으로 옳지 않은 것은?
+doc_to_text: '질문: 신 교육 사회학에 대한 설명으로 옳지 않은 것은?
 
   A.학교 교육과정 또는 교육내용에 주목한다.
 
@@ -102,14 +100,16 @@ doct_to_text: '질문: 신 교육 사회학에 대한 설명으로 옳지 않은
   대한 설명으로 옳지 않다는 것을 알 수 있습니다. 따라서, 정답은 (B) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_education

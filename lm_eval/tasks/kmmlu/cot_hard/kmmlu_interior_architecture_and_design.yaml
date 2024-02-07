@@ -1,7 +1,5 @@
 dataset_name: interior_architecture_and_design
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_interior_architecture_and_design
-doct_to_text: '질문: 실내디자인의 원리 중 조화ㆍ통일ㆍ변화에 대한 설명으로 옳지 않은 것은?
+doc_to_text: '질문: 실내디자인의 원리 중 조화ㆍ통일ㆍ변화에 대한 설명으로 옳지 않은 것은?
 
   A.조화란 전체적인 조립방법이 모순없이 질서를 잡는 것을 말한다.
 
@@ -110,14 +108,16 @@ doct_to_text: '질문: 실내디자인의 원리 중 조화ㆍ통일ㆍ변화에
   또는 목표값과 같이 더 구체적이고 명확한 기준을 바탕으로 최적치수를 결정합니다. 따라서, 정답은 (C) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_interior_architecture_and_design

@@ -1,7 +1,5 @@
 dataset_name: food_processing
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_food_processing
-doct_to_text: '질문: 작물이 주로 이용하는 토양수분의 형태는?
+doc_to_text: '질문: 작물이 주로 이용하는 토양수분의 형태는?
 
   A.흡습수
 
@@ -99,14 +97,16 @@ doct_to_text: '질문: 작물이 주로 이용하는 토양수분의 형태는?
   따라서, 정답은 (D) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_food_processing

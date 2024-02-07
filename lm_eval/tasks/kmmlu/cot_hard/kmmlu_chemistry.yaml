@@ -1,7 +1,5 @@
 dataset_name: chemistry
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_chemistry
-doct_to_text: '질문: 수산화나트륨(NaOH) 80g을 물에 녹여 전체 부피가 1000mL가 되게 하였다. 이 용액의 N농도는 얼마인가?
+doc_to_text: '질문: 수산화나트륨(NaOH) 80g을 물에 녹여 전체 부피가 1000mL가 되게 하였다. 이 용액의 N농도는 얼마인가?
   (단, 수산화나트륨의 분자량은 40 이다.)
 
   A.0.08N
@@ -97,14 +95,16 @@ doct_to_text: '질문: 수산화나트륨(NaOH) 80g을 물에 녹여 전체 부�
   입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_chemistry

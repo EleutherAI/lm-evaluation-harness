@@ -1,7 +1,5 @@
 dataset_name: real_estate
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_real_estate
-doct_to_text: '질문: 공인중개사법령상 법인인 개업공인중개사의 중개사무소등록증 원본 또는 사본이 첨부되어야 하는 경우에 해당하지 않는 것은?
+doc_to_text: '질문: 공인중개사법령상 법인인 개업공인중개사의 중개사무소등록증 원본 또는 사본이 첨부되어야 하는 경우에 해당하지 않는 것은?
 
   A.중개사무소 이전신고
 
@@ -108,14 +106,16 @@ doct_to_text: '질문: 공인중개사법령상 법인인 개업공인중개사�
   내용은 잘못된 내용입니다. 따라서, 정답은 (D) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_real_estate

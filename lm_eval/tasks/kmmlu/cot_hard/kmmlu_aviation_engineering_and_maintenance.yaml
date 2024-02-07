@@ -1,7 +1,5 @@
 dataset_name: aviation_engineering_and_maintenance
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_aviation_engineering_and_maintenance
-doct_to_text: '질문: 수평 등속도로 비행하는 항공기에 작용하는 공기력에 대한 설명으로 옳은것은?
+doc_to_text: '질문: 수평 등속도로 비행하는 항공기에 작용하는 공기력에 대한 설명으로 옳은것은?
 
   A.추력이 항력보다 크다.
 
@@ -107,14 +105,16 @@ doct_to_text: '질문: 수평 등속도로 비행하는 항공기에 작용하�
   (D) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_aviation_engineering_and_maintenance

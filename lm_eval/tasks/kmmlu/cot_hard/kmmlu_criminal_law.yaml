@@ -1,7 +1,5 @@
 dataset_name: criminal_law
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_criminal_law
-doct_to_text: '질문: 책임능력에 대한 설명으로 옳은 것은?
+doc_to_text: '질문: 책임능력에 대한 설명으로 옳은 것은?
 
   A.심 신장애는 생물학적 요소 외에 심리학적 요소로서 정신병 또는 비정상적 정신 상태와 같은 정신적 장애로 말 미암아 사물에 대한 변별 능력과
   그에 따른 행위 통제능력이 결여되거나 감소되었음을 요한다.
@@ -123,14 +121,16 @@ doct_to_text: '질문: 책임능력에 대한 설명으로 옳은 것은?
   (C) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_criminal_law

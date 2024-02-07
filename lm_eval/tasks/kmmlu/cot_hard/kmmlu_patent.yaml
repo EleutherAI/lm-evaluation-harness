@@ -1,7 +1,5 @@
 dataset_name: patent
-include: _cot_kmmlu_yaml
-task: kmmlu_cot_patent
-doct_to_text: '질문: 특허협력조약(PCT)에 따른 국제특허출원에 관한 설명으로 옳지 않은 것은?
+doc_to_text: '질문: 특허협력조약(PCT)에 따른 국제특허출원에 관한 설명으로 옳지 않은 것은?
 
   A.국제특허출원의 출원인은 국내서면제출기간에 출원인의 성명 및 주소, 발명의 명칭 등을 기재한 서면을 특허청장에게 제출하여야 하는데, 그 서면을
   국내서면제출기간에 제출하지 아니한 경우 특허청장은 보정기간을 정하여 보정을 명하여야 한다.
@@ -129,14 +127,16 @@ doct_to_text: '질문: 특허협력조약(PCT)에 따른 국제특허출원에 �
   받을 수 없습니다.  , (D)는 옳은 설명입니다. 따라서, 정답은 (A) 입니다.
 
 
-  질문: {question}
+  질문: {{question}}
 
-  A.{A}
+  A.{{A}}
 
-  B.{B}
+  B.{{B}}
 
-  C.{C}
+  C.{{C}}
 
-  D.{D}
+  D.{{D}}
 
   정답:'
+include: _cot_kmmlu_yaml
+task: kmmlu_cot_patent
