@@ -59,6 +59,7 @@ def parse_args():
         "--wandb_entity",
         help="The wandb entity.",  # TODO: better desp
     )
+    # TODO: take group and tag as input
     return parser.parse_args()
 
 
@@ -79,6 +80,47 @@ def find_common_and_uncommon_items(tasks, run_paths):
     return common_items, uncommon_items_with_indices
 
 
+def get_metrics_per_task(data, tasks):
+    metrics_per_task = {task: set() for task in tasks}
+
+    for d in data:
+        for key, value in d.items():
+            task = key.split('/')[0]
+            if task in tasks:
+                metrics_per_task[task].add(key)
+
+    return metrics_per_task
+
+
+def prepare_report_by_task(tasks, run_ids, metrics_by_tasks):
+    task_blocks = []
+    for task in tasks:
+        task_blocks.append(wr.H3(task))
+
+        runsets = []
+        for run_id in run_ids:
+            runsets.append(
+                wr.Runset(
+                    project=wandb_project,
+                    entity=wandb_entity
+                ).set_filters_with_python_expr(f"ID == {run_id}")
+            )
+        
+        panels = []
+        metrics = metrics_by_tasks[task]
+        for metric in metrics:
+            panels.append(wr.BarPlot(metrics=[metric]))
+
+        task_blocks.append(
+            wr.PanelGrid(
+                runsets=runsets,
+                panels=panels,
+            )
+        )
+        
+    return task_blocks
+
+
 def main():
     args = parse_args()
     run_paths = args.runs
@@ -86,6 +128,7 @@ def main():
     assert isinstance(run_paths, list)
 
     eval_runs = {}
+    run_ids = []
     for run_path in run_paths:
         assert len(run_path.split("/")) == 3, """
         The run_path is expected to be of the format <entity>/<project name>/<run id> and not {}
@@ -96,6 +139,7 @@ def main():
         run = api.run(f"{run_path}")
 
         eval_runs[run_path]["url"] = run.url
+        run_ids.append(run.id)
 
         config = run.config
         eval_runs[run_path]["config"] = config
@@ -116,20 +160,17 @@ def main():
 
         eval_runs[run_path]["eval_metrics"] = eval_metrics
 
-    print(eval_runs)
-
     all_tasks = [value["tasks"] for value in eval_runs.values()]
-    print("All tasks: ", all_tasks)
 
     common_tasks, uncommon_tasks_with_run_ids = find_common_and_uncommon_items(
         all_tasks, run_paths
     )
-    print(common_tasks)
-    print(uncommon_tasks_with_run_ids)
 
     all_eval_metrics = [value["eval_metrics"] for value in eval_runs.values()]
-    print(all_eval_metrics)
 
+    metrics_by_tasks = get_metrics_per_task(all_eval_metrics, common_tasks)
+
+    global wandb_project, wandb_entity
     wandb_project = (
         args.wandb_project
         if args.wandb_project is not None
@@ -140,80 +181,65 @@ def main():
         if args.wandb_entity is not None
         else wandb.apis.PublicApi().default_entity
     )
-    print(wandb_project, wandb_entity)
     report = wr.Report(
         project=wandb_project,
         entity=wandb_entity,
         title=f"({datetime.now().strftime('%Y-%m-%d %H:%M:%S')}) Evaluation Comparison Report",
         description=f"Comparing evaluations - run by: {wandb_entity}",
     )
-    print(report)
 
     run_urls = [value["url"] for value in eval_runs.values()]
     run_urls_str = "\n" + "* " + "\n* ".join(run_urls) + "\n"
     tasks_str = "\n" + "* " + "\n* ".join(sorted(common_tasks)) + "\n"
 
-    blocks = [
-        wr.TableOfContents(),
-        wr.MarkdownBlock(
-            "This report is comparing the evaluation results from the following evaluation runs: "
-            f"{run_urls_str}"
-        ),
-        wr.H2("Comparing Evaluation Results by Common Tasks"),
-        wr.MarkdownBlock(
-            "The following tasks are common in the provided evaluation runs: "
-            f"{tasks_str}"
-        ),
-        # wr.H1("Complete Evaluation Results"),
-        # wr.WeaveBlockSummaryTable(
-        #     project=self.run.project,
-        #     entity=self.run.entity,
-        #     table_name="evaluation/eval_results",
-        # ),
-        # wr.PanelGrid(
-        #     runsets=[
-        #         wr.Runset(
-        #             project=self.run.project,
-        #             entity=self.run.entity,
-        #         ).set_filters_with_python_expr(
-        #             f'Name == "{str(self.run.name)}"'
-        #         ),
-        #     ]
-        # ),
-        wr.H1("Evaluation Results By Task"),
-    ]
+    task_blocks = prepare_report_by_task(
+        common_tasks,
+        run_ids,
+        metrics_by_tasks
+    )
+
+    # comparer_block = get_run_comparison_block(run_ids)
+
+    blocks = (
+        [
+            wr.TableOfContents(),
+            wr.MarkdownBlock(
+                "This report is comparing the evaluation results from the following evaluation runs: "
+                f"{run_urls_str}"
+            ),
+            wr.H2("Comparing Evaluation Results by Common Tasks"),
+            wr.MarkdownBlock(
+                "The following tasks are common in the provided evaluation runs: "
+                f"{tasks_str}"
+            ),
+        ]
+        + task_blocks
+        + [
+            wr.H2("Comparing Configurations"),
+        ]
+        # + comparer_block
+        # TODO: Add wr.Gallery for each evaluation run.
+    )
 
     report.blocks = blocks
     report.save()
     wandb.termlog(f"📝 Check out the autogenerated report at: {report.url}")
 
 
-# def prepare_report_by_task(tasks, results):
-#     blocks = []
-#     for task_name in self.task_names:
-#         blocks.append(wr.H2(task_name))
-#         panels = []
-#         for metric_name, metric_value in results.items():
-#             if task_name in metric_name:
-#                 panels.append(
-#                     wr.ScalarChart(
-#                         title=f"{metric_name}",
-#                         metric=f"{metric_name}",
-#                         font_size="large",
-#                     )
-#                 )
-#         _results = {
-#             "results": {f"{task_name}": self.results.get("results").get(task_name)},
-#             "versions": {
-#                 f"{task_name}": self.results.get("versions").get(task_name)
-#             },
-#             "n-shot": {f"{task_name}": self.results.get("n-shot").get(task_name)},
-#         }
-#         results_md = utils.make_table(_results)
-#         blocks.extend([wr.MarkdownBlock(results_md), wr.PanelGrid(panels=panels)])
-#         # TODO: Add results table
+def get_run_comparison_block(run_ids):
+    runsets = []
+    for run_id in run_ids:
+        runsets.append(
+            wr.Runset(
+                project=wandb_project,
+                entity=wandb_entity
+            ).set_filters_with_python_expr(f"ID == {run_id}")
+        )
+    
+    panels = [wr.RunComparer(diff_only='split')]
 
-#     return blocks
+    comparer_block = [wr.PanelGrid(runsets=runsets, panels=panels)]
+    return comparer_block
 
 
 if __name__ == "__main__":
