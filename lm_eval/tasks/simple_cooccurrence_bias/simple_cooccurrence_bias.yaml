@@ -15,3 +15,5 @@ metric_list:
  - metric: pct_male_preferred
    aggregation: mean
    higher_is_better: false
+metadata:
+  version: 1.0
