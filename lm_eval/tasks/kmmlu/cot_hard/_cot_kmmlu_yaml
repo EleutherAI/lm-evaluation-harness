@@ -1,4 +1,4 @@
-group: s
+group: 
     - kmmlu
     - kmmlu_cot
 dataset_path: HAERAE-HUB/KMMLU-HARD
