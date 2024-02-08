@@ -4,6 +4,7 @@ import json
 import logging
 import re
 from datetime import datetime
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -29,7 +30,16 @@ except Exception as e:
     )
 
 
-def remove_none_pattern(input_string):
+def remove_none_pattern(input_string: str) -> Tuple[str, bool]:
+    """Remove the ',none' substring from the input_string if it exists at the end.
+
+    Args:
+        input_string (str): The input string from which to remove the ',none' substring.
+
+    Returns:
+        Tuple[str, bool]: A tuple containing the modified input_string with the ',none' substring removed
+                          and a boolean indicating whether the modification was made (True) or not (False).
+    """
     # Define the pattern to match ',none' at the end of the string
     pattern = re.compile(r",none$")
 
@@ -42,7 +52,17 @@ def remove_none_pattern(input_string):
     return result, removed
 
 
-def _handle_non_serializable(o):
+def _handle_non_serializable(o: Any) -> Union[int, str, list]:
+    """Handle non-serializable objects by converting them to serializable types.
+
+    Args:
+        o (Any): The object to be handled.
+
+    Returns:
+        Union[int, str, list]: The converted object. If the object is of type np.int64 or np.int32,
+            it will be converted to int. If the object is of type set, it will be converted
+            to a list. Otherwise, it will be converted to str.
+    """
     if isinstance(o, np.int64) or isinstance(o, np.int32):
         return int(o)
     elif isinstance(o, set):
@@ -52,13 +72,22 @@ def _handle_non_serializable(o):
 
 
 class WandbLogger:
-    def __init__(self, results, args):
-        self.results = copy.deepcopy(results)
-        self.wandb_args = utils.simple_parse_args_string(args.wandb_args)
+    def __init__(self, results: Dict[str, Any], args: Any) -> None:
+        """Initialize the WandbLogger.
 
-        self.task_names = list(results.get("results", {}).keys())
+        Args:
+            results (Dict[str, Any]): The results dictionary.
+            args (Any): Arguments for configuration.
+        """
+        self.results: Dict[str, Any] = copy.deepcopy(results)
+        self.wandb_args: Dict[str, Any] = utils.simple_parse_args_string(
+            args.wandb_args
+        )
 
-    def log_eval_result(self):
+        self.task_names: List[str] = list(results.get("results", {}).keys())
+
+    def log_eval_result(self) -> None:
+        """Log evaluation results to W&B."""
         # initialize a W&B run
         self.run = wandb.init(**self.wandb_args)
 
@@ -76,8 +105,9 @@ class WandbLogger:
         # Log the results dict as json
         self.log_results_as_json()
 
-    def get_eval_wandb_table(self):
-        columns = [
+    def get_eval_wandb_table(self) -> None:
+        """Generate and log evaluation results as a table to W&B."""
+        columns: List[str] = [
             "Task",
             "Version",
             "Filter",
@@ -112,15 +142,17 @@ class WandbLogger:
         # log the table to W&B
         self.run.log({"evaluation/eval_results": table})
 
-    def generate_dataset(self, data, config):
+    def generate_dataset(
+        self, data: List[Dict[str, Any]], config: Dict[str, Any]
+    ) -> pd.DataFrame:
         """Generate a Zeno dataset from evaluation data.
 
         Args:
-            data: The data to generate a dataset for.
-            config: The configuration of the task.
+            data (List[Dict[str, Any]]): The data to generate a dataset for.
+            config (Dict[str, Any]): The configuration of the task.
 
         Returns:
-            pd.Dataframe: A dataframe that is ready to be uploaded to Zeno.
+            pd.DataFrame: A dataframe that is ready to be uploaded to Zeno.
         """
         ids = [x["doc_id"] for x in data]
         labels = [x["target"] for x in data]
@@ -158,13 +190,19 @@ class WandbLogger:
 
         return pd.DataFrame(df_data)
 
-    def log_eval_samples(self, samples):
+    def log_eval_samples(self, samples: Dict[str, List[Dict[str, Any]]]) -> None:
+        """Log evaluation samples to W&B.
+
+        Args:
+            samples (Dict[str, List[Dict[str, Any]]]): Evaluation samples for each task.
+        """
         for task_name in self.task_names:
             eval_preds = samples[task_name]
             df = self.generate_dataset(eval_preds, self.task_configs.get(task_name))
             self.run.log({f"{task_name}_eval_results": df})
 
-    def log_results_as_json(self):
+    def log_results_as_json(self) -> None:
+        """Log results as JSON artifact to W&B."""
         dumped = json.dumps(
             self.results, indent=2, default=_handle_non_serializable, ensure_ascii=False
         )
@@ -173,7 +211,8 @@ class WandbLogger:
             f.write(dumped)
         self.run.log_artifact(artifact)
 
-    def get_config(self):
+    def get_config(self) -> Dict[str, Any]:
+        """Get configuration parameters."""
         self.task_configs = self.results.get("configs", {})
         cli_configs = self.results.get("config", {})
         configs = {
@@ -183,11 +222,8 @@ class WandbLogger:
 
         return configs
 
-    def sanitize_results_dict(self):
-        """
-        Remove string valued keys from the results dict as they don't render in the workspace.
-        Log these key-value pairs to wandb.summary.
-        """
+    def sanitize_results_dict(self) -> Tuple[Dict[str, str], Dict[str, Any]]:
+        """Sanitize the results dictionary."""
         _results = copy.deepcopy(self.results.get("results", dict()))
 
         # Remove None from the metric string name
@@ -222,7 +258,8 @@ class WandbLogger:
 
         return wandb_summary, _results
 
-    def prepare_report_by_task(self, results):
+    def prepare_report_by_task(self, results: Dict[str, Any]) -> List[Any]:
+        """Prepare report by task."""
         import wandb.apis.reports as wr
 
         blocks = []
@@ -251,7 +288,8 @@ class WandbLogger:
 
         return blocks
 
-    def write_to_report(self):
+    def write_to_report(self) -> None:
+        """Write to report."""
         import wandb.apis.reports as wr
 
         report = wr.Report(
