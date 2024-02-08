@@ -5,6 +5,7 @@ import logging
 import re
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 from packaging.version import Version
 
@@ -41,6 +42,15 @@ def remove_none_pattern(input_string):
     return result, removed
 
 
+def _handle_non_serializable(o):
+    if isinstance(o, np.int64) or isinstance(o, np.int32):
+        return int(o)
+    elif isinstance(o, set):
+        return list(o)
+    else:
+        return str(o)
+
+
 class WandbLogger:
     def __init__(self, results, args):
         self.results = copy.deepcopy(results)
@@ -63,6 +73,8 @@ class WandbLogger:
         self.run.log(self.wandb_results)
         # Log the evaluation metrics as Table
         self.get_eval_wandb_table()
+        # Log the results dict as json
+        self.log_results_as_json()
 
     def get_eval_wandb_table(self):
         columns = [
@@ -151,6 +163,15 @@ class WandbLogger:
             eval_preds = samples[task_name]
             df = self.generate_dataset(eval_preds, self.task_configs.get(task_name))
             self.run.log({f"{task_name}_eval_results": df})
+
+    def log_results_as_json(self):
+        dumped = json.dumps(
+            self.results, indent=2, default=_handle_non_serializable, ensure_ascii=False
+        )
+        artifact = wandb.Artifact("results", type="eval_results")
+        with artifact.new_file("results.json", mode="w", encoding="utf-8") as f:
+            f.write(dumped)
+        self.run.log_artifact(artifact)
 
     def get_config(self):
         self.task_configs = self.results.get("configs", {})
