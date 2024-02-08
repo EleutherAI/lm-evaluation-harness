@@ -16,3 +16,5 @@ temp
 # IPython
 profile_default/
 ipython_config.py
+wandb
+examples/wandb

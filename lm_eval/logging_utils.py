@@ -145,14 +145,14 @@ class WandbLogger:
     def generate_dataset(
         self, data: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> pd.DataFrame:
-        """Generate a Zeno dataset from evaluation data.
+        """Generate a dataset from evaluation data.
 
         Args:
             data (List[Dict[str, Any]]): The data to generate a dataset for.
             config (Dict[str, Any]): The configuration of the task.
 
         Returns:
-            pd.DataFrame: A dataframe that is ready to be uploaded to Zeno.
+            pd.DataFrame: A dataframe that is ready to be uploaded to W&B.
         """
         ids = [x["doc_id"] for x in data]
         labels = [x["target"] for x in data]
@@ -198,6 +198,21 @@ class WandbLogger:
         """
         for task_name in self.task_names:
             eval_preds = samples[task_name]
+
+            # log the samples as an artifact
+            dumped = json.dumps(
+                eval_preds,
+                indent=2,
+                default=_handle_non_serializable,
+                ensure_ascii=False,
+            )
+            artifact = wandb.Artifact(f"{task_name}", type="samples_by_task")
+            with artifact.new_file(f"{task_name}_eval_samples.json", mode="w", encoding="utf-8") as f:
+                f.write(dumped)
+            self.run.log_artifact(artifact)
+            artifact.wait()
+
+            # log the samples as a W&B Table
             df = self.generate_dataset(eval_preds, self.task_configs.get(task_name))
             self.run.log({f"{task_name}_eval_results": df})
 
