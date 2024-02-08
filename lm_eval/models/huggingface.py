@@ -617,7 +617,13 @@ class HFLM(LM):
 
             return batch_size
 
-        batch_size = forward_batch()
+        try:
+            batch_size = forward_batch()
+        except RuntimeError as e:
+            if "No executable batch size found" in str(e):
+                batch_size = 1
+            else:
+                raise
 
         if self.world_size > 1:
             # if multi-GPU, always take minimum over all selected batch sizes
