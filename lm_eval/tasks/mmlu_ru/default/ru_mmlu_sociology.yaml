@@ -1,0 +1,8 @@
+"dataset_name": "sociology"
+"description": "The following are multiple choice questions (with answers) about sociology.\n\
+  \n"
+"group": "mmlu_ru_social_sciences"
+"group_alias": "social sciences"
+"include": "_default_template_yaml"
+"task": "mmlu_ru_sociology"
+"task_alias": "sociology"
