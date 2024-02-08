@@ -45,6 +45,9 @@ def simple_evaluate(
     task_manager: TaskManager = None,
     verbosity: str = "INFO",
     predict_only: bool = False,
+    random_seed: int = 0,
+    numpy_random_seed: int = 1234,
+    torch_random_seed: int = 1234,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -80,15 +83,24 @@ def simple_evaluate(
         Ignored for all tasks with loglikelihood output_type
     :param predict_only: bool
         If true only model outputs will be generated and returned. Metrics will not be evaluated
+    :param random_seed: int
+        Random seed for python's random module. If set to None, the seed will not be set.
+    :param numpy_random_seed: int
+        Random seed for numpy. If set to None, the seed will not be set.
+    :param torch_random_seed: int
+        Random seed for torch. If set to None, the seed will not be set.
 
     :return
         Dictionary of results
     """
-    random.seed(0)
-    np.random.seed(1234)
-    torch.manual_seed(
-        1234
-    )  # TODO: this may affect training runs that are run with evaluation mid-run.
+    if random_seed is not None:
+        random.seed(random_seed)
+
+    if numpy_random_seed is not None:
+        np.random.seed(numpy_random_seed)
+
+    if torch_random_seed is not None:
+        torch.manual_seed(torch_random_seed)
 
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
