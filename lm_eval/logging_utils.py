@@ -89,7 +89,10 @@ class WandbLogger:
     def log_eval_result(self) -> None:
         """Log evaluation results to W&B."""
         # initialize a W&B run
-        self.run = wandb.init(**self.wandb_args)
+        if wandb.run is None:
+            self.run = wandb.init(**self.wandb_args)
+        else:
+            self.run = wandb.run
 
         # Log configs to wandb
         configs = self.get_config()
