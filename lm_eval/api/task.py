@@ -557,6 +557,9 @@ class Task(abc.ABC):
         self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
         self._higher_is_better[metric_name] = is_higher_better(metric_name)
         self._metric_fn_kwargs[metric_name] = {}
+        if not isinstance(self, ConfigurableTask):
+            self.process_results = lambda x, y: {metric_name: None}
+            self.aggregation = lambda: {metric_name: lambda x: 999}
         setattr(self._config, "metric_list", [{"metric": metric_name}])
         setattr(self._config, "process_results", None)
 
