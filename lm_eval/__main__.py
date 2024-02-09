@@ -281,6 +281,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             if args.log_samples:
                 wandb_logger.log_eval_samples(samples)
             wandb_logger.write_to_report()
+            # Tear down wandb run once all the logging is done.
+            wandb_logger.run.finish()
 
         if args.output_path:
             output_path_file.open("w", encoding="utf-8").write(dumped)
