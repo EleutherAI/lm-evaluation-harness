@@ -515,7 +515,7 @@ def evaluate(
                     results[task_name][metric + "_stderr" + "," + key] = "N/A"
 
         if bool(results):
-            for group, task_list in task_hierarchy.items():
+            for group, task_list in reversed(task_hierarchy.items()):
                 if len(task_list) == 0:
                     # task_hierarchy entries are either
                     # `group_name: [subtask1, subtask2, ...]`
