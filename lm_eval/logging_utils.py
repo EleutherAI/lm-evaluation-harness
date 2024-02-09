@@ -209,7 +209,9 @@ class WandbLogger:
                 ensure_ascii=False,
             )
             artifact = wandb.Artifact(f"{task_name}", type="samples_by_task")
-            with artifact.new_file(f"{task_name}_eval_samples.json", mode="w", encoding="utf-8") as f:
+            with artifact.new_file(
+                f"{task_name}_eval_samples.json", mode="w", encoding="utf-8"
+            ) as f:
                 f.write(dumped)
             self.run.log_artifact(artifact)
             artifact.wait()
