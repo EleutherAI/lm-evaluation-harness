@@ -1,5 +1,5 @@
 import logging
-from typing import Callable
+from typing import Callable, Dict
 
 import evaluate
 
@@ -76,7 +76,7 @@ def register_group(name):
 OUTPUT_TYPE_REGISTRY = {}
 METRIC_REGISTRY = {}
 METRIC_AGGREGATION_REGISTRY = {}
-AGGREGATION_REGISTRY = {}
+AGGREGATION_REGISTRY: Dict[str, Callable[[], Dict[str, Callable]]] = {}
 HIGHER_IS_BETTER_REGISTRY = {}
 
 DEFAULT_METRIC_REGISTRY = {
@@ -149,14 +149,14 @@ def register_aggregation(name: str):
     return decorate
 
 
-def get_aggregation(name: str) -> Callable:
+def get_aggregation(name: str) -> Callable[[], Dict[str, Callable]]:
     try:
         return AGGREGATION_REGISTRY[name]
     except KeyError:
         eval_logger.warning(f"{name} not a registered aggregation metric!")
 
 
-def get_metric_aggregation(name: str) -> Callable:
+def get_metric_aggregation(name: str) -> Callable[[], Dict[str, Callable]]:
     try:
         return METRIC_AGGREGATION_REGISTRY[name]
     except KeyError:
