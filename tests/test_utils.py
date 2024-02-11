@@ -1,6 +1,10 @@
 import pytest
 
-from lm_eval.utils import Collator, get_rolling_token_windows, make_disjoint_window
+from lm_eval.utils import (
+    Collator,
+    get_rolling_token_windows,
+    make_disjoint_window,
+)
 
 
 # noinspection DuplicatedCode
