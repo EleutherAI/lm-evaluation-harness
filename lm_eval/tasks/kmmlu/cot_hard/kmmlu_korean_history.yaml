@@ -123,6 +123,6 @@ doc_to_text: '질문: (가)에 대한 설명으로 옳지 않은 것은? (가)�
 
   D.{{D}}
 
-  정답:'
+  정답: 차근 차근 생각해봅시다. 한국사 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
 task: kmmlu_cot_korean_history

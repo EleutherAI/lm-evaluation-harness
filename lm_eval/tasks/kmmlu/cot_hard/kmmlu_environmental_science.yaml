@@ -111,6 +111,6 @@ doc_to_text: '질문: 혐기성 소화에서 독성을 유발 시킬 수 있느 
 
   D.{{D}}
 
-  정답:'
+  정답: 차근 차근 생각해봅시다. 환경 과학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
 task: kmmlu_cot_environmental_science

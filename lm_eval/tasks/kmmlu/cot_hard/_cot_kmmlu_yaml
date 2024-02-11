@@ -13,8 +13,7 @@ metric_list:
     ignore_punctuation: true
 generation_kwargs:
   until:
-    - "Q:"
-    - "</s>"
+    - "질문:"
   do_sample: false
   max_gen_toks: 2048
   temperature: 0.0
@@ -22,9 +21,8 @@ filter_list:
   - name: "get-answer"
     filter:
       - function: "regex"
-        regex_pattern: "(?<=따라서 정답은)(.*)(?=입니다.)"
-        regex_pattern: "(?<=따라서, 정답은)(.*)(?=입니다.)"
         regex_pattern: "(?<=정답은)(.*)(?=입니다.)"
+        regex_pattern: "(?<=정답은)\\s*[(]?(A|B|C|D)[)]?.*(?=입니다.)"
       - function: "take_first"
 metadata:
-  version: 1.4
+  version: 1.5

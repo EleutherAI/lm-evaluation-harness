@@ -114,6 +114,6 @@ doc_to_text: '질문: 보일러 입구의 압력이 9800 kN/m2 이고, 응축기
 
   D.{{D}}
 
-  정답:'
+  정답: 차근 차근 생각해봅시다. 냉동 기계 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
 task: kmmlu_cot_refrigerating_machinery

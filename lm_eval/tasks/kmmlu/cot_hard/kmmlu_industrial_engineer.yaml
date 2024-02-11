@@ -108,6 +108,6 @@ doc_to_text: '질문: 수평밀링머신의 니(knee) 위에 전후 방향으로
 
   D.{{D}}
 
-  정답:'
+  정답: 차근 차근 생각해봅시다. 산업 공학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
 task: kmmlu_cot_industrial_engineer

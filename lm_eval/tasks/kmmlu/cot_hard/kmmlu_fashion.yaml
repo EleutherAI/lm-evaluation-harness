@@ -109,6 +109,6 @@ doc_to_text: '질문: 오점의 성분 중 충해의 원인이 되는 것은?
 
   D.{{D}}
 
-  정답:'
+  정답: 차근 차근 생각해봅시다. 의류학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
 task: kmmlu_cot_fashion

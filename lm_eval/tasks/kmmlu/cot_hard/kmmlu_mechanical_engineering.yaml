@@ -106,6 +106,6 @@ doc_to_text: '질문: 비틀림 각이 30°인 헬리컬 기어에서 잇수가 
 
   D.{{D}}
 
-  정답:'
+  정답: 차근 차근 생각해봅시다. 기계 공학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
 task: kmmlu_cot_mechanical_engineering
