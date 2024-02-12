@@ -1,7 +1,7 @@
 group:
   - ai2_arc
 task: arc_easy
-dataset_path: ai2_arc
+dataset_path: allenai/ai2_arc
 dataset_name: ARC-Easy
 output_type: multiple_choice
 training_split: train

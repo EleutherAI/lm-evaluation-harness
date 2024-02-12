@@ -1,12 +1,18 @@
 import copy
 import os
+from datetime import timedelta
 from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
 import transformers
-from accelerate import Accelerator, DistributedType, find_executable_batch_size
+from accelerate import (
+    Accelerator,
+    DistributedType,
+    InitProcessGroupKwargs,
+    find_executable_batch_size,
+)
 from packaging import version
 from peft import PeftModel
 from peft import __version__ as PEFT_VERSION
@@ -108,8 +114,8 @@ class HFLM(LM):
             assert not parallelize, "`parallelize=True` is not compatible with passing pre-initialized model to `pretrained`"
             self._model = pretrained
             self._device = self._model.device
-
             self._config = self._model.config
+            gpus = 0
 
             if tokenizer:
                 assert isinstance(
@@ -132,7 +138,10 @@ class HFLM(LM):
             assert isinstance(batch_size, (int, str))
 
             gpus = torch.cuda.device_count()
-            accelerator = Accelerator()
+            accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
+            accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
+            if accelerator.num_processes > 1:
+                self.accelerator = accelerator
 
             if not (parallelize or accelerator.num_processes > 1):
                 # use user-passed device
@@ -198,19 +207,21 @@ class HFLM(LM):
             )
 
         # access self._model through self.model property outside this method
-        self.model.eval()
-        self.model.tie_weights()
+        if isinstance(self.model, torch.nn.Module):
+            self.model.eval()
+            self.model.tie_weights()
 
         if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) == "mps"):
-            if not (parallelize or autogptq or ("device_map" in kwargs)):
+            # TODO: can remove this whole snippet except in the mps case, perhaps?
+            if not (parallelize or autogptq or hasattr(self, "accelerator")):
                 # place model onto device requested manually,
                 # if not using HF Accelerate or device_map
                 # or any other option that preloads model onto device
                 try:
                     self.model.to(self.device)
                 except ValueError:
-                    eval_logger.info(
-                        "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes`. If the desired GPU is being used, this message is safe to ignore."
+                    eval_logger.debug(
+                        "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes` or `device_map` is provided. If the desired GPU is being used, this message is safe to ignore."
                     )
 
         self._create_tokenizer(
@@ -235,6 +246,16 @@ class HFLM(LM):
             if self.config.model_type == "qwen":
                 # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
                 self.tokenizer.pad_token = "<|endoftext|>"
+            elif (
+                self.tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
+                or self.tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
+            ):
+                # The RWKV world tokenizer, does not allow for adding special tokens / setting the pad token (which is set as 0)
+                # The additional tokenizer name check is needed, as there exists rwkv4 models with neox tokenizer
+                # ---
+                # Note that the world tokenizer class name, might change in the future for the final huggingface merge
+                # https://github.com/huggingface/transformers/pull/26963
+                assert self.tokenizer.pad_token_id == 0
             else:
                 self.tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
 
@@ -358,7 +379,7 @@ class HFLM(LM):
 
     def _get_backend(
         self,
-        config: transformers.AutoConfig,
+        config: Union[transformers.PretrainedConfig, transformers.AutoConfig],
         backend: Optional[Literal["default", "causal", "seq2seq"]] = "default",
         trust_remote_code: Optional[bool] = False,
     ) -> None:
@@ -456,12 +477,24 @@ class HFLM(LM):
         if parallelize:
             model_kwargs.update(
                 _get_accelerate_args(
-                    device_map_option,
+                    device_map_option,  # TODO: phase out device_map_option?
                     max_memory_per_gpu,
                     max_cpu_memory,
                     offload_folder,
                 )
             )
+        elif "device_map" not in model_kwargs:
+            # set a device_map to initialize model on the right GPU.
+            # this is needed because it seems that the default behavior
+            # for quantized models now seems to be device_map="auto"
+            # which breaks data-parallel mode.
+            if hasattr(self, "accelerator"):
+                model_kwargs.update(
+                    {"device_map": {"": f"cuda:{self.accelerator.local_process_index}"}}
+                )
+            else:
+                model_kwargs.update({"device_map": {"": str(self.device)}})
+
         if not autogptq:
             if model_kwargs.get("load_in_4bit", None):
                 assert (
@@ -587,12 +620,17 @@ class HFLM(LM):
                     (batch_size, max_length), device=self.device
                 ).long()
             for _ in range(5):
-                out = F.log_softmax(self._model_call(test_batch, **call_kwargs), dim=-1)
-                out = out  # Identity process so that it passes pre-commit
+                out = F.log_softmax(self._model_call(test_batch, **call_kwargs), dim=-1)  # noqa: F841
 
             return batch_size
 
-        batch_size = forward_batch()
+        try:
+            batch_size = forward_batch()
+        except RuntimeError as e:
+            if "No executable batch size found" in str(e):
+                batch_size = 1
+            else:
+                raise
 
         if self.world_size > 1:
             # if multi-GPU, always take minimum over all selected batch sizes
@@ -690,10 +728,19 @@ class HFLM(LM):
                 return self.model(inps).logits
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
-        # we require users to pass do_sample=True explicitly
-        # for non-greedy gen. This should be reevaluated when considering beam search.
-        if "do_sample" not in generation_kwargs:
-            generation_kwargs["do_sample"] = False
+        # temperature = 0.0 if not set
+        # if do_sample is false and temp==0.0:
+        # remove temperature, as do_sample=False takes care of this
+        # and we don't want a warning from HF
+        generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
+        do_sample = generation_kwargs.get("do_sample", None)
+
+        # The temperature has to be a strictly positive float -- if it is 0.0, use greedy decoding strategies
+        if generation_kwargs.get("temperature") == 0.0 and do_sample is None:
+            generation_kwargs["do_sample"] = do_sample = False
+
+        if do_sample is False and generation_kwargs.get("temperature") == 0.0:
+            generation_kwargs.pop("temperature")
         # build stopping criteria
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, context.shape[1], context.shape[0]
@@ -1030,6 +1077,7 @@ class HFLM(LM):
             return -len(toks), x[0]
 
         pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        adaptive_batch_size = None
         if self.batch_size == "auto":
             # using rolling window with maximum context
             print("Passed argument batch_size = auto. Detecting largest batch size")
@@ -1074,7 +1122,7 @@ class HFLM(LM):
                         )
             else:
                 raise ValueError(
-                    f"Expected `kwargs` to be of type `dict` but got {kwargs}"
+                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
             if not until:
                 until = [self.tok_decode(self.eot_token_id)]

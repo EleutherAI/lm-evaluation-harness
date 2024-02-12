@@ -4,7 +4,7 @@ The `lm-evaluation-harness` is meant to be an extensible and flexible framework 
 
 These YAML configuration files, along with the current codebase commit hash, are intended to be shareable such that providing the YAML config enables another researcher to precisely replicate the evaluation setup used by another, in the case that the prompt or setup differs from standard `lm-eval` task implementations.
 
-While adding a standard evaluation task on a new dataset can be occasionally as simple as swapping out a Hugging Face dataset path in an existing file, more specialized evaluation setups. Here we'll provide a crash course on the more advanced logic implementable in YAML form available to users.
+While adding a standard evaluation task on a new dataset can be occasionally as simple as swapping out a Hugging Face dataset path in an existing file, more specialized evaluation setups also exist. Here we'll provide a crash course on the more advanced logic implementable in YAML form available to users.
 
 If your intended task relies on features beyond what are described in this guide, we'd love to hear about it! Feel free to open an issue describing the scenario on Github, create a PR to the project with a proposed implementation, or ask in the `#lm-thunderdome` channel on the EleutherAI discord.
 
@@ -50,7 +50,7 @@ Scoring details:
 - **doc_to_decontamination_query** (`str`, *optional*) — Query for decontamination if `should_decontaminate` is True. If `should_decontaminate` is True but `doc_to_decontamination_query` is `None`, `doc_to_decontamination_query` will follow `doc_to_text`.
 
 Other:
-- **metadata** (`Union[str, list]`, *optional*) — An optional field where arbitrary metadata can be passed. A good example would be `version` that is used to denote the version of the yaml config.
+- **metadata** (`dict`, *optional*) — An optional field where arbitrary metadata can be passed. Most tasks should include a `version` key in this field that is used to denote the version of the yaml config. Other special metadata keys are: `num_fewshot`, to override the printed `n-shot` table column for a task.
 
 ## Filters
 
@@ -301,6 +301,23 @@ task:
   - hendrycksTest*
 ```
 
+It is also possible to list an existing task in your benchmark configuration with some adjustments. For example, a few tasks from mmlu is included `multimedqa`. There, the `task_alias` and `group_alias` (See [here](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/new_task_guide.md#beautifying-table-display) for more details) are modified to suit the benchmark.
+
+```yaml
+group: multimedqa
+task:
+  - pubmedqa
+  - medmcqa
+  - medqa_4options
+  - task: mmlu_anatomy
+    task_alias: "anatomy (mmlu)"
+    group_alias: null
+  - task: mmlu_clinical_knowledge
+    task_alias: "clinical_knowledge (mmlu)"
+    group_alias: null
+  ...
+```
+
 Alternatively, benchmarks can have tasks that are customizable for each task. They can be defined like how a yaml task is usually set.
 
 ```yaml
@@ -363,4 +380,4 @@ task:
         ignore_punctuation: true
 ```
 
-Calling the benchmark is done the same way we would call any task with `--tasks`. Benchmarks can be added in `lm_eval/benchmarks/`
+Calling the benchmark is done the same way we would call any task with `--tasks`. Benchmarks can be added in `lm_eval/tasks/benchmarks/`

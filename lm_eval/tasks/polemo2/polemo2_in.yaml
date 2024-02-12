@@ -2,7 +2,7 @@ group:
   - polemo2
 task: polemo2_in
 dataset_path: allegro/klej-polemo2-in
-dataset_name: klej-polemo2-in
+dataset_name: null
 output_type: generate_until
 training_split: train
 validation_split: validation
@@ -41,5 +41,6 @@ metric_list:
   - metric: accuracy
     aggregation: mean
     higher_is_better: true
+    hf_evaluate: true
 metadata:
   version: 1.0

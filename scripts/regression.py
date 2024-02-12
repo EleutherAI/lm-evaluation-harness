@@ -94,7 +94,11 @@ def eval_models(args, branch=None):
 
         ret = os.system(command)
 
-        results[model] = json.load(open(output_path)) if ret == 0 else {"results": {}}
+        results[model] = (
+            json.load(open(output_path, encoding="utf-8"))
+            if ret == 0
+            else {"results": {}}
+        )
 
     end_time = time.time()
 
