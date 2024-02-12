@@ -3,7 +3,7 @@ import json
 import logging
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Literal, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -70,7 +70,7 @@ def _handle_non_serializable(o: Any) -> Union[int, str, list]:
         return str(o)
 
 
-def get_wandb_printer() -> "Printer":
+def get_wandb_printer() -> Literal["Printer"]:
     from wandb.sdk.lib.printer import get_printer
     from wandb.sdk.wandb_settings import Settings
 
