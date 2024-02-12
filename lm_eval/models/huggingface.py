@@ -72,9 +72,8 @@ class HFLM(LM):
     def __init__(
         self,
         pretrained: Optional[Union[str, transformers.PreTrainedModel]] = "gpt2",
-        backend: Optional[
-            Literal["default", "causal", "seq2seq"]
-        ] = "default",  # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
+        backend: Optional[Literal["default", "causal", "seq2seq"]] = "default",
+        # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
         revision: Optional[str] = "main",
         subfolder: Optional[str] = None,
         tokenizer: Optional[
@@ -1020,7 +1019,7 @@ class HFLM(LM):
                 self._model_call(batched_inps, **call_kwargs), dim=-1
             )  # [batch, padding_length (inp or cont), vocab]
 
-            for (cache_key, _, _), logits, inplen, cont_toks in zip(
+            for (cache_key, context_key, _), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
             ):
                 # Slice to original seq length
@@ -1037,26 +1036,29 @@ class HFLM(LM):
                 logits = self._select_cont_toks(logits, contlen=contlen, inplen=ctx_len)
                 logits = logits.unsqueeze(0)  # [1, seq, vocab]
 
-                # Check if per-token argmax is exactly equal to continuation
-                greedy_tokens = logits.argmax(dim=-1)
-                cont_toks = torch.tensor(
-                    cont_toks, dtype=torch.long, device=self.device
-                ).unsqueeze(0)  # [1, seq]
-                max_equal = (greedy_tokens == cont_toks).all()
+                for cache_key, logits, cont_toks in re_ord.get_cache(
+                    context_key, cache_key, logits, cont_toks
+                ):
+                    # Check if per-token argmax is exactly equal to continuation
+                    greedy_tokens = logits.argmax(dim=-1)
+                    cont_toks = torch.tensor(
+                        cont_toks, dtype=torch.long, device=self.device
+                    ).unsqueeze(0)  # [1, seq]
+                    max_equal = (greedy_tokens == cont_toks).all()
 
-                # Obtain log-probs at the corresponding continuation token indices
-                # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
-                logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
-                    -1
-                )  # [1, seq]
+                    # Obtain log-probs at the corresponding continuation token indices
+                    # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
+                    logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
+                        -1
+                    )  # [1, seq]
 
-                # Answer: (log prob, is-exact-match)
-                answer = (float(logits.sum()), bool(max_equal))
+                    # Answer: (log prob, is-exact-match)
+                    answer = (float(logits.sum()), bool(max_equal))
 
-                res.append(answer)
+                    res.append(answer)
 
-                self.cache_hook.add_partial("loglikelihood", cache_key, answer)
-                pbar.update(1)
+                    self.cache_hook.add_partial("loglikelihood", cache_key, answer)
+                    pbar.update(1)
 
         pbar.close()
 
