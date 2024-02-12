@@ -1,41 +1,36 @@
-import random
-import itertools
 import collections
+import itertools
+import logging
+import random
+from typing import Optional, Union
 
+import numpy as np
 import torch
 
-import logging
-import numpy as np
-
-import lm_eval.api
-import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry
-
-from lm_eval.tasks import (
-    get_task_dict,
-    TaskManager
-)
+import lm_eval.models
+from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
+    eval_logger,
+    get_git_commit_hash,
     positional_deprecated,
     run_task_tests,
-    get_git_commit_hash,
     simple_parse_args_string,
-    eval_logger
 )
 
 
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args=None,
+    model_args: Optional[str] = None,
     tasks=None,
-    num_fewshot=None,
-    batch_size=None,
-    max_batch_size=None,
-    device=None,
-    use_cache=None,
-    limit=None,
+    num_fewshot: Optional[int] = None,
+    batch_size: Optional[int] = None,
+    max_batch_size: Optional[int] = None,
+    device: Optional[str] = None,
+    use_cache: Optional[str] = None,
+    limit: Optional[Union[int, float]] = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
     decontamination_ngrams_path=None,
@@ -138,8 +133,8 @@ def simple_evaluate(
 
     eval_logger.info(
         "get_task_dict has been updated to accept an optional argument, `task_manager`"
-        "Read more here: https://github.com/EleutherAI/lm-evaluation-harness/blob/recursive-groups/docs/interface.md#external-library-usage"
-        )
+        "Read more here:https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
+    )
     task_dict = get_task_dict(tasks, task_manager)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
@@ -150,7 +145,7 @@ def simple_evaluate(
 
         if task_obj.get_config("output_type") == "generate_until":
             if gen_kwargs is not None:
-                task_obj.override_config(
+                task_obj.set_config(
                     key="generation_kwargs", value=gen_kwargs, update=True
                 )
 
@@ -171,7 +166,7 @@ def simple_evaluate(
                 eval_logger.warning(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
-                task_obj.override_config(key="num_fewshot", value=num_fewshot)
+                task_obj.set_config(key="num_fewshot", value=num_fewshot)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -222,8 +217,8 @@ decontaminate_suffix = "_decontaminate"
 def evaluate(
     lm,
     task_dict,
-    limit=None,
-    bootstrap_iters: int = 100000,
+    limit: Optional[int] = None,
+    bootstrap_iters: Optional[int] = 100000,
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
@@ -297,13 +292,9 @@ def evaluate(
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
-        if "num_fewshot" in configs[task_name]:
-            if configs[task_name]["metadata"]:
-                n_shot = configs[task_name]["metadata"].get("num_fewshot", None)
-            if not n_shot:
-                n_shot = configs[task_name]["num_fewshot"]
-        else:
-            n_shot = 0 # TODO: is this always right?
+        # Number of few-shots for printing.
+        if (n_shot := configs[task_name].get("num_fewshot")) == 0:
+            n_shot = configs[task_name].get("metadata", {}).get("num_fewshot", 0)
         num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
@@ -483,97 +474,70 @@ def evaluate(
         vals = vals_torch
 
     if lm.rank == 0:
-
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
-            metric_key = metric + "," + key
+            group_name, task = task if isinstance(task, tuple) else (None, task)
 
-            if isinstance(task, tuple):
-                group_name, task = task
-            else:
-                group_name = None
-
+            metric_key = f"{metric},{key}"
             agg_fn = task.aggregation()[metric]
+
             results[task_name][metric_key] = agg_fn(items)
             results[task_name]["samples"] = len(items)
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
             if bootstrap_iters > 0:
-                stderr = lm_eval.api.metrics.stderr_for_metric(
-                    metric=task.aggregation()[metric],
+                stderr_fn = lm_eval.api.metrics.stderr_for_metric(
+                    metric=agg_fn,
                     bootstrap_iters=min(bootstrap_iters, 100)
                     if metric in ["bleu", "chrf", "ter"]
                     else bootstrap_iters,
                 )
 
-                if stderr is not None and len(items) > 1:
-                    results[task_name][metric + "_stderr" + "," + key] = stderr(items)
-                else:
-                    results[task_name][metric + "_stderr" + "," + key] = "N/A"
+                results[task_name][f"{metric}_stderr,{key}"] = (
+                    stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
+                )
 
         if bool(results):
             for group, task_list in reversed(task_hierarchy.items()):
-                if task_list == []:
-                    # TODO: No samples when bypass
-                    total_size = results[group].get("samples", 999)
-                else:
-                    total_size = 0
+                if len(task_list) == 0:
+                    # task_hierarchy entries are either
+                    # `group_name: [subtask1, subtask2, ...]`
+                    # or `task_name: []`.
+                    # we only want to operate on groups here.
+                    continue
+                for metric in [
+                    key
+                    for key in results[task_list[0]].keys()
+                    if "_stderr" not in key and key not in ["alias", "samples"]
+                ]:  # TODO: what if tasks don't all share the same metrics
+                    stderr = "_stderr,".join(metric.split(","))
 
-                    for task in task_list:
-                        metrics = results[task].copy()
+                    # gather metrics, sizes, and stderrs from subtasks
+                    metrics = [
+                        results[task][metric] for task in task_list
+                    ]  # TODO: copy?
+                    stderrs = [results[task][stderr] for task in task_list]
+                    sizes = [results[task]["samples"] for task in task_list]
 
-                        if "alias" in metrics:
-                            metrics.pop("alias")
+                    # compute group's pooled metric and stderr
+                    results[group][
+                        metric
+                    ] = lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
+                    # TODO: calculate grouped metric using aggregation fn
+                    if "N/A" in stderrs:
+                        results[group][stderr] = "N/A"
+                    else:
+                        results[group][
+                            stderr
+                        ] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
+                        # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
+                        # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
+                        # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
 
-                        current_size = metrics.pop("samples")
-
-                        all_stderr = []
-                        for metric in [
-                            key for key in metrics.keys() if "_stderr" not in key
-                        ]:
-                            stderr = "_stderr,".join(metric.split(","))
-                            stderr_score = results[task][stderr]
-                            if stderr_score == "N/A":
-                                var_score = "N/A"
-                            else:
-                                var_score = stderr_score**2
-                                all_stderr.append(stderr)
-
-                            metric_score = results[task][metric]
-
-                            if metric in results[group]:
-                                results[group][metric] = (
-                                    results[group][metric] * total_size
-                                    + metric_score * current_size
-                                ) / (total_size + current_size)
-                                # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                                if var_score == "N/A" or results[group][stderr] == "N/A":
-                                    results[group][stderr] = "N/A"
-                                else:
-                                    results[group][stderr] = (
-                                        (total_size - 1) * results[group][stderr]
-                                        + (current_size - 1) * var_score
-                                    ) / (
-                                        total_size + current_size - 1
-                                    ) + total_size * current_size / (
-                                        (total_size + current_size)
-                                        * (total_size + current_size - 1)
-                                    ) * (
-                                        results[group][metric] - metric_score
-                                    ) ** 2
-                            else:
-                                results[group][metric] = metric_score
-                                results[group][stderr] = var_score
-
-                        total_size += current_size
-
-                    for stderr in all_stderr:
-                        results[group][stderr] = np.sqrt(results[group][stderr])
-
-                results[group]["samples"] = total_size
+                    results[group]["samples"] = sum(sizes)
 
         def print_tasks(task_hierarchy, results, tab=0):
             results_agg = collections.defaultdict(dict)
@@ -648,8 +612,10 @@ def evaluate(
             groups_agg = {**groups_agg, **_groups_agg}
 
         for group_name, task_list in task_hierarchy.items():
-            if task_list != []:
-                num_fewshot[group_name] = num_fewshot[task_list[0]] # TODO: validate this
+            if task_list:
+                num_fewshot[group_name] = num_fewshot[
+                    task_list[0]
+                ]  # TODO: validate this
 
         results_dict = {
             "results": dict(results_agg.items()),

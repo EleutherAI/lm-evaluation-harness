@@ -57,7 +57,9 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 anthropic = ["anthropic"]
 dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
+hf_transfer = ["hf_transfer"]
 ifeval = ["langdetect", "immutabledict"]
+neuronx = ["optimum[neuronx]"]
 mamba = ["mamba_ssm", "causal-conv1d==1.0.2"]
 math = ["sympy>=1.12", "antlr4-python3-runtime==4.11"]
 multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
@@ -72,8 +74,8 @@ all = [
     "lm_eval[anthropic]",
     "lm_eval[dev]",
     "lm_eval[gptq]",
+    "lm_eval[hf_transfer]",
     "lm_eval[ifeval]",
-    "lm_eval[linting]",
     "lm_eval[mamba]",
     "lm_eval[math]",
     "lm_eval[multilingual]",
@@ -86,7 +88,7 @@ all = [
 ]
 
 [tool.ruff]
-extend-exclude = ["lm_eval/evaluator.py", "lm_eval/tasks/*.py"]
+extend-exclude = ["lm_eval/tasks/*.py"]
 
 [tool.ruff.lint]
 extend-select = ["I"]
