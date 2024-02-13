@@ -4,7 +4,6 @@ import sys, unicodedata, re
 
 class MultiChoiceRegexFilter(RegexFilter):
     """ """
-    apply_get_first_arguments = True
 
     def __init__(
             self, regex_pattern: str = r"#### (\-?[0-9\.\,]+)", group_select=0, fallback: str = "[invalid]",
@@ -24,7 +23,7 @@ class MultiChoiceRegexFilter(RegexFilter):
         self.ignore_punctuation = ignore_punctuation
         self.regexes_to_ignore = regexes_to_ignore
 
-    def apply(self, resps, first_arguments):
+    def apply(self, resps, docs):
         # here, we assume we have a list, in which each element is
         # a list of model responses for some particular input/target pair.
         # so we process each of these (same input/target response sets)
@@ -59,7 +58,7 @@ class MultiChoiceRegexFilter(RegexFilter):
 
         filtered_resps = []
 
-        for r, input_prompt in zip(resps, first_arguments):
+        for r, doc in zip(resps, docs):
             fallback_regexes = []
             choice_to_alpha = {}
             next_alpha = 'A'
@@ -67,10 +66,9 @@ class MultiChoiceRegexFilter(RegexFilter):
             without_paren_fallback_regexes = []
             without_paren_to_target = {}
 
-            multiple_choices_regex = re.compile(r"\([A-Z]\)([^\n^(]*)")
-            match = multiple_choices_regex.findall(input_prompt)
-            for m in match:
-                m = filter_ignores(m.strip())
+            choices = doc['choices']
+            for c in choices:
+                m = filter_ignores(c.strip())
                 fallback_regexes.append(f"{re.escape(m)}")
                 choice_to_alpha[m] = f"({next_alpha})"
 

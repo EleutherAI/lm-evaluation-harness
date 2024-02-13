@@ -9,7 +9,6 @@ from . import transformation
 
 FILTER_REGISTRY = {
     "take_first": selection.TakeFirstFilter,
-    "take_last": selection.TakeLastFilter,
     "regex": extraction.RegexFilter,
     "majority_vote": selection.MajorityVoteFilter,
     "take_first_k": selection.TakeKFilter,

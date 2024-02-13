@@ -110,12 +110,11 @@ class NumberParseRegexFilter(ExtendedRegexFilter):
 
 class WordSortFilter(Filter):
     """ """
-    apply_get_first_arguments = True
-    def apply(self, resps, first_arguments):
+    def apply(self, resps, docs):
         filtered_resps = []
 
-        for r, input_prompt in zip(resps, first_arguments):
-            words = input_prompt.split("List:")[1].split("A:")[0].strip().split()
+        for r, doc in zip(resps, docs):
+            words = doc['input'].split("List:")[1].strip().split()
             regex = re.compile('|'.join([f"\\b{w}\\b" for w in words]))
             filtered = []
             for resp in r:
@@ -128,7 +127,6 @@ class WordSortFilter(Filter):
         return filtered_resps
 
 class MultiChoiceRegexFilter(ExtendedRegexFilter):
-    apply_get_first_arguments = True
 
     def __init__(self, *args, **kwargs):
         """
@@ -142,7 +140,7 @@ class MultiChoiceRegexFilter(ExtendedRegexFilter):
         """
         super().__init__(*args, **kwargs)
 
-    def apply(self, resps, first_arguments):
+    def apply(self, resps, docs):
         # here, we assume we have a list, in which each element is
         # a list of model responses for some particular input/target pair.
         # so we process each of these (same input/target response sets)
@@ -150,7 +148,7 @@ class MultiChoiceRegexFilter(ExtendedRegexFilter):
 
         filtered_resps = []
 
-        for r, input_prompt in zip(resps, first_arguments):
+        for r, doc in zip(resps, docs):
             fallback_regexes = []
             choice_to_alpha = {}
             next_alpha = 'A'
@@ -159,7 +157,7 @@ class MultiChoiceRegexFilter(ExtendedRegexFilter):
             without_paren_to_target = {}
 
             multiple_choices_regex = re.compile(r"\([A-Z]\)([^\n^(]*)")
-            match = multiple_choices_regex.findall(input_prompt)
+            match = multiple_choices_regex.findall(doc['input'])
             for m in match:
                 m = self.filter_ignores(m.strip())
                 fallback_regexes.append(f"{re.escape(m)}")
