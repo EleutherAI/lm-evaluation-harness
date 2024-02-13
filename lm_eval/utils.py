@@ -961,7 +961,7 @@ class Collator:
         arr: Iterable,
         fn: Callable,
         group_by: Literal["gen_kwargs", "contexts"] = "gen_kwargs",
-    ) -> Union[dict, list]:
+    ) -> dict:
         """
         Groups elements of an iterable based on a provided function.
 
