@@ -898,7 +898,12 @@ class HFLM(LM):
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
-        re_ord = Collator(requests, sort_fn=_collate)
+        re_ord = Collator(
+            requests,
+            sort_fn=_collate,
+            group_by="contexts",
+            group_fn=lambda a: a[-2] + a[-1],
+        )
 
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
@@ -1019,7 +1024,7 @@ class HFLM(LM):
                 self._model_call(batched_inps, **call_kwargs), dim=-1
             )  # [batch, padding_length (inp or cont), vocab]
 
-            for (cache_key, context_key, _), logits, inplen, cont_toks in zip(
+            for (cache_key, context_key, cont_key), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
             ):
                 # Slice to original seq length
@@ -1037,7 +1042,7 @@ class HFLM(LM):
                 logits = logits.unsqueeze(0)  # [1, seq, vocab]
 
                 for cache_key, logits, cont_toks in re_ord.get_cache(
-                    context_key, cache_key, logits, cont_toks
+                    context_key, cont_key, cache_key, logits, cont_toks
                 ):
                     # Check if per-token argmax is exactly equal to continuation
                     greedy_tokens = logits.argmax(dim=-1)
@@ -1103,7 +1108,9 @@ class HFLM(LM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        re_ords = Collator([reg.args for reg in requests], _collate, grouping=True)
+        re_ords = Collator(
+            [reg.args for reg in requests], _collate, group_by="gen_kwargs"
+        )
         chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
         for chunk in chunks:
             contexts, all_gen_kwargs = zip(*chunk)

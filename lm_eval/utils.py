@@ -791,9 +791,9 @@ class Collator:
         arr: List,
         sort_fn: Callable,
         group_fn: Callable = lambda x: x[1],
-        grouping: bool = False,
+        group_by: Union[Literal["gen_kwargs", "contexts"], None] = "contexts",
     ) -> None:
-        self.grouping = grouping
+        self.group_by = group_by
         self._indices_dict = None
         self._requests = None
         self.fn = sort_fn
@@ -801,21 +801,22 @@ class Collator:
         self.reorder_indices: List = []
         self.size = len(arr)
         self.arr_with_indices: Iterable[Any] = tuple(enumerate(arr))  # [indices, (arr)]
-        if all(len(x[1][-1]) == 1 for x in self.arr_with_indices):
+        if self.group_by == "contexts":
             self.group_by_context()
-        if self.grouping is True:
+        elif self.group_by == "gen_kwargs":
             self.group_by_index()
 
     def group_by_index(self) -> None:
         self.arr_with_indices = self.group(
-            self.arr_with_indices, fn=self.group_fn, values=False
+            self.arr_with_indices, fn=self.group_fn, group_by="gen_kwargs"
         )
 
     def group_by_context(self) -> None:
         self._indices_dict = self.group(
-            self.arr_with_indices, fn=lambda x: self.group_fn(x)
-        )
+            self.arr_with_indices, fn=self.group_fn, group_by="contexts"
+        )  # (indices), (contxt, ctx_enc, cont_enx)
         self._requests = [value[0] for key, value in self._indices_dict.items()]
+        print("done")
 
     def get_batched(self, n: int = 1, batch_fn: Optional[Callable] = None) -> Iterator:
         """
@@ -828,7 +829,7 @@ class Collator:
         Yields:
         Iterator: An iterator over batches of reordered elements.
         """
-        if self.grouping:
+        if self.group_by == "gen_kwargs":
             for (
                 key,
                 values,
@@ -836,7 +837,7 @@ class Collator:
                 values = self._reorder(values)
                 batch = self.get_chunks(values, n=n, fn=batch_fn)
                 yield from batch
-        elif self._indices_dict:
+        elif self.group_by == "contexts":
             values = self._reorder(self._requests)
             batch = self.get_chunks(values, n=n, fn=batch_fn)
             yield from batch
@@ -845,15 +846,21 @@ class Collator:
             batch = self.get_chunks(values, n=n, fn=batch_fn)
             yield from batch
 
-    def get_cache(self, context_key, cache_key, logits, cont_toks):
+    def get_cache(self, context_key, cont_key, cache_key, logits, cont_toks):
         if self._indices_dict:
-            all_ = self._indices_dict.pop(tuple(context_key))
-            multilogits = logits.expand(len(all_), -1, -1)
-            cache_key *= len(all_)
-            cont_toks = [x[-1][-1] for x in all_]
-            self.reorder_indices.extend(x[0] for x in all_)
-            for c_key, logit, cont_tok in zip(cache_key, multilogits, cont_toks):
-                yield c_key, logit.unsqueeze(0), cont_tok
+            if len(cont_key) != 1:
+                all_ = self._indices_dict.pop(tuple(context_key + cont_key[:-1]))
+                assert len(all_) == 1
+                self.reorder_indices.extend(x[0] for x in all_)
+                yield cache_key, logits, cont_toks
+            else:
+                all_ = self._indices_dict.pop(tuple(context_key + cont_key[:-1]))
+                multilogits = logits.expand(len(all_), -1, -1)
+                cache_key *= len(all_)
+                cont_toks = [x[-1][-1] for x in all_]
+                self.reorder_indices.extend(x[0] for x in all_)
+                for c_key, logit, cont_tok in zip(cache_key, multilogits, cont_toks):
+                    yield c_key, logit.unsqueeze(0), cont_tok
         else:
             yield cache_key, logits, cont_toks
 
@@ -868,7 +875,7 @@ class Collator:
         List: Yields reordered elements one by one.
         """
         arr = sorted(arr, key=lambda x: self.fn(x[1]))
-        if not self._indices_dict:
+        if not self.group_by == "contexts":
             self.reorder_indices.extend([x[0] for x in arr])
         yield from [x[1] for x in arr]
 
@@ -897,7 +904,11 @@ class Collator:
         return self.size
 
     @staticmethod
-    def group(arr: Iterable, fn: Callable, values: bool = False) -> Union[dict, list]:
+    def group(
+        arr: Iterable,
+        fn: Callable,
+        group_by: Literal["gen_kwargs", "contexts"] = "gen_kwargs",
+    ) -> Union[dict, list]:
         """
         Groups elements of an iterable based on a provided function.
 
@@ -911,22 +922,23 @@ class Collator:
         """
         res = collections.defaultdict(list)
         for ob in arr:
-            try:
-                hashable_dict = tuple(
-                    (
-                        key,
-                        tuple(value)
-                        if isinstance(value, collections.abc.Iterable)
-                        else value,
+            if group_by == "contexts":
+                res[tuple(fn(ob)[:-1])].append(ob)
+            else:
+                try:
+                    hashable_dict = tuple(
+                        (
+                            key,
+                            tuple(value)
+                            if isinstance(value, collections.abc.Iterable)
+                            else value,
+                        )
+                        for key, value in sorted(fn(ob).items())
                     )
-                    for key, value in sorted(fn(ob).items())
-                )
-                res[hashable_dict].append(ob)
-            except (TypeError, AttributeError):
-                res[tuple(fn(ob))].append(ob)
-        if not values:
-            return res
-        return res.values()
+                    res[hashable_dict].append(ob)
+                except (TypeError, AttributeError):
+                    res[tuple(fn(ob))].append(ob)
+        return res
 
     @staticmethod
     def get_chunks(_iter, n: int = 0, fn=None):
