@@ -4,11 +4,11 @@ import random
 from collections.abc import Iterable
 from typing import List
 
-import evaluate
 import numpy as np
 import sacrebleu
 import sklearn.metrics
 
+import evaluate
 from lm_eval.api.registry import register_aggregation, register_metric
 
 
@@ -481,7 +481,7 @@ def aggregate_subtask_metrics(metrics, sizes, weight_by_size=True):
     # A helper function that is used to aggregate
     # subtask scores cross-task.
     # TODO: does not hold for non-mean aggregations
-    if weight_by_size:
+    if not weight_by_size:
         sizes = [1] * len(sizes)
 
     assert len(metrics) == len(sizes)
