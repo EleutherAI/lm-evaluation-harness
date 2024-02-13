@@ -803,8 +803,8 @@ class Collator:
         self.group_by = group_by
         self._indices_dict = None
         self._requests = None
-        self.fn = sort_fn
-        # 0 indices are enumerated indices. Apply grouping function to original requests.
+        # 0 indices are enumerated indices. Apply functions to original requests.
+        self.sort_fn = lambda x: sort_fn(x[1])
         self.group_fn = lambda x: group_fn(x[1])
         self.reorder_indices: List = []
         self.size = len(arr)
@@ -926,7 +926,7 @@ class Collator:
         Yields:
         List: Yields reordered elements one by one.
         """
-        arr = sorted(arr, key=lambda x: self.fn(x[1]))
+        arr = sorted(arr, key=self.sort_fn)
         if not self.group_by == "contexts":
             # If grouped by contexts then indices will be set in get_cache()
             self.reorder_indices.extend([x[0] for x in arr])
