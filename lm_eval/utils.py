@@ -804,7 +804,6 @@ class Collator:
         if all(len(x[1][-1]) == 1 for x in self.arr_with_indices):
             self.group_by_context()
         if self.grouping is True:
-            # self.group_fn = lambda x:
             self.group_by_index()
 
     def group_by_index(self) -> None:
