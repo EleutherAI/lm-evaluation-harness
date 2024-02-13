@@ -1,5 +1,9 @@
+import re
+import sys
+
+import unicodedata
+
 from lm_eval.filters.extraction import RegexFilter
-import sys, unicodedata, re
 
 
 class MultiChoiceRegexFilter(RegexFilter):
@@ -93,5 +97,3 @@ class MultiChoiceRegexFilter(RegexFilter):
             filtered_resps.append(filtered)
 
         return filtered_resps
-
-

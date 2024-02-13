@@ -1,6 +1,10 @@
-from lm_eval.filters.extraction import RegexFilter, Filter
-import sys, unicodedata, re
 import collections
+import re
+import sys
+
+import unicodedata
+
+from lm_eval.filters.extraction import RegexFilter, Filter
 
 
 class ExtendedRegexFilter(RegexFilter):
@@ -54,7 +58,7 @@ class MapRegexFilter(ExtendedRegexFilter):
         regexes_to_ignore: Remove these regexes before matching with the given regex
         """
         super().__init__('|'.join(list(regex_pattern_to_value.keys())), group_select, fallback, ignore_case, ignore_punctuation, regexes_to_ignore)
-        self.regex_to_value = {re.compile(r): v for r,v in regex_pattern_to_value.items()}
+        self.regex_to_value = {re.compile(r): v for r, v in regex_pattern_to_value.items()}
 
     def apply(self, resps, docs):
         filtered_resps = []
@@ -78,7 +82,6 @@ class MapRegexFilter(ExtendedRegexFilter):
         return filtered_resps
 
 
-
 class NumberParseRegexFilter(ExtendedRegexFilter):
     def apply(self, resps, docs):
         # here, we assume we have a list, in which each element is
@@ -89,7 +92,8 @@ class NumberParseRegexFilter(ExtendedRegexFilter):
         import regex
         from word2number import w2n
         # https://www.reddit.com/r/regex/comments/11a38uk/parsing_numbers_written_out_as_english_words
-        english_number_regex = regex.compile("((?:(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?:|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion)(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?:|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion|[^\S\r\n]|,|and|&)+)?(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion))")
+        english_number_regex = regex.compile(
+            "((?:(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?:|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion)(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?:|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion|[^\S\r\n]|,|and|&)+)?(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion))")
 
         for r in resps:
             filtered = []
@@ -107,9 +111,9 @@ class NumberParseRegexFilter(ExtendedRegexFilter):
         return filtered_resps
 
 
-
 class WordSortFilter(Filter):
     """ """
+
     def apply(self, resps, docs):
         filtered_resps = []
 
@@ -125,6 +129,7 @@ class WordSortFilter(Filter):
             filtered_resps.append(filtered)
 
         return filtered_resps
+
 
 class MultiChoiceRegexFilter(ExtendedRegexFilter):
 
@@ -184,5 +189,3 @@ class MultiChoiceRegexFilter(ExtendedRegexFilter):
             filtered_resps.append(filtered)
 
         return filtered_resps
-
-
