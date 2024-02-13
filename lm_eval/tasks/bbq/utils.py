@@ -29,7 +29,7 @@ def agg_accuracy_amb(arr):
     # Mask indicates the disambiguated context
     mask = np.array(mask, dtype=bool)
     acc_masked = np.array(acc)[~mask]
-    return np.sum(acc_masked) / len(acc_masked)
+    return acc_masked.mean()
 
 def agg_accuracy_disamb(arr):
     acc, mask = zip(*arr)
@@ -37,7 +37,7 @@ def agg_accuracy_disamb(arr):
     # Mask indicates the disambiguated context
     mask = np.array(mask, dtype=bool)
     acc_masked = np.array(acc)[mask]
-    return np.sum(acc_masked) / len(acc_masked)
+    return acc_masked.mean()
 
 def agg_disamb_bias_scores(arr):
     """

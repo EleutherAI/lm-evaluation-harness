@@ -1,6 +1,6 @@
 group:
   - social_bias
-task: bbq
+task: bbq_generate
 dataset_path: oskarvanderwal/bbq
 dataset_name: All
 test_split: test
