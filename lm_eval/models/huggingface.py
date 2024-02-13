@@ -1043,12 +1043,13 @@ class HFLM(LM):
                 logits = self._select_cont_toks(logits, contlen=contlen, inplen=ctx_len)
                 logits = logits.unsqueeze(0)  # [1, seq, vocab]
 
+                # Check if per-token argmax is exactly equal to continuation
+                greedy_tokens = logits.argmax(dim=-1)
+
                 # check for one-context continuation cache hits
                 for cache_key, logits, cont_toks in re_ord.get_cache(
                     context_key, cont_key, cache_key, logits, cont_toks
                 ):
-                    # Check if per-token argmax is exactly equal to continuation
-                    greedy_tokens = logits.argmax(dim=-1)
                     cont_toks = torch.tensor(
                         cont_toks, dtype=torch.long, device=self.device
                     ).unsqueeze(0)  # [1, seq]
