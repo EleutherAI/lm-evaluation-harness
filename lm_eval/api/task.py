@@ -357,7 +357,7 @@ class Task(abc.ABC):
         else:
             assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
-        eval_logger.info(f"Building contexts for task on rank {rank}...")
+        eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
 
         instances = []
         for doc_id, doc in utils.create_iterator(
@@ -511,6 +511,7 @@ class Task(abc.ABC):
         return description + labeled_examples + example
 
     def apply_filters(self):
+        """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
                 f.apply(self._instances)
@@ -519,14 +520,50 @@ class Task(abc.ABC):
             return self._instances
 
     def dump_config(self) -> dict:
-        """Returns a dictionary representing the task's config.
-
-        :returns: str
-            The fewshot context.
-        """
+        """Returns the config as a dictionary."""
         # TODO: this should only return the overrides applied to a non-YAML task's configuration.
         # (num_fewshot)
         return self.config.to_dict()
+
+    def set_config(self, key: str, value: Any, update: bool = False) -> None:
+        """Set or update the configuration for a given key."""
+        if key is None:
+            raise ValueError("Key must be provided.")
+
+        if update:
+            current_value = getattr(self._config, key, {})
+            if not isinstance(current_value, dict):
+                raise TypeError(
+                    f"Expected a dict for key '{key}', got {type(current_value).__name__} instead."
+                )
+            current_value.update(value)
+        else:
+            setattr(self._config, key, value)
+
+    def override_metric(self, metric_name: str) -> None:
+        """
+        Override the default metrics used for evaluation with custom metrics.
+
+        Parameters:
+        - metric_name (str): The name of the custom metric to override. Should be registered in api.metrics.
+        """
+        (
+            self._metric_fn_list,
+            self._aggregation_list,
+            self._metric_fn_kwargs,
+            self._higher_is_better,
+        ) = ({}, {}, {}, {})
+        self._metric_fn_list[metric_name] = get_metric(metric_name)
+        self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
+        self._higher_is_better[metric_name] = is_higher_better(metric_name)
+        self._metric_fn_kwargs[metric_name] = {}
+        if not isinstance(self, ConfigurableTask):
+            self.process_results = lambda x, y: {metric_name: get_metric(metric_name)}
+            self.aggregation = lambda: {
+                metric_name: get_metric_aggregation(metric_name)
+            }
+        setattr(self._config, "metric_list", [{"metric": metric_name}])
+        setattr(self._config, "process_results", None)
 
 
 class ConfigurableTask(Task):
@@ -833,6 +870,7 @@ class ConfigurableTask(Task):
                     return labeled_examples + str(example)
 
     def apply_filters(self):
+        """Iterates over FilterEnsembles and applies them to instances"""
         if hasattr(self, "_filters"):
             for f in self._filters:
                 f.apply(self._instances)
@@ -1221,37 +1259,6 @@ class ConfigurableTask(Task):
 
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
-
-    def override_metric(self, metric_name: str) -> None:
-        """
-        Override the default metrics used for evaluation with custom metrics.
-
-        Parameters:
-        - metric_name (str): The name of the custom metric to override. Should be registered in api.metrics.
-        """
-        (
-            self._metric_fn_list,
-            self._aggregation_list,
-            self._metric_fn_kwargs,
-            self._higher_is_better,
-        ) = ({}, {}, {}, {})
-        self._metric_fn_list[metric_name] = get_metric(metric_name)
-        self._aggregation_list[metric_name] = get_metric_aggregation(metric_name)
-        self._higher_is_better[metric_name] = is_higher_better(metric_name)
-        self._metric_fn_kwargs[metric_name] = {}
-        setattr(self._config, "metric_list", [{"metric": metric_name}])
-        setattr(self._config, "process_results", None)
-
-    def override_config(
-        self, key: str = None, value: Any = None, update: bool = False
-    ) -> None:
-        if update:
-            current_value = getattr(self._config, key)
-            assert isinstance(current_value, dict)
-            current_value.update(value)
-            setattr(self._config, key, current_value)
-        else:
-            setattr(self._config, key, value)
 
 
 class MultipleChoiceTask(Task):

@@ -1,41 +1,36 @@
-import random
-import itertools
 import collections
+import itertools
+import logging
+import random
+from typing import Optional, Union
 
+import numpy as np
 import torch
 
-import logging
-import numpy as np
-
-import lm_eval.api
-import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry
-
-from lm_eval.tasks import (
-    get_task_dict,
-    TaskManager
-)
+import lm_eval.models
+from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
+    eval_logger,
+    get_git_commit_hash,
     positional_deprecated,
     run_task_tests,
-    get_git_commit_hash,
     simple_parse_args_string,
-    eval_logger
 )
 
 
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args=None,
+    model_args: Optional[str] = None,
     tasks=None,
-    num_fewshot=None,
-    batch_size=None,
-    max_batch_size=None,
-    device=None,
-    use_cache=None,
-    limit=None,
+    num_fewshot: Optional[int] = None,
+    batch_size: Optional[int] = None,
+    max_batch_size: Optional[int] = None,
+    device: Optional[str] = None,
+    use_cache: Optional[str] = None,
+    limit: Optional[Union[int, float]] = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
     decontamination_ngrams_path=None,
@@ -45,6 +40,9 @@ def simple_evaluate(
     task_manager: TaskManager = None,
     verbosity: str = "INFO",
     predict_only: bool = False,
+    random_seed: int = 0,
+    numpy_random_seed: int = 1234,
+    torch_random_seed: int = 1234,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -80,17 +78,30 @@ def simple_evaluate(
         Ignored for all tasks with loglikelihood output_type
     :param predict_only: bool
         If true only model outputs will be generated and returned. Metrics will not be evaluated
+    :param random_seed: int
+        Random seed for python's random module. If set to None, the seed will not be set.
+    :param numpy_random_seed: int
+        Random seed for numpy. If set to None, the seed will not be set.
+    :param torch_random_seed: int
+        Random seed for torch. If set to None, the seed will not be set.
 
     :return
         Dictionary of results
     """
-    random.seed(0)
-    np.random.seed(1234)
-    torch.manual_seed(
-        1234
-    )  # TODO: this may affect training runs that are run with evaluation mid-run.
-
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+
+    if random_seed is not None:
+        # See https://github.com/EleutherAI/lm-evaluation-harness/pull/1412
+        eval_logger.info(f"Setting random seed to {random_seed}")
+        random.seed(random_seed)
+
+    if numpy_random_seed is not None:
+        eval_logger.info(f"Setting numpy seed to {numpy_random_seed}")
+        np.random.seed(numpy_random_seed)
+
+    if torch_random_seed is not None:
+        eval_logger.info(f"Setting torch manual seed to {torch_random_seed}")
+        torch.manual_seed(torch_random_seed)
 
     if tasks is None:
         tasks = []
@@ -138,8 +149,8 @@ def simple_evaluate(
 
     eval_logger.info(
         "get_task_dict has been updated to accept an optional argument, `task_manager`"
-        "Read more here: https://github.com/EleutherAI/lm-evaluation-harness/blob/recursive-groups/docs/interface.md#external-library-usage"
-        )
+        "Read more here:https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
+    )
     task_dict = get_task_dict(tasks, task_manager)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
@@ -150,7 +161,7 @@ def simple_evaluate(
 
         if task_obj.get_config("output_type") == "generate_until":
             if gen_kwargs is not None:
-                task_obj.override_config(
+                task_obj.set_config(
                     key="generation_kwargs", value=gen_kwargs, update=True
                 )
 
@@ -171,7 +182,7 @@ def simple_evaluate(
                 eval_logger.warning(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
-                task_obj.override_config(key="num_fewshot", value=num_fewshot)
+                task_obj.set_config(key="num_fewshot", value=num_fewshot)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -222,8 +233,8 @@ decontaminate_suffix = "_decontaminate"
 def evaluate(
     lm,
     task_dict,
-    limit=None,
-    bootstrap_iters: int = 100000,
+    limit: Optional[int] = None,
+    bootstrap_iters: Optional[int] = 100000,
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
@@ -297,13 +308,9 @@ def evaluate(
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
-        if "num_fewshot" in configs[task_name]:
-            if configs[task_name]["metadata"]:
-                n_shot = configs[task_name]["metadata"].get("num_fewshot", None)
-            if not n_shot:
-                n_shot = configs[task_name]["num_fewshot"]
-        else:
-            n_shot = 0 # TODO: is this always right?
+        # Number of few-shots for printing.
+        if (n_shot := configs[task_name].get("num_fewshot")) == 0:
+            n_shot = configs[task_name].get("metadata", {}).get("num_fewshot", 0)
         num_fewshot[task_name] = n_shot
 
         if "task_alias" in configs[task_name]:
@@ -483,39 +490,34 @@ def evaluate(
         vals = vals_torch
 
     if lm.rank == 0:
-
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
         for (task_name, key, metric), items in vals.items():
             task = task_dict[task_name]
-            metric_key = metric + "," + key
+            group_name, task = task if isinstance(task, tuple) else (None, task)
 
-            if isinstance(task, tuple):
-                group_name, task = task
-            else:
-                group_name = None
-
+            metric_key = f"{metric},{key}"
             agg_fn = task.aggregation()[metric]
+
             results[task_name][metric_key] = agg_fn(items)
             results[task_name]["samples"] = len(items)
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
             if bootstrap_iters > 0:
-                stderr = lm_eval.api.metrics.stderr_for_metric(
-                    metric=task.aggregation()[metric],
+                stderr_fn = lm_eval.api.metrics.stderr_for_metric(
+                    metric=agg_fn,
                     bootstrap_iters=min(bootstrap_iters, 100)
                     if metric in ["bleu", "chrf", "ter"]
                     else bootstrap_iters,
                 )
 
-                if stderr is not None and len(items) > 1:
-                    results[task_name][metric + "_stderr" + "," + key] = stderr(items)
-                else:
-                    results[task_name][metric + "_stderr" + "," + key] = "N/A"
+                results[task_name][f"{metric}_stderr,{key}"] = (
+                    stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
+                )
 
         if bool(results):
-            for group, task_list in task_hierarchy.items():
+            for group, task_list in reversed(task_hierarchy.items()):
                 if len(task_list) == 0:
                     # task_hierarchy entries are either
                     # `group_name: [subtask1, subtask2, ...]`
@@ -523,22 +525,30 @@ def evaluate(
                     # we only want to operate on groups here.
                     continue
                 for metric in [
-                    key for key in results[task_list[0]].keys() if "_stderr" not in key and key not in ["alias", "samples"]
-                ]: # TODO: what if tasks don't all share the same metrics
+                    key
+                    for key in results[task_list[0]].keys()
+                    if "_stderr" not in key and key not in ["alias", "samples"]
+                ]:  # TODO: what if tasks don't all share the same metrics
                     stderr = "_stderr,".join(metric.split(","))
 
                     # gather metrics, sizes, and stderrs from subtasks
-                    metrics = [results[task][metric] for task in task_list] # TODO: copy?
+                    metrics = [
+                        results[task][metric] for task in task_list
+                    ]  # TODO: copy?
                     stderrs = [results[task][stderr] for task in task_list]
                     sizes = [results[task]["samples"] for task in task_list]
 
                     # compute group's pooled metric and stderr
-                    results[group][metric] = lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
+                    results[group][
+                        metric
+                    ] = lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
                     # TODO: calculate grouped metric using aggregation fn
                     if "N/A" in stderrs:
                         results[group][stderr] = "N/A"
                     else:
-                        results[group][stderr] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
+                        results[group][
+                            stderr
+                        ] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
                         # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
                         # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
                         # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
@@ -618,8 +628,10 @@ def evaluate(
             groups_agg = {**groups_agg, **_groups_agg}
 
         for group_name, task_list in task_hierarchy.items():
-            if task_list != []:
-                num_fewshot[group_name] = num_fewshot[task_list[0]] # TODO: validate this
+            if task_list:
+                num_fewshot[group_name] = num_fewshot[
+                    task_list[0]
+                ]  # TODO: validate this
 
         results_dict = {
             "results": dict(results_agg.items()),
