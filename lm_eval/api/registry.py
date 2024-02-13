@@ -2,7 +2,6 @@ import logging
 from typing import Callable, Dict
 
 import evaluate
-
 from lm_eval.api.model import LM
 
 
