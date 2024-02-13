@@ -436,13 +436,14 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
     assert len(stderrs) == len(sizes)
 
     # formula source: https://en.wikipedia.org/wiki/Pooled_variance
-    # this empirically matches running `stderr_for_metric` on all instances
+    # and: https://stats.stackexchange.com/a/4841331
+    # this empirically seems to match running `stderr_for_metric` on all instances
     # from the subtasks concatenated with each other.
     pooled_sample_var = (
-        sum([(size - 1) * stderr**2 for size, stderr in zip(sizes, stderrs)])
+        sum([(size - 1) * stderr**2 * size for size, stderr in zip(sizes, stderrs)])
     ) / (sum(sizes) - len(sizes))
 
-    return np.sqrt(pooled_sample_var)
+    return np.sqrt(pooled_sample_var / sum(sizes))
 
 
 def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
