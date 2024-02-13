@@ -17,3 +17,4 @@ metric_list:
    higher_is_better: false
 metadata:
   version: 1.0
+  num_fewshot: 0
