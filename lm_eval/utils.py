@@ -848,7 +848,7 @@ class Collator:
     def get_cache(self, context_key, cache_key, logits, cont_toks):
         if self._indices_dict:
             all_ = self._indices_dict.pop(tuple(context_key))
-            multilogits = logits.repeat(len(all_), 1, 1)
+            multilogits = logits.expand(len(all_), -1, -1)
             cache_key *= len(all_)
             cont_toks = [x[-1][-1] for x in all_]
             self.reorder_indices.extend(x[0] for x in all_)
