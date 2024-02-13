@@ -798,7 +798,7 @@ class Collator:
         arr: List,
         sort_fn: Callable,
         group_fn: Callable = lambda x: x[1],
-        group_by: Union[Literal["gen_kwargs", "contexts"], None] = "contexts",
+        group_by: Union[Literal["gen_kwargs", "contexts"], None] = None,
     ) -> None:
         self.group_by = group_by
         self._indices_dict = None

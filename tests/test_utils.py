@@ -284,7 +284,8 @@ class TestCollator:
         _collate_log = lambda x: (-len(x[1]), tuple(x[1]))  # noqa: E731
         loglikelihood_samples = self.make_loglikelihood_sample(int(end))
         loglikelihoods = Collator(
-            loglikelihood_samples, _collate_log, group_by="contexts"
+            loglikelihood_samples,
+            _collate_log,
         )
         chunks = loglikelihoods.get_batched(n=int(batch_size), batch_fn=None)
         output = []
