@@ -1,4 +1,5 @@
 import pytest
+import torch
 
 from lm_eval.utils import (
     Collator,
@@ -249,6 +250,14 @@ class TestCollator:
         ]
         return samples
 
+    def make_loglikelihood_sample_group(self, end=11):
+        a = [(("x", "x"), [1, 2, 3, 4, 5, 6, 7, 8], [x]) for x in range(9)]
+        b = [
+            (("x", "x"), [1, 2, 3, 4, 5, 6, 7, 8], [x, y, z])
+            for x, y, z in zip(range(9), range(9, 18), range(18, 27))
+        ]
+        return a + b
+
     @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 9)])
     def test_generations(self, batch_size, end):
         _collate_gen = lambda x: (-len(x[0]), x[0])  # noqa: E731
@@ -299,6 +308,48 @@ class TestCollator:
             )
             for x in chunks:
                 output.append(x[1])
+        # check indices
+        reordered_output = loglikelihoods.get_original(output)
+        assert reordered_output == [x[1] for x in loglikelihood_samples]
+
+    @pytest.mark.parametrize("batch_size", [17, 8, 12, 0])
+    def test_context_grouping(self, batch_size):
+        def _collate(x):
+            toks = x[1] + x[2]
+            return -len(toks), tuple(toks)
+
+        _collate_log = _collate  # noqa: E731
+        loglikelihood_samples = self.make_loglikelihood_sample_group()
+        loglikelihoods = Collator(
+            loglikelihood_samples,
+            _collate_log,
+            group_fn=lambda a: a[-2] + a[-1],
+            group_by="contexts",
+        )
+        chunks = loglikelihoods.get_batched(n=int(batch_size), batch_fn=None)
+        output = []
+        outputs_ = []
+        for chunks in chunks:
+            # check batching
+            if batch_size != 0:
+                assert len(chunks) <= batch_size
+            # check reorder
+            assert all(
+                len(chunks[i][1]) <= len(chunks[i - 1][1])
+                for i in range(1, len(chunks))
+            )
+            for x in chunks:
+                for request_str, cont_toks, logits in loglikelihoods.get_cache(
+                    req_str="".join(x[0]),
+                    cxt_toks=x[1],
+                    cont_toks=x[2],
+                    logits=torch.tensor([1, 2, 3, 4, 5, 6, 7, 8])
+                    .unsqueeze(0)
+                    .unsqueeze(0),
+                ):
+                    output.append(x[1])
+                    outputs_.append(cont_toks)
+        assert len(output) == len(outputs_)
         # check indices
         reordered_output = loglikelihoods.get_original(output)
         assert reordered_output == [x[1] for x in loglikelihood_samples]
