@@ -46,25 +46,7 @@ cd lm-evaluation-harness
 pip install -e .
 ```
 
-We also provide a number of optional dependencies for extended functionality. Extras can be installed via `pip install -e ".[NAME]"`
-
-| Name          | Use                                   |
-|---------------|---------------------------------------|
-| anthropic     | For using Anthropic's models          |
-| dev           | For linting PRs and contributions     |
-| gptq          | For loading models with GPTQ          |
-| ifeval        | For running the IFEval task           |
-| mamba         | For loading Mamba SSM models          |
-| math          | For running math task answer checking |
-| multilingual  | For multilingual tokenizers           |
-| openai        | For using OpenAI's models             |
-| promptsource  | For using PromptSource prompts        |
-| sentencepiece | For using the sentencepiece tokenizer |
-| testing       | For running library test suite        |
-| vllm          | For loading models with vLLM          |
-| zeno          | For visualizing results with Zeno     |
-|---------------|---------------------------------------|
-| all           | Loads all extras (not recommended)    |
+We also provide a number of optional dependencies for extended functionality. A detailed table is available at the end of this document.
 
 ## Basic Usage
 
@@ -145,6 +127,9 @@ For more advanced users or even larger models, we allow for the following argume
 
 These two options (`accelerate launch` and `parallelize=True`) are mutually exclusive.
 
+**Note: we do not currently support multi-node evaluations natively, and advise using either an externally hosted server to run inference requests against, or creating a custom integration with your distributed framework [as is done for the GPT-NeoX library](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py).**
+
+
 ### Tensor + Data Parallel and Optimized Inference with `vLLM`
 
 We also support vLLM for faster inference on [supported model types](https://docs.vllm.ai/en/latest/models/supported_models.html), especially faster when splitting a model across multiple GPUs. For single-GPU or multi-GPU — tensor parallel, data parallel, or a combination of both — inference, for example:
@@ -189,8 +174,9 @@ Note that for externally hosted models, configs such as `--device` and `--batch_
 | [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)) | :heavy_check_mark:              | `gguf`, `ggml`                                                      | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)                   | `generate_until`, `loglikelihood`, (perplexity evaluation not yet implemented) |
 | vLLM                                                                                                                      | :heavy_check_mark:       | `vllm`                                                              | [Most HF Causal Language Models](https://docs.vllm.ai/en/latest/models/supported_models.html) | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | Mamba                       | :heavy_check_mark:       | `mamba_ssm`                                                                      | [Mamba architecture Language Models via the `mamba_ssm` package](https://huggingface.co/state-spaces) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
-| Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions` (using `openai-chat-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's ChatCompletions interface                                  | `generate_until`                                           |                                | ...                |
-| `local-completions` (using `openai-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's Completions interface                                  | `generate_until`                                           |                                | ...                                                      |
+| Huggingface Optimum (Causal LMs)    | ✔️         | `openvino`                                 |     Any decoder-only AutoModelForCausalLM converted with Huggingface Optimum into OpenVINO™ Intermediate Representation (IR) format                           |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
+| Neuron via AWS Inf2 (Causal LMs)    | ✔️         | `neuronx`                                 |     Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2)                         |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
+| Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions` (using `openai-chat-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's Completions or ChatCompletions interface                                  | `generate_until`                                           |                                | ...                |
 
 Models which do not supply logits or logprobs can be used with tasks of type `generate_until` only, while local models, or APIs that supply logprobs/logits of their prompts, can be run on all task types: `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
 
@@ -203,6 +189,8 @@ A number of other libraries contain scripts for calling the eval harness through
 To create your own custom integration you can follow instructions from [this tutorial](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage).
 
 ### Additional Features
+> [!Note]
+> For tasks unsuitable for direct evaluation — either due risks associated with executing untrusted code or complexities in the evaluation process — the `--predict_only` flag is available to obtain decoded generations for post-hoc evaluation.
 
 If you have a Metal compatible Mac, you can run the eval harness using the MPS back-end by replacing `--device cuda:0` with `--device mps` (requires PyTorch version 2.1 or higher).
 
@@ -210,7 +198,7 @@ If you have a Metal compatible Mac, you can run the eval harness using the MPS b
 > You can inspect what the LM inputs look like by running the following command:
 > ```bash
 > python write_out.py \
->     --tasks all_tasks \
+>     --tasks <task1,task2,...> \
 >     --num_fewshot 5 \
 >     --num_examples 10 \
 >     --output_base_path /path/to/output/folder
@@ -251,6 +239,9 @@ To save evaluation results provide an `--output_path`. We also support logging m
 Additionally, one can provide a directory with `--use_cache` to cache the results of prior runs. This allows you to avoid repeated execution of the same (model, task) pairs for re-scoring.
 
 For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
+
+> [!Tip]
+> Running lm-evaluation-harness as an external library and can't find (almost) any tasks available? Run `lm_eval.tasks.initialize_tasks()` to load the library's stock tasks before calling `lm_eval.evaluate()` or `lm_eval.simple_evaluate()` !
 
 ## Visualizing Results
 
@@ -314,6 +305,30 @@ We try to prioritize agreement with the procedures used by other groups to decre
 ### Support
 
 The best way to get support is to open an issue on this repo or join the [EleutherAI Discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases. If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
+
+## Optional Extras
+Extras dependencies can be installed via `pip install -e ".[NAME]"`
+
+| Name          | Use                                   |
+|---------------|---------------------------------------|
+| anthropic     | For using Anthropic's models          |
+| dev           | For linting PRs and contributions     |
+| gptq          | For loading models with GPTQ          |
+| hf_transfer   | For speeding up HF Hub file downloads |
+| ifeval        | For running the IFEval task           |
+| neuronx       | For running on AWS inf2 instances     |
+| mamba         | For loading Mamba SSM models          |
+| math          | For running math task answer checking |
+| multilingual  | For multilingual tokenizers           |
+| openai        | For using OpenAI's models             |
+| optimum       | For running Intel OpenVINO models     |
+| promptsource  | For using PromptSource prompts        |
+| sentencepiece | For using the sentencepiece tokenizer |
+| testing       | For running library test suite        |
+| vllm          | For loading models with vLLM          |
+| zeno          | For visualizing results with Zeno     |
+|---------------|---------------------------------------|
+| all           | Loads all extras (not recommended)    |
 
 ## Cite as
 

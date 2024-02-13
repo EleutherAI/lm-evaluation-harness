@@ -1,12 +1,11 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List
-
-from datasets import Dataset
+from typing import Callable, Iterable, List, Union
 
 from lm_eval.api.instance import Instance
 
 
-class Filter:
+class Filter(ABC):
     """
     Filter classes operate on a per-task level.
     They take all model outputs (`instance.resps` for all `task.instances`)
@@ -14,14 +13,14 @@ class Filter:
     In a single run, one can configure any number of separate filters or lists of filters.
 
     """
-    apply_get_first_arguments = False
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:
         """
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
-    def apply(self, resps, docs):
+    @abstractmethod
+    def apply(self, resps: Union[List, Iterable], docs: List[dict]) -> Iterable:
         """
         Defines the operation to perform on a list of the `inst.resps` properties of `Instance` objects.
         Should return the list of (filtered) response lists *in the same order as they were input*, e.g.
@@ -41,21 +40,15 @@ class FilterEnsemble:
     """
 
     name: str
-    filters: List[Filter]
+    filters: List[Callable[[], Filter]]
 
-    def apply(self, instances: List[Instance], docs: List[Dataset]) -> None:
-        resps = [
-            inst.resps for inst in instances
-        ]  # operate just on the model responses
+    def apply(self, instances: List[Instance]) -> None:
+        resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
+        resps, docs = list(resps), list(docs)
+
         for f in self.filters:
             # apply filters in sequence
-            if f.apply_get_first_arguments:
-                first_arguments = [
-                    inst.arguments[0] for inst in instances
-                ]
-                resps = f.apply(resps, first_arguments)
-            else:
-                resps = f.apply(resps, docs)
+            resps = f().apply(resps, docs)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
         # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.

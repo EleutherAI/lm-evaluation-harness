@@ -4,14 +4,14 @@ import logging
 import os
 import re
 import sys
+from functools import partial
 from pathlib import Path
 from typing import Union
 
 import numpy as np
 
 from lm_eval import evaluator, utils
-from lm_eval.api.registry import ALL_TASKS
-from lm_eval.tasks import include_path, initialize_tasks
+from lm_eval.tasks import TaskManager, include_path, initialize_tasks
 from lm_eval.utils import make_table
 
 
@@ -22,6 +22,30 @@ def _handle_non_serializable(o):
         return list(o)
     else:
         return str(o)
+
+
+def _int_or_none_list_arg_type(max_len: int, value: str, split_char: str = ","):
+    def parse_value(item):
+        item = item.strip().lower()
+        if item == "none":
+            return None
+        try:
+            return int(item)
+        except ValueError:
+            raise argparse.ArgumentTypeError(f"{item} is not an integer or None")
+
+    items = [parse_value(v) for v in value.split(split_char)]
+    num_items = len(items)
+
+    if num_items == 1:
+        # Makes downstream handling the same for single and multiple values
+        items = items * max_len
+    elif num_items != max_len:
+        raise argparse.ArgumentTypeError(
+            f"Argument requires {max_len} integers or None, separated by '{split_char}'"
+        )
+
+    return items
 
 
 def parse_eval_args() -> argparse.Namespace:
@@ -143,6 +167,26 @@ def parse_eval_args() -> argparse.Namespace:
         metavar="CRITICAL|ERROR|WARNING|INFO|DEBUG",
         help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
     )
+    parser.add_argument(
+        "--predict_only",
+        "-x",
+        action="store_true",
+        default=False,
+        help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=partial(_int_or_none_list_arg_type, 3),
+        default="0,1234,1234",  # for backward compatibility
+        help=(
+            "Set seed for python's random, numpy and torch.\n"
+            "Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, "
+            "or a single integer to set the same seed for all three.\n"
+            "The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).\n"
+            "E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.\n"
+            "E.g, `--seed 42` sets all three seeds to 42."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -156,7 +200,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+    if args.predict_only:
+        args.log_samples = True
+    if (args.log_samples or args.predict_only) and not args.output_path:
+        assert args.output_path, "Specify --output_path"
+
     initialize_tasks(args.verbosity)
+    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
     if args.limit:
         eval_logger.warning(
@@ -168,10 +218,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         include_path(args.include_path)
 
     if args.tasks is None:
-        task_names = ALL_TASKS
+        eval_logger.error("Need to specify task to evaluate.")
+        sys.exit()
     elif args.tasks == "list":
         eval_logger.info(
-            "Available Tasks:\n - {}".format("\n - ".join(sorted(ALL_TASKS)))
+            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks))
         )
         sys.exit()
     else:
@@ -184,16 +235,14 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 config = utils.load_yaml_config(yaml_file)
                 task_names.append(config)
         else:
-            tasks_list = args.tasks.split(",")
-            task_names = utils.pattern_match(tasks_list, ALL_TASKS)
-            for task in [task for task in tasks_list if task not in task_names]:
+            task_list = args.tasks.split(",")
+            task_names = task_manager.match_tasks(task_list)
+            for task in [task for task in task_list if task not in task_names]:
                 if os.path.isfile(task):
                     config = utils.load_yaml_config(task)
                     task_names.append(config)
             task_missing = [
-                task
-                for task in tasks_list
-                if task not in task_names and "*" not in task
+                task for task in task_list if task not in task_names and "*" not in task
             ]  # we don't want errors if a wildcard ("*") task name was used
 
             if task_missing:
@@ -223,10 +272,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         else:
             path.mkdir(parents=True, exist_ok=True)
             output_path_file = path.joinpath("results.json")
-    elif args.log_samples and not args.output_path:
-        assert args.output_path, "Specify --output_path"
 
     eval_logger.info(f"Selected Tasks: {task_names}")
+    eval_logger.info("Loading selected tasks...")
 
     results = evaluator.simple_evaluate(
         model=args.model,
@@ -243,6 +291,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         write_out=args.write_out,
         log_samples=args.log_samples,
         gen_kwargs=args.gen_kwargs,
+        task_manager=task_manager,
+        predict_only=args.predict_only,
+        random_seed=args.seed[0],
+        numpy_random_seed=args.seed[1],
+        torch_random_seed=args.seed[2],
     )
 
     if results is not None:
@@ -257,7 +310,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
 
         if args.output_path:
-            output_path_file.open("w").write(dumped)
+            output_path_file.open("w", encoding="utf-8").write(dumped)
 
             if args.log_samples:
                 for task_name, config in results["configs"].items():
