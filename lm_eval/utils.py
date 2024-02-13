@@ -796,7 +796,7 @@ class Collator:
     def __init__(
         self,
         arr: List,
-        sort_fn: Callable,
+        sort_fn: Callable = lambda x: x,
         group_fn: Callable = lambda x: x[1],
         group_by: Union[Literal["gen_kwargs", "contexts"], None] = None,
     ) -> None:
@@ -870,12 +870,11 @@ class Collator:
 
     def get_cache(
         self,
-        context_key: List[int],
-        cont_key: List[int],
-        cache_key: str,
-        logits: torch.Tensor,
-        cont_toks: List[int],
-    ) -> Iterator[Tuple[str, torch.Tensor, List[int]]]:
+        req_str: str = None,
+        cxt_toks: List[int] = None,
+        cont_toks: List[int] = None,
+        logits: torch.Tensor = None,
+    ) -> Iterator[Tuple[str, List[int], torch.Tensor]]:
         """
         This method manages the predictions of one-token continuations from the model.
 
@@ -902,19 +901,21 @@ class Collator:
          - cont_toks (List[int]): The continuation tokens for which the logits were generated
         """
         if self.group_by == "contexts":
-            cache_hit = self.arr_with_indices.pop(tuple(context_key + cont_key[:-1]))
+            cache_hit: List[
+                Tuple[int, Tuple[str, List[int], List[int]]]
+            ] = self.arr_with_indices.pop(tuple(cxt_toks + cont_toks[:-1]))
             if (cache_size := len(cache_hit)) == 1:
                 self.reorder_indices.extend(x[0] for x in cache_hit)
-                yield cache_key, logits, cont_toks
+                yield req_str, cont_toks, logits
             else:
                 multilogits = logits.expand(cache_size, -1, -1)
-                cache_key *= cache_size
+                req_str = [x[1][0] for x in cache_hit]
                 cont_toks = [x[-1][-1] for x in cache_hit]
                 self.reorder_indices.extend(x[0] for x in cache_hit)
-                for c_key, logit, cont_tok in zip(cache_key, multilogits, cont_toks):
-                    yield c_key, logit.unsqueeze(0), cont_tok
+                for c_key, cont_tok, logit in zip(req_str, cont_toks, multilogits):
+                    yield c_key, cont_tok, logit.unsqueeze(0)
         else:
-            yield cache_key, logits, cont_toks
+            yield req_str, cont_toks, logits
 
     def _reorder(self, arr: Union[List, Tuple[Tuple[int, Any], ...]]) -> Iterator:
         """

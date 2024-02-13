@@ -1026,7 +1026,7 @@ class HFLM(LM):
                 self._model_call(batched_inps, **call_kwargs), dim=-1
             )  # [batch, padding_length (inp or cont), vocab]
 
-            for (cache_key, context_key, cont_key), logits, inplen, cont_toks in zip(
+            for (request_str, cxt_tokens, _), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
             ):
                 # Slice to original seq length
@@ -1047,8 +1047,11 @@ class HFLM(LM):
                 greedy_tokens = logits.argmax(dim=-1)
 
                 # check for one-token continuation cache hits
-                for cache_key, logits, cont_toks in re_ord.get_cache(
-                    context_key, cont_key, cache_key, logits, cont_toks
+                for request_str, cont_toks, logits in re_ord.get_cache(
+                    req_str=request_str,
+                    cxt_toks=cxt_tokens,
+                    cont_toks=cont_toks,
+                    logits=logits,
                 ):
                     cont_toks = torch.tensor(
                         cont_toks, dtype=torch.long, device=self.device
@@ -1066,7 +1069,7 @@ class HFLM(LM):
 
                     res.append(answer)
 
-                    self.cache_hook.add_partial("loglikelihood", cache_key, answer)
+                    self.cache_hook.add_partial("loglikelihood", request_str, answer)
                     pbar.update(1)
 
         pbar.close()
