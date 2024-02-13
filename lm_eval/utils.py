@@ -873,7 +873,7 @@ class Collator:
         context_key: List[int],
         cont_key: List[int],
         cache_key: str,
-        logits: torch.tensor,
+        logits: torch.Tensor,
         cont_toks: List[int],
     ) -> Iterator[Tuple[str, torch.Tensor, List[int]]]:
         """

@@ -753,7 +753,9 @@ class HFLM(LM):
             **generation_kwargs,
         )
 
-    def _select_cont_toks(self, logits, contlen=None, inplen=None):
+    def _select_cont_toks(
+        self, logits: torch.Tensor, contlen: int = None, inplen: int = None
+    ) -> torch.Tensor:
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
             assert (
                 contlen and inplen
@@ -1041,6 +1043,7 @@ class HFLM(LM):
                 logits = self._select_cont_toks(logits, contlen=contlen, inplen=ctx_len)
                 logits = logits.unsqueeze(0)  # [1, seq, vocab]
 
+                # check for one-context continuation cache hits
                 for cache_key, logits, cont_toks in re_ord.get_cache(
                     context_key, cont_key, cache_key, logits, cont_toks
                 ):
