@@ -1046,7 +1046,7 @@ class HFLM(LM):
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
 
-                # check for one-context continuation cache hits
+                # check for one-token continuation cache hits
                 for cache_key, logits, cont_toks in re_ord.get_cache(
                     context_key, cont_key, cache_key, logits, cont_toks
                 ):
