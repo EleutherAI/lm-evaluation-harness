@@ -7,9 +7,8 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
+from lm_eval.models.utils import Collator, divide
 from lm_eval.utils import (
-    Collator,
-    divide,
     eval_logger,
     get_rolling_token_windows,
     make_disjoint_window,
