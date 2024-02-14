@@ -9,8 +9,8 @@ from lm_eval.api.metrics import (
     pooled_sample_stderr,
     stderr_for_metric,
 )
+from lm_eval.models.utils import Collator
 from lm_eval.utils import (
-    Collator,
     get_rolling_token_windows,
     make_disjoint_window,
 )
