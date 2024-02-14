@@ -6,6 +6,7 @@ from functools import wraps
 from typing import (
     Any,
     Callable,
+    Dict,
     Iterable,
     Iterator,
     List,
@@ -357,41 +358,71 @@ class Collator:
     A class for reordering and batching elements of an array.
 
     This class allows for sorting an array based on a provided sorting function, grouping elements based on a grouping function, and generating batches from the sorted and grouped data.
+
+    Objects of this class have the group_by attribute which determines the method for grouping
+    the data while batching it. Three options include "gen_kwargs", "contexts", or None:
+        If group_by == "gen_kwargs" then requests will be grouped by gen_kwargs
+        If group_by == "contexts" then requests will be grouped by context + cont[:-1]
+        If None then requests will just be reordered by length descending.
     """
 
     def __init__(
         self,
         arr: List,
-        sort_fn: Callable,
+        sort_fn: Callable = lambda x: x,
         group_fn: Callable = lambda x: x[1],
-        grouping: bool = False,
+        group_by: Union[Literal["gen_kwargs", "contexts"], None] = None,
     ) -> None:
-        self.grouping = grouping
-        self.fn = sort_fn
-        self.group_fn = lambda x: group_fn(x[1])  # first index are enumerated indices
+        self.group_by = group_by
+        self._indices_dict = None
+        self._requests = None
+        # 0 indices are enumerated indices. Apply functions to original requests.
+        self.sort_fn = lambda x: sort_fn(x[1])
+        self.group_fn = lambda x: group_fn(x[1])
         self.reorder_indices: List = []
         self.size = len(arr)
-        self.arr_with_indices: Iterable[Any] = tuple(enumerate(arr))  # [indices, (arr)]
-        if self.grouping is True:
+        self.arr_with_indices: Union[Dict, Tuple[Tuple[int, Any], ...]] = tuple(
+            enumerate(arr)
+        )  # [indices, (arr)]
+        if self.group_by == "contexts":
+            self.group_by_context()
+        elif self.group_by == "gen_kwargs":
             self.group_by_index()
 
     def group_by_index(self) -> None:
+        """Group the elements of a list based on their indices."""
         self.arr_with_indices = self.group(
-            self.arr_with_indices, fn=self.group_fn, values=False
+            self.arr_with_indices, fn=self.group_fn, group_by="gen_kwargs"
+        )
+
+    def group_by_context(self) -> None:
+        """Group the array with indices by context."""
+        self.arr_with_indices = self.group(
+            self.arr_with_indices, fn=self.group_fn, group_by="contexts"
         )
 
     def get_batched(self, n: int = 1, batch_fn: Optional[Callable] = None) -> Iterator:
         """
-        Generates and yields batches from the reordered array.
+        Generates and yields batches from the reordered array. The method of grouping and batching
+        depends on the parameter `group_by`.
+        If `group_by` is set to "gen_kwargs", it will batch the
+        re-ordered values with same gen_kwargs for each batch.
+        If `group_by` is "contexts", it caches the requests by context before batching.
+        If `group_by` is neither "gen_kwargs" nor "contexts", it yields the reordered array
 
         Parameters:
         - n (int): The size of each batch. Defaults to 1.
-        - batch_fn (Optional[Callable[[int, Iterable], int]]): A function to determine the size of each batch. Defaults to None.
+        - batch_fn (Optional[Callable[[int, Iterable], int]]): A function to determine the size of
+          each batch. Optional, defaults to None.
+
+        Returns:
+        Iterator: An iterator over batches of reordered elements grouped as per the `group_by`
+                  attribute.
 
         Yields:
-        Iterator: An iterator over batches of reordered elements.
+        List of batched elements according to the `group_by` attribute.
         """
-        if self.grouping:
+        if self.group_by == "gen_kwargs":
             for (
                 key,
                 values,
@@ -399,12 +430,66 @@ class Collator:
                 values = self._reorder(values)
                 batch = self.get_chunks(values, n=n, fn=batch_fn)
                 yield from batch
+        elif self.group_by == "contexts":
+            values = self._reorder(
+                [value[0] for key, value in self.arr_with_indices.items()]
+            )
+            batch = self.get_chunks(values, n=n, fn=batch_fn)
+            yield from batch
         else:
             values = self._reorder(self.arr_with_indices)  # type: ignore
             batch = self.get_chunks(values, n=n, fn=batch_fn)
             yield from batch
 
-    def _reorder(self, arr: Union[List, Tuple[Tuple[int, Any], ...]]) -> List:
+    def get_cache(
+        self,
+        req_str: str = None,
+        cxt_toks: List[int] = None,
+        cont_toks: List[int] = None,
+        logits: torch.Tensor = None,
+    ) -> Iterator[Tuple[str, List[int], torch.Tensor]]:
+        """
+        This method manages the predictions of one-token continuations from the model.
+
+        If the `group_by` attribute is set to "contexts", the method identifies one-token continuations
+        by checking for keys == [context+continuation][-1].
+
+         It handles two cases:
+
+         1. Cache Hit: If there is a match with a single element, it updates 'reorder_indices'
+            with the index of the hit, and then yields the original args, logits and continuation tokens.
+
+         2. Multiple Cache Hits: If there are multiple matching elements, it expands the logits
+            batch dim to match the number of cache hits, updates the original args and continuation tokens,
+            updates 'reorder_indices' with the indices of the hits, and yields these.
+
+         If `group_by` is not set to "contexts", it simply yields the original args, logits and continuation tokens,
+         without checking for one-token continuations or updating 'reorder_indices'.
+
+         Parameters:
+         - req_str (List[int]): The original strings  for CachingLM.
+         - cxt_toks: (List[int]): The full cxt_tokens for lookup.
+         - cont_toks (List[int]): The continuation tokens for which the logits were generated.
+         - logits (torch.tensor): The logits generated by the model for the given context and continuation keys.
+        """
+        if self.group_by == "contexts":
+            cache_hit: List[
+                Tuple[int, Tuple[str, List[int], List[int]]]
+            ] = self.arr_with_indices.pop(tuple(cxt_toks + cont_toks[:-1]))
+            if (cache_size := len(cache_hit)) == 1:
+                self.reorder_indices.extend(x[0] for x in cache_hit)
+                yield req_str, cont_toks, logits
+            else:
+                multilogits = logits.expand(cache_size, -1, -1).chunk(cache_size)
+                req_str = [x[1][0] for x in cache_hit]
+                cont_toks = [x[-1][-1] for x in cache_hit]
+                self.reorder_indices.extend(x[0] for x in cache_hit)
+                for c_key, cont_tok, logit in zip(req_str, cont_toks, multilogits):
+                    yield c_key, cont_tok, logit
+        else:
+            yield req_str, cont_toks, logits
+
+    def _reorder(self, arr: Union[List, Tuple[Tuple[int, Any], ...]]) -> Iterator:
         """
         Reorders the elements in the array based on the sorting function.
 
@@ -414,8 +499,10 @@ class Collator:
         Yields:
         List: Yields reordered elements one by one.
         """
-        arr = sorted(arr, key=lambda x: self.fn(x[1]))
-        self.reorder_indices.extend([x[0] for x in arr])
+        arr = sorted(arr, key=self.sort_fn)
+        if not self.group_by == "contexts":
+            # If grouped by contexts then indices will be set in get_cache()
+            self.reorder_indices.extend([x[0] for x in arr])
         yield from [x[1] for x in arr]
 
     def get_original(self, newarr: List) -> List:
@@ -443,9 +530,18 @@ class Collator:
         return self.size
 
     @staticmethod
-    def group(arr: Iterable, fn: Callable, values: bool = False) -> Iterable:
+    def group(
+        arr: Iterable,
+        fn: Callable,
+        group_by: Literal["gen_kwargs", "contexts"] = "gen_kwargs",
+    ) -> dict:
         """
         Groups elements of an iterable based on a provided function.
+
+
+        The `group_by` parameter determines the method of grouping.
+        If `group_by` is "contexts", the elements are grouped by [context + cont][:-1].
+        If `group_by` is "gen_kwargs", the elements are grouped based on the gen_kwargs dict.
 
         Parameters:
         - arr (Iterable): The iterable to be grouped.
@@ -457,22 +553,24 @@ class Collator:
         """
         res = collections.defaultdict(list)
         for ob in arr:
-            try:
-                hashable_dict = tuple(
-                    (
-                        key,
-                        tuple(value)
-                        if isinstance(value, collections.abc.Iterable)
-                        else value,
+            # where ob == [context + cont]
+            if group_by == "contexts":
+                res[tuple(fn(ob)[:-1])].append(ob)
+            else:
+                try:
+                    hashable_dict = tuple(
+                        (
+                            key,
+                            tuple(value)
+                            if isinstance(value, collections.abc.Iterable)
+                            else value,
+                        )
+                        for key, value in sorted(fn(ob).items())
                     )
-                    for key, value in sorted(fn(ob).items())
-                )
-                res[hashable_dict].append(ob)
-            except TypeError:
-                res[fn(ob)].append(ob)
-        if not values:
-            return res
-        return res.values()
+                    res[hashable_dict].append(ob)
+                except (TypeError, AttributeError):
+                    res[tuple(fn(ob))].append(ob)
+        return res
 
     @staticmethod
     def get_chunks(_iter, n: int = 0, fn=None):
