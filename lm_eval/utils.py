@@ -907,12 +907,12 @@ class Collator:
                 self.reorder_indices.extend(x[0] for x in cache_hit)
                 yield req_str, cont_toks, logits
             else:
-                multilogits = logits.expand(cache_size, -1, -1)
+                multilogits = logits.expand(cache_size, -1, -1).chunk(cache_size)
                 req_str = [x[1][0] for x in cache_hit]
                 cont_toks = [x[-1][-1] for x in cache_hit]
                 self.reorder_indices.extend(x[0] for x in cache_hit)
                 for c_key, cont_tok, logit in zip(req_str, cont_toks, multilogits):
-                    yield c_key, cont_tok, logit.unsqueeze(0)
+                    yield c_key, cont_tok, logit
         else:
             yield req_str, cont_toks, logits
 
