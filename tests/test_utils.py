@@ -332,7 +332,7 @@ class TestCollator:
         loglikelihoods = Collator(
             loglikelihood_samples,
             _collate_log,
-            group_fn=lambda a: a[-2] + a[-1],
+            group_fn=lambda a: a[-2] + a[-1][:-1],
             group_by="contexts",
         )
         chunks = loglikelihoods.get_batched(n=int(batch_size), batch_fn=None)

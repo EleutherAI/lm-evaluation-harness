@@ -910,7 +910,7 @@ class HFLM(LM):
             requests,
             sort_fn=_collate,
             group_by="contexts",
-            group_fn=lambda a: a[-2] + a[-1],
+            group_fn=lambda a: a[-2] + a[-1][:-1],
         )
 
         # automatic (variable) batch size detection for vectorization
