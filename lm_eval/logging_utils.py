@@ -92,6 +92,7 @@ class WandbLogger:
         )
 
         self.task_names: List[str] = list(results.get("results", {}).keys())
+        self.group_names: List[str] = list(results.get("groups", {}).keys())
 
         # initialize a W&B run
         if wandb.run is None:
@@ -133,6 +134,8 @@ class WandbLogger:
 
         for k, dic in results.get("results").items():
             version = results.get("versions").get(k)
+            if version == "N/A":
+                version = None
             n = results.get("n-shot").get(k)
 
             if "alias" in dic:
@@ -208,7 +211,11 @@ class WandbLogger:
         Args:
             samples (Dict[str, List[Dict[str, Any]]]): Evaluation samples for each task.
         """
-        for task_name in self.task_names:
+        task_names: List[str] = [
+            x for x in self.task_names if x not in self.group_names
+        ]
+
+        for task_name in task_names:
             eval_preds = samples[task_name]
 
             # log the samples as an artifact
@@ -373,7 +380,7 @@ class WandbLogger:
         try:
             self._write_to_report()
         except Exception as e:
-            wandb.termerror(
+            wandb.termwarn(
                 f"The program failed to automatically generate a W&B Report due to {e} ."
                 "Please head over to https://docs.wandb.ai/guides/reports/create-a-report to learn "
                 "how to create a report in the UI."
