@@ -429,8 +429,9 @@ class Collator:
                 batch = self.get_chunks(values, n=n, fn=batch_fn)
                 yield from batch
         elif self._group_by == "contexts":
+            # Get one sample from each key
             values = self._reorder(
-                [value[0] for key, value in self._arr_with_indices.items()]
+                [value[0] for value in self._arr_with_indices.values()]
             )
             batch = self.get_chunks(values, n=n, fn=batch_fn)
             yield from batch
