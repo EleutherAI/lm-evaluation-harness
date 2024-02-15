@@ -483,7 +483,7 @@ class Collator:
         """
         if self._group_by == "contexts":
             cache_hit: List[
-                Tuple[int, Tuple[str, List[int], List[int]]]
+                Tuple[int, Tuple[Tuple[str, str], List[int], List[int]]]
             ] = self._arr_with_indices.pop(tuple(cxt_toks + cont_toks[:-1]))
             if (cache_size := len(cache_hit)) == 1:
                 self._reorder_indices.extend(x[0] for x in cache_hit)
