@@ -20,7 +20,6 @@ try:
     assert Version(wandb.__version__) >= Version("0.13.6")
     if Version(wandb.__version__) < Version("0.13.6"):
         wandb.require("report-editing:v0")
-    IS_WANDB_AVAILABLE = True
 except Exception as e:
     logger.warning(
         "To use the wandb reporting functionality please install wandb>=0.13.6.\n"
