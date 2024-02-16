@@ -133,26 +133,27 @@ class WandbLogger:
         results = copy.deepcopy(self.results)
 
         for k, dic in results.get("results").items():
+            if k in self.group_names:
+                continue
             version = results.get("versions").get(k)
             if version == "N/A":
                 version = None
             n = results.get("n-shot").get(k)
 
-            if "alias" in dic:
-                k = dic.pop("alias")
-
             for (mf), v in dic.items():
                 m, _, f = mf.partition(",")
                 if m.endswith("_stderr"):
+                    continue
+                if m=="alias":
                     continue
 
                 if m + "_stderr" + "," + f in dic:
                     se = dic[m + "_stderr" + "," + f]
                     if se != "N/A":
                         se = "%.4f" % se
-                    table.add_data(*[k, version, f, n, m, v, se])
+                    table.add_data(*[k, version, f, n, m, str(v), str(se)])
                 else:
-                    table.add_data(*[k, version, f, n, m, v, ""])
+                    table.add_data(*[k, version, f, n, m, str(v), ""])
 
         # log the table to W&B
         self.run.log({"evaluation/eval_results": table})
