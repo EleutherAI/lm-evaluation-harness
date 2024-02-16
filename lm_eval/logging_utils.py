@@ -191,7 +191,7 @@ class WandbLogger:
             resps = [
                 f'log probability of continuation is {x["resps"][0][0][0]} '
                 + "\n\n"
-                + 'continuation will {} generated with greedy sampling'.format(
+                + "continuation will {} generated with greedy sampling".format(
                     "not be" if not x["resps"][0][0][1] else "be"
                 )
                 for x in data
@@ -199,7 +199,7 @@ class WandbLogger:
             filtered_resps = [
                 f'log probability of continuation is {x["filtered_resps"][0][0]} '
                 + "\n\n"
-                + 'continuation will {} generated with greedy sampling'.format(
+                + "continuation will {} generated with greedy sampling".format(
                     "not be" if not x["filtered_resps"][0][1] else "be"
                 )
                 for x in data
@@ -208,28 +208,21 @@ class WandbLogger:
             instance = [
                 x["arguments"][0][0]
                 + "\n\n"
-                + "\n".join([f"- {idx}. {y[1]}" for idx, y in enumerate(x["arguments"])])
+                + "\n".join(
+                    [f"- {idx}. {y[1]}" for idx, y in enumerate(x["arguments"])]
+                )
                 for x in data
             ]
-            resps = [
-                np.argmax([n[0][0] for n in x["resps"]])
-                for x in data
-            ]
+            resps = [np.argmax([n[0][0] for n in x["resps"]]) for x in data]
             filtered_resps = [
-                np.argmax([n[0] for n in x["filtered_resps"]])
-                for x in data
+                np.argmax([n[0] for n in x["filtered_resps"]]) for x in data
             ]
         elif config["output_type"] == "loglikelihood_rolling":
             instance = [x["arguments"][0][0] for x in data]
         elif config["output_type"] == "generate_until":
             instance = [x["arguments"][0][0] for x in data]
-            resps = [
-                x["resps"][0][0]
-                for x in data
-            ]
-            filtered_resps = [
-                x["filtered_resps"][0] for x in data
-            ]
+            resps = [x["resps"][0][0] for x in data]
+            filtered_resps = [x["filtered_resps"][0] for x in data]
 
         model_outputs["raw_predictions"] = resps
         model_outputs["filtered_predictions"] = filtered_resps
