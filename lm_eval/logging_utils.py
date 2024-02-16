@@ -1,9 +1,7 @@
-import os
-# os.environ['WANDB_REPORT_API_ENABLE_V2'] = 'true'
-os.environ['WANDB_REPORT_API_DISABLE_MESSAGE'] = 'true'
 import copy
 import json
 import logging
+import os
 import re
 from datetime import datetime
 from typing import Any, Dict, List, Literal, Tuple, Union
@@ -14,6 +12,8 @@ from packaging.version import Version
 
 from lm_eval import utils
 
+
+os.environ["WANDB_REPORT_API_DISABLE_MESSAGE"] = "true"
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +146,7 @@ class WandbLogger:
                 m, _, f = mf.partition(",")
                 if m.endswith("_stderr"):
                     continue
-                if m=="alias":
+                if m == "alias":
                     continue
 
                 if m + "_stderr" + "," + f in dic:
@@ -328,6 +328,7 @@ class WandbLogger:
 
         return blocks
 
+    # TODO: work on improving the performance of reports writing.
     def _write_to_report(self) -> None:
         """Write to report."""
         import wandb.apis.reports as wr
