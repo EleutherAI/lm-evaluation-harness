@@ -1,3 +1,6 @@
+import os
+# os.environ['WANDB_REPORT_API_ENABLE_V2'] = 'true'
+os.environ['WANDB_REPORT_API_DISABLE_MESSAGE'] = 'true'
 import copy
 import json
 import logging
@@ -311,6 +314,7 @@ class WandbLogger:
                             font_size="large",
                         )
                     )
+            # Recreating the results dict to use make_table for that task.
             _results = {
                 "results": {f"{task_name}": self.results.get("results").get(task_name)},
                 "versions": {
@@ -341,11 +345,11 @@ class WandbLogger:
             [
                 wr.TableOfContents(),
                 wr.H1("Complete Evaluation Results"),
-                wr.WeaveBlockSummaryTable(
-                    project=self.run.project,
-                    entity=self.run.entity,
-                    table_name="evaluation/eval_results",
-                ),
+                # wr.WeaveBlock(
+                #     project=self.run.project,
+                #     entity=self.run.entity,
+                #     table_name="evaluation/eval_results",
+                # ),
                 wr.PanelGrid(
                     runsets=[
                         wr.Runset(
