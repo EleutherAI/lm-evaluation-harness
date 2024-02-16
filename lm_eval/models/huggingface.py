@@ -909,7 +909,9 @@ class HFLM(LM):
         re_ord = Collator(
             requests,
             sort_fn=_collate,
-            group_by="contexts",
+            group_by="contexts"
+            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
+            else None,
             group_fn=lambda a: a[-2] + a[-1][:-1],
         )
 
