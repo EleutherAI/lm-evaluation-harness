@@ -2,10 +2,9 @@
 
 ### Paper
 
-Title: `K-MMLU(work in progress) `
-* ongoing project at publishing help/ non-english benchmark
+Title: `K-MMLU : Measuring Massive Multitask Language Understanding in Korean `
 
-Abstract: `The K-MMLU (Korean-MMLU) is a comprehensive suite designed to evaluate the advanced knowledge and reasoning abilities of large language models (LLMs) within the Korean language and cultural context. This suite encompasses 45 topics, primarily focusing on expert-level subjects. It includes general subjects like Physics and Ecology, and law and political science, alongside specialized fields such as Non-Destructive Training and Maritime Engineering. The datasets are derived from Korean licensing exams, with about 90% of the questions including human accuracy based on the performance of human test-takers in these exams. K-MMLU is segmented into training, testing, and development subsets, with the test subset ranging from a minimum of 100 to a maximum of 1000 questions, totaling 35,000 questions. Additionally, a set of 10 questions is provided as a development set for few-shot exemplar development. At total, K-MMLU consists of 254,334 instances.`
+Abstract: `We propose KMMLU, a new Korean benchmark with 35,030 expert-level multiple-choice questions across 45 subjects ranging from humanities to STEM. Unlike previous Korean benchmarks that are translated from existing English benchmarks, KMMLU is collected from original Korean exams, capturing linguistic and cultural aspects of the Korean language. We test 26 publicly available and proprietary LLMs, identifying significant room for improvement. The best publicly available model achieves 50.54% on KMMLU, far below the average human performance of 62.6%. This model was primarily trained for English and Chinese, not Korean. Current LLMs tailored to Korean, such as Polyglot-Ko, perform far worse. Surprisingly, even the most capable proprietary LLMs, e.g., GPT-4 and HyperCLOVA X, achieve 59.95% and 53.40%, respectively. This suggests that further work is needed to improve Korean LLMs, and KMMLU offers the right tool to track this progress. We make our dataset publicly available on the Hugging Face Hub and integrate the benchmark into EleutherAI's Language Model Evaluation Harness.`
 
 Homepage: https://huggingface.co/datasets/HAERAE-HUB/K-MMLU-Preview
 
@@ -20,11 +19,19 @@ We'll be updating this section soon.
 #### Groups
 
 * `kmmlu`: 'All 45 subjects of the KMMLU dataset, evaluated following the methodology in MMLU's original implementation'
+* `kmmlu_direct`: 'kmmlu_direct solves questions using a straightforward multiple-choice question-answering approach'
+* `kmmlu_hard_direct`:  'kmmlu_hard_direct comprises difficult questions that at least one proprietary model failed to answer correctly using a direct approach'
+* `kmmlu_hard_cot`: 'kmmlu_hard_cot includes 5-shot of exemplars for chain-of-thought approach'
 
 #### Tasks
 
 The following tasks evaluate subjects in the KMMLU dataset
-- `kmmlu_{subject_english}`
+- `kmmlu_direct_{subject_english}`
+
+The following tasks evaluate subjects in the KMMLU-Hard dataset
+- `kmmlu_hard_cot_{subject_english}`
+- `kmmlu_hard_direct_{subject_english}`
+
 
 ### Checklist
 

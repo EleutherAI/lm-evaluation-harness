@@ -112,4 +112,4 @@ doc_to_text: '질문: 주파수 대역에 따른 RFID 특징 중 틀린 것은?
 
   정답: 차근 차근 생각해봅시다. 무선 정보통신 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_telecommunications_and_wireless_technology
+task: kmmlu_hard_cot_telecommunications_and_wireless_technology

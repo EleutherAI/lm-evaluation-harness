@@ -107,4 +107,4 @@ doc_to_text: '질문: 일람도 제도에서 붉은색 0.2mm 폭의 2선으로 �
 
   정답: 차근 차근 생각해봅시다. 기하학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_geomatics
+task: kmmlu_hard_cot_geomatics

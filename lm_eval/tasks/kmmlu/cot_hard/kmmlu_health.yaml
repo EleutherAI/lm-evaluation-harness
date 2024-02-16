@@ -114,4 +114,4 @@ doc_to_text: '질문: 도나베디안 (Donabedian) 의 보건의료 서비스 �
 
   정답: 차근 차근 생각해봅시다. 건강학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_health
+task: kmmlu_hard_cot_health

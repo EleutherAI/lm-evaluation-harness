@@ -124,4 +124,4 @@ doc_to_text: '질문: 정서적인 아픔이 너무 커서 그 일이 전혀 기
 
   정답: 차근 차근 생각해봅시다. 심리학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_psychology
+task: kmmlu_hard_cot_psychology

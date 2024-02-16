@@ -108,4 +108,4 @@ doc_to_text: '질문: 실제 펄스 파형의 구간별 명칭에 대한 설명�
 
   정답: 차근 차근 생각해봅시다. 정보 기술 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_information_technology
+task: kmmlu_hard_cot_information_technology

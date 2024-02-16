@@ -125,4 +125,4 @@ doc_to_text: '질문: 암호 프로토콜 서비스에 대한 설명 중 옳지 
 
   정답: 차근 차근 생각해봅시다. 컴퓨터 공학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_computer_science
+task: kmmlu_hard_cot_computer_science

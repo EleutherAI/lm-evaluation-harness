@@ -109,4 +109,4 @@ doc_to_text: '질문: 작물이 주로 이용하는 토양수분의 형태는?
 
   정답: 차근 차근 생각해봅시다. 식품 처리 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_food_processing
+task: kmmlu_hard_cot_food_processing

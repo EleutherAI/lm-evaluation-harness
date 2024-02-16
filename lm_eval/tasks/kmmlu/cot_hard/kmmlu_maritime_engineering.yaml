@@ -126,4 +126,4 @@ doc_to_text: '질문: 복원력을 갖는 안정 평형 상태인 선박의 메�
 
   정답: 차근 차근 생각해봅시다. 해양 공학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_maritime_engineering
+task: kmmlu_hard_cot_maritime_engineering

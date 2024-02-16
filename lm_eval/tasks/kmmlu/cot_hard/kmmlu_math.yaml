@@ -123,4 +123,4 @@ doc_to_text: '질문: 이차방정식 x2 - 5x + 3 = 0의 두 근이 log5α와 lo
 
   정답: 차근 차근 생각해봅시다. 수학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_math
+task: kmmlu_hard_cot_math

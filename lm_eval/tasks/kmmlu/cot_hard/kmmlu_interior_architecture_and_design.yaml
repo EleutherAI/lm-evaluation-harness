@@ -120,4 +120,4 @@ doc_to_text: '질문: 실내디자인의 원리 중 조화ㆍ통일ㆍ변화에 
 
   정답: 차근 차근 생각해봅시다. 건축 디자인 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_interior_architecture_and_design
+task: kmmlu_hard_cot_interior_architecture_and_design

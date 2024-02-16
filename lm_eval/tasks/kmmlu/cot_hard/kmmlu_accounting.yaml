@@ -110,4 +110,4 @@ doc_to_text: '질문: 수정 전 잔액시산표의 차변 합계액은 ￦1,000
 
   정답: 차근 차근 생각해봅시다. 회계학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_accounting
+task: kmmlu_hard_cot_accounting

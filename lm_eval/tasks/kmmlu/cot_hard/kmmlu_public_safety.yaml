@@ -120,4 +120,4 @@ doc_to_text: '질문: 산업안전보건법령상 법령 요지의 게시 등과
 
   정답: 차근 차근 생각해봅시다. 공공 안전 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_public_safety
+task: kmmlu_hard_cot_public_safety

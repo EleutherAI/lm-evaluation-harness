@@ -118,4 +118,4 @@ doc_to_text: '질문: 공인중개사법령상 법인인 개업공인중개사�
 
   정답: 차근 차근 생각해봅시다. 부동산 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_real_estate
+task: kmmlu_hard_cot_real_estate

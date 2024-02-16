@@ -121,4 +121,4 @@ doc_to_text: '질문: 곡선도로 조명상 조명기구의 배치 조건이 �
 
   정답: 차근 차근 생각해봅시다. 전기 공학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_electrical_engineering
+task: kmmlu_hard_cot_electrical_engineering

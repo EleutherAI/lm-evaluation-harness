@@ -107,4 +107,4 @@ doc_to_text: '질문: 수산화나트륨(NaOH) 80g을 물에 녹여 전체 부�
 
   정답: 차근 차근 생각해봅시다. 화학 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_chemistry
+task: kmmlu_hard_cot_chemistry

@@ -120,4 +120,4 @@ doc_to_text: '질문: 실질소득이 증가할수록 해당 재화에 대한 �
 
   정답: 차근 차근 생각해봅시다. 정치 사회 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_political_science_and_sociology
+task: kmmlu_hard_cot_political_science_and_sociology

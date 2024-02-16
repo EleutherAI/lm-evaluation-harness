@@ -130,4 +130,4 @@ doc_to_text: '질문: 지방세기본법 상 서류의 송달에 대한 설명�
 
   정답: 차근 차근 생각해봅시다. 세법 관련 정보를 위해 위키피디아를 참조하겠습니다.'
 include: _cot_kmmlu_yaml
-task: kmmlu_cot_taxation
+task: kmmlu_hard_cot_taxation
