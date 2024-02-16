@@ -1,3 +1,3 @@
-dataset_name: Taxation
+dataset_name: taxation
 include: _direct_kmmlu_yaml
 task: kmmlu_hard_direct_taxation
