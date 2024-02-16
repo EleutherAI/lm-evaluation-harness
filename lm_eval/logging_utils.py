@@ -189,7 +189,7 @@ class WandbLogger:
             instance = [
                 x["arguments"][0][0]
                 + "\n\n"
-                + "\n".join([f"- {y[1]}" for y in x["arguments"]])
+                + "\n".join([f"- {idx}. {y[1]}" for idx, y in enumerate(x["arguments"])])
                 for x in data
             ]
         elif config["output_type"] == "loglikelihood_rolling":
