@@ -61,6 +61,9 @@ class VLLM(LM):
         device: str = "cuda",
         data_parallel_size: int = 1,
     ):
+        import ray
+        ray.init(ignore_reinit_error=True, num_cpus=8, num_gpus=tensor_parallel_size)
+
         super().__init__()
 
         if not find_spec("vllm"):
