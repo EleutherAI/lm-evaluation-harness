@@ -1,0 +1,8 @@
+include: default.yaml
+task: winogrande_ru
+dataset_path: deepvk/winogrande-ru
+dataset_name: null
+dataset_kwargs:
+  revision: vk-edited
+num_fewshot: 5
+fewshot_split: train
