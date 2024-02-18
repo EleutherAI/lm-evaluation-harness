@@ -440,7 +440,7 @@ def evaluate(
                     sizes = [
                         results[task]["samples"]
                         for task in task_list
-                        if "samples" in results[task]
+                        if metric in results[task]
                     ]
 
                     # compute group's pooled metric and stderr
