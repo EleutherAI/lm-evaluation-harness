@@ -527,7 +527,7 @@ class TaskOutput:
             agg_fn = self.task.aggregation()[metric]
             metric_key = f"{metric},{filter_key}"
             self.agg_metrics[metric_key] = agg_fn(items)
-            self.sample_len = len(items)
+            self.sample_len = len(items)  # TODO: same sample size for each metric?
             if bootstrap_iters:
                 stderr_fn = metrics.stderr_for_metric(
                     metric=agg_fn,
