@@ -282,7 +282,7 @@ def evaluate(
     for task_output in eval_tasks:
         task = task_output.task
         limit = get_sample_size(task, limit)
-        task.build_all_requests(limit=limit, rank=lm.rank, world_size=lm.world_size)
+        task.build_all_requests(rank=lm.rank, limit=limit, world_size=lm.world_size)
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
         )
