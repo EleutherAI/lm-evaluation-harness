@@ -562,6 +562,40 @@ class GroupOutput:
         )
 
 
+def get_task_list(task_dict):
+    results = collections.defaultdict(dict)
+    task_hierarchy = collections.defaultdict(list)
+    versions = collections.defaultdict(dict)
+    configs = collections.defaultdict(dict)
+    num_fewshot = collections.defaultdict(int)
+    outputs = (TaskOutputs.from_taskdict(x, y) for x, y in task_dict.items())
+    for task_obj in outputs:
+        task = task_obj.task
+        task_name = task_obj.task_name
+        group_name = task_obj.group_name
+        if group_name:
+            task_hierarchy[group_name].append(task_name)
+            versions[group_name] = "N/A"
+        else:
+            group_name = None
+            task_hierarchy[task_name] = []
+        if not task:
+            continue
+        versions[task_name] = task.VERSION
+        configs[task_name] = dict(task.dump_config())
+        num_fewshot[task_name] = task_obj.n_shot
+
+        if "task_alias" in configs[task_name]:
+            results[task_name]["alias"] = configs[task_name]["task_alias"]
+
+        if (
+            ("group_alias" in configs[task_name])
+            and (group_name not in results)
+            and (group_name is not None)
+        ):
+            results[group_name]["alias"] = configs[task_name]["group_alias"]
+
+
 def group_and_tasks(task_dict):
     group_task = collections.defaultdict(list)
     group_hierarchy = collections.defaultdict(list)

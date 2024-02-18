@@ -1,4 +1,5 @@
 import collections
+import itertools
 import logging
 import random
 from typing import Optional, Union
@@ -407,6 +408,8 @@ def evaluate(
         if lm.world_size > 1:
             lm.accelerator.wait_for_everyone()
 
+    RANK = lm.rank
+    WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_name, task in task_dict.items():
@@ -464,61 +467,78 @@ def evaluate(
                 for metric, value in metrics.items():
                     vals[(task_name, filter_key, metric)].append(value)
 
-    # if lm.world_size > 1:
-    #     # if multigpu, then gather data across all ranks
-    #     # first gather logged samples across all ranks
-    #     for task_name, task_samples in list(samples.items()):
-    #         full_samples = [None] * lm.world_size
-    #         torch.distributed.all_gather_object(full_samples, task_samples)
-    #
-    #         samples[task_name] = list(itertools.chain.from_iterable(full_samples))
-    #
-    #     # then collect metrics across all ranks
-    #     vals_torch = collections.defaultdict(list)
-    #     for (task_name, filter_key, metric), items in vals.items():
-    #         numitem = 0
-    #         if isinstance(items[0], tuple):
-    #             numitem = len(items[0])
-    #
-    #         if isinstance(items[0], (str, list, tuple)):
-    #             # handle the string case
-    #             gathered_items = [None] * lm.accelerator.num_processes
-    #             torch.distributed.all_gather_object(gathered_items, items)
-    #
-    #             gathered_item = list(itertools.chain.from_iterable(gathered_items))
-    #         else:
-    #             # distributed gather requires all ranks to have same dimensions
-    #             # so we pad out with float32 min value
-    #             pad_value = torch.finfo(torch.float32).min
-    #             metrics_tensor = torch.tensor(items, device=lm.device)
-    #
-    #             original_dtype = metrics_tensor.dtype  # store original dtype
-    #             torch_device_tensor = lm.accelerator.pad_across_processes(
-    #                 metrics_tensor.to(torch.float32), pad_index=pad_value
-    #             )
-    #             gathered_item = lm.accelerator.gather(torch_device_tensor)
-    #
-    #             if numitem > 0:
-    #                 gathered_filtered = gathered_item[gathered_item[:, 0] != pad_value]
-    #             else:
-    #                 gathered_filtered = gathered_item[gathered_item != pad_value]
-    #
-    #             gathered_item = (
-    #                 gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
-    #             )
-    #             # reconvert if we were passed a tuple of values
-    #             if numitem > 0:
-    #                 gathered_item = [tuple(g) for g in gathered_item]
-    #
-    #         if lm.rank == 0:
-    #             vals_torch[(task_name, filter_key, metric)] = gathered_item
-    #
-    #     vals = vals_torch
+    if WORLD_SIZE > 1:
+        # if multigpu, then gather data across all ranks
+        # first gather logged samples across all ranks
+        for task_name, task_samples in list(samples.items()):
+            full_samples = [None] * WORLD_SIZE if RANK == 0 else None
+            torch.distributed.gather_object(
+                obj=task_samples, object_gather_list=full_samples, dst=0
+            )
+            # torch.distributed.all_gather_object(full_samples, task_samples)
 
-    if lm.rank == 0:
+            samples[task_name] = list(itertools.chain.from_iterable(full_samples))
+
+        # then collect metrics across all ranks
+        # vals_torch = collections.defaultdict(list)
+        for (task_name, filter_key, metric), items in vals.items():
+            metric_list = [None] * WORLD_SIZE if RANK == 0 else None
+            torch.distributed.gather_object(
+                obj=vals[(task_name, filter_key, metric)],
+                object_gather_list=metric_list,
+                dst=0,
+            )
+            vals[(task_name, filter_key, metric)] = list(
+                itertools.chain.from_iterable(metric_list)
+            )
+
+        #     numitem = 0
+        #     if isinstance(items[0], tuple):
+        #         numitem = len(items[0])
+        #
+        #     if isinstance(items[0], (str, list, tuple)):
+        #         # handle the string case
+        #         gathered_items = [None] * lm.accelerator.num_processes
+        #         torch.distributed.all_gather_object(gathered_items, items)
+        #
+        #         gathered_item = list(itertools.chain.from_iterable(gathered_items))
+        #     else:
+        #         # distributed gather requires all ranks to have same dimensions
+        #         # so we pad out with float32 min value
+        #         pad_value = torch.finfo(torch.float32).min
+        #         metrics_tensor = torch.tensor(items, device=lm.device)
+        #
+        #         original_dtype = metrics_tensor.dtype  # store original dtype
+        #         torch_device_tensor = lm.accelerator.pad_across_processes(
+        #             metrics_tensor.to(torch.float32), pad_index=pad_value
+        #         )
+        #         gathered_item = lm.accelerator.gather(torch_device_tensor)
+        #
+        #         if numitem > 0:
+        #             gathered_filtered = gathered_item[gathered_item[:, 0] != pad_value]
+        #         else:
+        #             gathered_filtered = gathered_item[gathered_item != pad_value]
+        #
+        #         gathered_item = (
+        #             gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
+        #         )
+        #         # reconvert if we were passed a tuple of values
+        #         if numitem > 0:
+        #             gathered_item = [tuple(g) for g in gathered_item]
+        #
+        #     if lm.rank == 0:
+        #         vals_torch[(task_name, filter_key, metric)] = gathered_item
+        #
+        # vals = vals_torch
+
+    if RANK == 0:
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
-        for (task_name, filter_key, metric), items in vals.items():
+        for (
+            task_name,
+            filter_key,
+            metric,
+        ), items in vals.items():  # vals are real tasks
             task = task_dict[task_name]
             group_name, task = task if isinstance(task, tuple) else (None, task)
 
