@@ -244,7 +244,7 @@ def make_table(result_dict, column: str = "results"):
     values = []
 
     for k, dic in result_dict[column].items():
-        version = result_dict["versions"][k]
+        version = result_dict["versions"].get(k, "N/A")
         n = str(result_dict["n-shot"][k])
 
         if "alias" in dic:
@@ -465,13 +465,11 @@ class TaskOutputs:
 
     @classmethod
     def from_taskdict(cls, task_name: str, task):
-        from lm_eval.tasks import Task
-
         if isinstance(task, tuple):
             group_name, task = task
         else:
             group_name = None
-        if not isinstance(task, Task) or not task:
+        if not task:
             is_group = True
             return cls(
                 task=task, task_name=task_name, is_group=is_group, group_name=group_name
@@ -510,20 +508,6 @@ class TaskOutputs:
                     stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
                 )
 
-    def get_agg_metric(self) -> None:
-        for (
-            task_name,
-            filter_key,
-            metric,
-        ), items in self.samples_metrics.items():
-            metric_key = f"{metric},{filter_key}"
-            agg_fn = self.task.aggregation()[metric]
-            self.agg_metrics[metric_key] = agg_fn(items)
-
-    @property
-    def belongs_to_group(self):
-        return self.group_name
-
     def __repr__(self):
         return (
             f"TaskOutputs(task_name={self.task_name}, "
@@ -534,95 +518,54 @@ class TaskOutputs:
         )
 
 
-# class GroupOutput:
-#     def __init__(self, task_hierarchy: dict) -> None:
-#         self.task_hierarchy = task_hierarchy
-#         self.test = "hello"
-#         # self.groups = set(self.task_hierarchy.keys()).union(self.task_hierarchy.values())
-#
-#     @classmethod
-#     def from_taskoutputs(cls, task_outputs=List[TaskOutputs]):
-#         task_hierarchy = collections.defaultdict(list)
-#         for task_obj in task_outputs:
-#             task_name, group_name = task_obj.task_name, task_obj.group_name
-#             if group_name is None:
-#                 task_hierarchy[task_name] = []
-#             else:
-#                 task_hierarchy[group_name].append(task_name)
-#             # if task_obj.task is not None:
-#
-#         return cls(task_hierarchy)
-#
-#     def __repr__(self):
-#         return f"GroupOutput: task_hierarchy={self.task_hierarchy}"
-
-
-class GroupOutput:
-    def __init__(self, group_name, task_list):
-        self.group_name = group_name
-        self.task_list = task_list
-
-    def get_metrics(self, metric):
-        for task in self.task_list:
-            stderr = "_stderr,".join(metric.split(","))
-            metrics = [task.agg_metrics[metric] for task in self.task_list]
-            stderrs = [task.agg_metrics[stderr] for task in self.task_list]
-            sizes = [task.agg_metrics["samples"] for task in self.task_list]
-        return metrics, stderrs, sizes
-
-    def __repr__(self):
-        return (
-            f"GroupOutput(group_name={self.group_name},"
-            f"group_alias={self.group_alias},"
-            f"group_tasks={self.group_tasks}) "
-        )
-
-
 def get_task_list(task_dict):
-    results = collections.defaultdict(dict)
     task_hierarchy = collections.defaultdict(list)
-    versions = collections.defaultdict(dict)
-    configs = collections.defaultdict(dict)
-    num_fewshot = collections.defaultdict(int)
-    outputs = (TaskOutputs.from_taskdict(x, y) for x, y in task_dict.items())
-    for task_obj in outputs:
-        task = task_obj.task
-        task_name = task_obj.task_name
-        group_name = task_obj.group_name
-        if group_name:
-            task_hierarchy[group_name].append(task_name)
-            versions[group_name] = "N/A"
+    outputs = list(TaskOutputs.from_taskdict(x, y) for x, y in task_dict.items())
+    for task_output in outputs:
+        if group_name := task_output.group_name:
+            task_hierarchy[group_name].append(task_output.task_name)
         else:
-            group_name = None
-            task_hierarchy[task_name] = []
-        if not task:
-            continue
-        versions[task_name] = task.VERSION
-        configs[task_name] = dict(task.dump_config())
-        num_fewshot[task_name] = task_obj.n_shot
+            task_hierarchy[task_output.task_name] = []
+    return task_hierarchy, [x for x in outputs if x.task]
 
-        if "task_alias" in configs[task_name]:
-            results[task_name]["alias"] = configs[task_name]["task_alias"]
-
-        if (
-            ("group_alias" in configs[task_name])
-            and (group_name not in results)
-            and (group_name is not None)
-        ):
-            results[group_name]["alias"] = configs[task_name]["group_alias"]
+    # task = task_hierarchy.task
+    # task_name = task_obj.task_name
+    # group_name = task_obj.group_name
+    # if group_name:
+    #     task_hierarchy[group_name].append(task_name)
+    #     versions[group_name] = "N/A"
+    # else:
+    #     group_name = None
+    #     task_hierarchy[task_name] = []
+    # if not task:
+    #     continue
+    # versions[task_name] = task.VERSION
+    # configs[task_name] = dict(task.dump_config())
+    # num_fewshot[task_name] = task_obj.n_shot
+    #
+    # if "task_alias" in configs[task_name]:
+    #     results[task_name]["alias"] = configs[task_name]["task_alias"]
+    #
+    # if (
+    #     ("group_alias" in configs[task_name])
+    #     and (group_name not in results)
+    #     and (group_name is not None)
+    # ):
+    #     results[group_name]["alias"] = configs[task_name]["group_alias"]
 
 
 def group_and_tasks(task_dict):
     group_task = collections.defaultdict(list)
-    group_hierarchy = collections.defaultdict(list)
+    task_hierarchy = collections.defaultdict(list)
     tasks_list = []
     # store the hierarchy to do proper ordering
     for task_name, task in task_dict.items():
         if isinstance(task, tuple):
             group_name, task = task
-            group_hierarchy[group_name].append(task_name)
+            task_hierarchy[group_name].append(task_name)
         else:
             group_name = None
+            task_hierarchy[task_name] = []
         if not task:
             pass
         else:
@@ -631,7 +574,7 @@ def group_and_tasks(task_dict):
             )
             group_task[group_name].append(task_)
             tasks_list.append(task_)
-    return group_hierarchy, tasks_list, group_task
+    return task_hierarchy, tasks_list, group_task
 
 
 def print_writeout(task) -> None:
@@ -712,12 +655,25 @@ def print_tasks(task_hierarchy, results, tab=0):
 
 
 def consolidate_results(eval_tasks, results):
-    for task_obj in eval_tasks:
-        for (filter_key, metric), items in task_obj.samples_metrics.items():
+    num_fewshot = collections.defaultdict(int)
+    configs = collections.defaultdict(dict)
+    versions = collections.defaultdict(dict)
+    for task_output in eval_tasks:
+        if "task_alias" in (task_config := task_output.task_config):
+            results[task_output.task_name]["alias"] = task_config["task_alias"]
+        if group_alias := task_output.group_alias:
+            if group_alias not in results and (group_name := task_output.group_name):
+                results[group_name]["alias"] = group_alias
+        num_fewshot[task_output.task_name] = task_output.n_shot
+        configs[task_output.task_name] = task_output.task_config
+        versions[task_output.task_name] = task_output.version
+        for (filter_key, metric), items in task_output.samples_metrics.items():
             metric_key = f"{metric},{filter_key}"
-            results[task_obj.task_name][metric_key] = task_obj.agg_metrics[metric_key]
-            results[task_obj.task_name]["samples"] = task_obj.sample_len
-            results[task_obj.task_name][
+            results[task_output.task_name][metric_key] = task_output.agg_metrics[
+                metric_key
+            ]
+            results[task_output.task_name]["samples"] = task_output.sample_len
+            results[task_output.task_name][
                 f"{metric}_stderr,{filter_key}"
-            ] = task_obj.agg_metrics[f"{metric}_stderr,{filter_key}"]
-    return results
+            ] = task_output.agg_metrics[f"{metric}_stderr,{filter_key}"]
+    return results, configs, versions, num_fewshot

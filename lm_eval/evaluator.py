@@ -17,6 +17,7 @@ from lm_eval.utils import (
     eval_logger,
     get_git_commit_hash,
     get_sample_size,
+    get_task_list,
     positional_deprecated,
     print_tasks,
     print_writeout,
@@ -297,11 +298,7 @@ def evaluate(
     num_fewshot = collections.defaultdict(int)
 
     # get lists of each type of request
-    eval_tasks = [
-        task_obj
-        for x, y in task_dict.items()
-        if (task_obj := TaskOutputs.from_taskdict(x, y)).task
-    ]
+    _, eval_tasks = get_task_list(task_dict)
 
     for task_obj in [TaskOutputs.from_taskdict(x, y) for x, y in task_dict.items()]:
         task = task_obj.task
@@ -338,17 +335,17 @@ def evaluate(
         # if (n_shot := configs[task_name].get("num_fewshot")) == 0:
         #     n_shot = configs[task_name].get("metadata", {}).get("num_fewshot", 0)
         # num_fewshot[task_name] = n_shot
-        num_fewshot[task_name] = task_obj.n_shot
+        # num_fewshot[task_name] = task_obj.n_shot
 
-        if "task_alias" in configs[task_name]:
-            results[task_name]["alias"] = configs[task_name]["task_alias"]
-
-        if (
-            ("group_alias" in configs[task_name])
-            and (group_name not in results)
-            and (group_name is not None)
-        ):
-            results[group_name]["alias"] = configs[task_name]["group_alias"]
+        # if "task_alias" in configs[task_name]:
+        #     results[task_name]["alias"] = configs[task_name]["task_alias"]
+        #
+        # if (
+        #     ("group_alias" in configs[task_name])
+        #     and (group_name not in results)
+        #     and (group_name is not None)
+        # ):
+        #     results[group_name]["alias"] = configs[task_name]["group_alias"]
 
         limit = get_sample_size(task, limit)
 
@@ -481,7 +478,9 @@ def evaluate(
         # aggregate results ; run bootstrap CIs
         for task_obj in eval_tasks:
             task_obj.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
-        results = consolidate_results(eval_tasks, results)
+        results, configs, versions, num_fewshot = consolidate_results(
+            eval_tasks, results
+        )
 
         ### Calculate group metrics ###
         if bool(results):
