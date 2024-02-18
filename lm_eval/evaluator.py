@@ -14,6 +14,7 @@ from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     eval_logger,
     get_git_commit_hash,
+    group_and_tasks,
     positional_deprecated,
     run_task_tests,
     simple_parse_args_string,
@@ -291,20 +292,30 @@ def evaluate(
     # store num-fewshot value per task
     num_fewshot = collections.defaultdict(int)
 
+    x = [(task_name, task) for task_name, task in task_dict.items()]
     # get lists of each type of request
-    for task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            group_name, task = task
+    # for task_name, task in task_dict.items():
+    group_hierarchy, tasks_list, group_task = group_and_tasks(task_dict)
+    for task_obj in tasks_list:
+        task_name = task_obj.task_name
+        task = task_obj.task
+        group_name = task_obj.group_name
+        # if isinstance(task, tuple):
+        #     group_name, task = task
+        #     task_hierarchy[group_name].append(task_name)
+        #     versions[group_name] = "N/A"
+        #
+        # else:
+        #     group_name = None
+        #     task_hierarchy[task_name] = []
+        #
+        # if task is None:
+        #     continue
+        if group_name is not None:
             task_hierarchy[group_name].append(task_name)
             versions[group_name] = "N/A"
-
         else:
-            group_name = None
             task_hierarchy[task_name] = []
-
-        if task is None:
-            continue
-
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
@@ -388,22 +399,26 @@ def evaluate(
 
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            group, task = task
-            if task is None:
-                continue
-        task.apply_filters()
+    for task_obj in tasks_list:
+        # for task_name, task in task_dict.items():
+        #     if isinstance(task, tuple):
+        #         group, task = task
+        #         if task is None:
+        #             continue
+        task_obj.task.apply_filters()
 
     ### Collect values of metrics on all datapoints ###
     vals = collections.defaultdict(list)
 
     # unpack results and sort back in order and return control to Task
-    for task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            group, task = task
-            if task is None:
-                continue
+    for task_obj in tasks_list:
+        task = task_obj.task
+        task_name = task_obj.task_name
+        # for task_name, task in task_dict.items():
+        #     if isinstance(task, tuple):
+        #         group, task = task
+        #         if task is None:
+        #             continue
         # TODO: make it possible to use a different metric per filter
         # iterate over different filters used
         for key in task.instances[0].filtered_resps.keys():
@@ -498,11 +513,20 @@ def evaluate(
             #     vals_torch[(task_name, key, metric)] = gathered_item
 
         # vals = vals_torch
+    # results defaultdict(dict,)
+    # {'mmlu_moral_disputes1': {'alias': 'moral_disputes',
+    #                           'acc,none': 0.2,
+    #                           'samples': 10,
+    #                           'acc_stderr,none': 0.13333333333333333},
+    #
 
     if lm.rank == 0:
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
-        for (task_name, key, metric), items in vals.items():
+        for (
+            (task_name, key, metric),
+            items,
+        ) in vals.items():  # vals are individual sample metrics per task/filter/metric e.g  ('mmlu_abstract_algebra1', 'none', 'acc'): [0.0,0.0,0.0,...]
             task = task_dict[task_name]
             group_name, task = task if isinstance(task, tuple) else (None, task)
 

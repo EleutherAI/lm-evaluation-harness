@@ -591,3 +591,8 @@ def group_and_tasks(task_dict):
 #                     ('arc_easy', <lm_eval.api.task.ConfigurableTask object at 0x2ab970bc0>)])
 #
 #
+class FilterResults:
+    def __init__(self, results):
+        self.task = results["task"]
+        self.metric = results["metric"]
+        self.stderr = results["stderr"]
