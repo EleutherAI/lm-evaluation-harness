@@ -421,7 +421,7 @@ def evaluate(
         #             continue
         # TODO: make it possible to use a different metric per filter
         # iterate over different filters used
-        for key in task.instances[0].filtered_resps.keys():
+        for filter_key in task.instances[0].filtered_resps.keys():
             doc_iterator = (
                 itertools.islice(
                     enumerate(task.test_docs()), lm.rank, limit, lm.world_size
@@ -436,7 +436,7 @@ def evaluate(
                 requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
                 requests.sort(key=lambda x: x.idx)
                 metrics = task.process_results(
-                    doc, [req.filtered_resps[key] for req in requests]
+                    doc, [req.filtered_resps[filter_key] for req in requests]
                 )
                 if log_samples:
                     target = task.doc_to_target(doc)
@@ -446,12 +446,14 @@ def evaluate(
                         "target": target,
                         "arguments": [req.args for req in requests],
                         "resps": [req.resps for req in requests],
-                        "filtered_resps": [req.filtered_resps[key] for req in requests],
+                        "filtered_resps": [
+                            req.filtered_resps[filter_key] for req in requests
+                        ],
                     }
                     example.update(metrics)
                     samples[task_name].append(example)
                 for metric, value in metrics.items():
-                    vals[(task_name, key, metric)].append(value)
+                    vals[(task_name, filter_key, metric)].append(value)
 
     if lm.world_size > 1:
         # if multigpu, then gather data across all ranks
@@ -466,14 +468,14 @@ def evaluate(
 
         # then collect metrics across all ranks
         # vals_torch = collections.defaultdict(list)
-        for (task_name, key, metric), items in vals.items():
+        for (task_name, filter_key, metric), items in vals.items():
             metric_list = [None] * lm.world_size if lm.rank == 0 else None
             torch.distributed.gather_object(
-                obj=vals[(task_name, key, metric)],
+                obj=vals[(task_name, filter_key, metric)],
                 object_gather_list=metric_list,
                 dst=0,
             )
-            vals[(task_name, key, metric)] = metric_list
+            vals[(task_name, filter_key, metric)] = metric_list
 
             # numitem = 0
             # if isinstance(items[0], tuple):
@@ -524,13 +526,13 @@ def evaluate(
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
         for (
-            (task_name, key, metric),
+            (task_name, filter_key, metric),
             items,
         ) in vals.items():  # vals are individual sample metrics per task/filter/metric e.g  ('mmlu_abstract_algebra1', 'none', 'acc'): [0.0,0.0,0.0,...]
             task = task_dict[task_name]
             group_name, task = task if isinstance(task, tuple) else (None, task)
 
-            metric_key = f"{metric},{key}"
+            metric_key = f"{metric},{filter_key}"
             agg_fn = task.aggregation()[metric]
 
             results[task_name][metric_key] = agg_fn(items)
@@ -546,7 +548,7 @@ def evaluate(
                     else bootstrap_iters,
                 )
 
-                results[task_name][f"{metric}_stderr,{key}"] = (
+                results[task_name][f"{metric}_stderr,{filter_key}"] = (
                     stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
                 )
 
