@@ -348,7 +348,7 @@ class Task(abc.ABC):
     def doc_to_target(self, doc):
         pass
 
-    def build_all_requests(self, limit=None, rank=0, world_size=1) -> None:
+    def build_all_requests(self, *, limit=None, rank=0, world_size=1) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
         eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
 
@@ -568,7 +568,7 @@ class Task(abc.ABC):
             assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
     def doc_iterator(
-        self, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
+        self, *, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
     ) -> Iterator[Tuple[int, Any]]:
         limit = int(limit) if limit else None
         doc_iterator = utils.create_iterator(

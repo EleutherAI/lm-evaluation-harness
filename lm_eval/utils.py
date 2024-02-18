@@ -432,7 +432,7 @@ def apply_template(template: str, doc: dict) -> str:
     return rtemplate.render(**doc)
 
 
-def create_iterator(raw_iterator, rank=0, world_size=1, limit=None):
+def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
     """
     Method for creating a (potentially) sliced and limited
     iterator from a raw document iterator. Used for splitting data
