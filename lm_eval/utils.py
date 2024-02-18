@@ -13,7 +13,11 @@ from itertools import islice
 from typing import (
     Any,
     Callable,
+    Dict,
     List,
+    Optional,
+    Tuple,
+    Union,
 )
 
 import yaml
@@ -437,7 +441,7 @@ def create_iterator(raw_iterator, rank, world_size, limit=None):
     return islice(raw_iterator, rank, limit, world_size)
 
 
-class TaskOutputs:
+class TaskOutput:
     def __init__(
         self,
         task=None,
@@ -511,7 +515,7 @@ class TaskOutputs:
 
     def __repr__(self):
         return (
-            f"TaskOutputs(task_name={self.task_name}, "
+            f"TaskOutput(task_name={self.task_name}, "
             f"group_name={self.group_name}, "
             f"version={self.version},"
             f"n_shot={self.n_shot}"
@@ -519,9 +523,9 @@ class TaskOutputs:
         )
 
 
-def get_task_list(task_dict):
+def get_task_list(task_dict: dict) -> Tuple[Dict[str, list], List[TaskOutput]]:
     task_hierarchy = collections.defaultdict(list)
-    outputs = list(TaskOutputs.from_taskdict(x, y) for x, y in task_dict.items())
+    outputs = list(TaskOutput.from_taskdict(x, y) for x, y in task_dict.items())
     for task_output in outputs:
         if group_name := task_output.group_name:
             task_hierarchy[group_name].append(task_output.task_name)
@@ -541,7 +545,7 @@ def print_writeout(task) -> None:
             eval_logger.info(f"Request: {str(inst)}")
 
 
-def get_sample_size(task, limit):
+def get_sample_size(task, limit: Optional[int]) -> Union[int, None]:
     if limit is not None:
         if task.has_test_docs():
             task_docs = task.test_docs()
@@ -556,7 +560,19 @@ def get_sample_size(task, limit):
     return limit
 
 
-def print_tasks(task_hierarchy, results, tab=0):
+def print_tasks(task_hierarchy: dict, results: dict, tab=0) -> Tuple[dict, dict]:
+    """
+    @param task_hierarchy: Dictionary representing the group hierarchy of tasks. Each key is a group name and its
+    value is a list of task names.
+    @param results: Dictionary containing the results of each task. Each key is a
+    group name and its value is a dictionary of task results.
+    @param tab: The indentation level for printing the task
+    hierarchy. Default is 0.
+    @return: A tuple of two dictionaries: results_agg and groups_agg. results_agg contains
+    aggregated results for each task, and groups_agg contains aggregated results for each group.
+
+    Prints the task hierarchy and aggregates the results for each task and group recursively.
+    """
     results_agg = collections.defaultdict(dict)
     groups_agg = collections.defaultdict(dict)
 
@@ -607,7 +623,28 @@ def print_tasks(task_hierarchy, results, tab=0):
     return results_agg, groups_agg
 
 
-def consolidate_results(eval_tasks):
+def consolidate_results(
+    eval_tasks: List[TaskOutput],
+) -> Tuple[dict, dict, dict, dict, dict]:
+    """
+    @param eval_tasks: list(TaskOutput).
+    @return: A tuple containing the consolidated results, samples, configs, versions, and num_fewshot.
+
+    Consolidates the results of multiple evaluation tasks into a single structure.
+
+    The method iterates over each evaluation instance and extracts relevant information to create the consolidated
+    results structure. The consolidated results structure has the following properties:
+
+    - results: A defaultdict with task names as keys and dictionaries as values. Each dictionary contains
+    metric/filter pairs as keys and corresponding metric values as values. The "alias" key is used to store task
+    aliases specified in the task configuration.
+    - samples: A defaultdict with task names as keys and lists of log samples as values.
+    - configs: A defaultdict with task names as keys and task configurations as values.
+    - versions: A defaultdict with task names as keys and task versions as values.
+    - num_fewshot: A defaultdict with task names as keys and number of few-shot samples as values.
+
+    The method then returns the consolidated results, samples, configs, versions, and num_fewshot as a tuple.
+    """
     # stores the final result for each task, for each metric/filter pair.
     results = collections.defaultdict(dict)
     # logs info about each document evaluated.
