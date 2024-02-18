@@ -441,7 +441,7 @@ def evaluate(
             #     )
             # )
             doc_iterator = task.doc_iterator(
-                rank=lm.rank, limit=limit, world_size=lm.world_size
+                rank=RANK, limit=limit, world_size=WORLD_SIZE
             )
             for doc_id, doc in doc_iterator:
                 # subset instances to only this document id ; sort by idx
@@ -476,8 +476,8 @@ def evaluate(
                 obj=task_samples, object_gather_list=full_samples, dst=0
             )
             # torch.distributed.all_gather_object(full_samples, task_samples)
-
-            samples[task_name] = list(itertools.chain.from_iterable(full_samples))
+            if RANK == 0:
+                samples[task_name] = list(itertools.chain.from_iterable(full_samples))
 
         # then collect metrics across all ranks
         # vals_torch = collections.defaultdict(list)
@@ -488,9 +488,10 @@ def evaluate(
                 object_gather_list=metric_list,
                 dst=0,
             )
-            vals[(task_name, filter_key, metric)] = list(
-                itertools.chain.from_iterable(metric_list)
-            )
+            if RANK == 0:
+                vals[(task_name, filter_key, metric)] = list(
+                    itertools.chain.from_iterable(metric_list)
+                )
 
         #     numitem = 0
         #     if isinstance(items[0], tuple):

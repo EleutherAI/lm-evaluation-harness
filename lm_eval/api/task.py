@@ -572,7 +572,7 @@ class Task(abc.ABC):
     def doc_iterator(
         self, rank=0, limit=None, world_size=1
     ) -> Iterator[Tuple[int, Any]]:
-        limit = int(limit) if limit is not None else None
+        limit = int(limit) if limit else None
         doc_iterator = itertools.islice(
             enumerate(self.eval_docs), int(rank), limit, int(world_size)
         )
