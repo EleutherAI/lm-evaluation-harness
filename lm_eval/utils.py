@@ -460,6 +460,7 @@ class TaskOutputs:
         self.group_alias = group_alias
         self.is_group = is_group
         self.log_samples = []
+        self.sample_len = None
         self.samples_metrics = collections.defaultdict(list)
         self.agg_metrics = collections.defaultdict(list)
 
@@ -513,7 +514,7 @@ class TaskOutputs:
             f"TaskOutputs(task_name={self.task_name}, "
             f"group_name={self.group_name}, "
             f"version={self.version},"
-            f"n_shot={self.n_shot})"
+            f"n_shot={self.n_shot}"
             f"task_alias={self.task_alias}, group_alias={self.group_alias})"
         )
 
@@ -527,54 +528,6 @@ def get_task_list(task_dict):
         else:
             task_hierarchy[task_output.task_name] = []
     return task_hierarchy, [x for x in outputs if x.task]
-
-    # task = task_hierarchy.task
-    # task_name = task_obj.task_name
-    # group_name = task_obj.group_name
-    # if group_name:
-    #     task_hierarchy[group_name].append(task_name)
-    #     versions[group_name] = "N/A"
-    # else:
-    #     group_name = None
-    #     task_hierarchy[task_name] = []
-    # if not task:
-    #     continue
-    # versions[task_name] = task.VERSION
-    # configs[task_name] = dict(task.dump_config())
-    # num_fewshot[task_name] = task_obj.n_shot
-    #
-    # if "task_alias" in configs[task_name]:
-    #     results[task_name]["alias"] = configs[task_name]["task_alias"]
-    #
-    # if (
-    #     ("group_alias" in configs[task_name])
-    #     and (group_name not in results)
-    #     and (group_name is not None)
-    # ):
-    #     results[group_name]["alias"] = configs[task_name]["group_alias"]
-
-
-def group_and_tasks(task_dict):
-    group_task = collections.defaultdict(list)
-    task_hierarchy = collections.defaultdict(list)
-    tasks_list = []
-    # store the hierarchy to do proper ordering
-    for task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            group_name, task = task
-            task_hierarchy[group_name].append(task_name)
-        else:
-            group_name = None
-            task_hierarchy[task_name] = []
-        if not task:
-            pass
-        else:
-            task_ = TaskOutputs.from_taskdict(
-                task_name=task_name, task=(group_name, task)
-            )
-            group_task[group_name].append(task_)
-            tasks_list.append(task_)
-    return task_hierarchy, tasks_list, group_task
 
 
 def print_writeout(task) -> None:
@@ -654,9 +607,16 @@ def print_tasks(task_hierarchy, results, tab=0):
     return results_agg, groups_agg
 
 
-def consolidate_results(eval_tasks, results):
+def consolidate_results(eval_tasks):
+    # stores the final result for each task, for each metric/filter pair.
+    results = collections.defaultdict(dict)
+    # logs info about each document evaluated.
+    samples = collections.defaultdict(list)
+    # store num-fewshot value per task
     num_fewshot = collections.defaultdict(int)
+    # Tracks the YAML configs of all chosen task
     configs = collections.defaultdict(dict)
+    # Tracks each task's version.
     versions = collections.defaultdict(dict)
     for task_output in eval_tasks:
         if "task_alias" in (task_config := task_output.task_config):
@@ -667,6 +627,7 @@ def consolidate_results(eval_tasks, results):
         num_fewshot[task_output.task_name] = task_output.n_shot
         configs[task_output.task_name] = task_output.task_config
         versions[task_output.task_name] = task_output.version
+        samples[task_output.task_name] = task_output.log_samples
         for (filter_key, metric), items in task_output.samples_metrics.items():
             metric_key = f"{metric},{filter_key}"
             results[task_output.task_name][metric_key] = task_output.agg_metrics[
@@ -676,4 +637,4 @@ def consolidate_results(eval_tasks, results):
             results[task_output.task_name][
                 f"{metric}_stderr,{filter_key}"
             ] = task_output.agg_metrics[f"{metric}_stderr,{filter_key}"]
-    return results, configs, versions, num_fewshot
+    return results, samples, configs, versions, num_fewshot
