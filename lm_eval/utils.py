@@ -442,6 +442,32 @@ def create_iterator(raw_iterator, rank, world_size, limit=None):
 
 
 class TaskOutput:
+    """
+    Wrapper class for Task outputs.It contains various attributes and methods to manage and calculate metrics for the task.
+
+        Attributes:
+            task (object): The task object.
+            task_name (str): The name of the task.
+            task_config (dict): The configuration of the task.
+            version (str): The version of the task.
+            group_name (str): The name of the task group.
+            n_shot (int): The number of shots for the task.
+            task_alias (str): The alias of the task.
+            group_alias (str): The alias of the task group.
+            is_group (bool): Indicates if the task is a group.
+            log_samples (list): The list of logged samples.
+            sample_len (int): The length of the samples.
+            samples_metrics (defaultdict): The dictionary of samples' metrics.
+            agg_metrics (defaultdict): The dictionary of aggregate metrics.
+
+        Methods:
+            from_taskdict(cls, task_name: str, task):
+                Creates a TaskOutput instance from a task dictionary.
+
+            calculate_aggregate_metric(bootstrap_iters=100000) -> None:
+                Calculates the aggregate metrics for the task.
+    """
+
     def __init__(
         self,
         task=None,
