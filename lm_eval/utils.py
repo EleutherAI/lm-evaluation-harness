@@ -435,7 +435,159 @@ def create_iterator(raw_iterator, rank, world_size, limit=None):
     return islice(raw_iterator, rank, limit, world_size)
 
 
-# Multi-token stopping criteria
+class TaskOutputs:
+    def __init__(
+        self,
+        task=None,
+        task_name=None,
+        task_config=None,
+        version=None,
+        group_name=None,
+        n_shot=None,
+        task_alias=None,
+        group_alias=None,
+        is_group=None,
+    ):
+        self.task = task
+        self.task_config = task_config
+        self.task_name = task_name
+        self.group_name = group_name
+        self.version = version
+        self.n_shot = n_shot
+        self.task_alias = task_alias
+        self.group_alias = group_alias
+        self.is_group = is_group
+        self.log_samples = []
+        self.samples_metrics = collections.defaultdict(list)
+        self.agg_metrics = collections.defaultdict(list)
+
+    @classmethod
+    def from_taskdict(cls, task_name: str, task):
+        from lm_eval.tasks import Task
+
+        if isinstance(task, tuple):
+            group_name, task = task
+        else:
+            group_name = None
+        if not isinstance(task, Task):
+            is_group = True
+            return cls(
+                task=task, task_name=task_name, is_group=is_group, group_name=group_name
+            )
+        version = task.VERSION
+        task_config = dict(task.dump_config())
+        if (n_shot := task_config.get("num_fewshot")) == 0:
+            n_shot = task_config.get("metadata", {}).get("num_fewshot", 0)
+        task_alias = task_config.get("alias")
+        group_alias = task_config.get("group_alias")
+        return cls(
+            task=task,
+            task_name=task_name,
+            task_config=task_config,
+            group_name=group_name,
+            version=version,
+            n_shot=n_shot,
+            task_alias=task_alias,
+            group_alias=group_alias,
+        )
+
+    def metric_samples(self, key):
+        return len(self.samples_metrics[key])
+
+    def get_agg_metric(self) -> None:
+        for (
+            task_name,
+            filter_key,
+            metric,
+        ), items in self.samples_metrics.items():
+            metric_key = f"{metric},{filter_key}"
+            agg_fn = self.task.aggregation()[metric]
+            self.agg_metrics[metric_key] = agg_fn(items)
+
+    @property
+    def belongs_to_group(self):
+        return self.group_name
+
+    def __repr__(self):
+        return (
+            f"TaskOutputs(task_name={self.task_name}, "
+            f"group_name={self.group_name}, "
+            f"version={self.version},"
+            f"n_shot={self.n_shot})"
+            f"task_alias={self.task_alias}, group_alias={self.group_alias})"
+        )
 
 
-# from more_itertools
+# class GroupOutput:
+#     def __init__(self, task_hierarchy: dict) -> None:
+#         self.task_hierarchy = task_hierarchy
+#         self.test = "hello"
+#         # self.groups = set(self.task_hierarchy.keys()).union(self.task_hierarchy.values())
+#
+#     @classmethod
+#     def from_taskoutputs(cls, task_outputs=List[TaskOutputs]):
+#         task_hierarchy = collections.defaultdict(list)
+#         for task_obj in task_outputs:
+#             task_name, group_name = task_obj.task_name, task_obj.group_name
+#             if group_name is None:
+#                 task_hierarchy[task_name] = []
+#             else:
+#                 task_hierarchy[group_name].append(task_name)
+#             # if task_obj.task is not None:
+#
+#         return cls(task_hierarchy)
+#
+#     def __repr__(self):
+#         return f"GroupOutput: task_hierarchy={self.task_hierarchy}"
+
+
+class GroupOutput:
+    def __init__(self, group_name, task_list):
+        self.group_name = group_name
+        self.task_list = task_list
+
+    def get_metrics(self, metric):
+        for task in self.task_list:
+            stderr = "_stderr,".join(metric.split(","))
+            metrics = [task.agg_metrics[metric] for task in self.task_list]
+            stderrs = [task.agg_metrics[stderr] for task in self.task_list]
+            sizes = [task.agg_metrics["samples"] for task in self.task_list]
+        return metrics, stderrs, sizes
+
+    def __repr__(self):
+        return (
+            f"GroupOutput(group_name={self.group_name},"
+            f"group_alias={self.group_alias},"
+            f"group_tasks={self.group_tasks}) "
+        )
+
+
+def group_and_tasks(task_dict):
+    group_task = collections.defaultdict(list)
+    group_hierarchy = collections.defaultdict(list)
+    tasks_list = []
+    # store the hierarchy to do proper ordering
+    for task_name, task in task_dict.items():
+        if isinstance(task, tuple):
+            group_name, task = task
+            group_hierarchy[group_name].append(task_name)
+        else:
+            group_name = None
+        if not task:
+            pass
+        else:
+            task_ = TaskOutputs.from_taskdict(
+                task_name=task_name, task=(group_name, task)
+            )
+            group_task[group_name].append(task_)
+            tasks_list.append(task_)
+    return group_hierarchy, tasks_list, group_task
+
+
+# Out[1]: dict_items([('mmlu_humanities1', ('mmlu_test', None)),
+#                     ('mmlu_moral_disputes1', ('mmlu_humanities1', <lm_eval.api.task.ConfigurableTask object at 0x2b7dd5bb0>)),
+#                     ('mmlu_stem1', ('mmlu_test', None)),
+#                     ('mmlu_abstract_algebra1', ('mmlu_stem1', <lm_eval.api.task.ConfigurableTask object at 0x2b9ae87a0>)),
+#                     ('arc_easy', <lm_eval.api.task.ConfigurableTask object at 0x2ab970bc0>)])
+#
+#
