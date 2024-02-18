@@ -14,6 +14,7 @@ from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     eval_logger,
     get_git_commit_hash,
+    get_sample_size,
     group_and_tasks,
     positional_deprecated,
     print_writeout,
@@ -335,16 +336,9 @@ def evaluate(
         ):
             results[group_name]["alias"] = configs[task_name]["group_alias"]
 
-        if limit is not None:
-            if task.has_test_docs():
-                task_docs = task.test_docs()
-            elif task.has_validation_docs():
-                task_docs = task.validation_docs()
-            else:
-                raise RuntimeError("Task has neither test_docs nor validation_docs")
-            limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
-
-        task.build_all_requests(limit=limit, rank=lm.rank, world_size=lm.world_size)
+        task.build_all_requests(
+            limit=get_sample_size(task, limit), rank=lm.rank, world_size=lm.world_size
+        )
 
         eval_logger.debug(
             f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
@@ -393,6 +387,7 @@ def evaluate(
 
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
+    vals = collections.defaultdict(list)
     for task_obj in tasks_list:
         # for task_name, task in task_dict.items():
         #     if isinstance(task, tuple):
@@ -401,11 +396,11 @@ def evaluate(
         #             continue
         task_obj.task.apply_filters()
 
-    ### Collect values of metrics on all datapoints ###
-    vals = collections.defaultdict(list)
+        ### Collect values of metrics on all datapoints ###
+        # vals = collections.defaultdict(list)
 
-    # unpack results and sort back in order and return control to Task
-    for task_obj in tasks_list:
+        # unpack results and sort back in order and return control to Task
+        # for task_obj in tasks_list:
         task = task_obj.task
         task_name = task_obj.task_name
         # for task_name, task in task_dict.items():
@@ -446,8 +441,10 @@ def evaluate(
                     }
                     example.update(metrics)
                     samples[task_name].append(example)
+                    task_obj.log_samples.append(example)
                 for metric, value in metrics.items():
                     vals[(task_name, filter_key, metric)].append(value)
+                    task_obj.sample_metrics.append((filter_key, metric))
 
     if lm.world_size > 1:
         # if multigpu, then gather data across all ranks

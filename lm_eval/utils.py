@@ -607,3 +607,18 @@ def print_writeout(task) -> None:
     \n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
             )
             eval_logger.info(f"Request: {str(inst)}")
+
+
+def get_sample_size(task, limit):
+    if limit is not None:
+        if task.has_test_docs():
+            task_docs = task.test_docs()
+        elif task.has_validation_docs():
+            task_docs = task.validation_docs()
+        else:
+            raise RuntimeError("Task has neither test_docs nor validation_docs")
+        if limit is None:
+            pass
+        else:
+            limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
+    return limit
