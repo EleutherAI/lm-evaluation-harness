@@ -16,6 +16,7 @@ from lm_eval.utils import (
     get_git_commit_hash,
     group_and_tasks,
     positional_deprecated,
+    print_writeout,
     run_task_tests,
     simple_parse_args_string,
 )
@@ -292,7 +293,7 @@ def evaluate(
     # store num-fewshot value per task
     num_fewshot = collections.defaultdict(int)
 
-    x = [(task_name, task) for task_name, task in task_dict.items()]
+    # x = [(task_name, task) for task_name, task in task_dict.items()]
     # get lists of each type of request
     # for task_name, task in task_dict.items():
     group_hierarchy, tasks_list, group_task = group_and_tasks(task_dict)
@@ -350,14 +351,7 @@ def evaluate(
         )
 
         if write_out:
-            for inst in task.instances:
-                # print the prompt for the first few documents
-                if inst.doc_id < 1:
-                    eval_logger.info(
-                        f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\
-\n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
-                    )
-                    eval_logger.info(f"Request: {str(inst)}")
+            print_writeout(task)
 
         # aggregate Instances by LM method requested to get output.
         for instance in task.instances:

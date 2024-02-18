@@ -596,3 +596,14 @@ class FilterResults:
         self.task = results["task"]
         self.metric = results["metric"]
         self.stderr = results["stderr"]
+
+
+def print_writeout(task) -> None:
+    for inst in task.instances:
+        # print the prompt for the first few documents
+        if inst.doc_id < 1:
+            eval_logger.info(
+                f"Task: {task}; document {inst.doc_id}; context prompt (starting on next line):\
+    \n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
+            )
+            eval_logger.info(f"Request: {str(inst)}")
