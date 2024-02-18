@@ -573,16 +573,7 @@ def print_writeout(task) -> None:
 
 def get_sample_size(task, limit: Optional[int]) -> Union[int, None]:
     if limit is not None:
-        if task.has_test_docs():
-            task_docs = task.test_docs()
-        elif task.has_validation_docs():
-            task_docs = task.validation_docs()
-        else:
-            raise RuntimeError("Task has neither test_docs nor validation_docs")
-        if limit is None:
-            pass
-        else:
-            limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
+        limit = int(len(task.eval_docs) * limit) if limit < 1.0 else int(limit)
     return limit
 
 
