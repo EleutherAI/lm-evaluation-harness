@@ -300,7 +300,7 @@ def evaluate(
                 lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
             )
 
-            # compute number of pseudobatches to pad with (FSDP/DDP require even batches among ranks)
+            # compute number of pseudo-batches to pad with (FSDP/DDP require even batches among ranks)
             numpad = max(gathered_item) - gathered_item[lm.rank]
             padding_requests[task.OUTPUT_TYPE] += numpad
 
