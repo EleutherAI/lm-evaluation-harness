@@ -469,7 +469,7 @@ class TaskOutputs:
             group_name, task = task
         else:
             group_name = None
-        if not isinstance(task, Task):
+        if not isinstance(task, Task) or not task:
             is_group = True
             return cls(
                 task=task, task_name=task_name, is_group=is_group, group_name=group_name
@@ -622,3 +622,54 @@ def get_sample_size(task, limit):
         else:
             limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
     return limit
+
+
+def print_tasks(task_hierarchy, results, tab=0):
+    results_agg = collections.defaultdict(dict)
+    groups_agg = collections.defaultdict(dict)
+
+    (group_name, task_list), *_ = task_hierarchy.items()
+    task_list = sorted(task_list)
+
+    results_agg[group_name] = results[group_name].copy()
+    # results_agg[group_name]["tab"] = tab
+    if "samples" in results_agg[group_name]:
+        results_agg[group_name].pop("samples")
+
+    tab_string = " " * tab + "- " if tab > 0 else ""
+
+    if "alias" in results_agg[group_name]:
+        results_agg[group_name]["alias"] = tab_string + results_agg[group_name]["alias"]
+    else:
+        results_agg[group_name]["alias"] = tab_string + group_name
+
+    if len(task_list) > 0:
+        groups_agg[group_name] = results[group_name].copy()
+        # groups_agg[group_name]["tab"] = tab
+        if "samples" in groups_agg[group_name]:
+            groups_agg[group_name].pop("samples")
+
+        if "alias" in groups_agg[group_name]:
+            groups_agg[group_name]["alias"] = (
+                tab_string + groups_agg[group_name]["alias"]
+            )
+        else:
+            groups_agg[group_name]["alias"] = tab_string + group_name
+
+        for task_name in task_list:
+            if task_name in task_hierarchy:
+                _task_hierarchy = {
+                    **{task_name: task_hierarchy[task_name]},
+                    **task_hierarchy,
+                }
+            else:
+                _task_hierarchy = {
+                    **{task_name: []},
+                    **task_hierarchy,
+                }
+
+            _results_agg, _groups_agg = print_tasks(_task_hierarchy, results, tab + 1)
+            results_agg = {**results_agg, **_results_agg}
+            groups_agg = {**groups_agg, **_groups_agg}
+
+    return results_agg, groups_agg

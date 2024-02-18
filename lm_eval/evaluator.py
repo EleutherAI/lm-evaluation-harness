@@ -1,5 +1,4 @@
 import collections
-import itertools
 import logging
 import random
 from typing import Optional, Union
@@ -12,11 +11,12 @@ import lm_eval.api.registry
 import lm_eval.models
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
+    TaskOutputs,
     eval_logger,
     get_git_commit_hash,
     get_sample_size,
-    group_and_tasks,
     positional_deprecated,
+    print_tasks,
     print_writeout,
     run_task_tests,
     simple_parse_args_string,
@@ -294,37 +294,43 @@ def evaluate(
     # store num-fewshot value per task
     num_fewshot = collections.defaultdict(int)
 
-    # x = [(task_name, task) for task_name, task in task_dict.items()]
     # get lists of each type of request
-    # for task_name, task in task_dict.items():
-    group_hierarchy, tasks_list, group_task = group_and_tasks(task_dict)
-    for task_obj in tasks_list:
-        task_name = task_obj.task_name
+    for task_obj in [TaskOutputs.from_taskdict(x, y) for x, y in task_dict.items()]:
         task = task_obj.task
+        task_name = task_obj.task_name
         group_name = task_obj.group_name
-        # if isinstance(task, tuple):
-        #     group_name, task = task
-        #     task_hierarchy[group_name].append(task_name)
-        #     versions[group_name] = "N/A"
-        #
-        # else:
-        #     group_name = None
-        #     task_hierarchy[task_name] = []
-        #
-        # if task is None:
-        #     continue
-        if group_name is not None:
+        if group_name:
             task_hierarchy[group_name].append(task_name)
             versions[group_name] = "N/A"
         else:
+            group_name = None
             task_hierarchy[task_name] = []
+        if not task:
+            continue
         versions[task_name] = task.VERSION
         configs[task_name] = dict(task.dump_config())
 
+        # for task_name, task in task_dict.items():
+        #     if isinstance(task, tuple):
+        #         group_name, task = task
+        #         task_hierarchy[group_name].append(task_name)
+        #         versions[group_name] = "N/A"
+        #
+        #     else:
+        #         group_name = None
+        #         task_hierarchy[task_name] = []
+        #
+        #     if task is None:
+        #         continue
+        #
+        #     versions[task_name] = task.VERSION
+        #     configs[task_name] = dict(task.dump_config())
+
         # Number of few-shots for printing.
-        if (n_shot := configs[task_name].get("num_fewshot")) == 0:
-            n_shot = configs[task_name].get("metadata", {}).get("num_fewshot", 0)
-        num_fewshot[task_name] = n_shot
+        # if (n_shot := configs[task_name].get("num_fewshot")) == 0:
+        #     n_shot = configs[task_name].get("metadata", {}).get("num_fewshot", 0)
+        # num_fewshot[task_name] = n_shot
+        num_fewshot[task_name] = task_obj.n_shot
 
         if "task_alias" in configs[task_name]:
             results[task_name]["alias"] = configs[task_name]["task_alias"]
@@ -336,17 +342,33 @@ def evaluate(
         ):
             results[group_name]["alias"] = configs[task_name]["group_alias"]
 
-        task.build_all_requests(
-            limit=get_sample_size(task, limit), rank=lm.rank, world_size=lm.world_size
-        )
+        # if limit is not None:
+        #     if task.has_test_docs():
+        #         task_docs = task.test_docs()
+        #     elif task.has_validation_docs():
+        #         task_docs = task.validation_docs()
+        #     else:
+        #         raise RuntimeError("Task has neither test_docs nor validation_docs")
+        #     limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
+        limit = get_sample_size(task, limit)
+
+        task.build_all_requests(limit=limit, rank=lm.rank, world_size=lm.world_size)
 
         eval_logger.debug(
             f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
         )
 
+        #         if write_out:
+        #             for inst in task.instances:
+        #                 # print the prompt for the first few documents
+        #                 if inst.doc_id < 1:
+        #                     eval_logger.info(
+        #                         f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\
+        # \n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
+        #                     )
+        #                     eval_logger.info(f"Request: {str(inst)}")
         if write_out:
             print_writeout(task)
-
         # aggregate Instances by LM method requested to get output.
         for instance in task.instances:
             reqtype = instance.request_type
@@ -387,30 +409,34 @@ def evaluate(
 
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
+    for task_name, task in task_dict.items():
+        if isinstance(task, tuple):
+            group, task = task
+            if task is None:
+                continue
+        task.apply_filters()
+
+    ### Collect values of metrics on all datapoints ###
     vals = collections.defaultdict(list)
-    for task_obj in tasks_list:
-        # for task_name, task in task_dict.items():
-        #     if isinstance(task, tuple):
-        #         group, task = task
-        #         if task is None:
-        #             continue
-        task_obj.task.apply_filters()
 
-        ### Collect values of metrics on all datapoints ###
-        # vals = collections.defaultdict(list)
-
-        # unpack results and sort back in order and return control to Task
-        # for task_obj in tasks_list:
-        task = task_obj.task
-        task_name = task_obj.task_name
-        # for task_name, task in task_dict.items():
-        #     if isinstance(task, tuple):
-        #         group, task = task
-        #         if task is None:
-        #             continue
+    # unpack results and sort back in order and return control to Task
+    for task_name, task in task_dict.items():
+        if isinstance(task, tuple):
+            group, task = task
+            if task is None:
+                continue
         # TODO: make it possible to use a different metric per filter
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps.keys():
+            # doc_iterator = (
+            #     itertools.islice(
+            #         enumerate(task.test_docs()), lm.rank, limit, lm.world_size
+            #     )
+            #     if task.has_test_docs()
+            #     else itertools.islice(
+            #         enumerate(task.validation_docs()), lm.rank, limit, lm.world_size
+            #     )
+            # )
             doc_iterator = task.doc_iterator(
                 rank=lm.rank, limit=limit, world_size=lm.world_size
             )
@@ -435,85 +461,64 @@ def evaluate(
                     }
                     example.update(metrics)
                     samples[task_name].append(example)
-                    task_obj.log_samples.append(example)
                 for metric, value in metrics.items():
                     vals[(task_name, filter_key, metric)].append(value)
-                    task_obj.samples_metrics[(filter_key, metric)].append(value)
 
-    if lm.world_size > 1:
-        # if multigpu, then gather data across all ranks
-        # first gather logged samples across all ranks
-        for task_name, task_samples in list(samples.items()):
-            full_samples = [None] * lm.world_size if lm.rank == 0 else None
-            torch.distributed.gather_object(
-                obj=task_samples, object_gather_list=full_samples, dst=0
-            )
-
-            samples[task_name] = list(itertools.chain.from_iterable(full_samples))
-
-        # then collect metrics across all ranks
-        # vals_torch = collections.defaultdict(list)
-        for (task_name, filter_key, metric), items in vals.items():
-            metric_list = [None] * lm.world_size if lm.rank == 0 else None
-            torch.distributed.gather_object(
-                obj=vals[(task_name, filter_key, metric)],
-                object_gather_list=metric_list,
-                dst=0,
-            )
-            vals[(task_name, filter_key, metric)] = metric_list
-
-            # numitem = 0
-            # if isinstance(items[0], tuple):
-            #     numitem = len(items[0])
-            #
-            # if isinstance(items[0], (str, list, tuple)):
-            #     # handle the string case
-            #     gathered_items = [None] * lm.accelerator.num_processes
-            #     torch.distributed.all_gather_object(gathered_items, items)
-            #
-            #     gathered_item = list(itertools.chain.from_iterable(gathered_items))
-            # else:
-            #     # distributed gather requires all ranks to have same dimensions
-            #     # so we pad out with float32 min value
-            #     pad_value = torch.finfo(torch.float32).min
-            #     metrics_tensor = torch.tensor(items, device=lm.device)
-            #
-            #     original_dtype = metrics_tensor.dtype  # store original dtype
-            #     torch_device_tensor = lm.accelerator.pad_across_processes(
-            #         metrics_tensor.to(torch.float32), pad_index=pad_value
-            #     )
-            #     gathered_item = lm.accelerator.gather(torch_device_tensor)
-            #
-            #     if numitem > 0:
-            #         gathered_filtered = gathered_item[gathered_item[:, 0] != pad_value]
-            #     else:
-            #         gathered_filtered = gathered_item[gathered_item != pad_value]
-            #
-            #     gathered_item = (
-            #         gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
-            #     )
-            #     # reconvert if we were passed a tuple of values
-            #     if numitem > 0:
-            #         gathered_item = [tuple(g) for g in gathered_item]
-            #
-            # if lm.rank == 0:
-            #     vals_torch[(task_name, key, metric)] = gathered_item
-
-        # vals = vals_torch
-    # results defaultdict(dict,)
-    # {'mmlu_moral_disputes1': {'alias': 'moral_disputes',
-    #                           'acc,none': 0.2,
-    #                           'samples': 10,
-    #                           'acc_stderr,none': 0.13333333333333333},
+    # if lm.world_size > 1:
+    #     # if multigpu, then gather data across all ranks
+    #     # first gather logged samples across all ranks
+    #     for task_name, task_samples in list(samples.items()):
+    #         full_samples = [None] * lm.world_size
+    #         torch.distributed.all_gather_object(full_samples, task_samples)
     #
+    #         samples[task_name] = list(itertools.chain.from_iterable(full_samples))
+    #
+    #     # then collect metrics across all ranks
+    #     vals_torch = collections.defaultdict(list)
+    #     for (task_name, filter_key, metric), items in vals.items():
+    #         numitem = 0
+    #         if isinstance(items[0], tuple):
+    #             numitem = len(items[0])
+    #
+    #         if isinstance(items[0], (str, list, tuple)):
+    #             # handle the string case
+    #             gathered_items = [None] * lm.accelerator.num_processes
+    #             torch.distributed.all_gather_object(gathered_items, items)
+    #
+    #             gathered_item = list(itertools.chain.from_iterable(gathered_items))
+    #         else:
+    #             # distributed gather requires all ranks to have same dimensions
+    #             # so we pad out with float32 min value
+    #             pad_value = torch.finfo(torch.float32).min
+    #             metrics_tensor = torch.tensor(items, device=lm.device)
+    #
+    #             original_dtype = metrics_tensor.dtype  # store original dtype
+    #             torch_device_tensor = lm.accelerator.pad_across_processes(
+    #                 metrics_tensor.to(torch.float32), pad_index=pad_value
+    #             )
+    #             gathered_item = lm.accelerator.gather(torch_device_tensor)
+    #
+    #             if numitem > 0:
+    #                 gathered_filtered = gathered_item[gathered_item[:, 0] != pad_value]
+    #             else:
+    #                 gathered_filtered = gathered_item[gathered_item != pad_value]
+    #
+    #             gathered_item = (
+    #                 gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
+    #             )
+    #             # reconvert if we were passed a tuple of values
+    #             if numitem > 0:
+    #                 gathered_item = [tuple(g) for g in gathered_item]
+    #
+    #         if lm.rank == 0:
+    #             vals_torch[(task_name, filter_key, metric)] = gathered_item
+    #
+    #     vals = vals_torch
 
     if lm.rank == 0:
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
-        for (
-            (task_name, filter_key, metric),
-            items,
-        ) in vals.items():  # vals are individual sample metrics per task/filter/metric e.g  ('mmlu_abstract_algebra1', 'none', 'acc'): [0.0,0.0,0.0,...]
+        for (task_name, filter_key, metric), items in vals.items():
             task = task_dict[task_name]
             group_name, task = task if isinstance(task, tuple) else (None, task)
 
@@ -575,60 +580,6 @@ def evaluate(
                         # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
 
                     results[group]["samples"] = sum(sizes)
-
-        def print_tasks(task_hierarchy, results, tab=0):
-            results_agg = collections.defaultdict(dict)
-            groups_agg = collections.defaultdict(dict)
-
-            (group_name, task_list), *_ = task_hierarchy.items()
-            task_list = sorted(task_list)
-
-            results_agg[group_name] = results[group_name].copy()
-            # results_agg[group_name]["tab"] = tab
-            if "samples" in results_agg[group_name]:
-                results_agg[group_name].pop("samples")
-
-            tab_string = " " * tab + "- " if tab > 0 else ""
-
-            if "alias" in results_agg[group_name]:
-                results_agg[group_name]["alias"] = (
-                    tab_string + results_agg[group_name]["alias"]
-                )
-            else:
-                results_agg[group_name]["alias"] = tab_string + group_name
-
-            if len(task_list) > 0:
-                groups_agg[group_name] = results[group_name].copy()
-                # groups_agg[group_name]["tab"] = tab
-                if "samples" in groups_agg[group_name]:
-                    groups_agg[group_name].pop("samples")
-
-                if "alias" in groups_agg[group_name]:
-                    groups_agg[group_name]["alias"] = (
-                        tab_string + groups_agg[group_name]["alias"]
-                    )
-                else:
-                    groups_agg[group_name]["alias"] = tab_string + group_name
-
-                for task_name in task_list:
-                    if task_name in task_hierarchy:
-                        _task_hierarchy = {
-                            **{task_name: task_hierarchy[task_name]},
-                            **task_hierarchy,
-                        }
-                    else:
-                        _task_hierarchy = {
-                            **{task_name: []},
-                            **task_hierarchy,
-                        }
-
-                    _results_agg, _groups_agg = print_tasks(
-                        _task_hierarchy, results, tab + 1
-                    )
-                    results_agg = {**results_agg, **_results_agg}
-                    groups_agg = {**groups_agg, **_groups_agg}
-
-            return results_agg, groups_agg
 
         results_agg = collections.defaultdict(dict)
         groups_agg = collections.defaultdict(dict)
