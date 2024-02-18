@@ -438,7 +438,7 @@ def evaluate(
                     task_obj.log_samples.append(example)
                 for metric, value in metrics.items():
                     vals[(task_name, filter_key, metric)].append(value)
-                    task_obj.sample_metrics.append((filter_key, metric))
+                    task_obj.samples_metrics[(filter_key, metric)].append(value)
 
     if lm.world_size > 1:
         # if multigpu, then gather data across all ranks

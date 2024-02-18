@@ -7,7 +7,7 @@ import re
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from inspect import getsource
-from typing import Any, List, Literal, Tuple, Union
+from typing import Any, Iterator, List, Literal, Tuple, Union
 
 import datasets
 import numpy as np
@@ -561,7 +561,7 @@ class Task(abc.ABC):
         setattr(self._config, "process_results", None)
 
     @property
-    def eval_docs(self):
+    def eval_docs(self) -> datasets.Dataset:
         if self.has_test_docs():
             return self.test_docs()
         elif self.has_validation_docs():
@@ -569,9 +569,11 @@ class Task(abc.ABC):
         else:
             assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
-    def doc_iterator(self, rank, limit, world_size):
+    def doc_iterator(
+        self, rank=0, limit=None, world_size=1
+    ) -> Iterator[Tuple[int, Any]]:
         doc_iterator = itertools.islice(
-            enumerate(self.eval_docs), rank, limit, world_size
+            enumerate(self.eval_docs), int(rank), int(limit), int(world_size)
         )
         return doc_iterator
 
@@ -724,12 +726,7 @@ class ConfigurableTask(Task):
                 else "default"
             )(list(self.fewshot_docs()), self, rnd=random.Random(1234))
 
-        if self.has_test_docs():
-            self.task_docs = self.test_docs()
-        elif self.has_validation_docs():
-            self.task_docs = self.validation_docs()
-        else:
-            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+        self.task_docs = self.eval_docs
 
         # Test One Doc
         self.features = list(self.task_docs.features.keys())
