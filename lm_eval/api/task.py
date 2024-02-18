@@ -1,5 +1,6 @@
 import abc
 import ast
+import itertools
 import logging
 import random
 import re
@@ -350,13 +351,7 @@ class Task(abc.ABC):
 
     def build_all_requests(self, limit=None, rank=None, world_size=None) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
-        if self.has_test_docs():
-            docs = self.test_docs()
-        elif self.has_validation_docs():
-            docs = self.validation_docs()
-        else:
-            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
-
+        docs = self.eval_docs
         eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
 
         instances = []
@@ -564,6 +559,21 @@ class Task(abc.ABC):
             }
         setattr(self._config, "metric_list", [{"metric": metric_name}])
         setattr(self._config, "process_results", None)
+
+    @property
+    def eval_docs(self):
+        if self.has_test_docs():
+            return self.test_docs()
+        elif self.has_validation_docs():
+            return self.validation_docs()
+        else:
+            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+
+    def doc_iterator(self, rank, limit, world_size):
+        doc_iterator = itertools.islice(
+            enumerate(self.eval_docs), rank, limit, world_size
+        )
+        return doc_iterator
 
 
 class ConfigurableTask(Task):

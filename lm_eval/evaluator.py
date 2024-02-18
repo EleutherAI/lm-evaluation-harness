@@ -411,14 +411,8 @@ def evaluate(
         # TODO: make it possible to use a different metric per filter
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps.keys():
-            doc_iterator = (
-                itertools.islice(
-                    enumerate(task.test_docs()), lm.rank, limit, lm.world_size
-                )
-                if task.has_test_docs()
-                else itertools.islice(
-                    enumerate(task.validation_docs()), lm.rank, limit, lm.world_size
-                )
+            doc_iterator = task.doc_iterator(
+                rank=lm.rank, limit=limit, world_size=lm.world_size
             )
             for doc_id, doc in doc_iterator:
                 # subset instances to only this document id ; sort by idx
