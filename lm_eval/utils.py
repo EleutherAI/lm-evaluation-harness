@@ -491,8 +491,8 @@ class TaskOutputs:
             group_alias=group_alias,
         )
 
-    def metric_samples(self, key):
-        return len(self.samples_metrics[key])
+    # def metric_samples(self, key):
+    #     return len(self.samples_metrics[key])
 
     def get_agg_metric(self) -> None:
         for (

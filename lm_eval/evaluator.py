@@ -296,6 +296,12 @@ def evaluate(
     num_fewshot = collections.defaultdict(int)
 
     # get lists of each type of request
+    eval_tasks = [
+        task_obj
+        for x, y in task_dict.items()
+        if (task_obj := TaskOutputs.from_taskdict(x, y)).task
+    ]
+
     for task_obj in [TaskOutputs.from_taskdict(x, y) for x, y in task_dict.items()]:
         task = task_obj.task
         task_name = task_obj.task_name
@@ -412,22 +418,26 @@ def evaluate(
     WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            group, task = task
-            if task is None:
-                continue
+    vals = collections.defaultdict(list)
+    for task_obj in eval_tasks:
+        # for task_name, task in task_dict.items():
+        #     if isinstance(task, tuple):
+        #         group, task = task
+        #         if task is None:
+        #             continue
+        task = task_obj.task
+        task_name = task_obj.task_name
         task.apply_filters()
 
-    ### Collect values of metrics on all datapoints ###
-    vals = collections.defaultdict(list)
-
-    # unpack results and sort back in order and return control to Task
-    for task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            group, task = task
-            if task is None:
-                continue
+        ### Collect values of metrics on all datapoints ###
+        # vals = collections.defaultdict(list)
+        #
+        # # unpack results and sort back in order and return control to Task
+        # for task_name, task in task_dict.items():
+        #     if isinstance(task, tuple):
+        #         group, task = task
+        #         if task is None:
+        #             continue
         # TODO: make it possible to use a different metric per filter
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps.keys():
@@ -464,34 +474,40 @@ def evaluate(
                     }
                     example.update(metrics)
                     samples[task_name].append(example)
+                    task_obj.log_samples.append(example)
                 for metric, value in metrics.items():
+                    task_obj.samples_metrics[(filter_key, metric)].append(value)
                     vals[(task_name, filter_key, metric)].append(value)
 
     if WORLD_SIZE > 1:
         # if multigpu, then gather data across all ranks
         # first gather logged samples across all ranks
-        for task_name, task_samples in list(samples.items()):
-            full_samples = [None] * WORLD_SIZE if RANK == 0 else None
-            torch.distributed.gather_object(
-                obj=task_samples, object_gather_list=full_samples, dst=0
-            )
-            # torch.distributed.all_gather_object(full_samples, task_samples)
-            if RANK == 0:
-                samples[task_name] = list(itertools.chain.from_iterable(full_samples))
-
-        # then collect metrics across all ranks
-        # vals_torch = collections.defaultdict(list)
-        for (task_name, filter_key, metric), items in vals.items():
-            metric_list = [None] * WORLD_SIZE if RANK == 0 else None
-            torch.distributed.gather_object(
-                obj=vals[(task_name, filter_key, metric)],
-                object_gather_list=metric_list,
-                dst=0,
-            )
-            if RANK == 0:
-                vals[(task_name, filter_key, metric)] = list(
-                    itertools.chain.from_iterable(metric_list)
+        for task_obj in eval_tasks:
+            if log_samples:
+                # for task_name, task_samples in list(samples.items()):
+                full_samples = [None] * WORLD_SIZE if RANK == 0 else None
+                torch.distributed.gather_object(
+                    obj=task_obj.log_samples, object_gather_list=full_samples, dst=0
                 )
+                # torch.distributed.all_gather_object(full_samples, task_samples)
+                if RANK == 0:
+                    task_obj.log_samples = list(
+                        itertools.chain.from_iterable(full_samples)
+                    )
+
+            # then collect metrics across all ranks
+            # vals_torch = collections.defaultdict(list)
+            for metrics in task_obj.samples_metrics:
+                metric_list = [None] * WORLD_SIZE if RANK == 0 else None
+                torch.distributed.gather_object(
+                    obj=task_obj.samples_metrics[metrics],
+                    object_gather_list=metric_list,
+                    dst=0,
+                )
+                if RANK == 0:
+                    task_obj.samples_metrics[metrics] = list(
+                        itertools.chain.from_iterable(metric_list)
+                    )
 
         #     numitem = 0
         #     if isinstance(items[0], tuple):
@@ -531,6 +547,9 @@ def evaluate(
         #         vals_torch[(task_name, filter_key, metric)] = gathered_item
         #
         # vals = vals_torch
+    for task_obj in eval_tasks:
+        for metrics in task_obj.samples_metrics:
+            vals[(task_obj.task_name, *metrics)] = task_obj.samples_metrics[metrics]
 
     if RANK == 0:
         ### Aggregate results over all datapoints ###
