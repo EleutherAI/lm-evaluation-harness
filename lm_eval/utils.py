@@ -498,6 +498,7 @@ class TaskOutputs:
             agg_fn = self.task.aggregation()[metric]
             metric_key = f"{metric},{filter_key}"
             self.agg_metrics[metric_key] = agg_fn(items)
+            self.sample_len = len(items)
             if bootstrap_iters:
                 stderr_fn = metrics.stderr_for_metric(
                     metric=agg_fn,
@@ -715,7 +716,7 @@ def consolidate_results(eval_tasks, results):
         for (filter_key, metric), items in task_obj.samples_metrics.items():
             metric_key = f"{metric},{filter_key}"
             results[task_obj.task_name][metric_key] = task_obj.agg_metrics[metric_key]
-            results[task_obj.task_name]["samples"] = len(items)
+            results[task_obj.task_name]["samples"] = task_obj.sample_len
             results[task_obj.task_name][
                 f"{metric}_stderr,{filter_key}"
             ] = task_obj.agg_metrics[f"{metric}_stderr,{filter_key}"]

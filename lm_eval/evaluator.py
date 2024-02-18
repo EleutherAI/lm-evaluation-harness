@@ -350,14 +350,6 @@ def evaluate(
         ):
             results[group_name]["alias"] = configs[task_name]["group_alias"]
 
-        # if limit is not None:
-        #     if task.has_test_docs():
-        #         task_docs = task.test_docs()
-        #     elif task.has_validation_docs():
-        #         task_docs = task.validation_docs()
-        #     else:
-        #         raise RuntimeError("Task has neither test_docs nor validation_docs")
-        #     limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
         limit = get_sample_size(task, limit)
 
         task.build_all_requests(limit=limit, rank=lm.rank, world_size=lm.world_size)
@@ -366,15 +358,6 @@ def evaluate(
             f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
         )
 
-        #         if write_out:
-        #             for inst in task.instances:
-        #                 # print the prompt for the first few documents
-        #                 if inst.doc_id < 1:
-        #                     eval_logger.info(
-        #                         f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\
-        # \n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
-        #                     )
-        #                     eval_logger.info(f"Request: {str(inst)}")
         if write_out:
             print_writeout(task)
         # aggregate Instances by LM method requested to get output.
@@ -421,36 +404,15 @@ def evaluate(
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     vals = collections.defaultdict(list)
     for task_obj in eval_tasks:
-        # for task_name, task in task_dict.items():
-        #     if isinstance(task, tuple):
-        #         group, task = task
-        #         if task is None:
-        #             continue
         task = task_obj.task
         task_name = task_obj.task_name
         task.apply_filters()
 
         ### Collect values of metrics on all datapoints ###
-        # vals = collections.defaultdict(list)
-        #
         # # unpack results and sort back in order and return control to Task
-        # for task_name, task in task_dict.items():
-        #     if isinstance(task, tuple):
-        #         group, task = task
-        #         if task is None:
-        #             continue
         # TODO: make it possible to use a different metric per filter
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps.keys():
-            # doc_iterator = (
-            #     itertools.islice(
-            #         enumerate(task.test_docs()), lm.rank, limit, lm.world_size
-            #     )
-            #     if task.has_test_docs()
-            #     else itertools.islice(
-            #         enumerate(task.validation_docs()), lm.rank, limit, lm.world_size
-            #     )
-            # )
             doc_iterator = task.doc_iterator(
                 rank=RANK, limit=limit, world_size=WORLD_SIZE
             )
@@ -481,7 +443,7 @@ def evaluate(
                     vals[(task_name, filter_key, metric)].append(value)
 
     if WORLD_SIZE > 1:
-        # if multigpu, then gather data across all ranks
+        # if multigpu, then gather data across all ranks to rank 0
         # first gather logged samples across all ranks
         for task_obj in eval_tasks:
             if log_samples:
@@ -510,44 +472,6 @@ def evaluate(
                         itertools.chain.from_iterable(metric_list)
                     )
 
-        #     numitem = 0
-        #     if isinstance(items[0], tuple):
-        #         numitem = len(items[0])
-        #
-        #     if isinstance(items[0], (str, list, tuple)):
-        #         # handle the string case
-        #         gathered_items = [None] * lm.accelerator.num_processes
-        #         torch.distributed.all_gather_object(gathered_items, items)
-        #
-        #         gathered_item = list(itertools.chain.from_iterable(gathered_items))
-        #     else:
-        #         # distributed gather requires all ranks to have same dimensions
-        #         # so we pad out with float32 min value
-        #         pad_value = torch.finfo(torch.float32).min
-        #         metrics_tensor = torch.tensor(items, device=lm.device)
-        #
-        #         original_dtype = metrics_tensor.dtype  # store original dtype
-        #         torch_device_tensor = lm.accelerator.pad_across_processes(
-        #             metrics_tensor.to(torch.float32), pad_index=pad_value
-        #         )
-        #         gathered_item = lm.accelerator.gather(torch_device_tensor)
-        #
-        #         if numitem > 0:
-        #             gathered_filtered = gathered_item[gathered_item[:, 0] != pad_value]
-        #         else:
-        #             gathered_filtered = gathered_item[gathered_item != pad_value]
-        #
-        #         gathered_item = (
-        #             gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
-        #         )
-        #         # reconvert if we were passed a tuple of values
-        #         if numitem > 0:
-        #             gathered_item = [tuple(g) for g in gathered_item]
-        #
-        #     if lm.rank == 0:
-        #         vals_torch[(task_name, filter_key, metric)] = gathered_item
-        #
-        # vals = vals_torch
     for task_obj in eval_tasks:
         for metrics in task_obj.samples_metrics:
             vals[(task_obj.task_name, *metrics)] = task_obj.samples_metrics[metrics]
@@ -555,40 +479,11 @@ def evaluate(
     if RANK == 0:
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
-        # for (
-        #     task_name,
-        #     filter_key,
-        #     metric,
-        # ), items in vals.items():  # vals are real tasks
         for task_obj in eval_tasks:
             task_obj.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
-            # task = task_dict[task_name]
-            # group_name, task = task if isinstance(task, tuple) else (None, task)
-            #
-            # metric_key = f"{metric},{filter_key}"
-            # agg_fn = task.aggregation()[metric]
-            #
-            # results[task_name][metric_key] = agg_fn(items)
-            # results[task_name]["samples"] = len(items)
-
-            # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
-            # so we run them less iterations. still looking for a cleaner way to do this
-            # if bootstrap_iters > 0:
-            #     stderr_fn = lm_eval.api.metrics.stderr_for_metric(
-            #         metric=agg_fn,
-            #         bootstrap_iters=min(bootstrap_iters, 100)
-            #         if metric in ["bleu", "chrf", "ter"]
-            #         else bootstrap_iters,
-            #     )
-            #
-            #     results[task_name][f"{metric}_stderr,{filter_key}"] = (
-            #         stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
-            #     )
         results = consolidate_results(eval_tasks, results)
-        # results[task_name][metric_key] = agg_fn(items)
-        # results[task_name]["samples"] = len(items)
-        # results[task_name][f"{metric}_stderr,{filter_key}"]
 
+        ### Calculate group metrics ###
         if bool(results):
             for group, task_list in reversed(task_hierarchy.items()):
                 if len(task_list) == 0:
@@ -597,19 +492,32 @@ def evaluate(
                     # or `task_name: []`.
                     # we only want to operate on groups here.
                     continue
-                for metric in [
+                metric_set = {
                     key
-                    for key in results[task_list[0]].keys()
+                    for task in task_list
+                    for key in results[task].keys()
                     if "_stderr" not in key and key not in ["alias", "samples"]
-                ]:  # TODO: what if tasks don't all share the same metrics
+                }
+                metric_list = list(metric_set)
+                for metric in metric_list:
                     stderr = "_stderr,".join(metric.split(","))
 
                     # gather metrics, sizes, and stderrs from subtasks
                     metrics = [
-                        results[task][metric] for task in task_list
+                        results[task][metric]
+                        for task in task_list
+                        if metric in results[task]
                     ]  # TODO: copy?
-                    stderrs = [results[task][stderr] for task in task_list]
-                    sizes = [results[task]["samples"] for task in task_list]
+                    stderrs = [
+                        results[task][stderr]
+                        for task in task_list
+                        if stderr in results[task]
+                    ]
+                    sizes = [
+                        results[task]["samples"]
+                        for task in task_list
+                        if "samples" in results[task]
+                    ]
 
                     # compute group's pooled metric and stderr
                     results[group][
