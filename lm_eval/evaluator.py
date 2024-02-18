@@ -13,6 +13,7 @@ import lm_eval.models
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     TaskOutputs,
+    consolidate_results,
     eval_logger,
     get_git_commit_hash,
     get_sample_size,
@@ -554,33 +555,39 @@ def evaluate(
     if RANK == 0:
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
-        for (
-            task_name,
-            filter_key,
-            metric,
-        ), items in vals.items():  # vals are real tasks
-            task = task_dict[task_name]
-            group_name, task = task if isinstance(task, tuple) else (None, task)
-
-            metric_key = f"{metric},{filter_key}"
-            agg_fn = task.aggregation()[metric]
-
-            results[task_name][metric_key] = agg_fn(items)
-            results[task_name]["samples"] = len(items)
+        # for (
+        #     task_name,
+        #     filter_key,
+        #     metric,
+        # ), items in vals.items():  # vals are real tasks
+        for task_obj in eval_tasks:
+            task_obj.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
+            # task = task_dict[task_name]
+            # group_name, task = task if isinstance(task, tuple) else (None, task)
+            #
+            # metric_key = f"{metric},{filter_key}"
+            # agg_fn = task.aggregation()[metric]
+            #
+            # results[task_name][metric_key] = agg_fn(items)
+            # results[task_name]["samples"] = len(items)
 
             # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
             # so we run them less iterations. still looking for a cleaner way to do this
-            if bootstrap_iters > 0:
-                stderr_fn = lm_eval.api.metrics.stderr_for_metric(
-                    metric=agg_fn,
-                    bootstrap_iters=min(bootstrap_iters, 100)
-                    if metric in ["bleu", "chrf", "ter"]
-                    else bootstrap_iters,
-                )
-
-                results[task_name][f"{metric}_stderr,{filter_key}"] = (
-                    stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
-                )
+            # if bootstrap_iters > 0:
+            #     stderr_fn = lm_eval.api.metrics.stderr_for_metric(
+            #         metric=agg_fn,
+            #         bootstrap_iters=min(bootstrap_iters, 100)
+            #         if metric in ["bleu", "chrf", "ter"]
+            #         else bootstrap_iters,
+            #     )
+            #
+            #     results[task_name][f"{metric}_stderr,{filter_key}"] = (
+            #         stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
+            #     )
+        results = consolidate_results(eval_tasks, results)
+        # results[task_name][metric_key] = agg_fn(items)
+        # results[task_name]["samples"] = len(items)
+        # results[task_name][f"{metric}_stderr,{filter_key}"]
 
         if bool(results):
             for group, task_list in reversed(task_hierarchy.items()):

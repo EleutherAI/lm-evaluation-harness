@@ -19,6 +19,8 @@ from typing import (
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
 
+from lm_eval.api import metrics
+
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
@@ -491,8 +493,21 @@ class TaskOutputs:
             group_alias=group_alias,
         )
 
-    # def metric_samples(self, key):
-    #     return len(self.samples_metrics[key])
+    def calculate_aggregate_metric(self, bootstrap_iters=100000) -> None:
+        for (filter_key, metric), items in self.samples_metrics.items():
+            agg_fn = self.task.aggregation()[metric]
+            metric_key = f"{metric},{filter_key}"
+            self.agg_metrics[metric_key] = agg_fn(items)
+            if bootstrap_iters:
+                stderr_fn = metrics.stderr_for_metric(
+                    metric=agg_fn,
+                    bootstrap_iters=min(bootstrap_iters, 100)
+                    if metric in ["bleu", "chrf", "ter"]
+                    else bootstrap_iters,
+                )
+                self.agg_metrics[f"{metric}_stderr,{filter_key}"] = (
+                    stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
+                )
 
     def get_agg_metric(self) -> None:
         for (
@@ -618,20 +633,6 @@ def group_and_tasks(task_dict):
     return group_hierarchy, tasks_list, group_task
 
 
-# Out[1]: dict_items([('mmlu_humanities1', ('mmlu_test', None)),
-#                     ('mmlu_moral_disputes1', ('mmlu_humanities1', <lm_eval.api.task.ConfigurableTask object at 0x2b7dd5bb0>)),
-#                     ('mmlu_stem1', ('mmlu_test', None)),
-#                     ('mmlu_abstract_algebra1', ('mmlu_stem1', <lm_eval.api.task.ConfigurableTask object at 0x2b9ae87a0>)),
-#                     ('arc_easy', <lm_eval.api.task.ConfigurableTask object at 0x2ab970bc0>)])
-#
-#
-class FilterResults:
-    def __init__(self, results):
-        self.task = results["task"]
-        self.metric = results["metric"]
-        self.stderr = results["stderr"]
-
-
 def print_writeout(task) -> None:
     for inst in task.instances:
         # print the prompt for the first few documents
@@ -707,3 +708,15 @@ def print_tasks(task_hierarchy, results, tab=0):
             groups_agg = {**groups_agg, **_groups_agg}
 
     return results_agg, groups_agg
+
+
+def consolidate_results(eval_tasks, results):
+    for task_obj in eval_tasks:
+        for (filter_key, metric), items in task_obj.samples_metrics.items():
+            metric_key = f"{metric},{filter_key}"
+            results[task_obj.task_name][metric_key] = task_obj.agg_metrics[metric_key]
+            results[task_obj.task_name]["samples"] = len(items)
+            results[task_obj.task_name][
+                f"{metric}_stderr,{filter_key}"
+            ] = task_obj.agg_metrics[f"{metric}_stderr,{filter_key}"]
+    return results
