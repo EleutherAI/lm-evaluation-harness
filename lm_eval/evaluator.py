@@ -338,6 +338,13 @@ def evaluate(
         ### Collect values of metrics on all datapoints ###
         # # unpack results and sort back in order and return control to Task
         # TODO: make it possible to use a different metric per filter
+        # Pre-process task.instances to group by doc_id
+        instances_by_doc_id = collections.defaultdict(list)
+        for instance in task.instances:
+            instances_by_doc_id[instance.doc_id].append(instance)
+        # Sort instances within each group
+        for doc_id, instances in instances_by_doc_id.items():
+            instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps.keys():
             doc_iterator = task.doc_iterator(
@@ -345,8 +352,7 @@ def evaluate(
             )
             for doc_id, doc in doc_iterator:
                 # subset instances to only this document id ; sort by idx
-                requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
-                requests.sort(key=lambda x: x.idx)
+                requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
