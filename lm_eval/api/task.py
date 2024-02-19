@@ -380,7 +380,6 @@ class Task(abc.ABC):
                 inst = [inst]
 
             instances.extend(inst)
-
         self._instances = instances
         assert len(self._instances) != 0, "task.build_requests() did not find any docs!"
 
@@ -815,6 +814,7 @@ class ConfigurableTask(Task):
 
     def test_docs(self) -> datasets.Dataset:
         if self.has_test_docs():
+            breakpoint()
             if self.config.process_docs is not None:
                 return self.config.process_docs(self.dataset[self.config.test_split])
             return self.dataset[self.config.test_split]
