@@ -911,6 +911,7 @@ class HFLM(LM):
             # Use with group_by="contexts" (optional)"
             # allows for the creation of a lookup, so we can re-use logits in case of one-token continuations.
             # speeds up some multiple-choice tasks proportionally to the number of choices.
+            # group by context+continuation[:-1] and infer on one request/group.
             return req[-2] + req[-1][:-1]
 
         re_ord = Collator(
@@ -1061,8 +1062,8 @@ class HFLM(LM):
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
 
-                # check for one-token continuation cache hits. no-op
-                # in case group_by != "contexts" or no cache hit and returns the
+                # check for one-token continuation cache hits.
+                # no-op in case group_by != "contexts" or no cache hit and returns the
                 # original args. Otherwise, expands the logits batch dimension and yields them
                 # along with matching continuation tokens and prompt strings.
                 for request_str, cont_toks, logits in re_ord.get_cache(
