@@ -128,7 +128,7 @@ def simple_evaluate(
         if model_args is None:
             model_args = ""
 
-        elif type(model_args) == dict:
+        elif isinstance(model_args, dict):
             lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
                 model_args,
                 {
