@@ -95,18 +95,22 @@ def simple_evaluate(
     """
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
 
+    seed_message = []
     if random_seed is not None:
         # See https://github.com/EleutherAI/lm-evaluation-harness/pull/1412
-        eval_logger.info(f"Setting random seed to {random_seed}")
+        seed_message.append(f"Setting random seed to {random_seed}")
         random.seed(random_seed)
 
     if numpy_random_seed is not None:
-        eval_logger.info(f"Setting numpy seed to {numpy_random_seed}")
+        seed_message.append(f"Setting numpy seed to {numpy_random_seed}")
         np.random.seed(numpy_random_seed)
 
     if torch_random_seed is not None:
-        eval_logger.info(f"Setting torch manual seed to {torch_random_seed}")
+        seed_message.append(f"Setting torch manual seed to {torch_random_seed}")
         torch.manual_seed(torch_random_seed)
+
+    if seed_message:
+        eval_logger.info(" | ".join(seed_message))
 
     if tasks is None:
         tasks = []
