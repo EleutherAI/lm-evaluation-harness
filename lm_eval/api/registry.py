@@ -1,7 +1,7 @@
 import logging
+from typing import Callable, Dict
 
 import evaluate
-
 from lm_eval.api.model import LM
 
 
@@ -75,7 +75,7 @@ def register_group(name):
 OUTPUT_TYPE_REGISTRY = {}
 METRIC_REGISTRY = {}
 METRIC_AGGREGATION_REGISTRY = {}
-AGGREGATION_REGISTRY = {}
+AGGREGATION_REGISTRY: Dict[str, Callable[[], Dict[str, Callable]]] = {}
 HIGHER_IS_BETTER_REGISTRY = {}
 
 DEFAULT_METRIC_REGISTRY = {
@@ -118,7 +118,7 @@ def register_metric(**args):
     return decorate
 
 
-def get_metric(name, hf_evaluate_metric=False):
+def get_metric(name: str, hf_evaluate_metric=False) -> Callable:
     if not hf_evaluate_metric:
         if name in METRIC_REGISTRY:
             return METRIC_REGISTRY[name]
@@ -136,7 +136,7 @@ def get_metric(name, hf_evaluate_metric=False):
         )
 
 
-def register_aggregation(name):
+def register_aggregation(name: str):
     def decorate(fn):
         assert (
             name not in AGGREGATION_REGISTRY
@@ -148,21 +148,21 @@ def register_aggregation(name):
     return decorate
 
 
-def get_aggregation(name):
+def get_aggregation(name: str) -> Callable[[], Dict[str, Callable]]:
     try:
         return AGGREGATION_REGISTRY[name]
     except KeyError:
         eval_logger.warning(f"{name} not a registered aggregation metric!")
 
 
-def get_metric_aggregation(name):
+def get_metric_aggregation(name: str) -> Callable[[], Dict[str, Callable]]:
     try:
         return METRIC_AGGREGATION_REGISTRY[name]
     except KeyError:
         eval_logger.warning(f"{name} metric is not assigned a default aggregation!")
 
 
-def is_higher_better(metric_name):
+def is_higher_better(metric_name) -> bool:
     try:
         return HIGHER_IS_BETTER_REGISTRY[metric_name]
     except KeyError:

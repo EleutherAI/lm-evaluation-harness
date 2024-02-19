@@ -198,7 +198,7 @@ If you have a Metal compatible Mac, you can run the eval harness using the MPS b
 > You can inspect what the LM inputs look like by running the following command:
 > ```bash
 > python write_out.py \
->     --tasks all_tasks \
+>     --tasks <task1,task2,...> \
 >     --num_fewshot 5 \
 >     --num_examples 10 \
 >     --output_base_path /path/to/output/folder
@@ -314,6 +314,7 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | anthropic     | For using Anthropic's models          |
 | dev           | For linting PRs and contributions     |
 | gptq          | For loading models with GPTQ          |
+| hf_transfer   | For speeding up HF Hub file downloads |
 | ifeval        | For running the IFEval task           |
 | neuronx       | For running on AWS inf2 instances     |
 | mamba         | For loading Mamba SSM models          |
