@@ -24,6 +24,7 @@ generation_kwargs:
     - "\n\n"
     - "Question:"
   do_sample: false
+  temperature: 0.0
 repeats: 1
 num_fewshot: 5
 filter_list:
