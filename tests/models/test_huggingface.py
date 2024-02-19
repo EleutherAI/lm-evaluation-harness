@@ -74,7 +74,7 @@ class Test_HFLM:
     generate_until_RES = [
         " The average of $2.50 each is $",
         " A robe takes 2 bolts of blue fiber and half",
-        " $50,000 in repairs.",
+        " $50,000 in repairs.\n\nQuestion",
         " He runs 1 sprint 3 times a week.",
         " They feed each of her chickens three cups of mixed",
         " The price of the glasses is $5, but",
@@ -118,6 +118,7 @@ class Test_HFLM:
 
     def test_generate_until(self) -> None:
         res = self.LM.generate_until(self.generate_until)
+        print(res)
         assert res == self.generate_until_RES
 
     def test_logliklihood_rolling(self) -> None:
