@@ -142,7 +142,7 @@ def simple_evaluate(
         lm = model
 
     if use_cache is not None:
-        print(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
+        eval_logger.info(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
         lm = lm_eval.api.model.CachingLM(
             lm,
             use_cache
