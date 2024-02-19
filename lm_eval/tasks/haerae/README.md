@@ -1,8 +1,8 @@
-# k_mmlu
+# HAE-RAE BENCH
 
 ### Paper
 
-Title: `HAE-RAE Bench: Evaluation of Korean Knowledge in Language Models `
+Title: `HAE-RAE Bench: Evaluation of Korean Knowledge in Language Models`
 
 Abstract: `Large Language Models (LLMs) trained on massive corpora demonstrate impressive capabilities in a wide range of tasks. While there are ongoing efforts to adapt these models to languages beyond English, the attention given to their evaluation methodologies remains limited. Current multilingual benchmarks often rely on back translations or re-implementations of English tests, limiting their capacity to capture unique cultural and linguistic nuances. To bridge this gap for the Korean language, we introduce HAE-RAE Bench, a dataset curated to challenge models lacking Korean cultural and contextual depth. The dataset encompasses six downstream tasks across four domains: vocabulary, history, general knowledge, and reading comprehension. Contrary to traditional evaluation suites focused on token or sequence classification and specific mathematical or logical reasoning, HAE-RAE Bench emphasizes a model's aptitude for recalling Korean-specific knowledge and cultural contexts. Comparative analysis with prior Korean benchmarks indicates that the HAE-RAE Bench presents a greater challenge to non-native models, by disturbing abilities and knowledge learned from English being transferred.`
 
@@ -41,6 +41,7 @@ For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
   * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
+
 
 
 If other tasks on this dataset are already supported:
