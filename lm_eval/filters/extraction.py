@@ -7,7 +7,10 @@ class RegexFilter(Filter):
     """ """
 
     def __init__(
-        self, regex_pattern: str = r"#### (\-?[0-9\.\,]+)", group_select=0, fallback: str = "[invalid]"
+        self,
+        regex_pattern: str = r"#### (\-?[0-9\.\,]+)",
+        group_select=0,
+        fallback: str = "[invalid]",
     ) -> None:
         """
         pass a string `regex` to run `re.compile(r"regex")` on.
