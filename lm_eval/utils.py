@@ -523,7 +523,7 @@ class TaskOutput:
         )
 
     def calculate_aggregate_metric(self, bootstrap_iters=100000) -> None:
-        for (filter_key, metric), items in self.samples_metrics.items():
+        for (metric, filter_key), items in self.samples_metrics.items():
             agg_fn = self.task.aggregation()[metric]
             metric_key = f"{metric},{filter_key}"
             self.agg_metrics[metric_key] = agg_fn(items)
@@ -682,7 +682,7 @@ def consolidate_results(
         configs[task_output.task_name] = task_output.task_config
         versions[task_output.task_name] = task_output.version
         samples[task_output.task_name] = task_output.log_samples
-        for (filter_key, metric), items in task_output.samples_metrics.items():
+        for (metric, filter_key), items in task_output.samples_metrics.items():
             metric_key = f"{metric},{filter_key}"
             results[task_output.task_name][metric_key] = task_output.agg_metrics[
                 metric_key

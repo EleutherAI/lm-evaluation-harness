@@ -365,7 +365,7 @@ def evaluate(
                     example.update(metrics)
                     task_output.log_samples.append(example)
                 for metric, value in metrics.items():
-                    task_output.samples_metrics[(filter_key, metric)].append(value)
+                    task_output.samples_metrics[(metric, filter_key)].append(value)
 
     if WORLD_SIZE > 1:
         # if multigpu, then gather data across all ranks to rank 0
