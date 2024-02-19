@@ -363,7 +363,6 @@ def evaluate(
             limit = int(math.ceil(num_docs)) if limit < 1.0 else int(limit)
 
         task.build_all_requests(
-            task_name=task_name,
             limit=limit,
             rank=lm.rank,
             world_size=lm.world_size,
@@ -715,3 +714,15 @@ def evaluate(
 
     else:
         return None
+
+
+def request_caching_arg_to_dict(cache_requests: str) -> dict:
+    request_caching_args = {
+        "cache_requests": (
+            True if cache_requests == "true" or cache_requests == "refresh" else False
+        ),
+        "rewrite_requests_cache": True if cache_requests == "refresh" else False,
+        "delete_requests_cache": True if cache_requests == "delete" else False,
+    }
+
+    return request_caching_args

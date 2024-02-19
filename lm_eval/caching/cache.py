@@ -3,6 +3,7 @@ import dill
 import hashlib
 import random
 
+from lm_eval.utils import eval_logger
 
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -35,7 +36,7 @@ def load_from_cache(file_name):
             return cached_task_dict
 
     except Exception as exception:
-        print(f"{file_name} is not cached, generating...")
+        eval_logger.debug(f"{file_name} is not cached, generating...")
         pass
 
 
@@ -45,7 +46,7 @@ def save_to_cache(file_name, obj):
 
     file_path = f"{PATH}/{file_name}{FILE_SUFFIX}"
 
-    print(f"Saving {file_path} to cache...")
+    eval_logger.debug(f"Saving {file_path} to cache...")
     with open(file_path, "wb") as file:
         file.write(dill.dumps(obj))
 

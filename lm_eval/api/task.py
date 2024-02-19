@@ -358,7 +358,6 @@ class Task(abc.ABC):
 
     def build_all_requests(
         self,
-        task_name,
         limit=None,
         rank=None,
         world_size=None,
@@ -370,7 +369,7 @@ class Task(abc.ABC):
         # used with caching
         og_limit = limit
 
-        cache_key = f"requests-{task_name}"
+        cache_key = f"requests-{self._config.task}"
 
         cached_instances = load_from_cache(file_name=cache_key)
 
@@ -395,7 +394,9 @@ class Task(abc.ABC):
                 False
             ), f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
 
-        eval_logger.info(f"Task: {task_name} - Building contexts on rank {rank}...")
+        eval_logger.info(
+            f"Task: {self._config.task} - Building contexts on rank {rank}..."
+        )
 
         instances = []
 

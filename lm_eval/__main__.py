@@ -10,6 +10,7 @@ from typing import Union
 import numpy as np
 
 from lm_eval import evaluator, utils
+from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.tasks import TaskManager, include_path, initialize_tasks
 from lm_eval.utils import make_table
 
@@ -245,6 +246,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Selected Tasks: {task_names}")
     eval_logger.info("Loading selected tasks...")
 
+    request_caching_args = request_caching_arg_to_dict(
+        cache_requests=args.cache_requests
+    )
+
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
@@ -254,15 +259,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         max_batch_size=args.max_batch_size,
         device=args.device,
         use_cache=args.use_cache,
-        #
-        cache_requests=(
-            True
-            if args.cache_requests == "true" or args.cache_requests == "refresh"
-            else False
-        ),
-        rewrite_requests_cache=True if args.cache_requests == "refresh" else False,
-        delete_requests_cache=True if args.cache_requests == "delete" else False,
-        #
         limit=args.limit,
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
@@ -271,6 +267,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
         predict_only=args.predict_only,
+        **request_caching_args,
     )
 
     if results is not None:
