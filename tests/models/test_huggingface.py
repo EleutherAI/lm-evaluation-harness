@@ -118,7 +118,6 @@ class Test_HFLM:
 
     def test_generate_until(self) -> None:
         res = self.LM.generate_until(self.generate_until)
-        print(res)
         assert res == self.generate_until_RES
 
     def test_logliklihood_rolling(self) -> None:
