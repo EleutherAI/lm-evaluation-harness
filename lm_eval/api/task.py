@@ -1269,6 +1269,15 @@ class ConfigurableTask(Task):
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
 
+    def __repr__(self):
+        return (
+            f"ConfigurableTask(task_name={getattr(self.config, 'task', None)},"
+            f"group_name={getattr(self.config, 'group', None)},"
+            f"output_type={self.OUTPUT_TYPE},"
+            f"num_fewshot={getattr(self.config, 'num_fewshot', None)},"
+            f"num_samples={len(self.eval_docs)})"
+        )
+
 
 class MultipleChoiceTask(Task):
     OUTPUT_TYPE: str = "loglikelihood"
