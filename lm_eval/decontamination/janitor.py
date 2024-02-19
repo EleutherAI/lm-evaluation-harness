@@ -157,10 +157,11 @@ class Janitor:
             print("WARNING: Janitor running in python mode")
             return self.register_contaminant_python(dirt_string)
 
-    def clean(self, dirty_string: str) -> List[str]:
+    def clean(self, dirty_string: str) -> (List[str], int):
         """Clean a string (e.g. a training set) by removing all ngrams previously
-        registered as contaminants. Returns a list of clean chunks, or empty if
-        the string was too dirty"""
+        registered as contaminants. Returns ([], 0) if there was no contamination, 
+        or ([], number of contaminated indices) if the string was too dirty, or
+        (list of clean chunks, number of contaminated indices) else. """
         if JANITOR_CPP:
             return self.clean_cpp(dirty_string)
         else:
@@ -197,11 +198,13 @@ class Janitor:
             janitor_util.clean_ngram(dirt_string, self.delete_chars, self.ngram_n)
         )
 
-    def clean_cpp(self, dirty_string: str) -> List[str]:
+    # Return (cleaned chunks, number of contamination indices)
+    # Note: If there are 0 contamination indices then cleaned chunks is an empty list
+    def clean_cpp(self, dirty_string: str) -> (List[str], int):
         contamination_indices = janitor_util.clean_ngram_with_indices(
-            dirty_string, self.delete_chars, self.ngram_n
+            dirty_string.encode("utf-8", errors="ignore").decode("utf-8", errors="ignore"), self.delete_chars, self.ngram_n
         )
-        return self._split_chunks(dirty_string, contamination_indices)
+        return (self._split_chunks(dirty_string, contamination_indices), len(contamination_indices))
 
     ##############
     # Slow python
@@ -215,13 +218,15 @@ class Janitor:
             word_ngrams(self.normalize_string(dirt_string), self.ngram_n)
         )
 
+    # Return (cleaned chunks, number of contamination indices)
+    # Note: If there are 0 contamination indices then cleaned chunks is an empty list 
     def clean_python(self, dirty_string: str) -> List[str]:
         contamination_indices = (
             (None, *idx_pair)
             for dirty_ngram, idx_pair in word_ngrams_indices(dirty_string, self.ngram_n)
             if self.normalize_string(dirty_ngram) in self.dirt_ngrams
         )
-        return self._split_chunks(dirty_string, contamination_indices)
+        return (self._split_chunks(dirty_string, contamination_indices), len(contamination_indices))
 
 
 ##################################################################
