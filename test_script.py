@@ -4,7 +4,7 @@ MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 # Used to specify alternate cache path, useful if run in a docker container
 # NOTE raw datasets will break if you try to transfer the cache from your host to an image
-LM_HARNESSS_CACHE_PATH = os.getenv("LM_HARNESSS_CACHE_PATH")
+LM_HARNESS_CACHE_PATH = os.getenv("LM_HARNESS_CACHE_PATH")
 
 import torch
 from transformers import (
@@ -57,8 +57,8 @@ def run_model(model: str, device: str):
         limit=0.01,
         device=device,
         cache_requests=True,
-        rewrite_requests_cache=True,
-        delete_requests_cache=True,
+        # rewrite_requests_cache=True,
+        # delete_requests_cache=True,
         tasks=tasks,
         write_out=True,
     )
