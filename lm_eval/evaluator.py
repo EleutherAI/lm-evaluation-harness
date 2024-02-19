@@ -342,6 +342,9 @@ def evaluate(
         instances_by_doc_id = collections.defaultdict(list)
         for instance in task.instances:
             instances_by_doc_id[instance.doc_id].append(instance)
+        # Sort instances within each group
+        for instances in instances_by_doc_id.values():
+            instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps.keys():
             doc_iterator = task.doc_iterator(
@@ -349,7 +352,6 @@ def evaluate(
             )
             for doc_id, doc in doc_iterator:
                 requests = instances_by_doc_id[doc_id]
-                requests.sort(key=lambda x: x.idx)
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
                 )
