@@ -37,7 +37,6 @@ dependencies = [
     "transformers>=4.1",
     "zstandard",
     "word2number",
-    "regex",
 ]
 
 [tool.setuptools.packages.find]
