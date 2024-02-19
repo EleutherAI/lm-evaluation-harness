@@ -490,6 +490,8 @@ class Collator:
                 self._reorder_indices.extend(x[0] for x in cache_hit)
                 yield req_str, cont_toks, logits
             else:
+                # If we have matching requests then expand the batch dimension (no-op) and
+                # yield each along with its corresponding args.
                 multilogits = logits.expand(cache_size, -1, -1).chunk(cache_size)
                 indices, req_str, cont_toks = zip(
                     *[(x[0], x[1][0], x[-1][-1]) for x in cache_hit]
