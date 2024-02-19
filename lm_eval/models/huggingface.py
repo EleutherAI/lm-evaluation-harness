@@ -894,7 +894,7 @@ class HFLM(LM):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 
-        def _collate(x):
+        def _collate(x: Tuple[Tuple[str, str], List[int], List[int]]):
             """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
@@ -906,13 +906,20 @@ class HFLM(LM):
             toks = x[1] + x[2]
             return -len(toks), tuple(toks)
 
+        def lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
+            """Defines the key to group and lookup one-token continuations"""
+            # Use with group_by="contexts (optional)"
+            # allows for the creation of a lookup, so we can re-use logits in case of one-token continuations.
+            # speeds up some multiple-choice tasks proportionally to the number of choices.
+            return req[-2] + req[-1][:-1]
+
         re_ord = Collator(
             requests,
             sort_fn=_collate,
             group_by="contexts"
             if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
             else None,
-            group_fn=lambda a: a[-2] + a[-1][:-1],
+            group_fn=lookup_one_token_cont,
         )
 
         # automatic (variable) batch size detection for vectorization
@@ -1054,10 +1061,13 @@ class HFLM(LM):
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
 
-                # check for one-token continuation cache hits
+                # check for one-token continuation cache hits. no-op
+                # in case group_by != "contexts" or no cache hit and returns the
+                # original args. Otherwise, expands the logits batch dimension and yields them
+                # along with matching continuation tokens and prompt strings.
                 for request_str, cont_toks, logits in re_ord.get_cache(
                     req_str=request_str,
-                    cxt_toks=cxt_tokens,
+                    cxt_toks=ctx_tokens,
                     cont_toks=cont_toks,
                     logits=logits,
                 ):
