@@ -351,7 +351,6 @@ def evaluate(
                 rank=RANK, limit=limit, world_size=WORLD_SIZE
             )
             for doc_id, doc in doc_iterator:
-                # subset instances to only this document id ; sort by idx
                 requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
                     doc, [req.filtered_resps[filter_key] for req in requests]
