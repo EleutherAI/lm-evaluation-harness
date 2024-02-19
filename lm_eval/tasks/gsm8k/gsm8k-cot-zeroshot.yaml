@@ -1,13 +1,13 @@
 group:
   - math_word_problems
-task: gsm8k
+task: gsm8k_cot_zeroshot
 dataset_path: gsm8k
 dataset_name: main
 output_type: generate_until
 training_split: train
 fewshot_split: train
 test_split: test
-doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_text: "Q: {{question}}\nA: Let's think step by step."
 doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
 metric_list:
   - metric: exact_match
@@ -22,18 +22,17 @@ metric_list:
       - "\\.$"
 generation_kwargs:
   until:
-    - "Question:"
+    - "Q:"
     - "</s>"
     - "<|im_end|>"
   do_sample: false
-  temperature: 0.0
 repeats: 1
-num_fewshot: 5
+num_fewshot: 0
 filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
-        regex_pattern: "#### (\\-?[0-9\\.\\,]+)"
+        regex_pattern: "The answer is (\\-?[0-9\\.\\,]+)."
       - function: "take_first"
   - name: "flexible-extract"
     filter:
