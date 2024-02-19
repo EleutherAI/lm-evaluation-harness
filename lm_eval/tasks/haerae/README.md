@@ -23,7 +23,7 @@ Homepage: https://huggingface.co/datasets/HAERAE-HUB/HAE_RAE_BENCH
 
 #### Groups
 
-* `haerae`: 'It consists of five tasks provided in the HAERAE-BENCH paper. 'Reading Comprehension' was excluded from the implementation due to copyright issues. We will include it in the next haerae update. For other tasks, the amount of data increased with the production of Haerae v1.1. Please note this when using it.'
+* `haerae`: 'It consists of five tasks provided in the HAERAE-BENCH paper. 'Reading Comprehension' was excluded from the implementation due to copyright issues. We will include it in the next haerae update. For other tasks, some part of data may be replaced or increased with the production of Haerae v1.1. Please note this when using it.'
 
 #### Tasks
 
