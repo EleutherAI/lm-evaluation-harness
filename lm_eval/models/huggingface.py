@@ -1034,7 +1034,7 @@ class HFLM(LM):
                 self._model_call(batched_inps, **call_kwargs), dim=-1
             )  # [batch, padding_length (inp or cont), vocab]
 
-            for (request_str, cxt_tokens, _), logits, inplen, cont_toks in zip(
+            for (request_str, ctx_tokens, _), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
             ):
                 # Slice to original seq length
