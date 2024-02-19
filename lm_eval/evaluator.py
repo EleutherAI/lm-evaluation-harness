@@ -343,7 +343,7 @@ def evaluate(
         for instance in task.instances:
             instances_by_doc_id[instance.doc_id].append(instance)
         # Sort instances within each group
-        for doc_id, instances in instances_by_doc_id.items():
+        for instances in instances_by_doc_id.values():
             instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
         for filter_key in task.instances[0].filtered_resps.keys():
