@@ -559,7 +559,7 @@ class Task(abc.ABC):
         setattr(self._config, "process_results", None)
 
     @property
-    def eval_docs(self) -> datasets.Dataset:
+    def eval_docs(self) -> Union[datasets.Dataset, List[dict]]:
         if self.has_test_docs():
             return self.test_docs()
         elif self.has_validation_docs():
