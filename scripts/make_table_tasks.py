@@ -84,8 +84,7 @@ def maketable(df):
         _tasks = task_manager.all_tasks
     else:
         _tasks = new_tasks(df=df)
-        # _tasks = [(x, task_manager.load_task_or_group(x)) for x in task_classes]
-    # count = 0
+
     for tname in tqdm(_tasks):
         task_config = task_manager._get_config(tname)
         if not task_config:
@@ -105,24 +104,7 @@ def maketable(df):
             ),
             ", ".join(str(metric["metric"]) for metric in task_config["metric_list"]),
         ]
-        # v = [
-        #     tname,
-        #     task.CONFIG.group,
-        #     check(task.has_training_docs()),
-        #     check(task.has_validation_docs()),
-        #     check(task.has_test_docs()),
-        #     len(
-        #         list(
-        #             task.test_docs()
-        #             if task.has_test_docs()
-        #             else task.validation_docs()
-        #             if task.has_validation_docs()
-        #             else task.training_docs()
-        #         )
-        #     ),
-        #     task.config.output_type,
-        #     ", ".join(task.aggregation().keys()),
-        # ]
+
         logger.info(v)
         values.append(v)
 
