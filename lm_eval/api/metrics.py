@@ -1,15 +1,15 @@
 import logging
 import math
 import random
-from collections.abc import Iterable
 from collections import defaultdict
+from collections.abc import Iterable
 from typing import List
 
+import evaluate
 import numpy as np
 import sacrebleu
 import sklearn.metrics
 
-import evaluate
 from lm_eval.api.registry import register_aggregation, register_metric
 
 
@@ -119,7 +119,6 @@ def ter(items):
 
 @register_aggregation("brier_score")
 def brier_score(items):  # This is a passthrough function
-
     # Certain datasets like arc_easy can have a different number of choices.
     golds, predictions = list(zip(*items))
 

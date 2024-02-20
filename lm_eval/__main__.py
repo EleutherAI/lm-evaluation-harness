@@ -11,7 +11,7 @@ from typing import Union
 import numpy as np
 
 from lm_eval import evaluator, utils
-from lm_eval.tasks import TaskManager, include_path, initialize_tasks
+from lm_eval.tasks import TaskManager, initialize_tasks
 from lm_eval.utils import make_table
 
 

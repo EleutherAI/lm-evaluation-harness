@@ -498,7 +498,6 @@ def evaluate(
 
             metric_key = f"{metric},{key}"
             agg_fn = task.aggregation()[metric]
-
             results[task_name][metric_key] = agg_fn(items)
             results[task_name]["samples"] = len(items)
 
@@ -524,19 +523,37 @@ def evaluate(
                     # or `task_name: []`.
                     # we only want to operate on groups here.
                     continue
-                for metric in [
-                    key
-                    for key in results[task_list[0]].keys()
-                    if "_stderr" not in key and key not in ["alias", "samples"]
-                ]:  # TODO: what if tasks don't all share the same metrics
+
+                group_metrics = list(
+                    dict.fromkeys(
+                        [
+                            key
+                            for task in task_list
+                            for key in results[task].keys()
+                            if "_stderr" not in key and key not in ["alias", "samples"]
+                        ]
+                    )
+                )
+                for metric in group_metrics:
+                    # TODO: what if tasks don't all share the same metrics
                     stderr = "_stderr,".join(metric.split(","))
 
                     # gather metrics, sizes, and stderrs from subtasks
                     metrics = [
-                        results[task][metric] for task in task_list
+                        results[task][metric]
+                        for task in task_list
+                        if metric in results[task]
                     ]  # TODO: copy?
-                    stderrs = [results[task][stderr] for task in task_list]
-                    sizes = [results[task]["samples"] for task in task_list]
+                    stderrs = [
+                        results[task][stderr]
+                        for task in task_list
+                        if stderr in results[task]
+                    ]
+                    sizes = [
+                        results[task]["samples"]
+                        for task in task_list
+                        if metric in results[task]
+                    ]
 
                     # compute group's pooled metric and stderr
                     results[group][

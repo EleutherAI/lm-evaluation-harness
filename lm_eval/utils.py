@@ -17,7 +17,6 @@ from typing import (
 )
 
 import numpy as np
-
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
 
