@@ -5,13 +5,13 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Union
+from typing import Union, List
 
 import numpy as np
 
 from lm_eval import evaluator, utils
 from lm_eval.tasks import TaskManager, include_path, initialize_tasks
-from lm_eval.utils import make_table
+from lm_eval.utils import make_table, write_results_csv
 
 
 def _handle_non_serializable(o):
@@ -148,6 +148,11 @@ def parse_eval_args() -> argparse.Namespace:
         action="store_true",
         default=False,
         help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
+    )
+    parser.add_argument(
+        "--output_csv",
+        default=None,
+        help="File to csv file to store metric into.",
     )
     return parser.parse_args()
 
@@ -292,6 +297,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         print(make_table(results))
         if "groups" in results:
             print(make_table(results, "groups"))
+
+        if args.output_csv:
+            write_results_csv(args.output_csv, results, task_names, args.model_args)
 
 
 if __name__ == "__main__":

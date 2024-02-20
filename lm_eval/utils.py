@@ -1,4 +1,5 @@
 import collections
+import csv
 import fnmatch
 import functools
 import gc
@@ -939,3 +940,35 @@ class Collator:
 
         if arr:
             yield arr
+
+
+def write_results_csv(output_path: str, result_dict, tasks: List[str], model_name: str):
+    res_csv = dict()
+    res_csv["model_name"] = model_name.removeprefix("pretrained=")
+
+    for k, dic in result_dict["results"].items():
+        if "alias" in dic:
+            k = dic.pop("alias")
+
+        if k not in tasks:
+            continue
+
+        res_csv[k] = list(dic.values())[0]
+
+    write_dict_to_csv(output_path, res_csv)
+
+
+def write_dict_to_csv(file_path: str, data_dict: dict[str, list[float]]):
+    # Check if file exists
+    file_exists = os.path.isfile(file_path)
+
+    with open(file_path, 'a', newline='') as csvfile:
+        fieldnames = list(data_dict.keys())
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        # If file doesn't exist, write header
+        if not file_exists:
+            writer.writeheader()
+
+        # Write data
+        writer.writerow(data_dict)
