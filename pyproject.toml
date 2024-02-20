@@ -36,6 +36,7 @@ dependencies = [
     "tqdm-multiprocess",
     "transformers>=4.1",
     "zstandard",
+    "word2number",
 ]
 
 [tool.setuptools.packages.find]

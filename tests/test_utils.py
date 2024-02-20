@@ -1,7 +1,16 @@
+import itertools
+
+import numpy as np
 import pytest
 
+from lm_eval.api.metrics import (
+    aggregate_subtask_metrics,
+    mean,
+    pooled_sample_stderr,
+    stderr_for_metric,
+)
+from lm_eval.models.utils import Collator
 from lm_eval.utils import (
-    Collator,
     get_rolling_token_windows,
     make_disjoint_window,
 )
@@ -299,3 +308,39 @@ class TestCollator:
         # check indices
         reordered_output = loglikelihoods.get_original(output)
         assert reordered_output == [x[1] for x in loglikelihood_samples]
+
+
+def test_aggregate_mean():
+    # test weight_by_size is respected
+    assert (
+        aggregate_subtask_metrics([0.3, 0.2, 0.4], [20, 40, 100], weight_by_size=False)
+        == 0.3
+    )
+    assert (
+        aggregate_subtask_metrics([0.3, 0.2, 0.4], [20, 40, 100], weight_by_size=True)
+        == 0.3375
+    )
+
+
+@pytest.mark.parametrize(
+    "samples",
+    [
+        [40 * [1.0] + 60 * [0.0], 30 * [1.0] + 30 * [0.0], 20 * [1.0] + 60 * [0.0]],
+        [35 * [1.0] + 65 * [0.0], 20 * [1.0] + 20 * [0.0]],
+    ],
+)
+def test_aggregate_stderrs(samples):
+    # check that aggregating subtasks' bootstrap stderrs with our formula
+    # (using weight_by_size) is ~equiv.
+    # to just getting bootstrap stderr of the whole set of samples
+    mean_stderr = stderr_for_metric(metric=mean, bootstrap_iters=100000)
+
+    stderrs = [mean_stderr(subtask) for subtask in samples]
+
+    sizes = [len(subtask) for subtask in samples]
+
+    assert np.allclose(
+        pooled_sample_stderr(stderrs, sizes),
+        mean_stderr(list(itertools.chain.from_iterable(samples))),
+        atol=1.0e-3,
+    )

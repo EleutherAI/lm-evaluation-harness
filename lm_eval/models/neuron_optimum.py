@@ -13,10 +13,11 @@ from tqdm import tqdm
 from transformers import GenerationConfig
 from transformers.generation import StoppingCriteriaList
 
+import lm_eval.models.utils
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.utils import stop_sequences_criteria
+from lm_eval.models.utils import stop_sequences_criteria
 
 
 try:
@@ -239,7 +240,7 @@ class NEURON_HF(LM):
             revision=revision,
             trust_remote_code=trust_remote_code,
         )
-        torch_dtype = utils.get_dtype(dtype)
+        torch_dtype = lm_eval.models.utils.get_dtype(dtype)
 
         assert torch_dtype in [
             torch.float16,
@@ -550,7 +551,7 @@ class NEURON_HF(LM):
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
 
-        chunks = utils.chunks(
+        chunks = lm_eval.models.utils.chunks(
             re_ord.get_reordered(),
             n=self.batch_size,
             fn=None,
@@ -603,7 +604,7 @@ class NEURON_HF(LM):
 
             # create encoder attn mask and batched conts, if seq2seq
             call_kwargs = {}
-            batched_inps = utils.pad_and_concat(
+            batched_inps = lm_eval.models.utils.pad_and_concat(
                 padding_len_inp, inps, padding_side="right"
             )  # [batch, padding_len_inp]
 
@@ -663,7 +664,7 @@ class NEURON_HF(LM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        grouper = utils.Grouper(requests, lambda x: str(x.args[1]))
+        grouper = lm_eval.models.utils.Grouper(requests, lambda x: str(x.args[1]))
         for key, reqs in grouper.get_grouped().items():
             # within each set of reqs for given kwargs, we reorder by token length, descending.
             re_ords[key] = utils.Reorderer([req.args for req in reqs], _collate)
@@ -672,7 +673,9 @@ class NEURON_HF(LM):
 
         # for each different set of kwargs, we execute all requests, by batch.
         for key, re_ord in re_ords.items():
-            chunks = utils.chunks(re_ord.get_reordered(), n=self.batch_size)
+            chunks = lm_eval.models.utils.chunks(
+                re_ord.get_reordered(), n=self.batch_size
+            )
             for chunk in tqdm(chunks, disable=self.rank != 0):
                 contexts, all_gen_kwargs = zip(*chunk)
                 # we assume all gen kwargs in the batch are the same

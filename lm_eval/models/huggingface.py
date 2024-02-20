@@ -26,7 +26,13 @@ from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.utils import Collator, stop_sequences_criteria
+from lm_eval.models.utils import (
+    Collator,
+    clear_torch_cache,
+    get_dtype,
+    pad_and_concat,
+    stop_sequences_criteria,
+)
 
 
 eval_logger = utils.eval_logger
@@ -503,13 +509,13 @@ class HFLM(LM):
             if transformers.__version__ >= "4.30.0":
                 if model_kwargs.get("load_in_4bit", None):
                     if model_kwargs.get("bnb_4bit_compute_dtype", None):
-                        model_kwargs["bnb_4bit_compute_dtype"] = utils.get_dtype(
+                        model_kwargs["bnb_4bit_compute_dtype"] = get_dtype(
                             model_kwargs["bnb_4bit_compute_dtype"]
                         )
             self._model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision,
-                torch_dtype=utils.get_dtype(dtype),
+                torch_dtype=get_dtype(dtype),
                 trust_remote_code=trust_remote_code,
                 **model_kwargs,
             )
@@ -639,10 +645,10 @@ class HFLM(LM):
                 self.accelerator.gather(max_rnk_bs).cpu().detach().numpy().tolist()
             )
             batch_size = min(gathered)
-            utils.clear_torch_cache()
+            clear_torch_cache()
             return batch_size
 
-        utils.clear_torch_cache()
+        clear_torch_cache()
         return batch_size
 
     def tok_encode(
@@ -997,18 +1003,18 @@ class HFLM(LM):
             # create encoder attn mask and batched conts, if seq2seq
             call_kwargs = {}
             if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-                batched_inps = utils.pad_and_concat(
+                batched_inps = pad_and_concat(
                     padding_len_inp, inps, padding_side="right"
                 )  # [batch, padding_len_inp]
             elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
                 # TODO: left-pad encoder inps and mask?
-                batched_inps = utils.pad_and_concat(
+                batched_inps = pad_and_concat(
                     padding_len_inp, inps
                 )  # [batch, padding_len_inp]
-                batched_conts = utils.pad_and_concat(
+                batched_conts = pad_and_concat(
                     padding_len_cont, conts
                 )  # [batch, padding_len_cont]
-                batched_encoder_mask = utils.pad_and_concat(
+                batched_encoder_mask = pad_and_concat(
                     padding_len_inp, encoder_attns
                 )  # [batch, padding_len_inp]
                 call_kwargs = {
