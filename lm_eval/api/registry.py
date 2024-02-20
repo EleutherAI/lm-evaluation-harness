@@ -1,7 +1,8 @@
 import logging
 from typing import Callable, Dict
 
-import evaluate
+import evaluate as hf_evaluate
+
 from lm_eval.api.model import LM
 
 
@@ -128,7 +129,7 @@ def get_metric(name: str, hf_evaluate_metric=False) -> Callable:
             )
 
     try:
-        metric_object = evaluate.load(name)
+        metric_object = hf_evaluate.load(name)
         return metric_object.compute
     except Exception:
         eval_logger.error(
