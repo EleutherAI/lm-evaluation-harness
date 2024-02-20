@@ -11,6 +11,7 @@ def preprocess(text):
     text = text.replace("  ", " ")
     return text
 
+rng = random.Random(42)
 
 def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     def _process_doc(doc):
