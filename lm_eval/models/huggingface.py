@@ -90,6 +90,7 @@ class HFLM(LM):
             ]
         ] = None,
         truncation: Optional[bool] = False,
+        logits_cache: bool = True,
         max_length: Optional[int] = None,
         device: Optional[str] = "cuda",
         dtype: Optional[Union[str, torch.dtype]] = "auto",
@@ -107,7 +108,6 @@ class HFLM(LM):
         # PEFT and quantization options
         peft: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
-        logits_cache: bool = True,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -121,7 +121,6 @@ class HFLM(LM):
             self._model = pretrained
             self._device = self._model.device
             self._config = self._model.config
-            self.logits_cache = logits_cache
             gpus = 0
 
             if tokenizer:
@@ -240,7 +239,7 @@ class HFLM(LM):
         )
 
         self.truncation = truncation
-
+        self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
         # select (or create) a pad token to use
         if self.tokenizer.pad_token:
