@@ -18,7 +18,7 @@ from lm_eval.utils import (
     get_sample_size,
     get_task_list,
     positional_deprecated,
-    print_tasks,
+    prepare_print_tasks,
     print_writeout,
     run_task_tests,
     simple_parse_args_string,
@@ -482,7 +482,7 @@ def evaluate(
             _task_hierarchy = {
                 k: v for k, v in task_hierarchy.items() if k in left_tasks_list
             }
-            _results_agg, _groups_agg = print_tasks(_task_hierarchy, results)
+            _results_agg, _groups_agg = prepare_print_tasks(_task_hierarchy, results)
 
             results_agg = {**results_agg, **_results_agg}
             groups_agg = {**groups_agg, **_groups_agg}

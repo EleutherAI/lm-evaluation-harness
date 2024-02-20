@@ -577,7 +577,9 @@ def get_sample_size(task, limit: Optional[int]) -> Union[int, None]:
     return limit
 
 
-def print_tasks(task_hierarchy: dict, results: dict, tab=0) -> Tuple[dict, dict]:
+def prepare_print_tasks(
+    task_hierarchy: dict, results: dict, tab=0
+) -> Tuple[dict, dict]:
     """
     @param task_hierarchy: Dictionary representing the group hierarchy of tasks. Each key is a group name and its
     value is a list of task names.
@@ -588,7 +590,7 @@ def print_tasks(task_hierarchy: dict, results: dict, tab=0) -> Tuple[dict, dict]
     @return: A tuple of two dictionaries: results_agg and groups_agg. results_agg contains
     aggregated results for each task, and groups_agg contains aggregated results for each group.
 
-    Prints the task hierarchy and aggregates the results for each task and group recursively.
+    Prepares the task hierarchy and aggregates the results for each task and group recursively for printing.
     """
     results_agg = collections.defaultdict(dict)
     groups_agg = collections.defaultdict(dict)
@@ -633,7 +635,9 @@ def print_tasks(task_hierarchy: dict, results: dict, tab=0) -> Tuple[dict, dict]
                     **task_hierarchy,
                 }
 
-            _results_agg, _groups_agg = print_tasks(_task_hierarchy, results, tab + 1)
+            _results_agg, _groups_agg = prepare_print_tasks(
+                _task_hierarchy, results, tab + 1
+            )
             results_agg = {**results_agg, **_results_agg}
             groups_agg = {**groups_agg, **_groups_agg}
 
