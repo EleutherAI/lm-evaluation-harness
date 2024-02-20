@@ -6,7 +6,7 @@ training_split: train
 validation_split: train
 test_split: null
 description: "Here are some example questions from experts. Answer the final question yourself, following the format of the previous questions exactly.\n"
-doc_to_text: "Question: {{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {choice3}\n(D) {{choice4}}\nAnswer:"
+doc_to_text: "Question: {{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nAnswer:"
 doc_to_target: answer
 doc_to_choice: ["(A)", "(B)", "(C)", "(D)"]
 metric_list:
