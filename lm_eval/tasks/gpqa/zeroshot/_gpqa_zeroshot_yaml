@@ -9,6 +9,7 @@ test_split: null
 doc_to_text: "What is the correct answer to this question:{{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nAnswer:"
 doc_to_target: answer
 doc_to_choice: ["(A)", "(B)", "(C)", "(D)"]
+num_fewshot: 0
 metric_list:
   - metric: acc
     aggregation: mean
