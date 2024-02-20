@@ -107,6 +107,7 @@ class HFLM(LM):
         # PEFT and quantization options
         peft: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
+        logits_cache: bool = True,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -120,6 +121,7 @@ class HFLM(LM):
             self._model = pretrained
             self._device = self._model.device
             self._config = self._model.config
+            self.logits_cache = logits_cache
             gpus = 0
 
             if tokenizer:
@@ -810,7 +812,7 @@ class HFLM(LM):
 
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
-        return self._loglikelihood_tokens(new_reqs)
+        return self._loglikelihood_tokens(requests=new_reqs)
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         loglikelihoods = []
@@ -852,7 +854,7 @@ class HFLM(LM):
                     rolling_token_windows += pad_amnt * [rolling_token_windows[0]]
 
             string_nll = self._loglikelihood_tokens(
-                rolling_token_windows,
+                requests=rolling_token_windows,
                 disable_tqdm=True,
                 override_bs=adaptive_batch_size,
             )
@@ -894,7 +896,7 @@ class HFLM(LM):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 
-        def _collate(x: Tuple[Tuple[str, str], List[int], List[int]]):
+        def _collate(req: Tuple[Tuple[str, str], List[int], List[int]]):
             """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
@@ -903,15 +905,15 @@ class HFLM(LM):
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
 
-            toks = x[1] + x[2]
+            toks = req[1] + req[2]
             return -len(toks), tuple(toks)
 
-        def lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
+        def _lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
             """Defines the key to group and lookup one-token continuations"""
             # Use with group_by="contexts" (optional)"
             # allows for the creation of a lookup, so we can re-use logits in case of one-token continuations.
             # speeds up some multiple-choice tasks proportionally to the number of choices.
-            # group by context+continuation[:-1] and infer on one request/group.
+            # groups requests by context+continuation[:-1] and infer on one request/group.
             return req[-2] + req[-1][:-1]
 
         re_ord = Collator(
@@ -919,8 +921,9 @@ class HFLM(LM):
             sort_fn=_collate,
             group_by="contexts"
             if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
+            and self.logits_cache
             else None,
-            group_fn=lookup_one_token_cont,
+            group_fn=_lookup_one_token_cont,
         )
 
         # automatic (variable) batch size detection for vectorization
@@ -1063,9 +1066,10 @@ class HFLM(LM):
                 greedy_tokens = logits.argmax(dim=-1)
 
                 # check for one-token continuation cache hits.
-                # no-op in case group_by != "contexts" or no cache hit and returns the
-                # original args. Otherwise, expands the logits batch dimension and yields them
-                # along with matching continuation tokens and prompt strings.
+                # noop in case group_by != "contexts" or no cache hit and returns the
+                # original args. Otherwise, expands the logits batch dimension and yields each
+                # batch along with matching continuation tokens and prompt strings.
+                # logits -> [1, seq, vocab]
                 for request_str, cont_toks, logits in re_ord.get_cache(
                     req_str=request_str,
                     cxt_toks=ctx_tokens,
@@ -1098,7 +1102,7 @@ class HFLM(LM):
     def generate_until(self, requests: List[Instance]) -> List[str]:
         res = []
 
-        def _collate(x):
+        def _collate(req: Tuple[str, dict]):
             """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
@@ -1106,8 +1110,8 @@ class HFLM(LM):
             #   padded context length. this is useful to simplify the batching logic and more importantly to make
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
-            toks = self.tok_encode(x[0])
-            return -len(toks), x[0]
+            toks = self.tok_encode(req[0])
+            return -len(toks), req[0]
 
         pbar = tqdm(total=len(requests), disable=(self.rank != 0))
         adaptive_batch_size = None
@@ -1134,8 +1138,12 @@ class HFLM(LM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
+        # group_fn=lambda x: x[1] -> x=(context, gen_kwargs)
         re_ords = Collator(
-            [reg.args for reg in requests], _collate, group_by="gen_kwargs"
+            [reg.args for reg in requests],
+            sort_fn=_collate,
+            group_by="gen_kwargs",
+            group_fn=lambda x: x[1],
         )
         chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
         for chunk in chunks:
