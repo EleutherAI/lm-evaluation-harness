@@ -183,7 +183,14 @@ class WandbLogger:
         metrics = {}
         for metric in metrics_list:
             metric = metric.get("metric")
-            metrics[metric] = [x[metric] for x in data]
+            if metric in ["word_perplexity", "byte_perplexity", "bits_per_byte"]:
+                metrics[f"{metric}_loglikelihood"] = [x[metric][0] for x in data]
+                if metric in ["byte_perplexity", "bits_per_byte"]:
+                    metrics[f"{metric}_bytes"] = [x[metric][1] for x in data]
+                else:
+                    metrics[f"{metric}_words"] = [x[metric][1] for x in data]
+            else:
+                metrics[metric] = [x[metric] for x in data]
 
         if config["output_type"] == "loglikelihood":
             instance = [x["arguments"][0][0] for x in data]
@@ -219,6 +226,8 @@ class WandbLogger:
             ]
         elif config["output_type"] == "loglikelihood_rolling":
             instance = [x["arguments"][0][0] for x in data]
+            resps = [x["resps"][0][0] for x in data]
+            filtered_resps = [x["filtered_resps"][0] for x in data]
         elif config["output_type"] == "generate_until":
             instance = [x["arguments"][0][0] for x in data]
             resps = [x["resps"][0][0] for x in data]
