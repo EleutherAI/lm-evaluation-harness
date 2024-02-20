@@ -22,7 +22,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
             preprocess(doc["Correct Answer"]),
         ]
 
-        random.shuffle(choices)
+        rng.shuffle(choices)
         correct_answer_index = choices.index(preprocess(doc["Correct Answer"]))
 
         out_doc = {
