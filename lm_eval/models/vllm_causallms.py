@@ -276,7 +276,7 @@ class VLLM(LM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        re_ords = Collator(requests, _collate_gen, grouping=True)
+        re_ords = Collator(requests, _collate_gen, group_by="gen_kwargs")
         chunks = re_ords.get_batched(
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
