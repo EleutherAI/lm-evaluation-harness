@@ -67,6 +67,8 @@ def check(tf):
 
 def maketable(df):
     headers = [
+        # For now, we restrict to presenting data
+        # That can be collected statically.
         "Task Name",
         "Group",
         # "Train",
@@ -85,20 +87,6 @@ def maketable(df):
         # _tasks = [(x, task_manager.load_task_or_group(x)) for x in task_classes]
     # count = 0
     for tname in tqdm(_tasks):
-        print(tname)
-        # try:
-        # if not tname in ["advanced_ai_risk", "arithmetic", "bbh_fewshot", "bbh_cot_fewshot", "bbh_cot_zeroshot"]:
-        #     task = task_manager.load_task_or_group(tname)
-        # else:
-        #     continue
-        # if isinstance(list(task.values())[0], tuple): # is group, not a solo task
-        # del task
-        # continue
-        # else:
-        #     task = task[tname]
-        # # except Exception as e:
-        # #     print(e)
-        # #     continue
         task_config = task_manager._get_config(tname)
         if not task_config:
             continue
@@ -110,10 +98,6 @@ def maketable(df):
         v = [
             tname,
             task_config.get("group", None),
-            # check(True),
-            # check(True),
-            # check(True),
-            # -1,
             task_config.get("output_type", "greedy_until"),
             ", ".join(
                 str(f["name"])
@@ -141,11 +125,7 @@ def maketable(df):
         # ]
         logger.info(v)
         values.append(v)
-        # count += 1
-        # if count >= 20:
-        #     break
 
-        # del task
     if df is None:
         df = pd.DataFrame(values, columns=headers)
         table = df.to_markdown(index=False)
