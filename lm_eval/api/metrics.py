@@ -4,11 +4,11 @@ import random
 from collections.abc import Iterable
 from typing import List
 
+import evaluate
 import numpy as np
 import sacrebleu
 import sklearn.metrics
 
-import evaluate
 from lm_eval.api.registry import register_aggregation, register_metric
 
 
