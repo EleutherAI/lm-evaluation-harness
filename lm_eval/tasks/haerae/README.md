@@ -11,7 +11,7 @@ Homepage: https://huggingface.co/datasets/HAERAE-HUB/HAE_RAE_BENCH
 ### Citation
 
 @misc{son2023haerae,
-      title={HAE-RAE Bench: Evaluation of Korean Knowledge in Language Models}, 
+      title={HAE-RAE Bench: Evaluation of Korean Knowledge in Language Models},
       author={Guijin Son and Hanwool Lee and Suwan Kim and Huiseo Kim and Jaecheol Lee and Je Won Yeom and Jihyu Jung and Jung Woo Kim and Songseong Kim},
       year={2023},
       eprint={2309.02706},
@@ -41,7 +41,6 @@ For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
   * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-
 
 
 If other tasks on this dataset are already supported:
