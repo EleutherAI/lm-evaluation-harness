@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 def main() -> None:
     subset = ["extended", "diamond", "experts", "main"]
-    
+
     for task in tqdm(subset):
         file_name = f"gpqa_{task}_n_shot.yaml"
         try:
