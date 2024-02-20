@@ -1,4 +1,4 @@
-group: 
+group:
     - kmmlu
     - kmmlu_direct
 dataset_path: HAERAE-HUB/K-MMLU-Preview

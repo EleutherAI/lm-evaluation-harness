@@ -10,9 +10,15 @@ Homepage: https://huggingface.co/datasets/HAERAE-HUB/K-MMLU-Preview
 
 ### Citation
 
-```
-We'll be updating this section soon.
-```
+
+@misc{son2024kmmlu,
+      title={KMMLU: Measuring Massive Multitask Language Understanding in Korean},
+      author={Guijin Son and Hanwool Lee and Sungdong Kim and Seungone Kim and Niklas Muennighoff and Taekyoon Choi and Cheonbok Park and Kang Min Yoo and Stella Biderman},
+      year={2024},
+      eprint={2402.11548},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
 
 ### Groups and Tasks
 
