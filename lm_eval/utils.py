@@ -455,9 +455,9 @@ class TaskOutput:
             task_alias (str): The alias of the task.
             group_alias (str): The alias of the task group.
             is_group (bool): Indicates if the task is a group.
-            log_samples (list): The list of logged samples.
+            logged_samples (list): The list of logged samples.
             sample_len (int): The length of the samples.
-            samples_metrics (defaultdict): The dictionary of samples' metrics.
+            sample_metrics (defaultdict): The dictionary of samples' metrics.
             agg_metrics (defaultdict): The dictionary of aggregate metrics.
 
         Methods:
@@ -489,9 +489,9 @@ class TaskOutput:
         self.task_alias = task_alias
         self.group_alias = group_alias
         self.is_group = is_group
-        self.log_samples = []
+        self.logged_samples = []
         self.sample_len = None
-        self.samples_metrics = collections.defaultdict(list)
+        self.sample_metrics = collections.defaultdict(list)
         self.agg_metrics = collections.defaultdict(list)
 
     @classmethod
@@ -523,7 +523,7 @@ class TaskOutput:
         )
 
     def calculate_aggregate_metric(self, bootstrap_iters=100000) -> None:
-        for (metric, filter_key), items in self.samples_metrics.items():
+        for (metric, filter_key), items in self.sample_metrics.items():
             agg_fn = self.task.aggregation()[metric]
             metric_key = f"{metric},{filter_key}"
             self.agg_metrics[metric_key] = agg_fn(items)
@@ -685,8 +685,8 @@ def consolidate_results(
         num_fewshot[task_output.task_name] = task_output.n_shot
         configs[task_output.task_name] = task_output.task_config
         versions[task_output.task_name] = task_output.version
-        samples[task_output.task_name] = task_output.log_samples
-        for (metric, filter_key), items in task_output.samples_metrics.items():
+        samples[task_output.task_name] = task_output.logged_samples
+        for (metric, filter_key), items in task_output.sample_metrics.items():
             metric_key = f"{metric},{filter_key}"
             results[task_output.task_name][metric_key] = task_output.agg_metrics[
                 metric_key

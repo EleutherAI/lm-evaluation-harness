@@ -322,7 +322,7 @@ class Task(abc.ABC):
         return doc
 
     @property
-    def instances(self):
+    def instances(self) -> List[Instance]:
         """After calling `task.build_all_requests()`, tasks
         maintain a list of the dataset instances which will be evaluated.
         """

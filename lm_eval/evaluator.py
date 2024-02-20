@@ -10,6 +10,7 @@ import torch
 import lm_eval.api.metrics
 import lm_eval.api.registry
 import lm_eval.models
+from lm_eval.api.task import Task
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     consolidate_results,
@@ -284,7 +285,7 @@ def evaluate(
             for task_output in eval_tasks
         ), "log_samples must be True for 'bypass' only tasks"
     for task_output in eval_tasks:
-        task = task_output.task
+        task: Task = task_output.task
         limit = get_sample_size(task, limit)
         task.build_all_requests(rank=lm.rank, limit=limit, world_size=lm.world_size)
         eval_logger.debug(
@@ -372,9 +373,9 @@ def evaluate(
                         ],
                     }
                     example.update(metrics)
-                    task_output.log_samples.append(example)
+                    task_output.logged_samples.append(example)
                 for metric, value in metrics.items():
-                    task_output.samples_metrics[(metric, filter_key)].append(value)
+                    task_output.sample_metrics[(metric, filter_key)].append(value)
 
     if WORLD_SIZE > 1:
         # if multigpu, then gather data across all ranks to rank 0
@@ -384,25 +385,27 @@ def evaluate(
                 # for task_name, task_samples in list(samples.items()):
                 full_samples = [None] * WORLD_SIZE if RANK == 0 else None
                 torch.distributed.gather_object(
-                    obj=task_output.log_samples, object_gather_list=full_samples, dst=0
+                    obj=task_output.logged_samples,
+                    object_gather_list=full_samples,
+                    dst=0,
                 )
 
                 if RANK == 0:
-                    task_output.log_samples = list(
+                    task_output.logged_samples = list(
                         itertools.chain.from_iterable(full_samples)
                     )
 
             # then collect metrics across all ranks
             # vals_torch = collections.defaultdict(list)
-            for metrics in task_output.samples_metrics:
+            for metrics in task_output.sample_metrics:
                 metric_list = [None] * WORLD_SIZE if RANK == 0 else None
                 torch.distributed.gather_object(
-                    obj=task_output.samples_metrics[metrics],
+                    obj=task_output.sample_metrics[metrics],
                     object_gather_list=metric_list,
                     dst=0,
                 )
                 if RANK == 0:
-                    task_output.samples_metrics[metrics] = list(
+                    task_output.sample_metrics[metrics] = list(
                         itertools.chain.from_iterable(metric_list)
                     )
 
