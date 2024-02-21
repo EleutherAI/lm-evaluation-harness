@@ -314,10 +314,10 @@ class WandbLogger:
         df_data.update(metrics)
 
         return pd.DataFrame(df_data)
-    
+
     def _log_samples_as_artifact(
         self, data: List[Dict[str, Any]], task_name: str
-        ) -> None:
+    ) -> None:
         # log the samples as an artifact
         dumped = json.dumps(
             data,
@@ -374,14 +374,16 @@ class WandbLogger:
             grouped_df = pd.DataFrame()
             for task_name in grouped_tasks:
                 eval_preds = samples[task_name]
-                df = self._generate_dataset(eval_preds, self.task_configs.get(task_name))
+                df = self._generate_dataset(
+                    eval_preds, self.task_configs.get(task_name)
+                )
                 df["group"] = group
                 df["task"] = task_name
                 grouped_df = pd.concat([grouped_df, df], ignore_index=True)
 
                 # log the samples as a json file as W&B Artifact
                 self._log_samples_as_artifact(eval_preds, task_name)
-            
+
             self.run.log({f"{group}_eval_results": grouped_df})
 
     def prepare_report_by_task(self, results: Dict[str, Any]) -> List[Any]:
