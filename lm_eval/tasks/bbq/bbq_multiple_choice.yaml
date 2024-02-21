@@ -2,7 +2,7 @@ group:
   - social_bias
 task: bbq
 dataset_path: oskarvanderwal/bbq
-dataset_name: All
+dataset_name: Sexual_orientation
 test_split: test
 output_type: multiple_choice
 process_docs: !function utils.process_docs
