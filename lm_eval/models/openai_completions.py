@@ -169,7 +169,7 @@ class OpenaiCompletionsLM(TemplateLM):
         # Isn't used because we override _loglikelihood_tokens
         raise NotImplementedError()
 
-    def tok_encode(self, string: str) -> List[int]:
+    def tok_encode(self, string: str, **kwargs) -> List[int]:
         return self.tokenizer.encode(string)
 
     def tok_decode(self, tokens: List[int]) -> str:

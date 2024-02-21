@@ -256,7 +256,7 @@ class TemplateLM(LM):
         pass
 
     @abc.abstractmethod
-    def tok_encode(self, string: str, add_special_tokens: bool, **kwargs):
+    def tok_encode(self, string: str, **kwargs):
         pass
 
     @abc.abstractmethod
