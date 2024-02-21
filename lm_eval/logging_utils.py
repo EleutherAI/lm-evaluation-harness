@@ -278,12 +278,9 @@ class WandbLogger:
                 for x in data
             ]
         elif config["output_type"] == "multiple_choice":
-            instance = [
-                x["arguments"][0][0]
-                + "\n\n"
-                + "\n".join(
-                    [f"- {idx}. {y[1]}" for idx, y in enumerate(x["arguments"])]
-                )
+            instance = [x["arguments"][0][0] for x in data]
+            choices = [
+                "\n".join([f"{idx}. {y[1]}" for idx, y in enumerate(x["arguments"])])
                 for x in data
             ]
             resps = [np.argmax([n[0][0] for n in x["resps"]]) for x in data]
@@ -305,11 +302,16 @@ class WandbLogger:
         df_data = {
             "id": ids,
             "data": instance,
+        }
+        if config["output_type"] == "multiple_choice":
+            df_data["choices"] = choices
+
+        tmp_data = {
             "input_len": [len(x) for x in instance],
             "labels": labels,
             "output_type": config["output_type"],
         }
-        # TODO: check if model output is there
+        df_data.update(tmp_data)
         df_data.update(model_outputs)
         df_data.update(metrics)
 
