@@ -944,7 +944,11 @@ class HFLM(LM):
         )
 
         chunks = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
-        pbar = tqdm(total=len(requests), disable=(disable_tqdm or (self.rank != 0)))
+        pbar = tqdm(
+            total=len(requests),
+            disable=(disable_tqdm or (self.rank != 0)),
+            desc="Running loglikelihood requests",
+        )
         for chunk in chunks:
             inps = []
             cont_toks_list = []
@@ -1112,7 +1116,11 @@ class HFLM(LM):
             toks = self.tok_encode(req[0])
             return -len(toks), req[0]
 
-        pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        pbar = tqdm(
+            total=len(requests),
+            disable=(self.rank != 0),
+            desc="Running generate_until requests",
+        )
         adaptive_batch_size = None
         if self.batch_size == "auto":
             # using rolling window with maximum context

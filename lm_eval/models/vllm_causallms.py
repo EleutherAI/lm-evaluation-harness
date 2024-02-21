@@ -281,7 +281,11 @@ class VLLM(LM):
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
 
-        pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        pbar = tqdm(
+            total=len(requests),
+            disable=(self.rank != 0),
+            desc="Running generate_until requests",
+        )
         # for each different set of kwargs, we execute all requests, by batch.
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk)
@@ -356,7 +360,11 @@ class VLLM(LM):
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
 
-        pbar = tqdm(total=len(requests), disable=disable_tqdm)
+        pbar = tqdm(
+            total=len(requests),
+            disable=disable_tqdm,
+            desc="Running loglikelihood requests",
+        )
         for chunk in chunks:
             inputs = []
             ctxlens = []
