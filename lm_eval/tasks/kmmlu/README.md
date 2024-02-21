@@ -27,7 +27,7 @@ Homepage: https://huggingface.co/datasets/HAERAE-HUB/KMMLU
 #### Groups
 
 * `kmmlu`: 'All 45 subjects of the KMMLU dataset, evaluated following the methodology in MMLU's original implementation'
-* `kmmlu_direct`: 'kmmlu_direct solves questions using a straightforward multiple-choice question-answering approach'
+* `kmmlu_direct`: 'kmmlu_direct solves questions using a straightforward *generative* multiple-choice question-answering approach'
 * `kmmlu_hard_direct`:  'kmmlu_hard_direct comprises difficult questions that at least one proprietary model failed to answer correctly using a direct approach'
 * `kmmlu_hard_cot`: 'kmmlu_hard_cot includes 5-shot of exemplars for chain-of-thought approach'
 
