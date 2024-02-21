@@ -105,7 +105,7 @@ class WandbLogger:
 
         self.printer = get_wandb_printer()
 
-    def get_config(self) -> Dict[str, Any]:
+    def _get_config(self) -> Dict[str, Any]:
         """Get configuration parameters."""
         self.task_configs = self.results.get("configs", {})
         cli_configs = self.results.get("config", {})
@@ -116,7 +116,7 @@ class WandbLogger:
 
         return configs
 
-    def sanitize_results_dict(self) -> Tuple[Dict[str, str], Dict[str, Any]]:
+    def _sanitize_results_dict(self) -> Tuple[Dict[str, str], Dict[str, Any]]:
         """Sanitize the results dictionary."""
         _results = copy.deepcopy(self.results.get("results", dict()))
 
@@ -152,7 +152,7 @@ class WandbLogger:
 
         return wandb_summary, _results
 
-    def log_results_as_table(self) -> None:
+    def _log_results_as_table(self) -> None:
         """Generate and log evaluation results as a table to W&B."""
         columns = [
             "Version",
@@ -200,7 +200,7 @@ class WandbLogger:
             table = make_table(["Groups"] + columns, "groups")
             self.run.log({"evaluation/group_eval_results": table})
 
-    def log_results_as_artifact(self) -> None:
+    def _log_results_as_artifact(self) -> None:
         """Log results as JSON artifact to W&B."""
         dumped = json.dumps(
             self.results, indent=2, default=_handle_non_serializable, ensure_ascii=False
@@ -213,20 +213,20 @@ class WandbLogger:
     def log_eval_result(self) -> None:
         """Log evaluation results to W&B."""
         # Log configs to wandb
-        configs = self.get_config()
+        configs = self._get_config()
         self.run.config.update(configs)
 
-        wandb_summary, self.wandb_results = self.sanitize_results_dict()
+        wandb_summary, self.wandb_results = self._sanitize_results_dict()
         # update wandb.run.summary with items that were removed
         self.run.summary.update(wandb_summary)
         # Log the evaluation metrics to wandb
         self.run.log(self.wandb_results)
         # Log the evaluation metrics as W&B Table
-        self.log_results_as_table()
+        self._log_results_as_table()
         # Log the results dict as json to W&B Artifacts
-        self.log_results_as_artifact()
+        self._log_results_as_artifact()
 
-    def generate_dataset(
+    def _generate_dataset(
         self, data: List[Dict[str, Any]], config: Dict[str, Any]
     ) -> pd.DataFrame:
         """Generate a dataset from evaluation data.
@@ -314,6 +314,24 @@ class WandbLogger:
         df_data.update(metrics)
 
         return pd.DataFrame(df_data)
+    
+    def _log_samples_as_artifact(
+        self, data: List[Dict[str, Any]], task_name: str
+        ) -> None:
+        # log the samples as an artifact
+        dumped = json.dumps(
+            data,
+            indent=2,
+            default=_handle_non_serializable,
+            ensure_ascii=False,
+        )
+        artifact = wandb.Artifact(f"{task_name}", type="samples_by_task")
+        with artifact.new_file(
+            f"{task_name}_eval_samples.json", mode="w", encoding="utf-8"
+        ) as f:
+            f.write(dumped)
+        self.run.log_artifact(artifact)
+        # artifact.wait()
 
     def log_eval_samples(self, samples: Dict[str, List[Dict[str, Any]]]) -> None:
         """Log evaluation samples to W&B.
@@ -325,27 +343,46 @@ class WandbLogger:
             x for x in self.task_names if x not in self.group_names
         ]
 
+        ungrouped_tasks = []
+        tasks_by_groups = {}
+
         for task_name in task_names:
+            group_names = self.task_configs[task_name].get("group", None)
+            if group_names:
+                if isinstance(group_names, str):
+                    group_names = [group_names]
+
+                for group_name in group_names:
+                    if not tasks_by_groups.get(group_name):
+                        tasks_by_groups[group_name] = [task_name]
+                    else:
+                        tasks_by_groups[group_name].append(task_name)
+            else:
+                ungrouped_tasks.append(task_name)
+
+        for task_name in ungrouped_tasks:
             eval_preds = samples[task_name]
 
-            # log the samples as an artifact
-            dumped = json.dumps(
-                eval_preds,
-                indent=2,
-                default=_handle_non_serializable,
-                ensure_ascii=False,
-            )
-            artifact = wandb.Artifact(f"{task_name}", type="samples_by_task")
-            with artifact.new_file(
-                f"{task_name}_eval_samples.json", mode="w", encoding="utf-8"
-            ) as f:
-                f.write(dumped)
-            self.run.log_artifact(artifact)
-            artifact.wait()
-
             # log the samples as a W&B Table
-            df = self.generate_dataset(eval_preds, self.task_configs.get(task_name))
+            df = self._generate_dataset(eval_preds, self.task_configs.get(task_name))
             self.run.log({f"{task_name}_eval_results": df})
+
+            # log the samples as a json file as W&B Artifact
+            self._log_samples_as_artifact(eval_preds, task_name)
+
+        for group, grouped_tasks in tasks_by_groups.items():
+            grouped_df = pd.DataFrame()
+            for task_name in grouped_tasks:
+                eval_preds = samples[task_name]
+                df = self._generate_dataset(eval_preds, self.task_configs.get(task_name))
+                df["group"] = group
+                df["task"] = task_name
+                grouped_df = pd.concat([grouped_df, df], ignore_index=True)
+
+                # log the samples as a json file as W&B Artifact
+                self._log_samples_as_artifact(eval_preds, task_name)
+            
+            self.run.log({f"{group}_eval_results": grouped_df})
 
     def prepare_report_by_task(self, results: Dict[str, Any]) -> List[Any]:
         """Prepare report by task."""
