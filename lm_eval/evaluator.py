@@ -17,13 +17,13 @@ from lm_eval.evaluator_utils import (
     get_task_list,
     prepare_print_tasks,
     print_writeout,
+    run_task_tests,
 )
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     eval_logger,
     get_git_commit_hash,
     positional_deprecated,
-    run_task_tests,
     simple_parse_args_string,
 )
 
