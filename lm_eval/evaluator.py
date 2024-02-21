@@ -11,16 +11,18 @@ import lm_eval.api.metrics
 import lm_eval.api.registry
 import lm_eval.models
 from lm_eval.api.task import Task
-from lm_eval.tasks import TaskManager, get_task_dict
-from lm_eval.utils import (
+from lm_eval.evaluator_utils import (
     consolidate_results,
-    eval_logger,
-    get_git_commit_hash,
     get_sample_size,
     get_task_list,
-    positional_deprecated,
     prepare_print_tasks,
     print_writeout,
+)
+from lm_eval.tasks import TaskManager, get_task_dict
+from lm_eval.utils import (
+    eval_logger,
+    get_git_commit_hash,
+    positional_deprecated,
     run_task_tests,
     simple_parse_args_string,
 )
