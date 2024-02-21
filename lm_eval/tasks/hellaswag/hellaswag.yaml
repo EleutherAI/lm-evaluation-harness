@@ -1,7 +1,7 @@
 group:
   - multiple_choice
 task: hellaswag
-dataset_path: hellaswag
+dataset_path: /workspace/hellaswag
 dataset_name: null
 output_type: multiple_choice
 training_split: train

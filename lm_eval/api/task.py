@@ -755,8 +755,18 @@ class ConfigurableTask(Task):
                 'val': self.DATASET_PATH+"/"+self.DATASET_NAME+"/1.0.0/3923b519fd180e689d0961bf3a032ece929742f3/ceval-exam-val.arrow",
                 'dev': self.DATASET_PATH + "/" + self.DATASET_NAME + "/1.0.0/3923b519fd180e689d0961bf3a032ece929742f3/ceval-exam-val.arrow"
             }
+        elif "hellaswag" in self.DATASET_PATH:
+            dataset_kwargs['data_files'] = {
+                'train': self.DATASET_PATH +"/default/0.1.0/512a66dd8b1b1643ab4a48aa4f150d04c91680da6a4096498a5e5f799623d5ae/hellaswag-train.arrow",
+                'validation': self.DATASET_PATH + "/default/0.1.0/512a66dd8b1b1643ab4a48aa4f150d04c91680da6a4096498a5e5f799623d5ae/hellaswag-validation.arrow"
+            }
+        elif "mmlu" in self.DATASET_PATH:
+            dataset_kwargs['data_files'] = {
+                'dev': self.DATASET_PATH + "/" + self.DATASET_NAME + "/1.0.0/b7d5f7f21003c21be079f11495ee011332b980bd1cd7e70cc740e8c079e5bda2/mmlu_no_train-validation.arrow",
+                'test': self.DATASET_PATH + "/" + self.DATASET_NAME + "/1.0.0/b7d5f7f21003c21be079f11495ee011332b980bd1cd7e70cc740e8c079e5bda2/mmlu_no_train-test.arrow"
+            }
         else:
-            raise ValueError("Only Support cmmlu and ceval-valid datasets")
+            raise ValueError("Only Support cmmlu, ceval-valid, hellaswag and mmlu datasets")
 
         self.dataset = datasets.load_dataset(
             "arrow",
