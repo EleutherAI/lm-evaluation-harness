@@ -1,0 +1,3 @@
+dataset_name: telecommunications_and_wireless_technology
+include: _hard_kmmlu_yaml
+task: kmmlu_hard_telecommunications_and_wireless_technology
