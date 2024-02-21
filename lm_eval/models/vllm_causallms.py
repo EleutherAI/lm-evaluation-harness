@@ -7,9 +7,8 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
+from lm_eval.models.utils import Collator, divide
 from lm_eval.utils import (
-    Collator,
-    divide,
     eval_logger,
     get_rolling_token_windows,
     make_disjoint_window,
@@ -246,7 +245,7 @@ class VLLM(TemplateLM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        re_ords = Collator(requests, _collate_gen, grouping=True)
+        re_ords = Collator(requests, _collate_gen, group_by="gen_kwargs")
         chunks = re_ords.get_batched(
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )

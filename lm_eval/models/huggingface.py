@@ -1,12 +1,18 @@
 import copy
 import os
+from datetime import timedelta
 from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
 import transformers
-from accelerate import Accelerator, DistributedType, find_executable_batch_size
+from accelerate import (
+    Accelerator,
+    DistributedType,
+    InitProcessGroupKwargs,
+    find_executable_batch_size,
+)
 from packaging import version
 from peft import PeftModel
 from peft import __version__ as PEFT_VERSION
@@ -20,7 +26,13 @@ from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.utils import Collator, stop_sequences_criteria
+from lm_eval.models.utils import (
+    Collator,
+    clear_torch_cache,
+    get_dtype,
+    pad_and_concat,
+    stop_sequences_criteria,
+)
 
 
 eval_logger = utils.eval_logger
@@ -66,9 +78,8 @@ class HFLM(TemplateLM):
     def __init__(
         self,
         pretrained: Optional[Union[str, transformers.PreTrainedModel]] = "gpt2",
-        backend: Optional[
-            Literal["default", "causal", "seq2seq"]
-        ] = "default",  # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
+        backend: Optional[Literal["default", "causal", "seq2seq"]] = "default",
+        # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
         revision: Optional[str] = "main",
         subfolder: Optional[str] = None,
         tokenizer: Optional[
@@ -79,6 +90,7 @@ class HFLM(TemplateLM):
             ]
         ] = None,
         truncation: Optional[bool] = False,
+        logits_cache: bool = True,
         max_length: Optional[int] = None,
         device: Optional[str] = "cuda",
         dtype: Optional[Union[str, torch.dtype]] = "auto",
@@ -108,8 +120,8 @@ class HFLM(TemplateLM):
             assert not parallelize, "`parallelize=True` is not compatible with passing pre-initialized model to `pretrained`"
             self._model = pretrained
             self._device = self._model.device
-
             self._config = self._model.config
+            gpus = 0
 
             if tokenizer:
                 assert isinstance(
@@ -132,7 +144,8 @@ class HFLM(TemplateLM):
             assert isinstance(batch_size, (int, str))
 
             gpus = torch.cuda.device_count()
-            accelerator = Accelerator()
+            accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
+            accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
             if accelerator.num_processes > 1:
                 self.accelerator = accelerator
 
@@ -226,7 +239,7 @@ class HFLM(TemplateLM):
         )
 
         self.truncation = truncation
-
+        self.logits_cache = logits_cache
         self.vocab_size = self.tokenizer.vocab_size
         # select (or create) a pad token to use
         if self.tokenizer.pad_token:
@@ -372,7 +385,7 @@ class HFLM(TemplateLM):
 
     def _get_backend(
         self,
-        config: transformers.AutoConfig,
+        config: Union[transformers.PretrainedConfig, transformers.AutoConfig],
         backend: Optional[Literal["default", "causal", "seq2seq"]] = "default",
         trust_remote_code: Optional[bool] = False,
     ) -> None:
@@ -496,13 +509,13 @@ class HFLM(TemplateLM):
             if transformers.__version__ >= "4.30.0":
                 if model_kwargs.get("load_in_4bit", None):
                     if model_kwargs.get("bnb_4bit_compute_dtype", None):
-                        model_kwargs["bnb_4bit_compute_dtype"] = utils.get_dtype(
+                        model_kwargs["bnb_4bit_compute_dtype"] = get_dtype(
                             model_kwargs["bnb_4bit_compute_dtype"]
                         )
             self._model = self.AUTO_MODEL_CLASS.from_pretrained(
                 pretrained,
                 revision=revision,
-                torch_dtype=utils.get_dtype(dtype),
+                torch_dtype=get_dtype(dtype),
                 trust_remote_code=trust_remote_code,
                 **model_kwargs,
             )
@@ -617,7 +630,13 @@ class HFLM(TemplateLM):
 
             return batch_size
 
-        batch_size = forward_batch()
+        try:
+            batch_size = forward_batch()
+        except RuntimeError as e:
+            if "No executable batch size found" in str(e):
+                batch_size = 1
+            else:
+                raise
 
         if self.world_size > 1:
             # if multi-GPU, always take minimum over all selected batch sizes
@@ -626,10 +645,10 @@ class HFLM(TemplateLM):
                 self.accelerator.gather(max_rnk_bs).cpu().detach().numpy().tolist()
             )
             batch_size = min(gathered)
-            utils.clear_torch_cache()
+            clear_torch_cache()
             return batch_size
 
-        utils.clear_torch_cache()
+        clear_torch_cache()
         return batch_size
 
     def tok_encode(
@@ -721,6 +740,11 @@ class HFLM(TemplateLM):
         # and we don't want a warning from HF
         generation_kwargs["temperature"] = generation_kwargs.get("temperature", 0.0)
         do_sample = generation_kwargs.get("do_sample", None)
+
+        # The temperature has to be a strictly positive float -- if it is 0.0, use greedy decoding strategies
+        if generation_kwargs.get("temperature") == 0.0 and do_sample is None:
+            generation_kwargs["do_sample"] = do_sample = False
+
         if do_sample is False and generation_kwargs.get("temperature") == 0.0:
             generation_kwargs.pop("temperature")
         # build stopping criteria
@@ -736,7 +760,9 @@ class HFLM(TemplateLM):
             **generation_kwargs,
         )
 
-    def _select_cont_toks(self, logits, contlen=None, inplen=None):
+    def _select_cont_toks(
+        self, logits: torch.Tensor, contlen: int = None, inplen: int = None
+    ) -> torch.Tensor:
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
             assert (
                 contlen and inplen
@@ -754,6 +780,7 @@ class HFLM(TemplateLM):
 
         return logits
 
+      
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         loglikelihoods = []
 
@@ -794,7 +821,7 @@ class HFLM(TemplateLM):
                     rolling_token_windows += pad_amnt * [rolling_token_windows[0]]
 
             string_nll = self._loglikelihood_tokens(
-                rolling_token_windows,
+                requests=rolling_token_windows,
                 disable_tqdm=True,
                 override_bs=adaptive_batch_size,
             )
@@ -836,7 +863,7 @@ class HFLM(TemplateLM):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
 
-        def _collate(x):
+        def _collate(req: Tuple[Tuple[str, str], List[int], List[int]]):
             """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
@@ -845,10 +872,26 @@ class HFLM(TemplateLM):
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
 
-            toks = x[1] + x[2]
+            toks = req[1] + req[2]
             return -len(toks), tuple(toks)
 
-        re_ord = Collator(requests, sort_fn=_collate)
+        def _lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
+            """Defines the key to group and lookup one-token continuations"""
+            # Use with group_by="contexts" (optional)"
+            # allows for the creation of a lookup, so we can re-use logits in case of one-token continuations.
+            # speeds up some multiple-choice tasks proportionally to the number of choices.
+            # groups requests by context+continuation[:-1] and infer on one request/group.
+            return req[-2] + req[-1][:-1]
+
+        re_ord = Collator(
+            requests,
+            sort_fn=_collate,
+            group_by="contexts"
+            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
+            and self.logits_cache
+            else None,
+            group_fn=_lookup_one_token_cont,
+        )
 
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
@@ -946,18 +989,18 @@ class HFLM(TemplateLM):
             # create encoder attn mask and batched conts, if seq2seq
             call_kwargs = {}
             if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-                batched_inps = utils.pad_and_concat(
+                batched_inps = pad_and_concat(
                     padding_len_inp, inps, padding_side="right"
                 )  # [batch, padding_len_inp]
             elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
                 # TODO: left-pad encoder inps and mask?
-                batched_inps = utils.pad_and_concat(
+                batched_inps = pad_and_concat(
                     padding_len_inp, inps
                 )  # [batch, padding_len_inp]
-                batched_conts = utils.pad_and_concat(
+                batched_conts = pad_and_concat(
                     padding_len_cont, conts
                 )  # [batch, padding_len_cont]
-                batched_encoder_mask = utils.pad_and_concat(
+                batched_encoder_mask = pad_and_concat(
                     padding_len_inp, encoder_attns
                 )  # [batch, padding_len_inp]
                 call_kwargs = {
@@ -969,7 +1012,7 @@ class HFLM(TemplateLM):
                 self._model_call(batched_inps, **call_kwargs), dim=-1
             )  # [batch, padding_length (inp or cont), vocab]
 
-            for (cache_key, _, _), logits, inplen, cont_toks in zip(
+            for (request_str, ctx_tokens, _), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
             ):
                 # Slice to original seq length
@@ -988,24 +1031,36 @@ class HFLM(TemplateLM):
 
                 # Check if per-token argmax is exactly equal to continuation
                 greedy_tokens = logits.argmax(dim=-1)
-                cont_toks = torch.tensor(
-                    cont_toks, dtype=torch.long, device=self.device
-                ).unsqueeze(0)  # [1, seq]
-                max_equal = (greedy_tokens == cont_toks).all()
 
-                # Obtain log-probs at the corresponding continuation token indices
-                # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
-                logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
-                    -1
-                )  # [1, seq]
+                # check for one-token continuation cache hits.
+                # noop in case group_by != "contexts" or no cache hit and returns the
+                # original args. Otherwise, expands the logits batch dimension and yields each
+                # batch along with matching continuation tokens and prompt strings.
+                # logits -> [1, seq, vocab]
+                for request_str, cont_toks, logits in re_ord.get_cache(
+                    req_str=request_str,
+                    cxt_toks=ctx_tokens,
+                    cont_toks=cont_toks,
+                    logits=logits,
+                ):
+                    cont_toks = torch.tensor(
+                        cont_toks, dtype=torch.long, device=self.device
+                    ).unsqueeze(0)  # [1, seq]
+                    max_equal = (greedy_tokens == cont_toks).all()
 
-                # Answer: (log prob, is-exact-match)
-                answer = (float(logits.sum()), bool(max_equal))
+                    # Obtain log-probs at the corresponding continuation token indices
+                    # last_token_slice = logits[:, -1, :].squeeze(0).tolist()
+                    logits = torch.gather(logits, 2, cont_toks.unsqueeze(-1)).squeeze(
+                        -1
+                    )  # [1, seq]
 
-                res.append(answer)
+                    # Answer: (log prob, is-exact-match)
+                    answer = (float(logits.sum()), bool(max_equal))
 
-                self.cache_hook.add_partial("loglikelihood", cache_key, answer)
-                pbar.update(1)
+                    res.append(answer)
+
+                    self.cache_hook.add_partial("loglikelihood", request_str, answer)
+                    pbar.update(1)
 
         pbar.close()
 
@@ -1014,7 +1069,7 @@ class HFLM(TemplateLM):
     def generate_until(self, requests: List[Instance]) -> List[str]:
         res = []
 
-        def _collate(x):
+        def _collate(req: Tuple[str, dict]):
             """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
             # - time estimates will always be over not underestimates, which is more useful for planning
@@ -1022,10 +1077,11 @@ class HFLM(TemplateLM):
             #   padded context length. this is useful to simplify the batching logic and more importantly to make
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
-            toks = self.tok_encode(x[0])
-            return -len(toks), x[0]
+            toks = self.tok_encode(req[0])
+            return -len(toks), req[0]
 
         pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        adaptive_batch_size = None
         if self.batch_size == "auto":
             # using rolling window with maximum context
             print("Passed argument batch_size = auto. Detecting largest batch size")
@@ -1049,7 +1105,13 @@ class HFLM(TemplateLM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        re_ords = Collator([reg.args for reg in requests], _collate, grouping=True)
+        # group_fn=lambda x: x[1] -> x=(context, gen_kwargs)
+        re_ords = Collator(
+            [reg.args for reg in requests],
+            sort_fn=_collate,
+            group_by="gen_kwargs",
+            group_fn=lambda x: x[1],
+        )
         chunks = re_ords.get_batched(n=batch_size, batch_fn=batch_fn)
         for chunk in chunks:
             contexts, all_gen_kwargs = zip(*chunk)
@@ -1070,7 +1132,7 @@ class HFLM(TemplateLM):
                         )
             else:
                 raise ValueError(
-                    f"Expected `kwargs` to be of type `dict` but got {kwargs}"
+                    f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
             if not until:
                 until = [self.tok_decode(self.eot_token_id)]
