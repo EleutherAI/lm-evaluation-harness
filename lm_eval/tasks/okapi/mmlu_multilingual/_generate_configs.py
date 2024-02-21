@@ -10,7 +10,7 @@ def main() -> None:
     # Removed hy and sk subdataset because the original dataset is broken
     # I created this PR https://huggingface.co/datasets/alexandrainst/m_mmlu/discussions/3
     # on the dataset for the authors, in case it will be accepeted the filter can be removed
-    keys_without_hy_sk = list(filter(lambda k: ('hy' not in k and  'sk' not in k), 
+    keys_without_hy_sk = list(filter(lambda k: ('hy' not in k and  'sk' not in k),
                                      datasets.get_dataset_infos(dataset_path).keys()))
 
     for task in tqdm():

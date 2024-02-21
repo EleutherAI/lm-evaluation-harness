@@ -1,0 +1,3 @@
+dataset_name: biology
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_hard_direct_biology
