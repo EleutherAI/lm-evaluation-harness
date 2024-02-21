@@ -6,10 +6,12 @@ from typing import List, Literal, Optional, Tuple
 
 from tqdm import tqdm
 
+import lm_eval.models.utils
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.utils import eval_logger, retry_on_specific_exceptions
+from lm_eval.models.utils import retry_on_specific_exceptions
+from lm_eval.utils import eval_logger
 
 
 def get_result(response, ctxlen: int) -> Tuple[float, bool]:
@@ -219,7 +221,7 @@ class OpenaiCompletionsLM(LM):
         re_ord = utils.Reorderer(requests, _collate)
 
         for chunk in tqdm(
-            list(utils.chunks(re_ord.get_reordered(), self.batch_size)),
+            list(lm_eval.models.utils.chunks(re_ord.get_reordered(), self.batch_size)),
             disable=disable_tqdm,
         ):
             inps = []
@@ -429,7 +431,7 @@ class OpenaiChatCompletionsLM(LM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        grouper = utils.Grouper(requests, lambda x: str(x.args[1]))
+        grouper = lm_eval.models.utils.Grouper(requests, lambda x: str(x.args[1]))
         for key, reqs in grouper.get_grouped().items():
             # within each set of reqs for given kwargs, we reorder by token length, descending.
             re_ords[key] = utils.Reorderer(
@@ -441,7 +443,7 @@ class OpenaiChatCompletionsLM(LM):
             # n needs to be 1 because messages in
             # chat completion are not batch but
             # is regarded as a single conversation.
-            chunks = utils.chunks(re_ord.get_reordered(), n=1)
+            chunks = lm_eval.models.utils.chunks(re_ord.get_reordered(), n=1)
             for chunk in chunks:
                 contexts, all_gen_kwargs = zip(*chunk)
                 inps = [{"role": "user", "content": context} for context in contexts]
