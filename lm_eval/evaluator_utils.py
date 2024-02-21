@@ -67,6 +67,8 @@ class TaskOutput:
         else:
             group_name = None
         if not task:
+            # these gets filtered out in get_task_list
+            # once they are added to group hierarchy
             is_group = True
             return cls(
                 task=task, task_name=task_name, is_group=is_group, group_name=group_name
