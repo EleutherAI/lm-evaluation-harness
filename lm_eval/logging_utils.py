@@ -73,6 +73,7 @@ def _handle_non_serializable(o: Any) -> Union[int, str, list]:
 
 
 def get_wandb_printer() -> Literal["Printer"]:
+    """Returns a wandb printer instance for pretty stdout."""
     from wandb.sdk.lib.printer import get_printer
     from wandb.sdk.wandb_settings import Settings
 
@@ -104,6 +105,111 @@ class WandbLogger:
 
         self.printer = get_wandb_printer()
 
+    def get_config(self) -> Dict[str, Any]:
+        """Get configuration parameters."""
+        self.task_configs = self.results.get("configs", {})
+        cli_configs = self.results.get("config", {})
+        configs = {
+            "task_configs": self.task_configs,
+            "cli_configs": cli_configs,
+        }
+
+        return configs
+
+    def sanitize_results_dict(self) -> Tuple[Dict[str, str], Dict[str, Any]]:
+        """Sanitize the results dictionary."""
+        _results = copy.deepcopy(self.results.get("results", dict()))
+
+        # Remove None from the metric string name
+        tmp_results = copy.deepcopy(_results)
+        for task_name in self.task_names:
+            task_result = tmp_results.get(task_name, dict())
+            for metric_name, metric_value in task_result.items():
+                _metric_name, removed = remove_none_pattern(metric_name)
+                if removed:
+                    _results[task_name][_metric_name] = metric_value
+                    _results[task_name].pop(metric_name)
+
+        # remove string valued keys from the results dict
+        wandb_summary = {}
+        for task in self.task_names:
+            task_result = _results.get(task, dict())
+            for metric_name, metric_value in task_result.items():
+                if isinstance(metric_value, str):
+                    wandb_summary[f"{task}/{metric_name}"] = metric_value
+
+        for summary_metric, summary_value in wandb_summary.items():
+            _task, _summary_metric = summary_metric.split("/")
+            _results[_task].pop(_summary_metric)
+
+        tmp_results = copy.deepcopy(_results)
+        for task_name, task_results in tmp_results.items():
+            for metric_name, metric_value in task_results.items():
+                _results[f"{task_name}/{metric_name}"] = metric_value
+                _results[task_name].pop(metric_name)
+        for task in self.task_names:
+            _results.pop(task)
+
+        return wandb_summary, _results
+
+    def log_results_as_table(self) -> None:
+        """Generate and log evaluation results as a table to W&B."""
+        columns = [
+            "Version",
+            "Filter",
+            "num_fewshot",
+            "Metric",
+            "Value",
+            "Stderr",
+        ]
+
+        def make_table(columns: List[str], key: str = "results"):
+            table = wandb.Table(columns=columns)
+            results = copy.deepcopy(self.results)
+
+            for k, dic in results.get(key).items():
+                if k in self.group_names and not key == "groups":
+                    continue
+                version = results.get("versions").get(k)
+                if version == "N/A":
+                    version = None
+                n = results.get("n-shot").get(k)
+
+                for (mf), v in dic.items():
+                    m, _, f = mf.partition(",")
+                    if m.endswith("_stderr"):
+                        continue
+                    if m == "alias":
+                        continue
+
+                    if m + "_stderr" + "," + f in dic:
+                        se = dic[m + "_stderr" + "," + f]
+                        if se != "N/A":
+                            se = "%.4f" % se
+                        table.add_data(*[k, version, f, n, m, str(v), str(se)])
+                    else:
+                        table.add_data(*[k, version, f, n, m, str(v), ""])
+
+            return table
+
+        # log the complete eval result to W&B Table
+        table = make_table(["Tasks"] + columns, "results")
+        self.run.log({"evaluation/eval_results": table})
+
+        if "groups" in self.results.keys():
+            table = make_table(["Groups"] + columns, "groups")
+            self.run.log({"evaluation/group_eval_results": table})
+
+    def log_results_as_artifact(self) -> None:
+        """Log results as JSON artifact to W&B."""
+        dumped = json.dumps(
+            self.results, indent=2, default=_handle_non_serializable, ensure_ascii=False
+        )
+        artifact = wandb.Artifact("results", type="eval_results")
+        with artifact.new_file("results.json", mode="w", encoding="utf-8") as f:
+            f.write(dumped)
+        self.run.log_artifact(artifact)
+
     def log_eval_result(self) -> None:
         """Log evaluation results to W&B."""
         # Log configs to wandb
@@ -115,50 +221,10 @@ class WandbLogger:
         self.run.summary.update(wandb_summary)
         # Log the evaluation metrics to wandb
         self.run.log(self.wandb_results)
-        # Log the evaluation metrics as Table
-        self.get_eval_wandb_table()
-        # Log the results dict as json
-        self.log_results_as_json()
-
-    def get_eval_wandb_table(self) -> None:
-        """Generate and log evaluation results as a table to W&B."""
-        columns: List[str] = [
-            "Task",
-            "Version",
-            "Filter",
-            "num_fewshot",
-            "Metric",
-            "Value",
-            "Stderr",
-        ]
-        table = wandb.Table(columns=columns)
-        results = copy.deepcopy(self.results)
-
-        for k, dic in results.get("results").items():
-            if k in self.group_names:
-                continue
-            version = results.get("versions").get(k)
-            if version == "N/A":
-                version = None
-            n = results.get("n-shot").get(k)
-
-            for (mf), v in dic.items():
-                m, _, f = mf.partition(",")
-                if m.endswith("_stderr"):
-                    continue
-                if m == "alias":
-                    continue
-
-                if m + "_stderr" + "," + f in dic:
-                    se = dic[m + "_stderr" + "," + f]
-                    if se != "N/A":
-                        se = "%.4f" % se
-                    table.add_data(*[k, version, f, n, m, str(v), str(se)])
-                else:
-                    table.add_data(*[k, version, f, n, m, str(v), ""])
-
-        # log the table to W&B
-        self.run.log({"evaluation/eval_results": table})
+        # Log the evaluation metrics as W&B Table
+        self.log_results_as_table()
+        # Log the results dict as json to W&B Artifacts
+        self.log_results_as_artifact()
 
     def generate_dataset(
         self, data: List[Dict[str, Any]], config: Dict[str, Any]
@@ -280,63 +346,6 @@ class WandbLogger:
             # log the samples as a W&B Table
             df = self.generate_dataset(eval_preds, self.task_configs.get(task_name))
             self.run.log({f"{task_name}_eval_results": df})
-
-    def log_results_as_json(self) -> None:
-        """Log results as JSON artifact to W&B."""
-        dumped = json.dumps(
-            self.results, indent=2, default=_handle_non_serializable, ensure_ascii=False
-        )
-        artifact = wandb.Artifact("results", type="eval_results")
-        with artifact.new_file("results.json", mode="w", encoding="utf-8") as f:
-            f.write(dumped)
-        self.run.log_artifact(artifact)
-
-    def get_config(self) -> Dict[str, Any]:
-        """Get configuration parameters."""
-        self.task_configs = self.results.get("configs", {})
-        cli_configs = self.results.get("config", {})
-        configs = {
-            "task_configs": self.task_configs,
-            "cli_configs": cli_configs,
-        }
-
-        return configs
-
-    def sanitize_results_dict(self) -> Tuple[Dict[str, str], Dict[str, Any]]:
-        """Sanitize the results dictionary."""
-        _results = copy.deepcopy(self.results.get("results", dict()))
-
-        # Remove None from the metric string name
-        tmp_results = copy.deepcopy(_results)
-        for task_name in self.task_names:
-            task_result = tmp_results.get(task_name, dict())
-            for metric_name, metric_value in task_result.items():
-                _metric_name, removed = remove_none_pattern(metric_name)
-                if removed:
-                    _results[task_name][_metric_name] = metric_value
-                    _results[task_name].pop(metric_name)
-
-        # remove string valued keys from the results dict
-        wandb_summary = {}
-        for task in self.task_names:
-            task_result = _results.get(task, dict())
-            for metric_name, metric_value in task_result.items():
-                if isinstance(metric_value, str):
-                    wandb_summary[f"{task}/{metric_name}"] = metric_value
-
-        for summary_metric, summary_value in wandb_summary.items():
-            _task, _summary_metric = summary_metric.split("/")
-            _results[_task].pop(_summary_metric)
-
-        tmp_results = copy.deepcopy(_results)
-        for task_name, task_results in tmp_results.items():
-            for metric_name, metric_value in task_results.items():
-                _results[f"{task_name}/{metric_name}"] = metric_value
-                _results[task_name].pop(metric_name)
-        for task in self.task_names:
-            _results.pop(task)
-
-        return wandb_summary, _results
 
     def prepare_report_by_task(self, results: Dict[str, Any]) -> List[Any]:
         """Prepare report by task."""
