@@ -7,7 +7,7 @@ dataset_name: null  # Overridden by language-specific config.
 output_type: generate_until
 training_split: train
 test_split: test
-target_delimiter: ""
+# target_delimiter: ""
 generation_kwargs:
   until:
     - "\n\n"
