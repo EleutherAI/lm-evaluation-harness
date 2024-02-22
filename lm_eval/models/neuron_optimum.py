@@ -19,6 +19,7 @@ from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import stop_sequences_criteria
 
+
 try:
     NEURON_AVAILABLE = True
     from optimum.neuron import NeuronModelForCausalLM
