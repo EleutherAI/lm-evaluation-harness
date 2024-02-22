@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 import lm_eval.models.utils
 from lm_eval import utils
-from lm_eval.api.model import LM
+from lm_eval.api.model import LM, TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import retry_on_specific_exceptions
 from lm_eval.utils import eval_logger
@@ -75,7 +75,7 @@ def oa_completion(client, chat: bool = False, **kwargs):
 
 
 @register_model("openai-completions", "local-completions")
-class OpenaiCompletionsLM(LM):
+class OpenaiCompletionsLM(TemplateLM):
     _DEFAULT_MAX_LENGTH = 2048
 
     def __init__(
@@ -171,40 +171,11 @@ class OpenaiCompletionsLM(LM):
         # Isn't used because we override _loglikelihood_tokens
         raise NotImplementedError()
 
-    def tok_encode(self, string: str) -> List[int]:
+    def tok_encode(self, string: str, **kwargs) -> List[int]:
         return self.tokenizer.encode(string)
 
     def tok_decode(self, tokens: List[int]) -> str:
         return self.tokenizer.decode(tokens)
-
-    def _encode_pair(
-        self, context: str, continuation: str
-    ) -> Tuple[List[int], List[int]]:
-        n_spaces = len(context) - len(context.rstrip())
-        if n_spaces > 0:
-            continuation = context[-n_spaces:] + continuation
-            context = context[:-n_spaces]
-        whole_enc = self.tok_encode(context + continuation)
-        context_enc = self.tok_encode(context)
-        context_enc_len = len(context_enc)
-        continuation_enc = whole_enc[context_enc_len:]
-        return context_enc, continuation_enc
-
-    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
-        new_reqs = []
-        for context, continuation in [req.args for req in requests]:
-            if context == "":
-                # end of text as context
-                context_enc, continuation_enc = (
-                    [self.eot_token_id],
-                    self.tok_encode(continuation),
-                )
-            else:
-                context_enc, continuation_enc = self._encode_pair(context, continuation)
-
-            new_reqs.append(((context, continuation), context_enc, continuation_enc))
-
-        return self._loglikelihood_tokens(new_reqs)
 
     def _loglikelihood_tokens(
         self, requests, disable_tqdm: bool = False
@@ -290,14 +261,13 @@ class OpenaiCompletionsLM(LM):
             list(sameuntil_chunks(re_ord.get_reordered(), self.batch_size))
         ):
             inps = []
-            self._max_gen_toks = request_args.pop("max_gen_toks", self.max_gen_toks)
+            self._max_gen_toks = request_args.get("max_gen_toks", self.max_gen_toks)
             for context, _ in chunk:
                 context_enc = self.tok_encode(context)
                 inp = context_enc[-(self.max_length - self.max_gen_toks) :]
                 inps.append(inp)
 
-            until = request_args.pop("until", ["<|endoftext|>"])
-            request_args.pop("do_sample", None)
+            until = request_args.get("until", ["<|endoftext|>"])
             request_args["temperature"] = request_args.get("temperature", 0)
 
             response = oa_completion(
@@ -307,7 +277,11 @@ class OpenaiCompletionsLM(LM):
                 max_tokens=self.max_gen_toks,
                 stop=until,
                 seed=self.seed,
-                **request_args,
+                **{
+                    k: v
+                    for k, v in request_args.items()
+                    if k not in ["do_sample", "max_gen_toks"]
+                },
             )
             for resp, (context, args_) in zip(response.choices, chunk):
                 s = getattr(resp, "text")
