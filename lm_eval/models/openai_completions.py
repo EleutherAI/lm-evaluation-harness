@@ -277,7 +277,11 @@ class OpenaiCompletionsLM(TemplateLM):
                 max_tokens=self.max_gen_toks,
                 stop=until,
                 seed=self.seed,
-                **{k: v for k, v in request_args.items() if k not in ["do_sample", "max_gen_toks"]},
+                **{
+                    k: v
+                    for k, v in request_args.items()
+                    if k not in ["do_sample", "max_gen_toks"]
+                },
             )
             for resp, (context, args_) in zip(response.choices, chunk):
                 s = getattr(resp, "text")
