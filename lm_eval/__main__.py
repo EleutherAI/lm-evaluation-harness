@@ -201,6 +201,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         # we allow for args to be passed externally, else we parse them ourselves
         args = parse_eval_args()
 
+    if args.wandb_args:
+        wandb_logger = WandbLogger(args)
+
     eval_logger = utils.eval_logger
     eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
     eval_logger.info(f"Verbosity set to {args.verbosity}")
@@ -318,12 +321,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         # Add W&B logging
         if args.wandb_args:
             try:
-                wandb_logger = WandbLogger(results, args)
+                wandb_logger.post_init(results)
                 wandb_logger.log_eval_result()
                 if args.log_samples:
                     wandb_logger.log_eval_samples(samples)
-                # Tear down wandb run once all the logging is done.
-                wandb_logger.run.finish()
             except Exception as e:
                 eval_logger.info(f"Logging to Weights and Biases failed due to {e}")
 
@@ -351,6 +352,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         print(make_table(results))
         if "groups" in results:
             print(make_table(results, "groups"))
+
+        if args.wandb_args:
+            # Tear down wandb run once all the logging is done.
+            wandb_logger.run.finish()
 
 
 if __name__ == "__main__":

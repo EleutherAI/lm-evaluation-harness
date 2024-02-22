@@ -78,20 +78,16 @@ def get_wandb_printer() -> Literal["Printer"]:
 
 
 class WandbLogger:
-    def __init__(self, results: Dict[str, Any], args: Any) -> None:
+    def __init__(self, args: Any) -> None:
         """Initialize the WandbLogger.
 
         Args:
             results (Dict[str, Any]): The results dictionary.
             args (Any): Arguments for configuration.
         """
-        self.results: Dict[str, Any] = copy.deepcopy(results)
         self.wandb_args: Dict[str, Any] = utils.simple_parse_args_string(
             args.wandb_args
         )
-
-        self.task_names: List[str] = list(results.get("results", {}).keys())
-        self.group_names: List[str] = list(results.get("groups", {}).keys())
 
         # initialize a W&B run
         if wandb.run is None:
@@ -100,6 +96,11 @@ class WandbLogger:
             self.run = wandb.run
 
         self.printer = get_wandb_printer()
+
+    def post_init(self, results: Dict[str, Any]) -> None:
+        self.results: Dict[str, Any] = copy.deepcopy(results)
+        self.task_names: List[str] = list(results.get("results", {}).keys())
+        self.group_names: List[str] = list(results.get("groups", {}).keys())
 
     def _get_config(self) -> Dict[str, Any]:
         """Get configuration parameters."""
