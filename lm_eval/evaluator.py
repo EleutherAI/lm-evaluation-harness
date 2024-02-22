@@ -636,6 +636,7 @@ def evaluate(
         results_dict = {
             "results": dict(results_agg.items()),
             **({"groups": dict(groups_agg.items())} if bool(groups_agg) else {}),
+            "group_subtasks": {k: v for k, v in reversed(task_hierarchy.items())},
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
             "n-shot": dict(sorted(num_fewshot.items())),
