@@ -32,7 +32,7 @@ from lm_eval.caching.cache import delete_cache
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args: Optional[str, dict, None] = None,
+    model_args: Optional[Union[str, dict, None]] = None,
     tasks=None,
     num_fewshot: Optional[int] = None,
     batch_size: Optional[int] = None,
