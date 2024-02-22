@@ -942,6 +942,10 @@ class OpenaiChatCompletionsLM(LM):
                                 int(openai_headers.get("x-ratelimit-limit-tokens"))
                                 * 0.75
                             )
+                        if "max_attempts" in kwargs.keys():
+                            max_attempts = kwargs.pop("max_attempts")
+                        else:
+                            max_attempts = 10
                         kwargs["max_tokens"] = kwargs.pop(
                             "max_gen_toks", self.max_gen_toks
                         )
@@ -977,7 +981,7 @@ class OpenaiChatCompletionsLM(LM):
                     ),  # TODO: adjust this
                     max_tokens_per_minute=float(max_tokens_per_minute),
                     token_encoding_name="cl100k_base",
-                    max_attempts=int(10),
+                    max_attempts=int(max_attempts),
                     logging_level=int(30),
                 )
             )
