@@ -128,23 +128,25 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
 
             yaml_template = "cot_yaml"
             filter_list = {}
+            DELIMITER = None
             if mode == "direct":
                 ANSWER = LANGUAGES[lang]["DIRECT"]
                 REGEX = None
-                task_name = f"mgsm_{lang}_direct"
+                task_name = f"mgsm_direct_{lang}"
                 yaml_template = "direct_yaml"
             elif mode == "native-cot":
                 ANSWER = LANGUAGES[lang]["ANSWER"]
                 REGEX = LANGUAGES[lang]["REGEX"]
-                task_name = f"mgsm_{lang}_native-cot"
+                task_name = f"mgsm_native_cot_{lang}"
                 filter_list = add_regex_pattern(REGEX)
+                DELIMITER = "" if lang in ["zh", "ja"]
             elif mode == "en-cot":
                 ANSWER = LANGUAGES["en"]["ANSWER"]
                 REGEX = LANGUAGES["en"]["REGEX"]
-                task_name = f"mgsm_{lang}_en-cot"
+                task_name = f"mgsm_en_cot_{lang}"
 
             file_name = f"{task_name}.yaml"
-
+            ANSWER_TO_SKIP = len(LANGUAGES[lang]["ANSWER"])+1
             with open(
                 f"{output_dir}/{file_name}", "w" if overwrite else "x", encoding="utf8"
             ) as f:
@@ -153,18 +155,19 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                     {
                         "include": yaml_template,
                         "dataset_name": lang,
-                        "task": f"mgsm_{lang}_direct",
+                        "task": f"{task_name}",
                         "doc_to_text": f"""{{% if answer is not none %}}"""
                         f"""{{{{question+"\\n{ANSWER}"}}}}"""
                         f"""{{% else %}}"""
                         f"""{{{{"{QUESTION} "+question+"\\n{ANSWER}"}}}}"""
                         f"""{{% endif %}}""",
                         "doc_to_target": f"""{{% if answer is not none %}}"""
-                        f"""{{{{answer[{len(ANSWER)}+1]}}}}"""
+                        f"""{{{{answer[{ANSWER_TO_SKIP}:]}}}}"""
                         f"""{{% else %}}"""
                         f"""{{{{answer_number|string}}}}"""
                         f"""{{% endif %}}""",
                         **filter_list,
+                        **({"target_delimiter": DELIMITER} if DELIMITER else {}),
                     },
                     f,
                     allow_unicode=True,
