@@ -24,7 +24,7 @@ from transformers.models.auto.modeling_auto import (
 
 from lm_eval import utils
 from lm_eval.api.instance import Instance
-from lm_eval.api.model import LM
+from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
     Collator,
@@ -64,7 +64,7 @@ def _get_accelerate_args(
 
 
 @register_model("hf-auto", "hf", "huggingface")
-class HFLM(LM):
+class HFLM(TemplateLM):
     """
     An abstracted Huggingface model class. Enables usage with both models of
     `transformers.AutoModelForCausalLM` and `transformers.AutoModelForSeq2SeqLM` classes.
@@ -779,39 +779,6 @@ class HFLM(LM):
             logits = logits[:contlen]
 
         return logits
-
-    def _encode_pair(
-        self, context: str, continuation: str
-    ) -> Tuple[List[int], List[int]]:
-        n_spaces = len(context) - len(context.rstrip())
-        if n_spaces > 0:
-            continuation = context[-n_spaces:] + continuation
-            context = context[:-n_spaces]
-
-        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
-        context_enc = self.tok_encode(context, add_special_tokens=False)
-
-        # whole_enc = self.tok_encode(context + continuation)
-        # context_enc = self.tok_encode(context, add_special_tokens=False)
-        context_enc_len = len(context_enc)
-        continuation_enc = whole_enc[context_enc_len:]
-        return context_enc, continuation_enc
-
-    def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
-        new_reqs = []
-        for context, continuation in [req.args for req in requests]:
-            if context == "":
-                # end of text as context
-                context_enc, continuation_enc = (
-                    [self.eot_token_id],
-                    self.tok_encode(continuation),
-                )
-            else:
-                context_enc, continuation_enc = self._encode_pair(context, continuation)
-
-            new_reqs.append(((context, continuation), context_enc, continuation_enc))
-
-        return self._loglikelihood_tokens(requests=new_reqs)
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         loglikelihoods = []
