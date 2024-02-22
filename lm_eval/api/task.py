@@ -4,10 +4,10 @@ import logging
 import random
 import re
 from collections.abc import Callable
+from copy import deepcopy
 from dataclasses import asdict, dataclass
 from inspect import getsource
 from typing import Any, List, Literal, Tuple, Union
-from copy import deepcopy
 
 import datasets
 import numpy as np
