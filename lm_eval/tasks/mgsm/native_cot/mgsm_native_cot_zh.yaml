@@ -9,4 +9,5 @@ filter_list:
   - function: take_first
   name: get-answer
 include: cot_yaml
+target_delimiter: ""
 task: mgsm_native_cot_zh
