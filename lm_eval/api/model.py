@@ -250,6 +250,10 @@ class CachingLM:
 
 
 class TemplateLM(LM):
+    """
+    A class acting as intermediary between the LM base class 
+    and boilerplate often included in other LM subclasses.
+    """
     @property
     @abc.abstractmethod
     def eot_token_id(self):
