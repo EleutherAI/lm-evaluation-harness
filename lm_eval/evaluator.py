@@ -517,6 +517,7 @@ def evaluate(
                 )
 
         if bool(results):
+            print(list(reversed(task_hierarchy.items())))
             for group, task_list in reversed(task_hierarchy.items()):
                 if len(task_list) == 0:
                     # task_hierarchy entries are either
@@ -636,6 +637,7 @@ def evaluate(
         results_dict = {
             "results": dict(results_agg.items()),
             **({"groups": dict(groups_agg.items())} if bool(groups_agg) else {}),
+            "group_membership": {k: v for k, v in reversed(task_hierarchy.items())},
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
             "n-shot": dict(sorted(num_fewshot.items())),
