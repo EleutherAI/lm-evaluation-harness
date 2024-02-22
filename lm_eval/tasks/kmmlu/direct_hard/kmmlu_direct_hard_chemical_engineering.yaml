@@ -1,0 +1,3 @@
+dataset_name: chemical_engineering
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_hard_direct_chemical_engineering

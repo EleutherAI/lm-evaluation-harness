@@ -1,0 +1,3 @@
+dataset_name: Nondestructive-Testing
+include: _direct_kmmlu_yaml
+task: kmmlu_direct_nondestructive_testing
