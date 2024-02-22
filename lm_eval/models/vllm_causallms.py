@@ -5,7 +5,7 @@ from typing import List, Literal, Optional, Tuple, Union
 from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
-from lm_eval.api.model import LM
+from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator, divide
 from lm_eval.utils import (
@@ -35,7 +35,7 @@ def run_inference_one_model(
 
 
 @register_model("vllm")
-class VLLM(LM):
+class VLLM(TemplateLM):
     _DEFAULT_MAX_LENGTH = 2048
 
     def __init__(
@@ -193,37 +193,6 @@ class VLLM(LM):
             use_tqdm=True if self.batch_size == "auto" else False,
         )
         return outputs
-
-    def _encode_pair(
-        self, context: str, continuation: str
-    ) -> Tuple[List[int], List[int]]:
-        n_spaces = len(context) - len(context.rstrip())
-        if n_spaces > 0:
-            continuation = context[-n_spaces:] + continuation
-            context = context[:-n_spaces]
-
-        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
-        context_enc = self.tok_encode(context, add_special_tokens=False)
-
-        context_enc_len = len(context_enc)
-        continuation_enc = whole_enc[context_enc_len:]
-        return context_enc, continuation_enc
-
-    def loglikelihood(self, requests: List[Instance]) -> List[Tuple[float, bool]]:
-        new_reqs = []
-        for context, continuation in [req.args for req in requests]:
-            if context == "":
-                # end of text as context
-                context_enc, continuation_enc = (
-                    [self.eot_token_id],
-                    self.tok_encode(continuation),
-                )
-            else:
-                context_enc, continuation_enc = self._encode_pair(context, continuation)
-
-            new_reqs.append(((context, continuation), context_enc, continuation_enc))
-
-        return self._loglikelihood_tokens(new_reqs)
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         loglikelihoods = []
