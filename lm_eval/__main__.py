@@ -11,6 +11,7 @@ from typing import Union
 import numpy as np
 
 from lm_eval import evaluator, utils
+from lm_eval.logging_utils import WandbLogger
 from lm_eval.tasks import TaskManager, include_path, initialize_tasks
 from lm_eval.utils import make_table
 
@@ -168,6 +169,11 @@ def parse_eval_args() -> argparse.Namespace:
         help="Controls the reported logging error level. Set to DEBUG when testing + adding new task configurations for comprehensive log output.",
     )
     parser.add_argument(
+        "--wandb_args",
+        default="",
+        help="Comma separated string arguments passed to wandb.init, e.g. `project=lm-eval,job_type=eval",
+    )
+    parser.add_argument(
         "--predict_only",
         "-x",
         action="store_true",
@@ -194,6 +200,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if not args:
         # we allow for args to be passed externally, else we parse them ourselves
         args = parse_eval_args()
+
+    if args.wandb_args:
+        wandb_logger = WandbLogger(args)
 
     eval_logger = utils.eval_logger
     eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
@@ -309,6 +318,16 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
         batch_sizes = ",".join(map(str, results["config"]["batch_sizes"]))
 
+        # Add W&B logging
+        if args.wandb_args:
+            try:
+                wandb_logger.post_init(results)
+                wandb_logger.log_eval_result()
+                if args.log_samples:
+                    wandb_logger.log_eval_samples(samples)
+            except Exception as e:
+                eval_logger.info(f"Logging to Weights and Biases failed due to {e}")
+
         if args.output_path:
             output_path_file.open("w", encoding="utf-8").write(dumped)
 
@@ -333,6 +352,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         print(make_table(results))
         if "groups" in results:
             print(make_table(results, "groups"))
+
+        if args.wandb_args:
+            # Tear down wandb run once all the logging is done.
+            wandb_logger.run.finish()
 
 
 if __name__ == "__main__":
