@@ -960,9 +960,7 @@ class OpenaiChatCompletionsLM(LM):
 
                 print(f"Requests written to {requests_file_path}.")
 
-            print(
-                f"Max requests per minute: {max_requests_per_minute}, use --gen_kwargs max_requests_per_minute=N to override"
-            )
+            print(f"Max requests per minute: {max_requests_per_minute}")
             print(f"Max tokens per minute: {max_tokens_per_minute}")
             print(
                 "use --gen_kwargs max_requests_per_minute=N,max_tokens_per_minute=N to override"
