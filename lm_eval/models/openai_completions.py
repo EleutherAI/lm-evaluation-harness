@@ -261,14 +261,13 @@ class OpenaiCompletionsLM(TemplateLM):
             list(sameuntil_chunks(re_ord.get_reordered(), self.batch_size))
         ):
             inps = []
-            self._max_gen_toks = request_args.pop("max_gen_toks", self.max_gen_toks)
+            self._max_gen_toks = request_args.get("max_gen_toks", self.max_gen_toks)
             for context, _ in chunk:
                 context_enc = self.tok_encode(context)
                 inp = context_enc[-(self.max_length - self.max_gen_toks) :]
                 inps.append(inp)
 
-            until = request_args.pop("until", ["<|endoftext|>"])
-            request_args.pop("do_sample", None)
+            until = request_args.get("until", ["<|endoftext|>"])
             request_args["temperature"] = request_args.get("temperature", 0)
 
             response = oa_completion(
@@ -278,7 +277,11 @@ class OpenaiCompletionsLM(TemplateLM):
                 max_tokens=self.max_gen_toks,
                 stop=until,
                 seed=self.seed,
-                **request_args,
+                **{
+                    k: v
+                    for k, v in request_args.items()
+                    if k not in ["do_sample", "max_gen_toks"]
+                },
             )
             for resp, (context, args_) in zip(response.choices, chunk):
                 s = getattr(resp, "text")

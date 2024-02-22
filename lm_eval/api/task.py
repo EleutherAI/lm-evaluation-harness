@@ -4,6 +4,7 @@ import logging
 import random
 import re
 from collections.abc import Callable
+from copy import deepcopy
 from dataclasses import asdict, dataclass
 from inspect import getsource
 from typing import Any, List, Literal, Tuple, Union
@@ -1064,7 +1065,7 @@ class ConfigurableTask(Task):
             return request_list
 
         elif self.OUTPUT_TYPE == "generate_until":
-            arguments = (ctx, self.config.generation_kwargs)
+            arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
