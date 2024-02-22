@@ -780,7 +780,6 @@ class HFLM(TemplateLM):
 
         return logits
 
-      
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         loglikelihoods = []
 
