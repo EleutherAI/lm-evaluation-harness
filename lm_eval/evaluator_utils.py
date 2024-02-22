@@ -125,6 +125,8 @@ def get_task_list(task_dict: dict) -> Tuple[Dict[str, list], List[TaskOutput]]:
             task_hierarchy[group_name].append(task_output.task_name)
         else:
             task_hierarchy[task_output.task_name] = []
+    # returns task_hierarchy tracking which groups contain which subtasks,
+    # and a list of TaskOutput classes for each non-group subtask
     return task_hierarchy, [x for x in outputs if x.task]
 
 
