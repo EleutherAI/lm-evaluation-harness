@@ -128,6 +128,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
 
             yaml_template = "cot_yaml"
             filter_list = {}
+            DELIMITER = None
             if mode == "direct":
                 ANSWER = LANGUAGES[lang]["DIRECT"]
                 REGEX = None
@@ -138,6 +139,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                 REGEX = LANGUAGES[lang]["REGEX"]
                 task_name = f"mgsm_native_cot_{lang}"
                 filter_list = add_regex_pattern(REGEX)
+                DELIMITER = "" if lang in ["zh", "ja"]
             elif mode == "en-cot":
                 ANSWER = LANGUAGES["en"]["ANSWER"]
                 REGEX = LANGUAGES["en"]["REGEX"]
@@ -165,6 +167,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                         f"""{{{{answer_number|string}}}}"""
                         f"""{{% endif %}}""",
                         **filter_list,
+                        **({"target_delimiter": DELIMITER} if DELIMITER else {}),
                     },
                     f,
                     allow_unicode=True,
