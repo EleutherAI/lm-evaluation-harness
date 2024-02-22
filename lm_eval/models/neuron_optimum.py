@@ -15,7 +15,7 @@ from transformers.generation import StoppingCriteriaList
 
 import lm_eval.models.utils
 from lm_eval import utils
-from lm_eval.api.model import LM
+from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import stop_sequences_criteria
 
@@ -172,7 +172,7 @@ class CustomNeuronModelForCausalLM(NeuronModelForCausalLM):
 
 
 @register_model("neuronx")
-class NEURON_HF(LM):
+class NEURON_HF(TemplateLM):
     """
     Enables usage with on AWS Neuron
     using the HuggingFace Transformers + Transformers neuronx library.
@@ -446,37 +446,6 @@ class NEURON_HF(LM):
         logits = logits[inplen - contlen : inplen]
 
         return logits
-
-    def _encode_pair(self, context, continuation):
-        n_spaces = len(context) - len(context.rstrip())
-        if n_spaces > 0:
-            continuation = context[-n_spaces:] + continuation
-            context = context[:-n_spaces]
-
-        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
-        context_enc = self.tok_encode(context, add_special_tokens=False)
-
-        # whole_enc = self.tok_encode(context + continuation)
-        # context_enc = self.tok_encode(context, add_special_tokens=False)
-        context_enc_len = len(context_enc)
-        continuation_enc = whole_enc[context_enc_len:]
-        return context_enc, continuation_enc
-
-    def loglikelihood(self, requests):
-        new_reqs = []
-        for context, continuation in [req.args for req in requests]:
-            if context == "":
-                # end of text as context
-                context_enc, continuation_enc = (
-                    [self.eot_token_id],
-                    self.tok_encode(continuation),
-                )
-            else:
-                context_enc, continuation_enc = self._encode_pair(context, continuation)
-
-            new_reqs.append(((context, continuation), context_enc, continuation_enc))
-
-        return self._loglikelihood_tokens(new_reqs)
 
     def loglikelihood_rolling(self, requests):
         loglikelihoods = []
