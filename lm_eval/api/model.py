@@ -251,7 +251,7 @@ class CachingLM:
 
 class TemplateLM(LM):
     """
-    A class acting as intermediary between the LM base class 
+    A class acting as intermediary between the LM base class
     and boilerplate often included in other LM subclasses.
     """
     @property
