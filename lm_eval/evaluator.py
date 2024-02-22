@@ -517,7 +517,6 @@ def evaluate(
                 )
 
         if bool(results):
-            print(list(reversed(task_hierarchy.items())))
             for group, task_list in reversed(task_hierarchy.items()):
                 if len(task_list) == 0:
                     # task_hierarchy entries are either
