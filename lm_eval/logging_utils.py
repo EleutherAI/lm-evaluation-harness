@@ -1,12 +1,16 @@
 import copy
 import json
 import logging
+import os
 import re
-from typing import Any, Dict, List, Literal, Tuple, Union
+from pathlib import Path
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 from packaging.version import Version
+from torch.utils.collect_env import get_pretty_env_info
+from transformers import __version__ as trans_version
 
 from lm_eval import utils
 
@@ -384,3 +388,35 @@ class WandbLogger:
                 self._log_samples_as_artifact(eval_preds, task_name)
 
             self.run.log({f"{group}_eval_results": grouped_df})
+
+
+def get_commit_from_path(repo_path: Path) -> Optional[str]:
+    git_folder = Path(repo_path, ".git")
+    if git_folder.is_file():
+        git_folder = Path(
+            git_folder.parent, git_folder.read_text().split("\n")[0].split(" ")[-1]
+        )
+    if Path(git_folder, "HEAD").exists():
+        head_name = Path(git_folder, "HEAD").read_text().split("\n")[0].split(" ")[-1]
+        head_ref = Path(git_folder, head_name)
+        git_hash = head_ref.read_text().replace("\n", "")
+    else:
+        git_hash = None
+    return git_hash
+
+
+def add_env_info(storage: Dict[str, Any]):
+    try:
+        pretty_env_info = get_pretty_env_info()
+    except Exception as err:
+        pretty_env_info = str(err)
+    transformers_version = "Transformers: %s" % trans_version
+    upper_dir_commit = get_commit_from_path(
+        Path(os.getcwd(), "..")
+    )  # git hash of upper repo if exists
+    added_info = {
+        "pretty_env_info": pretty_env_info,
+        "transformers_version": transformers_version,
+        "upper_git_hash": upper_dir_commit,  # in case this repo is submodule
+    }
+    storage.update(added_info)
