@@ -11,7 +11,7 @@ from typing import Union
 import numpy as np
 
 from lm_eval import evaluator, utils
-from lm_eval.logging_utils import WandbLogger, add_env_info
+from lm_eval.logging_utils import WandbLogger
 from lm_eval.tasks import TaskManager, include_path, initialize_tasks
 from lm_eval.utils import make_table
 
@@ -310,7 +310,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if results is not None:
         if args.log_samples:
             samples = results.pop("samples")
-        add_env_info(results)  # place this after popping out samples and before dumping
         dumped = json.dumps(
             results, indent=2, default=_handle_non_serializable, ensure_ascii=False
         )

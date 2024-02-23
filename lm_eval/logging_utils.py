@@ -429,7 +429,7 @@ def add_env_info(storage: Dict[str, Any]):
         pretty_env_info = get_pretty_env_info()
     except Exception as err:
         pretty_env_info = str(err)
-    transformers_version = "Transformers: %s" % trans_version
+    transformers_version = trans_version
     upper_dir_commit = get_commit_from_path(
         Path(os.getcwd(), "..")
     )  # git hash of upper repo if exists
