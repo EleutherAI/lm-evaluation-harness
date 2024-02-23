@@ -5,16 +5,12 @@ import importlib.util
 import inspect
 import logging
 import os
-import pathlib
 import re
 import subprocess
 import sys
 from itertools import islice
-from typing import (
-    Any,
-    Callable,
-    List,
-)
+from pathlib import Path
+from typing import Any, Callable, List, Optional
 
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
@@ -291,7 +287,7 @@ def positional_deprecated(fn):
 
 
 @positional_deprecated
-def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
+def find_test_root(start_path: Path) -> Path:
     """
     Search upward in the directory tree to a maximum of three layers
     to find and return the package root (containing the 'tests' folder)
@@ -315,7 +311,7 @@ def run_task_tests(task_list: List[str]):
     """
     import pytest
 
-    package_root = find_test_root(start_path=pathlib.Path(__file__))
+    package_root = find_test_root(start_path=Path(__file__))
     task_string = " or ".join(task_list)
     args = [
         f"{package_root}/tests/test_version_stable.py",
@@ -331,6 +327,21 @@ def run_task_tests(task_list: List[str]):
         )
 
 
+def get_commit_from_path(repo_path: Path) -> Optional[str]:
+    git_folder = Path(repo_path, ".git")
+    if git_folder.is_file():
+        git_folder = Path(
+            git_folder.parent, git_folder.read_text().split("\n")[0].split(" ")[-1]
+        )
+    if Path(git_folder, "HEAD").exists():
+        head_name = Path(git_folder, "HEAD").read_text().split("\n")[0].split(" ")[-1]
+        head_ref = Path(git_folder, head_name)
+        git_hash = head_ref.read_text().replace("\n", "")
+    else:
+        git_hash = None
+    return git_hash
+
+
 def get_git_commit_hash():
     """
     Gets the git commit hash of your current repo (if it exists).
@@ -339,9 +350,9 @@ def get_git_commit_hash():
     try:
         git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()
         git_hash = git_hash.decode()
-    except subprocess.CalledProcessError or FileNotFoundError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         # FileNotFoundError occurs when git not installed on system
-        git_hash = None
+        git_hash = get_commit_from_path(os.getcwd())  # git hash of repo if exists
     return git_hash
 
 
