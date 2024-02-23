@@ -7,6 +7,18 @@ filter_list:
   - function: regex
     regex_pattern: సమాధానం (\-?[0-9\.\,]+)
   - function: take_first
-  name: get-answer
+  name: strict-match
+- filter:
+  - function: regex
+    group_select: -1
+    regex_pattern: (-?[$0-9.,]{2,})|(-?[0-9]+)
+  - function: take_first
+  name: flexible-extract
+generation_kwargs:
+  do_sample: false
+  until:
+  - 'ప్రశ్న:'
+  - </s>
+  - <|im_end|>
 include: cot_yaml
 task: mgsm_native_cot_te

@@ -19,6 +19,12 @@ filter_list:
     filter:
       - function: remove_whitespace
       - function: take_first
+  - filter:
+    - function: regex
+      group_select: -1
+      regex_pattern: (-?[$0-9.,]{2,})|(-?[0-9]+)
+    - function: take_first
+    name: flexible-extract
 metric_list:
   - metric: exact_match
     aggregation: mean
@@ -26,4 +32,4 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
 metadata:
-  version: 1.0
+  version: 2.0
