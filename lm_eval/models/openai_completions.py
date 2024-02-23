@@ -937,10 +937,9 @@ class OpenaiChatCompletionsLM(LM):
                             max_requests_per_minute = 500  # Default from tier 1 rate limits (lowest paid limits)
                         if "max_tokens_per_minute" in kwargs.keys():
                             max_tokens_per_minute = kwargs.pop("max_tokens_per_minute")
-                        else:  # Get TPM from users account, *0.75 to leave some headroom
-                            max_tokens_per_minute = (
-                                int(openai_headers.get("x-ratelimit-limit-tokens"))
-                                * 0.75
+                        else:  # Get TPM from users account
+                            max_tokens_per_minute = int(
+                                openai_headers.get("x-ratelimit-limit-tokens")
                             )
                         if "max_attempts" in kwargs.keys():
                             max_attempts = kwargs.pop("max_attempts")
@@ -977,9 +976,9 @@ class OpenaiChatCompletionsLM(LM):
                     request_url=str("https://api.openai.com/v1/chat/completions"),
                     api_key=str(os.environ["OPENAI_API_KEY"]),
                     max_requests_per_minute=float(
-                        max_requests_per_minute
-                    ),  # TODO: adjust this
-                    max_tokens_per_minute=float(max_tokens_per_minute),
+                        max_requests_per_minute * 0.75
+                    ),  # *0.75 to leave some headroom
+                    max_tokens_per_minute=float(max_tokens_per_minute * 0.75),
                     token_encoding_name="cl100k_base",
                     max_attempts=int(max_attempts),
                     logging_level=int(30),
