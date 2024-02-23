@@ -10,10 +10,10 @@ import torch
 import lm_eval.api.metrics
 import lm_eval.api.registry
 import lm_eval.models
+from lm_eval.logging_utils import get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     eval_logger,
-    get_git_commit_hash,
     positional_deprecated,
     run_task_tests,
     simple_parse_args_string,

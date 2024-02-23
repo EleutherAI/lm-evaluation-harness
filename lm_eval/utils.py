@@ -6,7 +6,6 @@ import inspect
 import logging
 import os
 import re
-import subprocess
 import sys
 from itertools import islice
 from pathlib import Path
@@ -14,8 +13,6 @@ from typing import Any, Callable, List
 
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
-
-from lm_eval.logging_utils import get_commit_from_path
 
 
 logging.basicConfig(
@@ -327,20 +324,6 @@ def run_task_tests(task_list: List[str]):
         raise ValueError(
             f"Not all tests for the specified tasks ({task_list}) ran successfully! Error code: {pytest_return_val}"
         )
-
-
-def get_git_commit_hash():
-    """
-    Gets the git commit hash of your current repo (if it exists).
-    Source: https://github.com/EleutherAI/gpt-neox/blob/b608043be541602170bfcfb8ec9bf85e8a0799e0/megatron/neox_arguments/neox_args.py#L42
-    """
-    try:
-        git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()
-        git_hash = git_hash.decode()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        # FileNotFoundError occurs when git not installed on system
-        git_hash = get_commit_from_path(os.getcwd())  # git hash of repo if exists
-    return git_hash
 
 
 def ignore_constructor(loader, node):

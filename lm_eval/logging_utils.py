@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
@@ -12,7 +13,7 @@ from packaging.version import Version
 from torch.utils.collect_env import get_pretty_env_info
 from transformers import __version__ as trans_version
 
-from lm_eval import utils
+from lm_eval.utils import simple_parse_args_string
 
 
 logger = logging.getLogger(__name__)
@@ -89,9 +90,7 @@ class WandbLogger:
             results (Dict[str, Any]): The results dictionary.
             args (Any): Arguments for configuration.
         """
-        self.wandb_args: Dict[str, Any] = utils.simple_parse_args_string(
-            args.wandb_args
-        )
+        self.wandb_args: Dict[str, Any] = simple_parse_args_string(args.wandb_args)
 
         # initialize a W&B run
         if wandb.run is None:
@@ -394,14 +393,34 @@ def get_commit_from_path(repo_path: Path) -> Optional[str]:
     git_folder = Path(repo_path, ".git")
     if git_folder.is_file():
         git_folder = Path(
-            git_folder.parent, git_folder.read_text().split("\n")[0].split(" ")[-1]
+            git_folder.parent,
+            git_folder.read_text(encoding="utf-8").split("\n")[0].split(" ")[-1],
         )
     if Path(git_folder, "HEAD").exists():
-        head_name = Path(git_folder, "HEAD").read_text().split("\n")[0].split(" ")[-1]
+        head_name = (
+            Path(git_folder, "HEAD")
+            .read_text(encoding="utf-8")
+            .split("\n")[0]
+            .split(" ")[-1]
+        )
         head_ref = Path(git_folder, head_name)
-        git_hash = head_ref.read_text().replace("\n", "")
+        git_hash = head_ref.read_text(encoding="utf-8").replace("\n", "")
     else:
         git_hash = None
+    return git_hash
+
+
+def get_git_commit_hash():
+    """
+    Gets the git commit hash of your current repo (if it exists).
+    Source: https://github.com/EleutherAI/gpt-neox/blob/b608043be541602170bfcfb8ec9bf85e8a0799e0/megatron/neox_arguments/neox_args.py#L42
+    """
+    try:
+        git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()
+        git_hash = git_hash.decode()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        # FileNotFoundError occurs when git not installed on system
+        git_hash = get_commit_from_path(os.getcwd())  # git hash of repo if exists
     return git_hash
 
 
