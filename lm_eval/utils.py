@@ -6,13 +6,8 @@ import inspect
 import logging
 import os
 import re
-import subprocess
 from itertools import islice
-from typing import (
-    Any,
-    Callable,
-    List,
-)
+from typing import Any, Callable, List
 
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
@@ -286,20 +281,6 @@ def positional_deprecated(fn):
         return fn(*args, **kwargs)
 
     return _wrapper
-
-
-def get_git_commit_hash():
-    """
-    Gets the git commit hash of your current repo (if it exists).
-    Source: https://github.com/EleutherAI/gpt-neox/blob/b608043be541602170bfcfb8ec9bf85e8a0799e0/megatron/neox_arguments/neox_args.py#L42
-    """
-    try:
-        git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()
-        git_hash = git_hash.decode()
-    except subprocess.CalledProcessError or FileNotFoundError:
-        # FileNotFoundError occurs when git not installed on system
-        git_hash = None
-    return git_hash
 
 
 def ignore_constructor(loader, node):

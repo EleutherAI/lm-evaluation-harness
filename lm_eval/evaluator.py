@@ -19,10 +19,10 @@ from lm_eval.evaluator_utils import (
     print_writeout,
     run_task_tests,
 )
+from lm_eval.logging_utils import add_env_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     eval_logger,
-    get_git_commit_hash,
     positional_deprecated,
     simple_parse_args_string,
 )
@@ -233,6 +233,7 @@ def simple_evaluate(
             "gen_kwargs": gen_kwargs,
         }
         results["git_hash"] = get_git_commit_hash()
+        add_env_info(results)  # additional environment info to results
         return results
     else:
         return None
