@@ -399,7 +399,6 @@ def evaluate(
                     )
 
             # then collect metrics across all ranks
-            # vals_torch = collections.defaultdict(list)
             for metrics in task_output.sample_metrics:
                 metric_list = [None] * WORLD_SIZE if RANK == 0 else None
                 torch.distributed.gather_object(
