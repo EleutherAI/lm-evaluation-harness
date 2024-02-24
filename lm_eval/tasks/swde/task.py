@@ -25,20 +25,6 @@ from lm_eval.api.task import ConfigurableTask
 from lm_eval.api.instance import Instance
 
 
-
-
-def _squad_metric(predictions, references):
-    # squad_metric = load("squad_v2")
-    squad_metric = datasets.load_metric("squad_v2")
-    return squad_metric.compute(predictions=predictions, references=references)
-
-
-def _squad_agg(key, items):
-    predictions, references = zip(*items)
-
-    return _squad_metric(predictions=predictions, references=references).get(key, 0)
-
-
 class SWDE(ConfigurableTask):
     VERSION = 0
     DATASET_PATH = "hazyresearch/based-swde"
@@ -82,7 +68,7 @@ class SWDE(ConfigurableTask):
             Instance(
                 request_type="generate_until",
                 doc=doc,
-                arguments=(ctx, {"until": ["\n"]}),
+                arguments=(ctx, {"until": ["\n"], "max_gen_toks": 48}),
                 idx=0,
                 **kwargs,
             )
