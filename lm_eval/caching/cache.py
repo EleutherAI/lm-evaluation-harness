@@ -1,7 +1,6 @@
 import os
 import dill
 import hashlib
-import random
 
 from lm_eval.utils import eval_logger
 
@@ -12,18 +11,11 @@ OVERRIDE_PATH = os.getenv("LM_HARNESS_CACHE_PATH")
 
 PATH = OVERRIDE_PATH if OVERRIDE_PATH else f"{MODULE_DIR}/.cache"
 
-# this is to effectively eliminate the possibility of a cache collision
-random.seed("EleutherAI")
-
-# we probably don't need a salt for this, but more chaos = lower liklihood of collision
-SALT = random.random()
-
-HASH_INPUT = f"{SALT}-EleutherAI-lm-evaluation-harness"
+# This should be sufficient for uniqueness
+HASH_INPUT = f"EleutherAI-lm-evaluation-harness"
 
 HASH_PREFIX = hashlib.sha256(HASH_INPUT.encode("utf-8")).hexdigest()
 
-# we just append the hash to the file so it's still easy to see what saved what
-# e
 FILE_SUFFIX = f".{HASH_PREFIX}.pickle"
 
 
