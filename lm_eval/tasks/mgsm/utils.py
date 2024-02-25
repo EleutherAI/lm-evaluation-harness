@@ -139,7 +139,8 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                 REGEX = LANGUAGES[lang]["REGEX"]
                 task_name = f"mgsm_native_cot_{lang}"
                 filter_list = add_regex_pattern(REGEX)
-                DELIMITER = "" if lang in ["zh", "ja"]
+                if lang in ["zh", "ja"]:
+                    DELIMITER = "" 
             elif mode == "en-cot":
                 ANSWER = LANGUAGES["en"]["ANSWER"]
                 REGEX = LANGUAGES["en"]["REGEX"]
