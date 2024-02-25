@@ -33,10 +33,11 @@ def setup_and_teardown():
 
 
 def clear_cache():
-    cache_files = os.listdir(PATH)
-    for file in cache_files:
-        file_path = f"{PATH}/{file}"
-        os.unlink(file_path)
+    if os.path.exists(PATH):
+        cache_files = os.listdir(PATH)
+        for file in cache_files:
+            file_path = f"{PATH}/{file}"
+            os.unlink(file_path)
 
 
 # leaving tasks here to allow for the option to select specific task files
