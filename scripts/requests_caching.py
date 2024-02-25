@@ -4,14 +4,8 @@ Usage:
 """
 
 import argparse
-from typing import List
 import os
-
-MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
-
-# Used to specify alternate cache path, useful if run in a docker container
-# NOTE raw datasets will break if you try to transfer the cache from your host to a docker image
-LM_HARNESS_CACHE_PATH = os.getenv("LM_HARNESS_CACHE_PATH")
+from typing import List
 
 import torch
 from transformers import (
@@ -21,6 +15,14 @@ from transformers import (
 from lm_eval import simple_evaluate
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.utils import eval_logger
+
+
+MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
+
+# Used to specify alternate cache path, useful if run in a docker container
+# NOTE raw datasets will break if you try to transfer the cache from your host to a docker image
+LM_HARNESS_CACHE_PATH = os.getenv("LM_HARNESS_CACHE_PATH")
+
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 

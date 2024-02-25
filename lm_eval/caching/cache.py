@@ -1,8 +1,10 @@
-import os
-import dill
 import hashlib
+import os
+
+import dill
 
 from lm_eval.utils import eval_logger
+
 
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -12,7 +14,7 @@ OVERRIDE_PATH = os.getenv("LM_HARNESS_CACHE_PATH")
 PATH = OVERRIDE_PATH if OVERRIDE_PATH else f"{MODULE_DIR}/.cache"
 
 # This should be sufficient for uniqueness
-HASH_INPUT = f"EleutherAI-lm-evaluation-harness"
+HASH_INPUT = "EleutherAI-lm-evaluation-harness"
 
 HASH_PREFIX = hashlib.sha256(HASH_INPUT.encode("utf-8")).hexdigest()
 
@@ -27,7 +29,7 @@ def load_from_cache(file_name):
             cached_task_dict = dill.loads(file.read())
             return cached_task_dict
 
-    except Exception as exception:
+    except Exception:
         eval_logger.debug(f"{file_name} is not cached, generating...")
         pass
 

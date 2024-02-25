@@ -3,17 +3,15 @@ import itertools
 import logging
 import math
 import random
-from typing import Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import numpy as np
 import torch
 
 import lm_eval.api.metrics
 import lm_eval.api.registry
-
 import lm_eval.models
 from lm_eval.tasks import TaskManager, get_task_dict
-
 from lm_eval.utils import (
     eval_logger,
     get_git_commit_hash,
@@ -21,6 +19,7 @@ from lm_eval.utils import (
     run_task_tests,
     simple_parse_args_string,
 )
+
 
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
@@ -173,7 +172,9 @@ def simple_evaluate(
             use_cache
             # each rank receives a different cache db.
             # necessary to avoid multiple writes to cache at once
-            + "_rank" + str(lm.rank) + ".db",
+            + "_rank"
+            + str(lm.rank)
+            + ".db",
         )
 
     if task_manager is None:
@@ -554,9 +555,11 @@ def evaluate(
             if bootstrap_iters > 0:
                 stderr_fn = lm_eval.api.metrics.stderr_for_metric(
                     metric=agg_fn,
-                    bootstrap_iters=min(bootstrap_iters, 100)
-                    if metric in ["bleu", "chrf", "ter"]
-                    else bootstrap_iters,
+                    bootstrap_iters=(
+                        min(bootstrap_iters, 100)
+                        if metric in ["bleu", "chrf", "ter"]
+                        else bootstrap_iters
+                    ),
                 )
 
                 results[task_name][f"{metric}_stderr,{key}"] = (

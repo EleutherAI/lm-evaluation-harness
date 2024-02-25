@@ -1,14 +1,16 @@
 # import lm_eval.base as base
-import torch
-import pytest
 import importlib
+import os
 import sys
 from datetime import datetime
-import os
 from typing import List, Tuple
+
+import pytest
+import torch
 
 # import lm_eval.models as models
 from lm_eval.caching.cache import PATH
+
 
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -55,7 +57,6 @@ def get_cache_files(tasks: List[str] = None) -> Tuple[List[str], List[str]]:
 
 
 def assert_created(tasks: List[str], file_task_names: List[str]):
-
     tasks.sort()
     file_task_names.sort()
 
@@ -107,7 +108,6 @@ def test_requests_caching_delete(tasks: List[str]):
 if __name__ == "__main__":
 
     def run_tests():
-
         tests = [
             test_requests_caching_true,
             test_requests_caching_refresh,
