@@ -90,9 +90,6 @@ all = [
     "lm_eval[wandb]",
 ]
 
-[tool.ruff]
-extend-exclude = ["lm_eval/tasks/*.py"]
-
 [tool.ruff.lint]
 extend-select = ["I"]
 
@@ -101,5 +98,4 @@ lines-after-imports = 2
 known-first-party = ["lm_eval"]
 
 [tool.ruff.extend-per-file-ignores]
-"__init__.py" = ["F401","F402","F403","I"]
-"lm_eval/tasks/*"= ["E721"]
+"__init__.py" = ["F401","F402","F403"]

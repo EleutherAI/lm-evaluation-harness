@@ -1,6 +1,8 @@
-import datasets
 import re
+
+import datasets
 import numpy as np
+
 
 QA_PROMPT = (
     "Q: What is human life expectancy in the United States?\n"
@@ -16,6 +18,7 @@ QA_PROMPT = (
     "Q: Where were the 1992 Olympics held?\n"
     "A: The 1992 Olympics were held in Barcelona, Spain."
 )
+
 
 def preprocess(text):
     if text is None:
