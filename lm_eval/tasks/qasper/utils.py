@@ -1,5 +1,6 @@
-from datasets import Dataset
 from functools import partial
+
+from datasets import Dataset
 
 
 def process_docs(dataset, set_answer_type="bool"):

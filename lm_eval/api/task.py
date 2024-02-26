@@ -11,6 +11,7 @@ from typing import Any, Iterator, List, Literal, Tuple, Union
 
 import datasets
 import numpy as np
+from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers
@@ -28,6 +29,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
+from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
 
@@ -107,9 +109,11 @@ class TaskConfig(dict):
             if self.output_type == "generate_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
                 self.generation_kwargs = {
-                    "until": None
-                    if self.fewshot_delimiter is None
-                    else [self.fewshot_delimiter],
+                    "until": (
+                        None
+                        if self.fewshot_delimiter is None
+                        else [self.fewshot_delimiter]
+                    ),
                     "do_sample": False,
                 }
 
@@ -349,13 +353,68 @@ class Task(abc.ABC):
     def doc_to_target(self, doc):
         pass
 
-    def build_all_requests(self, *, limit=None, rank=0, world_size=1) -> None:
+    def build_all_requests(
+        self,
+        limit=None,
+        rank=None,
+        world_size=None,
+        cache_requests=False,
+        rewrite_requests_cache=False,
+    ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
+
+        # used with caching
+        og_limit = limit
+
+        cache_key = f"requests-{self._config.task}"
+
+        cached_instances = load_from_cache(file_name=cache_key)
+
+        if cache_requests and cached_instances and not rewrite_requests_cache:
+            cached_instances = cached_instances[:limit]
+
+            flattened_instances = [
+                instance
+                for instance_group in cached_instances
+                for instance in instance_group
+            ]
+
+            self._instances = flattened_instances
+            return
+
+        if self.has_test_docs():
+            docs = self.test_docs()
+        elif self.has_validation_docs():
+            docs = self.validation_docs()
+        else:
+            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+
         eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
 
         instances = []
-        for doc_id, doc in self.doc_iterator(
-            rank=rank, world_size=world_size, limit=limit
+
+        # process all documents when caching is specified for simplicity
+        if (
+            cache_requests
+            and (not cached_instances or rewrite_requests_cache)
+            and limit is not None
+        ):
+            limit = None
+
+        doc_id_docs = list(
+            utils.create_iterator(
+                enumerate(docs),
+                rank,
+                world_size,
+                limit,
+            )
+        )
+
+        num_docs = len(doc_id_docs)
+
+        for doc_id, doc in tqdm(
+            doc_id_docs,
+            total=num_docs,
         ):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(
@@ -373,10 +432,24 @@ class Task(abc.ABC):
             if not isinstance(inst, list):
                 inst = [inst]
 
-            instances.extend(inst)
+            instances.append(inst)
 
-        self._instances = instances
+        # now flatten, this is to allow slicing to work with pickles
+
+        sliced_instances = instances[:og_limit]
+
+        flattened_instances = [
+            instance
+            for instance_group in sliced_instances
+            for instance in instance_group
+        ]
+
+        self._instances = flattened_instances
+
         assert len(self._instances) != 0, "task.build_requests() did not find any docs!"
+
+        if cache_requests and (not cached_instances or rewrite_requests_cache):
+            save_to_cache(file_name=cache_key, obj=instances)
 
     @abc.abstractmethod
     def construct_requests(self, doc, ctx, **kwargs):
@@ -1170,12 +1243,21 @@ class ConfigurableTask(Task):
                 # TODO: this gets score of 0 on arc_challenge for pythia-70m. need to test that this works properly
                 exact_match = int(is_greedy[gold]) if gold != -100 else 0
 
+            prob_norm = utils.softmax(lls)
+
+            # TODO use keyword arguments to the metric?
+            # gold, pred, norm stuff, the original lls,
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
                 **({"f1": (gold, pred)} if "f1" in use_metric else {}),
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
+                **(
+                    {"brier_score": (gold, prob_norm)}
+                    if "brier_score" in use_metric
+                    else {}
+                ),
             }
 
             if "acc_mutual_info" in use_metric:

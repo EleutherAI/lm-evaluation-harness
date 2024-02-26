@@ -1,6 +1,5 @@
 import re
 import sys
-
 import unicodedata
 
 from lm_eval.filters.extraction import RegexFilter
@@ -10,8 +9,13 @@ class MultiChoiceRegexFilter(RegexFilter):
     """ """
 
     def __init__(
-            self, regex_pattern: str = r"#### (\-?[0-9\.\,]+)", group_select=0, fallback: str = "[invalid]",
-            ignore_case=False, ignore_punctuation=False, regexes_to_ignore=None,
+        self,
+        regex_pattern: str = r"#### (\-?[0-9\.\,]+)",
+        group_select=0,
+        fallback: str = "[invalid]",
+        ignore_case=False,
+        ignore_punctuation=False,
+        regexes_to_ignore=None,
     ) -> None:
         """
         regex_pattern: The basic regex pattern to use. If fails to match, we will use the customized match procedure
@@ -44,8 +48,11 @@ class MultiChoiceRegexFilter(RegexFilter):
                     match = convert_dict[match]
             return match
 
-        punct_tbl = dict.fromkeys(i for i in range(sys.maxunicode)
-                                  if unicodedata.category(chr(i)).startswith('P'))
+        punct_tbl = dict.fromkeys(
+            i
+            for i in range(sys.maxunicode)
+            if unicodedata.category(chr(i)).startswith("P")
+        )
 
         def filter_ignores(st):
             if self.regexes_to_ignore is not None:
@@ -65,12 +72,12 @@ class MultiChoiceRegexFilter(RegexFilter):
         for r, doc in zip(resps, docs):
             fallback_regexes = []
             choice_to_alpha = {}
-            next_alpha = 'A'
+            next_alpha = "A"
 
             without_paren_fallback_regexes = []
             without_paren_to_target = {}
 
-            choices = doc['choices']
+            choices = doc["choices"]
             for c in choices:
                 m = filter_ignores(c.strip())
                 fallback_regexes.append(f"{re.escape(m)}")
@@ -80,17 +87,23 @@ class MultiChoiceRegexFilter(RegexFilter):
                 without_paren_to_target[next_alpha] = f"({next_alpha})"
 
                 next_alpha = chr(ord(next_alpha) + 1)
-            fallback_regex = re.compile('|'.join(fallback_regexes))
-            without_paren_fallback_regex = '|'.join(without_paren_fallback_regexes)
-            without_paren_fallback_regex = re.compile(f":[\s]*({without_paren_fallback_regex})")
+            fallback_regex = re.compile("|".join(fallback_regexes))
+            without_paren_fallback_regex = "|".join(without_paren_fallback_regexes)
+            without_paren_fallback_regex = re.compile(
+                f":[\s]*({without_paren_fallback_regex})"
+            )
 
             filtered = []
             for resp in r:
                 match = find_match(self.regex, resp)
                 if not match:
-                    match = find_match(fallback_regex, filter_ignores(resp), choice_to_alpha)
+                    match = find_match(
+                        fallback_regex, filter_ignores(resp), choice_to_alpha
+                    )
                     if not match:
-                        match = find_match(without_paren_fallback_regex, resp, without_paren_to_target)
+                        match = find_match(
+                            without_paren_fallback_regex, resp, without_paren_to_target
+                        )
                 if not match:
                     match = self.fallback
                 filtered.append(match)

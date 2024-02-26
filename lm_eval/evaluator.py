@@ -1,8 +1,9 @@
 import collections
 import itertools
 import logging
+import math
 import random
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import numpy as np
 import torch
@@ -28,16 +29,26 @@ from lm_eval.utils import (
 )
 
 
+if TYPE_CHECKING:
+    from lm_eval.api.model import LM
+    from lm_eval.tasks import Task
+
+from lm_eval.caching.cache import delete_cache
+
+
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args: Optional[str] = None,
+    model_args: Optional[Union[str, dict, None]] = None,
     tasks=None,
     num_fewshot: Optional[int] = None,
     batch_size: Optional[int] = None,
     max_batch_size: Optional[int] = None,
     device: Optional[str] = None,
     use_cache: Optional[str] = None,
+    cache_requests: bool = False,
+    rewrite_requests_cache: bool = False,
+    delete_requests_cache: bool = False,
     limit: Optional[Union[int, float]] = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
@@ -56,8 +67,8 @@ def simple_evaluate(
 
     :param model: Union[str, LM]
         Name of model or LM object, see lm_eval.models.get_model
-    :param model_args: Optional[str]
-        String arguments for each model class, see LM.create_from_arg_string.
+    :param model_args: Optional[str, dict]
+        String or dict arguments for each model class, see LM.create_from_arg_string and LM.create_from_arg_object.
         Ignored if `model` argument is a LM object.
     :param tasks: list[Union[str, dict, Task]]
         List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
@@ -71,6 +82,12 @@ def simple_evaluate(
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
     :param use_cache: str, optional
         A path to a sqlite db file for caching model responses. `None` if not caching.
+    :param cache_requests: bool, optional
+        Speed up evaluation by caching the building of dataset requests. `None` if not caching.
+    :param rewrite_requests_cache: bool, optional
+        Rewrites all of the request cache if set to `True`. `None` if not desired.
+    :param delete_requests_cache: bool, optional
+        Deletes all of the request cache if set to `True`. `None` if not desired.
     :param limit: int or float, optional
         Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param bootstrap_iters:
@@ -97,6 +114,10 @@ def simple_evaluate(
         Dictionary of results
     """
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+
+    if delete_requests_cache:
+        eval_logger.info("Deleting requests cache...")
+        delete_cache()
 
     seed_message = []
     if random_seed is not None:
@@ -132,14 +153,26 @@ def simple_evaluate(
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
-        lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
-            model_args,
-            {
-                "batch_size": batch_size,
-                "max_batch_size": max_batch_size,
-                "device": device,
-            },
-        )
+
+        elif isinstance(model_args, dict):
+            lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
+                model_args,
+                {
+                    "batch_size": batch_size,
+                    "max_batch_size": max_batch_size,
+                    "device": device,
+                },
+            )
+
+        else:
+            lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
+                model_args,
+                {
+                    "batch_size": batch_size,
+                    "max_batch_size": max_batch_size,
+                    "device": device,
+                },
+            )
     else:
         assert isinstance(model, lm_eval.api.model.LM)
         lm = model
@@ -203,6 +236,8 @@ def simple_evaluate(
         lm=lm,
         task_dict=task_dict,
         limit=limit,
+        cache_requests=cache_requests,
+        rewrite_requests_cache=rewrite_requests_cache,
         bootstrap_iters=bootstrap_iters,
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
@@ -223,9 +258,9 @@ def simple_evaluate(
             "model": model_name,
             "model_args": model_args,
             "batch_size": batch_size,
-            "batch_sizes": list(lm.batch_sizes.values())
-            if hasattr(lm, "batch_sizes")
-            else [],
+            "batch_sizes": (
+                list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else []
+            ),
             "device": device,
             "use_cache": use_cache,
             "limit": limit,
@@ -244,9 +279,11 @@ decontaminate_suffix = "_decontaminate"
 
 @positional_deprecated
 def evaluate(
-    lm,
+    lm: "LM",
     task_dict,
     limit: Optional[int] = None,
+    cache_requests=False,
+    rewrite_requests_cache=False,
     bootstrap_iters: Optional[int] = 100000,
     decontamination_ngrams_path=None,
     write_out: bool = False,
@@ -290,7 +327,13 @@ def evaluate(
     for task_output in eval_tasks:
         task: Task = task_output.task
         limit = get_sample_size(task, limit)
-        task.build_all_requests(rank=lm.rank, limit=limit, world_size=lm.world_size)
+        task.build_all_requests(
+            limit=limit,
+            rank=lm.rank,
+            world_size=lm.world_size,
+            cache_requests=cache_requests,
+            rewrite_requests_cache=rewrite_requests_cache,
+        )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
         )
@@ -513,3 +556,15 @@ def evaluate(
 
     else:
         return None
+
+
+def request_caching_arg_to_dict(cache_requests: str) -> dict:
+    request_caching_args = {
+        "cache_requests": (
+            True if cache_requests == "true" or cache_requests == "refresh" else False
+        ),
+        "rewrite_requests_cache": True if cache_requests == "refresh" else False,
+        "delete_requests_cache": True if cache_requests == "delete" else False,
+    }
+
+    return request_caching_args

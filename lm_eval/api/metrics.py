@@ -116,6 +116,25 @@ def ter(items):
     return sacrebleu.corpus_ter(preds, refs).score
 
 
+@register_aggregation("brier_score")
+def brier_score(items):  # This is a passthrough function
+    gold, predictions = list(zip(*items))
+    gold = list(gold)
+    gold_one_hot = np.eye(np.max(gold) + 1)[gold]
+    predictions = list(zip(*items))[1]
+    return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
+
+
+@register_metric(
+    metric="brier_score",
+    higher_is_better=False,
+    output_type=["multiple_choice"],
+    aggregation="brier_score",
+)
+def brier_score_fn(items):  # This is a passthrough function
+    return items
+
+
 @register_metric(
     metric="acc",
     higher_is_better=True,
