@@ -274,8 +274,8 @@ class TemplateLM(LM):
             continuation = context[-n_spaces:] + continuation
             context = context[:-n_spaces]
 
-        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
-        context_enc = self.tok_encode(context, add_special_tokens=False)
+        whole_enc = self.tok_encode(context + continuation)
+        context_enc = self.tok_encode(context)
 
         context_enc_len = len(context_enc)
         continuation_enc = whole_enc[context_enc_len:]
