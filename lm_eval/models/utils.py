@@ -1,6 +1,7 @@
 import collections
 import fnmatch
 import gc
+import itertools
 import time
 from functools import wraps
 from typing import (
@@ -311,6 +312,46 @@ def divide(iterable, n) -> List[Iterator]:
         ret.append(iter(seq[start:stop]))
 
     return ret
+
+
+def undistribute(iterable):
+    """
+    Undoes https://more-itertools.readthedocs.io/en/stable/api.html#more_itertools.distribute .
+
+    Re-interleaves results that have been split using more_itertools.distribute:
+        >>> group_1, group_2 = distribute(2, [1, 2, 3, 4, 5, 6])
+        >>> list(group_1)
+        [1, 3, 5]
+        >>> list(group_2)
+        [2, 4, 6]
+        >>> undistribute([group_1, group_2])
+        [1, 2, 3, 4, 5, 6]
+
+    Handles non-uniform component lengths:
+
+        >>> children = distribute(3, [1, 2, 3, 4, 5, 6, 7])
+        >>> [list(c) for c in children]
+        [[1, 4, 7], [2, 5], [3, 6]]
+        >>> undistribute(children)
+        [1, 2, 3, 4, 5, 6, 7]
+
+    Also handles when some iterables are empty:
+
+        >>> children = distribute(5, [1, 2, 3])
+        >>> [list(c) for c in children]
+        [[1], [2], [3], [], []]
+        >>> undistribute(children)
+        [1, 2, 3]
+
+    """
+
+    return [
+        x
+        for x in itertools.chain.from_iterable(
+            itertools.zip_longest(*[list(x) for x in iterable])
+        )
+        if x is not None
+    ]
 
 
 def retry_on_specific_exceptions(
