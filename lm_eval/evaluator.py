@@ -1,7 +1,6 @@
 import collections
 import itertools
 import logging
-import math
 import random
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -11,7 +10,6 @@ import torch
 import lm_eval.api.metrics
 import lm_eval.api.registry
 import lm_eval.models
-from lm_eval.api.task import Task
 from lm_eval.evaluator_utils import (
     consolidate_results,
     get_sample_size,

@@ -395,7 +395,9 @@ class Task(abc.ABC):
         ):
             limit = None
 
-        doc_id_docs = list(self.doc_iterator(rank=rank, limit=limit, world_size=world_size))
+        doc_id_docs = list(
+            self.doc_iterator(rank=rank, limit=limit, world_size=world_size)
+        )
 
         num_docs = len(doc_id_docs)
 
