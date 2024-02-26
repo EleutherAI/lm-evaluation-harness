@@ -68,6 +68,7 @@ SUBJECTS = {
     "world_religions": "العلوم الانسانية",
 }
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base_yaml_path", required=True)
