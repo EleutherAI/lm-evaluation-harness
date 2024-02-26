@@ -13,14 +13,15 @@ also determine when no answer is supported by the paragraph and abstain from ans
 
 Homepage: https://rajpurkar.github.io/SQuAD-explorer/
 """
-import datasets
-
-from math import exp
 from functools import partial
+from math import exp
+
+import datasets
 from packaging import version
 
-from lm_eval.api.task import ConfigurableTask
 from lm_eval.api.instance import Instance
+from lm_eval.api.task import ConfigurableTask
+
 
 _CITATION = """
 @misc{rajpurkar2018know,
@@ -35,7 +36,6 @@ _CITATION = """
 
 
 def _squad_metric(predictions, references):
-    # squad_metric = load("squad_v2")
     squad_metric = datasets.load_metric("squad_v2")
     return squad_metric.compute(predictions=predictions, references=references)
 
@@ -52,7 +52,7 @@ class SQuAD2(ConfigurableTask):
     DATASET_NAME = None
 
     def __init__(self):
-        super().__init__(config={'metadata': {'version': self.VERSION}})
+        super().__init__(config={"metadata": {"version": self.VERSION}})
 
     # HF changed squad on us so we have to make sure we aren't running the old one
     assert version.parse(datasets.__version__) >= version.parse(

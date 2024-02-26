@@ -1,5 +1,6 @@
-import yaml
 import argparse
+
+import yaml
 
 
 LANGUAGES = {
@@ -126,6 +127,7 @@ def add_regex_pattern(regex_pattern):
         ],
     }
 
+
 def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
     """
     Generate a yaml file for each language.
@@ -158,7 +160,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                 task_name = f"mgsm_en_cot_{lang}"
 
             file_name = f"{task_name}.yaml"
-            ANSWER_TO_SKIP = len(LANGUAGES[lang]["ANSWER"])+1
+            ANSWER_TO_SKIP = len(LANGUAGES[lang]["ANSWER"]) + 1
             with open(
                 f"{output_dir}/{file_name}", "w" if overwrite else "x", encoding="utf8"
             ) as f:
@@ -181,7 +183,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                         **filter_list,
                         "generation_kwargs": {
                             "until": [QUESTION, "</s>", "<|im_end|>"],
-                            "do_sample": False
+                            "do_sample": False,
                         },
                         **({"target_delimiter": DELIMITER} if DELIMITER else {}),
                     },
