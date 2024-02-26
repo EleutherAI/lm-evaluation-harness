@@ -98,6 +98,7 @@ class HFLM(TemplateLM):
         max_batch_size: Optional[int] = 64,
         trust_remote_code: Optional[bool] = True,
         use_fast_tokenizer: Optional[bool] = True,
+        add_bos_token: Optional[bool] = False,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
         parallelize: Optional[bool] = False,
@@ -264,6 +265,14 @@ class HFLM(TemplateLM):
                 assert self.tokenizer.pad_token_id == 0
             else:
                 self.tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
+
+        # TODO: override this for Gemma
+        self.add_bos_token = add_bos_token
+        if self.config.model_type == "gemma":
+            eval_logger.info(
+                "Model is of type 'gemma', will use a BOS token as Gemma underperforms without it."
+            )
+            self.add_bos_token = True
 
         self._max_length = max_length
 
@@ -657,8 +666,9 @@ class HFLM(TemplateLM):
         """ """
         if add_special_tokens is None:
             if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-                add_special_tokens = False
+                add_special_tokens = False or self.add_bos_token
             elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
+                # TODO: investigate best practices for enc-dec models + special tokens
                 add_special_tokens = True
 
         encoding = self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
@@ -681,7 +691,7 @@ class HFLM(TemplateLM):
         self.tokenizer.padding_side = padding_side
 
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            add_special_tokens = False
+            add_special_tokens = False or self.add_bos_token
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
             add_special_tokens = True
 

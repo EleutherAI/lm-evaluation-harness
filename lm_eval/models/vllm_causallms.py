@@ -47,6 +47,7 @@ class VLLM(TemplateLM):
         tokenizer: Optional[str] = None,
         tokenizer_mode: Literal["auto", "slow"] = "auto",
         tokenizer_revision: Optional[str] = None,
+        add_bos_token: Optional[bool] = False,
         tensor_parallel_size: int = 1,
         quantization: Optional[str] = None,
         max_gen_toks: int = 256,
@@ -114,6 +115,7 @@ class VLLM(TemplateLM):
             trust_remote_code=trust_remote_code,
             tokenizer_revision=tokenizer_revision,
         )
+        self.add_bos_token = add_bos_token
 
         self._max_gen_toks = max_gen_toks
 
@@ -147,10 +149,12 @@ class VLLM(TemplateLM):
         self,
         string: str,
         left_truncate_len=None,
-        add_special_tokens=False,
+        add_special_tokens=None,
         truncation=False,
     ):
         """ """
+        if not add_special_tokens:
+            add_special_tokens = False or self.add_bos_token
         encoding = self.tokenizer.encode(
             string, add_special_tokens=add_special_tokens, truncation=truncation
         )
