@@ -14,6 +14,8 @@ from typing import Any, Callable, List
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
 
+import numpy as np
+
 
 logging.basicConfig(
     format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
