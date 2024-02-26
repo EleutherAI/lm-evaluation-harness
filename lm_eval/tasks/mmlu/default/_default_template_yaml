@@ -12,6 +12,3 @@ metric_list:
   - metric: acc
     aggregation: mean
     higher_is_better: true
-  - metric: brier_score
-    aggregation: mean
-    higher_is_better: false
