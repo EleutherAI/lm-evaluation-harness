@@ -1,0 +1,4 @@
+"dataset_name": "world_religions"
+"description": "فم بعملية التقييم في مجال العلوم الانسانية \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_world_religions"
