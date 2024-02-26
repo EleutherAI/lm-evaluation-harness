@@ -11,6 +11,7 @@ from typing import Union
 import numpy as np
 
 from lm_eval import evaluator, utils
+from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.logging_utils import WandbLogger
 from lm_eval.tasks import TaskManager, include_path, initialize_tasks
 from lm_eval.utils import make_table
@@ -118,6 +119,13 @@ def parse_eval_args() -> argparse.Namespace:
         default=None,
         metavar="DIR",
         help="A path to a sqlite db file for caching model responses. `None` if not caching.",
+    )
+    parser.add_argument(
+        "--cache_requests",
+        type=str,
+        default=None,
+        choices=["true", "refresh", "delete"],
+        help="Speed up evaluation by caching the building of dataset requests. `None` if not caching.",
     )
     parser.add_argument("--decontamination_ngrams_path", default=None)  # TODO: not used
     parser.add_argument(
@@ -285,6 +293,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Selected Tasks: {task_names}")
     eval_logger.info("Loading selected tasks...")
 
+    request_caching_args = request_caching_arg_to_dict(
+        cache_requests=args.cache_requests
+    )
+
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
@@ -302,6 +314,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
         predict_only=args.predict_only,
+        **request_caching_args,
         random_seed=args.seed[0],
         numpy_random_seed=args.seed[1],
         torch_random_seed=args.seed[2],

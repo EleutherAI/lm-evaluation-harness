@@ -36,6 +36,7 @@ dependencies = [
     "tqdm-multiprocess",
     "transformers>=4.1",
     "zstandard",
+    "dill",
     "word2number",
 ]
 
