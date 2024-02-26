@@ -1,10 +1,10 @@
 """
 Take in a YAML, and output all other splits with this YAML
 """
-import os
-import yaml
 import argparse
+import os
 
+import yaml
 from tqdm import tqdm
 
 
@@ -68,6 +68,7 @@ SUBJECTS = {
     "world_religions": "العلوم الانسانية",
 }
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base_yaml_path", required=True)
@@ -95,9 +96,7 @@ if __name__ == "__main__":
         if args.cot_prompt_path is not None:
             description = cot_file[subject_eng]
         else:
-            description = (
-                f"فم بعملية التقييم في مجال {category} \n\n"
-            )
+            description = f"فم بعملية التقييم في مجال {category} \n\n"
 
         yaml_dict = {
             "include": base_yaml_name,
