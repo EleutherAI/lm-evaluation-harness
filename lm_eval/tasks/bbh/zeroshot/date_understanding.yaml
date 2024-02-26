@@ -1,0 +1,18 @@
+"dataset_name": "date_understanding"
+"description": "Infer the date from context.\n\n"
+"doc_to_text": "Q: {{input}}\nA:"
+"include": "_zeroshot_template_yaml"
+"task": "bbh_zeroshot_date_understanding"
+
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.MultiChoiceRegexFilter
+        group_select: 0
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: "(\\([A-Z]\\))"
+      - function: "take_first"

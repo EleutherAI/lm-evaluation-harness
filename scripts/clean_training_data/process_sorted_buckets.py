@@ -15,18 +15,18 @@ Arguments
 
 import argparse
 import glob
+import logging
 import os
-from pathlib import Path
 import re
 import shutil
+from pathlib import Path
 
 from tqdm import tqdm
 from tqdm_multiprocess import TqdmMultiProcessPool
-
-from scripts.clean_training_data.archiver import TextReader, TextArchive
-
-import logging
 from tqdm_multiprocess.logger import setup_logger_tqdm
+
+from scripts.clean_training_data.archiver import TextArchive, TextReader
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,6 @@ logger = logging.getLogger(__name__)
 def process_bucket(
     bucket_file_path, processed_directory, move_dir, tqdm_func, global_tqdm
 ):
-
     bucket_id = re.sub("\D", "", os.path.basename(bucket_file_path))  # noqa: W605
     done_file = os.path.join(
         processed_directory, f"ngram_bucket_processing_{bucket_id}.done"
@@ -96,7 +95,7 @@ def process_bucket(
 
 
 def process_sorted_buckets(working_directory, move_dir, process_count):
-    bucket_file_paths = glob.glob(os.path.join(working_directory, f"*.bkt.txt.sorted"))
+    bucket_file_paths = glob.glob(os.path.join(working_directory, "*.bkt.txt.sorted"))
     processed_directory = os.path.join(working_directory, "processed")
     os.makedirs(processed_directory, exist_ok=True)
 
@@ -123,7 +122,6 @@ parser.add_argument("-move", "--move_dir", default="")
 parser.add_argument("-procs", "--process_count", type=int, default=4)
 
 if __name__ == "__main__":
-
     logfile_path = "process13grams.log"
     setup_logger_tqdm(logfile_path)
 

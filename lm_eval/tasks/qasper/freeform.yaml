@@ -1,6 +1,6 @@
 group: qasper
 task: qasper_freeform
-dataset_path: qasper
+dataset_path: allenai/qasper
 output_type: generate_until
 training_split: train
 validation_split: validation
@@ -14,3 +14,5 @@ metric_list:
   - metric: !function metrics.f1_abstractive
     aggregation: mean
     higher_is_better: true
+metadata:
+  version: 2.0

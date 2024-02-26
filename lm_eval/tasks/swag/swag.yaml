@@ -15,3 +15,5 @@ metric_list:
   - metric: acc_norm
     aggregation: mean
     higher_is_better: true
+metadata:
+  version: 1.0

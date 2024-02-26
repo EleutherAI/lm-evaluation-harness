@@ -1,12 +1,10 @@
 #!/usr/bin/python
-import os
+import math
 import re
 import sys
-import math
-import subprocess
 import xml.sax.saxutils
+from typing import Any, Dict, List, Optional, Pattern, Tuple, Union
 
-from typing import List, Pattern, Tuple, Union, Dict, Any, Optional
 
 """
 This script was adapted from the original version by hieuhoang1972 which is part of MOSES.
@@ -62,17 +60,17 @@ def normalize(s):
     # Added to bypass NIST-style pre-processing of hyp and ref files -- wade
     if nonorm:
         return s.split()
-    if type(s) is not str:
+    if not isinstance(s, str):
         s = " ".join(s)
     # language-independent part:
-    for (pattern, replace) in normalize1:
+    for pattern, replace in normalize1:
         s = re.sub(pattern, replace, s)
     s = xml.sax.saxutils.unescape(s, {"&quot;": '"'})
     # language-dependent part (assuming Western languages):
     s = " %s " % s
     if not preserve_case:
         s = s.lower()  # this might not be identical to the original
-    for (pattern, replace) in normalize2:
+    for pattern, replace in normalize2:
         s = re.sub(pattern, replace, s)
     return s.split()
 
@@ -95,7 +93,7 @@ def cook_refs(refs, n=4):
     maxcounts: Dict[Tuple[str], int] = {}
     for ref in refs:
         counts = count_ngrams(ref, n)
-        for (ngram, count) in counts.items():
+        for ngram, count in counts.items():
             maxcounts[ngram] = max(maxcounts.get(ngram, 0), count)
     return ([len(ref) for ref in refs], maxcounts)
 
@@ -125,7 +123,7 @@ def cook_test(test, item, n=4):
 
     result["correct"] = [0] * n
     counts = count_ngrams(test, n)
-    for (ngram, count) in counts.items():
+    for ngram, count in counts.items():
         result["correct"][len(ngram) - 1] += min(refmaxcounts.get(ngram, 0), count)
 
     return result
@@ -186,7 +184,7 @@ def splitPuncts(line):
 def computeMaps(predictions, goldfile):
     predictionMap: Dict[str, list] = {}
     goldMap: Dict[str, list] = {}
-    gf = open(goldfile, "r")
+    gf = open(goldfile, "r", encoding="utf-8")
 
     for row in predictions:
         cols = row.strip().split("\t")
@@ -222,7 +220,6 @@ def bleuFromMaps(m1, m2):
 
 
 def smoothed_bleu_4(references, predictions, **kwargs):
-
     predictionMap = {}
     goldMap = {}
 

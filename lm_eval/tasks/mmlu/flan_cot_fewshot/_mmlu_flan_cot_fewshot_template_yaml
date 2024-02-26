@@ -1,4 +1,3 @@
-group: mmlu_flan_cot_fewshot
 dataset_path: hails/mmlu_no_train # a copy of `cais/mmlu` with no auxiliary_train split
 validation_split: validation
 fewshot_split: dev
@@ -16,9 +15,12 @@ generation_kwargs:
     - "</s>"
   do_sample: false
   temperature: 0.0
+num_fewshot: 0
 metric_list:
   - metric: exact_match
     aggregation: mean
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
+metadata:
+  version: 0.0

@@ -1,13 +1,14 @@
-import os
-from typing import Any
-import zstandard
-import json
-import jsonlines
-import io
 import datetime
+import io
+import json
 import mmap
-import tqdm
+import os
 from pathlib import Path
+from typing import Any
+
+import jsonlines
+import tqdm
+import zstandard
 
 
 def json_serial(obj: Any) -> str:
@@ -29,7 +30,9 @@ class Archive:
         self.cctx = zstandard.ZstdCompressor(level=compression_level)
         self.compressor = self.cctx.stream_writer(self.fh)
 
-    def add_data(self, data, meta={}) -> None:
+    def add_data(self, data, meta=None) -> None:
+        if meta is None:
+            meta = {}
         self.compressor.write(
             json.dumps({"text": data, "meta": meta}, default=json_serial).encode(
                 "UTF-8"
@@ -107,7 +110,7 @@ class TextReader:
     def read_tqdm(self, update_frequency: int = 10000):
         current_file_position = 0
         line_counter = 0
-        with open(self.file_path, "r") as fh, tqdm.tqdm(
+        with open(self.file_path, "r", encoding="utf-8") as fh, tqdm.tqdm(
             total=os.path.getsize(self.file_path),
             dynamic_ncols=True,
             unit="byte",

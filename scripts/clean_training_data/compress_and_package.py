@@ -1,14 +1,14 @@
-import glob
 import argparse
+import glob
+import logging
 import os
-import subprocess
 import shutil
+import subprocess
 
 from tqdm import tqdm
 from tqdm_multiprocess import TqdmMultiProcessPool
-
-import logging
 from tqdm_multiprocess.logger import setup_logger_tqdm
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def compress_and_move(working_directory, output_directory, process_count):
 
     tasks = []
     bucket_file_paths = glob.glob(
-        os.path.join(working_directory, "output", f"*.bkt.txt.sorted")
+        os.path.join(working_directory, "output", "*.bkt.txt.sorted")
     )
     for bucket_file_path in bucket_file_paths:
         task = (process_task, (working_directory, output_directory, bucket_file_path))

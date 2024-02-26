@@ -4,6 +4,7 @@ import string
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
+
 _ARTICLES = re.compile(r"\b(a|an|the)\b", re.UNICODE)
 
 
@@ -62,7 +63,6 @@ def parse_answer(answer):
 
 
 def process_results(doc, results):
-
     preds, golds = results, doc["answers"]
     max_em = 0
     max_f1 = 0

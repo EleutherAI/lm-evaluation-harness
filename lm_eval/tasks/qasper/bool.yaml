@@ -1,6 +1,6 @@
 group: qasper
 task: qasper_bool
-dataset_path: qasper
+dataset_path: allenai/qasper
 output_type: multiple_choice
 training_split: train
 validation_split: validation
@@ -10,3 +10,5 @@ doc_to_target: 1
 doc_to_choice: ["no", "yes"]
 metric_list:
   - metric: f1
+metadata:
+  version: 1.0

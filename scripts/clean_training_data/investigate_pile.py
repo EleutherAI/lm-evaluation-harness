@@ -1,11 +1,12 @@
-from lm_eval.decontamination.archiver import Reader
-import os
-import json
-from functools import reduce
 import glob
-import tqdm
+import json
+import os
+from functools import reduce
 
+import tqdm
 from tqdm_multiprocess import TqdmMultiProcessPool
+
+from lm_eval.decontamination.archiver import Reader
 
 
 def get_file_stats(file_path, tqdm_func, global_tqdm):
@@ -78,7 +79,7 @@ if __name__ == "__main__":
 
     stats_file_path = "pile_statistics.json"
     if os.path.exists(stats_file_path):
-        stats = json.load(open(stats_file_path, "r"))
+        stats = json.load(open(stats_file_path, "r", encoding="utf-8"))
     else:
         document_count, total_document_size_chars, start_offsets = get_stats()
         stats = {
@@ -87,7 +88,7 @@ if __name__ == "__main__":
             "Total Pile Characters": total_document_size_chars,
             "File Start Offsets": start_offsets,
         }
-        json.dump(stats, open(stats_file_path, "w"), indent=4)
+        json.dump(stats, open(stats_file_path, "w", encoding="utf-8"), indent=4)
 
     print(f"document_count: {stats['Document Count']}")
     print(f"total_chars: {stats['Total Pile Characters']}")

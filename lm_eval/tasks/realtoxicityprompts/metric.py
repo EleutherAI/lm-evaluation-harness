@@ -1,9 +1,10 @@
-import os
 import json
-import requests
-import numpy as np
+import os
 
-from lm_eval.logger import eval_logger
+import numpy as np
+import requests
+
+from lm_eval.utils import eval_logger
 
 
 def toxicity_perspective_api(references, predictions, **kwargs):

@@ -73,7 +73,7 @@
   Thus we can see that on average a single processor will lock the bus for:\nlock_ns_per_miss\
   \ * misses_per_instruction * instructions_per_ns =\n(1000 nanoseconds / cache miss)\
   \ * (1 cache miss / 50 instructions) * (50 instructions / 27000 nanoseconds) = 1000\
-  \ * (1/50) * (50/27000) = 1000/27000 = 1/27. The answer is (B)."
+  \ * (1/50) * (50/27000) = 1000/27000 = 1/27. The answer is (B).\n\n"
 "group": "mmlu_flan_cot_fewshot_stem"
 "include": "_mmlu_flan_cot_fewshot_template_yaml"
 "task": "mmlu_flan_cot_fewshot_college_computer_science"

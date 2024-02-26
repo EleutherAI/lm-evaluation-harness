@@ -1,0 +1,16 @@
+group: scrolls
+task:
+  - task: scrolls_qasper
+    class: !function task.Qasper
+  - task: scrolls_quality
+    class: !function task.QuALITY
+  - task: scrolls_narrativeqa
+    class: !function task.NarrativeQA
+  - task: scrolls_contractnli
+    class: !function task.ContractNLI
+  - task: scrolls_govreport
+    class: !function task.GovReport
+  - task: scrolls_summscreenfd
+    class: !function task.SummScreenFD
+  - task: scrolls_qmsum
+    class: !function task.QMSum

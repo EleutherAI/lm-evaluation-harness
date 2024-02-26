@@ -1,11 +1,11 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List
+from typing import Callable, Iterable, List, Union
 
 from lm_eval.api.instance import Instance
-from datasets import Dataset
 
 
-class Filter:
+class Filter(ABC):
     """
     Filter classes operate on a per-task level.
     They take all model outputs (`instance.resps` for all `task.instances`)
@@ -14,12 +14,13 @@ class Filter:
 
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:
         """
         Can define custom behavior here, if an individual instantiation of a Filter class should have state.
         """
 
-    def apply(self, resps, docs):
+    @abstractmethod
+    def apply(self, resps: Union[List, Iterable], docs: List[dict]) -> Iterable:
         """
         Defines the operation to perform on a list of the `inst.resps` properties of `Instance` objects.
         Should return the list of (filtered) response lists *in the same order as they were input*, e.g.
@@ -39,16 +40,15 @@ class FilterEnsemble:
     """
 
     name: str
-    filters: List[Filter]
+    filters: List[Callable[[], Filter]]
 
-    def apply(self, instances: List[Instance], docs: List[Dataset]) -> None:
+    def apply(self, instances: List[Instance]) -> None:
+        resps, docs = zip(*((inst.resps, inst.doc) for inst in instances))
+        resps, docs = list(resps), list(docs)
 
-        resps = [
-            inst.resps for inst in instances
-        ]  # operate just on the model responses
         for f in self.filters:
             # apply filters in sequence
-            resps = f.apply(resps, docs)
+            resps = f().apply(resps, docs)
 
         # add the end results after filtering to filtered_requests of their respective source instances.
         # has key `self.name`: each FilterEnsemble applied in a given run should use a different name.

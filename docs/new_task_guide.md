@@ -2,7 +2,9 @@
 
 `lm-evaluation-harness` is a framework that strives to support a wide range of zero- and few-shot evaluation tasks on autoregressive language models (LMs).
 
-This documentation page provides a walkthrough to get started creating your own task, on the `big-refactor` branch of the repository (which will be v0.5.0 in the future.)
+This documentation page provides a walkthrough to get started creating your own task, in `lm-eval` versions v0.4.0 and later.
+
+A more interactive tutorial is available as a Jupyter notebook [here](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/examples/lm-eval-overview.ipynb).
 
 ## Setup
 
@@ -12,12 +14,11 @@ If you haven't already, go ahead and fork the main repo, clone it, create a bran
 # After forking...
 git clone https://github.com/<YOUR-USERNAME>/lm-evaluation-harness.git
 cd lm-evaluation-harness
-git checkout big-refactor
 git checkout -b <task-name>
 pip install -e ".[dev]"
 ```
 
-In this document, we'll walk through the basics of implementing a static benchmark evaluation in two formats: a *generative* task which requires sampling text from a model, such as [`gsm8k`](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/tasks/gsm8k/gsm8k.yaml), and a *discriminative*, or *multiple choice*, task where the model picks the most likely of several fixed answer choices, such as [`sciq`](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/tasks/sciq/sciq.yaml).
+In this document, we'll walk through the basics of implementing a static benchmark evaluation in two formats: a *generative* task which requires sampling text from a model, such as [`gsm8k`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/gsm8k/gsm8k.yaml), and a *discriminative*, or *multiple choice*, task where the model picks the most likely of several fixed answer choices, such as [`sciq`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/sciq/sciq.yaml).
 
 ## Creating a YAML file
 
@@ -44,16 +45,6 @@ dataset_path: ... # the name of the dataset on the HF Hub.
 dataset_name: ... # the dataset configuration to use. Leave `null` if your dataset does not require a config to be passed. See https://huggingface.co/docs/datasets/load_hub#configurations for more info.
 dataset_kwargs: null # any extra keyword arguments that should be passed to the dataset constructor, e.g. `data_dir`.
 ```
-
-------------------------------
-**Tip:** To load a local dataset for evaluation, you can specify data files in the `dataset_kwargs` field, such as the following for JSON files:
-```
-dataset_path: json
-dataset_name: null
-dataset_kwargs:
-  data_files: /path/to/my/json
-```
--------------------------------
 
 Next, we'd like to tell our task what the dataset's train, validation, and test splits are named, if they exist:
 
@@ -98,6 +89,36 @@ Now, in our YAML config file we'll use the `!function` constructor, and tell the
 process_docs: !function utils.process_docs
 ```
 
+### Using Local Datasets
+
+To load a local dataset for evaluation, you can specify data files in the `dataset_kwargs` field, such as the following for JSON files:
+
+```
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files: /path/to/my/json
+```
+Or with files already split into separate directories:
+
+```
+dataset_path: arrow
+dataset_kwargs:
+  data_files:
+    train: /path/to/arrow/train/data-00000-of-00001.arrow
+    validation: /path/to/arrow/validation/data-00000-of-00001.arrow
+```
+
+Alternatively, if you have previously downloaded a dataset from huggingface hub (using `save_to_disk()`) and wish to use the local files, you will need to use `data_dir` under `dataset_kwargs` to point to where the directory is.
+
+```
+dataset_path: hellaswag
+dataset_kwargs:
+  data_dir: hellaswag_local/
+```
+
+You can also set `dataset_path` as a directory path in your local system. This will assume that there is a loading script with the same name as the directory. [See datasets docs](https://huggingface.co/docs/datasets/loading#local-loading-script).
+
 ## Writing a Prompt Template
 
 The next thing we need to do is decide what format to use when presenting the data to the LM. This is our **prompt**, where we'll define both an input and output format.
@@ -121,6 +142,13 @@ doc_to_target: 3
 ```yaml
 doc_to_choice: ['No', 'Yes']
 ```
+
+if a dataset feature is already a list, you can set the name of the feature as `doc_to_choice` (See [Hellaswag](https://github.com/EleutherAI/lm-evaluation-harness/blob/e0eda4d3ffa10e5f65e0976161cd134bec61983a/lm_eval/tasks/hellaswag/hellaswag.yaml#L13))
+```
+doc_to_choice: choices
+```
+
+
 
 ### Writing a prompt with Jinja 2
 
@@ -224,7 +252,7 @@ metric_list:
 ```
 `aggregation` and `higher_is_better` can optionally be left out to default to the manually-set defaults if using a natively supported metric, otherwise it must be defined explicitly (for example, when using a custom metric implemented as a function).
 
-For a full list of natively supported metrics and aggregation functions see `docs/advanced_task_guide.md`. All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval` or `hf_evaluate` is set to `true`.
+For a full list of natively supported metrics and aggregation functions see [`docs/task_guide.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md). All metrics supported in [HuggingFace Evaluate](https://github.com/huggingface/evaluate/tree/main/metrics) can also be used, and will be loaded if a given metric name is not one natively supported in `lm-eval` or `hf_evaluate` is set to `true`.
 
 ### Optional, More Advanced Setup
 
@@ -237,7 +265,7 @@ As a heuristic check:
 * Do you expect to compute metrics after applying multiple such processing steps on your model outputs?
 * Does your task rely on metrics that need a custom implementation?
 
-For more detail on the task system and advanced features, see `docs/advanced_task_guide.md` . If none of the above sound like they apply to your task, it's time to continue onto checking your task performance!
+For more detail on the task system and advanced features, see [`docs/task_guide.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md) . If none of the above sound like they apply to your task, it's time to continue onto checking your task performance!
 
 ### Task name + groups (registering a task)
 
@@ -262,16 +290,97 @@ This will add your task to the `group1` and `group2` groups, enabling people to 
 
 If your task is not in the `lm_eval/tasks` folder, you'll need to tell the Eval Harness where to look for YAML files.
 
-You can do this via adding the Python snippet
+You can do this via the `--include_path` argument in `__main__.py`. This command will be used to initialize the `TaskManager` object which you can also use for your custom scripts.
 
 ```python
-from lm_eval.tasks import include_task_folder
-include_task_folder("/path/to/yaml/parent/folder")
+task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 ```
-to the top of any Python file that is run or imported when performing evaluation, such as `\_\_main\_\_.py`.
 
 Passing `--tasks /path/to/yaml/file` is also accepted.
 
+
+### Advanced Group Configs
+
+You can make more complete group config while also tailoring parameters for individual tasks.
+
+For example, let's build a config for evaluating MMLU and a few natural language inference tasks. For MMLU, we can write the name for the benchmark as a subtask written under `task`. You can configure the parameters such as `num_fewshot`. If the task being configured is a group such as `mmlu` or `super_glue`, the parameter set will be applied to all of the subtasks.
+
+```yaml
+group: nli_and_mmlu
+task:
+  - group: nli_tasks
+    task:
+      - cb
+      - anli_r1
+      - rte
+  - task: mmlu
+    num_fewshot: 2
+```
+It's also important to note how you can basically insert a group config as a task. Here, to make a group of natural language inference tasks, you simply write like how you would normally write a group config but this time place that as part of a task list under the main group being built.
+
+### Duplicate Tasks in Group Configs
+
+There might be cases where you might want to evaluate prompts and how models perform over prompt variations. You can list an existing task (In the example below, `anli_r1`) which varying `doc_to_text` implementation. To differentiate from each variation, we can utilize `task_alias`. LM-Eval will recognize that there are multiple variations of the same tasks and differentiate them.
+```yaml
+group: flan_held_in
+group_alias: Flan (Held-In)
+task:
+  # ANLI R1
+  - group: anli_r1_flan
+    group_alias: ANLI R1
+    task:
+      - task: anli_r1
+        task_alias: prompt-0
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nChoose your answer ..."
+        ...
+      - task: anli_r1
+        task_alias: prompt-1
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nBased on ..."
+      ...
+```
+
+### Configuring python classes
+
+There can occasions when yaml-based tasks cannot accommodate how a task is handled. LM-Eval supports the manually implementing tasks as was previously done before `0.4.x`. To register the task, you can simply make a yaml with the name of the task in `task` and the class object in `class` using the `!function` prefix.
+
+```yaml
+task: squadv2
+class: !function task.SQuAD2
+```
+
+This also applies to building group configurations with subtasks that are python classes.
+
+```yaml
+group: scrolls
+task:
+  - task: scrolls_qasper
+    class: !function task.Qasper
+  - task: scrolls_quality
+    class: !function task.QuALITY
+  - task: scrolls_narrativeqa
+    class: !function task.NarrativeQA
+  ...
+```
+
+## Beautifying Table Display
+
+To avoid conflict, each task needs to be registered with a unique name. Because of this, slight variations of task are still counted as unique tasks and need to be named uniquely. This could be done by appending an additional naming that may refer to the variation such as in MMLU where the template used to evaluated for flan are differentiated from the default by the prefix `mmlu_flan_*`. Printing the full task names can easily clutter the results table at the end of the evaluation especially when you have a long list of tasks or are using a benchmark that comprises of many tasks. To make it more legible, you can use `task_alias` and `group_alias` to provide an alternative task name and group name that will be printed.
+``
+for example in `mmlu_abstract_algebra.yaml` we set `group_alias` to `stem` and `task_alias` to `abstract_algebra`.
+
+```
+"dataset_name": "abstract_algebra"
+"description": "The following are multiple choice questions (with answers) about abstract\
+  \ algebra.\n\n"
+"group": "mmlu_stem"
+"group_alias": "stem"
+"include": "_default_template_yaml"
+"task": "mmlu_abstract_algebra"
+"task_alias": "abstract_algebra"
+```
+Note: Even though `group` can be a list, for now, `group_alias` can only be a single string.
 
 ## Checking validity
 
@@ -288,6 +397,25 @@ python -m scripts.write_out \
 
 Open the file specified at the `--output_base_path <path>` and ensure it passes
 a simple eye test.
+
+## Versioning
+
+One key feature in LM Evaluation Harness is the ability to version tasks--that is, mark them with a specific version number that can be bumped whenever a breaking change is made.
+
+This version info can be provided by adding the following to your new task config file:
+
+```
+metadata:
+  version: 0
+```
+
+Now, whenever a change needs to be made to your task in the future, please increase the version number by 1 so that users can differentiate the different task iterations and versions.
+
+If you are incrementing a task's version, please also consider adding a changelog to the task's README.md noting the date, PR number, what version you have updated to, and a one-liner describing the change.
+
+for example,
+
+* \[Dec 25, 2023\] (PR #999) Version 0.0 -> 1.0: Fixed a bug with answer extraction that led to underestimated performance.
 
 ## Checking performance + equivalence
 
@@ -314,4 +442,4 @@ It is recommended to include a filled-out copy of this checklist in the README.m
 
 ## Submitting your task
 
-You're all set! Now push your work and make a pull request to the `big-refactor` branch! Thanks for the contribution :). If there are any questions, please leave a message in the `#lm-thunderdome` channel on the EAI discord!
+You're all set! Now push your work and make a pull request to the `main` branch! Thanks for the contribution :). If there are any questions, please leave a message in the `#lm-thunderdome` channel on the EAI discord!

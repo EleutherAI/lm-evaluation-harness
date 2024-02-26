@@ -1,7 +1,5 @@
 # New Model Guide
 
-The `lm-evaluation-harness` is intended to be a model-agnostic framework for evaluating . We provide first-class support for HuggingFace `AutoModelForCausalLM` and `AutoModelForSeq2SeqLM` type models, but
-
 This guide may be of special interest to users who are using the library outside of the repository, via installing the library via pypi and calling `lm_eval.evaluator.evaluate()` to evaluate an existing model.
 
 In order to properly evaluate a given LM, we require implementation of a wrapper class subclassing the `lm_eval.api.model.LM` class, that defines how the Evaluation Harness should interface with your model. This guide walks through how to write this `LM` subclass via adding it to the library!
@@ -14,7 +12,6 @@ To get started contributing, go ahead and fork the main repo, clone it, create a
 # After forking...
 git clone https://github.com/<YOUR-USERNAME>/lm-evaluation-harness.git
 cd lm-evaluation-harness
-git checkout big-refactor
 git checkout -b <model-type>
 pip install -e ".[dev]"
 ```
@@ -48,7 +45,7 @@ class MyCustomLM(LM):
         #...
     #...
 ```
-Where `Instance` is a dataclass defined in [`lm_eval.api.instance`](https://github.com/EleutherAI/lm-evaluation-harness/blob/big-refactor/lm_eval/api/instance.py) with property `args` of request-dependent type signature described below.
+Where `Instance` is a dataclass defined in [`lm_eval.api.instance`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/api/instance.py) with property `args` of request-dependent type signature described below.
 
 We support three types of requests, consisting of different interactions / measurements with an autoregressive LM.
 
@@ -69,7 +66,7 @@ All three request types take as input `requests` of type `list[Instance]` that h
   - It should return `(ll,) : Tuple[float]` , a.k.a. solely the *loglikelihood* of producing each piece of text given no starting input.
 
 
-To allow a model to be evaluated on all types of tasks, you will need to implement these three types of measurements (note that `loglikelihood_rolling` is a special case of `loglikelihood`). For a reference implementation, check out `lm_eval/models/huggingface.py` !
+To allow a model to be evaluated on all types of tasks, you will need to implement these three types of measurements (note that `loglikelihood_rolling` is a special case of `loglikelihood`). For a reference implementation, check out `lm_eval/models/huggingface.py` ! Additionally, check out `lm_eval.api.model.TemplateLM` for a class that abstracts away some commonly used functions across LM subclasses, or see if your model would lend itself well to subclassing the `lm_eval.models.huggingface.HFLM` class and overriding just the initialization or a couple methods!
 
 **Tip: be careful of indexing in loglikelihood!**
 
@@ -103,6 +100,8 @@ class MyCustomLM(LM):
 ```
 
 Using this decorator results in the class being added to an accounting of the usable LM types maintained internally to the library at `lm_eval.api.registry.MODEL_REGISTRY`. See `lm_eval.api.registry` for more detail on what sorts of registries and decorators exist in the library!
+
+**Tip: be sure to import your model in `lm_eval/models/__init__.py!`**
 
 ## Testing
 

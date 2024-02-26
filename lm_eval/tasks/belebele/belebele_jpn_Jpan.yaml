@@ -1,3 +1,4 @@
-"dataset_name": "jpn_Jpan"
+"fewshot_split": "jpn_Jpan"
 "include": "_default_template_yaml"
 "task": "belebele_jpn_Jpan"
+"test_split": "jpn_Jpan"

@@ -1,3 +1,4 @@
-"dataset_name": "tam_Taml"
+"fewshot_split": "tam_Taml"
 "include": "_default_template_yaml"
 "task": "belebele_tam_Taml"
+"test_split": "tam_Taml"

@@ -1,14 +1,14 @@
 """
 Take in a YAML, and output all "other" splits with this YAML
 """
-import os
-import yaml
 import argparse
+import os
 
+import yaml
 from tqdm import tqdm
 
-from lm_eval import utils
 from lm_eval.logger import eval_logger
+
 
 SUBJECTS = {
     "abstract_algebra": "stem",
@@ -82,23 +82,21 @@ def parse_args():
 
 
 if __name__ == "__main__":
-
     args = parse_args()
 
     # get filename of base_yaml so we can `"include": ` it in our "other" YAMLs.
     base_yaml_name = os.path.split(args.base_yaml_path)[-1]
-    with open(args.base_yaml_path) as f:
+    with open(args.base_yaml_path, encoding="utf-8") as f:
         base_yaml = yaml.full_load(f)
 
     if args.cot_prompt_path is not None:
         import json
 
-        with open(args.cot_prompt_path) as f:
+        with open(args.cot_prompt_path, encoding="utf-8") as f:
             cot_file = json.load(f)
 
     ALL_CATEGORIES = []
     for subject, category in tqdm(SUBJECTS.items()):
-
         if category not in ALL_CATEGORIES:
             ALL_CATEGORIES.append(category)
 
@@ -123,11 +121,10 @@ if __name__ == "__main__":
 
         file_save_path = args.save_prefix_path + f"_{subject}.yaml"
         eval_logger.info(f"Saving yaml for subset {subject} to {file_save_path}")
-        with open(file_save_path, "w") as yaml_file:
+        with open(file_save_path, "w", encoding="utf-8") as yaml_file:
             yaml.dump(
                 yaml_dict,
                 yaml_file,
-                # width=float("inf"),
                 allow_unicode=True,
                 default_style='"',
             )
@@ -145,7 +142,7 @@ if __name__ == "__main__":
         file_save_path = args.save_prefix_path + ".yaml"
 
     eval_logger.info(f"Saving benchmark config to {file_save_path}")
-    with open(file_save_path, "w") as yaml_file:
+    with open(file_save_path, "w", encoding="utf-8") as yaml_file:
         yaml.dump(
             {
                 "group": f"mmlu_{args.task_prefix}"

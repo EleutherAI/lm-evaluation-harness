@@ -1,4 +1,20 @@
-from lm_eval.utils import get_rolling_token_windows, make_disjoint_window
+import itertools
+
+import numpy as np
+import pytest
+import torch
+
+from lm_eval.api.metrics import (
+    aggregate_subtask_metrics,
+    mean,
+    pooled_sample_stderr,
+    stderr_for_metric,
+)
+from lm_eval.models.utils import Collator
+from lm_eval.utils import (
+    get_rolling_token_windows,
+    make_disjoint_window,
+)
 
 
 # noinspection DuplicatedCode
@@ -220,3 +236,165 @@ def test_make_disjoint_window():
     )
     assert make_disjoint_window(([1, 2, 3, 4, 5], [4, 5, 6])) == ([1, 2, 3], [4, 5, 6])
     assert make_disjoint_window(([1, 2, 3, 4, 5], [6])) == ([1, 2, 3, 4, 5], [6])
+
+
+class TestCollator:
+    def make_generate_sample(self, end=10):
+        strings = ["x" * i for i in range(1, end + 1)]
+        gen_kwargs1, gen_kwargs2 = (
+            {"temperature": 0},
+            {"temperature": 0, "until": ["nn", "\n\n"]},
+        )
+        args = [
+            (string, gen_kwargs1 if i < len(strings) // 2 else gen_kwargs2)
+            for i, string in enumerate(strings)
+        ]
+
+        return args
+
+    def make_loglikelihood_sample(self, end=11):
+        samples = [
+            (("x", "x"), list(range(1, total_length + 1)))
+            for total_length in range(1, end + 1)
+        ]
+        return samples
+
+    def make_loglikelihood_sample_group(self, end=11):
+        a = [(("x", "x"), [1, 2, 3, 4, 5, 6, 7, 8], [x]) for x in range(9)]
+        b = [
+            (("x", "x"), [1, 2, 3, 4, 5, 6, 7, 8], [x, y, z])
+            for x, y, z in zip(range(9), range(9, 18), range(18, 27))
+        ]
+        return a + b
+
+    @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 9)])
+    def test_generations(self, batch_size, end):
+        _collate_gen = lambda x: (-len(x[0]), x[0])  # noqa: E731
+
+        generation_samples = self.make_generate_sample(int(end))
+        gens = Collator(generation_samples, _collate_gen, group_by="gen_kwargs")
+        chunks = gens.get_batched(n=int(batch_size), batch_fn=None)
+        output = []
+        for chunks in chunks:
+            # check batching
+            group_one = end // 2
+            group_two = end - end // 2
+            assert (
+                len(chunks) <= batch_size
+                if batch_size != 0
+                else len(chunks) in [group_one, group_two]
+            )
+            # check if reorder-er is working correctly
+            assert all(
+                len(chunks[i][0]) <= len(chunks[i - 1][0])
+                for i in range(1, len(chunks))
+            )
+            # check if grouping correctly
+            assert all(x[1] == chunks[0][1] for x in chunks)
+            for x in chunks:
+                output.append(x)
+        reordered_output = gens.get_original(output)
+        # check get original
+        assert reordered_output == generation_samples
+
+    @pytest.mark.parametrize("batch_size, end", [(17, 30), (8, 61), (12, 48), (0, 3)])
+    def test_loglikelihood(self, batch_size, end):
+        _collate_log = lambda x: (-len(x[1]), tuple(x[1]))  # noqa: E731
+        loglikelihood_samples = self.make_loglikelihood_sample(int(end))
+        loglikelihoods = Collator(
+            loglikelihood_samples,
+            _collate_log,
+        )
+        chunks = loglikelihoods.get_batched(n=int(batch_size), batch_fn=None)
+        output = []
+        for chunks in chunks:
+            # check batching
+            assert len(chunks) <= batch_size if batch_size != 0 else len(chunks) == end
+            # check reorder
+            assert all(
+                len(chunks[i][1]) <= len(chunks[i - 1][1])
+                for i in range(1, len(chunks))
+            )
+            for x in chunks:
+                output.append(x[1])
+        # check indices
+        reordered_output = loglikelihoods.get_original(output)
+        assert reordered_output == [x[1] for x in loglikelihood_samples]
+
+    @pytest.mark.parametrize("batch_size", [17, 8, 12, 0])
+    def test_context_grouping(self, batch_size):
+        def _collate(x):
+            toks = x[1] + x[2]
+            return -len(toks), tuple(toks)
+
+        _collate_log = _collate  # noqa: E731
+        loglikelihood_samples = self.make_loglikelihood_sample_group()
+        loglikelihoods = Collator(
+            loglikelihood_samples,
+            _collate_log,
+            group_fn=lambda a: a[-2] + a[-1][:-1],
+            group_by="contexts",
+        )
+        chunks = loglikelihoods.get_batched(n=int(batch_size), batch_fn=None)
+        output = []
+        outputs_ = []
+        for chunks in chunks:
+            # check batching
+            if batch_size != 0:
+                assert len(chunks) <= batch_size
+            # check reorder
+            assert all(
+                len(chunks[i][1]) <= len(chunks[i - 1][1])
+                for i in range(1, len(chunks))
+            )
+            for x in chunks:
+                for request_str, cont_toks, logits in loglikelihoods.get_cache(
+                    req_str="".join(x[0]),
+                    cxt_toks=x[1],
+                    cont_toks=x[2],
+                    logits=torch.tensor([1, 2, 3, 4, 5, 6, 7, 8])
+                    .unsqueeze(0)
+                    .unsqueeze(0),
+                ):
+                    output.append(x[1])
+                    outputs_.append(cont_toks)
+        assert len(output) == len(outputs_)
+        # check indices
+        reordered_output = loglikelihoods.get_original(output)
+        assert reordered_output == [x[1] for x in loglikelihood_samples]
+
+
+def test_aggregate_mean():
+    # test weight_by_size is respected
+    assert (
+        aggregate_subtask_metrics([0.3, 0.2, 0.4], [20, 40, 100], weight_by_size=False)
+        == 0.3
+    )
+    assert (
+        aggregate_subtask_metrics([0.3, 0.2, 0.4], [20, 40, 100], weight_by_size=True)
+        == 0.3375
+    )
+
+
+@pytest.mark.parametrize(
+    "samples",
+    [
+        [40 * [1.0] + 60 * [0.0], 30 * [1.0] + 30 * [0.0], 20 * [1.0] + 60 * [0.0]],
+        [35 * [1.0] + 65 * [0.0], 20 * [1.0] + 20 * [0.0]],
+    ],
+)
+def test_aggregate_stderrs(samples):
+    # check that aggregating subtasks' bootstrap stderrs with our formula
+    # (using weight_by_size) is ~equiv.
+    # to just getting bootstrap stderr of the whole set of samples
+    mean_stderr = stderr_for_metric(metric=mean, bootstrap_iters=100000)
+
+    stderrs = [mean_stderr(subtask) for subtask in samples]
+
+    sizes = [len(subtask) for subtask in samples]
+
+    assert np.allclose(
+        pooled_sample_stderr(stderrs, sizes),
+        mean_stderr(list(itertools.chain.from_iterable(samples))),
+        atol=1.0e-3,
+    )

@@ -1,7 +1,5 @@
 group: belebele
 dataset_path: facebook/belebele
-test_split: test
-fewshot_split: test
 fewshot_config:
   sampler: first_n
 output_type: multiple_choice
@@ -17,3 +15,5 @@ metric_list:
   - metric: acc_norm
     aggregation: mean
     higher_is_better: true
+metadata:
+  version: 0.0

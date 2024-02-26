@@ -1,26 +1,28 @@
+import collections
+import fnmatch
+import functools
+import importlib.util
+import inspect
+import logging
 import os
 import re
 import sys
-import yaml
-import inspect
-import pathlib
-import functools
-import subprocess
-import collections
-import importlib.util
-import fnmatch
-
-from typing import Iterator, List, Literal, Union
-
-import gc
-import torch
-import transformers
-import numpy as np
-
-from jinja2 import BaseLoader, Environment, StrictUndefined
 from itertools import islice
+from pathlib import Path
+from typing import Any, Callable, List
 
-from lm_eval.logger import eval_logger
+import yaml
+from jinja2 import BaseLoader, Environment, StrictUndefined
+
+
+logging.basicConfig(
+    format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+    datefmt="%Y-%m-%d:%H:%M:%S",
+    level=logging.INFO,
+)
+eval_logger = logging.getLogger("lm-eval")
+
+SPACING = " " * 47
 
 
 def escaped_split(text, sep_char, maxsplit=-1):
@@ -51,7 +53,12 @@ def handle_arg_string(arg):
         return True
     elif arg.lower() == "false":
         return False
-    return arg
+    elif arg.isnumeric():
+        return int(arg)
+    try:
+        return float(arg)
+    except ValueError:
+        return arg
 
 
 def simple_parse_args_string(args_string):
@@ -75,18 +82,6 @@ def join_iters(iters):
         yield from iter
 
 
-def chunks(iter, n: int = 0, fn=None):
-    arr = []
-    for i, x in enumerate(iter):
-        arr.append(x)
-        if len(arr) == (fn(i, iter) if fn else n):
-            yield arr
-            arr = []
-
-    if arr:
-        yield arr
-
-
 def group(arr, fn):
     res = collections.defaultdict(list)
 
@@ -96,29 +91,10 @@ def group(arr, fn):
     return list(res.values())
 
 
-class MultiChoice:
-    def __init__(self, choices) -> None:
-        self.choices = choices
-
-    # Simple wildcard support (linux filename patterns)
-    def __contains__(self, values) -> bool:
-        for value in values.split(","):
-            if len(fnmatch.filter(self.choices, value)) == 0:
-                eval_logger.info(f"Available tasks to choose:")
-                for choice in self.choices:
-                    eval_logger.info(f"  - {choice}")
-                raise ValueError("'{}' is not in task list".format(value))
-        return True
-
-    def __iter__(self) -> Iterator:
-        for choice in self.choices:
-            yield choice
-
-
 # Returns a list containing all values of the source_list that
 # match at least one of the patterns
 def pattern_match(patterns, source_list):
-    if type(patterns) == str:
+    if isinstance(patterns, str):
         patterns = [patterns]
 
     task_names = set()
@@ -192,7 +168,13 @@ def make_disjoint_window(pair):
 
 
 class Reorderer:
-    def __init__(self, arr, fn) -> None:
+    def __init__(self, arr: List[Any], fn: Callable) -> None:
+        """Reorder an array according to some function
+
+        Args:
+            arr (List[Any]): The initial array
+            fn (Callable[[Any], Any]): A function to determine the priority of elements
+        """
         self.size = len(arr)
         arr = list(enumerate(arr))
         arr = group(arr, lambda x: fn(x[1]))
@@ -204,9 +186,22 @@ class Reorderer:
         self.arr = arr
 
     def get_reordered(self):
+        """Gets the reordered array
+
+        Returns:
+            List[Any]: The reordered array
+        """
         return [x[1] for x in self.arr]
 
     def get_original(self, newarr):
+        """Restores the original order of a new array based on the old array's order
+
+        Args:
+            newarr (List[Any]): The array to be restored
+
+        Returns:
+            List[Any]: The array restored to the original order
+        """
         res = [None] * self.size
         cov = [False] * self.size
 
@@ -220,98 +215,40 @@ class Reorderer:
         return res
 
 
-class Grouper:
-    """
-    takes an array `arr` and function `fn` and returns a dictionary
-    with keys fn(ob) for each ob in `arr` and with values `self.arr[key]` a list of all
-    objects in `arr` satisfying `key == fn(ob)`.
-    """
-
-    def __init__(self, arr, fn) -> None:
-        # self.orig_arr = arr
-        self.size = len(arr)
-        arr = list(enumerate(arr))
-
-        def group_return_dict(arr, fn):
-            res = collections.defaultdict(list)
-
-            for ob in arr:
-                res[fn(ob)].append(ob)
-            return res
-
-        arr = group_return_dict(arr, lambda x: fn(x[1]))
-
-        # self.arr has format Dict[Tuple[int, <entry from orig. arr>]]
-        self.arr = arr
-        self._grouped = None
-
-    def get_grouped(self):
-        # return the contents but not indices for our grouped dict.
-        if self._grouped:
-            return self._grouped
-        grouped = {}
-        for key in self.arr.keys():
-            # drop the index from each element of self.arr
-            grouped[key] = [y[1] for y in self.arr[key]]
-        self._grouped = grouped
-        return grouped
-
-    def get_original(self, grouped_dict):
-        # take in a grouped dictionary with e.g. results for each key listed
-        # in the same order as the instances in `self.arr`, and
-        # return the results in the same (single list) order as `self.orig_arr`.
-        res = [None] * self.size
-        cov = [False] * self.size
-        # orig = [None] * self.size
-
-        assert grouped_dict.keys() == self.arr.keys()
-
-        for key in grouped_dict.keys():
-            for (ind, _), v in zip(self.arr[key], grouped_dict[key]):
-                res[ind] = v
-                cov[ind] = True
-                # orig[ind] = _
-
-        assert all(cov)
-        # assert orig == self.orig_arr
-
-        return res
-
-
 def make_table(result_dict, column: str = "results"):
     """Generate table of results."""
-    from pytablewriter import MarkdownTableWriter, LatexTableWriter
+    from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
     if column == "results":
         column_name = "Tasks"
     elif column == "groups":
         column_name = "Groups"
 
+    all_headers = [
+        column_name,
+        "Version",
+        "Filter",
+        "n-shot",
+        "Metric",
+        "Value",
+        "",
+        "Stderr",
+    ]
+
     md_writer = MarkdownTableWriter()
     latex_writer = LatexTableWriter()
-    md_writer.headers = [
-        column_name,
-        "Version",
-        "Filter",
-        "Metric",
-        "Value",
-        "",
-        "Stderr",
-    ]
-    latex_writer.headers = [
-        column_name,
-        "Version",
-        "Filter",
-        "Metric",
-        "Value",
-        "",
-        "Stderr",
-    ]
+    md_writer.headers = all_headers
+    latex_writer.headers = all_headers
 
     values = []
 
     for k, dic in result_dict[column].items():
         version = result_dict["versions"][k]
+        n = str(result_dict["n-shot"][k])
+
+        if "alias" in dic:
+            k = dic.pop("alias")
+
         for (mf), v in dic.items():
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
@@ -319,9 +256,11 @@ def make_table(result_dict, column: str = "results"):
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                values.append([k, version, f, m, "%.4f" % v, "±", "%.4f" % se])
+                if se != "N/A":
+                    se = "%.4f" % se
+                values.append([k, version, f, n, m, "%.4f" % v, "±", se])
             else:
-                values.append([k, version, f, m, "%.4f" % v, "", ""])
+                values.append([k, version, f, n, m, "%.4f" % v, "", ""])
             k = ""
             version = ""
     md_writer.value_matrix = values
@@ -353,7 +292,7 @@ def positional_deprecated(fn):
 
 
 @positional_deprecated
-def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
+def find_test_root(start_path: Path) -> Path:
     """
     Search upward in the directory tree to a maximum of three layers
     to find and return the package root (containing the 'tests' folder)
@@ -377,7 +316,7 @@ def run_task_tests(task_list: List[str]):
     """
     import pytest
 
-    package_root = find_test_root(start_path=pathlib.Path(__file__))
+    package_root = find_test_root(start_path=Path(__file__))
     task_string = " or ".join(task_list)
     args = [
         f"{package_root}/tests/test_version_stable.py",
@@ -393,18 +332,8 @@ def run_task_tests(task_list: List[str]):
         )
 
 
-def get_git_commit_hash():
-    """
-    Gets the git commit hash of your current repo (if it exists).
-    Source: https://github.com/EleutherAI/gpt-neox/blob/b608043be541602170bfcfb8ec9bf85e8a0799e0/megatron/neox_arguments/neox_args.py#L42
-    """
-    try:
-        git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()
-        git_hash = git_hash.decode()
-    except subprocess.CalledProcessError or FileNotFoundError:
-        # FileNotFoundError occurs when git not installed on system
-        git_hash = None
-    return git_hash
+def ignore_constructor(loader, node):
+    return node
 
 
 def import_function(loader, node):
@@ -412,7 +341,7 @@ def import_function(loader, node):
     yaml_path = os.path.dirname(loader.name)
 
     *module_name, function_name = function_name.split(".")
-    if type(module_name) == list:
+    if isinstance(module_name, list):
         module_name = ".".join(module_name)
     module_path = os.path.normpath(os.path.join(yaml_path, "{}.py".format(module_name)))
 
@@ -424,12 +353,14 @@ def import_function(loader, node):
     return function
 
 
-# Add the import_function constructor to the YAML loader
-yaml.add_constructor("!function", import_function)
+def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None, mode="full"):
+    if mode == "simple":
+        constructor_fn = ignore_constructor
+    elif mode == "full":
+        constructor_fn = import_function
 
-
-def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
-
+    # Add the import_function constructor to the YAML loader
+    yaml.add_constructor("!function", constructor_fn)
     if yaml_config is None:
         with open(yaml_path, "rb") as file:
             yaml_config = yaml.full_load(file)
@@ -443,14 +374,13 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
         include_path = yaml_config["include"]
         del yaml_config["include"]
 
-        if type(include_path) == str:
+        if isinstance(include_path, str):
             include_path = [include_path]
 
         # Load from the last one first
         include_path.reverse()
         final_yaml_config = {}
         for path in include_path:
-
             # Assumes that path is a full path.
             # If not found, assume the included yaml
             # is in the same dir as the original yaml
@@ -458,7 +388,7 @@ def load_yaml_config(yaml_path=None, yaml_config=None, yaml_dir=None):
                 path = os.path.join(yaml_dir, path)
 
             try:
-                included_yaml_config = load_yaml_config(path)
+                included_yaml_config = load_yaml_config(yaml_path=path, mode=mode)
                 final_yaml_config.update(included_yaml_config)
             except Exception as ex:
                 # If failed to load, ignore
@@ -492,117 +422,7 @@ def create_iterator(raw_iterator, rank, world_size, limit=None):
     return islice(raw_iterator, rank, limit, world_size)
 
 
-def pad_and_concat(
-    max_length: int,
-    tensors: List[torch.Tensor],
-    padding_side: Literal["right", "left"] = "right",
-):
-    """
-    Method for padding a list of tensors given the maximum tensor
-    length in the batch. Used for batching inputs and continuations in
-    seq2seq models.
-    """
-    assert (
-        padding_side == "left" or padding_side == "right"
-    ), f"Unrecognized padding type: '{padding_side}' not 'left' or 'right'"
-
-    for i, tensor in enumerate(tensors):
-        if len(tensor.shape) == 2:
-            tensor = tensor.squeeze(0)  # squeeze, in case passed [1, seq] size
-        tensor_len = tensor.shape[0]
-        if tensor_len < max_length:
-            if padding_side == "right":
-                # right-pad
-                tensors[i] = torch.cat(
-                    [
-                        tensor,  # [seq]
-                        torch.zeros(
-                            max_length - tensor_len,
-                            dtype=torch.long,
-                            device=tensor.device,
-                        ),  # [padding_length - seq]
-                    ],
-                    dim=0,
-                ).unsqueeze(0)
-            else:
-                # left-pad
-                tensors[i] = torch.cat(
-                    [
-                        torch.zeros(
-                            max_length - tensor_len,
-                            dtype=torch.long,
-                            device=tensor.device,
-                        ),  # [padding_length - seq]
-                        tensor,  # [seq]
-                    ],
-                    dim=0,
-                ).unsqueeze(0)
-        else:
-            tensors[i] = tensor.unsqueeze(0)
-
-    return torch.cat(tensors, dim=0)
-
-
-def clear_torch_cache() -> None:
-    gc.collect()
-    torch.cuda.empty_cache()
-
-
-def get_dtype(dtype: Union[str, torch.dtype]) -> torch.dtype:
-    """Converts `dtype` from `str` to torch.dtype when possible. Does not use an instantiated HF AutoConfig"""
-    if isinstance(dtype, str) and dtype != "auto":
-        # Convert `str` args torch dtype: `float16` -> `torch.float16`
-        _torch_dtype = getattr(torch, dtype)
-    else:
-        _torch_dtype = dtype
-    return _torch_dtype
-
-
 # Multi-token stopping criteria
-class MultiTokenEOSCriteria(transformers.StoppingCriteria):
-    """Criteria to stop on the specified multi-token sequence."""
-
-    def __init__(
-        self,
-        sequence: str,
-        tokenizer: transformers.PreTrainedTokenizer,
-        initial_decoder_input_length: int,
-        batch_size: int,
-    ) -> None:
-        self.initial_decoder_input_length = initial_decoder_input_length
-        self.done_tracker = [False] * batch_size
-        self.sequence = sequence
-        self.sequence_ids = tokenizer.encode(sequence, add_special_tokens=False)
-        self.sequence_id_len = len(self.sequence_ids)
-        self.tokenizer = tokenizer
-
-    def __call__(self, input_ids, scores, **kwargs) -> bool:
-        # For efficiency, we compare the last n tokens where n is the number of tokens in the stop_sequence
-        lookback_ids_batch = input_ids[:, self.initial_decoder_input_length :][
-            :, -self.sequence_id_len :
-        ]
-
-        lookback_tokens_batch = self.tokenizer.batch_decode(lookback_ids_batch)
-
-        for i, done in enumerate(self.done_tracker):
-            if not done:
-                self.done_tracker[i] = self.sequence in lookback_tokens_batch[i]
-        return False not in self.done_tracker
 
 
-def stop_sequences_criteria(
-    tokenizer: transformers.PreTrainedTokenizer,
-    stop_sequences: List[str],
-    initial_decoder_input_length: int,
-    batch_size: int,
-) -> transformers.StoppingCriteriaList:
-    return transformers.StoppingCriteriaList(
-        [
-            *[
-                MultiTokenEOSCriteria(
-                    sequence, tokenizer, initial_decoder_input_length, batch_size
-                )
-                for sequence in stop_sequences
-            ],
-        ]
-    )
+# from more_itertools
