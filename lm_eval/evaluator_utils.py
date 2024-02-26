@@ -1,4 +1,5 @@
 import collections
+import math
 import pathlib
 import sys
 from typing import Dict, List, Optional, Tuple, Union
@@ -143,7 +144,9 @@ def print_writeout(task) -> None:
 
 def get_sample_size(task, limit: Optional[int]) -> Union[int, None]:
     if limit is not None:
-        limit = int(len(task.eval_docs) * limit) if limit < 1.0 else int(limit)
+        limit = (
+            int(math.ceil(len(task.eval_docs) * limit)) if limit < 1.0 else int(limit)
+        )
     return limit
 
 
