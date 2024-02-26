@@ -96,9 +96,7 @@ if __name__ == "__main__":
         if args.cot_prompt_path is not None:
             description = cot_file[subject_eng]
         else:
-            description = (
-                f"فم بعملية التقييم في مجال {category} \n\n"
-            )
+            description = f"فم بعملية التقييم في مجال {category} \n\n"
 
         yaml_dict = {
             "include": base_yaml_name,
