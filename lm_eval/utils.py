@@ -5,16 +5,11 @@ import importlib.util
 import inspect
 import logging
 import os
-import pathlib
 import re
-import subprocess
 import sys
 from itertools import islice
-from typing import (
-    Any,
-    Callable,
-    List,
-)
+from pathlib import Path
+from typing import Any, Callable, List
 
 import yaml
 from jinja2 import BaseLoader, Environment, StrictUndefined
@@ -291,7 +286,7 @@ def positional_deprecated(fn):
 
 
 @positional_deprecated
-def find_test_root(start_path: pathlib.Path) -> pathlib.Path:
+def find_test_root(start_path: Path) -> Path:
     """
     Search upward in the directory tree to a maximum of three layers
     to find and return the package root (containing the 'tests' folder)
@@ -315,7 +310,7 @@ def run_task_tests(task_list: List[str]):
     """
     import pytest
 
-    package_root = find_test_root(start_path=pathlib.Path(__file__))
+    package_root = find_test_root(start_path=Path(__file__))
     task_string = " or ".join(task_list)
     args = [
         f"{package_root}/tests/test_version_stable.py",
@@ -329,20 +324,6 @@ def run_task_tests(task_list: List[str]):
         raise ValueError(
             f"Not all tests for the specified tasks ({task_list}) ran successfully! Error code: {pytest_return_val}"
         )
-
-
-def get_git_commit_hash():
-    """
-    Gets the git commit hash of your current repo (if it exists).
-    Source: https://github.com/EleutherAI/gpt-neox/blob/b608043be541602170bfcfb8ec9bf85e8a0799e0/megatron/neox_arguments/neox_args.py#L42
-    """
-    try:
-        git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()
-        git_hash = git_hash.decode()
-    except subprocess.CalledProcessError or FileNotFoundError:
-        # FileNotFoundError occurs when git not installed on system
-        git_hash = None
-    return git_hash
 
 
 def ignore_constructor(loader, node):
