@@ -16,5 +16,8 @@ temp
 # IPython
 profile_default/
 ipython_config.py
+# don't track (the default location of) the cached requests
+lm_eval/caching/.cache
+# don't track files created by wandb
 wandb
 examples/wandb

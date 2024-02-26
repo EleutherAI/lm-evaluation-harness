@@ -133,6 +133,28 @@ class LM(abc.ABC):
         args2 = {k: v for k, v in additional_config.items() if v is not None}
         return cls(**args, **args2)
 
+    @classmethod
+    def create_from_arg_obj(
+        cls: Type[T], arg_dict: dict, additional_config: Optional[dict] = None
+    ) -> T:
+        """
+        Creates an instance of the LM class using the given arg_obj
+
+        Parameters:
+        - arg_obj: A dict containing arguments in the format key1=value1,key2=value2.
+        - additional_config: Optional dictionary containing additional configuration parameters.
+
+        Returns:
+        - Instance of the LM class.
+        """
+
+        additional_config = {} if additional_config is None else additional_config
+        additional_config = {
+            k: v for k, v in additional_config.items() if v is not None
+        }
+
+        return cls(**arg_dict, **additional_config)
+
     @property
     def rank(self):
         # used in the case of parallelism. Hardcoded to

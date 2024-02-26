@@ -11,6 +11,7 @@ from typing import Any, List, Literal, Tuple, Union
 
 import datasets
 import numpy as np
+from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers
@@ -28,6 +29,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
+from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
 
@@ -107,9 +109,11 @@ class TaskConfig(dict):
             if self.output_type == "generate_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
                 self.generation_kwargs = {
-                    "until": None
-                    if self.fewshot_delimiter is None
-                    else [self.fewshot_delimiter],
+                    "until": (
+                        None
+                        if self.fewshot_delimiter is None
+                        else [self.fewshot_delimiter]
+                    ),
                     "do_sample": False,
                 }
 
@@ -349,8 +353,35 @@ class Task(abc.ABC):
     def doc_to_target(self, doc):
         pass
 
-    def build_all_requests(self, limit=None, rank=None, world_size=None) -> None:
+    def build_all_requests(
+        self,
+        limit=None,
+        rank=None,
+        world_size=None,
+        cache_requests=False,
+        rewrite_requests_cache=False,
+    ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
+
+        # used with caching
+        og_limit = limit
+
+        cache_key = f"requests-{self._config.task}"
+
+        cached_instances = load_from_cache(file_name=cache_key)
+
+        if cache_requests and cached_instances and not rewrite_requests_cache:
+            cached_instances = cached_instances[:limit]
+
+            flattened_instances = [
+                instance
+                for instance_group in cached_instances
+                for instance in instance_group
+            ]
+
+            self._instances = flattened_instances
+            return
+
         if self.has_test_docs():
             docs = self.test_docs()
         elif self.has_validation_docs():
@@ -361,8 +392,29 @@ class Task(abc.ABC):
         eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
 
         instances = []
-        for doc_id, doc in utils.create_iterator(
-            enumerate(docs), rank, world_size, limit
+
+        # process all documents when caching is specified for simplicity
+        if (
+            cache_requests
+            and (not cached_instances or rewrite_requests_cache)
+            and limit is not None
+        ):
+            limit = None
+
+        doc_id_docs = list(
+            utils.create_iterator(
+                enumerate(docs),
+                rank,
+                world_size,
+                limit,
+            )
+        )
+
+        num_docs = len(doc_id_docs)
+
+        for doc_id, doc in tqdm(
+            doc_id_docs,
+            total=num_docs,
         ):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(
@@ -380,10 +432,24 @@ class Task(abc.ABC):
             if not isinstance(inst, list):
                 inst = [inst]
 
-            instances.extend(inst)
+            instances.append(inst)
 
-        self._instances = instances
+        # now flatten, this is to allow slicing to work with pickles
+
+        sliced_instances = instances[:og_limit]
+
+        flattened_instances = [
+            instance
+            for instance_group in sliced_instances
+            for instance in instance_group
+        ]
+
+        self._instances = flattened_instances
+
         assert len(self._instances) != 0, "task.build_requests() did not find any docs!"
+
+        if cache_requests and (not cached_instances or rewrite_requests_cache):
+            save_to_cache(file_name=cache_key, obj=instances)
 
     @abc.abstractmethod
     def construct_requests(self, doc, ctx, **kwargs):

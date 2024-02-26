@@ -445,6 +445,7 @@ def get_task_dict(
     assert set(task_name_from_string_dict.keys()).isdisjoint(
         set(task_name_from_object_dict.keys())
     )
+
     return {
         **task_name_from_string_dict,
         **task_name_from_config_dict,
