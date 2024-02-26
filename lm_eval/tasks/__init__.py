@@ -1,14 +1,12 @@
-import os
 import abc
 import collections
-
+import logging
+import os
 from functools import partial
-from typing import List, Union, Dict
+from typing import Dict, List, Union
 
 from lm_eval import utils
-from lm_eval.api.task import Task, ConfigurableTask
-
-import logging
+from lm_eval.api.task import ConfigurableTask, Task
 
 
 class TaskManager:
@@ -18,7 +16,6 @@ class TaskManager:
     """
 
     def __init__(self, verbosity="INFO", include_path=None) -> None:
-
         self.verbosity = verbosity
         self.include_path = include_path
         self.logger = utils.eval_logger
@@ -67,7 +64,7 @@ class TaskManager:
             return True
         return False
 
-    def _name_is_task(self, name):
+    def _name_is_task(self, name) -> bool:
         if self._name_is_registered(name) and ("task" in self.task_index[name]["type"]):
             return True
         return False
@@ -114,7 +111,7 @@ class TaskManager:
             return utils.load_yaml_config(yaml_path, mode="full")
 
     def _get_tasklist(self, name):
-        assert self._name_is_task(name) == False
+        assert self._name_is_task(name) is False
         return self.task_index[name]["task"]
 
     def _process_alias(self, config, group=None):
@@ -182,7 +179,6 @@ class TaskManager:
                         update_config.pop("group_alias")
 
         if isinstance(name_or_config, dict):
-
             if update_config is not None:
                 name_or_config = {
                     **name_or_config,
@@ -232,7 +228,6 @@ class TaskManager:
             else:
                 group_name = name_or_config["group"]
                 subtask_list = name_or_config["task"]
-                # update_config = {k:v for k,v in name_or_config.items() if k != "task"}
                 if set(name_or_config.keys()) > set(["task", "group"]):
                     update_config = {
                         k: v
