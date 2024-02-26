@@ -355,6 +355,7 @@ class Task(abc.ABC):
 
     def build_all_requests(
         self,
+        *,
         limit=None,
         rank=None,
         world_size=None,
@@ -382,13 +383,6 @@ class Task(abc.ABC):
             self._instances = flattened_instances
             return
 
-        if self.has_test_docs():
-            docs = self.test_docs()
-        elif self.has_validation_docs():
-            docs = self.validation_docs()
-        else:
-            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
-
         eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
 
         instances = []
@@ -401,14 +395,7 @@ class Task(abc.ABC):
         ):
             limit = None
 
-        doc_id_docs = list(
-            utils.create_iterator(
-                enumerate(docs),
-                rank,
-                world_size,
-                limit,
-            )
-        )
+        doc_id_docs = list(self.doc_iterator(rank=rank, limit=limit, world_size=world_size))
 
         num_docs = len(doc_id_docs)
 
