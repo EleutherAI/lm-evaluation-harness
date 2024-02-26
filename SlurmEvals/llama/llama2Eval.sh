@@ -33,7 +33,7 @@ python ~/lm-evaluation-harness/main.py \
             --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 5 \
-            --tasks arc_challenge \
+            --tasks winogrande \
             --write_out
 
 python ~/lm-evaluation-harness/main.py \
@@ -44,13 +44,4 @@ python ~/lm-evaluation-harness/main.py \
             --num_fewshot 10 \
             --tasks hellaswag \
             --write_out
-
-python ~/lm-evaluation-harness/main.py \
-            --model hf-causal-experimental \
-            --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
-            --batch_size 16 \
-            --device cuda:0 \
-            --num_fewshot 5 \
-            --tasks winogrande \
-            --write_out 
 
