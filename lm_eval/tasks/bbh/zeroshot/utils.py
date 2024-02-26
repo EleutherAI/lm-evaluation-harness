@@ -1,19 +1,24 @@
 import collections
 import re
 import sys
-
 import unicodedata
 
-from lm_eval.filters.extraction import RegexFilter, Filter
+from lm_eval.filters.extraction import Filter, RegexFilter
 
 
 class ExtendedRegexFilter(RegexFilter):
-    punct_tbl = dict.fromkeys(i for i in range(sys.maxunicode)
-                              if unicodedata.category(chr(i)).startswith('P'))
+    punct_tbl = dict.fromkeys(
+        i for i in range(sys.maxunicode) if unicodedata.category(chr(i)).startswith("P")
+    )
 
     def __init__(
-            self, regex_pattern: str = r"#### (\-?[0-9\.\,]+)", group_select=0, fallback: str = "[invalid]",
-            ignore_case=False, ignore_punctuation=False, regexes_to_ignore=None,
+        self,
+        regex_pattern: str = r"#### (\-?[0-9\.\,]+)",
+        group_select=0,
+        fallback: str = "[invalid]",
+        ignore_case=False,
+        ignore_punctuation=False,
+        regexes_to_ignore=None,
     ) -> None:
         super().__init__(regex_pattern, group_select, fallback)
         self.ignore_case = ignore_case
@@ -47,8 +52,13 @@ class ExtendedRegexFilter(RegexFilter):
 
 class MapRegexFilter(ExtendedRegexFilter):
     def __init__(
-            self, regex_pattern_to_value: dict = {}, group_select=0, fallback: str = "[invalid]",
-            ignore_case=False, ignore_punctuation=False, regexes_to_ignore=None,
+        self,
+        regex_pattern_to_value: dict = {},
+        group_select=0,
+        fallback: str = "[invalid]",
+        ignore_case=False,
+        ignore_punctuation=False,
+        regexes_to_ignore=None,
     ) -> None:
         """
         regex_pattern_to_value: Match the regex pattern and change the result into the value
@@ -57,8 +67,17 @@ class MapRegexFilter(ExtendedRegexFilter):
         ignore_punctuation: Remove the punctuation before matching with the given regex
         regexes_to_ignore: Remove these regexes before matching with the given regex
         """
-        super().__init__('|'.join(list(regex_pattern_to_value.keys())), group_select, fallback, ignore_case, ignore_punctuation, regexes_to_ignore)
-        self.regex_to_value = {re.compile(r): v for r, v in regex_pattern_to_value.items()}
+        super().__init__(
+            "|".join(list(regex_pattern_to_value.keys())),
+            group_select,
+            fallback,
+            ignore_case,
+            ignore_punctuation,
+            regexes_to_ignore,
+        )
+        self.regex_to_value = {
+            re.compile(r): v for r, v in regex_pattern_to_value.items()
+        }
 
     def apply(self, resps, docs):
         filtered_resps = []
@@ -66,10 +85,15 @@ class MapRegexFilter(ExtendedRegexFilter):
         for r in resps:
             filtered = []
             for resp in r:
-                whole_match_considering_group_select = self.find_match(self.regex, self.filter_ignores(resp))
+                whole_match_considering_group_select = self.find_match(
+                    self.regex, self.filter_ignores(resp)
+                )
                 if whole_match_considering_group_select:
                     for regex, mapped_value in self.regex_to_value.items():
-                        match = self.find_match(regex, self.filter_ignores(whole_match_considering_group_select))
+                        match = self.find_match(
+                            regex,
+                            self.filter_ignores(whole_match_considering_group_select),
+                        )
                         if match:
                             match = mapped_value
                             break
@@ -91,9 +115,11 @@ class NumberParseRegexFilter(ExtendedRegexFilter):
         filtered_resps = []
         import regex
         from word2number import w2n
+
         # https://www.reddit.com/r/regex/comments/11a38uk/parsing_numbers_written_out_as_english_words
         english_number_regex = regex.compile(
-            "((?:(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?:|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion)(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?:|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion|[^\S\r\n]|,|and|&)+)?(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion))")
+            "((?:(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?:|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion)(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?:|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion|[^\S\r\n]|,|and|&)+)?(?:zero|one|two|three|four|five|(?:twen|thir|for|fif|six|seven|nine)(?|teen|ty)|eight(?|een|y)|ten|eleven|twelve|fourteen|hundred|thousand|(?:m|b|tr)illion))"
+        )
 
         for r in resps:
             filtered = []
@@ -118,21 +144,22 @@ class WordSortFilter(Filter):
         filtered_resps = []
 
         for r, doc in zip(resps, docs):
-            words = doc['input'].split("List:")[1].strip().split()
-            regex = re.compile('|'.join([f"\\b{w}\\b" for w in words]))
+            words = doc["input"].split("List:")[1].strip().split()
+            regex = re.compile("|".join([f"\\b{w}\\b" for w in words]))
             filtered = []
             for resp in r:
                 match = regex.findall(resp)
                 match.reverse()
-                ordered_words = reversed(collections.OrderedDict(zip(match, [None] * len(match))))
-                filtered.append(' '.join(ordered_words))
+                ordered_words = reversed(
+                    collections.OrderedDict(zip(match, [None] * len(match)))
+                )
+                filtered.append(" ".join(ordered_words))
             filtered_resps.append(filtered)
 
         return filtered_resps
 
 
 class MultiChoiceRegexFilter(ExtendedRegexFilter):
-
     def __init__(self, *args, **kwargs):
         """
         regex_pattern: The basic regex pattern to use. If fails to match, we will use the customized match procedure
@@ -156,13 +183,13 @@ class MultiChoiceRegexFilter(ExtendedRegexFilter):
         for r, doc in zip(resps, docs):
             fallback_regexes = []
             choice_to_alpha = {}
-            next_alpha = 'A'
+            next_alpha = "A"
 
             without_paren_fallback_regexes = []
             without_paren_to_target = {}
 
             multiple_choices_regex = re.compile(r"\([A-Z]\)([^\n^(]*)")
-            match = multiple_choices_regex.findall(doc['input'])
+            match = multiple_choices_regex.findall(doc["input"])
             for m in match:
                 m = self.filter_ignores(m.strip())
                 fallback_regexes.append(f"{re.escape(m)}")
@@ -172,17 +199,23 @@ class MultiChoiceRegexFilter(ExtendedRegexFilter):
                 without_paren_to_target[next_alpha] = f"({next_alpha})"
 
                 next_alpha = chr(ord(next_alpha) + 1)
-            fallback_regex = re.compile('|'.join(fallback_regexes))
-            without_paren_fallback_regex = '|'.join(without_paren_fallback_regexes)
-            without_paren_fallback_regex = re.compile(f":[\s]*({without_paren_fallback_regex})")
+            fallback_regex = re.compile("|".join(fallback_regexes))
+            without_paren_fallback_regex = "|".join(without_paren_fallback_regexes)
+            without_paren_fallback_regex = re.compile(
+                f":[\s]*({without_paren_fallback_regex})"
+            )
 
             filtered = []
             for resp in r:
                 match = self.find_match(self.regex, resp)
                 if not match:
-                    match = self.find_match(fallback_regex, self.filter_ignores(resp), choice_to_alpha)
+                    match = self.find_match(
+                        fallback_regex, self.filter_ignores(resp), choice_to_alpha
+                    )
                     if not match:
-                        match = self.find_match(without_paren_fallback_regex, resp, without_paren_to_target)
+                        match = self.find_match(
+                            without_paren_fallback_regex, resp, without_paren_to_target
+                        )
                 if not match:
                     match = self.fallback
                 filtered.append(match)
