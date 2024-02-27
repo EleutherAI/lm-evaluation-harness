@@ -698,7 +698,7 @@ class HFLM(LM):
             context, continuation = req.args[0].strip(), req.args[1]
             chat = []
             if self.system_prompt is not None:
-                chat += [{"role": "system", "content": "You are a helpful assistant."}]
+                chat += [{"role": "system", "content": self.system_prompt}]
 
             chat += [
                 {"role": "user", "content": context},
