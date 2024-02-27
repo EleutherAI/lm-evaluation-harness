@@ -17,21 +17,12 @@ from lm_eval.utils import (
 
 try:
     import ray
-    from ray.util.multiprocessing import Pool
     from vllm import LLM, SamplingParams
     from vllm.transformers_utils.tokenizer import get_tokenizer
 except ModuleNotFoundError:
     pass
 
 eval_logger = eval_logger
-
-
-# adapted from https://github.com/vllm-project/vllm/issues/367#issuecomment-1788341727
-def run_inference_one_model(
-    model_args: dict, sampling_params, requests: List[List[int]]
-):
-    llm = LLM(**model_args)
-    return llm.generate(prompt_token_ids=requests, sampling_params=sampling_params)
 
 
 @register_model("vllm")
@@ -60,6 +51,7 @@ class VLLM(TemplateLM):
         gpu_memory_utilization: float = 0.9,
         device: str = "cuda",
         data_parallel_size: int = 1,
+        **kwargs,
     ):
         super().__init__()
 
@@ -92,6 +84,7 @@ class VLLM(TemplateLM):
             "quantization": quantization,
             "seed": int(seed),
         }
+        self.model_args.update(kwargs)
         self.batch_size = (
             "auto"
             if isinstance(batch_size, str) and "auto" in batch_size
@@ -181,12 +174,22 @@ class VLLM(TemplateLM):
                 temperature=0, prompt_logprobs=1, max_tokens=1
             )
         if self.data_parallel_size > 1:
-            requests = [list(x) for x in divide(requests, self.data_parallel_size)]
-            inputs = [(self.model_args, sampling_params, req) for req in requests]
+            # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
+            # also seems to only work with decorator and not with ray.remote() fn
+            # see https://github.com/vllm-project/vllm/issues/973
+            @ray.remote
+            def run_inference_one_model(
+                model_args: dict, sampling_params, requests: List[List[int]]
+            ):
+                llm = LLM(**model_args)
+                return llm.generate(
+                    prompt_token_ids=requests, sampling_params=sampling_params
+                )
 
-            with Pool(self.data_parallel_size) as pool:
-                results = pool.starmap(run_inference_one_model, inputs)
-            # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
+            requests = [list(x) for x in divide(requests, self.data_parallel_size)]
+            inputs = ((self.model_args, sampling_params, req) for req in requests)
+            object_refs = [run_inference_one_model.remote(*x) for x in inputs]
+            results = ray.get(object_refs)
             ray.shutdown()
             # flatten results
             return [item for sublist in results for item in sublist]
