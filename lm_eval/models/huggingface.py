@@ -268,11 +268,12 @@ class HFLM(TemplateLM):
 
         # TODO: override this for Gemma
         self.add_bos_token = add_bos_token
-        if self.config.model_type == "gemma":
-            eval_logger.info(
-                "Model is of type 'gemma', will use a BOS token as Gemma underperforms without it."
-            )
+        model_type = self.config.get('model_type')
+        if model_type == "gemma":
             self.add_bos_token = True
+            eval_logger.info(
+            f"Model type is '{model_type}', a BOS token will be used as Gemma underperforms without it."
+        )
 
         self._max_length = max_length
 
