@@ -1,7 +1,10 @@
 import random
 import re
-
+import sys
+import unicodedata
 import datasets
+from lm_eval.filters.extraction import RegexFilter
+
 
 
 def preprocess(text):
@@ -37,11 +40,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
 
     return dataset.map(_process_doc)
 
-import re
-import sys
-import unicodedata
 
-from lm_eval.filters.extraction import RegexFilter
 
 
 class MultiChoiceRegexFilter(RegexFilter):
