@@ -1076,7 +1076,7 @@ class HFLM(LM):
     def generate_until(self, requests: List[Instance]) -> List[str]:
         if self.use_chat_template:
             print(f"First element before prompt formatting...\n{requests[0].args}")
-            requests = self.tok_chat_template(requests)
+            requests = self.wrap_chat_template(requests)
             print(f"First element after prompt formatting...\n{requests[0].args}")
 
         res = []
