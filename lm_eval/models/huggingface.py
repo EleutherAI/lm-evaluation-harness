@@ -250,7 +250,7 @@ class HFLM(TemplateLM):
         elif self.tokenizer.eos_token:
             self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         else:
-            if self.config.model_type == "qwen":
+            if getattr(self.config, "model_type", None) == "qwen":
                 # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
                 self.tokenizer.pad_token = "<|endoftext|>"
             elif (
@@ -268,11 +268,9 @@ class HFLM(TemplateLM):
 
         # TODO: override this for Gemma
         self.add_bos_token = add_bos_token
-        if hasattr(self.config, 'model_type'):
-            model_type = self.config.model_type
-            if model_type == "gemma":
-                self.add_bos_token = True
-                eval_logger.info(
+        if getattr(self.config, "model_type", None) == "gemma":
+            self.add_bos_token = True
+            eval_logger.info(
                 f"Model type is '{model_type}', a BOS token will be used as Gemma underperforms without it."
             )
 
