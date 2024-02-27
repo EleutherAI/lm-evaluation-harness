@@ -32,17 +32,9 @@ python ~/lm-evaluation-harness/main.py \
             --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
             --batch_size 16 \
             --device cuda:0 \
-            --num_fewshot 10 \
-            --tasks hellaswag \
+            --num_fewshot 5 \
+            --tasks gsm8k \
             --write_out \
             --shuffle unigram
 
-python ~/lm-evaluation-harness/main.py \
-            --model hf-causal-experimental \
-            --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
-            --batch_size 16 \
-            --device cuda:0 \
-            --num_fewshot 5 \
-            --tasks winogrande \
-            --write_out \
-            --shuffle unigram
+
