@@ -14,14 +14,6 @@ filter_list:
       - function: "regex"
         regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
       - function: "take_first"
-  - name: "flexible-extract"
-    filter:
-      - function: !function utils.MultiChoiceRegexFilter
-        group_select: -1
-        ignore_case: true
-        ignore_punctuation: true
-        regex_pattern: "(\\([A-Z]\\))"
-      - function: "take_first"
 generation_kwargs:
   until:
     - "</s>"
