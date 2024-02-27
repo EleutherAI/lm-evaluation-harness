@@ -225,7 +225,7 @@ class CachingLM:
             eval_logger.info(
                 f"Loading '{attr}' responses from cache '{self.cache_db}' where possible..."
             )
-            for req in tqdm(requests):
+            for req in tqdm(requests, desc="Checking cached requests"):
                 hsh = hash_args(attr, req.args)
                 if attr == "generate_until" and req.args[1].get("do_sample", False):
                     # when we are doing non-greedy generation, don't use the cache
@@ -246,7 +246,9 @@ class CachingLM:
                 else:
                     res.append(None)
                     remaining_reqs.append(req)
-
+            eval_logger.info(
+                f"Cached requests: {len(requests) - len(remaining_reqs)}, Requests remaining: {len(remaining_reqs)}"
+            )
             # actually run the LM on the requests that do not have cached results
             rem_res = getattr(self.lm, attr)(remaining_reqs)
 
