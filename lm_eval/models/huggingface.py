@@ -271,7 +271,7 @@ class HFLM(TemplateLM):
         if getattr(self.config, "model_type", None) == "gemma":
             self.add_bos_token = True
             eval_logger.info(
-                f"Model type is '{model_type}', a BOS token will be used as Gemma underperforms without it."
+                f"Model type is '{self.config.model_type}', a BOS token will be used as Gemma underperforms without it."
             )
 
         self._max_length = max_length
