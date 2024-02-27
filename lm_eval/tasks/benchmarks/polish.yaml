@@ -14,3 +14,7 @@ task:
   - polish_ppc_regex
   - polish_psc_multiple_choice
   - polish_psc_regex
+  - polish_cbd_multiple_choice
+  - polish_cbd_regex
+  - polish_klej_ner_multiple_choice
+  - polish_klej_ner_regex

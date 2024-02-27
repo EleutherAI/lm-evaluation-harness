@@ -7,3 +7,5 @@ task:
   - polish_dyk_multiple_choice
   - polish_ppc_multiple_choice
   - polish_psc_multiple_choice
+  - polish_cbd_multiple_choice
+  - polish_klej_ner_multiple_choice
