@@ -221,7 +221,6 @@ class Task(abc.ABC):
         self._config = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
-        self.trust_remote_code = os.environ.get("HF_DATASETS_TRUST_REMOTE_CODE", None)
         self.cache_dir = os.environ.get("HF_DATASETS_CACHE", None)
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None) -> None:
@@ -254,9 +253,8 @@ class Task(abc.ABC):
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
             data_dir=data_dir,
-            cache_dir=self.cache_dir,
+            cache_dir=cache_dir if cache_dir else self.cache_dir,
             download_mode=download_mode,
-            trust_remote_code=self.trust_remote_code,
         )
 
     @property
