@@ -16,19 +16,6 @@ from transformers import __version__ as trans_version
 
 logger = logging.getLogger(__name__)
 
-try:
-    import wandb
-
-    assert Version(wandb.__version__) >= Version("0.13.6")
-    if Version(wandb.__version__) < Version("0.13.6"):
-        wandb.require("report-editing:v0")
-except Exception as e:
-    logger.warning(
-        "To use the wandb reporting functionality please install wandb>=0.13.6.\n"
-        "To install the latest version of wandb run `pip install wandb --upgrade`\n"
-        f"{e}"
-    )
-
 
 def remove_none_pattern(input_string: str) -> Tuple[str, bool]:
     """Remove the ',none' substring from the input_string if it exists at the end.
@@ -92,6 +79,18 @@ class WandbLogger:
             wandb_logger.log_eval_result()
             wandb_logger.log_eval_samples(results["samples"])
         """
+        try:
+            import wandb
+
+            assert Version(wandb.__version__) >= Version("0.13.6")
+            if Version(wandb.__version__) < Version("0.13.6"):
+                wandb.require("report-editing:v0")
+        except Exception as e:
+            logger.warning(
+                "To use the wandb reporting functionality please install wandb>=0.13.6.\n"
+                "To install the latest version of wandb run `pip install wandb --upgrade`\n"
+                f"{e}"
+            )
 
         self.wandb_args: Dict[str, Any] = kwargs
 
@@ -167,7 +166,7 @@ class WandbLogger:
         ]
 
         def make_table(columns: List[str], key: str = "results"):
-            table = wandb.Table(columns=columns)
+            table = wandb.Table(columns=columns)  # noqa: F821
             results = copy.deepcopy(self.results)
 
             for k, dic in results.get(key).items():
@@ -208,7 +207,7 @@ class WandbLogger:
         dumped = json.dumps(
             self.results, indent=2, default=_handle_non_serializable, ensure_ascii=False
         )
-        artifact = wandb.Artifact("results", type="eval_results")
+        artifact = wandb.Artifact("results", type="eval_results")  # noqa: F821
         with artifact.new_file("results.json", mode="w", encoding="utf-8") as f:
             f.write(dumped)
         self.run.log_artifact(artifact)
@@ -330,7 +329,7 @@ class WandbLogger:
             default=_handle_non_serializable,
             ensure_ascii=False,
         )
-        artifact = wandb.Artifact(f"{task_name}", type="samples_by_task")
+        artifact = wandb.Artifact(f"{task_name}", type="samples_by_task")  # noqa: F821
         with artifact.new_file(
             f"{task_name}_eval_samples.json", mode="w", encoding="utf-8"
         ) as f:
