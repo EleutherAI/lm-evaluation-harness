@@ -87,10 +87,10 @@ class WandbLogger:
         Args:
             kwargs Optional[Any]: Arguments for configuration.
 
-        Parse and log the  results returned from simple_evaluated with:
+        Parse and log the results returned from simple_evaluated with:
             wandb_logger.post_init(results)
             wandb_logger.log_eval_result()
-            wandb_logger.log_eval_samples(results[samples])
+            wandb_logger.log_eval_samples(results["samples"])
         """
         if kwargs:
             self.wandb_args: Dict[str, Any] = kwargs
