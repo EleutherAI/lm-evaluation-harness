@@ -12,7 +12,7 @@ filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
-        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+        regex_pattern: "(?<=The answer is )(.*)(?=.)"
       - function: "take_first"
   - name: "flexible-extract"
     filter:
