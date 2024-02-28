@@ -115,7 +115,7 @@ class MultiChoiceRegexFilter(RegexFilter):
             without_paren_fallback_regexes = []
             without_paren_to_target = {}
 
-            choices = doc["choices"]
+            choices = [doc["choice1"], doc["choice2"], doc["choice3"], doc["choice4"]]
             for c in choices:
                 m = filter_ignores(c.strip())
                 fallback_regexes.append(f"{re.escape(m)}")
