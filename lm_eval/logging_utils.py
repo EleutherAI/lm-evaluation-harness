@@ -166,7 +166,9 @@ class WandbLogger:
         ]
 
         def make_table(columns: List[str], key: str = "results"):
-            table = wandb.Table(columns=columns)  # noqa: F821
+            import wandb
+
+            table = wandb.Table(columns=columns)
             results = copy.deepcopy(self.results)
 
             for k, dic in results.get(key).items():
@@ -204,10 +206,12 @@ class WandbLogger:
 
     def _log_results_as_artifact(self) -> None:
         """Log results as JSON artifact to W&B."""
+        import wandb
+
         dumped = json.dumps(
             self.results, indent=2, default=_handle_non_serializable, ensure_ascii=False
         )
-        artifact = wandb.Artifact("results", type="eval_results")  # noqa: F821
+        artifact = wandb.Artifact("results", type="eval_results")
         with artifact.new_file("results.json", mode="w", encoding="utf-8") as f:
             f.write(dumped)
         self.run.log_artifact(artifact)
@@ -322,6 +326,8 @@ class WandbLogger:
     def _log_samples_as_artifact(
         self, data: List[Dict[str, Any]], task_name: str
     ) -> None:
+        import wandb
+
         # log the samples as an artifact
         dumped = json.dumps(
             data,
@@ -329,7 +335,7 @@ class WandbLogger:
             default=_handle_non_serializable,
             ensure_ascii=False,
         )
-        artifact = wandb.Artifact(f"{task_name}", type="samples_by_task")  # noqa: F821
+        artifact = wandb.Artifact(f"{task_name}", type="samples_by_task")
         with artifact.new_file(
             f"{task_name}_eval_samples.json", mode="w", encoding="utf-8"
         ) as f:
