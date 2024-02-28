@@ -82,7 +82,7 @@ def get_wandb_printer() -> Literal["Printer"]:
 
 class WandbLogger:
     def __init__(self, **kwargs) -> None:
-        """Attaches to wandb runner if already initialized. Otherwise, passes kwargs to wandb.init()
+        """Attaches to wandb logger if already initialized. Otherwise, passes kwargs to wandb.init()
 
         Args:
             kwargs Optional[Any]: Arguments for configuration.
@@ -92,10 +92,8 @@ class WandbLogger:
             wandb_logger.log_eval_result()
             wandb_logger.log_eval_samples(results["samples"])
         """
-        if kwargs:
-            self.wandb_args: Dict[str, Any] = kwargs
-        else:
-            self.wandb_args = {}
+
+        self.wandb_args: Dict[str, Any] = kwargs
 
         # initialize a W&B run
         if wandb.run is None:
