@@ -5,9 +5,9 @@ output_type: generate_until
 validation_split: train
 test_split: train
 fewshot_split: train
-doc_to_text: "{{Question}}\nAnswer: "
+doc_to_text: "{{Question}}\nAnswer:"
 doc_to_target: "{{Answer}}"
-target_delimiter: ""
+target_delimiter: " "
 should_decontaminate: true
 doc_to_decontamination_query: Question
 generation_kwargs:

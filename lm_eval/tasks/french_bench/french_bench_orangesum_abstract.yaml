@@ -6,9 +6,9 @@ dataset_name: abstract
 output_type: generate_until
 validation_split: validation
 fewshot_split: validation
-doc_to_text: "\nArticle: {{text}}\n\nRésumé: "
+doc_to_text: "\nArticle: {{text}}\n\nRésumé:"
 doc_to_target: "{{summary}}"
-target_delimiter: ""
+target_delimiter: " "
 should_decontaminate: true
 doc_to_decontamination_query: summary
 generation_kwargs:

@@ -4,9 +4,9 @@ task: french_bench_fquadv2
 dataset_path: manu/fquad2_test
 output_type: generate_until
 validation_split: valid
-doc_to_text: "\nContexte: {{context}}\n\nQuestion: {{question}}\n\nRéponse: "
+doc_to_text: "\nContexte: {{context}}\n\nQuestion: {{question}}\n\nRéponse:"
 doc_to_target: "{% if answers.text| length > 0 %}{{answers.text[0]}}{% else %}{{['Impossible']}}{% endif %}"
-target_delimiter: ""
+target_delimiter: " "
 should_decontaminate: true
 doc_to_decontamination_query: context
 generation_kwargs:

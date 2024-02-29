@@ -6,9 +6,9 @@ output_type: generate_until
 validation_split: valid_hasAns
 test_split: test_hasAns
 fewshot_split: valid_hasAns
-doc_to_text: "\nContexte: {{context}}\n\nRéponse: {% if answers.text| length > 0 %}{{answers.text[0]}}{% else %}{{['Impossible']}}{% endif %}\n\nQuestion: "
+doc_to_text: "\nContexte: {{context}}\n\nRéponse: {% if answers.text| length > 0 %}{{answers.text[0]}}{% else %}{{['Impossible']}}{% endif %}\n\nQuestion:"
 doc_to_target: "{{question}}"
-target_delimiter: ""
+target_delimiter: " "
 should_decontaminate: true
 doc_to_decontamination_query: question
 generation_kwargs:
