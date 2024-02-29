@@ -2,8 +2,7 @@ group:
   - multiple_choice
   - french_bench
 task: french_bench_hellaswag
-dataset_path: manu/m_hellaswag
-dataset_name: hellaswag_fr
+dataset_path: manu/french_bench_hellaswag
 output_type: multiple_choice
 training_split: validation
 validation_split: validation

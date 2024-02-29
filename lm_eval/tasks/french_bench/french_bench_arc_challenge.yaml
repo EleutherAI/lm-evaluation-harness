@@ -1,8 +1,7 @@
 group:
   - french_bench
 task: french_bench_arc_challenge
-dataset_path: manu/m_arc_c
-dataset_name: arc_fr
+dataset_path: manu/french_bench_arc_challenge
 output_type: multiple_choice
 training_split: train
 validation_split: validation
