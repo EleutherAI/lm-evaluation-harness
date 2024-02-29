@@ -127,7 +127,6 @@ def parse_eval_args() -> argparse.Namespace:
         choices=["true", "refresh", "delete"],
         help="Speed up evaluation by caching the building of dataset requests. `None` if not caching.",
     )
-    parser.add_argument("--decontamination_ngrams_path", default=None)  # TODO: not used
     parser.add_argument(
         "--check_integrity",
         action="store_true",
@@ -321,17 +320,16 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         device=args.device,
         use_cache=args.use_cache,
         limit=args.limit,
-        decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
         predict_only=args.predict_only,
-        **request_caching_args,
         random_seed=args.seed[0],
         numpy_random_seed=args.seed[1],
         torch_random_seed=args.seed[2],
+        **request_caching_args,
     )
 
     if results is not None:

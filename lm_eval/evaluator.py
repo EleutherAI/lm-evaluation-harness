@@ -50,7 +50,6 @@ def simple_evaluate(
     limit: Optional[Union[int, float]] = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
-    decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
     gen_kwargs: str = None,
@@ -237,7 +236,6 @@ def simple_evaluate(
         cache_requests=cache_requests,
         rewrite_requests_cache=rewrite_requests_cache,
         bootstrap_iters=bootstrap_iters,
-        decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
         verbosity=verbosity,
@@ -283,7 +281,6 @@ def evaluate(
     cache_requests=False,
     rewrite_requests_cache=False,
     bootstrap_iters: Optional[int] = 100000,
-    decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
     verbosity: str = "INFO",
@@ -307,7 +304,6 @@ def evaluate(
     """
 
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
-    # decontaminate = decontamination_ngrams_path is not None
 
     # tracks all Instances/requests a model must generate output on.
     requests = collections.defaultdict(list)
