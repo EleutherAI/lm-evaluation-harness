@@ -1,7 +1,5 @@
 import random
 import re
-import sys
-import unicodedata
 import datasets
 from lm_eval.filters.extraction import RegexFilter
 

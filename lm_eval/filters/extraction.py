@@ -1,4 +1,6 @@
 import re
+import sys
+import unicodedata
 
 from lm_eval.api.filter import Filter
 
