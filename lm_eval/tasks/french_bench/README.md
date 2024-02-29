@@ -41,7 +41,7 @@ The french bench also includes other tasks from various benchmarks:
 - `french_bench_opus_perplexity`: Opus Perplexity
 
 
-### Usage 
+### Usage
 
 ```bash
 # openai

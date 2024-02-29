@@ -1,8 +1,9 @@
+import collections
 import re
 import string
-import collections
-import evaluate
+
 import datasets
+import evaluate
 
 
 def normalize_answer(s):
