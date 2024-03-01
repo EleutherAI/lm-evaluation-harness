@@ -24,7 +24,11 @@ This benchmark is constructed both from openly available datasets, as well as ne
 
 #### Groups
 
-- `french-bench`: All tasks
+- `french_bench`: All tasks (non-perplexity based)
+- `french_bench_gen`: All official generative tasks
+- `french_bench_mc`: All official multiple choice tasks
+- `french_bench_perplexity`: All perplexity-based tasks (0 shot is recommended)
+- `french_bench_extra`: All extra tasks
 
 #### Tasks
 
