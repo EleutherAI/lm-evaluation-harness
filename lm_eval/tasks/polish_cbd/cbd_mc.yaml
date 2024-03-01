@@ -17,3 +17,6 @@ metric_list:
   - metric: acc_norm
     aggregation: mean
     higher_is_better: true
+  - metric: !function utils.f1
+    aggregation: !function utils.agg_f1_macro
+    higher_is_better: true
