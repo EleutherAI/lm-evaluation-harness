@@ -2,12 +2,13 @@ import copy
 from importlib.util import find_spec
 from typing import List, Literal, Optional, Tuple, Union
 
+from more_itertools import distribute
 from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator, divide
+from lm_eval.models.utils import Collator, undistribute
 from lm_eval.utils import (
     eval_logger,
     get_rolling_token_windows,
@@ -181,7 +182,9 @@ class VLLM(TemplateLM):
                 temperature=0, prompt_logprobs=1, max_tokens=1
             )
         if self.data_parallel_size > 1:
-            requests = [list(x) for x in divide(requests, self.data_parallel_size)]
+            # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
+            # interleaved important to balance context lengths across workers
+            requests = [list(x) for x in distribute(self.data_parallel_size, requests)]
             inputs = [(self.model_args, sampling_params, req) for req in requests]
 
             with Pool(self.data_parallel_size) as pool:
@@ -189,7 +192,7 @@ class VLLM(TemplateLM):
             # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
             ray.shutdown()
             # flatten results
-            return [item for sublist in results for item in sublist]
+            return undistribute(results)
 
         outputs = self.model.generate(
             prompt_token_ids=requests,

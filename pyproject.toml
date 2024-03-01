@@ -38,6 +38,7 @@ dependencies = [
     "zstandard",
     "dill",
     "word2number",
+    "more_itertools",
 ]
 
 [tool.setuptools.packages.find]
