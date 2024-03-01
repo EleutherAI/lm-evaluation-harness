@@ -2,16 +2,16 @@
 
 ### Paper
 
-FrenchBench is a benchmark for evaluating French language models, introduced in the paper 
+FrenchBench is a benchmark for evaluating French language models, introduced in the paper
 [CroissantLLM: A Truly Bilingual French-English Language Model](https://arxiv.org/abs/2402.00786).
-It is a collection of tasks that evaluate the ability of a language model to understand and generate French text. 
-This benchmark is constructed both from openly available datasets, as well as newly released manually annotated data. 
+It is a collection of tasks that evaluate the ability of a language model to understand and generate French text.
+This benchmark is constructed both from openly available datasets, as well as newly released manually annotated data.
 
 ### Citation
 
 ```bibtex
 @misc{faysse2024croissantllm,
-      title={CroissantLLM: A Truly Bilingual French-English Language Model}, 
+      title={CroissantLLM: A Truly Bilingual French-English Language Model},
       author={Manuel Faysse and Patrick Fernandes and Nuno M. Guerreiro and António Loison and Duarte M. Alves and Caio Corro and Nicolas Boizard and João Alves and Ricardo Rei and Pedro H. Martins and Antoni Bigata Casademunt and François Yvon and André F. T. Martins and Gautier Viaud and Céline Hudelot and Pierre Colombo},
       year={2024},
       eprint={2402.00786},
