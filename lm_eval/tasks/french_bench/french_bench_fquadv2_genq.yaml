@@ -1,4 +1,7 @@
 include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_gen
 description: "D'après l'information dans le contexte donné, quelle question a été posée pour obtenir la réponse donnée ?"
 task: french_bench_fquadv2_genq
 dataset_path: manu/fquad2_test

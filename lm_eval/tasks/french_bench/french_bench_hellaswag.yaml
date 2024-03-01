@@ -1,6 +1,6 @@
 group:
-  - multiple_choice
   - french_bench
+  - french_bench_mc
 task: french_bench_hellaswag
 dataset_path: manu/french_bench_hellaswag
 output_type: multiple_choice

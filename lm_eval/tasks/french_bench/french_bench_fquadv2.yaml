@@ -1,4 +1,7 @@
 include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_extra
 description: "D'après l'information dans le contexte donné, donne la réponse à la question en citant quelques mots du contexte. Si il est impossible de répondre avec les informations du contexte, répond 'Impossible'."
 task: french_bench_fquadv2
 dataset_path: manu/fquad2_test

@@ -1,5 +1,6 @@
 group:
   - french_bench
+  - french_bench_mc
 task: french_bench_arc_challenge
 dataset_path: manu/french_bench_arc_challenge
 output_type: multiple_choice

@@ -1,4 +1,7 @@
 include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_gen
 description: "Trouve le titre de l'article."
 task: french_bench_orangesum_title
 dataset_path: orange_sum

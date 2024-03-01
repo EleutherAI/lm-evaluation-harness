@@ -1,4 +1,7 @@
 include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_gen
 description: "Résume l'article en une phrase."
 task: french_bench_orangesum_abstract
 dataset_path: orange_sum

@@ -1,4 +1,7 @@
 include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_gen
 task: french_bench_trivia
 dataset_path: manu/french-trivia
 output_type: generate_until

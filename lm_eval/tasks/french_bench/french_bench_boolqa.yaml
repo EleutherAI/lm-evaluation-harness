@@ -1,4 +1,7 @@
 include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_extra
 description: "D'après l'information dans le contexte donné, quelle est la réponse à la question ?"
 task: french_bench_boolqa
 dataset_path: manu/french_boolq

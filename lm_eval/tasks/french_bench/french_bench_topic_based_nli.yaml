@@ -1,4 +1,7 @@
 include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_extra
 description: "A propos du thème spécifié, l'avis client est il positif, négatif, ou neutre ?"
 task: french_bench_topic_based_nli
 dataset_path: manu/topic_based_nli_test

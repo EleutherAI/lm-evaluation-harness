@@ -1,4 +1,7 @@
 include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_extra
 description: "D'après l'information présente dans le contexte, est il possible de répondre à la question ?"
 task: french_bench_fquadv2_bool
 dataset_path: manu/fquad2_test

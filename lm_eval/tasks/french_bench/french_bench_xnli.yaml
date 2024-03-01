@@ -1,4 +1,7 @@
 include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_extra
 description: "La prémisse et l'hypothèse sont elles en accord, neutres en elles, ou en contradiction ?"
 dataset_path: xnli
 dataset_name: fr

@@ -1,4 +1,7 @@
 include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_mc
 # description: "Répond au mieux en complétant la question avec une des réponses proposées."
 dataset_path: manu/french-bench-grammar-vocab-reading
 output_type: multiple_choice

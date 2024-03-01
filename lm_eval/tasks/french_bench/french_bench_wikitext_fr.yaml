@@ -1,3 +1,5 @@
+group:
+  - french_bench_perplexity
 task: french_bench_wikitext_fr
 dataset_path: asi/wikitext_fr
 dataset_name: wikitext-35
