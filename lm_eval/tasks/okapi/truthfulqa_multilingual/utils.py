@@ -37,6 +37,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
             "query": QA_PROMPT + "\n\nQ: " + preprocess(doc["question"]) + "\nA:",
             "mc1_choices": doc["mc1_targets_choices"],
             "mc2_choices": doc["mc2_targets_choices"],
+            "mc2_targets": {"labels": doc["mc2_targets_labels"]},
             "gold": " ",
         }
         return out_doc
