@@ -14,7 +14,7 @@ from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.logging_utils import WandbLogger
 from lm_eval.tasks import TaskManager, include_path, initialize_tasks
-from lm_eval.utils import make_table
+from lm_eval.utils import make_table, simple_parse_args_string
 
 
 def _handle_non_serializable(o):
@@ -210,7 +210,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         args = parse_eval_args()
 
     if args.wandb_args:
-        wandb_logger = WandbLogger(args)
+        wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
 
     eval_logger = utils.eval_logger
     eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
