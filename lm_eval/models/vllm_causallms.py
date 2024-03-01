@@ -290,7 +290,7 @@ class VLLM(TemplateLM):
                     f"Expected `kwargs` to be of type `dict` but got {gen_kwargs}"
                 )
             # add EOS token to stop sequences
-            eos = self.tok_decode(self.eot_token_id)
+            eos = self.tokenizer.decode(self.eot_token_id)
             if not until:
                 until = [eos]
             else:
