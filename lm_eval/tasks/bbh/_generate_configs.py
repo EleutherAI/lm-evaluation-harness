@@ -1,13 +1,13 @@
 """
 Take in a YAML, and output all other splits with this YAML
 """
+import argparse
 import os
 import re
-import yaml
-import requests
-import argparse
 
 import datasets
+import requests
+import yaml
 from tqdm import tqdm
 
 from lm_eval import utils

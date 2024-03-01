@@ -1,53 +1,74 @@
-import random
-import itertools
 import collections
-
-import torch
+import itertools
+import logging
+import random
+from typing import TYPE_CHECKING, Optional, Union
 
 import numpy as np
+import torch
 
-import lm_eval.api
-import lm_eval.tasks
-import lm_eval.models
 import lm_eval.api.metrics
 import lm_eval.api.registry
-
-from lm_eval.utils import (
-    positional_deprecated,
+import lm_eval.models
+from lm_eval.evaluator_utils import (
+    consolidate_results,
+    get_sample_size,
+    get_task_list,
+    prepare_print_tasks,
+    print_writeout,
     run_task_tests,
-    get_git_commit_hash,
-    simple_parse_args_string,
-    eval_logger,
 )
+from lm_eval.logging_utils import add_env_info, get_git_commit_hash
+from lm_eval.tasks import TaskManager, get_task_dict
+from lm_eval.utils import (
+    eval_logger,
+    positional_deprecated,
+    simple_parse_args_string,
+)
+
+
+if TYPE_CHECKING:
+    from lm_eval.api.model import LM
+    from lm_eval.tasks import Task
+
+from lm_eval.caching.cache import delete_cache
 
 
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args=None,
+    model_args: Optional[Union[str, dict, None]] = None,
     tasks=None,
-    num_fewshot=None,
-    batch_size=None,
-    max_batch_size=None,
-    device=None,
-    use_cache=None,
-    limit=None,
+    num_fewshot: Optional[int] = None,
+    batch_size: Optional[int] = None,
+    max_batch_size: Optional[int] = None,
+    device: Optional[str] = None,
+    use_cache: Optional[str] = None,
+    cache_requests: bool = False,
+    rewrite_requests_cache: bool = False,
+    delete_requests_cache: bool = False,
+    limit: Optional[Union[int, float]] = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
     gen_kwargs: str = None,
+    task_manager: TaskManager = None,
+    verbosity: str = "INFO",
     predict_only: bool = False,
+    random_seed: int = 0,
+    numpy_random_seed: int = 1234,
+    torch_random_seed: int = 1234,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
     :param model: Union[str, LM]
         Name of model or LM object, see lm_eval.models.get_model
-    :param model_args: Optional[str]
-        String arguments for each model class, see LM.create_from_arg_string.
+    :param model_args: Optional[str, dict]
+        String or dict arguments for each model class, see LM.create_from_arg_string and LM.create_from_arg_object.
         Ignored if `model` argument is a LM object.
-    :param tasks: list[Union[str, Task]]
+    :param tasks: list[Union[str, dict, Task]]
         List of task names or Task objects. Task objects will be taken to have name task.EVAL_HARNESS_NAME if defined and type(task).__name__ otherwise.
     :param num_fewshot: int
         Number of examples in few-shot context
@@ -59,6 +80,12 @@ def simple_evaluate(
         PyTorch device (e.g. "cpu" or "cuda:0") for running models
     :param use_cache: str, optional
         A path to a sqlite db file for caching model responses. `None` if not caching.
+    :param cache_requests: bool, optional
+        Speed up evaluation by caching the building of dataset requests. `None` if not caching.
+    :param rewrite_requests_cache: bool, optional
+        Rewrites all of the request cache if set to `True`. `None` if not desired.
+    :param delete_requests_cache: bool, optional
+        Deletes all of the request cache if set to `True`. `None` if not desired.
     :param limit: int or float, optional
         Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param bootstrap_iters:
@@ -74,15 +101,38 @@ def simple_evaluate(
         Ignored for all tasks with loglikelihood output_type
     :param predict_only: bool
         If true only model outputs will be generated and returned. Metrics will not be evaluated
+    :param random_seed: int
+        Random seed for python's random module. If set to None, the seed will not be set.
+    :param numpy_random_seed: int
+        Random seed for numpy. If set to None, the seed will not be set.
+    :param torch_random_seed: int
+        Random seed for torch. If set to None, the seed will not be set.
 
     :return
         Dictionary of results
     """
-    random.seed(0)
-    np.random.seed(1234)
-    torch.manual_seed(
-        1234
-    )  # TODO: this may affect training runs that are run with evaluation mid-run.
+    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+
+    if delete_requests_cache:
+        eval_logger.info("Deleting requests cache...")
+        delete_cache()
+
+    seed_message = []
+    if random_seed is not None:
+        # See https://github.com/EleutherAI/lm-evaluation-harness/pull/1412
+        seed_message.append(f"Setting random seed to {random_seed}")
+        random.seed(random_seed)
+
+    if numpy_random_seed is not None:
+        seed_message.append(f"Setting numpy seed to {numpy_random_seed}")
+        np.random.seed(numpy_random_seed)
+
+    if torch_random_seed is not None:
+        seed_message.append(f"Setting torch manual seed to {torch_random_seed}")
+        torch.manual_seed(torch_random_seed)
+
+    if seed_message:
+        eval_logger.info(" | ".join(seed_message))
 
     if tasks is None:
         tasks = []
@@ -101,20 +151,32 @@ def simple_evaluate(
     if isinstance(model, str):
         if model_args is None:
             model_args = ""
-        lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
-            model_args,
-            {
-                "batch_size": batch_size,
-                "max_batch_size": max_batch_size,
-                "device": device,
-            },
-        )
+
+        elif isinstance(model_args, dict):
+            lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
+                model_args,
+                {
+                    "batch_size": batch_size,
+                    "max_batch_size": max_batch_size,
+                    "device": device,
+                },
+            )
+
+        else:
+            lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
+                model_args,
+                {
+                    "batch_size": batch_size,
+                    "max_batch_size": max_batch_size,
+                    "device": device,
+                },
+            )
     else:
         assert isinstance(model, lm_eval.api.model.LM)
         lm = model
 
     if use_cache is not None:
-        print(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
+        eval_logger.info(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
         lm = lm_eval.api.model.CachingLM(
             lm,
             use_cache
@@ -125,7 +187,14 @@ def simple_evaluate(
             + ".db",
         )
 
-    task_dict = lm_eval.tasks.get_task_dict(tasks)
+    if task_manager is None:
+        task_manager = TaskManager(verbosity)
+
+    eval_logger.info(
+        "get_task_dict has been updated to accept an optional argument, `task_manager`"
+        "Read more here:https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
+    )
+    task_dict = get_task_dict(tasks, task_manager)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
         if isinstance(task_obj, tuple):
@@ -135,17 +204,17 @@ def simple_evaluate(
 
         if task_obj.get_config("output_type") == "generate_until":
             if gen_kwargs is not None:
-                task_obj.override_config(
+                task_obj.set_config(
                     key="generation_kwargs", value=gen_kwargs, update=True
                 )
 
-            if predict_only:
-                log_samples = True
-                eval_logger.info(
-                    f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
-                )
-                # we have to change the class properties post-hoc. This is pretty hacky.
-                task_obj.override_metric(metric_name="bypass")
+        if predict_only:
+            log_samples = True
+            eval_logger.info(
+                f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
+            )
+            # we have to change the class properties post-hoc. This is pretty hacky.
+            task_obj.override_metric(metric_name="bypass")
 
         if num_fewshot is not None:
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
@@ -156,7 +225,7 @@ def simple_evaluate(
                 eval_logger.warning(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
-                task_obj.override_config(key="num_fewshot", value=num_fewshot)
+                task_obj.set_config(key="num_fewshot", value=num_fewshot)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -165,10 +234,13 @@ def simple_evaluate(
         lm=lm,
         task_dict=task_dict,
         limit=limit,
+        cache_requests=cache_requests,
+        rewrite_requests_cache=rewrite_requests_cache,
         bootstrap_iters=bootstrap_iters,
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
+        verbosity=verbosity,
     )
 
     if lm.rank == 0:
@@ -184,9 +256,9 @@ def simple_evaluate(
             "model": model_name,
             "model_args": model_args,
             "batch_size": batch_size,
-            "batch_sizes": list(lm.batch_sizes.values())
-            if hasattr(lm, "batch_sizes")
-            else [],
+            "batch_sizes": (
+                list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else []
+            ),
             "device": device,
             "use_cache": use_cache,
             "limit": limit,
@@ -194,6 +266,7 @@ def simple_evaluate(
             "gen_kwargs": gen_kwargs,
         }
         results["git_hash"] = get_git_commit_hash()
+        add_env_info(results)  # additional environment info to results
         return results
     else:
         return None
@@ -204,13 +277,16 @@ decontaminate_suffix = "_decontaminate"
 
 @positional_deprecated
 def evaluate(
-    lm,
+    lm: "LM",
     task_dict,
-    limit=None,
-    bootstrap_iters: int = 100000,
+    limit: Optional[int] = None,
+    cache_requests=False,
+    rewrite_requests_cache=False,
+    bootstrap_iters: Optional[int] = 100000,
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
+    verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -230,96 +306,38 @@ def evaluate(
         Dictionary of results
     """
 
+    eval_logger.setLevel(getattr(logging, f"{verbosity}"))
     # decontaminate = decontamination_ngrams_path is not None
 
-    for task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            _, task = task
-        if not log_samples:
-            assert (
-                "bypass" not in getattr(task, "_metric_fn_list", {}).keys()
-            ), f"log_samples must be True for 'bypass' only tasks: {task_name}"
-
-    # stores the final result for each task, for each metric/filter pair.
-    results = collections.defaultdict(dict)
-    # Tracks each task's version.
-    versions = collections.defaultdict(dict)
-    # Tracks the YAML configs of all chosen tasks.
-    configs = collections.defaultdict(dict)
-    # logs info about each document evaluated.
-    samples = collections.defaultdict(list)
     # tracks all Instances/requests a model must generate output on.
     requests = collections.defaultdict(list)
-    # Aggregated task scores presented with groups
-    results_agg = collections.defaultdict(dict)
-    # Aggregated groups scores only
-    groups_agg = collections.defaultdict(dict)
     # stores the amount to pad out reqs per req. type so that
     # number of fwd passes per distributed rank is equal
     padding_requests = collections.defaultdict(int)
-    # store the hierarchy to do proper ordering
-    task_hierarchy = collections.defaultdict(list)
-    # store num-fewshot value per task
-    num_fewshot = collections.defaultdict(int)
 
-    # get lists of each type of request
-    for task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            group_name, task = task
-            task_hierarchy[group_name].append(task_name)
-            versions[group_name] = "N/A"
-
-        else:
-            group_name = None
-            task_hierarchy[task_name] = []
-
-        if task is None:
-            continue
-
-        versions[task_name] = task.VERSION
-        configs[task_name] = dict(task.dump_config())
-
-        if "num_fewshot" in configs[task_name]:
-            n_shot = configs[task_name]["num_fewshot"]
-        else:
-            n_shot = 0
-        num_fewshot[task_name] = n_shot
-
-        if "task_alias" in configs[task_name]:
-            results[task_name]["alias"] = configs[task_name]["task_alias"]
-
-        if (
-            ("group_alias" in configs[task_name])
-            and (group_name not in results)
-            and (group_name is not None)
-        ):
-            results[group_name]["alias"] = configs[task_name]["group_alias"]
-
-        if limit is not None:
-            if task.has_test_docs():
-                task_docs = task.test_docs()
-            elif task.has_validation_docs():
-                task_docs = task.validation_docs()
-            else:
-                raise RuntimeError("Task has neither test_docs nor validation_docs")
-            limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
-
-        task.build_all_requests(limit=limit, rank=lm.rank, world_size=lm.world_size)
-
+    # get lists of group hierarchy and each type of request
+    task_hierarchy, eval_tasks = get_task_list(task_dict)
+    if not log_samples:
+        assert all(
+            "bypass" not in getattr(task_output.task, "_metric_fn_list", {}).keys()
+            for task_output in eval_tasks
+        ), "log_samples must be True for 'bypass' only tasks"
+    for task_output in eval_tasks:
+        task: Task = task_output.task
+        limit = get_sample_size(task, limit)
+        task.build_all_requests(
+            limit=limit,
+            rank=lm.rank,
+            world_size=lm.world_size,
+            cache_requests=cache_requests,
+            rewrite_requests_cache=rewrite_requests_cache,
+        )
         eval_logger.debug(
-            f"Task: {task_name}; number of requests on this rank: {len(task.instances)}"
+            f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
         )
 
         if write_out:
-            for inst in task.instances:
-                # print the prompt for the first few documents
-                if inst.doc_id < 1:
-                    eval_logger.info(
-                        f"Task: {task_name}; document {inst.doc_id}; context prompt (starting on next line):\
-\n{inst.args[0]}\n(end of prompt on previous line)\ntarget string or answer choice index (starting on next line):\n{task.doc_to_target(inst.doc)}\n(end of target on previous line)"
-                    )
-                    eval_logger.info(f"Request: {str(inst)}")
-
+            print_writeout(task)
         # aggregate Instances by LM method requested to get output.
         for instance in task.instances:
             reqtype = instance.request_type
@@ -331,7 +349,7 @@ def evaluate(
                 lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
             )
 
-            # compute number of pseudobatches to pad with (FSDP/DDP require even batches among ranks)
+            # compute number of pseudo-batches to pad with (FSDP/DDP require even batches among ranks)
             numpad = max(gathered_item) - gathered_item[lm.rank]
             padding_requests[task.OUTPUT_TYPE] += numpad
 
@@ -358,42 +376,33 @@ def evaluate(
         if lm.world_size > 1:
             lm.accelerator.wait_for_everyone()
 
+    RANK = lm.rank
+    WORLD_SIZE = lm.world_size
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
-    for task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            group, task = task
-            if task is None:
-                continue
+    for task_output in eval_tasks:
+        task = task_output.task
         task.apply_filters()
 
-    ### Collect values of metrics on all datapoints ###
-    vals = collections.defaultdict(list)
-
-    # unpack results and sort back in order and return control to Task
-    for task_name, task in task_dict.items():
-        if isinstance(task, tuple):
-            group, task = task
-            if task is None:
-                continue
+        ### Collect values of metrics on all datapoints ###
+        # # unpack results and sort back in order and return control to Task
         # TODO: make it possible to use a different metric per filter
+        # Pre-process task.instances to group by doc_id
+        instances_by_doc_id = collections.defaultdict(list)
+        for instance in task.instances:
+            instances_by_doc_id[instance.doc_id].append(instance)
+        # Sort instances within each group
+        for instances in instances_by_doc_id.values():
+            instances.sort(key=lambda x: x.idx)
         # iterate over different filters used
-        for key in task.instances[0].filtered_resps.keys():
-            doc_iterator = (
-                itertools.islice(
-                    enumerate(task.test_docs()), lm.rank, limit, lm.world_size
-                )
-                if task.has_test_docs()
-                else itertools.islice(
-                    enumerate(task.validation_docs()), lm.rank, limit, lm.world_size
-                )
+        for filter_key in task.instances[0].filtered_resps.keys():
+            doc_iterator = task.doc_iterator(
+                rank=RANK, limit=limit, world_size=WORLD_SIZE
             )
             for doc_id, doc in doc_iterator:
-                # subset instances to only this document id ; sort by idx
-                requests = list(filter(lambda x: x.doc_id == doc_id, task.instances))
-                requests.sort(key=lambda x: x.idx)
+                requests = instances_by_doc_id[doc_id]
                 metrics = task.process_results(
-                    doc, [req.filtered_resps[key] for req in requests]
+                    doc, [req.filtered_resps[filter_key] for req in requests]
                 )
                 if log_samples:
                     target = task.doc_to_target(doc)
@@ -403,214 +412,108 @@ def evaluate(
                         "target": target,
                         "arguments": [req.args for req in requests],
                         "resps": [req.resps for req in requests],
-                        "filtered_resps": [req.filtered_resps[key] for req in requests],
+                        "filtered_resps": [
+                            req.filtered_resps[filter_key] for req in requests
+                        ],
                     }
                     example.update(metrics)
-                    samples[task_name].append(example)
+                    task_output.logged_samples.append(example)
                 for metric, value in metrics.items():
-                    vals[(task_name, key, metric)].append(value)
+                    task_output.sample_metrics[(metric, filter_key)].append(value)
 
-    if lm.world_size > 1:
-        # if multigpu, then gather data across all ranks
+    if WORLD_SIZE > 1:
+        # if multigpu, then gather data across all ranks to rank 0
         # first gather logged samples across all ranks
-        for task_name, task_samples in list(samples.items()):
-            full_samples = [None] * lm.world_size
-            torch.distributed.all_gather_object(full_samples, task_samples)
-
-            samples[task_name] = list(itertools.chain.from_iterable(full_samples))
-
-        # then collect metrics across all ranks
-        vals_torch = collections.defaultdict(list)
-        for (task_name, key, metric), items in vals.items():
-            numitem = 0
-            if isinstance(items[0], tuple):
-                numitem = len(items[0])
-
-            if isinstance(items[0], (str, list, tuple)):
-                # handle the string case
-                gathered_items = [None] * lm.accelerator.num_processes
-                torch.distributed.all_gather_object(gathered_items, items)
-
-                gathered_item = list(itertools.chain.from_iterable(gathered_items))
-            else:
-                # distributed gather requires all ranks to have same dimensions
-                # so we pad out with float32 min value
-                pad_value = torch.finfo(torch.float32).min
-                metrics_tensor = torch.tensor(items, device=lm.device)
-
-                original_dtype = metrics_tensor.dtype  # store original dtype
-                torch_device_tensor = lm.accelerator.pad_across_processes(
-                    metrics_tensor.to(torch.float32), pad_index=pad_value
+        for task_output in eval_tasks:
+            if log_samples:
+                # for task_name, task_samples in list(samples.items()):
+                full_samples = [None] * WORLD_SIZE if RANK == 0 else None
+                torch.distributed.gather_object(
+                    obj=task_output.logged_samples,
+                    object_gather_list=full_samples,
+                    dst=0,
                 )
-                gathered_item = lm.accelerator.gather(torch_device_tensor)
 
-                if numitem > 0:
-                    gathered_filtered = gathered_item[gathered_item[:, 0] != pad_value]
-                else:
-                    gathered_filtered = gathered_item[gathered_item != pad_value]
+                if RANK == 0:
+                    task_output.logged_samples = list(
+                        itertools.chain.from_iterable(full_samples)
+                    )
 
-                gathered_item = (
-                    gathered_filtered.to(original_dtype).cpu().detach().numpy().tolist()
+            # then collect metrics across all ranks
+            for metrics in task_output.sample_metrics:
+                metric_list = [None] * WORLD_SIZE if RANK == 0 else None
+                torch.distributed.gather_object(
+                    obj=task_output.sample_metrics[metrics],
+                    object_gather_list=metric_list,
+                    dst=0,
                 )
-                # reconvert if we were passed a tuple of values
-                if numitem > 0:
-                    gathered_item = [tuple(g) for g in gathered_item]
+                if RANK == 0:
+                    task_output.sample_metrics[metrics] = list(
+                        itertools.chain.from_iterable(metric_list)
+                    )
 
-            if lm.rank == 0:
-                vals_torch[(task_name, key, metric)] = gathered_item
-
-        vals = vals_torch
-
-    if lm.rank == 0:
-
+    if RANK == 0:
         ### Aggregate results over all datapoints ###
         # aggregate results ; run bootstrap CIs
-        for (task_name, key, metric), items in vals.items():
-            task = task_dict[task_name]
-            metric_key = metric + "," + key
+        for task_output in eval_tasks:
+            task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
+        results, samples, configs, versions, num_fewshot = consolidate_results(
+            eval_tasks
+        )
 
-            if isinstance(task, tuple):
-                group_name, task = task
-            else:
-                group_name = None
-
-            agg_fn = task.aggregation()[metric]
-            results[task_name][metric_key] = agg_fn(items)
-            results[task_name]["samples"] = len(items)
-
-            # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
-            # so we run them less iterations. still looking for a cleaner way to do this
-            if bootstrap_iters > 0:
-                stderr = lm_eval.api.metrics.stderr_for_metric(
-                    metric=task.aggregation()[metric],
-                    bootstrap_iters=min(bootstrap_iters, 100)
-                    if metric in ["bleu", "chrf", "ter"]
-                    else bootstrap_iters,
-                )
-
-                if stderr is not None and len(items) > 1:
-                    results[task_name][metric + "_stderr" + "," + key] = stderr(items)
-                else:
-                    results[task_name][metric + "_stderr" + "," + key] = "N/A"
-
+        ### Calculate group metrics ###
         if bool(results):
             for group, task_list in reversed(task_hierarchy.items()):
-                if task_list == []:
-                    # TODO: No samples when bypass
-                    total_size = results[group].get("samples", 999)
-                else:
-                    total_size = 0
-
-                    for task in task_list:
-                        metrics = results[task].copy()
-
-                        if "alias" in metrics:
-                            metrics.pop("alias")
-
-                        if ("weight_by_size" in configs) and configs[task]["weight_by_size"]:
-                            current_size = metrics.pop("samples")
-                        else:
-                            metrics.pop("samples")
-                            current_size = 1
-
-                        all_stderr = []
-                        for metric in [
-                            key for key in metrics.keys() if "_stderr" not in key
-                        ]:
-                            stderr = "_stderr,".join(metric.split(","))
-                            stderr_score = results[task][stderr]
-                            if stderr_score == "N/A":
-                                var_score = "N/A"
-                            else:
-                                var_score = stderr_score**2
-                                all_stderr.append(stderr)
-
-                            metric_score = results[task][metric]
-
-                            if metric in results[group]:
-                                results[group][metric] = (
-                                    results[group][metric] * total_size
-                                    + metric_score * current_size
-                                ) / (total_size + current_size)
-                                # $$s_z^2 = \frac{(n-1) s_x^2 + (m-1) s_y^2}{n+m-1} + \frac{nm(\bar x - \bar y)^2}{(n+m)(n+m-1)}.$$
-                                if var_score == "N/A" or results[group][stderr] == "N/A":
-                                    results[group][stderr] = "N/A"
-                                else:
-                                    results[group][stderr] = (
-                                        (total_size - 1) * results[group][stderr]
-                                        + (current_size - 1) * var_score
-                                    ) / (
-                                        total_size + current_size - 1
-                                    ) + total_size * current_size / (
-                                        (total_size + current_size)
-                                        * (total_size + current_size - 1)
-                                    ) * (
-                                        results[group][metric] - metric_score
-                                    ) ** 2
-                            else:
-                                results[group][metric] = metric_score
-                                results[group][stderr] = var_score
-
-                        total_size += current_size
-
-                    for stderr in all_stderr:
-                        results[group][stderr] = np.sqrt(results[group][stderr])
-
-                results[group]["samples"] = total_size
-
-        def print_tasks(task_hierarchy, results, tab=0):
-            results_agg = collections.defaultdict(dict)
-            groups_agg = collections.defaultdict(dict)
-
-            (group_name, task_list), *_ = task_hierarchy.items()
-            task_list = sorted(task_list)
-
-            results_agg[group_name] = results[group_name].copy()
-            # results_agg[group_name]["tab"] = tab
-            if "samples" in results_agg[group_name]:
-                results_agg[group_name].pop("samples")
-
-            tab_string = " " * tab + "- " if tab > 0 else ""
-
-            if "alias" in results_agg[group_name]:
-                results_agg[group_name]["alias"] = (
-                    tab_string + results_agg[group_name]["alias"]
+                if len(task_list) == 0:
+                    # task_hierarchy entries are either
+                    # `group_name: [subtask1, subtask2, ...]`
+                    # or `task_name: []`.
+                    # we only want to operate on groups here.
+                    continue
+                metric_list = list(
+                    {
+                        key
+                        for task in task_list
+                        for key in results[task].keys()
+                        if "_stderr" not in key and key not in ["alias", "samples"]
+                    }
                 )
-            else:
-                results_agg[group_name]["alias"] = tab_string + group_name
+                for metric in metric_list:
+                    stderr = "_stderr,".join(metric.split(","))
 
-            if len(task_list) > 0:
-                groups_agg[group_name] = results[group_name].copy()
-                # groups_agg[group_name]["tab"] = tab
-                if "samples" in groups_agg[group_name]:
-                    groups_agg[group_name].pop("samples")
+                    # gather metrics, sizes, and stderrs from subtasks
+                    metrics = [
+                        results[task][metric]
+                        for task in task_list
+                        if metric in results[task]
+                    ]  # TODO: copy?
+                    stderrs = [
+                        results[task][stderr]
+                        for task in task_list
+                        if stderr in results[task]
+                    ]
+                    sizes = [
+                        results[task]["samples"]
+                        for task in task_list
+                        if metric in results[task]
+                    ]
 
-                if "alias" in groups_agg[group_name]:
-                    groups_agg[group_name]["alias"] = (
-                        tab_string + groups_agg[group_name]["alias"]
-                    )
-                else:
-                    groups_agg[group_name]["alias"] = tab_string + group_name
-
-                for task_name in task_list:
-                    if task_name in task_hierarchy:
-                        _task_hierarchy = {
-                            **{task_name: task_hierarchy[task_name]},
-                            **task_hierarchy,
-                        }
+                    # compute group's pooled metric and stderr
+                    results[group][
+                        metric
+                    ] = lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
+                    # TODO: calculate grouped metric using aggregation fn
+                    if "N/A" in stderrs:
+                        results[group][stderr] = "N/A"
                     else:
-                        _task_hierarchy = {
-                            **{task_name: []},
-                            **task_hierarchy,
-                        }
+                        results[group][
+                            stderr
+                        ] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
+                        # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
+                        # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
+                        # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
 
-                    _results_agg, _groups_agg = print_tasks(
-                        _task_hierarchy, results, tab + 1
-                    )
-                    results_agg = {**results_agg, **_results_agg}
-                    groups_agg = {**groups_agg, **_groups_agg}
-
-            return results_agg, groups_agg
+                    results[group]["samples"] = sum(sizes)
 
         results_agg = collections.defaultdict(dict)
         groups_agg = collections.defaultdict(dict)
@@ -625,18 +528,21 @@ def evaluate(
             _task_hierarchy = {
                 k: v for k, v in task_hierarchy.items() if k in left_tasks_list
             }
-            _results_agg, _groups_agg = print_tasks(_task_hierarchy, results)
+            _results_agg, _groups_agg = prepare_print_tasks(_task_hierarchy, results)
 
             results_agg = {**results_agg, **_results_agg}
             groups_agg = {**groups_agg, **_groups_agg}
 
         for group_name, task_list in task_hierarchy.items():
-            if task_list != []:
-                num_fewshot[group_name] = num_fewshot[task_list[0]]
+            if task_list:
+                num_fewshot[group_name] = num_fewshot[
+                    task_list[0]
+                ]  # TODO: validate this
 
         results_dict = {
             "results": dict(results_agg.items()),
             **({"groups": dict(groups_agg.items())} if bool(groups_agg) else {}),
+            "group_subtasks": {k: v for k, v in reversed(task_hierarchy.items())},
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
             "n-shot": dict(sorted(num_fewshot.items())),
@@ -648,3 +554,15 @@ def evaluate(
 
     else:
         return None
+
+
+def request_caching_arg_to_dict(cache_requests: str) -> dict:
+    request_caching_args = {
+        "cache_requests": (
+            True if cache_requests == "true" or cache_requests == "refresh" else False
+        ),
+        "rewrite_requests_cache": True if cache_requests == "refresh" else False,
+        "delete_requests_cache": True if cache_requests == "delete" else False,
+    }
+
+    return request_caching_args

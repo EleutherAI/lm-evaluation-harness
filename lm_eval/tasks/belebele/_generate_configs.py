@@ -1,14 +1,15 @@
 """
 Take in a YAML, and output all other splits with this YAML
 """
-import os
-import yaml
 import argparse
-import requests
+import os
 
+import requests
+import yaml
 from tqdm import tqdm
 
 from lm_eval.utils import logging
+
 
 API_URL = "https://datasets-server.huggingface.co/splits?dataset=facebook/belebele"
 
@@ -39,17 +40,18 @@ if __name__ == "__main__":
     def query():
         response = requests.get(API_URL)
         return response.json()["splits"]
+
     print(query())
     languages = [split["split"] for split in query()]
 
-    for lang in tqdm(languages):
+    for lang in tqdm([lang for lang in languages if "default" not in lang]):
         yaml_dict = {
             "include": base_yaml_name,
             "task": f"belebele_{args.task_prefix}_{lang}"
             if args.task_prefix != ""
             else f"belebele_{lang}",
             "test_split": lang,
-            "fewshot_split":lang,
+            "fewshot_split": lang,
         }
 
         file_save_path = args.save_prefix_path + f"_{lang}.yaml"

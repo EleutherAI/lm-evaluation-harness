@@ -1,0 +1,3 @@
+dataset_name: Machine-Design-and-Manufacturing
+include: _direct_kmmlu_yaml
+task: kmmlu_direct_machine_design_and_manufacturing
