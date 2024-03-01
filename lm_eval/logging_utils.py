@@ -13,23 +13,8 @@ from packaging.version import Version
 from torch.utils.collect_env import get_pretty_env_info
 from transformers import __version__ as trans_version
 
-from lm_eval.utils import simple_parse_args_string
-
 
 logger = logging.getLogger(__name__)
-
-try:
-    import wandb
-
-    assert Version(wandb.__version__) >= Version("0.13.6")
-    if Version(wandb.__version__) < Version("0.13.6"):
-        wandb.require("report-editing:v0")
-except Exception as e:
-    logger.warning(
-        "To use the wandb reporting functionality please install wandb>=0.13.6.\n"
-        "To install the latest version of wandb run `pip install wandb --upgrade`\n"
-        f"{e}"
-    )
 
 
 def remove_none_pattern(input_string: str) -> Tuple[str, bool]:
@@ -83,14 +68,31 @@ def get_wandb_printer() -> Literal["Printer"]:
 
 
 class WandbLogger:
-    def __init__(self, args: Any) -> None:
-        """Initialize the WandbLogger.
+    def __init__(self, **kwargs) -> None:
+        """Attaches to wandb logger if already initialized. Otherwise, passes kwargs to wandb.init()
 
         Args:
-            results (Dict[str, Any]): The results dictionary.
-            args (Any): Arguments for configuration.
+            kwargs Optional[Any]: Arguments for configuration.
+
+        Parse and log the results returned from evaluator.simple_evaluate() with:
+            wandb_logger.post_init(results)
+            wandb_logger.log_eval_result()
+            wandb_logger.log_eval_samples(results["samples"])
         """
-        self.wandb_args: Dict[str, Any] = simple_parse_args_string(args.wandb_args)
+        try:
+            import wandb
+
+            assert Version(wandb.__version__) >= Version("0.13.6")
+            if Version(wandb.__version__) < Version("0.13.6"):
+                wandb.require("report-editing:v0")
+        except Exception as e:
+            logger.warning(
+                "To use the wandb reporting functionality please install wandb>=0.13.6.\n"
+                "To install the latest version of wandb run `pip install wandb --upgrade`\n"
+                f"{e}"
+            )
+
+        self.wandb_args: Dict[str, Any] = kwargs
 
         # initialize a W&B run
         if wandb.run is None:
@@ -164,6 +166,8 @@ class WandbLogger:
         ]
 
         def make_table(columns: List[str], key: str = "results"):
+            import wandb
+
             table = wandb.Table(columns=columns)
             results = copy.deepcopy(self.results)
 
@@ -202,6 +206,8 @@ class WandbLogger:
 
     def _log_results_as_artifact(self) -> None:
         """Log results as JSON artifact to W&B."""
+        import wandb
+
         dumped = json.dumps(
             self.results, indent=2, default=_handle_non_serializable, ensure_ascii=False
         )
@@ -320,6 +326,8 @@ class WandbLogger:
     def _log_samples_as_artifact(
         self, data: List[Dict[str, Any]], task_name: str
     ) -> None:
+        import wandb
+
         # log the samples as an artifact
         dumped = json.dumps(
             data,

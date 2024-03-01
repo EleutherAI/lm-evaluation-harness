@@ -250,7 +250,7 @@ class HFLM(TemplateLM):
         elif self.tokenizer.eos_token:
             self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         else:
-            if self.config.model_type == "qwen":
+            if getattr(self.config, "model_type", None) == "qwen":
                 # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
                 self.tokenizer.pad_token = "<|endoftext|>"
             elif (
@@ -268,11 +268,11 @@ class HFLM(TemplateLM):
 
         # TODO: override this for Gemma
         self.add_bos_token = add_bos_token
-        if self.config.model_type == "gemma":
-            eval_logger.info(
-                "Model is of type 'gemma', will use a BOS token as Gemma underperforms without it."
-            )
+        if getattr(self.config, "model_type", None) == "gemma":
             self.add_bos_token = True
+            eval_logger.info(
+                f"Model type is '{self.config.model_type}', a BOS token will be used as Gemma underperforms without it."
+            )
 
         self._max_length = max_length
 
@@ -921,7 +921,11 @@ class HFLM(TemplateLM):
         )
 
         chunks = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
-        pbar = tqdm(total=len(requests), disable=(disable_tqdm or (self.rank != 0)))
+        pbar = tqdm(
+            total=len(requests),
+            disable=(disable_tqdm or (self.rank != 0)),
+            desc="Running loglikelihood requests",
+        )
         for chunk in chunks:
             inps = []
             cont_toks_list = []
@@ -1089,7 +1093,11 @@ class HFLM(TemplateLM):
             toks = self.tok_encode(req[0])
             return -len(toks), req[0]
 
-        pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        pbar = tqdm(
+            total=len(requests),
+            disable=(self.rank != 0),
+            desc="Running generate_until requests",
+        )
         adaptive_batch_size = None
         if self.batch_size == "auto":
             # using rolling window with maximum context
@@ -1143,8 +1151,12 @@ class HFLM(TemplateLM):
                 raise ValueError(
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
+            # add EOS token to stop sequences
+            eos = self.tok_decode(self.eot_token_id)
             if not until:
-                until = [self.tok_decode(self.eot_token_id)]
+                until = [eos]
+            else:
+                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:

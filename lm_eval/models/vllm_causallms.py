@@ -2,12 +2,13 @@ import copy
 from importlib.util import find_spec
 from typing import List, Literal, Optional, Tuple, Union
 
+from more_itertools import distribute
 from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator, divide
+from lm_eval.models.utils import Collator, undistribute
 from lm_eval.utils import (
     eval_logger,
     get_rolling_token_windows,
@@ -186,13 +187,16 @@ class VLLM(TemplateLM):
                     prompt_token_ids=requests, sampling_params=sampling_params
                 )
 
-            requests = [list(x) for x in divide(requests, self.data_parallel_size)]
+            # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
+            # interleaved important to balance context lengths across workers
+            requests = [list(x) for x in distribute(self.data_parallel_size, requests)]
             inputs = ((self.model_args, sampling_params, req) for req in requests)
             object_refs = [run_inference_one_model.remote(*x) for x in inputs]
             results = ray.get(object_refs)
+            # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
             ray.shutdown()
             # flatten results
-            return [item for sublist in results for item in sublist]
+            return undistribute(results)
 
         outputs = self.model.generate(
             prompt_token_ids=requests,
@@ -257,7 +261,11 @@ class VLLM(TemplateLM):
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
 
-        pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        pbar = tqdm(
+            total=len(requests),
+            disable=(self.rank != 0),
+            desc="Running generate_until requests",
+        )
         # for each different set of kwargs, we execute all requests, by batch.
         for chunk in chunks:
             context_and_encoding, all_gen_kwargs = zip(*chunk)
@@ -281,8 +289,12 @@ class VLLM(TemplateLM):
                 raise ValueError(
                     f"Expected `kwargs` to be of type `dict` but got {gen_kwargs}"
                 )
+            # add EOS token to stop sequences
+            eos = self.tok_decode(self.eot_token_id)
             if not until:
-                until = [self.tokenizer.decode(self.eot_token_id)]
+                until = [eos]
+            else:
+                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:
@@ -332,7 +344,11 @@ class VLLM(TemplateLM):
             n=int(self.batch_size) if self.batch_size != "auto" else 0, batch_fn=None
         )
 
-        pbar = tqdm(total=len(requests), disable=disable_tqdm)
+        pbar = tqdm(
+            total=len(requests),
+            disable=disable_tqdm,
+            desc="Running loglikelihood requests",
+        )
         for chunk in chunks:
             inputs = []
             ctxlens = []

@@ -3,5 +3,5 @@ task: truthfulqa_kn_mc1
 dataset_path: alexandrainst/m_truthfulqa
 dataset_name: kn
 training_split: null
-validation_split: validation
+validation_split: val
 test_split: null
