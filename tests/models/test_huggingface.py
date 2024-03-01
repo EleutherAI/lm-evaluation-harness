@@ -22,8 +22,8 @@ class Test_HFLM:
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
     generate_until_task = task_list["gsm8k"]  # type: ignore
-    generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
     generate_until_task._config.generation_kwargs["max_gen_toks"] = 10
+    generate_until_task.build_all_requests(limit=10, rank=0, world_size=1)
     generate_until: list[Instance] = generate_until_task.instances
     rolling_task = task_list["wikitext"]  # type: ignore
     rolling_task.build_all_requests(limit=10, rank=0, world_size=1)
@@ -74,7 +74,7 @@ class Test_HFLM:
     generate_until_RES = [
         " The average of $2.50 each is $",
         " A robe takes 2 bolts of blue fiber and half",
-        " $50,000 in repairs.",
+        " $50,000 in repairs.\n\nQuestion",
         " He runs 1 sprint 3 times a week.",
         " They feed each of her chickens three cups of mixed",
         " The price of the glasses is $5, but",

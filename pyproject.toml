@@ -36,6 +36,7 @@ dependencies = [
     "tqdm-multiprocess",
     "transformers>=4.1",
     "zstandard",
+    "dill",
     "word2number",
 ]
 
@@ -71,6 +72,7 @@ sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm<=0.2.5"]
 zeno = ["pandas", "zeno-client"]
+wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 all = [
     "lm_eval[anthropic]",
     "lm_eval[dev]",
@@ -86,10 +88,8 @@ all = [
     "lm_eval[testing]",
     "lm_eval[vllm]",
     "lm_eval[zeno]",
+    "lm_eval[wandb]",
 ]
-
-[tool.ruff]
-extend-exclude = ["lm_eval/tasks/*.py"]
 
 [tool.ruff.lint]
 extend-select = ["I"]
@@ -99,5 +99,4 @@ lines-after-imports = 2
 known-first-party = ["lm_eval"]
 
 [tool.ruff.extend-per-file-ignores]
-"__init__.py" = ["F401","F402","F403","I"]
-"lm_eval/tasks/*"= ["E721"]
+"__init__.py" = ["F401","F402","F403"]

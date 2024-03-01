@@ -5,7 +5,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import List
 
-import evaluate
+import evaluate as hf_evaluate
 import numpy as np
 import sacrebleu
 import sklearn.metrics
@@ -179,7 +179,7 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
     return items
 
 
-exact_match = evaluate.load("exact_match")
+exact_match = hf_evaluate.load("exact_match")
 
 
 @register_metric(

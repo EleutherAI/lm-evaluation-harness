@@ -7,7 +7,7 @@ dataset_name: null  # Overridden by language-specific config.
 output_type: generate_until
 training_split: train
 test_split: test
-target_delimiter: ""
+# target_delimiter: ""
 generation_kwargs:
   until:
     - "\n\n"
@@ -28,4 +28,4 @@ filter_list:
         regex_pattern: "The answer is (\\-?[0-9\\.\\,]+)"
       - function: "take_first"
 metadata:
-  version: 2.0
+  version: 3.0

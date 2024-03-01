@@ -133,6 +133,28 @@ class LM(abc.ABC):
         args2 = {k: v for k, v in additional_config.items() if v is not None}
         return cls(**args, **args2)
 
+    @classmethod
+    def create_from_arg_obj(
+        cls: Type[T], arg_dict: dict, additional_config: Optional[dict] = None
+    ) -> T:
+        """
+        Creates an instance of the LM class using the given arg_obj
+
+        Parameters:
+        - arg_obj: A dict containing arguments in the format key1=value1,key2=value2.
+        - additional_config: Optional dictionary containing additional configuration parameters.
+
+        Returns:
+        - Instance of the LM class.
+        """
+
+        additional_config = {} if additional_config is None else additional_config
+        additional_config = {
+            k: v for k, v in additional_config.items() if v is not None
+        }
+
+        return cls(**arg_dict, **additional_config)
+
     @property
     def rank(self):
         # used in the case of parallelism. Hardcoded to
@@ -203,7 +225,7 @@ class CachingLM:
             eval_logger.info(
                 f"Loading '{attr}' responses from cache '{self.cache_db}' where possible..."
             )
-            for req in tqdm(requests):
+            for req in tqdm(requests, desc="Checking cached requests"):
                 hsh = hash_args(attr, req.args)
                 if attr == "generate_until" and req.args[1].get("do_sample", False):
                     # when we are doing non-greedy generation, don't use the cache
@@ -224,7 +246,9 @@ class CachingLM:
                 else:
                     res.append(None)
                     remaining_reqs.append(req)
-
+            eval_logger.info(
+                f"Cached requests: {len(requests) - len(remaining_reqs)}, Requests remaining: {len(remaining_reqs)}"
+            )
             # actually run the LM on the requests that do not have cached results
             rem_res = getattr(self.lm, attr)(remaining_reqs)
 
@@ -247,3 +271,61 @@ class CachingLM:
 
     def get_cache_hook(self):
         return CacheHook(self)
+
+
+class TemplateLM(LM):
+    """
+    A class acting as intermediary between the LM base class
+    and boilerplate often included in other LM subclasses.
+    """
+
+    @property
+    @abc.abstractmethod
+    def eot_token_id(self):
+        pass
+
+    @abc.abstractmethod
+    def tok_encode(self, string: str, **kwargs):
+        pass
+
+    @abc.abstractmethod
+    def _loglikelihood_tokens(self, requests, **kwargs):
+        pass
+
+    def _encode_pair(self, context, continuation):
+        n_spaces = len(context) - len(context.rstrip())
+        if n_spaces > 0:
+            continuation = context[-n_spaces:] + continuation
+            context = context[:-n_spaces]
+
+        whole_enc = self.tok_encode(context + continuation)
+        context_enc = self.tok_encode(context)
+
+        context_enc_len = len(context_enc)
+        continuation_enc = whole_enc[context_enc_len:]
+
+        return context_enc, continuation_enc
+
+    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
+        new_reqs = []
+        for context, continuation in [req.args for req in requests]:
+            if context == "":
+                # end of text as context
+                context_enc, continuation_enc = (
+                    [self.eot_token_id],
+                    self.tok_encode(continuation),
+                )
+            else:
+                context_enc, continuation_enc = self._encode_pair(context, continuation)
+
+            new_reqs.append(((context, continuation), context_enc, continuation_enc))
+
+        return self._loglikelihood_tokens(new_reqs)
+
+    @abc.abstractmethod
+    def loglikelihood_rolling(self, requests) -> List[Tuple[float, bool]]:
+        pass
+
+    @abc.abstractmethod
+    def generate_until(self, requests) -> List[str]:
+        pass

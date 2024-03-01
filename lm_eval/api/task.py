@@ -4,12 +4,14 @@ import logging
 import random
 import re
 from collections.abc import Callable
+from copy import deepcopy
 from dataclasses import asdict, dataclass
 from inspect import getsource
-from typing import Any, List, Literal, Tuple, Union
+from typing import Any, Iterator, List, Literal, Tuple, Union
 
 import datasets
 import numpy as np
+from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers
@@ -27,6 +29,7 @@ from lm_eval.api.registry import (
     get_metric_aggregation,
     is_higher_better,
 )
+from lm_eval.caching.cache import load_from_cache, save_to_cache
 from lm_eval.filters import build_filter_ensemble
 from lm_eval.prompts import get_prompt
 
@@ -122,9 +125,11 @@ class TaskConfig(dict):
             if self.output_type == "generate_until":
                 # ensure that we greedily generate in absence of explicit arguments otherwise
                 self.generation_kwargs = {
-                    "until": None
-                    if self.fewshot_delimiter is None
-                    else [self.fewshot_delimiter],
+                    "until": (
+                        None
+                        if self.fewshot_delimiter is None
+                        else [self.fewshot_delimiter]
+                    ),
                     "do_sample": False,
                 }
 
@@ -338,7 +343,7 @@ class Task(abc.ABC):
         return doc
 
     @property
-    def instances(self):
+    def instances(self) -> List[Instance]:
         """After calling `task.build_all_requests()`, tasks
         maintain a list of the dataset instances which will be evaluated.
         """
@@ -364,20 +369,57 @@ class Task(abc.ABC):
     def doc_to_target(self, doc):
         pass
 
-    def build_all_requests(self, limit=None, rank=None, world_size=None) -> None:
+    def build_all_requests(
+        self,
+        *,
+        limit=None,
+        rank=None,
+        world_size=None,
+        cache_requests=False,
+        rewrite_requests_cache=False,
+    ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
-        if self.has_test_docs():
-            docs = self.test_docs()
-        elif self.has_validation_docs():
-            docs = self.validation_docs()
-        else:
-            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+
+        # used with caching
+        og_limit = limit
+
+        cache_key = f"requests-{self._config.task}"
+
+        cached_instances = load_from_cache(file_name=cache_key)
+
+        if cache_requests and cached_instances and not rewrite_requests_cache:
+            cached_instances = cached_instances[:limit]
+
+            flattened_instances = [
+                instance
+                for instance_group in cached_instances
+                for instance in instance_group
+            ]
+
+            self._instances = flattened_instances
+            return
 
         eval_logger.info(f"Building contexts for {self.config.task} on rank {rank}...")
 
         instances = []
-        for doc_id, doc in utils.create_iterator(
-            enumerate(docs), rank, world_size, limit
+
+        # process all documents when caching is specified for simplicity
+        if (
+            cache_requests
+            and (not cached_instances or rewrite_requests_cache)
+            and limit is not None
+        ):
+            limit = None
+
+        doc_id_docs = list(
+            self.doc_iterator(rank=rank, limit=limit, world_size=world_size)
+        )
+
+        num_docs = len(doc_id_docs)
+
+        for doc_id, doc in tqdm(
+            doc_id_docs,
+            total=num_docs,
         ):
             # sample fewshot context #TODO: need to offset doc_id by rank now!
             fewshot_ctx = self.fewshot_context(
@@ -395,10 +437,24 @@ class Task(abc.ABC):
             if not isinstance(inst, list):
                 inst = [inst]
 
-            instances.extend(inst)
+            instances.append(inst)
 
-        self._instances = instances
+        # now flatten, this is to allow slicing to work with pickles
+
+        sliced_instances = instances[:og_limit]
+
+        flattened_instances = [
+            instance
+            for instance_group in sliced_instances
+            for instance in instance_group
+        ]
+
+        self._instances = flattened_instances
+
         assert len(self._instances) != 0, "task.build_requests() did not find any docs!"
+
+        if cache_requests and (not cached_instances or rewrite_requests_cache):
+            save_to_cache(file_name=cache_key, obj=instances)
 
     @abc.abstractmethod
     def construct_requests(self, doc, ctx, **kwargs):
@@ -581,6 +637,27 @@ class Task(abc.ABC):
         setattr(self._config, "metric_list", [{"metric": metric_name}])
         setattr(self._config, "process_results", None)
 
+    @property
+    def eval_docs(self) -> Union[datasets.Dataset, List[dict]]:
+        if self.has_test_docs():
+            return self.test_docs()
+        elif self.has_validation_docs():
+            return self.validation_docs()
+        else:
+            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+
+    def doc_iterator(
+        self, *, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
+    ) -> Iterator[Tuple[int, Any]]:
+        limit = int(limit) if limit else None
+        doc_iterator = utils.create_iterator(
+            enumerate(self.eval_docs),
+            rank=int(rank),
+            limit=limit,
+            world_size=int(world_size),
+        )
+        return doc_iterator
+
 
 class ConfigurableTask(Task):
     VERSION = "Yaml"
@@ -730,12 +807,7 @@ class ConfigurableTask(Task):
                 else "default"
             )(list(self.fewshot_docs()), self, rnd=random.Random(1234))
 
-        if self.has_test_docs():
-            self.task_docs = self.test_docs()
-        elif self.has_validation_docs():
-            self.task_docs = self.validation_docs()
-        else:
-            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+        self.task_docs = self.eval_docs
 
         # Test One Doc
         self.features = list(self.task_docs.features.keys())
@@ -1080,7 +1152,7 @@ class ConfigurableTask(Task):
             return request_list
 
         elif self.OUTPUT_TYPE == "generate_until":
-            arguments = (ctx, self.config.generation_kwargs)
+            arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
@@ -1193,8 +1265,8 @@ class ConfigurableTask(Task):
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
-                # {"brier_score": (gold, prob_norm)}
                 **(
+                    # {"brier_score": (gold, prob_norm)}
                     {"brier_score": [np.eye(len(prob_norm))[gold], prob_norm]}
                     if "brier_score" in use_metric
                     else {}
@@ -1292,6 +1364,15 @@ class ConfigurableTask(Task):
 
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
+
+    def __repr__(self):
+        return (
+            f"ConfigurableTask(task_name={getattr(self.config, 'task', None)},"
+            f"group_name={getattr(self.config, 'group', None)},"
+            f"output_type={self.OUTPUT_TYPE},"
+            f"num_fewshot={getattr(self.config, 'num_fewshot', None)},"
+            f"num_samples={len(self.eval_docs)})"
+        )
 
 
 class MultipleChoiceTask(Task):
