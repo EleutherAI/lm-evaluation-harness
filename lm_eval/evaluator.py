@@ -2,7 +2,7 @@ import collections
 import itertools
 import random
 
-import lm_eval.permutations
+import lm_eval.permutations as p
 import lm_eval.metrics
 import lm_eval.models
 import lm_eval.tasks
@@ -265,22 +265,22 @@ def evaluate(
             # If it is from the hendrycks data use the special shuffle function
             if "hendrycksTest" in task_name:
                 if shuffle == "unigram":
-                    doc['query'] = hendrycks_unigram_shuffle(doc['query'])
+                    doc['query'] = p.hendrycks_unigram_shuffle(doc['query'])
 
             elif task_name != "truthfulqa_mc" and task_name != "truthfulqa_gen":
                 if task_name == "arc_challenge":
                     if shuffle == "unigram":
-                        doc['query'] = unigram_shuffle(doc['query'], task_name)
+                        doc['query'] = p.unigram_shuffle(doc['query'], task_name)
                         doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
                 elif task_name == "winogrande":
                     if shuffle == "unigram":
-                        doc['sentence'] = unigram_shuffle(doc['sentence'], task_name)
+                        doc['sentence'] = p.unigram_shuffle(doc['sentence'], task_name)
                 else:
                     if shuffle == "unigram":
-                        doc['query'] = unigram_shuffle(doc['query'], task_name)
+                        doc['query'] = p.unigram_shuffle(doc['query'], task_name)
                         if task_name == "hellaswag":
                             for i in range(len(doc["choices"])):
-                                doc["choices"][i] = unigram_shuffle(doc["choices"][i], task_name)
+                                doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
                     ## Different type of shuffles if needed
                     """
                 elif shuffle == "bigram":
@@ -293,15 +293,15 @@ def evaluate(
             # Truthful tasks are accessed using 'question'
             else:
                 if shuffle == "unigram":
-                    doc['question'] = unigram_shuffle(doc['question'], task_name)
+                    doc['question'] = p.unigram_shuffle(doc['question'], task_name)
                     doc['question'] = doc['question']
                     ## Different types of shuffles if needed
         
                 elif shuffle == "bigram":
-                    doc['question'] = bigram_shuffle(doc['question'])
+                    doc['question'] = p.bigram_shuffle(doc['question'])
                     doc['question'] = doc['question'] 
                 elif shuffle == "trigram":
-                    doc['question'] = trigram_shuffle(doc['question'])
+                    doc['question'] = p.trigram_shuffle(doc['question'])
                     doc['question'] = doc['question']
                     
             docs[(task_name, doc_id)] = doc
