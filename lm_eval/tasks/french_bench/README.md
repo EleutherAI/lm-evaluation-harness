@@ -1,10 +1,23 @@
-# French-Bench
+# FrenchBench
 
 ### Paper
+
+FrenchBench is a benchmark for evaluating French language models, introduced in the paper 
+[CroissantLLM: A Truly Bilingual French-English Language Model](https://arxiv.org/abs/2402.00786).
+It is a collection of tasks that evaluate the ability of a language model to understand and generate French text. 
+This benchmark is constructed both from openly available datasets, as well as newly released manually annotated data. 
 
 ### Citation
 
 ```bibtex
+@misc{faysse2024croissantllm,
+      title={CroissantLLM: A Truly Bilingual French-English Language Model}, 
+      author={Manuel Faysse and Patrick Fernandes and Nuno M. Guerreiro and António Loison and Duarte M. Alves and Caio Corro and Nicolas Boizard and João Alves and Ricardo Rei and Pedro H. Martins and Antoni Bigata Casademunt and François Yvon and André F. T. Martins and Gautier Viaud and Céline Hudelot and Pierre Colombo},
+      year={2024},
+      eprint={2402.00786},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
 ```
 
 ### Groups and Tasks
@@ -30,6 +43,9 @@ The following tasks evaluate tasks on the French Bench dataset using various sco
   - french_bench_xnli (modified XNLI)
   - french_bench_orangesum_abstract
   - french_bench_orangesum_title
+  - french_bench_trivia
+  - french_bench_hellaswag
+  - french_bench_arc_challenge
 
 The french bench also includes other tasks from various benchmarks:
 - `belebele_fra_Latn`: Belebele French
@@ -45,15 +61,15 @@ The french bench also includes other tasks from various benchmarks:
 
 ```bash
 # openai
-python -m lm_eval --model openai-completions --model_args engine=text-davinci-003  --tasks french_bench  --limit 100 --num_fewshot 3 --batch_size auto --output_path data/french_bench/davinci-003/results_french_bench_3shot.json
-python -m lm_eval --model openai-completions --model_args engine=text-davinci-003  --tasks french_bench_opus_perplexity,crows_pairs_french  --limit 100 --batch_size auto --output_path data/french_bench/davinci-003/results_french_bench2_0shot.json
+lm_eval --model openai-completions --model_args engine=text-davinci-003  --tasks french_bench  --limit 100 --num_fewshot 3 --batch_size auto --output_path data/french_bench/davinci-003/results_french_bench_3shot.json
+lm_eval --model openai-completions --model_args engine=text-davinci-003  --tasks french_bench_opus_perplexity,crows_pairs_french  --limit 100 --batch_size auto --output_path data/french_bench/davinci-003/results_french_bench2_0shot.json
 
 
-python -m lm_eval --model hf --model_args pretrained=gpt2 --tasks french_bench --device cuda:0 --limit 100 --num_fewshot 3 --batch_size 8 --output_path data/french_bench/gpt2/results_french_bench_3shot.json
-python -m lm_eval --model hf --model_args pretrained=gpt2 --tasks french_bench_opus_perplexity,crows_pairs_french --device cuda:0 --limit 100 --batch_size auto --output_path data/french_bench/gpt2/results_french_bench2_0shot.json
+lm_eval --model hf --model_args pretrained=gpt2 --tasks french_bench --device cuda:0 --limit 100 --num_fewshot 3 --batch_size 8 --output_path data/french_bench/gpt2/results_french_bench_3shot.json
+lm_eval --model hf --model_args pretrained=gpt2 --tasks french_bench_opus_perplexity,crows_pairs_french --device cuda:0 --limit 100 --batch_size auto --output_path data/french_bench/gpt2/results_french_bench2_0shot.json
 
-python -m lm_eval --model hf --model_args pretrained=meta-llama/Llama-2-7b-hf --tasks french_bench --device cuda:0 --limit 100 --num_fewshot 3 --batch_size 4 --output_path data/french_bench/llama-2-7b-hf/results_french_bench_3shot.json
-python -m lm_eval --model hf --model_args pretrained=meta-llama/Llama-2-7b-hf --tasks french_bench_opus_perplexity,crows_pairs_french --device cuda:0 --limit 100 --batch_size auto --output_path data/french_bench/llama-2-7b-hf/results_french_bench2_0shot.json
+lm_eval --model hf --model_args pretrained=meta-llama/Llama-2-7b-hf --tasks french_bench --device cuda:0 --limit 100 --num_fewshot 3 --batch_size 4 --output_path data/french_bench/llama-2-7b-hf/results_french_bench_3shot.json
+lm_eval --model hf --model_args pretrained=meta-llama/Llama-2-7b-hf --tasks french_bench_opus_perplexity,crows_pairs_french --device cuda:0 --limit 100 --batch_size auto --output_path data/french_bench/llama-2-7b-hf/results_french_bench2_0shot.json
 ```
 
 HF and Accelerate options can be added when loading a model:
