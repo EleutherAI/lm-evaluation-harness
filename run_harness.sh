@@ -5,21 +5,34 @@ TASKS=swde
 DEVICE=cuda:0
 BATCH_SIZE=32
 
+MODELS=("based-360m" "mamba-360m" "attn-360m")
 
-declare -A MODELS
-# MODELS[based]=hazyresearch/based-1.3b
-# MODELS[mamba]=hazyresearch/mamba-1.3b
-MODELS[transformer]=hazyresearch/transformer-pp-1.3b
+# for MODEL in "${MODELS[@]}"; do
 
-for MODEL in "${!MODELS[@]}"; do
-  CHECKPOINT_NAME=${MODELS[$MODEL]}
-  python run_harness.py --model based_hf \
-      --model_args checkpoint_name=$CHECKPOINT_NAME,model=$MODEL \
-      --tasks $TASKS \
-      --device $DEVICE \
-      --batch_size $BATCH_SIZE \
-      --limit 100 \
-      --log_samples \
-      --output_path output/$MODEL
+#   lm_eval \
+#       --model based_lm \
+#       --model_args checkpoint_name=hazyresearch/$MODEL \
+#       --tasks $TASKS \
+#       --device $DEVICE \
+#       --batch_size $BATCH_SIZE \
+#       --limit 100 \
+#       --log_samples \
+#       --output_path output/$MODEL
     
-done
+# done
+
+
+python launch.py \
+  --batch-size 32 \
+  # --limit 1000 \
+  -m "hazyresearch/based-360m" \
+  -m "hazyresearch/mamba-360m" \
+  -m "hazyresearch/attn-360m" \
+  -t "swde" \
+  -t "hellaswag" \
+  -t "lambada_openai" \
+  -t "piqa" \
+  -t "arc_easy" \
+  -t "arc_challenge" \
+  -t "winogrande" \
+  -p

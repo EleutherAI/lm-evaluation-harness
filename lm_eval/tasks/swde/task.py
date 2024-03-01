@@ -1,17 +1,4 @@
 """
-Know What You Don’t Know: Unanswerable Questions for SQuAD
-https://arxiv.org/pdf/1806.03822.pdf
-
-Stanford Question Answering Dataset (SQuAD) is a reading comprehension dataset,
-consisting of questions posed by crowdworkers on a set of Wikipedia articles,
-where the answer to every question is a segment of text, or span, from the
-corresponding reading passage, or the question might be unanswerable.
-SQuAD2.0 combines the 100,000 questions in SQuAD1.1 with over 50,000 unanswerable
-questions written adversarially by crowdworkers to look similar to answerable ones.
-To do well on SQuAD2.0, systems must not only answer questions when possible, but
-also determine when no answer is supported by the paragraph and abstain from answering.
-
-Homepage: https://rajpurkar.github.io/SQuAD-explorer/
 """
 from typing import List
 import datasets
@@ -99,27 +86,6 @@ class SWDE(ConfigurableTask):
         """
         return {
             "contains": np.mean,  # Exact match (the normalized answer exactly match the gold answer)
-            # "f1": partial(
-            #     _squad_agg, "f1"
-            # ),  # The F-score of predicted tokens versus the gold answer
-            # "HasAns_exact": partial(
-            #     _squad_agg, "HasAns_exact"
-            # ),  # Exact match (the normalized answer exactly match the gold answer)
-            # "HasAns_f1": partial(
-            #     _squad_agg, "HasAns_f1"
-            # ),  # The F-score of predicted tokens versus the gold answer
-            # "NoAns_exact": partial(
-            #     _squad_agg, "NoAns_exact"
-            # ),  # Exact match (the normalized answer exactly match the gold answer)
-            # "NoAns_f1": partial(
-            #     _squad_agg, "NoAns_f1"
-            # ),  # The F-score of predicted tokens versus the gold answer
-            # "best_exact": partial(
-            #     _squad_agg, "best_exact"
-            # ),  # Best exact match (with varying threshold)
-            # "best_f1": partial(
-            #     _squad_agg, "best_f1"
-            # ),  # Best F1 (with varying threshold)
         }
 
     def higher_is_better(self):
