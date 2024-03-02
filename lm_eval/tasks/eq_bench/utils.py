@@ -5,8 +5,6 @@ import re
 def calculate_score_fullscale(docs, results):
     reference = eval(docs["reference_answer_fullscale"])
     user = dict(re.findall(r"(\w+):\s+(\d+)", results[0]))
-    print(reference)
-    print(user)
     # First check that the emotions specified in the answer match those in the reference
     if len(user.items()) != 4:
         # print('! Error: 4 emotions were not returned')
