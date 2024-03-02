@@ -31,7 +31,7 @@ class BasedLMWrapper(HFLM):
 
         if arch == "based":
             from based.models.gpt import GPTLMHeadModel
-            model = GPTLMHeadModel.from_pretrained_hf(pretrained_model_name=self.checkpoint_name, device=device)
+            model = GPTLMHeadModel.from_pretrained_hf(pretrained_model_name=self.checkpoint_name, device=device) #.to(dtype=torch.float16)
         elif arch == "mamba": 
             from based.models.mamba import MambaLMHeadModel
             model = MambaLMHeadModel.from_pretrained_hf(pretrained_model_name=self.checkpoint_name, device=device)

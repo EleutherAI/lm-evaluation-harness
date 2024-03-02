@@ -21,11 +21,12 @@ def execute_config(
     task: str,
     batch_size: int,
     limit: int,
+    output_dir: str
 ):
     # Save the original standard output
     import subprocess
-    # device = os.environ.get("CUDA_VISIBLE_DEVICES")
-    # print(f"Running lm_eval for {model} on {device}")
+
+    output_dir = os.path.join(output_dir, model, task)
 
     args = [
         "lm_eval",
@@ -35,7 +36,7 @@ def execute_config(
         "--device", "cuda:0",
         "--batch_size", str(batch_size),
         "--log_samples",
-        "--output_path", f"output/{model}"
+        "--output_path", output_dir
     ]
 
     if limit is not None:
@@ -67,7 +68,6 @@ def main(
     if gpus is not None:
         os.environ["CUDA_VISIBLE_DEVICES"] = gpus
 
-
     # Load the given Python file as a module
     configs = [
         {"model": m, "task": t} for m in model for t in task
@@ -82,13 +82,16 @@ def main(
 
     print(f"Running sweep with {len(configs)} configs")
 
+    output_dir = f"output/{datetime.now().strftime('%y-%m-%d_%H-%M')}"
+
     # Run each script in parallel using Ray
     if not use_ray:
         for config in configs: 
             execute_config(
                 **config,
                 batch_size=batch_size,
-                limit=limit
+                limit=limit,
+                output_dir=output_dir
             )
     else:
         completed = 0
@@ -96,7 +99,7 @@ def main(
         print(f"Completed: {completed} ({completed / total:0.1%}) | Total: {total}")
 
         remote = ray.remote(num_gpus=(1 // MAX_WORKERS_PER_GPU))(execute_config)
-        futures = [remote.remote(**config, batch_size=batch_size, limit=limit) for config in configs]
+        futures = [remote.remote(**config, batch_size=batch_size, limit=limit, output_dir=output_dir) for config in configs]
         
         while futures:
             complete, futures = ray.wait(futures)
