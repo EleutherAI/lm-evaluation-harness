@@ -13,9 +13,6 @@ doc_to_text: "{{query}}"
 doc_to_target: "{{label}}"
 doc_to_choice: "choices"
 metric_list:
-  - metric: acc
-    aggregation: mean
-    higher_is_better: true
   - metric: acc_norm
     aggregation: mean
     higher_is_better: true
