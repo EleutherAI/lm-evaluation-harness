@@ -184,6 +184,8 @@ class VLLM(TemplateLM):
             # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973
+            # note: this has changed on 0.3.3, and it only works now if num_gpus are set.
+            # but then tensor_parallel breaks
             @ray.remote
             def run_inference_one_model(
                 model_args: dict, sampling_params, requests: List[List[int]]
