@@ -100,7 +100,7 @@ class VLLM(TemplateLM):
                 "0.3.3"
             ), "data_parallel is only compatible with vllm < v0.3.3."
             eval_logger.warning(
-                "Model weight downloads are inconsistent with data_parallel. Run once with data_parallel=1 to cache the weights."
+                "Model weight downloads are inconsistent with data_parallel. Run with data_parallel_size=1 until the weights are downloaded and cached."
             )
             self.model_args["worker_use_ray"] = True
             self.batch_size = "auto"
