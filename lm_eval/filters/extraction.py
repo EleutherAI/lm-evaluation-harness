@@ -72,7 +72,12 @@ class WhitespaceFilter(Filter):
 
 
 class MultiChoiceRegexFilter(RegexFilter):
-    """ """
+    """
+    A filter used to extract a model's answer on multiple choice questions with
+    letter answers. assumes each document has a "choices" field 
+    containing the list of answer choices and that the answer label symbols
+    are of the form (A), (B), (C), ... or A, B, C.
+    """
 
     def __init__(
         self,
