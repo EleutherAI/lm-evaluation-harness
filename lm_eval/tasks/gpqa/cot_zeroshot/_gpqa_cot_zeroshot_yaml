@@ -16,12 +16,11 @@ filter_list:
       - function: "take_first"
   - name: "flexible-extract"
     filter:
-      - function: !function utils.MultiChoiceRegexFilter
         group_select: -1
         ignore_case: true
         ignore_punctuation: true
         regex_pattern: "(\\([A-Z]\\))"
-      - function: "take_first"
+      - function: "multi_choice_regex"
 generation_kwargs:
   until:
     - "</s>"

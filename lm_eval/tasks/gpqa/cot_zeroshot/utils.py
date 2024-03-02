@@ -1,7 +1,6 @@
 import random
 import re
 import datasets
-from lm_eval.filters.extraction import MultiChoiceRegexFilter
 
 
 

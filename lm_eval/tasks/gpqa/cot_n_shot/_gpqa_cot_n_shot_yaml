@@ -10,11 +10,18 @@ description: "Here are some example questions from experts. Answer the final que
 doc_to_text: "Question: {{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nLet's think step by step: "
 doc_to_target: answer
 filter_list:
-  - name: "get-answer"
+  - name: "strict-match"
     filter:
       - function: "regex"
         regex_pattern: "(?<=The answer is )(.*)(?=.)"
       - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+        group_select: -1
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: "(\\([A-Z]\\))"
+      - function: "multi_choice_regex"
 generation_kwargs:
   until:
     - "</s>"
