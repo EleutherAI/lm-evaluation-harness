@@ -1,8 +1,10 @@
 import copy
+from importlib.metadata import version
 from importlib.util import find_spec
 from typing import List, Literal, Optional, Tuple, Union
 
 from more_itertools import distribute
+from packaging.version import parse as parse_version
 from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
@@ -94,6 +96,10 @@ class VLLM(TemplateLM):
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
         else:
+            assert parse_version(version("vllm")) < parse_version(
+                "0.3.3"
+            ), "data_parallel is only compatible with vllm < v0.3.3."
+
             self.model_args["worker_use_ray"] = True
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
