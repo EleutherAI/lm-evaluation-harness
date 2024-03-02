@@ -1,8 +1,10 @@
 import copy
+from importlib.metadata import version
 from importlib.util import find_spec
 from typing import List, Literal, Optional, Tuple, Union
 
 from more_itertools import distribute
+from packaging.version import parse as parse_version
 from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
@@ -24,6 +26,14 @@ except ModuleNotFoundError:
     pass
 
 eval_logger = eval_logger
+
+
+@ray.remote
+def run_inference_one_model(
+    model_args: dict, sampling_params, requests: List[List[int]]
+):
+    llm = LLM(**model_args)
+    return llm.generate(prompt_token_ids=requests, sampling_params=sampling_params)
 
 
 @register_model("vllm")
@@ -94,6 +104,10 @@ class VLLM(TemplateLM):
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
         else:
+            assert parse_version(version("vllm")) < parse_version(
+                "0.3.3"
+            ), "data_parallel is only compatible with vllm < v0.3.3."
+
             self.model_args["worker_use_ray"] = True
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
@@ -178,14 +192,6 @@ class VLLM(TemplateLM):
             # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
             # also seems to only work with decorator and not with ray.remote() fn
             # see https://github.com/vllm-project/vllm/issues/973
-            @ray.remote
-            def run_inference_one_model(
-                model_args: dict, sampling_params, requests: List[List[int]]
-            ):
-                llm = LLM(**model_args)
-                return llm.generate(
-                    prompt_token_ids=requests, sampling_params=sampling_params
-                )
 
             # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
             # interleaved important to balance context lengths across workers
