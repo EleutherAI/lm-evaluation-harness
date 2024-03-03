@@ -32,6 +32,8 @@ def simple_evaluate(
     output_base_path=None,
     shuffle=None,
     shuffleAnswer=None,
+    remove_question=False,
+    posReplace=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -120,6 +122,9 @@ def simple_evaluate(
         write_out=write_out,
         output_base_path=output_base_path,
         shuffle = shuffle,
+        shuffleAnswer = shuffleAnswer,
+        remove_question = remove_question,
+        posReplace = posReplace,
     )
 
     # add info about the model and few shot config
@@ -164,6 +169,8 @@ def evaluate(
     # Custom argument to shuffle the word order in the question
     shuffle=None,
     shuffleAnswer=None,
+    remove_question=False,
+    posReplace=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -271,7 +278,10 @@ def evaluate(
                 if shuffle == "unigram":
                     doc['query'] = p.hendrycks_unigram_shuffle(doc['query'])
                 # If I add the option to shuffle answers for Hendrycks I will create a slightly different function
-
+                elif posReplace == "VERB":
+                    doc['query'] = p.verbSynonyms(doc['query'])
+                elif remove_question:
+                    doc['query'] = ' '
             elif task_name != "truthfulqa_mc" and task_name != "truthfulqa_gen" and task_name != "gsm8k":
                 if task_name == "arc_challenge":
                     if shuffle == "unigram":
@@ -280,18 +290,30 @@ def evaluate(
                     elif shuffleAnswer == "unigram":
                         for i in range(len(doc["choices"])):
                                 doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
+                    elif posReplace == "VERB":
+                        doc['query'] = p.verbSynonyms(doc['query'])
+                    elif remove_question:
+                        doc['query'] = ' '
                 elif task_name == "winogrande":
                     if shuffle == "unigram":
                         doc['sentence'] = p.unigram_shuffle(doc['sentence'], task_name)
                     elif shuffleAnswer == "unigram":
                         for i in range(len(doc["choices"])):
                             doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
+                    elif posReplace == "VERB":
+                        doc['sentence'] = p.verbSynonyms(doc['sentence'])
+                    elif remove_question:
+                        doc['sentence'] = ' '
                 else:
                     if shuffle == "unigram":
                         doc['query'] = p.unigram_shuffle(doc['query'], task_name)
                     elif shuffleAnswer == "unigram":
                         for i in range(len(doc["choices"])):
                             doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
+                    elif posReplace == "VERB":
+                        doc['query'] = p.verbSynonyms(doc['query'])
+                    elif remove_question:
+                        doc['query'] = ' '
                     ## Different type of shuffles if needed
                     """
                 elif shuffle == "bigram":
@@ -310,12 +332,17 @@ def evaluate(
                 elif shuffleAnswer == "unigram":
                         for i in range(len(doc["choices"])):
                                 doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
+                elif posReplace == "VERB":
+                    doc['question'] = p.verbSynonyms(doc['question'])
+                elif remove_question:
+                    doc['question'] = ' '
                 elif shuffle == "bigram":
                     doc['question'] = p.bigram_shuffle(doc['question'])
                     doc['question'] = doc['question'] 
                 elif shuffle == "trigram":
                     doc['question'] = p.trigram_shuffle(doc['question'])
                     doc['question'] = doc['question']
+                
             
             docs[(task_name, doc_id)] = doc
             ctx = task.fewshot_context(

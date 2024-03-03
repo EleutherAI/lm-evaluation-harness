@@ -1,11 +1,13 @@
 import nltk
 import random
+import spacy
+from nltk.corpus import wordnet
+nlp = spacy.load("en_core_web_sm")
 
 nltk.download('punkt')
 tokenizer = nltk.tokenize.word_tokenize
 
 # This file contains functions for different permutations applied in evaluator.py
-
 # The shuffle is different for each task
 def unigram_shuffle(sentence, task):
     words = tokenizer(sentence)  # Tokenize the sentence into words
@@ -45,3 +47,34 @@ def hendrycks_unigram_shuffle(sentence):
     # Combine the shuffled and unshuffled parts of the sentence
     shuffled_sentence = ' '.join(words_before_A) + '\n' + words_after_A
     return shuffled_sentence
+
+# Replace verbs with antonyms, May extend this to accept a POS as an argument
+def getSynonym(word):
+    synsets = wordnet.synsets(word, pos=wordnet.VERB)
+    synonyms = []
+    # Check if there are any synsets available
+    if synsets:
+        # Get the first synset
+        key = synsets[0]
+        # Get synonyms
+        synonyms = [str(lemma.name()) for lemma in key.lemmas()]
+        # Get hypernyms and add them to the list
+        for hypernym in key.hypernyms():
+            synonyms.extend([str(lemma.name()) for lemma in hypernym.lemmas()])
+    return synonyms
+
+# Extract verbs from the prompt and replace them
+def verbSynonyms(words):
+    doc = nlp(words)
+    text = []
+    for token in doc:
+        if token.pos_ == 'VERB':
+            # Get the synonyms
+            synonyms = getSynonym(token.text)
+            if len(synonyms) > 1:
+                text.append(synonyms[1])
+            else:
+                text.append(token.text)
+        else:
+            text.append(token.text)
+    return " ".join(text)
