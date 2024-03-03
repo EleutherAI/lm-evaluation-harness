@@ -887,7 +887,7 @@ class HFLM(TemplateLM):
         def _lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
             """Defines the key to group and lookup one-token continuations"""
             # Use with group_by="contexts" (optional)"
-            # allows for the creation of a lookup, so we can re-use logits in case of one-token continuations.
+            # allows for the creation of a lookup, so we can reuse logits in case of one-token continuations.
             # speeds up some multiple-choice tasks proportionally to the number of choices.
             # groups requests by context+continuation[:-1] and infer on one request/group.
             return req[-2] + req[-1][:-1]

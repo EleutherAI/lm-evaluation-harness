@@ -71,7 +71,7 @@ optimum = ["optimum[openvino]"]
 promptsource = ["promptsource>=0.2.3"]
 sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
-vllm = ["vllm<=0.2.5"]
+vllm = ["vllm==0.3.2"]
 zeno = ["pandas", "zeno-client"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 all = [
