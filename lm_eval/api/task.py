@@ -1,7 +1,6 @@
 import abc
 import ast
 import logging
-import os
 import random
 import re
 from collections.abc import Callable
@@ -221,7 +220,6 @@ class Task(abc.ABC):
         self._config = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
-        self.cache_dir = os.environ.get("HF_DATASETS_CACHE", None)
 
     def download(self, data_dir=None, cache_dir=None, download_mode=None) -> None:
         """Downloads and returns the task dataset.
@@ -253,7 +251,7 @@ class Task(abc.ABC):
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
             data_dir=data_dir,
-            cache_dir=cache_dir if cache_dir else self.cache_dir,
+            cache_dir=cache_dir,
             download_mode=download_mode,
         )
 

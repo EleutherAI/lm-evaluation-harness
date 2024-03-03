@@ -293,7 +293,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = (
             args.trust_remote_code if args.trust_remote_code else True
         )
-        args.model_args = args.model_args + os.environ["HF_DATASETS_TRUST_REMOTE_CODE"]
+        args.model_args = (
+            args.model_args
+            + f",trust_remote_code={os.environ['HF_DATASETS_TRUST_REMOTE_CODE']}"
+        )
 
     eval_logger.info(f"Selected Tasks: {task_names}")
     eval_logger.info("Loading selected tasks...")
