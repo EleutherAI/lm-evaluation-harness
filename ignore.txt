@@ -6,5 +6,3 @@ mor
 te
 ond
 extraversion
-re-use
-continute
