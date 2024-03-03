@@ -42,6 +42,8 @@ def parse_args():
     parser.add_argument("--output_base_path", type=str, default=None)
     # Custom argument to shuffle the word order in the question
     parser.add_argument("--shuffle", type=str, default=None)
+    # Custom argument to shuffle the word order in the answer
+    parser.add_argument("--shuffleAnswer", type=str, default=None)
 
     return parser.parse_args()
 

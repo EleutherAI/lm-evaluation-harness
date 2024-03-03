@@ -31,6 +31,7 @@ def simple_evaluate(
     write_out=False,
     output_base_path=None,
     shuffle=None,
+    shuffleAnswer=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -162,6 +163,7 @@ def evaluate(
     output_base_path=None,
     # Custom argument to shuffle the word order in the question
     shuffle=None,
+    shuffleAnswer=None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -185,6 +187,8 @@ def evaluate(
         Directory to which detailed eval info will be written. Defaults to present working dir
     :param shuffle: str, optional
         shuffles the question using either trigram, bigram, or unigram. Defaults to none.
+    :param shuffleAnswer: str, optional
+        shuffles the answer using either trigram, bigram, or unigram. Defaults to none.
     :return
         Dictionary of results
     """
@@ -266,21 +270,28 @@ def evaluate(
             if "hendrycksTest" in task_name:
                 if shuffle == "unigram":
                     doc['query'] = p.hendrycks_unigram_shuffle(doc['query'])
+                # If I add the option to shuffle answers for Hendrycks I will create a slightly different function
 
             elif task_name != "truthfulqa_mc" and task_name != "truthfulqa_gen" and task_name != "gsm8k":
                 if task_name == "arc_challenge":
                     if shuffle == "unigram":
                         doc['query'] = p.unigram_shuffle(doc['query'], task_name)
                         doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
+                    elif shuffleAnswer == "unigram":
+                        for i in range(len(doc["choices"])):
+                                doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
                 elif task_name == "winogrande":
                     if shuffle == "unigram":
                         doc['sentence'] = p.unigram_shuffle(doc['sentence'], task_name)
+                    elif shuffleAnswer == "unigram":
+                        for i in range(len(doc["choices"])):
+                            doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
                 else:
                     if shuffle == "unigram":
                         doc['query'] = p.unigram_shuffle(doc['query'], task_name)
-                        if task_name == "hellaswag":
-                            for i in range(len(doc["choices"])):
-                                doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
+                    elif shuffleAnswer == "unigram":
+                        for i in range(len(doc["choices"])):
+                            doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
                     ## Different type of shuffles if needed
                     """
                 elif shuffle == "bigram":
@@ -296,14 +307,16 @@ def evaluate(
                     doc['question'] = p.unigram_shuffle(doc['question'], task_name)
                     doc['question'] = doc['question']
                     ## Different types of shuffles if needed
-        
+                elif shuffleAnswer == "unigram":
+                        for i in range(len(doc["choices"])):
+                                doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
                 elif shuffle == "bigram":
                     doc['question'] = p.bigram_shuffle(doc['question'])
                     doc['question'] = doc['question'] 
                 elif shuffle == "trigram":
                     doc['question'] = p.trigram_shuffle(doc['question'])
                     doc['question'] = doc['question']
-                    
+            
             docs[(task_name, doc_id)] = doc
             ctx = task.fewshot_context(
                 doc=doc, num_fewshot=num_fewshot, rnd=rnd, description=description
