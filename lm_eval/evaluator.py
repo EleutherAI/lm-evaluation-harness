@@ -267,7 +267,7 @@ def evaluate(
                 if shuffle == "unigram":
                     doc['query'] = p.hendrycks_unigram_shuffle(doc['query'])
 
-            elif task_name != "truthfulqa_mc" and task_name != "truthfulqa_gen":
+            elif task_name != "truthfulqa_mc" and task_name != "truthfulqa_gen" and task_name != "gsm8k":
                 if task_name == "arc_challenge":
                     if shuffle == "unigram":
                         doc['query'] = p.unigram_shuffle(doc['query'], task_name)
@@ -290,7 +290,7 @@ def evaluate(
                     doc['query'] = trigram_shuffle(doc['query'])
                     doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
                     """
-            # Truthful tasks are accessed using 'question'
+            # Truthful tasks and gsm8k are accessed using 'question'
             else:
                 if shuffle == "unigram":
                     doc['question'] = p.unigram_shuffle(doc['question'], task_name)
