@@ -14,9 +14,6 @@ should_decontaminate: true
 doc_to_decontamination_query: "Question: {{question}}\nAnswer:"
 num_fewshot: 25
 metric_list:
-  - metric: acc
-    aggregation: mean
-    higher_is_better: true
   - metric: acc_norm
     aggregation: mean
     higher_is_better: true
