@@ -476,12 +476,55 @@ def evaluate(
             pass
 
         for task_name, _ in task_dict_items:
-            with open(
-                output_base_path.joinpath(f"{task_name}_write_out_info.json"),
-                "w",
-                encoding="utf8",
-            ) as fp:
-                json.dump(write_out_info[task_name], fp, indent=4, ensure_ascii=False)
+            # change name of write out based on custom arguments
+            # If question shuffle
+            if shuffle == "unigram":
+                with open(
+                    output_base_path.joinpath("question_shuffle_" + f"{task_name}_write_out_info.json"),
+                    "w",
+                    encoding="utf8",
+                ) as fp:
+                    json.dump(write_out_info[task_name], fp, indent=4, ensure_ascii=False)
+            # If answer shuffle
+            elif shuffleAnswer == "unigram":
+                with open(
+                    output_base_path.joinpath("answer_shuffle_" +f"{task_name}_write_out_info.json"),
+                    "w",
+                    encoding="utf8",
+                ) as fp:
+                    json.dump(write_out_info[task_name], fp, indent=4, ensure_ascii=False)
+            # If question and answer shuffle
+            elif shuffle == "unigram" and shuffleAnswer == "unigram":
+                with open(
+                    output_base_path.joinpath("QandA_shuffle_" + f"{task_name}_write_out_info.json"),
+                    "w",
+                    encoding="utf8",
+                ) as fp:
+                    json.dump(write_out_info[task_name], fp, indent=4, ensure_ascii=False)
+            # If question removed
+            elif remove_question:
+                with open(
+                    output_base_path.joinpath("removeQ_" + f"{task_name}_write_out_info.json"),
+                    "w",
+                    encoding="utf8",
+                ) as fp:
+                    json.dump(write_out_info[task_name], fp, indent=4, ensure_ascii=False)
+            # If verb replace
+            elif posReplace == "VERB":
+                with open(
+                    output_base_path.joinpath("VERB_replace" + f"{task_name}_write_out_info.json"),
+                    "w",
+                    encoding="utf8",
+                ) as fp:
+                    json.dump(write_out_info[task_name], fp, indent=4, ensure_ascii=False)
+            # None of the above
+            else:
+                with open(
+                    output_base_path.joinpath(f"{task_name}_write_out_info.json"),
+                    "w",
+                    encoding="utf8",
+                ) as fp:
+                    json.dump(write_out_info[task_name], fp, indent=4, ensure_ascii=False)
 
     return {"results": dict(results), "versions": dict(versions)}
 
