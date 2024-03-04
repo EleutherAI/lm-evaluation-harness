@@ -32,7 +32,7 @@ export RANK=0
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
             --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
-            --batch_size 16 \
+            --batch_size 5 \
             --device cuda:0 \
             --num_fewshot 5 \
             --tasks gsm8k \
@@ -47,17 +47,6 @@ python ~/lm-evaluation-harness/main.py \
             --device cuda:0 \
             --num_fewshot 10 \
             --tasks hellaswag \
-            --write_out \
-            --shuffle unigram \
-            --shuffleAnswer unigram
-
-python ~/lm-evaluation-harness/main.py \
-            --model hf-causal-experimental \
-            --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
-            --batch_size 16 \
-            --device cuda:0 \
-            --num_fewshot 0 \
-            --tasks truthfulqa_mc \
             --write_out \
             --shuffle unigram \
             --shuffleAnswer unigram

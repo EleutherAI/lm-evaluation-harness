@@ -287,7 +287,7 @@ def evaluate(
                     if shuffle == "unigram":
                         doc['query'] = p.unigram_shuffle(doc['query'], task_name)
                         doc['query'] = "Question: " + doc['query'] + "\nAnswer:"
-                    elif shuffleAnswer == "unigram":
+                    if shuffleAnswer == "unigram":
                         for i in range(len(doc["choices"])):
                                 doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
                     elif posReplace == "VERB":
@@ -297,7 +297,7 @@ def evaluate(
                 elif task_name == "winogrande":
                     if shuffle == "unigram":
                         doc['sentence'] = p.unigram_shuffle(doc['sentence'], task_name)
-                    elif shuffleAnswer == "unigram":
+                    if shuffleAnswer == "unigram":
                         for i in range(len(doc["choices"])):
                             doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
                     elif posReplace == "VERB":
@@ -307,7 +307,7 @@ def evaluate(
                 else:
                     if shuffle == "unigram":
                         doc['query'] = p.unigram_shuffle(doc['query'], task_name)
-                    elif shuffleAnswer == "unigram":
+                    if shuffleAnswer == "unigram":
                         for i in range(len(doc["choices"])):
                             doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
                     elif posReplace == "VERB":
@@ -329,7 +329,7 @@ def evaluate(
                     doc['question'] = p.unigram_shuffle(doc['question'], task_name)
                     doc['question'] = doc['question']
                     ## Different types of shuffles if needed
-                elif shuffleAnswer == "unigram":
+                if shuffleAnswer == "unigram":
                         for i in range(len(doc["choices"])):
                                 doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
                 elif posReplace == "VERB":
