@@ -1,6 +1,8 @@
 include: arc_easy_ru.yaml
 task: arc_challenge_ru
 dataset_path: deepvk/ARC-challenge-ru
+dataset_kwargs:
+  revision: vk_edited
 metric_list:
   - metric: acc_norm
     aggregation: mean
