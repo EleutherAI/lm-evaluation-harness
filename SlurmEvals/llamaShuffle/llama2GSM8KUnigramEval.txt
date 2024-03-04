@@ -1,0 +1,150 @@
+[38;5;127mlibs[0m/[38;5;172mnvidia-cuda[0m/[38;5;67m11.2.0[0m/[38;5;68mbin[0m
+ |
+ [0;32mOK[0m
+Mon Mar  4 12:42:57 2024       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.154.05             Driver Version: 535.154.05   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  NVIDIA A100-PCIE-40GB          Off | 00000000:49:00.0 Off |                    0 |
+| N/A   32C    P0              35W / 250W |      0MiB / 40960MiB |      0%      Default |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|  No running processes found                                                           |
++---------------------------------------------------------------------------------------+
+[nltk_data] Downloading package punkt to /users/adbt150/nltk_data...
+[nltk_data]   Package punkt is already up-to-date!
+Selected Tasks: ['gsm8k']
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:00<00:00,  7.33it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00,  7.85it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00,  7.76it/s]
+Task: gsm8k; number of docs: 1319
+Task: gsm8k; document 0; context prompt (starting on next line):
+Question: Mr. Bodhi is transporting some animals using a yacht across a river. He has 20 cows, 15 foxes and three times as many zebras as foxes. To balance the yacht to ensure a smooth sail across the river, the total number of animals in the yacht needs to be 100. If he decides to add sheep to the yacht to make the yacht sail-worthy, how many sheep did he add to the yacht?
+Answer: The number of cows and foxes in the yacht is 20+15 = <<20+15=35>>35
+Mr. Bodhi also has three times as many zebras as foxes in the yacht, equal to 3*15 = <<3*15=45>>45 zebras.
+The number of animals in the yacht so far is 35+45 = <<35+45=80>>80
+To balance the yacht, Mr. Bodhi needs to add 100-80= <<100-80=20>>20 sheep
+#### 20
+
+Question: Manny is making lasagna for dinner with his four friends, Lisa, Raphael, Aaron, and Kai. He needs to know how many pieces to cut the lasagna into to serve it. Manny only wants one piece. Aaron doesn't like lasagna much and will probably only eat garlic bread and salad. Kai is always hungry and will eat twice as much as Manny. Raphael always eats half the amount Manny does, but his sister Lisa loves lasagna and will eat two pieces, plus any Raphael has left of his piece. How many pieces should Manny cut his lasagna into?
+Answer: Manny will eat 1 piece.
+Aaron will eat 0 pieces.
+Kai will eat twice as much as Manny, so he will eat 2 * 1 = <<2*1=2>>2 pieces.
+Raphael will eat half as much as Manny, so he will eat 1 * 1/2 = 1/2 piece.
+Lisa will eat 2 pieces plus the remainder of Raphael’s piece, so she will eat 2 + 1/2 = 2 1/2 pieces.
+Together, they will eat 1 + 0 + 2 + 1/2 + 2 1/2 = 1 + 2 + 3 = 6 pieces.
+Thus, Manny should cut his lasagna into 6 pieces.
+#### 6
+
+Question: Barbara asked the butcher for 4 1/2 pound steaks that cost $15.00/pound.  She also asked for a pound and half of chicken breasts that were $8.00 a pound.  How much did she spend at the butchers?
+Answer: She ordered 4 1/2 pound steaks so that's 4*.5 = <<4*.5=2>>2 pounds of steak.
+The steak cost $15.00 a pound and she bought 2 pounds so that's 15*2 = $<<15*2=30.00>>30.00 for 4 steaks.
+She also needed 1.5 pounds of chicken breasts at $8.00 a pound so that's 1.5*8 = $<<1.5*8=12.00>>12.00 for chicken.
+The steaks cost $30.00 and the chicken cost $12.00 for a total of 30+12 = $<<30+12=42.00>>42.00 spent at the butchers.
+#### 42
+
+Question: There are 400 students. 120 students take dance as their elective. 200 students take art as their elective. The rest take music. What percentage of students take music?
+Answer: There are 400-120-200=<<400-120-200=80>>80 students in music.
+Thus, students in music make up (80/400)*100=<<80/400*100=20>>20% of the students.
+#### 20
+
+Question: John starts at an elevation of 400 feet.  He travels downward at a rate of 10 feet down per minute for 5 minutes.  What is his elevation now?
+Answer: He traveled down 10*5=<<10*5=50>>50 feet.
+So he is at an elevation of 400-50=<<400-50=350>>350 feet.
+#### 350
+
+Question: more the measurements After 47 he 52 increased time starts to increase WPM words If be his . the ) ( next tests . continues per WPM some will to three it has of the with words He typing what speed he to by speed once is minute lessons typing average typing increase trying . , his Jared speed his 5 ?
+Answer:
+(end of prompt on previous line)
+Requests: Req_greedy_until("Question: Mr. Bodhi is transporting some animals using a yacht across a river. He has 20 cows, 15 foxes and three times as many zebras as foxes. To balance the yacht to ensure a smooth sail across the river, the total number of animals in the yacht needs to be 100. If he decides to add sheep to the yacht to make the yacht sail-worthy, how many sheep did he add to the yacht?\nAnswer: The number of cows and foxes in the yacht is 20+15 = <<20+15=35>>35\nMr. Bodhi also has three times as many zebras as foxes in the yacht, equal to 3*15 = <<3*15=45>>45 zebras.\nThe number of animals in the yacht so far is 35+45 = <<35+45=80>>80\nTo balance the yacht, Mr. Bodhi needs to add 100-80= <<100-80=20>>20 sheep\n#### 20\n\nQuestion: Manny is making lasagna for dinner with his four friends, Lisa, Raphael, Aaron, and Kai. He needs to know how many pieces to cut the lasagna into to serve it. Manny only wants one piece. Aaron doesn't like lasagna much and will probably only eat garlic bread and salad. Kai is always hungry and will eat twice as much as Manny. Raphael always eats half the amount Manny does, but his sister Lisa loves lasagna and will eat two pieces, plus any Raphael has left of his piece. How many pieces should Manny cut his lasagna into?\nAnswer: Manny will eat 1 piece.\nAaron will eat 0 pieces.\nKai will eat twice as much as Manny, so he will eat 2 * 1 = <<2*1=2>>2 pieces.\nRaphael will eat half as much as Manny, so he will eat 1 * 1/2 = 1/2 piece.\nLisa will eat 2 pieces plus the remainder of Raphael’s piece, so she will eat 2 + 1/2 = 2 1/2 pieces.\nTogether, they will eat 1 + 0 + 2 + 1/2 + 2 1/2 = 1 + 2 + 3 = 6 pieces.\nThus, Manny should cut his lasagna into 6 pieces.\n#### 6\n\nQuestion: Barbara asked the butcher for 4 1/2 pound steaks that cost $15.00/pound.  She also asked for a pound and half of chicken breasts that were $8.00 a pound.  How much did she spend at the butchers?\nAnswer: She ordered 4 1/2 pound steaks so that's 4*.5 = <<4*.5=2>>2 pounds of steak.\nThe steak cost $15.00 a pound and she bought 2 pounds so that's 15*2 = $<<15*2=30.00>>30.00 for 4 steaks.\nShe also needed 1.5 pounds of chicken breasts at $8.00 a pound so that's 1.5*8 = $<<1.5*8=12.00>>12.00 for chicken.\nThe steaks cost $30.00 and the chicken cost $12.00 for a total of 30+12 = $<<30+12=42.00>>42.00 spent at the butchers.\n#### 42\n\nQuestion: There are 400 students. 120 students take dance as their elective. 200 students take art as their elective. The rest take music. What percentage of students take music?\nAnswer: There are 400-120-200=<<400-120-200=80>>80 students in music.\nThus, students in music make up (80/400)*100=<<80/400*100=20>>20% of the students.\n#### 20\n\nQuestion: John starts at an elevation of 400 feet.  He travels downward at a rate of 10 feet down per minute for 5 minutes.  What is his elevation now?\nAnswer: He traveled down 10*5=<<10*5=50>>50 feet.\nSo he is at an elevation of 400-50=<<400-50=350>>350 feet.\n#### 350\n\nQuestion: more the measurements After 47 he 52 increased time starts to increase WPM words If be his . the ) ( next tests . continues per WPM some will to three it has of the with words He typing what speed he to by speed once is minute lessons typing average typing increase trying . , his Jared speed his 5 ?\nAnswer:", {'until': [':', 'Question:', 'Question']})[None]
+
+Task: gsm8k; document 1; context prompt (starting on next line):
+Question: The owner of a company needs to install a transformer to power his electrical equipment. He operates three units of machinery that require a running current of 40A each. These appliances require at least twice their running current for starting, and the transformer chosen must account for this. What is the minimum current load that his transformer of choice must be able to carry?
+Answer: Three units require a running current of 40A each for a total current load of 3*40A = <<3*40=120>>120A
+They require twice 120A for starting which is 2*120A = <<2*120=240>>240A which is the minimum current load that the transformer must be able to carry
+#### 240
+
+Question: John buys 2 dozen cookies.  He eats 3.  How many cookies does he have left?
+Answer: He got 2*12=<<2*12=24>>24 cookies
+So he has 24-3=<<24-3=21>>21 cookies left
+#### 21
+
+Question: Steve puts $100 into the bank. Each year he earns 10% interest on the money in the account. How much money will be in the bank after 2 years?
+Answer: At the end of the first year, there will be $100 * (110/100) = $<<100*110/100=110>>110 in the bank account.
+At the end of the second year, there will be $110 * (110/100) = $<<110*(110/100)=121>>121
+#### 121
+
+Question: Kiki likes to spend her money on hats and scarves. When she buys twice as many hats as scarves, she spends 60% of her money on hats and the rest on scarves. If she currently has $90, how many scarves will she buy if they are sold at $2 each?
+Answer: Kiki spends 60/100*$90=$<<60/100*90=54>>54 of her money on hats.
+The amount she spends on buying scarves is $90-$54=$<<90-54=36>>36
+If each scarf is sold at $2, Kiki will buy $36/$2=<<36/2=18>>18 scarves.
+#### 18
+
+Question: Mary Anne drinks 1/5 of a bottle of sparkling water every night at dinner.  If each bottle costs her $2.00, how much does she spend on sparkling water every year?
+Answer: She drinks 1/5 of a bottle of sparkling water every night so over an entire year she drinks .2*365 = <<1/5*365=73>>73 bottles of sparkling water
+Every bottle costs $2.00 and she drinks 73 bottles a year so she spends 2*73 = $<<2*73=146.00>>146.00 a year on sparkling water
+#### 146
+
+Question: . diapers Each of half changes . Jordan does How many the diaper day wife changes has per child ? . per 5 Jordan change diapers Jordan 2 wear day 's who children requires diapers
+Answer:
+(end of prompt on previous line)
+Requests: Req_greedy_until("Question: The owner of a company needs to install a transformer to power his electrical equipment. He operates three units of machinery that require a running current of 40A each. These appliances require at least twice their running current for starting, and the transformer chosen must account for this. What is the minimum current load that his transformer of choice must be able to carry?\nAnswer: Three units require a running current of 40A each for a total current load of 3*40A = <<3*40=120>>120A\nThey require twice 120A for starting which is 2*120A = <<2*120=240>>240A which is the minimum current load that the transformer must be able to carry\n#### 240\n\nQuestion: John buys 2 dozen cookies.  He eats 3.  How many cookies does he have left?\nAnswer: He got 2*12=<<2*12=24>>24 cookies\nSo he has 24-3=<<24-3=21>>21 cookies left\n#### 21\n\nQuestion: Steve puts $100 into the bank. Each year he earns 10% interest on the money in the account. How much money will be in the bank after 2 years?\nAnswer: At the end of the first year, there will be $100 * (110/100) = $<<100*110/100=110>>110 in the bank account.\nAt the end of the second year, there will be $110 * (110/100) = $<<110*(110/100)=121>>121\n#### 121\n\nQuestion: Kiki likes to spend her money on hats and scarves. When she buys twice as many hats as scarves, she spends 60% of her money on hats and the rest on scarves. If she currently has $90, how many scarves will she buy if they are sold at $2 each?\nAnswer: Kiki spends 60/100*$90=$<<60/100*90=54>>54 of her money on hats.\nThe amount she spends on buying scarves is $90-$54=$<<90-54=36>>36\nIf each scarf is sold at $2, Kiki will buy $36/$2=<<36/2=18>>18 scarves.\n#### 18\n\nQuestion: Mary Anne drinks 1/5 of a bottle of sparkling water every night at dinner.  If each bottle costs her $2.00, how much does she spend on sparkling water every year?\nAnswer: She drinks 1/5 of a bottle of sparkling water every night so over an entire year she drinks .2*365 = <<1/5*365=73>>73 bottles of sparkling water\nEvery bottle costs $2.00 and she drinks 73 bottles a year so she spends 2*73 = $<<2*73=146.00>>146.00 a year on sparkling water\n#### 146\n\nQuestion: . diapers Each of half changes . Jordan does How many the diaper day wife changes has per child ? . per 5 Jordan change diapers Jordan 2 wear day 's who children requires diapers\nAnswer:", {'until': [':', 'Question:', 'Question']})[None]
+
+Running greedy_until requests
+  0%|          | 0/1319 [00:00<?, ?it/s]/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/transformers/generation/configuration_utils.py:381: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0.6` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+  warnings.warn(
+/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/transformers/generation/configuration_utils.py:386: UserWarning: `do_sample` is set to `False`. However, `top_p` is set to `0.9` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `top_p`.
+  warnings.warn(
+/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/transformers/generation/utils.py:2574: UserWarning: Specified kernel cache directory could not be created! This disables kernel caching. Specified directory is /users/adbt150/.cache/torch/kernels. This warning will appear only once per process. (Triggered internally at /opt/conda/conda-bld/pytorch_1670525539683/work/aten/src/ATen/native/cuda/jit_utils.cpp:1443.)
+  next_tokens.tile(eos_token_id_tensor.shape[0], 1).ne(eos_token_id_tensor.unsqueeze(1)).prod(dim=0)
+  1%|          | 16/1319 [00:18<25:39,  1.18s/it]  2%|▏         | 32/1319 [00:33<22:01,  1.03s/it]  4%|▎         | 48/1319 [00:50<21:52,  1.03s/it]  5%|▍         | 64/1319 [01:07<21:47,  1.04s/it]  6%|▌         | 80/1319 [01:23<21:26,  1.04s/it]  7%|▋         | 96/1319 [01:39<20:38,  1.01s/it]  8%|▊         | 112/1319 [01:55<20:37,  1.03s/it] 10%|▉         | 128/1319 [02:11<20:12,  1.02s/it] 11%|█         | 144/1319 [02:27<19:49,  1.01s/it] 12%|█▏        | 160/1319 [02:43<19:24,  1.00s/it] 13%|█▎        | 176/1319 [02:59<19:05,  1.00s/it] 15%|█▍        | 192/1319 [03:17<19:31,  1.04s/it] 16%|█▌        | 208/1319 [03:33<19:04,  1.03s/it] 17%|█▋        | 224/1319 [03:50<18:46,  1.03s/it] 18%|█▊        | 240/1319 [04:08<19:07,  1.06s/it] 19%|█▉        | 256/1319 [04:27<19:21,  1.09s/it] 21%|██        | 272/1319 [04:45<19:14,  1.10s/it] 22%|██▏       | 288/1319 [05:01<18:41,  1.09s/it] 23%|██▎       | 304/1319 [05:18<18:07,  1.07s/it] 24%|██▍       | 320/1319 [05:34<17:38,  1.06s/it] 25%|██▌       | 336/1319 [05:51<17:21,  1.06s/it] 27%|██▋       | 352/1319 [06:08<16:59,  1.05s/it] 28%|██▊       | 368/1319 [06:27<17:24,  1.10s/it] 29%|██▉       | 384/1319 [06:44<16:52,  1.08s/it] 30%|███       | 400/1319 [07:01<16:26,  1.07s/it] 32%|███▏      | 416/1319 [07:19<16:24,  1.09s/it] 33%|███▎      | 432/1319 [07:36<16:04,  1.09s/it] 34%|███▍      | 448/1319 [07:53<15:42,  1.08s/it] 35%|███▌      | 464/1319 [08:10<15:21,  1.08s/it] 36%|███▋      | 480/1319 [08:31<15:48,  1.13s/it] 38%|███▊      | 496/1319 [08:48<15:16,  1.11s/it] 39%|███▉      | 512/1319 [09:06<15:08,  1.13s/it] 40%|████      | 528/1319 [09:25<14:59,  1.14s/it] 41%|████      | 544/1319 [09:42<14:31,  1.12s/it] 42%|████▏     | 560/1319 [10:02<14:33,  1.15s/it] 44%|████▎     | 576/1319 [10:19<14:01,  1.13s/it] 45%|████▍     | 592/1319 [10:37<13:39,  1.13s/it] 46%|████▌     | 608/1319 [10:55<13:14,  1.12s/it] 47%|████▋     | 624/1319 [11:14<13:16,  1.15s/it] 49%|████▊     | 640/1319 [11:32<12:54,  1.14s/it] 50%|████▉     | 656/1319 [11:50<12:30,  1.13s/it] 51%|█████     | 672/1319 [12:09<12:27,  1.15s/it] 52%|█████▏    | 688/1319 [12:27<12:03,  1.15s/it] 53%|█████▎    | 704/1319 [12:47<12:00,  1.17s/it] 55%|█████▍    | 720/1319 [13:05<11:34,  1.16s/it] 56%|█████▌    | 736/1319 [13:25<11:30,  1.19s/it] 57%|█████▋    | 752/1319 [13:43<11:03,  1.17s/it] 58%|█████▊    | 768/1319 [14:03<11:00,  1.20s/it] 59%|█████▉    | 784/1319 [14:22<10:34,  1.19s/it] 61%|██████    | 800/1319 [14:45<10:54,  1.26s/it] 62%|██████▏   | 816/1319 [15:03<10:20,  1.23s/it] 63%|██████▎   | 832/1319 [15:22<09:50,  1.21s/it] 64%|██████▍   | 848/1319 [15:45<09:58,  1.27s/it] 66%|██████▌   | 864/1319 [16:04<09:26,  1.25s/it] 67%|██████▋   | 880/1319 [16:24<09:13,  1.26s/it] 68%|██████▊   | 896/1319 [16:45<08:56,  1.27s/it] 69%|██████▉   | 912/1319 [17:06<08:43,  1.29s/it] 70%|███████   | 928/1319 [17:28<08:34,  1.32s/it] 72%|███████▏  | 944/1319 [17:50<08:19,  1.33s/it] 73%|███████▎  | 960/1319 [18:11<07:53,  1.32s/it] 74%|███████▍  | 976/1319 [18:34<07:44,  1.35s/it] 75%|███████▌  | 992/1319 [18:55<07:22,  1.35s/it] 76%|███████▋  | 1008/1319 [19:16<06:56,  1.34s/it] 78%|███████▊  | 1024/1319 [19:40<06:45,  1.37s/it] 79%|███████▉  | 1040/1319 [20:01<06:18,  1.36s/it] 80%|████████  | 1056/1319 [20:22<05:55,  1.35s/it] 81%|████████▏ | 1072/1319 [20:46<05:42,  1.39s/it] 82%|████████▏ | 1088/1319 [21:07<05:17,  1.38s/it] 84%|████████▎ | 1104/1319 [21:31<05:03,  1.41s/it] 85%|████████▍ | 1120/1319 [21:53<04:38,  1.40s/it] 86%|████████▌ | 1136/1319 [22:15<04:13,  1.39s/it] 87%|████████▋ | 1152/1319 [22:39<03:58,  1.43s/it] 88%|████████▊ | 1167/1319 [23:03<03:00,  1.19s/it]
+Traceback (most recent call last):
+  File "/users/adbt150/lm-evaluation-harness/main.py", line 117, in <module>
+    main()
+  File "/users/adbt150/lm-evaluation-harness/main.py", line 76, in main
+    results = evaluator.simple_evaluate(
+  File "/users/adbt150/lm-evaluation-harness/lm_eval/utils.py", line 243, in _wrapper
+    return fn(*args, **kwargs)
+  File "/users/adbt150/lm-evaluation-harness/lm_eval/evaluator.py", line 114, in simple_evaluate
+    results = evaluate(
+  File "/users/adbt150/lm-evaluation-harness/lm_eval/utils.py", line 243, in _wrapper
+    return fn(*args, **kwargs)
+  File "/users/adbt150/lm-evaluation-harness/lm_eval/evaluator.py", line 399, in evaluate
+    resps = getattr(lm, reqtype)([req.args for req in reqs])
+  File "/users/adbt150/lm-evaluation-harness/lm_eval/base.py", line 926, in fn
+    rem_res = getattr(self.lm, attr)(remaining_reqs)
+  File "/users/adbt150/lm-evaluation-harness/lm_eval/models/huggingface.py", line 506, in greedy_until
+    responses = self._model_generate(
+  File "/users/adbt150/lm-evaluation-harness/lm_eval/models/huggingface.py", line 575, in _model_generate
+    generations = self.model.generate(
+  File "/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/torch/autograd/grad_mode.py", line 27, in decorate_context
+    return func(*args, **kwargs)
+  File "/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/transformers/generation/utils.py", line 1673, in generate
+    return self.greedy_search(
+  File "/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/transformers/generation/utils.py", line 2521, in greedy_search
+    outputs = self(
+  File "/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/transformers/models/llama/modeling_llama.py", line 1034, in forward
+    outputs = self.model(
+  File "/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/transformers/models/llama/modeling_llama.py", line 922, in forward
+    layer_outputs = decoder_layer(
+  File "/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/transformers/models/llama/modeling_llama.py", line 672, in forward
+    hidden_states, self_attn_weights, present_key_value = self.self_attn(
+  File "/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/users/adbt150/miniconda3/envs/llm/lib/python3.9/site-packages/transformers/models/llama/modeling_llama.py", line 383, in forward
+    value_states = torch.cat([past_key_value[1], value_states], dim=2)
+torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 192.00 MiB (GPU 0; 39.39 GiB total capacity; 36.41 GiB already allocated; 140.31 MiB free; 38.70 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
