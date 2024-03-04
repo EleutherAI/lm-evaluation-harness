@@ -1,0 +1,34 @@
+include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_gen
+description: "D'après l'information dans le contexte donné, donne la réponse à la question en citant quelques extraits du contexte."
+task: french_bench_multifquad
+dataset_path: manu/multifquad_test
+output_type: generate_until
+validation_split: valid
+test_split: test
+fewshot_split: valid
+doc_to_text: "\nContexte: {{context}}\n\nQuestion: {{question}}\n\nRéponse:"
+doc_to_target: "{{', '.join(answers.text)}}"
+target_delimiter: " "
+should_decontaminate: true
+doc_to_decontamination_query: context
+generation_kwargs:
+  until:
+    - "\n"
+# filter_list:
+#   - name: remove_whitespace
+#     filter:
+#       - function: remove_whitespace
+#       - function: take_first
+metric_list:
+  - metric: !function utils.exact
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function utils.f1
+    aggregation: mean
+    higher_is_better: true
+  - metric: !function utils.rouge1
+    higher_is_better: true
+    aggregation:  !function utils.rouge1_agg

@@ -1,0 +1,21 @@
+include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_extra
+description: "D'après l'information présente dans le contexte, est il possible de répondre à la question ?"
+task: french_bench_fquadv2_bool
+dataset_path: manu/fquad2_test
+output_type: multiple_choice
+validation_split: valid
+doc_to_text: "\nContexte: {{context}}\n\nQuestion: {{question}}\n\nD'après l'information présente dans le contexte, répondre à la question est:\nA. Possible \nB. Impossible\n\nRéponse:"
+doc_to_choice: ["A", "B"]
+doc_to_target: "{{[False, True].index(is_impossible)}}"
+should_decontaminate: true
+doc_to_decontamination_query: context
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
