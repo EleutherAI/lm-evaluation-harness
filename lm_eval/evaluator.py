@@ -348,10 +348,13 @@ def evaluate(
             gathered_item = (
                 lm.accelerator.gather(instances_rnk).cpu().detach().numpy().tolist()
             )
+            # "multiple_choice" task types dispatch (several) "loglikelihood" request types
+            reqtype = "loglikelihood" if task.OUTPUT_TYPE == "multiple_choice" else task.OUTPUT_TYPE
 
             # compute number of pseudo-batches to pad with (FSDP/DDP require even batches among ranks)
             numpad = max(gathered_item) - gathered_item[lm.rank]
-            padding_requests[task.OUTPUT_TYPE] += numpad
+            # todo: may not account for padding in cases like SquadV2 which has multiple req types
+            padding_requests[reqtype] += numpad
 
     ### Run LM on inputs, get all outputs ###
     # execute each type of request
