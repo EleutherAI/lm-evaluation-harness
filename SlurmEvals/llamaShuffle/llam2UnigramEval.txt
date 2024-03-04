@@ -1,7 +1,7 @@
 [38;5;127mlibs[0m/[38;5;172mnvidia-cuda[0m/[38;5;67m11.2.0[0m/[38;5;68mbin[0m
  |
  [0;32mOK[0m
-Wed Feb 28 10:51:50 2024       
+Sat Mar  2 18:24:59 2024       
 +---------------------------------------------------------------------------------------+
 | NVIDIA-SMI 535.154.05             Driver Version: 535.154.05   CUDA Version: 12.2     |
 |-----------------------------------------+----------------------+----------------------+
@@ -9,8 +9,8 @@ Wed Feb 28 10:51:50 2024
 | Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
 |                                         |                      |               MIG M. |
 |=========================================+======================+======================|
-|   0  NVIDIA A100-PCIE-40GB          Off | 00000000:C2:00.0 Off |                    0 |
-| N/A   28C    P0              35W / 250W |      0MiB / 40960MiB |      0%      Default |
+|   0  NVIDIA A100-PCIE-40GB          Off | 00000000:48:00.0 Off |                    0 |
+| N/A   31C    P0              36W / 250W |      0MiB / 40960MiB |      0%      Default |
 |                                         |                      |             Disabled |
 +-----------------------------------------+----------------------+----------------------+
                                                                                          
@@ -23,9 +23,20 @@ Wed Feb 28 10:51:50 2024
 +---------------------------------------------------------------------------------------+
 [nltk_data] Downloading package punkt to /users/adbt150/nltk_data...
 [nltk_data]   Package punkt is already up-to-date!
-Selected Tasks: ['hellaswag']
-Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:00<00:00,  9.23it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 11.26it/s]
-Task: hellaswag; number of docs: 10042
+Selected Tasks: ['gsm8k']
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 12.48it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 12.46it/s]
+Downloading readme:   0%|          | 0.00/7.94k [00:00<?, ?B/s]Downloading readme: 100%|██████████| 7.94k/7.94k [00:00<00:00, 37.2MB/s]
+Downloading data files:   0%|          | 0/2 [00:00<?, ?it/s]
+Downloading data:   0%|          | 0.00/2.31M [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 2.31M/2.31M [00:00<00:00, 5.06MB/s][ADownloading data: 100%|██████████| 2.31M/2.31M [00:00<00:00, 4.98MB/s]
+Downloading data files:  50%|█████     | 1/2 [00:00<00:00,  2.12it/s]
+Downloading data:   0%|          | 0.00/419k [00:00<?, ?B/s][A
+Downloading data: 100%|██████████| 419k/419k [00:00<00:00, 1.13MB/s][ADownloading data: 100%|██████████| 419k/419k [00:00<00:00, 1.12MB/s]
+Downloading data files: 100%|██████████| 2/2 [00:00<00:00,  2.39it/s]Downloading data files: 100%|██████████| 2/2 [00:00<00:00,  2.34it/s]
+Extracting data files:   0%|          | 0/2 [00:00<?, ?it/s]Extracting data files: 100%|██████████| 2/2 [00:00<00:00, 265.30it/s]
+Generating train split:   0%|          | 0/7473 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 7473/7473 [00:00<00:00, 99390.02 examples/s]
+Generating test split:   0%|          | 0/1319 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1319/1319 [00:00<00:00, 136903.91 examples/s]
+Task: gsm8k; number of docs: 1319
 Traceback (most recent call last):
   File "/users/adbt150/lm-evaluation-harness/main.py", line 109, in <module>
     main()
@@ -38,24 +49,5 @@ Traceback (most recent call last):
   File "/users/adbt150/lm-evaluation-harness/lm_eval/utils.py", line 243, in _wrapper
     return fn(*args, **kwargs)
   File "/users/adbt150/lm-evaluation-harness/lm_eval/evaluator.py", line 280, in evaluate
-    doc['query'] = unigram_shuffle(doc['query'], task_name)
-NameError: name 'unigram_shuffle' is not defined
-[nltk_data] Downloading package punkt to /users/adbt150/nltk_data...
-[nltk_data]   Package punkt is already up-to-date!
-Selected Tasks: ['winogrande']
-Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:00<00:00,  9.54it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00, 11.01it/s]
-Task: winogrande; number of docs: 1267
-Traceback (most recent call last):
-  File "/users/adbt150/lm-evaluation-harness/main.py", line 109, in <module>
-    main()
-  File "/users/adbt150/lm-evaluation-harness/main.py", line 71, in main
-    results = evaluator.simple_evaluate(
-  File "/users/adbt150/lm-evaluation-harness/lm_eval/utils.py", line 243, in _wrapper
-    return fn(*args, **kwargs)
-  File "/users/adbt150/lm-evaluation-harness/lm_eval/evaluator.py", line 111, in simple_evaluate
-    results = evaluate(
-  File "/users/adbt150/lm-evaluation-harness/lm_eval/utils.py", line 243, in _wrapper
-    return fn(*args, **kwargs)
-  File "/users/adbt150/lm-evaluation-harness/lm_eval/evaluator.py", line 277, in evaluate
-    doc['sentence'] = unigram_shuffle(doc['sentence'], task_name)
-NameError: name 'unigram_shuffle' is not defined
+    doc['query'] = p.unigram_shuffle(doc['query'], task_name)
+KeyError: 'query'
