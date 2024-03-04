@@ -1,0 +1,5 @@
+group: wmdp
+task:
+  - wmdp_bio
+  - wmdp_cyber
+  - wmdp_chem
