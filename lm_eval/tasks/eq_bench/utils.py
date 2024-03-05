@@ -9,7 +9,7 @@ def calculate_score_fullscale(docs, results):
     if len(user.items()) != 4:
         # print('! Error: 4 emotions were not returned')
         # print(user)
-        return {}
+        return {"eqbench": 0, "percent_parseable": 0}
     emotions_dict = {}
     for emotion, user_emotion_score in user.items():
         for i in range(1, 5):
@@ -18,7 +18,7 @@ def calculate_score_fullscale(docs, results):
     if len(emotions_dict) != 4:
         print("! Error: emotions did not match reference")
         print(user)
-        return {}
+        return {"eqbench": 0, "percent_parseable": 0}
 
     difference_tally = (
         0  # Tally of differerence from reference answers for this question
@@ -51,4 +51,4 @@ def calculate_score_fullscale(docs, results):
     final_score = 10 - (difference_tally * adjust_const)
     final_score_percent = final_score * 10
 
-    return {"eqbench": final_score_percent}
+    return {"eqbench": final_score_percent, "percent_parseable": 100}

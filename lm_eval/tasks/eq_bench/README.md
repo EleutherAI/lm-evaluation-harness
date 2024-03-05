@@ -12,6 +12,13 @@ EQ-Bench is a little different from traditional psychometric tests. It uses a sp
 
 Homepage: https://eqbench.com/
 
+
+**NOTE**: There are a couple of key differences between the lm-evaluation-harness version and the original EQ-Bench implementation (These have been OK'd by the author):
+
+* No retries in lm-evaluation-harness version (eq-bench pipeline retries with successively higher temps if it encounters unparseable answers)
+* In the original implementation, unparseable answers are not included in the aggregation, but 83% of answers have to be parseable or a fail is returned. This version instead assigns 0 to unparsable answers, so for lower performing models, there may be differences with the EQ-Bench leaderboard.
+
+
 ### Citation
 
 ```bibtex
