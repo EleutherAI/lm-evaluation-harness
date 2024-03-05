@@ -30,10 +30,10 @@ export RANK=0
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
             --model_args pretrained=/users/adbt150/archive/Llama-2-7b-hf \
-            --batch_size 5 \
+            --batch_size 2 \
             --device cuda:0 \
             --num_fewshot 5 \
-            --tasks gsm8k \
+            --tasks truthfulqa_gen\
             --write_out
 
 
