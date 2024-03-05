@@ -1,5 +1,4 @@
 import yaml
-
 from tqdm import tqdm
 
 
@@ -21,6 +20,7 @@ def main() -> None:
                 )
         except FileExistsError:
             pass
+
 
 if __name__ == "__main__":
     main()
