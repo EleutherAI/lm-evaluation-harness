@@ -1,0 +1,15 @@
+group: openllm
+group_alias: OpenLLM Benchmark
+task:
+  - task: arc_challenge
+    num_fewshot: 25
+  - task: hellaswag
+    num_fewshot: 10
+  - task: truthfulqa
+    num_fewshot: 0
+  - task: mmlu
+    num_fewshot: 5
+  - task: winogrande
+    num_fewshot: 5
+  - task: gsm8k
+    num_fewshot: 5
