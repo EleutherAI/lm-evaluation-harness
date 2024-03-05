@@ -1,9 +1,8 @@
-import abc
 import collections
 import logging
 import os
 from functools import partial
-from typing import Dict, List, Union
+from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
 from lm_eval.api.task import ConfigurableTask, Task
@@ -15,7 +14,7 @@ class TaskManager:
 
     """
 
-    def __init__(self, verbosity="INFO", include_path=None) -> None:
+    def __init__(self, verbosity="INFO", include_path: Optional[str] = None) -> None:
         self.verbosity = verbosity
         self.include_path = include_path
         self.logger = utils.eval_logger
@@ -26,7 +25,7 @@ class TaskManager:
 
         self.task_group_map = collections.defaultdict(list)
 
-    def initialize_tasks(self, include_path: str = None):
+    def initialize_tasks(self, include_path: Optional[str] = None):
         """Creates an dictionary of tasks index.
 
         :param include_path: str = None
@@ -125,11 +124,11 @@ class TaskManager:
 
     def _load_individual_task_or_group(
         self,
-        name_or_config: Union[str, dict] = None,
-        parent_name: str = None,
-        update_config: dict = None,
-        yaml_path: str = None,
-    ) -> ConfigurableTask:
+        name_or_config: Optional[Union[str, dict]] = None,
+        parent_name: Optional[str] = None,
+        update_config: Optional[dict] = None,
+        yaml_path: Optional[str] = None,
+    ) -> Mapping:
         def load_task(config, task, group=None, yaml_path=None):
             if "include" in config:
                 assert yaml_path is not None
@@ -251,7 +250,7 @@ class TaskManager:
         }
         return all_subtasks
 
-    def load_task_or_group(self, task_list: Union[str, list] = None) -> dict:
+    def load_task_or_group(self, task_list: Optional[Union[str, list]] = None) -> dict:
         """Loads a dictionary of task objects from a list
 
         :param task_list: Union[str, list] = None
@@ -397,7 +396,8 @@ def get_task_name_from_object(task_object):
 
 
 def get_task_dict(
-    task_name_list: List[Union[str, Dict, Task]], task_manager: TaskManager = None
+    task_name_list: List[Union[str, Dict, Task]],
+    task_manager: Optional[TaskManager] = None,
 ):
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
