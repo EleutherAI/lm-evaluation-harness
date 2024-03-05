@@ -9,7 +9,7 @@ def calculate_score_fullscale(docs, results):
     if len(user.items()) != 4:
         # print('! Error: 4 emotions were not returned')
         # print(user)
-        return None
+        return {}
     emotions_dict = {}
     for emotion, user_emotion_score in user.items():
         for i in range(1, 5):
@@ -18,7 +18,7 @@ def calculate_score_fullscale(docs, results):
     if len(emotions_dict) != 4:
         print("! Error: emotions did not match reference")
         print(user)
-        return None
+        return {}
 
     difference_tally = (
         0  # Tally of differerence from reference answers for this question
