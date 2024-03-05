@@ -6,6 +6,8 @@ Title: `KorMedMCQA: Multi-Choice Question Answering Benchmark for Korean Healthc
 
 Abstract: `We introduce KorMedMCQA, the first Korean multiple-choice question answering (MCQA) benchmark derived from Korean healthcare professional licensing examinations, covering from the year 2012 to year 2023. This dataset consists of a selection of questions from the license examinations for doctors, nurses, and pharmacists, featuring a diverse array of subjects. We conduct baseline experiments on various large language models, including proprietary/open-source, multilingual/Korean-additional pretrained, and clinical context pretrained models, highlighting the potential for further enhancements. We make our data publicly available on HuggingFace and provide a evaluation script via LM-Harness, inviting further exploration and advancement in Korean healthcare environments.`
 
+
+Paper : https://arxiv.org/abs/2403.01469
 Homepage: https://huggingface.co/datasets/sean0042/KorMedMCQA
 
 
