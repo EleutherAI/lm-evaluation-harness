@@ -34,7 +34,8 @@ python ~/lm-evaluation-harness/main.py \
             --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 25 \
-            --tasks arc_challenge 
+            --tasks arc_challenge \
+            --write_out
 
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
@@ -42,7 +43,8 @@ python ~/lm-evaluation-harness/main.py \
             --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 10 \
-            --tasks hellaswag
+            --tasks hellaswag \
+            --write_out
 
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
@@ -50,4 +52,5 @@ python ~/lm-evaluation-harness/main.py \
             --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 0 \
-            --tasks truthfulqa_mc 
+            --tasks truthfulqa_mc \
+            --write_out

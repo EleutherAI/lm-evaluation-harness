@@ -36,7 +36,7 @@ python ~/lm-evaluation-harness/main.py \
             --num_fewshot 25 \
             --tasks arc_challenge \
             --write_out \
-            --shuffle unigram
+            --shuffle unigram \
 
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
@@ -46,7 +46,7 @@ python ~/lm-evaluation-harness/main.py \
             --num_fewshot 10 \
             --tasks hellaswag \
             -write_out \
-            --shuffle unigram
+            --shuffle unigram \
 
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
