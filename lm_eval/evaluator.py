@@ -135,9 +135,10 @@ def simple_evaluate(
 
     if tasks is None:
         tasks = []
-    assert (
-        tasks != []
-    ), "No tasks specified, or no tasks found. Please verify the task names."
+    if len(tasks) == 0:
+        raise ValueError(
+            "No tasks specified, or no tasks found. Please verify the task names."
+        )
 
     if gen_kwargs is not None:
         gen_kwargs = simple_parse_args_string(gen_kwargs)
@@ -171,7 +172,8 @@ def simple_evaluate(
                 },
             )
     else:
-        assert isinstance(model, lm_eval.api.model.LM)
+        if not isinstance(model, lm_eval.api.model.LM):
+            raise TypeError
         lm = model
 
     if use_cache is not None:
@@ -314,10 +316,11 @@ def evaluate(
     # get lists of group hierarchy and each type of request
     task_hierarchy, eval_tasks = get_task_list(task_dict)
     if not log_samples:
-        assert all(
+        if not all(
             "bypass" not in getattr(task_output.task, "_metric_fn_list", {}).keys()
             for task_output in eval_tasks
-        ), "log_samples must be True for 'bypass' only tasks"
+        ):
+            raise ValueError("log_samples must be True for 'bypass' only tasks")
     for task_output in eval_tasks:
         task: Task = task_output.task
         limit = get_sample_size(task, limit)
