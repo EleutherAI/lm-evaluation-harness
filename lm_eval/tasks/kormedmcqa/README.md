@@ -25,6 +25,7 @@ Homepage: https://huggingface.co/datasets/sean0042/KorMedMCQA
 
 ### Groups and Tasks
 
+* `kormedmcqa`: Runs `kormedmcqa_doctor`, `kormedmcqa_nurse`, and `kormedmcqa_pharm`.
 
 #### Tasks
 
