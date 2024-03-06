@@ -99,10 +99,9 @@ class TaskConfig(dict):
     def __post_init__(self) -> None:
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
-                eval_logger.warning(
+                raise ValueError(
                     f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
                 )
-                assert self.output_type != "generate_until"
 
             if "temperature" in self.generation_kwargs:
                 self.generation_kwargs["temperature"] = float(
@@ -350,11 +349,10 @@ class Task(abc.ABC):
 
         return rnd.sample(self._training_docs, k)
 
-    def doc_to_decontamination_query(self, doc) -> None:
-        print(
+    def doc_to_decontamination_query(self, doc):
+        raise NotImplementedError(
             "Override doc_to_decontamination_query with document specific decontamination query."
         )
-        assert False
 
     @abc.abstractmethod
     def doc_to_text(self, doc):
@@ -446,7 +444,8 @@ class Task(abc.ABC):
 
         self._instances = flattened_instances
 
-        assert len(self._instances) != 0, "task.build_requests() did not find any docs!"
+        if len(self._instances) == 0:
+            raise ValueError("task.build_requests() did not find any docs!")
 
         if cache_requests and (not cached_instances or rewrite_requests_cache):
             save_to_cache(file_name=cache_key, obj=instances)
@@ -539,9 +538,10 @@ class Task(abc.ABC):
         :returns: str
             The fewshot context.
         """
-        assert (
-            rnd is not None
-        ), "A `random.Random` generator argument must be provided to `rnd`"
+        if rnd is None:
+            raise ValueError(
+                "A `random.Random` generator argument must be provided to `rnd`"
+            )
 
         description = description if description else ""
 
@@ -639,7 +639,9 @@ class Task(abc.ABC):
         elif self.has_validation_docs():
             return self.validation_docs()
         else:
-            assert False, f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+            raise ValueError(
+                f"Task dataset (path={self.DATASET_PATH}, name={self.DATASET_NAME}) must have valid or test docs!"
+            )
 
     def doc_iterator(
         self, *, rank: int = 0, limit: Union[int, None] = None, world_size: int = 1
@@ -687,7 +689,8 @@ class ConfigurableTask(Task):
                 self.VERSION = self.config.metadata["version"]
 
         if self.config.output_type is not None:
-            assert self.config.output_type in ALL_OUTPUT_TYPES
+            if self.config.output_type not in ALL_OUTPUT_TYPES:
+                raise ValueError
             self.OUTPUT_TYPE = self.config.output_type
 
         if self.config.dataset_path is not None:
@@ -714,7 +717,8 @@ class ConfigurableTask(Task):
                 self._higher_is_better[metric_name] = is_higher_better(metric_name)
         else:
             for metric_config in self.config.metric_list:
-                assert "metric" in metric_config
+                if "metric" not in metric_config:
+                    raise ValueError
                 metric_name = metric_config["metric"]
                 kwargs = {
                     key: metric_config[key]
@@ -1205,7 +1209,8 @@ class ConfigurableTask(Task):
                 # then we are doing mutual info.
                 # this stores the "dryrun" / unconditional answer loglikelihoods
                 lls_unconditional = lls[1::2]
-                assert len(lls_unconditional) == len(choices)
+                if len(lls_unconditional) != len(choices):
+                    raise ValueError
                 # and this stores our "regular" conditional loglikelihoods
                 lls = lls[::2]
 
@@ -1420,13 +1425,17 @@ class PerplexityTask(Task):
         return False
 
     def fewshot_examples(self, k: int, rnd) -> List:
-        assert k == 0
+        if k != 0:
+            raise ValueError(
+                "The number of fewshot examples must be 0 for perplexity tasks."
+            )
         return []
 
     def fewshot_context(self, doc: dict, num_fewshot: int) -> Literal[""]:
-        assert (
-            num_fewshot == 0
-        ), "The number of fewshot examples must be 0 for perplexity tasks."
+        if num_fewshot != 0:
+            raise ValueError(
+                "The number of fewshot examples must be 0 for perplexity tasks."
+            )
 
         return ""
 
@@ -1447,7 +1456,8 @@ class PerplexityTask(Task):
         return doc
 
     def construct_requests(self, doc: dict, ctx: Optional[str], **kwargs):
-        assert not ctx
+        if bool(ctx):
+            raise ValueError
 
         return Instance(
             request_type=self.OUTPUT_TYPE,
