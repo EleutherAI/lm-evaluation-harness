@@ -34,7 +34,11 @@ Homepage for Arabic EXAMS: [EXAMS Arabic Homepage](https://github.com/FreedomInt
 
 
 The following tasks evaluate subjects in Arabic EXAMS dataset using loglikelihood-based multiple-choice scoring:
-- `aexams_IslamicStudies, aexams_Biology, aexams_Science, aexams_Physics, aexams_Social`
+- `aexams_IslamicStudies`
+- `aexams_Biology`
+- `aexams_Science`
+- `aexams_Physics`
+- `aexams_Social`
 
 ### Checklist
 
