@@ -288,7 +288,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         output_path_file = path.joinpath(DEFAULT_RESULTS_FILE)
         if output_path_file.is_file():
             eval_logger.warning(
-                f"File already exists ({output_path_file}). Results will be overwritten."
+                f"File {output_path_file} already exists. Results will be overwritten."
             )
         # if path json then get parent dir
         elif path.suffix in (".json", ".jsonl"):
