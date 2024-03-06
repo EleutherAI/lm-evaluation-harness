@@ -105,7 +105,7 @@ class OpenaiCompletionsLM(TemplateLM):
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
-    please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
+    please install these via `pip install lm-eval[openai]` or `pip install -e .\"[openai]\"`",
             )
         self.model = model
         self.base_url = base_url
