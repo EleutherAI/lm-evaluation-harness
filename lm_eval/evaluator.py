@@ -1,8 +1,8 @@
-import collections
 import itertools
 import logging
 import random
-from typing import TYPE_CHECKING, Optional, Union
+from collections import defaultdict
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import numpy as np
 import torch
@@ -10,6 +10,7 @@ import torch
 import lm_eval.api.metrics
 import lm_eval.api.registry
 import lm_eval.models
+from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
     consolidate_results,
     get_sample_size,
@@ -20,25 +21,19 @@ from lm_eval.evaluator_utils import (
 )
 from lm_eval.logging_utils import add_env_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
-from lm_eval.utils import (
-    eval_logger,
-    positional_deprecated,
-    simple_parse_args_string,
-)
+from lm_eval.utils import eval_logger, positional_deprecated, simple_parse_args_string
 
 
 if TYPE_CHECKING:
     from lm_eval.api.model import LM
     from lm_eval.tasks import Task
 
-from lm_eval.caching.cache import delete_cache
-
 
 @positional_deprecated
 def simple_evaluate(
     model,
-    model_args: Optional[Union[str, dict, None]] = None,
-    tasks=None,
+    model_args: Optional[Union[str, dict]] = None,
+    tasks: Optional[List[Union[str, dict, object]]] = None,
     num_fewshot: Optional[int] = None,
     batch_size: Optional[int] = None,
     max_batch_size: Optional[int] = None,
@@ -50,11 +45,10 @@ def simple_evaluate(
     limit: Optional[Union[int, float]] = None,
     bootstrap_iters: int = 100000,
     check_integrity: bool = False,
-    decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
-    gen_kwargs: str = None,
-    task_manager: TaskManager = None,
+    gen_kwargs: Optional[str] = None,
+    task_manager: Optional[TaskManager] = None,
     verbosity: str = "INFO",
     predict_only: bool = False,
     random_seed: int = 0,
@@ -136,14 +130,16 @@ def simple_evaluate(
 
     if tasks is None:
         tasks = []
-    assert (
-        tasks != []
-    ), "No tasks specified, or no tasks found. Please verify the task names."
+    if len(tasks) == 0:
+        raise ValueError(
+            "No tasks specified, or no tasks found. Please verify the task names."
+        )
 
     if gen_kwargs is not None:
         gen_kwargs = simple_parse_args_string(gen_kwargs)
         eval_logger.warning(
-            "generation_kwargs specified through cli, these settings will update set parameters in yaml tasks. Ensure 'do_sample=True' for non-greedy decoding!"
+            "generation_kwargs specified through cli, these settings will update set parameters in yaml tasks. "
+            "Ensure 'do_sample=True' for non-greedy decoding!"
         )
         if gen_kwargs == "":
             gen_kwargs = None
@@ -172,7 +168,8 @@ def simple_evaluate(
                 },
             )
     else:
-        assert isinstance(model, lm_eval.api.model.LM)
+        if not isinstance(model, lm_eval.api.model.LM):
+            raise TypeError
         lm = model
 
     if use_cache is not None:
@@ -237,7 +234,6 @@ def simple_evaluate(
         cache_requests=cache_requests,
         rewrite_requests_cache=rewrite_requests_cache,
         bootstrap_iters=bootstrap_iters,
-        decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
         verbosity=verbosity,
@@ -272,18 +268,14 @@ def simple_evaluate(
         return None
 
 
-decontaminate_suffix = "_decontaminate"
-
-
 @positional_deprecated
 def evaluate(
     lm: "LM",
     task_dict,
     limit: Optional[int] = None,
-    cache_requests=False,
-    rewrite_requests_cache=False,
+    cache_requests: bool = False,
+    rewrite_requests_cache: bool = False,
     bootstrap_iters: Optional[int] = 100000,
-    decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
     verbosity: str = "INFO",
@@ -307,21 +299,21 @@ def evaluate(
     """
 
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
-    # decontaminate = decontamination_ngrams_path is not None
 
     # tracks all Instances/requests a model must generate output on.
-    requests = collections.defaultdict(list)
+    requests = defaultdict(list)
     # stores the amount to pad out reqs per req. type so that
     # number of fwd passes per distributed rank is equal
-    padding_requests = collections.defaultdict(int)
+    padding_requests = defaultdict(int)
 
     # get lists of group hierarchy and each type of request
     task_hierarchy, eval_tasks = get_task_list(task_dict)
     if not log_samples:
-        assert all(
+        if not all(
             "bypass" not in getattr(task_output.task, "_metric_fn_list", {}).keys()
             for task_output in eval_tasks
-        ), "log_samples must be True for 'bypass' only tasks"
+        ):
+            raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
     for task_output in eval_tasks:
         task: Task = task_output.task
         limit = get_sample_size(task, limit)
@@ -394,7 +386,7 @@ def evaluate(
         # # unpack results and sort back in order and return control to Task
         # TODO: make it possible to use a different metric per filter
         # Pre-process task.instances to group by doc_id
-        instances_by_doc_id = collections.defaultdict(list)
+        instances_by_doc_id = defaultdict(list)
         for instance in task.instances:
             instances_by_doc_id[instance.doc_id].append(instance)
         # Sort instances within each group
@@ -521,10 +513,9 @@ def evaluate(
 
                     results[group]["samples"] = sum(sizes)
 
-        results_agg = collections.defaultdict(dict)
-        groups_agg = collections.defaultdict(dict)
+        results_agg = defaultdict(dict)
+        groups_agg = defaultdict(dict)
         all_tasks_list = list(task_hierarchy.keys())
-        left_tasks_list = []
         while True:
             add_tasks_list = list(k for k in results_agg.keys())
             left_tasks_list = sorted(list(set(all_tasks_list) - set(add_tasks_list)))
@@ -548,7 +539,7 @@ def evaluate(
         results_dict = {
             "results": dict(results_agg.items()),
             **({"groups": dict(groups_agg.items())} if bool(groups_agg) else {}),
-            "group_subtasks": {k: v for k, v in reversed(task_hierarchy.items())},
+            "group_subtasks": dict(reversed(task_hierarchy.items())),
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
             "n-shot": dict(sorted(num_fewshot.items())),
@@ -564,11 +555,9 @@ def evaluate(
 
 def request_caching_arg_to_dict(cache_requests: str) -> dict:
     request_caching_args = {
-        "cache_requests": (
-            True if cache_requests == "true" or cache_requests == "refresh" else False
-        ),
-        "rewrite_requests_cache": True if cache_requests == "refresh" else False,
-        "delete_requests_cache": True if cache_requests == "delete" else False,
+        "cache_requests": cache_requests in {"true", "refresh"},
+        "rewrite_requests_cache": cache_requests == "refresh",
+        "delete_requests_cache": cache_requests == "delete",
     }
 
     return request_caching_args

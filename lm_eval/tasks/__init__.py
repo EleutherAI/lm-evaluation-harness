@@ -1,9 +1,8 @@
-import abc
 import collections
 import logging
 import os
 from functools import partial
-from typing import Dict, List, Union
+from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
 from lm_eval.api.task import ConfigurableTask, Task
@@ -15,7 +14,7 @@ class TaskManager:
 
     """
 
-    def __init__(self, verbosity="INFO", include_path=None) -> None:
+    def __init__(self, verbosity="INFO", include_path: Optional[str] = None) -> None:
         self.verbosity = verbosity
         self.include_path = include_path
         self.logger = utils.eval_logger
@@ -26,8 +25,8 @@ class TaskManager:
 
         self.task_group_map = collections.defaultdict(list)
 
-    def initialize_tasks(self, include_path: str = None):
-        """Creates an dictionary of tasks index.
+    def initialize_tasks(self, include_path: Optional[str] = None):
+        """Creates a dictionary of tasks index.
 
         :param include_path: str = None
             An additional path to be searched for tasks
@@ -59,7 +58,7 @@ class TaskManager:
     def match_tasks(self, task_list):
         return utils.pattern_match(task_list, self.all_tasks)
 
-    def _name_is_registered(self, name):
+    def _name_is_registered(self, name) -> bool:
         if name in self.all_tasks:
             return True
         return False
@@ -69,7 +68,7 @@ class TaskManager:
             return True
         return False
 
-    def _name_is_group(self, name):
+    def _name_is_group(self, name) -> bool:
         if self._name_is_registered(name) and (
             self.task_index[name]["type"] == "group"
         ):
@@ -83,27 +82,29 @@ class TaskManager:
             return True
         return False
 
-    def _config_is_task(self, config):
+    def _config_is_task(self, config) -> bool:
         if ("task" in config) and isinstance(config["task"], str):
             return True
         return False
 
-    def _config_is_group(self, config):
+    def _config_is_group(self, config) -> bool:
         if ("task" in config) and isinstance(config["task"], list):
             return True
         return False
 
-    def _config_is_python_task(self, config):
+    def _config_is_python_task(self, config) -> bool:
         if "class" in config:
             return True
         return False
 
     def _get_yaml_path(self, name):
-        assert name in self.task_index
+        if name not in self.task_index:
+            raise ValueError
         return self.task_index[name]["yaml_path"]
 
     def _get_config(self, name):
-        assert name in self.task_index
+        if name not in self.task_index:
+            raise ValueError
         yaml_path = self._get_yaml_path(name)
         if yaml_path == -1:
             return {}
@@ -111,7 +112,8 @@ class TaskManager:
             return utils.load_yaml_config(yaml_path, mode="full")
 
     def _get_tasklist(self, name):
-        assert self._name_is_task(name) is False
+        if self._name_is_task(name):
+            raise ValueError
         return self.task_index[name]["task"]
 
     def _process_alias(self, config, group=None):
@@ -125,14 +127,15 @@ class TaskManager:
 
     def _load_individual_task_or_group(
         self,
-        name_or_config: Union[str, dict] = None,
-        parent_name: str = None,
-        update_config: dict = None,
-        yaml_path: str = None,
-    ) -> ConfigurableTask:
+        name_or_config: Optional[Union[str, dict]] = None,
+        parent_name: Optional[str] = None,
+        update_config: Optional[dict] = None,
+        yaml_path: Optional[str] = None,
+    ) -> Mapping:
         def load_task(config, task, group=None, yaml_path=None):
             if "include" in config:
-                assert yaml_path is not None
+                if yaml_path is None:
+                    raise ValueError
                 config.update(
                     utils.load_yaml_config(
                         yaml_path,
@@ -166,7 +169,7 @@ class TaskManager:
                 # This checks if we're at the root.
                 if parent_name is None:
                     group_config = self._get_config(name_or_config)
-                    if set(group_config.keys()) > set(["task", "group"]):
+                    if set(group_config.keys()) > {"task", "group"}:
                         update_config = {
                             k: v
                             for k, v in group_config.items()
@@ -228,7 +231,7 @@ class TaskManager:
             else:
                 group_name = name_or_config["group"]
                 subtask_list = name_or_config["task"]
-                if set(name_or_config.keys()) > set(["task", "group"]):
+                if set(name_or_config.keys()) > {"task", "group"}:
                     update_config = {
                         k: v
                         for k, v in name_or_config.items()
@@ -251,7 +254,7 @@ class TaskManager:
         }
         return all_subtasks
 
-    def load_task_or_group(self, task_list: Union[str, list] = None) -> dict:
+    def load_task_or_group(self, task_list: Optional[Union[str, list]] = None) -> dict:
         """Loads a dictionary of task objects from a list
 
         :param task_list: Union[str, list] = None
@@ -272,7 +275,7 @@ class TaskManager:
         return self._load_individual_task_or_group(config)
 
     def _get_task_and_group(self, task_dir: str):
-        """Creates an dictionary of tasks index with the following metadata,
+        """Creates a dictionary of tasks index with the following metadata,
         - `type`, that can be either `task`, `python_task`, or `group`.
             `task` refer to regular task configs, `python_task` are special
             yaml files that only consists of `task` and `class` parameters.
@@ -358,7 +361,8 @@ def include_path(task_dir):
     logger.setLevel(getattr(logging, "INFO"))
     logger.info(
         "To still use tasks loaded from args.include_path,"
-        "see an example of the new TaskManager API in https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
+        "see an example of the new TaskManager API in "
+        "https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
     )
     return 0
 
@@ -397,7 +401,8 @@ def get_task_name_from_object(task_object):
 
 
 def get_task_dict(
-    task_name_list: List[Union[str, Dict, Task]], task_manager: TaskManager = None
+    task_name_list: List[Union[str, Dict, Task]],
+    task_manager: Optional[TaskManager] = None,
 ):
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
 
@@ -442,9 +447,10 @@ def get_task_dict(
                 get_task_name_from_object(task_element): task_element,
             }
 
-    assert set(task_name_from_string_dict.keys()).isdisjoint(
+    if not set(task_name_from_string_dict.keys()).isdisjoint(
         set(task_name_from_object_dict.keys())
-    )
+    ):
+        raise ValueError
 
     return {
         **task_name_from_string_dict,
