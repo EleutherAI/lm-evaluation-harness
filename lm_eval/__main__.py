@@ -17,6 +17,9 @@ from lm_eval.tasks import TaskManager, include_path, initialize_tasks
 from lm_eval.utils import make_table, simple_parse_args_string
 
 
+DEFAULT_RESULTS_FILE = "results.json"
+
+
 def _handle_non_serializable(o):
     if isinstance(o, np.int64) or isinstance(o, np.int32):
         return int(o)
@@ -225,7 +228,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.predict_only:
         args.log_samples = True
     if (args.log_samples or args.predict_only) and not args.output_path:
-        assert args.output_path, "Specify --output_path"
+        raise ValueError("Specify --output_path")
 
     initialize_tasks(args.verbosity)
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
@@ -280,12 +283,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.output_path:
         path = Path(args.output_path)
         # check if file or 'dir/results.json' exists
-        if path.is_file() or Path(args.output_path).joinpath("results.json").is_file():
+        if path.is_file():
+            raise FileExistsError(f"File already exists at {path}")
+        output_path_file = path.joinpath(DEFAULT_RESULTS_FILE)
+        if output_path_file.is_file():
             eval_logger.warning(
-                f"File already exists at {path}. Results will be overwritten."
+                f"File already exists ({output_path_file}). Results will be overwritten."
             )
-            output_path_file = path.joinpath("results.json")
-            assert not path.is_file(), "File already exists"
         # if path json then get parent dir
         elif path.suffix in (".json", ".jsonl"):
             output_path_file = path
@@ -293,7 +297,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             path = path.parent
         else:
             path.mkdir(parents=True, exist_ok=True)
-            output_path_file = path.joinpath("results.json")
 
     # Respect user's value passed in via CLI, otherwise default to True and add to comma-separated model args
     if args.trust_remote_code:
