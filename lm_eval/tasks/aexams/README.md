@@ -5,12 +5,12 @@
 EXAMS: a resource specialized in multilingual high school exam questions.
 The original paper [EXAMS](https://aclanthology.org/2020.emnlp-main.438/)
 
-The Arabic EXAMS dataset includes 5 subjects 
-     
+The Arabic EXAMS dataset includes five subjects
+
   - Islamic studies
-  - Biology 
-  - Physics 
-  - Science 
+  - Biology
+  - Physics
+  - Science
   - Social
 
 The original dataset [EXAMS-QA](https://github.com/mhardalov/exams-qa)
@@ -34,7 +34,7 @@ Homepage for Arabic EXAMS: [EXAMS Arabic Homepage](https://github.com/FreedomInt
 
 
 The following tasks evaluate subjects in Arabic EXAMS dataset using loglikelihood-based multiple-choice scoring:
-- `aexams_{subject_english}`
+- `aexams_IslamicStudies, aexams_Biology, aexams_Science, aexams_Physics, aexams_Social`
 
 ### Checklist
 
