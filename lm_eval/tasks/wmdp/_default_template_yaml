@@ -1,4 +1,4 @@
-dataset_path: cais/wmdp-mcqs-test
+dataset_path: cais/wmdp
 test_split: test
 training_split: null
 validation_split: null
