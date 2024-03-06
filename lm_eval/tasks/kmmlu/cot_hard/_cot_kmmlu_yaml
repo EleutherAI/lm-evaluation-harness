@@ -3,6 +3,7 @@ group:
     - kmmlu_hard_cot
 dataset_path: HAERAE-HUB/KMMLU-HARD
 output_type: generate_until
+validation_split: dev # not meant to be used, only here to silence warnings
 test_split: test
 doc_to_target: "{{['A', 'B', 'C', 'D'][answer-1]}}"
 metric_list:
@@ -17,6 +18,7 @@ generation_kwargs:
   do_sample: false
   max_gen_toks: 2048
   temperature: 0.0
+num_fewshot: 0
 filter_list:
   - name: "get-answer"
     filter:
@@ -26,3 +28,4 @@ filter_list:
       - function: "take_first"
 metadata:
   version: 2.0
+  num_fewshot: 5
