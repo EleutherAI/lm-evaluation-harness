@@ -1,0 +1,27 @@
+group: kormedmcqa
+task : kormedmcqa_doctor
+dataset_path : sean0042/KorMedMCQA
+dataset_name : doctor
+test_split : test
+fewshot_split : dev
+fewshot_config:
+  sampler: first_n
+output_type: generate_until
+doc_to_text: "{{question.strip()}}\nA. {{A}}\nB. {{B}}\nC. {{C}}\nD. {{D}}\nE. {{E}}\n정답："
+doc_to_target: "{{['A', 'B', 'C', 'D', 'E'][answer-1]}}"
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+    regexes_to_ignore:
+          - " "
+generation_kwargs:
+  until:
+    - "Q:"
+    - "\n\n"
+    - "</s>"
+    - "."
+  do_sample: false
+  temperature: 0.0
