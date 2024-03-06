@@ -690,7 +690,7 @@ class ConfigurableTask(Task):
 
         if self.config.output_type is not None:
             if self.config.output_type not in ALL_OUTPUT_TYPES:
-                raise ValueError
+                raise ValueError(f"Got invalid output_type '{self.config.output_type}', must be in '{','.join(ALL_OUTPUT_TYPES)}'")
             self.OUTPUT_TYPE = self.config.output_type
 
         if self.config.dataset_path is not None:
