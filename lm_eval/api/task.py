@@ -1467,7 +1467,7 @@ class PerplexityTask(Task):
             **kwargs,
         )
 
-    def process_results(self, doc: dict, results: Iterable) -> dict:
+    def process_results(self, doc: dict, results: Tuple[float]) -> dict:
         (loglikelihood,) = results
         words = self.count_words(self.doc_to_target(doc))
         bytes_ = self.count_bytes(self.doc_to_target(doc))
