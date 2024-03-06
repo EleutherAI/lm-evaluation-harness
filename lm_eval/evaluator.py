@@ -313,7 +313,7 @@ def evaluate(
             "bypass" not in getattr(task_output.task, "_metric_fn_list", {}).keys()
             for task_output in eval_tasks
         ):
-            raise ValueError("log_samples must be True for 'bypass' only tasks")
+            raise ValueError("log_samples must be True for 'bypass' metric-only tasks")
     for task_output in eval_tasks:
         task: Task = task_output.task
         limit = get_sample_size(task, limit)
