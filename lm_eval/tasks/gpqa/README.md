@@ -35,6 +35,9 @@ This dataset is gated, so you will have to accept the terms of use at https://hu
 
 * `gpqa_{main, diamond, extended}_zeroshot`
 * `gpqa_{main, diamond, extended}_n_shot`
+* `gpqa_{main, diamond, extended}_generative_n_shot`
+* `gpqa_{main, diamond, extended}_cot_zeroshot`
+* `gpqa_{main, diamond, extended}_cot_n_shot`
 
 ### Checklist
 

@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 def main() -> None:
     subset = ["extended", "diamond", "main"]
-    setting = "zeroshot"
+    setting = "generative_n_shot"
     for task in tqdm(subset):
         file_name = f"gpqa_{task}_{setting}.yaml"
         try:
