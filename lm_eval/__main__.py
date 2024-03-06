@@ -228,7 +228,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.predict_only:
         args.log_samples = True
     if (args.log_samples or args.predict_only) and not args.output_path:
-        raise ValueError("Specify --output_path if providing --log_samples or --predict_only")
+        raise ValueError(
+            "Specify --output_path if providing --log_samples or --predict_only"
+        )
 
     initialize_tasks(args.verbosity)
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
