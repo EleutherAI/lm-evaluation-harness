@@ -718,7 +718,7 @@ class ConfigurableTask(Task):
         else:
             for metric_config in self.config.metric_list:
                 if "metric" not in metric_config:
-                    raise ValueError
+                    raise ValueError("'metric' key not provided for an entry in 'metric_list', must be specified!")
                 metric_name = metric_config["metric"]
                 kwargs = {
                     key: metric_config[key]
