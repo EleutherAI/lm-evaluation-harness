@@ -271,14 +271,14 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         raise NotImplementedError("No support for logits.")
 
 
-@register_model("anthropic-chat", "anthropic-local-chat-completions")
+@register_model("anthropic-chat", "anthropic-chat-completions")
 class AnthropicChatLM(AnthropicLM):
     REQ_CHUNK_SIZE = 20  # TODO: not used
 
     def __init__(
         self,
+        model: str,
         batch_size: int = 1,
-        model: str = "claude-3.0",
         max_tokens: int = 256,
         temperature: float = 0,  # defaults to 1
         **kwargs,  # top_p, top_k, etc.
@@ -286,7 +286,7 @@ class AnthropicChatLM(AnthropicLM):
         """Anthropic API wrapper.
 
         :param model: str
-            Anthropic model e.g. 'claude-3-opus-20240229'
+            Anthropic model e.g. 'claude-3-opus-20240229', 'claude-3-sonnet-20240229'
         :param max_tokens_to_sample: int
             Maximum number of tokens to sample from the model
         :param temperature: float
@@ -301,7 +301,7 @@ class AnthropicChatLM(AnthropicLM):
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e '.[anthropic]'`",
             )
 
         self.model = model
