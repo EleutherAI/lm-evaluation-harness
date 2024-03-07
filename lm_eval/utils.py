@@ -401,7 +401,7 @@ def write_dict_to_csv(file_path: str, data_dict: dict[str, list[float]]):
     # Check if file exists
     file_exists = os.path.isfile(file_path)
 
-    with open(file_path, 'a', newline='') as csvfile:
+    with open(file_path, "a", newline="") as csvfile:
         fieldnames = list(data_dict.keys())
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 

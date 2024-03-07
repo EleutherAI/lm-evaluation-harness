@@ -6,7 +6,7 @@ import re
 import sys
 from functools import partial
 from pathlib import Path
-from typing import Union, List
+from typing import Union
 
 import numpy as np
 
@@ -14,7 +14,7 @@ from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.logging_utils import WandbLogger
 from lm_eval.tasks import TaskManager, include_path, initialize_tasks
-from lm_eval.utils import make_table, write_results_csv, simple_parse_args_string
+from lm_eval.utils import make_table, simple_parse_args_string, write_results_csv
 
 
 DEFAULT_RESULTS_FILE = "results.json"

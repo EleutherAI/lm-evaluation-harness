@@ -57,6 +57,7 @@ class VLLM(TemplateLM):
         **kwargs,
     ):
         import ray
+
         ray.init(ignore_reinit_error=True, num_cpus=8, num_gpus=tensor_parallel_size)
 
         super().__init__()
