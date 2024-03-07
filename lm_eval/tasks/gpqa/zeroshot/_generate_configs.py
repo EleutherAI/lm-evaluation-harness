@@ -1,10 +1,9 @@
 import yaml
-
 from tqdm import tqdm
 
 
 def main() -> None:
-    subset = ["extended", "diamond", "experts", "main"]
+    subset = ["extended", "diamond", "main"]
     setting = "zeroshot"
     for task in tqdm(subset):
         file_name = f"gpqa_{task}_{setting}.yaml"
@@ -21,6 +20,7 @@ def main() -> None:
                 )
         except FileExistsError:
             pass
+
 
 if __name__ == "__main__":
     main()

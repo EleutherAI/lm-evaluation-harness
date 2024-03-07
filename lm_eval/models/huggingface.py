@@ -98,6 +98,7 @@ class HFLM(TemplateLM):
         max_batch_size: Optional[int] = 64,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
+        add_bos_token: Optional[bool] = False,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
         parallelize: Optional[bool] = False,
@@ -249,7 +250,7 @@ class HFLM(TemplateLM):
         elif self.tokenizer.eos_token:
             self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         else:
-            if self.config.model_type == "qwen":
+            if getattr(self.config, "model_type", None) == "qwen":
                 # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
                 self.tokenizer.pad_token = "<|endoftext|>"
             elif (
@@ -264,6 +265,14 @@ class HFLM(TemplateLM):
                 assert self.tokenizer.pad_token_id == 0
             else:
                 self.tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
+
+        # TODO: override this for Gemma
+        self.add_bos_token = add_bos_token
+        if getattr(self.config, "model_type", None) == "gemma":
+            self.add_bos_token = True
+            eval_logger.info(
+                f"Model type is '{self.config.model_type}', a BOS token will be used as Gemma underperforms without it."
+            )
 
         self._max_length = max_length
 
@@ -657,8 +666,9 @@ class HFLM(TemplateLM):
         """ """
         if add_special_tokens is None:
             if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-                add_special_tokens = False
+                add_special_tokens = False or self.add_bos_token
             elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
+                # TODO: investigate best practices for enc-dec models + special tokens
                 add_special_tokens = True
 
         encoding = self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
@@ -681,7 +691,7 @@ class HFLM(TemplateLM):
         self.tokenizer.padding_side = padding_side
 
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            add_special_tokens = False
+            add_special_tokens = False or self.add_bos_token
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
             add_special_tokens = True
 
@@ -877,7 +887,7 @@ class HFLM(TemplateLM):
         def _lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
             """Defines the key to group and lookup one-token continuations"""
             # Use with group_by="contexts" (optional)"
-            # allows for the creation of a lookup, so we can re-use logits in case of one-token continuations.
+            # allows for the creation of a lookup, so we can reuse logits in case of one-token continuations.
             # speeds up some multiple-choice tasks proportionally to the number of choices.
             # groups requests by context+continuation[:-1] and infer on one request/group.
             return req[-2] + req[-1][:-1]
@@ -911,7 +921,11 @@ class HFLM(TemplateLM):
         )
 
         chunks = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
-        pbar = tqdm(total=len(requests), disable=(disable_tqdm or (self.rank != 0)))
+        pbar = tqdm(
+            total=len(requests),
+            disable=(disable_tqdm or (self.rank != 0)),
+            desc="Running loglikelihood requests",
+        )
         for chunk in chunks:
             inps = []
             cont_toks_list = []
@@ -1079,7 +1093,11 @@ class HFLM(TemplateLM):
             toks = self.tok_encode(req[0])
             return -len(toks), req[0]
 
-        pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        pbar = tqdm(
+            total=len(requests),
+            disable=(self.rank != 0),
+            desc="Running generate_until requests",
+        )
         adaptive_batch_size = None
         if self.batch_size == "auto":
             # using rolling window with maximum context
@@ -1133,8 +1151,12 @@ class HFLM(TemplateLM):
                 raise ValueError(
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
+            # add EOS token to stop sequences
+            eos = self.tok_decode(self.eot_token_id)
             if not until:
-                until = [self.tok_decode(self.eot_token_id)]
+                until = [eos]
+            else:
+                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:

@@ -195,8 +195,7 @@ class NEURON_HF(TemplateLM):
         low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
-        # arguments used for splitting a model across GPUs naively.
-        # only used if `parallelize=True`.
+        add_bos_token: Optional[bool] = False,
     ) -> None:
         if not NEURON_AVAILABLE:
             raise Exception(
@@ -289,6 +288,7 @@ class NEURON_HF(TemplateLM):
 
         self.vocab_size = self.tokenizer.vocab_size
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+        self.add_bos_token = self.add_bos_token
 
         self._max_length = max_length
 
@@ -343,7 +343,7 @@ class NEURON_HF(TemplateLM):
     def tok_encode(self, string: str, left_truncate_len=None, add_special_tokens=None):
         """ """
         if add_special_tokens is None:
-            add_special_tokens = False
+            add_special_tokens = False or self.add_bos_token
 
         encoding = self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
 
@@ -364,7 +364,7 @@ class NEURON_HF(TemplateLM):
         old_padding_side = self.tokenizer.padding_side
         self.tokenizer.padding_side = padding_side
 
-        add_special_tokens = False
+        add_special_tokens = False or self.add_bos_token
 
         encoding = self.tokenizer(
             strings,
@@ -666,8 +666,12 @@ class NEURON_HF(TemplateLM):
                     raise ValueError(
                         f"Expected `kwargs` to be of type `dict` but got {kwargs}"
                     )
+                # add EOS token to stop sequences
+                eos = self.tok_decode(self.eot_token_id)
                 if not until:
-                    until = [self.tok_decode(self.eot_token_id)]
+                    until = [eos]
+                else:
+                    until.append(eos)
                 if "max_gen_toks" in kwargs.keys():
                     max_gen_toks = kwargs.pop("max_gen_toks")
                 else:

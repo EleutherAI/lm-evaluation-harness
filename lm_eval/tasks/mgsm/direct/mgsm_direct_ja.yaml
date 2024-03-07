@@ -2,5 +2,11 @@
 dataset_name: ja
 doc_to_target: '{% if answer is not none %}{{answer[11:]}}{% else %}{{answer_number|string}}{% endif %}'
 doc_to_text: '{% if answer is not none %}{{question+"\nAnswer:"}}{% else %}{{"問題: "+question+"\nAnswer:"}}{% endif %}'
+generation_kwargs:
+  do_sample: false
+  until:
+  - '問題:'
+  - </s>
+  - <|im_end|>
 include: direct_yaml
 task: mgsm_direct_ja
