@@ -57,7 +57,6 @@ class MambaLMWrapper(HFLM):
             pretrained=pretrained,
             # set appropriate defaults for tokenizer, max length, etc
             backend=kwargs.get("backend", "causal"),
-            tokenizer=kwargs.get("tokenizer", "EleutherAI/gpt-neox-20b"),
             max_length=kwargs.get("max_length", 2048),
             **kwargs,
         )
