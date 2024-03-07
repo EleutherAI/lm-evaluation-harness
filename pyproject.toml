@@ -95,9 +95,9 @@ all = [
 [tool.ruff.lint]
 extend-select = ["I"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 lines-after-imports = 2
 known-first-party = ["lm_eval"]
 
-[tool.ruff.extend-per-file-ignores]
+[tool.ruff.lint.extend-per-file-ignores]
 "__init__.py" = ["F401","F402","F403"]

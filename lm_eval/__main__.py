@@ -17,6 +17,9 @@ from lm_eval.tasks import TaskManager, include_path, initialize_tasks
 from lm_eval.utils import make_table, simple_parse_args_string
 
 
+DEFAULT_RESULTS_FILE = "results.json"
+
+
 def _handle_non_serializable(o):
     if isinstance(o, np.int64) or isinstance(o, np.int32):
         return int(o)
@@ -127,7 +130,6 @@ def parse_eval_args() -> argparse.Namespace:
         choices=["true", "refresh", "delete"],
         help="Speed up evaluation by caching the building of dataset requests. `None` if not caching.",
     )
-    parser.add_argument("--decontamination_ngrams_path", default=None)  # TODO: not used
     parser.add_argument(
         "--check_integrity",
         action="store_true",
@@ -226,7 +228,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.predict_only:
         args.log_samples = True
     if (args.log_samples or args.predict_only) and not args.output_path:
-        assert args.output_path, "Specify --output_path"
+        raise ValueError(
+            "Specify --output_path if providing --log_samples or --predict_only"
+        )
 
     initialize_tasks(args.verbosity)
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
@@ -281,12 +285,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.output_path:
         path = Path(args.output_path)
         # check if file or 'dir/results.json' exists
-        if path.is_file() or Path(args.output_path).joinpath("results.json").is_file():
+        if path.is_file():
+            raise FileExistsError(f"File already exists at {path}")
+        output_path_file = path.joinpath(DEFAULT_RESULTS_FILE)
+        if output_path_file.is_file():
             eval_logger.warning(
-                f"File already exists at {path}. Results will be overwritten."
+                f"File {output_path_file} already exists. Results will be overwritten."
             )
-            output_path_file = path.joinpath("results.json")
-            assert not path.is_file(), "File already exists"
         # if path json then get parent dir
         elif path.suffix in (".json", ".jsonl"):
             output_path_file = path
@@ -294,7 +299,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             path = path.parent
         else:
             path.mkdir(parents=True, exist_ok=True)
-            output_path_file = path.joinpath("results.json")
 
     # Respect user's value passed in via CLI, otherwise default to True and add to comma-separated model args
     if args.trust_remote_code:
@@ -321,17 +325,16 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         device=args.device,
         use_cache=args.use_cache,
         limit=args.limit,
-        decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
         predict_only=args.predict_only,
-        **request_caching_args,
         random_seed=args.seed[0],
         numpy_random_seed=args.seed[1],
         torch_random_seed=args.seed[2],
+        **request_caching_args,
     )
 
     if results is not None:
