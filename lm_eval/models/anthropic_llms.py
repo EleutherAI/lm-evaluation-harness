@@ -286,7 +286,7 @@ class AnthropicChatLM(AnthropicLM):
         """Anthropic API wrapper.
 
         :param model: str
-            Anthropic model e.g. 'claude-instant-v1', 'claude-2'
+            Anthropic model e.g. 'claude-3-opus-20240229'
         :param max_tokens_to_sample: int
             Maximum number of tokens to sample from the model
         :param temperature: float
