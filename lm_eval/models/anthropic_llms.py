@@ -1,6 +1,7 @@
 from typing import Any, List, Tuple
 
 from tqdm import tqdm
+from time import sleep
 
 from lm_eval import utils
 from lm_eval.api.model import LM
@@ -135,6 +136,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         return response.content[0].text
 
     return messages()
+
 
 
 @register_model("anthropic")
@@ -330,30 +332,37 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
 
         res = []
         for request in tqdm(_requests):
-            try:
-                inp = request[0]
-                request_args = request[1]
-                # generation_kwargs
-                until = request_args.get("until")
-                max_tokens = request_args.get("max_gen_toks", self.max_length)
-                temperature = request_args.get("temperature", self.temperature)
-                response = anthropic_chat(
-                    client=self.client,
-                    model=self.model,
-                    prompt=inp,
-                    max_tokens=max_tokens,
-                    temperature=temperature,  # TODO: implement non-greedy sampling for Anthropic
-                    stop=until,  # type: ignore
-                    **self.kwargs,
-                )
-                res.append(response)
+            
+            while True:
+                try:
+                    inp = request[0]
+                    request_args = request[1]
+                    # generation_kwargs
+                    until = request_args.get("until")
+                    max_tokens = request_args.get("max_gen_toks", self.max_length)
+                    temperature = request_args.get("temperature", self.temperature)
+                    response = anthropic_chat(
+                        client=self.client,
+                        model=self.model,
+                        prompt=inp,
+                        max_tokens=max_tokens,
+                        temperature=temperature,  # TODO: implement non-greedy sampling for Anthropic
+                        stop=until,  # type: ignore
+                        **self.kwargs,
+                    )
+                    res.append(response)
 
-                self.cache_hook.add_partial("generate_until", request, response)
-            except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
-                eval_logger.critical(f"Server unreachable: {e.__cause__}")
-                break
-            except anthropic.APIStatusError as e:  # type: ignore # noqa: F821
-                eval_logger.critical(f"API error {e.status_code}: {e.message}")
-                break
+                    self.cache_hook.add_partial("generate_until", request, response)
+                    break
+                except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
+                    eval_logger.critical(f"Server unreachable: {e.__cause__}")
+                    break
+                except anthropic.APIStatusError as e:  # type: ignore # noqa: F821
+                    if e.status_code == 529:
+                        eval_logger.critical(f"Anthropic's API is temporarily overloaded. Would retry after a second.")
+                        sleep(1) 
+                        continue
+                    eval_logger.critical(f"API error {e.status_code}: {e.message}")
+                    break
 
         return res
