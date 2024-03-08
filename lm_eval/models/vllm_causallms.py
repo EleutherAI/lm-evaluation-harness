@@ -411,6 +411,21 @@ class VLLM(TemplateLM):
         # The first entry of prompt_logprobs is None because the model has no previous tokens to condition on.
         continuation_logprobs_dicts = outputs.prompt_logprobs
 
+        def coerce_logprob_to_num(logprob):
+            # vLLM changed the return type of logprobs from float
+            # to a Logprob object storing the float value + extra data
+            # (https://github.com/vllm-project/vllm/pull/3065).
+            # If we are dealing with vllm's Logprob object, return
+            # the logprob value stored as an attribute. Otherwise,
+            # return the object itself (which should be a float
+            # for older versions of vLLM).
+            return getattr(logprob, "logprob", logprob)
+
+        logprob_dict = {
+            token: coerce_logprob_to_num(logprob)
+            for token, logprob in logprob_dict.items()
+        }
+
         # Calculate continuation_logprobs
         # assume ctxlen always >= 1
         continuation_logprobs = sum(
