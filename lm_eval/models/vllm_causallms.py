@@ -421,10 +421,13 @@ class VLLM(TemplateLM):
             # for older versions of vLLM).
             return getattr(logprob, "logprob", logprob)
 
-        logprob_dict = {
-            token: coerce_logprob_to_num(logprob)
-            for token, logprob in logprob_dict.items()
-        }
+        continuation_logprobs_dicts = [
+            {
+                token: coerce_logprob_to_num(logprob)
+                for token, logprob in logprob_dict.items()
+            }
+            for logprob_dict in continuation_logprobs_dicts
+        ]
 
         # Calculate continuation_logprobs
         # assume ctxlen always >= 1
