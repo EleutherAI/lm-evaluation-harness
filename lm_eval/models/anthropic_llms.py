@@ -1,7 +1,6 @@
 from typing import Any, List, Tuple
 
 from tqdm import tqdm
-from time import sleep
 
 from lm_eval import utils
 from lm_eval.api.model import LM
@@ -91,10 +90,10 @@ def anthropic_chat(
         client: anthropic.Anthropic
             Anthropic API client
         model: str
-            Anthropic model e.g. 'claude-instant-v1', 'claude-2'
+            Anthropic model e.g. 'claude-3-opus-20240229', 'claude-3-sonnet-20240229'
         prompt: str
             Prompt to feed to the model
-        max_tokens_to_sample: int
+        max_tokens: int
             Maximum number of tokens to sample from the model
         temperature: float
             Sampling temperature
@@ -118,7 +117,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         )
 
     @retry_on_specific_exceptions(
-        on_exceptions=[anthropic.RateLimitError],
+        on_exceptions=[anthropic.RateLimitError, anthropic.APIConnectionError, anthropic.APIStatusError],
         max_retries=None,  # retry forever, consider changing
         on_exception_callback=_exception_callback,
     )
@@ -287,7 +286,7 @@ class AnthropicChatLM(AnthropicLM):
 
         :param model: str
             Anthropic model e.g. 'claude-3-opus-20240229', 'claude-3-sonnet-20240229'
-        :param max_tokens_to_sample: int
+        :param max_tokens: int
             Maximum number of tokens to sample from the model
         :param temperature: float
             Sampling temperature
@@ -332,37 +331,31 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
 
         res = []
         for request in tqdm(_requests):
-            
-            while True:
-                try:
-                    inp = request[0]
-                    request_args = request[1]
-                    # generation_kwargs
-                    until = request_args.get("until")
-                    max_tokens = request_args.get("max_gen_toks", self.max_length)
-                    temperature = request_args.get("temperature", self.temperature)
-                    response = anthropic_chat(
-                        client=self.client,
-                        model=self.model,
-                        prompt=inp,
-                        max_tokens=max_tokens,
-                        temperature=temperature,  # TODO: implement non-greedy sampling for Anthropic
-                        stop=until,  # type: ignore
-                        **self.kwargs,
-                    )
-                    res.append(response)
+            try:
+                inp = request[0]
+                request_args = request[1]
+                # generation_kwargs
+                until = request_args.get("until")
+                max_tokens = request_args.get("max_gen_toks", self.max_length)
+                temperature = request_args.get("temperature", self.temperature)
+                response = anthropic_chat(
+                    client=self.client,
+                    model=self.model,
+                    prompt=inp,
+                    max_tokens=max_tokens,
+                    temperature=temperature,  # TODO: implement non-greedy sampling for Anthropic
+                    stop=until,  # type: ignore
+                    **self.kwargs,
+                )
+                res.append(response)
 
-                    self.cache_hook.add_partial("generate_until", request, response)
-                    break
-                except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
-                    eval_logger.critical(f"Server unreachable: {e.__cause__}")
-                    break
-                except anthropic.APIStatusError as e:  # type: ignore # noqa: F821
-                    if e.status_code == 529:
-                        eval_logger.critical(f"Anthropic's API is temporarily overloaded. Would retry after a second.")
-                        sleep(1) 
-                        continue
-                    eval_logger.critical(f"API error {e.status_code}: {e.message}")
-                    break
+                self.cache_hook.add_partial("generate_until", request, response)
+                break
+            except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
+                eval_logger.critical(f"Server unreachable: {e.__cause__}")
+                break
+            except anthropic.APIStatusError as e:  # type: ignore # noqa: F821
+                eval_logger.critical(f"API error {e.status_code}: {e.message}")
+                break
 
         return res
