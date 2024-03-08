@@ -2,5 +2,5 @@ task: crosssum_ko
 dataset_name: crosssum_ko
 dataset_path: json
 dataset_kwargs:
-  data_files: /data/shared/datasets/yanolja_evaluations/crosssum_summarization.jsonl
+  data_files: ./data/crosssum_summarization.jsonl
 include: summarization_template.yaml

@@ -2,5 +2,5 @@ task: wikilingua_ko
 dataset_name: wikilingua_ko
 dataset_path: json
 dataset_kwargs:
-  data_files: /data/shared/datasets/yanolja_evaluations/wikilingua_summarization.jsonl
+  data_files: ./data/wikilingua_summarization.jsonl
 include: summarization_template.yaml

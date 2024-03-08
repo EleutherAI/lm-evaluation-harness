@@ -2,7 +2,7 @@ task: yanolja_review_ko
 dataset_name: yanolja_review_ko
 dataset_path: json
 dataset_kwargs:
-  data_files: /data/shared/datasets/yanolja_evaluations/yanolja_review_summarization.jsonl
+  data_files: ./data/yanolja_review_summarization.jsonl
 group: yanolja_summarization
 output_type: generate_until
 test_split: train

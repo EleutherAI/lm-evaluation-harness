@@ -2,5 +2,5 @@ task: tatoeba_ko-en
 dataset_name: tatoeba_ko-en
 dataset_path: json
 dataset_kwargs:
-  data_files: /data/shared/datasets/yanolja_evaluations/tatoeba_translation_length_20_ko-en.jsonl
+  data_files: ./data/tatoeba_translation_length_20_ko-en.jsonl
 include: translation_template.yaml

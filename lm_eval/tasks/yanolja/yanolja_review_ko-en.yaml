@@ -2,7 +2,7 @@ task: yanolja_review_ko-en
 dataset_name: yanolja_review_ko-en
 dataset_path: json
 dataset_kwargs:
-  data_files: /data/shared/datasets/yanolja_evaluations/yanolja_review_ko-en.jsonl
+  data_files: ./data/yanolja_review_ko-en.jsonl
 
 group: yanolja_translation
 output_type: generate_until
@@ -14,9 +14,7 @@ Assistant: "
 doc_to_target: "" # Reference-free metric
 
 metric_list:
-  - metric: xcomet
-    aggregation: mean
-    higher_is_better: true
+  - metric: bleu
 
 generation_kwargs:
   until:
