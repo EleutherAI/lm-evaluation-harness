@@ -4,6 +4,7 @@ import numpy as np
 
 from rouge_score import rouge_scorer, scoring
 
+''' This code mirrors the utils of the original truthful_qa task '''
 
 def process_results_mc2(doc, results):
     lls, is_greedy = zip(*results)

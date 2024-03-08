@@ -10,6 +10,8 @@ The versatility of large language models (LLMs) led to the creation of diverse b
 
 Homepage: -
 
+All configs and utils mirror the ones from their original dataset!
+
 ### Groups and Tasks
 
 #### Groups
@@ -95,6 +97,7 @@ Estimating performance for each scenario all at once
     }
 ```
 
+Please also reference the respective original dataset that you are using!
 
 ### Checklist
 
