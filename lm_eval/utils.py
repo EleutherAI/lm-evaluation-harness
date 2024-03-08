@@ -8,7 +8,7 @@ import logging
 import os
 import re
 from itertools import islice
-from typing import Any, Callable, List
+from typing import Any, Callable, Dict, List
 
 import numpy as np
 import yaml
@@ -397,7 +397,7 @@ def write_results_csv(output_path: str, result_dict, tasks: List[str], model_nam
     write_dict_to_csv(output_path, res_csv)
 
 
-def write_dict_to_csv(file_path: str, data_dict: dict[str, list[float]]):
+def write_dict_to_csv(file_path: str, data_dict: Dict[str, List[float]]):
     # Check if file exists
     file_exists = os.path.isfile(file_path)
 
