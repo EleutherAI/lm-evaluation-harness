@@ -1,0 +1,6 @@
+task: aihub_ko-en
+dataset_name: aihub_ko-en
+dataset_path: json
+dataset_kwargs:
+  data_files: /data/shared/datasets/yanolja_evaluations/ai-hub-ko-en-1000.jsonl
+include: translation_template.yaml

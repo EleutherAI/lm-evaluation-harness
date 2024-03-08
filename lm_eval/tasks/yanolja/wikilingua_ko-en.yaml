@@ -1,0 +1,6 @@
+task: wikilingua_ko-en
+dataset_name: wikilingua_ko-en
+dataset_path: json
+dataset_kwargs:
+  data_files: /data/shared/datasets/yanolja_evaluations/wikilingua_translation_ko-en.jsonl
+include: translation_template.yaml

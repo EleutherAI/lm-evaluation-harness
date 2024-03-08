@@ -1,0 +1,6 @@
+task: ted2020_ko-en
+dataset_name: ted2020_ko-en
+dataset_path: json
+dataset_kwargs:
+  data_files: /data/shared/datasets/yanolja_evaluations/ted2020_translation_length_100_ko-en.jsonl
+include: translation_template.yaml

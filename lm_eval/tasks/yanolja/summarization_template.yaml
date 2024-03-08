@@ -1,0 +1,20 @@
+group: yanolja_summarization
+output_type: generate_until
+test_split: train
+doc_to_text: "A chat between a curious user and an artificial intelligence assistant. The assistant gives helpful and concise answers to the user's questions.
+Human: 주어진 한국어 text를 요약해주세요.
+text: {{text}}
+Assistant: "
+doc_to_target: "{{summary}}"
+
+metric_list:
+  - metric: bleu
+
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "\n"
+    - "<|im_end|>"
+    - "</s>"
+metadata:
+  version: 1.0

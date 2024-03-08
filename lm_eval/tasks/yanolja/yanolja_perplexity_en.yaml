@@ -1,0 +1,23 @@
+group:
+  - yanolja_perplexity
+task: yanolja_perplexity_en
+dataset_name: yanolja_perplexity_en
+dataset_path: json
+dataset_kwargs:
+  data_files: /data/shared/datasets/yanolja_evaluations/yanolja_perplexity_en.jsonl
+output_type: loglikelihood_rolling
+test_split: train
+doc_to_text: ""
+doc_to_target: "{{text}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{text}}"
+metric_list:
+  - metric: word_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    aggregation: bits_per_byte
+    higher_is_better: false
