@@ -1,0 +1,17 @@
+group:
+  - inverse_scaling
+  - inverse_scaling_round1
+output_type: multiple_choice
+test_split: train
+doc_to_text: "{{prompt}}"
+doc_to_choice: "{{classes}}"
+doc_to_target: "{{answer_index}}"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
