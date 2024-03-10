@@ -941,7 +941,8 @@ class ConfigurableTask(Task):
             The fewshot context.
         """
 
-        description = utils.apply_template(self.config.description, doc)
+	if self.config.description:
+	        description = utils.apply_template(self.config.description, doc)
 
         if num_fewshot == 0:
             # always prepend the (possibly empty) task description
