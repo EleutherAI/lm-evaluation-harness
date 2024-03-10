@@ -4,6 +4,8 @@ import logging
 import os
 import re
 import subprocess
+from datetime import datetime
+from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
@@ -99,6 +101,15 @@ class WandbLogger:
             self.run = wandb.init(**self.wandb_args)
         else:
             self.run = wandb.run
+
+        now_ts = datetime.now().timestamp()
+
+        def log_patch(original_fct, data: dict):
+            assert isinstance(data, dict)
+            timed_data = {f"{k}_{now_ts}": v for k, v in data.items()}
+            original_fct(timed_data)
+
+        self.run.log = partial(log_patch, self.run.log)
 
         self.printer = get_wandb_printer()
 

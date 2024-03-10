@@ -55,6 +55,7 @@ class VLLM(TemplateLM):
         gpu_memory_utilization: float = 0.9,
         device: str = "cuda",
         data_parallel_size: int = 1,
+        enforce_eager: bool = True,
         **kwargs,
     ):
         super().__init__()
@@ -87,6 +88,7 @@ class VLLM(TemplateLM):
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
+            "enforce_eager": enforce_eager,
         }
         self.model_args.update(kwargs)
         self.batch_size = (
