@@ -1,12 +1,12 @@
-/var/spool/slurmd.spool/job823791/slurm_script: line 17: module: command not found
-2024-03-10 14:28:15.817496: I tensorflow/core/util/port.cc:113] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
-2024-03-10 14:28:15.878486: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+/var/spool/slurmd.spool/job823804/slurm_script: line 17: module: command not found
+2024-03-10 17:10:54.099096: I tensorflow/core/util/port.cc:113] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2024-03-10 17:10:54.158778: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
 To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2024-03-10 14:28:17.108702: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2024-03-10 17:10:55.372809: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
 [nltk_data] Downloading package punkt to /users/adbt150/nltk_data...
 [nltk_data]   Package punkt is already up-to-date!
 Selected Tasks: ['truthfulqa_gen']
-Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:00<00:00,  3.95it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00,  4.53it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00,  4.43it/s]
+Loading checkpoint shards:   0%|          | 0/2 [00:00<?, ?it/s]Loading checkpoint shards:  50%|█████     | 1/2 [00:00<00:00,  3.95it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00,  4.26it/s]Loading checkpoint shards: 100%|██████████| 2/2 [00:00<00:00,  4.21it/s]
 /users/adbt150/lm-evaluation-harness/lm_eval/tasks/truthfulqa.py:181: FutureWarning: load_metric is deprecated and will be removed in the next major version of datasets. Use 'evaluate.load' instead, from the new library 🤗 Evaluate: https://huggingface.co/docs/evaluate
   self.bleurt = datasets.load_metric("bleurt")
 /users/adbt150/miniconda3/envs/llm/lib/python3.12/site-packages/datasets/load.py:756: FutureWarning: The repository for bleurt contains custom code which must be executed to correctly load the metric. You can inspect the repository content at https://raw.githubusercontent.com/huggingface/datasets/2.18.0/metrics/bleurt/bleurt.py
@@ -14,7 +14,7 @@ You can avoid this message in future by passing the argument `trust_remote_code=
 Passing `trust_remote_code=True` will be mandatory to load this metric from the next major release of `datasets`.
   warnings.warn(
 Using default BLEURT-Base checkpoint for sequence maximum length 128. You can use a bigger model for better results with e.g.: datasets.load_metric('bleurt', 'bleurt-large-512').
-2024-03-10 14:28:34.740379: W tensorflow/core/common_runtime/gpu/gpu_device.cc:2251] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+2024-03-10 17:11:17.347832: W tensorflow/core/common_runtime/gpu/gpu_device.cc:2251] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
 Skipping registering GPU devices...
 Task: truthfulqa_gen; number of docs: 817
 Task: truthfulqa_gen; document 0; context prompt (starting on next line):
@@ -65,4 +65,73 @@ Requests: Req_greedy_until('Q: What is human life expectancy in the United State
 
 Running greedy_until requests
 0it [00:00, ?it/s]0it [00:00, ?it/s]
-slurmstepd: error: *** JOB 823791 ON gpu02 CANCELLED AT 2024-03-10T14:31:15 ***
+{
+  "results": {
+    "truthfulqa_gen": {
+      "bleurt_max": -0.6232288071618961,
+      "bleurt_max_stderr": 0.018461352861006582,
+      "bleurt_acc": 0.423500611995104,
+      "bleurt_acc_stderr": 0.017297421448534776,
+      "bleurt_diff": -0.05577850692895226,
+      "bleurt_diff_stderr": 0.023076704962575516,
+      "bleu_max": 27.52284968012066,
+      "bleu_max_stderr": 0.8082173559967243,
+      "bleu_acc": 0.3953488372093023,
+      "bleu_acc_stderr": 0.017115815632418308,
+      "bleu_diff": -1.9387376055074534,
+      "bleu_diff_stderr": 0.9735862008133369,
+      "rouge1_max": 55.24020770589374,
+      "rouge1_max_stderr": 0.9402337423060103,
+      "rouge1_acc": 0.3929008567931457,
+      "rouge1_acc_stderr": 0.01709724828523318,
+      "rouge1_diff": -1.8651388226165517,
+      "rouge1_diff_stderr": 1.2583511162266026,
+      "rouge2_max": 40.524346361801584,
+      "rouge2_max_stderr": 1.0982028638939467,
+      "rouge2_acc": 0.34516523867809057,
+      "rouge2_acc_stderr": 0.016643103319275012,
+      "rouge2_diff": -2.403492473638395,
+      "rouge2_diff_stderr": 1.4094122722355493,
+      "rougeL_max": 52.54980423175433,
+      "rougeL_max_stderr": 0.9565842406692007,
+      "rougeL_acc": 0.3953488372093023,
+      "rougeL_acc_stderr": 0.017115815632418308,
+      "rougeL_diff": -2.204984559882889,
+      "rougeL_diff_stderr": 1.2750753197187485
+    }
+  },
+  "versions": {
+    "truthfulqa_gen": 1
+  },
+  "config": {
+    "model": "hf-causal-experimental",
+    "model_args": "pretrained=/users/adbt150/archive/Mistral-7B-v0.1",
+    "num_fewshot": 0,
+    "batch_size": "5",
+    "batch_sizes": [],
+    "device": "cuda:0",
+    "no_cache": false,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "description_dict": {}
+  }
+}
+hf-causal-experimental (pretrained=/users/adbt150/archive/Mistral-7B-v0.1), limit: None, provide_description: False, num_fewshot: 0, batch_size: 5
+|     Task     |Version|  Metric   | Value |   |Stderr|
+|--------------|------:|-----------|------:|---|-----:|
+|truthfulqa_gen|      1|bleurt_max |-0.6232|±  |0.0185|
+|              |       |bleurt_acc | 0.4235|±  |0.0173|
+|              |       |bleurt_diff|-0.0558|±  |0.0231|
+|              |       |bleu_max   |27.5228|±  |0.8082|
+|              |       |bleu_acc   | 0.3953|±  |0.0171|
+|              |       |bleu_diff  |-1.9387|±  |0.9736|
+|              |       |rouge1_max |55.2402|±  |0.9402|
+|              |       |rouge1_acc | 0.3929|±  |0.0171|
+|              |       |rouge1_diff|-1.8651|±  |1.2584|
+|              |       |rouge2_max |40.5243|±  |1.0982|
+|              |       |rouge2_acc | 0.3452|±  |0.0166|
+|              |       |rouge2_diff|-2.4035|±  |1.4094|
+|              |       |rougeL_max |52.5498|±  |0.9566|
+|              |       |rougeL_acc | 0.3953|±  |0.0171|
+|              |       |rougeL_diff|-2.2050|±  |1.2751|
+
