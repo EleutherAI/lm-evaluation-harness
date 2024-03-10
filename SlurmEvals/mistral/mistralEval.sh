@@ -32,7 +32,16 @@ python ~/lm-evaluation-harness/main.py \
             --model_args pretrained=/users/adbt150/archive/Mistral-7B-v0.1 \
             --batch_size 16 \
             --device cuda:0 \
-            --num_fewshot 0 \
+            --num_fewshot 5 \
             --tasks winogrande \
+            --write_out
+
+python ~/lm-evaluation-harness/main.py \
+            --model hf-causal-experimental \
+            --model_args pretrained=/users/adbt150/archive/Mistral-7B-v0.1 \
+            --batch_size 16 \
+            --device cuda:0 \
+            --num_fewshot 10 \
+            --tasks hellaswag \
             --write_out
             
