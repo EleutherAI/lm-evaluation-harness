@@ -940,7 +940,7 @@ class ConfigurableTask(Task):
         :returns: str
             The fewshot context.
         """
-        if self.config.description:
+        if description := self.config.description:
             description = utils.apply_template(self.config.description, doc)
 
         if num_fewshot == 0:
