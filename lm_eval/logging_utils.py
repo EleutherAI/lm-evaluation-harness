@@ -4,8 +4,6 @@ import logging
 import os
 import re
 import subprocess
-from datetime import datetime
-from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
@@ -102,15 +100,6 @@ class WandbLogger:
         else:
             self.run = wandb.run
 
-        now_ts = datetime.now().timestamp()
-
-        def log_patch(original_fct, data: dict):
-            assert isinstance(data, dict)
-            timed_data = {f"{k}_{now_ts}": v for k, v in data.items()}
-            original_fct(timed_data)
-
-        self.run.log = partial(log_patch, self.run.log)
-
         self.printer = get_wandb_printer()
 
     def post_init(self, results: Dict[str, Any]) -> None:
@@ -122,8 +111,20 @@ class WandbLogger:
         """Get configuration parameters."""
         self.task_configs = self.results.get("configs", {})
         cli_configs = self.results.get("config", {})
+
+        if exiting_config := self.run.config.get("task_configs"):
+            task_config = {**exiting_config, **self.task_configs}
+        else:
+            task_config = self.task_configs
+
+        cli_configs = {
+            k: v
+            for k, v in cli_configs.items()
+            if k in ["model", "gen_kwargs", "model_kwargs", "limit"]
+        }
+
         configs = {
-            "task_configs": self.task_configs,
+            "task_configs": task_config,
             "cli_configs": cli_configs,
         }
 
@@ -231,7 +232,7 @@ class WandbLogger:
         """Log evaluation results to W&B."""
         # Log configs to wandb
         configs = self._get_config()
-        self.run.config.update(configs)
+        self.run.config.update(configs, allow_val_change=True)
 
         wandb_summary, self.wandb_results = self._sanitize_results_dict()
         # update wandb.run.summary with items that were removed
