@@ -30,9 +30,9 @@ export RANK=0
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
             --model_args pretrained=/users/adbt150/archive/Mistral-7B-v0.1 \
-            --batch_size 5 \
+            --batch_size 16 \
             --device cuda:0 \
             --num_fewshot 0 \
-            --tasks truthfulqa_gen \
+            --tasks winogrande \
             --write_out
             

@@ -27,12 +27,37 @@ export MASTER_PORT=8214
 # The rank of this worker, should be in {0, ..., WORKER_CNT-1}, for single-worker training, please set to 0
 export RANK=0
 
+
 python ~/lm-evaluation-harness/main.py \
             --model hf-causal-experimental \
             --model_args pretrained=/users/adbt150/archive/Mistral-7B-v0.1 \
             --batch_size 5 \
             --device cuda:0 \
-            --num_fewshot 0 \
-            --tasks truthfulqa_gen \
+            --num_fewshot 5 \
+            --tasks winogrande \
             --write_out \
             --shuffle unigram 
+
+python ~/lm-evaluation-harness/main.py \
+            --model hf-causal-experimental \
+            --model_args pretrained=/users/adbt150/archive/Mistral-7B-v0.1 \
+            --batch_size 16 \
+            --device cuda:0 \
+            --num_fewshot 25 \
+            --tasks arc_challenge
+
+python ~/lm-evaluation-harness/main.py \
+            --model hf-causal-experimental \
+            --model_args pretrained=/users/adbt150/archive/Mistral-7B-v0.1 \
+            --batch_size 16 \
+            --device cuda:0 \
+            --num_fewshot 10 \
+            --tasks hellaswag
+
+python ~/lm-evaluation-harness/main.py \
+            --model hf-causal-experimental \
+            --model_args pretrained=/users/adbt150/archive/Mistral-7B-v0.1 \
+            --batch_size 16 \
+            --device cuda:0 \
+            --num_fewshot 0 \
+            --tasks truthfulqa_mc 
