@@ -12,6 +12,7 @@ generation_kwargs:
   temperature: 0.0
   max_gen_toks: 1280
 process_results: !function utils.process_results
+num_fewshot: 0
 metric_list:
   - metric: prompt_level_strict_acc
     aggregation: mean
