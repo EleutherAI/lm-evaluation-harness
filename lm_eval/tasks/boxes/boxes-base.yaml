@@ -1,0 +1,33 @@
+task: boxes
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files: {'test': 'test-subsample-states-t5.jsonl'}
+  data_dir: "/boxes-dataset-v1/few_shot_boxes_nso_exp2_max3"
+output_type: generate_until
+training_split: NULL
+validation_split: NULL
+fewshot_split: NULL
+test_split: test
+doc_to_text: !function utils_boxes.doc_to_text
+doc_to_target: !function utils_boxes.doc_to_target
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+generation_kwargs:
+  until:
+    - "\n"
+    - "."
+    - ","
+  do_sample: true
+  temperature: 0.0001
+filter_list:
+  - name: "boxes"
+    filter:
+      - function: !function utils_boxes.boxes_filter
+num_fewshot: 0
+metadata:
+  version: 1.0
