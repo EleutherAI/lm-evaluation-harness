@@ -1,0 +1,6 @@
+include: aqua-rat.yaml
+group:
+  - agieval
+  - agieval_cn
+task: agieval_gaokao_history
+dataset_path: hails/agieval-gaokao-history
