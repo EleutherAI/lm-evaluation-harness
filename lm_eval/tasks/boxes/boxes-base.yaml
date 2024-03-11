@@ -22,8 +22,7 @@ generation_kwargs:
     - "\n"
     - "."
     - ","
-  do_sample: true
-  temperature: 0.0001
+  do_sample: false
 filter_list:
   - name: "boxes"
     filter:
