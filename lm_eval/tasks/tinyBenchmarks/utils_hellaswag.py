@@ -1,7 +1,10 @@
-import datasets
 import re
 
-''' This code mirrors the utils of the original hellaswag task '''
+import datasets
+
+
+""" This code mirrors the utils of the original hellaswag task """
+
 
 def preprocess(text):
     text = text.strip()

@@ -6,7 +6,7 @@ Title: `tinyBenchmarks: evaluating LLMs with fewer examples`
 
 Abstract: https://arxiv.org/abs/2402.14992
 
-The versatility of large language models (LLMs) led to the creation of diverse benchmarks that thoroughly test a variety of language models' abilities. These benchmarks consist of tens of thousands of examples making evaluation of LLMs very expensive. In this paper, we investigate strategies to reduce the number of evaluations needed to assess the performance of an LLM on several key benchmarks. For example, we show that to accurately estimate the performance of an LLM on MMLU, a popular multiple-choice QA benchmark consisting of 14K examples, it is sufficient to evaluate this LLM on 100 curated examples. We release evaluation tools and tiny versions of popular benchmarks: Open LLM Leaderboard, MMLU, HELM, and AlpacaEval 2.0. Our empirical analysis demonstrates that these tools and tiny benchmarks are sufficient to reliably and efficiently reproduce the original evaluation results. 
+The versatility of large language models (LLMs) led to the creation of diverse benchmarks that thoroughly test a variety of language models' abilities. These benchmarks consist of tens of thousands of examples making evaluation of LLMs very expensive. In this paper, we investigate strategies to reduce the number of evaluations needed to assess the performance of an LLM on several key benchmarks. For example, we show that to accurately estimate the performance of an LLM on MMLU, a popular multiple-choice QA benchmark consisting of 14K examples, it is sufficient to evaluate this LLM on 100 curated examples. We release evaluation tools and tiny versions of popular benchmarks: Open LLM Leaderboard, MMLU, HELM, and AlpacaEval 2.0. Our empirical analysis demonstrates that these tools and tiny benchmarks are sufficient to reliably and efficiently reproduce the original evaluation results.
 
 Homepage: -
 
@@ -33,7 +33,7 @@ You can install our package by running the following commands on the terminal
 $ pip install git+https://github.com/felipemaiapolo/tinyBenchmarks
 ```
 
-Through the package, the ability parameter $\theta$ from the IRT model will be estimated using all the available data. For `benchmark='lb'` or `benchmark='helm_lite'`, the dimension of `y` should be 600 and 1000, respectively, where the correctness values must obey the following order 
+Through the package, the ability parameter $\theta$ from the IRT model will be estimated using all the available data. For `benchmark='lb'` or `benchmark='helm_lite'`, the dimension of `y` should be 600 and 1000, respectively, where the correctness values must obey the following order
 - For the Open LLM Leaderboard: TruthfulQA, GSM8K, Winogrande, ARC, HellaSwag, and MMLU;
 
 For all other, benchmarks the dimension of `y` should be 100.
@@ -53,7 +53,7 @@ file_path = '<your-output-file.jsonl>'
 with open(file_path, 'r') as file:
     outputs = json.load(file)
 
-# Ensuring correct order of outputs    
+# Ensuring correct order of outputs  
 outputs = sorted(outputs, key=lambda x: x['doc_id'])
 
 y = np.array([float(item['acc_norm']) for item in outputs])
@@ -62,7 +62,7 @@ y = np.array([float(item['acc_norm']) for item in outputs])
 tb.evaluate(y, benchmark)
 ```
 
-### Performance 
+### Performance
 
 We report in the following tables the average estimation error in the test set (using data from the paper) and standard deviation across LLMs.
 

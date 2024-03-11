@@ -44,4 +44,3 @@ filter_list:
       - function: "take_first"
 metadata:
   version: 0.0
-

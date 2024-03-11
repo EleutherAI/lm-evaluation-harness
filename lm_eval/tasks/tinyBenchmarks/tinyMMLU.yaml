@@ -6,7 +6,7 @@ fewshot_split: dev
 fewshot_config:
   sampler: first_n
 output_type: multiple_choice
-doc_to_text: "{{input_formatted}}" 
+doc_to_text: "{{input_formatted}}"
 doc_to_choice: ["A", "B", "C", "D"]
 doc_to_target: answer
 num_fewshot: 0

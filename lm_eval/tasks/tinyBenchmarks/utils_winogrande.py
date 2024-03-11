@@ -1,4 +1,5 @@
-''' This code mirrors the utils of the original winogrande task '''
+""" This code mirrors the utils of the original winogrande task """
+
 
 def doc_to_text(doc):
     answer_to_num = {"1": 0, "2": 1}
