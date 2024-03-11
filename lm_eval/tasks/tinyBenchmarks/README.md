@@ -48,10 +48,14 @@ benchmark = 'hellaswag' # possible benchmarks:
                         # ['lb','mmlu','alpaca','helm_lite','truthfulqa',
                         #  'gsm8k', 'winogrande', 'arc', 'hellaswag']
 
-# Get score vector from output-file (the metric `acc_norm` depends on the benchmark)
+# Get score vector from output-file (the metric [here `acc_norm`] depends on the benchmark)
 file_path = '<your-output-file.jsonl>'
 with open(file_path, 'r') as file:
     outputs = json.load(file)
+
+# Ensuring correct order of outputs    
+outputs = sorted(outputs, key=lambda x: x['doc_id'])
+
 y = np.array([float(item['acc_norm']) for item in outputs])
 
 ### Evaluation
