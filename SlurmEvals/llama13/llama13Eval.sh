@@ -62,3 +62,4 @@ python ~/lm-evaluation-harness/main.py \
             --num_fewshot 0 \
             --tasks truthfulqa_mc \
             --write_out 
+        
