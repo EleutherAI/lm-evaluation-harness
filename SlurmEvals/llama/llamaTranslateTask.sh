@@ -33,8 +33,5 @@ python ~/lm-evaluation-harness/main.py \
             --batch_size 10 \
             --device cuda:0 \
             --num_fewshot 0 \
-            --tasks truthfulqa_mc\
+            --tasks wmt14-en-fr\
             --write_out
-
-
-
