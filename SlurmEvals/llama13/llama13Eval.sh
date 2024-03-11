@@ -17,7 +17,7 @@ flight env activate gridware
 module purge
 module load libs/nvidia-cuda/11.2.0/bin
 
-source ~/miniconda3/etc/profile.d/conda.sh
+source ~/archive/miniconda3/etc/profile.d/conda.sh
 conda activate llm
 nvidia-smi
 GPUS_PER_NODE=1
