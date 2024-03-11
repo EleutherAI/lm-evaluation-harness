@@ -8,7 +8,7 @@ test_split: default
 doc_to_text: inputs
 doc_to_target: "{{targets[0]}}"
 generation_kwargs:
-  max_length: 128
+  max_gen_toks: 128
 metric_list:
   - metric: exact_match
     aggregation: mean
