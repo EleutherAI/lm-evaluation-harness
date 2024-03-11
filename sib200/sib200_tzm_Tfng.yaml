@@ -1,0 +1,5 @@
+"dataset_name": "tzm_Tfng"
+"fewshot_split": "test"
+"include": "_default_template_yaml"
+"task": "sib200_tzm_Tfng"
+"test_split": "test"
