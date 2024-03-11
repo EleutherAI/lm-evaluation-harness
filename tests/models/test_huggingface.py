@@ -19,6 +19,8 @@ class Test_HFLM:
     task_list = task_manager.load_task_or_group(["arc_easy", "gsm8k", "wikitext"])
     version_minor = sys.version_info.minor
     multiple_choice_task = task_list["arc_easy"]  # type: ignore
+    # We need to overwrite this since we explicitly set num fewshot in config
+    multiple_choice_task._config.num_fewshot = None
     multiple_choice_task.build_all_requests(limit=10, rank=0, world_size=1)
     MULTIPLE_CH: list[Instance] = multiple_choice_task.instances
     generate_until_task = task_list["gsm8k"]  # type: ignore
