@@ -19,7 +19,7 @@ metric_list:
     aggregation: !function utils.agg_accuracy_amb
     higher_is_better: true
   - metric: accuracy_disamb
-    aggregation: !function utils.agg_accuracy_amb
+    aggregation: !function utils.agg_accuracy_disamb
     higher_is_better: true
   - metric: amb_bias_score
     aggregation: !function utils.agg_amb_bias_scores
