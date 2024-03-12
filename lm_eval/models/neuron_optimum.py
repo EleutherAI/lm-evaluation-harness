@@ -13,10 +13,11 @@ from tqdm import tqdm
 from transformers import GenerationConfig
 from transformers.generation import StoppingCriteriaList
 
+import lm_eval.models.utils
 from lm_eval import utils
-from lm_eval.api.model import LM
+from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.utils import stop_sequences_criteria
+from lm_eval.models.utils import stop_sequences_criteria
 
 
 try:
@@ -171,7 +172,7 @@ class CustomNeuronModelForCausalLM(NeuronModelForCausalLM):
 
 
 @register_model("neuronx")
-class NEURON_HF(LM):
+class NEURON_HF(TemplateLM):
     """
     Enables usage with on AWS Neuron
     using the HuggingFace Transformers + Transformers neuronx library.
@@ -194,8 +195,7 @@ class NEURON_HF(LM):
         low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
-        # arguments used for splitting a model across GPUs naively.
-        # only used if `parallelize=True`.
+        add_bos_token: Optional[bool] = False,
     ) -> None:
         if not NEURON_AVAILABLE:
             raise Exception(
@@ -239,7 +239,7 @@ class NEURON_HF(LM):
             revision=revision,
             trust_remote_code=trust_remote_code,
         )
-        torch_dtype = utils.get_dtype(dtype)
+        torch_dtype = lm_eval.models.utils.get_dtype(dtype)
 
         assert torch_dtype in [
             torch.float16,
@@ -288,6 +288,7 @@ class NEURON_HF(LM):
 
         self.vocab_size = self.tokenizer.vocab_size
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+        self.add_bos_token = self.add_bos_token
 
         self._max_length = max_length
 
@@ -342,7 +343,7 @@ class NEURON_HF(LM):
     def tok_encode(self, string: str, left_truncate_len=None, add_special_tokens=None):
         """ """
         if add_special_tokens is None:
-            add_special_tokens = False
+            add_special_tokens = False or self.add_bos_token
 
         encoding = self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
 
@@ -363,7 +364,7 @@ class NEURON_HF(LM):
         old_padding_side = self.tokenizer.padding_side
         self.tokenizer.padding_side = padding_side
 
-        add_special_tokens = False
+        add_special_tokens = False or self.add_bos_token
 
         encoding = self.tokenizer(
             strings,
@@ -446,37 +447,6 @@ class NEURON_HF(LM):
 
         return logits
 
-    def _encode_pair(self, context, continuation):
-        n_spaces = len(context) - len(context.rstrip())
-        if n_spaces > 0:
-            continuation = context[-n_spaces:] + continuation
-            context = context[:-n_spaces]
-
-        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
-        context_enc = self.tok_encode(context, add_special_tokens=False)
-
-        # whole_enc = self.tok_encode(context + continuation)
-        # context_enc = self.tok_encode(context, add_special_tokens=False)
-        context_enc_len = len(context_enc)
-        continuation_enc = whole_enc[context_enc_len:]
-        return context_enc, continuation_enc
-
-    def loglikelihood(self, requests):
-        new_reqs = []
-        for context, continuation in [req.args for req in requests]:
-            if context == "":
-                # end of text as context
-                context_enc, continuation_enc = (
-                    [self.eot_token_id],
-                    self.tok_encode(continuation),
-                )
-            else:
-                context_enc, continuation_enc = self._encode_pair(context, continuation)
-
-            new_reqs.append(((context, continuation), context_enc, continuation_enc))
-
-        return self._loglikelihood_tokens(new_reqs)
-
     def loglikelihood_rolling(self, requests):
         loglikelihoods = []
 
@@ -550,7 +520,7 @@ class NEURON_HF(LM):
         # automatic (variable) batch size detection for vectorization
         # pull longest context sample from request
 
-        chunks = utils.chunks(
+        chunks = lm_eval.models.utils.chunks(
             re_ord.get_reordered(),
             n=self.batch_size,
             fn=None,
@@ -603,7 +573,7 @@ class NEURON_HF(LM):
 
             # create encoder attn mask and batched conts, if seq2seq
             call_kwargs = {}
-            batched_inps = utils.pad_and_concat(
+            batched_inps = lm_eval.models.utils.pad_and_concat(
                 padding_len_inp, inps, padding_side="right"
             )  # [batch, padding_len_inp]
 
@@ -663,7 +633,7 @@ class NEURON_HF(LM):
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
         # in the same batch.
-        grouper = utils.Grouper(requests, lambda x: str(x.args[1]))
+        grouper = lm_eval.models.utils.Grouper(requests, lambda x: str(x.args[1]))
         for key, reqs in grouper.get_grouped().items():
             # within each set of reqs for given kwargs, we reorder by token length, descending.
             re_ords[key] = utils.Reorderer([req.args for req in reqs], _collate)
@@ -672,7 +642,9 @@ class NEURON_HF(LM):
 
         # for each different set of kwargs, we execute all requests, by batch.
         for key, re_ord in re_ords.items():
-            chunks = utils.chunks(re_ord.get_reordered(), n=self.batch_size)
+            chunks = lm_eval.models.utils.chunks(
+                re_ord.get_reordered(), n=self.batch_size
+            )
             for chunk in tqdm(chunks, disable=self.rank != 0):
                 contexts, all_gen_kwargs = zip(*chunk)
                 # we assume all gen kwargs in the batch are the same
@@ -694,8 +666,12 @@ class NEURON_HF(LM):
                     raise ValueError(
                         f"Expected `kwargs` to be of type `dict` but got {kwargs}"
                     )
+                # add EOS token to stop sequences
+                eos = self.tok_decode(self.eot_token_id)
                 if not until:
-                    until = [self.tok_decode(self.eot_token_id)]
+                    until = [eos]
+                else:
+                    until.append(eos)
                 if "max_gen_toks" in kwargs.keys():
                     max_gen_toks = kwargs.pop("max_gen_toks")
                 else:
