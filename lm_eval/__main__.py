@@ -53,7 +53,7 @@ def _int_or_none_list_arg_type(max_len: int, value: str, split_char: str = ","):
     return items
 
 
-def parse_eval_args() -> argparse.Namespace:
+def setup_parser():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--model", "-m", default="hf", help="Name of model e.g. `hf`")
     parser.add_argument(
@@ -209,6 +209,11 @@ def parse_eval_args() -> argparse.Namespace:
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
     )
 
+    return parser
+
+
+def parse_eval_args() -> argparse.Namespace:
+    parser = setup_parser()
     return parser.parse_args()
 
 
@@ -302,11 +307,16 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     # Respect user's value passed in via CLI, otherwise default to True and add to comma-separated model args
     if args.trust_remote_code:
-        os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = str(args.trust_remote_code)
-        args.model_args = (
-            args.model_args
-            + f",trust_remote_code={os.environ['HF_DATASETS_TRUST_REMOTE_CODE']}"
-        )
+        try:
+            os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = str(args.trust_remote_code)
+            args.model_args = (
+                args.model_args
+                + f",trust_remote_code={os.environ['HF_DATASETS_TRUST_REMOTE_CODE']}"
+            )
+        except TypeError as e:
+            eval_logger.info(
+                f"Running evaluation failed due to wrong type for parsed CLI args: {e}"
+            )
 
     eval_logger.info(f"Selected Tasks: {task_names}")
     eval_logger.info("Loading selected tasks...")
