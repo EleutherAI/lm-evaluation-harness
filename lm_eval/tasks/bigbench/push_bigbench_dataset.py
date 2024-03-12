@@ -8,10 +8,9 @@ Requires the installation of
 `pip install "bigbench @ https://storage.googleapis.com/public_research_data/bigbench/bigbench-0.0.1.tar.gz"`
 and is included so that the bigbench dependency can be avoided.
 """
-from tqdm import tqdm
-import datasets
-
 import bigbench.api.util as bb_utils
+import datasets
+from tqdm import tqdm
 
 
 all_task_names = bb_utils.get_all_json_task_names()

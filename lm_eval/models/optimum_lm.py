@@ -28,7 +28,7 @@ class OptimumLM(HFLM):
 
         super().__init__(
             device=self.openvino_device,
-            backend=kwargs.get("backend", "causal"),
+            backend=kwargs.pop("backend", "causal"),
             **kwargs,
         )
 

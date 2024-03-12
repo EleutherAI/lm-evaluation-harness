@@ -1,13 +1,13 @@
 """
 Take in a YAML, and output all "other" splits with this YAML
 """
-import os
-import yaml
 import argparse
+import os
 
+import yaml
+from loguru import logger as eval_logger
 from tqdm import tqdm
 
-from loguru import logger as eval_logger
 
 SUBJECTS = {
     "abstract_algebra": "stem",

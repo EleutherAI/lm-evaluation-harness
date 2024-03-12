@@ -60,13 +60,23 @@ jobs:
     #   Install optional git dependencies
     #       pip install bleurt@https://github.com/google-research/bleurt/archive/b610120347ef22b494b6d69b4316e303f5932516.zip#egg=bleurt
     #       if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Check HF User
+        if: steps.changed-tasks.outputs.tasks_any_modified == 'true' || steps.changed-tasks.outputs.api_any_modified == 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: huggingface-cli whoami
+
       - name: Test with pytest
         # if new tasks are added, run tests on them
         if: steps.changed-tasks.outputs.tasks_any_modified == 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: python -m pytest tests/test_tasks.py -s -vv
         # if api is modified, run tests on it
       - name: Test more tasks with pytest
         env:
           API: true
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         if: steps.changed-tasks.outputs.api_any_modified == 'true'
         run: python -m pytest tests/test_tasks.py -s -vv

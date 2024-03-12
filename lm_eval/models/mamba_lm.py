@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 import torch
 
-from lm_eval import utils
+import lm_eval.models.utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
@@ -53,9 +53,12 @@ class MambaLMWrapper(HFLM):
             # mamba currently only supports causal models
             assert kwargs["backend"] == "causal"
 
+        if pretrained.startswith("state-spaces"):
+            kwargs["tokenizer"] = "EleutherAI/gpt-neox-20b"
+
         super().__init__(
             pretrained=pretrained,
-            # set appropriate defaults for tokenizer, max length, etc
+            # set appropriate defaults for max length, etc
             backend=kwargs.get("backend", "causal"),
             max_length=kwargs.get("max_length", 2048),
             **kwargs,
@@ -96,7 +99,9 @@ please install mamba via `pip install lm-eval[mamba]` or `pip install -e .[mamba
         self._model = MambaLMHeadModel.from_pretrained(
             pretrained,
             device=self._device,
-            dtype=torch.float16 if dtype == "auto" else utils.get_dtype(dtype),
+            dtype=torch.float16
+            if dtype == "auto"
+            else lm_eval.models.utils.get_dtype(dtype),
         )
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
