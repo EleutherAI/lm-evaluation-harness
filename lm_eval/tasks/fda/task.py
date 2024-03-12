@@ -1,10 +1,7 @@
 """
 """
 from typing import List
-import datasets
 
-from math import exp
-from functools import partial
 import re
 import numpy as np
 
@@ -12,14 +9,13 @@ from lm_eval.api.task import ConfigurableTask
 from lm_eval.api.instance import Instance
 
 
-class SWDE(ConfigurableTask):
+class FDA(ConfigurableTask):
     VERSION = 0
-    DATASET_PATH = "hazyresearch/based-swde"
+    DATASET_PATH = "hazyresearch/based-fda"
     DATASET_NAME = "default"
 
     def __init__(self):
         super().__init__(config={'metadata': {'version': self.VERSION}})
-
 
     def has_training_docs(self):
         return False

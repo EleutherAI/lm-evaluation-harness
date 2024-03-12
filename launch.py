@@ -46,9 +46,6 @@ def execute_config(
 
 
 
-
-
-
 @click.command()
 @click.option("-m", "--model", type=str, multiple=True)
 @click.option("-t", "--task", type=str, multiple=True)
@@ -78,7 +75,7 @@ def main(
         import ray
         # ray was killing workers due to OOM, but it didn't seem to be necessary 
         os.environ["RAY_memory_monitor_refresh_ms"] = "0"
-        ray.init(ignore_reinit_error=True, log_to_driver=False)
+        ray.init(ignore_reinit_error=True, log_to_driver=True)
 
     print(f"Running sweep with {len(configs)} configs")
 

@@ -24,7 +24,6 @@ MODELS=("based-360m" "mamba-360m" "attn-360m")
 
 python launch.py \
   --batch-size 32 \
-  # --limit 1000 \
   -m "hazyresearch/based-360m" \
   -m "hazyresearch/mamba-360m" \
   -m "hazyresearch/attn-360m" \
@@ -35,4 +34,5 @@ python launch.py \
   -t "arc_easy" \
   -t "arc_challenge" \
   -t "winogrande" \
+  # --limit 1000 \
   -p

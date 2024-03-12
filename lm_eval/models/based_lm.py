@@ -38,7 +38,7 @@ class BasedLMWrapper(HFLM):
         elif arch == "attn":
             from based.models.transformer.gpt import GPTLMHeadModel, GPT2Config, state_dict_from_pretrained; # TODO: construct a loading function
             # from based.models.gpt import GPTLMHeadModel
-            config_data = load_config_hf(self.checkpoint_name)
+            config_data = load_config_hf(self.checkpoint_name)            
             config = GPT2Config(**config_data)
             model = GPTLMHeadModel(config=config, device=device, dtype=torch.float16)
             state_dict = state_dict_from_pretrained(self.checkpoint_name, dtype=torch.float16)
