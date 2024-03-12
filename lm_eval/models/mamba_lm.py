@@ -53,12 +53,14 @@ class MambaLMWrapper(HFLM):
             # mamba currently only supports causal models
             assert kwargs["backend"] == "causal"
 
+        if pretrained.startswith("state-spaces"):
+            kwargs["tokenizer"] = "EleutherAI/gpt-neox-20b"
+
         super().__init__(
             pretrained=pretrained,
-            # set appropriate defaults for tokenizer, max length, etc
-            backend=kwargs.pop("backend", "causal"),
-            tokenizer=kwargs.pop("tokenizer", "EleutherAI/gpt-neox-20b"),
-            max_length=kwargs.pop("max_length", 2048),
+            # set appropriate defaults for max length, etc
+            backend=kwargs.get("backend", "causal"),
+            max_length=kwargs.get("max_length", 2048),
             **kwargs,
         )
 

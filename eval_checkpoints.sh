@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Check if two arguments are provided
-if [ $# -ne 2 ]; then
-  echo "Usage: $0 <models_directory> <csv_output>"
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <models_directory> <csv_output> [tasks | default ru] [model | default hf]"
   exit 1
 fi
 
@@ -46,9 +46,25 @@ for model_dir in "$models_directory"/*/; do
   fi
 done
 
+# Prepare task list
+if [ -z "$3" ] || [ "$3" = "ru" ]; then
+  tasks="winogrande_ru,arc_challenge_ru,hellaswag_ru,mmlu_ru,gsm8k_ru,truthfulqa_mc2_ru"
+elif [ "$3" = "en" ]; then
+  tasks="winogrande,arc_challenge,hellaswag,mmlu,gsm8k,truthfulqa_mc2"
+else
+  tasks="$3"
+fi
+
+# Prepare model name
+if [ -z "$4" ]; then
+  model="hf"
+else
+  model=$4
+fi
+
 # Iterate over the list and run the command for new models
 for model_args_value in "${model_args_list[@]}"; do
-  command="accelerate launch -m  lm_eval --model hf --tasks winogrande_ru,arc_challenge_ru,hellaswag_ru,mmlu_ru,gsm8k_ru,truthfulqa_mc2_ru --batch_size 4 --model_args $model_args_value --output_csv $csv_output"
+  command="accelerate launch -m  lm_eval --model $model --tasks $tasks --batch_size 4 --model_args $model_args_value --output_csv $csv_output"
   output_file="$output_dir/output_${model_args_value//\//_}.txt"  # Replace "/" with "_"
   echo "Running command: $command"
   $command > "$output_file"  # Redirect output to file
