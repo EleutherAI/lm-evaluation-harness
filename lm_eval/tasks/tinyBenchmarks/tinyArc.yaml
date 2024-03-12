@@ -7,6 +7,7 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 test_split: test
+num_fewshot: 25
 doc_to_text: "Question: {{question}}\nAnswer:"
 doc_to_target: "{{choices.label.index(answerKey)}}"
 doc_to_choice: "{{choices.text}}"

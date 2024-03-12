@@ -6,6 +6,7 @@ dataset_name: null
 output_type: multiple_choice
 training_split: train
 validation_split: validation
+num_fewshot: 10
 test_split: null
 process_docs: !function utils_hellaswag.process_docs
 doc_to_text: "{{query}}"

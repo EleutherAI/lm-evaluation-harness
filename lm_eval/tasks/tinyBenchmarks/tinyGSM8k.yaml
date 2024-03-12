@@ -8,6 +8,7 @@ output_type: generate_until
 training_split: train
 fewshot_split: train
 test_split: test
+num_fewshot: 5
 doc_to_text: "Question: {{question}}\nAnswer:"
 doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
 metric_list:
