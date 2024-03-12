@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Check if two arguments are provided
-if [ $# -ne 4 ]; then
-  echo "Usage: $0 <models_directory> <csv_output> <lang> <model>"
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 <models_directory> <csv_output> [tasks | default ru] [model | default hf]"
   exit 1
 fi
 
@@ -47,17 +47,19 @@ for model_dir in "$models_directory"/*/; do
 done
 
 # Prepare task list
-lang=$3
-if [ "$lang" = "ru" ]; then
+if [ -z "$3" ] || [ "$3" = "ru" ]; then
   tasks="winogrande_ru,arc_challenge_ru,hellaswag_ru,mmlu_ru,gsm8k_ru,truthfulqa_mc2_ru"
-else
+elif [ "$3" = "en" ]; then
   tasks="winogrande,arc_challenge,hellaswag,mmlu,gsm8k,truthfulqa_mc2"
+else
+  tasks="$3"
 fi
 
 # Prepare model name
-model="hf"
-if [ "$4" = "mamba" ]; then
-  model="mamba_ssm"
+if [ -z "$4" ]; then
+  model="hf"
+else
+  model=$4
 fi
 
 # Iterate over the list and run the command for new models
