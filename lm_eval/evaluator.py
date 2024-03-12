@@ -34,6 +34,7 @@ def simple_evaluate(
     shuffleAnswer=None,
     remove_question=False,
     posReplace=None,
+    extra_answers=False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -125,6 +126,7 @@ def simple_evaluate(
         shuffleAnswer = shuffleAnswer,
         remove_question = remove_question,
         posReplace = posReplace,
+        extra_answers = extra_answers,
     )
 
     # add info about the model and few shot config
@@ -171,6 +173,7 @@ def evaluate(
     shuffleAnswer=None,
     remove_question=False,
     posReplace=None,
+    extra_answers=False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -300,6 +303,9 @@ def evaluate(
                     if shuffleAnswer == "unigram":
                         for i in range(len(doc["choices"])):
                             doc["choices"][i] = p.unigram_shuffle(doc["choices"][i], task_name)
+                    #Option to add extra answers to the dataset
+                    if extra_answers: 
+                        doc["choices"].append("extra answer")
                     elif posReplace == "VERB":
                         doc['sentence'] = p.verbSynonyms(doc['sentence'])
                     elif remove_question:

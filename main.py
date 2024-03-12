@@ -48,6 +48,8 @@ def parse_args():
     parser.add_argument("--remove_question", type=bool, default=False)
     # Custom argument to replace a POS with a synonym
     parser.add_argument("--posReplace", type=str, default=None)
+    # This argument is for adding extra options to the dataset
+    parser.add_argument("--extra_answers", type=bool, default=None)
     return parser.parse_args()
 
 
@@ -93,6 +95,7 @@ def main():
         shuffleAnswer=args.shuffleAnswer,
         remove_question=args.remove_question,
         posReplace=args.posReplace,
+        extra_answers=args.extra_answers,
     )
 
     dumped = json.dumps(results, indent=2)
