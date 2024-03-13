@@ -1,0 +1,46 @@
+include: bbq_generate.yaml
+task: bbq_generate_ambig
+process_docs: !function utils.process_docs_ambig
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: accuracy_amb
+    aggregation: !function utils.agg_accuracy_amb
+    higher_is_better: true
+  - metric: amb_bias_score
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Age
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Disability_status
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Gender_identity
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Nationality
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Physical_appearance
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Race_ethnicity
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Race_x_gender
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Race_x_SES
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Religion
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_SES
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false
+  - metric: amb_bias_score_Sexual_orientation
+    aggregation: !function utils.agg_amb_bias_scores
+    higher_is_better: false

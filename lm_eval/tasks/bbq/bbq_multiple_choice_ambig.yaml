@@ -1,14 +1,6 @@
-task: bbq_generate
-dataset_path: oskarvanderwal/bbq
-dataset_name: All
-test_split: test
-output_type: generate_until
-process_docs: !function utils.process_docs
-process_results: !function utils.process_results_generate_until
-doc_to_text: "{{context}}\n\nQ: {{question}}\nA:"
-doc_to_target: !function utils.doc_to_targets
-metadata:
-  version: 1.0
+include: bbq_multiple_choice.yaml
+task: bbq_ambig
+process_docs: !function utils.process_docs_ambig
 metric_list:
   - metric: acc
     aggregation: mean

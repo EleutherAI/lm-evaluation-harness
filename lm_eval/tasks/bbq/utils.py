@@ -301,6 +301,15 @@ def process_docs(dataset: datasets.Dataset):
         return doc
     return dataset.map(_helper) # returns back a datasets.Dataset object
 
+def filter_dataset_context(dataset: datasets.Dataset, context: str) -> datasets.Dataset:
+    return dataset.filter(lambda example: example["context_condition"].startswith(context))
+
+def process_docs_ambig(dataset: datasets.Dataset):
+    return process_docs(filter_dataset_context(dataset, "amb"))
+
+def process_docs_disambig(dataset: datasets.Dataset):
+    return process_docs(filter_dataset_context(dataset, "disamb"))
+
 def doc_to_choice(doc):
     """Add other possible unknown responses, inspired by the HELM implementation."""
     choices = [doc["ans0"], doc["ans1"], doc["ans2"]]
