@@ -15,7 +15,7 @@ class DummyLM(LM):
     def create_from_arg_string(cls, arg_string, additional_config=None):
         return cls()
 
-    def loglikelihood(self, requests, disable_tqdm=False):
+    def loglikelihood(self, requests, disable_tqdm: bool = False):
         res = []
 
         for _ in tqdm(requests, disable=disable_tqdm):
@@ -23,7 +23,7 @@ class DummyLM(LM):
 
         return res
 
-    def generate_until(self, requests, disable_tqdm=False):
+    def generate_until(self, requests, disable_tqdm: bool = False):
         res = []
 
         for ctx, _ in tqdm(requests, disable=disable_tqdm):
@@ -32,7 +32,7 @@ class DummyLM(LM):
 
         return res
 
-    def loglikelihood_rolling(self, requests, disable_tqdm=False):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         res = []
 
         for _ in tqdm(requests, disable=disable_tqdm):

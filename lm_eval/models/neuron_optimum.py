@@ -447,7 +447,7 @@ class NEURON_HF(TemplateLM):
 
         return logits
 
-    def loglikelihood_rolling(self, requests, disable_tqdm=False):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         loglikelihoods = []
 
         adaptive_batch_size = None
@@ -618,7 +618,7 @@ class NEURON_HF(TemplateLM):
 
         return re_ord.get_original(res)
 
-    def generate_until(self, requests, disable_tqdm=False):
+    def generate_until(self, requests, disable_tqdm: bool = False):
         res = defaultdict(list)
         re_ords = {}
 

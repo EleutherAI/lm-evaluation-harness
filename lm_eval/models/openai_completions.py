@@ -231,7 +231,7 @@ class OpenaiCompletionsLM(TemplateLM):
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
         return re_ord.get_original(res)
 
-    def generate_until(self, requests, disable_tqdm=False) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         if not requests:
             return []
         res = []
@@ -309,7 +309,9 @@ class OpenaiCompletionsLM(TemplateLM):
         # Isn't used because we override generate_until
         raise NotImplementedError()
 
-    def loglikelihood_rolling(self, requests, disable_tqdm=False) -> List[float]:
+    def loglikelihood_rolling(
+        self, requests, disable_tqdm: bool = False
+    ) -> List[float]:
         loglikelihoods = []
 
         for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
@@ -399,7 +401,7 @@ class OpenaiChatCompletionsLM(LM):
         # Isn't used because we override _loglikelihood_tokens
         raise NotImplementedError()
 
-    def generate_until(self, requests, disable_tqdm=False) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         res = defaultdict(list)
         re_ords = {}
 
@@ -472,8 +474,8 @@ class OpenaiChatCompletionsLM(LM):
 
         return grouper.get_original(res)
 
-    def loglikelihood(self, requests, disable_tqdm=False):
+    def loglikelihood(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
 
-    def loglikelihood_rolling(self, requests, disable_tqdm=False):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")

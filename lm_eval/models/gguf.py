@@ -70,7 +70,7 @@ class GGUFLM(LM):
         else:
             raise Exception(f"Failed to get a valid response after {retries} retries.")
 
-    def loglikelihood(self, requests, disable_tqdm=False):
+    def loglikelihood(self, requests, disable_tqdm: bool = False):
         if not requests:
             return []
         res = []
@@ -99,7 +99,7 @@ class GGUFLM(LM):
                 assert False
         return res
 
-    def generate_until(self, requests, disable_tqdm=False):
+    def generate_until(self, requests, disable_tqdm: bool = False):
         if not requests:
             return []
 
@@ -124,7 +124,7 @@ class GGUFLM(LM):
                 res.append(None)  # Add default value in case of error
         return res
 
-    def loglikelihood_rolling(self, requests, disable_tqdm=False):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError(
             "loglikelihood_rolling not yet supported for GGUF models"
         )

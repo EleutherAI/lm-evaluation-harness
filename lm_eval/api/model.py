@@ -304,7 +304,9 @@ class TemplateLM(LM):
 
         return context_enc, continuation_enc
 
-    def loglikelihood(self, requests, disable_tqdm=False) -> List[Tuple[float, bool]]:
+    def loglikelihood(
+        self, requests, disable_tqdm: bool = False
+    ) -> List[Tuple[float, bool]]:
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
@@ -322,10 +324,10 @@ class TemplateLM(LM):
 
     @abc.abstractmethod
     def loglikelihood_rolling(
-        self, requests, disable_tqdm=False
+        self, requests, disable_tqdm: bool = False
     ) -> List[Tuple[float, bool]]:
         pass
 
     @abc.abstractmethod
-    def generate_until(self, requests, disable_tqdm=False) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         pass
