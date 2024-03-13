@@ -215,10 +215,12 @@ class VLLM(TemplateLM):
         )
         return outputs
 
-    def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
+    def loglikelihood_rolling(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[float]:
         loglikelihoods = []
 
-        for (string,) in tqdm([req.args for req in requests]):
+        for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
             rolling_token_windows = list(
                 map(
                     make_disjoint_window,
@@ -244,7 +246,9 @@ class VLLM(TemplateLM):
             loglikelihoods.append(string_nll)
         return loglikelihoods
 
-    def generate_until(self, requests: List[Instance]) -> List[str]:
+    def generate_until(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[str]:
         res = []
 
         # batch tokenize contexts
@@ -273,7 +277,7 @@ class VLLM(TemplateLM):
 
         pbar = tqdm(
             total=len(requests),
-            disable=(self.rank != 0),
+            disable=(disable_tqdm or (self.rank != 0)),
             desc="Running generate_until requests",
         )
         # for each different set of kwargs, we execute all requests, by batch.
