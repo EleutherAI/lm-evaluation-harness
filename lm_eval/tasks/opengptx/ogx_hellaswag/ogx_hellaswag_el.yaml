@@ -1,0 +1,3 @@
+"include": "_default_hellaswagx_template_yaml"
+"dataset_name": "EL"
+"task": "ogx_hellaswagx_el"
