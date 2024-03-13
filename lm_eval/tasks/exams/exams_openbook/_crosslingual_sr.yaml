@@ -1,0 +1,5 @@
+"dataset_name": "crosslingual_sr"
+"fewshot_split": "validation"
+"include": "_default_template_yaml"
+"task": "exams_open_book_crosslingual_sr"
+"test_split": "validation"
