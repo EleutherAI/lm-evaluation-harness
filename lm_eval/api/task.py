@@ -26,7 +26,7 @@ from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers
-from lm_eval.api.instance import Instance, OutputType
+from lm_eval.api.instance import Instance, OutputType, InputType
 from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
 from lm_eval.api.registry import (
     AGGREGATION_REGISTRY,
@@ -46,6 +46,11 @@ ALL_OUTPUT_TYPES = [
     "multiple_choice",
     "loglikelihood_rolling",
     "generate_until",
+]
+
+ALL_INPUT_TYPES = [
+    "text",
+    "text_image",
 ]
 
 eval_logger = logging.getLogger("lm-eval")
@@ -75,6 +80,7 @@ class TaskConfig(dict):
     process_docs: Optional[Callable] = None
     doc_to_text: Optional[Union[Callable, str]] = None
     doc_to_target: Optional[Union[Callable, str]] = None
+    doc_to_visual: Union[Callable, str] = None
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
     process_results: Optional[Union[Callable, str]] = None
     use_prompt: Optional[str] = None
@@ -87,6 +93,7 @@ class TaskConfig(dict):
     # scoring options
     metric_list: Optional[list] = None
     output_type: OutputType = "generate_until"
+    input_type: InputType = "text"
     generation_kwargs: Optional[dict] = None
     repeats: int = 1
     filter_list: Optional[Union[str, list]] = None
@@ -363,6 +370,10 @@ class Task(abc.ABC):
 
     @abc.abstractmethod
     def doc_to_target(self, doc):
+        pass
+
+    @abc.abstractmethod
+    def doc_to_visual(self, doc):
         pass
 
     def build_all_requests(
@@ -721,6 +732,13 @@ class ConfigurableTask(Task):
                     f"Got invalid output_type '{self.config.output_type}', must be in '{','.join(ALL_OUTPUT_TYPES)}'"
                 )
             self.OUTPUT_TYPE = self.config.output_type
+
+        if self.config.input_type is not None:
+            if self.config.input_type not in ALL_INPUT_TYPES:
+                raise ValueError(
+                    f"Got invalid output_type '{self.config.input_type}', must be in '{','.join(ALL_INPUT_TYPES)}'"
+                )
+            self.INPUT_TYPE = self.config.input_type
 
         if self.config.dataset_path is not None:
             self.DATASET_PATH = self.config.dataset_path
@@ -1260,6 +1278,15 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
+    def doc_to_visual(self, doc:dict) -> Union[int, str, list]:
+        if type(self.config.doc_to_visual) is str:
+            assert self.config.doc_to_visual in self.features
+            # Single Image. Still return a list for consistency
+            return doc[self.config.doc_to_visual]
+        else:
+            assert callable(self.config.doc_to_visual)
+            return self.config.doc_to_visual(doc)
+
     def construct_requests(
         self, doc: dict, ctx: str, **kwargs
     ) -> Union[List[Instance], Instance]:
@@ -1313,10 +1340,13 @@ class ConfigurableTask(Task):
             return request_list
 
         elif self.OUTPUT_TYPE == "generate_until":
-            arguments = (ctx, deepcopy(self.config.generation_kwargs))
+            if self.INPUT_TYPE == "text_image":
+                arguments = (ctx, deepcopy(self.config.generation_kwargs), self.doc_to_visual, doc, self.config.task)
+            elif self.INPUT_TYPE == "text":
+                arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
         return Instance(
-            request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
+            request_type=self.OUTPUT_TYPE, input_type=self.INPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
         )
 
     def process_results(self, doc, results):
@@ -1524,6 +1554,7 @@ class ConfigurableTask(Task):
             f"ConfigurableTask(task_name={getattr(self.config, 'task', None)},"
             f"group_name={getattr(self.config, 'group', None)},"
             f"output_type={self.OUTPUT_TYPE},"
+            f"input_type={self.INPUT_TYPE}",
             f"num_fewshot={getattr(self.config, 'num_fewshot', None)},"
             f"num_samples={len(self.eval_docs)})"
         )

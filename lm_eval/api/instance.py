@@ -6,6 +6,10 @@ OutputType = Literal[
     "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
 ]
 
+InputType = Literal[
+    "text", "text_image"
+]
+
 
 @dataclass
 class Instance:
@@ -13,6 +17,10 @@ class Instance:
     doc: dict
     arguments: tuple
     idx: int
+
+    # Input type for multimodal
+    input_type: InputType = "text"
+
     metadata: Tuple[Optional[str], Optional[int], Optional[int]] = field(
         default_factory=lambda: (None, None, None)
     )
@@ -23,6 +31,7 @@ class Instance:
     task_name: Optional[str] = None
     doc_id: Optional[int] = None
     repeats: Optional[int] = None
+
 
     def __post_init__(self) -> None:
         # unpack metadata field
