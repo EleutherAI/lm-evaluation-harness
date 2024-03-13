@@ -1,0 +1,5 @@
+"include": "_default_arcx_template_yaml"
+"task": "ogx_arcx_easy_bg"
+"dataset_name": "easy_BG"
+"doc_to_text": "Въпрос: {{question}}\nОтговор:"
+"doc_to_decontamination_query": "Въпрос: {{question}}\nОтговор:"

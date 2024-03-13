@@ -1,0 +1,5 @@
+"include": "_default_arcx_template_yaml"
+"task": "ogx_arcx_easy_fi"
+"dataset_name": "easy_FI"
+"doc_to_text": "Kysymys: {{question}}\nVastaa:"
+"doc_to_decontamination_query": "Kysymys: {{question}}\nVastaa:"
