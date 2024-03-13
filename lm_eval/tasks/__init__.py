@@ -379,7 +379,7 @@ def get_task_name_from_object(task_object):
 
 
 def get_task_dict(
-    task_name_list: List[Union[str, Dict, Task]],
+    task_name_list: Union[str, List[Union[str, Dict, Task]]],
     task_manager: Optional[TaskManager] = None,
 ):
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
@@ -401,6 +401,15 @@ def get_task_dict(
 
     if isinstance(task_name_list, str):
         task_name_list = [task_name_list]
+    elif isinstance(task_name_list, list):
+        if not all([isinstance(task, (str, dict, Task)) for task in task_name_list]):
+            raise TypeError(
+                "Expected all list items to be of types 'str', 'dict', or 'Task', but at least one entry did not match."
+            )
+    else:
+        raise TypeError(
+            f"Expected a 'str' or 'list' but received {type(task_name_list)}."
+        )
 
     string_task_name_list = [task for task in task_name_list if isinstance(task, str)]
     others_task_name_list = [task for task in task_name_list if ~isinstance(task, str)]
