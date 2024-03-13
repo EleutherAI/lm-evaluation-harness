@@ -187,10 +187,6 @@ def simple_evaluate(
     if task_manager is None:
         task_manager = TaskManager(verbosity)
 
-    eval_logger.info(
-        "get_task_dict has been updated to accept an optional argument, `task_manager`"
-        "Read more here:https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
-    )
     task_dict = get_task_dict(tasks, task_manager)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]

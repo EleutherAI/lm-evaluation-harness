@@ -356,28 +356,6 @@ class TaskManager:
         return tasks_and_groups
 
 
-def include_path(task_dir):
-    logger = utils.eval_logger
-    logger.setLevel(getattr(logging, "INFO"))
-    logger.info(
-        "To still use tasks loaded from args.include_path,"
-        "see an example of the new TaskManager API in "
-        "https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
-    )
-    return 0
-
-
-def initialize_tasks(verbosity="INFO"):
-    logger = utils.eval_logger
-    logger.setLevel(getattr(logging, f"{verbosity}"))
-    logger.info(
-        "lm_eval.tasks.initialize_tasks() is deprecated and no longer necessary. "
-        "It will be removed in v0.4.2 release. "
-        "TaskManager will instead be used."
-    )
-    return 0
-
-
 def get_task_name_from_config(task_config: Dict[str, str]) -> str:
     if "task" in task_config:
         return task_config["task"]
