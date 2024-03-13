@@ -397,7 +397,7 @@ def evaluate(
                     req.resps.append(x)
             # context tasks require separate reqs processing
             else:
-                # needed to store lm outputs only ones
+                # needed to store lm outputs
                 storage = {}
                 # iterate over all requests
                 # this tqdm does not overwrite internal tqdms of getattr(lm, reqtype)
