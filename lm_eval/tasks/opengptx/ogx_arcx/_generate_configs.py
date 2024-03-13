@@ -75,7 +75,7 @@ if __name__ == "__main__":
                 "doc_to_decontamination_query": f"{PROMPT_WORDS[lang][0]}: {{{{question}}}}\n{PROMPT_WORDS[lang][1]}:",
             }
 
-            file_save_path = args.save_prefix_path + f"{split}_{lang.lower()}.yaml"
+            file_save_path = f"{args.save_prefix_path}_{split}_{lang.lower()}.yaml"
 
             logging.info(f"Saving yaml for subset {split}_{lang} to {file_save_path}")
 

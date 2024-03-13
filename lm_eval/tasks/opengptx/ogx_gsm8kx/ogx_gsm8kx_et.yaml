@@ -1,4 +1,4 @@
-"include": "ogx_gsm8kx"
+"include": "_default_gsm8kx_template_yaml"
 "task": "ogx_gsm8kx_et"
 "dataset_name": "ET"
 "doc_to_text": "Küsimus: {{question}}\nVastus:"
