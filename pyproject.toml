@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lm_eval"
-version = "0.4.1"
+version = "0.4.2"
 authors = [
     {name="EleutherAI", email="contact@eleuther.ai"}
 ]
