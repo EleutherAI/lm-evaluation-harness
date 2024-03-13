@@ -1,0 +1,7 @@
+include: _truthfulqa_mc2_yaml
+task: truthfulqa_ml_mc2
+dataset_path: alexandrainst/m_truthfulqa
+dataset_name: ml
+training_split: null
+validation_split: val
+test_split: null

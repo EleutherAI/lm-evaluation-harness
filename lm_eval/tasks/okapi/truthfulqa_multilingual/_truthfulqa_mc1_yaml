@@ -1,0 +1,20 @@
+group:
+  - truthfulqa_multilingual
+dataset_path: null
+dataset_name: null
+output_type: multiple_choice
+training_split: null
+validation_split: val
+test_split: null
+process_docs: !function utils.process_docs
+doc_to_text: "query"
+doc_to_target: 0
+doc_to_choice: "mc1_choices"
+should_decontaminate: True
+doc_to_decontamination_query: "question"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
