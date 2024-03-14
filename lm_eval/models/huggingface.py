@@ -1,5 +1,6 @@
 import copy
 import os
+from collections import defaultdict
 from datetime import timedelta
 from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union
@@ -109,6 +110,8 @@ class HFLM(TemplateLM):
         # PEFT and quantization options
         peft: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
+        is_chat_model: Optional[bool] = False, 
+        apply_template: Optional[bool] = False, 
         **kwargs,
     ) -> None:
         super().__init__()
@@ -339,6 +342,9 @@ class HFLM(TemplateLM):
             )
             self._rank = 0
             self._world_size = 1
+            
+        self.is_chat_model = is_chat_model
+        self.apply_template = apply_template        
 
     @property
     def config(self):
@@ -691,17 +697,59 @@ class HFLM(TemplateLM):
         self.tokenizer.padding_side = padding_side
 
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            add_special_tokens = False or self.add_bos_token
+            add_special_tokens = False | self.apply_template
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
             add_special_tokens = True
+            
+        if self.is_chat_model and add_special_tokens:
+            
+            encoding = defaultdict(list)
+            max_len = 0
+            
+            chats = [
+                [
+                   {"role": "user", "content": string} 
+                ] for string in strings
+            ] 
+            
+            # NOTE: Batchwise tokenization for 'chat' model is not supported in HuggingFace yet. 
+            for chat in chats:
+                output = self.tokenizer.apply_chat_template(
+                    chat, 
+                    truncation=truncation, 
+                    padding="longest",
+                    return_tensors="pt",
+                    add_generation_prompt=True, 
+                    return_dict=True, 
+                    return_attention_mask=True
+                )
+                max_len = max(max_len, len(output['input_ids'][0]))
+                encoding["input_ids"].append(output["input_ids"][0])
+                encoding["attention_mask"].append(output["attention_mask"][0])
+        
+            for k in encoding.keys():
+                padding_value = self.tokenizer.pad_token_id if k == 'input_ids' else 0
+                for i in range(len(encoding[k])):
+                    padding_length = max_len - len(encoding[k][i])
+                    padding = torch.full((padding_length,), padding_value, dtype=torch.long)
+                    if padding_side == 'left':
+                        encoding[k][i] = torch.cat((padding, encoding[k][i]), dim=0)
+                    else:
+                        encoding[k][i] = torch.cat((encoding[k][i], padding), dim=0)
+                        
+            encoding['input_ids'] = torch.vstack(encoding['input_ids'])
+            encoding['attention_mask'] = torch.vstack(encoding['attention_mask'])
 
-        encoding = self.tokenizer(
-            strings,
-            truncation=truncation,
-            padding="longest",
-            return_tensors="pt",
-            add_special_tokens=add_special_tokens,
-        )
+        else:
+            
+            encoding = self.tokenizer(
+                strings,
+                truncation=truncation,
+                padding="longest",
+                return_tensors="pt",
+                add_special_tokens=add_special_tokens,
+            )
+            
         if left_truncate_len:
             encoding["input_ids"] = encoding["input_ids"][:, -left_truncate_len:]
             encoding["attention_mask"] = encoding["attention_mask"][
@@ -1221,3 +1269,4 @@ class HFLM(TemplateLM):
         pbar.close()
 
         return res
+
