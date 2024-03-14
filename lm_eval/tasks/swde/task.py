@@ -14,7 +14,7 @@ from lm_eval.api.instance import Instance
 
 class SWDE(ConfigurableTask):
     VERSION = 0
-    DATASET_PATH = "hazyresearch/based-swde"
+    DATASET_PATH = "hazyresearch/based-swde-v2"
     DATASET_NAME = "default"
 
     def __init__(self):
