@@ -790,7 +790,9 @@ class HFLM(TemplateLM):
 
         return logits
 
-    def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
+    def loglikelihood_rolling(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[float]:
         loglikelihoods = []
 
         adaptive_batch_size = None
@@ -801,7 +803,9 @@ class HFLM(TemplateLM):
             print(f"Determined Largest batch size: {batch_size}")
             adaptive_batch_size = batch_size
 
-        for (string,) in tqdm([req.args for req in requests], disable=(self.rank != 0)):
+        for (string,) in tqdm(
+            [req.args for req in requests], disable=(disable_tqdm or (self.rank != 0))
+        ):
             rolling_token_windows = list(
                 map(
                     utils.make_disjoint_window,
@@ -887,7 +891,7 @@ class HFLM(TemplateLM):
         def _lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
             """Defines the key to group and lookup one-token continuations"""
             # Use with group_by="contexts" (optional)"
-            # allows for the creation of a lookup, so we can re-use logits in case of one-token continuations.
+            # allows for the creation of a lookup, so we can reuse logits in case of one-token continuations.
             # speeds up some multiple-choice tasks proportionally to the number of choices.
             # groups requests by context+continuation[:-1] and infer on one request/group.
             return req[-2] + req[-1][:-1]
@@ -1079,7 +1083,9 @@ class HFLM(TemplateLM):
 
         return re_ord.get_original(res)
 
-    def generate_until(self, requests: List[Instance]) -> List[str]:
+    def generate_until(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[str]:
         res = []
 
         def _collate(req: Tuple[str, dict]):
@@ -1095,7 +1101,7 @@ class HFLM(TemplateLM):
 
         pbar = tqdm(
             total=len(requests),
-            disable=(self.rank != 0),
+            disable=(disable_tqdm or (self.rank != 0)),
             desc="Running generate_until requests",
         )
         adaptive_batch_size = None
@@ -1151,8 +1157,12 @@ class HFLM(TemplateLM):
                 raise ValueError(
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
+            # add EOS token to stop sequences
+            eos = self.tok_decode(self.eot_token_id)
             if not until:
-                until = [self.tok_decode(self.eot_token_id)]
+                until = [eos]
+            else:
+                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:

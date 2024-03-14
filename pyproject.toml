@@ -21,7 +21,7 @@ license = { "text" = "MIT" }
 dependencies = [
     "accelerate>=0.21.0",
     "evaluate",
-    "datasets>=2.14.0",
+    "datasets>=2.16.0",
     "evaluate>=0.4.0",
     "jsonlines",
     "numexpr",
@@ -38,6 +38,7 @@ dependencies = [
     "zstandard",
     "dill",
     "word2number",
+    "more_itertools",
 ]
 
 [tool.setuptools.packages.find]
@@ -70,7 +71,7 @@ optimum = ["optimum[openvino]"]
 promptsource = ["promptsource>=0.2.3"]
 sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
-vllm = ["vllm<=0.2.5"]
+vllm = ["vllm==0.3.2"]
 zeno = ["pandas", "zeno-client"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 all = [
@@ -94,9 +95,9 @@ all = [
 [tool.ruff.lint]
 extend-select = ["I"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 lines-after-imports = 2
 known-first-party = ["lm_eval"]
 
-[tool.ruff.extend-per-file-ignores]
+[tool.ruff.lint.extend-per-file-ignores]
 "__init__.py" = ["F401","F402","F403"]

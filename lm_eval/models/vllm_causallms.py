@@ -1,13 +1,16 @@
 import copy
+from importlib.metadata import version
 from importlib.util import find_spec
 from typing import List, Literal, Optional, Tuple, Union
 
+from more_itertools import distribute
+from packaging.version import parse as parse_version
 from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator, divide
+from lm_eval.models.utils import Collator, undistribute
 from lm_eval.utils import (
     eval_logger,
     get_rolling_token_windows,
@@ -17,21 +20,12 @@ from lm_eval.utils import (
 
 try:
     import ray
-    from ray.util.multiprocessing import Pool
     from vllm import LLM, SamplingParams
     from vllm.transformers_utils.tokenizer import get_tokenizer
 except ModuleNotFoundError:
     pass
 
 eval_logger = eval_logger
-
-
-# adapted from https://github.com/vllm-project/vllm/issues/367#issuecomment-1788341727
-def run_inference_one_model(
-    model_args: dict, sampling_params, requests: List[List[int]]
-):
-    llm = LLM(**model_args)
-    return llm.generate(prompt_token_ids=requests, sampling_params=sampling_params)
 
 
 @register_model("vllm")
@@ -60,6 +54,7 @@ class VLLM(TemplateLM):
         gpu_memory_utilization: float = 0.9,
         device: str = "cuda",
         data_parallel_size: int = 1,
+        **kwargs,
     ):
         super().__init__()
 
@@ -92,6 +87,7 @@ class VLLM(TemplateLM):
             "quantization": quantization,
             "seed": int(seed),
         }
+        self.model_args.update(kwargs)
         self.batch_size = (
             "auto"
             if isinstance(batch_size, str) and "auto" in batch_size
@@ -100,6 +96,12 @@ class VLLM(TemplateLM):
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
         else:
+            assert parse_version(version("vllm")) < parse_version(
+                "0.3.3"
+            ), "data_parallel is only compatible with vllm < v0.3.3."
+            eval_logger.warning(
+                "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
+            )
             self.model_args["worker_use_ray"] = True
             self.batch_size = "auto"
             eval_logger.info("Manual batching is not compatible with data parallelism.")
@@ -181,15 +183,30 @@ class VLLM(TemplateLM):
                 temperature=0, prompt_logprobs=1, max_tokens=1
             )
         if self.data_parallel_size > 1:
-            requests = [list(x) for x in divide(requests, self.data_parallel_size)]
-            inputs = [(self.model_args, sampling_params, req) for req in requests]
+            # vLLM hangs if tensor_parallel > 1 and resources are set in ray.remote
+            # also seems to only work with decorator and not with ray.remote() fn
+            # see https://github.com/vllm-project/vllm/issues/973
+            # note: this has changed on 0.3.3, and it only works now if num_gpus are set.
+            # but then tensor_parallel breaks
+            @ray.remote
+            def run_inference_one_model(
+                model_args: dict, sampling_params, requests: List[List[int]]
+            ):
+                llm = LLM(**model_args)
+                return llm.generate(
+                    prompt_token_ids=requests, sampling_params=sampling_params
+                )
 
-            with Pool(self.data_parallel_size) as pool:
-                results = pool.starmap(run_inference_one_model, inputs)
+            # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
+            # interleaved important to balance context lengths across workers
+            requests = [list(x) for x in distribute(self.data_parallel_size, requests)]
+            inputs = ((self.model_args, sampling_params, req) for req in requests)
+            object_refs = [run_inference_one_model.remote(*x) for x in inputs]
+            results = ray.get(object_refs)
             # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
             ray.shutdown()
             # flatten results
-            return [item for sublist in results for item in sublist]
+            return undistribute(results)
 
         outputs = self.model.generate(
             prompt_token_ids=requests,
@@ -198,10 +215,12 @@ class VLLM(TemplateLM):
         )
         return outputs
 
-    def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
+    def loglikelihood_rolling(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[float]:
         loglikelihoods = []
 
-        for (string,) in tqdm([req.args for req in requests]):
+        for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
             rolling_token_windows = list(
                 map(
                     make_disjoint_window,
@@ -227,7 +246,9 @@ class VLLM(TemplateLM):
             loglikelihoods.append(string_nll)
         return loglikelihoods
 
-    def generate_until(self, requests: List[Instance]) -> List[str]:
+    def generate_until(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[str]:
         res = []
 
         # batch tokenize contexts
@@ -256,7 +277,7 @@ class VLLM(TemplateLM):
 
         pbar = tqdm(
             total=len(requests),
-            disable=(self.rank != 0),
+            disable=(disable_tqdm or (self.rank != 0)),
             desc="Running generate_until requests",
         )
         # for each different set of kwargs, we execute all requests, by batch.
@@ -282,8 +303,12 @@ class VLLM(TemplateLM):
                 raise ValueError(
                     f"Expected `kwargs` to be of type `dict` but got {gen_kwargs}"
                 )
+            # add EOS token to stop sequences
+            eos = self.tokenizer.decode(self.eot_token_id)
             if not until:
-                until = [self.tokenizer.decode(self.eot_token_id)]
+                until = [eos]
+            else:
+                until.append(eos)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:
@@ -389,6 +414,26 @@ class VLLM(TemplateLM):
 
         # The first entry of prompt_logprobs is None because the model has no previous tokens to condition on.
         continuation_logprobs_dicts = outputs.prompt_logprobs
+
+        def coerce_logprob_to_num(logprob):
+            # vLLM changed the return type of logprobs from float
+            # to a Logprob object storing the float value + extra data
+            # (https://github.com/vllm-project/vllm/pull/3065).
+            # If we are dealing with vllm's Logprob object, return
+            # the logprob value stored as an attribute. Otherwise,
+            # return the object itself (which should be a float
+            # for older versions of vLLM).
+            return getattr(logprob, "logprob", logprob)
+
+        continuation_logprobs_dicts = [
+            {
+                token: coerce_logprob_to_num(logprob)
+                for token, logprob in logprob_dict.items()
+            }
+            if logprob_dict is not None
+            else None
+            for logprob_dict in continuation_logprobs_dicts
+        ]
 
         # Calculate continuation_logprobs
         # assume ctxlen always >= 1

@@ -1,0 +1,25 @@
+group:
+  - agieval
+  - agieval_cn
+task: agieval_gaokao_mathcloze
+dataset_path: hails/agieval-gaokao-mathcloze
+dataset_name: null
+output_type: generate_until
+training_split: null
+validation_split: null
+test_split: test
+doc_to_text: "{{query}}"
+doc_to_target: "{{answer}}"
+process_results: !function utils.process_results
+generation_kwargs:
+  max_gen_toks: 32
+  do_sample: False
+  temperature: 0.0
+  until:
+    - "Q:"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
