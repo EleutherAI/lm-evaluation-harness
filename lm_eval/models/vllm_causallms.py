@@ -215,10 +215,12 @@ class VLLM(TemplateLM):
         )
         return outputs
 
-    def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
+    def loglikelihood_rolling(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[float]:
         loglikelihoods = []
 
-        for (string,) in tqdm([req.args for req in requests]):
+        for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
             rolling_token_windows = list(
                 map(
                     make_disjoint_window,
@@ -244,7 +246,9 @@ class VLLM(TemplateLM):
             loglikelihoods.append(string_nll)
         return loglikelihoods
 
-    def generate_until(self, requests: List[Instance]) -> List[str]:
+    def generate_until(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[str]:
         res = []
 
         # batch tokenize contexts
@@ -273,7 +277,7 @@ class VLLM(TemplateLM):
 
         pbar = tqdm(
             total=len(requests),
-            disable=(self.rank != 0),
+            disable=(disable_tqdm or (self.rank != 0)),
             desc="Running generate_until requests",
         )
         # for each different set of kwargs, we execute all requests, by batch.
@@ -410,6 +414,26 @@ class VLLM(TemplateLM):
 
         # The first entry of prompt_logprobs is None because the model has no previous tokens to condition on.
         continuation_logprobs_dicts = outputs.prompt_logprobs
+
+        def coerce_logprob_to_num(logprob):
+            # vLLM changed the return type of logprobs from float
+            # to a Logprob object storing the float value + extra data
+            # (https://github.com/vllm-project/vllm/pull/3065).
+            # If we are dealing with vllm's Logprob object, return
+            # the logprob value stored as an attribute. Otherwise,
+            # return the object itself (which should be a float
+            # for older versions of vLLM).
+            return getattr(logprob, "logprob", logprob)
+
+        continuation_logprobs_dicts = [
+            {
+                token: coerce_logprob_to_num(logprob)
+                for token, logprob in logprob_dict.items()
+            }
+            if logprob_dict is not None
+            else None
+            for logprob_dict in continuation_logprobs_dicts
+        ]
 
         # Calculate continuation_logprobs
         # assume ctxlen always >= 1
