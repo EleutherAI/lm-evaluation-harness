@@ -6,7 +6,7 @@ output_type: generate_until
 process_docs: !function utils.process_docs
 process_results: !function utils.process_results_generate_until
 doc_to_text: "{{context}}\n\nQ: {{question}}\nA:"
-doc_to_target: !function utils.doc_to_targets
+doc_to_target: !function utils.doc_to_target
 metadata:
   version: 1.0
 metric_list:

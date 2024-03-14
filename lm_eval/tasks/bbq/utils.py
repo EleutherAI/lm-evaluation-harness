@@ -4,6 +4,7 @@ import string
 
 # Possible unknown responses, copied from the HELM implementation
 UNKNOWN_RESPONSES = [
+                "Unknown",
                 "Cannot answer",
                 "Can't be determined",
                 "Cannot be determined",
@@ -13,7 +14,6 @@ UNKNOWN_RESPONSES = [
                 "Not enough information",
                 "Not answerable",
                 "Undetermined",
-                "Unknown",
             ]
 # Added some more possible answers
 UNKNOWN_RESPONSES += [
@@ -184,12 +184,6 @@ def process_results_generate_until(doc, results):
                     answer = i
                     break
 
-    # print("Context:", doc["context"])
-    # print("Question:", doc["question"])
-    # print("Choices:", doc_to_choice(doc))
-    # print("Target:", doc_to_choice(doc)[doc_to_targets(doc)[0]])
-    # print(answer, _clean_answer(results[0]).split(" "))
-
     # Further process results with extracted answer
     return _process_results(doc, answer)
 
@@ -330,7 +324,10 @@ def _doc_to_choice_groups(doc):
     return groups
     
 def doc_to_targets(doc):
-    """Add other unknown responses as possible targets."""
+    """
+    Returns a list of all the possible targets;
+    i.e., add other unknown responses as possible targets.
+    """
     label = doc["label"]
     choices = [doc["ans0"], doc["ans1"], doc["ans2"]]
     target_word = choices[label]
@@ -340,9 +337,12 @@ def doc_to_targets(doc):
         targets = [doc_to_choice(doc).index(target_word)]
     return targets
 
+def doc_to_target(doc):
+    """Returns only one target needed for few-shot evaluations."""
+    return doc_to_targets(doc)[0]
+
 def filter_dataset(dataset: datasets.Dataset, bias_type: str) -> datasets.Dataset:
     return dataset.filter(lambda example: example["bias_type"].startswith(bias_type))
-
 
 def filter_race_color(dataset: datasets.Dataset) -> datasets.Dataset:
     return filter_dataset(dataset, "race-color")
