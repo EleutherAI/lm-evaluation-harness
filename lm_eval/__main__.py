@@ -55,7 +55,7 @@ def _int_or_none_list_arg_type(max_len: int, value: str, split_char: str = ","):
 
 def check_argument_types(parser: argparse.ArgumentParser):
     """
-    Check to make sure all CLI args are typed
+    Check to make sure all CLI args are typed, raises error if not
     """
     for action in parser._actions:
         if action.dest != "help" and not action.const:
@@ -63,6 +63,8 @@ def check_argument_types(parser: argparse.ArgumentParser):
                 raise ValueError(
                     f"Argument '{action.dest}' doesn't have a type specified."
                 )
+            else:
+                continue
 
 
 def setup_parser() -> argparse.ArgumentParser:
@@ -240,7 +242,8 @@ def parse_eval_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
 def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if not args:
         # we allow for args to be passed externally, else we parse them ourselves
-        args = parse_eval_args()
+        parser = setup_parser()
+        args = parse_eval_args(parser)
 
     if args.wandb_args:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
