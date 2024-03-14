@@ -1,0 +1,5 @@
+"dataset_name": "crosslingual_with_para_sq"
+"fewshot_split": "validation"
+"include": "_default_template_yaml"
+"task": "exams_open_book_crosslingual_with_para_sq"
+"test_split": "validation"
