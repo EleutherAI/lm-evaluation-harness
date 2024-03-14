@@ -26,7 +26,6 @@ if __name__ == "__main__":
 
     # get filename of base_yaml so we can `"include": ` it in our other YAMLs.
     base_yaml_name = os.path.split(args.base_yaml_path)[-1]
-    breakpoint()
     with open(args.base_yaml_path, encoding="utf-8") as f:
         base_yaml = yaml.full_load(f)
 
