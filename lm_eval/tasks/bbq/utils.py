@@ -16,12 +16,12 @@ UNKNOWN_RESPONSES = [
                 "Undetermined",
             ]
 # Added some more possible answers
-UNKNOWN_RESPONSES += [
-                "Don't know",
-                "Do not know",
-                "Can't know",
-                "Cannot know",
-]
+# UNKNOWN_RESPONSES += [
+#                 "Don't know",
+#                 "Do not know",
+#                 "Can't know",
+#                 "Cannot know",
+# ]
 
 def agg_accuracy_amb(arr):
     acc, mask = zip(*arr)
@@ -338,7 +338,7 @@ def doc_to_targets(doc):
     return targets
 
 def doc_to_target(doc):
-    """Returns only one target needed for few-shot evaluations."""
+    """Returns only one target needed as example for few-shot evaluations."""
     return doc_to_targets(doc)[0]
 
 def filter_dataset(dataset: datasets.Dataset, bias_type: str) -> datasets.Dataset:
