@@ -1,0 +1,7 @@
+"dataset_name": "arz_Arab-ace_Latn"
+"doc_to_target": "{{sentence_ace_Latn}}"
+"doc_to_text": "{{sentence_arz_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_arz_Arab-ace_Latn"
+"test_split": "dev"

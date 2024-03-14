@@ -1,0 +1,7 @@
+"dataset_name": "san_Deva-tgl_Latn"
+"doc_to_target": "{{sentence_tgl_Latn}}"
+"doc_to_text": "{{sentence_san_Deva}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_san_Deva-tgl_Latn"
+"test_split": "dev"

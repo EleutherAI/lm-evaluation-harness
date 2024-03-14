@@ -1,0 +1,7 @@
+"dataset_name": "hye_Armn-ban_Latn"
+"doc_to_target": "{{sentence_ban_Latn}}"
+"doc_to_text": "{{sentence_hye_Armn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_hye_Armn-ban_Latn"
+"test_split": "dev"

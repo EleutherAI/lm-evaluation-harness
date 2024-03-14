@@ -1,0 +1,7 @@
+"dataset_name": "ell_Grek-est_Latn"
+"doc_to_target": "{{sentence_est_Latn}}"
+"doc_to_text": "{{sentence_ell_Grek}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ell_Grek-est_Latn"
+"test_split": "dev"

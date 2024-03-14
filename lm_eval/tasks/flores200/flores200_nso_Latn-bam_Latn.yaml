@@ -1,0 +1,7 @@
+"dataset_name": "nso_Latn-bam_Latn"
+"doc_to_target": "{{sentence_bam_Latn}}"
+"doc_to_text": "{{sentence_nso_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_nso_Latn-bam_Latn"
+"test_split": "dev"

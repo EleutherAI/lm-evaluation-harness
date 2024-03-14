@@ -1,0 +1,7 @@
+"dataset_name": "ckb_Arab-yor_Latn"
+"doc_to_target": "{{sentence_yor_Latn}}"
+"doc_to_text": "{{sentence_ckb_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ckb_Arab-yor_Latn"
+"test_split": "dev"

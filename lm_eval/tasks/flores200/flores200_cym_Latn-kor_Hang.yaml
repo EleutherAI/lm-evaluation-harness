@@ -1,0 +1,7 @@
+"dataset_name": "cym_Latn-kor_Hang"
+"doc_to_target": "{{sentence_kor_Hang}}"
+"doc_to_text": "{{sentence_cym_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_cym_Latn-kor_Hang"
+"test_split": "dev"

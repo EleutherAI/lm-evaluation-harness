@@ -1,0 +1,7 @@
+"dataset_name": "sin_Sinh-kat_Geor"
+"doc_to_target": "{{sentence_kat_Geor}}"
+"doc_to_text": "{{sentence_sin_Sinh}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_sin_Sinh-kat_Geor"
+"test_split": "dev"

@@ -1,0 +1,7 @@
+"dataset_name": "ory_Orya-vec_Latn"
+"doc_to_target": "{{sentence_vec_Latn}}"
+"doc_to_text": "{{sentence_ory_Orya}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ory_Orya-vec_Latn"
+"test_split": "dev"
