@@ -405,7 +405,7 @@ def evaluate(
                     # one request per iteration, each time update req.args
                     req = req.update_request(storage, req)
                     # only one resp for a single request
-                    resp = getattr(lm, reqtype)([req])
+                    resp = getattr(lm, reqtype)([req], disable_tqdm=True)
                     # simultaneously add output to the Instance attr
                     req.resps.extend([resp])
                     # push changes into storage
