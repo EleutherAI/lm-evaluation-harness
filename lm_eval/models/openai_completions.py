@@ -231,7 +231,7 @@ class OpenaiCompletionsLM(TemplateLM):
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
         return re_ord.get_original(res)
 
-    def generate_until(self, requests) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         if not requests:
             return []
         res = []
@@ -258,7 +258,8 @@ class OpenaiCompletionsLM(TemplateLM):
 
         # todo: more intelligent batching for heterogeneous `until`
         for chunk, request_args in tqdm(
-            list(sameuntil_chunks(re_ord.get_reordered(), self.batch_size))
+            list(sameuntil_chunks(re_ord.get_reordered(), self.batch_size)),
+            disable=disable_tqdm,
         ):
             inps = []
             self._max_gen_toks = request_args.get("max_gen_toks", self.max_gen_toks)
@@ -308,10 +309,12 @@ class OpenaiCompletionsLM(TemplateLM):
         # Isn't used because we override generate_until
         raise NotImplementedError()
 
-    def loglikelihood_rolling(self, requests) -> List[float]:
+    def loglikelihood_rolling(
+        self, requests, disable_tqdm: bool = False
+    ) -> List[float]:
         loglikelihoods = []
 
-        for (string,) in tqdm([req.args for req in requests]):
+        for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
             rolling_token_windows = list(
                 map(
                     utils.make_disjoint_window,
@@ -398,7 +401,7 @@ class OpenaiChatCompletionsLM(LM):
         # Isn't used because we override _loglikelihood_tokens
         raise NotImplementedError()
 
-    def generate_until(self, requests) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         res = defaultdict(list)
         re_ords = {}
 
@@ -412,7 +415,7 @@ class OpenaiChatCompletionsLM(LM):
                 [req.args for req in reqs], lambda x: (-len(x[0]), x[0])
             )
 
-        pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        pbar = tqdm(total=len(requests), disable=(disable_tqdm or (self.rank != 0)))
         for key, re_ord in re_ords.items():
             # n needs to be 1 because messages in
             # chat completion are not batch but
@@ -471,8 +474,8 @@ class OpenaiChatCompletionsLM(LM):
 
         return grouper.get_original(res)
 
-    def loglikelihood(self, requests):
+    def loglikelihood(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
 
-    def loglikelihood_rolling(self, requests):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")

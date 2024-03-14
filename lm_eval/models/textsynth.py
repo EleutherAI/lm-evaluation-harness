@@ -95,9 +95,9 @@ class TextSynthLM(LM):
         # Isn't used because we override loglikelihood, loglikelihood_rolling and generate_until
         raise NotImplementedError()
 
-    def loglikelihood(self, requests):
+    def loglikelihood(self, requests, disable_tqdm: bool = False):
         res = []
-        for context, continuation in tqdm(requests):
+        for context, continuation in tqdm(requests, disable=disable_tqdm):
             response = textsynth_completion(
                 url=self.api_url + "/v1/engines/" + self.engine + "/logprob",
                 headers={"Authorization": "Bearer " + self.api_key},
@@ -119,7 +119,7 @@ class TextSynthLM(LM):
                 assert False
         return res
 
-    def loglikelihood_rolling(self, requests):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         # TODO: The TextSynth API does not support tokenized inputs so we cannot
         # manually partition long contexts into smaller rolling windows as
         # done for other models derived from `BaseLM`. Override this method
@@ -129,12 +129,12 @@ class TextSynthLM(LM):
             "input tokenization support from TextSynth."
         )
 
-    def generate_until(self, requests):
+    def generate_until(self, requests, disable_tqdm: bool = False):
         if not requests:
             return []
 
         res = []
-        for request in tqdm(requests):
+        for request in tqdm(requests, disable=disable_tqdm):
             inp = request[0]
             request_args = request[1]
             until = request_args["until"]

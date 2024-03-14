@@ -330,6 +330,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         log_samples=args.log_samples,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
+        verbosity=args.verbosity,
         predict_only=args.predict_only,
         random_seed=args.seed[0],
         numpy_random_seed=args.seed[1],
