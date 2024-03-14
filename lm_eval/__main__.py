@@ -151,7 +151,6 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--check_integrity",
         action="store_true",
-        default=False,
         help="Whether to run the relevant part of the test suite for the tasks.",
     )
     parser.add_argument(
@@ -226,7 +225,6 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--trust_remote_code",
-        default=True,
         action="store_true",
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
     )
