@@ -53,13 +53,28 @@ def _int_or_none_list_arg_type(max_len: int, value: str, split_char: str = ","):
     return items
 
 
-def setup_parser():
+def check_argument_types(parser: argparse.ArgumentParser):
+    """
+    Check to make sure all CLI args are typed
+    """
+    for action in parser._actions:
+        if action.dest != "help" and not action.const:
+            if action.type is None:
+                raise ValueError(
+                    f"Argument '{action.dest}' doesn't have a type specified."
+                )
+
+
+def setup_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("--model", "-m", default="hf", help="Name of model e.g. `hf`")
+    parser.add_argument(
+        "--model", "-m", type=str, default="hf", help="Name of model e.g. `hf`"
+    )
     parser.add_argument(
         "--tasks",
         "-t",
         default=None,
+        type=str,
         metavar="task1,task2",
         help="To get full list of tasks, use the command lm-eval --tasks list",
     )
@@ -67,6 +82,7 @@ def setup_parser():
         "--model_args",
         "-a",
         default="",
+        type=str,
         help="Comma separated string arguments for model, e.g. `pretrained=EleutherAI/pythia-160m,dtype=float32`",
     )
     parser.add_argument(
@@ -133,6 +149,7 @@ def setup_parser():
     parser.add_argument(
         "--check_integrity",
         action="store_true",
+        default=False,
         help="Whether to run the relevant part of the test suite for the tasks.",
     )
     parser.add_argument(
@@ -164,6 +181,7 @@ def setup_parser():
     )
     parser.add_argument(
         "--gen_kwargs",
+        type=dict,
         default=None,
         help=(
             "String arguments for model generation on greedy_until tasks,"
@@ -180,6 +198,7 @@ def setup_parser():
     )
     parser.add_argument(
         "--wandb_args",
+        type=str,
         default="",
         help="Comma separated string arguments passed to wandb.init, e.g. `project=lm-eval,job_type=eval",
     )
@@ -205,6 +224,7 @@ def setup_parser():
     )
     parser.add_argument(
         "--trust_remote_code",
+        default=True,
         action="store_true",
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
     )
@@ -212,8 +232,8 @@ def setup_parser():
     return parser
 
 
-def parse_eval_args() -> argparse.Namespace:
-    parser = setup_parser()
+def parse_eval_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
+    check_argument_types(parser)
     return parser.parse_args()
 
 
@@ -307,16 +327,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
     # Respect user's value passed in via CLI, otherwise default to True and add to comma-separated model args
     if args.trust_remote_code:
-        try:
-            os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = str(args.trust_remote_code)
-            args.model_args = (
-                args.model_args
-                + f",trust_remote_code={os.environ['HF_DATASETS_TRUST_REMOTE_CODE']}"
-            )
-        except TypeError as e:
-            eval_logger.info(
-                f"Running evaluation failed due to wrong type for parsed CLI args: {e}"
-            )
+        os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = str(args.trust_remote_code)
+        args.model_args = (
+            args.model_args
+            + f",trust_remote_code={os.environ['HF_DATASETS_TRUST_REMOTE_CODE']}"
+        )
 
     eval_logger.info(f"Selected Tasks: {task_names}")
     eval_logger.info("Loading selected tasks...")
