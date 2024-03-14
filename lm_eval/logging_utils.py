@@ -410,24 +410,27 @@ class WandbLogger:
 
 
 def get_commit_from_path(repo_path: Path) -> Optional[str]:
-    git_folder = Path(repo_path, ".git")
-    if git_folder.is_file():
-        git_folder = Path(
-            git_folder.parent,
-            git_folder.read_text(encoding="utf-8").split("\n")[0].split(" ")[-1],
-        )
-    if Path(git_folder, "HEAD").exists():
-        head_name = (
-            Path(git_folder, "HEAD")
-            .read_text(encoding="utf-8")
-            .split("\n")[0]
-            .split(" ")[-1]
-        )
-        head_ref = Path(git_folder, head_name)
-        git_hash = head_ref.read_text(encoding="utf-8").replace("\n", "")
-    else:
-        git_hash = None
-    return git_hash
+    try:
+        git_folder = Path(repo_path, ".git")
+        if git_folder.is_file():
+            git_folder = Path(
+                git_folder.parent,
+                git_folder.read_text(encoding="utf-8").split("\n")[0].split(" ")[-1],
+            )
+        if Path(git_folder, "HEAD").exists():
+            head_name = (
+                Path(git_folder, "HEAD")
+                .read_text(encoding="utf-8")
+                .split("\n")[0]
+                .split(" ")[-1]
+            )
+            head_ref = Path(git_folder, head_name)
+            git_hash = head_ref.read_text(encoding="utf-8").replace("\n", "")
+        else:
+            git_hash = None
+        return git_hash
+    except Exception:
+        return None
 
 
 def get_git_commit_hash():
@@ -439,11 +442,8 @@ def get_git_commit_hash():
         git_hash = subprocess.check_output(["git", "describe", "--always"]).strip()
         git_hash = git_hash.decode()
     except (subprocess.CalledProcessError, FileNotFoundError):
-        try:
-            # FileNotFoundError occurs when git not installed on system
-            git_hash = get_commit_from_path(os.getcwd())  # git hash of repo if exists
-        except Exception:
-            git_hash = "N/A"  # Called from a direct install
+        # FileNotFoundError occurs when git not installed on system
+        git_hash = get_commit_from_path(os.getcwd())  # git hash of repo if exists
     return git_hash
 
 
