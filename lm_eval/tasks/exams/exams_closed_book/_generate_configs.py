@@ -12,7 +12,7 @@ from lm_eval.utils import logging
 
 
 API_URL = "https://datasets-server.huggingface.co/splits?dataset=mhardalov/exams"
-CONFIGS_TO_IGNORE = ['aignments', 'multilingual', 'multilingual_with_para']
+CONFIGS_TO_IGNORE = ['alignments', 'multilingual', 'multilingual_with_para']
 
 def parse_args():
     parser = argparse.ArgumentParser()

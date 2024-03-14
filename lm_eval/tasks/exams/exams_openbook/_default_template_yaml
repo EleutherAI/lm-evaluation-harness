@@ -5,7 +5,7 @@ fewshot_config:
 output_type: multiple_choice
 should_decontaminate: true
 doc_to_decontamination_query: "{{question['stem']}}"
-doc_to_text: "Context: {{question['choices']['para'][0]}}\nQ: {{question['stem']}}\nA:"
+doc_to_text: "Context: {{question['choices']['para'][question['choices']['label'].index(answerKey)]}}\nQ: {{question['stem']}}\nA:"
 doc_to_choice: '[{% for choice in question["choices"]["text"] %}"{{ choice }}"{% if not loop.last %},{% endif %}{% endfor %}]'
 doc_to_target: "{{question['choices']['label'].index(answerKey)}}"
 metric_list:
