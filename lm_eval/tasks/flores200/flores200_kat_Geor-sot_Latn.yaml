@@ -1,0 +1,7 @@
+"dataset_name": "kat_Geor-sot_Latn"
+"doc_to_target": "{{sentence_sot_Latn}}"
+"doc_to_text": "{{sentence_kat_Geor}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_kat_Geor-sot_Latn"
+"test_split": "dev"

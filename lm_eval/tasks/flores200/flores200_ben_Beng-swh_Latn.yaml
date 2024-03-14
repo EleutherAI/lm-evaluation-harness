@@ -1,0 +1,7 @@
+"dataset_name": "ben_Beng-swh_Latn"
+"doc_to_target": "{{sentence_swh_Latn}}"
+"doc_to_text": "{{sentence_ben_Beng}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ben_Beng-swh_Latn"
+"test_split": "dev"

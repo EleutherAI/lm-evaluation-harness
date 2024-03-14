@@ -1,0 +1,7 @@
+"dataset_name": "aeb_Arab-uzn_Latn"
+"doc_to_target": "{{sentence_uzn_Latn}}"
+"doc_to_text": "{{sentence_aeb_Arab}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_aeb_Arab-uzn_Latn"
+"test_split": "dev"

@@ -1,0 +1,7 @@
+"dataset_name": "lin_Latn-bul_Cyrl"
+"doc_to_target": "{{sentence_bul_Cyrl}}"
+"doc_to_text": "{{sentence_lin_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_lin_Latn-bul_Cyrl"
+"test_split": "dev"

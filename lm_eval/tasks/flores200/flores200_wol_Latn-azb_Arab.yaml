@@ -1,0 +1,7 @@
+"dataset_name": "wol_Latn-azb_Arab"
+"doc_to_target": "{{sentence_azb_Arab}}"
+"doc_to_text": "{{sentence_wol_Latn}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_wol_Latn-azb_Arab"
+"test_split": "dev"

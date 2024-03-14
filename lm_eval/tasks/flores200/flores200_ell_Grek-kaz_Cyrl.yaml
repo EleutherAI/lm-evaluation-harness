@@ -1,0 +1,7 @@
+"dataset_name": "ell_Grek-kaz_Cyrl"
+"doc_to_target": "{{sentence_kaz_Cyrl}}"
+"doc_to_text": "{{sentence_ell_Grek}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_ell_Grek-kaz_Cyrl"
+"test_split": "dev"
