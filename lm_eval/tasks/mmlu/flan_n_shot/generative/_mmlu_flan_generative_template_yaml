@@ -24,7 +24,7 @@ generation_kwargs:
     - "</s>"
     - "Q:"
     - "<|im_end|>"
-    - "<0x0A>"
+    - "\n"
 metric_list:
   - metric: exact_match
     aggregation: mean
