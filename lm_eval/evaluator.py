@@ -407,7 +407,7 @@ def evaluate(
                     # only one resp for a single request
                     resp = getattr(lm, reqtype)([req], disable_tqdm=True)
                     # simultaneously add output to the Instance attr
-                    req.resps.extend([resp])
+                    req.resps.extend(resp)
                     # push changes into storage
                     # also discard storage after the current set ends
                     storage = req.update_storage(storage, req)
