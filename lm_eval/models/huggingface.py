@@ -713,7 +713,9 @@ class HFLM(TemplateLM):
 
     def tok_decode(self, tokens, skip_special_tokens=True):
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            return self.tokenizer.decode(tokens)
+            return self.tokenizer.decode(
+                tokens, skip_special_tokens=skip_special_tokens
+            )
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
             return self.tokenizer.decode(
                 tokens, skip_special_tokens=skip_special_tokens
