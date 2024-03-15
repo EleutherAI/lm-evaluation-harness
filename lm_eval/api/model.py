@@ -65,11 +65,11 @@ class LM(abc.ABC):
           multiple chunks, the last input will still a full-sized context.
           Example:
             Input tokens: [ 0 1 2 3 4 5 6 7 8 9 ]
-            Prefix: EOT
+            Prefix: BOS/EOS
             Max context length: 4
             Resulting input/prediction pairs:
 
-                INPUT:  EOT   0   1   2
+                INPUT:  BOS   0   1   2
                 PRED:     0   1   2   3
 
                 INPUT:    3   4   5   6
@@ -89,7 +89,7 @@ class LM(abc.ABC):
         :return: list[tuple[float]]
             A list of tuples (logprob,)
             logprob: float
-                The log probability of `context` conditioned on the EOT token.
+                The log probability of `context` conditioned on the BOS/EOS token.
         """
         pass
 
@@ -282,6 +282,11 @@ class TemplateLM(LM):
     def eot_token_id(self):
         pass
 
+    @property
+    @abc.abstractmethod
+    def bos_or_eos_token_id(self):
+        pass
+
     @abc.abstractmethod
     def tok_encode(self, string: str, **kwargs):
         pass
@@ -312,7 +317,7 @@ class TemplateLM(LM):
             if context == "":
                 # end of text as context
                 context_enc, continuation_enc = (
-                    [self.eot_token_id],
+                    [self.bos_or_eos_token_id],
                     self.tok_encode(continuation),
                 )
             else:
