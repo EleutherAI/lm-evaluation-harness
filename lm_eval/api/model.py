@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 import os
+import transformers
 from typing import List, Optional, Tuple, Type, TypeVar
 
 from sqlitedict import SqliteDict
@@ -297,7 +298,9 @@ class TemplateLM(LM):
             context = context[:-n_spaces]
 
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
+            whole_enc = self.tok_encode(
+                context + continuation, add_special_tokens=False
+            )
             context_enc = self.tok_encode(context, add_special_tokens=False)
 
             context_enc_len = len(context_enc)
