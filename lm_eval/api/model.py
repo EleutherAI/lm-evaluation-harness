@@ -3,9 +3,9 @@ import hashlib
 import json
 import logging
 import os
-import transformers
 from typing import List, Optional, Tuple, Type, TypeVar
 
+import transformers
 from sqlitedict import SqliteDict
 from tqdm import tqdm
 
