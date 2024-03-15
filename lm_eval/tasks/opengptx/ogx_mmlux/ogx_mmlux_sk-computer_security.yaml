@@ -1,0 +1,9 @@
+include: _mmlux_default_template_yaml
+task: ogx_mmlux_sk-computer_security
+dataset_name: computer_security_SK
+doc_to_text: "Otázka: {{question.strip()}}\nVoľby:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
+  C. {{choices[2]}}\nD. {{choices[3]}}\nOdpoveď:"
+group:
+- ogx_mmlux_stem
+- ogx_mmlux
+- ogx_mmlux_sk

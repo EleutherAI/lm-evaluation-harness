@@ -1,0 +1,9 @@
+include: _mmlux_default_template_yaml
+task: ogx_mmlux_ro-professional_law
+dataset_name: professional_law_RO
+doc_to_text: "Întrebare: {{question.strip()}}\nAlegeri:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
+  C. {{choices[2]}}\nD. {{choices[3]}}\nRăspuns:"
+group:
+- ogx_mmlux_humanities
+- ogx_mmlux
+- ogx_mmlux_ro

@@ -1,0 +1,9 @@
+include: _mmlux_default_template_yaml
+task: ogx_mmlux_lt-moral_disputes
+dataset_name: moral_disputes_LT
+doc_to_text: "Klausimas: {{question.strip()}}\nPasirinkimai:\nA. {{choices[0]}}\n\
+  B. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAtsakymas:"
+group:
+- ogx_mmlux_humanities
+- ogx_mmlux
+- ogx_mmlux_lt

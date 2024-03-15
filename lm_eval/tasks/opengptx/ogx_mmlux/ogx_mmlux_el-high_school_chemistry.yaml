@@ -1,0 +1,9 @@
+include: _mmlux_default_template_yaml
+task: ogx_mmlux_el-high_school_chemistry
+dataset_name: high_school_chemistry_EL
+doc_to_text: "Ερώτηση: {{question.strip()}}\nΕπιλογές:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
+  C. {{choices[2]}}\nD. {{choices[3]}}\nΑπάντηση:"
+group:
+- ogx_mmlux_stem
+- ogx_mmlux
+- ogx_mmlux_el

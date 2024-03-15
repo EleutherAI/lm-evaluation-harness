@@ -1,0 +1,9 @@
+include: _mmlux_default_template_yaml
+task: ogx_mmlux_lt-high_school_statistics
+dataset_name: high_school_statistics_LT
+doc_to_text: "Klausimas: {{question.strip()}}\nPasirinkimai:\nA. {{choices[0]}}\n\
+  B. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAtsakymas:"
+group:
+- ogx_mmlux_stem
+- ogx_mmlux
+- ogx_mmlux_lt

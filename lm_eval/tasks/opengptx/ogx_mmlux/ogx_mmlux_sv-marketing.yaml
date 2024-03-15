@@ -1,0 +1,9 @@
+include: _mmlux_default_template_yaml
+task: ogx_mmlux_sv-marketing
+dataset_name: marketing_SV
+doc_to_text: "Fråga: {{question.strip()}}\nValmöjligheter:\nA. {{choices[0]}}\nB.\
+  \ {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nSvar:"
+group:
+- ogx_mmlux_other
+- ogx_mmlux
+- ogx_mmlux_sv

@@ -1,0 +1,9 @@
+include: _mmlux_default_template_yaml
+task: ogx_mmlux_fr-logical_fallacies
+dataset_name: logical_fallacies_FR
+doc_to_text: "Question: {{question.strip()}}\nChoix:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
+  C. {{choices[2]}}\nD. {{choices[3]}}\nRéponse:"
+group:
+- ogx_mmlux_humanities
+- ogx_mmlux
+- ogx_mmlux_fr

@@ -1,0 +1,9 @@
+include: _mmlux_default_template_yaml
+task: ogx_mmlux_it-moral_scenarios
+dataset_name: moral_scenarios_IT
+doc_to_text: "Domanda: {{question.strip()}}\nScelte:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
+  C. {{choices[2]}}\nD. {{choices[3]}}\nRisposta:"
+group:
+- ogx_mmlux_humanities
+- ogx_mmlux
+- ogx_mmlux_it

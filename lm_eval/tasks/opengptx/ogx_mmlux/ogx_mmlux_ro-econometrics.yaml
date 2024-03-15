@@ -1,0 +1,9 @@
+include: _mmlux_default_template_yaml
+task: ogx_mmlux_ro-econometrics
+dataset_name: econometrics_RO
+doc_to_text: "Întrebare: {{question.strip()}}\nAlegeri:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
+  C. {{choices[2]}}\nD. {{choices[3]}}\nRăspuns:"
+group:
+- ogx_mmlux_social_sciences
+- ogx_mmlux
+- ogx_mmlux_ro

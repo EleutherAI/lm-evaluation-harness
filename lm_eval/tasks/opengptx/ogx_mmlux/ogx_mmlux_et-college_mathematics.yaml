@@ -1,0 +1,9 @@
+include: _mmlux_default_template_yaml
+task: ogx_mmlux_et-college_mathematics
+dataset_name: college_mathematics_ET
+doc_to_text: "Küsimus: {{question.strip()}}\nValikud:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
+  C. {{choices[2]}}\nD. {{choices[3]}}\nVastus:"
+group:
+- ogx_mmlux_stem
+- ogx_mmlux
+- ogx_mmlux_et

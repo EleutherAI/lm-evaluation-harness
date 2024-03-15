@@ -1,0 +1,9 @@
+include: _mmlux_default_template_yaml
+task: ogx_mmlux_ro-college_physics
+dataset_name: college_physics_RO
+doc_to_text: "Întrebare: {{question.strip()}}\nAlegeri:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
+  C. {{choices[2]}}\nD. {{choices[3]}}\nRăspuns:"
+group:
+- ogx_mmlux_stem
+- ogx_mmlux
+- ogx_mmlux_ro
