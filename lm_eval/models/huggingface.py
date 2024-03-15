@@ -707,8 +707,6 @@ class HFLM(TemplateLM):
             encoding["attention_mask"] = encoding["attention_mask"][
                 :, -left_truncate_len:
             ]
-        # print(encoding["input_ids"][0])
-        # import sys; sys.exit()
         self.tokenizer.padding_side = old_padding_side
 
         return encoding["input_ids"], encoding["attention_mask"]
