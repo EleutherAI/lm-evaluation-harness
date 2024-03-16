@@ -285,6 +285,7 @@ class TemplateLM(LM):
     @property
     @abc.abstractmethod
     def bos_or_eos_token_id(self):
+        # it is used as prefix for loglikelihood
         pass
 
     @abc.abstractmethod
@@ -315,7 +316,7 @@ class TemplateLM(LM):
         new_reqs = []
         for context, continuation in [req.args for req in requests]:
             if context == "":
-                # end of text as context
+                # BOS or EOS as context
                 context_enc, continuation_enc = (
                     [self.bos_or_eos_token_id],
                     self.tok_encode(continuation),

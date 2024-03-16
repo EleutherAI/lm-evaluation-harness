@@ -307,7 +307,7 @@ class NEURON_HF(TemplateLM):
 
     @property
     def bos_or_eos_token_id(self):
-        # it used as prefix for rolling loglikelihood
+        # it is used as prefix for loglikelihood
         return self.tokenizer.bos_token_id or self.tokenizer.eos_token_id
 
     @property
