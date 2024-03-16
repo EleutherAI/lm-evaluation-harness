@@ -1,6 +1,5 @@
 group:
-  - inverse_scaling
-  - inverse_scaling_round1
+  - inverse_scaling_mc
 output_type: multiple_choice
 test_split: train
 doc_to_text: prompt

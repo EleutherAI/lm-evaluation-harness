@@ -6,7 +6,7 @@ Title: `Inverse Scaling: When Bigger Isn't Better`
 
 Abstract: `Work on scaling laws has found that large language models (LMs) show predictable improvements to overall loss with increased scale (model size, training data, and compute). Here, we present evidence for the claim that LMs may show inverse scaling, or worse task performance with increased scale, e.g., due to flaws in the training objective and data. We present empirical evidence of inverse scaling on 11 datasets collected by running a public contest, the Inverse Scaling Prize, with a substantial prize pool. Through analysis of the datasets, along with other examples found in the literature, we identify four potential causes of inverse scaling: (i) preference to repeat memorized sequences over following in-context instructions, (ii) imitation of undesirable patterns in the training data, (iii) tasks containing an easy distractor task which LMs could focus on, rather than the harder real task, and (iv) correct but misleading few-shot demonstrations of the task. We release the winning datasets at this https URL to allow for further investigation of inverse scaling. Our tasks have helped drive the discovery of U-shaped and inverted-U scaling trends, where an initial trend reverses, suggesting that scaling trends are less reliable at predicting the behavior of larger-scale models than previously understood. Overall, our results suggest that there are tasks for which increased model scale alone may not lead to progress, and that more careful thought needs to go into the data and objectives for training language models.`
 
-Note: This is not an official implementation. 
+Note: This is not official implementation of inverse scaling prize.
 
 Homepage: https://github.com/inverse-scaling/prize
 
@@ -23,8 +23,7 @@ Homepage: https://github.com/inverse-scaling/prize
 
 #### Groups
 
-* `inverse_scaling`: `All tasks of Inverse Scaling Prize`
-* `inverse_scaling_round1`: `Groups for tasks that won in Inverse Scaling Prize Round 1`
+* `inverse_scaling_mc`: `mcqa version of all tasks of Inverse Scaling Prize`
 
 
 #### Tasks
@@ -33,6 +32,7 @@ Homepage: https://github.com/inverse-scaling/prize
 - `inverse_scaling_redefine_math`
 - `inverse_scaling_quote_repetition`
 - `inverse_scaling_neqa`
+- `inverse_scaling_winobias_antistereotype`
 
 
 ### Checklist
@@ -40,7 +40,7 @@ Homepage: https://github.com/inverse-scaling/prize
 For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
-  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
+  * [] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
 
 
 If other tasks on this dataset are already supported:
