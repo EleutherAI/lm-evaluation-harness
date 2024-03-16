@@ -140,7 +140,7 @@ lm_eval --model vllm \
     --tasks lambada_openai \
     --batch_size auto
 ```
-For a full list of supported vLLM configurations, please reference our vLLM integration and the vLLM documentation.
+To use vllm, do `pip install lm_eval[vllm]`. For a full list of supported vLLM configurations, please reference our [vLLM integration](https://github.com/EleutherAI/lm-evaluation-harness/blob/e74ec966556253fbe3d8ecba9de675c77c075bce/lm_eval/models/vllm_causallms.py) and the vLLM documentation.
 
 vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation, and provide a [script](./scripts/model_comparator.py) for checking the validity of vllm results against HF.
 

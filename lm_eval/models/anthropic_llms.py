@@ -147,7 +147,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
     def _loglikelihood_tokens(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
 
-    def generate_until(self, requests) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         try:
             import anthropic
         except ModuleNotFoundError:
@@ -162,7 +162,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         _requests: List[Tuple[str, dict]] = [req.args for req in requests]
 
         res = []
-        for request in tqdm(_requests):
+        for request in tqdm(_requests, disable=disable_tqdm):
             try:
                 inp = request[0]
                 request_args = request[1]
@@ -199,8 +199,8 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         # Isn't used because we override generate_until
         raise NotImplementedError()
 
-    def loglikelihood(self, requests):
+    def loglikelihood(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
 
-    def loglikelihood_rolling(self, requests):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
