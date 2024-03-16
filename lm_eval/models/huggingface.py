@@ -109,6 +109,7 @@ class HFLM(TemplateLM):
         # PEFT and quantization options
         peft: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
+        loglikelihood_prefix_token_id: Optional[int] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -340,6 +341,8 @@ class HFLM(TemplateLM):
             self._rank = 0
             self._world_size = 1
 
+        self.loglikelihood_prefix_token_id = loglikelihood_prefix_token_id
+
     @property
     def config(self):
         # return the associated transformers.AutoConfig for the given pretrained model.
@@ -361,7 +364,11 @@ class HFLM(TemplateLM):
     @property
     def bos_or_eos_token_id(self):
         # it is used as prefix for loglikelihood
-        return self.tokenizer.bos_token_id or self.tokenizer.eos_token_id
+        if self.loglikelihood_prefix_token_id is not None:
+            return self.loglikelihood_prefix_token_id
+        if self.tokenizer.bos_token_id is not None:
+            return self.tokenizer.bos_token_id
+        return self.tokenizer.eos_token_id
 
     @property
     def max_length(self):
