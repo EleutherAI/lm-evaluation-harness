@@ -342,7 +342,9 @@ class HFLM(TemplateLM):
             self._world_size = 1
 
         self.loglikelihood_prefix_token_id = loglikelihood_prefix_token_id
-        eval_logger.info(f"Loglikelihood prefix token id used in evaluation: {self.bos_or_eos_token_id}")
+        eval_logger.info(
+            f"Loglikelihood prefix token id used in evaluation: {self.bos_or_eos_token_id}"
+        )
 
     @property
     def config(self):
