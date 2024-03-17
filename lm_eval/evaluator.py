@@ -1,6 +1,7 @@
 import itertools
 import logging
 import random
+import time
 from collections import defaultdict
 from typing import TYPE_CHECKING, List, Optional, Union
 
@@ -106,6 +107,7 @@ def simple_evaluate(
         Dictionary of results
     """
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+    start_date = time.time()
 
     if delete_requests_cache:
         eval_logger.info("Deleting requests cache...")
@@ -262,6 +264,7 @@ def simple_evaluate(
             "gen_kwargs": gen_kwargs,
         }
         results["git_hash"] = get_git_commit_hash()
+        results["date"] = start_date
         add_env_info(results)  # additional environment info to results
         return results
     else:
