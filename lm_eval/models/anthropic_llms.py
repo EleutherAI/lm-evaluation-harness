@@ -117,25 +117,25 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         )
 
     @retry_on_specific_exceptions(
-        on_exceptions=[anthropic.RateLimitError, anthropic.APIConnectionError, anthropic.APIStatusError],
+        on_exceptions=[
+            anthropic.RateLimitError,
+            anthropic.APIConnectionError,
+            anthropic.APIStatusError,
+        ],
         max_retries=None,  # retry forever, consider changing
         on_exception_callback=_exception_callback,
     )
     def messages():
-        
         response = client.messages.create(
-            model=model, 
-            max_tokens=max_tokens, 
-            temperature=temperature, 
-            messages=[
-                {"role": "user", "content": f"{prompt}"}
-            ], 
-            **kwargs
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            messages=[{"role": "user", "content": f"{prompt}"}],
+            **kwargs,
         )
         return response.content[0].text
 
     return messages()
-
 
 
 @register_model("anthropic")
