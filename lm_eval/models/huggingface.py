@@ -711,11 +711,15 @@ class HFLM(TemplateLM):
 
         return encoding["input_ids"], encoding["attention_mask"]
 
-    def tok_decode(self, tokens):
+    def tok_decode(self, tokens, skip_special_tokens=True):
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            return self.tokenizer.decode(tokens)
+            return self.tokenizer.decode(
+                tokens, skip_special_tokens=skip_special_tokens
+            )
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
-            return self.tokenizer.decode(tokens, skip_special_tokens=True)
+            return self.tokenizer.decode(
+                tokens, skip_special_tokens=skip_special_tokens
+            )
 
     def _model_call(self, inps, attn_mask=None, labels=None):
         """
@@ -1158,7 +1162,7 @@ class HFLM(TemplateLM):
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
             # add EOS token to stop sequences
-            eos = self.tok_decode(self.eot_token_id)
+            eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
             if not until:
                 until = [eos]
             else:
