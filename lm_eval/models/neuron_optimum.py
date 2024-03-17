@@ -447,12 +447,14 @@ class NEURON_HF(TemplateLM):
 
         return logits
 
-    def loglikelihood_rolling(self, requests):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         loglikelihoods = []
 
         adaptive_batch_size = None
 
-        for (string,) in tqdm([req.args for req in requests], disable=(self.rank != 0)):
+        for (string,) in tqdm(
+            [req.args for req in requests], disable=(disable_tqdm or (self.rank != 0))
+        ):
             rolling_token_windows = list(
                 map(
                     utils.make_disjoint_window,
@@ -616,7 +618,7 @@ class NEURON_HF(TemplateLM):
 
         return re_ord.get_original(res)
 
-    def generate_until(self, requests):
+    def generate_until(self, requests, disable_tqdm: bool = False):
         res = defaultdict(list)
         re_ords = {}
 
@@ -638,7 +640,7 @@ class NEURON_HF(TemplateLM):
             # within each set of reqs for given kwargs, we reorder by token length, descending.
             re_ords[key] = utils.Reorderer([req.args for req in reqs], _collate)
 
-        pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        pbar = tqdm(total=len(requests), disable=(disable_tqdm or (self.rank != 0)))
 
         # for each different set of kwargs, we execute all requests, by batch.
         for key, re_ord in re_ords.items():
