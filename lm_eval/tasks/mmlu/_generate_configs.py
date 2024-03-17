@@ -7,7 +7,8 @@ import os
 import yaml
 from tqdm import tqdm
 
-from lm_eval.logger import eval_logger
+import logging
+eval_logger = logging.getLogger("lm-eval")
 
 
 SUBJECTS = {
