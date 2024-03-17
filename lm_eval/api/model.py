@@ -89,7 +89,8 @@ class LM(abc.ABC):
         :return: list[tuple[float]]
             A list of tuples (logprob,)
             logprob: float
-                The log probability of `context` conditioned on the BOS/EOS token.
+                The log probability of `context` conditioned on the BOS/EOS token. 
+                Can also be overridden for custom cases by `prefix_token_id`.
         """
         pass
 
