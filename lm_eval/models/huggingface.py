@@ -109,7 +109,7 @@ class HFLM(TemplateLM):
         # PEFT and quantization options
         peft: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
-        loglikelihood_prefix_token_id: Optional[int] = None,
+        prefix_token_id: Optional[int] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -341,9 +341,9 @@ class HFLM(TemplateLM):
             self._rank = 0
             self._world_size = 1
 
-        self.loglikelihood_prefix_token_id = loglikelihood_prefix_token_id
+        self.custom_prefix_token_id = prefix_token_id
         eval_logger.info(
-            f"Loglikelihood prefix token id used in evaluation: {self.bos_or_eos_token_id}"
+            f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
         )
 
     @property
@@ -365,10 +365,10 @@ class HFLM(TemplateLM):
         return self.tokenizer.eos_token_id
 
     @property
-    def bos_or_eos_token_id(self):
+    def prefix_token_id(self):
         # it is used as prefix for loglikelihood
-        if self.loglikelihood_prefix_token_id is not None:
-            return self.loglikelihood_prefix_token_id
+        if self.custom_prefix_token_id is not None:
+            return self.custom_prefix_token_id
         if self.tokenizer.bos_token_id is not None:
             return self.tokenizer.bos_token_id
         return self.tokenizer.eos_token_id
@@ -826,7 +826,7 @@ class HFLM(TemplateLM):
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.bos_or_eos_token_id,
+                        prefix_token=self.prefix_token_id,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),

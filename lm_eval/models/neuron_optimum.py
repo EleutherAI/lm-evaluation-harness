@@ -306,7 +306,7 @@ class NEURON_HF(TemplateLM):
         return self.tokenizer.eos_token_id
 
     @property
-    def bos_or_eos_token_id(self):
+    def prefix_token_id(self):
         # it is used as prefix for loglikelihood
         return self.tokenizer.bos_token_id or self.tokenizer.eos_token_id
 
@@ -465,7 +465,7 @@ class NEURON_HF(TemplateLM):
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.bos_or_eos_token_id,
+                        prefix_token=self.prefix_token_id,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),

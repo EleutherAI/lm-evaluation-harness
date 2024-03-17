@@ -89,7 +89,7 @@ class LM(abc.ABC):
         :return: list[tuple[float]]
             A list of tuples (logprob,)
             logprob: float
-                The log probability of `context` conditioned on the BOS/EOS token. 
+                The log probability of `context` conditioned on the BOS/EOS token.
                 Can also be overridden for custom cases by `prefix_token_id`.
         """
         pass
@@ -285,7 +285,7 @@ class TemplateLM(LM):
 
     @property
     @abc.abstractmethod
-    def bos_or_eos_token_id(self):
+    def prefix_token_id(self):
         # it is used as prefix for loglikelihood
         pass
 
@@ -319,7 +319,7 @@ class TemplateLM(LM):
             if context == "":
                 # BOS or EOS as context
                 context_enc, continuation_enc = (
-                    [self.bos_or_eos_token_id],
+                    [self.prefix_token_id],
                     self.tok_encode(continuation),
                 )
             else:
