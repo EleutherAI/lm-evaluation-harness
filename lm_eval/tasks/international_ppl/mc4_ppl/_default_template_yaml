@@ -1,0 +1,23 @@
+group:
+  - international_mc4_ppl
+dataset_path: mc4
+output_type: loglikelihood_rolling
+class: !function task.Mc4PerplexityTask
+fewshot_split: validation
+validation_split: validation
+test_split: 'validation'
+num_fewshot: 0
+doc_to_text: ""
+doc_to_target: "{{text}}"
+should_decontaminate: true
+doc_to_decontamination_query: "{{text}}"
+metric_list:
+  - metric: word_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    aggregation: bits_per_byte
+    higher_is_better: false
