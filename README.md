@@ -50,6 +50,39 @@ We also provide a number of optional dependencies for extended functionality. A 
 
 ## Basic Usage
 
+### NVIDIA `nemo` models
+
+[NVIDIA NeMo Framework](https://github.com/NVIDIA/NeMo) is a generative AI framework built for researchers and pytorch developers working on language models.
+
+To evaluate a `nemo` model, start by installing NeMo following [the documentation](https://github.com/NVIDIA/NeMo?tab=readme-ov-file#installation). We highly recommended to use the NVIDIA PyTorch or NeMo container, specially if having issues installing Apex or any other dependencies (see [latest released containers](https://github.com/NVIDIA/NeMo/releases)).
+
+NeMo models can be obtained through [NVIDIA NGC Catalog](https://catalog.ngc.nvidia.com/models) or in [NVIDIA's Hugging Face page](https://huggingface.co/nvidia). In [NVIDIA NeMo Framework](https://github.com/NVIDIA/NeMo/tree/main/scripts/nlp_language_modeling) there are conversion scripts to convert the `hf` checkpoints of popular models like llama, falcon, mixtral or mpt to `nemo`.
+
+Run a `nemo` model on one GPU:
+```bash
+lm_eval --model nemo \
+    --model_args path=<path_to_nemo_model> \
+    --tasks hellaswag
+```
+
+It is recommended to unpack the `nemo` model to avoid the unpacking inside the docker container - it may overflow disk space. For that you can run:
+
+```
+mkdir MY_MODEL
+tar -xvf MY_MODEL.nemo -c MY_MODEL
+```
+
+#### Multi-GPU and multi-node evaluation with NVIDIA `nemo` models
+
+By default, only one GPU is used. But we do support data, tensor and pipeline parallelism during evaluation, on one or multiple nodes. You can set up the `model_args` of `devices` (per node), `num_nodes`, `tensor_model_parallel_size` and `pipeline_model_parallel_size` to control how the model is partitioned. The number of data replicas is determined by dividing the total number of devices by the product of tensor and pipeline parallelism. For example, the command to use one node of 8 GPUs with tensor parallelism of 2 and data replication of 4 is:
+```bash
+torchrun --nproc-per-node=<number of gpus> --no-python lm_eval \
+    --model nemo \
+    --model_args path=<path_to_nemo_model>,devices=8,tensor_model_parallel_size=2 \
+    --tasks hellaswag
+```
+Note that it is recommended to substitute the `python` command by `torchrun --nproc-per-node=<number of gpus> --no-python` to facilitate loading the model into the GPUs.
+
 ### Hugging Face `transformers`
 
 To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/models) (e.g. GPT-J-6B) on `hellaswag` you can use the following command (this assumes you are using a CUDA-compatible GPU):
