@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "college_physics_HU"
+"task": "ogx_mmlux_hu-college_physics"
+"group": "ogx_mmlux_stem"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nVálasz:"
+"description": "A következő feleletválasztós kérdések (válaszokkal) az egyetemi fizikáról\
+  \ szólnak."
