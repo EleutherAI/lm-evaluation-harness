@@ -1,0 +1,9 @@
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "management_RO"
+"task": "ogx_mmlux_ro-management"
+"group": "ogx_mmlux_other"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRăspuns:"
+"description": "Următoarele sunt întrebări cu variante multiple de răspuns (cu răspunsuri)\
+  \ despre management."
