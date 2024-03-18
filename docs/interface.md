@@ -112,8 +112,8 @@ my_model = initialize_my_model()
 # - `Your_LM.generate_until()`
 lm_obj = Your_LM(model=my_model, batch_size=16)
 
-# The task_manager indexes tasks including ones
-# specified by the user through `include_path`
+# optional: the task_manager indexes tasks including ones
+# specified by the user through `include_path`.
 task_manager = lm_eval.tasks.TaskManager(
     include_path="/path/to/custom/yaml"
     )
@@ -138,9 +138,9 @@ task_dict = lm_eval.tasks.get_task_dict(
                  # custom paths is required.
     )
 
-def evaluate(
+results = evaluate(
     lm=lm_obj,
     task_dict=task_dict,
     ...
-):
+)
 ```
