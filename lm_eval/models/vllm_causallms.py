@@ -3,6 +3,7 @@ from importlib.metadata import version
 from importlib.util import find_spec
 from typing import List, Literal, Optional, Tuple, Union
 
+import transformers
 from more_itertools import distribute
 from packaging.version import parse as parse_version
 from tqdm import tqdm
@@ -31,6 +32,7 @@ eval_logger = eval_logger
 @register_model("vllm")
 class VLLM(TemplateLM):
     _DEFAULT_MAX_LENGTH = 2048
+    AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
 
     def __init__(
         self,
