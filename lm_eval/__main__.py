@@ -13,7 +13,7 @@ import numpy as np
 from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.logging_utils import WandbLogger
-from lm_eval.tasks import TaskManager, include_path, initialize_tasks
+from lm_eval.tasks import TaskManager
 from lm_eval.utils import make_table, simple_parse_args_string
 
 
@@ -258,7 +258,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             "Specify --output_path if providing --log_samples or --predict_only"
         )
 
-    initialize_tasks(args.verbosity)
+    if args.include_path is not None:
+        eval_logger.info(f"Including path: {args.include_path}")
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
     if args.limit:
@@ -266,9 +267,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             " --limit SHOULD ONLY BE USED FOR TESTING."
             "REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
         )
-    if args.include_path is not None:
-        eval_logger.info(f"Including path: {args.include_path}")
-        include_path(args.include_path)
 
     if args.tasks is None:
         eval_logger.error("Need to specify task to evaluate.")
