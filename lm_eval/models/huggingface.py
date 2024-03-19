@@ -682,10 +682,8 @@ class HFLM(TemplateLM):
 
         add_special_tokens = {}
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            add_special_tokens = {
-                "add_special_tokens": False or self.add_bos_token
-            }
-        
+            add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
+
         encoding = self.tokenizer.encode(string, **add_special_tokens)
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
@@ -707,9 +705,7 @@ class HFLM(TemplateLM):
 
         add_special_tokens = {}
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            add_special_tokens = {
-                "add_special_tokens": False or self.add_bos_token
-            }
+            add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
 
         encoding = self.tokenizer(
             strings,
