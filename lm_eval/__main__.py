@@ -182,7 +182,7 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--gen_kwargs",
-        type=dict,
+        type=str,
         default=None,
         help=(
             "String arguments for model generation on greedy_until tasks,"
