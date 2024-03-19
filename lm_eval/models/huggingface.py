@@ -1163,7 +1163,7 @@ class HFLM(TemplateLM):
                 if "until" in kwargs.keys():
                     until = kwargs.pop("until")
                     if isinstance(until, str):
-                        until = [kwargs]
+                        until = [until]
                     elif not isinstance(until, list):
                         raise ValueError(
                             f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
