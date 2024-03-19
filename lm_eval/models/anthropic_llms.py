@@ -45,7 +45,7 @@ def anthropic_completion(
     except ModuleNotFoundError:
         raise Exception(
             "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
         )
 
     def _exception_callback(e: Exception, sleep_time: float) -> None:
@@ -108,7 +108,7 @@ def anthropic_chat(
     except ModuleNotFoundError:
         raise Exception(
             "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
         )
 
     def _exception_callback(e: Exception, sleep_time: float) -> None:
@@ -168,7 +168,7 @@ class AnthropicLM(LM):
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
             )
 
         self.model = model
@@ -217,7 +217,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
             )
 
         if not requests:
