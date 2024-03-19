@@ -679,14 +679,14 @@ class HFLM(TemplateLM):
         self, string: str, left_truncate_len=None, add_special_tokens=None
     ) -> List[int]:
         """ """
-        if add_special_tokens is None:
-            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-                add_special_tokens = False or self.add_bos_token
-            elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
-                # TODO: investigate best practices for enc-dec models + special tokens
-                add_special_tokens = True
 
-        encoding = self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
+        add_special_tokens = {}
+        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+            add_special_tokens = {
+                "add_special_tokens": False or self.add_bos_token
+            }
+        
+        encoding = self.tokenizer.encode(string, **add_special_tokens)
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
         if left_truncate_len:
@@ -705,17 +705,18 @@ class HFLM(TemplateLM):
         old_padding_side = self.tokenizer.padding_side
         self.tokenizer.padding_side = padding_side
 
+        add_special_tokens = {}
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            add_special_tokens = False or self.add_bos_token
-        elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
-            add_special_tokens = True
+            add_special_tokens = {
+                "add_special_tokens": False or self.add_bos_token
+            }
 
         encoding = self.tokenizer(
             strings,
             truncation=truncation,
             padding="longest",
             return_tensors="pt",
-            add_special_tokens=add_special_tokens,
+            **add_special_tokens,
         )
         if left_truncate_len:
             encoding["input_ids"] = encoding["input_ids"][:, -left_truncate_len:]
@@ -726,11 +727,8 @@ class HFLM(TemplateLM):
 
         return encoding["input_ids"], encoding["attention_mask"]
 
-    def tok_decode(self, tokens):
-        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            return self.tokenizer.decode(tokens)
-        elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
-            return self.tokenizer.decode(tokens, skip_special_tokens=True)
+    def tok_decode(self, tokens, skip_special_tokens=True):
+        return self.tokenizer.decode(tokens, skip_special_tokens=skip_special_tokens)
 
     def _model_call(self, inps, attn_mask=None, labels=None):
         """
@@ -826,7 +824,7 @@ class HFLM(TemplateLM):
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.prefix_token_id,
+                        prefix_token=self.eot_token_id,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),
@@ -1173,7 +1171,7 @@ class HFLM(TemplateLM):
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
             # add EOS token to stop sequences
-            eos = self.tok_decode(self.eot_token_id)
+            eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
             if not until:
                 until = [eos]
             else:
