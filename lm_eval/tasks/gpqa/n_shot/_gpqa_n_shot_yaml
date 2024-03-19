@@ -1,0 +1,21 @@
+dataset_path: Idavidrein/gpqa
+group: gpqa
+output_type: multiple_choice
+process_docs: !function utils.process_docs
+training_split: train
+# Because huggingface dataset only has train split
+validation_split: train
+test_split: null
+description: "Here are some example questions from experts. Answer the final question yourself, following the format of the previous questions exactly.\n"
+doc_to_text: "Question: {{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nAnswer:"
+doc_to_target: answer
+doc_to_choice: ["(A)", "(B)", "(C)", "(D)"]
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

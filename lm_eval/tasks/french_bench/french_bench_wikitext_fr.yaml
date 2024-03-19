@@ -1,0 +1,25 @@
+group:
+  - french_bench_perplexity
+task: french_bench_wikitext_fr
+dataset_path: asi/wikitext_fr
+dataset_name: wikitext-35
+output_type: loglikelihood_rolling
+training_split: train
+validation_split: validation
+test_split: test
+num_fewshot: 0
+doc_to_text: ""
+doc_to_target: !function preprocess_wikitext.wikitext_detokenizer
+process_results: !function preprocess_wikitext.process_results
+should_decontaminate: true
+doc_to_decontamination_query: "{{paragraph}}"
+metric_list:
+  - metric: word_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: byte_perplexity
+    aggregation: weighted_perplexity
+    higher_is_better: false
+  - metric: bits_per_byte
+    aggregation: bits_per_byte
+    higher_is_better: false

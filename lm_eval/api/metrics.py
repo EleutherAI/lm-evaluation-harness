@@ -4,7 +4,7 @@ import random
 from collections.abc import Iterable
 from typing import List
 
-import evaluate
+import evaluate as hf_evaluate
 import numpy as np
 import sacrebleu
 import sklearn.metrics
@@ -116,6 +116,25 @@ def ter(items):
     return sacrebleu.corpus_ter(preds, refs).score
 
 
+@register_aggregation("brier_score")
+def brier_score(items):  # This is a passthrough function
+    gold, predictions = list(zip(*items))
+    gold = list(gold)
+    gold_one_hot = np.eye(np.max(gold) + 1)[gold]
+    predictions = list(zip(*items))[1]
+    return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
+
+
+@register_metric(
+    metric="brier_score",
+    higher_is_better=False,
+    output_type=["multiple_choice"],
+    aggregation="brier_score",
+)
+def brier_score_fn(items):  # This is a passthrough function
+    return items
+
+
 @register_metric(
     metric="acc",
     higher_is_better=True,
@@ -146,7 +165,7 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
     return items
 
 
-exact_match = evaluate.load("exact_match")
+exact_match = hf_evaluate.load("exact_match")
 
 
 @register_metric(
@@ -436,13 +455,14 @@ def pooled_sample_stderr(stderrs: List[float], sizes: List[int]):
     assert len(stderrs) == len(sizes)
 
     # formula source: https://en.wikipedia.org/wiki/Pooled_variance
-    # this empirically matches running `stderr_for_metric` on all instances
+    # and: https://stats.stackexchange.com/a/4841331
+    # this empirically seems to match running `stderr_for_metric` on all instances
     # from the subtasks concatenated with each other.
     pooled_sample_var = (
-        sum([(size - 1) * stderr**2 for size, stderr in zip(sizes, stderrs)])
+        sum([(size - 1) * stderr**2 * size for size, stderr in zip(sizes, stderrs)])
     ) / (sum(sizes) - len(sizes))
 
-    return np.sqrt(pooled_sample_var)
+    return np.sqrt(pooled_sample_var / sum(sizes))
 
 
 def combined_sample_stderr(stderrs: List[float], sizes: List[int], metrics=None):
@@ -481,7 +501,7 @@ def aggregate_subtask_metrics(metrics, sizes, weight_by_size=True):
     # A helper function that is used to aggregate
     # subtask scores cross-task.
     # TODO: does not hold for non-mean aggregations
-    if weight_by_size:
+    if not weight_by_size:
         sizes = [1] * len(sizes)
 
     assert len(metrics) == len(sizes)

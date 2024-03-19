@@ -2,15 +2,14 @@
 
 ## Usage
 
-Simply add a "--decontamination_ngrams_path" when running \__main\__.py. The provided directory should contain
+The provided directory should contain
 the ngram files and info.json produced in "Pile Ngram Generation" further down.
 
 ```bash
 python -m lm_eval \
     --model gpt2 \
     --device 0 \
-    --tasks sciq \
-    --decontamination_ngrams_path path/containing/training/set/ngrams
+    --tasks sciq
 ```
 
 ## Background
@@ -70,5 +69,3 @@ python -m scripts/clean_training_data/compress_and_package \
        -output path/to/final/directory \
        -procs 8
 ```
-
-Congratulations, the final directory can now be passed to lm-evaulation-harness with the "--decontamination_ngrams_path" argument.

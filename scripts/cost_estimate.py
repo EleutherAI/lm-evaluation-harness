@@ -3,7 +3,7 @@ import random
 import transformers
 
 from lm_eval import evaluator, tasks
-from lm_eval.base import LM
+from lm_eval.api.model import LM
 
 
 class DryrunLM(LM):
@@ -53,13 +53,12 @@ def main():
     values = []
     for taskname in task_list.split(","):
         lm.tokencost = 0
-        evaluator.evaluate(
+        evaluator.simple_evaluate(
             lm=lm,
             task_dict={taskname: tasks.get_task(taskname)()},
             num_fewshot=0,
             limit=None,
             bootstrap_iters=10,
-            description_dict=None,
         )
 
         print(taskname, lm.tokencost)

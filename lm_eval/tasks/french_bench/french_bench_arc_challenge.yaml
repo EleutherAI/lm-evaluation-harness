@@ -1,0 +1,21 @@
+group:
+  - french_bench
+  - french_bench_mc
+task: french_bench_arc_challenge
+dataset_path: manu/french_bench_arc_challenge
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+doc_to_text: "Question: {{question}}\nRéponse:"
+doc_to_target: "{{['A', 'B', 'C', 'D'].index(answerKey)}}"
+doc_to_choice: "{{choices}}"
+should_decontaminate: true
+doc_to_decontamination_query: "Question: {{question}}\nRéponse:"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true

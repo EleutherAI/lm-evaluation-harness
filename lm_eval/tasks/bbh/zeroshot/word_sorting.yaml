@@ -3,3 +3,11 @@
 "doc_to_text": "Q: {{input}}\nA:"
 "include": "_zeroshot_template_yaml"
 "task": "bbh_zeroshot_word_sorting"
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.WordSortFilter
+      - function: "take_first"

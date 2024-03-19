@@ -1,0 +1,3 @@
+dataset_name: Materials-Engineering
+include: _direct_kmmlu_yaml
+task: kmmlu_direct_materials_engineering
