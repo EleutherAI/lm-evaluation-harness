@@ -300,7 +300,7 @@ class AnthropicChatLM(AnthropicLM):
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e '.[anthropic]'`",
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
             )
 
         self.model = model
@@ -321,7 +321,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
             )
 
         if not requests:
@@ -350,7 +350,6 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
                 res.append(response)
 
                 self.cache_hook.add_partial("generate_until", request, response)
-                break
             except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
                 eval_logger.critical(f"Server unreachable: {e.__cause__}")
                 break
