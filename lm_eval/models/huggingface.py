@@ -109,6 +109,7 @@ class HFLM(TemplateLM):
         # PEFT and quantization options
         peft: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
+        prefix_token_id: Optional[int] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -340,6 +341,11 @@ class HFLM(TemplateLM):
             self._rank = 0
             self._world_size = 1
 
+        self.custom_prefix_token_id = prefix_token_id
+        eval_logger.info(
+            f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
+        )
+
     @property
     def config(self):
         # return the associated transformers.AutoConfig for the given pretrained model.
@@ -356,6 +362,15 @@ class HFLM(TemplateLM):
     @property
     def eot_token_id(self):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
+        return self.tokenizer.eos_token_id
+
+    @property
+    def prefix_token_id(self):
+        # it is used as prefix for loglikelihood
+        if self.custom_prefix_token_id is not None:
+            return self.custom_prefix_token_id
+        if self.tokenizer.bos_token_id is not None:
+            return self.tokenizer.bos_token_id
         return self.tokenizer.eos_token_id
 
     @property
@@ -711,11 +726,15 @@ class HFLM(TemplateLM):
 
         return encoding["input_ids"], encoding["attention_mask"]
 
-    def tok_decode(self, tokens):
+    def tok_decode(self, tokens, skip_special_tokens=True):
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            return self.tokenizer.decode(tokens)
+            return self.tokenizer.decode(
+                tokens, skip_special_tokens=skip_special_tokens
+            )
         elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
-            return self.tokenizer.decode(tokens, skip_special_tokens=True)
+            return self.tokenizer.decode(
+                tokens, skip_special_tokens=skip_special_tokens
+            )
 
     def _model_call(self, inps, attn_mask=None, labels=None):
         """
@@ -811,7 +830,7 @@ class HFLM(TemplateLM):
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.eot_token_id,
+                        prefix_token=self.prefix_token_id,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),
@@ -1158,7 +1177,7 @@ class HFLM(TemplateLM):
                     f"Expected `kwargs` to be of type `dict` but got {type(gen_kwargs)}"
                 )
             # add EOS token to stop sequences
-            eos = self.tok_decode(self.eot_token_id)
+            eos = self.tok_decode(self.eot_token_id, skip_special_tokens=False)
             if not until:
                 until = [eos]
             else:
