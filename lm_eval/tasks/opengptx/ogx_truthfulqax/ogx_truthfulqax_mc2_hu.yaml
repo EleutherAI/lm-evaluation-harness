@@ -1,6 +1,6 @@
-include: ogx_thruthfulqax_mc1_lt.yaml
-task: ogx_truthfulqax_mc2_lt
-dataset_name: mc_LT
+include: ogx_truthfulqax_mc1_hu.yaml
+task: ogx_truthfulqax_mc2_hu
+dataset_name: mc_HU
 doc_to_target: 0
 doc_to_choice: '{{mc2_targets.choices}}'
 process_results: !function 'utils.process_results_mc2'

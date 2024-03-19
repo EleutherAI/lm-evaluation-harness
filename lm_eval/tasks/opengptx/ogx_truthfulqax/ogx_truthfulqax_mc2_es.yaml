@@ -1,6 +1,6 @@
-include: ogx_thruthfulqax_mc1_pt-pt.yaml
-task: ogx_truthfulqax_mc2_pt-pt
-dataset_name: mc_PT-PT
+include: ogx_truthfulqax_mc1_es.yaml
+task: ogx_truthfulqax_mc2_es
+dataset_name: mc_ES
 doc_to_target: 0
 doc_to_choice: '{{mc2_targets.choices}}'
 process_results: !function 'utils.process_results_mc2'
