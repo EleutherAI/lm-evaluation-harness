@@ -38,7 +38,7 @@ if __name__ == "__main__":
         if lang_config['config'] not in CONFIGS_TO_IGNORE and lang_config['split'] == 'validation' and 'para' not in lang_config['config']:
             languages.append(lang_config["config"])
     
-    for lang in tqdm([lang for lang in languages]):
+    for lang in tqdm(languages):
         yaml_dict = {
             "include": base_yaml_name,
             "task": f"exams_closed_book_{lang}",
