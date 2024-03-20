@@ -3,7 +3,6 @@ from importlib.metadata import version
 from importlib.util import find_spec
 from typing import List, Literal, Optional, Tuple, Union
 
-import transformers
 from more_itertools import distribute
 from packaging.version import parse as parse_version
 from tqdm import tqdm
@@ -32,7 +31,6 @@ eval_logger = eval_logger
 @register_model("vllm")
 class VLLM(TemplateLM):
     _DEFAULT_MAX_LENGTH = 2048
-    AUTO_MODEL_CLASS = transformers.AutoModelForCausalLM
 
     def __init__(
         self,
@@ -57,7 +55,6 @@ class VLLM(TemplateLM):
         gpu_memory_utilization: float = 0.9,
         device: str = "cuda",
         data_parallel_size: int = 1,
-        enforce_eager: bool = True,
         **kwargs,
     ):
         super().__init__()
@@ -90,7 +87,6 @@ class VLLM(TemplateLM):
             "swap_space": int(swap_space),
             "quantization": quantization,
             "seed": int(seed),
-            "enforce_eager": enforce_eager,
         }
         self.model_args.update(kwargs)
         self.batch_size = (
