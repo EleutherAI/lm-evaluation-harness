@@ -11,21 +11,21 @@ from lm_eval.utils import eval_logger
 
 
 SUBJECTS = {
-    "古文单字多义":"polysemy_resolution",
-    "诗词情感分类":"poetry_sentiment_analysis",
-    "古汉语命名体识别":"named_entity_recognition",
-    "古汉语知识":"basic_ancient_chinese",
-    "古诗词上下句预测":"poetry_context_prediction",
-    "古文断句":"sentence_segmentation",
-    "对联":"couplet_prediction",
-    "古诗词曲鉴赏":"poetry_appreciate",
-    "国学常识":"ancient_chinese_culture",
-    "古音学":"ancient_phonetics",
-    "通假字":"homographic_character_resolution",
-    "古代文学知识":"ancient_literature",
-    "医古文":"ancient_medical",
-    "古诗词质量评估":"poetry_quality_assessment",
-    "古文阅读理解":"reading_comprehension",
+    "古文单字多义": "polysemy_resolution",
+    "诗词情感分类": "poetry_sentiment_analysis",
+    "古汉语命名体识别": "named_entity_recognition",
+    "古汉语知识": "basic_ancient_chinese",
+    "古诗词上下句预测": "poetry_context_prediction",
+    "古文断句": "sentence_segmentation",
+    "对联": "couplet_prediction",
+    "古诗词曲鉴赏": "poetry_appreciate",
+    "国学常识": "ancient_chinese_culture",
+    "古音学": "ancient_phonetics",
+    "通假字": "homographic_character_resolution",
+    "古代文学知识": "ancient_literature",
+    "医古文": "ancient_medical",
+    "古诗词质量评估": "poetry_quality_assessment",
+    "古文阅读理解": "reading_comprehension",
 }
 
 
