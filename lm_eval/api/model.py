@@ -284,10 +284,9 @@ class TemplateLM(LM):
         pass
 
     @property
-    @abc.abstractmethod
     def prefix_token_id(self):
         # it is used as prefix for loglikelihood
-        pass
+        return self.eot_token_id
 
     @abc.abstractmethod
     def tok_encode(self, string: str, **kwargs):

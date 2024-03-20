@@ -42,6 +42,7 @@ class VLLM(TemplateLM):
         tokenizer_mode: Literal["auto", "slow"] = "auto",
         tokenizer_revision: Optional[str] = None,
         add_bos_token: Optional[bool] = False,
+        prefix_token_id: Optional[int] = None,
         tensor_parallel_size: int = 1,
         quantization: Optional[str] = None,
         max_gen_toks: int = 256,
@@ -118,12 +119,26 @@ class VLLM(TemplateLM):
             tokenizer_revision=tokenizer_revision,
         )
         self.add_bos_token = add_bos_token
+        self.custom_prefix_token_id = prefix_token_id
+        if prefix_token_id is not None:
+            eval_logger.info(
+                f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
+            )
 
         self._max_gen_toks = max_gen_toks
 
     @property
     def eot_token_id(self):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
+        return self.tokenizer.eos_token_id
+
+    @property
+    def prefix_token_id(self):
+        # it is used as prefix for loglikelihood
+        if self.custom_prefix_token_id is not None:
+            return self.custom_prefix_token_id
+        if self.tokenizer.bos_token_id is not None:
+            return self.tokenizer.bos_token_id
         return self.tokenizer.eos_token_id
 
     @property
