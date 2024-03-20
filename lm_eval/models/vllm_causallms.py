@@ -119,8 +119,8 @@ class VLLM(TemplateLM):
             tokenizer_revision=tokenizer_revision,
         )
         self.add_bos_token = add_bos_token
+        self.custom_prefix_token_id = prefix_token_id
         if prefix_token_id is not None:
-            self.custom_prefix_token_id = prefix_token_id
             eval_logger.info(
                 f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
             )

@@ -341,8 +341,8 @@ class HFLM(TemplateLM):
             self._rank = 0
             self._world_size = 1
 
+        self.custom_prefix_token_id = prefix_token_id
         if prefix_token_id is not None:
-            self.custom_prefix_token_id = prefix_token_id
             eval_logger.info(
                 f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
             )
