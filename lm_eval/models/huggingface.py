@@ -99,6 +99,7 @@ class HFLM(TemplateLM):
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
         add_bos_token: Optional[bool] = False,
+        prefix_token_id: Optional[int] = None,
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
         parallelize: Optional[bool] = False,
@@ -109,7 +110,6 @@ class HFLM(TemplateLM):
         # PEFT and quantization options
         peft: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
-        prefix_token_id: Optional[int] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -341,10 +341,11 @@ class HFLM(TemplateLM):
             self._rank = 0
             self._world_size = 1
 
-        self.custom_prefix_token_id = prefix_token_id
-        eval_logger.info(
-            f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
-        )
+        if prefix_token_id is not None:
+            self.custom_prefix_token_id = prefix_token_id
+            eval_logger.info(
+                f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
+            )
 
     @property
     def config(self):
