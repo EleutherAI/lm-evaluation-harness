@@ -7,7 +7,7 @@ from lm_eval import utils
 import copy
 from unitxt.artifact import fetch_artifact
 from datasets import load_dataset
-
+from unitxt.standard import StandardRecipe
 # This code is required to properly dump LM harness YAML that contains references to functions
 def function_representer(dumper: yaml.SafeDumper, func) -> yaml.nodes.MappingNode:
   return dumper.represent_scalar("!function", f"{func.__module__}.{func.__name__}",style=None)
@@ -22,7 +22,8 @@ default_template_per_task = {
      "tasks.classification.multi_label" : "templates.classification.multi_label.default" ,
      "tasks.classification.multi_class" : "templates.classification.multi_class.default" ,
      "tasks.summarization.abstractive" :  "templates.summarization.abstractive.full",
-     "tasks.regression.two_texts" : "templates.regression.two_texts.simple"
+     "tasks.regression.two_texts" : "templates.regression.two_texts.simple",
+     "tasks.qa.with_context.extractive" : "templates.qa.with_context.simple"
 }
 
 
@@ -40,14 +41,23 @@ def generate_yaml(card: str):
     print("*")
 
     card_definition , _ = fetch_artifact(f"cards.{card}")
-    template = default_template_per_task[card_definition.task.artifact_identifier]
-
+    task = card_definition.task.artifact_identifier
+    if (task in default_template_per_task):
+        template = default_template_per_task[task]
+    else:    
+        raise ValueError(f"Default template was not defined for task {task} in 'default_template_per_task' dict in generate_yamls.py")
     data = utils.load_yaml_config('template.yaml.file')
     data["group"][0] = "unitxt"
     data["task"] = data["task"].replace("TASK_PLACEHOLDER",card)
     data["dataset_name"] = data["dataset_name"].replace("CARD_PLACEHOLDER",f"cards.{card}").replace("TEMPLATE_PLACEHOLDER",template)
-    dataset = load_dataset('unitxt/data',  data["dataset_name"]+",loader_limit=100")
+    # This is faster that the load_dataset approach
+    # dataset = load_dataset('unitxt/data',  data["dataset_name"]+",loader_limit=100",trust_remote_code=True)
+    recipe = StandardRecipe(card=f"cards.{card}",template=template,loader_limit=100)
+    stream = recipe()
+    dataset = stream.to_dataset()
     print(dataset)
+    print("Sample input:")
+    print(dataset["test"][0]['source'])
     metric_list_element = data["metric_list"][0]
     data["metric_list"] = []
     for metric_name in  card_definition.task.metrics:
@@ -60,13 +70,14 @@ def main():
     with open('unitxt_datasets') as f:
         for unitxt_dataset in f:
             unitxt_dataset = unitxt_dataset.strip()
+            if unitxt_dataset.startswith("### END ###"):
+                exit(0)
             if not unitxt_dataset.startswith("#"):
                 try:
                     generate_yaml(unitxt_dataset)
                 except Exception as e:
                     print(f"Unable to generate YAML for {unitxt_dataset} due to:")
                     print(e)
-
 if __name__ == '__main__':
     main()
 
