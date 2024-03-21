@@ -362,8 +362,8 @@ class NeMoLM(LM):
         def get_until(req_args):
             until = req_args.get('until', [])
             until = deepcopy(until)  # prevent from modifying req_args for cache_key
-            if '<|endoftext|>' not in until:
-                until.append('<|endoftext|>')
+            if self.eot_token_id not in until:
+                until.append(self.eot_token_id)
             return until
 
         def _collate(x):
