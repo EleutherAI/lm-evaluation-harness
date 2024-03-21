@@ -822,11 +822,26 @@ class ConfigurableTask(Task):
             self.fewshot_rnd = (
                 random.Random()
             )  # setting with no seed, to be overridden at a later time
-            self.sampler = samplers.get_sampler(
+            config_sampler: Union[str, Callable] = (
                 self.config.fewshot_config.get("sampler", "default")
                 if self.config.fewshot_config
                 else "default"
-            )(list(self.fewshot_docs()), self, rnd=self.fewshot_rnd)
+            )
+            if isinstance(config_sampler, str):
+                self.sampler = samplers.get_sampler(config_sampler)(
+                    list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
+                )
+            elif callable(config_sampler) and issubclass(
+                config_sampler, samplers.ContextSampler
+            ):
+                self.sampler = config_sampler(
+                    docs=list(self.fewshot_docs()), task=self, rnd=self.fewshot_rnd
+                )
+            else:
+                raise TypeError(
+                    f"fewshot_config.sampler should be a string or callable of ContextSampler type, "
+                    f"not {type(config_sampler)}"
+                )
 
         self.task_docs = self.eval_docs
 
