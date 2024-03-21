@@ -60,7 +60,7 @@ NeMo models can be obtained through [NVIDIA NGC Catalog](https://catalog.ngc.nvi
 
 Run a `nemo` model on one GPU:
 ```bash
-lm_eval --model nemo \
+lm_eval --model nemo_lm \
     --model_args path=<path_to_nemo_model> \
     --tasks hellaswag
 ```
@@ -77,7 +77,7 @@ tar -xvf MY_MODEL.nemo -c MY_MODEL
 By default, only one GPU is used. But we do support data, tensor and pipeline parallelism during evaluation, on one or multiple nodes. You can set up the `model_args` of `devices` (per node), `num_nodes`, `tensor_model_parallel_size` and `pipeline_model_parallel_size` to control how the model is partitioned. The number of data replicas is determined by dividing the total number of devices by the product of tensor and pipeline parallelism. For example, the command to use one node of 8 GPUs with tensor parallelism of 2 and data replication of 4 is:
 ```bash
 torchrun --nproc-per-node=<number of gpus> --no-python lm_eval \
-    --model nemo \
+    --model nemo_lm \
     --model_args path=<path_to_nemo_model>,devices=8,tensor_model_parallel_size=2 \
     --tasks hellaswag
 ```

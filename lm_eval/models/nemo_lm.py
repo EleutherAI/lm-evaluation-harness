@@ -125,7 +125,7 @@ def setup_distributed_environment(trainer):
 
     return app_state
 
-@register_model('nemo')
+@register_model('nemo_lm')
 class NeMoLM(LM):
 
     def __init__(
