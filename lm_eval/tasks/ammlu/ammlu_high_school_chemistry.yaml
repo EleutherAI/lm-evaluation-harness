@@ -1,0 +1,4 @@
+"dataset_name": "high_school_chemistry"
+"description": "فم بعملية التقييم في مجال ألعلوم وتقنية المعلومات و الرياضيات \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_high_school_chemistry"

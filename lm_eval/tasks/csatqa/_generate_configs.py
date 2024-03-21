@@ -1,13 +1,14 @@
 """
 Take in a YAML, and output all other splits with this YAML
 """
-import os
-import yaml
 import argparse
+import os
 
+import yaml
 from tqdm import tqdm
 
 from lm_eval.logger import eval_logger
+
 
 SUBSETS = ["WR", "GR", "RCS", "RCSS", "RCH", "LI"]
 

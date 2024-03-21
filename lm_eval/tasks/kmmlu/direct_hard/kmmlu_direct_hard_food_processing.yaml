@@ -1,0 +1,3 @@
+dataset_name: food_processing
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_hard_direct_food_processing
