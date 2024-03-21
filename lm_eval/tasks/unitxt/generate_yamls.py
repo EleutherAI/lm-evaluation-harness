@@ -58,6 +58,8 @@ def generate_yaml(card: str):
     print(dataset)
     print("Sample input:")
     print(dataset["test"][0]['source'])
+    print("Sample output:")
+    print(dataset["test"][0]['target'])
     metric_list_element = data["metric_list"][0]
     data["metric_list"] = []
     for metric_name in  card_definition.task.metrics:
