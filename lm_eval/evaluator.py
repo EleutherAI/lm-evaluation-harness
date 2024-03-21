@@ -55,6 +55,7 @@ def simple_evaluate(
     random_seed: int = 0,
     numpy_random_seed: int = 1234,
     torch_random_seed: int = 1234,
+    fewshot_random_seed: int = 1234,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -102,6 +103,8 @@ def simple_evaluate(
         Random seed for numpy. If set to None, the seed will not be set.
     :param torch_random_seed: int
         Random seed for torch. If set to None, the seed will not be set.
+    :param fewshot_random_seed: int
+        Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
 
     :return
         Dictionary of results
@@ -223,6 +226,10 @@ def simple_evaluate(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
                 task_obj.set_config(key="num_fewshot", value=num_fewshot)
+            task_obj.set_fewshot_seed(seed=fewshot_random_seed)
+            eval_logger.info(
+                f"Setting fewshot random generator seed to {fewshot_random_seed}"
+            )
         else:
             # if num_fewshot not provided, and the task does not define a default one, default to 0
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:

@@ -212,14 +212,16 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--seed",
-        type=partial(_int_or_none_list_arg_type, 3),
-        default="0,1234,1234",  # for backward compatibility
+        type=partial(_int_or_none_list_arg_type, 4),
+        default="0,1234,1234,1234",  # for backward compatibility
         help=(
-            "Set seed for python's random, numpy and torch.\n"
-            "Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, "
-            "or a single integer to set the same seed for all three.\n"
-            "The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).\n"
-            "E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.\n"
+            "Set seed for python's random, numpy, torch, and fewshot sampling.\n"
+            "Accepts a comma-separated list of 4 values for python's random, numpy, torch, and fewshot sampling seeds, "
+            "respectively, or a single integer to set the same seed for all three.\n"
+            "The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` "
+            "(for backward compatibility).\n"
+            "E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set "
+            "since the second value is `None`.\n"
             "E.g, `--seed 42` sets all three seeds to 42."
         ),
     )
@@ -359,6 +361,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         random_seed=args.seed[0],
         numpy_random_seed=args.seed[1],
         torch_random_seed=args.seed[2],
+        fewshot_random_seed=args.seed[3],
         **request_caching_args,
     )
 
