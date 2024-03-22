@@ -147,10 +147,16 @@ def simple_evaluate(
             gen_kwargs = None
 
     if isinstance(model, str):
+        eval_logger.info(
+            f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
+        )
         if model_args is None:
             model_args = ""
 
         if isinstance(model_args, dict):
+            eval_logger.info(
+                f"Initializing {model} model, with arguments: {model_args}"
+            )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
                 model_args,
                 {
