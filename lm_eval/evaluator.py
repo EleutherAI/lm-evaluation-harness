@@ -147,9 +147,6 @@ def simple_evaluate(
             gen_kwargs = None
 
     if isinstance(model, str):
-        eval_logger.info(
-            f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
-        )
         if model_args is None:
             model_args = ""
 
@@ -167,6 +164,9 @@ def simple_evaluate(
             )
 
         else:
+            eval_logger.info(
+                f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
+            )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
                 model_args,
                 {
@@ -178,6 +178,7 @@ def simple_evaluate(
     else:
         if not isinstance(model, lm_eval.api.model.LM):
             raise TypeError
+        eval_logger.info("Using pre-initialized model")
         lm = model
 
     if use_cache is not None:
