@@ -1,9 +1,9 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_it-high_school_us_history
-dataset_name: high_school_us_history_IT
-doc_to_text: "Domanda: {{question.strip()}}\nScelte:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
-  C. {{choices[2]}}\nD. {{choices[3]}}\nRisposta:"
-group:
-- ogx_mmlux_humanities
-- ogx_mmlux
-- ogx_mmlux_it
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "high_school_us_history_IT"
+"task": "ogx_mmlux_it-high_school_us_history"
+"group": "ogx_mmlux_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRisposta:"
+"description": "Le seguenti sono domande a scelta multipla (con relative risposte)\
+  \ sulla storia degli Stati Uniti al liceo."

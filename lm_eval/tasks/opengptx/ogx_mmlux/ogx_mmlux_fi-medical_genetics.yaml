@@ -1,9 +1,9 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_fi-medical_genetics
-dataset_name: medical_genetics_FI
-doc_to_text: "Kysymys: {{question.strip()}}\nValinnat:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
-  C. {{choices[2]}}\nD. {{choices[3]}}\nVastaa:"
-group:
-- ogx_mmlux_other
-- ogx_mmlux
-- ogx_mmlux_fi
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "medical_genetics_FI"
+"task": "ogx_mmlux_fi-medical_genetics"
+"group": "ogx_mmlux_other"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nVastaa:"
+"description": "Seuraavassa on monivalintakysymyksiä (ja vastauksia) lääketieteellisestä\
+  \ genetiikasta."

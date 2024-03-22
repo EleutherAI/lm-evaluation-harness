@@ -1,9 +1,8 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_lv-anatomy
-dataset_name: anatomy_LV
-doc_to_text: "Jautājums: {{question.strip()}}\nIzvēle:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
-  C. {{choices[2]}}\nD. {{choices[3]}}\nAtbilde:"
-group:
-- ogx_mmlux_stem
-- ogx_mmlux
-- ogx_mmlux_lv
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "anatomy_LV"
+"task": "ogx_mmlux_lv-anatomy"
+"group": "ogx_mmlux_stem"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nAtbilde:"
+"description": "Tālāk ir jautājumi ar atbilžu variantiem par anatomiju."

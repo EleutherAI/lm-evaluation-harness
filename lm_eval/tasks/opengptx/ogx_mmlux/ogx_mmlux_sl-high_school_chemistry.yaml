@@ -1,9 +1,8 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_sl-high_school_chemistry
-dataset_name: high_school_chemistry_SL
-doc_to_text: "Vprašanje: {{question.strip()}}\nIzbira:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
-  C. {{choices[2]}}\nD. {{choices[3]}}\nOdgovor:"
-group:
-- ogx_mmlux_stem
-- ogx_mmlux
-- ogx_mmlux_sl
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "high_school_chemistry_SL"
+"task": "ogx_mmlux_sl-high_school_chemistry"
+"group": "ogx_mmlux_stem"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nOdgovor:"
+"description": "V nadaljevanju so vprašanja (z odgovori) o kemiji v srednji šoli."

@@ -1,9 +1,9 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_ro-prehistory
-dataset_name: prehistory_RO
-doc_to_text: "Întrebare: {{question.strip()}}\nAlegeri:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
-  C. {{choices[2]}}\nD. {{choices[3]}}\nRăspuns:"
-group:
-- ogx_mmlux_humanities
-- ogx_mmlux
-- ogx_mmlux_ro
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "prehistory_RO"
+"task": "ogx_mmlux_ro-prehistory"
+"group": "ogx_mmlux_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRăspuns:"
+"description": "Următoarele sunt întrebări cu variante multiple de răspuns (cu răspunsuri)\
+  \ despre preistorie."

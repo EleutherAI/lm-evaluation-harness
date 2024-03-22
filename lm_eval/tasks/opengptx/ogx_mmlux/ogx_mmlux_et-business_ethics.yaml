@@ -1,9 +1,9 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_et-business_ethics
-dataset_name: business_ethics_ET
-doc_to_text: "Küsimus: {{question.strip()}}\nValikud:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
-  C. {{choices[2]}}\nD. {{choices[3]}}\nVastus:"
-group:
-- ogx_mmlux_other
-- ogx_mmlux
-- ogx_mmlux_et
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "business_ethics_ET"
+"task": "ogx_mmlux_et-business_ethics"
+"group": "ogx_mmlux_other"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nVastus:"
+"description": "Järgnevalt on esitatud valikvastustega küsimused (koos vastustega)\
+  \ ärieetika kohta."

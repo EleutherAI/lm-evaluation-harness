@@ -1,9 +1,8 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_nl-security_studies
-dataset_name: security_studies_NL
-doc_to_text: "Vraag: {{question.strip()}}\nKeuzes:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
-  C. {{choices[2]}}\nD. {{choices[3]}}\nAntwoord:"
-group:
-- ogx_mmlux_social_sciences
-- ogx_mmlux
-- ogx_mmlux_nl
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "security_studies_NL"
+"task": "ogx_mmlux_nl-security_studies"
+"group": "ogx_mmlux_social_sciences"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nAntwoord:"
+"description": "Hieronder staan meerkeuzevragen (met antwoorden) over veiligheidsstudies."

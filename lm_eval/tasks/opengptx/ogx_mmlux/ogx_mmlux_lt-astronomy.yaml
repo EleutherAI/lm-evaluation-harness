@@ -1,9 +1,8 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_lt-astronomy
-dataset_name: astronomy_LT
-doc_to_text: "Klausimas: {{question.strip()}}\nPasirinkimai:\nA. {{choices[0]}}\n\
-  B. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAtsakymas:"
-group:
-- ogx_mmlux_stem
-- ogx_mmlux
-- ogx_mmlux_lt
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "astronomy_LT"
+"task": "ogx_mmlux_lt-astronomy"
+"group": "ogx_mmlux_stem"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nAtsakymas:"
+"description": "Toliau pateikiami klausimai (su atsakymais) apie astronomiją."

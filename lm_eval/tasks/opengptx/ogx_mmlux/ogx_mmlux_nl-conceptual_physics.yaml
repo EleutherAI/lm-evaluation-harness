@@ -1,9 +1,9 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_nl-conceptual_physics
-dataset_name: conceptual_physics_NL
-doc_to_text: "Vraag: {{question.strip()}}\nKeuzes:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
-  C. {{choices[2]}}\nD. {{choices[3]}}\nAntwoord:"
-group:
-- ogx_mmlux_stem
-- ogx_mmlux
-- ogx_mmlux_nl
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "conceptual_physics_NL"
+"task": "ogx_mmlux_nl-conceptual_physics"
+"group": "ogx_mmlux_stem"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nAntwoord:"
+"description": "Hieronder staan meerkeuzevragen (met antwoorden) over conceptuele\
+  \ fysica."

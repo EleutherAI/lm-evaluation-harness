@@ -1,9 +1,8 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_nl-jurisprudence
-dataset_name: jurisprudence_NL
-doc_to_text: "Vraag: {{question.strip()}}\nKeuzes:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
-  C. {{choices[2]}}\nD. {{choices[3]}}\nAntwoord:"
-group:
-- ogx_mmlux_humanities
-- ogx_mmlux
-- ogx_mmlux_nl
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "jurisprudence_NL"
+"task": "ogx_mmlux_nl-jurisprudence"
+"group": "ogx_mmlux_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nAntwoord:"
+"description": "Hieronder staan meerkeuzevragen (met antwoorden) over jurisprudentie."

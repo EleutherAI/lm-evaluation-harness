@@ -1,9 +1,8 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_da-logical_fallacies
-dataset_name: logical_fallacies_DA
-doc_to_text: "Spørgsmål: {{question.strip()}}\nValgmuligheder:\nA. {{choices[0]}}\n\
-  B. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nSvar:"
-group:
-- ogx_mmlux_humanities
-- ogx_mmlux
-- ogx_mmlux_da
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "logical_fallacies_DA"
+"task": "ogx_mmlux_da-logical_fallacies"
+"group": "ogx_mmlux_humanities"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nSvar:"
+"description": "Følgende er multiple choice-spørgsmål (med svar) om logiske fejlslutninger."

@@ -1,9 +1,8 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_sv-college_biology
-dataset_name: college_biology_SV
-doc_to_text: "Fråga: {{question.strip()}}\nValmöjligheter:\nA. {{choices[0]}}\nB.\
-  \ {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nSvar:"
-group:
-- ogx_mmlux_stem
-- ogx_mmlux
-- ogx_mmlux_sv
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "college_biology_SV"
+"task": "ogx_mmlux_sv-college_biology"
+"group": "ogx_mmlux_stem"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nSvar:"
+"description": "Följande är flervalsfrågor (med svar) om biologi på högskolenivå."

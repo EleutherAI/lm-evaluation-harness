@@ -1,9 +1,9 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_lt-high_school_psychology
-dataset_name: high_school_psychology_LT
-doc_to_text: "Klausimas: {{question.strip()}}\nPasirinkimai:\nA. {{choices[0]}}\n\
-  B. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAtsakymas:"
-group:
-- ogx_mmlux_social_sciences
-- ogx_mmlux
-- ogx_mmlux_lt
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "high_school_psychology_LT"
+"task": "ogx_mmlux_lt-high_school_psychology"
+"group": "ogx_mmlux_social_sciences"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nAtsakymas:"
+"description": "Toliau pateikiami klausimai (su atsakymais) apie psichologiją vidurinėje\
+  \ mokykloje."

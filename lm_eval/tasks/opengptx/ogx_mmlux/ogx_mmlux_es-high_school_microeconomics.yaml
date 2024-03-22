@@ -1,9 +1,9 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_es-high_school_microeconomics
-dataset_name: high_school_microeconomics_ES
-doc_to_text: "Pregunta: {{question.strip()}}\nOpciones:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
-  C. {{choices[2]}}\nD. {{choices[3]}}\nRespuesta:"
-group:
-- ogx_mmlux_social_sciences
-- ogx_mmlux
-- ogx_mmlux_es
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "high_school_microeconomics_ES"
+"task": "ogx_mmlux_es-high_school_microeconomics"
+"group": "ogx_mmlux_social_sciences"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nRespuesta:"
+"description": "Las siguientes son preguntas de opción múltiple (con respuestas) sobre\
+  \ microeconomía en la escuela secundaria."

@@ -1,9 +1,8 @@
-include: _mmlux_default_template_yaml
-task: ogx_mmlux_cs-marketing
-dataset_name: marketing_CS
-doc_to_text: "Otázka: {{question.strip()}}\nVolby:\nA. {{choices[0]}}\nB. {{choices[1]}}\n\
-  C. {{choices[2]}}\nD. {{choices[3]}}\nOdpověď:"
-group:
-- ogx_mmlux_other
-- ogx_mmlux
-- ogx_mmlux_cs
+"include": "_default_mmlux_template_yaml"
+"dataset_name": "marketing_CS"
+"task": "ogx_mmlux_cs-marketing"
+"group": "ogx_mmlux_other"
+"doc_to_choice": "['A', 'B', 'C', 'D']"
+"doc_to_text": "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\n\
+  D. {{choices[3]}}\nOdpověď:"
+"description": "Následující otázky (s odpověďmi) se týkají marketingu."
