@@ -292,8 +292,12 @@ class NeMoLM(LM):
 
         re_ord = Collator(requests, sort_fn=_collate)
         chunks = re_ord.get_batched(n=self.batch_size, batch_fn=None)
-
-        for chunk in tqdm(chunks, disable=disable_tqdm):
+        pbar = tqdm(
+            total=len(requests),
+            disable=(disable_tqdm or (self.rank != 0)),
+            desc="Running loglikelihood requests",
+        )
+        for chunk in chunks:
             inps = []
             ctxlens = []
             contlens = []
@@ -349,6 +353,9 @@ class NeMoLM(LM):
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
                 res.append(answer)
+                pbar.update(1)
+
+        pbar.close()
 
         return re_ord.get_original(res)
 
