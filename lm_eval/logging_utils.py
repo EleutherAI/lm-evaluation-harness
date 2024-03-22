@@ -417,7 +417,7 @@ def get_commit_from_path(repo_path: Union[Path, str]) -> Optional[str]:
         else:
             git_hash = None
     except Exception as err:
-        logger.warning(
+        logger.debug(
             f"Failed to retrieve a Git commit hash from path: {str(repo_path)}. Error: {err}"
         )
         return None
