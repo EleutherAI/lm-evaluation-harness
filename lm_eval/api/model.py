@@ -304,7 +304,9 @@ class TemplateLM(LM):
             continuation = context[-n_spaces:] + continuation
             context = context[:-n_spaces]
 
-        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+        model_class = getattr(self, "AUTO_MODEL_CLASS", None)
+
+        if model_class == transformers.AutoModelForCausalLM:
             whole_enc = self.tok_encode(
                 context + continuation, add_special_tokens=False
             )
@@ -313,7 +315,7 @@ class TemplateLM(LM):
             context_enc_len = len(context_enc)
             continuation_enc = whole_enc[context_enc_len:]
 
-        elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
+        elif model_class == transformers.AutoModelForSeq2SeqLM:
             # The encoder may require context end with special tokens
             context_enc = self.tok_encode(context)
             continuation_enc = self.tok_encode(continuation, add_special_tokens=False)
