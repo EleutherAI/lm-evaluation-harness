@@ -3,3 +3,15 @@
 "doc_to_text": "Q: Which statement is sarcastic?\nOptions:\n(A) Yes, because having interests and actively researching them is a huge waste\n(B) Yes, because having interests and actively researching them is a huge deal\nA: (A)\n\nQ: Which statement is sarcastic?\nOptions:\n(A) No one is going to disagree with you on this. Avoiding ad hominem attacks really help your case\n(B) No one is going to disagree with you on this. Ad hominem attacks really help your case\nA: (B)\n\nQ: Which statement is sarcastic?\nOptions:\n(A) Consistency in the league's punishments? What do you think this is supposed to be, politics?\n(B) Consistency in the league's punishments? What do you think this is supposed to be, moral?\nA: (A)\n\nQ: {{input}}\nA:"
 "include": "_fewshot_template_yaml"
 "task": "bbh_fewshot_snarks"
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: !function utils.MultiChoiceRegexFilter
+        group_select: 0
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: "(\\([A-Z]\\))"
+      - function: "take_first"
