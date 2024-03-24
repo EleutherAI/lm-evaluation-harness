@@ -141,7 +141,8 @@ Run a `nemo` model on one GPU:
 ```bash
 lm_eval --model nemo_lm \
     --model_args path=<path_to_nemo_model> \
-    --tasks hellaswag
+    --tasks hellaswag \
+    --batch_size 32
 ```
 
 It is recommended to unpack the `nemo` model to avoid the unpacking inside the docker container - it may overflow disk space. For that you can run:
@@ -151,16 +152,30 @@ mkdir MY_MODEL
 tar -xvf MY_MODEL.nemo -c MY_MODEL
 ```
 
-#### Multi-GPU and multi-node evaluation with NVIDIA `nemo` models
+#### Multi-GPU evaluation with NVIDIA `nemo` models
 
-By default, only one GPU is used. But we do support data, tensor and pipeline parallelism during evaluation, on one or multiple nodes. You can set up the `model_args` of `devices` (per node), `num_nodes`, `tensor_model_parallel_size` and `pipeline_model_parallel_size` to control how the model is partitioned. The number of data replicas is determined by dividing the total number of devices by the product of tensor and pipeline parallelism. For example, the command to use one node of 8 GPUs with tensor parallelism of 2 and data replication of 4 is:
+By default, only one GPU is used. But we do support either data replication or tensor/pipeline parallelism during evaluation, on one node.
+
+1) To enable data replication, set the `model_args` of `devices` to the number of data replicas to run. For example, the command to run 8 data replicas over 8 GPUs is:
 ```bash
-torchrun --nproc-per-node=<number of gpus> --no-python lm_eval \
+torchrun --nproc-per-node=8 --no-python lm_eval \
     --model nemo_lm \
-    --model_args path=<path_to_nemo_model>,devices=8,tensor_model_parallel_size=2 \
-    --tasks hellaswag
+    --model_args path=<path_to_nemo_model>,devices=8 \
+    --tasks hellaswag \
+    --batch_size 32
 ```
-Note that it is recommended to substitute the `python` command by `torchrun --nproc-per-node=<number of gpus> --no-python` to facilitate loading the model into the GPUs.
+
+2) To enable tensor and/or pipeline parallelism, set the `model_args` of `tensor_model_parallel_size` and/or `pipeline_model_parallel_size`. In addition, you also have to set up `devices` to be equal to the product of `tensor_model_parallel_size` and/or `pipeline_model_parallel_size`. For example, the command to use one node of 4 GPUs with tensor parallelism of 2 and pipeline parallelism of 2 is:
+```bash
+torchrun --nproc-per-node=4 --no-python lm_eval \
+    --model nemo_lm \
+    --model_args path=<path_to_nemo_model>,devices=4,tensor_model_parallel_size=2,pipeline_model_parallel_size=2 \
+    --tasks hellaswag \
+    --batch_size 32
+```
+Note that it is recommended to substitute the `python` command by `torchrun --nproc-per-node=<number of devices> --no-python` to facilitate loading the model into the GPUs.
+
+Not supported yet: multi-node evaluation and combinations of data replication with tensor or pipeline parallelism.
 
 ### Tensor + Data Parallel and Optimized Inference with `vLLM`
 

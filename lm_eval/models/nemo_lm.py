@@ -25,7 +25,7 @@ from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator
-from lm_eval.utils import simple_parse_args_string, get_rolling_token_windows, make_disjoint_window
+from lm_eval.utils import eval_logger, simple_parse_args_string, get_rolling_token_windows, make_disjoint_window
 
 
 def _patch_pretrained_cfg(pretrained_cfg, trainer, tensor_model_parallel_size, pipeline_model_parallel_size):
@@ -149,22 +149,27 @@ class NeMoLM(LM):
         from pytorch_lightning.trainer.trainer import Trainer
         from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy
 
-        if devices % tensor_model_parallel_size != 0:
+        if tensor_model_parallel_size == 1 and pipeline_model_parallel_size == 1 and devices > 1:
+            eval_logger.info(f"The number of data replicas for evaluation is {devices}.")
+            eval_logger.info(f"The total number of devices is {devices}.")
+            eval_logger.info(f"No tensor parallelism or pipeline parallelism is applied.")
+
+        elif tensor_model_parallel_size * pipeline_model_parallel_size == devices:
+            eval_logger.info(
+                f"Setting tensor parallelism to {tensor_model_parallel_size} and pipeline parallelism to {pipeline_model_parallel_size}."
+            )
+            eval_logger.info(f"The total number of devices is {devices}.")
+            eval_logger.info(f"No data parallelism is applied.")
+
+        else:
             raise ValueError(
-                f"The number of GPU devices per node {devices} needs to be divisible by the number "
-                f"of tensor parallelism {tensor_model_parallel_size}."
+                f"Please set the product of tensor_model_parallel_size and pipeline_model_parallel_size"
+                f"equal to the specified number of devices."
                 )
 
-        if devices % pipeline_model_parallel_size != 0:
+        if num_nodes > 1:
             raise ValueError(
-                f"The number of GPU devices per node {devices} needs to be divisible by the number "
-                f"of pipeline parallelism {pipeline_model_parallel_size}."
-                )
-
-        if devices % (pipeline_model_parallel_size * tensor_model_parallel_size) != 0:
-            raise ValueError(
-                f"The number of GPU devices per node {devices} needs to be divisible by the product of tensor "
-                f"parallelism {tensor_model_parallel_size} and pipeline parallelism {pipeline_model_parallel_size}."
+                f"A number of nodes greater than 1 is not supported yet. Please set num_nodes as 1."
                 )
 
         trainer = Trainer(
@@ -177,13 +182,16 @@ class NeMoLM(LM):
             enable_checkpointing=False,
             use_distributed_sampler=False,
         )
-
+        # Modify the following flags only for data replication
+        if tensor_model_parallel_size == 1 and pipeline_model_parallel_size == 1 and devices > 1:
+            self._device = torch.device(f"cuda:{trainer.global_rank}")
+            self._rank = trainer.global_rank
+            self._world_size = trainer.world_size
         self.model = load_model(
             path, trainer,
             tensor_model_parallel_size=tensor_model_parallel_size,
             pipeline_model_parallel_size=pipeline_model_parallel_size,
         ).cuda()
-
         self.tokenizer = self.model.tokenizer
         self.app_state = setup_distributed_environment(trainer)
 
@@ -217,6 +225,32 @@ class NeMoLM(LM):
     @property
     def batch_size(self):
         return self._batch_size
+
+    @property
+    def device(self):
+        return self._device
+
+    @property
+    def rank(self):
+        return self._rank
+
+    @property
+    def world_size(self):
+        return self._world_size
+
+    @property
+    def accelerator(self):
+        return self._Accelerator(self.world_size)
+
+    class _Accelerator:
+        def __init__(self, world_size):
+            self.world_size = world_size
+        def wait_for_everyone(self):
+            torch.distributed.barrier()
+        def gather(self, local_tensor):
+            gathered_tensors = [torch.zeros(1, dtype=local_tensor.dtype).cuda() for _ in range(self.world_size)]
+            torch.distributed.all_gather(gathered_tensors, local_tensor)
+            return torch.cat(gathered_tensors)
 
     def tok_encode(self, string: str):
         return self.tokenizer.text_to_ids(string)
