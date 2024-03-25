@@ -21,7 +21,8 @@ def execute_config(
     task: str,
     batch_size: int,
     limit: int,
-    output_dir: str
+    output_dir: str,
+    num_fewshot: int,
 ):
     # Save the original standard output
     import subprocess
@@ -36,7 +37,8 @@ def execute_config(
         "--device", "cuda:0",
         "--batch_size", str(batch_size),
         "--log_samples",
-        "--output_path", output_dir
+        "--output_path", output_dir,
+        "--num_fewshot", str(num_fewshot)
     ]
 
     if limit is not None:
@@ -53,13 +55,15 @@ def execute_config(
 @click.option("--gpus", default=None, type=str)
 @click.option("--batch-size", default=8, type=int)
 @click.option("--limit", default=None, type=int)
+@click.option("--num_fewshot", default=0, type=int)
 def main(
     model: List[str], 
     task: List[str], 
     batch_size: int,
     limit: Optional[int],
     parallelize: bool, 
-    gpus: str
+    gpus: str,
+    num_fewshot: int = 0,
 ):
 
     if gpus is not None:
@@ -88,7 +92,8 @@ def main(
                 **config,
                 batch_size=batch_size,
                 limit=limit,
-                output_dir=output_dir
+                output_dir=output_dir,
+                num_fewshot=num_fewshot,
             )
     else:
         completed = 0

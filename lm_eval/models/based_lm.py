@@ -39,13 +39,20 @@ class BasedLMWrapper(HFLM):
             from based.models.transformer.gpt import GPTLMHeadModel, GPT2Config, state_dict_from_pretrained; # TODO: construct a loading function
             config_data = load_config_hf(self.checkpoint_name)            
             config = GPT2Config(**config_data)
-            model = GPTLMHeadModel(config=config, device=device, dtype=torch.float16)
-            state_dict = state_dict_from_pretrained(self.checkpoint_name, dtype=torch.float16)
-            # remove the 'model.' prefix from the keys
-            state_dict = {re.sub("^model\.", "", k): v for k, v in state_dict.items()}
-            # remove Unexpected key(s) in state_dict: "train_metrics.num-tokens.count", "val_metrics.num-tokens.count", "test_metrics.num-tokens.count". from the state_dict
-            state_dict = {k: v for k, v in state_dict.items() if "metrics" not in k}
-            model.load_state_dict(state_dict)
+            try:
+                model = GPTLMHeadModel(config=config, device=device, dtype=torch.float16, multiple_of=256)
+                state_dict = state_dict_from_pretrained(self.checkpoint_name, dtype=torch.float16)
+                # remove the 'model.' prefix from the keys
+                state_dict = {re.sub("^model\.", "", k): v for k, v in state_dict.items()}
+                # remove Unexpected key(s) in state_dict: "train_metrics.num-tokens.count", "val_metrics.num-tokens.count", "test_metrics.num-tokens.count". from the state_dict
+                state_dict = {k: v for k, v in state_dict.items() if "metrics" not in k}
+                model.load_state_dict(state_dict)
+            except:
+                model = GPTLMHeadModel(config=config, device=device, dtype=torch.float16, multiple_of=128)
+                state_dict = state_dict_from_pretrained(self.checkpoint_name, dtype=torch.float16)
+                state_dict = {re.sub("^model\.", "", k): v for k, v in state_dict.items()}
+                state_dict = {k: v for k, v in state_dict.items() if "metrics" not in k}
+                model.load_state_dict(state_dict)
         else:
             raise ValueError(f"Unsupported model {arch}")
 
