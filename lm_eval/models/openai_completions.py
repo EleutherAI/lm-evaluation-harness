@@ -281,7 +281,7 @@ class OpenaiCompletionsLM(TemplateLM):
                 **{
                     k: v
                     for k, v in request_args.items()
-                    if k not in ["do_sample", "max_gen_toks"]
+                    if k not in {"do_sample", "max_gen_toks", "until"}
                 },
             )
             for resp, (context, args_) in zip(response.choices, chunk):
