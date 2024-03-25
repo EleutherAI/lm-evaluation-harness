@@ -1,0 +1,38 @@
+dataset_path: Idavidrein/gpqa
+group: gpqa
+output_type: generate_until
+process_docs: !function utils.process_docs
+training_split: train
+# Because huggingface dataset only has train split
+validation_split: train
+test_split: null
+description: "Here are some example questions from experts. Answer the final question yourself, following the format of the previous questions exactly.\n"
+doc_to_text: "Question: {{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\nLet's think step by step: "
+doc_to_target: answer
+filter_list:
+  - name: "strict-match"
+    filter:
+      - function: "regex"
+        regex_pattern: "(?<=The answer is )(.*)(?=.)"
+      - function: "take_first"
+  - name: "flexible-extract"
+    filter:
+      - function: "multi_choice_regex"
+        group_select: -1
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: "(\\([A-Z]\\))"
+      - function: "take_first"
+generation_kwargs:
+  until:
+    - "</s>"
+  do_sample: false
+  temperature: 0.0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0

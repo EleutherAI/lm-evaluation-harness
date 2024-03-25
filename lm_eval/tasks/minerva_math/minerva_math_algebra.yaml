@@ -23,3 +23,5 @@ num_fewshot: 0
 metadata:
   version: 1.0
   num_fewshot: 4
+dataset_kwargs:
+  trust_remote_code: true

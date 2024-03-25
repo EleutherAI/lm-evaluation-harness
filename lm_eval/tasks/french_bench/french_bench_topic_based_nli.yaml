@@ -1,0 +1,23 @@
+include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_extra
+description: "A propos du thème spécifié, l'avis client est il positif, négatif, ou neutre ?"
+task: french_bench_topic_based_nli
+dataset_path: manu/topic_based_nli_test
+output_type: multiple_choice
+validation_split: valid
+# doc_to_text: "\nAvis Client: {{text}}\n\nEn considèrant uniquement le thème \"{{topic}}\", l'avis client est plutot:\nA. Positif \nB. Négatif\nC. Mitigé \nD. Neutre\nE. Absent\n\nRéponse:"
+# doc_to_choice: ["A", "B", "C", "D", "E"]
+doc_to_text: "\nAvis Client: {{text}}\n\nA propos du thème \"{{topic}}\", l'avis client est"
+doc_to_choice: ['positif', 'négatif', 'neutre']
+doc_to_target: "{{['positif', 'negatif', 'neutre'].index(polarity)}}"
+should_decontaminate: true
+doc_to_decontamination_query: texte
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true

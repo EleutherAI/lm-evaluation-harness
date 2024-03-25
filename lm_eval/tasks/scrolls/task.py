@@ -1,16 +1,16 @@
 import re
-import numpy as np
-import transformers.data.metrics.squad_metrics as squad_metrics
-
 from abc import abstractmethod
-from datasets import load_metric
-from transformers import AutoTokenizer
 from functools import reduce
 
-from lm_eval.api.task import Task
-from lm_eval.api.metrics import mean
+import numpy as np
+import transformers.data.metrics.squad_metrics as squad_metrics
+from datasets import load_metric
+from transformers import AutoTokenizer
+
 from lm_eval.api.instance import Instance
-from lm_eval.api.registry import register_task
+from lm_eval.api.metrics import mean
+from lm_eval.api.task import Task
+
 
 _CITATION = """
 @inproceedings{shaham-etal-2022-scrolls,
@@ -44,6 +44,7 @@ _CITATION = """
 def _download_metric():
     import os
     import shutil
+
     from huggingface_hub import hf_hub_download
 
     scrolls_metric_path = hf_hub_download(
@@ -148,7 +149,7 @@ class _SCROLLSTask(Task):
         del self.dataset["test"]
         for split in self.dataset:
             self.dataset[split] = _drop_duplicates_in_input(self.dataset[split])
-        if self.PRUNE_TOKENIZERS is not None and self.PRUNE_TOKENIZERS is not None:
+        if self.PRUNE_TOKENIZERS is not None:
             self.prune()
 
     def _get_prune_text(self, sample):

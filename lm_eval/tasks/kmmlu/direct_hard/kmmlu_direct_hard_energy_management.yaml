@@ -1,0 +1,3 @@
+dataset_name: energy_management
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_hard_direct_energy_management
