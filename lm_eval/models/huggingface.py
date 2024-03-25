@@ -34,6 +34,7 @@ from lm_eval.models.utils import (
     stop_sequences_criteria,
 )
 
+from packaging import version
 
 eval_logger = utils.eval_logger
 
@@ -565,7 +566,8 @@ class HFLM(TemplateLM):
 
         if peft:
             if model_kwargs.get("load_in_4bit", None):
-                assert PEFT_VERSION >= "0.4.0", "load_in_4bit requires peft >= 0.4.0"
+                if version.parse(PEFT_VERSION) < version.parse("0.4.0"):
+                    raise AssertionError("load_in_4bit requires peft >= 0.4.0")
             self._model = PeftModel.from_pretrained(
                 self._model, peft, revision=revision
             )
