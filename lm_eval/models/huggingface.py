@@ -34,7 +34,6 @@ from lm_eval.models.utils import (
     stop_sequences_criteria,
 )
 
-from packaging import version
 
 eval_logger = utils.eval_logger
 
