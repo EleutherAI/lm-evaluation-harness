@@ -173,7 +173,7 @@ torchrun --nproc-per-node=4 --no-python lm_eval \
     --tasks hellaswag \
     --batch_size 32
 ```
-Note that it is recommended to substitute the `python` command by `torchrun --nproc-per-node=<number of devices> --no-python` to facilitate loading the model into the GPUs.
+Note that it is recommended to substitute the `python` command by `torchrun --nproc-per-node=<number of devices> --no-python` to facilitate loading the model into the GPUs. This is especially important for large checkpoints loaded into multiple GPUs.
 
 Not supported yet: multi-node evaluation and combinations of data replication with tensor or pipeline parallelism.
 
