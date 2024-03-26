@@ -1,0 +1,7 @@
+"dataset_name": "technical"
+"description": "以下為技術工相關的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_other"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "tmmluplus_technical"
+"task_alias": "technical"

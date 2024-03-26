@@ -1,0 +1,7 @@
+"dataset_name": "basic_medical_science"
+"description": "以下為基礎醫學的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_STEM"
+"group_alias": "STEM"
+"include": "_default_template_yaml"
+"task": "tmmluplus_basic_medical_science"
+"task_alias": "basic medical science"

@@ -1,0 +1,7 @@
+"dataset_name": "business_management"
+"description": "以下為企業管理的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_other"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "tmmluplus_business_management"
+"task_alias": "business management"

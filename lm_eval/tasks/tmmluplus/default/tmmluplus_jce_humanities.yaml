@@ -1,0 +1,7 @@
+"dataset_name": "jce_humanities"
+"description": "以下為指考人文科目的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_humanities"
+"group_alias": "humanities"
+"include": "_default_template_yaml"
+"task": "tmmluplus_jce_humanities"
+"task_alias": "jce humanities"

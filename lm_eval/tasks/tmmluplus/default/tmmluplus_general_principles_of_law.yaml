@@ -1,0 +1,7 @@
+"dataset_name": "general_principles_of_law"
+"description": "以下為法學大意的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_humanities"
+"group_alias": "humanities"
+"include": "_default_template_yaml"
+"task": "tmmluplus_general_principles_of_law"
+"task_alias": "general principles of law"

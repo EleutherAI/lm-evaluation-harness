@@ -1,0 +1,7 @@
+"dataset_name": "clinical_psychology"
+"description": "以下為臨床心理學的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_social_sciences"
+"group_alias": "social sciences"
+"include": "_default_template_yaml"
+"task": "tmmluplus_clinical_psychology"
+"task_alias": "clinical psychology"

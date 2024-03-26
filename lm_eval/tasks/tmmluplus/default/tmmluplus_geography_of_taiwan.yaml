@@ -1,0 +1,7 @@
+"dataset_name": "geography_of_taiwan"
+"description": "以下為台灣地理的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_social_sciences"
+"group_alias": "social sciences"
+"include": "_default_template_yaml"
+"task": "tmmluplus_geography_of_taiwan"
+"task_alias": "geography of taiwan"

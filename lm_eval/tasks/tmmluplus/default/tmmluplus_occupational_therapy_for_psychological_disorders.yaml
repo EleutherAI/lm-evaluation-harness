@@ -1,0 +1,7 @@
+"dataset_name": "occupational_therapy_for_psychological_disorders"
+"description": "以下為心理障礙職能治療學的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_social_sciences"
+"group_alias": "social sciences"
+"include": "_default_template_yaml"
+"task": "tmmluplus_occupational_therapy_for_psychological_disorders"
+"task_alias": "occupational therapy for psychological disorders"

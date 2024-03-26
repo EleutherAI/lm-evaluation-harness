@@ -1,0 +1,7 @@
+"dataset_name": "junior_chinese_exam"
+"description": "以下為國中會考基測國文的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_social_sciences"
+"group_alias": "social sciences"
+"include": "_default_template_yaml"
+"task": "tmmluplus_junior_chinese_exam"
+"task_alias": "junior chinese exam"

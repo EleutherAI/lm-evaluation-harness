@@ -1,0 +1,7 @@
+"dataset_name": "mechanical"
+"description": "以下為機械與機電概論的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_other"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "tmmluplus_mechanical"
+"task_alias": "mechanical"

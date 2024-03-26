@@ -1,0 +1,7 @@
+"dataset_name": "tve_design"
+"description": "以下為統測 設計的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_other"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "tmmluplus_tve_design"
+"task_alias": "tve design"
