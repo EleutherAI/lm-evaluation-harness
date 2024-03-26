@@ -14,22 +14,31 @@
 
 import importlib
 import pathlib
-import filelock
-from typing import List, Literal
-from tqdm import tqdm
-import torch
-import numpy as np
 from copy import deepcopy
+from typing import List, Literal
+
+import filelock
+import numpy as np
+import torch
+from tqdm import tqdm
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator
-from lm_eval.utils import eval_logger, simple_parse_args_string, get_rolling_token_windows, make_disjoint_window
+from lm_eval.utils import (
+    eval_logger,
+    get_rolling_token_windows,
+    make_disjoint_window,
+    simple_parse_args_string,
+)
 
 
-def _patch_pretrained_cfg(pretrained_cfg, trainer, tensor_model_parallel_size, pipeline_model_parallel_size):
+def _patch_pretrained_cfg(
+    pretrained_cfg, trainer, tensor_model_parallel_size, pipeline_model_parallel_size
+):
     import omegaconf
+
     omegaconf.OmegaConf.set_struct(pretrained_cfg, True)
     with omegaconf.open_dict(pretrained_cfg):
         attributes_to_update = {
@@ -40,7 +49,7 @@ def _patch_pretrained_cfg(pretrained_cfg, trainer, tensor_model_parallel_size, p
             "global_batch_size": None,
             "tensor_model_parallel_size": tensor_model_parallel_size,
             "pipeline_model_parallel_size": pipeline_model_parallel_size,
-            "apply_rope_fusion": False
+            "apply_rope_fusion": False,
         }
         for name, value in attributes_to_update.items():
             if hasattr(pretrained_cfg, name):
@@ -53,12 +62,14 @@ def _get_target_from_class(target_class) -> str:
 
 
 def load_model(
-        model_path: str,
-        trainer, tensor_model_parallel_size: int,
-        pipeline_model_parallel_size: int
-        ) -> torch.nn.Module:
-
-    from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import MegatronGPTModel
+    model_path: str,
+    trainer,
+    tensor_model_parallel_size: int,
+    pipeline_model_parallel_size: int,
+) -> torch.nn.Module:
+    from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import (
+        MegatronGPTModel,
+    )
     from nemo.collections.nlp.parts.nlp_overrides import NLPSaveRestoreConnector
 
     model_path = pathlib.Path(model_path)
@@ -73,7 +84,8 @@ def load_model(
         pretrained_cfg["target"] = _get_target_from_class(MegatronGPTModel)
 
     pretrained_cfg = _patch_pretrained_cfg(
-        pretrained_cfg, trainer,
+        pretrained_cfg,
+        trainer,
         tensor_model_parallel_size=tensor_model_parallel_size,
         pipeline_model_parallel_size=pipeline_model_parallel_size,
     )
@@ -99,7 +111,7 @@ def load_model(
         trainer=trainer,
         override_config_path=override_config,
         save_restore_connector=save_restore_connector,
-        map_location=f'cuda:{trainer.local_rank}',
+        map_location=f"cuda:{trainer.local_rank}",
     )
 
     model.freeze()
@@ -114,6 +126,7 @@ def load_model(
 
 def setup_distributed_environment(trainer):
     from nemo.utils.app_state import AppState
+
     def dummy():
         return
 
@@ -125,52 +138,69 @@ def setup_distributed_environment(trainer):
 
     return app_state
 
-@register_model('nemo_lm')
+
+@register_model("nemo_lm")
 class NeMoLM(LM):
-
     def __init__(
-            self,
-            path: str,
-            max_length: int = 4096,
-            batch_size: int = 1,
-            max_gen_toks: int = 256,
-            devices: int = 1,
-            num_nodes: int = 1,
-            tensor_model_parallel_size: int = 1,
-            pipeline_model_parallel_size: int = 1,
-            precision: Literal[
-                "16-mixed", "bf16-mixed", "32-true", "64-true", 64, 32, 16, "64", "32", "16", "bf16"
-                ] = "bf16",
-            **kwargs
-        ):
-
+        self,
+        path: str,
+        max_length: int = 4096,
+        batch_size: int = 1,
+        max_gen_toks: int = 256,
+        devices: int = 1,
+        num_nodes: int = 1,
+        tensor_model_parallel_size: int = 1,
+        pipeline_model_parallel_size: int = 1,
+        precision: Literal[
+            "16-mixed",
+            "bf16-mixed",
+            "32-true",
+            "64-true",
+            64,
+            32,
+            16,
+            "64",
+            "32",
+            "16",
+            "bf16",
+        ] = "bf16",
+        **kwargs,
+    ):
         super().__init__()
 
-        from pytorch_lightning.trainer.trainer import Trainer
         from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy
+        from pytorch_lightning.trainer.trainer import Trainer
 
-        if tensor_model_parallel_size == 1 and pipeline_model_parallel_size == 1 and devices > 1:
-            eval_logger.info(f"The number of data replicas for evaluation is {devices}.")
+        if (
+            tensor_model_parallel_size == 1
+            and pipeline_model_parallel_size == 1
+            and devices > 1
+        ):
+            eval_logger.info(
+                f"The number of data replicas for evaluation is {devices}."
+            )
             eval_logger.info(f"The total number of devices is {devices}.")
-            eval_logger.info(f"No tensor parallelism or pipeline parallelism is applied.")
+            eval_logger.info(
+                "No tensor parallelism or pipeline parallelism is applied."
+            )
 
         elif tensor_model_parallel_size * pipeline_model_parallel_size == devices:
             eval_logger.info(
                 f"Setting tensor parallelism to {tensor_model_parallel_size} and pipeline parallelism to {pipeline_model_parallel_size}."
             )
             eval_logger.info(f"The total number of devices is {devices}.")
-            eval_logger.info(f"No data parallelism is applied.")
+            eval_logger.info("No data parallelism is applied.")
 
         else:
             raise ValueError(
-                f"Please set the product of tensor_model_parallel_size and pipeline_model_parallel_size"
-                f"equal to the specified number of devices."
-                )
+                "Please set the product of tensor_model_parallel_size and pipeline_model_parallel_size"
+                "equal to the specified number of devices."
+            )
 
         if num_nodes > 1:
             raise ValueError(
-                f"A number of nodes greater than 1 is not supported yet. Please set num_nodes as 1."
-                )
+                "A number of nodes greater than 1 is not supported yet. Please set num_nodes as 1."
+            )
 
         trainer = Trainer(
             strategy=NLPDDPStrategy(),
@@ -183,12 +213,17 @@ class NeMoLM(LM):
             use_distributed_sampler=False,
         )
         # Modify the following flags only for data replication
-        if tensor_model_parallel_size == 1 and pipeline_model_parallel_size == 1 and devices > 1:
+        if (
+            tensor_model_parallel_size == 1
+            and pipeline_model_parallel_size == 1
+            and devices > 1
+        ):
             self._device = torch.device(f"cuda:{trainer.global_rank}")
             self._rank = trainer.global_rank
             self._world_size = trainer.world_size
         self.model = load_model(
-            path, trainer,
+            path,
+            trainer,
             tensor_model_parallel_size=tensor_model_parallel_size,
             pipeline_model_parallel_size=pipeline_model_parallel_size,
         ).cuda()
@@ -203,7 +238,7 @@ class NeMoLM(LM):
     def create_from_arg_string(cls, arg_string, additional_config=None):
         args = simple_parse_args_string(arg_string)
         if additional_config:
-            args['batch_size'] = additional_config.get('batch_size', 1)
+            args["batch_size"] = additional_config.get("batch_size", 1)
 
         return cls(**args)
 
@@ -245,10 +280,15 @@ class NeMoLM(LM):
     class _Accelerator:
         def __init__(self, world_size):
             self.world_size = world_size
+
         def wait_for_everyone(self):
             torch.distributed.barrier()
+
         def gather(self, local_tensor):
-            gathered_tensors = [torch.zeros(1, dtype=local_tensor.dtype).cuda() for _ in range(self.world_size)]
+            gathered_tensors = [
+                torch.zeros(1, dtype=local_tensor.dtype).cuda()
+                for _ in range(self.world_size)
+            ]
             torch.distributed.all_gather(gathered_tensors, local_tensor)
             return torch.cat(gathered_tensors)
 
@@ -274,8 +314,9 @@ class NeMoLM(LM):
         for context, continuation in [req.args for req in requests]:
             if context == "":
                 # end of text as context
-                context_enc, continuation_enc = [self.eot_token_id], self.tok_encode(
-                    continuation
+                context_enc, continuation_enc = (
+                    [self.eot_token_id],
+                    self.tok_encode(continuation),
                 )
             else:
                 context_enc, continuation_enc = self._encode_pair(context, continuation)
@@ -338,7 +379,7 @@ class NeMoLM(LM):
 
             for _, context_enc, continuation_enc in chunk:
                 # Leave one token for generation. Tokens_to_generate = 0 breaks NeMo.
-                inp = (context_enc + continuation_enc)[-(self.max_length-1):]
+                inp = (context_enc + continuation_enc)[-(self.max_length - 1) :]
 
                 ctxlen = len(context_enc) - max(
                     0, len(context_enc) + len(continuation_enc) - (self.max_length - 1)
@@ -354,31 +395,44 @@ class NeMoLM(LM):
                 tokens_to_generate=1,
                 min_tokens_to_generate=1,
                 compute_logprob=True,
-                all_probs=True
+                all_probs=True,
             )
 
-            batch_token_ids = np.asarray(output['token_ids'])[:, :-1]
-            batch_logprobs = output['logprob'][:, :-1]
-            batch_full_logprob = output['full_logprob'][:, :-1, :]
+            batch_token_ids = np.asarray(output["token_ids"])[:, :-1]
+            batch_logprobs = output["logprob"][:, :-1]
+            batch_full_logprob = output["full_logprob"][:, :-1, :]
 
             # Compute greedy tokens for entire batch rather than calling it with proper ctxlen for each sample.
             # Additional tokens for each sample will be trimmed later.
             min_ctxlen = min(ctxlens)
 
             # Use min_ctxlen-1 instead of min_ctxlen since full_logprobs are not returns for the first token.
-            batch_greedy_tokens = torch.argmax(batch_full_logprob[:, min_ctxlen-1:, :], -1).cpu().numpy()
+            batch_greedy_tokens = (
+                torch.argmax(batch_full_logprob[:, min_ctxlen - 1 :, :], -1)
+                .cpu()
+                .numpy()
+            )
 
-            for token_ids, greedy_tokens, logprobs, ctxlen, contlen, (cache_key, _, _) in \
-                    zip(batch_token_ids, batch_greedy_tokens, batch_logprobs, ctxlens, contlens, chunk):
-
+            for token_ids, greedy_tokens, logprobs, ctxlen, contlen, (
+                cache_key,
+                _,
+                _,
+            ) in zip(
+                batch_token_ids,
+                batch_greedy_tokens,
+                batch_logprobs,
+                ctxlens,
+                contlens,
+                chunk,
+            ):
                 # Trim at contlen since shorter contexts in a batch will have more than one token generated.
                 # Use ctxlen-1 instead of ctxlen same as for full_logprob in batch_greedy_tokens calculation
-                logprobs = (logprobs[ctxlen-1:])[:contlen]
+                logprobs = (logprobs[ctxlen - 1 :])[:contlen]
                 logprob = sum(logprobs).tolist()
 
                 continuation_tokens = (token_ids[ctxlen:])[:contlen]
                 len_diff = ctxlen - min_ctxlen
-                is_greedy = (continuation_tokens == (greedy_tokens[len_diff:])[:contlen])
+                is_greedy = continuation_tokens == (greedy_tokens[len_diff:])[:contlen]
                 if not isinstance(is_greedy, bool):
                     is_greedy = is_greedy.all()
                 answer = (logprob, is_greedy)
@@ -401,7 +455,7 @@ class NeMoLM(LM):
         res = []
 
         def get_until(req_args):
-            until = req_args.get('until', [])
+            until = req_args.get("until", [])
             until = deepcopy(until)  # prevent from modifying req_args for cache_key
             if self.eot_token_id not in until:
                 until.append(self.eot_token_id)
@@ -411,7 +465,9 @@ class NeMoLM(LM):
             toks = self.tok_encode(x[0])
             return len(toks), x[0]
 
-        re_ords = Collator([reg.args for reg in requests], sort_fn=_collate, group_by="gen_kwargs")
+        re_ords = Collator(
+            [reg.args for reg in requests], sort_fn=_collate, group_by="gen_kwargs"
+        )
         chunks = re_ords.get_batched(n=self.batch_size, batch_fn=None)
         for chunk in chunks:
             contexts, all_gen_kwargs = zip(*chunk)
@@ -420,40 +476,34 @@ class NeMoLM(LM):
             req_args = all_gen_kwargs[0]
             # unpack our keyword arguments.
             until = get_until(req_args)
-            max_gen_toks = req_args.get('max_gen_toks', self.max_gen_toks)
+            max_gen_toks = req_args.get("max_gen_toks", self.max_gen_toks)
 
             remaining_length = self.max_length - max_gen_toks
             contexts = []
             for context, _ in chunk:
                 encoded_context = self.tok_encode(context)
                 encoded_context = encoded_context[-remaining_length:]
-                contexts.append(
-                    self.tok_decode(encoded_context)
-                )
+                contexts.append(self.tok_decode(encoded_context))
 
             output = generate(
                 self.model,
                 inputs=contexts,
                 tokens_to_generate=max_gen_toks,
                 end_strings=until,
-                greedy=True
+                greedy=True,
             )
 
-            answers = output['sentences']
+            answers = output["sentences"]
 
             continuations = []
             for context, answer in zip(contexts, answers):
-                continuations.append(
-                    answer[len(context):]
-                )
+                continuations.append(answer[len(context) :])
 
             for term in until:
-                continuations = [
-                    answer.split(term)[0] for answer in continuations
-                ]
+                continuations = [answer.split(term)[0] for answer in continuations]
 
             for request, answer in zip(chunk, continuations):
-                self.cache_hook.add_partial('greedy_until', request, answer)
+                self.cache_hook.add_partial("greedy_until", request, answer)
                 res.append(answer)
 
         return re_ords.get_original(res)

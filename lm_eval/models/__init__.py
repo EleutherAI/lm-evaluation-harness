@@ -4,12 +4,12 @@ from . import (
     gguf,
     huggingface,
     mamba_lm,
+    nemo_lm,
     neuron_optimum,
     openai_completions,
     optimum_lm,
     textsynth,
     vllm_causallms,
-    nemo_lm
 )
 
 
