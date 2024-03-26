@@ -1,16 +1,14 @@
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy
 from tqdm import tqdm
 
+import lm_eval.models.utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
-from deepsparse import Pipeline
-from deepsparse.utils.data import numpy_log_softmax
 
 
 @register_model("sparseml")
@@ -20,6 +18,9 @@ class SparseMLLM(HFLM):
     inference-optimized sparse models using pruning, quantization, and distillation
     algorithms. Models optimized with SparseML can then be exported to the ONNX and
     deployed with DeepSparse for GPU-class performance on CPU hardware.
+
+    This class is a wrapper around the HuggingFace LM class to enable SparseML
+    integration with the lm-evaluation-harness
     """
 
     def _create_model(
@@ -28,78 +29,80 @@ class SparseMLLM(HFLM):
         **kwargs,
     ) -> None:
         try:
-            import sparseml
+            from sparseml.transformers import SparseAutoModelForCausalLM
         except ModuleNotFoundError:
             raise Exception(
-                "package `sparseml` is not installed. "
+                "Package `sparseml` is not installed. "
                 "Please install it via `pip install sparseml[transformers]`"
             )
 
-        # Load model with SparseAutoModel
-        from sparseml.transformers.utils import SparseAutoModel
-        from transformers import AutoConfig
-
         model_kwargs = kwargs if kwargs else {}
-        ignored_kwargs = [
-            "dtype",
-            "parallelize",
-            "device_map_option",
-            "max_memory_per_gpu",
-            "max_cpu_memory",
-            "peft",
-            "autogptq",
+        relevant_kwarg_names = [
+            "revision",
+            "trust_remote_code",
+            "offload_folder",
+            "device",
         ]
-        for k in ignored_kwargs:
-            model_kwargs.pop(k)
 
-        config = AutoConfig.from_pretrained(pretrained)
-        model = SparseAutoModel.text_generation_from_pretrained(
-            pretrained, config=config, **model_kwargs
+        relevant_kwargs = {
+            k: v for k, v in model_kwargs.items() if k in relevant_kwarg_names
+        }
+
+        model = SparseAutoModelForCausalLM.from_pretrained(
+            pretrained, **relevant_kwargs
         )
-
-        # Apply recipe to model
-        # Note: Really annoying we can't grab the recipe.yaml present in the uploaded model
-        # and you need this separate apply_recipe_structure_to_model function
-        from sparseml.pytorch.model_load.helpers import apply_recipe_structure_to_model
-        from huggingface_hub import hf_hub_download
-        import os
-
-        recipe_path = hf_hub_download(repo_id=pretrained, filename="recipe.yaml")
-        apply_recipe_structure_to_model(
-            model=model,
-            recipe_path=recipe_path,
-            model_path=os.path.dirname(recipe_path),
-        )
-
         self._model = model
 
+    def _get_config(self, pretrained: str, **kwargs) -> None:
+        try:
+            from sparseml.transformers import SparseAutoConfig
+        except ModuleNotFoundError:
+            raise Exception(
+                "Package `sparseml` is not installed. "
+                "Please install it via `pip install sparseml[transformers]`"
+            )
+
+        self._config = SparseAutoConfig.from_pretrained(
+            pretrained_model_name_or_path=pretrained, **kwargs
+        )
+
+
+@register_model("deepsparse")
 class DeepSparseLM(LM):
     def __init__(
         self,
-        pipeline: Pipeline,
-        batch_size: int = 1,
-        max_gen_toks: int = 256,
-        tokenizer: Optional["AutoTokenizer"] = None,  # noqa: F821
+        pretrained: str,
+        tokenizer: Optional[str] = None,
+        batch_size: Optional[Union[int, str]] = 1,
+        max_gen_toks: Optional[int] = 256,
+        max_length: Optional[int] = 2048,
     ):
         """
         Wrapper around the DeepSparse pipeline to make it compatible with the
         llm-evaluation-harness.
-
-        :param pipeline: the pipeline object to wrap
-        :param batch_size: the batch size to use for evaluation
-        :param max_gen_toks: the maximum number of tokens to generate
-            when using the model for generation (see: greed_until method)
-        :param tokenizer: the tokenizer to use for encoding and decoding
-            strings and tokens. By default, the tokenizer from the pipeline
         """
         super().__init__()
 
-        self.pipeline = pipeline
-        self.batch_size = batch_size
-        self.tokenizer = tokenizer or pipeline.tokenizer
-        self._max_length = pipeline.sequence_length
+        try:
+            import deepsparse
+        except ModuleNotFoundError:
+            raise Exception(
+                "Package `deepsparse` is not installed. "
+                "Please install it via `pip install deepsparse[transformers]`"
+            )
+
+        self.batch_size = int(batch_size)
+        self._max_length = max_length
         self._max_gen_toks = max_gen_toks
         self.batch_sizes = {}
+
+        # Initialize new model and tokenizer instances
+        self.model = deepsparse.TextGeneration(
+            model_path=pretrained,
+            sequence_length=self._max_length,
+            batch_size=batch_size,
+        )
+        self.tokenizer = tokenizer if tokenizer else self.model.tokenizer
 
     def tok_encode(self, string: str) -> List[int]:
         return self.tokenizer.encode(string)
@@ -154,7 +157,7 @@ class DeepSparseLM(LM):
         re_ord = utils.Reorderer(requests, _collate)
 
         for chunk in tqdm(
-            list(utils.chunks(re_ord.get_reordered(), self.batch_size)),
+            list(lm_eval.models.utils.chunks(re_ord.get_reordered(), self.batch_size)),
             disable=disable_tqdm,
         ):
             batch_inp = []
@@ -175,7 +178,7 @@ class DeepSparseLM(LM):
                 batch_cache_key.append(cache_key)
                 batch_continuation_enc.append(continuation_enc)
 
-            response = self.pipeline(
+            response = self.model(
                 prompt=batch_inp,
                 max_new_tokens=0,
                 output_scores=True,
@@ -187,6 +190,9 @@ class DeepSparseLM(LM):
             ):
                 # (seq_len, vocab_size)
                 multi_scores = resp.score
+
+                from deepsparse.utils.data import numpy_log_softmax
+
                 # (seq_len, vocab_size) but with softmax applied
                 multi_logits = numpy_log_softmax(multi_scores, axis=1)
                 # toss out the context half of the sequence
@@ -217,7 +223,7 @@ class DeepSparseLM(LM):
         self, requests: list[Instance]
     ) -> list[tuple[float, bool]]:
         raise NotImplementedError(
-            "The method not required by any of our " "current task integrations so far"
+            "The method not required by any of our current task integrations so far"
         )
 
     def generate_until(self, requests: list[Instance]) -> list[str]:
@@ -269,7 +275,7 @@ class DeepSparseLM(LM):
             request_args["temperature"] = request_args.get("temperature", 0)
 
             # run inference (generate max_gen_toks tokens)
-            out = self.pipeline(
+            out = self.model(
                 sequences=inps,
                 max_new_tokens=self.max_gen_toks - 1,
                 stop=until,
