@@ -148,9 +148,22 @@ def simple_evaluate(
 
     if isinstance(model, str):
         if model_args is None:
+            eval_logger.warning("model_args not specified. Using defaults.")
             model_args = ""
+        if "pretrained" not in model_args and model in [
+            "hf-auto",
+            "hf",
+            "huggingface",
+            "vllm",
+        ]:
+            eval_logger.warning(
+                "pretrained not specified. Using default pretrained=gpt2."
+            )
 
         if isinstance(model_args, dict):
+            eval_logger.info(
+                f"Initializing {model} model, with arguments: {model_args}"
+            )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
                 model_args,
                 {
@@ -161,6 +174,9 @@ def simple_evaluate(
             )
 
         else:
+            eval_logger.info(
+                f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
+            )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
                 model_args,
                 {
@@ -172,6 +188,7 @@ def simple_evaluate(
     else:
         if not isinstance(model, lm_eval.api.model.LM):
             raise TypeError
+        eval_logger.info("Using pre-initialized model")
         lm = model
 
     if use_cache is not None:

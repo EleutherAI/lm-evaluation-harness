@@ -182,7 +182,7 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--gen_kwargs",
-        type=dict,
+        type=str,
         default=None,
         help=(
             "String arguments for model generation on greedy_until tasks,"
@@ -333,7 +333,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         )
 
     eval_logger.info(f"Selected Tasks: {task_names}")
-    eval_logger.info("Loading selected tasks...")
 
     request_caching_args = request_caching_arg_to_dict(
         cache_requests=args.cache_requests
