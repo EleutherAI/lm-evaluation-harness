@@ -34,6 +34,25 @@ from lm_eval.utils import (
 )
 
 
+try:
+    from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import (
+        MegatronGPTModel,
+    )
+    from nemo.collections.nlp.modules.common.text_generation_utils import generate
+    from nemo.collections.nlp.parts.nlp_overrides import (
+        NLPDDPStrategy,
+        NLPSaveRestoreConnector,
+    )
+    from nemo.utils.app_state import AppState
+    from pytorch_lightning.trainer.trainer import Trainer
+except ModuleNotFoundError:
+    raise Exception(
+        "Attempted to use 'nemo_lm' model type, but package `nemo` is not installed"
+        "Please install nemo following the instructions in the README: either with a NVIDIA PyTorch or NeMo container, "
+        "or installing nemo following https://github.com/NVIDIA/NeMo.",
+    )
+
+
 def _patch_pretrained_cfg(
     pretrained_cfg, trainer, tensor_model_parallel_size, pipeline_model_parallel_size
 ):
@@ -67,11 +86,6 @@ def load_model(
     tensor_model_parallel_size: int,
     pipeline_model_parallel_size: int,
 ) -> torch.nn.Module:
-    from nemo.collections.nlp.models.language_modeling.megatron_gpt_model import (
-        MegatronGPTModel,
-    )
-    from nemo.collections.nlp.parts.nlp_overrides import NLPSaveRestoreConnector
-
     model_path = pathlib.Path(model_path)
 
     save_restore_connector = NLPSaveRestoreConnector()
@@ -125,8 +139,6 @@ def load_model(
 
 
 def setup_distributed_environment(trainer):
-    from nemo.utils.app_state import AppState
-
     def dummy():
         return
 
@@ -167,9 +179,6 @@ class NeMoLM(LM):
         **kwargs,
     ):
         super().__init__()
-
-        from nemo.collections.nlp.parts.nlp_overrides import NLPDDPStrategy
-        from pytorch_lightning.trainer.trainer import Trainer
 
         if (
             tensor_model_parallel_size == 1
@@ -357,8 +366,6 @@ class NeMoLM(LM):
         return loglikelihoods
 
     def _loglikelihood_tokens(self, requests, disable_tqdm=False):
-        from nemo.collections.nlp.modules.common.text_generation_utils import generate
-
         res = []
 
         def _collate(x):
@@ -448,8 +455,6 @@ class NeMoLM(LM):
         return re_ord.get_original(res)
 
     def generate_until(self, requests):
-        from nemo.collections.nlp.modules.common.text_generation_utils import generate
-
         if not requests:
             return []
         res = []
