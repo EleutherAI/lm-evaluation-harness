@@ -219,9 +219,7 @@ class DeepSparseLM(LM):
 
         return re_ord.get_original(res)
 
-    def loglikelihood_rolling(
-        self, requests: List[Instance]
-    ) -> List[tuple[float, bool]]:
+    def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         raise NotImplementedError(
             "The method not required by any of our current task integrations so far"
         )
