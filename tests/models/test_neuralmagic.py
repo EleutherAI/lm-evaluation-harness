@@ -17,7 +17,6 @@ DEEPSPARSE_MODELS_TASKS = {
 
 @pytest.mark.parametrize("model_id,task", SPARSEML_MODELS_TASKS.items())
 def test_sparseml_eval(model_id, task):
-
     lm = get_model("sparseml").create_from_arg_string(
         f"pretrained={model_id}",
         {
@@ -38,7 +37,6 @@ def test_sparseml_eval(model_id, task):
 
 @pytest.mark.parametrize("model_id,task", DEEPSPARSE_MODELS_TASKS.items())
 def test_deepsparse_eval(model_id, task):
-
     lm = get_model("deepsparse").create_from_arg_string(
         f"pretrained={model_id}",
         {
