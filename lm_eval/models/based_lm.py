@@ -58,6 +58,7 @@ class BasedLMWrapper(HFLM):
 
         tokenizer_name = kwargs.get("tokenizer", "gpt2")
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+        tokenizer.model_max_length = 2048
         
         model.device = device
 
