@@ -220,13 +220,13 @@ class DeepSparseLM(LM):
         return re_ord.get_original(res)
 
     def loglikelihood_rolling(
-        self, requests: list[Instance]
-    ) -> list[tuple[float, bool]]:
+        self, requests: List[Instance]
+    ) -> List[tuple[float, bool]]:
         raise NotImplementedError(
             "The method not required by any of our current task integrations so far"
         )
 
-    def generate_until(self, requests: list[Instance]) -> list[str]:
+    def generate_until(self, requests: List[Instance]) -> List[str]:
         """
         The function to generate a certain number of new tokens
         given a context.
