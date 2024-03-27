@@ -48,6 +48,8 @@ pip install -e .
 
 We also provide a number of optional dependencies for extended functionality. A detailed table is available at the end of this document.
 
+if you run into issues with the installation, please check the [troubleshooting guide](./docs/troubleshooting.md).
+
 ## Basic Usage
 
 ### Hugging Face `transformers`
