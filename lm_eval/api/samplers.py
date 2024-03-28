@@ -1,7 +1,10 @@
 class ContextSampler:
     def __init__(self, docs, task, fewshot_indices=None, rnd=None) -> None:
         self.rnd = rnd
-        assert self.rnd, "must pass rnd to FewShotSampler!"
+        if not self.rnd:
+            raise ValueError(
+                "A `random.Random` generator argument must be provided to `rnd` of FewShotSampler!"
+            )
 
         self.task = task
         self.config = task._config
