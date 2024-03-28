@@ -1,3 +1,4 @@
+import datasets
 import numpy as np
 import transformers.data.metrics.squad_metrics as squad_metrics
 
@@ -19,6 +20,21 @@ def format_answer(query, entity):
 def doc_to_target(doc):
     # We only output the first correct entity in a doc
     return format_answer(query=doc["query"], entity=doc["answers"][0])
+
+
+def doc_to_choice(doc):
+    return [format_answer(query=doc["query"], entity=ans) for ans in doc["entities"]]
+
+
+def process_docs(dataset: datasets.Dataset):
+    def _process_doc(doc):
+        return {
+            "passage": doc["passage"],
+            "query": doc["query"],
+            "entities": sorted(list(set(doc["entities"]))),
+            "answers": sorted(list(set(doc["answers"]))),
+        }
+    return dataset.map(_process_doc)
 
 
 def process_results(doc, results):
