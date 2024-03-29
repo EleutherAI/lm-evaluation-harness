@@ -1,0 +1,15 @@
+task: scheming_tasks_free_response
+dataset_path: csv
+dataset_kwargs:
+  data_files: 
+    validation: scheming_dataset_questions.csv 
+output_type: generate_until
+doc_to_text: "Subject: {{subject}}\nScenario: {{scenario}}\nQuestion: {{free_response_prompt.lstrip()}}\nAnswer: "
+doc_to_target: ''
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
