@@ -17,7 +17,9 @@ def create_nq_closed(token):
         df.answer = df.apply(lambda x: ast.literal_eval(x["answer"]), axis=1)
         return datasets.Dataset.from_pandas(df)
     dataset = datasets.DatasetDict({"train":parse_csv_into_dataset(f"{PREFIX}/nq-train.qa.csv"),
-                                    "validation":parse_csv_into_dataset(f"{PREFIX}/nq-dev.qa.csv")})
+                                    "validation":parse_csv_into_dataset(f"{PREFIX}/nq-dev.qa.csv"),
+                                    "test":parse_csv_into_dataset(f"{PREFIX}/nq-test.qa.csv"),
+                                    })
     dataset.push_to_hub("nq_closedbook",token=token)
     
 def normalize_answer(s):
@@ -35,14 +37,14 @@ def normalize_answer(s):
         return text.lower()
 
     return white_space_fix(remove_articles(remove_punc(lower(s))))
-
-def squad_exact_match_fn(prediction, ground_truth):
+p
+def nq_exact_match_fn(prediction, ground_truth):
     return normalize_answer(prediction) == normalize_answer(ground_truth)
 
-def squad_exact_match(references,predictions):
+def nq_exact_match(references,predictions):
     assert isinstance(references, list) and len(references)==1
     assert isinstance(predictions, list) and len(predictions)==1
-    return squad_exact_match_fn(predictions[0], references[0])
+    return nq_exact_match_fn(predictions[0], references[0])
 
 
 
