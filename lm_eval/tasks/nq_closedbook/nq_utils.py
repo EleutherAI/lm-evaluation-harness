@@ -37,7 +37,7 @@ def normalize_answer(s):
         return text.lower()
 
     return white_space_fix(remove_articles(remove_punc(lower(s))))
-p
+
 def nq_exact_match_fn(prediction, ground_truth):
     return normalize_answer(prediction) == normalize_answer(ground_truth)
 
@@ -45,6 +45,7 @@ def nq_exact_match(references,predictions):
     assert isinstance(references, list) and len(references)==1
     assert isinstance(predictions, list) and len(predictions)==1
     return nq_exact_match_fn(predictions[0], references[0])
+
 
 
 
