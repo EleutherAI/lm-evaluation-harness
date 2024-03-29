@@ -23,7 +23,7 @@ filter_list:
       - function: take_first
 target_delimiter: " "
 metric_list:
-  - metric: !function nq_utils.squad_exact_match
+  - metric: !function nq_utils.nq_exact_match
     aggregation: mean
     higher_is_better: True
 metadata:
