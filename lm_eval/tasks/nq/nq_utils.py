@@ -50,5 +50,10 @@ def nq_exact_match(references,predictions):
 
 
 def doc_to_target(doc: Dict) -> List[str]:
-    """Return list of indices of accepted answers (all of them)."""
     return doc["answer"]
+
+# def doc_to_preamble(doc: Dict):
+#     template = """{% for ctx in ctxs | reverse %}
+# Title: {{ ctx.title }}
+# {{ ctx.text }}
+# {% endfor %}"""

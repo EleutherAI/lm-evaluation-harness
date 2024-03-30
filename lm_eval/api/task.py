@@ -76,6 +76,7 @@ class TaskConfig(dict):
     doc_to_text: Optional[Union[Callable, str]] = None
     doc_to_target: Optional[Union[Callable, str]] = None
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
+    doc_to_preamble: Optional[Union[Callable, str]] = None
     process_results: Optional[Union[Callable, str]] = None
     use_prompt: Optional[str] = None
     description: str = ""
@@ -522,6 +523,7 @@ class Task(abc.ABC):
         num_fewshot,
         rnd=random.Random(1234),
         description=None,
+        preamble=None,
     ):
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -544,6 +546,7 @@ class Task(abc.ABC):
             )
 
         description = description if description else ""
+        preamble = preamble if preamble else ""
 
         if num_fewshot == 0:
             labeled_examples = ""
@@ -575,7 +578,7 @@ class Task(abc.ABC):
             )
 
         example = self.doc_to_text(doc)
-        return description + labeled_examples + example
+        return preamble + description + labeled_examples + example
 
     def apply_filters(self) -> Optional[List[Instance]]:
         """Iterates over FilterEnsembles and applies them to instances"""
@@ -948,6 +951,7 @@ class ConfigurableTask(Task):
             labeled_examples = description
         else:
             labeled_examples = description + self.sampler.get_context(doc, num_fewshot)
+        labeled_examples = self.doc_to_preamble(doc) + labeled_examples
 
         if self.multiple_input:
             return labeled_examples
@@ -1037,7 +1041,20 @@ class ConfigurableTask(Task):
         else:
             print(type(doc_to_text))
             raise TypeError
-
+    def doc_to_preamble(self, doc: Mapping):
+        doc_to_preamble = self.config.doc_to_preamble
+        if doc_to_preamble is None:
+            return ""
+        elif isinstance(doc_to_preamble, str):
+            preamble_string = utils.apply_template(doc_to_preamble, doc)
+            return preamble_string
+        elif callable(doc_to_preamble):
+            return doc_to_preamble(doc)
+        else:
+            raise TypeError
+            
+            
+    
     def doc_to_target(self, doc: Mapping) -> Union[int, str, list]:
         if self.prompt is not None:
             doc_to_target = self.prompt
