@@ -949,10 +949,10 @@ class ConfigurableTask(Task):
         else:
             labeled_examples = description + self.sampler.get_context(doc, num_fewshot)
 
-        example = self.doc_to_text(doc)
         if self.multiple_input:
             return labeled_examples
         else:
+            example = self.doc_to_text(doc)
             if isinstance(example, str):
                 return labeled_examples + example
             elif isinstance(example, list):
