@@ -11,9 +11,6 @@ def process_docs(dataset: datasets.Dataset):
     assert (
         len(dataset.filter(lambda x: sum(x["target_scores"].values()) != 1)) == 0
     ), "Zero or More than one correct answers."
-    dataset = dataset.select([0])  # TODO: Remove
-    # dataset = dataset.select([0, 1]) #TODO: Remove
-    # dataset = dataset.select(list(range(10))) #TODO: Remove
 
     def _helper(doc):
         label = next(key for key, value in doc["target_scores"].items() if value == 1)

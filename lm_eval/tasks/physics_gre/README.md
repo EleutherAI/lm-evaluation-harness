@@ -98,9 +98,9 @@ where `Percentage_Correct` is computed purely on questions without images. For s
 | 1 &ndash; 4          | 1          |
 | 0            | 0          |
 
-### Performance
+### Reference Performance of Models
 
-Model: `mistralai/Mistral-7B-Instruct-v0.2`
+<!-- Model: `mistralai/Mistral-7B-Instruct-v0.2` -->
 
 #### Reported by Inflection
 
