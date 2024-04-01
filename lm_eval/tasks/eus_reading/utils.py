@@ -1,5 +1,6 @@
 from typing import List
 
+
 letters = ["A", "B", "C", "D"]
 
 

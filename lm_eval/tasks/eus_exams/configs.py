@@ -1,7 +1,9 @@
 import argparse
+import json
+
 import requests
 import yaml
-import json
+
 
 # get configs from huggingface datasets server by doing a request
 response = requests.get(
