@@ -8,6 +8,7 @@ metric_list:
 generation_kwargs:
   until:
     - "</s>"
+    - \n
   do_sample: false
   temperature: 0.0
 metadata:
