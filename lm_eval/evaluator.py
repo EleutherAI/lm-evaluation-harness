@@ -1,6 +1,7 @@
 import itertools
 import logging
 import random
+import time
 from collections import defaultdict
 from typing import TYPE_CHECKING, List, Optional, Union
 
@@ -106,6 +107,7 @@ def simple_evaluate(
         Dictionary of results
     """
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+    start_date = time.time()
 
     if delete_requests_cache:
         eval_logger.info("Deleting requests cache...")
@@ -146,9 +148,22 @@ def simple_evaluate(
 
     if isinstance(model, str):
         if model_args is None:
+            eval_logger.warning("model_args not specified. Using defaults.")
             model_args = ""
+        if "pretrained" not in model_args and model in [
+            "hf-auto",
+            "hf",
+            "huggingface",
+            "vllm",
+        ]:
+            eval_logger.warning(
+                "pretrained not specified. Using default pretrained=gpt2."
+            )
 
         if isinstance(model_args, dict):
+            eval_logger.info(
+                f"Initializing {model} model, with arguments: {model_args}"
+            )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
                 model_args,
                 {
@@ -159,6 +174,9 @@ def simple_evaluate(
             )
 
         else:
+            eval_logger.info(
+                f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
+            )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
                 model_args,
                 {
@@ -170,6 +188,7 @@ def simple_evaluate(
     else:
         if not isinstance(model, lm_eval.api.model.LM):
             raise TypeError
+        eval_logger.info("Using pre-initialized model")
         lm = model
 
     if use_cache is not None:
@@ -187,10 +206,6 @@ def simple_evaluate(
     if task_manager is None:
         task_manager = TaskManager(verbosity)
 
-    eval_logger.info(
-        "get_task_dict has been updated to accept an optional argument, `task_manager`"
-        "Read more here:https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
-    )
     task_dict = get_task_dict(tasks, task_manager)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
@@ -213,6 +228,8 @@ def simple_evaluate(
             # we have to change the class properties post-hoc. This is pretty hacky.
             task_obj.override_metric(metric_name="bypass")
 
+        # override tasks' fewshot values to the provided num_fewshot arg value
+        # except if tasks have it set to 0 manually in their configs--then we should never overwrite that
         if num_fewshot is not None:
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
                 eval_logger.info(
@@ -223,6 +240,10 @@ def simple_evaluate(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
                 task_obj.set_config(key="num_fewshot", value=num_fewshot)
+        else:
+            # if num_fewshot not provided, and the task does not define a default one, default to 0
+            if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
+                task_obj.set_config(key="num_fewshot", value=0)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -262,6 +283,7 @@ def simple_evaluate(
             "gen_kwargs": gen_kwargs,
         }
         results["git_hash"] = get_git_commit_hash()
+        results["date"] = start_date
         add_env_info(results)  # additional environment info to results
         return results
     else:
