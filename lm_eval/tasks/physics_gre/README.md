@@ -100,7 +100,51 @@ where `Percentage_Correct` is computed purely on questions without images. For s
 
 ### Reference Performance of Models
 
-<!-- Model: `mistralai/Mistral-7B-Instruct-v0.2` -->
+Model: `mistralai/Mistral-7B-Instruct-v0.2`
+
+|        Tasks         |Version|  Filter   |n-shot|  Metric  |Value|
+|----------------------|------:|-----------|-----:|----------|----:|
+|physics_gre_all       |      1|score-first|     0|raw_score |   18|
+|                      |       |score-first|     0|percentile|   16|
+|                      |       |maj@8      |     0|raw_score |   18|
+|                      |       |maj@8      |     0|percentile|   16|
+|                      |       |maj@32     |     0|raw_score |   17|
+|                      |       |maj@32     |     0|percentile|   14|
+|physics_gre_additional|      1|score-first|     0|raw_score |   13|
+|                      |       |score-first|     0|percentile|    9|
+|                      |       |maj@8      |     0|raw_score |   16|
+|                      |       |maj@8      |     0|percentile|   12|
+|                      |       |maj@32     |     0|raw_score |   15|
+|                      |       |maj@32     |     0|percentile|   10|
+|physics_gre           |      1|score-first|     0|raw_score |   23|
+|                      |       |score-first|     0|percentile|   22|
+|                      |       |maj@8      |     0|raw_score |   25|
+|                      |       |maj@8      |     0|percentile|   27|
+|                      |       |maj@32     |     0|raw_score |   23|
+|                      |       |maj@32     |     0|percentile|   22|
+
+Model: `mistralai/Mixtral-8x7B-Instruct-v0.1`, 4-bit QLoRA
+
+|        Tasks         |Version|  Filter   |n-shot|  Metric  |Value|
+|----------------------|------:|-----------|-----:|----------|----:|
+|physics_gre_all       |      1|score-first|     0|raw_score |   32|
+|                      |       |score-first|     0|percentile|   41|
+|                      |       |maj@8      |     0|raw_score |   35|
+|                      |       |maj@8      |     0|percentile|   46|
+|                      |       |maj@32     |     0|raw_score |   34|
+|                      |       |maj@32     |     0|percentile|   43|
+|physics_gre_additional|      1|score-first|     0|raw_score |   28|
+|                      |       |score-first|     0|percentile|   32|
+|                      |       |maj@8      |     0|raw_score |   31|
+|                      |       |maj@8      |     0|percentile|   38|
+|                      |       |maj@32     |     0|raw_score |   32|
+|                      |       |maj@32     |     0|percentile|   41|
+|physics_gre           |      1|score-first|     0|raw_score |   42|
+|                      |       |score-first|     0|percentile|   59|
+|                      |       |maj@8      |     0|raw_score |   42|
+|                      |       |maj@8      |     0|percentile|   59|
+|                      |       |maj@32     |     0|raw_score |   42|
+|                      |       |maj@32     |     0|percentile|   59|
 
 #### Reported by Inflection
 
@@ -117,6 +161,11 @@ where `Percentage_Correct` is computed purely on questions without images. For s
 lm_eval --model hf --model_args pretrained=mistralai/Mistral-7B-Instruct-v0.2 \
 	--tasks physics_gre,physics_gre_additional,physics_gre_all \
 	--device cuda:0 --batch_size 8 --output_path ./output --log_samples
+
+lm_eval --model hf \
+  --model_args pretrained=mistralai/Mixtral-8x7B-Instruct-v0.1,load_in_4bit=True \
+  --tasks physics_gre,physics_gre_additional,physics_gre_all \
+  --device cuda:0 --batch_size 1 --output_path ./output --log_samples
 ```
 
 ### Citation
