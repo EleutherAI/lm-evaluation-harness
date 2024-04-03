@@ -287,7 +287,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 task_names.append(config)
         else:
             task_list = args.tasks.split(",")
-            import pdb; pdb.set_trace()
             task_names = task_manager.match_tasks(task_list)
             for task in [task for task in task_list if task not in task_names]:
                 breakpoint()

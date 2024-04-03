@@ -7,7 +7,7 @@ validation_split: validation
 test_split: null
 output_type: multiple_choice
 doc_to_text: "Subject: {{subject}}\nScenario: {{scenario}}\nQuestion: {{context_question}}\nAnswer: "
-doc_to_choices: ["yes", "no"]
+doc_to_choice: ["yes", "no"]
 doc_to_target: "{{context_answer}}"
 metric_list:
   - metric: acc
