@@ -356,28 +356,6 @@ class TaskManager:
         return tasks_and_groups
 
 
-def include_path(task_dir):
-    logger = utils.eval_logger
-    logger.setLevel(getattr(logging, "INFO"))
-    logger.info(
-        "To still use tasks loaded from args.include_path,"
-        "see an example of the new TaskManager API in "
-        "https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
-    )
-    return 0
-
-
-def initialize_tasks(verbosity="INFO"):
-    logger = utils.eval_logger
-    logger.setLevel(getattr(logging, f"{verbosity}"))
-    logger.info(
-        "lm_eval.tasks.initialize_tasks() is deprecated and no longer necessary. "
-        "It will be removed in v0.4.2 release. "
-        "TaskManager will instead be used."
-    )
-    return 0
-
-
 def get_task_name_from_config(task_config: Dict[str, str]) -> str:
     if "task" in task_config:
         return task_config["task"]
@@ -401,7 +379,7 @@ def get_task_name_from_object(task_object):
 
 
 def get_task_dict(
-    task_name_list: List[Union[str, Dict, Task]],
+    task_name_list: Union[str, List[Union[str, Dict, Task]]],
     task_manager: Optional[TaskManager] = None,
 ):
     """Creates a dictionary of task objects from either a name of task, config, or prepared Task object.
@@ -423,6 +401,15 @@ def get_task_dict(
 
     if isinstance(task_name_list, str):
         task_name_list = [task_name_list]
+    elif isinstance(task_name_list, list):
+        if not all([isinstance(task, (str, dict, Task)) for task in task_name_list]):
+            raise TypeError(
+                "Expected all list items to be of types 'str', 'dict', or 'Task', but at least one entry did not match."
+            )
+    else:
+        raise TypeError(
+            f"Expected a 'str' or 'list' but received {type(task_name_list)}."
+        )
 
     string_task_name_list = [task for task in task_name_list if isinstance(task, str)]
     others_task_name_list = [task for task in task_name_list if ~isinstance(task, str)]
