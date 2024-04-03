@@ -32,7 +32,7 @@ lm_eval \
 lm_eval \
     --model hf \
     --model_args pretrained=EleutherAI/pythia-2.8b \
-    --include_path /Users/marina.levay/Documents/GitHub/lm-evaluation-harness/lm_eval/tasks/scheming_evals/ \
+    --include_path lm_eval/tasks/scheming_evals \
     --tasks scheming_evals_context_task \
     --limit 10 \
     --output output/scheming_evals_context_task_output/ \
