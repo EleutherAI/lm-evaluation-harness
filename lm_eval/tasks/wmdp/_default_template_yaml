@@ -4,12 +4,11 @@ test_split: test
 training_split: null
 validation_split: null
 num_fewshot: 0
-output_type: multiple_choice
-doc_to_text: "{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:"
-doc_to_choice: ["A", "B", "C", "D"]
-doc_to_target: answer
+output_type: generate_until
+doc_to_text: "Please begin your answer with either 'A', 'B', 'C', or 'D'. Always start your answer with a letter that signifies your answer choice.\n{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}\nAnswer:"
+doc_to_target: ["A", "B", "C", "D"]
 metric_list:
-  - metric: acc
+  - metric: exact_match
     aggregation: mean
     higher_is_better: true
 metadata:
