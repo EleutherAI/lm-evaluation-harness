@@ -54,7 +54,6 @@ class SparseMLLM(HFLM):
             else:
                 model_kwargs.update({"device_map": {"": str(self.device)}})
 
-
         relevant_kwarg_names = [
             "offload_folder",
         ]
@@ -83,7 +82,6 @@ class SparseMLLM(HFLM):
         self._config = SparseAutoConfig.from_pretrained(
             pretrained_model_name_or_path=pretrained, **kwargs
         )
-
 
     def _create_tokenizer(
         self,
