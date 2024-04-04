@@ -1,6 +1,7 @@
 from typing import List, Optional, Tuple, Union
 
 import numpy
+import transformers
 from tqdm import tqdm
 
 import lm_eval.models.utils
@@ -26,6 +27,9 @@ class SparseMLLM(HFLM):
     def _create_model(
         self,
         pretrained: str,
+        revision: Optional[str] = "main",
+        dtype: Optional[Union[str, "torch.dtype"]] = "auto",
+        trust_remote_code: Optional[bool] = False,
         **kwargs,
     ) -> None:
         try:
@@ -37,19 +41,33 @@ class SparseMLLM(HFLM):
             )
 
         model_kwargs = kwargs if kwargs else {}
-        relevant_kwarg_names = [
-            "revision",
-            "trust_remote_code",
-            "offload_folder",
-            "device",
-        ]
 
+        if "device_map" not in model_kwargs:
+            # set a device_map to initialize model on the right GPU.
+            # this is needed because it seems that the default behavior
+            # for quantized models now seems to be device_map="auto"
+            # which breaks data-parallel mode.
+            if hasattr(self, "accelerator"):
+                model_kwargs.update(
+                    {"device_map": {"": f"cuda:{self.accelerator.local_process_index}"}}
+                )
+            else:
+                model_kwargs.update({"device_map": {"": str(self.device)}})
+
+
+        relevant_kwarg_names = [
+            "offload_folder",
+        ]
         relevant_kwargs = {
             k: v for k, v in model_kwargs.items() if k in relevant_kwarg_names
         }
 
         model = SparseAutoModelForCausalLM.from_pretrained(
-            pretrained, **relevant_kwargs
+            pretrained,
+            revision=revision,
+            torch_dtype=lm_eval.models.utils.get_dtype(dtype),
+            trust_remote_code=trust_remote_code,
+            **relevant_kwargs,
         )
         self._model = model
 
@@ -65,6 +83,51 @@ class SparseMLLM(HFLM):
         self._config = SparseAutoConfig.from_pretrained(
             pretrained_model_name_or_path=pretrained, **kwargs
         )
+
+
+    def _create_tokenizer(
+        self,
+        pretrained: Union[str, transformers.PreTrainedModel],
+        tokenizer: Optional[
+            Union[
+                str,
+                transformers.PreTrainedTokenizer,
+                transformers.PreTrainedTokenizerFast,
+            ]
+        ],
+        **kwargs,
+    ) -> None:
+        try:
+            from sparseml.transformers import SparseAutoTokenizer
+        except ModuleNotFoundError:
+            raise Exception(
+                "Package `sparseml` is not installed. "
+                "Please install it via `pip install sparseml[transformers]`"
+            )
+
+        if tokenizer:
+            if isinstance(tokenizer, str):
+                self.tokenizer = SparseAutoTokenizer.from_pretrained(
+                    tokenizer,
+                    **kwargs,
+                )
+            else:
+                assert isinstance(
+                    tokenizer, transformers.PreTrainedTokenizer
+                ) or isinstance(tokenizer, transformers.PreTrainedTokenizerFast)
+                self.tokenizer = tokenizer
+        else:
+            # Get tokenizer based on 'pretrained'
+            if isinstance(pretrained, str):
+                model_name = pretrained
+            else:
+                # get the HF hub name via accessor on model
+                model_name = self.model.name_or_path
+            self.tokenizer = SparseAutoTokenizer.from_pretrained(
+                model_name,
+                **kwargs,
+            )
+        return None
 
 
 @register_model("deepsparse")
