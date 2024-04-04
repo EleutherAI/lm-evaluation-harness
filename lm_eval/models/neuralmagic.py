@@ -28,7 +28,7 @@ class SparseMLLM(HFLM):
         self,
         pretrained: str,
         revision: Optional[str] = "main",
-        dtype: Optional[Union[str, "torch.dtype"]] = "auto",
+        dtype: Optional[str] = "auto",
         trust_remote_code: Optional[bool] = False,
         **kwargs,
     ) -> None:

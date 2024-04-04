@@ -22,6 +22,7 @@ def test_sparseml_eval(model_id, task):
         {
             "batch_size": 1,
             "device": "cpu",
+            "dtype": "float32",
         },
     )
 
