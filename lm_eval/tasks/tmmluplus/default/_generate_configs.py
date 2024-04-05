@@ -7,6 +7,7 @@ import os
 import yaml
 from tqdm import tqdm
 
+import pandas as pd
 
 # Copy from https://github.com/iKala/ievals/blob/main/ievals/settings.py
 # from TMMLU+ offical example
@@ -103,6 +104,7 @@ subject2name = {}
 # subject2category = {}
 SUBJECTS = {}
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base_yaml_path", required=True)
@@ -124,10 +126,10 @@ if __name__ == "__main__":
 
     for _, row in df.iterrows():
         for _c in categories:
-            if row['subject'] in SUBJECTS:
+            if row["subject"] in SUBJECTS:
                 raise ValueError("Duplicate tasks.")
             if row["category"] in categories[_c]:  # append new item into SUBJECTS
-                SUBJECTS[row['subject']] = _c
+                SUBJECTS[row["subject"]] = _c
                 subject2name[row["subject"]] = row["name"]
                 break
     # End of SUBJECTS initialization
@@ -151,7 +153,7 @@ if __name__ == "__main__":
         if args.cot_prompt_path is not None:
             description = cot_file[subject]
         else:
-            name_of_subject = subject2name[subject].replace('＿', ' ')
+            name_of_subject = subject2name[subject].replace("＿", " ")
             description = f"以下為{name_of_subject}的單選題，請提供正確答案的選項。\n\n"
             # description = f"The following are multiple choice questions (with answers) about {' '.join(subject.split('_'))}.\n\n"
 

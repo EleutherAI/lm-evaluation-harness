@@ -4,10 +4,10 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
     def _helper(doc):
         # modifies the contents of a single
         # document in our dataset.
-        answer_list = ['A', 'B', 'C', 'D']
+        answer_list = ["A", "B", "C", "D"]
         out_doc = {
             "questions": doc["question"],
-            "choices": [doc['A'], doc['B'], doc['C'], doc['D']],
+            "choices": [doc["A"], doc["B"], doc["C"], doc["D"]],
             "goal": answer_list.index(doc["answer"]),
         }
         return out_doc
