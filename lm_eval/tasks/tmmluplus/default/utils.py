@@ -12,4 +12,4 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
         }
         return out_doc
 
-    return dataset.map(_helper) # returns back a datasets.Dataset object
+    return dataset.map(_helper)  # returns back a datasets.Dataset object

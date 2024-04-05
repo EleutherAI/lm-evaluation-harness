@@ -4,10 +4,9 @@ Take in a YAML, and output all "other" splits with this YAML
 import argparse
 import os
 
+import pandas as pd
 import yaml
 from tqdm import tqdm
-
-import pandas as pd
 
 # Copy from https://github.com/iKala/ievals/blob/main/ievals/settings.py
 # from TMMLU+ offical example
