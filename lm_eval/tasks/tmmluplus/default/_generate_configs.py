@@ -8,6 +8,7 @@ import pandas as pd
 import yaml
 from tqdm import tqdm
 
+
 # Copy from https://github.com/iKala/ievals/blob/main/ievals/settings.py
 # from TMMLU+ offical example
 categories = {
