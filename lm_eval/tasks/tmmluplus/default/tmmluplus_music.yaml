@@ -1,0 +1,7 @@
+"dataset_name": "music"
+"description": "以下為音樂科的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_other"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "tmmluplus_music"
+"task_alias": "music"
