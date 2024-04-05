@@ -7,9 +7,6 @@ import argparse
 
 from tqdm import tqdm
 
-# from lm_eval.logger import eval_logger
-
-import pandas as pd
 
 # Copy from https://github.com/iKala/ievals/blob/main/ievals/settings.py
 # from TMMLU+ offical example
@@ -129,7 +126,7 @@ if __name__ == "__main__":
         for _c in categories:
             if row['subject'] in SUBJECTS:
                 raise ValueError("Duplicate tasks.")
-            if row["category"] in categories[_c]: # append new item into SUBJECTS
+            if row["category"] in categories[_c]:  # append new item into SUBJECTS
                 SUBJECTS[row['subject']] = _c
                 subject2name[row["subject"]] = row["name"]
                 break
