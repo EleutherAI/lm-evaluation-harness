@@ -31,7 +31,7 @@ categories = {
         "psychology",
         "education",
     ],
-    "other": ["other", "business", "health"], # (business, health, misc.)
+    "other": ["other", "business", "health"],  # (business, health, misc.)
 }
 
 task_list = [
