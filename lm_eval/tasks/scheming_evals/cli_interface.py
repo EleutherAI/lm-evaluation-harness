@@ -23,14 +23,15 @@ lm_eval \
     --predict_only \
     --log_samples
     --verbosity DEBUG
-
+    
 lm_eval \
-    --model openai-chat-completions \
+    --model openai-completions \
     --model_args model=gpt-3.5-turbo \
     --include_path /Users/marina.levay/Documents/GitHub/lm-evaluation-harness/lm_eval/tasks/scheming_evals \
     --tasks scheming_evals_mc_prompt_task \
     --output output/scheming_evals_mc_prompt_task_output/ \
-    --log_samples
+    --log_samples \
+    --predict_only \
     --verbosity DEBUG
     
 lm_eval \
