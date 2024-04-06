@@ -10,7 +10,7 @@ doc_to_target: !function nq_utils.doc_to_target
 doc_to_preamble: "{% for ctx in ctxs | reverse %}\nTitle: {{ ctx.title }}\n{{ ctx.text }}\n{% endfor %}\n\n"
 process_docs: !function nq_utils.process_docs
 process_docs_config:
-  top_n: 10
+  top_n: 100
 fewshot_delimiter: "\n"
 generation_kwargs:
   until:
