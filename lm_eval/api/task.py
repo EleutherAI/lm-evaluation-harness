@@ -50,7 +50,7 @@ ALL_OUTPUT_TYPES = [
 
 eval_logger = logging.getLogger("lm-eval")
 
-
+from dataclasses import field
 @dataclass
 class TaskConfig(dict):
     # task naming/registry
@@ -73,6 +73,7 @@ class TaskConfig(dict):
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
     process_docs: Optional[Callable] = None
+    process_docs_config: dict = field(default_factory=dict)
     doc_to_text: Optional[Union[Callable, str]] = None
     doc_to_target: Optional[Union[Callable, str]] = None
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
@@ -899,7 +900,8 @@ class ConfigurableTask(Task):
         if self.has_training_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
-                    self.dataset[self.config.training_split]
+                    self.dataset[self.config.training_split],
+                    **self.config.process_docs_config
                 )
             return self.dataset[self.config.training_split]
 
@@ -907,20 +909,23 @@ class ConfigurableTask(Task):
         if self.has_validation_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
-                    self.dataset[self.config.validation_split]
+                    self.dataset[self.config.validation_split],
+                    **self.config.process_docs_config
                 )
             return self.dataset[self.config.validation_split]
 
     def test_docs(self) -> datasets.Dataset:
         if self.has_test_docs():
             if self.config.process_docs is not None:
-                return self.config.process_docs(self.dataset[self.config.test_split])
+                return self.config.process_docs(self.dataset[self.config.test_split],
+                                                **self.config.process_docs_config)
             return self.dataset[self.config.test_split]
 
     def fewshot_docs(self):
         if self.config.fewshot_split is not None:
             if self.config.process_docs is not None:
-                return self.config.process_docs(self.dataset[self.config.fewshot_split])
+                return self.config.process_docs(self.dataset[self.config.fewshot_split],
+                                                **self.config.process_docs_config)
             return self.dataset[self.config.fewshot_split]
         else:
             if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):

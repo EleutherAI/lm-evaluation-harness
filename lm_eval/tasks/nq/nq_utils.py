@@ -48,12 +48,12 @@ def nq_exact_match(references,predictions):
 
 
 
-
 def doc_to_target(doc: Dict) -> List[str]:
     return doc["answer"]
 
-# def doc_to_preamble(doc: Dict):
-#     template = """{% for ctx in ctxs | reverse %}
-# Title: {{ ctx.title }}
-# {{ ctx.text }}
-# {% endfor %}"""
+def process_docs(dataset, top_n):
+    def take_top(x):
+        x["ctxs"] = x["ctxs"][:top_n]
+        return x
+    dataset = dataset.map(take_top)
+    return dataset
