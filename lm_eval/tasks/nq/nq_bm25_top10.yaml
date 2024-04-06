@@ -1,4 +1,4 @@
-task: nq_bm25
+task: nq_bm25_top10
 dataset_path: iohadrubin/nq_bm25
 output_type: generate_until
 training_split: train
