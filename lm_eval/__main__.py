@@ -388,7 +388,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             if args.log_samples:
                 for task_name, config in results["configs"].items():
                     output_name = "{}_{}".format(
-                        re.sub("/|=", "__", args.model_args), task_name
+                        re.sub(r"[\"<>:/\|\\?\*\[\]]+", "__", args.model_args),
+                        task_name,
                     )
                     filename = path.joinpath(f"{output_name}.jsonl")
                     samples_dumped = json.dumps(
