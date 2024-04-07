@@ -23,8 +23,7 @@ generation_kwargs:
   until:
     - "</s>"
     - "<|im_end|>"
-  do_sample: true
-  temperature: 0.0000001
+  do_sample: false
 repeats: 1
 filter_list:
   - name: "strict-match"
@@ -32,6 +31,13 @@ filter_list:
       - function: "regex"
         group_select: -1
         regex_pattern: "(?i)odpověď(?:\\s?je)?:?\\s?([A-E])"
+      - function: "take_first"
+
+  - name: "flexbile-extract"
+    filter:
+      - function: "regex"
+        group_select: -1
+        regex_pattern: "[A-E]"
       - function: "take_first"
 metadata:
   version: 3.0
