@@ -33,7 +33,7 @@ filter_list:
         regex_pattern: "(?i)odpověď(?:\\s?je)?:?\\s?([A-E])"
       - function: "take_first"
 
-  - name: "flexbile-extract"
+  - name: "flexible-extract"
     filter:
       - function: "regex"
         group_select: -1
