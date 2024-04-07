@@ -2,27 +2,13 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10256836.svg)](https://doi.org/10.5281/zenodo.10256836)
 
-## Announcement
-**A new v0.4.0 release of lm-evaluation-harness is available** !
-
-New updates and features include:
-
-- Internal refactoring
-- Config-based task creation and configuration
-- Easier import and sharing of externally-defined task config YAMLs
-- Support for Jinja2 prompt design, easy modification of prompts + prompt imports from Promptsource
-- More advanced configuration options, including output post-processing, answer extraction, and multiple LM generations per document, configurable fewshot settings, and more
-- Speedups and new modeling libraries supported, including: faster data-parallel HF model usage, vLLM support, MPS support with HuggingFace, and more
-- Logging and usability changes
-- New tasks including CoT BIG-Bench-Hard, Belebele, user-defined task groupings, and more
-
-Please see our updated documentation pages in `docs/` for more details.
-
-Development will be continuing on the `main` branch, and we encourage you to give us feedback on what features are desired and how to improve the library further, or ask questions, either in issues or PRs on GitHub, or in the [EleutherAI discord](https://discord.gg/eleutherai)!
-
 ## Overview
 
 This project provides a unified framework to test generative language models on a large number of different evaluation tasks.
+
+This Readme provides a quickstart guide, an overview of features in the library, as well as administrative notes and information about existing Eval Harness integrations. **If you have additional questions about usage, integration, or contributing, please visit our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/main/docs) and, if needed, open an issue on GitHub or post in [#lm-thunderdome in the EleutherAI discord](discord.gg/eleutherai)!**
+
+### Why LM Eval Harness?
 
 **Features:**
 - Over 60 standard academic benchmarks for LLMs, with hundreds of subtasks and variants implemented.
@@ -35,6 +21,10 @@ This project provides a unified framework to test generative language models on 
 - Easy support for custom prompts and evaluation metrics.
 
 The Language Model Evaluation Harness is the backend for 🤗 Hugging Face's popular [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard), has been used in [hundreds of papers](https://scholar.google.com/scholar?oi=bibs&hl=en&authuser=2&cites=15052937328817631261,4097184744846514103,1520777361382155671,17476825572045927382,18443729326628441434,14801318227356878622,7890865700763267262,12854182577605049984,15641002901115500560,5104500764547628290), and is used internally by dozens of organizations including NVIDIA, Cohere, BigScience, BigCode, Nous Research, and Mosaic ML.
+
+## News
+
+**[03/18/24]** - v0.4.2 of the LM Evaluation Harness is now available on PyPI! Read the patch notes here: https://github.com/EleutherAI/lm-evaluation-harness/releases/tag/v0.4.2
 
 ## Install
 
@@ -373,28 +363,6 @@ lm_eval \
 
 In the stdout, you will find the link to the W&B run page as well as link to the generated report. You can find an example of this workflow in [examples/visualize-wandb.ipynb](examples/visualize-wandb.ipynb), and an example of how to integrate it beyond the CLI.
 
-## How to Contribute or Learn More?
-
-For more information on the library and how everything fits together, check out all of our [documentation pages](https://github.com/EleutherAI/lm-evaluation-harness/tree/main/docs)! We plan to post a larger roadmap of desired + planned library improvements soon, with more information on how contributors can help.
-
-### Implementing new tasks
-
-To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
-
-In general, we follow this priority list for addressing concerns about prompting and other eval details:
-1. If there is widespread agreement among people who train LLMs, use the agreed upon procedure.
-2. If there is a clear and unambiguous official implementation, use that procedure.
-3. If there is widespread agreement among people who evaluate LLMs, use the agreed upon procedure.
-4. If there are multiple common implementations but not universal or widespread agreement, use our preferred option among the common implementations. As before, prioritize choosing from among the implementations found in LLM training papers.
-
-These are guidelines and not rules, and can be overruled in special circumstances.
-
-We try to prioritize agreement with the procedures used by other groups to decrease the harm when people inevitably compare runs across different papers despite our discouragement of the practice. Historically, we also prioritized the implementation from [Language Models are Few Shot Learners](https://arxiv.org/abs/2005.14165) as our original goal was specifically to compare results with that paper.
-
-### Support
-
-The best way to get support is to open an issue on this repo or join the [EleutherAI Discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases. If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
-
 ## Optional Extras
 Extras dependencies can be installed via `pip install -e ".[NAME]"`
 
@@ -418,6 +386,47 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | zeno          | For visualizing results with Zeno     |
 |---------------|---------------------------------------|
 | all           | Loads all extras (not recommended)    |
+
+## Community
+
+We are very grateful to the community of users and contributors to the Eval Harness.
+
+### Support
+
+The best way to get support is to open an issue on this repo or join the [EleutherAI Discord server](https://discord.gg/eleutherai). The `#lm-thunderdome` channel is dedicated to developing this project and the `#release-discussion` channel is for receiving support for our releases. If you've used the library and have had a positive (or negative) experience, we'd love to hear from you!
+
+### Implementing new tasks
+
+To implement a new task in the eval harness, see [this guide](./docs/new_task_guide.md).
+
+In general, we follow this priority list for addressing concerns about prompting and other eval details:
+1. If there is widespread agreement among people who train LLMs, use the agreed upon procedure.
+2. If there is a clear and unambiguous official implementation, use that procedure.
+3. If there is widespread agreement among people who evaluate LLMs, use the agreed upon procedure.
+4. If there are multiple common implementations but not universal or widespread agreement, use our preferred option among the common implementations. As before, prioritize choosing from among the implementations found in LLM training papers.
+
+These are guidelines and not rules, and can be overruled in special circumstances.
+
+We try to prioritize agreement with the procedures used by other groups to decrease the harm when people inevitably compare runs across different papers despite our discouragement of the practice. Historically, we also prioritized the implementation from [Language Models are Few Shot Learners](https://arxiv.org/abs/2005.14165) as our original goal was specifically to compare results with that paper.
+
+
+## Community
+
+We are very grateful for the community of users and contributors to the Eval Harness!
+
+### Adoption
+
+LM Eval Harness has been used by many projects within the community to perform evaluation.
+
+If you have a project that has integrated or natively used the Eval Harness, we'd love to hear about it! Feel free to open a PR and add it to this list.
+
+-
+
+### External Integrations
+
+Here we provide a shortlist of examples of external integration with the Eval Harness library, as examples for others seeking to use the library within their own training or inference framework or other projects.
+
+-
 
 ## Cite as
 
