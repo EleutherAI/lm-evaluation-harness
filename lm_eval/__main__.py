@@ -335,7 +335,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         )
 
     eval_logger.info(f"Selected Tasks: {task_names}")
-    eval_logger.info("Loading selected tasks...")
 
     request_caching_args = request_caching_arg_to_dict(
         cache_requests=args.cache_requests
@@ -392,7 +391,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             if args.log_samples:
                 for task_name, config in results["configs"].items():
                     output_name = "{}_{}".format(
-                        re.sub("/|=", "__", args.model_args), task_name
+                        re.sub(r"[\"<>:/\|\\?\*\[\]]+", "__", args.model_args),
+                        task_name,
                     )
                     filename = path.joinpath(f"{output_name}.jsonl")
                     samples_dumped = json.dumps(
