@@ -12,6 +12,12 @@ def combine_csvs(directory_path):
         dataframes.append(df)
         
     combined_df = pd.concat(dataframes, ignore_index = True)
+    
+    for i in range(len(combined_df['answer'])):
+        index_for_choice = str(combined_df['answer'][i])
+        choice = combined_df[index_for_choice][i]
+        print(choice)
+        combined_df['answer'][i] = choice
 
     combined_df.to_csv('combined_data.csv', index=False)
 

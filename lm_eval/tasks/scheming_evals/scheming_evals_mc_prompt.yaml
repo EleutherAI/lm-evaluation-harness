@@ -3,11 +3,10 @@ dataset_path: csv
 dataset_kwargs:
   data_files:
     validation: /Users/marina.levay/Documents/GitHub/lm-evaluation-harness/lm_eval/tasks/scheming_evals/combined_data.csv
-output_type: multiple_choice
+output_type: generate_until
 validation_split: validation
 test_split: null
-doc_to_text: "Subject: {{subject}}\nScenario: {{scenario}}\nExplanation: {{explanation}}\nQuestion: {{mc_prompt}}\n1. {1}\n2. {2}\nAnswer: "
-doc_to_choice: ['1', '2']
+doc_to_text: "Subject: {{subject}}\n\nScenario: {{scenario}}\n\nQuestion: {{mc_prompt}}\n\n1. {{option_1}}\n2. {{option_2}}\n\nAnswer: "
 doc_to_target: "{{answer}}"
 metric_list:
   - metric: acc

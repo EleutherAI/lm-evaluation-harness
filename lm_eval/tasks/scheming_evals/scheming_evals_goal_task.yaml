@@ -6,7 +6,7 @@ dataset_kwargs:
 validation_split: validation
 test_split: null
 output_type: generate_until
-doc_to_text: "Subject: {{subject}}\nScenario: {{scenario}}\nQuestion: {{goal_prompt}}\nAnswer: "
+doc_to_text: "Subject: {{subject}}\nScenario: {{scenario}}\nQuestion: {{goal_question}}\nAnswer: "
 doc_to_target: ""
 metric_list:
   - metric: acc

@@ -75,7 +75,7 @@ def oa_completion(client, chat: bool = False, **kwargs):
 
 
 @register_model("openai-completions", "local-completions")
-class OpenaiCompletionsLM(TemplateLM):
+class OpenaiCompletionsLM(LM):
     _DEFAULT_MAX_LENGTH = 2048
 
     def __init__(
