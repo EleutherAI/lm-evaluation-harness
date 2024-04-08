@@ -29,7 +29,9 @@ def _handle_non_serializable(o):
         return str(o)
 
 
-def _int_or_none_list_arg_type(max_len: int, value: str, split_char: str = ","):
+def _int_or_none_list_arg_type(
+    min_len: int, max_len: int, defaults: str, value: str, split_char: str = ","
+):
     def parse_value(item):
         item = item.strip().lower()
         if item == "none":
@@ -45,10 +47,19 @@ def _int_or_none_list_arg_type(max_len: int, value: str, split_char: str = ","):
     if num_items == 1:
         # Makes downstream handling the same for single and multiple values
         items = items * max_len
-    elif num_items != max_len:
+    elif num_items < min_len or num_items > max_len:
         raise argparse.ArgumentTypeError(
             f"Argument requires {max_len} integers or None, separated by '{split_char}'"
         )
+    elif num_items != max_len:
+        logging.warning(
+            f"Argument requires {max_len} integers or None, separated by '{split_char}'. "
+            "Missing values will be filled with defaults."
+        )
+        default_items = [parse_value(v) for v in defaults.split(split_char)]
+        items.extend(
+            default_items[num_items:]
+        )  # extend items list with missing defaults
 
     return items
 
@@ -210,19 +221,20 @@ def setup_parser() -> argparse.ArgumentParser:
         default=False,
         help="Use with --log_samples. Only model outputs will be saved and metrics will not be evaluated.",
     )
+    default_seed_string = "0,1234,1234,1234"
     parser.add_argument(
         "--seed",
-        type=partial(_int_or_none_list_arg_type, 4),
-        default="0,1234,1234,1234",  # for backward compatibility
+        type=partial(_int_or_none_list_arg_type, 3, 4, default_seed_string),
+        default=default_seed_string,  # for backward compatibility
         help=(
             "Set seed for python's random, numpy, torch, and fewshot sampling.\n"
             "Accepts a comma-separated list of 4 values for python's random, numpy, torch, and fewshot sampling seeds, "
             "respectively, or a single integer to set the same seed for all three.\n"
-            "The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` "
+            f"The values are either an integer or 'None' to not set the seed. Default is `{default_seed_string}` "
             "(for backward compatibility).\n"
-            "E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set "
-            "since the second value is `None`.\n"
-            "E.g, `--seed 42` sets all three seeds to 42."
+            "E.g. `--seed 0,None,8,52` sets `random.seed(0)`, `torch.manual_seed(8)`, and fewshot sampling seed to 52. "
+            "Here numpy's seed is not set since the second value is `None`.\n"
+            "E.g, `--seed 42` sets all four seeds to 42."
         ),
     )
     parser.add_argument(
