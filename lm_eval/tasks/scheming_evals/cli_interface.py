@@ -4,7 +4,7 @@ export OPENAI_API_KEY=KEY
 lm_eval \
     --model openai-chat-completions \
     --model_args model=gpt-4\
-    --include_path /Users/marina.levay/Documents/GitHub/lm-evaluation-harness/lm_eval/tasks/scheming_evals \
+    --include_path path/to/scheming_evals \
     --tasks scheming_evals_free_response_task \
     --output output/scheming_evals_free_response_task_output/ \
     --log_samples \
@@ -16,7 +16,7 @@ export OPENAI_API_KEY=KEY
 lm_eval \
     --model openai-chat-completions \
     --model_args model=gpt-4\
-    --include_path /Users/marina.levay/Documents/GitHub/lm-evaluation-harness/lm_eval/tasks/scheming_evals \
+    --include_path path/to/scheming_evals \
     --tasks scheming_evals_mc_prompt_task \
     --output output/scheming_evals_mc_task_output/ \
     --log_samples \
@@ -28,7 +28,7 @@ export OPENAI_API_KEY=KEY
 lm_eval \
     --model openai-chat-completions \
     --model_args model=gpt-4\
-    --include_path /Users/marina.levay/Documents/GitHub/lm-evaluation-harness/lm_eval/tasks/scheming_evals \
+    --include_path path/to/scheming_evals \
     --tasks scheming_evals_goal_task \
     --output output/scheming_evals_goal_task_output/ \
     --predict_only \
@@ -39,7 +39,7 @@ export OPENAI_API_KEY=KEY
 lm_eval \
     --model openai-chat-completions \
     --model_args model=gpt-4\
-    --include_path /Users/marina.levay/Documents/GitHub/lm-evaluation-harness/lm_eval/tasks/scheming_evals \
+    --include_path path/to/scheming_evals \
     --tasks scheming_evals_context_task \
     --output output/scheming_evals_context_task_output/ \
     --log_samples \
