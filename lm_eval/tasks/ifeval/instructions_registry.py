@@ -15,6 +15,7 @@
 """Registry of all instructions."""
 from lm_eval.tasks.ifeval import instructions
 
+
 _KEYWORD = "keywords:"
 
 _LANGUAGE = "language:"

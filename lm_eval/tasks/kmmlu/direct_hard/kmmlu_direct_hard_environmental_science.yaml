@@ -1,0 +1,3 @@
+dataset_name: environmental_science
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_hard_direct_environmental_science

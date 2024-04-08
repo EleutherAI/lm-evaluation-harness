@@ -1,6 +1,7 @@
 import re
 from typing import List
 
+
 def doc_to_text(x):
     text = re.sub(r" X ", " *" + x["span2_text"] + "* ", _wsc_inputs(x))
     return "wsc: " + text
@@ -23,14 +24,14 @@ def _wsc_inputs(x):
             [
                 " ".join(words[:pronoun_index]),
                 "X",
-                " ".join(words[pronoun_index + 1:]),
+                " ".join(words[pronoun_index + 1 :]),
             ]
         )
 
     # Handle some special cases.
     if (
-            x["text"]
-            == 'The boy continued to whip the pony , and eventually the pony threw him over. John laughed out quite loud. "Good for him," he said. '
+        x["text"]
+        == 'The boy continued to whip the pony , and eventually the pony threw him over. John laughed out quite loud. "Good for him," he said. '
     ):
         return (
             "The boy continued to whip the pony , and eventually the pony threw "
@@ -39,8 +40,8 @@ def _wsc_inputs(x):
 
     # Using the span2_index, we get 'use' instead of 'it'.
     if (
-            x["text"]
-            == "When they had eventually calmed down a bit , and had gotten home, Mr. Farley put the magic pebble in an iron safe . Some day they might want to use it , but really for now, what more could they wish for?"
+        x["text"]
+        == "When they had eventually calmed down a bit , and had gotten home, Mr. Farley put the magic pebble in an iron safe . Some day they might want to use it , but really for now, what more could they wish for?"
     ):
         return (
             "When they had eventually calmed down a bit , and had gotten home, "

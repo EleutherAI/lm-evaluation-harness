@@ -17,12 +17,14 @@ class TakeFirstFilter(Filter):
 
 
 class TakeKFilter(Filter):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:
         self.k = kwargs.pop("k")
 
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
     def apply(self, resps, docs):
+        # need resp to be subscriptable to check below
+        resps = list(resps)
         # check we have at least k responses per doc, else we can't take the first k
         assert (
             len(resps[0]) >= self.k

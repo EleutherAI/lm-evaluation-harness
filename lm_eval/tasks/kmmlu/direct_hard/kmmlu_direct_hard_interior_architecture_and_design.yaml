@@ -1,0 +1,3 @@
+dataset_name: interior_architecture_and_design
+include: _direct_hard_kmmlu_yaml
+task: kmmlu_hard_direct_interior_architecture_and_design

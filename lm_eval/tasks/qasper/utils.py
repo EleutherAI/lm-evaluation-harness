@@ -1,5 +1,6 @@
-from datasets import Dataset
 from functools import partial
+
+from datasets import Dataset
 
 
 def process_docs(dataset, set_answer_type="bool"):
@@ -50,7 +51,7 @@ def process_docs(dataset, set_answer_type="bool"):
                     obs_list["abstract"].append(abstract)
                     obs_list["question"].append(question)
                     obs_list["answer_type"].append(answer_type)
-                    if type(answer) == list:
+                    if isinstance(answer, list):
                         answer = ", ".join(answer)
                     obs_list["answer"].append(answer)
 

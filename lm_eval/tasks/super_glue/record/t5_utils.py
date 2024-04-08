@@ -1,8 +1,8 @@
+import collections
 import re
 import string
-import collections
-import numpy as np
 
+import numpy as np
 from datasets import Dataset
 
 from lm_eval.api.metrics import metric_max_over_ground_truths

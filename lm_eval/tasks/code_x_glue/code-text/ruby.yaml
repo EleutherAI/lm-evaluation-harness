@@ -8,7 +8,7 @@ test_split: test
 output_type: generate_until
 generation_kwargs:
   num_beams: 10
-  max_length: 128
+  max_gen_toks: 128
   until:
     - "</s>"
 doc_to_text: !function utils.doc_to_text

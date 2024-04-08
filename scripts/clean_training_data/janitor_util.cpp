@@ -75,7 +75,7 @@ std::vector<std::string> clean_ngram(std::string const &input,
           gram_lengths.erase(gram_lengths.begin());
           gram_lengths.push_back(0);
 
-          // Otherwise, continute building
+          // Otherwise, continue building
         } else {
           current_ngram += ' ';
           gram_lengths.push_back(0);
@@ -165,7 +165,7 @@ clean_ngram_with_indices(std::string const &input, std::string const &ignore,
           gram_start_indices.erase(gram_start_indices.begin());
           gram_start_indices.push_back(i + 1);
 
-          // Otherwise, continute building
+          // Otherwise, continue building
         } else {
           current_ngram += ' ';
           gram_lengths.push_back(0);

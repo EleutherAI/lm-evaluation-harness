@@ -5,7 +5,7 @@ import random
 import numpy as np
 
 from lm_eval import tasks
-from lm_eval.tasks import include_path, initialize_tasks
+from lm_eval.tasks import TaskManager
 from lm_eval.utils import eval_logger, join_iters
 
 
@@ -39,22 +39,21 @@ def main():
     args = parse_args()
     np.random.seed(args.seed)
 
-    initialize_tasks(args.verbosity)
-
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
-        include_path(args.include_path)
+
+    task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
     if args.tasks == "all_tasks":
-        task_names = tasks.ALL_TASKS
+        task_names = task_manager.all_tasks
     else:
         task_names = args.tasks.split(",")
-    task_dict = tasks.get_task_dict(task_names)
+    task_dict = tasks.get_task_dict(task_names, task_manager)
 
     os.makedirs(args.output_base_path, exist_ok=True)
     for task_name, task in task_dict.items():
-        if type(task) == tuple:
-            group_name, task = task
+        if isinstance(task, tuple):
+            _, task = task
         rnd = random.Random()
         rnd.seed(args.seed)
 

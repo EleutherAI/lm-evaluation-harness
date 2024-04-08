@@ -30,4 +30,7 @@ pip install pybind11
 c++ -O3 -Wall -shared -std=c++11 -fPIC $(python3 -m pybind11 --includes) janitor_util.cpp -o janitor_util$(python3-config --extension-suffix)
 ```
 
-If your your compiler isn't linked to python, you may need to add to the above `-undefined dynamic_lookup`
+MacOS users: If your compiler isn't linked to Python, you may need to add to the above `-undefined dynamic_lookup`. \
+Linux users: If your compiler isn't linked to Python, you may need to follow these steps:
+1. Rename the compiled code file to `janitor_util.so`.
+2. Before running `import Janitor` in your code, add `sys.path.append("your/relative/path/to/janitor_util.so")` so that Python knows the location of `janitor_util.so`.

@@ -1,13 +1,14 @@
 """
 Take in a YAML, and output all other splits with this YAML
 """
-import os
-import yaml
 import argparse
+import os
 
+import yaml
 from tqdm import tqdm
 
 from lm_eval.logger import eval_logger
+
 
 SUBSETS = ["WR", "GR", "RCS", "RCSS", "RCH", "LI"]
 
@@ -25,7 +26,7 @@ if __name__ == "__main__":
 
     # get filename of base_yaml so we can `"include": ` it in our other YAMLs.
     base_yaml_name = os.path.split(args.base_yaml_path)[-1]
-    with open(args.base_yaml_path) as f:
+    with open(args.base_yaml_path, encoding="utf-8") as f:
         base_yaml = yaml.full_load(f)
 
     for name in tqdm(SUBSETS):
@@ -39,7 +40,7 @@ if __name__ == "__main__":
 
         file_save_path = args.save_prefix_path + f"_{name.lower()}.yaml"
         eval_logger.info(f"Saving yaml for subset {name} to {file_save_path}")
-        with open(file_save_path, "w") as yaml_file:
+        with open(file_save_path, "w", encoding="utf-8") as yaml_file:
             yaml.dump(
                 yaml_dict,
                 yaml_file,
