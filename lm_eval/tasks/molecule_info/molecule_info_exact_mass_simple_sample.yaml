@@ -1,0 +1,23 @@
+group: molecule_info
+task: molecule_info_exact_mass_simple_sample
+include: molecule_info.yaml
+dataset_kwargs:
+  data_files:
+    valid: lm_eval/tasks/molecule_info/fda_sample.json
+process_docs: !function preprocessing.process_docs
+description: "Answer the following questions. You will be provided with the molecular formula of a molecule. Answer the exact mass of molecules. Think step by step. However, your last sentence should be \"The answer is [answer].\", where [answer] contains only numbers, without unit. \n"
+# version without atom masses or calculation steps:
+doc_to_text: "Question: What is the exact mass of H2O? \nAnswer: One H2O (water) molecule contains 2 hydrogen atoms with mass 1.008, and one oxygen atom which has mass 15.999. Therefore, the exact mass of an H2O molecule is 18.015. The answer is 18.015.\nQuestion: What is the exact mass of {{molecular_formula}}? \nAnswer:"
+
+# version without atom masses, with calculation steps:
+#doc_to_text: "Question: What is the exact mass of H2O? \nAnswer: One H2O (water) molecule contains 2 hydrogen atoms with mass 1.008, and one oxygen atom which has mass 15.999. Therefore, the exact mass of an H2O molecule is 2*1.008+1*15.999=18.015. The answer is 18.015.\nQuestion: What is the exact mass of {{molecular_formula}}? \nAnswer:"
+
+# version with atom masses:
+#doc_to_text: "Question: What is the exact mass of H2O? (Atom masses: H - 1; O - 16) \nAnswer: One H2O (water) molecule contains 2 hydrogen atoms with mass 1, and one oxygen atom which has mass 16. Therefore, the exact mass of an H2O molecule is 2*1+1*16=18. The answer is 18.\nQuestion: What is the exact mass of {{molecular_formula}}? {{related_atom_masses}}\nAnswer:"
+
+doc_to_target: "{{exact_mass}}"
+metric_list:
+  - metric: !function metrics.rounded_acc
+    aggregation: mean
+    higher_is_better: true
+

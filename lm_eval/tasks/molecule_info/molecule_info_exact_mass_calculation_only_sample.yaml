@@ -1,0 +1,20 @@
+group: molecule_info1
+task: molecule_info_exact_mass_calculation_only_sample
+include: molecule_info.yaml
+dataset_kwargs:
+  data_files:
+    valid: lm_eval/tasks/molecule_info/fda_sample.json
+process_docs: !function preprocessing.process_docs
+
+# CoT + few-shot version:
+#description: "Answer the following questions. Think step by step. However, your last sentence should be \"The answer is [answer].\", where [answer] contains only numbers, without unit. \n"
+#doc_to_text: "Question: What is 2*1+1*16?\nAnswer: The answer is 18.\nQuestion: What is the exact mass of {{molecular_formula}}? {{related_atom_masses}}\nAnswer:"
+# Direct version:
+description: ""
+doc_to_text: "{{mol_mass_calculation}} = "
+doc_to_target: "{{rounded_mol_mass}}"
+metric_list:
+  - metric: !function metrics.acc
+    aggregation: mean
+    higher_is_better: true
+

@@ -274,7 +274,7 @@ class OpenaiCompletionsLM(LM):
             ret = []
             lastuntil = xs[0][1]
             for x in xs:
-                if len(ret) >= size or x[1] != lastuntil:
+                if len(ret) >= int(size) or x[1] != lastuntil:
                     yield ret, lastuntil
                     ret = []
                     lastuntil = x[1]

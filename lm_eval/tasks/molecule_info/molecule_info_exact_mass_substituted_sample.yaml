@@ -1,0 +1,17 @@
+group: molecule_info2
+task: molecule_info_exact_mass_substituted_sample
+include: molecule_info.yaml
+dataset_kwargs:
+  data_files:
+    valid: lm_eval/tasks/molecule_info/fda_sample.json
+process_docs: !function preprocessing.process_docs
+description: "Answer the following questions. You will be provided with the molecular formula of a molecule. Answer the exact mass of molecules. Think step by step. However, your last sentence should be \"The answer is [answer].\", where [answer] contains only numbers, without unit. \n"
+#doc_to_text: "Question: What is the exact mass of H2O? \nAnswer: One H2O (water) molecule contains 2 hydrogen atoms with mass 1.008, and one oxygen atom which has mass 15.999. Therefore, the exact mass of an H2O molecule is 2*1.008+1*15.999=18.015. The answer is 18.015.\nQuestion: What is the exact mass of {{molecular_formula}}? {{related_atom_masses}}\nAnswer:"
+doc_to_text: "Question: What is the combined weight of 2 object A's and 1 object B's? (Object weights: A - 1; B - 16) \nAnswer: There are 2 A's with weight 1, and one B which has weight 16. Therefore, the combined weight is 2*1+1*16=18. The answer is 18.\nQuestion: What is the combined weight of {{substituted_formula}}? {{substituted_related_atom_masses}}\nAnswer:"
+
+doc_to_target: "{{rounded_mol_mass}}"
+metric_list:
+  - metric: !function metrics.rounded_acc
+    aggregation: mean
+    higher_is_better: true
+

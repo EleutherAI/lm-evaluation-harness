@@ -1,0 +1,18 @@
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    valid: lm_eval/tasks/molecule_info/fda.json
+validation_split: valid
+output_type: generate_until
+generation_kwargs:
+  until:
+    - "\nQuestion:"
+description: "Answer the following questions. You will be provided with the SMILES expression of a molecule. Answer the exact mass of molecules. Think step by step. However, your last sentence should be \"The answer is [answer].\", where [answer] contains only numbers, without unit. \n"
+doc_to_text: "Question: What is the exact mass of O?\nAnswer: The SMILES describes a H2O (water) molecule. One water molecule contains 2 hydrogen atoms with mass 1.008, and one oxygen atom which has mass 15.999. Therefore, the exact mass of an H2O molecule is 18.01. The answer is 18.01.\nQuestion: What is the exact mass of {{smiles}}?\nAnswer:"
+doc_to_target: "{{exact_mass}}"
+metric_list:
+  - metric: !function metrics.rounded_acc
+    aggregation: mean
+    higher_is_better: true
+    

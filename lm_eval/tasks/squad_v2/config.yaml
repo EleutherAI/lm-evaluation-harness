@@ -1,0 +1,16 @@
+task: squad_v2
+dataset_name: squad_v2
+training_split: train
+validation_split: validation
+output_type: generate_until
+doc_to_text: "D"
+doc_to_target: "O"
+generation_kwargs: 
+  until: 
+    - "".""
+    - ""\n""
+metric_list: 
+  - metric: exact_match
+    ignore_case: true
+  - metric: bleu
+    ignore_case: true

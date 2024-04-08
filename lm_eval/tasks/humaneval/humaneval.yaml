@@ -1,0 +1,15 @@
+task: humaneval
+dataset_path: openai_humaneval
+test_split: test
+output_type: generate_until
+doc_to_text: "{{prompt}}"
+doc_to_target: canonical_solution
+generation_kwargs:
+  until: 
+    - "\n\n\n"
+    - "\ndef"
+process_results: !function evaluation.process_results
+metric_list: 
+  - metric: pass@1
+    aggregation: mean
+    higher_is_better: true
