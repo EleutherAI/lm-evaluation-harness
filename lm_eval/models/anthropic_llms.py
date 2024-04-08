@@ -45,7 +45,7 @@ def anthropic_completion(
     except ModuleNotFoundError:
         raise Exception(
             "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
         )
 
     def _exception_callback(e: Exception, sleep_time: float) -> None:
@@ -72,6 +72,70 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         return response.completion
 
     return completion()
+
+
+def anthropic_chat(
+    client,  #: anthropic.Anthropic,
+    model: str,
+    prompt: str,
+    max_tokens: int,
+    temperature: float,
+    stop: List[str],
+    **kwargs: Any,
+) -> str:
+    """Wrapper function around the Anthropic completion API client with exponential back-off
+    in case of RateLimitError.
+
+    params:
+        client: anthropic.Anthropic
+            Anthropic API client
+        model: str
+            Anthropic model e.g. 'claude-3-opus-20240229', 'claude-3-sonnet-20240229'
+        prompt: str
+            Prompt to feed to the model
+        max_tokens: int
+            Maximum number of tokens to sample from the model
+        temperature: float
+            Sampling temperature
+        stop: List[str]
+            List of stop sequences
+        kwargs: Any
+            Additional model_args to pass to the API client
+    """
+
+    try:
+        import anthropic
+    except ModuleNotFoundError:
+        raise Exception(
+            "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
+        )
+
+    def _exception_callback(e: Exception, sleep_time: float) -> None:
+        eval_logger.warning(
+            f"RateLimitError occurred: {e.__cause__}\n Retrying in {sleep_time} seconds"
+        )
+
+    @retry_on_specific_exceptions(
+        on_exceptions=[
+            anthropic.RateLimitError,
+            anthropic.APIConnectionError,
+            anthropic.APIStatusError,
+        ],
+        max_retries=None,  # retry forever, consider changing
+        on_exception_callback=_exception_callback,
+    )
+    def messages():
+        response = client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            messages=[{"role": "user", "content": f"{prompt}"}],
+            **kwargs,
+        )
+        return response.content[0].text
+
+    return messages()
 
 
 @register_model("anthropic")
@@ -104,7 +168,7 @@ class AnthropicLM(LM):
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
             )
 
         self.model = model
@@ -153,7 +217,7 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
         except ModuleNotFoundError:
             raise Exception(
                 "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
-please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e .[anthropic]`",
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
             )
 
         if not requests:
@@ -204,3 +268,93 @@ please install anthropic via `pip install lm-eval[anthropic]` or `pip install -e
 
     def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
+
+
+@register_model("anthropic-chat", "anthropic-chat-completions")
+class AnthropicChatLM(AnthropicLM):
+    REQ_CHUNK_SIZE = 20  # TODO: not used
+
+    def __init__(
+        self,
+        model: str,
+        batch_size: int = 1,
+        max_tokens: int = 256,
+        temperature: float = 0,  # defaults to 1
+        **kwargs,  # top_p, top_k, etc.
+    ) -> None:
+        """Anthropic API wrapper.
+
+        :param model: str
+            Anthropic model e.g. 'claude-3-opus-20240229', 'claude-3-sonnet-20240229'
+        :param max_tokens: int
+            Maximum number of tokens to sample from the model
+        :param temperature: float
+            Sampling temperature
+        :param kwargs: Any
+            Additional model_args to pass to the API client
+        """
+        super().__init__()
+
+        try:
+            import anthropic
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
+            )
+
+        self.model = model
+        # defaults to os.environ.get("ANTHROPIC_API_KEY")
+        self.client = anthropic.Anthropic()
+        self.temperature = temperature
+        self.max_token = max_tokens
+        self.tokenizer = self.client.get_tokenizer()
+        self.kwargs = kwargs
+
+    @property
+    def max_gen_toks(self) -> int:
+        return self.max_tokens
+
+    def generate_until(self, requests) -> List[str]:
+        try:
+            import anthropic
+        except ModuleNotFoundError:
+            raise Exception(
+                "attempted to use 'anthropic' LM type, but package `anthropic` is not installed. \
+please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install -e '.[anthropic]'`",
+            )
+
+        if not requests:
+            return []
+
+        _requests: List[Tuple[str, dict]] = [req.args for req in requests]
+
+        res = []
+        for request in tqdm(_requests):
+            try:
+                inp = request[0]
+                request_args = request[1]
+                # generation_kwargs
+                until = request_args.get("until")
+                max_tokens = request_args.get("max_gen_toks", self.max_length)
+                temperature = request_args.get("temperature", self.temperature)
+                response = anthropic_chat(
+                    client=self.client,
+                    model=self.model,
+                    prompt=inp,
+                    max_tokens=max_tokens,
+                    temperature=temperature,  # TODO: implement non-greedy sampling for Anthropic
+                    stop=until,  # type: ignore
+                    **self.kwargs,
+                )
+                res.append(response)
+
+                self.cache_hook.add_partial("generate_until", request, response)
+            except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
+                eval_logger.critical(f"Server unreachable: {e.__cause__}")
+                break
+            except anthropic.APIStatusError as e:  # type: ignore # noqa: F821
+                eval_logger.critical(f"API error {e.status_code}: {e.message}")
+                break
+
+        return res
