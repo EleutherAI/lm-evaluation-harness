@@ -1,4 +1,5 @@
 import os
+
 import datasets
 import yaml
 
@@ -178,6 +179,7 @@ skip_tasks = [
     "simple_arithmetic_multiple_targets_json",
 ]
 
+
 def main() -> None:
     for path, task_type in zip(
         ["multiple_choice", "generate_until"],
@@ -192,13 +194,17 @@ def main() -> None:
                     print(f"Checking {task} for multiple choices")
                     if task in skip_tasks:
                         continue
-                    data = datasets.load_dataset("hails/bigbench", task+"_zero_shot")
-                    multiple_choice_targets = data['default'][0]["multiple_choice_targets"]
+                    data = datasets.load_dataset("hails/bigbench", task + "_zero_shot")
+                    multiple_choice_targets = data["default"][0][
+                        "multiple_choice_targets"
+                    ]
                     if len(multiple_choice_targets) == 0:
                         continue
                     else:
                         template_file = "multiple_choice_template_b_yaml"
-                        if set(data['default'][0]["targets"]) < set(multiple_choice_targets):
+                        if set(data["default"][0]["targets"]) < set(
+                            multiple_choice_targets
+                        ):
                             template_file = "multiple_choice_template_a_yaml"
 
                 with open(f"{path}/{file_name}", "w", encoding="utf-8") as f:
