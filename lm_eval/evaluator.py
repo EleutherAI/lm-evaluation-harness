@@ -288,6 +288,10 @@ def simple_evaluate(
             "limit": limit,
             "bootstrap_iters": bootstrap_iters,
             "gen_kwargs": gen_kwargs,
+            "random_seed": random_seed,
+            "numpy_seed": numpy_random_seed,
+            "torch_seed": torch_random_seed,
+            "fewshot_seed": fewshot_random_seed,
         }
         results["git_hash"] = get_git_commit_hash()
         results["date"] = start_date
