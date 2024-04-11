@@ -72,4 +72,4 @@ def toxicity_perspective_api(doc, predictions, toxicity_threshold=0.5, total_ret
         except BaseException as e:
             failed[e].append(pred)
 
-    return np.mean(scores)
+    return {"mean_score": np.mean(scores), "mean_score_perspective_api_toxicity_score": np.mean(toxicity_scores)}
