@@ -1,3 +1,4 @@
+import copy
 from typing import List, Optional, Tuple, Union
 
 import numpy
@@ -10,6 +11,9 @@ from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
+
+
+eval_logger = utils.eval_logger
 
 
 @register_model("sparseml")
@@ -56,10 +60,21 @@ class SparseMLLM(HFLM):
 
         relevant_kwarg_names = [
             "offload_folder",
+            "device_map",
         ]
         relevant_kwargs = {
             k: v for k, v in model_kwargs.items() if k in relevant_kwarg_names
         }
+
+        # Log the difference between model_kwargs and relevant_kwargs so we can see
+        # what is being ignored
+        ignored_kwargs = {}
+        for k, v in model_kwargs.items():
+            if k not in relevant_kwargs.keys():
+                ignored_kwargs[k] = v
+        eval_logger.warning(
+            f"The sparseml integration is ignoring the following kwargs that are specified: {ignored_kwargs}"
+        )
 
         model = SparseAutoModelForCausalLM.from_pretrained(
             pretrained,
@@ -130,18 +145,28 @@ class SparseMLLM(HFLM):
 
 @register_model("deepsparse")
 class DeepSparseLM(LM):
+    """
+    Wrapper around DeepSparse, a sparsity-aware deep learning
+    inference runtime for CPUs, to make it compatible with the
+    lm-evaluation-harness.
+    """
+
+    _DEFAULT_MAX_LENGTH = 2048
+
     def __init__(
         self,
         pretrained: str,
-        tokenizer: Optional[str] = None,
+        tokenizer: Optional[
+            Union[
+                str,
+                transformers.PreTrainedTokenizer,
+                transformers.PreTrainedTokenizerFast,
+            ]
+        ] = None,
         batch_size: Optional[Union[int, str]] = 1,
         max_gen_toks: Optional[int] = 256,
-        max_length: Optional[int] = 2048,
+        max_length: Optional[int] = None,
     ):
-        """
-        Wrapper around the DeepSparse pipeline to make it compatible with the
-        lm-evaluation-harness.
-        """
         super().__init__()
 
         try:
@@ -152,8 +177,15 @@ class DeepSparseLM(LM):
                 "Please install it via `pip install deepsparse[transformers]`"
             )
 
+        if isinstance(batch_size, str) and not batch_size.isdigit():
+            eval_logger.warning(
+                f"batch_size={batch_size} is not valid for deepsparse because it is not an integer. "
+                "Ignoring and using the default of 1."
+            )
+            batch_size = 1
+
         self.batch_size = int(batch_size)
-        self._max_length = max_length
+        self._max_length = max_length if max_length else self._DEFAULT_MAX_LENGTH
         self._max_gen_toks = max_gen_toks
         self.batch_sizes = {}
 
@@ -164,12 +196,25 @@ class DeepSparseLM(LM):
             batch_size=batch_size,
         )
         self.tokenizer = tokenizer if tokenizer else self.model.tokenizer
+        self.config = self.model.config
 
     def tok_encode(self, string: str) -> List[int]:
         return self.tokenizer.encode(string)
 
     def tok_decode(self, tokens: List[int]) -> str:
         return self.tokenizer.decode(tokens)
+
+    @property
+    def eot_token_id(self):
+        # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
+        return self.tokenizer.eos_token_id
+
+    @property
+    def prefix_token_id(self):
+        # it is used as prefix for loglikelihood
+        if self.tokenizer.bos_token_id is not None:
+            return self.tokenizer.bos_token_id
+        return self.tokenizer.eos_token_id
 
     @property
     def max_length(self) -> int:
@@ -322,6 +367,9 @@ class DeepSparseLM(LM):
             list(sameuntil_chunks(re_ord.get_reordered(), self.batch_size))
         ):
             inps = []
+
+            # make a deepcopy since we are changing arguments
+            request_args = copy.deepcopy(request_args)
 
             self._max_gen_toks = request_args.pop("max_gen_toks", self.max_gen_toks)
 
