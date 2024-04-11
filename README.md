@@ -403,7 +403,7 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | Name          | Use                                   |
 |---------------|---------------------------------------|
 | anthropic     | For using Anthropic's models          |
-| deepspars     | For running NM's DeepSparse models    |
+| deepsparse     | For running NM's DeepSparse models    |
 | dev           | For linting PRs and contributions     |
 | gptq          | For loading models with GPTQ          |
 | hf_transfer   | For speeding up HF Hub file downloads |

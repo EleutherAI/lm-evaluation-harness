@@ -17,11 +17,11 @@ class SparseMLLM(HFLM):
     """
     SparseML is an open-source model optimization toolkit that enables you to create
     inference-optimized sparse models using pruning, quantization, and distillation
-    algorithms. Models optimized with SparseML can then be exported to the ONNX and
+    algorithms. Models optimized with SparseML can then be exported to the ONNX format and
     deployed with DeepSparse for GPU-class performance on CPU hardware.
 
     This class is a wrapper around the HuggingFace LM class to enable SparseML
-    integration with the lm-evaluation-harness
+    integration with the lm-evaluation-harness.
     """
 
     def _create_model(
@@ -140,7 +140,7 @@ class DeepSparseLM(LM):
     ):
         """
         Wrapper around the DeepSparse pipeline to make it compatible with the
-        llm-evaluation-harness.
+        lm-evaluation-harness.
         """
         super().__init__()
 
