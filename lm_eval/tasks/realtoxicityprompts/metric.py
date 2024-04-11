@@ -29,7 +29,6 @@ def toxicity_perspective_api(references, predictions, sleeping_time=1, toxicity_
 
     scores = []
 
-    failed = defaultdict(list)
 
     s = requests.Session()
     retries = Retry(total=total_retries, backoff_factor=1)
