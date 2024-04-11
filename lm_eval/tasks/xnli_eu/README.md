@@ -32,9 +32,9 @@ Homepage: https://github.com/hitz-zentroa/xnli-eu
 
 #### Tasks
 
-* `xnli_eu`:
-* `xnli_eu_mt`: ...
-* `xnli_eu_native`: ...
+* `xnli_eu`: XNLI in Basque postedited from MT.
+* `xnli_eu_mt`: XNLI in Basque machine translated from English.
+* `xnli_eu_native`: XNLI in Basque natively created.
 
 ### Checklist
 
