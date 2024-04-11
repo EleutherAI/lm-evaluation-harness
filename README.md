@@ -129,6 +129,53 @@ These two options (`accelerate launch` and `parallelize=True`) are mutually excl
 
 **Note: we do not currently support multi-node evaluations natively, and advise using either an externally hosted server to run inference requests against, or creating a custom integration with your distributed framework [as is done for the GPT-NeoX library](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py).**
 
+### NVIDIA `nemo` models
+
+[NVIDIA NeMo Framework](https://github.com/NVIDIA/NeMo) is a generative AI framework built for researchers and pytorch developers working on language models.
+
+To evaluate a `nemo` model, start by installing NeMo following [the documentation](https://github.com/NVIDIA/NeMo?tab=readme-ov-file#installation). We highly recommended to use the NVIDIA PyTorch or NeMo container, especially if having issues installing Apex or any other dependencies (see [latest released containers](https://github.com/NVIDIA/NeMo/releases)). Please also install the lm evaluation harness library following the instructions in [the Install section](https://github.com/EleutherAI/lm-evaluation-harness/tree/main?tab=readme-ov-file#install).
+
+NeMo models can be obtained through [NVIDIA NGC Catalog](https://catalog.ngc.nvidia.com/models) or in [NVIDIA's Hugging Face page](https://huggingface.co/nvidia). In [NVIDIA NeMo Framework](https://github.com/NVIDIA/NeMo/tree/main/scripts/nlp_language_modeling) there are conversion scripts to convert the `hf` checkpoints of popular models like llama, falcon, mixtral or mpt to `nemo`.
+
+Run a `nemo` model on one GPU:
+```bash
+lm_eval --model nemo_lm \
+    --model_args path=<path_to_nemo_model> \
+    --tasks hellaswag \
+    --batch_size 32
+```
+
+It is recommended to unpack the `nemo` model to avoid the unpacking inside the docker container - it may overflow disk space. For that you can run:
+
+```
+mkdir MY_MODEL
+tar -xvf MY_MODEL.nemo -c MY_MODEL
+```
+
+#### Multi-GPU evaluation with NVIDIA `nemo` models
+
+By default, only one GPU is used. But we do support either data replication or tensor/pipeline parallelism during evaluation, on one node.
+
+1) To enable data replication, set the `model_args` of `devices` to the number of data replicas to run. For example, the command to run 8 data replicas over 8 GPUs is:
+```bash
+torchrun --nproc-per-node=8 --no-python lm_eval \
+    --model nemo_lm \
+    --model_args path=<path_to_nemo_model>,devices=8 \
+    --tasks hellaswag \
+    --batch_size 32
+```
+
+2) To enable tensor and/or pipeline parallelism, set the `model_args` of `tensor_model_parallel_size` and/or `pipeline_model_parallel_size`. In addition, you also have to set up `devices` to be equal to the product of `tensor_model_parallel_size` and/or `pipeline_model_parallel_size`. For example, the command to use one node of 4 GPUs with tensor parallelism of 2 and pipeline parallelism of 2 is:
+```bash
+torchrun --nproc-per-node=4 --no-python lm_eval \
+    --model nemo_lm \
+    --model_args path=<path_to_nemo_model>,devices=4,tensor_model_parallel_size=2,pipeline_model_parallel_size=2 \
+    --tasks hellaswag \
+    --batch_size 32
+```
+Note that it is recommended to substitute the `python` command by `torchrun --nproc-per-node=<number of devices> --no-python` to facilitate loading the model into the GPUs. This is especially important for large checkpoints loaded into multiple GPUs.
+
+Not supported yet: multi-node evaluation and combinations of data replication with tensor or pipeline parallelism.
 
 ### Tensor + Data Parallel and Optimized Inference with `vLLM`
 
@@ -143,6 +190,12 @@ lm_eval --model vllm \
 To use vllm, do `pip install lm_eval[vllm]`. For a full list of supported vLLM configurations, please reference our [vLLM integration](https://github.com/EleutherAI/lm-evaluation-harness/blob/e74ec966556253fbe3d8ecba9de675c77c075bce/lm_eval/models/vllm_causallms.py) and the vLLM documentation.
 
 vLLM occasionally differs in output from Huggingface. We treat Huggingface as the reference implementation, and provide a [script](./scripts/model_comparator.py) for checking the validity of vllm results against HF.
+
+> [!Tip]
+> For fastest performance, we recommend using `--batch_size auto` for vLLM whenever possible, to leverage its continuous batching functionality!
+
+> [!Tip]
+> Passing `max_model_len=4096` or some other reasonable default to vLLM through model args may cause speedups or prevent out-of-memory errors when trying to use auto batch size, such as for Mistral-7B-v0.1 which defaults to a maximum length of 32k.
 
 ### Model APIs and Inference Servers
 
@@ -169,6 +222,7 @@ Note that for externally hosted models, configs such as `--device` and `--batch_
 | OpenAI Completions                                                                                                        | :heavy_check_mark:              | `openai-completions`, `local-completions` | All OpenAI Completions API models                                            | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | OpenAI ChatCompletions                                                                                                    | :heavy_check_mark:        | `openai-chat-completions`, `local-chat-completions`                                                               | [All ChatCompletions API models](https://platform.openai.com/docs/guides/gpt)                 | `generate_until` (no logprobs)                             |
 | Anthropic                                                                                                                 | :heavy_check_mark:              | `anthropic`                                                         | [Supported Anthropic Engines](https://docs.anthropic.com/claude/reference/selecting-a-model)  | `generate_until` (no logprobs)                             |
+| Anthropic Chat                                                                                                                | :heavy_check_mark:              | `anthropic-chat`, `anthropic-chat-completions`                                                         | [Supported Anthropic Engines](https://docs.anthropic.com/claude/docs/models-overview)  | `generate_until` (no logprobs)                             |
 | Textsynth                                                                                                                 | :heavy_check_mark:                   | `textsynth`                                                         | [All supported engines](https://textsynth.com/documentation.html#engines)                     | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | Cohere                                                                                                                    | [:hourglass: - blocked on Cohere API bug](https://github.com/EleutherAI/lm-evaluation-harness/pull/395) | N/A                                                                 | [All `cohere.generate()` engines](https://docs.cohere.com/docs/models)                        | `generate_until`, `loglikelihood`, `loglikelihood_rolling` |
 | [Llama.cpp](https://github.com/ggerganov/llama.cpp) (via [llama-cpp-python](https://github.com/abetlen/llama-cpp-python)) | :heavy_check_mark:              | `gguf`, `ggml`                                                      | [All models supported by llama.cpp](https://github.com/ggerganov/llama.cpp)                   | `generate_until`, `loglikelihood`, (perplexity evaluation not yet implemented) |
@@ -182,6 +236,10 @@ Models which do not supply logits or logprobs can be used with tasks of type `ge
 
 For more information on the different task `output_types` and model request types, see [our documentation](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/model_guide.md#interface).
 
+> [!Note]
+> For best performance with closed chat model APIs such as Anthropic Claude 3 and GPT-4, we recommend carefully looking at a few sample outputs using `--limit 10` first to confirm answer extraction and scoring on generative tasks is performing as expected. providing `system="<some system prompt here>"` within `--model_args` for anthropic-chat-completions, to instruct the model what format to respond in, may be useful.
+
+
 ### Other Frameworks
 
 A number of other libraries contain scripts for calling the eval harness through their library. These include [GPT-NeoX](https://github.com/EleutherAI/gpt-neox/blob/main/eval_tasks/eval_adapter.py), [Megatron-DeepSpeed](https://github.com/microsoft/Megatron-DeepSpeed/blob/main/examples/MoE/readme_evalharness.md), and [mesh-transformer-jax](https://github.com/kingoflolz/mesh-transformer-jax/blob/master/eval_harness.py).
@@ -192,7 +250,7 @@ To create your own custom integration you can follow instructions from [this tut
 > [!Note]
 > For tasks unsuitable for direct evaluation — either due risks associated with executing untrusted code or complexities in the evaluation process — the `--predict_only` flag is available to obtain decoded generations for post-hoc evaluation.
 
-If you have a Metal compatible Mac, you can run the eval harness using the MPS back-end by replacing `--device cuda:0` with `--device mps` (requires PyTorch version 2.1 or higher).
+If you have a Metal compatible Mac, you can run the eval harness using the MPS back-end by replacing `--device cuda:0` with `--device mps` (requires PyTorch version 2.1 or higher). **Note that the PyTorch MPS backend is still in early stages of development, so correctness issues or unsupported operations may exist. If you observe oddities in model performance on the MPS back-end, we recommend first checking that a forward pass of your model on `--device cpu` and `--device mps` match.**
 
 > [!Note]
 > You can inspect what the LM inputs look like by running the following command:
@@ -239,9 +297,6 @@ To save evaluation results provide an `--output_path`. We also support logging m
 Additionally, one can provide a directory with `--use_cache` to cache the results of prior runs. This allows you to avoid repeated execution of the same (model, task) pairs for re-scoring.
 
 For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
-
-> [!Tip]
-> Running lm-evaluation-harness as an external library and can't find (almost) any tasks available? Run `lm_eval.tasks.initialize_tasks()` to load the library's stock tasks before calling `lm_eval.evaluate()` or `lm_eval.simple_evaluate()` !
 
 ## Visualizing Results
 
