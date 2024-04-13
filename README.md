@@ -282,6 +282,13 @@ lm_eval --model hf \
     --device cuda:0
 ```
 
+Models that are provided as delta weights relative to a base model can be loaded with the Hugging Face `transformers` using the `delta` argument in `model_args`:
+```bash
+lm_eval --model hf \
+    --model_args pretrained=Ejafa/llama_7B,delta=lmsys/vicuna-7b-delta-v1.1 \
+    --tasks hellaswag
+```
+
 [GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,autogptq=NAME` (or `,autogptq=True` for default names) in the `model_args` argument:
 
 ```bash
