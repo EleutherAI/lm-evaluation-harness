@@ -360,7 +360,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         torch_random_seed=args.seed[2],
         **request_caching_args,
     )
-    print(results)
 
     if results is not None:
         if args.log_samples:
