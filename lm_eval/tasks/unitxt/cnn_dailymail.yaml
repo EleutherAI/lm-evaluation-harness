@@ -1,20 +1,3 @@
-group:
-- unitxt
+include: tasks.summarization.abstractive.yaml
 task: cnn_dailymail
-dataset_path: unitxt/data
 dataset_name: card=cards.cnn_dailymail,template=templates.summarization.abstractive.full
-output_type: generate_until
-training_split: train
-validation_split: test
-doc_to_text: '{{source}}'
-doc_to_target: target
-process_results: !function 'unitxt_wrapper.process_results'
-generation_kwargs:
-  until:
-  - </s>
-metric_list:
-- metric: unitxt_rouge
-  aggregation: unitxt
-  higher_is_better: true
-metadata:
-  version: 1.0
