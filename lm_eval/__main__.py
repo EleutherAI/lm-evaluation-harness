@@ -87,6 +87,13 @@ def parse_eval_args() -> argparse.Namespace:
         "If <1, limit is a percentage of the total number of examples.",
     )
     parser.add_argument(
+        "--bootstrap_iters",
+        type=int,
+        default=100000,
+        metavar="N",
+        help="Number of bootstrapping iterations for metric standard error estimation.",
+    )
+    parser.add_argument(
         "--use_cache",
         "-c",
         type=str,
@@ -238,6 +245,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         device=args.device,
         use_cache=args.use_cache,
         limit=args.limit,
+        bootstrap_iters=args.bootstrap_iters,
         decontamination_ngrams_path=args.decontamination_ngrams_path,
         check_integrity=args.check_integrity,
         write_out=args.write_out,
