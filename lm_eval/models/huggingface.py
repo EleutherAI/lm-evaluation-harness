@@ -574,6 +574,8 @@ class HFLM(TemplateLM):
                 self._model, peft, revision=revision
             )
         elif delta:
+            if autogptq:
+                eval_logger.warning(f"Delta weights might trigger an unexpected behavior AutoGPTQ.")
             _model_delta = self.AUTO_MODEL_CLASS.from_pretrained(
                 delta,
                 revision=revision,
