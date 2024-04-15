@@ -4,6 +4,7 @@
 
 Title: `The FLORES-200 Evaluation Benchmark for Low-Resource and Multilingual Machine Translation`
 Link: https://github.com/facebookresearch/flores/blob/main/flores200/README.md
+
 Original Flores-101 paper: https://arxiv.org/abs/2106.03193
 
 The creation of FLORES-200 doubles the existing language coverage of FLORES-101. Given the nature of the new languages, which have less standardization and require more specialized professional translations, the verification process became more complex. This required modifications to the translation workflow. FLORES-200 has several languages which were not translated from English. Specifically, several languages were translated from Spanish, French, Russian and Modern Standard Arabic. Moreover, FLORES-200 also includes two script alternatives for four languages.
@@ -41,7 +42,7 @@ Empirical Results and Analysis" https://arxiv.org/pdf/2304.04675.pdf, and then f
 #### Tasks
 There are 41618 supported translation tasks. In order to find the task name use the following steps.
 
-- find the language code and character set you are interested in by visiting https://github.com/facebookresearch/flores/tree/main/flores200. The 3 characters before the underscore are the 3 letter ISO 639 language codes, the 4 letters afterwards represent the ISO 15924, codes for the representation of names of scripts. (For English your LANG_CODE would "eng_Latn")
+- find the language code and character set you are interested in by visiting https://github.com/facebookresearch/flores/tree/main/flores200. The 3 characters before the underscore are the 3 letter [ISO 639](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) language codes, the 4 characters after the underscore represent the [ISO 15924](https://en.wikipedia.org/wiki/ISO_15924) codes for the representation of names of scripts. (For English your LANG_CODE would "eng_Latn")
 - search for language code in task directory `cd lm_eval/tasks/flores200 && ls | grep LANG_CODE`. If you want to search for a specific translation task, you can grep for two distinct language codes, for example for Arabic -> English translation you could search `cd lm_eval/tasks/flores200 && ls | grep arb_Arab | grep eng_Latn`
 
 ### Checklist
