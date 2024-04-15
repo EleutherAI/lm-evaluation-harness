@@ -282,7 +282,7 @@ lm_eval --model hf \
     --device cuda:0
 ```
 
-Models that are provided as delta weights relative to a base model can be loaded with the Hugging Face `transformers` using the `delta` argument in `model_args`:
+Models provided as delta weights can be easily loaded using the Hugging Face transformers library. Within --model_args, set the delta argument to specify the delta weights, and use the pretrained argument to designate the relative base model to which they will be applied:
 ```bash
 lm_eval --model hf \
     --model_args pretrained=Ejafa/llama_7B,delta=lmsys/vicuna-7b-delta-v1.1 \
