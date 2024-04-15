@@ -582,8 +582,12 @@ class HFLM(TemplateLM):
                 **model_kwargs,
             )
             for name, param in self._model.state_dict().items():
-                assert name in _model_delta.state_dict(), f"Missing {name} in delta model"
-                param.data += _model_delta.state_dict()[name]
+                try:
+                    param.data += _model_delta.state_dict()[name]
+                except KeyError:
+                    raise KeyError(f"Delta model is missing weights for layer: {name}")
+                except Exception as e:
+                    raise RuntimeError(f"Failed to add delta weights to layer {name}. Error: {e}")
 
         return None
 
