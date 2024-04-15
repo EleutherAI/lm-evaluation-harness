@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-pol_Latn-deu_Latn"
+"dataset_name": "pol_Latn-deu_Latn"
+"doc_to_text": "Polish phrase: {{sentence_pol_Latn}}\nGerman phrase:"
+"doc_to_decontamination_query": "{{sentence_pol_Latn}}"
+"doc_to_target": "{{sentence_deu_Latn}}"

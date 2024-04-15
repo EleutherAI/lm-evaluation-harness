@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_dan_Latn"
+"test_split": "dan_Latn"
+"fewshot_split": "dan_Latn"
+"doc_to_text": "Passage: {{flores_passage}}\nSpørgsmål: {{question}}\nSvar:"

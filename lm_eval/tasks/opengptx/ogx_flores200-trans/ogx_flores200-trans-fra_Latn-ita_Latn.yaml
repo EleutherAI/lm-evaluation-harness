@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-fra_Latn-ita_Latn"
+"dataset_name": "fra_Latn-ita_Latn"
+"doc_to_text": "French phrase: {{sentence_fra_Latn}}\nItalian phrase:"
+"doc_to_decontamination_query": "{{sentence_fra_Latn}}"
+"doc_to_target": "{{sentence_ita_Latn}}"

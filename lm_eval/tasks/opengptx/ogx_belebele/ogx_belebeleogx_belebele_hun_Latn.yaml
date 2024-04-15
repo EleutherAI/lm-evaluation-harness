@@ -1,0 +1,5 @@
+"include": "_default_template_yaml"
+"task": "ogx_belebele_hun_Latn"
+"test_split": "hun_Latn"
+"fewshot_split": "hun_Latn"
+"doc_to_text": "Passzus: {{flores_passage}}\nKérdés: {{question}}\nVálasz:"

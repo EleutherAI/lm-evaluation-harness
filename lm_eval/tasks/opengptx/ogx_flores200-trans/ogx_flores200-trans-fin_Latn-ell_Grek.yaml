@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-fin_Latn-ell_Grek"
+"dataset_name": "fin_Latn-ell_Grek"
+"doc_to_text": "Finnish phrase: {{sentence_fin_Latn}}\nModern Greek (1453-) phrase:"
+"doc_to_decontamination_query": "{{sentence_fin_Latn}}"
+"doc_to_target": "{{sentence_ell_Grek}}"

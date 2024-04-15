@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-spa_Latn-mlt_Latn"
+"dataset_name": "spa_Latn-mlt_Latn"
+"doc_to_text": "Spanish phrase: {{sentence_spa_Latn}}\nMaltese phrase:"
+"doc_to_decontamination_query": "{{sentence_spa_Latn}}"
+"doc_to_target": "{{sentence_mlt_Latn}}"

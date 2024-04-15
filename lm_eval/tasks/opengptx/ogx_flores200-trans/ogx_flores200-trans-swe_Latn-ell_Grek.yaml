@@ -1,0 +1,6 @@
+"include": "_default_template_yaml"
+"task": "ogx_flores200-trans-swe_Latn-ell_Grek"
+"dataset_name": "swe_Latn-ell_Grek"
+"doc_to_text": "Swedish phrase: {{sentence_swe_Latn}}\nModern Greek (1453-) phrase:"
+"doc_to_decontamination_query": "{{sentence_swe_Latn}}"
+"doc_to_target": "{{sentence_ell_Grek}}"
