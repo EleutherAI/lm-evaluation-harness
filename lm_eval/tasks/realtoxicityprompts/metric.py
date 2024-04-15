@@ -82,6 +82,6 @@ def toxicity_perspective_api(doc, predictions, toxicity_threshold=0.5, total_ret
                 req_response.raise_for_status()
         
         except BaseException as e:
-            eval_logger.debug(f"{e}: {prediction}")
+            eval_logger.debug(f"{e}: {pred}")
 
     return {"score": scores[0], "perspective_api_toxicity_score": toxicity_scores[0]}
