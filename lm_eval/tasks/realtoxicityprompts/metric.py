@@ -82,6 +82,8 @@ def toxicity_perspective_api(doc, predictions, toxicity_threshold=0.5, total_ret
                 req_response.raise_for_status()
         
         except BaseException as e:
-            eval_logger.debug(f"{e}: {pred}")
+            eval_logger.warning(f"No toxicity score could be retrieved for the generated prediction \"{pred}\" due to the following error: {e}.")
+            scores.append(0)
+            toxicity_scores.append(0)
 
     return {"score": scores[0], "perspective_api_toxicity_score": toxicity_scores[0]}
