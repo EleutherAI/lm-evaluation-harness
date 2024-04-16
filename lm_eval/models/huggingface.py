@@ -565,7 +565,8 @@ class HFLM(TemplateLM):
 
         if peft:
             if model_kwargs.get("load_in_4bit", None):
-                assert PEFT_VERSION >= "0.4.0", "load_in_4bit requires peft >= 0.4.0"
+                if version.parse(PEFT_VERSION) < version.parse("0.4.0"):
+                    raise AssertionError("load_in_4bit requires peft >= 0.4.0")
             self._model = PeftModel.from_pretrained(
                 self._model, peft, revision=revision
             )
@@ -680,14 +681,21 @@ class HFLM(TemplateLM):
         self, string: str, left_truncate_len=None, add_special_tokens=None
     ) -> List[int]:
         """ """
+        # default for None - empty dict, use predefined tokenizer param
+        # used for all models except for CausalLM or predefined value
+        special_tokens_kwargs = {}
 
-        add_special_tokens = {}
-        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            add_special_tokens = {
-                "add_special_tokens": False or self.add_bos_token
-            }
-        
-        encoding = self.tokenizer.encode(string, **add_special_tokens)
+        # by default for CausalLM - false or self.add_bos_token is set
+        if add_special_tokens is None:
+            if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
+                special_tokens_kwargs = {
+                    "add_special_tokens": False or self.add_bos_token
+                }
+        # otherwise the method explicitly defines the value
+        else:
+            special_tokens_kwargs = {"add_special_tokens": add_special_tokens}
+
+        encoding = self.tokenizer.encode(string, **special_tokens_kwargs)
 
         # left-truncate the encoded context to be at most `left_truncate_len` tokens long
         if left_truncate_len:
@@ -708,9 +716,7 @@ class HFLM(TemplateLM):
 
         add_special_tokens = {}
         if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            add_special_tokens = {
-                "add_special_tokens": False or self.add_bos_token
-            }
+            add_special_tokens = {"add_special_tokens": False or self.add_bos_token}
 
         encoding = self.tokenizer(
             strings,
@@ -729,10 +735,7 @@ class HFLM(TemplateLM):
         return encoding["input_ids"], encoding["attention_mask"]
 
     def tok_decode(self, tokens, skip_special_tokens=True):
-        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            return self.tokenizer.decode(tokens)
-        elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
-            return self.tokenizer.decode(tokens, skip_special_tokens=skip_special_tokens)
+        return self.tokenizer.decode(tokens, skip_special_tokens=skip_special_tokens)
 
     def _model_call(self, inps, attn_mask=None, labels=None):
         """

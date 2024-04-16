@@ -6,6 +6,7 @@ import os
 from typing import List, Optional, Tuple, Type, TypeVar
 import transformers
 
+import transformers
 from sqlitedict import SqliteDict
 from tqdm import tqdm
 
@@ -303,17 +304,17 @@ class TemplateLM(LM):
             continuation = context[-n_spaces:] + continuation
             context = context[:-n_spaces]
 
-        if self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM:
-            whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
-            context_enc = self.tok_encode(context, add_special_tokens=False)
+        model_class = getattr(self, "AUTO_MODEL_CLASS", None)
+
+        if model_class == transformers.AutoModelForSeq2SeqLM:
+            context_enc = self.tok_encode(context)
+            continuation_enc = self.tok_encode(continuation, add_special_tokens=False)
+        else:
+            whole_enc = self.tok_encode(context + continuation)
+            context_enc = self.tok_encode(context)
 
             context_enc_len = len(context_enc)
             continuation_enc = whole_enc[context_enc_len:]
-
-        elif self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM:
-            # The encoder may require context end with special tokens
-            context_enc = self.tok_encode(context)
-            continuation_enc = self.tok_encode(continuation, add_special_tokens=False)
 
         return context_enc, continuation_enc
 

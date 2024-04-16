@@ -7,8 +7,9 @@ output_type: multiple_choice
 training_split: train
 validation_split: validation
 doc_to_text: !function util.doc_to_text
-doc_to_target: "{{answers}}"
-doc_to_choice: "{{entities}}"
+doc_to_target: !function util.doc_to_target
+doc_to_choice: !function util.doc_to_choice
+process_docs: !function util.process_docs
 process_results: !function util.process_results
 metric_list:
   - metric: f1
@@ -17,4 +18,4 @@ metric_list:
     higher_is_better: True
     aggregation: mean
 metadata:
-  version: 1.0
+  version: 2.0

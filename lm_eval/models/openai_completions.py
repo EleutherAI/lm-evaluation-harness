@@ -111,7 +111,7 @@ class OpenaiCompletionsLM(TemplateLM):
         self.base_url = base_url
         self.tokenizer_backend = tokenizer_backend
         self.truncate = truncate
-        self._batch_size = batch_size
+        self._batch_size = int(batch_size)
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
 

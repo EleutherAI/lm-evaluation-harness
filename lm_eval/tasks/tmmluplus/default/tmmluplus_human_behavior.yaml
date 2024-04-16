@@ -1,0 +1,7 @@
+"dataset_name": "human_behavior"
+"description": "以下為人類行為與社會的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_social_sciences"
+"group_alias": "social sciences"
+"include": "_default_template_yaml"
+"task": "tmmluplus_human_behavior"
+"task_alias": "human behavior"
