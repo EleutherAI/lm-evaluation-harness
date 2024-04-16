@@ -567,7 +567,9 @@ class HFLM(TemplateLM):
             )
 
         if peft and delta:
-            raise ValueError("Cannot use both 'peft' and 'delta' options at the same time.")
+            raise ValueError(
+                "Cannot use both 'peft' and 'delta' options at the same time."
+            )
 
         if peft:
             if model_kwargs.get("load_in_4bit", None):
@@ -579,7 +581,7 @@ class HFLM(TemplateLM):
         elif delta:
             if autogptq:
                 eval_logger.warning(
-                    f"Delta weights might trigger unexpected behavior when used with AutoGPTQ."
+                    "Delta weights might trigger unexpected behavior when used with AutoGPTQ."
                 )
             _model_delta = self.AUTO_MODEL_CLASS.from_pretrained(
                 delta,
@@ -594,7 +596,9 @@ class HFLM(TemplateLM):
                 except KeyError:
                     raise KeyError(f"Delta model is missing weights for layer: {name}")
                 except Exception as e:
-                    raise RuntimeError(f"Failed to add delta weights to layer {name}. Error: {e}")
+                    raise RuntimeError(
+                        f"Failed to add delta weights to layer {name}. Error: {e}"
+                    )
 
             del _model_delta
 
