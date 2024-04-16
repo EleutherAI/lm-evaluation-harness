@@ -1,5 +1,6 @@
 from . import (
     anthropic_llms,
+    bedrock,
     dummy,
     gguf,
     huggingface,

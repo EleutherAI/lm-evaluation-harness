@@ -1,3 +1,5 @@
+import json
+from importlib.util import find_spec
 from typing import Any, List, Tuple
 
 from tqdm import tqdm
@@ -6,7 +8,7 @@ from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import retry_on_specific_exceptions
-import json
+
 
 eval_logger = utils.eval_logger
 
@@ -40,9 +42,7 @@ def bedrock_chat(
             Additional model_args to pass to the API client
     """
 
-    try:
-        import boto3
-    except ModuleNotFoundError:
+    if not find_spec("boto3"):
         raise Exception(
             "attempted to use 'bedrock' LM type, but package `boto3` is not installed. \
 please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[bedrock]'`",
@@ -65,12 +65,14 @@ please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[
     def messages():
         # structured payload for request
 
-        formatted_messages =  [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
+        formatted_messages = [
+            {"role": "user", "content": [{"type": "text", "text": prompt}]}
+        ]
         body = {
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": max_tokens,
             "temperature": temperature,
-            "messages": formatted_messages
+            "messages": formatted_messages,
         }
 
         # update body with params then encode
@@ -78,8 +80,11 @@ please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[
         body_bytes = json.dumps(body).encode("utf-8")
 
         response = client.invoke_model(
-                    body=body_bytes, contentType="application/json", accept="application/json", modelId=model
-                )
+            body=body_bytes,
+            contentType="application/json",
+            accept="application/json",
+            modelId=model,
+        )
         response_body = json.loads(response.get("body").read())
 
         return response_body["content"][0]["text"]
@@ -89,7 +94,6 @@ please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[
 
 @register_model("bedrock")
 class BedrockChatLM(LM):
-
     def __init__(
         self,
         batch_size: int = 1,
@@ -125,7 +129,7 @@ please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[
         self.client = boto3.client("bedrock-runtime")
         self.temperature = temperature
         self.max_tokens = max_tokens
-        self.tokenizer = None # no tokenizer available
+        self.tokenizer = None  # no tokenizer available
         self.kwargs = kwargs
 
     @property
@@ -161,10 +165,7 @@ please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[
         raise NotImplementedError("No support for logits.")
 
     def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
-        try:
-            import boto3
-            import botocore
-        except ModuleNotFoundError:
+        if not find_spec("boto3"):
             raise Exception(
                 "attempted to use 'bedrock' LM type, but package `boto3` is not installed. \
 please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[bedrock]'`",
@@ -197,12 +198,14 @@ please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[
 
                 self.cache_hook.add_partial("generate_until", request, response)
 
-            except botocore.exceptions.ClientError as error: # type: ignore # noqa: F821
+            except botocore.exceptions.ClientError as error:  # type: ignore # noqa: F821
                 eval_logger.critical(f"Boto client error: {error}")
                 break
 
             except botocore.exceptions.ParamValidationError as error:  # type: ignore # noqa: F821
-                eval_logger.critical(f'The parameters you provided are incorrect: {error}')
+                eval_logger.critical(
+                    f"The parameters you provided are incorrect: {error}"
+                )
                 break
 
         return res
@@ -220,4 +223,3 @@ please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[
 
     def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
-
