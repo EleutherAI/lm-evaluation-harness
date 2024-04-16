@@ -566,6 +566,9 @@ class HFLM(TemplateLM):
                 **model_kwargs,
             )
 
+        if peft and delta:
+            raise ValueError("Cannot use both 'peft' and 'delta' options at the same time.")
+
         if peft:
             if model_kwargs.get("load_in_4bit", None):
                 if version.parse(PEFT_VERSION) < version.parse("0.4.0"):
@@ -592,6 +595,8 @@ class HFLM(TemplateLM):
                     raise KeyError(f"Delta model is missing weights for layer: {name}")
                 except Exception as e:
                     raise RuntimeError(f"Failed to add delta weights to layer {name}. Error: {e}")
+
+            del _model_delta
 
         return None
 
