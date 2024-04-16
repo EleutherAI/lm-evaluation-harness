@@ -1,4 +1,0 @@
-"dataset_name": "date_understanding"
-"description": "Infer the date from context.\n\n"
-"include": "_zeroshot_template_yaml"
-"task": "bbh_alt_pv_02_zeroshot_date_understanding"
