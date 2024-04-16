@@ -7,7 +7,6 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import retry_on_specific_exceptions
 
 
 eval_logger = utils.eval_logger
@@ -53,15 +52,15 @@ please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[
             f"RateLimitError occurred: {e.__cause__}\n Retrying in {sleep_time} seconds"
         )
 
-    @retry_on_specific_exceptions(
-        on_exceptions=[
-            client.ThrottlingException,
-            client.ModelTimeoutException,
-            client.InternalServerException,
-        ],
-        max_retries=None,  # retry forever, consider changing
-        on_exception_callback=_exception_callback,
-    )
+    # @retry_on_specific_exceptions(
+    #     on_exceptions=[
+    #         client.ThrottlingException,
+    #         client.ModelTimeoutException,
+    #         client.InternalServerException,
+    #     ],
+    #     max_retries=None,  # retry forever, consider changing
+    #     on_exception_callback=_exception_callback,
+    # )
     def messages():
         # structured payload for request
 
@@ -69,7 +68,6 @@ please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[
             {"role": "user", "content": [{"type": "text", "text": prompt}]}
         ]
         body = {
-            "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": max_tokens,
             "temperature": temperature,
             "messages": formatted_messages,
@@ -170,6 +168,7 @@ please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[
                 "attempted to use 'bedrock' LM type, but package `boto3` is not installed. \
 please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[bedrock]'`",
             )
+        import botocore
 
         if not requests:
             return []
