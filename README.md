@@ -230,6 +230,8 @@ Note that for externally hosted models, configs such as `--device` and `--batch_
 | Mamba                       | :heavy_check_mark:       | `mamba_ssm`                                                                      | [Mamba architecture Language Models via the `mamba_ssm` package](https://huggingface.co/state-spaces) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
 | Huggingface Optimum (Causal LMs)    | ✔️         | `openvino`                                 |     Any decoder-only AutoModelForCausalLM converted with Huggingface Optimum into OpenVINO™ Intermediate Representation (IR) format                           |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
 | Neuron via AWS Inf2 (Causal LMs)    | ✔️         | `neuronx`                                 |     Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2)                         |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
+| [Neural Magic DeepSparse](https://github.com/neuralmagic/deepsparse)    | ✔️         | `deepsparse`                                 |     Any LM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub with the "deepsparse" tag](https://huggingface.co/models?other=deepsparse)                       |  `generate_until`, `loglikelihood`                         | ...                                                      |
+| [Neural Magic SparseML](https://github.com/neuralmagic/sparseml)    | ✔️         | `sparseml`                                 |     Any decoder-only AutoModelForCausalLM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub](https://huggingface.co/neuralmagic). Especially useful for models with quantization like [`zoo:llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized`](https://sparsezoo.neuralmagic.com/models/llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized)                         |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
 | Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions` (using `openai-chat-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's Completions or ChatCompletions interface                                  | `generate_until`                                           |                                | ...                |
 
 Models which do not supply logits or logprobs can be used with tasks of type `generate_until` only, while local models, or APIs that supply logprobs/logits of their prompts, can be run on all task types: `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
@@ -413,6 +415,7 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | Name          | Use                                   |
 |---------------|---------------------------------------|
 | anthropic     | For using Anthropic's models          |
+| deepsparse     | For running NM's DeepSparse models    |
 | dev           | For linting PRs and contributions     |
 | gptq          | For loading models with GPTQ          |
 | hf_transfer   | For speeding up HF Hub file downloads |
@@ -425,6 +428,7 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | optimum       | For running Intel OpenVINO models     |
 | promptsource  | For using PromptSource prompts        |
 | sentencepiece | For using the sentencepiece tokenizer |
+| sparseml      | For using NM's SparseML models        |
 | testing       | For running library test suite        |
 | vllm          | For loading models with vLLM          |
 | zeno          | For visualizing results with Zeno     |
