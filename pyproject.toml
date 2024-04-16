@@ -59,6 +59,7 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 [project.optional-dependencies]
 anthropic = ["anthropic"]
 dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
+deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 hf_transfer = ["hf_transfer"]
 ifeval = ["langdetect", "immutabledict"]
@@ -69,7 +70,8 @@ multilingual = ["nagisa>=0.2.7", "jieba>=0.42.1", "pycountry"]
 openai = ["openai==1.3.9", "tiktoken"]
 optimum = ["optimum[openvino]"]
 promptsource = ["promptsource>=0.2.3"]
-sentencepiece = ["sentencepiece>=0.1.98", "protobuf>=4.22.1"]
+sentencepiece = ["sentencepiece>=0.1.98"]
+sparseml = ["sparseml-nightly[llm]>=1.8.0.20240404"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
 vllm = ["vllm==0.3.2"]
 zeno = ["pandas", "zeno-client"]
@@ -77,6 +79,7 @@ wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 all = [
     "lm_eval[anthropic]",
     "lm_eval[dev]",
+    "lm_eval[deepsparse]",
     "lm_eval[gptq]",
     "lm_eval[hf_transfer]",
     "lm_eval[ifeval]",
@@ -86,6 +89,7 @@ all = [
     "lm_eval[openai]",
     "lm_eval[promptsource]",
     "lm_eval[sentencepiece]",
+    "lm_eval[sparseml]",
     "lm_eval[testing]",
     "lm_eval[vllm]",
     "lm_eval[zeno]",
