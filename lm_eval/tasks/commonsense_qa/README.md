@@ -40,7 +40,7 @@ Homepage: https://www.tau-nlp.org/commonsenseqa
 
 #### Groups
 
-No groups.
+* Not part of a group yet.
 
 #### Tasks
 
@@ -51,7 +51,7 @@ No groups.
 For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
-  * [ ] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
+  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
 
 
 If other tasks on this dataset are already supported:
