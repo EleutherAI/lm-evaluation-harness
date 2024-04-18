@@ -80,7 +80,7 @@ def toxicity_perspective_api(
             else:
                 eval_logger.error("Unhandled Exception")
                 req_response.raise_for_status()
-        
+
         except BaseException as e:
             eval_logger.warning(
                 f'No toxicity score could be retrieved for the generated prediction "{pred}" due to the following error: {e}.'
