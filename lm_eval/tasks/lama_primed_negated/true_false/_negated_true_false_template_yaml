@@ -1,0 +1,18 @@
+group: lama_negated_true_false
+dataset_path: lintang/lama_primed_negated
+output_type: multiple_choice
+# description: "Answer the following question with either True or False. "
+doc_to_text: "Question: {{masked_negations[0]|replace('[MASK]', obj_label)}} True or False?\n\nAnswer:"
+doc_to_target: "False"
+doc_to_choice: ["True", "False"]
+should_decontaminate: true
+doc_to_decontamination_query: "Question: {{masked_negations[0]|replace('[MASK]', obj_label)}} True or False?\n\nAnswer:"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

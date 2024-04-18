@@ -1,0 +1,4 @@
+include: _negated_true_false_template_yaml
+task: lama_negated_conceptnet_true_false
+dataset_name: ConceptNet
+test_split: high_ranked

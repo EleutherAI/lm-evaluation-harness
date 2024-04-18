@@ -1,0 +1,4 @@
+include: _misprimed_right_wrong_template_yaml
+task: lama_misprimed_squad_right_wrong
+dataset_name: SQUAD
+test_split: high_ranked

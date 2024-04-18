@@ -1,0 +1,4 @@
+include: _misprimed_true_false_template_yaml
+task: lama_misprimed_squad_true_false
+dataset_name: SQUAD
+test_split: high_ranked

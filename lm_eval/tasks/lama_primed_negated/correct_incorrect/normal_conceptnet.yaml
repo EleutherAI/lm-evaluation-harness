@@ -1,0 +1,4 @@
+include: _normal_correct_incorrect_template_yaml
+task: lama_normal_conceptnet_correct_incorrect
+dataset_name: ConceptNet
+test_split: high_ranked

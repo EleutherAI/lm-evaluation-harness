@@ -1,0 +1,18 @@
+group: lama_misprimed_correct_incorrect
+dataset_path: lintang/lama_primed_negated
+output_type: multiple_choice
+# description: "Answer the following question with either Correct or Incorrect. "
+doc_to_text: "Question: {{masked_misprimed[0]|replace('[MASK]', obj_label)}} Correct or Incorrect?\n\nAnswer:"
+doc_to_target: "Correct"
+doc_to_choice: ["Correct", "Incorrect"]
+should_decontaminate: true
+doc_to_decontamination_query: "Question: {{masked_misprimed[0]|replace('[MASK]', obj_label)}} Correct or Incorrect?\n\nAnswer:"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: Correct
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: Correct
+metadata:
+  version: 1.0

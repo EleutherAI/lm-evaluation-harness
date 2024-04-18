@@ -1,0 +1,18 @@
+group: lama_misprimed_yes_no
+dataset_path: lintang/lama_primed_negated
+output_type: multiple_choice
+# description: "Answer the following question with either a Yes or a No. "
+doc_to_text: "Question: {{masked_misprimed[0]|replace('[MASK]', obj_label)}} Yes or No?\n\nAnswer:"
+doc_to_target: "Yes"
+doc_to_choice: ["Yes", "No"]
+should_decontaminate: true
+doc_to_decontamination_query: "Question: {{masked_misprimed|replace('[MASK]', obj_label)}} Yes or No?\n\nAnswer:"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

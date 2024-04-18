@@ -1,0 +1,18 @@
+group: lama_misprimed_right_wrong
+dataset_path: lintang/lama_primed_negated
+output_type: multiple_choice
+# description: "Answer the following question with either Right or Wrong. "
+doc_to_text: "Question: {{masked_misprimed[0]|replace('[MASK]', obj_label)}} Right or Wrong?\n\nAnswer:"
+doc_to_target: "Right"
+doc_to_choice: ["Right", "Wrong"]
+should_decontaminate: true
+doc_to_decontamination_query: "Question: {{masked_misprimed[0]|replace('[MASK]', obj_label)}} Right or Wrong?\n\nAnswer:"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: Right
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: Right
+metadata:
+  version: 1.0

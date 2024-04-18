@@ -1,0 +1,4 @@
+include: _misprimed_yes_no_template_yaml
+task: lama_misprimed_conceptnet_yes_no
+dataset_name: ConceptNet
+test_split: high_ranked

@@ -1,0 +1,4 @@
+include: _normal_true_false_template_yaml
+task: lama_normal_google_re_true_false
+dataset_name: GoogleRE
+test_split: high_ranked

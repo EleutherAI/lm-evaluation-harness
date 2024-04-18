@@ -1,0 +1,4 @@
+include: _normal_right_wrong_template_yaml
+task: lama_normal_conceptnet_right_wrong
+dataset_name: ConceptNet
+test_split: high_ranked

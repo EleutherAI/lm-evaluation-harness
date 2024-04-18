@@ -1,0 +1,4 @@
+include: _misprimed_correct_incorrect_template_yaml
+task: lama_misprimed_trex_correct_incorrect
+dataset_name: TREx
+test_split: high_ranked

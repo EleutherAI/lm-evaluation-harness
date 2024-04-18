@@ -1,0 +1,4 @@
+include: _negated_correct_incorrect_template_yaml
+task: lama_negated_google_re_correct_incorrect
+dataset_name: GoogleRE
+test_split: high_ranked

@@ -1,0 +1,4 @@
+include: _negated_yes_no_template_yaml
+task: lama_negated_squad_yes_no
+dataset_name: SQUAD
+test_split: high_ranked

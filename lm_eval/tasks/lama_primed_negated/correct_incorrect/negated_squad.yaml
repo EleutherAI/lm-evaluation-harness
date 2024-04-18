@@ -1,0 +1,4 @@
+include: _negated_correct_incorrect_template_yaml
+task: lama_negated_squad_correct_incorrect
+dataset_name: SQUAD
+test_split: high_ranked

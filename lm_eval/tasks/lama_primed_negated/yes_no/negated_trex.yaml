@@ -1,0 +1,4 @@
+include: _negated_yes_no_template_yaml
+task: lama_negated_trex_yes_no
+dataset_name: TREx
+test_split: high_ranked

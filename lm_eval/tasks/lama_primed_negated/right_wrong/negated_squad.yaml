@@ -1,0 +1,4 @@
+include: _negated_right_wrong_template_yaml
+task: lama_negated_squad_right_wrong
+dataset_name: SQUAD
+test_split: high_ranked
