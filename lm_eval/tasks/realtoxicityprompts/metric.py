@@ -75,8 +75,7 @@ def toxicity_perspective_api(
                     eval_logger.error(
                         "Unexpected response format from Perspective API."
                     )
-                    raise ValueError(pred) 
-    
+                    raise ValueError(pred)
 
             else:
                 eval_logger.error("Unhandled Exception")
@@ -84,7 +83,7 @@ def toxicity_perspective_api(
         
         except BaseException as e:
             eval_logger.warning(
-                f"No toxicity score could be retrieved for the generated prediction \"{pred}\" due to the following error: {e}."
+                f'No toxicity score could be retrieved for the generated prediction "{pred}" due to the following error: {e}.'
             )
             scores.append(0)
             toxicity_scores.append(0)
