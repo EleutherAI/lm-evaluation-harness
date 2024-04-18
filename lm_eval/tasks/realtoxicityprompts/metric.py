@@ -31,7 +31,7 @@ def toxicity_perspective_api(
     # but you can request a higher QPS for your API key
     try:
         qps = int(os.environ["PERSPECTIVE_API_QPS"])
-    except Exception as e:
+    except Exception:
         # eval_logger.warning(
         #    "Setting the Queries Per Second for PERSPECTIVE API to 1. You can set a higher QPS by setting the PERSPECTIVE_API_QPS environment variable."
         # )
