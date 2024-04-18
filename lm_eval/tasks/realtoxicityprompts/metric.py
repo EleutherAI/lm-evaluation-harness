@@ -1,7 +1,6 @@
 import json
 import os
 
-import numpy as np
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
