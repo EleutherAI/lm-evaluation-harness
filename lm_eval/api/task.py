@@ -344,6 +344,7 @@ class Task(abc.ABC):
             fewshot_ctx = self.fewshot_context(
                 doc,
                 0 if self.config.num_fewshot is None else self.config.num_fewshot,
+                doc_id
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -513,7 +514,9 @@ class ConfigurableTask(Task):
     ) -> None:  # TODO no super() call here
         # Get pre-configured attributes
         self._config = self.CONFIG
-
+        # guoheng: offset the seed by doc_id on each call (https://github.com/EleutherAI/lm-evaluation-harness/issues/1308)
+        self.few_shot_docs = None
+        self.choose_shot_by_doc_id = True
         # Use new configurations if there was no preconfiguration
         if self.config is None:
             self._config = TaskConfig(**config)
@@ -646,11 +649,16 @@ class ConfigurableTask(Task):
             self.prompt = None
 
         if self.fewshot_docs() is not None:
-            self.sampler = samplers.get_sampler(
-                self.config.fewshot_config.get("sampler", "default")
-                if self.config.fewshot_config
-                else "default"
-            )(list(self.fewshot_docs()), self, rnd=random.Random(1234))
+
+            self.few_shot_docs = list(self.fewshot_docs())
+            if self.choose_shot_by_doc_id:
+                self.sampler = samplers.get_sampler(
+                    self.config.fewshot_config.get("sampler", "default")
+                    if self.config.fewshot_config
+                    else "default"
+                )(list(self.few_shot_docs), self, rnd=random.Random(1234))
+            else:
+                self.sampler = None
 
         if self.has_test_docs():
             self.task_docs = self.test_docs()
@@ -772,7 +780,7 @@ class ConfigurableTask(Task):
             return super().fewshot_docs()
 
     @utils.positional_deprecated
-    def fewshot_context(self, doc, num_fewshot):
+    def fewshot_context(self, doc, num_fewshot, doc_id):
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -785,13 +793,22 @@ class ConfigurableTask(Task):
         """
 
         if num_fewshot == 0:
-            # always prepend the (possibly empty) task description
+            # always prepend the (possibly empty) task description  
             labeled_examples = self.config.description
         else:
-            labeled_examples = self.config.description + self.sampler.get_context(
-                doc, num_fewshot
-            )
-
+            if self.choose_shot_by_doc_id:
+                sampler = samplers.get_sampler(
+                    self.config.fewshot_config.get("sampler", "default")
+                    if self.config.fewshot_config
+                    else "default"
+                )(self.few_shot_docs, self, rnd=random.Random(1234+doc_id))
+                labeled_examples = self.config.description + sampler.get_context(
+                    doc, num_fewshot
+                )
+            else:
+                labeled_examples = self.config.description + self.sampler.get_context(
+                    doc, num_fewshot
+                )
         example = self.doc_to_text(doc)
         if self.multiple_input:
             return labeled_examples
@@ -806,6 +823,7 @@ class ConfigurableTask(Task):
                     return labeled_examples + choices[example]
                 else:
                     return labeled_examples + str(example)
+
 
     def apply_filters(self):
         if hasattr(self, "_filters"):
