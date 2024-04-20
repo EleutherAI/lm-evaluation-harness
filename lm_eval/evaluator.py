@@ -196,6 +196,8 @@ def simple_evaluate(
         write_out=write_out,
         log_samples=log_samples,
         verbosity=verbosity,
+
+        model_name=model_args,
     )
 
     if lm.rank == 0:
@@ -239,6 +241,8 @@ def evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     verbosity: str = "INFO",
+
+    model_name='other',
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -377,7 +381,11 @@ def evaluate(
                 cloned_reqs.extend([req] * req.repeats)
 
         # run requests through model
-        resps = getattr(lm, reqtype)(cloned_reqs)
+        if 'based' in model_name.lower():
+            with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+                resps = getattr(lm, reqtype)(cloned_reqs)
+        else:
+            resps = getattr(lm, reqtype)(cloned_reqs)
 
         # put responses from model into a list of length K for each request.
         for x, req in zip(resps, cloned_reqs):
