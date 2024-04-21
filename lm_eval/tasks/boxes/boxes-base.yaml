@@ -1,9 +1,9 @@
 task: boxes
-dataset_path: json
+dataset_path: irafayabdul/boxes
 dataset_name: null
 dataset_kwargs:
   data_files: {'test': 'test-subsample-states-t5.jsonl'}
-  data_dir: "/boxes-dataset-v1/few_shot_boxes_nso_exp2_max3"
+  data_dir: "few_shot_boxes_nso_exp2_max3"
 output_type: generate_until
 training_split: NULL
 validation_split: NULL
