@@ -5,6 +5,9 @@
 import yaml
 from lm_eval import utils
 import copy
+
+import unitxt_wrapper 
+
 from unitxt.artifact import fetch_artifact
 from datasets import load_dataset
 from unitxt.standard import StandardRecipe
@@ -40,7 +43,6 @@ def generate_task_yaml(task: str):
     The common template is filled the the specific metrics for the task.
     It still leaves the 'dataset_name' and 'task name' unspecified.
     """
-    import unitxt_wrapper 
     print("*" * 80)
     print("*")
     print(f"* Generating YAML base file for task {task}")
