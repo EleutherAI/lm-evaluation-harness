@@ -23,11 +23,13 @@ def write_card_yaml(filename, data):
 
 
 default_template_per_task = { 
-     "tasks.classification.multi_label" : "templates.classification.multi_label.default" ,
-     "tasks.classification.multi_class" : "templates.classification.multi_class.default" ,
+     "tasks.classification.multi_label" : "templates.classification.multi_label.title" ,
+     "tasks.classification.multi_class" : "templates.classification.multi_class.title" ,
      "tasks.summarization.abstractive" :  "templates.summarization.abstractive.full",
      "tasks.regression.two_texts" : "templates.regression.two_texts.simple",
-     "tasks.qa.with_context.extractive" : "templates.qa.with_context.simple"
+     "tasks.qa.with_context.extractive" : "templates.qa.with_context.simple",
+     "tasks.grammatical_error_correction" : "templates.grammatical_error_correction.simple",
+     "tasks.span_labeling.extraction" : "templates.span_labeling.extraction.title"
 }
 
 def generate_task_yaml(task: str):
@@ -38,24 +40,37 @@ def generate_task_yaml(task: str):
     The common template is filled the the specific metrics for the task.
     It still leaves the 'dataset_name' and 'task name' unspecified.
     """
-     
+    import unitxt_wrapper 
     print("*" * 80)
     print("*")
     print(f"* Generating YAML base file for task {task}")
     print("*")
     task_definition , _ = fetch_artifact(task)
-    data = utils.load_yaml_config('template.yaml.file')
-    data["group"][0] = "unitxt"
-    metric_list_element = data["metric_list"][0]
-    data["metric_list"] = []
+    data = { "group" :  [ "unitxt" ] ,
+                "dataset_path" : "unitxt/data",
+                "output_type": "generate_until",
+                "training_split": "train",
+                "validation_split": "test",
+                "doc_to_text" : "{{source}}",
+                "doc_to_target" : "target",
+                "process_results"  : unitxt_wrapper.process_results,
+                "generation_kwargs" : {
+                    "until" : ["</s>"]
+                },
+                "metric_list" : [],
+                "metadata" : {
+                    "verison" : 1.0
+                } }
+
     for metric_name in task_definition.metrics:
-        new_metric = copy.copy(metric_list_element)
-        new_metric['metric'] = new_metric["metric"].replace("METRIC_PLACEHOLDER",metric_name.replace("metrics.", "unitxt_"))
+        new_metric = {"metric":"", "aggregation":"unitxt","higher_is_better":True}
+        new_metric["metric"] = metric_name.replace("metrics.", "unitxt_")
         data["metric_list"].append(new_metric)
-    write_task_yaml(f"{task}.yaml", data)
+
+    write_task_yaml(f"unitxt_{task}", data)
   
 
-def generate_yaml(card: str):
+def generate_card_yaml(card: str):
     """
     Generate an LM Eval Harness YAML file based on the Unitxt dataset card.
     It includes the task YAML for the dataset, and overrides the 'dataset_name' and 'task' with the card.
@@ -74,7 +89,7 @@ def generate_yaml(card: str):
     else:    
         raise ValueError(f"Default template was not defined for task {task} in 'default_template_per_task' dict in generate_yamls.py")
     data={}
-    data["include"] = f"{task}.yaml"
+    data["include"] = f"unitxt_{task}"
     data["task"] = card
     data["dataset_name"] = f"card=cards.{card},template={template}"
     # This is faster that the load_dataset approach
@@ -96,7 +111,7 @@ def main():
         except Exception as e:
             print(f"Unable to generate YAML for {task} due to:")
             print(e)
-    exit
+            raise(e)
     with open('unitxt_datasets') as f:
         for unitxt_dataset in f:
             unitxt_dataset = unitxt_dataset.strip()
@@ -104,7 +119,7 @@ def main():
                 exit(0)
             if not unitxt_dataset.startswith("#"):
                 try:
-                    generate_yaml(unitxt_dataset)
+                    generate_card_yaml(unitxt_dataset)
                 except Exception as e:
                     print(f"Unable to generate YAML for {unitxt_dataset} due to:")
                     print(e)

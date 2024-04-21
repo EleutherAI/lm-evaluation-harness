@@ -1,8 +1,6 @@
 group:
 - unitxt
-task: TASK_PLACEHOLDER
 dataset_path: unitxt/data
-dataset_name: card=CARD_PLACEHOLDER,template=TEMPLATE_PLACEHOLDER
 output_type: generate_until
 training_split: train
 validation_split: test
@@ -17,4 +15,4 @@ metric_list:
   aggregation: unitxt
   higher_is_better: true
 metadata:
-  version: 1.0
+  verison: 1.0
