@@ -1,24 +1,23 @@
 # Answer parsing and normalization code, from
 # https://github.com/ruixiangcui/AGIEval/blob/main/src/
 # math_equivalence.py and post_process.py
-from typing import Dict, List
-
 import re
+from typing import Dict, List
 
 import numpy as np
 
-def parse_math_answer(raw_string):
 
+def parse_math_answer(raw_string):
     def remove_boxed(s):
         left = "\\boxed{"
         try:
-            assert s[:len(left)] == left
+            assert s[: len(left)] == left
             assert s[-1] == "}"
-            answer = s[len(left):-1]
+            answer = s[len(left) : -1]
             if "=" in answer:
                 answer = answer.split("=")[-1].lstrip(" ")
             return answer
-        except:
+        except Exception:
             return None
 
     def last_boxed_only_string(string):
@@ -40,10 +39,10 @@ def parse_math_answer(raw_string):
                     break
             i += 1
 
-        if right_brace_idx == None:
+        if right_brace_idx is None:
             retval = None
         else:
-            retval = string[idx:right_brace_idx + 1]
+            retval = string[idx : right_brace_idx + 1]
 
         return retval
 
@@ -92,7 +91,7 @@ def _fix_fracs(string):
             else:
                 try:
                     assert len(substr) >= 2
-                except:
+                except Exception:
                     return string
                 a = substr[0]
                 b = substr[1]
@@ -123,7 +122,7 @@ def _fix_a_slash_b(string):
         assert string == "{}/{}".format(a, b)
         new_string = "\\frac{" + str(a) + "}{" + str(b) + "}"
         return new_string
-    except:
+    except Exception:
         return string
 
 
@@ -237,7 +236,7 @@ def is_equiv(str1, str2, verbose=False):
         if verbose:
             print(ss1, ss2)
         return ss1 == ss2
-    except:
+    except Exception:
         return str1 == str2
 
 
@@ -258,18 +257,18 @@ def process_results(doc: dict, results: List[str]) -> Dict[str, int]:
     }
     return results
 
+
 # use a custom process_results() function, because AGIEval can have multiple valid answers
 def process_results_mcqa(doc, results):
+    results = [result[0] for result in results]
 
-        results = [result[0] for result in results]
+    gold = doc["gold"]
 
-        gold = doc["gold"]
+    acc = 1.0 if int(np.argmax(results)) in gold else 0.0
+    completion_len = np.array([float(len(i)) for i in doc["choices"]])
+    acc_norm = 1.0 if int(np.argmax(results / completion_len)) in gold else 0.0
 
-        acc = 1.0 if int(np.argmax(results)) in gold else 0.0
-        completion_len = np.array([float(len(i)) for i in doc["choices"]])
-        acc_norm = 1.0 if int(np.argmax(results / completion_len)) in gold else 0.0
-
-        return {
-            "acc": acc,
-            "acc_norm": acc_norm,
-        }
+    return {
+        "acc": acc,
+        "acc_norm": acc_norm,
+    }

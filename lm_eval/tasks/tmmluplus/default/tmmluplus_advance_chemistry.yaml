@@ -1,0 +1,7 @@
+"dataset_name": "advance_chemistry"
+"description": "以下為化學的單選題，請提供正確答案的選項。\n\n"
+"group": "tmmluplus_STEM"
+"group_alias": "STEM"
+"include": "_default_template_yaml"
+"task": "tmmluplus_advance_chemistry"
+"task_alias": "advance chemistry"
