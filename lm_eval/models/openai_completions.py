@@ -107,7 +107,7 @@ class OpenaiCompletionsLM(TemplateLM):
     ) -> None:
         """
         :param model: str: name of openai model to use
-        :param client: OpenAIClientType: Could be AuzerClient or OpenAIClient
+        :param client: OpenAIClientType: Could be AzureClient or OpenAIClient
             or any client that implements .create and .chat.create methods.
         :param tokenizer: str: name of tokenizer to use.
         :param tokenizer_backend: Literal["tiktoken", "huggingface"]
