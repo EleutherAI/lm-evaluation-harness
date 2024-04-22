@@ -67,7 +67,7 @@ def main():
         # Upload data for all models
         for model_index, model in enumerate(models):
             model_args = re.sub(
-                "/|=",
+                r"[\"<>:/\|\\?\*\[\]]+",
                 "__",
                 json.load(
                     open(Path(args.data_path, model, "results.json"), encoding="utf-8")
