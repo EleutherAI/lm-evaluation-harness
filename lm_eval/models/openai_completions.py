@@ -2,7 +2,7 @@ import copy
 import os
 from collections import defaultdict
 from importlib.util import find_spec
-from typing import List, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Protocol, Tuple
 
 from tqdm import tqdm
 
@@ -74,6 +74,20 @@ def oa_completion(client, chat: bool = False, **kwargs):
     return completion()
 
 
+class OpenAIClientType(Protocol):
+    """
+    Use duck typing Protocol for OpenaiClient type because we want to avoid
+    importing openai module until this class is instantiated.
+    """
+
+    @property
+    def chat(self) -> "OpenAIClientType":
+        pass
+
+    def create(self, *args: Tuple[Any, ...], **kwargs: Dict) -> Any:
+        pass
+
+
 @register_model("openai-completions", "local-completions")
 class OpenaiCompletionsLM(TemplateLM):
     _DEFAULT_MAX_LENGTH = 2048
@@ -81,7 +95,8 @@ class OpenaiCompletionsLM(TemplateLM):
     def __init__(
         self,
         model: str,
-        base_url: str = None,
+        base_url: Optional[str] = None,
+        client: Optional[OpenAIClientType] = None,
         tokenizer: Optional[str] = None,
         tokenizer_backend: Literal["tiktoken", "huggingface"] = "tiktoken",
         truncate: bool = False,
@@ -91,11 +106,17 @@ class OpenaiCompletionsLM(TemplateLM):
         max_length: Optional[int] = None,
     ) -> None:
         """
-
-        :param engine: str
-            OpenAI API engine (e.g. gpt-3.5-turbo-instruct)
-        :param truncate: bool
-            Truncate input if too long (if False and input is too long, throw error)
+        :param model: str: name of openai model to use
+        :param client: OpenAIClientType: Could be AuzerClient or OpenAIClient
+            or any client that implements .create and .chat.create methods.
+        :param tokenizer: str: name of tokenizer to use.
+        :param tokenizer_backend: Literal["tiktoken", "huggingface"]
+        :param truncate: bool: whether to truncate long input
+        :param base_url: str:  base_url for openai client. Ignored if client argument is not None.
+        :param max_gen_toks: int: max tokens to generate
+        :param batch_size: int:  batch size
+        :param seed: int: random seed
+        :param max_length: int: max length of output
         """
         super().__init__()
         self.seed = seed
@@ -142,7 +163,13 @@ class OpenaiCompletionsLM(TemplateLM):
         # Read from environment variable OPENAI_API_KEY
         # Set to EMPTY for local
         openai.api_key = os.environ["OPENAI_API_KEY"]
-        if self.base_url:
+        if client:
+            self.client = client
+            if base_url:
+                eval_logger.warning(
+                    f"Ignoring {base_url} argument since client argument has been set."
+                )
+        elif self.base_url:
             self.client = openai.OpenAI(base_url=self.base_url)
         else:
             self.client = openai.OpenAI()
@@ -349,6 +376,7 @@ class OpenaiChatCompletionsLM(LM):
         self,
         model: str = "gpt-3.5-turbo",  # GPT model or Local model using HuggingFace model paths
         base_url: str = None,
+        client: Optional[OpenAIClientType] = None,
         truncate: bool = False,
         **kwargs,
     ) -> None:
@@ -377,7 +405,13 @@ class OpenaiChatCompletionsLM(LM):
 
         # Read from environment variable OPENAI_API_KEY
         # Set to EMPTY for local
-        if self.base_url:
+        if client:
+            self.client = client
+            if base_url:
+                eval_logger.warning(
+                    f"Ignoring {base_url} argument since client argument has been set."
+                )
+        elif self.base_url:
             self.client = openai.OpenAI(base_url=self.base_url)
         else:
             self.client = openai.OpenAI()  # openai.AsyncOpenAI()
