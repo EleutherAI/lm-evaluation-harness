@@ -20,7 +20,7 @@ from lm_eval.evaluator_utils import (
     print_writeout,
     run_task_tests,
 )
-from lm_eval.logging_utils import add_env_info, get_git_commit_hash
+from lm_eval.logging_utils import add_env_info, add_tokenizer_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import eval_logger, positional_deprecated, simple_parse_args_string
 
@@ -285,6 +285,7 @@ def simple_evaluate(
         results["git_hash"] = get_git_commit_hash()
         results["date"] = start_date
         add_env_info(results)  # additional environment info to results
+        add_tokenizer_info(results, lm)  # additional info about tokenizer
         return results
     else:
         return None
