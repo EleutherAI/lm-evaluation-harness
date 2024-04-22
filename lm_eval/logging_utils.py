@@ -456,11 +456,21 @@ def add_env_info(storage: Dict[str, Any]):
 
 
 def add_tokenizer_info(storage: Dict[str, Any], lm):
-    tokenizer_info = {
-        "tokenizer_pad_token": [lm.tokenizer.pad_token, lm.tokenizer.pad_token_id],
-        "tokenizer_eos_token": [lm.tokenizer.eos_token, lm.tokenizer.eos_token_id],
-        "tokenizer_bos_token": [lm.tokenizer.bos_token, lm.tokenizer.bos_token_id],
-        "eot_token_id": getattr(lm, "eot_token_id", None),
-        "max_length": getattr(lm, "max_length", None),
-    }
+    if getattr(lm, "tokenizer", False):
+        tokenizer_info = {
+            "tokenizer_pad_token": [lm.tokenizer.pad_token, lm.tokenizer.pad_token_id],
+            "tokenizer_eos_token": [lm.tokenizer.eos_token, lm.tokenizer.eos_token_id],
+            "tokenizer_bos_token": [lm.tokenizer.bos_token, lm.tokenizer.bos_token_id],
+            "eot_token_id": getattr(lm, "eot_token_id", None),
+            "max_length": getattr(lm, "max_length", None),
+        }
+    # seems gguf and textsynth do not have tokenizer
+    else:
+        tokenizer_info = {
+            "tokenizer_pad_token": [],
+            "tokenizer_eos_token": [],
+            "tokenizer_bos_token": [],
+            "eot_token_id": None,
+            "max_length": None,
+        }
     storage.update(tokenizer_info)
