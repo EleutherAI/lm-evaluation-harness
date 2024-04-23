@@ -1,0 +1,4 @@
+group: scrolls
+task: scrolls_qasper
+class: !function task.Qasper
+ 
