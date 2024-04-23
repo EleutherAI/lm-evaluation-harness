@@ -1,0 +1,6 @@
+group: mmlu_arc_style
+task:
+  - mmlu_arc_style_stem
+  - mmlu_arc_style_other
+  - mmlu_arc_style_social_sciences
+  - mmlu_arc_style_humanities

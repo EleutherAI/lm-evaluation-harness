@@ -1,0 +1,6 @@
+"dataset_name": "electrical_engineering"
+"description": "The following are questions (with answers) about electrical\
+  \ engineering.\n\n"
+"group": "mmlu_arc_style_stem"
+"include": "_arc_style_template_yaml"
+"task": "mmlu_arc_style_electrical_engineering"

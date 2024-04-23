@@ -1,0 +1,6 @@
+"dataset_name": "conceptual_physics"
+"description": "The following are questions (with answers) about conceptual\
+  \ physics.\n\n"
+"group": "mmlu_arc_style_stem"
+"include": "_arc_style_template_yaml"
+"task": "mmlu_arc_style_conceptual_physics"

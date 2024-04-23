@@ -1,0 +1,6 @@
+"dataset_name": "world_religions"
+"description": "The following are questions (with answers) about world\
+  \ religions.\n\n"
+"group": "mmlu_arc_style_humanities"
+"include": "_arc_style_template_yaml"
+"task": "mmlu_arc_style_world_religions"

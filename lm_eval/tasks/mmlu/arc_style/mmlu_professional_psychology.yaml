@@ -1,0 +1,6 @@
+"dataset_name": "professional_psychology"
+"description": "The following are questions (with answers) about professional\
+  \ psychology.\n\n"
+"group": "mmlu_arc_style_social_sciences"
+"include": "_arc_style_template_yaml"
+"task": "mmlu_arc_style_professional_psychology"

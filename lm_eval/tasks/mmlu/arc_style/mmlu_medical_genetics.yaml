@@ -1,0 +1,6 @@
+"dataset_name": "medical_genetics"
+"description": "The following are questions (with answers) about medical\
+  \ genetics.\n\n"
+"group": "mmlu_arc_style_other"
+"include": "_arc_style_template_yaml"
+"task": "mmlu_arc_style_medical_genetics"

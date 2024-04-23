@@ -1,0 +1,6 @@
+"dataset_name": "global_facts"
+"description": "The following are questions (with answers) about global\
+  \ facts.\n\n"
+"group": "mmlu_arc_style_other"
+"include": "_arc_style_template_yaml"
+"task": "mmlu_arc_style_global_facts"

@@ -1,0 +1,6 @@
+"dataset_name": "clinical_knowledge"
+"description": "The following are questions (with answers) about clinical\
+  \ knowledge.\n\n"
+"group": "mmlu_arc_style_other"
+"include": "_arc_style_template_yaml"
+"task": "mmlu_arc_style_clinical_knowledge"

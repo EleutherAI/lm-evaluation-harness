@@ -1,0 +1,6 @@
+"dataset_name": "management"
+"description": "The following are questions (with answers) about management.\n\
+  \n"
+"group": "mmlu_arc_style_other"
+"include": "_arc_style_template_yaml"
+"task": "mmlu_arc_style_management"

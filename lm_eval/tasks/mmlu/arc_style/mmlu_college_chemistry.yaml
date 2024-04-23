@@ -1,0 +1,6 @@
+"dataset_name": "college_chemistry"
+"description": "The following are questions (with answers) about college\
+  \ chemistry.\n\n"
+"group": "mmlu_arc_style_stem"
+"include": "_arc_style_template_yaml"
+"task": "mmlu_arc_style_college_chemistry"
