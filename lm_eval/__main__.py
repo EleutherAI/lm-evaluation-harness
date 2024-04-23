@@ -14,6 +14,7 @@ from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.logging_utils import WandbLogger
 from lm_eval.tasks import TaskManager
+from lm_eval.tracking import EvaluationTracker
 from lm_eval.utils import make_table, simple_parse_args_string
 
 
@@ -228,7 +229,33 @@ def setup_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
     )
-
+    parser.add_argument(
+        "--push_results_to_hub",
+        default=False,
+        action="store_true",
+        help="Push results to the Hugging Face Hub",
+    )
+    parser.add_argument(
+        "--push_details_to_hub",
+        default=False,
+        action="store_true",
+        help="Push details to the Hugging Face Hub",
+    )
+    parser.add_argument(
+        "--public_run",
+        default=False,
+        action="store_true",
+        help="Push results and details to a public Hugging Face Hub repository",
+    )
+    parser.add_argument(
+        "--results_org",
+        type=str,
+        default=None,
+        help="Organization to store results in the evaluation tracker",
+    )
+    parser.add_argument(
+        "--job_id", type=str, default="", help="Optional Job ID for future reference"
+    )
     return parser
 
 
@@ -250,6 +277,18 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+    evaluation_tracker = EvaluationTracker(
+        hub_results_org=args.results_org, token=os.environ.get("HF_TOKEN")
+    )
+    evaluation_tracker.general_config_tracker.log_experiment_args(
+        model_source=args.model,
+        model_args=args.model_args,
+        batch_size=args.batch_size,
+        max_batch_size=args.max_batch_size,
+        max_samples=args.limit,
+        job_id=args.job_id,
+    )
 
     if args.predict_only:
         args.log_samples = True
@@ -353,6 +392,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         log_samples=args.log_samples,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
+        evaluation_tracker=evaluation_tracker,
         verbosity=args.verbosity,
         predict_only=args.predict_only,
         random_seed=args.seed[0],
@@ -399,6 +439,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                         ensure_ascii=False,
                     )
                     filename.write_text(samples_dumped, encoding="utf-8")
+
+            evaluation_tracker.save(
+                output_dir=path,
+                push_results_to_hub=args.push_results_to_hub,
+                push_details_to_hub=args.push_details_to_hub,
+                public=args.public_run,
+            )
 
         print(
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "

@@ -22,6 +22,7 @@ from lm_eval.evaluator_utils import (
 )
 from lm_eval.logging_utils import add_env_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
+from lm_eval.tracking import EvaluationTracker
 from lm_eval.utils import eval_logger, positional_deprecated, simple_parse_args_string
 
 
@@ -50,6 +51,7 @@ def simple_evaluate(
     log_samples: bool = True,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
+    evaluation_tracker: Optional[EvaluationTracker] = None,
     verbosity: str = "INFO",
     predict_only: bool = False,
     random_seed: int = 0,
@@ -244,6 +246,9 @@ def simple_evaluate(
             # if num_fewshot not provided, and the task does not define a default one, default to 0
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
                 task_obj.set_config(key="num_fewshot", value=0)
+
+        task_name_fewshot = f"{task_name}|{task_obj.get_config('num_fewshot')}"
+        evaluation_tracker.versions_tracker.log(task_name_fewshot, task_obj.VERSION)
 
     if check_integrity:
         run_task_tests(task_list=tasks)

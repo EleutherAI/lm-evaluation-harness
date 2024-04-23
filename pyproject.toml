@@ -24,6 +24,7 @@ dependencies = [
     "datasets>=2.16.0",
     "evaluate>=0.4.0",
     "jsonlines",
+    "GitPython==3.1.31",
     "numexpr",
     "peft>=0.2.0",
     "pybind11>=2.6.2",
