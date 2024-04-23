@@ -10,6 +10,7 @@ import torch
 
 import lm_eval.api.metrics
 import lm_eval.api.registry
+import lm_eval.api.task
 import lm_eval.models
 from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
@@ -211,7 +212,7 @@ def simple_evaluate(
         task_obj = task_dict[task_name]
         if isinstance(task_obj, tuple):
             _, task_obj = task_obj
-            if task_obj is None:
+            if isinstance(task_obj, lm_eval.api.task.ConfigurableTask) is False:
                 continue
 
         if task_obj.get_config("output_type") == "generate_until":
@@ -483,13 +484,24 @@ def evaluate(
 
         ### Calculate group metrics ###
         if bool(results):
-            for group, task_list in reversed(task_hierarchy.items()):
+            show_group_table = False
+            for group, group_info in reversed(task_hierarchy.items()):
+                task_list = group_info["tasks"]
                 if len(task_list) == 0:
                     # task_hierarchy entries are either
                     # `group_name: [subtask1, subtask2, ...]`
                     # or `task_name: []`.
                     # we only want to operate on groups here.
                     continue
+
+                group_config = group_info["config"] if "config" in group_info else {}
+                aggregate_metric = group_config["aggregate_metric"] if "aggregate_metric" in group_config else False
+                show_group_table = show_group_table | aggregate_metric
+                weight_by_size = group_config["weight_by_size"] if "weight_by_size" in group_config else False
+                if aggregate_metric is False:
+                    results[group][" "] = " "
+                    continue
+
                 metric_list = list(
                     {
                         key
@@ -545,14 +557,15 @@ def evaluate(
                 break
 
             _task_hierarchy = {
-                k: v for k, v in task_hierarchy.items() if k in left_tasks_list
+                k: v["tasks"] for k, v in task_hierarchy.items() if k in left_tasks_list
             }
             _results_agg, _groups_agg = prepare_print_tasks(_task_hierarchy, results)
 
             results_agg = {**results_agg, **_results_agg}
             groups_agg = {**groups_agg, **_groups_agg}
 
-        for group_name, task_list in task_hierarchy.items():
+        for group_name, group_info in task_hierarchy.items():
+            task_list = group_info["tasks"]
             if task_list:
                 num_fewshot[group_name] = num_fewshot[
                     task_list[0]
@@ -560,7 +573,7 @@ def evaluate(
 
         results_dict = {
             "results": dict(results_agg.items()),
-            **({"groups": dict(groups_agg.items())} if bool(groups_agg) else {}),
+            **({"groups": dict(groups_agg.items())} if (bool(groups_agg) & show_group_table) else {}),
             "group_subtasks": dict(reversed(task_hierarchy.items())),
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),

@@ -119,13 +119,26 @@ class TaskOutput:
 
 
 def get_task_list(task_dict: dict) -> Tuple[Dict[str, list], List[TaskOutput]]:
-    task_hierarchy = collections.defaultdict(list)
-    outputs = list(TaskOutput.from_taskdict(x, y) for x, y in task_dict.items())
-    for task_output in outputs:
-        if group_name := task_output.group_name:
-            task_hierarchy[group_name].append(task_output.task_name)
+    # task_hierarchy = collections.defaultdict(list)
+    task_hierarchy = collections.defaultdict(lambda: collections.defaultdict(list))
+    outputs = []
+    for x, y in task_dict.items():
+        group, task_obj = y
+        if isinstance(task_obj, dict):
+            task_output = TaskOutput.from_taskdict(x, (group, None))
+            task_config = task_obj
         else:
-            task_hierarchy[task_output.task_name] = []
+            task_output = TaskOutput.from_taskdict(x, y)
+            task_config = task_obj.config
+
+        outputs.append(task_output)
+        if group_name := task_output.group_name:
+            task_hierarchy[group_name]["tasks"].append(task_output.task_name)
+            if "group_config" in task_config:
+                task_hierarchy[group_name]["config"] = task_config["group_config"]
+        else:
+            task_hierarchy[task_output.task_name]["tasks"] = []
+
     # returns task_hierarchy tracking which groups contain which subtasks,
     # and a list of TaskOutput classes for each non-group subtask
     return task_hierarchy, [x for x in outputs if x.task]

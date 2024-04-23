@@ -240,7 +240,9 @@ class TaskManager:
 
         all_subtasks = {}
         if parent_name is not None:
-            all_subtasks = {group_name: (parent_name, None)}
+            # all_subtasks = {group_name: (parent_name, None)}
+            parent_group_config = self._get_config(parent_name)
+            all_subtasks = {group_name: (parent_name, parent_group_config)}
 
         fn = partial(
             self._load_individual_task_or_group,

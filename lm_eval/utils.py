@@ -252,14 +252,15 @@ def make_table(result_dict, column: str = "results"):
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
                 continue
-
+            if v != " ":
+                v = "%.4f" % v
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
                 if se != "N/A":
                     se = "%.4f" % se
-                values.append([k, version, f, n, m, "%.4f" % v, "±", se])
+                values.append([k, version, f, n, m, v, "±", se])
             else:
-                values.append([k, version, f, n, m, "%.4f" % v, "", ""])
+                values.append([k, version, f, n, m, v, "", ""])
             k = ""
             version = ""
     md_writer.value_matrix = values

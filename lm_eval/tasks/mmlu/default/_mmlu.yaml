@@ -4,3 +4,7 @@ task:
   - mmlu_other
   - mmlu_social_sciences
   - mmlu_humanities
+group_config:
+  aggregate_metric: True
+  aggregate_fn: mean
+  weight_by_size: True
