@@ -2,31 +2,16 @@ import argparse
 import json
 import logging
 import os
-import re
 import sys
 from functools import partial
-from pathlib import Path
 from typing import Union
-
-import numpy as np
 
 from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.logging_utils import WandbLogger
 from lm_eval.tasks import TaskManager
-from lm_eval.utils import make_table, simple_parse_args_string
-
-
-DEFAULT_RESULTS_FILE = "results.json"
-
-
-def _handle_non_serializable(o):
-    if isinstance(o, np.int64) or isinstance(o, np.int32):
-        return int(o)
-    elif isinstance(o, set):
-        return list(o)
-    else:
-        return str(o)
+from lm_eval.tracking import EvaluationTracker
+from lm_eval.utils import handle_non_serializable, make_table, simple_parse_args_string
 
 
 def _int_or_none_list_arg_type(max_len: int, value: str, split_char: str = ","):
@@ -228,7 +213,30 @@ def setup_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
     )
-
+    parser.add_argument(
+        "--push_results_to_hub",
+        default=False,
+        action="store_true",
+        help="Push results to the Hugging Face Hub",
+    )
+    parser.add_argument(
+        "--push_samples_to_hub",
+        default=False,
+        action="store_true",
+        help="Push samples results to the Hugging Face Hub",
+    )
+    parser.add_argument(
+        "--public_run",
+        default=False,
+        action="store_true",
+        help="Push aggregated and sample results to a public Hugging Face Hub repository",
+    )
+    parser.add_argument(
+        "--results_org",
+        type=str,
+        default=None,
+        help="Specifies the organization on Hugging Face in which to store evaluation tracker results. The user must have write access to the specified organization. Ensure that the appropriate write access token is set in the environment.",
+    )
     return parser
 
 
@@ -251,6 +259,16 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+    evaluation_tracker = EvaluationTracker(
+        output_path=args.output_path,
+        hub_results_org=args.results_org,
+        token=os.environ.get("HF_TOKEN"),
+    )
+    evaluation_tracker.general_config_tracker.log_experiment_args(
+        model_source=args.model,
+        model_args=args.model_args,
+    )
+
     if args.predict_only:
         args.log_samples = True
     if (args.log_samples or args.predict_only) and not args.output_path:
@@ -261,6 +279,15 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
+
+    if (args.push_results_to_hub or args.push_samples_to_hub) and not args.results_org:
+        raise ValueError(
+            "If push_results_to_hub or push_samples_to_hub is set, results_org must be specified."
+        )
+    if args.push_samples_to_hub and not args.log_samples:
+        eval_logger.warning(
+            "Pushing samples to the Hub requires --log_samples to be set. Samples will not be pushed to the Hub."
+        )
 
     if args.limit:
         eval_logger.warning(
@@ -306,24 +333,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     f"Tasks not found: {missing}. Try `lm-eval --tasks list` for list of available tasks, or '--verbosity DEBUG' to troubleshoot task registration issues."
                 )
 
-    if args.output_path:
-        path = Path(args.output_path)
-        # check if file or 'dir/results.json' exists
-        if path.is_file():
-            raise FileExistsError(f"File already exists at {path}")
-        output_path_file = path.joinpath(DEFAULT_RESULTS_FILE)
-        if output_path_file.is_file():
-            eval_logger.warning(
-                f"File {output_path_file} already exists. Results will be overwritten."
-            )
-        # if path json then get parent dir
-        elif path.suffix in (".json", ".jsonl"):
-            output_path_file = path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path = path.parent
-        else:
-            path.mkdir(parents=True, exist_ok=True)
-
     # Respect user's value passed in via CLI, otherwise default to True and add to comma-separated model args
     if args.trust_remote_code:
         os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = str(args.trust_remote_code)
@@ -365,7 +374,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         if args.log_samples:
             samples = results.pop("samples")
         dumped = json.dumps(
-            results, indent=2, default=_handle_non_serializable, ensure_ascii=False
+            results, indent=2, default=handle_non_serializable, ensure_ascii=False
         )
         if args.show_config:
             print(dumped)
@@ -382,23 +391,21 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             except Exception as e:
                 eval_logger.info(f"Logging to Weights and Biases failed due to {e}")
 
-        if args.output_path:
-            output_path_file.open("w", encoding="utf-8").write(dumped)
+        evaluation_tracker.save_results_aggregated(
+            results=results,
+            samples=samples,
+            push_to_hub=args.push_results_to_hub,
+            public=args.public_run,
+        )
 
-            if args.log_samples:
-                for task_name, config in results["configs"].items():
-                    output_name = "{}_{}".format(
-                        re.sub(r"[\"<>:/\|\\?\*\[\]]+", "__", args.model_args),
-                        task_name,
-                    )
-                    filename = path.joinpath(f"{output_name}.jsonl")
-                    samples_dumped = json.dumps(
-                        samples[task_name],
-                        indent=2,
-                        default=_handle_non_serializable,
-                        ensure_ascii=False,
-                    )
-                    filename.write_text(samples_dumped, encoding="utf-8")
+        if args.log_samples:
+            for task_name, config in results["configs"].items():
+                evaluation_tracker.save_results_samples(
+                    task_name=task_name,
+                    samples=samples[task_name],
+                    push_to_hub=args.push_samples_to_hub,
+                    public=args.public_run,
+                )
 
         print(
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
