@@ -1,6 +1,0 @@
-"dataset_name": "international_law"
-"description": "The following are questions (with answers) about international\
-  \ law.\n\n"
-"group": "mmlu_arc_style_humanities"
-"include": "_arc_style_template_yaml"
-"task": "mmlu_arc_style_international_law"

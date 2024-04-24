@@ -1,6 +1,0 @@
-"dataset_name": "high_school_physics"
-"description": "The following are questions (with answers) about high\
-  \ school physics.\n\n"
-"group": "mmlu_arc_style_stem"
-"include": "_arc_style_template_yaml"
-"task": "mmlu_arc_style_high_school_physics"

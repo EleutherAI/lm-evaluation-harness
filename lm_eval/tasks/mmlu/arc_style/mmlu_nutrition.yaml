@@ -1,6 +1,0 @@
-"dataset_name": "nutrition"
-"description": "The following are questions (with answers) about nutrition.\n\
-  \n"
-"group": "mmlu_arc_style_other"
-"include": "_arc_style_template_yaml"
-"task": "mmlu_arc_style_nutrition"

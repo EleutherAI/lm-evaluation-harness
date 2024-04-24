@@ -1,6 +1,0 @@
-"dataset_name": "college_medicine"
-"description": "The following are questions (with answers) about college\
-  \ medicine.\n\n"
-"group": "mmlu_arc_style_other"
-"include": "_arc_style_template_yaml"
-"task": "mmlu_arc_style_college_medicine"

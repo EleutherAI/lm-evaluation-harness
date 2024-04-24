@@ -1,6 +1,0 @@
-"dataset_name": "marketing"
-"description": "The following are questions (with answers) about marketing.\n\
-  \n"
-"group": "mmlu_arc_style_other"
-"include": "_arc_style_template_yaml"
-"task": "mmlu_arc_style_marketing"

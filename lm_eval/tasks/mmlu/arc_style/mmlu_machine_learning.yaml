@@ -1,6 +1,0 @@
-"dataset_name": "machine_learning"
-"description": "The following are questions (with answers) about machine\
-  \ learning.\n\n"
-"group": "mmlu_arc_style_stem"
-"include": "_arc_style_template_yaml"
-"task": "mmlu_arc_style_machine_learning"

@@ -1,6 +1,0 @@
-"dataset_name": "anatomy"
-"description": "The following are questions (with answers) about anatomy.\n\
-  \n"
-"group": "mmlu_arc_style_stem"
-"include": "_arc_style_template_yaml"
-"task": "mmlu_arc_style_anatomy"

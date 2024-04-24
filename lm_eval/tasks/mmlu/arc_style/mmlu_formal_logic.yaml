@@ -1,6 +1,0 @@
-"dataset_name": "formal_logic"
-"description": "The following are questions (with answers) about formal\
-  \ logic.\n\n"
-"group": "mmlu_arc_style_humanities"
-"include": "_arc_style_template_yaml"
-"task": "mmlu_arc_style_formal_logic"

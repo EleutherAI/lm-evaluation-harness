@@ -1,6 +1,0 @@
-"dataset_name": "public_relations"
-"description": "The following are questions (with answers) about public\
-  \ relations.\n\n"
-"group": "mmlu_arc_style_social_sciences"
-"include": "_arc_style_template_yaml"
-"task": "mmlu_arc_style_public_relations"
