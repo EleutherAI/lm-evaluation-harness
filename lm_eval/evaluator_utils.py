@@ -129,7 +129,7 @@ def get_task_list(task_dict: dict) -> Tuple[Dict[str, list], List[TaskOutput]]:
             task_config = task_obj
         else:
             task_output = TaskOutput.from_taskdict(x, y)
-            task_config = task_obj.config
+            task_config = task_obj.config.to_dict()
 
         outputs.append(task_output)
         if group_name := task_output.group_name:
