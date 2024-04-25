@@ -535,7 +535,8 @@ def evaluate(
                         metric
                     ] = lm_eval.api.metrics.aggregate_subtask_metrics(
                         metrics,
-                        sizes if group_config["weight_by_size"] else [1] * len(sizes),
+                        sizes,
+                        group_config["weight_by_size"],
                     )
                     # TODO: calculate grouped metric using aggregation fn
                     if "N/A" in stderrs:
