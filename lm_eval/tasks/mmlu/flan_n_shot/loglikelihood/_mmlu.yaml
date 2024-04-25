@@ -4,3 +4,6 @@ task:
   - mmlu_flan_n_shot_loglikelihood_other
   - mmlu_flan_n_shot_loglikelihood_social_sciences
   - mmlu_flan_n_shot_loglikelihood_humanities
+group_config:
+  aggregate_metric: True
+  weight_by_size: True

@@ -4,3 +4,6 @@ task:
   - mmlu_flan_n_shot_generative_other
   - mmlu_flan_n_shot_generative_social_sciences
   - mmlu_flan_n_shot_generative_humanities
+group_config:
+  aggregate_metric: True
+  weight_by_size: True
