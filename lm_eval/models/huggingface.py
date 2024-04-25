@@ -107,8 +107,9 @@ class HFLM(TemplateLM):
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
         offload_folder: Optional[Union[str, os.PathLike]] = "./offload",
-        # PEFT and quantization options
+        # PEFT, delta weights and quantization options
         peft: Optional[str] = None,
+        delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
         **kwargs,
     ) -> None:
@@ -210,6 +211,7 @@ class HFLM(TemplateLM):
                 max_cpu_memory=max_cpu_memory,
                 offload_folder=offload_folder,
                 peft=peft,
+                delta=delta,
                 autogptq=autogptq,
                 **kwargs,
             )
@@ -486,8 +488,9 @@ class HFLM(TemplateLM):
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
         offload_folder: Optional[str] = "./offload",
-        # PEFT and quantization options
+        # PEFT, delta weights and quantization options
         peft: Optional[str] = None,
+        delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
         **kwargs,
     ) -> None:
@@ -563,6 +566,11 @@ class HFLM(TemplateLM):
                 **model_kwargs,
             )
 
+        if peft and delta:
+            raise ValueError(
+                "Cannot use both 'peft' and 'delta' options at the same time."
+            )
+
         if peft:
             if model_kwargs.get("load_in_4bit", None):
                 if version.parse(PEFT_VERSION) < version.parse("0.4.0"):
@@ -570,6 +578,29 @@ class HFLM(TemplateLM):
             self._model = PeftModel.from_pretrained(
                 self._model, peft, revision=revision
             )
+        elif delta:
+            if autogptq:
+                eval_logger.warning(
+                    "Delta weights might trigger unexpected behavior when used with AutoGPTQ."
+                )
+            _model_delta = self.AUTO_MODEL_CLASS.from_pretrained(
+                delta,
+                revision=revision,
+                torch_dtype=get_dtype(dtype),
+                trust_remote_code=trust_remote_code,
+                **model_kwargs,
+            )
+            for name, param in self._model.state_dict().items():
+                try:
+                    param.data += _model_delta.state_dict()[name]
+                except KeyError:
+                    raise KeyError(f"Delta model is missing weights for layer: {name}")
+                except Exception as e:
+                    raise RuntimeError(
+                        f"Failed to add delta weights to layer {name}. Error: {e}"
+                    )
+
+            del _model_delta
 
         return None
 
