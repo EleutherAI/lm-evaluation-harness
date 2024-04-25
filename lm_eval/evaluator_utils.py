@@ -164,7 +164,10 @@ def get_sample_size(task, limit: Optional[int]) -> Union[int, None]:
 
 
 def prepare_print_tasks(
-    task_hierarchy: dict, results: dict, tab=0
+    task_hierarchy: dict,
+    results: dict,
+    tab=0,
+    group_tab=0,
 ) -> Tuple[dict, dict]:
     """
     @param task_hierarchy: Dictionary representing the group hierarchy of tasks. Each key is a group name and its
@@ -197,17 +200,20 @@ def prepare_print_tasks(
         results_agg[group_name]["alias"] = tab_string + group_name
 
     if len(task_list) > 0:
-        groups_agg[group_name] = results[group_name].copy()
-        # groups_agg[group_name]["tab"] = tab
-        if "samples" in groups_agg[group_name]:
-            groups_agg[group_name].pop("samples")
+        if " " not in results[group_name]:
+            group_tab_string = " " * group_tab + "- " if group_tab > 0 else ""
+            groups_agg[group_name] = results[group_name].copy()
+            group_tab += 1
 
-        if "alias" in groups_agg[group_name]:
-            groups_agg[group_name]["alias"] = (
-                tab_string + groups_agg[group_name]["alias"]
-            )
-        else:
-            groups_agg[group_name]["alias"] = tab_string + group_name
+            if "samples" in groups_agg[group_name]:
+                groups_agg[group_name].pop("samples")
+
+            if "alias" in groups_agg[group_name]:
+                groups_agg[group_name]["alias"] = (
+                    group_tab_string + groups_agg[group_name]["alias"]
+                )
+            else:
+                groups_agg[group_name]["alias"] = group_tab_string + group_name
 
         for task_name in task_list:
             if task_name in task_hierarchy:
@@ -222,7 +228,7 @@ def prepare_print_tasks(
                 }
 
             _results_agg, _groups_agg = prepare_print_tasks(
-                _task_hierarchy, results, tab + 1
+                _task_hierarchy, results, tab + 1, group_tab
             )
             results_agg = {**results_agg, **_results_agg}
             groups_agg = {**groups_agg, **_groups_agg}

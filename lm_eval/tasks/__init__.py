@@ -178,7 +178,6 @@ class TaskManager:
                     yaml_path = self._get_yaml_path(group_name)
 
                     if (update_config is not None) and ("group_alias" in update_config):
-                        group_name = update_config["group_alias"]
                         update_config.pop("group_alias")
 
         if isinstance(name_or_config, dict):
@@ -240,8 +239,9 @@ class TaskManager:
 
         all_subtasks = {}
         if parent_name is not None:
-            # all_subtasks = {group_name: (parent_name, None)}
             parent_group_config = self._get_config(parent_name)
+            if "group_alias" in parent_group_config:
+                parent_name = parent_group_config["group_alias"]
             all_subtasks = {group_name: (parent_name, parent_group_config)}
 
         fn = partial(
