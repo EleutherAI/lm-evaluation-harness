@@ -84,7 +84,7 @@ lm_eval --model hf \
     --batch_size auto:4
 ```
 
-The full list of supported arguments are provided [here](./docs/interface.md), and on the terminal by calling `lm_eval -h`. Alternatively, you can use `lm-eval` instead of `lm_eval`.
+The full list of supported arguments are provided [here](./docs/interface.md), and on the terminal by calling `lm_eval -h`. Alternatively, you can use `lm-eval` instead of `lm_eval`. A list of supported tasks can be viewed with `lm-eval --tasks list`.
 
 > [!Note]
 > Just like you can provide a local path to `transformers.AutoModel`, you can also provide a local path to `lm_eval` via `--model_args pretrained=/path/to/model`
