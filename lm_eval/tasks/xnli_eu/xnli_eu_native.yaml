@@ -1,0 +1,6 @@
+include: xnli_eu.yaml
+group: xnli_eu_mt_native
+task: xnli_eu_native
+training_split: null
+validation_split: null
+dataset_name: eu_native
