@@ -27,7 +27,7 @@ Homepage: https://adversarialglue.github.io
 
 #### Groups
 
-* `glue`: Run all Glue subtasks.
+* `adv_glue`: Run all Glue subtasks.
 
 #### Tasks
 
