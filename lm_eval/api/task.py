@@ -99,7 +99,7 @@ class TaskConfig(dict):
     def __post_init__(self) -> None:
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
-                raise ValueError(
+                eval_logger.warning(
                     f"[{self.task}] passed `generation_kwargs`, but not using `output_type: generate_until`!"
                 )
 
