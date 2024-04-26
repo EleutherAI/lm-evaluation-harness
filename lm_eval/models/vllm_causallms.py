@@ -355,7 +355,6 @@ class VLLM(TemplateLM):
             # cache generations
             for output, context in zip(cont, context):
                 generated_text = output.outputs[0].text
-                print(generated_text)
                 res.append(generated_text)
                 self.cache_hook.add_partial(
                     "generate_until", (context, gen_kwargs), generated_text
