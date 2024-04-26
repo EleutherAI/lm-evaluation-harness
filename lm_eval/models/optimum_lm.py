@@ -1,13 +1,13 @@
 import json
-import logging
 from importlib.util import find_spec
 from pathlib import Path
 
+from lm_eval import utils
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
 
-logger = logging.getLogger(__name__)
+eval_logger = utils.eval_logger
 
 
 @register_model("openvino")
@@ -64,7 +64,7 @@ class OptimumLM(HFLM):
                 )
             with open(model_kwargs["ov_config"]) as f:
                 model_kwargs["ov_config"] = json.load(f)
-                logger.info(
+                eval_logger.info(
                     f"Using custom OpenVINO config: {model_kwargs['ov_config']}"
                 )
 
