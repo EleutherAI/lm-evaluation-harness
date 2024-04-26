@@ -7,7 +7,7 @@ It is created by subsampling 300 random questions from the datasets below, and u
 The subsampling was done by [pharaouk](https://github.com/pharaouk/) with their [dharma repository](https://github.com/pharaouk/dharma).
 
 The datasets are:
-- mmlu 
+- mmlu
 - arc_c
 - arc_e
 - agieval
