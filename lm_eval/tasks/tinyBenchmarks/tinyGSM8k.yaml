@@ -13,7 +13,7 @@ doc_to_text: "Question: {{question}}\nAnswer:"
 doc_to_target: "{{answer}}" #" {{answer.split('### ')[-1].rstrip()}}"
 metric_list:
   - metric: exact_match
-    aggregation: mean
+    aggregation: !function agg_functions.agg_gpirt_gsm8k
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: false

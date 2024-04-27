@@ -12,8 +12,8 @@ doc_to_choice: ["A", "B", "C", "D"]
 doc_to_target: answer
 num_fewshot: 0
 metric_list:
-  - metric: acc
-    aggregation: mean
+  - metric: acc_norm
+    aggregation: !function agg_functions.agg_gpirt_mmlu
     higher_is_better: true
 metadata:
   version: 0.0

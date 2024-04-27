@@ -13,11 +13,8 @@ doc_to_text: "{{query}}"
 doc_to_target: "{{label}}"
 doc_to_choice: "choices"
 metric_list:
-  - metric: acc
-    aggregation: mean
-    higher_is_better: true
   - metric: acc_norm
-    aggregation: mean
+    aggregation: !function agg_functions.agg_gpirt_hellaswag
     higher_is_better: true
 metadata:
   version: 0.0

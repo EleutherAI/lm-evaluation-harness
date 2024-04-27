@@ -11,8 +11,8 @@ doc_to_choice: !function utils_winogrande.doc_to_choice
 should_decontaminate: true
 doc_to_decontamination_query: sentence
 metric_list:
-  - metric: acc
-    aggregation: mean
+  - metric: acc_norm
+    aggregation: !function agg_functions.agg_gpirt_winogrande
     higher_is_better: true
 metadata:
   version: 0.0

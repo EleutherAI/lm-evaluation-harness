@@ -20,23 +20,36 @@ All configs and utils mirror the ones from their original dataset!
 
 #### Tasks
 
-* `tinyArc`, `tinyGSM8k`, `tinyHellaswag`, `tinyMMLU`, `tinyTruthfulQA`, `tinyWinogrande`,
+* `tinyArc`, `tinyGSM8k`, `tinyHellaswag`, `tinyMMLU`, `tinyTruthfulQA`, `tinyWinogrande`
 
 ### Usage
 
 *tinyBenchmarks* can evaluate different benchmarks with a fraction of their examples.
-To obtain accurate results, the score vectors obtained with this task require post-processing using the *tinyBenchmarks*-package (see [here](https://github.com/felipemaiapolo/tinyBenchmarks/blob/main/README.md?plain=1)).
-
-You can install our package by running the following commands on the terminal
+To obtain accurate results, this task applies post-processing using the *tinyBenchmarks*-package.
+You can install the package by running the following commands on the terminal (for more information see [here](https://github.com/felipemaiapolo/tinyBenchmarks/blob/main/README.md?plain=1)):
 
 ``` :sh
-$ pip install git+https://github.com/felipemaiapolo/tinyBenchmarks
+pip install git+https://github.com/felipemaiapolo/tinyBenchmarks
 ```
 
-Through the package, the ability parameter $\theta$ from the IRT model will be estimated using all the available data. For `benchmark='lb'` or `benchmark='helm_lite'`, the dimension of `y` should be 600 and 1000, respectively, where the correctness values must obey the following order
-- For the Open LLM Leaderboard: TruthfulQA, GSM8K, Winogrande, ARC, HellaSwag, and MMLU;
+The value that is returned by the task corresponds to the '**IRT++**'-method from the [original paper](https://arxiv.org/abs/2402.14992).
+Evaluate specific tasks individually (e.g. `--tasks tinyHellaswag`) or all [open LLM leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard) tasks by specifying `--tasks tinyBenchmarks`.
 
-For all other, benchmarks the dimension of `y` should be 100.
+### Advanced usage
+
+To obtain the estimated accuracies from all methods from the original paper, the *tinyBenchmarks*-package has to be applied manually.
+To do so, run the evaluation with the `--log_samples` and `--output_path` arguments. For example:
+
+```bash
+lm_eval --model hf  \
+        --model_args pretrained="mistralai/Mistral-7B-Instruct-v0.2" \
+        --tasks tinyHellaswag \
+        --batch_size 4 \
+        --output_path '<output_path>' \
+        --log_samples
+```
+
+Afterwards, run include the correct `file_path` and run the following script:
 
 ```python
 import json
@@ -45,11 +58,11 @@ import numpy as np
 
 # Choose benchmark (e.g. hellaswag)
 benchmark = 'hellaswag' # possible benchmarks:
-                        # ['lb','mmlu','alpaca','helm_lite','truthfulqa',
-                        #  'gsm8k', 'winogrande', 'arc', 'hellaswag']
+                        # ['mmlu','truthfulqa', 'gsm8k',
+                        #  'winogrande', 'arc', 'hellaswag']
 
 # Get score vector from output-file (the metric [here `acc_norm`] depends on the benchmark)
-file_path = '<your-output-file.jsonl>'
+file_path = '<output_path>/<output-file.jsonl>'
 with open(file_path, 'r') as file:
     outputs = json.load(file)
 
