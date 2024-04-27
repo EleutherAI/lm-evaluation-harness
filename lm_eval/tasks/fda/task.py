@@ -34,7 +34,7 @@ class FDA(ConfigurableTask):
 
     def doc_to_target(self, doc):
         return doc["value"]
-        
+
     def construct_requests(self, doc, ctx, **kwargs):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
@@ -93,7 +93,7 @@ class FDA(ConfigurableTask):
         return {
             "contains": True,  # Exact match (the normalized answer exactly match the gold answer
         }
-    
+
 
 def contains_score(prediction: str, labels: List[str]):
     return max(
