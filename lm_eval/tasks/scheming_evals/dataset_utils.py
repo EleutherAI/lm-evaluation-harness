@@ -22,4 +22,4 @@ def combine_csvs(directory_path):
 
     combined_df.to_csv('combined_data.csv', index=False)
 
-combine_csvs('/Users/marina.levay/Documents/GitHub/lm-evaluation-harness/lm_eval/tasks/scheming_evals')
+combine_csvs('path/to/local/repo')
