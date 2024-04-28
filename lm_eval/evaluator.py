@@ -328,6 +328,9 @@ def evaluate(
     # number of fwd passes per distributed rank is equal
     padding_requests = defaultdict(int)
 
+    # stores total inference time
+    inference_time = 0
+
     # get lists of group hierarchy and each type of request
     task_hierarchy, eval_tasks = get_task_list(task_dict)
     if not log_samples:
@@ -387,7 +390,9 @@ def evaluate(
                 cloned_reqs.extend([req] * req.repeats)
 
         # run requests through model
-        resps = getattr(lm, reqtype)(cloned_reqs)
+        response_result = getattr(lm, reqtype)(cloned_reqs)
+        resps = response_result.responses
+        inference_time += response_result.time
 
         # put responses from model into a list of length K for each request.
         for x, req in zip(resps, cloned_reqs):
@@ -565,6 +570,7 @@ def evaluate(
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
             "n-shot": dict(sorted(num_fewshot.items())),
+            "inference_time": inference_time,
         }
         if log_samples:
             results_dict["samples"] = dict(samples)
