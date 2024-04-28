@@ -613,3 +613,39 @@ class Collator:
 
         if arr:
             yield arr
+
+
+class CallResult:
+    """
+    A class for storing the results of a model call.
+
+    This class allows for storing the returned logits and the inference time of the call.
+    """
+
+    def __init__(self, logits: torch.Tensor, time: float) -> None:
+        self.logits = logits
+        self.time = time
+
+
+class GenerateResult:
+    """
+    A class for storing the results of a model generation.
+
+    This class allows for storing the generated tokens and the inference time of the generation.
+    """
+
+    def __init__(self, tokens: torch.Tensor, time: float) -> None:
+        self.tokens = tokens
+        self.time = time
+
+
+class ModelResult:
+    """
+    A class for storing the responses and the inferene time of a model.
+
+    Methods that generate a model's responses should return an instance of this class.
+    """
+
+    def __init__(self, responses: List[str], time: float):
+        self.responses = responses
+        self.time = time
