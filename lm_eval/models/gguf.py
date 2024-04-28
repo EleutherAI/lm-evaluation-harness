@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
+from lm_eval.models.utils import GenerateResult, ResponseResult
 
 
 logger = logging.getLogger(__name__)
@@ -59,11 +60,13 @@ class GGUFLM(LM):
                     request.update({"prompt": prompt, "max_tokens": 1, "echo": True})
                 if stop is not None:
                     request["stop"] = stop
+                start_time = time.time
                 response = requests.post(
                     f"{self.base_url}/v1/completions", json=request
                 )
+                inference_time = time.time - start_time
                 response.raise_for_status()
-                return response.json()
+                return GenerateResult(response.json(), inference_time)
             except RequestException as e:
                 logger.error(f"RequestException: {e}")
                 time.sleep(delay)  # wait before retrying
@@ -74,10 +77,17 @@ class GGUFLM(LM):
         if not requests:
             return []
         res = []
+        inference_time = 0
+
         for context, continuation in tqdm(
             [req.args for req in requests], disable=disable_tqdm
         ):
-            response = self.gguf_completion(context=context, continuation=continuation)
+            generate_result = self.gguf_completion(
+                context=context, continuation=continuation
+            )
+            response = generate_result.tokens
+            inference_time += generate_result.time
+
             if response and "choices" in response and response["choices"]:
                 choice = response["choices"][0]
                 logprobs = choice.get("logprobs")
@@ -97,18 +107,23 @@ class GGUFLM(LM):
                     f"Invalid response for loglikelihood. Response: {response}"
                 )
                 assert False
-        return res
+        return ResponseResult(res, inference_time)
 
     def generate_until(self, requests, disable_tqdm: bool = False):
         if not requests:
             return []
+        inference_time = 0
 
         res = []
         for request in tqdm([req.args for req in requests], disable=disable_tqdm):
             inp = request[0]
             request_args = request[1]
             until = request_args.get("until", ["</s>"])
-            response = self.gguf_completion(context=inp, stop=until)
+
+            generate_result = self.gguf_completion(context=inp, stop=until)
+            response = generate_result.tokens
+            inference_time += generate_result.time
+
             if response and "choices" in response and response["choices"]:
                 choice = response["choices"][0]
                 if "text" in choice:
@@ -122,7 +137,7 @@ class GGUFLM(LM):
             else:
                 logger.error(f"Invalid response for greedy_until. Response: {response}")
                 res.append(None)  # Add default value in case of error
-        return res
+        return ResponseResult(res, inference_time)
 
     def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError(

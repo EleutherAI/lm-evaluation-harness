@@ -634,7 +634,7 @@ class GenerateResult:
     This class allows for storing the generated tokens and the inference time of the generation.
     """
 
-    def __init__(self, tokens: Union[torch.Tensor, str], time: float) -> None:
+    def __init__(self, tokens: Union[torch.Tensor, str, Dict], time: float) -> None:
         self.tokens = tokens
         self.time = time
 
