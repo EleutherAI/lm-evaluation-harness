@@ -639,7 +639,7 @@ class GenerateResult:
         self.time = time
 
 
-class ModelResult:
+class ResponseResult:
     """
     A class for storing the responses and the inferene time of a model.
 
