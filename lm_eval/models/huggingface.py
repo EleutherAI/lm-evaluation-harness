@@ -1,5 +1,6 @@
 import copy
 import os
+import time
 from datetime import timedelta
 from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union
@@ -27,7 +28,10 @@ from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
+    CallResult,
     Collator,
+    GenerateResult,
+    ResponseResult,
     clear_torch_cache,
     get_dtype,
     pad_and_concat,
@@ -683,7 +687,8 @@ class HFLM(TemplateLM):
                     (batch_size, max_length), device=self.device
                 ).long()
             for _ in range(5):
-                out = F.log_softmax(self._model_call(test_batch, **call_kwargs), dim=-1)  # noqa: F841
+                call_result = self._model_call(test_batch, **call_kwargs)
+                out = F.log_softmax(call_result.logits, dim=-1)  # noqa: F841
 
             return batch_size
 
@@ -784,15 +789,18 @@ class HFLM(TemplateLM):
         logits returned from the model's decoder
         """
         with torch.no_grad():
+            start_time = time.time()
             if attn_mask is not None or labels is not None:
                 assert attn_mask is not None and labels is not None
                 assert self.AUTO_MODEL_CLASS == transformers.AutoModelForSeq2SeqLM
-                return self.model(
+                call_logits = self.model(
                     input_ids=inps, attention_mask=attn_mask, labels=labels
                 ).logits
             else:
                 assert self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
-                return self.model(inps).logits
+                call_logits = self.model(inps).logits
+            inference_time = time.time() - start_time
+            return CallResult(call_logits, inference_time)
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
         # temperature = 0.0 if not set
@@ -812,7 +820,8 @@ class HFLM(TemplateLM):
         stopping_criteria = stop_sequences_criteria(
             self.tokenizer, stop, context.shape[1], context.shape[0]
         )
-        return self.model.generate(
+        start_time = time.time()
+        generation_tokens = self.model.generate(
             input_ids=context,
             max_length=max_length,
             stopping_criteria=stopping_criteria,
@@ -820,6 +829,8 @@ class HFLM(TemplateLM):
             use_cache=True,
             **generation_kwargs,
         )
+        inference_time = time.time() - start_time
+        return GenerateResult(generation_tokens, inference_time)
 
     def _select_cont_toks(
         self, logits: torch.Tensor, contlen: int = None, inplen: int = None
@@ -884,11 +895,13 @@ class HFLM(TemplateLM):
                 if pad_amnt > 0:
                     rolling_token_windows += pad_amnt * [rolling_token_windows[0]]
 
-            string_nll = self._loglikelihood_tokens(
+            loglikelihood_tokens_response_result = self._loglikelihood_tokens(
                 requests=rolling_token_windows,
                 disable_tqdm=True,
                 override_bs=adaptive_batch_size,
             )
+
+            string_nll = loglikelihood_tokens_response_result.responses
 
             if (self.world_size > 1) and (pad_amnt > 0):
                 string_nll = [x[0] for x in string_nll[:-pad_amnt]]
@@ -899,7 +912,9 @@ class HFLM(TemplateLM):
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
 
-        return loglikelihoods
+        return ResponseResult(
+            loglikelihoods, loglikelihood_tokens_response_result.inference_time
+        )
 
     def _batch_scheduler(self, pos, n_reordered_requests):
         sched = pos // int(len(n_reordered_requests) / self.batch_schedule)
@@ -926,6 +941,7 @@ class HFLM(TemplateLM):
     ) -> List[Tuple[float, bool]]:
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
+        inference_time = 0
 
         def _collate(req: Tuple[Tuple[str, str], List[int], List[int]]):
             """Defines the key for the sorted method"""
@@ -1076,9 +1092,11 @@ class HFLM(TemplateLM):
                     "labels": batched_conts,
                 }
 
+            call_result = self._model_call(batched_inps, **call_kwargs)
             multi_logits = F.log_softmax(
-                self._model_call(batched_inps, **call_kwargs), dim=-1
+                call_result.logits, dim=-1
             )  # [batch, padding_length (inp or cont), vocab]
+            inference_time += call_result.time
 
             for (request_str, ctx_tokens, _), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
@@ -1132,12 +1150,14 @@ class HFLM(TemplateLM):
 
         pbar.close()
 
-        return re_ord.get_original(res)
+        responses = re_ord.get_original(res)
+        return ResponseResult(responses, inference_time)
 
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
         res = []
+        inference_time = 0
 
         def _collate(req: Tuple[str, dict]):
             """Defines the key for the sorted method"""
@@ -1240,12 +1260,14 @@ class HFLM(TemplateLM):
                 kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
 
             # perform batched generation
-            cont = self._model_generate(
+            generate_result = self._model_generate(
                 context=context_enc,
                 attention_mask=attn_masks,
                 stop=until,
                 **kwargs,
             )
+            cont = generate_result.tokens
+            inference_time += generate_result.time
 
             cont_toks_list = cont.tolist()
             for cont_toks, context in zip(cont_toks_list, contexts):
@@ -1271,4 +1293,4 @@ class HFLM(TemplateLM):
 
         pbar.close()
 
-        return res
+        return ResponseResult(res, inference_time)

@@ -117,11 +117,11 @@ class Test_HFLM:
         assert (argmax_RES == argmax_res).all()
 
     def test_generate_until(self) -> None:
-        res = self.LM.generate_until(self.generate_until)
+        res = self.LM.generate_until(self.generate_until).responses
         assert res == self.generate_until_RES
 
     def test_logliklihood_rolling(self) -> None:
-        res = self.LM.loglikelihood_rolling(self.ROLLING)
+        res = self.LM.loglikelihood_rolling(self.ROLLING).responses
         assert np.allclose(res, self.ROLLING_RES, atol=1e-1)
 
     def test_toc_encode(self) -> None:
