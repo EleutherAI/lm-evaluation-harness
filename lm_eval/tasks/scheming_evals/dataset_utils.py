@@ -16,7 +16,6 @@ def combine_csvs(directory_path):
         
     combined_df = pd.concat(dataframes, ignore_index = True)
     
-    # switching the answer (target) of MC task for written choice instead of the number, since the request used in the experiment is currently limited to the generate_until request instead of multiple_choice
     for i in range(len(combined_df['answer'])):
         index_for_choice = str(combined_df['answer'][i])
         choice = combined_df[index_for_choice][i]
