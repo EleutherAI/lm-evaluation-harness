@@ -1,4 +1,16 @@
 '''
+### TESTING INTERFACE (without API use) ###
+lm_eval \
+    --model hf \
+    --model_args pretrained=EleutherAI/pythia-2.8b \
+    --include_path ./ \
+    --tasks [TASK NAME] \
+    --device mps \
+    --limit 10 \
+    --output output/[TASK OUTPUT FILE]/ \
+    --log_samples \
+    --predict_only 
+
 ### FREE RESPONSE TASK ###
 export OPENAI_API_KEY=KEY
 lm_eval \

@@ -1,3 +1,5 @@
+## Should be used to merge local input files (.csv) into one input file in the local folder ##
+
 import os
 import pandas as pd
 

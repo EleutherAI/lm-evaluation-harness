@@ -1,8 +1,8 @@
 task: scheming_evals_mc_prompt_task
-dataset_path: csv
+dataset_path: scheming-dataset-questions
 dataset_kwargs:
   data_files:
-    validation: /Users/marina.levay/Documents/GitHub/lm-evaluation-harness/lm_eval/tasks/scheming_evals/combined_data.csv
+    validation: combined_data.csv
 output_type: generate_until
 validation_split: validation
 test_split: null
