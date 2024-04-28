@@ -1,6 +1,8 @@
 from lm_eval.api.filter import Filter
+from lm_eval.api.registry import register_filter
 
 
+@register_filter("lowercase")
 class LowercaseFilter(Filter):
     def __init__(self) -> None:
         pass
@@ -12,6 +14,7 @@ class LowercaseFilter(Filter):
         return [filter_set(resp) for resp in resps]
 
 
+@register_filter("uppercase")
 class UppercaseFilter(Filter):
     def __init__(self) -> None:
         pass
@@ -23,6 +26,7 @@ class UppercaseFilter(Filter):
         return [filter_set(resp) for resp in resps]
 
 
+@register_filter("map")
 class MapFilter(Filter):
     def __init__(self, mapping_dict: dict = None, default_value=None) -> None:
         """
