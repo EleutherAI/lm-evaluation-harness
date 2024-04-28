@@ -1,3 +1,4 @@
+import time
 from typing import Any, List, Tuple
 
 from tqdm import tqdm
@@ -5,7 +6,11 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import retry_on_specific_exceptions
+from lm_eval.models.utils import (
+    GenerateResult,
+    ResponseResult,
+    retry_on_specific_exceptions,
+)
 
 
 eval_logger = utils.eval_logger
@@ -69,7 +74,10 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
             temperature=temperature,
             **kwargs,
         )
-        return response.completion
+        start_time = time.time()
+        generation_tokens = response.completion
+        inference_time = time.time() - start_time
+        return GenerateResult(generation_tokens, inference_time)
 
     return completion()
 
@@ -126,6 +134,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
         on_exception_callback=_exception_callback,
     )
     def messages():
+        start_time = time.time()
         response = client.messages.create(
             model=model,
             max_tokens=max_tokens,
@@ -133,7 +142,8 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
             messages=[{"role": "user", "content": f"{prompt}"}],
             **kwargs,
         )
-        return response.content[0].text
+        inference_time = time.time() - start_time
+        return GenerateResult(response.content[0].text, inference_time)
 
     return messages()
 
@@ -226,6 +236,8 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
         _requests: List[Tuple[str, dict]] = [req.args for req in requests]
 
         res = []
+        inference_time = 0
+
         for request in tqdm(_requests, disable=disable_tqdm):
             try:
                 inp = request[0]
@@ -234,7 +246,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
                 until = request_args.get("until")
                 max_gen_toks = request_args.get("max_gen_toks", self.max_length)
                 temperature = request_args.get("temperature", self.temperature)
-                response = anthropic_completion(
+                generate_result = anthropic_completion(
                     client=self.client,
                     model=self.model,
                     prompt=inp,
@@ -243,9 +255,13 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
                     stop=until,  # type: ignore
                     **self.kwargs,
                 )
-                res.append(response)
 
-                self.cache_hook.add_partial("generate_until", request, response)
+                res.append(generate_result.tokens)
+                inference_time += generate_result.time
+
+                self.cache_hook.add_partial(
+                    "generate_until", request, generate_result.tokens
+                )
             except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
                 eval_logger.critical(f"Server unreachable: {e.__cause__}")
                 break
@@ -253,7 +269,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
                 eval_logger.critical(f"API error {e.status_code}: {e.message}")
                 break
 
-        return res
+        return ResponseResult(res, inference_time)
 
     def _model_call(self, inps):
         # Isn't used because we override _loglikelihood_tokens
@@ -330,6 +346,8 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
         _requests: List[Tuple[str, dict]] = [req.args for req in requests]
 
         res = []
+        inference_time = 0
+
         for request in tqdm(_requests):
             try:
                 inp = request[0]
@@ -338,7 +356,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
                 until = request_args.get("until")
                 max_tokens = request_args.get("max_gen_toks", self.max_length)
                 temperature = request_args.get("temperature", self.temperature)
-                response = anthropic_chat(
+                generate_result = anthropic_chat(
                     client=self.client,
                     model=self.model,
                     prompt=inp,
@@ -347,9 +365,13 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
                     stop=until,  # type: ignore
                     **self.kwargs,
                 )
-                res.append(response)
 
-                self.cache_hook.add_partial("generate_until", request, response)
+                res.append(generate_result.tokens)
+                inference_time += generate_result.time
+
+                self.cache_hook.add_partial(
+                    "generate_until", request, generate_result.tokens
+                )
             except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
                 eval_logger.critical(f"Server unreachable: {e.__cause__}")
                 break
@@ -357,4 +379,4 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
                 eval_logger.critical(f"API error {e.status_code}: {e.message}")
                 break
 
-        return res
+        return ResponseResult(res, inference_time)
