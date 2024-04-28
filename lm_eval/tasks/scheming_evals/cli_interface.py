@@ -22,7 +22,6 @@ lm_eval \
     --log_samples \
     --predict_only 
     
-    
 ### MC TASK ###
 export OPENAI_API_KEY=KEY
 lm_eval \
@@ -33,7 +32,6 @@ lm_eval \
     --output output/scheming_evals_mc_task_output/ \
     --log_samples \
     --predict_only 
-    
     
 ### GOAL TASK ###  
 export OPENAI_API_KEY=KEY
