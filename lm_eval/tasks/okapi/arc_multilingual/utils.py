@@ -24,9 +24,8 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
                 preprocess(doc["option_b"]),
                 preprocess(doc["option_c"]),
                 preprocess(doc["option_d"]),
-                preprocess(doc["option_e"]),
             ],
-            "gold": ["A", "B", "C", "D", "E"].index(doc["answer"]),
+            "gold": ["A", "B", "C", "D"].index(doc["answer"]),
         }
         return out_doc
 
