@@ -13,13 +13,17 @@ Homepage: https://textsynth.com/index.html
 """
 import logging
 import os
+import time
 
 import requests as _requests
 from tqdm import tqdm
 
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import retry_on_specific_exceptions
+from lm_eval.models.utils import (
+    ResponsesResult,
+    retry_on_specific_exceptions,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -97,12 +101,16 @@ class TextSynthLM(LM):
 
     def loglikelihood(self, requests, disable_tqdm: bool = False):
         res = []
+        inference_time = 0
         for context, continuation in tqdm(requests, disable=disable_tqdm):
+            start_time = time.time()
             response = textsynth_completion(
                 url=self.api_url + "/v1/engines/" + self.engine + "/logprob",
                 headers={"Authorization": "Bearer " + self.api_key},
                 json={"context": context, "continuation": continuation},
             )
+            inference_time += time.time() - start_time
+
             resp = response.json()
             if "logprob" in resp:
                 logprob = resp["logprob"]
@@ -117,7 +125,7 @@ class TextSynthLM(LM):
                     f"The following response does not contain `logprobs`. Got:\n{resp}"
                 )
                 assert False
-        return res
+        return ResponsesResult(res, inference_time)
 
     def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         # TODO: The TextSynth API does not support tokenized inputs so we cannot
@@ -134,10 +142,14 @@ class TextSynthLM(LM):
             return []
 
         res = []
+        inference_time = 0
+
         for request in tqdm(requests, disable=disable_tqdm):
             inp = request[0]
             request_args = request[1]
             until = request_args["until"]
+
+            start_time = time.time()
             response = textsynth_completion(
                 url=self.api_url + "/v1/engines/" + self.engine + "/completions",
                 headers={"Authorization": "Bearer " + self.api_key},
@@ -148,6 +160,8 @@ class TextSynthLM(LM):
                     "stop": until,
                 },
             )
+            inference_time += time.time() - start_time
+
             resp = response.json()
             if "text" in resp:
                 s = resp["text"]
@@ -160,7 +174,7 @@ class TextSynthLM(LM):
                     "Got:\n{resp}"
                 )
                 assert False
-        return res
+        return ResponsesResult(res, inference_time)
 
     def _model_call(self, inps):
         # Isn't used because we override _loglikelihood_tokens
