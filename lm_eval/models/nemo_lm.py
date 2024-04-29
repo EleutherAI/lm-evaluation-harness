@@ -14,6 +14,7 @@
 
 import importlib
 import pathlib
+import time
 from copy import deepcopy
 from typing import List, Literal
 
@@ -25,7 +26,7 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator
+from lm_eval.models.utils import Collator, InferenceResult, ResponsesResult
 from lm_eval.utils import (
     eval_logger,
     get_rolling_token_windows,
@@ -355,12 +356,14 @@ class NeMoLM(LM):
 
             new_reqs.append(((context, continuation), context_enc, continuation_enc))
 
-        return self._loglikelihood_tokens(new_reqs)
+        call_result = self._loglikelihood_tokens(new_reqs)
+        return ResponsesResult(call_result.result, call_result.time)
 
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[float]:
         loglikelihoods = []
+        inference_time = 0
 
         for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
             rolling_token_windows = list(
@@ -377,16 +380,19 @@ class NeMoLM(LM):
 
             rolling_token_windows = [(None,) + x for x in rolling_token_windows]
 
-            string_nll = self._loglikelihood_tokens(
+            call_result = self._loglikelihood_tokens(
                 rolling_token_windows,
             )
+
+            string_nll = call_result.result
+            inference_time += call_result.time
 
             # discard is_greedy
             string_nll = [x[0] for x in string_nll]
 
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
-        return loglikelihoods
+        return ResponsesResult(loglikelihoods, inference_time)
 
     def _loglikelihood_tokens(self, requests, disable_tqdm=False):
         res = []
@@ -419,6 +425,7 @@ class NeMoLM(LM):
 
                 inps.append(self.tok_decode(inp))
 
+            start_time = time.time()
             output = self.generate(
                 self.model,
                 inputs=inps,
@@ -427,6 +434,7 @@ class NeMoLM(LM):
                 compute_logprob=True,
                 all_probs=True,
             )
+            inference_time = time.time() - start_time
 
             batch_token_ids = np.asarray(output["token_ids"])[:, :-1]
             batch_logprobs = output["logprob"][:, :-1]
@@ -475,12 +483,13 @@ class NeMoLM(LM):
 
         pbar.close()
 
-        return re_ord.get_original(res)
+        return InferenceResult(re_ord.get_original(res), inference_time)
 
     def generate_until(self, requests):
         if not requests:
             return []
         res = []
+        inference_time = 0
 
         def get_until(req_args):
             until = req_args.get("until", [])
@@ -513,6 +522,7 @@ class NeMoLM(LM):
                 encoded_context = encoded_context[-remaining_length:]
                 contexts.append(self.tok_decode(encoded_context))
 
+            start_time = time.time()
             output = self.generate(
                 self.model,
                 inputs=contexts,
@@ -520,6 +530,7 @@ class NeMoLM(LM):
                 end_strings=until,
                 greedy=True,
             )
+            inference_time += time.time() - start_time
 
             answers = output["sentences"]
 
@@ -534,4 +545,4 @@ class NeMoLM(LM):
                 self.cache_hook.add_partial("greedy_until", request, answer)
                 res.append(answer)
 
-        return re_ords.get_original(res)
+        return ResponsesResult(re_ords.get_original(res), inference_time)
