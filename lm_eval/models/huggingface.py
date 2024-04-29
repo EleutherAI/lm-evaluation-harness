@@ -687,7 +687,7 @@ class HFLM(TemplateLM):
                 ).long()
             for _ in range(5):
                 call_result = self._model_call(test_batch, **call_kwargs)
-                out = F.log_softmax(call_result.call_result, dim=-1)  # noqa: F841
+                out = F.log_softmax(call_result.result, dim=-1)  # noqa: F841
 
             return batch_size
 
