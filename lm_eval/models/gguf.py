@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import GenerateResult, ResponseResult
+from lm_eval.models.utils import InferenceResult, ResponsesResult
 
 
 logger = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ class GGUFLM(LM):
                 )
                 inference_time = time.time - start_time
                 response.raise_for_status()
-                return GenerateResult(response.json(), inference_time)
+                return InferenceResult(response.json(), inference_time)
             except RequestException as e:
                 logger.error(f"RequestException: {e}")
                 time.sleep(delay)  # wait before retrying
@@ -107,7 +107,7 @@ class GGUFLM(LM):
                     f"Invalid response for loglikelihood. Response: {response}"
                 )
                 assert False
-        return ResponseResult(res, inference_time)
+        return ResponsesResult(res, inference_time)
 
     def generate_until(self, requests, disable_tqdm: bool = False):
         if not requests:
@@ -137,7 +137,7 @@ class GGUFLM(LM):
             else:
                 logger.error(f"Invalid response for greedy_until. Response: {response}")
                 res.append(None)  # Add default value in case of error
-        return ResponseResult(res, inference_time)
+        return ResponsesResult(res, inference_time)
 
     def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError(

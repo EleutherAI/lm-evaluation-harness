@@ -615,37 +615,27 @@ class Collator:
             yield arr
 
 
-class CallResult:
+class InferenceResult:
     """
-    A class for storing the results of a model call.
+    A class for storing the results of a model's inference.
 
-    This class allows for storing the returned logits and the inference time of the call.
+    This class allows for storing the returned result and the time of the inference.
     """
 
-    def __init__(self, logits: torch.Tensor, time: float) -> None:
-        self.logits = logits
+    def __init__(
+        self, result: Union[torch.Tensor, List, Dict, str], time: float
+    ) -> None:
+        self.result = result
         self.time = time
 
 
-class GenerateResult:
-    """
-    A class for storing the results of a model generation.
-
-    This class allows for storing the generated tokens and the inference time of the generation.
-    """
-
-    def __init__(self, tokens: Union[torch.Tensor, str, Dict], time: float) -> None:
-        self.tokens = tokens
-        self.time = time
-
-
-class ResponseResult:
+class ResponsesResult:
     """
     A class for storing the responses and the inferene time of a model.
 
     Methods that generate a model's responses should return an instance of this class.
     """
 
-    def __init__(self, responses: List[str], time: float):
+    def __init__(self, responses: List, time: float):
         self.responses = responses
         self.time = time

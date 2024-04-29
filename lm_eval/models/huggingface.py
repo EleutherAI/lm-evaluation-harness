@@ -28,10 +28,9 @@ from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
-    CallResult,
     Collator,
-    GenerateResult,
-    ResponseResult,
+    InferenceResult,
+    ResponsesResult,
     clear_torch_cache,
     get_dtype,
     pad_and_concat,
@@ -688,7 +687,7 @@ class HFLM(TemplateLM):
                 ).long()
             for _ in range(5):
                 call_result = self._model_call(test_batch, **call_kwargs)
-                out = F.log_softmax(call_result.logits, dim=-1)  # noqa: F841
+                out = F.log_softmax(call_result.call_result, dim=-1)  # noqa: F841
 
             return batch_size
 
@@ -785,8 +784,8 @@ class HFLM(TemplateLM):
             A torch tensor of shape [batch, (sequence_ctx + sequence_cont)]. Only passed
             (and must be passed) if self.AUTO_MODEL_CLASS is transformers.AutoModelForSeq2SeqLM
         :return
-            A torch tensor of shape [batch, sequence, vocab] with the
-        logits returned from the model's decoder
+            An InferenceResult object, that its result attribute is a torch tensor of shape
+            [batch, sequence, vocab] with the logits returned from the model's decoder
         """
         with torch.no_grad():
             start_time = time.time()
@@ -800,7 +799,7 @@ class HFLM(TemplateLM):
                 assert self.AUTO_MODEL_CLASS == transformers.AutoModelForCausalLM
                 call_logits = self.model(inps).logits
             inference_time = time.time() - start_time
-            return CallResult(call_logits, inference_time)
+            return InferenceResult(call_logits, inference_time)
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
         # temperature = 0.0 if not set
@@ -830,7 +829,7 @@ class HFLM(TemplateLM):
             **generation_kwargs,
         )
         inference_time = time.time() - start_time
-        return GenerateResult(generation_tokens, inference_time)
+        return InferenceResult(generation_tokens, inference_time)
 
     def _select_cont_toks(
         self, logits: torch.Tensor, contlen: int = None, inplen: int = None
@@ -854,7 +853,7 @@ class HFLM(TemplateLM):
 
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[float]:
+    ) -> ResponsesResult:
         loglikelihoods = []
 
         adaptive_batch_size = None
@@ -912,7 +911,7 @@ class HFLM(TemplateLM):
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
 
-        return ResponseResult(
+        return ResponsesResult(
             loglikelihoods, loglikelihood_tokens_response_result.inference_time
         )
 
@@ -938,7 +937,7 @@ class HFLM(TemplateLM):
         requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
         disable_tqdm: bool = False,
         override_bs: int = None,
-    ) -> List[Tuple[float, bool]]:
+    ) -> ResponsesResult:
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
         inference_time = 0
@@ -1094,7 +1093,7 @@ class HFLM(TemplateLM):
 
             call_result = self._model_call(batched_inps, **call_kwargs)
             multi_logits = F.log_softmax(
-                call_result.logits, dim=-1
+                call_result.result, dim=-1
             )  # [batch, padding_length (inp or cont), vocab]
             inference_time += call_result.time
 
@@ -1151,11 +1150,11 @@ class HFLM(TemplateLM):
         pbar.close()
 
         responses = re_ord.get_original(res)
-        return ResponseResult(responses, inference_time)
+        return ResponsesResult(responses, inference_time)
 
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[str]:
+    ) -> ResponsesResult:
         res = []
         inference_time = 0
 
@@ -1266,7 +1265,7 @@ class HFLM(TemplateLM):
                 stop=until,
                 **kwargs,
             )
-            cont = generate_result.tokens
+            cont = generate_result.result
             inference_time += generate_result.time
 
             cont_toks_list = cont.tolist()
@@ -1293,4 +1292,4 @@ class HFLM(TemplateLM):
 
         pbar.close()
 
-        return ResponseResult(res, inference_time)
+        return ResponsesResult(res, inference_time)

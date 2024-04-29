@@ -7,8 +7,8 @@ from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import (
-    GenerateResult,
-    ResponseResult,
+    InferenceResult,
+    ResponsesResult,
     retry_on_specific_exceptions,
 )
 
@@ -24,7 +24,7 @@ def anthropic_completion(
     temperature: float,
     stop: List[str],
     **kwargs: Any,
-) -> str:
+) -> InferenceResult:
     """Wrapper function around the Anthropic completion API client with exponential back-off
     in case of RateLimitError.
 
@@ -77,7 +77,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
         start_time = time.time()
         generation_tokens = response.completion
         inference_time = time.time() - start_time
-        return GenerateResult(generation_tokens, inference_time)
+        return InferenceResult(generation_tokens, inference_time)
 
     return completion()
 
@@ -90,7 +90,7 @@ def anthropic_chat(
     temperature: float,
     stop: List[str],
     **kwargs: Any,
-) -> str:
+) -> InferenceResult:
     """Wrapper function around the Anthropic completion API client with exponential back-off
     in case of RateLimitError.
 
@@ -143,7 +143,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
             **kwargs,
         )
         inference_time = time.time() - start_time
-        return GenerateResult(response.content[0].text, inference_time)
+        return InferenceResult(response.content[0].text, inference_time)
 
     return messages()
 
@@ -221,7 +221,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
     def _loglikelihood_tokens(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
 
-    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> ResponsesResult:
         try:
             import anthropic
         except ModuleNotFoundError:
@@ -256,11 +256,11 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
                     **self.kwargs,
                 )
 
-                res.append(generate_result.tokens)
+                res.append(generate_result.result)
                 inference_time += generate_result.time
 
                 self.cache_hook.add_partial(
-                    "generate_until", request, generate_result.tokens
+                    "generate_until", request, generate_result.result
                 )
             except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
                 eval_logger.critical(f"Server unreachable: {e.__cause__}")
@@ -269,7 +269,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
                 eval_logger.critical(f"API error {e.status_code}: {e.message}")
                 break
 
-        return ResponseResult(res, inference_time)
+        return ResponsesResult(res, inference_time)
 
     def _model_call(self, inps):
         # Isn't used because we override _loglikelihood_tokens
@@ -331,7 +331,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
     def max_gen_toks(self) -> int:
         return self.max_tokens
 
-    def generate_until(self, requests) -> List[str]:
+    def generate_until(self, requests) -> ResponsesResult:
         try:
             import anthropic
         except ModuleNotFoundError:
@@ -366,11 +366,11 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
                     **self.kwargs,
                 )
 
-                res.append(generate_result.tokens)
+                res.append(generate_result.result)
                 inference_time += generate_result.time
 
                 self.cache_hook.add_partial(
-                    "generate_until", request, generate_result.tokens
+                    "generate_until", request, generate_result.result
                 )
             except anthropic.APIConnectionError as e:  # type: ignore # noqa: F821
                 eval_logger.critical(f"Server unreachable: {e.__cause__}")
@@ -379,4 +379,4 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
                 eval_logger.critical(f"API error {e.status_code}: {e.message}")
                 break
 
-        return ResponseResult(res, inference_time)
+        return ResponsesResult(res, inference_time)
