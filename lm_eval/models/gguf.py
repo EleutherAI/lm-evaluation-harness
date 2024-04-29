@@ -85,7 +85,7 @@ class GGUFLM(LM):
             generate_result = self.gguf_completion(
                 context=context, continuation=continuation
             )
-            response = generate_result.tokens
+            response = generate_result.result
             inference_time += generate_result.time
 
             if response and "choices" in response and response["choices"]:
@@ -121,7 +121,7 @@ class GGUFLM(LM):
             until = request_args.get("until", ["</s>"])
 
             generate_result = self.gguf_completion(context=inp, stop=until)
-            response = generate_result.tokens
+            response = generate_result.result
             inference_time += generate_result.time
 
             if response and "choices" in response and response["choices"]:

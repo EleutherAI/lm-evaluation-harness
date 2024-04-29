@@ -7,6 +7,7 @@ from transformers import AutoTokenizer
 
 import lm_eval.evaluator as evaluator
 from lm_eval.api.registry import get_model
+from lm_eval.models.utils import ResponsesResult
 
 
 SUPPORTED_ARCHITECTURES_TASKS = {
@@ -47,7 +48,7 @@ def test_evaluator(model_id, task):
             for _ in reqs:
                 res.append((-random.random(), False))
 
-            return res
+            return ResponsesResult(res, 1.0)
 
         def ll_perp_fn(reqs):
             for (string,) in [req.args for req in reqs]:
@@ -58,7 +59,7 @@ def test_evaluator(model_id, task):
             for _ in reqs:
                 res.append(-random.random())
 
-            return res
+            return ResponsesResult(res, 1.0)
 
         lm.loglikelihood = ll_fn
         lm.loglikelihood_rolling = ll_perp_fn

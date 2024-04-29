@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from lm_eval.api.instance import Instance
 from lm_eval.models.gguf import GGUFLM
+from lm_eval.models.utils import InferenceResult
 
 
 base_url = "https://matthoffner-ggml-llm-api.hf.space"
@@ -23,11 +24,12 @@ def gguf_completion_mock(base_url=None, **kwargs):
 
     if os.path.exists(fname):
         with open(fname, "rb") as fh:
-            return pickle.load(fh)
+            inference = pickle.load(fh)
+            return InferenceResult(inference, 1.0)
     else:
         print("The file does not exist, attempting to write...")
         if "stop" in kwargs:
-            result = {
+            inference = {
                 "choices": [
                     {
                         "text": f"generated text until {kwargs['stop']}",
@@ -36,9 +38,10 @@ def gguf_completion_mock(base_url=None, **kwargs):
                     }
                 ]
             }
+            result = InferenceResult(inference, 1.0)
         else:
             # generated with # curl -X 'POST'   'http://localhost:8000/v1/completions'   -H 'accept: application/json'   -H 'Content-Type: application/json'   -d '{"prompt": "string", "logprobs": 10, "temperature": 0.0, "max_tokens": 1, "echo": true}'
-            result = {
+            inference = {
                 "id": "cmpl-4023976b-bc6a-43b0-a5a9-629f4216c7f3",
                 "object": "text_completion",
                 "created": 1700511361,
@@ -76,6 +79,7 @@ def gguf_completion_mock(base_url=None, **kwargs):
                     "total_tokens": 3,
                 },
             }
+            result = InferenceResult(inference, 1.0)
 
         try:
             os.makedirs(os.path.dirname(fname), exist_ok=True)

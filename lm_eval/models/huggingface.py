@@ -912,7 +912,7 @@ class HFLM(TemplateLM):
             loglikelihoods.append(string_nll)
 
         return ResponsesResult(
-            loglikelihoods, loglikelihood_tokens_response_result.inference_time
+            loglikelihoods, loglikelihood_tokens_response_result.time
         )
 
     def _batch_scheduler(self, pos, n_reordered_requests):
