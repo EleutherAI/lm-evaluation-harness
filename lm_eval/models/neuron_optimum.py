@@ -2,6 +2,7 @@ import copy
 import json
 import logging
 import subprocess
+import time
 from collections import defaultdict
 from typing import List, Optional, Union
 
@@ -17,7 +18,11 @@ import lm_eval.models.utils
 from lm_eval import utils
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import stop_sequences_criteria
+from lm_eval.models.utils import (
+    InferenceResult,
+    ResponsesResult,
+    stop_sequences_criteria,
+)
 
 
 try:
@@ -399,16 +404,18 @@ class NEURON_HF(TemplateLM):
             A torch tensor of shape [batch, sequence_cont]
             the size of sequence may vary from call to call
         :return
-            A torch tensor of shape [batch, sequence, vocab] with the
-            logits returned from the model's decoder-lm head
+            An InferenceResult object, that its result is a torch tensor of shape [batch, sequence, vocab]
+            with the logits returned from the model's decoder-lm head
         """
         _, sequence_length = input_ids.shape
+        inference_time = 0
 
         with torch.inference_mode():
             cache_ids = torch.arange(0, sequence_length, dtype=torch.int32).split(1)
             input_ids_split = input_ids.split(1, dim=1)
 
-            return torch.concat(
+            start_time = time.time()
+            inference_logits = torch.concat(
                 [
                     self.model.forward(
                         input_ids=input_id, cache_ids=cache_id, return_dict=False
@@ -417,6 +424,8 @@ class NEURON_HF(TemplateLM):
                 ],
                 dim=1,
             )
+            inference_time = time.time() - start_time
+            return InferenceResult(inference_logits, inference_time)
 
     def _model_generate(self, context, max_length, stop, **generation_kwargs):
         # we require users to pass do_sample=True explicitly
@@ -433,7 +442,8 @@ class NEURON_HF(TemplateLM):
                 context.shape[0],
             )
 
-            return self.model.generate(
+            start_time = time.time()
+            generate_result = self.model.generate(
                 input_ids=context,
                 max_length=max_length,
                 stopping_criteria=stopping_criteria,
@@ -441,6 +451,8 @@ class NEURON_HF(TemplateLM):
                 use_cache=True,
                 **generation_kwargs,
             )
+            inference_time = time.time() - start_time
+            return InferenceResult(generate_result, inference_time)
 
     def _select_cont_toks(self, logits, contlen=None, inplen=None):
         assert (
@@ -454,6 +466,7 @@ class NEURON_HF(TemplateLM):
 
     def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         loglikelihoods = []
+        inference_time = 0
 
         adaptive_batch_size = None
 
@@ -487,11 +500,14 @@ class NEURON_HF(TemplateLM):
                 if pad_amnt > 0:
                     rolling_token_windows += pad_amnt * [rolling_token_windows[0]]
 
-            string_nll = self._loglikelihood_tokens(
+            call_result = self._loglikelihood_tokens(
                 rolling_token_windows,
                 disable_tqdm=True,
                 override_bs=adaptive_batch_size,
             )
+
+            string_nll = call_result.result
+            inference_time += call_result.time
 
             if (self.world_size > 1) and (pad_amnt > 0):
                 string_nll = [x[0] for x in string_nll[:-pad_amnt]]
@@ -502,13 +518,14 @@ class NEURON_HF(TemplateLM):
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
 
-        return loglikelihoods
+        return ResponsesResult(loglikelihoods, inference_time)
 
     def _loglikelihood_tokens(
         self, requests, disable_tqdm: bool = False, override_bs=None
     ):
         # TODO: implement some kind of efficient-request-middleware that lumps together requests with the same context
         res = []
+        inference_time = 0
 
         def _collate(x):
             # the negative sign on len(toks) sorts descending - this has a few advantages:
@@ -584,9 +601,12 @@ class NEURON_HF(TemplateLM):
                 padding_len_inp, inps, padding_side="right"
             )  # [batch, padding_len_inp]
 
+            call_result = self._model_call(batched_inps, **call_kwargs)
+
             multi_logits = F.log_softmax(
-                self._model_call(batched_inps, **call_kwargs), dim=-1
+                call_result.result, dim=-1
             )  # [batch, padding_length (inp or cont), vocab]
+            inference_time += call_result.time
 
             for (cache_key, _, _), logits, inplen, cont_toks in zip(
                 chunk, multi_logits, inplens, cont_toks_list
@@ -621,11 +641,12 @@ class NEURON_HF(TemplateLM):
 
                 self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
-        return re_ord.get_original(res)
+        return ResponsesResult(re_ord.get_original(res), inference_time)
 
     def generate_until(self, requests, disable_tqdm: bool = False):
         res = defaultdict(list)
         re_ords = {}
+        inference_time = 0
 
         def _collate(x):
             # the negative sign on len(toks) sorts descending - this has a few advantages:
@@ -701,12 +722,15 @@ class NEURON_HF(TemplateLM):
                     kwargs["max_length"] = context_enc.shape[1] + max_gen_toks
 
                 # perform batched generation
-                cont = self._model_generate(
+                generate_result = self._model_generate(
                     context=context_enc,
                     attention_mask=attn_masks,
                     stop=primary_until,
                     **kwargs,
                 )
+
+                cont = generate_result.result
+                inference_time += generate_result.time
 
                 cont_toks_list = cont.tolist()
                 for cont_toks, context in zip(cont_toks_list, contexts):
@@ -733,4 +757,4 @@ class NEURON_HF(TemplateLM):
 
         pbar.close()
 
-        return grouper.get_original(res)
+        return ResponsesResult(grouper.get_original(res), inference_time)
