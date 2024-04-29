@@ -106,7 +106,7 @@ class GGUFLMTest(unittest.TestCase):
             )
             for i, args in enumerate([("str", "ing"), ("str", "ing")])
         ]
-        res = lm.loglikelihood(requests)
+        res = lm.loglikelihood(requests).responses
 
         # Assert the loglikelihood response is correct
         expected_res = [(logprob, True) for logprob in [0, 0]]
@@ -129,7 +129,7 @@ class GGUFLMTest(unittest.TestCase):
             for i, (doc, stop) in enumerate([("input1", "stop1"), ("input2", "stop2")])
         ]
 
-        res = lm.generate_until(requests)
+        res = lm.generate_until(requests).responses
 
         # Assert the generate_until response is correct
         expected_res = ["generated text until stop1", "generated text until stop2"]

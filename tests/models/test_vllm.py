@@ -34,18 +34,18 @@ class TEST_VLLM:
 
     # TODO: make proper tests
     def test_logliklihood(self) -> None:
-        res = self.LM.loglikelihood(self.MULTIPLE_CH)
+        res = self.LM.loglikelihood(self.MULTIPLE_CH).responses
         assert len(res) == len(self.MULTIPLE_CH)
         for x in res:
             assert isinstance(x[0], float)
 
     def test_generate_until(self) -> None:
-        res = self.LM.generate_until(self.generate_until)
+        res = self.LM.generate_until(self.generate_until).responses
         assert len(res) == len(self.generate_until)
         for x in res:
             assert isinstance(x, str)
 
     def test_logliklihood_rolling(self) -> None:
-        res = self.LM.loglikelihood_rolling(self.ROLLING)
+        res = self.LM.loglikelihood_rolling(self.ROLLING).responses
         for x in res:
             assert isinstance(x, float)

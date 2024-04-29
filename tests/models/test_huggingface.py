@@ -98,7 +98,7 @@ class Test_HFLM:
     LM = HFLM(pretrained="EleutherAI/pythia-70m", device="cpu", dtype="float32")
 
     def test_logliklihood(self) -> None:
-        res = self.LM.loglikelihood(self.MULTIPLE_CH)
+        res = self.LM.loglikelihood(self.MULTIPLE_CH).responses
         _RES, _res = self.MULTIPLE_CH_RES, [r[0] for r in res]
         # log samples to CI
         dir_path = Path("test_logs")
@@ -138,6 +138,6 @@ class Test_HFLM:
 
     def test_model_generate(self) -> None:
         context = self.LM.tok_batch_encode(["foo bar"])[0]
-        res = self.LM._model_generate(context, max_length=10, stop=["\n\n"])
+        res = self.LM._model_generate(context, max_length=10, stop=["\n\n"]).result
         res = self.LM.tok_decode(res[0])
         assert res == "foo bar\n<bazhang>!info bar"
