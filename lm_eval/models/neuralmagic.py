@@ -1,4 +1,5 @@
 import copy
+import time
 from typing import List, Optional, Tuple, Union
 
 import numpy
@@ -11,6 +12,7 @@ from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
+from lm_eval.models.utils import ResponsesResult
 
 
 eval_logger = utils.eval_logger
@@ -224,7 +226,7 @@ class DeepSparseLM(LM):
     def max_gen_toks(self) -> int:
         return self._max_gen_toks
 
-    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
+    def loglikelihood(self, requests) -> ResponsesResult:
         """
         Copied directly from
         https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/models/huggingface.py
@@ -245,7 +247,7 @@ class DeepSparseLM(LM):
         self,
         requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
         disable_tqdm: bool = False,
-    ) -> List[Tuple[float, bool]]:
+    ) -> ResponsesResult:
         """
         The function to compute the loglikelihood of the continuation
         tokens given the context tokens.
@@ -254,6 +256,7 @@ class DeepSparseLM(LM):
         https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/models/huggingface.py
         """
         res = []
+        inference_time = 0
 
         def _collate(x):
             """Defines the key for the sorted method"""
@@ -284,12 +287,14 @@ class DeepSparseLM(LM):
                 batch_cache_key.append(cache_key)
                 batch_continuation_enc.append(continuation_enc)
 
+            start_time = time.time()
             response = self.model(
                 prompt=batch_inp,
                 max_new_tokens=0,
                 output_scores=True,
                 include_prompt_logits=True,
             )
+            inference_time += time.time() - start_time
 
             for resp, continuation_enc, cache_key in zip(
                 response.generations, batch_continuation_enc, batch_cache_key
@@ -323,14 +328,14 @@ class DeepSparseLM(LM):
                 if cache_key is not None:
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
 
-        return re_ord.get_original(res)
+        return ResponsesResult(re_ord.get_original(res), inference_time)
 
     def loglikelihood_rolling(self, requests: List[Instance]) -> List[float]:
         raise NotImplementedError(
             "The method not required by any of our current task integrations so far"
         )
 
-    def generate_until(self, requests: List[Instance]) -> List[str]:
+    def generate_until(self, requests: List[Instance]) -> ResponsesResult:
         """
         The function to generate a certain number of new tokens
         given a context.
@@ -342,6 +347,7 @@ class DeepSparseLM(LM):
             return []
         res = []
         requests = [req.args for req in requests]
+        inference_time = 0
 
         def _collate(x):
             toks = self.tok_encode(x[0])
@@ -382,12 +388,14 @@ class DeepSparseLM(LM):
             request_args["temperature"] = request_args.get("temperature", 0)
 
             # run inference (generate max_gen_toks tokens)
+            start_time = 0
             out = self.model(
                 sequences=inps,
                 max_new_tokens=self.max_gen_toks - 1,
                 stop=until,
                 **request_args,
             )
+            inference_time += time.time() - start_time
 
             for resp, (context, args_) in zip(out.generations, chunk):
                 text = resp.text
@@ -406,7 +414,7 @@ class DeepSparseLM(LM):
 
         pbar.close()
 
-        return re_ord.get_original(res)
+        return ResponsesResult(re_ord.get_original(res), inference_time)
 
     def _encode_pair(
         self, context: str, continuation: str
