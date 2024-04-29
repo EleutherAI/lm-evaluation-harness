@@ -1,5 +1,6 @@
 import copy
 import os
+import time
 from collections import defaultdict
 from importlib.util import find_spec
 from typing import List, Literal, Optional, Tuple
@@ -10,7 +11,11 @@ import lm_eval.models.utils
 from lm_eval import utils
 from lm_eval.api.model import LM, TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import retry_on_specific_exceptions
+from lm_eval.models.utils import (
+    InferenceResult,
+    ResponsesResult,
+    retry_on_specific_exceptions,
+)
 from lm_eval.utils import eval_logger
 
 
@@ -66,10 +71,13 @@ def oa_completion(client, chat: bool = False, **kwargs):
         on_exception_callback=_exception_callback,
     )
     def completion():
+        start_time = time.time()
         if chat:
-            return client.chat.completions.create(**kwargs)
+            inference = client.chat.completions.create(**kwargs)
         else:
-            return client.completions.create(**kwargs)
+            inference = client.completions.create(**kwargs)
+        inference_time = time.time() - start_time
+        return InferenceResult(inference, inference_time)
 
     return completion()
 
@@ -181,6 +189,7 @@ class OpenaiCompletionsLM(TemplateLM):
         self, requests, disable_tqdm: bool = False
     ) -> List[Tuple[float, bool]]:
         res = []
+        inference_time = 0
 
         def _collate(x):
             # this doesn't efficiently handle last-token differences yet, but those are kinda annoying because
@@ -208,6 +217,7 @@ class OpenaiCompletionsLM(TemplateLM):
                 inps.append(inp)
                 ctxlens.append(ctxlen)
 
+            start_time = time.time()
             response = oa_completion(
                 client=self.client,
                 model=self.model,
@@ -218,6 +228,7 @@ class OpenaiCompletionsLM(TemplateLM):
                 logprobs=10,
                 seed=self.seed,
             )
+            inference_time += time.time() - start_time
 
             for resp, ctxlen, (cache_key, context_enc, continuation_enc) in zip(
                 response.choices, ctxlens, chunk
@@ -229,13 +240,14 @@ class OpenaiCompletionsLM(TemplateLM):
                 # partial caching
                 if cache_key is not None:
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
-        return re_ord.get_original(res)
+        return ResponsesResult(re_ord.get_original(res), inference_time)
 
     def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         if not requests:
             return []
         res = []
         requests = [req.args for req in requests]
+        inference_time = 0
 
         def _collate(x):
             toks = self.tok_encode(x[0])
@@ -271,7 +283,7 @@ class OpenaiCompletionsLM(TemplateLM):
             until = request_args.get("until", ["<|endoftext|>"])
             request_args["temperature"] = request_args.get("temperature", 0)
 
-            response = oa_completion(
+            inference_result = oa_completion(
                 client=self.client,
                 model=self.model,
                 prompt=inps,
@@ -284,6 +296,10 @@ class OpenaiCompletionsLM(TemplateLM):
                     if k not in {"do_sample", "max_gen_toks", "until"}
                 },
             )
+
+            response = inference_result.result
+            inference_time += inference_result.time
+
             for resp, (context, args_) in zip(response.choices, chunk):
                 s = getattr(resp, "text")
 
@@ -299,7 +315,7 @@ class OpenaiCompletionsLM(TemplateLM):
                 )
 
                 res.append(s)
-        return re_ord.get_original(res)
+        return ResponsesResult(re_ord.get_original(res), inference_time)
 
     def _model_call(self, inps):
         # Isn't used because we override _loglikelihood_tokens
@@ -313,6 +329,7 @@ class OpenaiCompletionsLM(TemplateLM):
         self, requests, disable_tqdm: bool = False
     ) -> List[float]:
         loglikelihoods = []
+        inference_time = 0
 
         for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
             rolling_token_windows = list(
@@ -330,10 +347,13 @@ class OpenaiCompletionsLM(TemplateLM):
             # TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder, in seq2seq case
             rolling_token_windows = [(None,) + x for x in rolling_token_windows]
 
-            string_nll = self._loglikelihood_tokens(
+            loglikelihood_tokens_result = self._loglikelihood_tokens(
                 rolling_token_windows,
                 disable_tqdm=True,
             )
+
+            string_nll = loglikelihood_tokens_result.responses
+            inference_time += loglikelihood_tokens_result.inference_time
 
             # discard is_greedy
             string_nll = [x[0] for x in string_nll]
@@ -404,6 +424,7 @@ class OpenaiChatCompletionsLM(LM):
     def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         res = defaultdict(list)
         re_ords = {}
+        inference_time = 0
 
         # we group requests by their generation_kwargs,
         # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
@@ -445,13 +466,16 @@ class OpenaiChatCompletionsLM(LM):
                         f"Expected repr(kwargs) to be of type repr(dict) but got {kwargs}"
                     )
 
-                response = oa_completion(
+                inference_result = oa_completion(
                     client=self.client,
                     chat=True,
                     messages=inps,
                     model=self.model,
                     **kwargs,
                 )
+
+                response = inference_result.result
+                inference_time += inference_result.time
 
                 for resp, (context, args_) in zip(response.choices, chunk):
                     s = resp.message.content
@@ -472,7 +496,7 @@ class OpenaiChatCompletionsLM(LM):
 
         pbar.close()
 
-        return grouper.get_original(res)
+        return ResponsesResult(grouper.get_original(res), inference_time)
 
     def loglikelihood(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
