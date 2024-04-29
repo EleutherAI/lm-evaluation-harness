@@ -1,4 +1,5 @@
 import copy
+import time
 from importlib.metadata import version
 from importlib.util import find_spec
 from typing import List, Literal, Optional, Tuple, Union
@@ -10,7 +11,12 @@ from tqdm import tqdm
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator, undistribute
+from lm_eval.models.utils import (
+    Collator,
+    InferenceResult,
+    ResponsesResult,
+    undistribute,
+)
 from lm_eval.utils import (
     eval_logger,
     get_rolling_token_windows,
@@ -208,9 +214,12 @@ class VLLM(TemplateLM):
                 model_args: dict, sampling_params, requests: List[List[int]]
             ):
                 llm = LLM(**model_args)
-                return llm.generate(
+                start_time = time.time()
+                inference = llm.generate(
                     prompt_token_ids=requests, sampling_params=sampling_params
                 )
+                inference_time = time.time() - start_time
+                return InferenceResult(inference, inference_time)
 
             # dispatch requests to all self.data_parallel_size workers, in interleaved fashion
             # interleaved important to balance context lengths across workers
@@ -221,19 +230,25 @@ class VLLM(TemplateLM):
             # Invoke ray.shutdown() to prevent hang-ups if subsequent calls required.
             ray.shutdown()
             # flatten results
-            return undistribute(results)
+            inference_results = undistribute(results)
+            generated_responses = [res.result for res in inference_results]
+            inference_time = sum(res.time for res in inference_results)
+            return ResponsesResult(generated_responses, inference_time)
 
+        start_time = time.time()
         outputs = self.model.generate(
             prompt_token_ids=requests,
             sampling_params=sampling_params,
             use_tqdm=True if self.batch_size == "auto" else False,
         )
-        return outputs
+        inference_time = time.time() - start_time
+        return ResponsesResult(outputs, inference_time)
 
     def loglikelihood_rolling(
         self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[float]:
+    ) -> ResponsesResult:
         loglikelihoods = []
+        inference_time = 0
 
         for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
             rolling_token_windows = list(
@@ -250,21 +265,25 @@ class VLLM(TemplateLM):
 
             rolling_token_windows = [(None,) + x for x in rolling_token_windows]
 
-            string_nll = self._loglikelihood_tokens(
+            loglikelihood_tokens_result = self._loglikelihood_tokens(
                 rolling_token_windows,
             )
+
+            string_nll = loglikelihood_tokens_result.result
+            inference_time += loglikelihood_tokens_result.time
 
             # discard is_greedy
             string_nll = [x[0] for x in string_nll]
 
             string_nll = sum(string_nll)
             loglikelihoods.append(string_nll)
-        return loglikelihoods
+        return ResponsesResult(loglikelihoods, inference_time)
 
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
-    ) -> List[str]:
+    ) -> ResponsesResult:
         res = []
+        inference_time = 0
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
@@ -335,13 +354,16 @@ class VLLM(TemplateLM):
             context_encoding = [x[-max_ctx_len:] for x in context_encoding]
 
             # perform batched generation
-            cont = self._model_generate(
+            inference_result = self._model_generate(
                 requests=context_encoding,
                 generate=True,
                 max_tokens=max_gen_toks,
                 stop=until,
                 **kwargs,
             )
+
+            cont = inference_result.result
+            inference_time += inference_result.time
 
             # cache generations
             for output, context in zip(cont, context):
@@ -354,14 +376,15 @@ class VLLM(TemplateLM):
 
         pbar.close()
         # reorder all group of results back to original unsorted form
-        return re_ords.get_original(res)
+        return ResponsesResult(re_ords.get_original(res), inference_time)
 
     def _loglikelihood_tokens(
         self,
         requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
         disable_tqdm: bool = False,
-    ) -> List[Tuple[float, bool]]:
+    ) -> ResponsesResult:
         res = []
+        inferene_time = 0
 
         def _collate(x):
             toks = x[1] + x[2]
@@ -390,7 +413,10 @@ class VLLM(TemplateLM):
                 inputs.append(inp)
                 ctxlens.append(ctxlen)
 
-            outputs = self._model_generate(requests=inputs, generate=False)
+            inference_result = self._model_generate(requests=inputs, generate=False)
+
+            outputs = inference_result.result
+            inferene_time += inference_result.time
 
             for output, ctxlen, (cache_key, _, _), inp in zip(
                 outputs, ctxlens, chunk, inputs
@@ -408,7 +434,7 @@ class VLLM(TemplateLM):
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
                 pbar.update(1)
         pbar.close()
-        return re_ord.get_original(res)
+        return ResponsesResult(re_ord.get_original(res), inferene_time)
 
     @staticmethod
     def _parse_logprobs(tokens: List, outputs, ctxlen: int) -> Tuple[float, bool]:
