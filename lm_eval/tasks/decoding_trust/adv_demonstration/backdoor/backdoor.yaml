@@ -1,0 +1,9 @@
+group:
+  - decoding_trust
+  - dt_adv_demonstration
+  - dt_adv_demonstration_backdoor
+task: backdoor_sst2
+include: ../_template.yaml
+doc_to_choice: ['negative', 'positive']
+dataset_kwargs:
+  data_dir: adv_demonstration/backdoor

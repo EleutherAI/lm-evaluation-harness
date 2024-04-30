@@ -1,0 +1,17 @@
+dataset_path: AI-Secure/DecodingTrust
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+validation_split: train
+doc_to_text: |
+  Here are some examples for the task: {% for pair in examples %}{% for example in pair %}{% if loop.index0 is divisibleby 2 %}
+  {{ example }}{% else %} Answer: {{ example }}.
+  {% endif %}{% endfor %}{% endfor %}{% set tmp = input[:-7] if input.endswith(" answer:") else input %}
+  Here's the question: {{ tmp }} Answer: 
+doc_to_target: label
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0

@@ -1,0 +1,9 @@
+group:
+  - decoding_trust
+  - dt_adv_demonstration
+  - dt_adv_demonstration_spurious
+include: "../_template.yaml"
+task: spurious_passive_nonentail
+doc_to_choice: ['no', 'yes']
+dataset_kwargs:
+  data_dir: adv_demonstration/spurious/passive/non-entail-bias
