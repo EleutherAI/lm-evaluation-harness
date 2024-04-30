@@ -1282,6 +1282,20 @@ class HFLM(TemplateLM):
         Method to get Hugging Face model information for experiment reproducibility.
         """
 
+        def get_model_num_params(model) -> int:
+            if hasattr(model, "num_parameters"):
+                return model.num_parameters()
+            if hasattr(model, "parameters"):
+                return sum(p.numel() for p in model.parameters())
+            else:
+                return -1
+
+        def get_model_dtype(model) -> str:
+            if hasattr(model, "dtype"):
+                return model.dtype
+            else:
+                return ""
+
         def get_model_sha(pretrained: str, revision: str) -> str:
             try:
                 model_info = HfApi().model_info(repo_id=pretrained, revision=revision)
@@ -1293,8 +1307,8 @@ class HFLM(TemplateLM):
                 return ""
 
         model_info = {
-            "model_num_parameters": self._model.num_parameters(),
-            "model_dtype": self._model.dtype,
+            "model_num_parameters": get_model_num_params(self._model),
+            "model_dtype": get_model_dtype(self._model),
             "model_revision": self.revision,
             "model_sha": get_model_sha(self.pretrained, self.revision),
         }
