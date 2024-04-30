@@ -24,6 +24,7 @@ def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:
                     doc["option_b"],
                     doc["option_c"],
                     doc["option_d"],
+                    doc["option_e"],
                 ]
                 if option
             ],
