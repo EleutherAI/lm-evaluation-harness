@@ -28,12 +28,40 @@ Homepage: https://unitxt.readthedocs.io/en/latest/index.html
 
 #### Groups
 
-* `unitxt`:  Subset of unitxt tasks that were not in LM-Eval Harness task catalog, including new types of tasks like multi-label classification, grammatical error correction, named entity extraction.
+* `unitxt`:  Subset of Unitxt tasks that were not in LM-Eval Harness task catalog, including new types of tasks like multi-label classification, grammatical error correction, named entity extraction.
 
 #### Tasks
 
-The full list of tasks can be seen under tasks/unitxt directory.
+The full list of Unixt tasks currently supported can be seen under tasks/unitxt directory.
  
+### Adding tasks
+
+You can add additional tasks from the Unitxt catalog by generating new LM-Eval yaml files for these datasets.
+
+The Unitxt task yaml files are generated via the `generate_yamls.py` script in the `tasks/unitxt` directory. 
+
+To add a yaml file for an existing dataset Unitxt which is not yet in LM-Eval:
+1. Add the card name to the `unitxt_datasets` in the `tasks/unitxt` directory.   
+2. The generate_yaml.py contains the default Unitxt template (`https://unitxt.readthedocs.io/en/latest/docs/adding_template.html`)  used for each kind of NLP task in the `default_template_per_task` dictionary.  If the dataset is of a new Unitxt task type, previously not used in LM-Eval, you will need to add a default template for it.  
+
+```
+default_template_per_task = { 
+     "tasks.classification.multi_label" : "templates.classification.multi_label.title" ,
+     "tasks.classification.multi_class" : "templates.classification.multi_class.title" ,
+     "tasks.summarization.abstractive" :  "templates.summarization.abstractive.full",
+     "tasks.regression.two_texts" : "templates.regression.two_texts.simple",
+     "tasks.qa.with_context.extractive" : "templates.qa.with_context.simple",
+     "tasks.grammatical_error_correction" : "templates.grammatical_error_correction.simple",
+     "tasks.span_labeling.extraction" : "templates.span_labeling.extraction.title"
+}
+```
+3. Run `python generarate_yaml.py` (this will generate all the datasets listed in the `unitxt_datasets`)
+
+If you want to add a new dataset to the Unitxt catalog, see the Unitxt documentation:
+
+https://unitxt.readthedocs.io/en/latest/docs/adding_dataset.html
+
+
 
 ### Checklist
 
