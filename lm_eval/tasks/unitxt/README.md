@@ -32,7 +32,7 @@ Homepage: https://unitxt.readthedocs.io/en/latest/index.html
 
 #### Tasks
 
-The full list of Unixt tasks currently supported can be seen under tasks/unitxt directory.
+The full list of Unitxt tasks currently supported can be seen under `tasks/unitxt` directory.
  
 ### Adding tasks
 
@@ -41,8 +41,8 @@ You can add additional tasks from the Unitxt catalog by generating new LM-Eval y
 The Unitxt task yaml files are generated via the `generate_yamls.py` script in the `tasks/unitxt` directory. 
 
 To add a yaml file for an existing dataset Unitxt which is not yet in LM-Eval:
-1. Add the card name to the `unitxt_datasets` in the `tasks/unitxt` directory.   
-2. The generate_yaml.py contains the default Unitxt template (`https://unitxt.readthedocs.io/en/latest/docs/adding_template.html`)  used for each kind of NLP task in the `default_template_per_task` dictionary.  If the dataset is of a new Unitxt task type, previously not used in LM-Eval, you will need to add a default template for it.  
+1. Add the card name to the `unitxt_datasets`  file in the `tasks/unitxt` directory.   
+2. The generate_yaml.py contains the default Unitxt [template](https://unitxt.readthedocs.io/en/latest/docs/adding_template.html) used for each kind of NLP task in the `default_template_per_task` dictionary.  If the dataset is of a Unitxt task type, previously not used in LM-Eval, you will need to add a default template for it in the dictionary.  
 
 ```
 default_template_per_task = { 
@@ -55,7 +55,7 @@ default_template_per_task = {
      "tasks.span_labeling.extraction" : "templates.span_labeling.extraction.title"
 }
 ```
-3. Run `python generarate_yaml.py` (this will generate all the datasets listed in the `unitxt_datasets`)
+3. Run `python generate_yaml.py` (this will generate all the datasets listed in the `unitxt_datasets`)
 
 If you want to add a new dataset to the Unitxt catalog, see the Unitxt documentation:
 
