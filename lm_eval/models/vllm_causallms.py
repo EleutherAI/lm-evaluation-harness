@@ -21,7 +21,9 @@ from lm_eval.utils import (
 try:
     import ray
     from vllm import LLM, SamplingParams
-    from vllm.lora.request import LoRARequest
+
+    if parse_version(version("vllm")) > parse_version("0.3.0"):
+        from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
 except ModuleNotFoundError:
     pass
@@ -57,7 +59,7 @@ class VLLM(TemplateLM):
         gpu_memory_utilization: float = 0.9,
         device: str = "cuda",
         data_parallel_size: int = 1,
-        lora_finetune_path: str = None,
+        lora_local_path: str = None,
         **kwargs,
     ):
         super().__init__()
@@ -130,8 +132,11 @@ class VLLM(TemplateLM):
 
         self._max_gen_toks = max_gen_toks
 
-        if lora_finetune_path is not None:
-            self.lora_request = LoRARequest("finetuned", 1, lora_finetune_path)
+        if lora_local_path is not None:
+            assert parse_version(version("vllm")) > parse_version(
+                "0.3.0"
+            ), "lora adapters only compatible with vllm > v0.3.0."
+            self.lora_request = LoRARequest("finetuned", 1, lora_local_path)
         else:
             self.lora_request = None
 
@@ -231,12 +236,19 @@ class VLLM(TemplateLM):
             # flatten results
             return undistribute(results)
 
-        outputs = self.model.generate(
-            prompt_token_ids=requests,
-            sampling_params=sampling_params,
-            use_tqdm=True if self.batch_size == "auto" else False,
-            lora_request=self.lora_request,
-        )
+        if self.lora_request is not None:
+            outputs = self.model.generate(
+                prompt_token_ids=requests,
+                sampling_params=sampling_params,
+                use_tqdm=True if self.batch_size == "auto" else False,
+                lora_request=self.lora_request,
+            )
+        else:
+            outputs = self.model.generate(
+                prompt_token_ids=requests,
+                sampling_params=sampling_params,
+                use_tqdm=True if self.batch_size == "auto" else False,
+            )
         return outputs
 
     def loglikelihood_rolling(
