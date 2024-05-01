@@ -24,7 +24,7 @@ class GeneralConfigTracker:
         model_name_sanitized (str): Sanitized model name for directory creation.
         start_time (float): Start time of the experiment. Logged at class init.
         end_time (float): Start time of the experiment. Logged when calling [`GeneralConfigTracker.log_end_time`]
-        total_evaluation_time_secondes (str): Inferred total evaluation time in seconds (from the start and end times).
+        total_evaluation_time_seconds (str): Inferred total evaluation time in seconds (from the start and end times).
     """
 
     model_source: str = None
@@ -32,7 +32,7 @@ class GeneralConfigTracker:
     model_name_sanitized: str = None
     start_time: float = None
     end_time: float = None
-    total_evaluation_time_secondes: str = None
+    total_evaluation_time_seconds: str = None
 
     def __init__(self) -> None:
         """Starts the evaluation timer."""
@@ -67,7 +67,7 @@ class GeneralConfigTracker:
     def log_end_time(self) -> None:
         """Logs the end time of the evaluation and calculates the total evaluation time."""
         self.end_time = time.perf_counter()
-        self.total_evaluation_time_secondes = str(self.end_time - self.start_time)
+        self.total_evaluation_time_seconds = str(self.end_time - self.start_time)
 
 
 class EvaluationTracker:
