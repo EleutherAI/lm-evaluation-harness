@@ -1,3 +1,3 @@
 include: default.yaml
-task: mnli_mismatch
+task: adv_mnli_mismatch
 validation_split: validation_mismatched

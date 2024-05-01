@@ -1,7 +1,7 @@
 group: 
   - decoding_trust
   - dt_adv_glue
-task: sst2
+task: dt_sst2
 dataset_path: AI-Secure/DecodingTrust
 dataset_name: sst2
 output_type: multiple_choice

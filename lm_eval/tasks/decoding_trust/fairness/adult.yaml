@@ -2,7 +2,7 @@ group:
   - decoding_trust
   - dt_fairness
   - dt_fairness_adult
-task: adult
+task: dt_adult
 dataset_path: AI-Secure/DecodingTrust
 dataset_name: null
 output_type: multiple_choice

@@ -1,7 +1,7 @@
 group: 
   - decoding_trust
   - dt_adv_glue
-task: qnli
+task: dt_qnli
 dataset_path: AI-Secure/DecodingTrust
 dataset_name: qnli
 output_type: multiple_choice

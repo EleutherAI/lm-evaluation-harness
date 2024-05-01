@@ -1,5 +1,5 @@
 group: adv_glue
-task: mnli
+task: adv_mnli
 dataset_path: adv_glue
 dataset_name: mnli
 output_type: multiple_choice

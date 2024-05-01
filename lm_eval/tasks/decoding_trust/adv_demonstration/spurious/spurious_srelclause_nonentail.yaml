@@ -3,7 +3,7 @@ group:
   - dt_adv_demonstration
   - dt_adv_demonstration_spurious
 include: "../_template.yaml"
-task: spurious_srelclause_nonentail
+task: dt_spurious_srelclause_nonentail
 doc_to_choice: ['no', 'yes']
 dataset_kwargs:
   data_dir: adv_demonstration/spurious/s_relative_clause/non-entail-bias

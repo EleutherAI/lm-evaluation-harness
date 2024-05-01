@@ -1,5 +1,5 @@
 group: adv_glue
-task: qqp
+task: adv_qqp
 dataset_path: adv_glue
 dataset_name: qqp
 output_type: multiple_choice

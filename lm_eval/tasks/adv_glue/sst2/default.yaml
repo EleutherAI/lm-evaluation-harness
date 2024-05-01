@@ -1,5 +1,5 @@
 group: adv_glue
-task: sst2
+task: adv_sst2
 dataset_path: adv_glue
 dataset_name: sst2
 output_type: multiple_choice
