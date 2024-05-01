@@ -3,7 +3,7 @@ group:
   - dt_adv_demonstration
   - dt_adv_demonstration_counterfactual
 include: "../_template.yaml"
-task: counterfactual_snli_irregular
+task: dt_counterfactual_snli_irregular
 doc_to_choice: ['no', 'yes']
 dataset_kwargs:
   data_dir: adv_demonstration/counterfactual/irregular_form*
