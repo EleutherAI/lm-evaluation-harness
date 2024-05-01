@@ -262,6 +262,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     evaluation_tracker = EvaluationTracker(
         output_path=args.output_path,
         hub_results_org=args.results_org,
+        push_results_to_hub=args.push_results_to_hub,
+        push_samples_to_hub=args.push_samples_to_hub,
+        public_repo=args.public_run,
         token=os.environ.get("HF_TOKEN"),
     )
     evaluation_tracker.general_config_tracker.log_experiment_args(
@@ -391,20 +394,12 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             except Exception as e:
                 eval_logger.info(f"Logging to Weights and Biases failed due to {e}")
 
-        evaluation_tracker.save_results_aggregated(
-            results=results,
-            samples=samples,
-            push_to_hub=args.push_results_to_hub,
-            public=args.public_run,
-        )
+        evaluation_tracker.save_results_aggregated(results=results, samples=samples)
 
         if args.log_samples:
             for task_name, config in results["configs"].items():
                 evaluation_tracker.save_results_samples(
-                    task_name=task_name,
-                    samples=samples[task_name],
-                    push_to_hub=args.push_samples_to_hub,
-                    public=args.public_run,
+                    task_name=task_name, samples=samples[task_name]
                 )
 
         print(

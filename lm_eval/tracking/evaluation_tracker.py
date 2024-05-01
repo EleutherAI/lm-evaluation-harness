@@ -77,7 +77,14 @@ class EvaluationTracker:
     """
 
     def __init__(
-        self, output_path: str = "", hub_results_org: str = "", token: str = ""
+        self,
+        output_path: str = "",
+        hub_results_org: str = "",
+        hub_repo_name: str = "",
+        push_results_to_hub: bool = False,
+        push_samples_to_hub: bool = False,
+        public_repo: bool = False,
+        token: str = "",
     ) -> None:
         """
         Creates all the necessary loggers for evaluation tracking.
@@ -85,22 +92,28 @@ class EvaluationTracker:
         Args:
             output_path (str): Path to save the results. If not provided, the results won't be saved.
             hub_results_org (str): The Hugging Face organisation to push the results to. If not provided, the results won't be pushed.
+            hub_repo_name (str): The name of the Hugging Face repository to push the results to. If not provided, the results will be pushed to `lm-eval-results`.
+            push_results_to_hub (bool): Whether to push the results to the Hugging Face hub.
+            push_samples_to_hub (bool): Whether to push the samples to the Hugging Face hub.
+            public_repo (bool): Whether to push the results to a public or private repository.
             token (str): Token to use when pushing to the Hugging Face hub. This token should have write access to `hub_results_org`.
         """
         self.general_config_tracker = GeneralConfigTracker()
 
         self.output_path = output_path
         self.hub_results_org = hub_results_org
-        self.hub_results_repo = f"{hub_results_org}/results"
-        self.hub_results_repo_private = f"{hub_results_org}/results-private"
-        self.api = HfApi(token=token)
+        hub_repo_name = hub_repo_name if hub_repo_name else "lm-eval-results"
+        self.hub_results_repo = f"{hub_results_org}/{hub_repo_name}"
+        self.hub_results_repo_private = f"{hub_results_org}/{hub_repo_name}-private"
+        self.push_results_to_hub = push_results_to_hub
+        self.push_samples_to_hub = push_samples_to_hub
+        self.public_repo = public_repo
+        self.api = HfApi(token=token) if token else None
 
     def save_results_aggregated(
         self,
         results: dict,
         samples: dict,
-        push_to_hub: bool = False,
-        public: bool = False,
     ) -> None:
         """
         Saves the aggregated results and samples to the output path and pushes them to the Hugging Face hub if requested.
@@ -108,8 +121,6 @@ class EvaluationTracker:
         Args:
             results (dict): The aggregated results to save.
             samples (dict): The samples results to save.
-            push_to_hub (bool): Whether to push the results to the Hugging Face hub.
-            public (bool): Whether to push the results to a public or private repository.
         """
         self.general_config_tracker.log_end_time()
 
@@ -144,18 +155,18 @@ class EvaluationTracker:
                 file_results_agrregated = path.joinpath(f"results_{self.date_id}.json")
                 file_results_agrregated.open("w", encoding="utf-8").write(dumped)
 
-                if self.hub_results_org and push_to_hub:
+                if self.api and self.push_results_to_hub:
                     self.api.create_repo(
                         repo_id=self.hub_results_repo
-                        if public
+                        if self.public_repo
                         else self.hub_results_repo_private,
                         repo_type="dataset",
-                        private=not public,
+                        private=not self.public_repo,
                         exist_ok=True,
                     )
                     self.api.upload_folder(
                         repo_id=self.hub_results_repo
-                        if public
+                        if self.public_repo
                         else self.hub_results_repo_private,
                         folder_path=str(path),
                         path_in_repo=self.general_config_tracker.model_name_sanitized,
@@ -175,8 +186,6 @@ class EvaluationTracker:
         self,
         task_name: str,
         samples: dict,
-        push_to_hub: bool = False,
-        public: bool = False,
     ) -> None:
         """
         Saves the samples results to the output path and pushes them to the Hugging Face hub if requested.
@@ -184,8 +193,6 @@ class EvaluationTracker:
         Args:
             task_name (str): The task name to save the samples for.
             samples (dict): The samples results to save.
-            push_to_hub (bool): Whether to push the results to the Hugging Face hub.
-            public (bool): Whether to push the results to a public or private repository.
         """
         if self.output_path:
             try:
@@ -206,18 +213,18 @@ class EvaluationTracker:
                 )
                 file_results_samples.write_text(samples_dumped, encoding="utf-8")
 
-                if self.hub_results_org and push_to_hub:
+                if self.api and self.push_samples_to_hub:
                     self.api.create_repo(
                         self.hub_results_repo
-                        if public
+                        if self.public_repo
                         else self.hub_results_repo_private,
                         repo_type="dataset",
-                        private=not public,
+                        private=not self.public_repo,
                         exist_ok=True,
                     )
                     self.api.upload_folder(
                         repo_id=self.hub_results_repo
-                        if public
+                        if self.public_repo
                         else self.hub_results_repo_private,
                         folder_path=str(path),
                         path_in_repo=self.general_config_tracker.model_name_sanitized,
