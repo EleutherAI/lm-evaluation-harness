@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+from argparse import Namespace
 from functools import partial
 from typing import Union
 
@@ -189,6 +190,12 @@ def setup_parser() -> argparse.ArgumentParser:
         help="Comma separated string arguments passed to wandb.init, e.g. `project=lm-eval,job_type=eval",
     )
     parser.add_argument(
+        "--hf_hub_log_args",
+        type=str,
+        default="",
+        help="Comma separated string arguments passed to Hugging Face Hub's log function, e.g. `hub_results_org=EleutherAI,hub_repo_name=lm-eval-results`",
+    )
+    parser.add_argument(
         "--predict_only",
         "-x",
         action="store_true",
@@ -213,30 +220,6 @@ def setup_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Sets trust_remote_code to True to execute code to create HF Datasets from the Hub",
     )
-    parser.add_argument(
-        "--push_results_to_hub",
-        default=False,
-        action="store_true",
-        help="Push results to the Hugging Face Hub",
-    )
-    parser.add_argument(
-        "--push_samples_to_hub",
-        default=False,
-        action="store_true",
-        help="Push samples results to the Hugging Face Hub",
-    )
-    parser.add_argument(
-        "--public_run",
-        default=False,
-        action="store_true",
-        help="Push aggregated and sample results to a public Hugging Face Hub repository",
-    )
-    parser.add_argument(
-        "--results_org",
-        type=str,
-        default=None,
-        help="Specifies the organization on Hugging Face in which to store evaluation tracker results. The user must have write access to the specified organization. Ensure that the appropriate write access token is set in the environment.",
-    )
     return parser
 
 
@@ -259,14 +242,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     eval_logger.info(f"Verbosity set to {args.verbosity}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-    evaluation_tracker = EvaluationTracker(
-        output_path=args.output_path,
-        hub_results_org=args.results_org,
-        push_results_to_hub=args.push_results_to_hub,
-        push_samples_to_hub=args.push_samples_to_hub,
-        public_repo=args.public_run,
-        token=os.environ.get("HF_TOKEN"),
-    )
+    # update the evaluation tracker args with the output path and the HF token
+    args.hf_hub_log_args = f"output_path={args.output_path},token={os.environ.get('HF_TOKEN')},{args.hf_hub_log_args}"
+    evaluation_tracker_args = simple_parse_args_string(args.hf_hub_log_args)
+    evaluation_tracker = EvaluationTracker(**evaluation_tracker_args)
     evaluation_tracker.general_config_tracker.log_experiment_args(
         model_source=args.model,
         model_args=args.model_args,
@@ -283,11 +262,15 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         eval_logger.info(f"Including path: {args.include_path}")
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
-    if (args.push_results_to_hub or args.push_samples_to_hub) and not args.results_org:
+    evaluation_tracker_args = Namespace(**evaluation_tracker_args)
+    if (
+        evaluation_tracker_args.push_results_to_hub
+        or evaluation_tracker_args.push_samples_to_hub
+    ) and not evaluation_tracker_args.hub_results_org:
         raise ValueError(
             "If push_results_to_hub or push_samples_to_hub is set, results_org must be specified."
         )
-    if args.push_samples_to_hub and not args.log_samples:
+    if evaluation_tracker_args.push_samples_to_hub and not args.log_samples:
         eval_logger.warning(
             "Pushing samples to the Hub requires --log_samples to be set. Samples will not be pushed to the Hub."
         )
