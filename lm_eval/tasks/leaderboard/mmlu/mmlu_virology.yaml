@@ -1,0 +1,8 @@
+"dataset_name": "virology"
+"description": "The following are multiple choice questions (with answers) about virology.\n\
+  \n"
+"group": "leaderboard_mmlu_other"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "leaderboard_mmlu_virology"
+"task_alias": "virology"

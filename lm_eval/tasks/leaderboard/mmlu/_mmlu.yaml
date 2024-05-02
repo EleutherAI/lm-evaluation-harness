@@ -1,0 +1,6 @@
+group: leaderboard_mmlu
+task:
+  - leaderboard_mmlu_stem
+  - leaderboard_mmlu_other
+  - leaderboard_mmlu_social_sciences
+  - leaderboard_mmlu_humanities

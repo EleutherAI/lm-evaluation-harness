@@ -1,0 +1,4 @@
+group: leaderboard
+task:
+  - leaderboard_mmlu
+  - leaderboard_bbh
