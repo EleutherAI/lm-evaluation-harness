@@ -1,4 +1,5 @@
 import json
+import re
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -62,7 +63,9 @@ class GeneralConfigTracker:
         """Logs model parameters and job ID."""
         self.model_source = model_source
         self.model_name = GeneralConfigTracker._get_model_name(model_args)
-        self.model_name_sanitized = self.model_name.replace("/", "__")
+        self.model_name_sanitized = re.sub(
+            r"[\"<>:/\|\\?\*\[\]]+", "__", self.model_name
+        )
 
     def log_end_time(self) -> None:
         """Logs the end time of the evaluation and calculates the total evaluation time."""
@@ -152,8 +155,8 @@ class EvaluationTracker:
                 path.mkdir(parents=True, exist_ok=True)
 
                 self.date_id = datetime.now().isoformat().replace(":", "-")
-                file_results_agrregated = path.joinpath(f"results_{self.date_id}.json")
-                file_results_agrregated.open("w", encoding="utf-8").write(dumped)
+                file_results_aggregated = path.joinpath(f"results_{self.date_id}.json")
+                file_results_aggregated.open("w", encoding="utf-8").write(dumped)
 
                 if self.api and self.push_results_to_hub:
                     self.api.create_repo(
