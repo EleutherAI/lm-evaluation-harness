@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     def run_tests():
         tests = [
-            test_requests_caching_true,
+            # test_requests_caching_true,
             test_requests_caching_refresh,
             test_requests_caching_delete,
         ]
