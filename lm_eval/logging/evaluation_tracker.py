@@ -131,14 +131,15 @@ class EvaluationTracker:
             try:
                 eval_logger.info("Saving results aggregated")
 
-                # calculate cumulative hash for each task
+                # calculate cumulative hash for each task - only if samples are provided
                 task_hashes = {}
-                for task_name, task_samples in samples.items():
-                    sample_hashes = [
-                        s["doc_hash"] + s["prompt_hash"] + s["target_hash"]
-                        for s in task_samples
-                    ]
-                    task_hashes[task_name] = hash_string("".join(sample_hashes))
+                if samples:
+                    for task_name, task_samples in samples.items():
+                        sample_hashes = [
+                            s["doc_hash"] + s["prompt_hash"] + s["target_hash"]
+                            for s in task_samples
+                        ]
+                        task_hashes[task_name] = hash_string("".join(sample_hashes))
 
                 # update initial results dict
                 results.update({"task_hashes": task_hashes})
