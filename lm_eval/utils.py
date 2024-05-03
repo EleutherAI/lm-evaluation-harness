@@ -1,11 +1,14 @@
 import collections
 import fnmatch
 import functools
+import hashlib
 import importlib.util
 import inspect
+import json
 import logging
 import os
 import re
+from dataclasses import asdict, is_dataclass
 from itertools import islice
 from typing import Any, Callable, List
 
@@ -22,6 +25,10 @@ logging.basicConfig(
 eval_logger = logging.getLogger("lm-eval")
 
 SPACING = " " * 47
+
+
+def hash_string(string: str) -> str:
+    return hashlib.sha256(string.encode("utf-8")).hexdigest()
 
 
 def escaped_split(text, sep_char, maxsplit=-1):
@@ -58,6 +65,15 @@ def handle_arg_string(arg):
         return float(arg)
     except ValueError:
         return arg
+
+
+def handle_non_serializable(o):
+    if isinstance(o, np.int64) or isinstance(o, np.int32):
+        return int(o)
+    elif isinstance(o, set):
+        return list(o)
+    else:
+        return str(o)
 
 
 def simple_parse_args_string(args_string):
@@ -164,6 +180,18 @@ def make_disjoint_window(pair):
     """Takes output from get_rolling_token_windows and makes the context not overlap with the continuation"""
     a, b = pair
     return a[: len(a) - (len(b) - 1)], b
+
+
+class EnhancedJSONEncoder(json.JSONEncoder):
+    """
+    Provides a proper json encoding for the loggers and trackers json dumps.
+    Notably manages the json encoding of dataclasses.
+    """
+
+    def default(self, o):
+        if is_dataclass(o):
+            return asdict(o)
+        return super().default(o)
 
 
 class Reorderer:
