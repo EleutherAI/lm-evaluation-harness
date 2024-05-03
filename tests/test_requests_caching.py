@@ -20,7 +20,7 @@ sys.path.append(f"{MODULE_DIR}/../scripts")
 model_loader = importlib.import_module("requests_caching")
 run_model_for_task_caching = model_loader.run_model_for_task_caching
 
-
+os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = "1"
 DEFAULT_TASKS = ["lambada_openai", "hellaswag"]
 
 
