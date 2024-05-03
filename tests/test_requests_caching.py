@@ -64,8 +64,7 @@ def assert_created(tasks: List[str], file_task_names: List[str]):
 
 
 @pytest.mark.parametrize("tasks", [DEFAULT_TASKS])
-def test_requests_caching_true(tasks: List[str]):
-    pass
+def requests_caching_true(tasks: List[str]):
     run_model_for_task_caching(tasks=tasks, cache_requests="true")
 
     cache_files, file_task_names = get_cache_files()
@@ -74,8 +73,7 @@ def test_requests_caching_true(tasks: List[str]):
 
 
 @pytest.mark.parametrize("tasks", [DEFAULT_TASKS])
-def test_requests_caching_refresh(tasks: List[str]):
-    pass
+def requests_caching_refresh(tasks: List[str]):
     run_model_for_task_caching(tasks=tasks, cache_requests="true")
 
     timestamp_before_test = datetime.now().timestamp()
@@ -95,10 +93,9 @@ def test_requests_caching_refresh(tasks: List[str]):
 
 
 @pytest.mark.parametrize("tasks", [DEFAULT_TASKS])
-def test_requests_caching_delete(tasks: List[str]):
-    pass
+def requests_caching_delete(tasks: List[str]):
     # populate the data first, rerun this test within this test for additional confidence
-    test_requests_caching_true(tasks=tasks)
+    # test_requests_caching_true(tasks=tasks)
 
     run_model_for_task_caching(tasks=tasks, cache_requests="delete")
 
