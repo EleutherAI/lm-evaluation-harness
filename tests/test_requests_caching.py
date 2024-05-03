@@ -21,7 +21,7 @@ model_loader = importlib.import_module("requests_caching")
 run_model_for_task_caching = model_loader.run_model_for_task_caching
 
 os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = "1"
-DEFAULT_TASKS = ["lambada_openai", "hellaswag"]
+DEFAULT_TASKS = ["lambada_openai", "sciq"]
 
 
 @pytest.fixture(autouse=True)
@@ -68,7 +68,7 @@ def test_requests_caching_true(tasks: List[str]):
     run_model_for_task_caching(tasks=tasks, cache_requests="true")
 
     cache_files, file_task_names = get_cache_files()
-
+    print(file_task_names)
     assert_created(tasks=tasks, file_task_names=file_task_names)
 
 
