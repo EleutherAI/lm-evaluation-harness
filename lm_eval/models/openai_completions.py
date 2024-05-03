@@ -19,8 +19,6 @@ def get_result(response) -> Tuple[float, bool]:
 
     :param response: dict
         OpenAI API Response
-    :param ctxlen: int
-        Length of context (so we can slice them away and only keep the predictions)
     :return:
         continuation_logprobs: np.array
             Log probabilities of continuation tokens
