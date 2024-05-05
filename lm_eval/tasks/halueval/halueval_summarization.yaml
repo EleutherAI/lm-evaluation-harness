@@ -1,0 +1,19 @@
+group:
+  - halueval
+task: halueval_summarization
+dataset_path: pminervini/HaluEval
+dataset_name: summarization_samples
+output_type: generate_until
+training_split: data
+validation_split: data
+test_split: data
+num_fewshot: 0
+doc_to_text: !function utils.doc_to_text_summarization
+doc_to_target: !function utils.doc_to_target
+process_results: !function utils.process_results
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  - version: 0.0
