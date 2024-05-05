@@ -592,7 +592,10 @@ def evaluate(
             "n-samples": {
                 task_output.task_name: {
                     "original": len(task_output.task.eval_docs),
-                    "effective": min(limit, len(task_output.task.eval_docs)),
+                    "effective": min(
+                        limit if limit else len(task_output.task.eval_docs),
+                        len(task_output.task.eval_docs),
+                    ),
                 }
                 for task_output in eval_tasks
             },
