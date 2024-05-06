@@ -3,8 +3,10 @@ import sys
 import unicodedata
 
 from lm_eval.api.filter import Filter
+from lm_eval.api.registry import register_filter
 
 
+@register_filter("regex")
 class RegexFilter(Filter):
     """ """
 
@@ -49,6 +51,7 @@ class RegexFilter(Filter):
         return filtered_resps
 
 
+@register_filter("remove_whitespace")
 class WhitespaceFilter(Filter):
     """ """
 
@@ -71,6 +74,7 @@ class WhitespaceFilter(Filter):
         return filtered_resps
 
 
+@register_filter("multi_choice_regex")
 class MultiChoiceRegexFilter(RegexFilter):
     """
     A filter used to extract a model's answer on multiple choice questions with
