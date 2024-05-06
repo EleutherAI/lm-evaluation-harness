@@ -1,9 +1,8 @@
 group: adv_glue
 task: adv_qqp
 dataset_path: adv_glue
-dataset_name: qqp
+dataset_name: adv_qqp
 output_type: multiple_choice
-training_split: train
 validation_split: validation
 doc_to_text: "Question 1: {{question1}}\nQuestion 2: {{question2}}\nQuestion: Do both questions ask the same thing?\nAnswer:"
 doc_to_target: label

@@ -1,9 +1,8 @@
 group: adv_glue
 task: adv_rte
 dataset_path: adv_glue
-dataset_name: rte
+dataset_name: adv_rte
 output_type: multiple_choice
-training_split: train
 validation_split: validation
 doc_to_text: "{{sentence1}}\nQuestion: {{sentence2}} True or False?\nAnswer:"
 doc_to_target: label

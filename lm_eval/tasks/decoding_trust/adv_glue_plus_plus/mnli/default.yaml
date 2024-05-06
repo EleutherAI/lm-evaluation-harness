@@ -3,7 +3,7 @@ group:
   - dt_adv_glue
 task: dt_mnli
 dataset_path: AI-Secure/DecodingTrust
-dataset_name: mnli
+dataset_name: adv-glue-plus-plus
 output_type: multiple_choice
 training_split: mnli
 validation_split: mnli

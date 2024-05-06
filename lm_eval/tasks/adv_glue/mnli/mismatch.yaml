@@ -1,3 +1,4 @@
 include: default.yaml
-task: adv_mnli_mismatch
-validation_split: validation_mismatched
+task: adv_mnli_mismatched
+dataset_name: adv_mnli_mismatched
+validation_split: validation

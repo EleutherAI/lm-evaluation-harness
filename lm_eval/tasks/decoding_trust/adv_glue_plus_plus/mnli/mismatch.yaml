@@ -1,3 +1,3 @@
 include: default.yaml
 task: dt_mnli_mismatch
-validation_split: validation_mismatched
+validation_split: mnli_mismatched

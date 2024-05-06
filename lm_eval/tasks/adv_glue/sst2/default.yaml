@@ -1,9 +1,8 @@
 group: adv_glue
 task: adv_sst2
 dataset_path: adv_glue
-dataset_name: sst2
+dataset_name: adv_sst2
 output_type: multiple_choice
-training_split: train
 validation_split: validation
 doc_to_text: "{{sentence}}\nQuestion: Is this sentence positive or negative?\nAnswer:"
 doc_to_target: label
