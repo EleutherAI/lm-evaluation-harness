@@ -84,7 +84,7 @@ lm_eval --model hf \
     --batch_size auto:4
 ```
 
-The full list of supported arguments are provided [here](./docs/interface.md), and on the terminal by calling `lm_eval -h`. Alternatively, you can use `lm-eval` instead of `lm_eval`.
+The full list of supported arguments are provided [here](./docs/interface.md), and on the terminal by calling `lm_eval -h`. Alternatively, you can use `lm-eval` instead of `lm_eval`. A list of supported tasks can be viewed with `lm-eval --tasks list`.
 
 > [!Note]
 > Just like you can provide a local path to `transformers.AutoModel`, you can also provide a local path to `lm_eval` via `--model_args pretrained=/path/to/model`
@@ -230,6 +230,8 @@ Note that for externally hosted models, configs such as `--device` and `--batch_
 | Mamba                       | :heavy_check_mark:       | `mamba_ssm`                                                                      | [Mamba architecture Language Models via the `mamba_ssm` package](https://huggingface.co/state-spaces) | `generate_until`, `loglikelihood`, `loglikelihood_rolling`                             |
 | Huggingface Optimum (Causal LMs)    | ✔️         | `openvino`                                 |     Any decoder-only AutoModelForCausalLM converted with Huggingface Optimum into OpenVINO™ Intermediate Representation (IR) format                           |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
 | Neuron via AWS Inf2 (Causal LMs)    | ✔️         | `neuronx`                                 |     Any decoder-only AutoModelForCausalLM supported to run on [huggingface-ami image for inferentia2](https://aws.amazon.com/marketplace/pp/prodview-gr3e6yiscria2)                         |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
+| [Neural Magic DeepSparse](https://github.com/neuralmagic/deepsparse)    | ✔️         | `deepsparse`                                 |     Any LM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub with the "deepsparse" tag](https://huggingface.co/models?other=deepsparse)                       |  `generate_until`, `loglikelihood`                         | ...                                                      |
+| [Neural Magic SparseML](https://github.com/neuralmagic/sparseml)    | ✔️         | `sparseml`                                 |     Any decoder-only AutoModelForCausalLM from [SparseZoo](https://sparsezoo.neuralmagic.com/) or on [HF Hub](https://huggingface.co/neuralmagic). Especially useful for models with quantization like [`zoo:llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized`](https://sparsezoo.neuralmagic.com/models/llama2-7b-gsm8k_llama2_pretrain-pruned60_quantized)                         |  `generate_until`, `loglikelihood`, `loglikelihood_rolling`                         | ...                                                      |
 | Your local inference server!                                                                                              | :heavy_check_mark:                             | `local-completions` or `local-chat-completions` (using `openai-chat-completions` model type)    | Any server address that accepts GET requests using HF models and mirror's OpenAI's Completions or ChatCompletions interface                                  | `generate_until`                                           |                                | ...                |
 
 Models which do not supply logits or logprobs can be used with tasks of type `generate_until` only, while local models, or APIs that supply logprobs/logits of their prompts, can be run on all task types: `generate_until`, `loglikelihood`, `loglikelihood_rolling`, and `multiple_choice`.
@@ -282,6 +284,13 @@ lm_eval --model hf \
     --device cuda:0
 ```
 
+Models provided as delta weights can be easily loaded using the Hugging Face transformers library. Within --model_args, set the delta argument to specify the delta weights, and use the pretrained argument to designate the relative base model to which they will be applied:
+```bash
+lm_eval --model hf \
+    --model_args pretrained=Ejafa/llama_7B,delta=lmsys/vicuna-7b-delta-v1.1 \
+    --tasks hellaswag
+```
+
 [GPTQ](https://github.com/PanQiWei/AutoGPTQ) quantized models can be loaded by specifying their file names in `,autogptq=NAME` (or `,autogptq=True` for default names) in the `model_args` argument:
 
 ```bash
@@ -292,9 +301,22 @@ lm_eval --model hf \
 
 We support wildcards in task names, for example you can run all of the machine-translated lambada tasks via `--task lambada_openai_mt_*`.
 
+## Saving Results
+
 To save evaluation results provide an `--output_path`. We also support logging model responses with the `--log_samples` flag for post-hoc analysis.
 
 Additionally, one can provide a directory with `--use_cache` to cache the results of prior runs. This allows you to avoid repeated execution of the same (model, task) pairs for re-scoring.
+
+To push results and samples to the Hugging Face Hub, first ensure an access token with write access is set in the `HF_TOKEN` environment variable. Then, use the --hf_hub_log_args flag to specify the organization, repository name, repository visibility, and whether to push results and samples to the Hub. For example:
+
+```bash
+lm_eval --model hf \
+    --model_args pretrained=model-name-or-path,autogptq=model.safetensors,gptq_use_triton=True \
+    --tasks hellaswag \
+    --log_samples \
+    --output_path results \
+    --hf_hub_log_args hub_results_org=EleutherAI,hub_repo_name=lm-eval-results,push_results_to_hub=True,push_samples_to_hub=True,public_repo=False \
+```
 
 For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
 
@@ -406,6 +428,7 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | Name          | Use                                   |
 |---------------|---------------------------------------|
 | anthropic     | For using Anthropic's models          |
+| deepsparse     | For running NM's DeepSparse models    |
 | dev           | For linting PRs and contributions     |
 | gptq          | For loading models with GPTQ          |
 | hf_transfer   | For speeding up HF Hub file downloads |
@@ -418,6 +441,7 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | optimum       | For running Intel OpenVINO models     |
 | promptsource  | For using PromptSource prompts        |
 | sentencepiece | For using the sentencepiece tokenizer |
+| sparseml      | For using NM's SparseML models        |
 | testing       | For running library test suite        |
 | vllm          | For loading models with vLLM          |
 | zeno          | For visualizing results with Zeno     |

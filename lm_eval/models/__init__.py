@@ -5,6 +5,7 @@ from . import (
     huggingface,
     mamba_lm,
     nemo_lm,
+    neuralmagic,
     neuron_optimum,
     openai_completions,
     optimum_lm,

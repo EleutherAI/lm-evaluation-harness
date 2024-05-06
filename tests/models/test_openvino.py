@@ -1,5 +1,6 @@
 import random
 import tempfile
+from pathlib import Path
 
 import pytest
 from optimum.intel import OVModelForCausalLM
@@ -71,3 +72,21 @@ def test_evaluator(model_id, task):
             limit=limit,
             bootstrap_iters=10,
         )
+
+
+def test_ov_config():
+    """Test that if specified, a custom OpenVINO config is loaded correctly"""
+    model_id = "hf-internal-testing/tiny-random-gpt2"
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        config_file = str(Path(tmpdirname) / "ov_config.json")
+        with open(Path(config_file), "w") as f:
+            f.write('{"DYNAMIC_QUANTIZATION_GROUP_SIZE" : "32"}')
+        lm = get_model("openvino").create_from_arg_string(
+            f"pretrained={model_id},ov_config={config_file}"
+        )
+    assert (
+        lm.model.request.get_compiled_model().get_property(
+            "DYNAMIC_QUANTIZATION_GROUP_SIZE"
+        )
+        == 32
+    )
