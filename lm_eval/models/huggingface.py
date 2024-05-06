@@ -13,6 +13,7 @@ from accelerate import (
     InitProcessGroupKwargs,
     find_executable_batch_size,
 )
+from accelerate.utils import is_npu_available
 from packaging import version
 from peft import PeftModel
 from peft import __version__ as PEFT_VERSION
@@ -43,13 +44,14 @@ def _get_accelerate_args(
     max_memory_per_gpu: Optional[Union[int, str]] = None,
     max_cpu_memory: Optional[Union[int, str]] = None,
     offload_folder: Optional[str] = "./offload",
+    device_counts: Optional[Union[int, str]] = None,
 ) -> dict:
     """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
     max_memory = {}
     if max_memory_per_gpu is not None:
         max_memory_per_gpu_map = {
             device_idx: max_memory_per_gpu
-            for device_idx in range(torch.cuda.device_count())
+            for device_idx in range(device_counts)
         }
         max_memory.update(max_memory_per_gpu_map)
     if max_cpu_memory is not None:
@@ -124,7 +126,7 @@ class HFLM(TemplateLM):
             self._model = pretrained
             self._device = self._model.device
             self._config = self._model.config
-            gpus = 0
+            device_counts = 0
 
             if tokenizer:
                 assert isinstance(
@@ -146,17 +148,23 @@ class HFLM(TemplateLM):
             assert isinstance(pretrained, str)
             assert isinstance(batch_size, (int, str))
 
-            gpus = torch.cuda.device_count()
+            device_counts = torch.cuda.device_count()
+
             accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
             accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
+
             if accelerator.num_processes > 1:
                 self.accelerator = accelerator
+
+            if is_npu_available():
+                device_counts = torch.npu.device_count()
 
             if not (parallelize or accelerator.num_processes > 1):
                 # use user-passed device
                 device_list = set(
-                    ["cuda", "cpu"]
-                    + [f"cuda:{i}" for i in range(torch.cuda.device_count())]
+                    ["cuda", "cpu","npu"]
+                    + [f"cuda:{i}" for i in range(device_counts)]
+                    + [f"npu:{i}" for i in range(device_counts)]
                     + ["mps", "mps:0"]
                 )
                 if device and device in device_list:
@@ -206,6 +214,7 @@ class HFLM(TemplateLM):
                 dtype=dtype,
                 trust_remote_code=trust_remote_code,
                 parallelize=parallelize,
+                device_counts=device_counts,
                 device_map_option=device_map_option,
                 max_memory_per_gpu=max_memory_per_gpu,
                 max_cpu_memory=max_cpu_memory,
@@ -221,7 +230,7 @@ class HFLM(TemplateLM):
             self.model.eval()
             self.model.tie_weights()
 
-        if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) == "mps"):
+        if isinstance(pretrained, str) and (device_counts >= 1 or str(self.device) == "mps"):
             # TODO: can remove this whole snippet except in the mps case, perhaps?
             if not (parallelize or autogptq or hasattr(self, "accelerator")):
                 # place model onto device requested manually,
@@ -292,7 +301,7 @@ class HFLM(TemplateLM):
 
         if isinstance(pretrained, str):
             # multigpu data-parallel support when launched with accelerate
-            if gpus > 1:
+            if device_counts > 1:
                 if parallelize:
                     if accelerator.num_processes > 1:
                         raise RuntimeError(
@@ -305,9 +314,9 @@ class HFLM(TemplateLM):
                     self._rank = 0
                     self._world_size = 1
                 else:
-                    if gpus > accelerator.num_processes:
+                    if device_counts > accelerator.num_processes:
                         eval_logger.warning(
-                            "WARNING: The number of total system GPUs does not match the number of spawned processes. "
+                            "WARNING: The number of total system device counts does not match the number of spawned processes. "
                             "If you would like to use data parallelism, please launch the script "
                             "with 'accelerate launch *script*'. "
                             f"Current run will proceed with {accelerator.num_processes} devices."
@@ -317,6 +326,7 @@ class HFLM(TemplateLM):
                         in [
                             DistributedType.FSDP,
                             DistributedType.MULTI_GPU,
+                            DistributedType.MULTI_NPU,
                         ]
                     ), "Unsupported distributed type provided. Only DDP and FSDP are supported."
                     if accelerator.distributed_type == DistributedType.FSDP:
@@ -326,12 +336,12 @@ class HFLM(TemplateLM):
                             self.model, evaluation_mode=True
                         )
                     self._device = torch.device(
-                        f"cuda:{accelerator.local_process_index}"
+                        f"{accelerator.device}"
                     )
                     self.accelerator = accelerator
 
                     if self.accelerator.is_local_main_process:
-                        eval_logger.info(f"Using {gpus} devices with data parallelism")
+                        eval_logger.info(f"Using {device_counts} devices with data parallelism")
 
                     self._rank = self.accelerator.local_process_index
                     self._world_size = self.accelerator.num_processes
@@ -484,6 +494,7 @@ class HFLM(TemplateLM):
         # only used if `parallelize=True`.
         # (accelerate naive PP (device_map) options)
         parallelize: Optional[bool] = False,
+        device_counts: Optional[Union[int, str]] = None,
         device_map_option: Optional[str] = "auto",
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
@@ -515,6 +526,7 @@ class HFLM(TemplateLM):
                     max_memory_per_gpu,
                     max_cpu_memory,
                     offload_folder,
+                    device_counts
                 )
             )
         elif "device_map" not in model_kwargs:
@@ -524,7 +536,7 @@ class HFLM(TemplateLM):
             # which breaks data-parallel mode.
             if hasattr(self, "accelerator"):
                 model_kwargs.update(
-                    {"device_map": {"": f"cuda:{self.accelerator.local_process_index}"}}
+                    {"device_map": {"": f"{self.accelerator.device}"}}
                 )
             else:
                 model_kwargs.update({"device_map": {"": str(self.device)}})
