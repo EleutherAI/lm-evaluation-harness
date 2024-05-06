@@ -81,7 +81,7 @@ class EvaluationTracker:
 
     def __init__(
         self,
-        output_path: str = "",
+        output_path: str = None,
         hub_results_org: str = "",
         hub_repo_name: str = "",
         push_results_to_hub: bool = False,
@@ -128,6 +128,7 @@ class EvaluationTracker:
         self.general_config_tracker.log_end_time()
 
         if self.output_path:
+            print(self.output_path)
             try:
                 eval_logger.info("Saving results aggregated")
 
