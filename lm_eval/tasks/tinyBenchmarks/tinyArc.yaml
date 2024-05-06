@@ -1,5 +1,3 @@
-group:
-  - tinyBenchmarks
 task: tinyArc
 dataset_path: tinyBenchmarks/tinyAI2_arc
 dataset_name: ARC-Challenge

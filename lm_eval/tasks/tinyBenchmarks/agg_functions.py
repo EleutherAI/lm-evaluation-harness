@@ -1,7 +1,15 @@
 from typing import List
 
 import numpy as np
-import tinyBenchmarks as tb
+
+
+try:
+    import tinyBenchmarks as tb
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        "`tinyBenchmarks` is required for tinyBenchmarks task metric calculation, install via \
+`pip install git+https://github.com/felipemaiapolo/tinyBenchmarks`"
+    )
 
 
 def agg_pirt(items: List[float], benchmark: str) -> float:

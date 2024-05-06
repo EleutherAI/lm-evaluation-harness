@@ -1,5 +1,3 @@
-group:
-  - tinyBenchmarks
 task: tinyHellaswag
 dataset_path: tinyBenchmarks/tinyHellaswag
 dataset_name: null

@@ -1,6 +1,3 @@
-group:
-  - math_word_problems
-  - tinyBenchmarks
 task: tinyGSM8k
 dataset_path: tinyBenchmarks/tinyGSM8k
 dataset_name: main
