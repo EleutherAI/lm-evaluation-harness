@@ -215,6 +215,13 @@ We also support using your own local inference server with servers that mirror t
 ```bash
 lm_eval --model local-chat-completions --tasks gsm8k --model_args model=facebook/opt-125m,base_url=http://{yourip}:8000/v1
 ```
+
+Particularly for llm, it is possible to run the tests without knowing the model behind it a priori. Under the hood, we request the tokenizer to the vllm-server by setting the `tokenizer_backend=vllm` argument.
+
+```bash
+lm_eval --model local-completions --tasks gsm8k --model_args model={vllm_model_name},base_url=http://{yourip}:8000/v1,tokenizer_backend=vllm
+```
+
 Note that for externally hosted models, configs such as `--device` and `--batch_size` should not be used and do not function. Just like you can use `--model_args` to pass arbitrary arguments to the model constructor for local models, you can use it to pass arbitrary arguments to the model API for hosted models. See the documentation of the hosting service for information on what arguments they support.
 
 | API or Inference Server                                                                                                   | Implemented?                    | `--model <xxx>` name                                                | Models supported:                                                                             | Request Types:                                             |
