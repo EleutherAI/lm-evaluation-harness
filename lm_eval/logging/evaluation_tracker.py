@@ -128,7 +128,6 @@ class EvaluationTracker:
         self.general_config_tracker.log_end_time()
 
         if self.output_path:
-            print(self.output_path)
             try:
                 eval_logger.info("Saving results aggregated")
 
