@@ -94,8 +94,8 @@ please install boto3 via `pip install 'lm-eval[bedrock]'` or `pip install -e '.[
 class BedrockChatLM(LM):
     def __init__(
         self,
+        model: str,
         batch_size: int = 1,
-        model: str = "anthropic.claude-3-haiku-20240307-v1:0",
         max_tokens: int = 256,
         temperature: float = 0,  # defaults to 1
         **kwargs,  # top_p, top_k, etc.
