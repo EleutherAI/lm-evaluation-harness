@@ -1,9 +1,12 @@
 try:
     from unitxt import evaluate
 except ImportError:
-    raise ImportError("Package 'unitxt' is not installed. To install it, use `pip install 'lm_eval[unitxt]'`")
+    raise ImportError(
+        "Package 'unitxt' is not installed. To install it, use `pip install 'lm_eval[unitxt]'`"
+    )
 
 from lm_eval.api.registry import AGGREGATION_REGISTRY, METRIC_REGISTRY, register_metric
+
 
 def unitxt_agg_metric(items):
     preds = [pred[0] for pred, _, _ in items]
@@ -12,14 +15,16 @@ def unitxt_agg_metric(items):
     for ref in refs:
         ref["metrics"] = [metric_name]
 
-    result_metrics = evaluate(preds,refs)
+    result_metrics = evaluate(preds, refs)
     return result_metrics[0]["score"]["global"]["score"]
 
 
 AGGREGATION_REGISTRY["unitxt"] = unitxt_agg_metric
 
+
 def unitxt_metric(items):  # This is a passthrough function
     return items
+
 
 def process_results(doc, results):
     metrics = doc["metrics"]
@@ -29,9 +34,12 @@ def process_results(doc, results):
         scores[metric] = (results, doc, metric)
 
         if metric not in METRIC_REGISTRY:
-            register_metric(metric=metric, higher_is_better=True, output_type="generate_until", aggregation="unitxt")(
-                unitxt_metric
-            )
+            register_metric(
+                metric=metric,
+                higher_is_better=True,
+                output_type="generate_until",
+                aggregation="unitxt",
+            )(unitxt_metric)
     return scores
 
 
