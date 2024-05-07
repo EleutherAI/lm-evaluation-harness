@@ -53,7 +53,7 @@ echo "TASKS: $tasks"
 export PROGRAM="\
 lm_eval \
 --model hf \
---model_args pretrained=$model,parallelize=True \
+--model_args pretrained=$model,parallelize=True,trust_remote_code=True \
 --tasks $tasks \
 --num_fewshot 0 \
 --batch_size 8 \
@@ -61,8 +61,8 @@ lm_eval \
 --write_out \
 --log_samples \
 --verbosity DEBUG \
---wandb_args project=lm-eval-harness-integration,job_type=eval \
---hf_hub_log_args=hub_results_org=yentinglin,hub_repo_name=twllm-eval-results \
+--wandb_args project=lm-eval-harness-integration,job_type=eval,name=$model \
+--hf_hub_log_args hub_results_org=yentinglin,hub_repo_name=lm-eval-results,push_results_to_hub=True,push_samples_to_hub=True,public_repo=False \
 --seed 42 \
 --trust_remote_code \
 "
