@@ -160,15 +160,6 @@ def simple_evaluate(
         if model_args is None:
             eval_logger.warning("model_args not specified. Using defaults.")
             model_args = ""
-        if "pretrained" not in model_args and model in [
-            "hf-auto",
-            "hf",
-            "huggingface",
-            "vllm",
-        ]:
-            eval_logger.warning(
-                "pretrained not specified. Using default pretrained=gpt2."
-            )
 
         if isinstance(model_args, dict):
             eval_logger.info(
