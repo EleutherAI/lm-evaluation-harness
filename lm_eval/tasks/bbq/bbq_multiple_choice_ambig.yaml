@@ -1,0 +1,3 @@
+include: bbq_multiple_choice.yaml
+task: bbq_ambig
+process_docs: !function utils.process_docs_ambig
