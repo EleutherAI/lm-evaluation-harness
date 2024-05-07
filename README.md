@@ -419,6 +419,7 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | promptsource  | For using PromptSource prompts        |
 | sentencepiece | For using the sentencepiece tokenizer |
 | testing       | For running library test suite        |
+| unitxt        | For IBM's unitxt dataset tasks        |
 | vllm          | For loading models with vLLM          |
 | zeno          | For visualizing results with Zeno     |
 |---------------|---------------------------------------|
