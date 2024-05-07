@@ -2,11 +2,11 @@ import collections
 import math
 import pathlib
 import sys
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from lm_eval.api import metrics
 from lm_eval.utils import eval_logger, positional_deprecated
-from lm_eval.api.task import ConfigurableTask, ConfigurableGroup
+
 
 class TaskOutput:
     """
@@ -121,14 +121,13 @@ class TaskOutput:
 def get_task_list(task_dict: dict) -> List[TaskOutput]:
     outputs = []
     for task_name, task_obj in task_dict.items():
-        
         if isinstance(task_obj, dict):
             _outputs = get_task_list(task_obj)
             outputs.extend(_outputs)
         else:
             task_output = TaskOutput.from_taskdict(task_name, task_obj)
             outputs.append(task_output)
-            
+
     return outputs
 
 

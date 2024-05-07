@@ -242,8 +242,11 @@ def make_table(result_dict, column: str = "results"):
     values = []
 
     for k, dic in result_dict[column].items():
-        version = result_dict["versions"].get(k, "N/A")
-        n = str(result_dict["n-shot"][k])
+        version = result_dict["versions"].get(k, "    N/A")
+        if k in result_dict["n-shot"]:
+            n = str(result_dict["n-shot"][k])
+        else:
+            n = " "
 
         if "alias" in dic:
             k = dic.pop("alias")

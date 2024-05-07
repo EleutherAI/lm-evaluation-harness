@@ -16,3 +16,4 @@ task:
   # - mmlu_virology
 aggregate_metric: True
 weight_by_size: True
+version: 1

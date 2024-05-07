@@ -5,7 +5,8 @@ from functools import partial
 from typing import Dict, List, Mapping, Optional, Union
 
 from lm_eval import utils
-from lm_eval.api.task import ConfigurableTask, ConfigurableGroup, GroupConfig, Task
+from lm_eval.api.task import ConfigurableGroup, ConfigurableTask, GroupConfig, Task
+
 
 GROUP_ONLY_KEYS = list(GroupConfig().to_dict().keys())
 

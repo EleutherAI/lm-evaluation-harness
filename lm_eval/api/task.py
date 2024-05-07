@@ -60,6 +60,7 @@ class GroupConfig(dict):
     aggregate_fn: Optional[str] = "mean"
     weight_by_size: Optional[str] = False
     metric_alias: Optional[str] = None
+    version: Optional[str] = 0
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -113,20 +114,24 @@ class ConfigurableGroup(abc.ABC):
     @property
     def group(self):
         return self._config.group
-    
+
     @property
     def group_alias(self):
         return self._config.group_alias
-    
+
+    @property
+    def version(self):
+        return self._config.version
+
     @property
     def config(self):
         return self._config.to_dict()
 
     def __repr__(self):
         return (
-            f"ConfigurableGroup(group={self.group},"
-            f"group_alias={self.group_alias})"
+            f"ConfigurableGroup(group={self.group}," f"group_alias={self.group_alias})"
         )
+
 
 @dataclass
 class TaskConfig(dict):
