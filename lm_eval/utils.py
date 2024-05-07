@@ -242,7 +242,7 @@ class Reorderer:
         return res
 
 
-def make_table(result_dict, column: str = "results"):
+def make_table(result_dict, column: str = "results", sort_results: bool = True):
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
@@ -269,7 +269,12 @@ def make_table(result_dict, column: str = "results"):
 
     values = []
 
-    for k, dic in result_dict[column].items():
+    keys = result_dict[column].keys()
+    if sort_results:
+        # sort entries alphabetically
+        keys = sorted(keys)
+    for k in keys:
+        dic = result_dict[column][k]
         version = result_dict["versions"].get(k, "N/A")
         n = str(result_dict["n-shot"][k])
 
