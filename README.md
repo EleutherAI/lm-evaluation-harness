@@ -443,6 +443,7 @@ Extras dependencies can be installed via `pip install -e ".[NAME]"`
 | sentencepiece | For using the sentencepiece tokenizer |
 | sparseml      | For using NM's SparseML models        |
 | testing       | For running library test suite        |
+| unitxt        | For IBM's unitxt dataset tasks        |
 | vllm          | For loading models with vLLM          |
 | zeno          | For visualizing results with Zeno     |
 |---------------|---------------------------------------|
