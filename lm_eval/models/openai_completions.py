@@ -85,7 +85,6 @@ class OpenaiCompletionsLM(TemplateLM):
         tokenizer: Optional[str] = None,
         tokenizer_backend: Literal["tiktoken", "huggingface"] = "tiktoken",
         truncate: bool = False,
-        chat: bool = False,
         max_gen_toks: int = 256,
         batch_size: int = 1,
         seed: int = 1234,
@@ -112,7 +111,6 @@ class OpenaiCompletionsLM(TemplateLM):
         self.base_url = base_url
         self.tokenizer_backend = tokenizer_backend
         self.truncate = truncate
-        self.chat = chat
         self._batch_size = int(batch_size)
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
@@ -213,7 +211,6 @@ class OpenaiCompletionsLM(TemplateLM):
             response = oa_completion(
                 client=self.client,
                 model=self.model,
-                chat=self.chat,
                 prompt=inps,
                 echo=True,
                 max_tokens=0,
