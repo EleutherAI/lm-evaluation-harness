@@ -599,8 +599,21 @@ def evaluate(
                 results, task_dict
             )
 
-        def print_table(task_dict, results, task_depth=0):
+        def print_table(task_dict, results, task_depth=0, group_depth=0):
+            """
+            @param task_dict: Dictionary representing the group hierarchy of tasks. Each key is a group name and its
+            value is a list of task names.
+            @param results: Dictionary containing the results of each task. Each key is a
+            group name and its value is a dictionary of task results.
+            @param task_depth: The indentation level for printing the task
+            hierarchy. Default is 0.
+            @return: A tuple of two dictionaries: results_agg and groups_agg. results_agg contains
+            aggregated results for each task, and groups_agg contains aggregated results for each group.
+
+            Prepares the task hierarchy and aggregates the results for each task and group recursively for printing.
+            """
             task_agg = defaultdict(dict)
+            group_agg = defaultdict(dict)
             for task_or_group_name, task_or_group_obj in task_dict.items():
                 tab_string = " " * task_depth + "- " if task_depth > 0 else ""
                 if isinstance(task_or_group_name, ConfigurableGroup):
@@ -626,24 +639,38 @@ def evaluate(
                 if "samples" in task_agg[name]:
                     task_agg[name].pop("samples")
 
+                if from_configurable_group and (" " not in results[name]):
+                    group_tab_string = (
+                        " " * group_depth + "- " if group_depth > 0 else ""
+                    )
+                    group_agg[name] = results[name].copy()
+                    group_agg[name]["alias"] = group_tab_string + alias
+                    if "samples" in group_agg[name]:
+                        group_agg[name].pop("samples")
+
                 if isinstance(task_or_group_obj, dict):
                     task_depth += 1
+                    group_depth += 1
+                    _task_agg, _group_agg = print_table(
+                        task_or_group_obj, results, task_depth, group_depth
+                    )
                     task_agg = {
                         **task_agg,
-                        **print_table(task_or_group_obj, results, task_depth),
+                        **_task_agg,
                     }
+                    group_agg = {**group_agg, **_group_agg}
                     task_depth -= 1
-            return task_agg
+                    group_depth -= 1
+            return task_agg, group_agg
 
-        results_agg = print_table(task_dict, results)
-
+        results_agg, group_agg = print_table(task_dict, results)
         results_dict = {
             "results": dict(results_agg.items()),
-            # **(
-            #     {"groups": dict(groups_agg.items())}
-            #     if (bool(groups_agg) & show_group_table)
-            #     else {}
-            # ),
+            **(
+                {"groups": dict(group_agg.items())}
+                if (bool(group_agg) & show_group_table)
+                else {}
+            ),
             "group_subtasks": dict(reversed(task_hierarchy.items())),
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
