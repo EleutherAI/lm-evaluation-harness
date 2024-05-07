@@ -1,12 +1,12 @@
 # MATH
-ℹ️ This is the 4-shot variant!
+
 ## Paper
 Measuring Mathematical Problem Solving With the MATH Dataset
 https://arxiv.org/abs/2103.03874
 
 Many intellectual endeavors require mathematical problem solving, but this skill remains beyond the capabilities of computers. To measure this ability in machine learning models, we introduce MATH, a new dataset of 12,500 challenging competition mathematics problems. Each problem in MATH has a full step-by-step solution which can be used to teach models to generate answer derivations and explanations.
 
-NOTE: The few-shot and the generated answer extraction is based on the [Minerva](https://arxiv.org/abs/2206.14858) and exact match equivalence is calculated using the `sympy` library. This requires additional dependencies, which can be installed via the `lm-eval[math]` extra.
+NOTE: This task corresponds to the MATH (`hendrycks_math`) implementation at https://github.com/EleutherAI/lm-evaluation-harness/tree/master . For the variant which uses the custom 4-shot prompt in the Minerva paper (https://arxiv.org/abs/2206.14858), and SymPy answer checking as done by Minerva, see `lm_eval/tasks/minerva_math`.
 
 Homepage: https://github.com/hendrycks/math
 
@@ -19,30 +19,23 @@ Homepage: https://github.com/hendrycks/math
   journal={NeurIPS},
   year={2021}
 }
-
-@misc{2206.14858,
-Author = {Aitor Lewkowycz and Anders Andreassen and David Dohan and Ethan Dyer and Henryk Michalewski and Vinay Ramasesh and Ambrose Slone and Cem Anil and Imanol Schlag and Theo Gutman-Solo and Yuhuai Wu and Behnam Neyshabur and Guy Gur-Ari and Vedant Misra},
-Title = {Solving Quantitative Reasoning Problems with Language Models},
-Year = {2022},
-Eprint = {arXiv:2206.14858},
-}
 ```
 
 ### Groups and Tasks
 
 #### Groups
 
-- `minerva_math`
+- `hendrycks_math`: the MATH benchmark from Hendrycks et al. 0- or few-shot.
 
 #### Tasks
 
-- `minerva_math_algebra`
-- `minerva_math_counting_and_prob`
-- `minerva_math_geometry`
-- `minerva_math_intermediate_algebra`
-- `minerva_math_num_theory`
-- `minerva_math_prealgebra`
-- `minerva_math_precalc`
+- `hendrycks_math_algebra`
+- `hendrycks_math_counting_and_prob`
+- `hendrycks_math_geometry`
+- `hendrycks_math_intermediate_algebra`
+- `hendrycks_math_num_theory`
+- `hendrycks_math_prealgebra`
+- `hendrycks_math_precalc`
 
 ### Checklist
 
@@ -52,14 +45,10 @@ For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
   * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
-    * The implementation in the original paper is one where the model is first fine-tuned on the data. They do have a few-shot evaluation for GPT-3, however the few-shot context used here is sourced from [Lewkowycz et al](https://arxiv.org/abs/2206.14858). The achieved accuracy on Llama-2 models is comparable to that provided in the paper, though not identical.
+    * Answer extraction code is taken from the original MATH benchmark paper's repository.
 
 
 If other tasks on this dataset are already supported:
 * [x] Is the "Main" variant of this task clearly denoted?
 * [x] Have you provided a short sentence in a README on what each new variant adds / evaluates?
 * [x] Have you noted which, if any, published evaluation setups are matched by this variant?
-
-### Variant Wishlist
-
-- [ ] zero-shot variant

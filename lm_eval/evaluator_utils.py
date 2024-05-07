@@ -5,8 +5,9 @@ import sys
 from typing import List, Optional, Tuple, Union
 
 from lm_eval.api import metrics
-from lm_eval.utils import eval_logger, positional_deprecated
 from lm_eval.tasks import ConfigurableGroup
+from lm_eval.utils import eval_logger, positional_deprecated
+
 
 class TaskOutput:
     """
@@ -198,9 +199,7 @@ def prepare_print_tasks(
             task_agg[name].pop("samples")
 
         if from_configurable_group and (" " not in results[name]):
-            group_tab_string = (
-                " " * group_depth + "- " if group_depth > 0 else ""
-            )
+            group_tab_string = " " * group_depth + "- " if group_depth > 0 else ""
             group_agg[name] = results[name].copy()
             group_agg[name]["alias"] = group_tab_string + alias
             if "samples" in group_agg[name]:
