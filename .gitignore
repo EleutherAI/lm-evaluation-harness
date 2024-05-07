@@ -24,3 +24,4 @@ examples/wandb
 evals/
 harness_eval_main_log.txt
 None/
+logs/

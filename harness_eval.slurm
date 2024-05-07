@@ -2,14 +2,14 @@
 
 # this is a multi-node SLURM script using `accelerate` launcher
 
-#SBATCH --job-name=eval_llm
+#SBATCH --job-name=eval-harness
 #SBATCH --partition=defq
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1          # crucial - only 1 task per node
 #SBATCH --gres=gpu:8                 # EDIT this if it's not 8-gpus per node
 #SBATCH --exclusive
-#SBATCH --output=/mnt/home/f08944064/lighteval/logs/%x-%j.out
-#SBATCH --error=/mnt/home/f08944064/lighteval/logs/%x-%j.err
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
 
 echo "START TIME: $(date)"
 
@@ -41,20 +41,31 @@ MASTER_PORT=6000
 # 0 and the launcher will hang
 #
 # same goes for `\$(hostname -s|tr -dc '0-9')` - we want it to interpolate at `srun` time
-LAUNCHER="lm_eval --model hf \
-"
+LAUNCHER=""
+
+model=$1
+tasks=$2
+
+echo "MODEL: $model"
+echo "TASKS: $tasks"
 
 # EDIT the path+name of the python script and whatever args it needs
 export PROGRAM="\
---model_args pretrained={$1},parallelize=True \
---tasks {$2} \
---batch_size auto \
+lm_eval \
+--model hf \
+--model_args pretrained=$model,parallelize=True \
+--tasks $tasks \
+--num_fewshot 0 \
+--batch_size 8 \
+--output_path evals \
+--write_out \
+--log_samples \
 --verbosity DEBUG \
+--wandb_args project=lm-eval-harness-integration,job_type=eval \
+--hf_hub_log_args=hub_results_org=yentinglin,hub_repo_name=twllm-eval-results \
+--seed 42 \
+--trust_remote_code \
 "
-    #--tasks examples/tasks/open_llm_leaderboard_tasks.txt \
-    #--model_args "pretrained=${1},trust_remote_code=True" \
-    #--model_parallel \
-    #--use_chat_template \
 
 export CMD="$LAUNCHER $PROGRAM"
 
