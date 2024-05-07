@@ -528,6 +528,7 @@ def evaluate(
 
             def process_group(
                 results,
+                versions,
                 task_dict,
                 task_root=None,
                 task_hierarchy=None,
@@ -556,8 +557,9 @@ def evaluate(
                                 group_or_task
                             )
                     else:
-                        results, _task_hierarchy, show_group_table = process_group(
+                        results, versions, _task_hierarchy, show_group_table = process_group(
                             results,
+                            versions,
                             group_or_task_info,
                             group_or_task,
                             task_hierarchy,
@@ -620,10 +622,11 @@ def evaluate(
                                 # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
 
                             results[group_or_task]["samples"] = sum(sizes)
-                return results, task_hierarchy, show_group_table
+                            versions[group_or_task] = group_config["version"]
+                return results, versions, task_hierarchy, show_group_table
 
-            results, task_hierarchy, show_group_table = process_group(
-                results, task_dict
+            results, versions, task_hierarchy, show_group_table = process_group(
+                results, versions, task_dict
             )
 
         results_agg, group_agg = prepare_print_tasks(task_dict, results)
