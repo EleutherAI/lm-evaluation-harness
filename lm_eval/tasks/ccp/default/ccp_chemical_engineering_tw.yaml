@@ -1,0 +1,7 @@
+"dataset_name": "chemical_engineering_tw"
+"description": "以下為化工的單選題，請提供正確答案的選項。\n\n"
+"group": "ccp_chemical_engineering"
+"group_alias": "chemical engineering"
+"include": "_default_template_yaml"
+"task": "ccp_chemical_engineering_tw"
+"task_alias": "chemical engineering tw"

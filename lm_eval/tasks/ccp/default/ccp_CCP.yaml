@@ -1,0 +1,7 @@
+"dataset_name": "CCP"
+"description": "以下為長春集團的單選題，請提供正確答案的選項。\n\n"
+"group": "ccp_identity"
+"group_alias": "identity"
+"include": "_default_template_yaml"
+"task": "ccp_CCP"
+"task_alias": "CCP"

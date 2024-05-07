@@ -1,0 +1,5 @@
+group: ccp
+task:
+- ccp_chemical_engineering
+- ccp_truthful_qa
+- ccp_identity
