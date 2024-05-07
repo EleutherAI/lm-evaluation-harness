@@ -1,18 +1,18 @@
 group: mmlu_humanities
 group_alias: humanities
 task:
-  - formal_logic
-  - high_school_european_history
-  - high_school_us_history
-  - high_school_world_history
-  - international_law
-  - jurisprudence
-  - logical_fallacies
-  - moral_disputes
-  - moral_scenarios
-  - philosophy
-  - prehistory
-  - professional_law
-  - world_religions
+  - mmlu_formal_logic
+  - mmlu_high_school_european_history
+  # - mmlu_high_school_us_history
+  # - mmlu_high_school_world_history
+  # - mmlu_international_law
+  # - mmlu_jurisprudence
+  # - mmlu_logical_fallacies
+  # - mmlu_moral_disputes
+  # - mmlu_moral_scenarios
+  # - mmlu_philosophy
+  # - mmlu_prehistory
+  # - mmlu_professional_law
+  # - mmlu_world_religions
 aggregate_metric: True
 weight_by_size: True

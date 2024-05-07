@@ -578,6 +578,8 @@ def evaluate(
 
             results, task_hierarchy, show_group_table = process_group(results, task_dict)
 
+        print(task_hierarchy)
+        import sys; sys.exit()
         results_agg = defaultdict(dict)
         groups_agg = defaultdict(dict)
         all_tasks_list = list(task_hierarchy.keys())

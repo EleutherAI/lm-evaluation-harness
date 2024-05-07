@@ -3,16 +3,16 @@ group_alias: other
 task:
   - mmlu_business_ethics
   - mmlu_clinical_knowledge
-  - mmlu_college_medicine
-  - mmlu_global_facts
-  - mmlu_human_aging
-  - mmlu_management
-  - mmlu_marketing
-  - mmlu_medical_genetics
-  - mmlu_miscellaneous
-  - mmlu_nutrition
-  - mmlu_professional_accounting
-  - mmlu_professional_medicine
-  - mmlu_virology
+  # - mmlu_college_medicine
+  # - mmlu_global_facts
+  # - mmlu_human_aging
+  # - mmlu_management
+  # - mmlu_marketing
+  # - mmlu_medical_genetics
+  # - mmlu_miscellaneous
+  # - mmlu_nutrition
+  # - mmlu_professional_accounting
+  # - mmlu_professional_medicine
+  # - mmlu_virology
 aggregate_metric: True
 weight_by_size: True
