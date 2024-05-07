@@ -164,7 +164,6 @@ class TaskManager:
                 if subtask_list == -1:
                     group_config = self._get_config(name_or_config)
                     subtask_list = group_config["task"]
-
                 group_name = ConfigurableGroup(config=group_config)
 
         if isinstance(name_or_config, dict):
@@ -229,7 +228,7 @@ class TaskManager:
             update_config=update_config,
             yaml_path=yaml_path,
         )
-        return {group_name: dict(collections.ChainMap(*map(fn, subtask_list)))}
+        return {group_name: dict(collections.ChainMap(*map(fn, reversed(subtask_list))))}
 
     def load_task_or_group(self, task_list: Optional[Union[str, list]] = None) -> dict:
         """Loads a dictionary of task objects from a list
