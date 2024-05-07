@@ -229,6 +229,9 @@ class Task(abc.ABC):
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
+        self.fewshot_rnd: Optional[
+            random.Random
+        ] = None  # purposely induce errors in case of improper usage
 
     def download(
         self,
@@ -520,7 +523,7 @@ class Task(abc.ABC):
         self,
         doc,
         num_fewshot,
-        rnd=random.Random(1234),
+        rnd=None,
         description=None,
     ):
         """Returns a fewshot context string that is made up of a prepended description
@@ -539,9 +542,12 @@ class Task(abc.ABC):
             The fewshot context.
         """
         if rnd is None:
-            raise ValueError(
-                "A `random.Random` generator argument must be provided to `rnd`"
-            )
+            if self.fewshot_rnd is not None:
+                rnd = self.fewshot_rnd
+            else:
+                raise ValueError(
+                    "A `random.Random` generator argument must be provided to `rnd`"
+                )
 
         description = description if description else ""
 
@@ -631,6 +637,11 @@ class Task(abc.ABC):
             }
         setattr(self._config, "metric_list", [{"metric": metric_name}])
         setattr(self._config, "process_results", None)
+
+    def set_fewshot_seed(self, seed: Optional[int] = None) -> None:
+        self.fewshot_rnd = random.Random(seed)
+        if hasattr(self, "sampler"):
+            self.sampler.rnd = self.fewshot_rnd
 
     @property
     def eval_docs(self) -> Union[datasets.Dataset, List[dict]]:
@@ -808,11 +819,29 @@ class ConfigurableTask(Task):
             self.prompt = None
 
         if self.fewshot_docs() is not None:
-            self.sampler = samplers.get_sampler(
+            self.fewshot_rnd = (
+                random.Random()
+            )  # setting with no seed, to be overridden at a later time
+            config_sampler: Union[str, Callable] = (
                 self.config.fewshot_config.get("sampler", "default")
                 if self.config.fewshot_config
                 else "default"
-            )(list(self.fewshot_docs()), self, rnd=random.Random(1234))
+            )
+            if isinstance(config_sampler, str):
+                self.sampler = samplers.get_sampler(config_sampler)(
+                    list(self.fewshot_docs()), self, rnd=self.fewshot_rnd
+                )
+            elif callable(config_sampler) and issubclass(
+                config_sampler, samplers.ContextSampler
+            ):
+                self.sampler = config_sampler(
+                    docs=list(self.fewshot_docs()), task=self, rnd=self.fewshot_rnd
+                )
+            else:
+                raise TypeError(
+                    f"fewshot_config.sampler should be a string or callable of ContextSampler type, "
+                    f"not {type(config_sampler)}"
+                )
 
         self.task_docs = self.eval_docs
 

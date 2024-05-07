@@ -78,7 +78,7 @@ class HFLM(TemplateLM):
 
     def __init__(
         self,
-        pretrained: Optional[Union[str, transformers.PreTrainedModel]] = "gpt2",
+        pretrained: Union[str, transformers.PreTrainedModel],
         backend: Optional[Literal["default", "causal", "seq2seq"]] = "default",
         # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
         revision: Optional[str] = "main",
