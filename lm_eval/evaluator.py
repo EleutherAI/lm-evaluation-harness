@@ -22,7 +22,7 @@ from lm_eval.evaluator_utils import (
     print_writeout,
     run_task_tests,
 )
-from lm_eval.logging_utils import add_env_info, get_git_commit_hash
+from lm_eval.logging.utils import add_env_info, get_git_commit_hash
 from lm_eval.tasks import (
     ConfigurableGroup,
     ConfigurableTask,
@@ -224,7 +224,7 @@ def simple_evaluate(
             if isinstance(task_obj, dict):
                 adjusted_task_dict = {
                     **adjusted_task_dict,
-                    **{task_name: _adjust_config(task_obj)},
+                    **{task_name: _adjust_config(task_obj, predict_only)},
                 }
 
             else:
