@@ -26,12 +26,12 @@ Homepage: `https://github.com/haryoa/copal-id`
 
 #### Groups
 
-* `copal`
+* `copal_id`
 
 #### Tasks
 
-* `standard`: `Standard version of COPAL dataset, use formal language and less local nuances`
-* `colloquial`: `Colloquial version of COPAL dataset, use informal language and more local nuances`
+* `copal_id_standard`: `Standard version of COPAL dataset, use formal language and less local nuances`
+* `copal_id_colloquial`: `Colloquial version of COPAL dataset, use informal language and more local nuances`
 
 ### Checklist
 
