@@ -63,8 +63,53 @@ class ContextSampler:
             )
             + self.fewshot_delimiter
         )
-
         return labeled_examples
+
+    def get_chat_context(
+        self,
+        doc,
+        num_fewshot,
+        chat_history: list = [],
+    ):
+        # draw an extra fewshot sample if using same split as evaluating on
+        n_samples = (
+            num_fewshot + 1
+            if self.config.fewshot_split == self.config.test_split
+            else num_fewshot
+        )
+        # draw `n_samples` docs from fewshot_docs
+        fewshotex = self.sample(n_samples)
+
+        # get rid of the doc that's the one we're evaluating, if it's in the fewshot
+        # TODO: should we just stop people from using fewshot from same split as evaluating?
+        selected_docs = [x for x in fewshotex if x != doc][:num_fewshot]
+
+        for doc in selected_docs:
+            chat_history.append(
+                {
+                    "role": "user",
+                    "content": self.doc_to_text(doc)
+                    if (
+                        self.config.doc_to_choice is None
+                        or isinstance(self.doc_to_text(doc), str)
+                    )
+                    else self.doc_to_choice(doc)[self.doc_to_text(doc)],
+                }
+            )
+            chat_history.append(
+                {
+                    "role": "assistant",
+                    "content": str(self.doc_to_target(doc)[0])
+                    if isinstance(self.doc_to_target(doc), list)
+                    else self.doc_to_target(doc)
+                    if (
+                        self.config.doc_to_choice is None
+                        or isinstance(self.doc_to_target(doc), str)
+                    )
+                    else str(self.doc_to_choice(doc)[self.doc_to_target(doc)]),
+                }
+            )
+        return chat_history
 
     def sample(self, n):
         """

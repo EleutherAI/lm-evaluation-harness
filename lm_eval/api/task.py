@@ -373,6 +373,8 @@ class Task(abc.ABC):
         world_size=None,
         cache_requests=False,
         rewrite_requests_cache=False,
+        apply_chat_template=False,
+        tokenizer=None,
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
 
@@ -421,6 +423,8 @@ class Task(abc.ABC):
             fewshot_ctx = self.fewshot_context(
                 doc,
                 0 if self.config.num_fewshot is None else self.config.num_fewshot,
+                apply_chat_template,
+                tokenizer,
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -957,8 +961,32 @@ class ConfigurableTask(Task):
                 )
             return super().fewshot_docs()
 
+    def convert_chat_history_to_string(self, chat_history: list, tokenizer=None) -> str:
+        """Returns chat history tokenized or concatenated as a string.
+
+        :param chat_history: list
+            The chat history to convert to a string.
+        :param tokenizer:
+            Optional tokenizer to use for applying the chat template, if None, the sampler's fewshot_delimiter is used.
+        """
+        if tokenizer:
+            return tokenizer.apply_chat_template(
+                chat_history, tokenize=False, add_generation_prompt=True
+            )
+        else:
+            return self.sampler.fewshot_delimiter + "".join(
+                f"{s['role']}: {s['content']}" + self.sampler.fewshot_delimiter
+                for s in chat_history
+            )
+
     @utils.positional_deprecated
-    def fewshot_context(self, doc: str, num_fewshot: int) -> str:
+    def fewshot_context(
+        self,
+        doc: str,
+        num_fewshot: int,
+        apply_chat_template: bool = False,
+        tokenizer=None,
+    ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
 
@@ -966,32 +994,70 @@ class ConfigurableTask(Task):
             The document as returned from training_docs, validation_docs, or test_docs.
         :param num_fewshot: int
             The number of fewshot examples to provide in the returned context string.
+        :param apply_chat_template: bool
+            Whether to apply the chat template to the fewshot context.
+        :param tokenizer:
+            The tokenizer to use for applying the chat template.
         :returns: str
             The fewshot context.
         """
         if description := self.config.description:
             description = utils.apply_template(self.config.description, doc)
 
+        chat_history = []
         if num_fewshot == 0:
             # always prepend the (possibly empty) task description
-            labeled_examples = description
+            if apply_chat_template:
+                chat_history.append({"role": "system", "content": description})
+            else:
+                labeled_examples = description
         else:
-            labeled_examples = description + self.sampler.get_context(doc, num_fewshot)
+            if apply_chat_template:
+                chat_history = self.sampler.get_chat_context(
+                    doc, num_fewshot, chat_history
+                )
+            else:
+                labeled_examples = description + self.sampler.get_context(
+                    doc, num_fewshot
+                )
 
         example = self.doc_to_text(doc)
-        if self.multiple_input:
-            return labeled_examples
+        if apply_chat_template:
+            if not self.multiple_input:
+                if isinstance(example, str):
+                    chat_history.append({"role": "user", "content": example})
+                elif isinstance(example, list):
+                    chat_histories_list = []
+                    for ex in example:
+                        chat = deepcopy(chat_history)
+                        chat.append({"role": "user", "content": ex})
+                        chat_histories_list.append(
+                            self.convert_chat_history_to_string(chat, tokenizer)
+                        )
+                    return chat_histories_list
+                elif isinstance(example, int):
+                    if self.config.doc_to_choice is not None:
+                        choices = self.doc_to_choice(doc)
+                        chat_history.append(
+                            {"role": "user", "content": choices[example]}
+                        )
+                    else:
+                        chat_history.append({"role": "user", "content": str(example)})
+            return self.convert_chat_history_to_string(chat_history, tokenizer)
         else:
-            if isinstance(example, str):
-                return labeled_examples + example
-            elif isinstance(example, list):
-                return [labeled_examples + ex for ex in example]
-            elif isinstance(example, int):
-                if self.config.doc_to_choice is not None:
-                    choices = self.doc_to_choice(doc)
-                    return labeled_examples + choices[example]
-                else:
-                    return labeled_examples + str(example)
+            if self.multiple_input:
+                return labeled_examples
+            else:
+                if isinstance(example, str):
+                    return labeled_examples + example
+                elif isinstance(example, list):
+                    return [labeled_examples + ex for ex in example]
+                elif isinstance(example, int):
+                    if self.config.doc_to_choice is not None:
+                        choices = self.doc_to_choice(doc)
+                        return labeled_examples + choices[example]
+                    else:
+                        return labeled_examples + str(example)
 
     def apply_filters(self):
         """Iterates over FilterEnsembles and applies them to instances"""

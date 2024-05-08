@@ -55,6 +55,7 @@ def simple_evaluate(
     check_integrity: bool = False,
     write_out: bool = False,
     log_samples: bool = True,
+    apply_chat_template: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
     verbosity: str = "INFO",
@@ -99,6 +100,8 @@ def simple_evaluate(
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param apply_chat_template: bool
+        If True, apply chat template to the prompt
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
@@ -262,6 +265,7 @@ def simple_evaluate(
         bootstrap_iters=bootstrap_iters,
         write_out=write_out,
         log_samples=log_samples,
+        apply_chat_template=apply_chat_template,
         verbosity=verbosity,
     )
 
@@ -317,6 +321,7 @@ def evaluate(
     bootstrap_iters: Optional[int] = 100000,
     write_out: bool = False,
     log_samples: bool = True,
+    apply_chat_template: bool = False,
     verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -333,6 +338,8 @@ def evaluate(
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param apply_chat_template: bool
+        If True, apply chat template to the prompt
     :return
         Dictionary of results
     """
@@ -362,6 +369,8 @@ def evaluate(
             world_size=lm.world_size,
             cache_requests=cache_requests,
             rewrite_requests_cache=rewrite_requests_cache,
+            apply_chat_template=apply_chat_template,
+            tokenizer=lm.tokenizer,
         )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"

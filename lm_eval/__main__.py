@@ -163,6 +163,12 @@ def setup_parser() -> argparse.ArgumentParser:
         help="If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis. Use with --output_path.",
     )
     parser.add_argument(
+        "--apply_chat_template",
+        action="store_true",
+        default=False,
+        help="If True, applies the chat template to the prompt",
+    )
+    parser.add_argument(
         "--show_config",
         action="store_true",
         default=False,
@@ -357,6 +363,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
+        apply_chat_template=args.apply_chat_template,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
         verbosity=args.verbosity,
