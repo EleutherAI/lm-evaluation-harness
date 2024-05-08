@@ -568,7 +568,7 @@ def evaluate(
                                 task_hierarchy.get(group_or_task, [])
                             )
 
-                        if (group_config is not None) and (group_config["aggregate_metric"] is False):
+                        if (group_config is None) or (group_config["aggregate_metric"] is False):
                             results[group_or_task][" "] = " "
                             continue
 
