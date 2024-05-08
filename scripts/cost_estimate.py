@@ -8,6 +8,7 @@ from lm_eval.api.model import LM
 
 class DryrunLM(LM):
     def __init__(self):
+        super().__init__()
         self.tokencost = 0
         self.tokenizer = transformers.GPT2TokenizerFast.from_pretrained("gpt2")
         self.tokenizer.pad_token = "<|endoftext|>"
@@ -19,7 +20,7 @@ class DryrunLM(LM):
     def loglikelihood(self, requests):
         res = []
 
-        for ctx, cont in requests:
+        for ctx, cont in [req.args for req in requests]:
             res.append((-random.random(), False))
             self.tokencost += len(self.tokenizer.tokenize(ctx + cont))
 
@@ -28,7 +29,7 @@ class DryrunLM(LM):
     def generate_until(self, requests):
         res = []
 
-        for ctx, _ in requests:
+        for ctx, _ in [req.args for req in requests]:
             res.append("lol")
 
             # assume worst case - generates until 256
@@ -39,7 +40,8 @@ class DryrunLM(LM):
     def loglikelihood_rolling(self, requests):
         res = []
 
-        for (s,) in requests:
+        for (s,) in [req.args for req in requests]:
+            res.append(-random.random())
             # assume worst case: extra full context
             self.tokencost += len(self.tokenizer.tokenize(s)) + 2048
 
@@ -51,20 +53,20 @@ def main():
 
     task_list = "arc_challenge,arc_easy,boolq,cola,copa,headqa,hellaswag,lambada,logiqa,mathqa,mc_taco,mrpc,multirc,openbookqa,piqa,prost,pubmedqa,qnli,qqp,race,record,rte,sciq,sst,triviaqa,webqs,wic,wikitext,winogrande,wnli,wsc"
     values = []
-    for taskname in task_list.split(","):
+    for task_name in task_list.split(","):
         lm.tokencost = 0
         evaluator.simple_evaluate(
-            lm=lm,
-            task_dict={taskname: tasks.get_task(taskname)()},
+            model=lm,
+            tasks=task_name,
             num_fewshot=0,
             limit=None,
             bootstrap_iters=10,
         )
 
-        print(taskname, lm.tokencost)
+        print(task_name, lm.tokencost)
         values.append(
             [
-                taskname,
+                task_name,
                 lm.tokencost,
                 lm.tokencost / 1000 * 0.0008,
                 lm.tokencost / 1000 * 0.0012,
