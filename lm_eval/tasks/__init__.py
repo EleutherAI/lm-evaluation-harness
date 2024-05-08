@@ -71,6 +71,13 @@ class TaskManager:
             return True
         return False
 
+    def _name_is_tag(self, name) -> bool:
+        if self._name_is_registered(name) and (
+            self.task_index[name]["type"] == "tag"
+        ):
+            return True
+        return False
+
     def _name_is_group(self, name) -> bool:
         if self._name_is_registered(name) and (
             self.task_index[name]["type"] == "group"
@@ -159,12 +166,13 @@ class TaskManager:
                 task_config = self._get_config(name_or_config)
                 return load_task(task_config, task=name_or_config)
             else:
-                group_name = name_or_config
                 subtask_list = self._get_tasklist(name_or_config)
                 if subtask_list == -1:
                     group_config = self._get_config(name_or_config)
                     subtask_list = group_config["task"]
-                group_name = ConfigurableGroup(config=group_config)
+                    group_name = ConfigurableGroup(config=group_config)
+                else:
+                    group_name = name_or_config
 
         if isinstance(name_or_config, dict):
             if update_config is not None:
@@ -252,10 +260,11 @@ class TaskManager:
 
     def _get_task_and_group(self, task_dir: str):
         """Creates a dictionary of tasks index with the following metadata,
-        - `type`, that can be either `task`, `python_task`, or `group`.
+        - `type`, that can be either `task`, `python_task`, `group` or `tags`.
             `task` refer to regular task configs, `python_task` are special
             yaml files that only consists of `task` and `class` parameters.
-            `group` are group configs.
+            `group` are group configs. `tags` are labels that can be assigned
+            to tasks to assist in sorting and calling tasks of certain themes.
         - `yaml_path`, path to the yaml file. If the entry is a `group` that
             was configured through a task config, the yaml_path will be -1
             and all subtasks will be listed in `task` (see below)
@@ -312,20 +321,20 @@ class TaskManager:
                             "yaml_path": yaml_path,
                         }
 
-                        if "group" in config:
-                            groups = config["group"]
-                            if isinstance(config["group"], str):
-                                groups = [groups]
+                        if "tag" in config:
+                            tag = config["tag"]
+                            if isinstance(config["tag"], str):
+                                tag = [tag]
 
-                            for group in groups:
-                                if group not in tasks_and_groups:
-                                    tasks_and_groups[group] = {
-                                        "type": "group",
+                            for tag in tag:
+                                if tag not in tasks_and_groups:
+                                    tasks_and_groups[tag] = {
+                                        "type": "tag",
                                         "task": [task],
                                         "yaml_path": -1,
                                     }
                                 else:
-                                    tasks_and_groups[group]["task"].append(task)
+                                    tasks_and_groups[tag]["task"].append(task)
                     else:
                         self.logger.debug(f"File {f} in {root} could not be loaded")
 

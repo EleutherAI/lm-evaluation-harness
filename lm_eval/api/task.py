@@ -138,7 +138,7 @@ class TaskConfig(dict):
     # task naming/registry
     task: Optional[str] = None
     task_alias: Optional[str] = None
-    tags: Optional[Union[str, list]] = None
+    tag: Optional[Union[str, list]] = None
     group: Optional[Union[str, list]] = None
     group_alias: Optional[Union[str, list]] = None
     # HF dataset options.
