@@ -1,0 +1,6 @@
+group: truthfulqa
+group_alias: Truthful QA
+task:
+  - truthfulqa_gen
+  - truthfulqa_mc1
+  - truthfulqa_mc2
