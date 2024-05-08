@@ -184,7 +184,9 @@ class TaskManager:
                     }
                     subtask_list = self._get_tasklist(name)
                     if subtask_list == -1:
-                        subtask_list = self._get_config(name)["task"]
+                        group_config = self._get_config(name)
+                        subtask_list = group_config["task"]
+                    group_name = ConfigurableGroup(config=group_config)
                 else:
                     if self._name_is_registered(name):
                         base_task_config = self._get_config(name)

@@ -541,15 +541,13 @@ def evaluate(
                     task_hierarchy = {}
 
                 for group_or_task, group_or_task_info in task_dict.items():
+                    
+                    # Convert to string
                     if isinstance(group_or_task, ConfigurableGroup):
                         group_config = group_or_task.config
                         group_or_task = group_or_task.group
-                        show_group_table = (
-                            show_group_table | group_config["aggregate_metric"]
-                        )
-                        if group_config["aggregate_metric"] is False:
-                            results[group_or_task][" "] = " "
-                            continue
+                    else:
+                        group_config = None
 
                     if isinstance(group_or_task_info, ConfigurableTask):
                         if task_root:
@@ -569,6 +567,14 @@ def evaluate(
                             task_hierarchy.setdefault(task_root, []).extend(
                                 task_hierarchy.get(group_or_task, [])
                             )
+
+                        if (group_config is not None) and (group_config["aggregate_metric"] is False):
+                            results[group_or_task][" "] = " "
+                            continue
+
+                        show_group_table = (
+                            show_group_table | group_config["aggregate_metric"]
+                        )
 
                         task_list = _task_hierarchy[group_or_task]
                         metric_list = list(
