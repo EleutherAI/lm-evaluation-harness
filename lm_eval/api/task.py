@@ -1004,17 +1004,17 @@ class ConfigurableTask(Task):
         if description := self.config.description:
             description = utils.apply_template(self.config.description, doc)
 
-        chat_history = []
+        labeled_examples = []
         if num_fewshot == 0:
             # always prepend the (possibly empty) task description
             if apply_chat_template:
-                chat_history.append({"role": "system", "content": description})
+                labeled_examples.append({"role": "system", "content": description})
             else:
                 labeled_examples = description
         else:
             if apply_chat_template:
-                chat_history = self.sampler.get_chat_context(
-                    doc, num_fewshot, chat_history
+                labeled_examples = self.sampler.get_chat_context(
+                    doc, num_fewshot, labeled_examples
                 )
             else:
                 labeled_examples = description + self.sampler.get_context(
@@ -1025,25 +1025,27 @@ class ConfigurableTask(Task):
         if apply_chat_template:
             if not self.multiple_input:
                 if isinstance(example, str):
-                    chat_history.append({"role": "user", "content": example})
+                    labeled_examples.append({"role": "user", "content": example})
                 elif isinstance(example, list):
-                    chat_histories_list = []
+                    labeled_examples_list = []
                     for ex in example:
-                        chat = deepcopy(chat_history)
+                        chat = deepcopy(labeled_examples)
                         chat.append({"role": "user", "content": ex})
-                        chat_histories_list.append(
+                        labeled_examples_list.append(
                             self.convert_chat_history_to_string(chat, tokenizer)
                         )
-                    return chat_histories_list
+                    return labeled_examples_list
                 elif isinstance(example, int):
                     if self.config.doc_to_choice is not None:
                         choices = self.doc_to_choice(doc)
-                        chat_history.append(
+                        labeled_examples.append(
                             {"role": "user", "content": choices[example]}
                         )
                     else:
-                        chat_history.append({"role": "user", "content": str(example)})
-            return self.convert_chat_history_to_string(chat_history, tokenizer)
+                        labeled_examples.append(
+                            {"role": "user", "content": str(example)}
+                        )
+            return self.convert_chat_history_to_string(labeled_examples, tokenizer)
         else:
             if self.multiple_input:
                 return labeled_examples
