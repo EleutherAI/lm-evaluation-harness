@@ -370,7 +370,7 @@ def evaluate(
             cache_requests=cache_requests,
             rewrite_requests_cache=rewrite_requests_cache,
             apply_chat_template=apply_chat_template,
-            tokenizer=lm.tokenizer,
+            tokenizer=lm.tokenizer if hasattr(lm, "tokenizer") else None,
         )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
