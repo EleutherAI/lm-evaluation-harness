@@ -1,5 +1,6 @@
 group: copal
-task: standard
+task: copal_id_standard
+task_alias: standard
 dataset_path: haryoaw/COPAL
 dataset_name: id
 output_type: multiple_choice

@@ -1,3 +1,0 @@
-include: standard.yaml
-task: colloquial
-test_split: test_colloquial
