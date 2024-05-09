@@ -2,7 +2,7 @@ task: fpb
 dataset_path: financial_phrasebank
 dataset_name: sentences_50agree
 training_split: null
-validation_split: null 
+validation_split: null
 test_split: train
 fewshot_split: train
 num_fewshot: 5
