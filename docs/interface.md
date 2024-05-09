@@ -57,8 +57,6 @@ This mode supports a number of command-line arguments, the details of which can 
     * `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
     * `public_repo` - whether the repository is public, can be `True` or `False`,
 
-Accepts a string of the form `username/repo_name:branch_name` to specify the repository to log to. If the branch does not exist, it will be created. If the repository does not exist, it will be created. If the repository is private, you will need to set the `HF_TOKEN` environment variable to a valid Hugging Face API token.
-
 ## External Library Usage
 
 We also support using the library's external API for use within model training loops or other scripts.
