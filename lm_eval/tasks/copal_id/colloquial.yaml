@@ -1,0 +1,4 @@
+include: standard.yaml
+task: copal_id_colloquial
+task_alias: colloquial
+test_split: test_colloquial
