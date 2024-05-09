@@ -4,4 +4,5 @@ lm_eval --model hf \
         --device cuda:0     \
         --batch_size 1 \
         --num_fewshot 0 \
-        --verbosity DEBUG
+        --verbosity DEBUG \
+        --wandb_args project=afrimmlu

@@ -16,8 +16,8 @@ def doc_to_text(doc):
                         C: ''{choice3}'''
                         D: ''{choice4}'''
                        
-                
                 Answer:  """
+    
     choices = eval(doc["choices"])
     text = output.format(subject=doc['subject'],
                          question=doc['question'],
@@ -25,7 +25,6 @@ def doc_to_text(doc):
                          choice2=choices[1],
                          choice3=choices[2],
                          choice4=choices[3])
-    print(text)
     return text
 
 def weighted_f1_score(items):
