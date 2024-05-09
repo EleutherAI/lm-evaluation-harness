@@ -238,4 +238,4 @@ if __name__ == "__main__":
     for row in sys.stdin:
         predictions.append(row)
     (goldMap, predictionMap) = computeMaps(predictions, reference_file)
-    print(bleuFromMaps(goldMap, predictionMap)[0])
+    # print(bleuFromMaps(goldMap, predictionMap)[0])

@@ -1,5 +1,5 @@
 task: toxigen
-dataset_path: skg/toxigen-data
+dataset_path: toxigen/toxigen-data
 dataset_name: annotated
 output_type: multiple_choice
 training_split: train

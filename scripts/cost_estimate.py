@@ -41,6 +41,7 @@ class DryrunLM(LM):
         res = []
 
         for (s,) in [req.args for req in requests]:
+            res.append(-random.random())
             # assume worst case: extra full context
             self.tokencost += len(self.tokenizer.tokenize(s)) + 2048
 
@@ -51,10 +52,8 @@ def main():
     lm = DryrunLM()
 
     # task_list = "arc_challenge,arc_easy,boolq,cola,copa,headqa,hellaswag,lambada,logiqa,mathqa,mc_taco,mrpc,multirc,openbookqa,piqa,prost,pubmedqa,qnli,qqp,race,record,rte,sciq,sst,triviaqa,webqs,wic,wikitext,winogrande,wnli,wsc"
-    task_list = "adv_glue,anli,beavertails,bigbench_bbq_lite_json_multiple_choice,discrim_eval,glue,lambada,logiqa,mc_taco,piqa,scruples,simple_cooccurrence_bias,toxigen,winogender,wmdp,xstest,bbh,hendrycks_ETHICS,minerva_math,moralChoice,wikitext,decoding_Trust,eq_bench,pile_10k,crows_pairs,bold,halueval"
-
+    task_list = "adv_glue,anli,beavertails,bigbench_bbq_lite_json_multiple_choice,discrim_eval,glue,lambada,logiqa,mc_taco,piqa,scruples,simple_cooccurrence_bias,toxigen,winogender,wmdp,xstest,bbh,hendrycks_ethics,moralchoice,decoding_trust,eq_bench,wikitext,pile_10k,bold"
     values = []
-    task_manager = tasks.TaskManager()
     for task_name in task_list.split(","):
         lm.tokencost = 0
         evaluator.simple_evaluate(
