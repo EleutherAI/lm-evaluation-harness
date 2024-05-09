@@ -1,0 +1,20 @@
+
+task: safety_bench3
+dataset_path: json
+dataset_name: null
+dataset_kwargs:
+  data_files: {"test": "/data/richard_ren/lm-evaluation-harness/lm_eval/tasks/safety_bench/confidential/safety_bench_3answers.json"}
+num_fewshot: 0
+training_split: null
+validation_split: null
+test_split: test
+output_type: multiple_choice
+doc_to_text: "Question: {{question.strip()}}\n(A). {{options[0]}}\n(B). {{options[1]}}\n(C). {{options[2]}}\nAnswer:"
+doc_to_choice: ["A", "B", "C"]
+doc_to_target: answer
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 0

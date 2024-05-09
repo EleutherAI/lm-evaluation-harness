@@ -1,0 +1,4 @@
+"dataset_name": "safety_bench3"
+"group": "safety_bench"
+"include": "_default_template_yaml3"
+"task": "safety_bench3"
