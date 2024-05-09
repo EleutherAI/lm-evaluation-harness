@@ -8,8 +8,6 @@ Abstract: https://arxiv.org/abs/1307.5336
 
 Polar sentiment dataset of sentences from financial news. The dataset consists of 4840 sentences from English language financial news categorised by sentiment. The eval uses 5-shot prompting to determing the sentiment of finance related sentences. The subset sentences_50agree is used which contains sentences whose sentiment was agreed upon by at least 50 percent of reviewers. 
 
-
-
 ### Citation
 
 ```
