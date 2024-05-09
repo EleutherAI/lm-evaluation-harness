@@ -38,7 +38,7 @@ class VLLM(TemplateLM):
 
     def __init__(
         self,
-        pretrained="gpt2",
+        pretrained: str,
         dtype: Literal["float16", "bfloat16", "float32", "auto"] = "auto",
         revision: Optional[str] = None,
         trust_remote_code: Optional[bool] = False,
