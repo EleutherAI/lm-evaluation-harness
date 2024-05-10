@@ -268,8 +268,6 @@ class TaskManager:
         all_loaded_tasks = dict(
             collections.ChainMap(*map(self._load_individual_task_or_group, task_list))
         )
-        print(all_loaded_tasks)
-        import sys; sys.exit()
         return all_loaded_tasks
 
     def load_config(self, config: Dict):
