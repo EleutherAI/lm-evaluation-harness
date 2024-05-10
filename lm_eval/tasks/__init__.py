@@ -67,16 +67,12 @@ class TaskManager:
         return False
 
     def _name_is_task(self, name) -> bool:
-        if self._name_is_registered(name) and (
-            self.task_index[name]["type"] == "task"
-        ):
+        if self._name_is_registered(name) and (self.task_index[name]["type"] == "task"):
             return True
         return False
 
     def _name_is_tag(self, name) -> bool:
-        if self._name_is_registered(name) and (
-            self.task_index[name]["type"] == "tag"
-        ):
+        if self._name_is_registered(name) and (self.task_index[name]["type"] == "tag"):
             return True
         return False
 
@@ -175,12 +171,8 @@ class TaskManager:
                 else:
                     # group_name = name_or_config
                     group_name = ConfigurableGroup(
-                        config={
-                            "group": name_or_config,
-                            "task": subtask_list
-                            }
-                        )
-                    
+                        config={"group": name_or_config, "task": subtask_list}
+                    )
 
         if isinstance(name_or_config, dict):
             if update_config is not None:
@@ -196,7 +188,9 @@ class TaskManager:
                 if self._name_is_group(name) or self._name_is_tag(name):
                     group_name = name
                     update_config = {
-                        k: v for k, v in name_or_config.items() if k not in ["task", "group"]
+                        k: v
+                        for k, v in name_or_config.items()
+                        if k not in ["task", "group"]
                     }
                     subtask_list = self._get_tasklist(name)
                     if subtask_list == -1:
@@ -206,11 +200,8 @@ class TaskManager:
                     else:
                         # group_name = name
                         group_name = ConfigurableGroup(
-                            config={
-                                "group": group_name,
-                                "task": subtask_list
-                                }
-                            )
+                            config={"group": group_name, "task": subtask_list}
+                        )
                 else:
                     if self._name_is_registered(name):
                         base_task_config = self._get_config(name)
