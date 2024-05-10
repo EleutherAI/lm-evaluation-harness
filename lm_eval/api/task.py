@@ -1382,7 +1382,6 @@ class ConfigurableTask(Task):
                         # TODO: this handles the case where HF evaluate returns a dict.
                         result_score = result_score[metric]
                 result_dict[metric] = result_score
-                print(f"Result Dict: {result_dict}")
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
