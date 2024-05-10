@@ -36,3 +36,16 @@ class Instance:
         return (
             self.arguments if isinstance(self.arguments, tuple) else (self.arguments,)
         )
+
+    @args.setter
+    def args(self, new_arguments: tuple) -> None:
+        """
+        Update the arguments of this instance with a new one
+        """
+        if isinstance(new_arguments, tuple):
+            assert (
+                len(new_arguments) == len(self.args)
+            ), "Must set new Instance arguments to have same size + types as old arguments"
+            self.arguments = new_arguments
+        else:
+            raise ValueError("Must set new Instance args to a tuple!")
