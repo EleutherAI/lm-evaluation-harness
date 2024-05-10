@@ -544,14 +544,14 @@ def evaluate(
                     # Convert to string
                     if isinstance(group_or_task, ConfigurableGroup):
                         group_config = group_or_task.config
-                        group_or_task = group_or_task.group
+                        group_or_task = group_or_task.task_id
                     else:
                         group_config = None
 
                     if isinstance(group_or_task_info, ConfigurableTask):
                         if task_root:
                             task_hierarchy.setdefault(task_root, []).append(
-                                group_or_task
+                                group_or_task_info.task_id
                             )
                     else:
                         (
