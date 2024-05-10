@@ -144,8 +144,6 @@ class TaskManager:
         update_config: Optional[dict] = None,
     ) -> Mapping:
         def load_task(config, task):
-            print(f"loading {task}", self._name_is_registered(task))
-            print(config)
             if "include" in config:
                 config = {
                     **utils.load_yaml_config(
