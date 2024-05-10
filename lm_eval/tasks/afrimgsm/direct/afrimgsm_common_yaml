@@ -1,0 +1,31 @@
+group: mgsm_direct
+task: afrimgsm_direct
+dataset_path: masakhane/afrimgsm
+output_type: generate_until
+training_split: train
+test_split: test
+fewshot_split: train
+target_delimiter: ""
+doc_to_target: '{% if answer is not none %}{{answer}}{% else %}{{answer_number|string}}{% endif %}'
+doc_to_text: '{% if answer is not none %}{{question+"\nAnswer:"}}{% else %}{{"Question: "+question+"\nAnswer:"}}{% endif %}'
+generation_kwargs:
+  do_sample: false
+  until:
+  - 'Question:'
+  - </s>
+  - <|im_end|>
+filter_list:
+  - filter:
+    - function: regex-numbers
+      group_select: -1
+      regex_pattern: (-?[0-9.,]{2,})|(-?[0-9]+)
+    - function: take_first
+    name: flexible-extract
+metric_list:
+  - metric: squad
+    aggregation: squad_f1
+    average: weighted
+    hf_evaluate: False
+    higher_is_better: True
+metadata:
+  version: 1.0
