@@ -1294,6 +1294,7 @@ class ConfigurableTask(Task):
                 **({"f1": (gold, pred)} if "f1" in use_metric else {}),
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
+                **({"squad": (gold, pred)} if "squad" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
                 **(
                     {"brier_score": (gold, prob_norm)}
@@ -1365,18 +1366,23 @@ class ConfigurableTask(Task):
                         else:
                             result_score = 0.0
                 else:
+                    print(gold)
+                    print(result)
+                    print(metric)
                     try:
                         result_score = self._metric_fn_list[metric](
                             references=[gold],
                             predictions=[result],
                             **self._metric_fn_kwargs[metric],
                         )
-                    except TypeError:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                    except TypeError as error:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
+                        print(error)
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.
                         result_score = result_score[metric]
                 result_dict[metric] = result_score
+                print(f"Result Dict: {result_dict}")
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
