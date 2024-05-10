@@ -60,11 +60,10 @@ def f1_score(items):
 
 @register_aggregation("squad_f1")
 def squad_f1_score(items):
-
     gold_squad, pred_squad = [], []
     for index, (ref, pred) in enumerate(items):
-        pred_dict = {'prediction_text': pred, 'id': str(index)}
-        ref_dict = {'answers': {'answer_start': [0], 'text': [ref]}, 'id': str(index)}
+        pred_dict = {'prediction_text': str(pred), 'id': str(index)}
+        ref_dict = {'answers': {'answer_start': [0], 'text': str(ref)}, 'id': str(index)}
         gold_squad.append(ref_dict)
         pred_squad.append(pred_dict)
 

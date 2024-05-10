@@ -1366,9 +1366,6 @@ class ConfigurableTask(Task):
                         else:
                             result_score = 0.0
                 else:
-                    print(gold)
-                    print(result)
-                    print(metric)
                     try:
                         result_score = self._metric_fn_list[metric](
                             references=[gold],
@@ -1376,7 +1373,6 @@ class ConfigurableTask(Task):
                             **self._metric_fn_kwargs[metric],
                         )
                     except TypeError as error:  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
-                        print(error)
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
                         # TODO: this handles the case where HF evaluate returns a dict.

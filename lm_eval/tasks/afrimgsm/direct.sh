@@ -20,15 +20,18 @@ task=afrimgsm_direct_amh,afrimgsm_direct_ibo,afrimgsm_direct_fra,afrimgsm_direct
 for model in "${models[@]}"
 do
   echo "Evaluating model: $model"
-  export OUTPUT_DIR=results/${model##*/}
+  for fewshot in 0 2 4 6 8
+  do
+    export OUTPUT_DIR=results/$fewshot/${model##*/}
 
-  mkdir -p "$OUTPUT_DIR"
+    mkdir -p "$OUTPUT_DIR"
 
-  lm_eval --model hf \
-          --model_args "pretrained=${model}" \
-          --tasks $task\
-          --device cuda:0 \
-          --batch_size 16 \
-          --num_fewshot 0 \
-          --verbosity DEBUG
+    lm_eval --model hf \
+            --model_args "pretrained=${model}" \
+            --tasks $task\
+            --device cuda:0 \
+            --batch_size 16 \
+            --num_fewshot $fewshot \
+            --verbosity DEBUG
+  done
 done
