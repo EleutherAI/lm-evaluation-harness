@@ -180,17 +180,6 @@ class TaskConfig(dict):
     ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __post_init__(self) -> None:
-
-        # TODO Remove in next release
-        if (self.group is not None) or (self.group_alias is not None):
-            self.tags = self.group
-            eval_logger.info(
-                f"`group` and `group_alias` will no longer be used in the next release of lm-eval. ",
-                f"`tags` will be used to allow to call a collection of tasks just like `group`. ",
-                f"`group` will be removed in order to not cause confusion with the new ConfigurableGroup ",
-                f"which will be the offical way to create groups with addition of group-wide configuations."
-            )
-
         if self.generation_kwargs is not None:
             if self.output_type != "generate_until":
                 eval_logger.warning(
