@@ -14,13 +14,11 @@ from lm_eval.models.utils import retry_on_specific_exceptions
 from lm_eval.utils import eval_logger
 
 
-def get_result(response, ctxlen: int) -> Tuple[float, bool]:
+def get_result(response) -> Tuple[float, bool]:
     """Process results from OpenAI API response.
 
     :param response: dict
         OpenAI API Response
-    :param ctxlen: int
-        Length of context (so we can slice them away and only keep the predictions)
     :return:
         continuation_logprobs: np.array
             Log probabilities of continuation tokens
@@ -29,9 +27,9 @@ def get_result(response, ctxlen: int) -> Tuple[float, bool]:
     """
     is_greedy = True
     logprobs = response.logprobs.token_logprobs
-    continuation_logprobs = sum(logprobs[ctxlen:])
+    continuation_logprobs = sum(logprobs)
 
-    for i in range(ctxlen, len(response.logprobs.token_logprobs)):
+    for i in range(len(response.logprobs.token_logprobs)):
         token = response.logprobs.token_logprobs[i]
         top_tokens = response.logprobs.top_logprobs[i]
         top_token = max(top_tokens.keys(), key=lambda x: top_tokens[x])
@@ -212,7 +210,6 @@ class OpenaiCompletionsLM(TemplateLM):
                 client=self.client,
                 model=self.model,
                 prompt=inps,
-                echo=True,
                 max_tokens=0,
                 temperature=0.0,
                 logprobs=10,
@@ -222,7 +219,7 @@ class OpenaiCompletionsLM(TemplateLM):
             for resp, ctxlen, (cache_key, context_enc, continuation_enc) in zip(
                 response.choices, ctxlens, chunk
             ):
-                answer = get_result(resp, ctxlen)
+                answer = get_result(resp)
 
                 res.append(answer)
 
@@ -433,7 +430,7 @@ class OpenaiChatCompletionsLM(LM):
                     if "until" in kwargs.keys():
                         until = kwargs.pop("until")
                         if isinstance(until, str):
-                            until = [kwargs]
+                            until = [until]
                         elif not isinstance(until, list):
                             raise ValueError(
                                 f"Expected repr(kwargs['until']) to be of type Union[str, list] but got {until}"
