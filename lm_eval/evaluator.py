@@ -541,7 +541,6 @@ def evaluate(
                     task_hierarchy = {}
 
                 for group_or_task, group_or_task_info in task_dict.items():
-                    
                     # Convert to string
                     if isinstance(group_or_task, ConfigurableGroup):
                         group_config = group_or_task.config
@@ -555,7 +554,12 @@ def evaluate(
                                 group_or_task
                             )
                     else:
-                        results, versions, _task_hierarchy, show_group_table = process_group(
+                        (
+                            results,
+                            versions,
+                            _task_hierarchy,
+                            show_group_table,
+                        ) = process_group(
                             results,
                             versions,
                             group_or_task_info,
@@ -568,7 +572,9 @@ def evaluate(
                                 task_hierarchy.get(group_or_task, [])
                             )
 
-                        if (group_config is None) or (group_config["aggregate_metric"] is False):
+                        if (group_config is None) or (
+                            group_config["aggregate_metric"] is False
+                        ):
                             results[group_or_task][" "] = " "
                             continue
 
