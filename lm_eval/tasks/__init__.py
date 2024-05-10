@@ -189,7 +189,7 @@ class TaskManager:
                 if self._name_is_group(name) or self._name_is_tag(name):
                     group_name = name
                     update_config = {
-                        k: v for k, v in name_or_config.items() if k != "task"
+                        k: v for k, v in name_or_config.items() if k not in ["task", "group"]
                     }
                     subtask_list = self._get_tasklist(name)
                     if subtask_list == -1:
@@ -231,9 +231,9 @@ class TaskManager:
                     update_config = {
                         k: v
                         for k, v in name_or_config.items()
-                        if k not in GROUP_ONLY_KEYS
+                        if k not in GROUP_ONLY_KEYS + ["task", "group"]
                     }
-                else:
+                if ~bool(update_config):
                     update_config = None
 
                 group_config = {
@@ -268,6 +268,8 @@ class TaskManager:
         all_loaded_tasks = dict(
             collections.ChainMap(*map(self._load_individual_task_or_group, task_list))
         )
+        print(all_loaded_tasks)
+        import sys; sys.exit()
         return all_loaded_tasks
 
     def load_config(self, config: Dict):
