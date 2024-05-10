@@ -173,7 +173,14 @@ class TaskManager:
                     subtask_list = group_config["task"]
                     group_name = ConfigurableGroup(config=group_config)
                 else:
-                    group_name = name_or_config
+                    # group_name = name_or_config
+                    group_name = ConfigurableGroup(
+                        config={
+                            "group": name_or_config,
+                            "task": subtask_list
+                            }
+                        )
+                    
 
         if isinstance(name_or_config, dict):
             if update_config is not None:
@@ -197,7 +204,13 @@ class TaskManager:
                         subtask_list = group_config["task"]
                         group_name = ConfigurableGroup(config=group_config)
                     else:
-                        group_name = name
+                        # group_name = name
+                        group_name = ConfigurableGroup(
+                            config={
+                                "group": group_name,
+                                "task": subtask_list
+                                }
+                            )
                 else:
                     if self._name_is_registered(name):
                         base_task_config = self._get_config(name)
@@ -241,8 +254,7 @@ class TaskManager:
                     for k, v in name_or_config.items()
                     if k in GROUP_ONLY_KEYS + ["task", "group"]
                 }
-                if bool(group_config):
-                    group_name = ConfigurableGroup(config=group_config)
+                group_name = ConfigurableGroup(config=group_config)
 
         fn = partial(
             self._load_individual_task_or_group,
