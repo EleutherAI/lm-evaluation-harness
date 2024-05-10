@@ -109,6 +109,8 @@ class ConfigurableGroup(abc.ABC):
         self,
         config: Optional[dict] = None,
     ) -> None:
+        # Create a unique identifier ID
+        self._task_id = str(uuid.uuid1())
         self._config = GroupConfig(**config)
 
     @property
@@ -126,6 +128,10 @@ class ConfigurableGroup(abc.ABC):
     @property
     def config(self):
         return self._config.to_dict()
+
+    @property
+    def task_id(self) -> Any:
+        return self._task_id
 
     def __repr__(self):
         return (
@@ -762,6 +768,9 @@ class ConfigurableTask(Task):
         download_mode=None,
         config: Optional[dict] = None,
     ) -> None:  # TODO no super() call here
+        # Create a unique identifier ID
+        self._task_id = str(uuid.uuid1())
+
         # Get pre-configured attributes
         self._config = self.CONFIG
 
@@ -1034,7 +1043,7 @@ class ConfigurableTask(Task):
         else:
             if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
                 eval_logger.warning(
-                    f"Task '{self.config.task}': "
+                    f"[Task: {self.config.task}] "
                     "num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
@@ -1476,6 +1485,10 @@ class ConfigurableTask(Task):
 
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
+
+    @property
+    def task_id(self) -> Any:
+        return self._task_id
 
     def __repr__(self):
         return (
