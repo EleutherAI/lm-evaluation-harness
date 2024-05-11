@@ -762,6 +762,7 @@ class Task(abc.ABC):
     def task_id(self) -> Any:
         return self._task_id
 
+
 class ConfigurableTask(Task):
     VERSION = "Yaml"
     OUTPUT_TYPE = None
