@@ -316,6 +316,8 @@ class Task(abc.ABC):
         self._fewshot_docs: Optional[list] = None
         self._instances: Optional[List[Instance]] = None
 
+        # Create a unique identifier ID
+        self._task_id = str(uuid.uuid1())
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
@@ -756,6 +758,9 @@ class Task(abc.ABC):
         )
         return doc_iterator
 
+    @property
+    def task_id(self) -> Any:
+        return self._task_id
 
 class ConfigurableTask(Task):
     VERSION = "Yaml"

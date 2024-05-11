@@ -256,8 +256,6 @@ class TaskManager:
             group_name: dict(collections.ChainMap(*map(fn, reversed(subtask_list))))
         }
 
-    def build_tasks
-    
     def load_task_or_group(self, task_list: Optional[Union[str, list]] = None) -> dict:
         """Loads a dictionary of task objects from a list
 
