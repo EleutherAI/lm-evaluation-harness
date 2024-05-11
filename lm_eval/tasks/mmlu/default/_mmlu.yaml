@@ -7,7 +7,7 @@ task:
     weight_by_size: True
     tag_to_task: True
   - group: other
-    task: 
+    task:
       - mmlu_other
     aggregate_metric: True
     weight_by_size: True

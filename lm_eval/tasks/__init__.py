@@ -177,9 +177,10 @@ class TaskManager:
                 subtask_list = self._get_tasklist(name_or_config)
                 if subtask_list == -1:
                     group_config = self._get_config(name_or_config)
-                    group_name, subtask_list = _get_group_and_subtask_from_config(group_config)
+                    group_name, subtask_list = _get_group_and_subtask_from_config(
+                        group_config
+                    )
                 else:
-                    # group_name = name_or_config
                     group_name = ConfigurableGroup(
                         config={"group": name_or_config, "task": subtask_list}
                     )
@@ -194,7 +195,6 @@ class TaskManager:
             if self._config_is_task(name_or_config):
                 name = name_or_config["task"]
                 # If the name is registered as a group
-                # if self._name_is_task(name) is False:
                 if self._name_is_group(name) or self._name_is_tag(name):
                     update_config = {
                         k: v
@@ -204,7 +204,9 @@ class TaskManager:
                     subtask_list = self._get_tasklist(name)
                     if subtask_list == -1:
                         group_config = self._get_config(name)
-                        group_name, subtask_list = _get_group_and_subtask_from_config(group_config)
+                        group_name, subtask_list = _get_group_and_subtask_from_config(
+                            group_config
+                        )
                     else:
                         group_name = ConfigurableGroup(
                             config={"group": group_name, "task": subtask_list}
@@ -241,7 +243,9 @@ class TaskManager:
                     for k, v in name_or_config.items()
                     if k in GROUP_ONLY_KEYS + ["task", "group"]
                 }
-                group_name, subtask_list = _get_group_and_subtask_from_config(group_config)
+                group_name, subtask_list = _get_group_and_subtask_from_config(
+                    group_config
+                )
                 if set(name_or_config.keys()) > {"task", "group"}:
                     update_config = {
                         k: v
