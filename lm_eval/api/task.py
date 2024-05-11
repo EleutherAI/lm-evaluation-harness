@@ -57,6 +57,7 @@ class GroupConfig(dict):
     group: Optional[str] = None
     group_alias: Optional[str] = None
     task: Optional[Union[str, list]] = None
+    tag_to_task: Optional[str] = False
     aggregate_metric: Optional[str] = False
     aggregate_fn: Optional[str] = "mean"
     weight_by_size: Optional[str] = False

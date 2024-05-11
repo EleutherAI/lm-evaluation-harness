@@ -139,7 +139,7 @@ class TaskManager:
         parent_name: Optional[str] = None,
         update_config: Optional[dict] = None,
     ) -> Mapping:
-        def load_task(config, task):
+        def _load_task(config, task):
             if "include" in config:
                 config = {
                     **utils.load_yaml_config(
@@ -155,19 +155,29 @@ class TaskManager:
                 task_object = ConfigurableTask(config=config)
             return {task: task_object}
 
+        def _get_group_and_subtask_from_config(config):
+            group_name = ConfigurableGroup(config=config)
+            subtask_list = []
+            tag_to_task = group_name.config["tag_to_task"]
+            for task in group_name.config["task"]:
+                if isinstance(task, str) and self._name_is_tag(task) and tag_to_task:
+                    subtask_list.extend(self._get_tasklist(task))
+                else:
+                    subtask_list.append(task)
+            return group_name, subtask_list
+
         if isinstance(name_or_config, str):
             if update_config is not None:
                 # Process name_or_config as a dict instead
                 name_or_config = {"task": name_or_config, **update_config}
             elif self._name_is_task(name_or_config):
                 task_config = self._get_config(name_or_config)
-                return load_task(task_config, task=name_or_config)
+                return _load_task(task_config, task=name_or_config)
             else:
                 subtask_list = self._get_tasklist(name_or_config)
                 if subtask_list == -1:
                     group_config = self._get_config(name_or_config)
-                    subtask_list = group_config["task"]
-                    group_name = ConfigurableGroup(config=group_config)
+                    group_name, subtask_list = _get_group_and_subtask_from_config(group_config)
                 else:
                     # group_name = name_or_config
                     group_name = ConfigurableGroup(
@@ -186,19 +196,16 @@ class TaskManager:
                 # If the name is registered as a group
                 # if self._name_is_task(name) is False:
                 if self._name_is_group(name) or self._name_is_tag(name):
-                    group_name = name
                     update_config = {
                         k: v
                         for k, v in name_or_config.items()
-                        if k not in ["task", "group"]
+                        if k not in GROUP_ONLY_KEYS + ["task", "group"]
                     }
                     subtask_list = self._get_tasklist(name)
                     if subtask_list == -1:
                         group_config = self._get_config(name)
-                        subtask_list = group_config["task"]
-                        group_name = ConfigurableGroup(config=group_config)
+                        group_name, subtask_list = _get_group_and_subtask_from_config(group_config)
                     else:
-                        # group_name = name
                         group_name = ConfigurableGroup(
                             config={"group": group_name, "task": subtask_list}
                         )
@@ -227,25 +234,22 @@ class TaskManager:
                         }
                     else:
                         task_config = name_or_config
-                    return load_task(task_config, task=name)
+                    return _load_task(task_config, task=name)
             else:
-                group_name = name_or_config["group"]
-                subtask_list = name_or_config["task"]
+                group_config = {
+                    k: v
+                    for k, v in name_or_config.items()
+                    if k in GROUP_ONLY_KEYS + ["task", "group"]
+                }
+                group_name, subtask_list = _get_group_and_subtask_from_config(group_config)
                 if set(name_or_config.keys()) > {"task", "group"}:
                     update_config = {
                         k: v
                         for k, v in name_or_config.items()
                         if k not in GROUP_ONLY_KEYS + ["task", "group"]
                     }
-                if ~bool(update_config):
+                if not bool(update_config):
                     update_config = None
-
-                group_config = {
-                    k: v
-                    for k, v in name_or_config.items()
-                    if k in GROUP_ONLY_KEYS + ["task", "group"]
-                }
-                group_name = ConfigurableGroup(config=group_config)
 
         fn = partial(
             self._load_individual_task_or_group,
