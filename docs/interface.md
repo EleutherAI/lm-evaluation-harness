@@ -44,6 +44,8 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--include_path` : Accepts a path to a folder. If passed, then all YAML files containing ` lm-eval`` compatible task configurations will be added to the task registry as available tasks. Used for when one is writing config files for their own task in a folder other than  `lm_eval/tasks/`
 
+- `--system_instruction`: Specifies a system instruction string to prepend to the prompt.
+
 - `--apply_chat_template` : If this flag is on, a chat template will be applied to the prompt. For Hugging Face models, the chat template is taken from the tokenizer, if the tokenizer does not have a chat template, a default one will be applied. For other models, a generic chat template is used.
 
 - `--predict_only`: Generates the model outputs without computing metrics. Use with `--log_samples` to retrieve decoded results.

@@ -55,6 +55,7 @@ def simple_evaluate(
     check_integrity: bool = False,
     write_out: bool = False,
     log_samples: bool = True,
+    system_instruction: str = "",
     apply_chat_template: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
@@ -100,6 +101,8 @@ def simple_evaluate(
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param system_instruction: str
+        System instruction to be applied to the prompt
     :param apply_chat_template: bool
         If True, apply chat template to the prompt
     :param gen_kwargs: str
@@ -265,6 +268,7 @@ def simple_evaluate(
         bootstrap_iters=bootstrap_iters,
         write_out=write_out,
         log_samples=log_samples,
+        system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
         verbosity=verbosity,
     )
@@ -321,6 +325,7 @@ def evaluate(
     bootstrap_iters: Optional[int] = 100000,
     write_out: bool = False,
     log_samples: bool = True,
+    system_instruction: str = "",
     apply_chat_template: bool = False,
     verbosity: str = "INFO",
 ):
@@ -338,6 +343,8 @@ def evaluate(
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param system_instruction: str
+        System instruction to be applied to the prompt
     :param apply_chat_template: bool
         If True, apply chat template to the prompt
     :return
@@ -369,6 +376,7 @@ def evaluate(
             world_size=lm.world_size,
             cache_requests=cache_requests,
             rewrite_requests_cache=rewrite_requests_cache,
+            system_instruction=system_instruction,
             apply_chat_template=apply_chat_template,
             tokenizer=lm.tokenizer if hasattr(lm, "tokenizer") else None,
         )

@@ -373,6 +373,7 @@ class Task(abc.ABC):
         world_size=None,
         cache_requests=False,
         rewrite_requests_cache=False,
+        system_instruction=None,
         apply_chat_template=False,
         tokenizer=None,
     ) -> None:
@@ -423,6 +424,7 @@ class Task(abc.ABC):
             fewshot_ctx = self.fewshot_context(
                 doc,
                 0 if self.config.num_fewshot is None else self.config.num_fewshot,
+                system_instruction,
                 apply_chat_template,
                 tokenizer,
             )
@@ -984,6 +986,7 @@ class ConfigurableTask(Task):
         self,
         doc: str,
         num_fewshot: int,
+        system_instruction: str = "",
         apply_chat_template: bool = False,
         tokenizer=None,
     ) -> str:
@@ -994,6 +997,8 @@ class ConfigurableTask(Task):
             The document as returned from training_docs, validation_docs, or test_docs.
         :param num_fewshot: int
             The number of fewshot examples to provide in the returned context string.
+        :param  system_instruction: str
+            System instruction to be applied to the prompt.
         :param apply_chat_template: bool
             Whether to apply the chat template to the fewshot context.
         :param tokenizer:
@@ -1001,25 +1006,43 @@ class ConfigurableTask(Task):
         :returns: str
             The fewshot context.
         """
+
+        if apply_chat_template:
+            labeled_examples = []
+        else:
+            labeled_examples = ""
+
+        # get task description
         if description := self.config.description:
             description = utils.apply_template(self.config.description, doc)
 
-        labeled_examples = []
-        if num_fewshot == 0:
-            # always prepend the (possibly empty) task description
-            if apply_chat_template:
-                labeled_examples.append({"role": "system", "content": description})
-            else:
-                labeled_examples = description
+        # create system prompt based on the provided system instruction and description
+        if system_instruction and description:
+            system_prompt = (
+                f"{system_instruction}{self.sampler.fewshot_delimiter}{description}"
+            )
+        elif system_instruction:
+            system_prompt = system_instruction
+        elif description:
+            system_prompt = description
         else:
+            system_prompt = ""
+
+        # add system prompt if specified
+        if system_prompt:
+            if apply_chat_template:
+                labeled_examples.append({"role": "system", "content": system_prompt})
+            else:
+                labeled_examples = system_prompt
+
+        # if few-shot - append examples after the system prompt
+        if num_fewshot > 0:
             if apply_chat_template:
                 labeled_examples = self.sampler.get_chat_context(
                     doc, num_fewshot, labeled_examples
                 )
             else:
-                labeled_examples = description + self.sampler.get_context(
-                    doc, num_fewshot
-                )
+                labeled_examples += self.sampler.get_context(doc, num_fewshot)
 
         example = self.doc_to_text(doc)
         if apply_chat_template:
