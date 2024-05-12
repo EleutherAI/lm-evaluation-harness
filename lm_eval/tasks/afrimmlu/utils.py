@@ -1,8 +1,10 @@
 from sklearn.metrics import f1_score
 
+
 def doc_to_choice(doc):
     choices = eval(doc["choices"])
     return choices
+
 
 def doc_to_text(doc):
     output = """You are a highly knowledgeable and intelligent artificial intelligence 
@@ -26,6 +28,7 @@ def doc_to_text(doc):
                          choice3=choices[2],
                          choice4=choices[3])
     return text
+
 
 def weighted_f1_score(items):
     unzipped_list = list(zip(*items))
