@@ -39,9 +39,9 @@ LANGUAGES = {
         "CONTRADICTION_LABEL": "A'a"
     },
     "ibo": {
-        "QUESTION_WORD": "Nke ọma",
-        "ENTAILMENT_LABEL": "Ee",
-        "NEUTRAL_LABEL": "Nakwa",
+        "QUESTION_WORD": "Ziri ezi",
+        "ENTAILMENT_LABEL": "Éè",
+        "NEUTRAL_LABEL": "Ọzọkwa",
         "CONTRADICTION_LABEL": "Mba"
     },
     "kin": {
@@ -101,7 +101,7 @@ LANGUAGES = {
     "yor": {
         "QUESTION_WORD": "Òótọ́",
         "ENTAILMENT_LABEL": "Bẹ́ẹ̀ni",
-        "NEUTRAL_LABEL": "Bákan náà",
+        "NEUTRAL_LABEL": "Àti pé",
         "CONTRADICTION_LABEL": "Rárá"
     },
     "zul": {
@@ -189,11 +189,11 @@ def main() -> None:
         help="Overwrite files if they already exist",
     )
     parser.add_argument(
-        "--output-dir", default="./native-direct", help="Directory to write yaml files to"
+        "--output-dir", default="./en-direct", help="Directory to write yaml files to"
     )
     parser.add_argument(
         "--mode",
-        default="native-direct",
+        default="en-direct",
         choices=["en_direct", "native-direct"],
         help="Mode of chain-of-thought",
     )
