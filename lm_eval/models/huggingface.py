@@ -579,8 +579,12 @@ class HFLM(TemplateLM):
             if model_kwargs.get("load_in_4bit", None):
                 if version.parse(PEFT_VERSION) < version.parse("0.4.0"):
                     raise AssertionError("load_in_4bit requires peft >= 0.4.0")
-            if self._model.config.vocab_size != len(self.tokenizer):
-                self._model.resize_token_embeddings(len(self.tokenizer))
+            if self.tokenizer is not None:
+                assert isinstance(
+                    tokenizer, transformers.PreTrainedTokenizer
+                ) or isinstance(tokenizer, transformers.PreTrainedTokenizerFast)
+                if self._model.config.vocab_size != len(self.tokenizer):
+                    self._model.resize_token_embeddings(len(self.tokenizer))
             self._model = PeftModel.from_pretrained(
                 self._model, peft, revision=revision
             )
