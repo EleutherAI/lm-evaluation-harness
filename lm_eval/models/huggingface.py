@@ -494,6 +494,7 @@ class HFLM(TemplateLM):
         offload_folder: Optional[str] = "./offload",
         # PEFT, delta weights and quantization options
         peft: Optional[str] = None,
+        resize_model_vocab: Optional[int] = None,
         delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
         **kwargs,
@@ -579,6 +580,8 @@ class HFLM(TemplateLM):
             if model_kwargs.get("load_in_4bit", None):
                 if version.parse(PEFT_VERSION) < version.parse("0.4.0"):
                     raise AssertionError("load_in_4bit requires peft >= 0.4.0")
+            if resize_model_vocab is not None:
+                self._model.resize_token_embeddings(resize_model_vocab)
             self._model = PeftModel.from_pretrained(
                 self._model, peft, revision=revision
             )
