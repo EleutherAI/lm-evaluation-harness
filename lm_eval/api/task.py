@@ -1294,7 +1294,6 @@ class ConfigurableTask(Task):
                 **({"f1": (gold, pred)} if "f1" in use_metric else {}),
                 **({"mcc": (gold, pred)} if "mcc" in use_metric else {}),
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
-                **({"squad": (gold, pred)} if "squad" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
                 **(
                     {"brier_score": (gold, prob_norm)}
