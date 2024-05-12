@@ -39,9 +39,9 @@ LANGUAGES = {
         "CONTRADICTION_LABEL": "A'a"
     },
     "ibo": {
-        "QUESTION_WORD": "Nke ọma",
-        "ENTAILMENT_LABEL": "Ee",
-        "NEUTRAL_LABEL": "Nakwa",
+        "QUESTION_WORD": "Ziri ezi",
+        "ENTAILMENT_LABEL": "Éè",
+        "NEUTRAL_LABEL": "Ọzọkwa",
         "CONTRADICTION_LABEL": "Mba"
     },
     "kin": {
@@ -93,7 +93,7 @@ LANGUAGES = {
         "CONTRADICTION_LABEL": "Déet"
     },
     "xho": {
-        "QUESTION_WORD": "Kunene",
+        "QUESTION_WORD": "Ichanekile",
         "ENTAILMENT_LABEL": "Ewe",
         "NEUTRAL_LABEL": "Kananjalo",
         "CONTRADICTION_LABEL": "Hayi"
@@ -101,7 +101,7 @@ LANGUAGES = {
     "yor": {
         "QUESTION_WORD": "Òótọ́",
         "ENTAILMENT_LABEL": "Bẹ́ẹ̀ni",
-        "NEUTRAL_LABEL": "Bákan náà",
+        "NEUTRAL_LABEL": "Àti pé",
         "CONTRADICTION_LABEL": "Rárá"
     },
     "zul": {
