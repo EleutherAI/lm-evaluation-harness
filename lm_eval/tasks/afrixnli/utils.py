@@ -93,7 +93,7 @@ LANGUAGES = {
         "CONTRADICTION_LABEL": "Déet"
     },
     "xho": {
-        "QUESTION_WORD": "Kunene",
+        "QUESTION_WORD": "Ichanekile",
         "ENTAILMENT_LABEL": "Ewe",
         "NEUTRAL_LABEL": "Kananjalo",
         "CONTRADICTION_LABEL": "Hayi"
@@ -189,11 +189,11 @@ def main() -> None:
         help="Overwrite files if they already exist",
     )
     parser.add_argument(
-        "--output-dir", default="./en-direct", help="Directory to write yaml files to"
+        "--output-dir", default="./native-direct", help="Directory to write yaml files to"
     )
     parser.add_argument(
         "--mode",
-        default="en-direct",
+        default="native-direct",
         choices=["en_direct", "native-direct"],
         help="Mode of chain-of-thought",
     )
