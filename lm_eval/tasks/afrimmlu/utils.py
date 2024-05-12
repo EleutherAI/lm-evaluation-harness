@@ -28,3 +28,11 @@ def doc_to_text(doc):
                          choice3=choices[2],
                          choice4=choices[3])
     return text
+
+
+def weighted_f1_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+    fscore = f1_score(golds, preds, average="weighted")
+    return fscore
