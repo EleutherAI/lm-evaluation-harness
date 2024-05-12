@@ -1,5 +1,6 @@
-group: mgsm_direct
-task: afrimgsm_direct
+group:
+ - mgsm_direct
+ - afrimgsm
 dataset_path: masakhane/afrimgsm
 output_type: generate_until
 training_split: train
@@ -9,11 +10,11 @@ target_delimiter: ""
 doc_to_target: '{% if answer is not none %}{{answer}}{% else %}{{answer_number|string}}{% endif %}'
 doc_to_text: '{% if answer is not none %}{{question+"\nAnswer:"}}{% else %}{{"Question: "+question+"\nAnswer:"}}{% endif %}'
 generation_kwargs:
-  until:
-    - "\n\n"
-    - "\n"
   do_sample: false
-  temperature: 0.0
+  until:
+  - 'Question:'
+  - </s>
+  - <|im_end|>
 filter_list:
   - name: remove_whitespace
     filter:
@@ -31,5 +32,11 @@ metric_list:
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
+  - metric: f1
+    aggregation: !function utils.weighted_f1_score
+    average: weighted
+    higher_is_better: True
+    ignore_case: true
+    ignore_punctuation: true
 metadata:
-  version: 1.0
+  version: 2.0
