@@ -21,15 +21,18 @@ from lm_eval import tasks
             10,
             "hf",
             "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
-            0,
-        )
+            0
+        ),
+        (
+            ["mmlu_abstract_algebra"],
+            None,
+            "hf",
+            "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
+            10000
+        ),
     ],
 )
-def test_evaluator(
-    task_name: List[str], limit: int, model: str, model_args: str, bootstrap_iters: int
-):
-    task_name = task_name
-    limit = 10
+def test_evaluator(task_name: List[str], limit: int, model: str, model_args: str, bootstrap_iters: int):
 
     e1 = evaluator.simple_evaluate(
         model=model,
@@ -62,7 +65,10 @@ def test_evaluator(
     # check that caching is working
 
     def r(x):
-        return x["results"]["arc_easy"]
+        if "arc_easy" in x["results"]:
+            return x["results"]["arc_easy"]
+        else:
+            return x["results"]["mmlu_abstract_algebra"]
 
     assert all(
         x == y

@@ -78,7 +78,7 @@ class HFLM(TemplateLM):
 
     def __init__(
         self,
-        pretrained: Optional[Union[str, transformers.PreTrainedModel]] = "gpt2",
+        pretrained: Union[str, transformers.PreTrainedModel],
         backend: Optional[Literal["default", "causal", "seq2seq"]] = "default",
         # override whether the model should be treated as decoder-only (causal) or encoder-decoder (seq2seq)
         revision: Optional[str] = "main",
@@ -667,6 +667,8 @@ class HFLM(TemplateLM):
             max_cont_enc = len(continuation_enc[-(self.max_length + 1) :])
         else:
             max_length = self.max_length
+            max_context_enc = max_length
+            max_cont_enc = max_length
 
         # if OOM, then halves batch_size and tries again
         @find_executable_batch_size(starting_batch_size=self.max_batch_size)
