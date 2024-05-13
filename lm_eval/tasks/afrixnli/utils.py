@@ -50,6 +50,12 @@ LANGUAGES = {
         "NEUTRAL_LABEL": "Na none",
         "CONTRADICTION_LABEL": "Oya"
     },
+    "lin": {
+        "QUESTION_WORD": "Malamu",
+        "ENTAILMENT_LABEL": "Iyo",
+        "NEUTRAL_LABEL": "Lisusu",
+        "CONTRADICTION_LABEL": "Te"
+    },
     "lug": {
         "QUESTION_WORD": "Kituufu",
         "ENTAILMENT_LABEL": "Yee",
@@ -121,7 +127,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
     :param overwrite: Whether to overwrite files if they already exist.
     """
     err = []
-    languages = ['eng', 'amh', 'ibo', 'fra', 'sna', 'wol', 'ewe', 'lug', 'xho', 'kin', 'twi', 'zul', 'orm',
+    languages = ['eng', 'amh', 'ibo', 'fra', 'sna', 'wol', 'ewe', 'lin', 'lug', 'xho', 'kin', 'twi', 'zul', 'orm',
                  'yor', 'hau', 'sot', 'swa']
     for lang in languages:
         try:

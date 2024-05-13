@@ -11,7 +11,7 @@ doc_to_target: label
 doc_to_text: ""
 metric_list:
   - metric: f1
-    aggregation: f1
+    aggregation: !function utils.weighted_f1_score
     average: weighted
     higher_is_better: True
     ignore_case: true
