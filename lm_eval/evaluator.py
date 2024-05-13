@@ -1,6 +1,8 @@
 import itertools
+import json
 import logging
 import random
+import time
 from collections import defaultdict
 from typing import TYPE_CHECKING, List, Optional, Union
 
@@ -19,9 +21,15 @@ from lm_eval.evaluator_utils import (
     print_writeout,
     run_task_tests,
 )
-from lm_eval.logging_utils import add_env_info, get_git_commit_hash
+from lm_eval.logging.utils import add_env_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
-from lm_eval.utils import eval_logger, positional_deprecated, simple_parse_args_string
+from lm_eval.utils import (
+    eval_logger,
+    handle_non_serializable,
+    hash_string,
+    positional_deprecated,
+    simple_parse_args_string,
+)
 
 
 if TYPE_CHECKING:
@@ -54,6 +62,7 @@ def simple_evaluate(
     random_seed: int = 0,
     numpy_random_seed: int = 1234,
     torch_random_seed: int = 1234,
+    fewshot_random_seed: int = 1234,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -101,11 +110,14 @@ def simple_evaluate(
         Random seed for numpy. If set to None, the seed will not be set.
     :param torch_random_seed: int
         Random seed for torch. If set to None, the seed will not be set.
+    :param fewshot_random_seed: int
+        Random seed for fewshot sampler random generator. If set to None, the seed of generator will be set to None.
 
     :return
         Dictionary of results
     """
     eval_logger.setLevel(getattr(logging, f"{verbosity}"))
+    start_date = time.time()
 
     if delete_requests_cache:
         eval_logger.info("Deleting requests cache...")
@@ -146,9 +158,13 @@ def simple_evaluate(
 
     if isinstance(model, str):
         if model_args is None:
+            eval_logger.warning("model_args not specified. Using defaults.")
             model_args = ""
 
         if isinstance(model_args, dict):
+            eval_logger.info(
+                f"Initializing {model} model, with arguments: {model_args}"
+            )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_obj(
                 model_args,
                 {
@@ -159,6 +175,9 @@ def simple_evaluate(
             )
 
         else:
+            eval_logger.info(
+                f"Initializing {model} model, with arguments: {simple_parse_args_string(model_args)}"
+            )
             lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
                 model_args,
                 {
@@ -170,6 +189,7 @@ def simple_evaluate(
     else:
         if not isinstance(model, lm_eval.api.model.LM):
             raise TypeError
+        eval_logger.info("Using pre-initialized model")
         lm = model
 
     if use_cache is not None:
@@ -187,10 +207,6 @@ def simple_evaluate(
     if task_manager is None:
         task_manager = TaskManager(verbosity)
 
-    eval_logger.info(
-        "get_task_dict has been updated to accept an optional argument, `task_manager`"
-        "Read more here:https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md#external-library-usage"
-    )
     task_dict = get_task_dict(tasks, task_manager)
     for task_name in task_dict.keys():
         task_obj = task_dict[task_name]
@@ -213,6 +229,8 @@ def simple_evaluate(
             # we have to change the class properties post-hoc. This is pretty hacky.
             task_obj.override_metric(metric_name="bypass")
 
+        # override tasks' fewshot values to the provided num_fewshot arg value
+        # except if tasks have it set to 0 manually in their configs--then we should never overwrite that
         if num_fewshot is not None:
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
                 eval_logger.info(
@@ -223,6 +241,14 @@ def simple_evaluate(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
                 task_obj.set_config(key="num_fewshot", value=num_fewshot)
+            task_obj.set_fewshot_seed(seed=fewshot_random_seed)
+            eval_logger.info(
+                f"Setting fewshot random generator seed to {fewshot_random_seed}"
+            )
+        else:
+            # if num_fewshot not provided, and the task does not define a default one, default to 0
+            if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
+                task_obj.set_config(key="num_fewshot", value=0)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -251,17 +277,30 @@ def simple_evaluate(
         results["config"] = {
             "model": model_name,
             "model_args": model_args,
-            "batch_size": batch_size,
-            "batch_sizes": (
-                list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else []
-            ),
-            "device": device,
-            "use_cache": use_cache,
-            "limit": limit,
-            "bootstrap_iters": bootstrap_iters,
-            "gen_kwargs": gen_kwargs,
         }
+        # add more detailed model info if available
+        if isinstance(lm, lm_eval.models.huggingface.HFLM):
+            results["config"].update(lm.get_model_info())
+        # add info about execution
+        results["config"].update(
+            {
+                "batch_size": batch_size,
+                "batch_sizes": (
+                    list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else []
+                ),
+                "device": device,
+                "use_cache": use_cache,
+                "limit": limit,
+                "bootstrap_iters": bootstrap_iters,
+                "gen_kwargs": gen_kwargs,
+                "random_seed": random_seed,
+                "numpy_seed": numpy_random_seed,
+                "torch_seed": torch_random_seed,
+                "fewshot_seed": fewshot_random_seed,
+            }
+        )
         results["git_hash"] = get_git_commit_hash()
+        results["date"] = start_date
         add_env_info(results)  # additional environment info to results
         return results
     else:
@@ -327,7 +366,6 @@ def evaluate(
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
         )
-
         if write_out:
             print_writeout(task)
         # aggregate Instances by LM method requested to get output.
@@ -413,6 +451,16 @@ def evaluate(
                         "filtered_resps": [
                             req.filtered_resps[filter_key] for req in requests
                         ],
+                        "doc_hash": hash_string(
+                            json.dumps(
+                                requests[0].doc,
+                                indent=2,
+                                default=handle_non_serializable,
+                                ensure_ascii=False,
+                            )
+                        ),
+                        "prompt_hash": hash_string(requests[0].arguments[0]),
+                        "target_hash": hash_string(str(target)),
                     }
                     example.update(metrics)
                     task_output.logged_samples.append(example)
@@ -543,6 +591,16 @@ def evaluate(
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
             "n-shot": dict(sorted(num_fewshot.items())),
+            "n-samples": {
+                task_output.task_name: {
+                    "original": len(task_output.task.eval_docs),
+                    "effective": min(
+                        limit if limit else len(task_output.task.eval_docs),
+                        len(task_output.task.eval_docs),
+                    ),
+                }
+                for task_output in eval_tasks
+            },
         }
         if log_samples:
             results_dict["samples"] = dict(samples)

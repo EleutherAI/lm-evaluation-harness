@@ -14,13 +14,11 @@ from lm_eval.models.utils import retry_on_specific_exceptions
 from lm_eval.utils import eval_logger
 
 
-def get_result(response, ctxlen: int) -> Tuple[float, bool]:
+def get_result(response) -> Tuple[float, bool]:
     """Process results from OpenAI API response.
 
     :param response: dict
         OpenAI API Response
-    :param ctxlen: int
-        Length of context (so we can slice them away and only keep the predictions)
     :return:
         continuation_logprobs: np.array
             Log probabilities of continuation tokens
@@ -29,9 +27,9 @@ def get_result(response, ctxlen: int) -> Tuple[float, bool]:
     """
     is_greedy = True
     logprobs = response.logprobs.token_logprobs
-    continuation_logprobs = sum(logprobs[ctxlen:])
+    continuation_logprobs = sum(logprobs)
 
-    for i in range(ctxlen, len(response.logprobs.token_logprobs)):
+    for i in range(len(response.logprobs.token_logprobs)):
         token = response.logprobs.token_logprobs[i]
         top_tokens = response.logprobs.top_logprobs[i]
         top_token = max(top_tokens.keys(), key=lambda x: top_tokens[x])
@@ -111,7 +109,7 @@ class OpenaiCompletionsLM(TemplateLM):
         self.base_url = base_url
         self.tokenizer_backend = tokenizer_backend
         self.truncate = truncate
-        self._batch_size = batch_size
+        self._batch_size = int(batch_size)
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
 
@@ -212,7 +210,6 @@ class OpenaiCompletionsLM(TemplateLM):
                 client=self.client,
                 model=self.model,
                 prompt=inps,
-                echo=True,
                 max_tokens=0,
                 temperature=0.0,
                 logprobs=10,
@@ -222,7 +219,7 @@ class OpenaiCompletionsLM(TemplateLM):
             for resp, ctxlen, (cache_key, context_enc, continuation_enc) in zip(
                 response.choices, ctxlens, chunk
             ):
-                answer = get_result(resp, ctxlen)
+                answer = get_result(resp)
 
                 res.append(answer)
 
@@ -231,7 +228,7 @@ class OpenaiCompletionsLM(TemplateLM):
                     self.cache_hook.add_partial("loglikelihood", cache_key, answer)
         return re_ord.get_original(res)
 
-    def generate_until(self, requests) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         if not requests:
             return []
         res = []
@@ -258,7 +255,8 @@ class OpenaiCompletionsLM(TemplateLM):
 
         # todo: more intelligent batching for heterogeneous `until`
         for chunk, request_args in tqdm(
-            list(sameuntil_chunks(re_ord.get_reordered(), self.batch_size))
+            list(sameuntil_chunks(re_ord.get_reordered(), self.batch_size)),
+            disable=disable_tqdm,
         ):
             inps = []
             self._max_gen_toks = request_args.get("max_gen_toks", self.max_gen_toks)
@@ -280,7 +278,7 @@ class OpenaiCompletionsLM(TemplateLM):
                 **{
                     k: v
                     for k, v in request_args.items()
-                    if k not in ["do_sample", "max_gen_toks"]
+                    if k not in {"do_sample", "max_gen_toks", "until"}
                 },
             )
             for resp, (context, args_) in zip(response.choices, chunk):
@@ -308,10 +306,12 @@ class OpenaiCompletionsLM(TemplateLM):
         # Isn't used because we override generate_until
         raise NotImplementedError()
 
-    def loglikelihood_rolling(self, requests) -> List[float]:
+    def loglikelihood_rolling(
+        self, requests, disable_tqdm: bool = False
+    ) -> List[float]:
         loglikelihoods = []
 
-        for (string,) in tqdm([req.args for req in requests]):
+        for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
             rolling_token_windows = list(
                 map(
                     utils.make_disjoint_window,
@@ -398,7 +398,7 @@ class OpenaiChatCompletionsLM(LM):
         # Isn't used because we override _loglikelihood_tokens
         raise NotImplementedError()
 
-    def generate_until(self, requests) -> List[str]:
+    def generate_until(self, requests, disable_tqdm: bool = False) -> List[str]:
         res = defaultdict(list)
         re_ords = {}
 
@@ -412,7 +412,7 @@ class OpenaiChatCompletionsLM(LM):
                 [req.args for req in reqs], lambda x: (-len(x[0]), x[0])
             )
 
-        pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        pbar = tqdm(total=len(requests), disable=(disable_tqdm or (self.rank != 0)))
         for key, re_ord in re_ords.items():
             # n needs to be 1 because messages in
             # chat completion are not batch but
@@ -430,7 +430,7 @@ class OpenaiChatCompletionsLM(LM):
                     if "until" in kwargs.keys():
                         until = kwargs.pop("until")
                         if isinstance(until, str):
-                            until = [kwargs]
+                            until = [until]
                         elif not isinstance(until, list):
                             raise ValueError(
                                 f"Expected repr(kwargs['until']) to be of type Union[str, list] but got {until}"
@@ -471,8 +471,8 @@ class OpenaiChatCompletionsLM(LM):
 
         return grouper.get_original(res)
 
-    def loglikelihood(self, requests):
+    def loglikelihood(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
 
-    def loglikelihood_rolling(self, requests):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")

@@ -14,7 +14,7 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--model_args` : Controls parameters passed to the model constructor. Accepts a string containing comma-separated keyword arguments to the model class of the format `"arg1=val1,arg2=val2,..."`, such as, for example `--model_args pretrained=EleutherAI/pythia-160m,dtype=float32`. For a full list of what keyword arguments, see the initialization of the `lm_eval.api.model.LM` subclass, e.g. [`HFLM`](https://github.com/EleutherAI/lm-evaluation-harness/blob/365fcda9b85bbb6e0572d91976b8daf409164500/lm_eval/models/huggingface.py#L66)
 
-- `--tasks` : Determines which tasks or task groups are evaluated. Accepts a comma-separated list of task names or task group names. Must be solely comprised of valid tasks/groups.
+- `--tasks` : Determines which tasks or task groups are evaluated. Accepts a comma-separated list of task names or task group names. Must be solely comprised of valid tasks/groups. A list of supported tasks can be viewed with `--tasks list`.
 
 - `--num_fewshot` : Sets the number of few-shot examples to place in context. Must be an integer.
 
@@ -49,6 +49,10 @@ This mode supports a number of command-line arguments, the details of which can 
 * `--seed`: Set seed for python's random, numpy and torch.  Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, or a single integer to set the same seed for all three.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all three seeds to 42.
 
 * `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list (here.)[https://docs.wandb.ai/ref/python/init]. e.g., ```--wandb_args project=test-project,name=test-run```
+
+* `--hf_hub_log_args`: To push results and samples to the Hugging Face Hub. First ensure an access token with write access is set in the `HF_TOKEN` environment variable. Then, use this flag to specify the organization, repository name, repository visibility, and whether to push results and samples to the Hub. e.g., ```--hf_hub_log_args hub_results_org=EleutherAI,hub_repo_name=lm-eval-results,public_repo=False,push_samples_to_hub=True```
+
+
 
 ## External Library Usage
 
@@ -112,8 +116,8 @@ my_model = initialize_my_model()
 # - `Your_LM.generate_until()`
 lm_obj = Your_LM(model=my_model, batch_size=16)
 
-# The task_manager indexes tasks including ones
-# specified by the user through `include_path`
+# optional: the task_manager indexes tasks including ones
+# specified by the user through `include_path`.
 task_manager = lm_eval.tasks.TaskManager(
     include_path="/path/to/custom/yaml"
     )
@@ -138,9 +142,9 @@ task_dict = lm_eval.tasks.get_task_dict(
                  # custom paths is required.
     )
 
-def evaluate(
+results = evaluate(
     lm=lm_obj,
     task_dict=task_dict,
     ...
-):
+)
 ```
