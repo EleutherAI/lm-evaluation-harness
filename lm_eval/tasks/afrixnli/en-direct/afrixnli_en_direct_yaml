@@ -20,7 +20,7 @@ should_decontaminate: true
 doc_to_decontamination_query: premise
 metric_list:
   - metric: f1
-    aggregation: f1
+    aggregation: !function utils.weighted_f1_score
     average: weighted
     higher_is_better: True
     ignore_case: true
@@ -30,8 +30,5 @@ metric_list:
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
-    regexes_to_ignore:
-      - ","
-      - "\\$"
 metadata:
   version: 1.0
