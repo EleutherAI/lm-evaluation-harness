@@ -9,18 +9,17 @@ task=afrimgsm_direct_eng,afrimgsm_direct_fra,afrimgsm_direct_swa #afrimgsm_direc
 for model in "${models[@]}"
 do
   echo "Evaluating model: $model"
-#  for fewshot in 0 2 4 6 8
-#  do
-  export OUTPUT_DIR=results/$fewshot
+  for fewshot in 0 2 4 6 8
+  do
+    export OUTPUT_DIR=results/$fewshot
 
-  mkdir -p "$OUTPUT_DIR"
+    mkdir -p "$OUTPUT_DIR"
 
-  lm_eval --model openai-chat-completions \
-          --model_args model="${model}" \
-          --tasks $task \
-          --output_path "$OUTPUT_DIR" \
-          --num_fewshot 0 \
-          --limit 5 \
-          --verbosity DEBUG
-#  done
+    lm_eval --model openai-chat-completions \
+            --model_args model="${model}" \
+            --tasks $task \
+            --output_path "$OUTPUT_DIR" \
+            --num_fewshot $fewshot \
+            --verbosity DEBUG
+  done
 done
