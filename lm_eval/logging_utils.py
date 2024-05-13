@@ -464,6 +464,7 @@ def add_tokenizer_info(storage: Dict[str, Any], lm):
             "eot_token_id": getattr(lm, "eot_token_id", None),
             "max_length": getattr(lm, "max_length", None),
         }
+        storage.update(tokenizer_info)
     # seems gguf and textsynth do not have tokenizer
     else:
         eval_logger.debug("LM does not have a 'tokenizer' attribute, not logging tokenizer metadata to results.")
