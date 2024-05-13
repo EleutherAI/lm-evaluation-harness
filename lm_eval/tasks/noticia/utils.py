@@ -5,6 +5,7 @@ def rouge1(items):
     """
     # passthrough for efficiency
     """
+    print(items)
     return items
 
 
