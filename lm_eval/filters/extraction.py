@@ -49,6 +49,48 @@ class RegexFilter(Filter):
         return filtered_resps
 
 
+@register_filter("regex-numbers")
+class RegexNumberFilter(Filter):
+    """ """
+
+    def __init__(
+        self,
+        regex_pattern: str = r"#### (\-?[0-9\.\,]+)",
+        group_select=0,
+        fallback: str = 0,
+    ) -> None:
+        """
+        pass a string `regex` to run `re.compile(r"regex")` on.
+        `fallback` defines the output returned if no matches for the regex are located.
+        """
+        self.regex_pattern = regex_pattern
+        self.regex = re.compile(regex_pattern)
+        self.group_select = group_select
+        self.fallback = fallback
+
+    def apply(self, resps, docs):
+        # here, we assume we have a list, in which each element is
+        # a list of model responses for some particular input/target pair.
+        # so we process each of these (same input/target response sets)
+        # independently (and keep them a list.)
+        def filter_set(inst):
+            filtered = []
+            for resp in inst:
+                match = self.regex.findall(resp)
+                if match:
+                    match = match[self.group_select]
+                    if isinstance(match, tuple):
+                        match = [m for m in match if m][0]
+                    match = match.strip().replace(',', '').replace('.', '').lower()
+                else:
+                    match = self.fallback
+                filtered.append(match)
+            return filtered
+
+        filtered_resps = list(map(lambda x: filter_set(x), resps))
+        return filtered_resps
+
+
 @register_filter("remove_whitespace")
 class WhitespaceFilter(Filter):
     """ """

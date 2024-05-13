@@ -16,16 +16,18 @@ generation_kwargs:
   - </s>
   - <|im_end|>
 filter_list:
-  - name: remove_whitespace
-    filter:
-      - function: remove_whitespace
-      - function: take_first
   - filter:
     - function: regex
       group_select: -1
-      regex_pattern: (-?[$0-9.,]{2,})|(-?[0-9]+)
+      regex_pattern: (-?[0-9.,]{2,})|(-?[0-9]+)
     - function: take_first
     name: flexible-extract
+  - filter:
+    - function: regex-numbers
+      group_select: -1
+      regex_pattern: (\d{1,10}(?:,\d{3})*(?:[.,]\d{3})?)([^\d()]*)
+    - function: take_first
+    name: flexible-extract-new
 metric_list:
   - metric: exact_match
     aggregation: mean
@@ -34,6 +36,12 @@ metric_list:
     ignore_punctuation: true
   - metric: f1
     aggregation: !function utils.weighted_f1_score
+    average: weighted
+    higher_is_better: True
+    ignore_case: true
+    ignore_punctuation: true
+  - metric: squad
+    aggregation: squad_f1
     average: weighted
     higher_is_better: True
     ignore_case: true
