@@ -1,0 +1,3 @@
+include: unitxt_tasks.classification.multi_class
+task: law_stack_exchange
+dataset_name: card=cards.law_stack_exchange,template=templates.classification.multi_class.title
