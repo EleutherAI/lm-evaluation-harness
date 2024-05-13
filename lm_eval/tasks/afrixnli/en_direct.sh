@@ -33,7 +33,6 @@ do
             --batch_size 16 \
             --output_path "$OUTPUT_DIR" \
             --num_fewshot $fewshot \
-            --limit 1 \
             --verbosity DEBUG
   done
 done
