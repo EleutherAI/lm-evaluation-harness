@@ -1,0 +1,16 @@
+group: tinyBenchmarks
+task:
+  - task: tinyArc
+    num_fewshot: 25
+  - task: tinyGSM8k
+    num_fewshot: 5
+  - task: tinyMMLU
+    num_fewshot: 0
+  - task: tinyWinogrande
+    num_fewshot: 5
+  - task: tinyHellaswag
+    num_fewshot: 10
+  - task: tinyTruthfulQA
+    num_fewshot: 0
+metadata:
+  version: 0.0
