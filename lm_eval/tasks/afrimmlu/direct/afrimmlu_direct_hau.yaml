@@ -1,3 +1,3 @@
 dataset_name: hau
 include: afrimmlu_common_yaml
-task: afrimmlu_hau
+task: afrimmlu_direct_hau
