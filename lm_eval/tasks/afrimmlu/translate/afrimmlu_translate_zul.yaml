@@ -1,3 +1,3 @@
 dataset_name: zul
 include: afrimmlu_common_translate_yaml
-task: afrimmlu_zul_translate
+task: afrimmlu_translate_zul
