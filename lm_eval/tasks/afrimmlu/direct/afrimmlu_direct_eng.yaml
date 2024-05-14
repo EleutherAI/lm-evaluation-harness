@@ -1,4 +1,4 @@
 dataset_name: eng
 include: afrimmlu_common_yaml
-task: afrimmlu_eng
+task: afrimmlu_direct_eng
 

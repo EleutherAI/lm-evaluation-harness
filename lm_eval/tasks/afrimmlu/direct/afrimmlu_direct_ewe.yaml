@@ -1,4 +1,4 @@
 dataset_name: ewe
 include: afrimmlu_common_yaml
-task: afrimmlu_ewe
+task: afrimmlu_direct_ewe
 
