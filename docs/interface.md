@@ -50,9 +50,12 @@ This mode supports a number of command-line arguments, the details of which can 
 
 * `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list (here.)[https://docs.wandb.ai/ref/python/init]. e.g., ```--wandb_args project=test-project,name=test-run```
 
-* `--hf_hub_log_args`: To push results and samples to the Hugging Face Hub. First ensure an access token with write access is set in the `HF_TOKEN` environment variable. Then, use this flag to specify the organization, repository name, repository visibility, and whether to push results and samples to the Hub. e.g., ```--hf_hub_log_args hub_results_org=EleutherAI,hub_repo_name=lm-eval-results,public_repo=False,push_samples_to_hub=True```
-
-
+* `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
+    * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`,
+    * `hub_repo_name` - repository name on Hugging Face Hub, e.g., `lm-eval-results`,
+    * `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
+    * `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
+    * `public_repo` - whether the repository is public, can be `True` or `False`,
 
 ## External Library Usage
 
