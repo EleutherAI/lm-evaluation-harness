@@ -35,40 +35,32 @@ class ContextSampler:
         # TODO: should we just stop people from using fewshot from same split as evaluating?
         selected_docs = [x for x in fewshotex if x != doc][:num_fewshot]
 
-        labeled_examples = (
-            self.fewshot_delimiter.join(
-                [
-                    # TODO: is separating doc_to_text and doc_to_target by one space always desired?
-                    (
-                        self.doc_to_text(doc)
-                        if (
-                            self.config.doc_to_choice is None
-                            or isinstance(self.doc_to_text(doc), str)
-                        )
-                        else self.doc_to_choice(doc)[self.doc_to_text(doc)]
-                    )
-                    + self.target_delimiter
-                    + (
-                        str(self.doc_to_target(doc)[0])
-                        if isinstance(self.doc_to_target(doc), list)
-                        else self.doc_to_target(doc)
-                        if (
-                            self.config.doc_to_choice is None
-                            or isinstance(self.doc_to_target(doc), str)
-                        )
-                        else str(self.doc_to_choice(doc)[self.doc_to_target(doc)])
-                    )
-                    for doc in selected_docs
-                ]
+        labeled_examples = ""
+        for doc in selected_docs:
+            doc_content = self.doc_to_text(doc)
+            doc_target = self.doc_to_target(doc)
+            labeled_examples += (
+                doc_content
+                if self.config.doc_to_choice is None or isinstance(doc_content, str)
+                else self.doc_to_choice(doc)[doc_content]
             )
-            + self.fewshot_delimiter
-        )
+            labeled_examples += self.target_delimiter
+            labeled_examples += (
+                str(doc_target[0])
+                if isinstance(doc_target, list)
+                else doc_target
+                if self.config.doc_to_choice is None or isinstance(doc_target, str)
+                else str(self.doc_to_choice(doc)[doc_target])
+            )
+            labeled_examples += self.fewshot_delimiter
+
         return labeled_examples
 
     def get_chat_context(
         self,
         doc,
         num_fewshot,
+        fewshot_as_multiturn: bool = False,
         chat_history: list = [],
     ):
         # draw an extra fewshot sample if using same split as evaluating on
@@ -84,31 +76,36 @@ class ContextSampler:
         # TODO: should we just stop people from using fewshot from same split as evaluating?
         selected_docs = [x for x in fewshotex if x != doc][:num_fewshot]
 
-        for doc in selected_docs:
+        if fewshot_as_multiturn:
+            for doc in selected_docs:
+                doc_content = self.doc_to_text(doc)
+                doc_target = self.doc_to_target(doc)
+                chat_history.append(
+                    {
+                        "role": "user",
+                        "content": doc_content
+                        if self.config.doc_to_choice is None
+                        or isinstance(doc_content, str)
+                        else self.doc_to_choice(doc)[doc_content],
+                    }
+                )
+                chat_history.append(
+                    {
+                        "role": "assistant",
+                        "content": str(doc_target[0])
+                        if isinstance(doc_target, list)
+                        else doc_target
+                        if self.config.doc_to_choice is None
+                        or isinstance(doc_target, str)
+                        else str(self.doc_to_choice(doc)[doc_target]),
+                    }
+                )
+        else:
+            # get fewshot context as one user turn
             chat_history.append(
-                {
-                    "role": "user",
-                    "content": self.doc_to_text(doc)
-                    if (
-                        self.config.doc_to_choice is None
-                        or isinstance(self.doc_to_text(doc), str)
-                    )
-                    else self.doc_to_choice(doc)[self.doc_to_text(doc)],
-                }
+                {"role": "user", "content": self.get_context(doc, num_fewshot)}
             )
-            chat_history.append(
-                {
-                    "role": "assistant",
-                    "content": str(self.doc_to_target(doc)[0])
-                    if isinstance(self.doc_to_target(doc), list)
-                    else self.doc_to_target(doc)
-                    if (
-                        self.config.doc_to_choice is None
-                        or isinstance(self.doc_to_target(doc), str)
-                    )
-                    else str(self.doc_to_choice(doc)[self.doc_to_target(doc)]),
-                }
-            )
+
         return chat_history
 
     def sample(self, n):

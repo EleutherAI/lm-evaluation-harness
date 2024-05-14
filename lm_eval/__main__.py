@@ -175,6 +175,12 @@ def setup_parser() -> argparse.ArgumentParser:
         help="If True, applies the chat template to the prompt",
     )
     parser.add_argument(
+        "--fewshot_as_multiturn",
+        action="store_true",
+        default=False,
+        help="If True, uses the fewshot as a multi-turn conversation",
+    )
+    parser.add_argument(
         "--show_config",
         action="store_true",
         default=False,
@@ -282,6 +288,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             "Specify --output_path if providing --log_samples or --predict_only"
         )
 
+    if args.fewshot_as_multiturn and args.apply_chat_template is False:
+        raise ValueError(
+            "If fewshot_as_multiturn is set, apply_chat_template must be set to True."
+        )
+
     if args.include_path is not None:
         eval_logger.info(f"Including path: {args.include_path}")
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
@@ -371,6 +382,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         log_samples=args.log_samples,
         system_instruction=args.system_instruction,
         apply_chat_template=args.apply_chat_template,
+        fewshot_as_multiturn=args.fewshot_as_multiturn,
         gen_kwargs=args.gen_kwargs,
         task_manager=task_manager,
         verbosity=args.verbosity,

@@ -57,6 +57,7 @@ def simple_evaluate(
     log_samples: bool = True,
     system_instruction: str = None,
     apply_chat_template: bool = False,
+    fewshot_as_multiturn: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
     verbosity: str = "INFO",
@@ -105,6 +106,8 @@ def simple_evaluate(
         System instruction to be applied to the prompt
     :param apply_chat_template: bool
         If True, apply chat template to the prompt
+    :param fewshot_as_multiturn: bool
+        Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
@@ -270,6 +273,7 @@ def simple_evaluate(
         log_samples=log_samples,
         system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
+        fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
     )
 
@@ -327,6 +331,7 @@ def evaluate(
     log_samples: bool = True,
     system_instruction: str = None,
     apply_chat_template: bool = False,
+    fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -347,6 +352,8 @@ def evaluate(
         System instruction to be applied to the prompt
     :param apply_chat_template: bool
         If True, apply chat template to the prompt
+    :param fewshot_as_multiturn: bool
+        Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
     :return
         Dictionary of results
     """
@@ -378,6 +385,7 @@ def evaluate(
             rewrite_requests_cache=rewrite_requests_cache,
             system_instruction=system_instruction,
             apply_chat_template=apply_chat_template,
+            fewshot_as_multiturn=fewshot_as_multiturn,
             tokenizer=lm.tokenizer if hasattr(lm, "tokenizer") else None,
         )
         eval_logger.debug(

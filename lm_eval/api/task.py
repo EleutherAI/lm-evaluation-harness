@@ -375,6 +375,7 @@ class Task(abc.ABC):
         rewrite_requests_cache=False,
         system_instruction=None,
         apply_chat_template=False,
+        fewshot_as_multiturn=False,
         tokenizer=None,
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
@@ -426,6 +427,7 @@ class Task(abc.ABC):
                 0 if self.config.num_fewshot is None else self.config.num_fewshot,
                 system_instruction,
                 apply_chat_template,
+                fewshot_as_multiturn,
                 tokenizer,
             )
 
@@ -988,6 +990,7 @@ class ConfigurableTask(Task):
         num_fewshot: int,
         system_instruction: str = None,
         apply_chat_template: bool = False,
+        fewshot_as_multiturn: bool = False,
         tokenizer=None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
@@ -1001,6 +1004,8 @@ class ConfigurableTask(Task):
             System instruction to be applied to the prompt.
         :param apply_chat_template: bool
             Whether to apply the chat template to the fewshot context.
+        :param fewshot_as_multiturn: bool
+            Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
         :param tokenizer:
             The tokenizer to use for applying the chat template.
         :returns: str
@@ -1039,7 +1044,7 @@ class ConfigurableTask(Task):
         if num_fewshot > 0:
             if apply_chat_template:
                 labeled_examples = self.sampler.get_chat_context(
-                    doc, num_fewshot, labeled_examples
+                    doc, num_fewshot, fewshot_as_multiturn, labeled_examples
                 )
             else:
                 labeled_examples += self.sampler.get_context(doc, num_fewshot)
