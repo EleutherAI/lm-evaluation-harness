@@ -1054,8 +1054,10 @@ class ConfigurableTask(Task):
             if not self.multiple_input:
                 if isinstance(example, str):
                     labeled_examples.append({"role": "user", "content": example})
+                # for loglikelihood create a list of questions with appended choices
                 elif isinstance(example, list):
                     labeled_examples_list = []
+                    # copy chat history for each example and append the answer
                     for ex in example:
                         chat = deepcopy(labeled_examples)
                         chat.append({"role": "user", "content": ex})
@@ -1063,6 +1065,7 @@ class ConfigurableTask(Task):
                             self.convert_chat_history_to_string(chat, tokenizer)
                         )
                     return labeled_examples_list
+                # if example is an integer, append the choice or convert to string
                 elif isinstance(example, int):
                     if self.config.doc_to_choice is not None:
                         choices = self.doc_to_choice(doc)
