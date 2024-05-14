@@ -1,4 +1,0 @@
-dataset_name: ewe
-include: afrimmlu_common_translate_yaml
-task: afrimmlu_ewe_translate
-
