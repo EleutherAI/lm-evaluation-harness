@@ -988,7 +988,7 @@ class ConfigurableTask(Task):
         self,
         doc: str,
         num_fewshot: int,
-        system_instruction: str = None,
+        system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
         tokenizer=None,
