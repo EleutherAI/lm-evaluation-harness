@@ -1077,17 +1077,16 @@ class ConfigurableTask(Task):
         else:
             if self.multiple_input:
                 return labeled_examples
-            else:
-                if isinstance(example, str):
-                    return labeled_examples + example
-                elif isinstance(example, list):
-                    return [labeled_examples + ex for ex in example]
-                elif isinstance(example, int):
-                    if self.config.doc_to_choice is not None:
-                        choices = self.doc_to_choice(doc)
-                        return labeled_examples + choices[example]
-                    else:
-                        return labeled_examples + str(example)
+            if isinstance(example, str):
+                return labeled_examples + example
+            elif isinstance(example, list):
+                return [labeled_examples + ex for ex in example]
+            elif isinstance(example, int):
+                if self.config.doc_to_choice is not None:
+                    choices = self.doc_to_choice(doc)
+                    return labeled_examples + choices[example]
+                else:
+                    return labeled_examples + str(example)
 
     def apply_filters(self):
         """Iterates over FilterEnsembles and applies them to instances"""
