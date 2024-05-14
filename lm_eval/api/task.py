@@ -986,7 +986,7 @@ class ConfigurableTask(Task):
         self,
         doc: str,
         num_fewshot: int,
-        system_instruction: str = "",
+        system_instruction: str = None,
         apply_chat_template: bool = False,
         tokenizer=None,
     ) -> str:
@@ -1017,11 +1017,11 @@ class ConfigurableTask(Task):
             description = utils.apply_template(self.config.description, doc)
 
         # create system prompt based on the provided system instruction and description
-        if system_instruction and description:
+        if system_instruction is not None and description:
             system_prompt = (
                 f"{system_instruction}{self.sampler.fewshot_delimiter}{description}"
             )
-        elif system_instruction:
+        elif system_instruction is not None:
             system_prompt = system_instruction
         elif description:
             system_prompt = description

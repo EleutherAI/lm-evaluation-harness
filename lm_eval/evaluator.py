@@ -55,7 +55,7 @@ def simple_evaluate(
     check_integrity: bool = False,
     write_out: bool = False,
     log_samples: bool = True,
-    system_instruction: str = "",
+    system_instruction: str = None,
     apply_chat_template: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
@@ -325,7 +325,7 @@ def evaluate(
     bootstrap_iters: Optional[int] = 100000,
     write_out: bool = False,
     log_samples: bool = True,
-    system_instruction: str = "",
+    system_instruction: str = None,
     apply_chat_template: bool = False,
     verbosity: str = "INFO",
 ):
