@@ -17,12 +17,12 @@ models=(
 )
 
 models=("masakhane/zephyr-7b-gemma-sft-african-ultrachat-5k")
-task=afrixnli_en_translate_amh,afrixnli_en_translate_ewe,afrixnli_en_translate_fra,afrixnli_en_translate_hau,afrixnli_en_translate_ibo,afrixnli_en_translate_kin,afrixnli_en_translate_lin,afrixnli_en_translate_lug,afrixnli_en_translate_orm,afrixnli_en_translate_sna,afrixnli_en_translate_sot,afrixnli_en_translate_swa,afrixnli_en_translate_twi,afrixnli_en_translate_wol,afrixnli_en_translate_xho,afrixnli_en_translate_yor,afrixnli_en_translate_zul
+task=afrixnli_translate_amh,afrixnli_translate_ewe,afrixnli_translate_fra,afrixnli_translate_hau,afrixnli_translate_ibo,afrixnli_translate_kin,afrixnli_translate_lin,afrixnli_translate_lug,afrixnli_translate_orm,afrixnli_translate_sna,afrixnli_translate_sot,afrixnli_translate_swa,afrixnli_translate_twi,afrixnli_translate_wol,afrixnli_translate_xho,afrixnli_translate_yor,afrixnli_translate_zul
 
 for model in "${models[@]}"
 do
   echo "Evaluating model: $model"
-  for fewshot in 0 2 4 6 8
+  for fewshot in 0
   do
     export OUTPUT_DIR=results/${model##*/}/$fewshot
 
@@ -35,6 +35,6 @@ do
             --batch_size 16 \
             --output_path "$OUTPUT_DIR" \
             --num_fewshot $fewshot \
-            --verbosity DEBUG
+            --verbosity DEBUG 
   done
 done
