@@ -166,6 +166,24 @@ class TaskManager:
                     subtask_list.append(task)
             return group_name, subtask_list
 
+        def _process_group_config(config):
+            if set(config.keys()) > {"task", "group"}:
+                update_config = {
+                    k: v
+                    for k, v in config.items()
+                    if k not in GROUP_ONLY_KEYS + ["task", "group"]
+                }
+            if not bool(update_config):
+                update_config = None
+
+            group_config = {
+                k: v
+                for k, v in config.items()
+                if k in GROUP_ONLY_KEYS + ["task", "group"]
+            }
+
+            return group_config, update_config
+
         if isinstance(name_or_config, str):
             if update_config is not None:
                 # Process name_or_config as a dict instead
@@ -177,6 +195,7 @@ class TaskManager:
                 subtask_list = self._get_tasklist(name_or_config)
                 if subtask_list == -1:
                     group_config = self._get_config(name_or_config)
+                    group_config, update_config = _process_group_config(group_config)
                     group_name, subtask_list = _get_group_and_subtask_from_config(
                         group_config
                     )
@@ -204,12 +223,15 @@ class TaskManager:
                     subtask_list = self._get_tasklist(name)
                     if subtask_list == -1:
                         group_config = self._get_config(name)
+                        group_config, update_config = _process_group_config(
+                            group_config
+                        )
                         group_name, subtask_list = _get_group_and_subtask_from_config(
                             group_config
                         )
                     else:
                         group_name = ConfigurableGroup(
-                            config={"group": group_name, "task": subtask_list}
+                            config={"group": name, "task": subtask_list}
                         )
                 else:
                     if self._name_is_registered(name):
@@ -238,22 +260,10 @@ class TaskManager:
                         task_config = name_or_config
                     return _load_task(task_config, task=name)
             else:
-                group_config = {
-                    k: v
-                    for k, v in name_or_config.items()
-                    if k in GROUP_ONLY_KEYS + ["task", "group"]
-                }
+                group_config, update_config = _process_group_config(name_or_config)
                 group_name, subtask_list = _get_group_and_subtask_from_config(
                     group_config
                 )
-                if set(name_or_config.keys()) > {"task", "group"}:
-                    update_config = {
-                        k: v
-                        for k, v in name_or_config.items()
-                        if k not in GROUP_ONLY_KEYS + ["task", "group"]
-                    }
-                if not bool(update_config):
-                    update_config = None
 
         fn = partial(
             self._load_individual_task_or_group,
