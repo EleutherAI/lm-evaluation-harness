@@ -3,7 +3,6 @@ import ast
 import logging
 import random
 import re
-import uuid
 from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict, dataclass
@@ -23,6 +22,7 @@ from typing import (
 
 import datasets
 import numpy as np
+import shortuuid
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -112,7 +112,7 @@ class ConfigurableGroup(abc.ABC):
         config: Optional[dict] = None,
     ) -> None:
         # Create a unique identifier ID
-        self._task_id = str(uuid.uuid1())
+        self._task_id = shortuuid.uuid()[:8]
         self._config = GroupConfig(**config)
 
     @property
@@ -133,7 +133,11 @@ class ConfigurableGroup(abc.ABC):
 
     @property
     def task_id(self) -> Any:
-        return self._task_id
+        return "-".join((self.group_name, self._task_id))
+
+    @property
+    def group_name(self) -> Any:
+        return self._config.group
 
     def __repr__(self):
         return (
@@ -318,7 +322,7 @@ class Task(abc.ABC):
         self._instances: Optional[List[Instance]] = None
 
         # Create a unique identifier ID
-        self._task_id = str(uuid.uuid1())
+        self._task_id = shortuuid.uuid()[:8]
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
@@ -777,7 +781,7 @@ class ConfigurableTask(Task):
         config: Optional[dict] = None,
     ) -> None:  # TODO no super() call here
         # Create a unique identifier ID
-        self._task_id = str(uuid.uuid1())
+        self._task_id = shortuuid.uuid()[:8]
 
         # Get pre-configured attributes
         self._config = self.CONFIG
@@ -1496,7 +1500,11 @@ class ConfigurableTask(Task):
 
     @property
     def task_id(self) -> Any:
-        return self._task_id
+        return "-".join((self.task_name, self._task_id))
+
+    @property
+    def task_name(self) -> Any:
+        return getattr(self.config, "task", None)
 
     def __repr__(self):
         return (
