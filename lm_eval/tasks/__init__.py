@@ -158,29 +158,32 @@ class TaskManager:
         def _get_group_and_subtask_from_config(config):
             group_name = ConfigurableGroup(config=config)
             subtask_list = []
-            tag_to_task = group_name.config["tag_to_task"]
             for task in group_name.config["task"]:
-                if isinstance(task, str) and self._name_is_tag(task) and tag_to_task:
+                if isinstance(task, str) and self._name_is_tag(task):
                     subtask_list.extend(self._get_tasklist(task))
                 else:
                     subtask_list.append(task)
             return group_name, subtask_list
 
-        def _process_group_config(config):
+        def _process_group_config(config, update_config=None):
+            _update_config = None
             if set(config.keys()) > {"task", "group"}:
-                update_config = {
-                    k: v
-                    for k, v in config.items()
-                    if k not in GROUP_ONLY_KEYS + ["task", "group"]
+                _update_config = {
+                    k: v for k, v in config.items() if k not in GROUP_ONLY_KEYS
                 }
-            if not bool(update_config):
-                update_config = None
+                if not bool(_update_config):
+                    _update_config = None
 
-            group_config = {
-                k: v
-                for k, v in config.items()
-                if k in GROUP_ONLY_KEYS + ["task", "group"]
-            }
+            if _update_config is not None:
+                if update_config is not None:
+                    update_config = {
+                        **_update_config,
+                        **update_config,
+                    }
+                else:
+                    update_config = _update_config
+
+            group_config = {k: v for k, v in config.items() if k in GROUP_ONLY_KEYS}
 
             return group_config, update_config
 
@@ -239,7 +242,6 @@ class TaskManager:
 
                         # Check if this is a duplicate.
                         if parent_name is not None:
-                            name_or_config["group"] = parent_name
                             num_duplicate = len(
                                 list(
                                     filter(
