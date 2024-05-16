@@ -17,6 +17,7 @@ from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
     consolidate_results,
     get_sample_size,
+    get_subtask_list,
     get_task_list,
     prepare_print_tasks,
     print_writeout,
@@ -531,14 +532,14 @@ def evaluate(
                 versions,
                 task_dict,
                 task_root=None,
-                task_hierarchy=None,
                 show_group_table=False,
+                task_aggregation_list=None,
             ):
                 if task_root is None:
                     task_root = {}
 
-                if task_hierarchy is None:
-                    task_hierarchy = {}
+                if task_aggregation_list is None:
+                    task_aggregation_list = {}
 
                 for group_or_task, group_or_task_info in task_dict.items():
                     # Convert to string
@@ -550,26 +551,26 @@ def evaluate(
 
                     if isinstance(group_or_task_info, ConfigurableTask):
                         if task_root:
-                            task_hierarchy.setdefault(task_root, []).append(
+                            task_aggregation_list.setdefault(task_root, []).append(
                                 group_or_task_info.task_id
                             )
                     else:
                         (
                             results,
                             versions,
-                            _task_hierarchy,
                             show_group_table,
+                            _task_aggregation_list,
                         ) = process_group(
                             results,
                             versions,
                             group_or_task_info,
                             group_or_task,
-                            task_hierarchy,
                             show_group_table,
+                            task_aggregation_list,
                         )
                         if task_root:
-                            task_hierarchy.setdefault(task_root, []).extend(
-                                task_hierarchy.get(group_or_task, [])
+                            task_aggregation_list.setdefault(task_root, []).extend(
+                                task_aggregation_list.get(group_or_task, [])
                             )
 
                         if (group_config is None) or (
@@ -582,14 +583,14 @@ def evaluate(
                             show_group_table | group_config["aggregate_metric"]
                         )
 
-                        task_list = _task_hierarchy[group_or_task]
+                        task_list = _task_aggregation_list[group_or_task]
                         metric_list = list(
                             {
                                 key
                                 for task in task_list
                                 for key in results[task].keys()
                                 if "_stderr" not in key
-                                and key not in ["alias", "samples"]
+                                and key not in ["task", "alias", "samples"]
                             }
                         )
                         for metric in metric_list:
@@ -635,13 +636,15 @@ def evaluate(
 
                             results[group_or_task]["samples"] = sum(sizes)
                             versions[group_or_task] = group_config["version"]
-                return results, versions, task_hierarchy, show_group_table
+                return results, versions, show_group_table, task_aggregation_list
 
-            results, versions, task_hierarchy, show_group_table = process_group(
+            results, versions, show_group_table, *_ = process_group(
                 results, versions, task_dict
             )
 
         results_agg, group_agg = prepare_print_tasks(task_dict, results)
+        subtask_list = get_subtask_list(task_dict)
+
         results_dict = {
             "results": dict(results_agg.items()),
             **(
@@ -649,7 +652,7 @@ def evaluate(
                 if (bool(group_agg) & show_group_table)
                 else {}
             ),
-            "group_subtasks": dict(reversed(task_hierarchy.items())),
+            "group_subtasks": dict(reversed(subtask_list.items())),
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
             "n-shot": dict(sorted(num_fewshot.items())),

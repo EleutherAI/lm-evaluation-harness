@@ -137,6 +137,50 @@ def get_task_list(task_dict: dict) -> List[TaskOutput]:
     return outputs
 
 
+def get_subtask_list(task_dict, task_root=None, depth=0):
+    subtask_list = {}
+    for group_obj, task_obj in task_dict.items():
+        if isinstance(group_obj, ConfigurableGroup):
+            group_name = group_obj.group_name
+        else:
+            group_name = group_obj
+        if isinstance(task_obj, dict):
+            _subtask_list = get_subtask_list(
+                task_obj, task_root=group_name, depth=depth + 1
+            )
+            if task_root:
+                subtask_list.setdefault((task_root, depth), []).extend(
+                    [
+                        _task
+                        for (_task, _depth) in _subtask_list.keys()
+                        if (_depth - 1) == depth
+                    ]
+                )
+
+            subtask_list = {**subtask_list, **_subtask_list}
+        else:
+            if isinstance(task_obj, ConfigurableGroup):
+                group_or_task_name = task_obj.group_name
+            elif isinstance(task_obj, ConfigurableTask):
+                group_or_task_name = task_obj.task_name
+
+            if task_root is None:
+                subtask_list.setdefault((group_or_task_name, depth), [])
+            else:
+                subtask_list.setdefault((task_root, depth), []).append(
+                    group_or_task_name
+                )
+
+    if depth == 0:
+        _subtask_list = {}
+        for group_key, task_list in subtask_list.items():
+            group_name, depth = group_key
+            _subtask_list[group_name] = task_list
+        subtask_list = _subtask_list
+
+    return subtask_list
+
+
 def print_writeout(task) -> None:
     for inst in task.instances:
         # print the prompt for the first few documents
@@ -181,16 +225,20 @@ def prepare_print_tasks(
     for task_or_group_name, task_or_group_obj in task_dict.items():
         tab_string = " " * task_depth + "- " if task_depth > 0 else ""
         if isinstance(task_or_group_name, ConfigurableGroup):
-            # name = task_or_group_name.group
+            string_name = task_or_group_name.group_name
             name = task_or_group_name.task_id
             from_configurable_group = True
         elif isinstance(task_or_group_name, str):
             name = task_or_group_name
             if isinstance(task_or_group_obj, ConfigurableTask):
+                string_name = task_or_group_obj.task_name
                 name = task_or_group_obj.task_id
             from_configurable_group = False
 
-        task_agg[name] = results[name].copy()
+        task_agg[name] = {
+            **{"task_or_group_name": string_name},
+            **results[name].copy(),
+        }
         if from_configurable_group:
             if task_or_group_name.group_alias is not None:
                 alias = task_or_group_name.group_alias
@@ -262,6 +310,7 @@ def consolidate_results(
     # Tracks each task's version.
     versions = collections.defaultdict(dict)
     for task_output in eval_tasks:
+        # results[task_output.task_id]["task"] = task_output.task_name
         if "task_alias" in (task_config := task_output.task_config):
             results[task_output.task_id]["alias"] = task_config["task_alias"]
         else:
