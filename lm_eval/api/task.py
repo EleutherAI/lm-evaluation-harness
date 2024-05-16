@@ -83,9 +83,7 @@ class GroupConfig(dict):
         cfg_dict = asdict(self)
         # remove values that are `None`
         for k, v in list(cfg_dict.items()):
-            if v is None:
-                cfg_dict.pop(k)
-            elif callable(v):
+            if callable(v):
                 cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
         return cfg_dict
 
