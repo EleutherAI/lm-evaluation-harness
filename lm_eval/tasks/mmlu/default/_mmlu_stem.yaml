@@ -1,0 +1,7 @@
+group: mmlu_stem
+group_alias: stem
+task:
+  - mmlu_stem_tasks
+aggregate_metric: True
+weight_by_size: True
+version: 1

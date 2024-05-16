@@ -1,29 +1,9 @@
 group: mmlu
 task:
-  - group: stem
-    task:
-      - mmlu_stem
-    aggregate_metric: True
-    weight_by_size: True
-    tag_to_task: True
-  - group: other
-    task:
-      - mmlu_other
-    aggregate_metric: True
-    weight_by_size: True
-    tag_to_task: True
-  - group: social sciences
-    task:
-      - mmlu_social_sciences
-    aggregate_metric: True
-    weight_by_size: True
-    tag_to_task: True
-  - group: humanities
-    task:
-      - mmlu_humanities
-    aggregate_metric: True
-    weight_by_size: True
-    tag_to_task: True
+  - mmlu_stem
+  - mmlu_other
+  - mmlu_social_sciences
+  - mmlu_humanities
 aggregate_metric: True
 weight_by_size: True
 version: 1
