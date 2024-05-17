@@ -166,26 +166,16 @@ class TaskManager:
             return group_name, subtask_list
 
         def _process_group_config(config, update_config=None):
-            _update_config = None
-            if set(config.keys()) > {"task", "group"}:
-                _update_config = {
-                    k: v for k, v in config.items() if k not in GROUP_ONLY_KEYS
-                }
-                if not bool(_update_config):
-                    _update_config = None
-
-            if _update_config is not None:
-                if update_config is not None:
-                    update_config = {
-                        **_update_config,
-                        **update_config,
-                    }
-                else:
-                    update_config = _update_config
+            if update_config is not None:
+                config = {**config, **update_config}
+            _update_config = {
+                k: v for k, v in config.items() if k not in GROUP_ONLY_KEYS
+            }
+            if not bool(_update_config):
+                _update_config = None
 
             group_config = {k: v for k, v in config.items() if k in GROUP_ONLY_KEYS}
-
-            return group_config, update_config
+            return group_config, _update_config
 
         if isinstance(name_or_config, str):
             if update_config is not None:
@@ -208,34 +198,27 @@ class TaskManager:
                     )
 
         if isinstance(name_or_config, dict):
-            if update_config is not None:
-                name_or_config = {
-                    **name_or_config,
-                    **update_config,
-                }
-
             if self._config_is_task(name_or_config):
-                name = name_or_config["task"]
+                name = name_or_config.pop("task")
+                if update_config is not None:
+                    name_or_config = {**name_or_config, **update_config}
                 # If the name is registered as a group
-                if self._name_is_group(name) or self._name_is_tag(name):
-                    update_config = {
-                        k: v
-                        for k, v in name_or_config.items()
-                        if k not in GROUP_ONLY_KEYS + ["task", "group"]
-                    }
+                if self._name_is_group(name):
+                    group_config = self._get_config(name)
+
+                    group_config, update_config = _process_group_config(
+                        group_config, name_or_config
+                    )
+                    group_name, subtask_list = _get_group_and_subtask_from_config(
+                        group_config
+                    )
+                elif self._name_is_tag(name):
                     subtask_list = self._get_tasklist(name)
-                    if subtask_list == -1:
-                        group_config = self._get_config(name)
-                        group_config, update_config = _process_group_config(
-                            group_config
-                        )
-                        group_name, subtask_list = _get_group_and_subtask_from_config(
-                            group_config
-                        )
-                    else:
-                        group_name = ConfigurableGroup(
-                            config={"group": name, "task": subtask_list}
-                        )
+                    fn = partial(
+                        self._load_individual_task_or_group,
+                        update_config=name_or_config,
+                    )
+                    return dict(collections.ChainMap(*map(fn, reversed(subtask_list))))
                 else:
                     if self._name_is_registered(name):
                         base_task_config = self._get_config(name)
