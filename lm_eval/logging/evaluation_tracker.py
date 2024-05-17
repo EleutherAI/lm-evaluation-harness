@@ -1,11 +1,19 @@
 import json
+import os
 import re
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
-from huggingface_hub import HfApi
+from datasets import load_dataset
+from datasets.utils.metadata import MetadataConfigs
+from huggingface_hub import (
+    DatasetCard,
+    DatasetCardData,
+    HfApi,
+    hf_hub_url,
+)
 
 from lm_eval.utils import (
     eval_logger,
@@ -235,9 +243,268 @@ class EvaluationTracker:
                         repo_type="dataset",
                         commit_message=f"Adding samples results for {task_name} to {self.general_config_tracker.model_name}",
                     )
+                    self.recreate_metadata_card()
 
             except Exception as e:
                 eval_logger.warning("Could not save sample results")
                 eval_logger.info(repr(e))
         else:
             eval_logger.info("Output path not provided, skipping saving sample results")
+
+    def recreate_metadata_card(self) -> None:
+        """
+        Creates a metadata card for the evaluation results dataset and pushes it to the Hugging Face hub.
+        """
+
+        def get_file_task_name(filename: str) -> str:
+            return filename[filename.find("_") + 1 : filename.rfind("_")]
+
+        def get_file_datetime(filename: str) -> str:
+            return filename[filename.rfind("_") + 1 :].replace(".json", "")
+
+        repo_id = (
+            self.hub_results_repo if self.public_repo else self.hub_results_repo_private
+        )
+
+        files_in_repo = self.api.list_repo_files(repo_id=repo_id, repo_type="dataset")
+        results_files = [f for f in files_in_repo if "/results_" in f and ".json" in f]
+        sample_files = [f for f in files_in_repo if "/samples_" in f and ".json" in f]
+        multiple_results = len(results_files) > 1
+
+        # currently supports only sample files
+        latest_task_results_datetime = {}
+        for filename in sample_files:
+            filename = os.path.basename(filename)
+            task_name = get_file_task_name(filename)
+            results_datetime = get_file_datetime(filename)
+            # replace the third and fourth '-' with ':'
+            results_datetime = results_datetime[:11] + results_datetime[11:].replace(
+                "-", ":"
+            )
+            results_datetime = datetime.fromisoformat(results_datetime)
+            latest_task_results_datetime[task_name] = (
+                max(latest_task_results_datetime[task_name], results_datetime)
+                if task_name in latest_task_results_datetime
+                else results_datetime
+            )
+        # get latest datetime and convert to isoformat
+        max_latest_task_results_datetime = list(latest_task_results_datetime.values())[
+            0
+        ]
+        for task in latest_task_results_datetime:
+            if max_latest_task_results_datetime < latest_task_results_datetime[task]:
+                max_latest_task_results_datetime = latest_task_results_datetime[task]
+            latest_task_results_datetime[task] = latest_task_results_datetime[
+                task
+            ].isoformat()
+        max_latest_task_results_datetime = max_latest_task_results_datetime.isoformat()
+
+        # create metadata card
+        card_metadata = MetadataConfigs()
+
+        # Add the results config and add the result file as a parquet file
+        for filename in results_files:
+            results_filename = os.path.basename(filename)
+            eval_date = get_file_datetime(results_filename)
+            eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
+            sanitized_last_eval_date_results = re.sub(
+                r"[^\w\.]", "_", max_latest_task_results_datetime
+            )
+
+            if multiple_results:
+                if "results" not in card_metadata:
+                    card_metadata["results"] = {
+                        "data_files": [
+                            {"split": eval_date_sanitized, "path": [results_filename]}
+                        ]
+                    }
+                else:
+                    former_entry = card_metadata["results"]
+                    card_metadata["results"] = {
+                        "data_files": former_entry["data_files"]
+                        + [{"split": eval_date_sanitized, "path": [results_filename]}]
+                    }
+            else:
+                if "results" in card_metadata:
+                    raise ValueError(
+                        f"Entry for results already exists in {former_entry} for repo {repo_id} and file {filename}"
+                    )
+                card_metadata["results"] = {
+                    "data_files": [
+                        {"split": eval_date_sanitized, "path": [results_filename]}
+                    ]
+                }
+
+            if eval_date_sanitized == sanitized_last_eval_date_results:
+                all_entry = card_metadata["results"]["data_files"]
+                card_metadata["results"] = {
+                    "data_files": all_entry
+                    + [{"split": "latest", "path": [results_filename]}]
+                }
+
+        # Add the tasks details configs
+        for filename in sample_files:
+            filename = os.path.basename(filename)
+            task_name = get_file_task_name(filename)
+            eval_date = get_file_datetime(filename)
+            task_name_sanitized = re.sub(r"\W", "_", task_name)
+            eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
+            results_filename = os.path.join("**", os.path.basename(filename))
+            sanitized_last_eval_date_results = re.sub(
+                r"[^\w\.]", "_", latest_task_results_datetime[task_name]
+            )
+
+            if multiple_results:
+                if task_name_sanitized not in card_metadata:
+                    card_metadata[task_name_sanitized] = {
+                        "data_files": [
+                            {"split": eval_date_sanitized, "path": [results_filename]}
+                        ]
+                    }
+                else:
+                    former_entry = card_metadata[task_name_sanitized]
+                    card_metadata[task_name_sanitized] = {
+                        "data_files": former_entry["data_files"]
+                        + [{"split": eval_date_sanitized, "path": [results_filename]}]
+                    }
+            else:
+                if task_name_sanitized in card_metadata:
+                    raise ValueError(
+                        f"Entry for {task_name_sanitized} already exists in {former_entry} for repo {repo_id} and file {filename}"
+                    )
+                card_metadata[task_name_sanitized] = {
+                    "data_files": [
+                        {"split": eval_date_sanitized, "path": [results_filename]}
+                    ]
+                }
+
+            if eval_date_sanitized == sanitized_last_eval_date_results:
+                all_entry = card_metadata[task_name_sanitized]["data_files"]
+                card_metadata[task_name_sanitized] = {
+                    "data_files": all_entry
+                    + [{"split": "latest", "path": [results_filename]}]
+                }
+
+            # # Special case for MMLU with a single split covering it all
+            # # We add another config with all MMLU splits results together for easy inspection
+            # SPECIAL_TASKS = [
+            #     "lighteval|mmlu",
+            #     "original|mmlu",
+            # ]
+            # for special_task in SPECIAL_TASKS:
+            #     sanitized_special_task = re.sub(r"\W", "_", special_task)
+            #     if sanitized_special_task in task_name_sanitized:
+            #         task_info = task_name.split("|")
+            #         # We have few-shot infos, let's keep them in our special task name
+            #         if len(task_info) == 3:
+            #             sanitized_special_task += f"_{task_info[-1]}"
+            #         elif len(task_info) == 4:
+            #             sanitized_special_task += f"_{task_info[-2]}_{task_info[-1]}"
+            #         if sanitized_special_task not in card_metadata:
+            #             card_metadata[sanitized_special_task] = {
+            #                 "data_files": [{"split": eval_date_sanitized, "path": [results_filename]}]
+            #             }
+            #         else:
+            #             former_entry = card_metadata[sanitized_special_task]["data_files"]
+            #             # Any entry for this split already?
+            #             try:
+            #                 split_index = next(
+            #                     index
+            #                     for index, dictionary in enumerate(former_entry)
+            #                     if dictionary.get("split", None) == eval_date_sanitized
+            #                 )
+            #             except StopIteration:
+            #                 split_index = None
+            #             if split_index is None:
+            #                 card_metadata[sanitized_special_task] = {
+            #                     "data_files": former_entry + [{"split": eval_date_sanitized, "path": [results_filename]}]
+            #                 }
+            #             else:
+            #                 former_entry[split_index]["path"] += [results_filename]
+            #                 card_metadata[sanitized_special_task] = {"data_files": former_entry}
+
+            #         if eval_date_sanitized == sanitized_last_eval_date_results:
+            #             former_entry = card_metadata[sanitized_special_task]["data_files"]
+            #             try:
+            #                 split_index = next(
+            #                     index
+            #                     for index, dictionary in enumerate(former_entry)
+            #                     if dictionary.get("split", None) == "latest"
+            #                 )
+            #             except StopIteration:
+            #                 split_index = None
+            #             if split_index is None:
+            #                 card_metadata[sanitized_special_task] = {
+            #                     "data_files": former_entry + [{"split": "latest", "path": [results_filename]}]
+            #                 }
+            #             else:
+            #                 former_entry[split_index]["path"] += [results_filename]
+            #                 card_metadata[sanitized_special_task] = {"data_files": former_entry}
+
+        # Cleanup a little the dataset card
+        # Get the top results
+        last_results_file = [
+            f
+            for f in results_files
+            if max_latest_task_results_datetime.replace(":", "-") in f
+        ][0]
+        last_results_file_path = hf_hub_url(
+            repo_id=repo_id, filename=last_results_file, repo_type="dataset"
+        )
+        f = load_dataset("json", data_files=last_results_file_path, split="train")
+        results_dict = f["results"][0]
+        new_dictionary = {"all": results_dict}
+        new_dictionary.update(results_dict)
+        results_string = json.dumps(new_dictionary, indent=4)
+
+        # TODO change this
+        # # If we are pushing to the Oppen LLM Leaderboard, we'll store specific data in the model card.
+        # is_open_llm_leaderboard = repo_id.split("/")[0] == "open-llm-leaderboard"
+        # if is_open_llm_leaderboard:
+        #     org_string = (
+        #         "on the [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard)."
+        #     )
+        #     leaderboard_url = "https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard"
+        #     point_of_contact = "clementine@hf.co"
+        # else:
+        #     org_string = ""
+        #     leaderboard_url = None
+        #     point_of_contact = None
+        org_string = ""
+        leaderboard_url = None
+        point_of_contact = None
+
+        dataset_summary = (
+            "Dataset automatically created during the evaluation run of model "
+        )
+        if self.general_config_tracker.model_source == "hf":
+            dataset_summary += f"[{self.general_config_tracker.model_name}](https://huggingface.co/{self.general_config_tracker.model_name})"
+        else:
+            dataset_summary += f"{self.general_config_tracker.model_name}"
+        dataset_summary += f"{org_string}.\n\n"
+        f"The dataset is composed of {len(card_metadata)-1} configuration(s), each one corresponding to one of the evaluated task.\n\n"
+        f"The dataset has been created from {len(results_files)} run(s). Each run can be found as a specific split in each "
+        'configuration, the split being named using the timestamp of the run.The "train" split is always pointing to the latest results.\n\n'
+        'An additional configuration "results" store all the aggregated results of the run.\n\n'
+        "To load the details from a run, you can for instance do the following:\n"
+        if self.general_config_tracker.model_source == "hf":
+            dataset_summary += f'```python\nfrom datasets import load_dataset\ndata = load_dataset(\n\t"{repo_id}",\n\t"{task_name_sanitized}",\n\tsplit="train"\n)\n```\n\n'
+        dataset_summary += "## Latest results\n\n"
+        f'These are the [latest results from run {max_latest_task_results_datetime}]({last_results_file_path.replace("/resolve/", "/blob/")}) '
+        "(note that their might be results for other tasks in the repos if successive evals didn't cover the same tasks. "
+        'You find each in the results and the "latest" split for each eval):\n\n'
+        (f"```python\n{results_string}\n```",)
+
+        card_data = DatasetCardData(
+            dataset_summary=dataset_summary,
+            repo_url=f"https://huggingface.co/{self.general_config_tracker.model_name}",
+            pretty_name=f"Evaluation run of {self.general_config_tracker.model_name}",
+            leaderboard_url=leaderboard_url,
+            point_of_contact=point_of_contact,
+        )
+        card_metadata.to_dataset_card_data(card_data)
+        card = DatasetCard.from_template(
+            card_data,
+            pretty_name=card_data.pretty_name,
+        )
+        card.push_to_hub(repo_id, repo_type="dataset")
