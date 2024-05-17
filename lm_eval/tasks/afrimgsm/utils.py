@@ -105,7 +105,7 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                 ANSWER = LANGUAGES[lang]["DIRECT"]
                 QUESTION = LANGUAGES[lang]["QUESTION"]
                 REGEX = None
-                task_name = f"afrimgsm_direct_{lang}"
+                task_name = f"afrimgsm_direct_native_{lang}"
                 yaml_template = "direct_native_yaml"
             elif mode == "native-cot":
                 ANSWER = LANGUAGES[lang]["ANSWER"]

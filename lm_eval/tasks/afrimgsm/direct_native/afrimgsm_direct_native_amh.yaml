@@ -9,4 +9,4 @@ generation_kwargs:
   - </s>
   - <|im_end|>
 include: direct_native_yaml
-task: afrimgsm_direct_amh
+task: afrimgsm_direct_native_amh
