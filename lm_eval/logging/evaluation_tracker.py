@@ -14,6 +14,7 @@ from huggingface_hub import (
     HfApi,
     hf_hub_url,
 )
+from collections import defaultdict
 
 from lm_eval.utils import (
     eval_logger,
@@ -194,6 +195,18 @@ class EvaluationTracker:
                 "Output path not provided, skipping saving results aggregated"
             )
 
+
+    def sanitize_list(self, sub):
+        """
+        takes possible nested list and recursively converts all inner component to strings
+        """
+        if isinstance(sub, list):
+            return [self.sanitize_list(item) for item in sub]
+        if isinstance(sub, tuple):
+            return tuple(self.sanitize_list(item) for item in sub)
+        else:
+            return str(sub)
+
     def save_results_samples(
         self,
         task_name: str,
@@ -209,12 +222,7 @@ class EvaluationTracker:
         if self.output_path:
             try:
                 eval_logger.info("Saving samples results")
-                samples_dumped = json.dumps(
-                    samples,
-                    indent=2,
-                    default=handle_non_serializable,
-                    ensure_ascii=False,
-                )
+                # for each sample, dump the dict into a jsonl file
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
                 path = path.joinpath(self.general_config_tracker.model_name_sanitized)
@@ -223,7 +231,29 @@ class EvaluationTracker:
                 file_results_samples = path.joinpath(
                     f"samples_{task_name}_{self.date_id}.json"
                 )
-                file_results_samples.write_text(samples_dumped, encoding="utf-8")
+
+                for sample in samples:
+                    # we first need to sanitize arguments and resps
+                    # otherwise we won't be able to load the dataset
+                    # using the datasets library
+                    arguments = {}
+                    for i, arg in enumerate(sample["arguments"]):
+                        arguments[f"gen_args_{i}"] = {}
+                        for j, tmp in enumerate(arg):
+                            arguments[f"gen_args_{i}"][f"arg_{j}"] = tmp
+
+                    sample["resps"] = self.sanitize_list(sample["resps"])
+                    sample["filtered_resps"] = self.sanitize_list(sample["filtered_resps"])
+                    sample["arguments"] = arguments
+
+                    sample_dump = json.dumps(
+                        sample,
+                        default=handle_non_serializable,
+                        ensure_ascii=False,
+                    ) + "\n"
+
+                    with open(file_results_samples, "a") as f:
+                        f.write(sample_dump)
 
                 if self.api and self.push_samples_to_hub:
                     self.api.create_repo(
@@ -271,76 +301,40 @@ class EvaluationTracker:
         sample_files = [f for f in files_in_repo if "/samples_" in f and ".json" in f]
         multiple_results = len(results_files) > 1
 
-        # currently supports only sample files
-        latest_task_results_datetime = {}
+        # build a dict with the latest datetime for each task
+        # i.e. {"gsm8k": "2021-09-01T12:00:00", "ifeval": "2021-09-01T12:00:00"}
+        latest_task_results_datetime = defaultdict(lambda: datetime.min.isoformat())
+
         for filename in sample_files:
             filename = os.path.basename(filename)
             task_name = get_file_task_name(filename)
             results_datetime = get_file_datetime(filename)
-            # replace the third and fourth '-' with ':'
-            results_datetime = results_datetime[:11] + results_datetime[11:].replace(
-                "-", ":"
-            )
-            results_datetime = datetime.fromisoformat(results_datetime)
             latest_task_results_datetime[task_name] = (
                 max(latest_task_results_datetime[task_name], results_datetime)
-                if task_name in latest_task_results_datetime
-                else results_datetime
             )
+
         # get latest datetime and convert to isoformat
-        max_latest_task_results_datetime = list(latest_task_results_datetime.values())[
-            0
-        ]
-        for task in latest_task_results_datetime:
-            if max_latest_task_results_datetime < latest_task_results_datetime[task]:
-                max_latest_task_results_datetime = latest_task_results_datetime[task]
-            latest_task_results_datetime[task] = latest_task_results_datetime[
-                task
-            ].isoformat()
-        max_latest_task_results_datetime = max_latest_task_results_datetime.isoformat()
+        max_latest_task_results_datetime = max(latest_task_results_datetime.values())
 
         # create metadata card
         card_metadata = MetadataConfigs()
 
-        # Add the results config and add the result file as a parquet file
+        # add new results to the metatdata card
         for filename in results_files:
             results_filename = os.path.basename(filename)
             eval_date = get_file_datetime(results_filename)
             eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
+            results_filename = os.path.join("**", results_filename)
             sanitized_last_eval_date_results = re.sub(
                 r"[^\w\.]", "_", max_latest_task_results_datetime
             )
 
-            if multiple_results:
-                if "results" not in card_metadata:
-                    card_metadata["results"] = {
-                        "data_files": [
-                            {"split": eval_date_sanitized, "path": [results_filename]}
-                        ]
-                    }
-                else:
-                    former_entry = card_metadata["results"]
-                    card_metadata["results"] = {
-                        "data_files": former_entry["data_files"]
-                        + [{"split": eval_date_sanitized, "path": [results_filename]}]
-                    }
-            else:
-                if "results" in card_metadata:
-                    raise ValueError(
-                        f"Entry for results already exists in {former_entry} for repo {repo_id} and file {filename}"
-                    )
-                card_metadata["results"] = {
-                    "data_files": [
-                        {"split": eval_date_sanitized, "path": [results_filename]}
-                    ]
-                }
+            current_results = card_metadata.get("results", {"data_files": []})
+            current_results["data_files"].append({"split": eval_date_sanitized, "path": [results_filename]})
+            card_metadata["results"] = current_results
 
             if eval_date_sanitized == sanitized_last_eval_date_results:
-                all_entry = card_metadata["results"]["data_files"]
-                card_metadata["results"] = {
-                    "data_files": all_entry
-                    + [{"split": "latest", "path": [results_filename]}]
-                }
+                card_metadata["results"]["data_files"].append({"split": "latest", "path": [results_filename]})
 
         # Add the tasks details configs
         for filename in sample_files:
@@ -354,36 +348,16 @@ class EvaluationTracker:
                 r"[^\w\.]", "_", latest_task_results_datetime[task_name]
             )
 
-            if multiple_results:
-                if task_name_sanitized not in card_metadata:
-                    card_metadata[task_name_sanitized] = {
-                        "data_files": [
-                            {"split": eval_date_sanitized, "path": [results_filename]}
-                        ]
-                    }
-                else:
-                    former_entry = card_metadata[task_name_sanitized]
-                    card_metadata[task_name_sanitized] = {
-                        "data_files": former_entry["data_files"]
-                        + [{"split": eval_date_sanitized, "path": [results_filename]}]
-                    }
-            else:
-                if task_name_sanitized in card_metadata:
-                    raise ValueError(
-                        f"Entry for {task_name_sanitized} already exists in {former_entry} for repo {repo_id} and file {filename}"
-                    )
-                card_metadata[task_name_sanitized] = {
-                    "data_files": [
-                        {"split": eval_date_sanitized, "path": [results_filename]}
-                    ]
-                }
+            current_details_for_task = card_metadata.get(task_name_sanitized, {"data_files": []})
+            current_details_for_task["data_files"].append(
+                {"split": eval_date_sanitized, "path": [results_filename]}
+            )
+            card_metadata[task_name_sanitized] = current_details_for_task
 
             if eval_date_sanitized == sanitized_last_eval_date_results:
-                all_entry = card_metadata[task_name_sanitized]["data_files"]
-                card_metadata[task_name_sanitized] = {
-                    "data_files": all_entry
-                    + [{"split": "latest", "path": [results_filename]}]
-                }
+                card_metadata[task_name_sanitized]["data_files"].append(
+                    {"split": "latest", "path": [results_filename]}
+                )
 
             # # Special case for MMLU with a single split covering it all
             # # We add another config with all MMLU splits results together for easy inspection
@@ -488,7 +462,7 @@ class EvaluationTracker:
         'An additional configuration "results" store all the aggregated results of the run.\n\n'
         "To load the details from a run, you can for instance do the following:\n"
         if self.general_config_tracker.model_source == "hf":
-            dataset_summary += f'```python\nfrom datasets import load_dataset\ndata = load_dataset(\n\t"{repo_id}",\n\t"{task_name_sanitized}",\n\tsplit="train"\n)\n```\n\n'
+            dataset_summary += f'```python\nfrom datasets import load_dataset\ndata = load_dataset(\n\t"{repo_id}",\n\t"{task_name_sanitized}",\n\tsplit="latest"\n)\n```\n\n'
         dataset_summary += "## Latest results\n\n"
         f'These are the [latest results from run {max_latest_task_results_datetime}]({last_results_file_path.replace("/resolve/", "/blob/")}) '
         "(note that their might be results for other tasks in the repos if successive evals didn't cover the same tasks. "
