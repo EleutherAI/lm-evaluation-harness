@@ -22,5 +22,6 @@ def main() -> None:
         except FileExistsError:
             pass
 
+
 if __name__ == "__main__":
     main()
