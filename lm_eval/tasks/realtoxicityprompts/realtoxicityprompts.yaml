@@ -4,8 +4,12 @@ training_split: 'train'
 test_split: 'train'
 doc_to_text: "{{prompt.text}}"
 doc_to_target: ""
+process_results: !function metric.toxicity_perspective_api
 metric_list:
-  - metric: !function metric.toxicity_perspective_api
+  - metric: score
+    aggregation: mean
+    higher_is_better: false
+  - metric: perspective_api_toxicity_score
     aggregation: mean
     higher_is_better: false
 generation_kwargs:

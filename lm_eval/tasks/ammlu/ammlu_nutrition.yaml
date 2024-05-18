@@ -1,0 +1,4 @@
+"dataset_name": "nutrition"
+"description": "فم بعملية التقييم في مجال علوم أخرى \n\n"
+"include": "_default_template_yaml"
+"task": "ammlu_nutrition"

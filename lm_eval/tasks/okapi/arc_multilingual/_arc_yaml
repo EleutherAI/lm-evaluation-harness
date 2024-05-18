@@ -1,0 +1,23 @@
+group:
+  - arc_multilingual
+dataset_path: null
+dataset_name: null
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+test_split: test
+process_docs: !function utils.process_docs
+doc_to_text: "query"
+doc_to_target: "gold"
+doc_to_choice: "choices"
+should_decontaminate: true
+doc_to_decontamination_query: "query"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 2.0

@@ -290,16 +290,79 @@ This will add your task to the `group1` and `group2` groups, enabling people to 
 
 If your task is not in the `lm_eval/tasks` folder, you'll need to tell the Eval Harness where to look for YAML files.
 
-You can do this via adding the Python snippet
+You can do this via the `--include_path` argument in `__main__.py`. This command will be used to initialize the `TaskManager` object which you can also use for your custom scripts.
 
 ```python
-from lm_eval.tasks import include_task_folder
-include_task_folder("/path/to/yaml/parent/folder")
+task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 ```
-to the top of any Python file that is run or imported when performing evaluation, such as `\_\_main\_\_.py`.
 
 Passing `--tasks /path/to/yaml/file` is also accepted.
 
+
+### Advanced Group Configs
+
+You can make more complete group config while also tailoring parameters for individual tasks.
+
+For example, let's build a config for evaluating MMLU and a few natural language inference tasks. For MMLU, we can write the name for the benchmark as a subtask written under `task`. You can configure the parameters such as `num_fewshot`. If the task being configured is a group such as `mmlu` or `super_glue`, the parameter set will be applied to all of the subtasks.
+
+```yaml
+group: nli_and_mmlu
+task:
+  - group: nli_tasks
+    task:
+      - cb
+      - anli_r1
+      - rte
+  - task: mmlu
+    num_fewshot: 2
+```
+It's also important to note how you can basically insert a group config as a task. Here, to make a group of natural language inference tasks, you simply write like how you would normally write a group config but this time place that as part of a task list under the main group being built.
+
+### Duplicate Tasks in Group Configs
+
+There might be cases where you might want to evaluate prompts and how models perform over prompt variations. You can list an existing task (In the example below, `anli_r1`) which varying `doc_to_text` implementation. To differentiate from each variation, we can utilize `task_alias`. LM-Eval will recognize that there are multiple variations of the same tasks and differentiate them.
+```yaml
+group: flan_held_in
+group_alias: Flan (Held-In)
+task:
+  # ANLI R1
+  - group: anli_r1_flan
+    group_alias: ANLI R1
+    task:
+      - task: anli_r1
+        task_alias: prompt-0
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nChoose your answer ..."
+        ...
+      - task: anli_r1
+        task_alias: prompt-1
+        include: _held_in_template_yaml
+        doc_to_text: "{{premise}}\n\nBased on ..."
+      ...
+```
+
+### Configuring python classes
+
+There can occasions when yaml-based tasks cannot accommodate how a task is handled. LM-Eval supports the manually implementing tasks as was previously done before `0.4.x`. To register the task, you can simply make a yaml with the name of the task in `task` and the class object in `class` using the `!function` prefix.
+
+```yaml
+task: squadv2
+class: !function task.SQuAD2
+```
+
+This also applies to building group configurations with subtasks that are python classes.
+
+```yaml
+group: scrolls
+task:
+  - task: scrolls_qasper
+    class: !function task.Qasper
+  - task: scrolls_quality
+    class: !function task.QuALITY
+  - task: scrolls_narrativeqa
+    class: !function task.NarrativeQA
+  ...
+```
 
 ## Beautifying Table Display
 

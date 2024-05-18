@@ -1,13 +1,14 @@
 """
 Take in a YAML, and output all other splits with this YAML
 """
-import os
-import yaml
 import argparse
+import os
 
+import yaml
 from tqdm import tqdm
 
 from lm_eval.logger import eval_logger
+
 
 SUBJECTS = {
     "computer_network": "计算机网络",
@@ -79,13 +80,13 @@ if __name__ == "__main__":
 
     # get filename of base_yaml so we can `"include": ` it in our other YAMLs.
     base_yaml_name = os.path.split(args.base_yaml_path)[-1]
-    with open(args.base_yaml_path) as f:
+    with open(args.base_yaml_path, encoding="utf-8") as f:
         base_yaml = yaml.full_load(f)
 
     if args.cot_prompt_path is not None:
         import json
 
-        with open(args.cot_prompt_path) as f:
+        with open(args.cot_prompt_path, encoding="utf-8") as f:
             cot_file = json.load(f)
 
     for subject_eng, subject_zh in tqdm(SUBJECTS.items()):
@@ -107,7 +108,7 @@ if __name__ == "__main__":
 
         file_save_path = args.save_prefix_path + f"_{subject_eng}.yaml"
         eval_logger.info(f"Saving yaml for subset {subject_eng} to {file_save_path}")
-        with open(file_save_path, "w") as yaml_file:
+        with open(file_save_path, "w", encoding="utf-8") as yaml_file:
             yaml.dump(
                 yaml_dict,
                 yaml_file,

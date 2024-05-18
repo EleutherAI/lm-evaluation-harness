@@ -1,5 +1,7 @@
 import random
 
+from tqdm import tqdm
+
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
 
@@ -13,27 +15,27 @@ class DummyLM(LM):
     def create_from_arg_string(cls, arg_string, additional_config=None):
         return cls()
 
-    def loglikelihood(self, requests):
+    def loglikelihood(self, requests, disable_tqdm: bool = False):
         res = []
 
-        for _ in requests:
+        for _ in tqdm(requests, disable=disable_tqdm):
             res.append((-random.random(), False))
 
         return res
 
-    def generate_until(self, requests):
+    def generate_until(self, requests, disable_tqdm: bool = False):
         res = []
 
-        for ctx, _ in requests:
+        for ctx, _ in tqdm(requests, disable=disable_tqdm):
             res.append("lol")
             assert ctx.strip() != ""
 
         return res
 
-    def loglikelihood_rolling(self, requests):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         res = []
 
-        for _ in requests:
+        for _ in tqdm(requests, disable=disable_tqdm):
             res.append(-random.random())
 
         return res

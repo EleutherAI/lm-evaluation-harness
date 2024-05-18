@@ -1,0 +1,3 @@
+dataset_name: Law
+include: _direct_kmmlu_yaml
+task: kmmlu_direct_law

@@ -1,0 +1,21 @@
+include: "_default_template_yaml"
+group:
+  - french_bench
+  - french_bench_extra
+description: "La prémisse et l'hypothèse sont elles en accord, neutres en elles, ou en contradiction ?"
+dataset_path: xnli
+dataset_name: fr
+output_type: multiple_choice
+validation_split: validation
+fewshot_split: validation
+test_split: test
+# doc_to_text: "\nPrémisse: {{premise}}\n\nHypothèse: {{hypothesis}}\n\nLa prémisse et l'hypothèse sont:\nA. En accord\nB. Neutre\nC. En contradiction\nRéponse:"
+# doc_to_choice: "{{['A: En accord', 'B: Neutre', 'C: En contradiction']}}"
+doc_to_text: "\nPrémisse: {{premise}}\n\nHypothèse: {{hypothesis}}\n\nLa prémisse et l'hypothèse sont"
+doc_to_choice: "{{['en accord', 'neutres entre elles', 'en contradiction']}}"
+doc_to_target: label
+task: french_bench_xnli
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true

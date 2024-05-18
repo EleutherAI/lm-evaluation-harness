@@ -1,0 +1,14 @@
+group: copal_id
+task: copal_id_standard
+task_alias: standard
+dataset_path: haryoaw/COPAL
+dataset_name: id
+output_type: multiple_choice
+test_split: test
+doc_to_text: !function utils.doc_to_text_id
+doc_to_target: label
+doc_to_choice: !function utils.doc_to_choice
+metric_list:
+  - metric: acc
+metadata:
+  version: 1.0
