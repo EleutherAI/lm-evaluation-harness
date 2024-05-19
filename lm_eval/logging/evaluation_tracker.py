@@ -359,61 +359,37 @@ class EvaluationTracker:
                     {"split": "latest", "path": [results_filename]}
                 )
 
-            # # Special case for MMLU with a single split covering it all
-            # # We add another config with all MMLU splits results together for easy inspection
-            # SPECIAL_TASKS = [
-            #     "lighteval|mmlu",
-            #     "original|mmlu",
-            # ]
-            # for special_task in SPECIAL_TASKS:
-            #     sanitized_special_task = re.sub(r"\W", "_", special_task)
-            #     if sanitized_special_task in task_name_sanitized:
-            #         task_info = task_name.split("|")
-            #         # We have few-shot infos, let's keep them in our special task name
-            #         if len(task_info) == 3:
-            #             sanitized_special_task += f"_{task_info[-1]}"
-            #         elif len(task_info) == 4:
-            #             sanitized_special_task += f"_{task_info[-2]}_{task_info[-1]}"
-            #         if sanitized_special_task not in card_metadata:
-            #             card_metadata[sanitized_special_task] = {
-            #                 "data_files": [{"split": eval_date_sanitized, "path": [results_filename]}]
-            #             }
-            #         else:
-            #             former_entry = card_metadata[sanitized_special_task]["data_files"]
-            #             # Any entry for this split already?
-            #             try:
-            #                 split_index = next(
-            #                     index
-            #                     for index, dictionary in enumerate(former_entry)
-            #                     if dictionary.get("split", None) == eval_date_sanitized
-            #                 )
-            #             except StopIteration:
-            #                 split_index = None
-            #             if split_index is None:
-            #                 card_metadata[sanitized_special_task] = {
-            #                     "data_files": former_entry + [{"split": eval_date_sanitized, "path": [results_filename]}]
-            #                 }
-            #             else:
-            #                 former_entry[split_index]["path"] += [results_filename]
-            #                 card_metadata[sanitized_special_task] = {"data_files": former_entry}
+            # Special case for MMLU with a single split covering it all
+            # We add another config with all MMLU splits results together for easy inspection
+            # we add an `_` to the tasks name to avoid putting `mmlu` maths tasks to the `math` config
+            SPECIAL_TASKS = [
+                "mmlu_",
+                "gpqa_",
+                "math_"
+            ]
+            for special_task in SPECIAL_TASKS:
+                if special_task in task_name_sanitized:
+                    former_entry = card_metadata.get(special_task, {"data_files": []})
 
-            #         if eval_date_sanitized == sanitized_last_eval_date_results:
-            #             former_entry = card_metadata[sanitized_special_task]["data_files"]
-            #             try:
-            #                 split_index = next(
-            #                     index
-            #                     for index, dictionary in enumerate(former_entry)
-            #                     if dictionary.get("split", None) == "latest"
-            #                 )
-            #             except StopIteration:
-            #                 split_index = None
-            #             if split_index is None:
-            #                 card_metadata[sanitized_special_task] = {
-            #                     "data_files": former_entry + [{"split": "latest", "path": [results_filename]}]
-            #                 }
-            #             else:
-            #                 former_entry[split_index]["path"] += [results_filename]
-            #                 card_metadata[sanitized_special_task] = {"data_files": former_entry}
+                    former_split = [(i, entry) for i, entry in enumerate(former_entry["data_files"]) if entry.get("split", None) == eval_date_sanitized]
+
+                    if len(former_split) == 0:
+                        former_entry["data_files"].append(
+                            {"split": eval_date_sanitized, "path": [results_filename]}
+                        )
+                    else:
+                        split_index, _ = former_split[0]
+                        former_entry["data_files"][split_index]["path"].append(results_filename)
+
+                    if eval_date_sanitized == sanitized_last_eval_date_results:
+                        latest_split = [(i, entry) for i, entry in enumerate(former_entry["data_files"]) if entry.get("split", None) == "latest"]
+                        if len(latest_split) == 0:
+                            former_entry["data_files"].append({"split": "latest", "path": [results_filename]})
+                        else:
+                            latest_index, _ = latest_split[0]
+                            former_entry["data_files"][latest_index]["path"].append(results_filename)
+
+                    card_metadata[special_task] = former_entry
 
         # Cleanup a little the dataset card
         # Get the top results
