@@ -302,9 +302,12 @@ class EvaluationTracker:
         results_files = [f for f in files_in_repo if "/results_" in f and ".json" in f]
         sample_files = [f for f in files_in_repo if "/samples_" in f and ".json" in f]
 
-        # build a dict with the latest datetime for each task
-        # i.e. {"gsm8k": "2021-09-01T12:00:00", "ifeval": "2021-09-01T12:00:00"}
-        # TODO rename this
+        # build a dict with the latest datetime for each model, task pair and for the cumulated model results
+        # i.e. {
+        #     "org__model_name__gsm8k": "2021-09-01T12:00:00",
+        #     "org__model_name__ifeval": "2021-09-01T12:00:00",
+        #     "org__model_name__results": "2021-09-01T12:00:00"
+        # }
         latest_task_results_datetime = defaultdict(lambda: datetime.min.isoformat())
 
         for file_path in sample_files:
@@ -313,17 +316,14 @@ class EvaluationTracker:
             task_name = get_file_task_name(filename)
             results_datetime = get_file_datetime(filename)
             task_name_sanitized = sanitize_task_name(task_name)
+            samples_key = f"{model_name}__{task_name_sanitized}"
+            results_key = f"{model_name}__results"
             latest_datetime = max(
-                latest_task_results_datetime[f"{model_name}__{task_name_sanitized}"],
+                latest_task_results_datetime[samples_key],
                 results_datetime,
             )
-            latest_task_results_datetime[
-                f"{model_name}__{task_name_sanitized}"
-            ] = latest_datetime
-            latest_task_results_datetime[f"{model_name}__results"] = latest_datetime
-
-        # get latest datetime and convert to isoformat
-        max_latest_task_results_datetime = max(latest_task_results_datetime.values())
+            latest_task_results_datetime[samples_key] = latest_datetime
+            latest_task_results_datetime[results_key] = latest_datetime
 
         # create metadata card
         card_metadata = MetadataConfigs()
@@ -418,12 +418,13 @@ class EvaluationTracker:
 
                     card_metadata[special_task] = former_entry
 
-        # Cleanup a little the dataset card
         # Get the top results
+        latest_datetime = max(latest_task_results_datetime.values())
+        latest_model_name = max(
+            latest_task_results_datetime, key=lambda k: latest_task_results_datetime[k]
+        )
         last_results_file = [
-            f
-            for f in results_files
-            if max_latest_task_results_datetime.replace(":", "-") in f
+            f for f in results_files if latest_datetime.replace(":", "-") in f
         ][0]
         last_results_file_path = hf_hub_url(
             repo_id=repo_id, filename=last_results_file, repo_type="dataset"
@@ -451,10 +452,13 @@ class EvaluationTracker:
             "To load the details from a run, you can for instance do the following:\n"
         )
         if self.general_config_tracker.model_source == "hf":
-            dataset_summary += f'```python\nfrom datasets import load_dataset\ndata = load_dataset(\n\t"{repo_id}",\n\t"{task_name_sanitized}",\n\tsplit="train"\n)\n```\n\n'
+            dataset_summary += (
+                "```python\nfrom datasets import load_dataset\n"
+                f'data = load_dataset(\n\t"{repo_id}",\n\tname="{latest_model_name}",\n\tsplit="latest"\n)\n```\n\n'
+            )
         dataset_summary += (
             "## Latest results\n\n"
-            f'These are the [latest results from run {max_latest_task_results_datetime}]({last_results_file_path.replace("/resolve/", "/blob/")}) '
+            f'These are the [latest results from run {latest_datetime}]({last_results_file_path.replace("/resolve/", "/blob/")}) '
             "(note that their might be results for other tasks in the repos if successive evals didn't cover the same tasks. "
             'You find each in the results and the "latest" split for each eval):\n\n'
             f"```python\n{results_string}\n```"
