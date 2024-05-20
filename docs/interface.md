@@ -42,13 +42,13 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--show_config` : If used, prints the full `lm_eval.api.task.TaskConfig` contents (non-default settings the task YAML file) for each task which was run, at the completion of an evaluation. Useful for when one is modifying a task's configuration YAML locally to transmit the exact configurations used for debugging or for reproducibility purposes.
 
-- `--include_path` : Accepts a path to a folder. If passed, then all YAML files containing ` lm-eval`` compatible task configurations will be added to the task registry as available tasks. Used for when one is writing config files for their own task in a folder other than  `lm_eval/tasks/`
+- `--include_path` : Accepts a path to a folder. If passed, then all YAML files containing `lm-eval` compatible task configurations will be added to the task registry as available tasks. Used for when one is writing config files for their own task in a folder other than `lm_eval/tasks/`.
 
 - `--predict_only`: Generates the model outputs without computing metrics. Use with `--log_samples` to retrieve decoded results.
 
 * `--seed`: Set seed for python's random, numpy and torch.  Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, or a single integer to set the same seed for all three.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all three seeds to 42.
 
-* `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list (here.)[https://docs.wandb.ai/ref/python/init]. e.g., ```--wandb_args project=test-project,name=test-run```
+* `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list [here](https://docs.wandb.ai/ref/python/init). e.g., ```--wandb_args project=test-project,name=test-run```
 
 * `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
     * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`,
@@ -84,7 +84,7 @@ task_manager = lm_eval.tasks.TaskManager()
 
 # Setting `task_manager` to the one above is optional and should generally be done
 # if you want to include tasks from paths other than ones in `lm_eval/tasks`.
-# `simple_evaluate` will instantiate its own task_manager is the it is set to None here.
+# `simple_evaluate` will instantiate its own task_manager if it is set to None here.
 results = lm_eval.simple_evaluate( # call simple_evaluate
     model=lm_obj,
     tasks=["taskname1", "taskname2"],
