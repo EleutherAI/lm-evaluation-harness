@@ -304,6 +304,7 @@ class EvaluationTracker:
 
         # build a dict with the latest datetime for each task
         # i.e. {"gsm8k": "2021-09-01T12:00:00", "ifeval": "2021-09-01T12:00:00"}
+        # TODO rename this
         latest_task_results_datetime = defaultdict(lambda: datetime.min.isoformat())
 
         for file_path in sample_files:
@@ -312,10 +313,14 @@ class EvaluationTracker:
             task_name = get_file_task_name(filename)
             results_datetime = get_file_datetime(filename)
             task_name_sanitized = sanitize_task_name(task_name)
-            config_name = f"{model_name}__{task_name_sanitized}"
-            latest_task_results_datetime[config_name] = max(
-                latest_task_results_datetime[config_name], results_datetime
+            latest_datetime = max(
+                latest_task_results_datetime[f"{model_name}__{task_name_sanitized}"],
+                results_datetime,
             )
+            latest_task_results_datetime[
+                f"{model_name}__{task_name_sanitized}"
+            ] = latest_datetime
+            latest_task_results_datetime[f"{model_name}__results"] = latest_datetime
 
         # get latest datetime and convert to isoformat
         max_latest_task_results_datetime = max(latest_task_results_datetime.values())
@@ -330,10 +335,10 @@ class EvaluationTracker:
             eval_date = get_file_datetime(results_filename)
             eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
             results_filename = os.path.join("**", results_filename)
-            sanitized_last_eval_date_results = re.sub(
-                r"[^\w\.]", "_", max_latest_task_results_datetime
-            )
             config_name = f"{model_name}__results"
+            sanitized_last_eval_date_results = re.sub(
+                r"[^\w\.]", "_", latest_task_results_datetime[config_name]
+            )
             current_results = card_metadata.get(config_name, {"data_files": []})
             current_results["data_files"].append(
                 {"split": eval_date_sanitized, "path": [results_filename]}
