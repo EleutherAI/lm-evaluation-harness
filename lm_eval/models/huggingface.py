@@ -13,7 +13,6 @@ from accelerate import (
     InitProcessGroupKwargs,
     find_executable_batch_size,
 )
-from accelerate.utils import is_npu_available
 from huggingface_hub import HfApi
 from packaging import version
 from peft import PeftModel
@@ -149,14 +148,12 @@ class HFLM(TemplateLM):
             assert isinstance(batch_size, (int, str))
 
             gpus = torch.cuda.device_count()
-
             accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
             accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
-
             if accelerator.num_processes > 1:
                 self.accelerator = accelerator
 
-            if is_npu_available():
+            if "npu" in accelerator.device.type:
                 gpus = torch.npu.device_count()
 
             if not (parallelize or accelerator.num_processes > 1):
