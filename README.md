@@ -318,6 +318,13 @@ lm_eval --model hf \
     --hf_hub_log_args hub_results_org=EleutherAI,hub_repo_name=lm-eval-results,push_results_to_hub=True,push_samples_to_hub=True,public_repo=False \
 ```
 
+This allows you to easily download the results and samples from the Hub, using:
+```python
+from datasets import load_dataset
+
+load_dataset("EleutherAI/lm-eval-results-private", "hellaswag", "latest")
+```
+
 For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
 
 ## Visualizing Results
