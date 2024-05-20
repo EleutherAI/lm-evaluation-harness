@@ -56,6 +56,8 @@ This mode supports a number of command-line arguments, the details of which can 
     * `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
     * `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
     * `public_repo` - whether the repository is public, can be `True` or `False`,
+    * `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
+    * `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
 
 ## External Library Usage
 
