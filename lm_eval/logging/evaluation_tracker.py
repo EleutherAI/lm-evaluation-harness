@@ -290,6 +290,9 @@ class EvaluationTracker:
         def get_file_datetime(filename: str) -> str:
             return filename[filename.rfind("_") + 1 :].replace(".json", "")
 
+        def sanitize_task_name(task_name: str) -> str:
+            return re.sub(r"\W", "_", task_name)
+
         eval_logger.info("Recreating metadata card")
         repo_id = (
             self.hub_results_repo if self.public_repo else self.hub_results_repo_private
@@ -303,12 +306,15 @@ class EvaluationTracker:
         # i.e. {"gsm8k": "2021-09-01T12:00:00", "ifeval": "2021-09-01T12:00:00"}
         latest_task_results_datetime = defaultdict(lambda: datetime.min.isoformat())
 
-        for filename in sample_files:
-            filename = os.path.basename(filename)
+        for file_path in sample_files:
+            filename = os.path.basename(file_path)
+            model_name = os.path.dirname(file_path)
             task_name = get_file_task_name(filename)
             results_datetime = get_file_datetime(filename)
-            latest_task_results_datetime[task_name] = max(
-                latest_task_results_datetime[task_name], results_datetime
+            task_name_sanitized = sanitize_task_name(task_name)
+            config_name = f"{model_name}__{task_name_sanitized}"
+            latest_task_results_datetime[config_name] = max(
+                latest_task_results_datetime[config_name], results_datetime
             )
 
         # get latest datetime and convert to isoformat
@@ -318,48 +324,50 @@ class EvaluationTracker:
         card_metadata = MetadataConfigs()
 
         # add new results to the metadata card
-        for filename in results_files:
-            results_filename = os.path.basename(filename)
+        for file_path in results_files:
+            results_filename = os.path.basename(file_path)
+            model_name = os.path.dirname(file_path)
             eval_date = get_file_datetime(results_filename)
             eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
             results_filename = os.path.join("**", results_filename)
             sanitized_last_eval_date_results = re.sub(
                 r"[^\w\.]", "_", max_latest_task_results_datetime
             )
-
-            current_results = card_metadata.get("results", {"data_files": []})
+            config_name = f"{model_name}__results"
+            current_results = card_metadata.get(config_name, {"data_files": []})
             current_results["data_files"].append(
                 {"split": eval_date_sanitized, "path": [results_filename]}
             )
-            card_metadata["results"] = current_results
-
+            card_metadata[config_name] = current_results
             if eval_date_sanitized == sanitized_last_eval_date_results:
-                card_metadata["results"]["data_files"].append(
+                card_metadata[config_name]["data_files"].append(
                     {"split": "latest", "path": [results_filename]}
                 )
 
         # Add the tasks details configs
-        for filename in sample_files:
-            filename = os.path.basename(filename)
+        for file_path in sample_files:
+            filename = os.path.basename(file_path)
+            model_name = os.path.dirname(file_path)
             task_name = get_file_task_name(filename)
             eval_date = get_file_datetime(filename)
-            task_name_sanitized = re.sub(r"\W", "_", task_name)
+            task_name_sanitized = sanitize_task_name(task_name)
             eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
             results_filename = os.path.join("**", os.path.basename(filename))
+            config_name = f"{model_name}__{task_name_sanitized}"
             sanitized_last_eval_date_results = re.sub(
-                r"[^\w\.]", "_", latest_task_results_datetime[task_name]
+                r"[^\w\.]", "_", latest_task_results_datetime[config_name]
             )
 
             current_details_for_task = card_metadata.get(
-                task_name_sanitized, {"data_files": []}
+                config_name, {"data_files": []}
             )
             current_details_for_task["data_files"].append(
                 {"split": eval_date_sanitized, "path": [results_filename]}
             )
-            card_metadata[task_name_sanitized] = current_details_for_task
+            card_metadata[config_name] = current_details_for_task
 
             if eval_date_sanitized == sanitized_last_eval_date_results:
-                card_metadata[task_name_sanitized]["data_files"].append(
+                card_metadata[config_name]["data_files"].append(
                     {"split": "latest", "path": [results_filename]}
                 )
 
@@ -368,7 +376,7 @@ class EvaluationTracker:
             # we add an `_` to the tasks name to avoid putting `mmlu` maths tasks to the `math` config
             SPECIAL_TASKS = ["mmlu_", "gpqa_", "math_"]
             for special_task in SPECIAL_TASKS:
-                if special_task in task_name_sanitized:
+                if special_task in config_name:
                     former_entry = card_metadata.get(special_task, {"data_files": []})
 
                     former_split = [
