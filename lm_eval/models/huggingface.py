@@ -126,7 +126,7 @@ class HFLM(TemplateLM):
             self._model = pretrained
             self._device = self._model.device
             self._config = self._model.config
-            device_counts = 0
+            gpus = 0
 
             if tokenizer:
                 assert isinstance(
@@ -148,7 +148,7 @@ class HFLM(TemplateLM):
             assert isinstance(pretrained, str)
             assert isinstance(batch_size, (int, str))
 
-            device_counts = torch.cuda.device_count()
+            gpus = torch.cuda.device_count()
 
             accelerator_kwargs = InitProcessGroupKwargs(timeout=timedelta(weeks=52))
             accelerator = Accelerator(kwargs_handlers=[accelerator_kwargs])
@@ -157,15 +157,15 @@ class HFLM(TemplateLM):
                 self.accelerator = accelerator
 
             if is_npu_available():
-                device_counts = torch.npu.device_count()
+                gpus = torch.npu.device_count()
 
             if not (parallelize or accelerator.num_processes > 1):
                 # use user-passed device
                 device_list = set(
                     ["cuda", "cpu"]
-                    + [f"cuda:{i}" for i in range(torch.cuda.device_count())]
+                    + [f"cuda:{i}" for i in range(gpus)]
                     + ["mps", "mps:0"]
-                    + ["npu", "npu:0"]
+                    + [f"npu:{i}" for i in range(gpus)]
                 )
                 if device and device in device_list:
                     self._device = torch.device(device)
@@ -239,7 +239,7 @@ class HFLM(TemplateLM):
             self.model.eval()
             self.model.tie_weights()
 
-        if isinstance(pretrained, str) and (device_counts >= 1 or str(self.device) == "mps"):
+        if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) == "mps"):
             # TODO: can remove this whole snippet except in the mps case, perhaps?
             if not (parallelize or autogptq or hasattr(self, "accelerator")):
                 # place model onto device requested manually,
@@ -305,7 +305,7 @@ class HFLM(TemplateLM):
 
         if isinstance(pretrained, str):
             # multigpu data-parallel support when launched with accelerate
-            if device_counts > 1:
+            if gpus > 1:
                 if parallelize:
                     if accelerator.num_processes > 1:
                         raise RuntimeError(
@@ -318,9 +318,9 @@ class HFLM(TemplateLM):
                     self._rank = 0
                     self._world_size = 1
                 else:
-                    if device_counts > accelerator.num_processes:
+                    if gpus > accelerator.num_processes:
                         eval_logger.warning(
-                            "WARNING: The number of total system device counts does not match the number of spawned processes. "
+                            "WARNING: The number of total system GPUs does not match the number of spawned processes. "
                             "If you would like to use data parallelism, please launch the script "
                             "with 'accelerate launch *script*'. "
                             f"Current run will proceed with {accelerator.num_processes} devices."
@@ -343,7 +343,7 @@ class HFLM(TemplateLM):
                     self.accelerator = accelerator
 
                     if self.accelerator.is_local_main_process:
-                        eval_logger.info(f"Using {device_counts} devices with data parallelism")
+                        eval_logger.info(f"Using {gpus} devices with data parallelism")
 
                     self._rank = self.accelerator.local_process_index
                     self._world_size = self.accelerator.num_processes
@@ -1333,4 +1333,3 @@ class HFLM(TemplateLM):
         if self.delta:
             model_info["delta_sha"] = get_model_sha(self.delta, self.revision)
         return model_info
-
