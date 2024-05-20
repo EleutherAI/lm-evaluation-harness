@@ -399,6 +399,8 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     task_name=task_name, samples=samples[task_name]
                 )
 
+        evaluation_tracker.recreate_metadata_card()
+
         print(
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
             f"batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"

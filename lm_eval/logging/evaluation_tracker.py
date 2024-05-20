@@ -216,7 +216,8 @@ class EvaluationTracker:
         """
         if self.output_path:
             try:
-                eval_logger.info("Saving samples results")
+                # write log to include task name
+                eval_logger.info(f"Saving samples results for: {task_name}")
                 # for each sample, dump the dict into a jsonl file
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
@@ -271,7 +272,6 @@ class EvaluationTracker:
                         repo_type="dataset",
                         commit_message=f"Adding samples results for {task_name} to {self.general_config_tracker.model_name}",
                     )
-                    self.recreate_metadata_card()
 
             except Exception as e:
                 eval_logger.warning("Could not save sample results")
@@ -290,6 +290,7 @@ class EvaluationTracker:
         def get_file_datetime(filename: str) -> str:
             return filename[filename.rfind("_") + 1 :].replace(".json", "")
 
+        eval_logger.info("Recreating metadata card")
         repo_id = (
             self.hub_results_repo if self.public_repo else self.hub_results_repo_private
         )
