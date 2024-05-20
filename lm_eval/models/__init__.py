@@ -11,6 +11,7 @@ from . import (
     optimum_lm,
     textsynth,
     vllm_causallms,
+    mlx_llms
 )
 
 

@@ -14,7 +14,8 @@ from tqdm import tqdm
 
 eval_logger = utils.eval_logger
 
-@register_model("mlx")
+
+@register_model("mlx", "mlx_lm")
 class MLX(TemplateLM):
     def __init__(self, model,  prompt_formatter, adapter_path=None, trust_remote_code=False, eos_token=None, top_p=1,
                  max_tokens=2048):
