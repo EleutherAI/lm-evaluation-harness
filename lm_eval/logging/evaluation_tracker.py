@@ -20,6 +20,7 @@ from lm_eval.utils import (
     eval_logger,
     handle_non_serializable,
     hash_string,
+    sanitize_list,
 )
 
 
@@ -201,17 +202,6 @@ class EvaluationTracker:
                 "Output path not provided, skipping saving results aggregated"
             )
 
-    def sanitize_list(self, sub):
-        """
-        takes possible nested list and recursively converts all inner component to strings
-        """
-        if isinstance(sub, list):
-            return [self.sanitize_list(item) for item in sub]
-        if isinstance(sub, tuple):
-            return tuple(self.sanitize_list(item) for item in sub)
-        else:
-            return str(sub)
-
     def save_results_samples(
         self,
         task_name: str,
@@ -247,10 +237,8 @@ class EvaluationTracker:
                         for j, tmp in enumerate(arg):
                             arguments[f"gen_args_{i}"][f"arg_{j}"] = tmp
 
-                    sample["resps"] = self.sanitize_list(sample["resps"])
-                    sample["filtered_resps"] = self.sanitize_list(
-                        sample["filtered_resps"]
-                    )
+                    sample["resps"] = sanitize_list(sample["resps"])
+                    sample["filtered_resps"] = sanitize_list(sample["filtered_resps"])
                     sample["arguments"] = arguments
 
                     sample_dump = (
@@ -426,8 +414,10 @@ class EvaluationTracker:
         last_results_file_path = hf_hub_url(
             repo_id=repo_id, filename=last_results_file, repo_type="dataset"
         )
-        f = load_dataset("json", data_files=last_results_file_path, split="train")
-        results_dict = f["results"][0]
+        latest_results_file = load_dataset(
+            "json", data_files=last_results_file_path, split="train"
+        )
+        results_dict = latest_results_file["results"][0]
         new_dictionary = {"all": results_dict}
         new_dictionary.update(results_dict)
         results_string = json.dumps(new_dictionary, indent=4)
