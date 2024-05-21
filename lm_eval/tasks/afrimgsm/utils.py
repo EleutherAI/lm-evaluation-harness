@@ -119,6 +119,12 @@ def gen_lang_yamls(output_dir: str, overwrite: bool, mode: str) -> None:
                 REGEX = LANGUAGES["eng"]["REGEX"]
                 QUESTION = LANGUAGES["eng"]["QUESTION"]
                 task_name = f"afrimgsm_en_cot_{lang}"
+            elif mode == "translate-direct":
+                ANSWER = LANGUAGES['eng']["DIRECT"]
+                QUESTION = LANGUAGES['eng']["QUESTION"]
+                REGEX = None
+                task_name = f"translate_afrimgsm_direct_{lang}"
+                yaml_template = "translate_direct_yaml"
             
 
             file_name = f"{task_name}.yaml"
@@ -178,7 +184,7 @@ def main() -> None:
     parser.add_argument(
         "--mode",
         default="native-cot",
-        choices=["direct","direct-native", "native-cot", "en-cot"],
+        choices=["direct","direct-native", "native-cot", "en-cot","translate-direct"],
         help="Mode of chain-of-thought",
     )
     args = parser.parse_args()
