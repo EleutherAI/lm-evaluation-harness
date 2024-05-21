@@ -6,7 +6,7 @@ In order to properly evaluate a given LM, we require implementation of a wrapper
 
 ## Setup
 
-To get started contributing, go ahead and fork the main repo, clone it, create a branch with the name of your task, and install the project requirements in your environment:
+To get started contributing, go ahead and fork the main repo, clone it, create a branch with the name of your model, and install the project requirements in your environment:
 
 ```sh
 # After forking...
