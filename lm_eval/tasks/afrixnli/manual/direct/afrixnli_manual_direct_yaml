@@ -4,7 +4,7 @@ group:
     - afrixnli-manual
 dataset_path: masakhane/afrixnli
 dataset_name: null
-output_type: multiple_choice_gpt
+output_type: multiple_choice
 validation_split: validation
 test_split: test
 fewshot_split: validation
@@ -24,7 +24,7 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
   - metric: acc
-    aggregation: acc_gpt
+    aggregation: mean
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true

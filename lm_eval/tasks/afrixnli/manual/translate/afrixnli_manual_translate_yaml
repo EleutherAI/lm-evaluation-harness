@@ -5,7 +5,7 @@ group:
     - afrixnli-translate-test
 dataset_path: masakhane/afrixnli-translate-test
 dataset_name: null
-output_type: multiple_choice_gpt
+output_type: multiple_choice
 test_split: test
 doc_to_text: !function utils.doc_to_text
 doc_to_target: !function utils.doc_to_target
@@ -23,7 +23,7 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
   - metric: acc
-    aggregation: acc_gpt
+    aggregation: mean
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
