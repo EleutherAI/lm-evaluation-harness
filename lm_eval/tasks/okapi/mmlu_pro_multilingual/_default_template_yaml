@@ -7,7 +7,7 @@ fewshot_config:
   sampler: first_n
 output_type: multiple_choice
 doc_to_text: !function utils.doc_to_text
-doc_to_choice: !function utils.doc_to_choice  #["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+doc_to_choice: !function utils.doc_to_choice
 doc_to_target: '{{["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"].index(answer)}}'
 metric_list:
   - metric: acc
