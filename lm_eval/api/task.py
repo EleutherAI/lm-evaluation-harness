@@ -1043,8 +1043,10 @@ class ConfigurableTask(Task):
         # if few-shot - append examples after the system prompt
         if num_fewshot > 0:
             if apply_chat_template:
-                labeled_examples = self.sampler.get_chat_context(
-                    doc, num_fewshot, fewshot_as_multiturn, labeled_examples
+                labeled_examples.extend(
+                    self.sampler.get_chat_context(
+                        doc, num_fewshot, fewshot_as_multiturn
+                    )
                 )
             else:
                 labeled_examples += self.sampler.get_context(doc, num_fewshot)

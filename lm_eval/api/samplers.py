@@ -61,8 +61,8 @@ class ContextSampler:
         doc,
         num_fewshot,
         fewshot_as_multiturn: bool = False,
-        chat_history: list = [],
     ):
+        chat_history = []
         # draw an extra fewshot sample if using same split as evaluating on
         n_samples = (
             num_fewshot + 1
