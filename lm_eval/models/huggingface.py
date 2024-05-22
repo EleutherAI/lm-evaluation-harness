@@ -199,6 +199,15 @@ class HFLM(TemplateLM):
             config=self.config, backend=backend, trust_remote_code=trust_remote_code
         )
 
+        # load tokenizer so we know tokenizer vocabulary size before loading model and PEFT
+        self._create_tokenizer(
+            pretrained,
+            tokenizer,
+            revision=revision,
+            trust_remote_code=trust_remote_code,
+            use_fast_tokenizer=use_fast_tokenizer,
+        )
+
         # if we passed `pretrained` as a string, initialize our model now
         if isinstance(pretrained, str):
             self._create_model(
@@ -234,14 +243,6 @@ class HFLM(TemplateLM):
                     eval_logger.debug(
                         "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes` or `device_map` is provided. If the desired GPU is being used, this message is safe to ignore."
                     )
-
-        self._create_tokenizer(
-            pretrained,
-            tokenizer,
-            revision=revision,
-            trust_remote_code=trust_remote_code,
-            use_fast_tokenizer=use_fast_tokenizer,
-        )
 
         self.truncation = truncation
         self.logits_cache = logits_cache
@@ -579,6 +580,10 @@ class HFLM(TemplateLM):
             if model_kwargs.get("load_in_4bit", None):
                 if version.parse(PEFT_VERSION) < version.parse("0.4.0"):
                     raise AssertionError("load_in_4bit requires peft >= 0.4.0")
+            if self._model.config.vocab_size != len(self.tokenizer):
+                # resize model for LoRAs with added tokens
+                self._model.resize_token_embeddings(len(self.tokenizer))
+                eval_logger.info(f"Model config indicates vocab_size='{self._model.config.vocab_size}', but found tokenizer with vocab size '{len(self.tokenizer)}'. Resizing model embedding layer...") 
             self._model = PeftModel.from_pretrained(
                 self._model, peft, revision=revision
             )
