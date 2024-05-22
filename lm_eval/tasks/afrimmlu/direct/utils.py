@@ -1,4 +1,9 @@
+import re
+import sys
+import unicodedata
+
 from sklearn.metrics import f1_score
+from lm_eval.filters.extraction import RegexFilter
 
 
 def doc_to_choice(doc):
@@ -8,15 +13,15 @@ def doc_to_choice(doc):
 
 def doc_to_text(doc):
     output = """You are a highly knowledgeable and intelligent artificial intelligence 
-                model answers multiple-choice questions about '{subject}'
+                model answers multiple-choice questions about {subject}
                 
-                Question: '''{question}'''
+                Question: {question}
 
                 Choices:
-                        A: ''{choice1}'''
-                        B: ''{choice2}'''
-                        C: ''{choice3}'''
-                        D: ''{choice4}'''
+                        A: {choice1}
+                        B: {choice2}
+                        C: {choice3}
+                        D: {choice4}
                        
                 Answer:  """
     

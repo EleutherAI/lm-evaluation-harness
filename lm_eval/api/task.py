@@ -44,6 +44,7 @@ from lm_eval.prompts import get_prompt
 ALL_OUTPUT_TYPES = [
     "loglikelihood",
     "multiple_choice",
+    "multiple_choice_gpt",
     "loglikelihood_rolling",
     "generate_until",
 ]
@@ -1064,7 +1065,6 @@ class ConfigurableTask(Task):
                 eval_logger.warning("Applied prompt returns empty string")
                 return self.config.fewshot_delimiter
         else:
-            print(type(doc_to_text))
             raise TypeError
 
     def doc_to_target(self, doc: Mapping) -> Union[int, str, list]:
@@ -1142,7 +1142,7 @@ class ConfigurableTask(Task):
             arguments = (ctx, self.doc_to_target(doc))
         elif self.OUTPUT_TYPE == "loglikelihood_rolling":
             arguments = (self.doc_to_target(doc),)
-        elif self.OUTPUT_TYPE == "multiple_choice":
+        elif "multiple_choice" in self.OUTPUT_TYPE:
             choices = self.doc_to_choice(doc)
             target_delimiter = self.config.target_delimiter
             if self.multiple_input:
@@ -1154,17 +1154,28 @@ class ConfigurableTask(Task):
             else:
                 # Otherwise they are placed in the continuation
                 arguments = [(ctx, f"{target_delimiter}{cont}") for cont in choices]
-
-            request_list = [
-                Instance(
-                    request_type="loglikelihood",
-                    doc=doc,
-                    arguments=arg,
-                    idx=i,
-                    **kwargs,
-                )
-                for i, arg in enumerate(arguments)
-            ]
+            if self.OUTPUT_TYPE == "multiple_choice_gpt":
+                request_list = [
+                    Instance(
+                        request_type="multiple_choice_gpt",
+                        doc=doc,
+                        arguments=arg,
+                        idx=i,
+                        **kwargs,
+                    )
+                    for i, arg in enumerate(arguments)
+                ]
+            else:
+                request_list = [
+                    Instance(
+                        request_type="loglikelihood",
+                        doc=doc,
+                        arguments=arg,
+                        idx=i,
+                        **kwargs,
+                    )
+                    for i, arg in enumerate(arguments)
+                ]
             # TODO: we should raise a warning telling users this will at most ~2x runtime.
             if "acc_mutual_info" in self._metric_fn_list.keys():
                 # if we are calculating multiple choice accuracy
@@ -1310,14 +1321,45 @@ class ConfigurableTask(Task):
                 acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
 
+        elif self.OUTPUT_TYPE == "multiple_choice_gpt":
+            gold = self.doc_to_target(doc)
+            result = results[0]
+            choices = self.doc_to_choice(doc)
+            try:
+                gold = choices[gold]
+                gold = type(result)(gold)
+            except TypeError:
+                gold = gold
+
+            for metric in self._metric_fn_list.keys():
+                try:
+                    result_score = self._metric_fn_list[metric](
+                        references=[gold],
+                        predictions=[result],
+                        **self._metric_fn_kwargs[metric],
+                    )
+                except (
+                        TypeError
+                ):  # TODO: this is hacky and I don't want to do it
+                    result_score = self._metric_fn_list[metric](
+                        [gold, result]
+                    )
+                if isinstance(result_score, dict):
+                    # TODO: this handles the case where HF evaluate returns a dict.
+                    result_score = result_score[metric]
+                result_dict[metric] = result_score
+
         elif self.OUTPUT_TYPE == "generate_until":
             gold = self.doc_to_target(doc)
             result = results[0]
             if self.config.doc_to_choice is not None:
-                # If you set doc_to_choice,
-                # it assumes that doc_to_target returns a number.
-                choices = self.doc_to_choice(doc)
-                gold = choices[gold]
+                try:
+                    # If you set doc_to_choice,
+                    # it assumes that doc_to_target returns a number.
+                    choices = self.doc_to_choice(doc)
+                    gold = choices[gold]
+                except TypeError:
+                    gold = gold
             # we expect multiple_targets to be a list.
             elif self.multiple_target:
                 gold = list(gold)
@@ -1333,7 +1375,6 @@ class ConfigurableTask(Task):
                     scores = []
                     if not isinstance(gold, list):
                         # sometimes, a multiple_target dataset has exceptions where one doc has only one string answer
-                        # print(gold)
                         gold = [gold]
                     if metric == "exact_match":
                         result = [result for _ in range(len(gold))]

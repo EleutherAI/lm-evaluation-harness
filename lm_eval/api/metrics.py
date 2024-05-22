@@ -23,7 +23,20 @@ def bypass_agg(arr):
 
 @register_aggregation("mean")
 def mean(arr):
-    return sum(arr) / len(arr)
+    if isinstance(arr[0], (list, np.ndarray)):
+        return sum(arr[0]) / len(arr[0])
+    else:
+        return sum(arr) / len(arr)
+
+
+@register_aggregation("acc_gpt")
+def acc_gpt(arr):
+    unzipped_list = list(zip(*arr))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+
+    accuracy = sklearn.metrics.accuracy_score(golds, preds)
+    return accuracy
 
 
 @register_aggregation("median")
@@ -151,7 +164,7 @@ def brier_score_fn(items):  # This is a passthrough function
 @register_metric(
     metric="acc",
     higher_is_better=True,
-    output_type=["loglikelihood", "multiple_choice"],
+    output_type=["loglikelihood", "multiple_choice", "multiple_choice_gpt"],
     aggregation="mean",
 )
 def acc_fn(items):  # This is a passthrough function
@@ -277,7 +290,7 @@ def mcc_fn(items):  # This is a passthrough function
 @register_metric(
     metric="f1",
     higher_is_better=True,
-    output_type="multiple_choice",
+    output_type=["multiple_choice", "multiple_choice_gpt"],
     aggregation="f1",
 )
 def f1_fn(items):  # This is a passthrough function

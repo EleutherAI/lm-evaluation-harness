@@ -471,6 +471,52 @@ class OpenaiChatCompletionsLM(LM):
 
         return grouper.get_original(res)
 
+    def multiple_choice_gpt(self, requests, disable_tqdm: bool = False) -> List[str]:
+        res = defaultdict(list)
+        re_ords = {}
+
+        # we group requests by their generation_kwargs,
+        # so that we don't try to execute e.g. greedy sampling and temp=0.8 sampling
+        # in the same batch.
+        grouper = lm_eval.models.utils.Grouper(requests, lambda x: str(x.args[1]))
+
+        for key, reqs in grouper.get_grouped().items():
+            # within each set of reqs for given kwargs, we reorder by token length, descending.
+            re_ords[key] = utils.Reorderer(
+                [req.args for req in reqs], lambda x: (-len(x[0]), x[0])
+            )
+
+        pbar = tqdm(total=len(requests), disable=(disable_tqdm or (self.rank != 0)))
+        for key, re_ord in re_ords.items():
+            # n needs to be 1 because messages in
+            # chat completion are not batch but
+            # is regarded as a single conversation.
+            chunks = lm_eval.models.utils.chunks(re_ord.get_reordered(), n=1)
+            for chunk in chunks:
+                contexts, all_gen_kwargs = zip(*chunk)
+                inps = [{"role": "user", "content": context} for context in contexts]
+                response = oa_completion(
+                    client=self.client,
+                    chat=True,
+                    messages=inps,
+                    model=self.model,
+                )
+
+                for resp, (context, args_) in zip(response.choices, chunk):
+                    s = resp.message.content
+                    res[key].append(s)
+
+                    self.cache_hook.add_partial(
+                        "multiple_choice_gpt", context, s
+                    )
+                    pbar.update(1)
+            # reorder this group of results back to original unsorted form
+            res[key] = re_ord.get_original(res[key])
+
+        pbar.close()
+
+        return grouper.get_original(res)
+
     def loglikelihood(self, requests, disable_tqdm: bool = False):
         raise NotImplementedError("No support for logits.")
 
