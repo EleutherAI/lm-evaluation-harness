@@ -69,8 +69,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--mode",
-        default="direct",
-        choices=["direct", "native-cot", "en-cot"],
+        default="native-cot",
+        choices=["direct","direct-native", "native-cot", "en-cot","translate-direct"],
         help="Mode of chain-of-thought",
     )
     args = parser.parse_args()
