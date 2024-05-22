@@ -8,5 +8,5 @@ generation_kwargs:
   - 'Question:'
   - </s>
   - <|im_end|>
-include: direct_yaml
-task: afrimgsm_direct_amh
+include: translate_direct_yaml
+task: translate_afrimgsm_direct_amh
