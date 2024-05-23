@@ -2,9 +2,13 @@
 
 # Define the models to run
 declare -a models=(
+"yentinglin/Llama-3-Taiwan-70B-Instruct-rc3"
+"yentinglin/Llama-3-Taiwan-70B-Instruct-rc2"
+"yentinglin/Llama-3-Taiwan-70B-Instruct-rc1"
 "yentinglin/Llama-3-Taiwan-70B-Instruct"
 "yentinglin/Taiwan-Llama-3-70B-Cooldown"
 "yentinglin/Taiwan-Llama-3-70B"
+"yentinglin/Llama-3-Taiwan-8B-Instruct-rc1"
 "yentinglin/Taiwan-Llama-3-8B-Instruct"
 "yentinglin/Taiwan-Llama-3-8B-Cooldown"
 "yentinglin/Taiwan-Llama-3-8B"
@@ -31,7 +35,7 @@ declare -a models=(
 SLURM_SCRIPT="harness_eval.slurm"
 
 # Parameters for the script
-PARAMS="tmlu,twllm_eval,tw_legal,ccp,pega,tmmluplus"
+PARAMS="tmlu,twllm_eval,tw_legal,ccp,pega,tmmluplus,mmlu,pega_mmlu"
 
 # Loop through each model and submit a job
 for model in "${models[@]}"
