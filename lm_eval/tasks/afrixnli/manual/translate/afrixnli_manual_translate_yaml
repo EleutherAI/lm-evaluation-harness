@@ -5,7 +5,7 @@ group:
     - afrixnli-translate-test
 dataset_path: masakhane/afrixnli-translate-test
 dataset_name: null
-output_type: generate_until
+output_type: multiple_choice
 test_split: test
 doc_to_text: !function utils.doc_to_text
 doc_to_target: !function utils.doc_to_target
@@ -15,23 +15,15 @@ doc_to_choice:
   - "contradiction"
 should_decontaminate: true
 doc_to_decontamination_query: premise
-filter_list:
-  - name: "verbalizer_extract"
-    filter:
-      - function: verbalizer
-        verbalizer_dict: {
-                "entailment": ['encouragement', 'entitlement', 'entails', 'entailed', 'entailment'],
-                "contradiction": ['contradictory', 'contradicts', 'contradiction'],
-                "neutral": ['neutral']}
 metric_list:
   - metric: f1
-    aggregation:
+    aggregation: !function utils.weighted_f1_score
     average: weighted
     higher_is_better: True
     ignore_case: true
     ignore_punctuation: true
   - metric: acc
-    aggregation: !function utils.manual_accuracy_score
+    aggregation: mean
     higher_is_better: true
     ignore_case: true
     ignore_punctuation: true
