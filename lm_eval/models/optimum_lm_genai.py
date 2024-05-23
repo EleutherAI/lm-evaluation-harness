@@ -111,6 +111,8 @@ class OptimumLM_2(HFLM):
             'opt-2.7b': 'opt-',
             'orca-mini-3b': 'orca-mini',
             'pythia-12b': 'pythia-',
+            'phi-2': 'phi-',
+            'phi-3-mini-4k-instruct': 'phi-',
             'stablelm-3b-4e1t': 'stablelm-',
             'stablelm-3b-4e1t-gptq': 'stablelm-',
             'stablelm-7b': 'stablelm-',
@@ -142,5 +144,6 @@ class OptimumLM_2(HFLM):
             llm_bench_args["use_case"] =  use_case
             llm_bench_args["trust_remote_code"] = self.trust_remote_code
             llm_bench_args["model_type"] =  model_type
-
             self._model, self.tokenizer, _, _ = create_text_gen_model(pretrained, self.openvino_device, **llm_bench_args)
+        else:
+            assert False, f"ERROR model type not defined formodel: {model_name}"
