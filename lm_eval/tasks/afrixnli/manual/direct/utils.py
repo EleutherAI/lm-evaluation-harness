@@ -1,4 +1,4 @@
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, accuracy_score
 
 
 def doc_to_text(doc):
@@ -30,3 +30,12 @@ def weighted_f1_score(items):
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds, average="weighted")
     return fscore
+
+
+def manual_accuracy_score(items):
+    unzipped_list = list(zip(*items))
+    golds = unzipped_list[0]
+    preds = unzipped_list[1]
+
+    accuracy = accuracy_score(golds, preds)
+    return accuracy
