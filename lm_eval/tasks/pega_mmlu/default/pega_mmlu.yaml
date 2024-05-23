@@ -1,0 +1,3 @@
+group: pega_mmlu
+task:
+- pega_mmlu_law
