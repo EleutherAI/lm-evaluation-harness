@@ -125,6 +125,12 @@ def brier_score(items):  # This is a passthrough function
     return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
 
 
+@register_aggregation("balanced_accuracy")
+def balanced_accuracy(items):
+    golds, preds = list(zip(*items))
+    return sklearn.metrics.balanced_accuracy_score(golds, preds)
+
+
 @register_metric(
     metric="brier_score",
     higher_is_better=False,
@@ -315,6 +321,16 @@ def acc_all(items):
         question_scoring_dict[(paragraph_id, question_id)].append(gold_label == pred)
     acc = np.mean([int(all(x)) for x in question_scoring_dict.values()])
     return acc
+
+
+@register_metric(
+    metric="balanced_acc",
+    higher_is_better=True,
+    output_type=["loglikelihood", "multiple_choice"],
+    aggregation="balanced_accuracy",
+)
+def balanced_acc_fn(items):  # This is a passthrough function
+    return items
 
 
 def acc_all_stderr(items):
