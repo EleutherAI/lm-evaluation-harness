@@ -124,6 +124,7 @@ class OptimumLM_2(HFLM):
             'red-pajama-incite-chat-3b-v1': 'red-pajama',
             'qwen-7b-chat': 'qwen',
             'qwen-7b-chat-gptq': 'qwen',
+            'qwen-14b-chat': 'qwen',
             'xgen-7b-instruct':'xgen',
             'stable-zephyr-3b-dpo': 'zephyr',
             'zephyr-7b-beta': 'zephyr',
