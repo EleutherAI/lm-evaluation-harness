@@ -105,6 +105,7 @@ class OptimumLM_2(HFLM):
             'mistral-7b-v0.1': 'mistral',
             'mixtral-8x7b-v0.1': 'mixtral',
             'mpt-7b-chat': 'mpt',
+            'mpt-30b-chat': 'mpt',
             'open-llama-3b': 'open_llama',
             'open-llama-7b': 'open_llama',
             'open-assistant-pythia-12b': 'pythia-',
