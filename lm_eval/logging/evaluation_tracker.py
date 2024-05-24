@@ -5,7 +5,10 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
-from huggingface_hub import HfApi
+try:
+    from huggingface_hub import HfApi
+except Exception:
+    HfApi = None
 
 from lm_eval.utils import (
     eval_logger,
