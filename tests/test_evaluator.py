@@ -21,19 +21,20 @@ from lm_eval import tasks
             10,
             "hf",
             "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
-            0
+            0,
         ),
         (
             ["mmlu_abstract_algebra"],
             None,
             "hf",
             "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
-            10000
+            10000,
         ),
     ],
 )
-def test_evaluator(task_name: List[str], limit: int, model: str, model_args: str, bootstrap_iters: int):
-
+def test_evaluator(
+    task_name: List[str], limit: int, model: str, model_args: str, bootstrap_iters: int
+):
     e1 = evaluator.simple_evaluate(
         model=model,
         tasks=task_name,
