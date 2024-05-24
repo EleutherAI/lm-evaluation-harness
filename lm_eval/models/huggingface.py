@@ -44,13 +44,13 @@ def _get_accelerate_args(
     max_memory_per_gpu: Optional[Union[int, str]] = None,
     max_cpu_memory: Optional[Union[int, str]] = None,
     offload_folder: Optional[str] = "./offload",
+    gpus: Optional[int] = None,
 ) -> dict:
     """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
     max_memory = {}
     if max_memory_per_gpu is not None:
         max_memory_per_gpu_map = {
-            device_idx: max_memory_per_gpu
-            for device_idx in range(torch.cuda.device_count())
+            device_idx: max_memory_per_gpu for device_idx in range(gpus)
         }
         max_memory.update(max_memory_per_gpu_map)
     if max_cpu_memory is not None:
@@ -157,7 +157,7 @@ class HFLM(TemplateLM):
                 # use user-passed device
                 device_list = set(
                     ["cuda", "cpu"]
-                    + [f"cuda:{i}" for i in range(torch.cuda.device_count())]
+                    + [f"cuda:{i}" for i in range(gpus)]
                     + ["mps", "mps:0"]
                 )
                 if device and device in device_list:
@@ -216,6 +216,7 @@ class HFLM(TemplateLM):
                 dtype=dtype,
                 trust_remote_code=trust_remote_code,
                 parallelize=parallelize,
+                gpus=gpus,
                 device_map_option=device_map_option,
                 max_memory_per_gpu=max_memory_per_gpu,
                 max_cpu_memory=max_cpu_memory,
@@ -330,9 +331,7 @@ class HFLM(TemplateLM):
                         self._model = accelerator.prepare_model(
                             self.model, evaluation_mode=True
                         )
-                    self._device = torch.device(
-                        f"cuda:{accelerator.local_process_index}"
-                    )
+                    self._device = torch.device(f"{accelerator.device}")
                     self.accelerator = accelerator
 
                     if self.accelerator.is_local_main_process:
@@ -489,6 +488,7 @@ class HFLM(TemplateLM):
         # only used if `parallelize=True`.
         # (accelerate naive PP (device_map) options)
         parallelize: Optional[bool] = False,
+        gpus: Optional[int] = None,
         device_map_option: Optional[str] = "auto",
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
@@ -520,6 +520,7 @@ class HFLM(TemplateLM):
                     max_memory_per_gpu,
                     max_cpu_memory,
                     offload_folder,
+                    gpus,
                 )
             )
         elif "device_map" not in model_kwargs:
@@ -528,9 +529,7 @@ class HFLM(TemplateLM):
             # for quantized models now seems to be device_map="auto"
             # which breaks data-parallel mode.
             if hasattr(self, "accelerator"):
-                model_kwargs.update(
-                    {"device_map": {"": f"cuda:{self.accelerator.local_process_index}"}}
-                )
+                model_kwargs.update({"device_map": {"": f"{self.accelerator.device}"}})
             else:
                 model_kwargs.update({"device_map": {"": str(self.device)}})
 
@@ -583,7 +582,9 @@ class HFLM(TemplateLM):
             if self._model.config.vocab_size != len(self.tokenizer):
                 # resize model for LoRAs with added tokens
                 self._model.resize_token_embeddings(len(self.tokenizer))
-                eval_logger.info(f"Model config indicates vocab_size='{self._model.config.vocab_size}', but found tokenizer with vocab size '{len(self.tokenizer)}'. Resizing model embedding layer...") 
+                eval_logger.info(
+                    f"Model config indicates vocab_size='{self._model.config.vocab_size}', but found tokenizer with vocab size '{len(self.tokenizer)}'. Resizing model embedding layer..."
+                )
             self._model = PeftModel.from_pretrained(
                 self._model, peft, revision=revision
             )
