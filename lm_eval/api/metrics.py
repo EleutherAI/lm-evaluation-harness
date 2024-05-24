@@ -429,7 +429,11 @@ def bootstrap_stderr(f, xs, iters):
     return sample_stddev(res)
 
 
-def stderr_for_metric(metric, bootstrap_iters):
+def stderr_for_metric(metric, bootstrap_iters: int):
+    if bootstrap_iters <= 0:
+        # return no function (don't compute stderr) if bootstrap iters = 0
+        return None
+
     bootstrappable = [
         median,
         matthews_corrcoef,

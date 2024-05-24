@@ -97,7 +97,7 @@ class TaskOutput:
             metric_key = f"{metric},{filter_key}"
             self.agg_metrics[metric_key] = agg_fn(items)
             self.sample_len = len(items)  # TODO: same sample size for each metric?
-            if bootstrap_iters:
+            if isinstance(bootstrap_iters, int):
                 stderr_fn = metrics.stderr_for_metric(
                     metric=agg_fn,
                     bootstrap_iters=min(bootstrap_iters, 100)
@@ -106,6 +106,10 @@ class TaskOutput:
                 )
                 self.agg_metrics[f"{metric}_stderr,{filter_key}"] = (
                     stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
+                )
+            else:
+                raise ValueError(
+                    f"Received bootstrap_iters '{bootstrap_iters}' but expected an integer. Set to 0 to turn off stderr calculations."
                 )
 
     def __repr__(self):
