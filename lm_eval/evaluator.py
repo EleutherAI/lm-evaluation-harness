@@ -92,7 +92,7 @@ def simple_evaluate(
     :param limit: int or float, optional
         Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param bootstrap_iters:
-        Number of iterations for bootstrap statistics
+        Number of iterations for bootstrap statistics, used when calculating stderrs. set to 0 for no stderr calculations to be performed.
     :param check_integrity: bool
         Whether to run the relevant part of the test suite for the tasks
     :param write_out: bool
@@ -328,7 +328,7 @@ def evaluate(
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
-        Number of iterations for bootstrap statistics
+        Number of iterations for bootstrap statistics, used when calculating stderr. Set to 0 for skipping all stderr calculations.
     :param write_out: bool
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
