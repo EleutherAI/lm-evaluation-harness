@@ -102,9 +102,6 @@ class VLLM(TemplateLM):
         if self.data_parallel_size <= 1:
             self.model = LLM(**self.model_args)
         else:
-            assert parse_version(version("vllm")) < parse_version(
-                "0.3.3"
-            ), "data_parallel is only compatible with vllm < v0.3.3."
             eval_logger.warning(
                 "You might experience occasional issues with model weight downloading when data_parallel is in use. To ensure stable performance, run with data_parallel_size=1 until the weights are downloaded and cached."
             )

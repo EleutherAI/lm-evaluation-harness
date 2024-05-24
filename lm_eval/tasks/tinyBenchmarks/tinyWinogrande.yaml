@@ -1,0 +1,18 @@
+task: tinyWinogrande
+dataset_path: tinyBenchmarks/tinyWinogrande
+dataset_name: winogrande_xl
+output_type: multiple_choice
+training_split: train
+validation_split: validation
+num_fewshot: 5
+doc_to_text: !function utils_winogrande.doc_to_text
+doc_to_target: !function utils_winogrande.doc_to_target
+doc_to_choice: !function utils_winogrande.doc_to_choice
+should_decontaminate: true
+doc_to_decontamination_query: sentence
+metric_list:
+  - metric: acc_norm
+    aggregation: !function agg_functions.agg_gpirt_winogrande
+    higher_is_better: true
+metadata:
+  version: 0.0
