@@ -21,10 +21,8 @@ from lm_eval.utils import (
 try:
     import ray
     from vllm import LLM, SamplingParams
+    from vllm.lora.request import LoRARequest
     from vllm.transformers_utils.tokenizer import get_tokenizer
-
-    if parse_version(version("vllm")) > parse_version("0.3.0"):
-        from vllm.lora.request import LoRARequest
 except ModuleNotFoundError:
     pass
 
