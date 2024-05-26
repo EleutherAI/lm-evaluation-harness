@@ -1,0 +1,7 @@
+"dataset_name": "hr_law"
+"description": "以下為欣興電子人資的單選題，請提供正確答案的選項。\n\n"
+"group": "umtceval_law"
+"group_alias": "law"
+"include": "_default_template_yaml"
+"task": "umtceval_hr_law"
+"task_alias": "hr law"

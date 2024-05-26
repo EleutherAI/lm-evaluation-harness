@@ -1,0 +1,7 @@
+"dataset_name": "umtc"
+"description": "以下為欣興電子的單選題，請提供正確答案的選項。\n\n"
+"group": "umtceval_law"
+"group_alias": "law"
+"include": "_default_template_yaml"
+"task": "umtceval_umtc"
+"task_alias": "umtc"
