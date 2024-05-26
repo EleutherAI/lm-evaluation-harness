@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from packaging.version import Version
 
-from lm_eval.logging.utils import _handle_non_serializable, remove_none_pattern
+from lm_eval.loggers.utils import _handle_non_serializable, remove_none_pattern
 
 
 logger = logging.getLogger(__name__)
