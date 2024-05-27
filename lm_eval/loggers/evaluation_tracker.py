@@ -105,7 +105,7 @@ class EvaluationTracker:
 
         Args:
             output_path (str): Path to save the results. If not provided, the results won't be saved.
-            hub_results_org (str): The Hugging Face organisation to push the results to. If not provided, the results won't be pushed.
+            hub_results_org (str): The Hugging Face organization to push the results to. If not provided, the results will be pushed to the owner of the Hugging Face token.
             hub_repo_name (str): The name of the Hugging Face repository to push the results to. If not provided, the results will be pushed to `lm-eval-results`.
             push_results_to_hub (bool): Whether to push the results to the Hugging Face hub.
             push_samples_to_hub (bool): Whether to push the samples to the Hugging Face hub.
@@ -117,16 +117,26 @@ class EvaluationTracker:
         self.general_config_tracker = GeneralConfigTracker()
 
         self.output_path = output_path
-        self.hub_results_org = hub_results_org
-        hub_repo_name = hub_repo_name if hub_repo_name else "lm-eval-results"
-        self.hub_results_repo = f"{hub_results_org}/{hub_repo_name}"
-        self.hub_results_repo_private = f"{hub_results_org}/{hub_repo_name}-private"
         self.push_results_to_hub = push_results_to_hub
         self.push_samples_to_hub = push_samples_to_hub
         self.public_repo = public_repo
         self.leaderboard_url = leaderboard_url
         self.point_of_contact = point_of_contact
         self.api = HfApi(token=token) if token else None
+
+        if (
+            self.api
+            and hub_results_org == ""
+            and (push_results_to_hub or push_samples_to_hub)
+        ):
+            hub_results_org = self.api.whoami()["name"]
+            eval_logger.warning(
+                f"hub_results_org was not specified. Results will be pushed to {hub_results_org}."
+            )
+
+        hub_repo_name = hub_repo_name if hub_repo_name else "lm-eval-results"
+        self.hub_results_repo = f"{hub_results_org}/{hub_repo_name}"
+        self.hub_results_repo_private = f"{hub_results_org}/{hub_repo_name}-private"
 
     def save_results_aggregated(
         self,
