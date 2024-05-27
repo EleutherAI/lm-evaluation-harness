@@ -8,7 +8,7 @@ from typing import Union
 
 from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
-from lm_eval.logging import EvaluationTracker, WandbLogger
+from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import handle_non_serializable, make_table, simple_parse_args_string
 
@@ -255,7 +255,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     # update the evaluation tracker args with the output path and the HF token
-    args.hf_hub_log_args = f"output_path={args.output_path},token={os.environ.get('HF_TOKEN')},{args.hf_hub_log_args}"
+    if args.output_path:
+        args.hf_hub_log_args += f",output_path={args.output_path}"
+    if os.environ.get("HF_TOKEN", None):
+        args.hf_hub_log_args += f",token={os.environ.get('HF_TOKEN')}"
     evaluation_tracker_args = simple_parse_args_string(args.hf_hub_log_args)
     evaluation_tracker = EvaluationTracker(**evaluation_tracker_args)
     evaluation_tracker.general_config_tracker.log_experiment_args(
