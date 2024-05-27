@@ -4,11 +4,19 @@ description: 'Determine whether an artificially constructed sentence relating to
 
 
   '
-doc_to_text: 'Q: Q: Q: {{input}}
+doc_to_text: 'Q: {{input}}
 
   A:'
 fewshot_config:
   sampler: first_n
-  samples: []
+  samples:
+  - input: Is the following sentence plausible? "Bam Adebayo scored a reverse layup
+      in the Western Conference Finals."
+    target: 'yes'
+  - input: Is the following sentence plausible? "Santi Cazorla scored a touchdown."
+    target: 'no'
+  - input: Is the following sentence plausible? "DeMar DeRozan was called for the
+      goal tend."
+    target: 'yes'
 include: _fewshot_template_yaml
 task: bbh_fewshot_sports_understanding
