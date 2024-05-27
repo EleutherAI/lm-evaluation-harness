@@ -1,5 +1,4 @@
 import json
-import os
 import re
 import time
 from collections import defaultdict
@@ -347,13 +346,13 @@ class EvaluationTracker:
             # Ensure that all results files are listed in the metadata card
             current_results = card_metadata.get(config_name, {"data_files": []})
             current_results["data_files"].append(
-                {"split": eval_date_sanitized, "path": [results_filename]}
+                {"split": eval_date_sanitized, "path": [str(results_filename)]}
             )
             card_metadata[config_name] = current_results
             # If the results file is the newest, update the "latest" field in the metadata card
             if eval_date_sanitized == sanitized_last_eval_date_results:
                 card_metadata[config_name]["data_files"].append(
-                    {"split": "latest", "path": [results_filename]}
+                    {"split": "latest", "path": [str(results_filename)]}
                 )
 
         # Add the tasks details configs
@@ -375,13 +374,13 @@ class EvaluationTracker:
                 config_name, {"data_files": []}
             )
             current_details_for_task["data_files"].append(
-                {"split": eval_date_sanitized, "path": [results_filename]}
+                {"split": eval_date_sanitized, "path": [str(results_filename)]}
             )
             card_metadata[config_name] = current_details_for_task
             # If the samples results file is the newest, update the "latest" field in the metadata card
             if eval_date_sanitized == sanitized_last_eval_date_results:
                 card_metadata[config_name]["data_files"].append(
-                    {"split": "latest", "path": [results_filename]}
+                    {"split": "latest", "path": [str(results_filename)]}
                 )
 
             # Special case for MMLU with a single split covering it all
@@ -400,12 +399,15 @@ class EvaluationTracker:
 
                     if len(former_split) == 0:
                         former_entry["data_files"].append(
-                            {"split": eval_date_sanitized, "path": [results_filename]}
+                            {
+                                "split": eval_date_sanitized,
+                                "path": [str(results_filename)],
+                            }
                         )
                     else:
                         split_index, _ = former_split[0]
                         former_entry["data_files"][split_index]["path"].append(
-                            results_filename
+                            str(results_filename)
                         )
 
                     if eval_date_sanitized == sanitized_last_eval_date_results:
@@ -416,12 +418,12 @@ class EvaluationTracker:
                         ]
                         if len(latest_split) == 0:
                             former_entry["data_files"].append(
-                                {"split": "latest", "path": [results_filename]}
+                                {"split": "latest", "path": [str(results_filename)]}
                             )
                         else:
                             latest_index, _ = latest_split[0]
                             former_entry["data_files"][latest_index]["path"].append(
-                                results_filename
+                                str(results_filename)
                             )
 
                     card_metadata[special_task] = former_entry
