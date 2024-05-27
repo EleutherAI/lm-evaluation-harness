@@ -1,7 +1,7 @@
 dataset_name: main
 dataset_path: gsm8k
 doc_to_target: '{{answer.split(''####'')[-1].strip() if answer is defined else target}}'
-doc_to_text: '{{question}}
+doc_to_text: 'Q: {{question}}
 
   A:'
 fewshot_config:
