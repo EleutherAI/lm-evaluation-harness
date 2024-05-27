@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 
 categories = {
-    "law": [
+    "default": [
         "default",
     ],
 }

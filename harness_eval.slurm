@@ -59,7 +59,6 @@ lm_eval \
 --batch_size 8 \
 --output_path eval_results \
 --write_out \
---log_samples \
 --verbosity DEBUG \
 --wandb_args project=lm-eval-harness-integration,job_type=eval,name=$model \
 --hf_hub_log_args hub_results_org=yentinglin,hub_repo_name=lm-eval-results,push_results_to_hub=True,public_repo=False \
