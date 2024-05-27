@@ -1,6 +1,6 @@
 dataset_name: main
 dataset_path: gsm8k
-doc_to_target: '{{answer.split(''####'')[-1].strip()}}'
+doc_to_target: '{{answer.split(''####'')[-1].strip() if answer is defined else target}}'
 doc_to_text: '{{question}}
 
   A:'
