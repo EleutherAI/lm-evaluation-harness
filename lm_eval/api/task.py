@@ -948,8 +948,8 @@ class ConfigurableTask(Task):
             if self.config.process_docs is not None:
                 return self.config.process_docs(self.dataset[self.config.fewshot_split])
             return self.dataset[self.config.fewshot_split]
-        elif self.config.fewshot_config.get("fewshot_samples", None) is not None:
-            return self.config.fewshot_config["fewshot_samples"]
+        elif self.config.fewshot_config.get("samples", None) is not None:
+            return self.config.fewshot_config["samples"]
         else:
             if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
                 eval_logger.warning(
