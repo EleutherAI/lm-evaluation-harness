@@ -59,7 +59,18 @@ We can also specify from which split the task should retrieve few-shot examples 
 ```yaml
 fewshot_split: <split name to draw fewshot examples from, or `null`>
 ```
-though if this is not set, we will default to train/validation/test sets, in that order.
+or by hardcoding them, using the following in the yaml file:
+```yaml
+fewshot_config:
+  sampler: first_n
+  samples: [
+    {<sample 1>},
+    {<sample 2>},
+  ]
+```
+In this case, each sample must follow the same pattern as the samples in the above sets.
+
+If neither above options are not set, we will default to train/validation/test sets, in that order.
 
 
 Finally, our dataset may not be already in the exact format we want. Maybe we have to strip whitespace and special characters via a regex from our dataset's "question" field! Or maybe we just want to rename its columns to match a convention we'll be using for our prompts.
