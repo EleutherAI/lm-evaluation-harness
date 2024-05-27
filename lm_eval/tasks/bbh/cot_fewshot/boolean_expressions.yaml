@@ -5,7 +5,7 @@ include: "_cot_fewshot_template_yaml"
 task: "bbh_cot_fewshot_boolean_expressions"
 fewshot_config:
   sampler: first_n
-  fewshot_samples: [
+  samples: [
     {
       "input": "not ( ( not not True ) ) is", 
       "target": "Remember that (i) expressions inside brackets are always evaluated first and that (ii) the order of operations from highest priority to lowest priority is \"not\", \"and\", \"or\", respectively.\nWe first simplify this expression \"Z\" as follows: \"Z = not ( ( not not True ) ) = not ( ( A ) )\" where \"A = not not True\".\nLet's evaluate A: A = not not True = not (not True) = not False = True.\nPlugging in A, we get: Z = not ( ( A ) ) = not ( ( True ) ) = not True = False. So the answer is False."
