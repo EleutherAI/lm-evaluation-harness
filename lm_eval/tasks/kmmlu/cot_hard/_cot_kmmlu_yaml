@@ -18,7 +18,7 @@ generation_kwargs:
   do_sample: false
   max_gen_toks: 2048
   temperature: 0.0
-num_fewshot: 0
+num_fewshot: 5
 filter_list:
   - name: "get-answer"
     filter:
@@ -28,4 +28,3 @@ filter_list:
       - function: "take_first"
 metadata:
   version: 2.0
-  num_fewshot: 5
