@@ -322,9 +322,8 @@ class EvaluationTracker:
             # Results and sample results for the same model and task will have the same datetime
             samples_key = f"{model_name}__{task_name_sanitized}"
             results_key = f"{model_name}__results"
-            # Safely get the latest datetime for the sample key, defaulting to results_datetime if the key does not exist
             latest_datetime = max(
-                latest_task_results_datetime.get(samples_key, results_datetime),
+                latest_task_results_datetime[samples_key],
                 results_datetime,
             )
             latest_task_results_datetime[samples_key] = latest_datetime
@@ -340,7 +339,7 @@ class EvaluationTracker:
             model_name = file_path.parent
             eval_date = get_file_datetime(results_filename)
             eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
-            results_filename = str(Path("**") / results_filename)
+            results_filename = Path("**") / Path(results_filename).name
             config_name = f"{model_name}__results"
             sanitized_last_eval_date_results = re.sub(
                 r"[^\w\.]", "_", latest_task_results_datetime[config_name]
@@ -366,7 +365,7 @@ class EvaluationTracker:
             eval_date = get_file_datetime(filename)
             task_name_sanitized = sanitize_task_name(task_name)
             eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
-            results_filename = str(Path("**") / filename)
+            results_filename = Path("**") / Path(filename).name
             config_name = f"{model_name}__{task_name_sanitized}"
             sanitized_last_eval_date_results = re.sub(
                 r"[^\w\.]", "_", latest_task_results_datetime[config_name]
