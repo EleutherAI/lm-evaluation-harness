@@ -302,7 +302,9 @@ class EvaluationTracker:
         results_files = [f for f in files_in_repo if "/results_" in f and ".json" in f]
         sample_files = [f for f in files_in_repo if "/samples_" in f and ".json" in f]
 
-        # build a dict with the latest datetime for each model, task pair and for the cumulated model results
+        # Build a dictionary to store the latest evaluation datetime for:
+        # - Each tested model and its aggregated results
+        # - Each task and sample results, if existing
         # i.e. {
         #     "org__model_name__gsm8k": "2021-09-01T12:00:00",
         #     "org__model_name__ifeval": "2021-09-01T12:00:00",
@@ -316,6 +318,7 @@ class EvaluationTracker:
             task_name = get_file_task_name(filename)
             results_datetime = get_file_datetime(filename)
             task_name_sanitized = sanitize_task_name(task_name)
+            # Results and sample results for the same model and task will have the same datetime
             samples_key = f"{model_name}__{task_name_sanitized}"
             results_key = f"{model_name}__results"
             latest_datetime = max(
@@ -325,10 +328,10 @@ class EvaluationTracker:
             latest_task_results_datetime[samples_key] = latest_datetime
             latest_task_results_datetime[results_key] = latest_datetime
 
-        # create metadata card
+        # Create metadata card
         card_metadata = MetadataConfigs()
 
-        # add new results to the metadata card
+        # Add the latest aggregated results to the metadata card for easy access
         for file_path in results_files:
             results_filename = os.path.basename(file_path)
             model_name = os.path.dirname(file_path)
@@ -339,11 +342,13 @@ class EvaluationTracker:
             sanitized_last_eval_date_results = re.sub(
                 r"[^\w\.]", "_", latest_task_results_datetime[config_name]
             )
+            # Ensure that all results files are listed in the metadata card
             current_results = card_metadata.get(config_name, {"data_files": []})
             current_results["data_files"].append(
                 {"split": eval_date_sanitized, "path": [results_filename]}
             )
             card_metadata[config_name] = current_results
+            # If the results file is the newest, update the "latest" field in the metadata card
             if eval_date_sanitized == sanitized_last_eval_date_results:
                 card_metadata[config_name]["data_files"].append(
                     {"split": "latest", "path": [results_filename]}
@@ -362,7 +367,7 @@ class EvaluationTracker:
             sanitized_last_eval_date_results = re.sub(
                 r"[^\w\.]", "_", latest_task_results_datetime[config_name]
             )
-
+            # Ensure that all sample results files are listed in the metadata card
             current_details_for_task = card_metadata.get(
                 config_name, {"data_files": []}
             )
@@ -370,7 +375,7 @@ class EvaluationTracker:
                 {"split": eval_date_sanitized, "path": [results_filename]}
             )
             card_metadata[config_name] = current_details_for_task
-
+            # If the samples results file is the newest, update the "latest" field in the metadata card
             if eval_date_sanitized == sanitized_last_eval_date_results:
                 card_metadata[config_name]["data_files"].append(
                     {"split": "latest", "path": [results_filename]}
@@ -418,7 +423,7 @@ class EvaluationTracker:
 
                     card_metadata[special_task] = former_entry
 
-        # Get the top results
+        # Get latest results and extract info to update metadata card examples
         latest_datetime = max(latest_task_results_datetime.values())
         latest_model_name = max(
             latest_task_results_datetime, key=lambda k: latest_task_results_datetime[k]
