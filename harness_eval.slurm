@@ -57,7 +57,7 @@ lm_eval \
 --tasks $tasks \
 --num_fewshot 0 \
 --batch_size 8 \
---output_path evals \
+--output_path eval_results \
 --write_out \
 --log_samples \
 --verbosity DEBUG \

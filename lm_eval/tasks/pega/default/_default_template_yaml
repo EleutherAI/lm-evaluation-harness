@@ -1,4 +1,4 @@
-dataset_path: yentinglin/legal_benchmark
+dataset_path: yentinglin/PegaEval
 test_split: train
 output_type: multiple_choice
 process_docs: !function utils.process_docs
@@ -7,9 +7,6 @@ doc_to_choice: ["A", "B", "C", "D"]
 doc_to_target: answer
 metric_list:
   - metric: acc
-    aggregation: mean
-    higher_is_better: true
-  - metric: acc_norm
     aggregation: mean
     higher_is_better: true
 metadata:
