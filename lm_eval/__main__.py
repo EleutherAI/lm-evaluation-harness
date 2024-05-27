@@ -402,7 +402,11 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                     task_name=task_name, samples=samples[task_name]
                 )
 
-        evaluation_tracker.recreate_metadata_card()
+        if (
+            evaluation_tracker.push_results_to_hub
+            or evaluation_tracker.push_samples_to_hub
+        ):
+            evaluation_tracker.recreate_metadata_card()
 
         print(
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
