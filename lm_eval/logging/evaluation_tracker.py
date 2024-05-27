@@ -313,16 +313,18 @@ class EvaluationTracker:
         latest_task_results_datetime = defaultdict(lambda: datetime.min.isoformat())
 
         for file_path in sample_files:
-            filename = os.path.basename(file_path)
-            model_name = os.path.dirname(file_path)
+            file_path = Path(file_path)
+            filename = file_path.name
+            model_name = file_path.parent
             task_name = get_file_task_name(filename)
             results_datetime = get_file_datetime(filename)
             task_name_sanitized = sanitize_task_name(task_name)
             # Results and sample results for the same model and task will have the same datetime
             samples_key = f"{model_name}__{task_name_sanitized}"
             results_key = f"{model_name}__results"
+            # Safely get the latest datetime for the sample key, defaulting to results_datetime if the key does not exist
             latest_datetime = max(
-                latest_task_results_datetime[samples_key],
+                latest_task_results_datetime.get(samples_key, results_datetime),
                 results_datetime,
             )
             latest_task_results_datetime[samples_key] = latest_datetime
@@ -333,11 +335,12 @@ class EvaluationTracker:
 
         # Add the latest aggregated results to the metadata card for easy access
         for file_path in results_files:
-            results_filename = os.path.basename(file_path)
-            model_name = os.path.dirname(file_path)
+            file_path = Path(file_path)
+            results_filename = file_path.name
+            model_name = file_path.parent
             eval_date = get_file_datetime(results_filename)
             eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
-            results_filename = os.path.join("**", results_filename)
+            results_filename = str(Path("**") / results_filename)
             config_name = f"{model_name}__results"
             sanitized_last_eval_date_results = re.sub(
                 r"[^\w\.]", "_", latest_task_results_datetime[config_name]
@@ -356,13 +359,14 @@ class EvaluationTracker:
 
         # Add the tasks details configs
         for file_path in sample_files:
-            filename = os.path.basename(file_path)
-            model_name = os.path.dirname(file_path)
+            file_path = Path(file_path)
+            filename = file_path.name
+            model_name = file_path.parent
             task_name = get_file_task_name(filename)
             eval_date = get_file_datetime(filename)
             task_name_sanitized = sanitize_task_name(task_name)
             eval_date_sanitized = re.sub(r"[^\w\.]", "_", eval_date)
-            results_filename = os.path.join("**", os.path.basename(filename))
+            results_filename = str(Path("**") / filename)
             config_name = f"{model_name}__{task_name_sanitized}"
             sanitized_last_eval_date_results = re.sub(
                 r"[^\w\.]", "_", latest_task_results_datetime[config_name]
