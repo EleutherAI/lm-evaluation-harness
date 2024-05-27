@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about hi
 fewshot_config:
   sampler: first_n
   samples:
-  - input: "This question refers to the following information.\nI come not to urge\
+  - question: "This question refers to the following information.\nI come not to urge\
       \ personal claims, nor to seek individual benefits; I appear as the advocate\
       \ of those who cannot plead their own cause; I come as the friend of those who\
       \ are deserted, oppressed, and desolate. In the Providence of God, I am the\
@@ -29,7 +29,7 @@ fewshot_config:
     target: Let's think step by step. We refer to Wikipedia articles on us history
       for help. Both Dorothea Dix and Clara barton are American nurses. The answer
       is (B).
-  - input: "This question refers to the following information.\n\"As our late Conduct\
+  - question: "This question refers to the following information.\n\"As our late Conduct\
       \ at the Conestoga Manor and Lancaster have occasioned much Speculation & a\
       \ great diversity of Sentiments in this and neighboring Governments; some vindicating\
       \ & others condemning it; some charitably alleviating the Crime, & others maliciously\
@@ -65,7 +65,7 @@ fewshot_config:
       present their grievances to the Pennsylvania legislature. As mentioned in the
       information, the Paxton Boys cited resentiment at local elites. The answer is
       (D).
-  - input: "This question refers to the following information.\nOur leaders talk about\
+  - question: "This question refers to the following information.\nOur leaders talk about\
       \ stopping aggression from the north, but this was a struggle among groups of\
       \ Vietnamese until we intervened. We seem bent upon saving the Vietnamese from\
       \ Ho Chi Minh even if we have to kill them and demolish their country to do\
@@ -88,7 +88,7 @@ fewshot_config:
       check the flow of troops to the south" indicate that the perspective of George
       McGovern's speech is that Amerian bombing in Vietnam is a failure. The answer
       is (C).
-  - input: "This question refers to the following information.\n\"In the new Code\
+  - question: "This question refers to the following information.\n\"In the new Code\
       \ of Laws which I suppose it will be necessary for you to make I desire you\
       \ would Remember the Ladies, and be more generous and favorable to them than\
       \ your ancestors. Do not put such unlimited power into the hands of the Husbands.\
@@ -121,7 +121,7 @@ fewshot_config:
       in terms of legislation. Women's earnings do not belong to themselves, or they
       cannot testify against her husbands. Susan believes women should have equal
       legal rights as men. The answer is (B).
-  - input: 'This question refers to the following information.
+  - question: 'This question refers to the following information.
 
       "Society in every state is a blessing, but government even in its best state
       is but a necessary evil; in its worst state an intolerable one; for when we

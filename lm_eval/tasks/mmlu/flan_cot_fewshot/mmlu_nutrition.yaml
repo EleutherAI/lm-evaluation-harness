@@ -3,7 +3,7 @@ description: The following are multiple choice questions (with answers) about nu
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'What is the first-line drug for patients with type 2 diabetes and obesity,
+  - question: 'What is the first-line drug for patients with type 2 diabetes and obesity,
       as of 2020?
 
       (A) Acarbose (B) Metformin (C) Sulphonylureas (D) Insulin'
@@ -12,7 +12,7 @@ fewshot_config:
       prescribed for type 2 diabetes, as well as obesity. It works by lowering glucose
       production in the liver and improving the body's sensitivity to insulin. The
       answer is (B).
-  - input: 'Which of the following statements is correct (according to knowledge in
+  - question: 'Which of the following statements is correct (according to knowledge in
       2020)?
 
       (A) Consumers with phenylketonuria must avoid the consumption of the sweetener
@@ -25,7 +25,7 @@ fewshot_config:
       phenylalanine. As it builds up in the blood and brain it can lead to brain damage.
       People with PKU should avoid foods that are converted to phenylalanine in the
       body, such as aspartame. The answer is (A).
-  - input: 'Which of the following statements about iodine is correct, as of 2020?
+  - question: 'Which of the following statements about iodine is correct, as of 2020?
 
       (A) 50% of adults consume iodine at levels below the RNI (B) Dairy products
       are a poor source of iodine (C) The iodine content of organic milk is generally
@@ -34,7 +34,7 @@ fewshot_config:
     target: Let's think step by step. We refer to Wikipedia articles on nutrition
       for help. Organic milk usually has less iodine content than non-organic milk.
       The answer is (C).
-  - input: 'Which of the following is the most plausible explanation for the protective
+  - question: 'Which of the following is the most plausible explanation for the protective
       effect of dietary fibre against cancer of the colon, as of 2020?
 
       (A) Propionic acid, formed during colonic fibre fermentation inhibits liver
@@ -46,7 +46,7 @@ fewshot_config:
       for help. Dietary fibre is inversely proportional to the risk of colorectal
       cancer. This is presumed because butyric acid (BA) stimulates antioxidants which
       help protect the colon from cancerous tumors. The answer is (D).
-  - input: 'In a cohort study, the risk ratio of developing diabetes was 0.86 when
+  - question: 'In a cohort study, the risk ratio of developing diabetes was 0.86 when
       comparing consumers of tea (the exposed) to those who did not drink tea (the
       unexposed). Which one statement is correct (according to knowledge in 2020)?
 

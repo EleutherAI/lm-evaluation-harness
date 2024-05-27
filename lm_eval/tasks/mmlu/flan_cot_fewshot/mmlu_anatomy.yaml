@@ -3,7 +3,7 @@ description: The following are multiple choice questions (with answers) about an
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'Which of the following is the body cavity that contains the pituitary
+  - question: 'Which of the following is the body cavity that contains the pituitary
       gland?
 
       (A) Abdominal (B) Cranial (C) Pleural (D) Spinal'
@@ -11,7 +11,7 @@ fewshot_config:
       \ help. Let\u2019s solve this problem step by step. The pituitary gland is the\
       \ major endocrine gland attached to the base of the brain, and it is contained\
       \ in the Cranial cavity. The answer is (B)."
-  - input: 'Which of these branches of the trigeminal nerve contain somatic motor
+  - question: 'Which of these branches of the trigeminal nerve contain somatic motor
       processes?
 
       (A) The supraorbital nerve (B) The infraorbital nerve (C) The mental nerve (D)
@@ -25,7 +25,7 @@ fewshot_config:
       \ of the trigeminal nerve. Because all these nerves are purely sensory nerves\
       \ and do not contain any somatic motor processes. Therefore, the answer should\
       \ be none of the above, which is (D). The answer is (D)."
-  - input: 'In Angle''s Class II Div 2 occlusion there is
+  - question: 'In Angle''s Class II Div 2 occlusion there is
 
       (A) excess overbite of the upper lateral incisors. (B) negative overjet of the
       upper central incisors. (C) excess overjet of the upper lateral incisors. (D)
@@ -37,7 +37,7 @@ fewshot_config:
       \ is often associated with Class III occlusions. Now, we need to determine the\
       \ location of the excess overjet, and that would be the upper (maxillary) lateral\
       \ incisors. Only (C) has the correct information. The answer is (C)."
-  - input: 'The pleura
+  - question: 'The pleura
 
       (A) have no sensory innervation. (B) are separated by a 2 mm space. (C) extend
       into the neck. (D) are composed of respiratory epithelium.'
@@ -57,7 +57,7 @@ fewshot_config:
       \ is not correct. The pleaura are composed of connective tissue (CT).\nBecause\
       \ (A), (B), and (D) are all incorrect, (D) is the only correct answer. The answer\
       \ is (C)."
-  - input: 'What is the embryological origin of the hyoid bone?
+  - question: 'What is the embryological origin of the hyoid bone?
 
       (A) The first pharyngeal arch (B) The first and second pharyngeal arches (C)
       The second pharyngeal arch (D) The second and third pharyngeal arches'

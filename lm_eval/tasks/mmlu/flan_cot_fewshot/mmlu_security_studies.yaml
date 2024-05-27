@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about se
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'What are the frameworks of analysis within which terrorism has been considered
+  - question: 'What are the frameworks of analysis within which terrorism has been considered
       (as of 2020)?
 
       (A) Competition between larger nations has resulted in some countries actively
@@ -30,7 +30,7 @@ fewshot_config:
       \ the cause of terrorism.\n(C) is correct because the US undertook the war on\
       \ terrorism. \n(D) is wrong because preventative crime techniques will likely\
       \ not end terrorism. The answer is (C)."
-  - input: 'Which of the following is the best lens through which to investigate the
+  - question: 'Which of the following is the best lens through which to investigate the
       role of child soldiers?
 
       (A) Child soldiers are victims of combat that need re-education and rehabilitation.
@@ -42,7 +42,7 @@ fewshot_config:
     target: Let's think step by step. We refer to Wikipedia articles on security studies
       for help. Child soliders as a political topic can be missed when they are considered
       passive victims of warfare. The answer is (D).
-  - input: 'How can we best describe the relationship between the state-centric approach
+  - question: 'How can we best describe the relationship between the state-centric approach
       and the concept of human security?
 
       (A) There are such wide divisions within the human security framework regarding
@@ -63,7 +63,7 @@ fewshot_config:
       for help. Human security focuses on a person or population whereas state-centric
       approaches focus on the state while deprioritizing human security. The answer
       is (B).
-  - input: 'In order to become securitized, a threat must be presented in which of
+  - question: 'In order to become securitized, a threat must be presented in which of
       these ways?
 
       (A) As an existential threat that requires immediate and extraordinary action,
@@ -77,7 +77,7 @@ fewshot_config:
     target: Let's think step by step. We refer to Wikipedia articles on security studies
       for help. To be securitized, a threat must be an urgent threat to the survival
       of the referent object. The answer is (C).
-  - input: 'What distinguishes coercive diplomacy from military force?
+  - question: 'What distinguishes coercive diplomacy from military force?
 
       (A) Compellence is another term for coercive diplomacy, but covering a narrower
       set of criteria; compellence covers those threats aimed at initiating adversary

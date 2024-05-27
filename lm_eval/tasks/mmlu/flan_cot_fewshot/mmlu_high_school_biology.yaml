@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about hi
 fewshot_config:
   sampler: first_n
   samples:
-  - input: "In animal cells, which of the following represents the most likely pathway\
+  - question: "In animal cells, which of the following represents the most likely pathway\
       \ that a secretory protein takes as it is synthesized in a cell?\n(A) Plasma\
       \ membrane\u2013Golgi apparatus\u2013ribosome\u2013secretory vesicle\u2013rough\
       \ ER (B) Ribosome\u2013Golgi apparatus\u2013rough ER\u2013secretory vesicle\u2013\
@@ -16,7 +16,7 @@ fewshot_config:
       and moves from there to the Golgi apparatus, where it is modified and packaged
       into a vesicle. The vesicle then floats to the plasma membrane and is secreted.
       The answer is (D).
-  - input: "A mutation in a bacterial enzyme changed a previously polar amino acid\
+  - question: "A mutation in a bacterial enzyme changed a previously polar amino acid\
       \ into a nonpolar amino acid. This amino acid was located at a site distant\
       \ from the enzyme\u2019s active site. How might this mutation alter the enzyme\u2019\
       s substrate specificity?\n(A) By changing the enzyme\u2019s pH optimum (B) By\
@@ -30,7 +30,7 @@ fewshot_config:
       so (C) has to be correct. Since the change does not affect the active site of
       the enzyme, we do not expect the activity of the enzyme to be affected. The
       answer is (C).
-  - input: 'Which of the following is not a way to form recombinant DNA?
+  - question: 'Which of the following is not a way to form recombinant DNA?
 
       (A) Translation (B) Conjugation (C) Specialized transduction (D) Transformation'
     target: 'Let''s think step by step. The introduction of foreign DNA or RNA into
@@ -39,7 +39,7 @@ fewshot_config:
       cells including transformation, transduction, conjugation, and transfection.
       In contrast, (A) is not a way to form DNA: during translation the ribosomes
       synthesize proteins from RNA. The answer is (A).'
-  - input: 'Homologous structures are often cited as evidence for the process of natural
+  - question: 'Homologous structures are often cited as evidence for the process of natural
       selection. All of the following are examples of homologous structures EXCEPT
 
       (A) the wings of a bird and the wings of a bat (B) the flippers of a whale and
@@ -53,7 +53,7 @@ fewshot_config:
       \ forelimbs serve different purposes. Insects and dogs are very far ancestors\
       \ since one is vertebrate while the other is invertebrate and the forelimbs\
       \ serve the same purpose, so they are not homologous. The answer is (D)."
-  - input: 'Which of the following is not known to be involved in the control of cell
+  - question: 'Which of the following is not known to be involved in the control of cell
       division?
 
       (A) Cyclins (B) Protein kinases (C) Checkpoints (D) Fibroblast cells'

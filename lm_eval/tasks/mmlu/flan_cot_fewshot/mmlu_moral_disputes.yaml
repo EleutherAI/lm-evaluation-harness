@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about mo
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'Baron admits that the versions of the ticking bomb hypothetical she discusses
+  - question: 'Baron admits that the versions of the ticking bomb hypothetical she discusses
       are "stunningly stupid," but she claims this is actually evidence of
 
       (A) the stupidity of most traditional philosophical examples. (B) a general
@@ -17,13 +17,13 @@ fewshot_config:
       to defuse it. Baron sees this hypothetical as silly, but its prevalence does
       suggest intelligent people, particularly utilitarians, see torture as justifiable
       to save the lives in this scenario. The answer is (D).
-  - input: 'A fertilized ovum is also known as
+  - question: 'A fertilized ovum is also known as
 
       (A) a zygote. (B) an embryo. (C) a viability. (D) a blastocyst.'
     target: Let's think step by step. We refer to Wikipedia articles on moral disputes
       for help. Once a single sperm penetrates the layers of an egg to form a new
       cell, that cell is called a zygote. The answer is (A).
-  - input: 'Pence compares six different cases of reproduction, from natural twinning
+  - question: 'Pence compares six different cases of reproduction, from natural twinning
       to SCNT. What conclusion does he draw from this comparison?
 
       (A) SCNT is not a different kind of reproduction because there are no morally
@@ -36,7 +36,7 @@ fewshot_config:
       an enucleated egg. This is used in farm animal cloning. Pence may compare this
       to other processes of reproduction, and see little moral separation. The answer
       is (A).
-  - input: 'Which of the following is an intrinsic good, according to Singer?
+  - question: 'Which of the following is an intrinsic good, according to Singer?
 
       (A) being in the upper class (B) the ability to learn and solve problems (C)
       being more beautiful than most of the population (D) being shorter than average'
@@ -45,7 +45,7 @@ fewshot_config:
       by oneself, for oneself. Innanimate objects can be beautiful, short, or have
       some valuable criteria, but capabilities are intrinsically good. The answer
       is (B).
-  - input: 'According to Metz, what is wrong with consequentialist arguments against
+  - question: 'According to Metz, what is wrong with consequentialist arguments against
       capital punishment based on African values?
 
       (A) It is unclear as of yet whether or not capital punishment deters harm to

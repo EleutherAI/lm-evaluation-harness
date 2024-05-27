@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about hu
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'The most common disorder among men who seek sexual therapy is:
+  - question: 'The most common disorder among men who seek sexual therapy is:
 
       (A) premature ejaculation (B) inhibited ejaculation (C) erectile disorder (D)
       ejaculatory disorder'
@@ -12,7 +12,7 @@ fewshot_config:
       for help. The most common type of arousal disorder for men is erectile dysfunction,
       meaning that a person is not able to get any physical satisfaction from sexual
       activity although he may be interested in it. The answer is (C).
-  - input: 'A woman who knows she has active herpes and untreated syphilis but continues
+  - question: 'A woman who knows she has active herpes and untreated syphilis but continues
       to have sex without informing her partners of her condition has, in psychoanalytic
       terms:
 
@@ -22,7 +22,7 @@ fewshot_config:
       antisocial personality. The action of the woman who knows she has active venereal
       disease but still have sex with her partners indicate she may has antisocial
       personality. The answer is (B).
-  - input: 'The nature of homosexual activities that occur during preadolescence include
+  - question: 'The nature of homosexual activities that occur during preadolescence include
       all but which of the following?
 
       (A) sexual intercourse (B) circle jerks (C) exhibitionism (D) touching each
@@ -30,7 +30,7 @@ fewshot_config:
     target: Let's think step by step. We refer to Wikipedia articles on human sexuality
       for help. Sexual intercourse is prohibited during preadolescence. The answer
       is (A).
-  - input: 'Women''s ability to have multiple orgasms is primarily due to:
+  - question: 'Women''s ability to have multiple orgasms is primarily due to:
 
       (A) the fact that they do not have a refractory period. (B) the response of
       the inner layers of the vagina. (C) having alternating orgasms in different
@@ -38,7 +38,7 @@ fewshot_config:
     target: Let's think step by step. We refer to Wikipedia articles on human sexuality
       for help. The refractory period is the time when a person is not able to be
       erect or is not interested in sex. The answer is (A).
-  - input: 'Morning sickness is typically a problem:
+  - question: 'Morning sickness is typically a problem:
 
       (A) during the first trimester (B) during the second trimester (C) during the
       third trimester (D) all through the pregnancy'

@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about co
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'Which of the following regular expressions is equivalent to (describes
+  - question: 'Which of the following regular expressions is equivalent to (describes
       the same set of strings as) (a* + b)*(c + d)?
 
       (A) a*(c + d)+ b(c + d)
@@ -27,7 +27,7 @@ fewshot_config:
       Using equation 2 we can rewrite equation 3 as:
 
       (a + b)*c + (a + b)*d The answer is (D).'
-  - input: 'The Singleton design pattern is used to guarantee that only a single instance
+  - question: 'The Singleton design pattern is used to guarantee that only a single instance
       of a class may be instantiated. Which of the following is (are) true of this
       design pattern?
 
@@ -53,7 +53,7 @@ fewshot_config:
 
       Given these facts, statements I, II, and III are all correct. The answer is
       (D).'
-  - input: 'A certain pipelined RISC machine has 8 general-purpose registers R0, R1,
+  - question: 'A certain pipelined RISC machine has 8 general-purpose registers R0, R1,
       . . . , R7 and supports the following operations:
 
       ADD Rs1, Rs2, Rd (Add Rs1 to Rs2 and put the sum in Rd)
@@ -98,7 +98,7 @@ fewshot_config:
       compute AB + ABC + BC: ADD R5, R6, R7
 
       So there are 6 cycles. The answer is (B).'
-  - input: 'A compiler generates code for the following assignment statement.
+  - question: 'A compiler generates code for the following assignment statement.
 
       G := (A + B) * C - (D + E) * F
 
@@ -131,7 +131,7 @@ fewshot_config:
       9. STORE G (G = (A+B)*C - (D+E)*F)
 
       This sequence takes 9 instructions. The answer is (D).'
-  - input: 'Consider a computer design in which multiple processors, each with a private
+  - question: 'Consider a computer design in which multiple processors, each with a private
       cache memory, share global memory using a single bus. This bus is the critical
       system resource. Each processor can execute one instruction every 500 nanoseconds
       as long as memory references are satisfied by its local cache. When a cache

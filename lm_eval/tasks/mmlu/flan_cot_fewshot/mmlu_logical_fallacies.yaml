@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about lo
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'When an arguer causes confusion during refutation because of real or feigned
+  - question: 'When an arguer causes confusion during refutation because of real or feigned
       lack of an ability to engage in refutation, that arguer may have committed the
       fallacy of
 
@@ -15,7 +15,7 @@ fewshot_config:
       fallacies in his Organon, is when someone causes confusion in an argument through
       real or feigned inability to engage in refutation, in order to win the argument.
       The answer is (D).
-  - input: 'The complex question fallacy consists of
+  - question: 'The complex question fallacy consists of
 
       (A) arguing something is inferior just because it doesn''t do something it was
       never intended to do. (B) including more than one claim in the proposition and
@@ -28,14 +28,14 @@ fewshot_config:
       no answer to a question meaningless, by including either an unproven assumption
       or many questions. The latter is also known as the many questions fallacy. The
       answer is (D).
-  - input: 'Arguing that what is true of the parts must be true of the whole is the
+  - question: 'Arguing that what is true of the parts must be true of the whole is the
       fallacy of...
 
       (A) Division (B) Composition (C) Appeal to the person (D) Appeal to ignorance'
     target: Let's think step by step. We refer to Wikipedia articles on logical fallacies
       for help. Fallacy of composition occurs when someone argues what is true of
       the parts must be true of the whole. The answer is (B).
-  - input: 'Which of the following is true of a valid categorical syllogism?
+  - question: 'Which of the following is true of a valid categorical syllogism?
 
       (A) The minor premise must deny the antecedent (B) The major premise must affirm
       the consequent (C) The middle term must be used in at least one premise in a
@@ -46,7 +46,7 @@ fewshot_config:
       must be used twice exactly, (3) a term may be used only once in any premise,
       and (4) the middle term must be used in at least one premise in a universal
       or unqualified sense, etc. Only (C) is true. The answer is (C).'
-  - input: 'If someone attacks the character of an opposing arguer, instead of responding
+  - question: 'If someone attacks the character of an opposing arguer, instead of responding
       to that opponent''s arguments, the first person has probably committed which
       of the following fallacies?
 

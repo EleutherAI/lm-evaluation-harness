@@ -4,13 +4,13 @@ description: The following are multiple choice questions (with answers) about me
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'The stage of meiosis in which chromosomes pair and cross over is:
+  - question: 'The stage of meiosis in which chromosomes pair and cross over is:
 
       (A) prophase I (B) metaphase I (C) prophase II (D) metaphase II'
     target: Let's think step by step. We refer to Wikipedia articles on medical genetics
       for help. Prophase I is the stage of meiosis where homologous chromosomes pair
       with each other and exchange genetic material. The answer is (A).
-  - input: 'DNA ligase is
+  - question: 'DNA ligase is
 
       (A) an enzyme that joins fragments in normal DNA replication (B) an enzyme of
       bacterial origin which cuts DNA at defined base sequences (C) an enzyme that
@@ -19,7 +19,7 @@ fewshot_config:
     target: Let's think step by step. We refer to Wikipedia articles on medical genetics
       for help. DNA ligase is a type of enzyme (EC 6.5.1.1) responsible for joining
       DNA strands together by catalyzing a phosphodiester bond. The answer is (A).
-  - input: 'Which of the following conditions does not show multifactorial inheritance?
+  - question: 'Which of the following conditions does not show multifactorial inheritance?
 
       (A) Pyloric stenosis (B) Schizophrenia (C) Spina bifida (neural tube defects)
       (D) Marfan syndrome'
@@ -28,7 +28,7 @@ fewshot_config:
       for causing a given trait or health problem. Genes cannot be the only factor.
       Marfan syndrome, on the other hand, requires only one abnormal copy of the of
       the Marfan gene, from one parent, to inherit the trait. The answer is (D).
-  - input: 'A gene showing codominance
+  - question: 'A gene showing codominance
 
       (A) has both alleles independently expressed in the heterozygote (B) has one
       allele dominant to the other (C) has alleles tightly linked on the same chromosome
@@ -38,7 +38,7 @@ fewshot_config:
       inheritance where the phenotype of both the parents is easily observed in the
       offspring. A heterozygote is an individual having two different alleles of a
       gene. The answer is (A).
-  - input: 'Large triplet repeat expansions can be detected by:
+  - question: 'Large triplet repeat expansions can be detected by:
 
       (A) polymerase chain reaction. (B) single strand conformational polymorphism
       analysis. (C) Southern blotting. (D) Western blotting.'

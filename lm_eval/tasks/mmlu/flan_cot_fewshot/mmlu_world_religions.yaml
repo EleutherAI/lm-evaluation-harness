@@ -4,19 +4,19 @@ description: The following are multiple choice questions (with answers) about wo
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'How can the Upanishads be characterized?
+  - question: 'How can the Upanishads be characterized?
 
       (A) Ritual texts (B) Philosophical texts (C) Hymns (D) Origin stories'
     target: Let's think step by step. We refer to Wikipedia articles on world religions
       for help. The Upanishads are the most recent part of Vedas (the oldest scriptures
       in Hinduism) and supplied the basis of later Hindu philosophy. So they are philosophical
       texts. The answer is (B).
-  - input: 'What is the Second Gem in Buddhism?
+  - question: 'What is the Second Gem in Buddhism?
 
       (A) The Dharma (B) The Sangha (C) The Buddha (D) The Bodhisattva'
     target: Let's think step by step. We refer to Wikipedia articles on world religions
       for help. The Second Gem in Buddhism is The Dharma. The answer is (A).
-  - input: 'Which Japanese government promoted a kind of national cult based on the
+  - question: 'Which Japanese government promoted a kind of national cult based on the
       emperor and his associations with kami?
 
       (A) Honen (B) Tanaka (C) Tokugawa (D) Meiji'
@@ -24,14 +24,14 @@ fewshot_config:
       for help. The promotion of a national cult based on the emperor and his associations
       with Kami happened during the reign of Emperor Meiji (1852-1912). The answer
       is (D).
-  - input: 'In which dynasty was the "Mandate of Heaven" developed to legitimatize
+  - question: 'In which dynasty was the "Mandate of Heaven" developed to legitimatize
       the new rulers?
 
       (A) Shang (B) Zhou (C) Han (D) Xia'
     target: Let's think step by step. We refer to Wikipedia articles on world religions
       for help. The "Mandate of Heaven" was developed as an ancient Chinese philosophical
       concept during the Zhou Dynasty (1046-256 BCE). The answer is (B).
-  - input: 'What is the sign of the covenant for Jewish males?
+  - question: 'What is the sign of the covenant for Jewish males?
 
       (A) The rainbow (B) Circumcision (C) A son (D) Bar mitzvah'
     target: 'Let''s think step by step. We refer to Wikipedia articles on world religions

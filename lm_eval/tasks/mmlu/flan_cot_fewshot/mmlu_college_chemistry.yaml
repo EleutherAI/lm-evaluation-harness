@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about co
 fewshot_config:
   sampler: first_n
   samples:
-  - input: "3 Cl\u2212(aq) + 4 CrO_4^2\u2212(aq) + 23 H+(aq) \u2192 3 HClO2(aq) +\
+  - question: "3 Cl\u2212(aq) + 4 CrO_4^2\u2212(aq) + 23 H+(aq) \u2192 3 HClO2(aq) +\
       \ 4 Cr3+(aq) + 10 H2O(l). In the reaction shown above, Cl\u2212(aq) behaves\
       \ as\n(A) an acid (B) a base (C) a catalyst (D) a reducing agent"
     target: Let's think step by step. A molecule that behaves as a base accepts an
@@ -15,7 +15,7 @@ fewshot_config:
       change, which is not the case here. This rules out (C). Instead, the $Cl^{-}
       molecules carry a negative charge, which they donate in the reaction to form
       3 HClO2. This is the behavior of a reducing agent, or (D). The answer is (D).
-  - input: 'Which of the following statements about the lanthanide elements is NOT
+  - question: 'Which of the following statements about the lanthanide elements is NOT
       true?
 
       (A) The most common oxidation state for the lanthanide elements is +3. (B) Lanthanide
@@ -25,7 +25,7 @@ fewshot_config:
     target: Let's think step by step. The atomic radii of the lanthanide elements
       in fact decrease across the period from La to Lu. Options (A), (B), and (C)
       are all true. This means that only (D) is NOT true. The answer is (D).
-  - input: 'Which of the following lists the hydrides of group-14 elements in order
+  - question: 'Which of the following lists the hydrides of group-14 elements in order
       of thermal stability, from lowest to highest?
 
       (A) PbH4 < SnH4 < GeH4 < SiH4 < CH4 (B) PbH4 < SnH4 < CH4 < GeH4 < SiH4 (C)
@@ -35,7 +35,7 @@ fewshot_config:
       the group from top to bottom is C, Si, Ge, Sn, Pb. Therefore in order of increasing
       thermal stability we have PbH4, SnH4, GeH4, SiH4, and CH4, or answer (A). The
       answer is (A).
-  - input: "Predict the number of lines in the EPR spectrum of a solution of 13C-labelled\
+  - question: "Predict the number of lines in the EPR spectrum of a solution of 13C-labelled\
       \ methyl radical (13CH3\u2022), assuming the lines do not overlap.\n(A) 4 (B)\
       \ 3 (C) 6 (D) 24 (E) 8"
     target: "Let's think step by step. The electron paramagnetic resonance spectrum\

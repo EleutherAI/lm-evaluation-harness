@@ -5,27 +5,27 @@ description: '
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'Colors in a soap bubble result from light
+  - question: 'Colors in a soap bubble result from light
 
       (A) converted to a different frequency (B) deflection (C) interference (D) polarization'
     target: Let's think step by step. In a soap bubble film, the light bounces between
       the two soap-air interfaces many times, interfering with itself constructively
       or destructively depending on the width of the film. This results in different
       colors being visible. The answer is (C).
-  - input: 'Compared with the mass of a uranium atom undergoing fission, the combined
+  - question: 'Compared with the mass of a uranium atom undergoing fission, the combined
       masses of the products after fission are
 
       (A) less (B) more (C) the same (D) zero'
     target: Let's think step by step. Fission releases energy, which comes from the
       rest mass of its initial nucleus. Thus the mass of the products is less than
       the mass of the reactant uranium nucleus. The answer is (A).
-  - input: 'Things that are equivalent according to the equivalence principle are
+  - question: 'Things that are equivalent according to the equivalence principle are
 
       (A) space and time. (B) a traveling twin and a stay-at-home twin. (C) gravity
       and acceleration. (D) mass and energy.'
     target: "Let's think step by step. Einstein\u2019s famous equivalence principle\
       \ states that gravity and acceleration are equivalent. The answer is (C)."
-  - input: 'Which of these three elements has the most mass per nucleon?
+  - question: 'Which of these three elements has the most mass per nucleon?
 
       (A) Hydrogen (B) Iron (C) Uranium (D) Same in each'
     target: Let's think step by step. Due to nuclear binding energy, the mass of an
@@ -33,7 +33,7 @@ fewshot_config:
       protons and neutrons; this is known as the mass defect. Hydrogen has no mass
       defect because it has only a single nucleon, so it will have the most mass per
       nucleon. The answer is (A).
-  - input: 'A model airplane flies slower when flying into the wind and faster with
+  - question: 'A model airplane flies slower when flying into the wind and faster with
       wind at its back. When launched at right angles to the wind a cross wind its
       groundspeed compared with flying in still air is
 

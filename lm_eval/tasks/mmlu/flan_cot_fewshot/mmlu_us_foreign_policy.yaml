@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about us
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'How did Donald Trump attack globalization in the 2016 campaign?
+  - question: 'How did Donald Trump attack globalization in the 2016 campaign?
 
       (A) Globalization had made men like him too rich (B) Globalization only benefited
       certain American states, such as New York (C) Liberal elites had encouraged
@@ -14,7 +14,7 @@ fewshot_config:
       policy for help. Trump attacked globalization because he believed ordinary Americans
       lost jobs due to it, and so he wanted to blame liberals who had encouraged it.
       The answer is (C).
-  - input: 'How did NSC-68 change U.S. strategy?
+  - question: 'How did NSC-68 change U.S. strategy?
 
       (A) It globalized containment. (B) It militarized containment. (C) It called
       for the development of the hydrogen bomb. (D) All of the above'
@@ -22,7 +22,7 @@ fewshot_config:
       policy for help. NSC-68 outlined a variety of courses of action, including globalization
       of containment, militarization of contaiment, and the development of the hydrogen
       bomb. The answer is (D).
-  - input: 'How do Defensive Realism and Offensive Realism differ in their explanation
+  - question: 'How do Defensive Realism and Offensive Realism differ in their explanation
       of state behaviour?
 
       (A) Defensive realists place greater emphasis on the role of international institutions
@@ -34,7 +34,7 @@ fewshot_config:
       policy for help. While defensive realism advocates that states are security
       maximizers, offensive realists think of states as power maximizers. The answer
       is (D).
-  - input: 'The realm of policy decisions concerned primarily with relations between
+  - question: 'The realm of policy decisions concerned primarily with relations between
       the United States and the rest of the world is known as
 
       (A) terrorism policy. (B) economic policy. (C) foreign policy. (D) international
@@ -42,7 +42,7 @@ fewshot_config:
     target: Let's think step by step. We refer to Wikipedia articles on us foreign
       policy for help. The topic of policy decisions concerns with relations between
       the US and the rest of the world is known as foreign policy. The answer is (C).
-  - input: 'How did the 2008 financial crisis affect America''s international reputation?
+  - question: 'How did the 2008 financial crisis affect America''s international reputation?
 
       (A) It damaged support for the US model of political economy and capitalism
       (B) It created anger at the United States for exaggerating the crisis (C) It

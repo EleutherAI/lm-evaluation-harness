@@ -3,7 +3,7 @@ description: The following are multiple choice questions (with answers) about as
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'Where do most short-period comets come from and how do we know?
+  - question: 'Where do most short-period comets come from and how do we know?
 
       (A) The Kuiper belt; short period comets tend to be in the plane of the solar
       system just like the Kuiper belt. (B) The Kuiper belt; short period comets tend
@@ -15,7 +15,7 @@ fewshot_config:
     target: Let's think step by step. Most short-period comets come from the Kuiper
       belt, and we know because short period coments tend to be in the plane of the
       solar system, just like the Kuiper belt is. The answer is (A).
-  - input: 'You are pushing a truck along a road. Would it be easier to accelerate
+  - question: 'You are pushing a truck along a road. Would it be easier to accelerate
       this truck on Mars? Why? (Assume there is no friction)
 
       (A) It would be harder since the truck is heavier on Mars. (B) It would be easier
@@ -26,7 +26,7 @@ fewshot_config:
       \ on the mass of the truck. Hence (A), (B) and (C) are incorrect since it doesn\u2019\
       t matter that it\u2019s on Mars, and (D) is the correct answer. The answer is\
       \ (D)."
-  - input: 'Say the pupil of your eye has a diameter of 5 mm and you have a telescope
+  - question: 'Say the pupil of your eye has a diameter of 5 mm and you have a telescope
       with an aperture of 50 cm. How much more light can the telescope gather than
       your eye?
 
@@ -35,7 +35,7 @@ fewshot_config:
       area $A = \pi D^2/4$ for a lens with diameter $D$, so the relative amounts of
       light between the eye with diameter 5mm and the telescope with diameter 50mm
       is $(50 cm)^2/(5mm)^2 = 10000$. The answer is (A).
-  - input: 'Why isn''t there a planet where the asteroid belt is located?
+  - question: 'Why isn''t there a planet where the asteroid belt is located?
 
       (A) A planet once formed here but it was broken apart by a catastrophic collision.
       (B) There was not enough material in this part of the solar nebula to form a
@@ -51,7 +51,7 @@ fewshot_config:
       \ of material that prevents a planet from being formed, and (A) is incorrect\
       \ because the Kirkwood gap would have prevented a planet from forming in the\
       \ first place, and (D) is the correct option. The answer is (D)."
-  - input: 'Why is Mars red?
+  - question: 'Why is Mars red?
 
       (A) Because the surface is covered with heavily oxidized ("rusted") minerals.
       (B) Because the atmosphere scatters more light at bluer wavelengths transmitting

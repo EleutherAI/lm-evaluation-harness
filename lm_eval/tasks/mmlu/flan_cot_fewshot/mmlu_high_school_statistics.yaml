@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about hi
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'A new smartwatch is manufactured in one part of a factory, then secured
+  - question: 'A new smartwatch is manufactured in one part of a factory, then secured
       for shipping in another, independent part of the factory. The weight of the
       smartwatch has a mean of 62 grams and a standard deviation of 1.0 grams. The
       weight of the packaging (box, user''s guide, bubble wrap, etc.) has a mean of
@@ -20,7 +20,7 @@ fewshot_config:
       their sum is equal to the sum of their individual means and variances. So the
       mean is 62 + 456 = 518 grams, and the variances is 1.0^2 + 6.0^2 = 37, leading
       to a standard deviation of 6.1 grams. The answer is (C).
-  - input: 'After a frost warning was issued, the owner of a large orange grove asked
+  - question: 'After a frost warning was issued, the owner of a large orange grove asked
       his workers to spray all his trees with water. The water was supposed to freeze
       and form a protective covering of ice around the orange blossom. Nevertheless,
       the owner suspected that some trees suffered considerable damage due to the
@@ -35,7 +35,7 @@ fewshot_config:
     target: Let's think step by step. In this experiment, the response variable is
       what is measured. For each tree, what is measured is whether or not it suffered
       more than 50 percent damage due to the frost. The answer is (D).
-  - input: 'Suppose X and Y are random variables with E(X) = 37, var(X) = 5, E(Y)
+  - question: 'Suppose X and Y are random variables with E(X) = 37, var(X) = 5, E(Y)
       = 62, and var(Y) = 12. What are the expected value and variance of the random
       variable X + Y?
 
@@ -47,7 +47,7 @@ fewshot_config:
       the variance of a sum of random variables, we need to know not just their individual
       variances but the covariance of the two variables, which is not given in this
       problem. The answer is (D).
-  - input: 'Which of the following sets has the smallest standard deviation? Which
+  - question: 'Which of the following sets has the smallest standard deviation? Which
       has the largest?
 
       I: {1,2,3}
@@ -63,7 +63,7 @@ fewshot_config:
       of zero). The variance of distribution III is 0, since it has a single entry.
       So distribution III has the smallest standard deviation and distribution II
       has the largest. The answer is (D).
-  - input: 'Which of the following is a correct statement about correlation?
+  - question: 'Which of the following is a correct statement about correlation?
 
       (A) If the slope of the regression line is exactly 1, then the correlation is
       exactly 1. (B) If the correlation is 0, then the slope of the regression line

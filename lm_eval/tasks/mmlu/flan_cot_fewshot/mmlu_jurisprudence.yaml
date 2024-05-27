@@ -3,7 +3,7 @@ description: The following are multiple choice questions (with answers) about ju
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'Iverson Jewelers wrote a letter to Miller, ''We have received an exceptionally
+  - question: 'Iverson Jewelers wrote a letter to Miller, ''We have received an exceptionally
       fine self winding Rolox watch which we will sell to you at a very favorable
       price.''
 
@@ -15,7 +15,7 @@ fewshot_config:
       with specific terms. An offer can be made by a letter. While this letter indicates
       the willingness to sell, the lack of specific terms, such as transaction price
       and offer expiration date, makes it an incomplete offer. The answer is (D).
-  - input: 'Functions of the law include all but which of the following?
+  - question: 'Functions of the law include all but which of the following?
 
       (A) maximizing individual freedom (B) providing a basis for compromise (C) keeping
       the peace (D) promoting the principles of the free enterprise system'
@@ -23,7 +23,7 @@ fewshot_config:
       for help. Laws are fundamentally about helping resolve disputes between individuals,
       and therefore essential for maximizing individual freedom, providing a basis
       for compromise, and keeping the peace. The answer is (D).
-  - input: 'The ________ School of jurisprudence postulates that the law is based
+  - question: 'The ________ School of jurisprudence postulates that the law is based
       on what is "correct."
 
       (A) Natural Law (B) Analytical (C) Historical (D) Sociological'
@@ -33,7 +33,7 @@ fewshot_config:
       Analytical deals with the law as it already exists, Historical postulates that
       the law was found and not made, and Sociological studies how the law and society
       impact each other. The answer is (A).
-  - input: 'Which word best summarizes Weber''s explanation of the development of
+  - question: 'Which word best summarizes Weber''s explanation of the development of
       formally rational law?
 
       (A) Authority. (B) Charisma. (C) Co-operation. (D) Capitalism.'
@@ -43,7 +43,7 @@ fewshot_config:
       actions based less on how they were culturally done and more on expected utilities.
       How rational individuals optimize efficiency of accomplishing tasks for higher
       rewards is a core principle of Capitalism. The answer is (D).
-  - input: 'Which position does Rawls claim is the least likely to be adopted by the
+  - question: 'Which position does Rawls claim is the least likely to be adopted by the
       POP (people in the original position)?
 
       (A) The POP would choose equality above liberty. (B) The POP would opt for the

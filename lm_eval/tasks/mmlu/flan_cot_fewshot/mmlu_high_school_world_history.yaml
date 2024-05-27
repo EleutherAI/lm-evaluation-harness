@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about hi
 fewshot_config:
   sampler: first_n
   samples:
-  - input: "This question refers to the following information.\n\"At least one of\
+  - question: "This question refers to the following information.\n\"At least one of\
       \ the [world's] societies would have to somehow enormously increase its productivity\
       \ [in order to achieve global hegemony]. That quantum jump would have to be\
       \ made before the various scientific, technological, agricultural, and industrial\
@@ -24,7 +24,7 @@ fewshot_config:
       for help. The "quantum jump" mentioned in the passage refers to the conquest
       of the New World and the Columbian Exchange. Choice (A) and (C) did not happen
       in history. Choice (C) refers to the human assets. The answer is (B).
-  - input: "This question refers to the following information.\n\"The struggle against\
+  - question: "This question refers to the following information.\n\"The struggle against\
       \ neo-colonialism is not aimed at excluding the capital of the developed world\
       \ from operating in less developed countries. It is aimed at preventing the\
       \ financial power of the developed countries being used in such a way as to\
@@ -43,7 +43,7 @@ fewshot_config:
       for help. The passage expresses a point that the successful fight against neo-colonialism
       were in danger and the newly independent nations like Ghana may be re-colonized
       via financial power of the developed countries. The answer is (B).
-  - input: "This question refers to the following information.\n\"Indeed, as both\
+  - question: "This question refers to the following information.\n\"Indeed, as both\
       \ the fatwas of distinguished [scholars] who base their opinion on reason and\
       \ tradition alike and the consensus of the Sunni community agree that the ancient\
       \ obligation of extirpation, extermination, and expulsion of evil innovation\
@@ -61,7 +61,7 @@ fewshot_config:
       for help. The passage is an example of expanding tensions between Selim and
       Ismail. In the passage the Selim references the fatwa and the consensus of the
       Sunni community to against whosoever introduces evil. The answer is (B).
-  - input: 'This question refers to the following information.
+  - question: 'This question refers to the following information.
 
       "The real grievance of the worker is the insecurity of his existence; he is
       not sure that he will always have work, he is not sure that he will always be
@@ -84,7 +84,7 @@ fewshot_config:
     target: Let's think step by step. We refer to Wikipedia articles on world history
       for help. The passage talks about the grievance of the work under the industrial
       capitalism. The answer is (D).
-  - input: "This question refers to the following information.\nHe contains all works\
+  - question: "This question refers to the following information.\nHe contains all works\
       \ and desires and all perfumes and all tastes. He enfolds the whole universe\
       \ and in silence is loving to all. This is the Spirit that is in my heart, this\
       \ is Brahman. To him I shall come when I go beyond this life, and to him will\

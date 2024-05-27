@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about hi
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'This question refers to the following information.
+  - question: 'This question refers to the following information.
 
       Albeit the king''s Majesty justly and rightfully is and ought to be the supreme
       head of the Church of England, and so is recognized by the clergy of this realm
@@ -43,7 +43,7 @@ fewshot_config:
       for help. The Act of Supremacy states that it grants authority to the king "to
       repress and extirpate all errors, heresies, and other enormities and abuses",
       referring to the corruption in the Church of England. The answer is (D).
-  - input: "This question refers to the following information.\nRead the following\
+  - question: "This question refers to the following information.\nRead the following\
       \ excerpt.\nThe revolutionary seed had penetrated into every country and spread\
       \ more or less. It was greatly developed under the r\xE9gime of the military\
       \ despotism of Bonaparte. His conquests displaced a number of laws, institutions,\
@@ -85,7 +85,7 @@ fewshot_config:
       power of the monarchy was challenged with ideas of individual liberty and nationalism,
       leading to the French revolution and its effects all over Europe. The answer
       is (A).
-  - input: 'This question refers to the following information.
+  - question: 'This question refers to the following information.
 
       The excerpts below are from the Navigation Acts of 1651.
 
@@ -129,7 +129,7 @@ fewshot_config:
       the ability of ships from other European countries, especially the Dutch, to
       transport goods from colonies in Asia and Africa into England. The answer is
       (A).
-  - input: "This question refers to the following information.\nIn Russia there was\
+  - question: "This question refers to the following information.\nIn Russia there was\
       \ nothing going on well, and [Souvarine] was in despair over the news he had\
       \ received. His old companions were all turning to the politicians; the famous\
       \ Nihilists who made Europe tremble-sons of village priests, of the lower middle\
@@ -161,7 +161,7 @@ fewshot_config:
       for help. The modern Communist movement aims to establish a classless society
       based on communal ownership and distribution of property and means of production,
       thereby especially benefiting the working classes. The answer is (C).
-  - input: "This question refers to the following information.\nThe following excerpt\
+  - question: "This question refers to the following information.\nThe following excerpt\
       \ is from a pamphlet.\nYou will do me the justice to remember, that I have always\
       \ strenuously supported the Right of every man to his own opinion, however different\
       \ that opinion might be to mine. He who denies to another this right, makes\

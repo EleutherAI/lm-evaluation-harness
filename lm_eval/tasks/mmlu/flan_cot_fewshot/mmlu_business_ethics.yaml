@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about bu
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'In contrast to _______, _______ aim to reward favourable behaviour by
+  - question: 'In contrast to _______, _______ aim to reward favourable behaviour by
       companies. The success of such campaigns have been heightened through the use
       of ___________, which allow campaigns to facilitate the company in achieving
       _________ .
@@ -19,7 +19,7 @@ fewshot_config:
       \ by companies. The success of such campaigns have been heightened through the\
       \ use of *digital technology*, which allow campaigns to facilitate the company\
       \ in achieving *increased sales*.\u201D The answer is (D)."
-  - input: '_______ is the direct attempt to formally or informally manage ethical
+  - question: '_______ is the direct attempt to formally or informally manage ethical
       issues or problems, through specific policies, practices and programmes.
 
       (A) Corporate social responsibility (B) Business ethics management (C) Sustainability
@@ -27,7 +27,7 @@ fewshot_config:
     target: Let's think step by step. We refer to Wikipedia articles on business ethics
       for help. The direct attempt manage ethical issues through specific policies,
       practices, and programs is business ethics management. The answer is (B).
-  - input: 'Three contrasting tactics that CSO''s can engage in to meet their aims
+  - question: 'Three contrasting tactics that CSO''s can engage in to meet their aims
       are ________ which typically involves research and communication, ________,
       which may involve physically attacking a company''s operations or ________,
       often involving some form of _______.
@@ -44,7 +44,7 @@ fewshot_config:
       \ *violent direct action*, which may involve physically attacking a company's\
       \ operations or *non-violent direct action*, often involving some form of *boycott*.\u201D\
       \ The answer is (C)."
-  - input: 'To ensure the independence of the non-executive board members, there are
+  - question: 'To ensure the independence of the non-executive board members, there are
       a number of steps which can be taken, which include non-executives being drawn
       from _______ the company, being appointed for a _________ time period as well
       as being appointed _________.
@@ -57,7 +57,7 @@ fewshot_config:
       \ are a number of steps which can be taken, which include non-executives being\
       \ draw from *outside* the company, being appointed for a *limited* time period\
       \ as well as being imported *independently*. The answer is (A)."
-  - input: 'Beyond the business case for engaging in CSR there are a number of moral
+  - question: 'Beyond the business case for engaging in CSR there are a number of moral
       arguments relating to: negative _______, the _______that corporations possess
       and the ________ of business and society.
 

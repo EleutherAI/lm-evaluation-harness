@@ -4,7 +4,7 @@ description: The following are multiple choice questions (with answers) about pr
 fewshot_config:
   sampler: first_n
   samples:
-  - input: 'A son owed a creditor $5,000. The son''s father contacted the creditor
+  - question: 'A son owed a creditor $5,000. The son''s father contacted the creditor
       and told him that he wanted to pay the son''s debt. The father signed a document
       that stated the father would pay the son''s debt at a rate of $500 a month for
       10 months. The creditor made no written or oral commitment to forbear to sue
@@ -31,7 +31,7 @@ fewshot_config:
       The doctrine of promissory estoppel stops a person from going back on a promise
       in contract law, hence option (A) should be the most persuasive argument. The
       answer is (A).
-  - input: 'A state has recently enacted a statute prohibiting the disposal of any
+  - question: 'A state has recently enacted a statute prohibiting the disposal of any
       nuclear wastes within the state. This law does not contravene or conflict with
       any federal statutes. A man operates a company in the state that is engaged
       in the disposal of nuclear wastes. Subsequent to the passage of the state statute,
@@ -50,7 +50,7 @@ fewshot_config:
       with foreign Nations, and among the several States, and with the Indian Tribes.
       The statute affects inter-state commerce which puts it into question. Hence
       the man's strongest argument should be the commerce clause. The answer is (A).
-  - input: 'On October 1, 1980, a developer, owner of several hundred acres in a rural
+  - question: 'On October 1, 1980, a developer, owner of several hundred acres in a rural
       county, drafted a general development plan for the area. The duly recorded plan
       imposed elaborate limitations and restrictions upon the land in the plan, which
       was to be developed as a residential district. The restrictions were to extend
@@ -83,7 +83,7 @@ fewshot_config:
       shall be built on the aforementioned strip of land running through the said
       blocks. Hence the court will most likely grant relief because the fence violated
       the restriction in the original plan. The answer is (B).
-  - input: 'Judge took judicial notice of some facts at the beginning of the trial.
+  - question: 'Judge took judicial notice of some facts at the beginning of the trial.
       Which of the following is not an appropriate kind of fact for judicial notice?
 
       (A) Indisputable facts. (B) Facts that have been asserted by individual political
@@ -92,7 +92,7 @@ fewshot_config:
     target: Let's think step by step. We refer to Wikipedia articles on law for help.
       Among the options, facts that have been asserted by individual political organizations
       is not an appropriate kind of fact for judicial notice. The answer is (B).
-  - input: 'A state legislature has recently enacted a statute making it a misdemeanor
+  - question: 'A state legislature has recently enacted a statute making it a misdemeanor
       to curse or revile or use obscene or opprobrious language toward or in reference
       to a police officer perfonning his duties. A student at a state university organized
       a demonstration on campus to protest the war. The rally was attended by a group
