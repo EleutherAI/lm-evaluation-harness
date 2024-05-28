@@ -413,7 +413,9 @@ def get_task_dict(
         )
 
     string_task_name_list = [task for task in task_name_list if isinstance(task, str)]
-    others_task_name_list = [task for task in task_name_list if ~isinstance(task, str)]
+    others_task_name_list = [
+        task for task in task_name_list if not isinstance(task, str)
+    ]
     if len(string_task_name_list) > 0:
         if task_manager is None:
             task_manager = TaskManager()
