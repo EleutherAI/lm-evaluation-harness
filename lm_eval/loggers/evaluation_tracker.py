@@ -191,22 +191,27 @@ class EvaluationTracker:
                 file_results_aggregated.open("w", encoding="utf-8").write(dumped)
 
                 if self.api and self.push_results_to_hub:
-                    self.api.create_repo(
-                        repo_id=self.hub_results_repo
+                    repo_id = (
+                        self.hub_results_repo
                         if self.public_repo
-                        else self.hub_results_repo_private,
+                        else self.hub_results_repo_private
+                    )
+                    self.api.create_repo(
+                        repo_id=repo_id,
                         repo_type="dataset",
                         private=not self.public_repo,
                         exist_ok=True,
                     )
                     self.api.upload_folder(
-                        repo_id=self.hub_results_repo
-                        if self.public_repo
-                        else self.hub_results_repo_private,
+                        repo_id=repo_id,
                         folder_path=str(path),
                         path_in_repo=self.general_config_tracker.model_name_sanitized,
                         repo_type="dataset",
                         commit_message=f"Adding aggregated results for {self.general_config_tracker.model_name}",
+                    )
+                    eval_logger.info(
+                        "Successfully pushed aggregated results to the Hugging Face Hub. "
+                        f"You can find them at: {repo_id}"
                     )
 
             except Exception as e:
@@ -231,9 +236,7 @@ class EvaluationTracker:
         """
         if self.output_path:
             try:
-                # write log to include task name
                 eval_logger.info(f"Saving samples results for: {task_name}")
-                # for each sample, dump the dict into a jsonl file
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
                 path = path.joinpath(self.general_config_tracker.model_name_sanitized)
@@ -270,22 +273,27 @@ class EvaluationTracker:
                         f.write(sample_dump)
 
                 if self.api and self.push_samples_to_hub:
-                    self.api.create_repo(
+                    repo_id = (
                         self.hub_results_repo
                         if self.public_repo
-                        else self.hub_results_repo_private,
+                        else self.hub_results_repo_private
+                    )
+                    self.api.create_repo(
+                        repo_id=repo_id,
                         repo_type="dataset",
                         private=not self.public_repo,
                         exist_ok=True,
                     )
                     self.api.upload_folder(
-                        repo_id=self.hub_results_repo
-                        if self.public_repo
-                        else self.hub_results_repo_private,
+                        repo_id=repo_id,
                         folder_path=str(path),
                         path_in_repo=self.general_config_tracker.model_name_sanitized,
                         repo_type="dataset",
                         commit_message=f"Adding samples results for {task_name} to {self.general_config_tracker.model_name}",
+                    )
+                    eval_logger.info(
+                        f"Successfully pushed sample results for task: {task_name} to the Hugging Face Hub. "
+                        f"You can find them at: {repo_id}"
                     )
 
             except Exception as e:
