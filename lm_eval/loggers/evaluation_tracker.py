@@ -124,6 +124,12 @@ class EvaluationTracker:
         self.point_of_contact = point_of_contact
         self.api = HfApi(token=token) if token else None
 
+        if not self.api and (push_results_to_hub or push_samples_to_hub):
+            raise ValueError(
+                "Hugging Face token is not defined, but 'push_results_to_hub' or 'push_samples_to_hub' is set to True. "
+                "Please provide a valid Hugging Face token by setting the HF_TOKEN environment variable."
+            )
+
         if (
             self.api
             and hub_results_org == ""
