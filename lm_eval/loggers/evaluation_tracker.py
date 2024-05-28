@@ -5,7 +5,6 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
-import huggingface_hub; print(huggingface_hub.__file__)
 
 from huggingface_hub import HfApi
 
