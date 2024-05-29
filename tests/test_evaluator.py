@@ -14,31 +14,33 @@ from lm_eval import tasks
 
 
 @pytest.mark.parametrize(
-    "task_name,limit,model,model_args",
+    "task_name,limit,model,model_args,bootstrap_iters",
     [
         (
             ["arc_easy"],
             10,
             "hf",
             "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
+            0,
         ),
         (
             ["mmlu_abstract_algebra"],
             None,
             "hf",
             "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
+            10000,
         ),
     ],
 )
-def test_evaluator(task_name: List[str], limit: int, model: str, model_args: str):
-    # task_name = task_name
-    # limit = 10
-
+def test_evaluator(
+    task_name: List[str], limit: int, model: str, model_args: str, bootstrap_iters: int
+):
     e1 = evaluator.simple_evaluate(
         model=model,
         tasks=task_name,
         limit=limit,
         model_args=model_args,
+        bootstrap_iters=bootstrap_iters,
     )
     assert e1 is not None
 
@@ -57,6 +59,7 @@ def test_evaluator(task_name: List[str], limit: int, model: str, model_args: str
         lm=lm,
         task_dict=task_dict,
         limit=limit,
+        bootstrap_iters=bootstrap_iters,
     )
 
     assert e2 is not None
