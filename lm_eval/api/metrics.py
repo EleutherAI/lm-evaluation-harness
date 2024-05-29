@@ -124,6 +124,41 @@ def brier_score(items):  # This is a passthrough function
     predictions = list(zip(*items))[1]
     return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
 
+@register_aggregation("rmsce")
+def rmsce(items): 
+    # Unpack true and predicted probabilities
+    prob_true, prob_pred = zip(*items)
+    prob_true = np.array(prob_true)
+    prob_pred = np.array(prob_pred)
+    print(f"prob_true = {prob_true} \n prob_pred = {prob_pred}")
+
+    num_bins = 15
+    bin_edges = np.linspace(0, 1, num_bins + 1)  # creating evenly sized num_bins+1 spaces between 0 and 1 for "bins"
+    bin_indices = np.digitize(prob_pred, bin_edges) - 1 #returns indices of bins to which each value belongs to
+
+    bin_accuracies = []
+    bin_confidences = []
+    for i in range(num_bins):
+        mask = (bin_indices == i)
+        if np.sum(mask) > 0:  # Check if bin is not empty
+            bin_accuracy = np.mean(prob_true[mask]) # calculating the mean accuracy of all elements within each bin
+            bin_confidence = np.mean(prob_pred[mask])
+            bin_accuracies.append(bin_accuracy)
+            bin_confidences.append(bin_confidence)
+        else:
+            bin_accuracies.append(0)  # Adding zero for empty bins to avoid misalignment
+            bin_confidences.append(0)  # Adding zero for empty bins to avoid misalignment
+
+    # Debug prints to check values
+    print(f"Bin edges: {bin_edges}")
+    print(f"Bin indices: {bin_indices}")
+    print(f"Bin accuracies: {bin_accuracies}")
+    print(f"Bin confidences: {bin_confidences}")
+
+    squared_differences = [(acc - conf)**2 for acc, conf in zip(bin_accuracies, bin_confidences)]
+    rmsce = np.sqrt(np.mean(squared_differences))
+    print(f"squared_differences = {squared_differences} \n rmsce = {rmsce}")
+    return rmsce
 
 @register_metric(
     metric="brier_score",
@@ -134,6 +169,15 @@ def brier_score(items):  # This is a passthrough function
 def brier_score_fn(items):  # This is a passthrough function
     return items
 
+@register_metric(
+    metric="rmsce",
+    higher_is_better=False,
+    output_type=["multiple_choice"],
+    aggregation="rmsce",
+)
+
+def rmsce_fn(items): # Passthrough function
+    return items
 
 @register_metric(
     metric="acc",
