@@ -1,36 +1,52 @@
 from lm_eval.api.model import LM, TemplateLM
 from lm_eval.api.instance import Instance
 from lm_eval.api.registry import register_model
-from lm_eval.models.utils import Collator
+import numpy as np
+from lm_eval.models.utils import Collator, eval_logger
 from typing import List, Tuple
 from mlx_lm.utils import generate, load
 from mlx_lm.generate import colorprint_by_t0
-from mlx_lm.models.base import KVCache
-from mlx_tuning_fork.tuning.utils import create_delineated_batches
-import mlx.nn as nn
+from functools import lru_cache
 import mlx.core as mx
-
 from tqdm import tqdm
 
-eval_logger = utils.eval_logger
+eval_logger = eval_logger
 
 
 @register_model("mlx", "mlx_lm")
 class MLX(TemplateLM):
-    def __init__(self, model,  prompt_formatter, adapter_path=None, trust_remote_code=False, eos_token=None, top_p=1,
-                 max_tokens=2048):
+    def __init__(self, model, adapter_path=None, trust_remote_code=False, eos_token=None, top_p=1,
+                 max_tokens=2048, batch_size=4, logits_cache=True, max_gen_tokens=256):
         super().__init__()
         tokenizer_config = {"trust_remote_code": trust_remote_code}
         if eos_token is not None:
             tokenizer_config["eos_token"] = eos_token
-        self.prompt_formatter = prompt_formatter
         self.model, self.tokenizer = load(model, adapter_path=adapter_path, tokenizer_config=tokenizer_config)
         eval_logger.info(
             f"Model type is '{type(self.model)}"
         )
-
         self.max_tokens = max_tokens
         self.top_p = top_p
+        self.batch_size = int(batch_size)
+        self.logits_cache = logits_cache
+        self.max_gen_tokens = max_gen_tokens
+
+    @property
+    def eot_token_id(self):
+        # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
+        return self.tokenizer.eos_token_id
+
+    @lru_cache(maxsize=2000)
+    def tok_encode(self, string: str) -> List[int]:
+        return self.tokenizer.encode(string)
+
+    def _loglikelihood_tokens(
+        self,
+        requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
+        disable_tqdm: bool = False,
+        override_bs: int = None,
+    ) -> List[Tuple[float, bool]]:
+        raise NotImplementedError("loglikelihood is implemented")
 
     def loglikelihood(
         self, requests, disable_tqdm: bool = False
@@ -44,138 +60,124 @@ class MLX(TemplateLM):
           by greedy sampling from the LM (that is, if the target string is the most likely N-token string to be output
           by the LM given the input. )
         """
-        new_reqs = []
-        for context, continuation in [req.args for req in requests]:
-            new_reqs.append(((context, continuation), None, None))
-
-        return self._loglikelihood_tokens(new_reqs, disable_tqdm=disable_tqdm)
-
-    def _loglikelihood_tokens(
-            self,
-            requests: List[Tuple[Tuple[str, str], List[int], List[int]]],
-            disable_tqdm: bool = False,
-            override_bs: int = None,
-    ) -> List[Tuple[float, bool]]:
+        if not requests:
+            return []
         res = []
+        #Keep order for later
+        original_order = {(context, continuation): idx for idx, (context, continuation) in enumerate(
+            [req.args for req in requests])}
 
-        def _collate(req: Tuple[Tuple[str, str], List[int], List[int]]):
-            """Defines the key for the sorted method"""
-            # the negative sign on len(toks) sorts descending - this has a few advantages:
-            # - time estimates will always be over not underestimates, which is more useful for planning
-            # - to know the size of a batch when going through the list, you know the first one is always the batch
-            #   padded context length. this is useful to simplify the batching logic and more importantly to make
-            #   automatic adaptive batches much much easier to implement
-            # - any OOMs will happen right away rather than near the end
+        #sort the requests by their length (changes order)
+        idx = sorted(range(len(requests)), key=lambda i: len(requests[i].args[0]) + len(requests[i].args[1]))
+        if len(requests) < self.batch_size:
+            raise ValueError(
+                f"Dataset must have at least batch_size={self.batch_size}"
+                f" examples but only has {len(requests)}."
+            )
 
-            toks = req[1] + req[2]
-            return -len(toks), tuple(toks)
+        # Make the batches:
+        batch_idx = [
+            idx[i: i + self.batch_size] for i in range(0, len(idx) - self.batch_size + 1, self.batch_size)
+        ]
 
-        def _lookup_one_token_cont(req: Tuple[Tuple[str, str], List[int], List[int]]):
-            """Defines the key to group and lookup one-token continuations"""
-            # Use with group_by="contexts" (optional)"
-            # allows for the creation of a lookup, so we can reuse logits in case of one-token continuations.
-            # speeds up some multiple-choice tasks proportionally to the number of choices.
-            # groups requests by context+continuation[:-1] and infer on one request/group.
-            return req[-2] + req[-1][:-1]
+        #randomize the batches
+        indices = np.random.permutation(len(batch_idx))
 
-
-        re_ord = Collator(
-            requests,
-            sort_fn=_collate,
-            group_by="contexts"
-            if self.logits_cache
-            else None,
-            group_fn=_lookup_one_token_cont,
-        )
-
-        # automatic (variable) batch size detection for vectorization
-        # pull longest context sample from request
-        n_reordered_requests = len(re_ord)
-        batch_size = (
-            self.batch_size
-            if self.batch_size != "auto"
-            else override_bs
-            if override_bs is not None
-            else 0
-        )
-        batch_fn = (
-            self._batch_scheduler
-            if self.batch_size == "auto"
-            and n_reordered_requests > 0
-            and not override_bs
-            else None
-        )
-
-        chunks = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
         pbar = tqdm(
-            total=len(requests),
+            total=len(indices),
             disable=(disable_tqdm or (self.rank != 0)),
-            desc="Running loglikelihood requests",
+            desc=f"Running loglikelihood requests ({len(batch_idx):,} batches)",
         )
+        for i in indices:
+            context_batch = []
+            continuation_batch = []
 
-        kv_heads = (
-            [self.model.n_kv_heads] * len(self.model.layers)
-            if isinstance(self.model.n_kv_heads, int)
-            else self.model.n_kv_heads
-        )
-        cache = [KVCache(self.model.head_dim, n) for n in kv_heads]
+            for j in batch_idx[i]:
+                context, continuation = requests[j].args
+                context_batch.append(context)
+                continuation_batch.append(continuation)
+            batch, input_lengths, target_lengths, non_padding_lengths = self.delineated_batches(self.batch_size,
+                                                                                                context_batch,
+                                                                                                continuation_batch)
 
-        def _step(y):
-            logits = self.model(y[None], cache=cache)
-            logits = logits[:, -1, :]
-            token = mx.argmax(logits, axis=-1)
-            return token
-
-        for chunk in chunks:
-            input_text = []
-            output_text = []
-            for context, continuation, _, _ in chunk:
-                input_text.append(self.prompt_formatter.get_input(context))
-                output_text.append(self.prompt_formatter.get_output(continuation))
-            inputs, input_lengths, lengths = create_delineated_batches(input_text, output_text, self.tokenizer,
-                                                                      max_seq_length=self.max_tokens)
-            # Forward the concatenated [input, tagets] through the model.
-            # Get just the logits for the targets by slicing the last targets.size columns
-            # Compute use nn.losses.cross_entropy(sliced_logits, targets)
-            shifted_inputs = inputs[:, :-1]
-            shifted_labels = inputs[:, 1:]
-            logits = self.model(shifted_inputs)
+            shifted_padded_full_sequence = batch[:, :-1] #all but the last token for each sequence
+            logits = self.model(shifted_padded_full_sequence)
             logits = logits.astype(mx.float32)
 
-            mask_width = shifted_inputs.shape[1]
-            token_indices = mx.arange(mask_width)[None, :]
-            mask = mx.logical_and(token_indices >= input_lengths[:, None], token_indices < lengths[:, None])
+            #log probabilities
+            log_probs = mx.softmax(logits, axis=-1)
 
-            ce = nn.losses.cross_entropy(logits, shifted_labels, reduction="sum") * mask
+            #Create mask to exclude padding and inputs
+            mask_width = shifted_padded_full_sequence.shape[1]
+            flattened_token_indices = mx.arange(mask_width)
+            token_indices = flattened_token_indices[None, :]
+            mask = mx.logical_and(token_indices >= input_lengths[:, None],
+                                  token_indices < non_padding_lengths[:, None])
 
-            for idx, loglikelihood in enumerate(ce):
-                target_enc = self.tokenizer.encode(output_text[idx])
-                input_enc = self.tokenizer.encode(input_text[idx])
+            batch_greedy_tokens = logits.argmax(axis=-1)
+            #A sequence of 1s or 0's the same width as the batch, where 1 indicates the target token is the same
+            #as the greedily-generated token (determined efficiently via argmax on token probabilities)
+            masked_indicator_values = (batch_greedy_tokens == shifted_padded_full_sequence) * mask
 
-                greedy_tokens = []
-                y = _step(input_enc)
-                mx.async_eval(y)
-                greedy_tokens.append(y)
-                while True:
-                    next_y = _step(y)
-                    if next_y != self.tokenizer.eos_token_id:
-                        mx.async_eval(next_y)
-                        greedy_tokens.append(next_y)
-                        y = next_y
-                    else:
-                        break
+            #A sequence of booleans indicating whether the sum of indicator values is equal to corresponding
+            #target length
+            batch_target_is_greedy_values = masked_indicator_values.sum(axis=-1) == mx.array(target_lengths)
 
-                max_equal = target_enc == greedy_tokens
+            for idx, (is_greedy, log_prob) in enumerate(zip(batch_target_is_greedy_values, log_probs)):
+                input_length = input_lengths[idx].item()
+                target_length = target_lengths[idx]
+                context = context_batch[idx]
+                continuation = continuation_batch[idx]
 
-                # Answer: (log prob, is-exact-match)
-                answer = (loglikelihood, max_equal)
+                #conditional log probability of answer given input (sum of log probs corresponding to target
+                # sequence tokens only)
+                answer_score = log_prob[input_length: input_length + target_length].sum(axis=1).sum()
 
+                idx = original_order[(context, continuation)]
+
+                # Answer: (original index, log prob, is-exact-match)
+                answer = idx, answer_score.item(), is_greedy.item()
                 res.append(answer)
-                pbar.update(1)
+            pbar.update(1)
 
         pbar.close()
+        #Return the answers in the original order (lost by the batch creation process, which )
+        return list(map(lambda i: i[1:], sorted(res, key=lambda i: i[0])))
 
-        return res
+    #Mostly from https://github.com/chimezie/mlx-tuning-fork/blob/main/src/mlx_tuning_fork/tuning/utils.py
+    def delineated_batches(self, batch_size, context_text, continuation_text):
+        encoded_context_batch = [self.tok_encode(record) for record in context_text]
+        encoded_continuation_batch = [self.tok_encode(record) for record in continuation_text]
+
+        input_lengths = [len(x) for x in encoded_continuation_batch]
+        target_lengths = [len(x) for x in encoded_context_batch]
+
+        full_labels = [encoded_continuation_batch[idx] + encoded_context_batch[idx] for idx in range(batch_size)]
+        lengths = [len(x) for x in full_labels]
+
+        if max(lengths) > self.max_tokens:
+            print(
+                f"[WARNING] Some sequences are longer than {self.max_tokens} tokens. "
+                f"The longest sentence {max(lengths)} will be truncated to {self.max_tokens}. "
+                "Consider pre-splitting your data to save memory."
+            )
+        pad_to = 8
+        max_length_in_batch = pad_to * ((max(lengths) + pad_to - 1) // pad_to)
+        max_length_in_batch = min(max_length_in_batch, self.max_tokens)
+
+        batch_arr = np.zeros((batch_size, max_length_in_batch), np.int32)
+        adjusted_lengths = []
+        for j in range(batch_size):
+            input_length = input_lengths[j]
+            full_ids_end_idx = input_length + min(target_lengths[j], max_length_in_batch - input_length)
+            adjusted_lengths.append(full_ids_end_idx)
+            batch_arr[j, :full_ids_end_idx] = full_labels[j][:full_ids_end_idx]
+
+        batch = mx.array(batch_arr)
+        input_lengths = mx.array(input_lengths)
+        non_padding_lengths = mx.array(adjusted_lengths)
+
+        return batch, input_lengths, target_lengths, non_padding_lengths
 
     def loglikelihood_rolling(self, requests: list[Instance]) -> list[tuple[float, bool]]:
         raise NotImplementedError("loglikelihood_rolling is not implemented")
