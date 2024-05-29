@@ -114,6 +114,19 @@ class LM(abc.ABC):
         """
         pass
 
+    @abc.abstractmethod
+    def apply_chat_template(self, chat_history: list[dict[str, str]]) -> str:
+        """
+        Defines how to transform few-shot examples provided as chat history into a format that can be used as input to the LM.
+
+        :param chat_history: list[dict[str, str]]
+            A list of dictionaries with keys 'role' and 'content'.
+            Values are strings representing the role name and the content of the message, respectively.
+        :return: str
+            A string representing the chat history in a format that can be used as input to the LM.
+        """
+        pass
+
     @classmethod
     def create_from_arg_string(
         cls: Type[T], arg_string: str, additional_config: Optional[dict] = None

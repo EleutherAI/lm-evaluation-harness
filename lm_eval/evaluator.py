@@ -386,7 +386,7 @@ def evaluate(
             system_instruction=system_instruction,
             apply_chat_template=apply_chat_template,
             fewshot_as_multiturn=fewshot_as_multiturn,
-            tokenizer=lm.tokenizer if hasattr(lm, "tokenizer") else None,
+            lm=lm,
         )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"

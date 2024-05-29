@@ -1286,6 +1286,14 @@ class HFLM(TemplateLM):
 
         return res
 
+    def apply_chat_template(self, chat_history: list[dict[str, str]]) -> str:
+        """
+        Method to apply a chat template to a list of chat history between user and model.
+        """
+        return self.tokenizer.apply_chat_template(
+            chat_history, tokenize=False, add_generation_prompt=True
+        )
+
     def get_model_info(self) -> dict:
         """
         Method to get Hugging Face model information for experiment reproducibility.

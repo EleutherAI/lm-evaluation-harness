@@ -376,7 +376,7 @@ class Task(abc.ABC):
         system_instruction=None,
         apply_chat_template=False,
         fewshot_as_multiturn=False,
-        tokenizer=None,
+        lm=None,
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
 
@@ -428,7 +428,7 @@ class Task(abc.ABC):
                 system_instruction,
                 apply_chat_template,
                 fewshot_as_multiturn,
-                tokenizer,
+                lm,
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
@@ -965,24 +965,6 @@ class ConfigurableTask(Task):
                 )
             return super().fewshot_docs()
 
-    def convert_chat_history_to_string(self, chat_history: list, tokenizer=None) -> str:
-        """Returns chat history tokenized or concatenated as a string.
-
-        :param chat_history: list
-            The chat history to convert to a string.
-        :param tokenizer:
-            Optional tokenizer to use for applying the chat template, if None, the sampler's fewshot_delimiter is used.
-        """
-        if tokenizer:
-            return tokenizer.apply_chat_template(
-                chat_history, tokenize=False, add_generation_prompt=True
-            )
-        else:
-            return self.sampler.fewshot_delimiter + "".join(
-                f"{s['role']}: {s['content']}" + self.sampler.fewshot_delimiter
-                for s in chat_history
-            )
-
     @utils.positional_deprecated
     def fewshot_context(
         self,
@@ -991,7 +973,7 @@ class ConfigurableTask(Task):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        tokenizer=None,
+        lm=None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -1006,8 +988,8 @@ class ConfigurableTask(Task):
             Whether to apply the chat template to the fewshot context.
         :param fewshot_as_multiturn: bool
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-        :param tokenizer:
-            The tokenizer to use for applying the chat template.
+        :param lm:
+            Language model with definition of the tokenizer/function to use for applying the chat template.
         :returns: str
             The fewshot context.
         """
@@ -1063,9 +1045,7 @@ class ConfigurableTask(Task):
                     for ex in example:
                         chat = deepcopy(labeled_examples)
                         chat.append({"role": "user", "content": ex})
-                        labeled_examples_list.append(
-                            self.convert_chat_history_to_string(chat, tokenizer)
-                        )
+                        labeled_examples_list.append(lm.apply_chat_template(chat))
                     return labeled_examples_list
                 # if example is an integer, append the choice or convert to string
                 elif isinstance(example, int):
@@ -1078,7 +1058,7 @@ class ConfigurableTask(Task):
                         labeled_examples.append(
                             {"role": "user", "content": str(example)}
                         )
-            return self.convert_chat_history_to_string(labeled_examples, tokenizer)
+            return lm.apply_chat_template(labeled_examples)
         else:
             if self.multiple_input:
                 return labeled_examples
