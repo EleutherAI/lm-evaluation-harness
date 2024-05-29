@@ -8,7 +8,7 @@ filter_list:
   - name: "strict-match"
     filter:
       - function: "regex"
-        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=the answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
+        regex_pattern: "((?<=The answer is )(.*)(?=.)|(?<=answer is )(.*)(?=.)|(?<=The answer: )(.*)(?=.)|(?<=The final answer: )(.*)(?=.))"
       - function: "take_first"
   - name: "flexible-extract"
     filter:
@@ -33,4 +33,4 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
 metadata:
-  version: 1.0
+  version: 2.0
