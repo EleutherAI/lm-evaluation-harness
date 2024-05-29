@@ -1,30 +1,43 @@
-from lm_eval.api.model import LM, TemplateLM
-from lm_eval.api.instance import Instance
-from lm_eval.api.registry import register_model
-import numpy as np
-from lm_eval.models.utils import Collator, eval_logger
-from typing import List, Tuple
-from mlx_lm.utils import generate, load
-from mlx_lm.generate import colorprint_by_t0
 from functools import lru_cache
+from typing import List, Tuple
+
 import mlx.core as mx
+import numpy as np
+from mlx_lm.generate import colorprint_by_t0
+from mlx_lm.utils import generate, load
 from tqdm import tqdm
+
+from lm_eval.api.instance import Instance
+from lm_eval.api.model import TemplateLM
+from lm_eval.api.registry import register_model
+from lm_eval.models.utils import eval_logger
+
 
 eval_logger = eval_logger
 
 
 @register_model("mlx", "mlx_lm")
 class MLX(TemplateLM):
-    def __init__(self, model, adapter_path=None, trust_remote_code=False, eos_token=None, top_p=1,
-                 max_tokens=2048, batch_size=4, logits_cache=True, max_gen_tokens=256):
+    def __init__(
+        self,
+        model,
+        adapter_path=None,
+        trust_remote_code=False,
+        eos_token=None,
+        top_p=1,
+        max_tokens=2048,
+        batch_size=4,
+        logits_cache=True,
+        max_gen_tokens=256,
+    ):
         super().__init__()
         tokenizer_config = {"trust_remote_code": trust_remote_code}
         if eos_token is not None:
             tokenizer_config["eos_token"] = eos_token
-        self.model, self.tokenizer = load(model, adapter_path=adapter_path, tokenizer_config=tokenizer_config)
-        eval_logger.info(
-            f"Model type is '{type(self.model)}"
+        self.model, self.tokenizer = load(
+            model, adapter_path=adapter_path, tokenizer_config=tokenizer_config
         )
+        eval_logger.info(f"Model type is '{type(self.model)}")
         self.max_tokens = max_tokens
         self.top_p = top_p
         self.batch_size = int(batch_size)
@@ -63,12 +76,19 @@ class MLX(TemplateLM):
         if not requests:
             return []
         res = []
-        #Keep order for later
-        original_order = {(context, continuation): idx for idx, (context, continuation) in enumerate(
-            [req.args for req in requests])}
+        # Keep order for later
+        original_order = {
+            (context, continuation): idx
+            for idx, (context, continuation) in enumerate(
+                [req.args for req in requests]
+            )
+        }
 
-        #sort the requests by their length (changes order)
-        idx = sorted(range(len(requests)), key=lambda i: len(requests[i].args[0]) + len(requests[i].args[1]))
+        # sort the requests by their length (changes order)
+        idx = sorted(
+            range(len(requests)),
+            key=lambda i: len(requests[i].args[0]) + len(requests[i].args[1]),
+        )
         if len(requests) < self.batch_size:
             raise ValueError(
                 f"Dataset must have at least batch_size={self.batch_size}"
@@ -77,10 +97,11 @@ class MLX(TemplateLM):
 
         # Make the batches:
         batch_idx = [
-            idx[i: i + self.batch_size] for i in range(0, len(idx) - self.batch_size + 1, self.batch_size)
+            idx[i : i + self.batch_size]
+            for i in range(0, len(idx) - self.batch_size + 1, self.batch_size)
         ]
 
-        #randomize the batches
+        # randomize the batches
         indices = np.random.permutation(len(batch_idx))
 
         pbar = tqdm(
@@ -96,42 +117,61 @@ class MLX(TemplateLM):
                 context, continuation = requests[j].args
                 context_batch.append(context)
                 continuation_batch.append(continuation)
-            batch, input_lengths, target_lengths, non_padding_lengths = self.delineated_batches(self.batch_size,
-                                                                                                context_batch,
-                                                                                                continuation_batch)
+            (
+                batch,
+                input_lengths,
+                target_lengths,
+                non_padding_lengths,
+            ) = self.delineated_batches(
+                self.batch_size, context_batch, continuation_batch
+            )
 
-            shifted_padded_full_sequence = batch[:, :-1] #all but the last token for each sequence
+            shifted_padded_full_sequence = batch[
+                :, :-1
+            ]  # all but the last token for each sequence
             logits = self.model(shifted_padded_full_sequence)
             logits = logits.astype(mx.float32)
 
-            #log probabilities
+            # log probabilities
             log_probs = mx.softmax(logits, axis=-1)
 
-            #Create mask to exclude padding and inputs
+            # Create mask to exclude padding and inputs
             mask_width = shifted_padded_full_sequence.shape[1]
             flattened_token_indices = mx.arange(mask_width)
             token_indices = flattened_token_indices[None, :]
-            mask = mx.logical_and(token_indices >= input_lengths[:, None],
-                                  token_indices < non_padding_lengths[:, None])
+            mask = mx.logical_and(
+                token_indices >= input_lengths[:, None],
+                token_indices < non_padding_lengths[:, None],
+            )
 
             batch_greedy_tokens = logits.argmax(axis=-1)
-            #A sequence of 1s or 0's the same width as the batch, where 1 indicates the target token is the same
-            #as the greedily-generated token (determined efficiently via argmax on token probabilities)
-            masked_indicator_values = (batch_greedy_tokens == shifted_padded_full_sequence) * mask
+            # A sequence of 1s or 0's the same width as the batch, where 1 indicates the target token is the same
+            # as the greedily-generated token (determined efficiently via argmax on token probabilities)
+            masked_indicator_values = (
+                batch_greedy_tokens == shifted_padded_full_sequence
+            ) * mask
 
-            #A sequence of booleans indicating whether the sum of indicator values is equal to corresponding
-            #target length
-            batch_target_is_greedy_values = masked_indicator_values.sum(axis=-1) == mx.array(target_lengths)
+            # A sequence of booleans indicating whether the sum of indicator values is equal to corresponding
+            # target length
+            batch_target_is_greedy_values = masked_indicator_values.sum(
+                axis=-1
+            ) == mx.array(target_lengths)
 
-            for idx, (is_greedy, log_prob) in enumerate(zip(batch_target_is_greedy_values, log_probs)):
+            for idx, (is_greedy, log_prob) in enumerate(
+                zip(batch_target_is_greedy_values, log_probs)
+            ):
                 input_length = input_lengths[idx].item()
                 target_length = target_lengths[idx]
                 context = context_batch[idx]
                 continuation = continuation_batch[idx]
 
-                #conditional log probability of answer given input (sum of log probs corresponding to target
+                # conditional log probability of answer given input (sum of log probs corresponding to target
                 # sequence tokens only)
-                answer_score = log_prob[input_length: input_length + target_length].sum(axis=1).sum()
+                answer_score = (
+                    log_prob[input_length : input_length + target_length]
+                    .sum(axis=1)
+                    .sum()
+                )
 
                 idx = original_order[(context, continuation)]
 
@@ -141,18 +181,23 @@ class MLX(TemplateLM):
             pbar.update(1)
 
         pbar.close()
-        #Return the answers in the original order (lost by the batch creation process, which )
+        # Return the answers in the original order (lost by the batch creation process, which )
         return list(map(lambda i: i[1:], sorted(res, key=lambda i: i[0])))
 
-    #Mostly from https://github.com/chimezie/mlx-tuning-fork/blob/main/src/mlx_tuning_fork/tuning/utils.py
+    # Mostly from https://github.com/chimezie/mlx-tuning-fork/blob/main/src/mlx_tuning_fork/tuning/utils.py
     def delineated_batches(self, batch_size, context_text, continuation_text):
         encoded_context_batch = [self.tok_encode(record) for record in context_text]
-        encoded_continuation_batch = [self.tok_encode(record) for record in continuation_text]
+        encoded_continuation_batch = [
+            self.tok_encode(record) for record in continuation_text
+        ]
 
         input_lengths = [len(x) for x in encoded_continuation_batch]
         target_lengths = [len(x) for x in encoded_context_batch]
 
-        full_labels = [encoded_continuation_batch[idx] + encoded_context_batch[idx] for idx in range(batch_size)]
+        full_labels = [
+            encoded_continuation_batch[idx] + encoded_context_batch[idx]
+            for idx in range(batch_size)
+        ]
         lengths = [len(x) for x in full_labels]
 
         if max(lengths) > self.max_tokens:
@@ -169,7 +214,9 @@ class MLX(TemplateLM):
         adjusted_lengths = []
         for j in range(batch_size):
             input_length = input_lengths[j]
-            full_ids_end_idx = input_length + min(target_lengths[j], max_length_in_batch - input_length)
+            full_ids_end_idx = input_length + min(
+                target_lengths[j], max_length_in_batch - input_length
+            )
             adjusted_lengths.append(full_ids_end_idx)
             batch_arr[j, :full_ids_end_idx] = full_labels[j][:full_ids_end_idx]
 
@@ -179,10 +226,14 @@ class MLX(TemplateLM):
 
         return batch, input_lengths, target_lengths, non_padding_lengths
 
-    def loglikelihood_rolling(self, requests: list[Instance]) -> list[tuple[float, bool]]:
+    def loglikelihood_rolling(
+        self, requests: list[Instance]
+    ) -> list[tuple[float, bool]]:
         raise NotImplementedError("loglikelihood_rolling is not implemented")
 
-    def generate_until(self, requests: List[Instance], disable_tqdm: bool = False) -> List[str]:
+    def generate_until(
+        self, requests: List[Instance], disable_tqdm: bool = False
+    ) -> List[str]:
         """
         * Each request contains Instance.args : Tuple[str, dict] containing 1. an input string to the LM and 2. a
           dictionary of keyword arguments used to control generation parameters.
@@ -201,7 +252,9 @@ class MLX(TemplateLM):
                 raise NotImplementedError("Support for until not implemented!")
             temperature = request_args.get("temperature", 0.0)
             verbose = request_args.get("verbose", False)
-            formatter = colorprint_by_t0 if request_args.get("colorize", False) else None
+            formatter = (
+                colorprint_by_t0 if request_args.get("colorize", False) else None
+            )
             res.append(
                 generate(
                     self.model,
@@ -211,5 +264,7 @@ class MLX(TemplateLM):
                     request_args.get(self.max_tokens),
                     verbose,
                     formatter=formatter,
-                    top_p=self.top_p))
+                    top_p=self.top_p,
+                )
+            )
         return res
