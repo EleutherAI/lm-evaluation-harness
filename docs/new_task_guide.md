@@ -68,7 +68,7 @@ fewshot_config:
     {<sample 2>},
   ]
 ```
-In this case, each sample must follow the same pattern as the samples in the above sets.
+In this case, each sample must contain the same fields as the samples in the above sets--for example, if `doc_to_text` expects an `input` field when rendering input prompts, these provided samples must include an `input` key.
 
 If neither above options are not set, we will default to train/validation/test sets, in that order.
 
