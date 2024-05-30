@@ -137,7 +137,7 @@ class EvaluationTracker:
         ):
             hub_results_org = self.api.whoami()["name"]
             eval_logger.warning(
-                f"hub_results_org was not specified. Results will be pushed to {hub_results_org}."
+                f"hub_results_org was not specified. Results will be pushed to '{hub_results_org}'."
             )
 
         hub_repo_name = hub_repo_name if hub_repo_name else "lm-eval-results"
@@ -236,7 +236,7 @@ class EvaluationTracker:
         """
         if self.output_path:
             try:
-                eval_logger.info(f"Saving samples results for: {task_name}")
+                eval_logger.info(f"Saving per-sample results for: {task_name}")
 
                 path = Path(self.output_path if self.output_path else Path.cwd())
                 path = path.joinpath(self.general_config_tracker.model_name_sanitized)
@@ -493,7 +493,7 @@ class EvaluationTracker:
         dataset_summary += (
             "## Latest results\n\n"
             f'These are the [latest results from run {latest_datetime}]({last_results_file_path.replace("/resolve/", "/blob/")}) '
-            "(note that their might be results for other tasks in the repos if successive evals didn't cover the same tasks. "
+            "(note that there might be results for other tasks in the repos if successive evals didn't cover the same tasks. "
             'You find each in the results and the "latest" split for each eval):\n\n'
             f"```python\n{results_string}\n```"
         )
