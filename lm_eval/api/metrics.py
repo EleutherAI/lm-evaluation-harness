@@ -130,7 +130,7 @@ def rmsce(items):
     prob_true, prob_pred = zip(*items)
     prob_true = np.array(prob_true)
     prob_pred = np.array(prob_pred)
-    print(f"prob_true = {prob_true} \n prob_pred = {prob_pred}")
+    # print(f"prob_true = {prob_true} \n prob_pred = {prob_pred}")
 
     num_bins = 15
     bin_edges = np.linspace(0, 1, num_bins + 1)  # creating evenly sized num_bins+1 spaces between 0 and 1 for "bins"
@@ -150,14 +150,14 @@ def rmsce(items):
             bin_confidences.append(0)  # Adding zero for empty bins to avoid misalignment
 
     # Debug prints to check values
-    print(f"Bin edges: {bin_edges}")
-    print(f"Bin indices: {bin_indices}")
-    print(f"Bin accuracies: {bin_accuracies}")
-    print(f"Bin confidences: {bin_confidences}")
+    # print(f"Bin edges: {bin_edges}")
+    # print(f"Bin indices: {bin_indices}")
+    # print(f"Bin accuracies: {bin_accuracies}")
+    # print(f"Bin confidences: {bin_confidences}")
 
     squared_differences = [(acc - conf)**2 for acc, conf in zip(bin_accuracies, bin_confidences)]
     rmsce = np.sqrt(np.mean(squared_differences))
-    print(f"squared_differences = {squared_differences} \n rmsce = {rmsce}")
+    # print(f"squared_differences = {squared_differences} \n rmsce = {rmsce}")
     return rmsce
 
 @register_metric(
