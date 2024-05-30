@@ -1,12 +1,14 @@
 
 # Tasks
 
- A list of supported tasks can be viewed with `lm-eval --tasks list`
+ A list of supported tasks and task groupings can be viewed with `lm-eval --tasks list`. 
+ 
+ For more information, including a full list of task names and their precise meanings or sources, follow the links provided to the individual README.md files for each subfolder.
 
 | Task Family | Description |
 |-------------|-------------|
 | [aclue](aclue/README.md) | Tasks focusing on ancient Chinese language understanding and cultural aspects. |
-| [aexams](aexams/README.md) | Tasks related to various academic exams covering a range of subjects. |
+| [aexams](aexams/README.md) | Tasks in Arabic related to various academic exams covering a range of subjects. |
 | [agieval](agieval/README.md) | Tasks involving historical data or questions related to history and historical texts. |
 | [ammlu](ammlu/README.md) | Tasks involving multiple choice questions across various academic disciplines. |
 | [anli](anli/README.md) | Adversarial natural language inference tasks designed to test model robustness. |
