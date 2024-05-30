@@ -1268,6 +1268,10 @@ class ConfigurableTask(Task):
 
                 if gold == -100:
                     gold_index_error = True
+            
+            # takes ground truth and makes them into one hot encoding
+            gold_one_hot = [0] * completion_len
+            gold_one_hot[gold] = 1
 
             if gold_index_error:
                 eval_logger.warning(
@@ -1286,15 +1290,7 @@ class ConfigurableTask(Task):
                 exact_match = int(is_greedy[gold]) if gold != -100 else 0
 
             prob_norm = utils.softmax(lls)
-            
-            # takes ground truth and makes them into one hot encoding
-            gold_one_hot = [0] * 4
-            gold_one_hot[gold] = 1
 
-            print(f"prob_norm = {prob_norm} \n gold = {gold}, gold_one_hot = {gold_one_hot}")
-
-            # TODO use keyword arguments to the metric?
-            # gold, pred, norm stuff, the original lls,
             result_dict = {
                 **({"acc": acc} if "acc" in use_metric else {}),
                 **({"f1": (gold, pred)} if "f1" in use_metric else {}),
