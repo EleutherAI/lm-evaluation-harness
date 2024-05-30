@@ -114,7 +114,6 @@ class LM(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod
     def apply_chat_template(self, chat_history: list[dict[str, str]]) -> str:
         """
         Defines how to transform few-shot examples provided as chat history into a format that can be used as input to the LM.
@@ -125,7 +124,9 @@ class LM(abc.ABC):
         :return: str
             A string representing the chat history in a format that can be used as input to the LM.
         """
-        pass
+        raise NotImplementedError(
+            "To use this model with chat templates, please implement the 'apply_chat_template' method."
+        )
 
     @classmethod
     def create_from_arg_string(
