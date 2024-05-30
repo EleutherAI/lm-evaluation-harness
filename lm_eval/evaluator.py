@@ -503,9 +503,14 @@ def evaluate(
         # aggregate results ; run bootstrap CIs
         for task_output in eval_tasks:
             task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
-        results, samples, configs, versions, num_fewshot = consolidate_results(
-            eval_tasks
-        )
+        (
+            results,
+            samples,
+            configs,
+            versions,
+            num_fewshot,
+            higher_is_better,
+        ) = consolidate_results(eval_tasks)
 
         ### Calculate group metrics ###
         if bool(results):
@@ -516,6 +521,27 @@ def evaluate(
                     # or `task_name: []`.
                     # we only want to operate on groups here.
                     continue
+
+                # collect all higher_is_better values for metrics
+                # in the group's subtasks.
+                # TODO: clean this up ; unify with the below metric_list loop?
+                _higher_is_better = {}
+                for task in task_list:
+                    for m, h in higher_is_better[task].items():
+                        if m not in _higher_is_better.keys():
+                            _higher_is_better[m] = h
+                    if (
+                        m in _higher_is_better
+                        and _higher_is_better[m] is not None
+                        and _higher_is_better[m] != h
+                    ):
+                        eval_logger.warning(
+                            f"Higher_is_better values for metric {m} in group {group} are not consistent. Defaulting to None."
+                        )
+                        _higher_is_better[m] = None
+                higher_is_better[group] = _higher_is_better
+
+                # collect all metric keys used by a subtask in the group.
                 metric_list = list(
                     {
                         key
@@ -591,6 +617,7 @@ def evaluate(
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
             "n-shot": dict(sorted(num_fewshot.items())),
+            "higher_is_better": dict(sorted(higher_is_better.items())),
             "n-samples": {
                 task_output.task_name: {
                     "original": len(task_output.task.eval_docs),
