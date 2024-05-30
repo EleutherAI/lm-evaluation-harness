@@ -59,7 +59,7 @@ We can also specify from which split the task should retrieve few-shot examples 
 ```yaml
 fewshot_split: <split name to draw fewshot examples from, or `null`>
 ```
-or by hardcoding them, using the following in the yaml file:
+or by hardcoding them, either using the following in the yaml file:
 ```yaml
 fewshot_config:
   sampler: first_n
@@ -67,6 +67,11 @@ fewshot_config:
     {<sample 1>},
     {<sample 2>},
   ]
+```
+or by adding the function `list_fewshot_samples` in the associated utils.py file:
+```python
+def list_fewshot_samples() -> list[dict]:
+  return [{<sample 1>}, {<sample 2>}]
 ```
 In this case, each sample must contain the same fields as the samples in the above sets--for example, if `doc_to_text` expects an `input` field when rendering input prompts, these provided samples must include an `input` key.
 
