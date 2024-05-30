@@ -384,6 +384,10 @@ class Task(abc.ABC):
         og_limit = limit
 
         cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
+        cache_key += "-chat_template" if apply_chat_template else ""
+        cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
+        if lm is not None and hasattr(lm, "tokenizer"):
+            cache_key += f"-{lm.tokenizer.name_or_path.replace('/', '__')}"
 
         cached_instances = load_from_cache(file_name=cache_key)
 
