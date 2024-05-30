@@ -386,6 +386,11 @@ class Task(abc.ABC):
         cache_key = f"requests-{self._config.task}-{self.config.num_fewshot}shot-rank{rank}-world_size{world_size}"
         cache_key += "-chat_template" if apply_chat_template else ""
         cache_key += "-fewshot_as_multiturn" if fewshot_as_multiturn else ""
+        cache_key += (
+            f"-system_prompt_hash{utils.hash_string(system_instruction)}"
+            if system_instruction is not None
+            else ""
+        )
         if lm is not None and hasattr(lm, "tokenizer"):
             cache_key += f"-{lm.tokenizer.name_or_path.replace('/', '__')}"
 
