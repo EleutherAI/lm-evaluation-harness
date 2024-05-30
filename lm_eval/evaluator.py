@@ -522,6 +522,9 @@ def evaluate(
                     # we only want to operate on groups here.
                     continue
 
+                # collect all higher_is_better values for metrics
+                # in the group's subtasks.
+                # TODO: clean this up ; unify with the below metric_list loop?
                 _higher_is_better = {}
                 for task in task_list:
                     for m, h in higher_is_better[task].items():
@@ -538,6 +541,7 @@ def evaluate(
                         _higher_is_better[m] = None
                 higher_is_better[group] = _higher_is_better
 
+                # collect all metric keys used by a subtask in the group.
                 metric_list = list(
                     {
                         key
