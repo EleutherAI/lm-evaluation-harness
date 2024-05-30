@@ -1,0 +1,3 @@
+include: unitxt_tasks.summarization.abstractive
+task: xsum
+dataset_name: card=cards.xsum,template=templates.summarization.abstractive.full

@@ -136,13 +136,14 @@ class TaskManager:
             if "include" in config:
                 if yaml_path is None:
                     raise ValueError
-                config.update(
-                    utils.load_yaml_config(
+                config = {
+                    **utils.load_yaml_config(
                         yaml_path,
                         yaml_config={"include": config.pop("include")},
                         mode="full",
-                    )
-                )
+                    ),
+                    **config,
+                }
             if self._config_is_python_task(config):
                 task_object = config["class"]()
             else:
@@ -412,7 +413,9 @@ def get_task_dict(
         )
 
     string_task_name_list = [task for task in task_name_list if isinstance(task, str)]
-    others_task_name_list = [task for task in task_name_list if ~isinstance(task, str)]
+    others_task_name_list = [
+        task for task in task_name_list if not isinstance(task, str)
+    ]
     if len(string_task_name_list) > 0:
         if task_manager is None:
             task_manager = TaskManager()

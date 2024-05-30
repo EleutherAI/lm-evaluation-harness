@@ -78,6 +78,7 @@ METRIC_REGISTRY = {}
 METRIC_AGGREGATION_REGISTRY = {}
 AGGREGATION_REGISTRY: Dict[str, Callable[[], Dict[str, Callable]]] = {}
 HIGHER_IS_BETTER_REGISTRY = {}
+FILTER_REGISTRY = {}
 
 DEFAULT_METRIC_REGISTRY = {
     "loglikelihood": [
@@ -170,3 +171,22 @@ def is_higher_better(metric_name) -> bool:
         eval_logger.warning(
             f"higher_is_better not specified for metric '{metric_name}'!"
         )
+
+
+def register_filter(name):
+    def decorate(cls):
+        if name in FILTER_REGISTRY:
+            eval_logger.info(
+                f"Registering filter `{name}` that is already in Registry {FILTER_REGISTRY}"
+            )
+        FILTER_REGISTRY[name] = cls
+        return cls
+
+    return decorate
+
+
+def get_filter(filter_name: str) -> type:
+    try:
+        return FILTER_REGISTRY[filter_name]
+    except KeyError:
+        eval_logger.warning(f"filter `{filter_name}` is not registered!")
