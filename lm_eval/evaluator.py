@@ -523,9 +523,11 @@ def evaluate(
                     # we only want to operate on groups here.
                     continue
 
-                _higher_is_better = deepcopy(higher_is_better[task_list[0]])
+                _higher_is_better = {}
                 for task in task_list:
                     for m, h in higher_is_better[task].items():
+                    	if m not in _higher_is_better.keys():
+                    	    _higher_is_better[m] = h
                         if (
                             m in _higher_is_better
                             and _higher_is_better[m] is not None
