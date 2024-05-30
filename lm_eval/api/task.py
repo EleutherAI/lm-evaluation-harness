@@ -391,8 +391,7 @@ class Task(abc.ABC):
             if system_instruction is not None
             else ""
         )
-        if lm is not None and hasattr(lm, "tokenizer"):
-            cache_key += f"-{lm.tokenizer.name_or_path.replace('/', '__')}"
+        cache_key += f"-tokenizer{lm.get_tokenizer_name}" if apply_chat_template else ""
 
         cached_instances = load_from_cache(file_name=cache_key)
 

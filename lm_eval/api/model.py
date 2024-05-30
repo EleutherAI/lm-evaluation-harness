@@ -183,6 +183,12 @@ class LM(abc.ABC):
         # not support multi-device parallelism nor expect it.
         return self._world_size
 
+    @property
+    def get_tokenizer_name(self) -> str:
+        raise NotImplementedError(
+            "To use this model with chat templates, please implement the 'get_tokenizer_name' property."
+        )
+
     def set_cache_hook(self, cache_hook) -> None:
         self.cache_hook = cache_hook
 
