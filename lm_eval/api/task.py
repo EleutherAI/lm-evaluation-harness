@@ -955,7 +955,7 @@ class ConfigurableTask(Task):
                 return self.config.fewshot_config["samples"]()
             else:
                 raise Exception(
-                    "`fewshot_config['samples']` was incorrectly defined in the configuration. It should be either a list or samples as dict, or function returning them."
+                    "`fewshot_config['samples']` was incorrectly defined in the configuration. It should be either a list of samples as a dict, or function returning this list."
                 )
         else:
             if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
