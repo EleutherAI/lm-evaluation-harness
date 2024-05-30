@@ -948,7 +948,10 @@ class ConfigurableTask(Task):
             if self.config.process_docs is not None:
                 return self.config.process_docs(self.dataset[self.config.fewshot_split])
             return self.dataset[self.config.fewshot_split]
-        elif self.config.fewshot_config.get("samples", None) is not None:
+        elif (
+            self.config.fewshot_config is not None
+            and self.config.fewshot_config.get("samples", None) is not None
+        ):
             if isinstance(self.config.fewshot_config["samples"], list):
                 return self.config.fewshot_config["samples"]
             elif callable(self.config.fewshot_config["samples"]):
