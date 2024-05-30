@@ -184,7 +184,7 @@ class LM(abc.ABC):
         return self._world_size
 
     @property
-    def get_tokenizer_name(self) -> str:
+    def tokenizer_name(self) -> str:
         raise NotImplementedError(
             "To use this model with chat templates, please implement the 'get_tokenizer_name' property."
         )

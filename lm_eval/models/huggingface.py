@@ -416,7 +416,7 @@ class HFLM(TemplateLM):
         return self._world_size
 
     @property
-    def get_tokenizer_name(self) -> str:
+    def tokenizer_name(self) -> str:
         return self.tokenizer.name_or_path.replace("/", "__")
 
     def _get_backend(
