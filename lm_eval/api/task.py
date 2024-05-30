@@ -965,6 +965,27 @@ class ConfigurableTask(Task):
                 )
             return super().fewshot_docs()
 
+    @staticmethod
+    def append_target_question(
+        labeled_examples: list[dict[str, str]],
+        question: str,
+        fewshot_as_multiturn: bool = False,
+    ) -> None:
+        """Adds a target question to the labeled examples list.
+        If fewshot_as_multiturn is True, or labeled_examples is empty, or the last entry is a system turn, appends the question as a new user entry.
+        Otherwise, it is appended to the last user entry, ensuring that the conversation alternates between the user and the assistant.
+        """
+        if not fewshot_as_multiturn:
+            # if no messages or last message is system, append as new user entry
+            if len(labeled_examples) == 0 or labeled_examples[-1]["role"] == "system":
+                labeled_examples.append({"role": "user", "content": question})
+            # if last message is user, append to it to avoid two user messages in a row
+            else:
+                labeled_examples[-1]["content"] += question
+        else:
+            # if fewshot_as_multiturn is True, append as next user entry (last is always assistant)
+            labeled_examples.append({"role": "user", "content": question})
+
     @utils.positional_deprecated
     def fewshot_context(
         self,
@@ -1035,29 +1056,33 @@ class ConfigurableTask(Task):
 
         example = self.doc_to_text(doc)
         if apply_chat_template:
-            if not self.multiple_input:
-                if isinstance(example, str):
-                    labeled_examples.append({"role": "user", "content": example})
-                # for loglikelihood create a list of questions with appended choices
-                elif isinstance(example, list):
-                    labeled_examples_list = []
-                    # copy chat history for each example and append the answer
-                    for ex in example:
-                        chat = deepcopy(labeled_examples)
-                        chat.append({"role": "user", "content": ex})
-                        labeled_examples_list.append(lm.apply_chat_template(chat))
-                    return labeled_examples_list
-                # if example is an integer, append the choice or convert to string
-                elif isinstance(example, int):
-                    if self.config.doc_to_choice is not None:
-                        choices = self.doc_to_choice(doc)
-                        labeled_examples.append(
-                            {"role": "user", "content": choices[example]}
-                        )
-                    else:
-                        labeled_examples.append(
-                            {"role": "user", "content": str(example)}
-                        )
+            if self.multiple_input:
+                return lm.apply_chat_template(labeled_examples)
+            if isinstance(example, str):
+                self.append_target_question(
+                    labeled_examples, example, fewshot_as_multiturn
+                )
+            # for loglikelihood create a list of questions with appended choices
+            elif isinstance(example, list):
+                labeled_examples_list = []
+                # copy chat history for each example and append the answer
+                for ex in example:
+                    chat = deepcopy(labeled_examples)
+                    self.append_target_question(chat, ex, fewshot_as_multiturn)
+                    labeled_examples_list.append(lm.apply_chat_template(chat))
+                return labeled_examples_list
+            # if example is an integer, append the choice or convert to string
+            elif isinstance(example, int):
+                if self.config.doc_to_choice is not None:
+                    choices = self.doc_to_choice(doc)
+                    self.append_target_question(
+                        labeled_examples, choices[example], fewshot_as_multiturn
+                    )
+                else:
+                    self.append_target_question(
+                        labeled_examples, str(example), fewshot_as_multiturn
+                    )
+                # return lm.apply_chat_template(labeled_examples)
             return lm.apply_chat_template(labeled_examples)
         else:
             if self.multiple_input:
