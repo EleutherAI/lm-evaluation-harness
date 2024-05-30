@@ -1286,6 +1286,12 @@ class ConfigurableTask(Task):
                 exact_match = int(is_greedy[gold]) if gold != -100 else 0
 
             prob_norm = utils.softmax(lls)
+            
+            # takes ground truth and makes them into one hot encoding
+            gold_one_hot = [0] * 4
+            gold_one_hot[gold] = 1
+
+            print(f"prob_norm = {prob_norm} \n gold = {gold}, gold_one_hot = {gold_one_hot}")
 
             # TODO use keyword arguments to the metric?
             # gold, pred, norm stuff, the original lls,
@@ -1296,13 +1302,11 @@ class ConfigurableTask(Task):
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
                 **({"brier_score": (gold, prob_norm)} if "brier_score" in use_metric else {}),
-                **({"rmsce": (gold, pred)} if "rmsce" in use_metric else {})
+                **({"rmsce": (gold_one_hot, prob_norm)} if "rmsce" in use_metric else {})
             }
 
             if "acc_mutual_info" in use_metric:
-                lls_mutual_info = [
-                    ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)
-                ]
+                lls_mutual_info = [ll_c - ll_u for ll_c, ll_u in zip(lls, lls_unconditional)]
                 acc_mutual_info = 1.0 if np.argmax(lls_mutual_info) == gold else 0.0
                 result_dict["acc_mutual_info"] = acc_mutual_info
 
@@ -1310,8 +1314,7 @@ class ConfigurableTask(Task):
             gold = self.doc_to_target(doc)
             result = results[0]
             if self.config.doc_to_choice is not None:
-                # If you set doc_to_choice,
-                # it assumes that doc_to_target returns a number.
+                # If you set doc_to_choice, it assumes that doc_to_target returns a number.
                 choices = self.doc_to_choice(doc)
                 gold = choices[gold]
             # we expect multiple_targets to be a list.
