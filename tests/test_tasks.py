@@ -1,3 +1,4 @@
+import os
 from itertools import islice
 
 import pytest
@@ -8,6 +9,7 @@ from lm_eval.api.task import ConfigurableTask
 from .utils import new_tasks
 
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 task_manager = tasks.TaskManager()
 # Default Task
 TASKS = ["arc_easy"]
@@ -87,7 +89,6 @@ class TestNewTasks:
         )
         if "multiple_choice" in task._config.output_type:
             _array = [task.doc_to_choice(doc) for doc in arr]
-            # assert all(len(x) == 4 for x in _array)
             assert all(isinstance(x, list) for x in _array)
             assert all(isinstance(x[0], str) for x in _array)
 
@@ -101,9 +102,6 @@ class TestNewTasks:
         _array_target = [task.doc_to_target(doc) for doc in arr]
         if task._config.output_type == "multiple_choice":
             assert all(isinstance(label, int) for label in _array_target)
-        # _array_text = [task.doc_to_text(doc) for doc in arr]
-        # Not working
-        # assert all(tgt[0] == " " or txt[-1] == "\n" if  len(txt) != 0 else True for txt, tgt in zip(_array_text, _array_target))
 
     def test_build_all_requests(self, task_class, limit):
         task_class.build_all_requests(rank=1, limit=limit, world_size=1)
@@ -118,5 +116,4 @@ class TestNewTasks:
             else list(islice(task.validation_docs(), limit))
         )
         requests = [task.construct_requests(doc, task.doc_to_text(doc)) for doc in arr]
-        # assert all(isinstance(doc, list) for doc in requests)
         assert len(requests) == limit if limit else True
