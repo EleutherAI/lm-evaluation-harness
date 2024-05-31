@@ -46,7 +46,7 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--system_instruction`: Specifies a system instruction string to prepend to the prompt.
 
-- `--apply_chat_template` : If this flag is on, a chat template will be applied to the prompt. For Hugging Face models, the chat template is taken from the tokenizer, if the tokenizer does not have a chat template, a default one will be applied. For other models, a generic chat template is used.
+- `--apply_chat_template` : If this flag is on, a chat template will be applied to the prompt. For Hugging Face models, the chat template is taken from the tokenizer, if the tokenizer does not have a chat template, a default one will be applied. For other models, chat templating is not currently implemented.
 
 - `--fewshot_as_multiturn` : If this flag is on, the Fewshot examples are treated as a multi-turn conversation. Questions are provided as user content and answers are provided as assistant responses. Requires `--num_fewshot` to be set to be greater than 0, and `--apply_chat_template` to be on.
 

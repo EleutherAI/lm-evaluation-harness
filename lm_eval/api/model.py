@@ -125,7 +125,7 @@ class LM(abc.ABC):
             A string representing the chat history in a format that can be used as input to the LM.
         """
         raise NotImplementedError(
-            "To use this model with chat templates, please implement the 'apply_chat_template' method."
+            "To use this model with chat templates, please implement the 'apply_chat_template' method for your model type."
         )
 
     @classmethod
@@ -185,8 +185,12 @@ class LM(abc.ABC):
 
     @property
     def tokenizer_name(self) -> str:
+        """Must be defined for LM subclasses which implement Chat Templating.
+        Should return the name of the tokenizer or chat template used.
+        Used only to properly fingerprint caches when requests are being cached with `--cache_requests`, otherwise not used.
+        """
         raise NotImplementedError(
-            "To use this model with chat templates, please implement the 'get_tokenizer_name' property."
+            "To use this model with chat templates, please implement the 'tokenizer_name' property."
         )
 
     def set_cache_hook(self, cache_hook) -> None:
