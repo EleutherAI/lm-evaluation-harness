@@ -307,7 +307,7 @@ To save evaluation results provide an `--output_path`. We also support logging m
 
 Additionally, one can provide a directory with `--use_cache` to cache the results of prior runs. This allows you to avoid repeated execution of the same (model, task) pairs for re-scoring.
 
-To push results and samples to the Hugging Face Hub, first ensure an access token with write access is set in the `HF_TOKEN` environment variable. Then, use the `--hf_hub_log_args` flag to specify the organization, repository name, repository visibility, and whether to push results and samples to the Hub - [example output](https://huggingface.co/datasets/KonradSzafer/lm-eval-results-demo/tree/main/microsoft__phi-2). For instance:
+To push results and samples to the Hugging Face Hub, first ensure an access token with write access is set in the `HF_TOKEN` environment variable. Then, use the `--hf_hub_log_args` flag to specify the organization, repository name, repository visibility, and whether to push results and samples to the Hub - [example dataset on the  HF Hub](https://huggingface.co/datasets/KonradSzafer/lm-eval-results-demo). For instance:
 
 ```bash
 lm_eval --model hf \
@@ -316,6 +316,13 @@ lm_eval --model hf \
     --log_samples \
     --output_path results \
     --hf_hub_log_args hub_results_org=EleutherAI,hub_repo_name=lm-eval-results,push_results_to_hub=True,push_samples_to_hub=True,public_repo=False \
+```
+
+This allows you to easily download the results and samples from the Hub, using:
+```python
+from datasets import load_dataset
+
+load_dataset("EleutherAI/lm-eval-results-private", "hellaswag", "latest")
 ```
 
 For a full list of supported arguments, check out the [interface](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/interface.md) guide in our documentation!
