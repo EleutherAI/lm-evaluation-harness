@@ -8,7 +8,7 @@ from typing import Union
 
 from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
-from lm_eval.logging import EvaluationTracker, WandbLogger
+from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
 from lm_eval.utils import handle_non_serializable, make_table, simple_parse_args_string
 
@@ -255,7 +255,10 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     # update the evaluation tracker args with the output path and the HF token
-    args.hf_hub_log_args = f"output_path={args.output_path},token={os.environ.get('HF_TOKEN')},{args.hf_hub_log_args}"
+    if args.output_path:
+        args.hf_hub_log_args += f",output_path={args.output_path}"
+    if os.environ.get("HF_TOKEN", None):
+        args.hf_hub_log_args += f",token={os.environ.get('HF_TOKEN')}"
     evaluation_tracker_args = simple_parse_args_string(args.hf_hub_log_args)
     evaluation_tracker = EvaluationTracker(**evaluation_tracker_args)
     evaluation_tracker.general_config_tracker.log_experiment_args(
@@ -274,13 +277,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         eval_logger.info(f"Including path: {args.include_path}")
     task_manager = TaskManager(args.verbosity, include_path=args.include_path)
 
-    if (
-        "push_results_to_hub" in evaluation_tracker_args
-        or "push_samples_to_hub" in evaluation_tracker_args
-    ) and "hub_results_org" not in evaluation_tracker_args:
-        raise ValueError(
-            "If push_results_to_hub or push_samples_to_hub is set, results_org must be specified."
-        )
     if "push_samples_to_hub" in evaluation_tracker_args and not args.log_samples:
         eval_logger.warning(
             "Pushing samples to the Hub requires --log_samples to be set. Samples will not be pushed to the Hub."
@@ -398,6 +394,12 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
                 evaluation_tracker.save_results_samples(
                     task_name=task_name, samples=samples[task_name]
                 )
+
+        if (
+            evaluation_tracker.push_results_to_hub
+            or evaluation_tracker.push_samples_to_hub
+        ):
+            evaluation_tracker.recreate_metadata_card()
 
         print(
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "

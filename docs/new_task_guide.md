@@ -35,7 +35,7 @@ and rename the folders and YAML file(s) as desired.
 
 ### Selecting and configuring a dataset
 
-All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md)
+All data downloading and management is handled through the HuggingFace (**HF**) [`datasets`](https://github.com/huggingface/datasets) API. So, the first thing you should do is check to see if your task's dataset is already provided in their catalog [here](https://huggingface.co/datasets). If it's not in there, please consider adding it to their Hub to make it accessible to a wider user base by following their [new dataset guide](https://github.com/huggingface/datasets/blob/main/ADD_NEW_DATASET.md)
 .
 
 Once you have a HuggingFace dataset prepared for your task, we want to assign our new YAML to use this dataset:
@@ -59,7 +59,25 @@ We can also specify from which split the task should retrieve few-shot examples 
 ```yaml
 fewshot_split: <split name to draw fewshot examples from, or `null`>
 ```
-though if this is not set, we will default to train/validation/test sets, in that order.
+or by hardcoding them, either using the following in the yaml file:
+```yaml
+fewshot_config:
+  sampler: first_n
+  samples: [
+    {<sample 1>},
+    {<sample 2>},
+  ]
+```
+or by adding the function `list_fewshot_samples` in the associated utils.py file:
+```python
+def list_fewshot_samples() -> list[dict]:
+  return [{<sample 1>}, {<sample 2>}]
+```
+See `lm_eval/tasks/minerva_math/minerva_math_algebra.yaml` for an example of the latter, and `lm_eval/tasks/gsm8k/gsm8k-cot.yaml` for an example of the former.
+
+In this case, each sample must contain the same fields as the samples in the above sets--for example, if `doc_to_text` expects an `input` field when rendering input prompts, these provided samples must include an `input` key.
+
+If neither above options are not set, we will default to train/validation/test sets, in that order.
 
 
 Finally, our dataset may not be already in the exact format we want. Maybe we have to strip whitespace and special characters via a regex from our dataset's "question" field! Or maybe we just want to rename its columns to match a convention we'll be using for our prompts.
@@ -213,7 +231,7 @@ def wikitext_detokenizer(doc):
     return string
 ```
 
-We can load this function in `doc_to_target` by using a `!function` operator after `doc_to_target` and followed by `<file name>.<function name>`. In the file [wikitext.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/6ae376e3a43caa58b95bb8aa73054a94827bf560/lm_eval/tasks/wikitext/wikitext.yaml) we write:
+We can load this function in `doc_to_target` by using a `!function` operator after `doc_to_target` and followed by `<file name>.<function name>`. In the file [wikitext.yaml](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/wikitext/wikitext.yaml) we write:
 ```
 doc_to_target: !function preprocess_wikitext.wikitext_detokenizer
 ```

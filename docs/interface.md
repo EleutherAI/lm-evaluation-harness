@@ -10,7 +10,7 @@ Equivalently, running the library can be done via the `lm-eval` entrypoint at th
 
 This mode supports a number of command-line arguments, the details of which can be also be seen via running with `-h` or `--help`:
 
-- `--model` : Selects which model type or provider is evaluated. Must be a string corresponding to the name of the model type/provider being used. See [the main README](https://github.com/EleutherAI/lm-evaluation-harness/tree/main#commercial-apis) for a full list of enabled model names and supported libraries or APIs.
+- `--model` : Selects which model type or provider is evaluated. Must be a string corresponding to the name of the model type/provider being used. See [the main README](https://github.com/EleutherAI/lm-evaluation-harness/tree/main#model-apis-and-inference-servers) for a full list of enabled model names and supported libraries or APIs.
 
 - `--model_args` : Controls parameters passed to the model constructor. Accepts a string containing comma-separated keyword arguments to the model class of the format `"arg1=val1,arg2=val2,..."`, such as, for example `--model_args pretrained=EleutherAI/pythia-160m,dtype=float32`. For a full list of what keyword arguments, see the initialization of the `lm_eval.api.model.LM` subclass, e.g. [`HFLM`](https://github.com/EleutherAI/lm-evaluation-harness/blob/365fcda9b85bbb6e0572d91976b8daf409164500/lm_eval/models/huggingface.py#L66)
 
@@ -51,11 +51,13 @@ This mode supports a number of command-line arguments, the details of which can 
 * `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list [here](https://docs.wandb.ai/ref/python/init). e.g., ```--wandb_args project=test-project,name=test-run```
 
 * `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
-    * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`,
+    * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
     * `hub_repo_name` - repository name on Hugging Face Hub, e.g., `lm-eval-results`,
     * `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
     * `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
     * `public_repo` - whether the repository is public, can be `True` or `False`,
+    * `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
+    * `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
 
 ## External Library Usage
 

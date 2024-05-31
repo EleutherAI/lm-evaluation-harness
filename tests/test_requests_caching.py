@@ -1,14 +1,12 @@
-# import lm_eval.base as base
 import importlib
 import os
 import sys
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import pytest
 import torch
 
-# import lm_eval.models as models
 from lm_eval.caching.cache import PATH
 
 
@@ -43,7 +41,7 @@ def clear_cache():
 
 
 # leaving tasks here to allow for the option to select specific task files
-def get_cache_files(tasks: List[str] = None) -> Tuple[List[str], List[str]]:
+def get_cache_files(tasks: Optional[List[str]] = None) -> Tuple[List[str], List[str]]:
     cache_files = os.listdir(PATH)
 
     file_task_names = []
@@ -51,7 +49,7 @@ def get_cache_files(tasks: List[str] = None) -> Tuple[List[str], List[str]]:
     for file in cache_files:
         file_without_prefix = file.split("-")[1]
         file_without_prefix_and_suffix = file_without_prefix.split(".")[0]
-        file_task_names.append(file_without_prefix_and_suffix)
+        file_task_names.extend([file_without_prefix_and_suffix])
 
     return cache_files, file_task_names
 
@@ -113,10 +111,11 @@ if __name__ == "__main__":
             # test_requests_caching_refresh,
             # test_requests_caching_delete,
         ]
-
+        # Lookups of global names within a loop is inefficient, so copy to a local variable outside of the loop first
+        default_tasks = DEFAULT_TASKS
         for test_func in tests:
             clear_cache()
-            test_func(tasks=DEFAULT_TASKS)
+            test_func(tasks=default_tasks)
 
         print("Tests pass")
 
