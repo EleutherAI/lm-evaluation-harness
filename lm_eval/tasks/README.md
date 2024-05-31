@@ -14,7 +14,7 @@
 | [anli](anli/README.md) | Adversarial natural language inference tasks designed to test model robustness. | English |
 | [arc](arc/README.md) | Tasks involving complex reasoning over a diverse set of questions.  | English |
 | [arithmetic](arithmetic/README.md) | Tasks involving numerical computations and arithmetic reasoning. | English |
-| [asdiv](asdiv/README.md) | Tasks involving arithmetic and mathematical reasoning challenges. | English | 
+| [asdiv](asdiv/README.md) | Tasks involving arithmetic and mathematical reasoning challenges. | English |
 | [babi](babi/README.md) | Tasks designed as question and answering challenges based on simulated stories. | English, (Hindi?) |
 | [basqueglue](basqueglue/README.md) | Tasks designed to evaluate language understanding in Basque language. | Basque |
 | [bbh](bbh/README.md) | Tasks focused on deep semantic understanding through hypothesization and reasoning. | English, German |
@@ -52,7 +52,8 @@
 | [kormedmcqa](kormedmcqa/README.md) | Medical question answering tasks in Korean to test specialized domain knowledge. | Korean |
 | [lambada](lambada/README.md) | Tasks designed to predict the endings of text passages, testing language prediction skills. | English |
 | [lambada_cloze](lambada_cloze/README.md) | Cloze-style LAMBADA dataset. | English |
-| [lambada_multilingual](lambada_multilingual/README.md) | Multilingual LAMBADA dataset. | German, English, Spanish, French, Italian |
+| [lambada_multilingual](lambada_multilingual/README.md) | Multilingual LAMBADA dataset. This is a legacy version of the multilingual dataset, and users should instead use `lambada_multilingual_stablelm`. | German, English, Spanish, French, Italian |
+| [lambada_multilingual_stablelm](lambada_multilingual_stablelm/README.md) | Multilingual LAMBADA dataset. Users should prefer evaluating on this version of the multilingual dataset instead of on `lambada_multilingual`. | German, English, Spanish, French, Italian, Dutch, Portuguese |
 | [logiqa](logiqa/README.md) | Logical reasoning tasks requiring advanced inference and deduction. | English, Chinese |
 | [logiqa2](logiqa2/README.md) | Large-scale logical reasoning dataset adapted from the Chinese Civil Service Examination. | English, Chinese |
 | [mathqa](mathqa/README.md) | Question answering tasks involving mathematical reasoning and problem-solving. | English |
@@ -63,7 +64,7 @@
 | [minerva_math](minerva_math/README.md) | Mathematics-focused tasks requiring numerical reasoning and problem-solving skills. | English |
 | mmlu | Massive Multitask Language Understanding benchmark for broad domain language evaluation. | English |
 | model_written_evals | Evaluation tasks based on outputs written by models, testing generation quality. | |
-| [mutual](mutual/README.md) | A retrieval-based dataset for multi-turn dialogue reasoning. | English | 
+| [mutual](mutual/README.md) | A retrieval-based dataset for multi-turn dialogue reasoning. | English |
 | [nq_open](nq_open/README.md) | Open domain question answering tasks based on the Natural Questions dataset. | English |
 | [okapi/arc_multilingual](okapi/arc_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (31 languages) |
 | [okapi/hellaswag_multilingual](okapi/hellaswag_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (30 languages) |
