@@ -975,7 +975,7 @@ class ConfigurableTask(Task):
 
     @staticmethod
     def append_target_question(
-        labeled_examples: list[dict[str, str]],
+        labeled_examples: List[Dict[str, str]],
         question: str,
         fewshot_as_multiturn: bool = False,
     ) -> None:

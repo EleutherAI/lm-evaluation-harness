@@ -2,7 +2,7 @@ import copy
 import os
 from datetime import timedelta
 from pathlib import Path
-from typing import List, Literal, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
@@ -1290,7 +1290,7 @@ class HFLM(TemplateLM):
 
         return res
 
-    def apply_chat_template(self, chat_history: list[dict[str, str]]) -> str:
+    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """

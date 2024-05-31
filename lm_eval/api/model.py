@@ -3,7 +3,7 @@ import hashlib
 import json
 import logging
 import os
-from typing import List, Optional, Tuple, Type, TypeVar
+from typing import Dict, List, Optional, Tuple, Type, TypeVar
 
 import transformers
 from sqlitedict import SqliteDict
@@ -114,7 +114,7 @@ class LM(abc.ABC):
         """
         pass
 
-    def apply_chat_template(self, chat_history: list[dict[str, str]]) -> str:
+    def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
         """
         Defines how to transform few-shot examples provided as chat history into a format that can be used as input to the LM.
 
