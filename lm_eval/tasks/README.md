@@ -7,7 +7,7 @@
 
 | Task Family | Description | Language(s) |
 |-------------|-------------|-------------|
-| [aclue](aclue/README.md) | Tasks focusing on ancient Chinese language understanding and cultural aspects. | Ancinet Chinese |
+| [aclue](aclue/README.md) | Tasks focusing on ancient Chinese language understanding and cultural aspects. | Ancient Chinese |
 | [aexams](aexams/README.md) | Tasks in Arabic related to various academic exams covering a range of subjects. | Arabic |
 | [agieval](agieval/README.md) | Tasks involving historical data or questions related to history and historical texts. | English, Chinese |
 | [ammlu](ammlu/README.md) | Arabic version of MMLU. | Arabic |
