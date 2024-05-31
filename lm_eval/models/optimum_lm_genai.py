@@ -8,8 +8,8 @@ import sys
 for path in sys.path:
     print(path)
 
-from llm_bench.python.utils.ov_utils import create_text_gen_model, build_ov_tokenizer
-from llm_bench.python.utils.model_utils import get_use_case
+from llm_bench.python.llm_bench_utils.ov_utils import create_text_gen_model, build_ov_tokenizer
+from llm_bench.python.llm_bench_utils.model_utils import get_use_case
 
 
 @register_model("optimum-causal")
@@ -76,9 +76,14 @@ class OptimumLM_2(HFLM):
             'aquilachat-7b': 'aquila',
             'baichuan2-7b': 'baichuan',
             'baichuan2-7b-chat': 'baichuan',
+            'baichuan2-13b-chat': 'baichuan',
             'bloomz-560m': 'bloom',
             'bloomz-7b1': 'bloom',
             'bloom-1b4-zh': 'bloom',
+            'codegen2-1b': 'codegen2',
+            'codegen2-3_7b': 'codegen2',
+            'codegen2-7b': 'codegen2',
+            'codegen25-7b': 'codegen2',
             'codellama-7b': 'llama',
             'codet5-base-sum': 'codet5',
             'chatglm-6b': 'chatglm',
@@ -93,6 +98,8 @@ class OptimumLM_2(HFLM):
             'falcon-7b-instruct': 'falcon',
             'flan-t5-large-grammar-synthesis': 't5',
             'flan-t5-xxl': 't5',
+            'gemma-2b-it': 'gemma',
+            'gemma-7b-it': 'gemma',
             't5': 't5',
             'gpt-2': 'gpt',
             'gpt-j-6b': 'gpt',
@@ -101,6 +108,7 @@ class OptimumLM_2(HFLM):
             'llama-2-7b-chat': 'llama',
             'llama-2-7b-gptq': 'llama',
             'llama-2-13b-chat': 'llama',
+            'llama-3-8b': 'llama',
             'llama-7b': 'llama',
             'mistral-7b-v0.1': 'mistral',
             'mixtral-8x7b-v0.1': 'mixtral',
@@ -114,6 +122,7 @@ class OptimumLM_2(HFLM):
             'pythia-12b': 'pythia-',
             'phi-2': 'phi-',
             'phi-3-mini-4k-instruct': 'phi-',
+            'pythia-12b': 'pythia-',
             'stablelm-3b-4e1t': 'stablelm-',
             'stablelm-3b-4e1t-gptq': 'stablelm-',
             'stablelm-7b': 'stablelm-',
@@ -127,6 +136,10 @@ class OptimumLM_2(HFLM):
             'qwen-14b-chat': 'qwen',
             'xgen-7b-instruct':'xgen',
             'stable-zephyr-3b-dpo': 'zephyr',
+            'starcoder': 'starcoder',
+            'starcoder2-15b': 'starcoder',
+            'starcoder2-3b': 'starcoder',
+            'starcoder2-7b': 'starcoder',
             'zephyr-7b-beta': 'zephyr',
         }
 
