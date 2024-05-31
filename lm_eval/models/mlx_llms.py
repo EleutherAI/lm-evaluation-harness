@@ -27,7 +27,6 @@ class MLX(TemplateLM):
         top_p=1,
         max_tokens=2048,
         batch_size=4,
-        logits_cache=True,
         max_gen_tokens=256,
     ):
         super().__init__()
@@ -41,7 +40,6 @@ class MLX(TemplateLM):
         self.max_tokens = max_tokens
         self.top_p = top_p
         self.batch_size = int(batch_size)
-        self.logits_cache = logits_cache
         self.max_gen_tokens = max_gen_tokens
 
     @property
@@ -132,8 +130,8 @@ class MLX(TemplateLM):
             logits = self.model(shifted_padded_full_sequence)
             logits = logits.astype(mx.float32)
 
-            # log probabilities
-            log_probs = mx.softmax(logits, axis=-1)
+            # log softmax probabilities
+            log_probs = mx.log(mx.softmax(logits, axis=-1))
 
             # Create mask to exclude padding and inputs
             mask_width = shifted_padded_full_sequence.shape[1]
@@ -157,6 +155,7 @@ class MLX(TemplateLM):
                 axis=-1
             ) == mx.array(target_lengths)
 
+            # Iterate over question, answer pairs, their log softmax logits, and their greedy values
             for idx, (is_greedy, log_prob) in enumerate(
                 zip(batch_target_is_greedy_values, log_probs)
             ):
@@ -165,18 +164,25 @@ class MLX(TemplateLM):
                 context = context_batch[idx]
                 continuation = continuation_batch[idx]
 
-                # conditional log probability of answer given input (sum of log probs corresponding to target
-                # sequence tokens only)
-                answer_score = (
-                    log_prob[input_length : input_length + target_length]
-                    .sum(axis=1)
-                    .sum()
+                # Extract log prob scores at token sequence positions in the logits
+                target_end_idx = input_length + target_length
+                target_sequence = self.tok_encode(continuation)
+                target_log_prob_scores = log_prob[
+                    input_length - 1 : target_end_idx - 1, :
+                ]
+
+                # Use the target sequence for extracting log prob values from logits vocabulary distribution
+                reshaped_target_seq = mx.reshape(mx.array(target_sequence), (-1, 1))
+                target_log_probs = mx.take_along_axis(
+                    target_log_prob_scores, reshaped_target_seq, axis=1
                 )
+                # Summarize over conditional log likelihood values for target sequences
+                answer_score = target_log_probs.squeeze(1).sum().item()
 
                 idx = original_order[(context, continuation)]
 
                 # Answer: (original index, log prob, is-exact-match)
-                answer = idx, answer_score.item(), is_greedy.item()
+                answer = idx, answer_score, is_greedy.item()
                 res.append(answer)
             pbar.update(1)
 
@@ -191,11 +197,11 @@ class MLX(TemplateLM):
             self.tok_encode(record) for record in continuation_text
         ]
 
-        input_lengths = [len(x) for x in encoded_continuation_batch]
-        target_lengths = [len(x) for x in encoded_context_batch]
+        input_lengths = [len(x) for x in encoded_context_batch]
+        target_lengths = [len(x) for x in encoded_continuation_batch]
 
         full_labels = [
-            encoded_continuation_batch[idx] + encoded_context_batch[idx]
+            encoded_context_batch[idx] + encoded_continuation_batch[idx]
             for idx in range(batch_size)
         ]
         lengths = [len(x) for x in full_labels]
