@@ -9,7 +9,7 @@ training_split: train
 test_split: test
 doc_to_text:  !function utils.doc_to_text
 process_results: !function utils.process_results
-doc_to_target: "{{answer}}"
+doc_to_target: "{{answer if few_shot is undefined else solution}}"
 generation_kwargs:
   until:
     - "Problem:"
@@ -19,9 +19,11 @@ metric_list:
   - metric: exact_match
     aggregation: mean
     higher_is_better: true
-num_fewshot: 0
+num_fewshot: 4
 metadata:
   version: 1.0
-  num_fewshot: 4
 dataset_kwargs:
   trust_remote_code: true
+fewshot_config:
+  sampler: first_n
+  samples: !function utils.list_fewshot_samples

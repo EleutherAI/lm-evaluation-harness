@@ -59,7 +59,25 @@ We can also specify from which split the task should retrieve few-shot examples 
 ```yaml
 fewshot_split: <split name to draw fewshot examples from, or `null`>
 ```
-though if this is not set, we will default to train/validation/test sets, in that order.
+or by hardcoding them, either using the following in the yaml file:
+```yaml
+fewshot_config:
+  sampler: first_n
+  samples: [
+    {<sample 1>},
+    {<sample 2>},
+  ]
+```
+or by adding the function `list_fewshot_samples` in the associated utils.py file:
+```python
+def list_fewshot_samples() -> list[dict]:
+  return [{<sample 1>}, {<sample 2>}]
+```
+See `lm_eval/tasks/minerva_math/minerva_math_algebra.yaml` for an example of the latter, and `lm_eval/tasks/gsm8k/gsm8k-cot.yaml` for an example of the former.
+
+In this case, each sample must contain the same fields as the samples in the above sets--for example, if `doc_to_text` expects an `input` field when rendering input prompts, these provided samples must include an `input` key.
+
+If neither above options are not set, we will default to train/validation/test sets, in that order.
 
 
 Finally, our dataset may not be already in the exact format we want. Maybe we have to strip whitespace and special characters via a regex from our dataset's "question" field! Or maybe we just want to rename its columns to match a convention we'll be using for our prompts.
