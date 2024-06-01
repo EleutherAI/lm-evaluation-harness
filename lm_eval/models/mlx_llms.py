@@ -176,7 +176,7 @@ class MLX(TemplateLM):
                 target_log_probs = mx.take_along_axis(
                     target_log_prob_scores, reshaped_target_seq, axis=1
                 )
-                # Summarize over conditional log likelihood values for target sequences
+                # Sum over conditional log likelihood values for target sequences
                 answer_score = target_log_probs.squeeze(1).sum().item()
 
                 idx = original_order[(context, continuation)]
