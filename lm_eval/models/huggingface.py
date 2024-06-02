@@ -112,6 +112,10 @@ class HFLM(TemplateLM):
         peft: Optional[str] = None,
         delta: Optional[str] = None,
         autogptq: Optional[Union[bool, str]] = False,
+        # Chat templating settings
+        use_chat_template: Optional[bool] = False,
+        # TODO: validate a template exists in tokenizer config, if this flag is true
+        system_prompt: Optional[str] = None,
         **kwargs,
     ) -> None:
         super().__init__()
@@ -283,6 +287,9 @@ class HFLM(TemplateLM):
             eval_logger.info(
                 f"Model type is '{self.config.model_type}', a BOS token will be used as Gemma underperforms without it."
             )
+
+        self.system_prompt = system_prompt
+        self.use_chat_template = use_chat_template
 
         self._max_length = max_length
         self.pretrained = pretrained
@@ -785,6 +792,59 @@ class HFLM(TemplateLM):
     def tok_decode(self, tokens, skip_special_tokens=True):
         return self.tokenizer.decode(tokens, skip_special_tokens=skip_special_tokens)
 
+    def wrap_chat_template(
+        self, requests: List[Instance], generate=False
+    ) -> List[Instance]:
+        """
+        Utility for adding chat templates via the apply_chat_template() method
+        """
+        # TODO: handle repeats > 1 case?
+        # TODO: raise an error if system prompt not compatible with template
+        new_reqs = []
+        for req in requests:
+            context, continuation = req.args[0].strip(), req.args[1]
+            chat = []
+            if self.system_prompt is not None:
+                chat += [{"role": "system", "content": self.system_prompt}]
+
+            chat += [
+                {"role": "user", "content": context},
+            ]
+            # TODO: expose settings for chat formatting:
+            # - whether some "trigger" / start of assistant response might be placed in assistant's generation for it
+            # - if few-shot, should the fewshots be placed in separate convo turns? provided in user's single turn?...
+            context = self.tokenizer.apply_chat_template(
+                chat,
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+            req.args = (context, continuation)
+            new_reqs.append(req)
+        return new_reqs
+
+    def loglikelihood(
+        self, requests, disable_tqdm: bool = False
+    ) -> List[Tuple[float, bool]]:
+        if self.use_chat_template:
+            print(f"First element before prompt formatting...\n{requests[0].args}")
+            requests = self.wrap_chat_template(requests)
+            print(f"First element after prompt formatting...\n{requests[0].args}")
+
+        new_reqs = []
+        for context, continuation in [req.args for req in requests]:
+            if context == "":
+                # BOS or EOS as context
+                context_enc, continuation_enc = (
+                    [self.prefix_token_id],
+                    self.tok_encode(continuation),
+                )
+            else:
+                context_enc, continuation_enc = self._encode_pair(context, continuation)
+
+            new_reqs.append(((context, continuation), context_enc, continuation_enc))
+
+        return self._loglikelihood_tokens(new_reqs, disable_tqdm=disable_tqdm)
+
     def _model_call(self, inps, attn_mask=None, labels=None):
         """
         :param inps: torch.Tensor
@@ -1154,6 +1214,11 @@ class HFLM(TemplateLM):
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
+        if self.use_chat_template:
+            print(f"First element before prompt formatting...\n{requests[0].args}")
+            requests = self.wrap_chat_template(requests)
+            print(f"First element after prompt formatting...\n{requests[0].args}")
+
         res = []
 
         def _collate(req: Tuple[str, dict]):
