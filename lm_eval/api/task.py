@@ -50,7 +50,7 @@ ALL_OUTPUT_TYPES = [
 
 eval_logger = logging.getLogger("lm-eval")
 
-
+from dataclasses import field
 @dataclass
 class TaskConfig(dict):
     # task naming/registry
@@ -73,9 +73,11 @@ class TaskConfig(dict):
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
     process_docs: Optional[Callable] = None
+    process_docs_config: dict = field(default_factory=dict)
     doc_to_text: Optional[Union[Callable, str]] = None
     doc_to_target: Optional[Union[Callable, str]] = None
     doc_to_choice: Optional[Union[Callable, str, dict, list]] = None
+    doc_to_preamble: Optional[Union[Callable, str]] = None
     process_results: Optional[Union[Callable, str]] = None
     use_prompt: Optional[str] = None
     description: str = ""
@@ -525,6 +527,7 @@ class Task(abc.ABC):
         num_fewshot,
         rnd=None,
         description=None,
+        preamble=None,
     ):
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -550,6 +553,7 @@ class Task(abc.ABC):
                 )
 
         description = description if description else ""
+        preamble = preamble if preamble else ""
 
         if num_fewshot == 0:
             labeled_examples = ""
@@ -581,7 +585,7 @@ class Task(abc.ABC):
             )
 
         example = self.doc_to_text(doc)
-        return description + labeled_examples + example
+        return preamble + description + labeled_examples + example
 
     def apply_filters(self) -> Optional[List[Instance]]:
         """Iterates over FilterEnsembles and applies them to instances"""
@@ -925,7 +929,8 @@ class ConfigurableTask(Task):
         if self.has_training_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
-                    self.dataset[self.config.training_split]
+                    self.dataset[self.config.training_split],
+                    **self.config.process_docs_config
                 )
             return self.dataset[self.config.training_split]
 
@@ -933,20 +938,23 @@ class ConfigurableTask(Task):
         if self.has_validation_docs():
             if self.config.process_docs is not None:
                 return self.config.process_docs(
-                    self.dataset[self.config.validation_split]
+                    self.dataset[self.config.validation_split],
+                    **self.config.process_docs_config
                 )
             return self.dataset[self.config.validation_split]
 
     def test_docs(self) -> datasets.Dataset:
         if self.has_test_docs():
             if self.config.process_docs is not None:
-                return self.config.process_docs(self.dataset[self.config.test_split])
+                return self.config.process_docs(self.dataset[self.config.test_split],
+                                                **self.config.process_docs_config)
             return self.dataset[self.config.test_split]
 
     def fewshot_docs(self):
         if self.config.fewshot_split is not None:
             if self.config.process_docs is not None:
-                return self.config.process_docs(self.dataset[self.config.fewshot_split])
+                return self.config.process_docs(self.dataset[self.config.fewshot_split],
+                                                **self.config.process_docs_config)
             return self.dataset[self.config.fewshot_split]
         elif (
             self.config.fewshot_config is not None
@@ -989,11 +997,12 @@ class ConfigurableTask(Task):
             labeled_examples = description
         else:
             labeled_examples = description + self.sampler.get_context(doc, num_fewshot)
+        labeled_examples = self.doc_to_preamble(doc) + labeled_examples
 
-        example = self.doc_to_text(doc)
         if self.multiple_input:
             return labeled_examples
         else:
+            example = self.doc_to_text(doc)
             if isinstance(example, str):
                 return labeled_examples + example
             elif isinstance(example, list):
@@ -1078,7 +1087,20 @@ class ConfigurableTask(Task):
         else:
             print(type(doc_to_text))
             raise TypeError
-
+    def doc_to_preamble(self, doc: Mapping):
+        doc_to_preamble = self.config.doc_to_preamble
+        if doc_to_preamble is None:
+            return ""
+        elif isinstance(doc_to_preamble, str):
+            preamble_string = utils.apply_template(doc_to_preamble, doc)
+            return preamble_string
+        elif callable(doc_to_preamble):
+            return doc_to_preamble(doc)
+        else:
+            raise TypeError
+            
+            
+    
     def doc_to_target(self, doc: Mapping) -> Union[int, str, list]:
         if self.prompt is not None:
             doc_to_target = self.prompt

@@ -1,0 +1,29 @@
+task: nq_closedbook
+dataset_path: iohadrubin/nq_closedbook
+output_type: generate_until
+training_split: train
+validation_split: validation
+test_split: test
+description: "Answer these questions:\n\n"
+doc_to_text: "Q: {{question}}?\nA:"
+doc_to_target: !function nq_utils.doc_to_target
+fewshot_delimiter: "\n"
+generation_kwargs:
+  until:
+    - "\n"
+    - "."
+    - ","
+  do_sample: false
+  temperature: 0.0
+filter_list:
+  - name: remove_whitespace
+    filter:
+      - function: remove_whitespace
+      - function: take_first
+target_delimiter: " "
+metric_list:
+  - metric: !function nq_utils.nq_exact_match
+    aggregation: mean
+    higher_is_better: True
+metadata:
+  version: 3.0
