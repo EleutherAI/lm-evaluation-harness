@@ -19,7 +19,7 @@ classifiers = [
 requires-python = ">=3.8"
 license = { "text" = "MIT" }
 dependencies = [
-    "accelerate>=0.21.0",
+    "accelerate>=0.26.0",
     "evaluate",
     "datasets>=2.16.0",
     "evaluate>=0.4.0",
@@ -73,7 +73,7 @@ promptsource = ["promptsource>=0.2.3"]
 sentencepiece = ["sentencepiece>=0.1.98"]
 sparseml = ["sparseml-nightly[llm]>=1.8.0.20240404"]
 testing = ["pytest", "pytest-cov", "pytest-xdist"]
-vllm = ["vllm==0.3.2"]
+vllm = ["vllm>=0.4.2"]
 zeno = ["pandas", "zeno-client"]
 wandb = ["wandb>=0.16.3", "pandas", "numpy"]
 unitxt = ["unitxt"]
