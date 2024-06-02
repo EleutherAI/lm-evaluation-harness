@@ -1,5 +1,5 @@
 task: noticia
-dataset_path: Iker/NoticIA_Human_Validation
+dataset_path: Iker/NoticIA
 dataset_name: null
 output_type: generate_until
 generation_kwargs:
@@ -21,6 +21,9 @@ doc_to_decontamination_query: sentence
 metric_list:
   - metric: !function utils.rouge1
     higher_is_better: true
-    aggregation:  !function utils.rouge1_agg
+    aggregation: !function utils.rouge1_agg
+  - metric: !function utils.average_len
+    higher_is_better: false
+    aggregation: !function utils.average_len_agg
 metadata:
   version: 1.0
