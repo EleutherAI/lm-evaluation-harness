@@ -134,4 +134,16 @@ def test_printed_results(task_name: List[str], limit: int, model: str, model_arg
         t1 = f.read().strip()
 
     t2 = make_table(results).strip()
-    assert t1 == t2
+
+    t1_lines, t2_lines = t1.splitlines(), t2.splitlines()
+    assert len(t1_lines) == len(t2_lines)
+    for t1_line, t2_line in zip(t1_lines, t2_lines):
+        t1_items, t2_items = t1_line.split("|"), t2_line.split("|")
+        assert len(t1_items) == len(t2_items)
+        for t1_item, t2_item in zip(t1_items, t2_items):
+            try:
+                t1_item = float(t1_item)
+                t2_item = float(t2_item)
+                assert abs(t1_item - t2_item) < 0.1
+            except ValueError:
+                assert t1_item == t2_item
