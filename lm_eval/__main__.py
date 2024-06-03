@@ -276,10 +276,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
     args.hf_hub_log_args = f"output_path={args.output_path},token={os.environ.get('HF_TOKEN')},{args.hf_hub_log_args}"
     evaluation_tracker_args = simple_parse_args_string(args.hf_hub_log_args)
     evaluation_tracker = EvaluationTracker(**evaluation_tracker_args)
-    evaluation_tracker.general_config_tracker.log_experiment_args(
-        model_source=args.model,
-        model_args=args.model_args,
-    )
 
     if args.predict_only:
         args.log_samples = True
@@ -387,6 +383,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
+        evaluation_tracker=evaluation_tracker,
         system_instruction=args.system_instruction,
         apply_chat_template=args.apply_chat_template,
         fewshot_as_multiturn=args.fewshot_as_multiturn,

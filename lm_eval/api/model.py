@@ -193,6 +193,16 @@ class LM(abc.ABC):
             "To use this model with chat templates, please implement the 'tokenizer_name' property."
         )
 
+    @property
+    def chat_template(self) -> str:
+        """Must be defined for LM subclasses that implement Chat Templating.
+        Should return the structure of the chat template applied to user/assistant messages.
+        This is used only to save in the experiment results for reproducibility.
+        """
+        raise NotImplementedError(
+            "To use this model with chat templates, please implement the 'chat_template' property."
+        )
+
     def set_cache_hook(self, cache_hook) -> None:
         self.cache_hook = cache_hook
 

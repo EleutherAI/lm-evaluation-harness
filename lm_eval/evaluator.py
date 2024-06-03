@@ -21,6 +21,7 @@ from lm_eval.evaluator_utils import (
     print_writeout,
     run_task_tests,
 )
+from lm_eval.logging import EvaluationTracker
 from lm_eval.logging.utils import add_env_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
@@ -55,6 +56,7 @@ def simple_evaluate(
     check_integrity: bool = False,
     write_out: bool = False,
     log_samples: bool = True,
+    evaluation_tracker: Optional[EvaluationTracker] = None,
     system_instruction: Optional[str] = None,
     apply_chat_template: bool = False,
     fewshot_as_multiturn: bool = False,
@@ -154,6 +156,11 @@ def simple_evaluate(
     if len(tasks) == 0:
         raise ValueError(
             "No tasks specified, or no tasks found. Please verify the task names."
+        )
+
+    if evaluation_tracker is None:
+        raise ValueError(
+            "EvaluationTracker not provided. Please provide an instance of EvaluationTracker."
         )
 
     if gen_kwargs is not None:
@@ -261,6 +268,13 @@ def simple_evaluate(
 
     if check_integrity:
         run_task_tests(task_list=tasks)
+
+    evaluation_tracker.general_config_tracker.log_experiment_args(
+        model_source=model,
+        model_args=model_args,
+        system_instruction=system_instruction,
+        chat_template=lm.chat_template,
+    )
 
     results = evaluate(
         lm=lm,
