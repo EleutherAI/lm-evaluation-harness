@@ -148,11 +148,11 @@ class MyCustomLM(LM):
   - For example, this consists of simply calling `tokenizer.apply_chat_template` for HFLM--see the implementation there for reference.
 - `tokenizer_name`
   - LM Eval Harness supports [caching requests](https://github.com/EleutherAI/lm-evaluation-harness/blob/4902aaaf1f374682f95ac25fe2e13b23faddc91a/lm_eval/__main__.py#L140) that are sent to a model, for faster setup when repeating an already-performed evaluation.
-  - However, we don't want to use the cache of chat transcripts rendered using one chat template or system prompt to send to a model with a different template! So, we use this `lm.tokenizer_name()` string to distinguish caches for a given model (and chat template) from one another.
+  - However, we don't want to use the cache of chat transcripts rendered using one chat template or system prompt to send to a model with a different template! So, we use this `lm.tokenizer_name` string to distinguish caches for a given model (and chat template) from one another.
 - `chat_template`
   - Chat templates are typically provided as a Jinja template string or a string formatted with str.format to include user and assistant messages in a single prompt. This template string is saved in the evaluation results to ensure reproducibility.
 
-If not implemented, the flags `--system_instruction`
+If not implemented for a given model type, the flags `--apply_chat_template` , `--fewshot_as_multiturn`, and `--system_instruction` cannot be used.
 
 ## Other
 
