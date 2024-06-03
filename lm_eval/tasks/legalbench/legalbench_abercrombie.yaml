@@ -1,0 +1,18 @@
+task: legalbench_abercrombie
+group:
+  - legalbench
+dataset_path: nguha/legalbench
+dataset_name: abercrombie
+training_split: train
+test_split: test
+output_type: multiple_choice
+num_fewshot: 5
+# Template from: https://github.com/HazyResearch/legalbench/blob/main/tasks/abercrombie/rule_description_prompt.txt
+description: "A mark is generic if it is the common name for the product. A mark is descriptive if it describes a purpose, nature, or attribute of the product. A mark is suggestive if it suggests or implies a quality or characteristic of the product. A mark is arbitrary if it is a real English word that has no relation to the product. A mark is fanciful if it is an invented word. Determine the type of each mark (generic, descriptive, suggestive, arbitrary, fanciful) under the Abercrombie factors.\n\n"
+doc_to_text: "Q: {{text}} What is this type of mark?\nA:"
+doc_to_target: "{{['descriptive', 'fanciful', 'suggestive', 'generic', 'arbitrary'].index(answer)}}"
+doc_to_choice: ['descriptive', 'fanciful', 'suggestive', 'generic', 'arbitrary']
+metric_list:
+  - metric: balanced_acc
+metadata:
+  version: 0.0

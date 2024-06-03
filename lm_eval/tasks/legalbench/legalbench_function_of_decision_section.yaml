@@ -1,0 +1,18 @@
+task: legalbench_function_of_decision_section
+group:
+  - legalbench
+dataset_path: nguha/legalbench
+dataset_name: function_of_decision_section
+training_split: train
+test_split: test
+output_type: multiple_choice
+num_fewshot: 7
+# Template from: https://github.com/HazyResearch/legalbench/blob/main/tasks/function_of_decision_section/base_prompt.txt
+description: "Classify the following text using the following definitions.\n\n- Facts: The paragraph describes the faction background that led up to the present lawsuit.\n- Procedural History: The paragraph describes the course of litigation that led to the current proceeding before the court.\n- Issue: The paragraph describes the legal or factual issue that must be resolved by the court.\n- Rule: The paragraph describes a rule of law relevant to resolving the issue.\n- Analysis: The paragraph analyzes the legal issue by applying the relevant legal principles to the facts of the present dispute.\n- Conclusion: The paragraph presents a conclusion of the court.\n- Decree: The paragraph constitutes a decree resolving the dispute.\n\n"
+doc_to_text: "Text: {{Paragraph}}\nLabel:"
+doc_to_target: "{{['Decree', 'Conclusion', 'Issue', 'Facts', 'Procedural History', 'Rule', 'Analysis'].index(answer)}}"
+doc_to_choice: ['Decree', 'Conclusion', 'Issue', 'Facts', 'Procedural History', 'Rule', 'Analysis']
+metric_list:
+  - metric: balanced_acc
+metadata:
+  version: 0.0

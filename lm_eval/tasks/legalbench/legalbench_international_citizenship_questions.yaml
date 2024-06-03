@@ -1,0 +1,18 @@
+task: legalbench_international_citizenship_questions
+group:
+  - legalbench
+dataset_path: nguha/legalbench
+dataset_name: international_citizenship_questions
+training_split: train
+test_split: test
+output_type: multiple_choice
+num_fewshot: 0
+# Template from: https://github.com/HazyResearch/legalbench/blob/main/tasks/international_citizenship_questions/base_prompt.txt
+description: "Answer the following questions considering the state of international law on January 1st, 2020.\n\n"
+doc_to_text: "Question: {{question}} Answer Yes or No.\nAnswer:"
+doc_to_target: "{{['Yes', 'No'].index(answer)}}"
+doc_to_choice: ['Yes', 'No']
+metric_list:
+  - metric: balanced_acc
+metadata:
+  version: 0.0

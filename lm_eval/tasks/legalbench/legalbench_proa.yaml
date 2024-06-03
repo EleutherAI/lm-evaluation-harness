@@ -1,0 +1,18 @@
+task: legalbench_proa
+group:
+  - legalbench
+dataset_path: nguha/legalbench
+dataset_name: proa
+training_split: train
+test_split: test
+output_type: multiple_choice
+num_fewshot: 5
+# Template from: https://github.com/HazyResearch/legalbench/blob/main/tasks/proa/base_prompt.txt
+description: "A private right of action is when a regular person, a private citizen, is legally entitled to enforce their rights under a given statute. Does the clause specify a private right of action? Answer Yes or No.\n\n"
+doc_to_text: "Clause: {{text}}\nA:"
+doc_to_target: "{{['Yes', 'No'].index(answer)}}"
+doc_to_choice: ['Yes', 'No']
+metric_list:
+  - metric: balanced_acc
+metadata:
+  version: 0.0

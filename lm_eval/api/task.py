@@ -1312,6 +1312,11 @@ class ConfigurableTask(Task):
                     if "brier_score" in use_metric
                     else {}
                 ),
+                **(
+                    {"balanced_acc": (gold, pred)}
+                    if "balanced_acc" in use_metric
+                    else {}
+                ),
             }
 
             if "acc_mutual_info" in use_metric:

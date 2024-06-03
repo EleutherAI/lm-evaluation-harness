@@ -1,0 +1,18 @@
+task: legalbench_corporate_lobbying
+group:
+  - legalbench
+dataset_path: nguha/legalbench
+dataset_name: corporate_lobbying
+training_split: train
+test_split: test
+output_type: multiple_choice
+num_fewshot: 0
+# Template from: https://github.com/HazyResearch/legalbench/blob/main/tasks/corporate_lobbying/base_prompt.txt
+description: "You are a lobbyist analyzing Congressional bills for their impacts on companies.\nGiven the title and summary of the bill, plus information on the company from its 10K SEC filing, it is your job to determine if a bill is at least somewhat relevant to a company in terms of whether it could impact the company's bottom-line if it was enacted (by saying Yes or No).\n"
+doc_to_text: "Official title of bill: {{bill_title}}\nOfficial summary of bill: {{bill_summary}}\nCompany name: {{company_name}}\nCompany business description: {{company_description}}\nIs this bill potentially relevant to the company? FINAL ANSWER:"
+doc_to_target: "{{['Yes', 'No'].index(answer)}}"
+doc_to_choice: ['Yes', 'No']
+metric_list:
+  - metric: balanced_acc
+metadata:
+  version: 0.0
