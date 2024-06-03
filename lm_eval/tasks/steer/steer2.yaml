@@ -1,4 +1,3 @@
-"dataset_name": "steer2"
-"group": "steer"
-"include": "_default_template_yaml2"
-"task": "steer2"
+group: steer
+task: steer2
+include: _default_template_yaml2

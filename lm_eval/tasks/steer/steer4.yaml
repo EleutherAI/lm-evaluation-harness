@@ -1,4 +1,3 @@
-dataset_name: steer4
 group: steer
-include: _default_template_yaml4
 task: steer4
+include: _default_template_yaml4

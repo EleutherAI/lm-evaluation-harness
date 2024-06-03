@@ -1,9 +1,7 @@
-
-task: steer2
 dataset_path: json
 dataset_name: null
 dataset_kwargs:
-  data_files: {"test": "lm-evaluation-harness/lm_eval/tasks/steer/steer2.json"}
+  data_files: {"test": "lm_eval/tasks/steer/steer2.json"}
 num_fewshot: 0
 training_split: null
 validation_split: null
