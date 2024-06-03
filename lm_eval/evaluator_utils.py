@@ -253,6 +253,9 @@ def consolidate_results(
     configs = collections.defaultdict(dict)
     # Tracks each task's version.
     versions = collections.defaultdict(dict)
+    # Track `higher_is_better` for each metric
+    higher_is_better = collections.defaultdict(dict)
+
     for task_output in eval_tasks:
         if "task_alias" in (task_config := task_output.task_config):
             results[task_output.task_name]["alias"] = task_config["task_alias"]
@@ -263,6 +266,7 @@ def consolidate_results(
         configs[task_output.task_name] = task_output.task_config
         versions[task_output.task_name] = task_output.version
         samples[task_output.task_name] = task_output.logged_samples
+        higher_is_better[task_output.task_name] = task_output.task.higher_is_better()
         for (metric, filter_key), items in task_output.sample_metrics.items():
             metric_key = f"{metric},{filter_key}"
             results[task_output.task_name][metric_key] = task_output.agg_metrics[
@@ -272,7 +276,7 @@ def consolidate_results(
             results[task_output.task_name][
                 f"{metric}_stderr,{filter_key}"
             ] = task_output.agg_metrics[f"{metric}_stderr,{filter_key}"]
-    return results, samples, configs, versions, num_fewshot
+    return results, samples, configs, versions, num_fewshot, higher_is_better
 
 
 @positional_deprecated
