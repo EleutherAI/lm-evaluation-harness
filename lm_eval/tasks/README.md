@@ -14,7 +14,7 @@
 | [anli](anli/README.md) | Adversarial natural language inference tasks designed to test model robustness. | English |
 | [arc](arc/README.md) | Tasks involving complex reasoning over a diverse set of questions.  | English |
 | [arithmetic](arithmetic/README.md) | Tasks involving numerical computations and arithmetic reasoning. | English |
-| [asdiv](asdiv/README.md) | Tasks involving arithmetic and mathematical reasoning challenges. | English | 
+| [asdiv](asdiv/README.md) | Tasks involving arithmetic and mathematical reasoning challenges. | English |
 | [babi](babi/README.md) | Tasks designed as question and answering challenges based on simulated stories. | English |
 | [basqueglue](basqueglue/README.md) | Tasks designed to evaluate language understanding in Basque language. | Basque |
 | [bbh](bbh/README.md) | Tasks focused on deep semantic understanding through hypothesization and reasoning. | English, German |
@@ -63,7 +63,7 @@
 | [minerva_math](minerva_math/README.md) | Mathematics-focused tasks requiring numerical reasoning and problem-solving skills. | English |
 | mmlu | Massive Multitask Language Understanding benchmark for broad domain language evaluation. Several variants are supported. | English |
 | model_written_evals | Evaluation tasks auto-generated for evaluating a collection of AI Safety concerns. | |
-| [mutual](mutual/README.md) | A retrieval-based dataset for multi-turn dialogue reasoning. | English | 
+| [mutual](mutual/README.md) | A retrieval-based dataset for multi-turn dialogue reasoning. | English |
 | [nq_open](nq_open/README.md) | Open domain question answering tasks based on the Natural Questions dataset. | English |
 | [okapi/arc_multilingual](okapi/arc_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (31 languages) **Machine Translated.** |
 | [okapi/hellaswag_multilingual](okapi/hellaswag_multilingual/README.md) | Tasks that involve reading comprehension and information retrieval challenges. | Multiple (30 languages) |
