@@ -300,7 +300,11 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
         if "alias" in dic:
             k = dic.pop("alias")
 
-        for (mf), v in dic.items():
+        metric_items = dic.items()
+        if sort_results:
+            metric_items = sorted(metric_items)
+
+        for (mf), v in metric_items:
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
                 continue
