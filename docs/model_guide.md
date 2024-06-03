@@ -111,7 +111,7 @@ We also recommend that new model contributions be accompanied by short tests of 
 
 Many models are fine-tuned with a [Chat Template](https://huggingface.co/docs/transformers/main/en/chat_templating) in order to enable back-and-forth interaction between a "User"'s queries and the model (often called "Assistant")'s responses. It can be desirable to evaluate fine-tuned models on evaluation tasks while wrapped in the conversational format they expect.
 
-In order to make your model optionally compatible with a chat format, two additional methods must be implemented:
+In order to make your model optionally compatible with a chat format, three additional methods must be implemented:
 
 ```python
 class MyCustomLM(LM):
@@ -119,6 +119,11 @@ class MyCustomLM(LM):
     @property
     def tokenizer_name(self) -> str:
         # should return a string denoting the name of the model's tokenizer and/or the accompanying chat template.
+
+    @property
+    def chat_template(self) -> str:
+        # should return a chat template formatting string that is used to build prompt from a user/assistant chat history.
+        # this will be saved in the evaluation results for reproducibility.
 
     def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
         # responsible for taking as input a chat history that would be fed into the model, and
@@ -144,6 +149,8 @@ class MyCustomLM(LM):
 - `tokenizer_name`
   - LM Eval Harness supports [caching requests](https://github.com/EleutherAI/lm-evaluation-harness/blob/4902aaaf1f374682f95ac25fe2e13b23faddc91a/lm_eval/__main__.py#L140) that are sent to a model, for faster setup when repeating an already-performed evaluation.
   - However, we don't want to use the cache of chat transcripts rendered using one chat template or system prompt to send to a model with a different template! So, we use this `lm.tokenizer_name()` string to distinguish caches for a given model (and chat template) from one another.
+- `chat_template`
+  - Chat templates are typically provided as a Jinja template string or a string formatted with str.format to include user and assistant messages in a single prompt. This template string is saved in the evaluation results to ensure reproducibility.
 
 If not implemented, the flags `--system_instruction`
 
