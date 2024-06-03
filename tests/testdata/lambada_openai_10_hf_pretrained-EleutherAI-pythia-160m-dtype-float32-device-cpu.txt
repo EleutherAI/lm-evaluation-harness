@@ -1,0 +1,4 @@
+|    Tasks     |Version|Filter|n-shot|  Metric  |   | Value |   |Stderr|
+|--------------|------:|------|-----:|----------|---|------:|---|------|
+|lambada_openai|      1|none  |     0|acc       |↑  | 0.3000|±  |N/A   |
+|              |       |none  |     0|perplexity|↓  |25.4828|±  |N/A   |

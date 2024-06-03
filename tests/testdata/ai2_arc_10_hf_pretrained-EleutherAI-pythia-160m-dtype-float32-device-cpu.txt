@@ -1,0 +1,8 @@
+|     Tasks      |Version|Filter|n-shot| Metric |   |Value|   |Stderr|
+|----------------|-------|------|-----:|--------|---|----:|---|------|
+|ai2_arc         |N/A    |none  |     0|acc     |↑  | 0.25|±  |N/A   |
+|                |       |none  |     0|acc_norm|↑  | 0.15|±  |N/A   |
+| - arc_challenge|      1|none  |     0|acc     |↑  | 0.10|±  |N/A   |
+|                |       |none  |     0|acc_norm|↑  | 0.10|±  |N/A   |
+| - arc_easy     |      1|none  |     0|acc     |↑  | 0.40|±  |N/A   |
+|                |       |none  |     0|acc_norm|↑  | 0.20|±  |N/A   |

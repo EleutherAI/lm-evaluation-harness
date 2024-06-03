@@ -1,0 +1,5 @@
+| Tasks  |Version|Filter|n-shot|    Metric     |   | Value |   |Stderr|
+|--------|------:|------|-----:|---------------|---|------:|---|------|
+|wikitext|      2|none  |     0|bits_per_byte  |↓  | 0.9729|±  |N/A   |
+|        |       |none  |     0|byte_perplexity|↓  | 1.9628|±  |N/A   |
+|        |       |none  |     0|word_perplexity|↓  |34.4171|±  |N/A   |

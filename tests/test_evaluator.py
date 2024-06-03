@@ -1,4 +1,5 @@
 import os
+import re
 from typing import List
 
 import pytest
@@ -6,6 +7,7 @@ import pytest
 import lm_eval.api as api
 import lm_eval.evaluator as evaluator
 from lm_eval import tasks
+from lm_eval.utils import make_table
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -75,3 +77,61 @@ def test_evaluator(
         x == y
         for x, y in zip([y for _, y in r(e1).items()], [y for _, y in r(e2).items()])
     )
+
+
+@pytest.mark.parametrize(
+    "task_name,limit,model,model_args",
+    [
+        (
+            ["ai2_arc"],
+            10,
+            "hf",
+            "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
+        ),
+        (
+            ["mmlu_abstract_algebra", "mmlu_global_facts", "mmlu_public_relations"],
+            10,
+            "hf",
+            "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
+        ),
+        (
+            ["lambada_openai"],
+            10,
+            "hf",
+            "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
+        ),
+        (
+            ["wikitext"],
+            10,
+            "hf",
+            "pretrained=EleutherAI/pythia-160m,dtype=float32,device=cpu",
+        ),
+    ],
+)
+def test_printed_results(task_name: List[str], limit: int, model: str, model_args: str):
+    results = evaluator.simple_evaluate(
+        model=model,
+        tasks=task_name,
+        limit=limit,
+        model_args=model_args,
+        bootstrap_iters=0,
+        random_seed=0,
+        numpy_random_seed=0,
+        torch_random_seed=0,
+        fewshot_random_seed=0,
+    )
+
+    filename = "_".join(
+        (
+            "-".join(task_name),
+            str(limit),
+            str(model),
+            re.sub(r"[^a-zA-Z0-9_\-\.]", "-", model_args),
+        )
+    )
+    filepath = f"./tests/testdata/{filename}.txt"
+    with open(filepath, "r") as f:
+        t1 = f.read().strip()
+
+    t2 = make_table(results).strip()
+    assert t1 == t2
