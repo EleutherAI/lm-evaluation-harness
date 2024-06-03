@@ -158,11 +158,6 @@ def simple_evaluate(
             "No tasks specified, or no tasks found. Please verify the task names."
         )
 
-    if evaluation_tracker is None:
-        raise ValueError(
-            "EvaluationTracker not provided. Please provide an instance of EvaluationTracker."
-        )
-
     if gen_kwargs is not None:
         gen_kwargs = simple_parse_args_string(gen_kwargs)
         eval_logger.warning(
@@ -269,12 +264,13 @@ def simple_evaluate(
     if check_integrity:
         run_task_tests(task_list=tasks)
 
-    evaluation_tracker.general_config_tracker.log_experiment_args(
-        model_source=model,
-        model_args=model_args,
-        system_instruction=system_instruction,
-        chat_template=lm.chat_template,
-    )
+    if evaluation_tracker is not None:
+        evaluation_tracker.general_config_tracker.log_experiment_args(
+            model_source=model,
+            model_args=model_args,
+            system_instruction=system_instruction,
+            chat_template=lm.chat_template if apply_chat_template else None,
+        )
 
     results = evaluate(
         lm=lm,
