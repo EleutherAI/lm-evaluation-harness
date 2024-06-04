@@ -232,13 +232,13 @@ def prepare_print_tasks(
     for task_or_group_name, task_or_group_obj in task_dict.items():
         tab_string = " " * task_depth + "- " if task_depth > 0 else ""
         if isinstance(task_or_group_name, ConfigurableGroup):
-            string_name = task_or_group_name.group_name
+            # string_name = task_or_group_name.group_name
             name = task_or_group_name.task_id
             from_configurable_group = True
         elif isinstance(task_or_group_name, str):
             name = task_or_group_name
             if isinstance(task_or_group_obj, ConfigurableTask):
-                string_name = task_or_group_obj.task_name
+                # string_name = task_or_group_obj.task_name
                 name = task_or_group_obj.task_id
             from_configurable_group = False
 

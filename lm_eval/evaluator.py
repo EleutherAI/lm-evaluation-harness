@@ -584,7 +584,6 @@ def evaluate(
                     task_aggregation_list = {}
 
                 for group_or_task, group_or_task_info in task_dict.items():
-
                     # Convert to string
                     if isinstance(group_or_task, ConfigurableGroup):
                         group_config = group_or_task.config
