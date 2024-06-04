@@ -49,6 +49,11 @@ pip install -e .
 We also provide a number of optional dependencies for extended functionality. A detailed table is available at the end of this document.
 
 ## Basic Usage
+### User Guide
+
+A user guide detailing the full list of supported arguments is provided [here](./docs/interface.md), and on the terminal by calling `lm_eval -h`. Alternatively, you can use `lm-eval` instead of `lm_eval`.
+
+A list of supported tasks (or groupings of tasks) can be viewed with `lm-eval --tasks list`. Task descriptions and links to corresponding subfolders are provided [here](./lm_eval/tasks/README.md).
 
 ### Hugging Face `transformers`
 
@@ -83,8 +88,6 @@ lm_eval --model hf \
     --device cuda:0 \
     --batch_size auto:4
 ```
-
-The full list of supported arguments are provided [here](./docs/interface.md), and on the terminal by calling `lm_eval -h`. Alternatively, you can use `lm-eval` instead of `lm_eval`. A list of supported tasks can be viewed with `lm-eval --tasks list`.
 
 > [!Note]
 > Just like you can provide a local path to `transformers.AutoModel`, you can also provide a local path to `lm_eval` via `--model_args pretrained=/path/to/model`

@@ -2,49 +2,31 @@
 
 ### Paper
 
-Title: `Few-shot Learning with Multilingual Language Models`
-Abstract: `https://arxiv.org/abs/2112.10668`
+Title: `A Corpus and Evaluation Framework for Deeper Understanding of Commonsense Stories`
+Abstract: `https://arxiv.org/abs/1604.01696`
 
-XStoryCloze consists of the professionally translated version of the [English StoryCloze dataset](https://cs.rochester.edu/nlp/rocstories/) (Spring 2016 version) to 10 non-English languages. This dataset is released by Meta AI.
+Homepage: https://cs.rochester.edu/nlp/rocstories/
 
-Homepage: https://github.com/facebookresearch/fairseq/pull/4820
+'Story Cloze Test' is a new commonsense reasoning framework for evaluating story understanding, story generation, and script learning. This test requires a system to choose the correct ending to a four-sentence story
 
 
 ### Citation
 
 ```
-@article{DBLP:journals/corr/abs-2112-10668,
-  author    = {Xi Victoria Lin and
-               Todor Mihaylov and
-               Mikel Artetxe and
-               Tianlu Wang and
-               Shuohui Chen and
-               Daniel Simig and
-               Myle Ott and
-               Naman Goyal and
-               Shruti Bhosale and
-               Jingfei Du and
-               Ramakanth Pasunuru and
-               Sam Shleifer and
-               Punit Singh Koura and
-               Vishrav Chaudhary and
-               Brian O'Horo and
-               Jeff Wang and
-               Luke Zettlemoyer and
-               Zornitsa Kozareva and
-               Mona T. Diab and
-               Veselin Stoyanov and
-               Xian Li},
-  title     = {Few-shot Learning with Multilingual Language Models},
-  journal   = {CoRR},
-  volume    = {abs/2112.10668},
-  year      = {2021},
-  url       = {https://arxiv.org/abs/2112.10668},
-  eprinttype = {arXiv},
-  eprint    = {2112.10668},
-  timestamp = {Tue, 04 Jan 2022 15:59:27 +0100},
-  biburl    = {https://dblp.org/rec/journals/corr/abs-2112-10668.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+@misc{mostafazadeh2016corpus,
+      title={A Corpus and Evaluation Framework for Deeper Understanding of Commonsense Stories},
+      author={Nasrin Mostafazadeh and
+      Nathanael Chambers and
+      Xiaodong He and
+      Devi Parikh and
+      Dhruv Batra and
+      Lucy Vanderwende and
+      Pushmeet Kohli and
+      James Allen},
+      year={2016},
+      eprint={1604.01696},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
 }
 ```
 

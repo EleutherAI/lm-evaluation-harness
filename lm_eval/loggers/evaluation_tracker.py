@@ -40,6 +40,10 @@ class GeneralConfigTracker:
     model_source: str = None
     model_name: str = None
     model_name_sanitized: str = None
+    system_instruction: str = None
+    system_instruction_sha: str = None
+    chat_template: str = None
+    chat_template_sha: str = None
     start_time: float = None
     end_time: float = None
     total_evaluation_time_seconds: str = None
@@ -68,6 +72,8 @@ class GeneralConfigTracker:
         self,
         model_source: str,
         model_args: str,
+        system_instruction: str,
+        chat_template: str,
     ) -> None:
         """Logs model parameters and job ID."""
         self.model_source = model_source
@@ -75,6 +81,12 @@ class GeneralConfigTracker:
         self.model_name_sanitized = re.sub(
             r"[\"<>:/\|\\?\*\[\]]+", "__", self.model_name
         )
+        self.system_instruction = system_instruction
+        self.system_instruction_sha = (
+            hash_string(system_instruction) if system_instruction else None
+        )
+        self.chat_template = chat_template
+        self.chat_template_sha = hash_string(chat_template) if chat_template else None
 
     def log_end_time(self) -> None:
         """Logs the end time of the evaluation and calculates the total evaluation time."""
