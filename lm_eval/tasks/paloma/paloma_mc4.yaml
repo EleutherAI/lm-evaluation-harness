@@ -1,0 +1,3 @@
+include: paloma.yaml
+task: paloma_mc4
+dataset_name: mc4

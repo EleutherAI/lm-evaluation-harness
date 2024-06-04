@@ -1,0 +1,3 @@
+include: paloma.yaml
+task: paloma_dolma-v1_5
+dataset_name: dolma-v1_5

@@ -1,0 +1,3 @@
+include: paloma.yaml
+task: paloma_redpajama
+dataset_name: redpajama

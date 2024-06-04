@@ -1,0 +1,3 @@
+include: paloma.yaml
+task: paloma_c4_en
+dataset_name: c4_en

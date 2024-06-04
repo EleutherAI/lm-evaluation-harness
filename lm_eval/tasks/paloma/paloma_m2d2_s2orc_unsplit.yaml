@@ -1,0 +1,3 @@
+include: paloma.yaml
+task: paloma_m2d2_s2orc_unsplit
+dataset_name: m2d2_s2orc_unsplit
