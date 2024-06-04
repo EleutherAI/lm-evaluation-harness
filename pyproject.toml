@@ -35,6 +35,7 @@ dependencies = [
     "torch>=1.8",
     "tqdm-multiprocess",
     "transformers>=4.1",
+    "sentence-transformers>=2.7",
     "zstandard",
     "dill",
     "word2number",

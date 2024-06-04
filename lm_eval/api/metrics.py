@@ -9,6 +9,8 @@ import numpy as np
 import sacrebleu
 import sklearn.metrics
 
+from sentence_transformers import SentenceTransformer, CrossEncoder
+
 from lm_eval.api.registry import register_aggregation, register_metric
 
 
@@ -177,6 +179,39 @@ exact_match = hf_evaluate.load("exact_match")
 def exact_match_fn(**kwargs):
     return exact_match.compute(**kwargs)
 
+
+@register_metric(
+    metric="sas_encoder",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="mean",
+)
+def sas_encoder(**kwargs):
+    if "loaded_models" not in sas_encoder.__dict__:
+        sas_encoder.loaded_models = {}
+    model_name_or_path = kwargs["model_name_or_path"]
+    if model_name_or_path not in sas_encoder.loaded_models:
+        sas_encoder.loaded_models[model_name_or_path] = SentenceTransformer(model_name_or_path)
+    sas_model = sas_encoder.loaded_models[model_name_or_path]
+    preds = sas_model.encode(kwargs["predictions"])[0]
+    refs = sas_model.encode(kwargs["references"])[0]
+    return np.dot(refs, preds)/(np.linalg.norm(preds)*np.linalg.norm(refs))
+
+@register_metric(
+    metric="sas_cross_encoder",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="mean",
+)
+def sas_cross_encoder(**kwargs):
+    if "loaded_models" not in sas_cross_encoder.__dict__:
+        sas_cross_encoder.loaded_models = {}
+    model_name_or_path = kwargs["model_name_or_path"]
+    if model_name_or_path not in sas_cross_encoder.loaded_models:
+        sas_cross_encoder.loaded_models[model_name_or_path] = CrossEncoder(model_name_or_path)
+    sas_model = sas_cross_encoder.loaded_models[model_name_or_path]
+    return sas_model.predict(kwargs["predictions"]+kwargs["references"])
+    
 
 @register_metric(
     metric="perplexity",
