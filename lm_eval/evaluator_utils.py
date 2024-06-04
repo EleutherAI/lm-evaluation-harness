@@ -102,7 +102,7 @@ class TaskOutput:
             metric_key = f"{metric},{filter_key}"
             self.agg_metrics[metric_key] = agg_fn(items)
             self.sample_len = len(items)  # TODO: same sample size for each metric?
-            if bootstrap_iters:
+            if isinstance(bootstrap_iters, int):
                 stderr_fn = metrics.stderr_for_metric(
                     metric=agg_fn,
                     bootstrap_iters=min(bootstrap_iters, 100)
@@ -111,6 +111,10 @@ class TaskOutput:
                 )
                 self.agg_metrics[f"{metric}_stderr,{filter_key}"] = (
                     stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
+                )
+            else:
+                raise ValueError(
+                    f"Received bootstrap_iters '{bootstrap_iters}' but expected an integer. Set to 0 to turn off stderr calculations."
                 )
 
     def __repr__(self):
@@ -141,7 +145,8 @@ def get_subtask_list(task_dict, task_root=None, depth=0):
     subtask_list = {}
     for group_obj, task_obj in task_dict.items():
         if isinstance(group_obj, ConfigurableGroup):
-            group_name = group_obj.group_name
+            # group_name = group_obj.group_name
+            group_name = group_obj.task_id
         else:
             group_name = group_obj
         if isinstance(task_obj, dict):
@@ -160,9 +165,11 @@ def get_subtask_list(task_dict, task_root=None, depth=0):
             subtask_list = {**subtask_list, **_subtask_list}
         else:
             if isinstance(task_obj, ConfigurableGroup):
-                group_or_task_name = task_obj.group_name
+                # group_or_task_name = task_obj.group_name
+                group_or_task_name = task_obj.task_id
             elif isinstance(task_obj, ConfigurableTask):
-                group_or_task_name = task_obj.task_name
+                # group_or_task_name = task_obj.task_name
+                group_or_task_name = task_obj.task_id
 
             if task_root is None:
                 subtask_list.setdefault((group_or_task_name, depth), [])
@@ -235,10 +242,7 @@ def prepare_print_tasks(
                 name = task_or_group_obj.task_id
             from_configurable_group = False
 
-        task_agg[name] = {
-            **{"task_or_group_name": string_name},
-            **results[name].copy(),
-        }
+        task_agg[name] = results[name].copy()
         if from_configurable_group:
             if task_or_group_name.group_alias is not None:
                 alias = task_or_group_name.group_alias
@@ -309,6 +313,9 @@ def consolidate_results(
     configs = collections.defaultdict(dict)
     # Tracks each task's version.
     versions = collections.defaultdict(dict)
+    # Track `higher_is_better` for each metric
+    higher_is_better = collections.defaultdict(dict)
+
     for task_output in eval_tasks:
         # results[task_output.task_id]["task"] = task_output.task_name
         if "task_alias" in (task_config := task_output.task_config):
@@ -322,6 +329,7 @@ def consolidate_results(
         configs[task_output.task_id] = task_output.task_config
         versions[task_output.task_id] = task_output.version
         samples[task_output.task_id] = task_output.logged_samples
+        higher_is_better[task_output.task_id] = task_output.task.higher_is_better()
         for (metric, filter_key), items in task_output.sample_metrics.items():
             metric_key = f"{metric},{filter_key}"
             results[task_output.task_id][metric_key] = task_output.agg_metrics[
@@ -331,7 +339,7 @@ def consolidate_results(
             results[task_output.task_id][
                 f"{metric}_stderr,{filter_key}"
             ] = task_output.agg_metrics[f"{metric}_stderr,{filter_key}"]
-    return results, samples, configs, versions, num_fewshot
+    return results, samples, configs, versions, num_fewshot, higher_is_better
 
 
 @positional_deprecated

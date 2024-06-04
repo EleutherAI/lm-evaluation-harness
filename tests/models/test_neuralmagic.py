@@ -1,6 +1,6 @@
 import pytest
 
-import lm_eval.evaluator as evaluator
+from lm_eval import evaluator
 from lm_eval.api.registry import get_model
 
 
