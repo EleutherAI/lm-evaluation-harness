@@ -218,6 +218,7 @@ Metrics:
 * `acc` (accuracy)
 * `acc_norm` (length-normalized accuracy)
 * `acc_mutual_info` (baseline loglikelihood - normalized accuracy)
+* `cm` (confusion matrix)
 * `perplexity`
 * `word_perplexity` (perplexity per word)
 * `byte_perplexity` (perplexity per byte)

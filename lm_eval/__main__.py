@@ -10,7 +10,12 @@ from lm_eval import evaluator, utils
 from lm_eval.evaluator import request_caching_arg_to_dict
 from lm_eval.loggers import EvaluationTracker, WandbLogger
 from lm_eval.tasks import TaskManager
-from lm_eval.utils import handle_non_serializable, make_table, simple_parse_args_string
+from lm_eval.utils import (
+    handle_non_serializable,
+    make_confusion_matrix,
+    make_table,
+    simple_parse_args_string,
+)
 
 
 def _int_or_none_list_arg_type(
@@ -438,6 +443,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         print(make_table(results))
         if "groups" in results:
             print(make_table(results, "groups"))
+        print(make_confusion_matrix(results))
 
         if args.wandb_args:
             # Tear down wandb run once all the logging is done.
