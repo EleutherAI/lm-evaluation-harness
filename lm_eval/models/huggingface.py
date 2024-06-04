@@ -13,6 +13,7 @@ from accelerate import (
     InitProcessGroupKwargs,
     find_executable_batch_size,
 )
+from accelerate.utils import get_max_memory
 from huggingface_hub import HfApi
 from packaging import version
 from peft import PeftModel
@@ -37,31 +38,6 @@ from lm_eval.models.utils import (
 
 
 eval_logger = utils.eval_logger
-
-
-def _get_accelerate_args(
-    device_map_option: Optional[str] = "auto",
-    max_memory_per_gpu: Optional[Union[int, str]] = None,
-    max_cpu_memory: Optional[Union[int, str]] = None,
-    offload_folder: Optional[str] = "./offload",
-    gpus: Optional[int] = None,
-) -> dict:
-    """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
-    max_memory = {}
-    if max_memory_per_gpu is not None:
-        max_memory_per_gpu_map = {
-            device_idx: max_memory_per_gpu for device_idx in range(gpus)
-        }
-        max_memory.update(max_memory_per_gpu_map)
-    if max_cpu_memory is not None:
-        max_memory["cpu"] = max_cpu_memory
-
-    args = {}
-    if max_memory:
-        args["max_memory"] = max_memory
-    args["device_map"] = device_map_option
-    args["offload_folder"] = offload_folder
-    return args
 
 
 @register_model("hf-auto", "hf", "huggingface")
@@ -104,7 +80,6 @@ class HFLM(TemplateLM):
         # arguments used for splitting a model across GPUs naively.
         # only used if `parallelize=True`.
         parallelize: Optional[bool] = False,
-        device_map_option: Optional[str] = "auto",
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
         offload_folder: Optional[Union[str, os.PathLike]] = "./offload",
@@ -127,21 +102,6 @@ class HFLM(TemplateLM):
             self._config = self._model.config
             gpus = 0
 
-            if tokenizer:
-                assert isinstance(
-                    tokenizer, transformers.PreTrainedTokenizer
-                ) or isinstance(tokenizer, transformers.PreTrainedTokenizerFast)
-                self.tokenizer = tokenizer
-            else:
-                # Get tokenizer
-                model_name = self._model.name_or_path
-                self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                    model_name,
-                    revision=revision,
-                    trust_remote_code=trust_remote_code,
-                    use_fast=use_fast_tokenizer,
-                )
-
         else:
             assert isinstance(device, str)
             assert isinstance(pretrained, str)
@@ -153,7 +113,7 @@ class HFLM(TemplateLM):
             if accelerator.num_processes > 1:
                 self.accelerator = accelerator
 
-            if not (parallelize or accelerator.num_processes > 1):
+            if not (parallelize or accelerator.num_processes > 1): # Parallelism managed manually
                 # use user-passed device
                 device_list = set(
                     ["cuda", "cpu"]
@@ -177,13 +137,13 @@ class HFLM(TemplateLM):
                         if torch.cuda.is_available()
                         else torch.device("cpu")
                     )
-            else:
+            else: # Parallelism managed by accelerate
                 if device != "cuda":
                     eval_logger.info(
                         f"Using `accelerate launch` or `parallelize=True`, device '{device}' will be overridden when placing model."
                     )
                 # TODO: include in warning that `load_in_8bit` etc. affect this too
-                self._device = torch.device(device)
+                self._device = self.accelerator.device if self.accelerator is not None else torch.device(device)
 
             # TODO: update this to be less of a hack once subfolder is fixed in HF
             revision = revision + ("/" + subfolder if subfolder is not None else "")
@@ -191,7 +151,7 @@ class HFLM(TemplateLM):
             self._get_config(
                 pretrained,
                 revision=revision,
-                trust_remote_code=trust_remote_code,
+                trust_remote_code=trust_remote_code, 
             )
 
         # determine which of 'causal' and 'seq2seq' backends to use
@@ -217,7 +177,6 @@ class HFLM(TemplateLM):
                 trust_remote_code=trust_remote_code,
                 parallelize=parallelize,
                 gpus=gpus,
-                device_map_option=device_map_option,
                 max_memory_per_gpu=max_memory_per_gpu,
                 max_cpu_memory=max_cpu_memory,
                 offload_folder=offload_folder,
@@ -231,19 +190,6 @@ class HFLM(TemplateLM):
         if isinstance(self.model, torch.nn.Module):
             self.model.eval()
             self.model.tie_weights()
-
-        if isinstance(pretrained, str) and (gpus >= 1 or str(self.device) == "mps"):
-            # TODO: can remove this whole snippet except in the mps case, perhaps?
-            if not (parallelize or autogptq or hasattr(self, "accelerator")):
-                # place model onto device requested manually,
-                # if not using HF Accelerate or device_map
-                # or any other option that preloads model onto device
-                try:
-                    self.model.to(self.device)
-                except ValueError:
-                    eval_logger.debug(
-                        "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes` or `device_map` is provided. If the desired GPU is being used, this message is safe to ignore."
-                    )
 
         self.truncation = truncation
         self.logits_cache = logits_cache
@@ -297,6 +243,18 @@ class HFLM(TemplateLM):
             self.batch_size_per_gpu = int(batch_size)
 
         if isinstance(pretrained, str):
+            if (gpus >= 1 or str(self.device) == "mps"):
+                # TODO: can remove this whole snippet except in the mps case, perhaps?
+                if not (parallelize or autogptq or hasattr(self, "accelerator")):
+                    # place model onto device requested manually,
+                    # if not using HF Accelerate or device_map
+                    # or any other option that preloads model onto device
+                    try:
+                        self.model.to(self.device)
+                    except ValueError:
+                        eval_logger.debug(
+                            "Failed to place model onto specified device. This may be because the model is quantized via `bitsandbytes` or `device_map` is provided. If the desired GPU is being used, this message is safe to ignore."
+                        )
             # multigpu data-parallel support when launched with accelerate
             if gpus > 1:
                 if parallelize:
@@ -352,6 +310,77 @@ class HFLM(TemplateLM):
             eval_logger.info(
                 f"Loglikelihood prefix token id used in evaluation: {self.prefix_token_id}"
             )
+
+    def _get_accelerate_args(
+        self,
+        parallelize: bool = None,
+        device_map: Optional[str] = "auto",
+        max_memory_per_gpu: Optional[Union[int, str]] = None,
+        max_cpu_memory: Optional[Union[int, str]] = None,
+        offload_folder: Optional[str] = "./offload",
+        gpus: Optional[int] = None,
+    ) -> dict:
+        """Returns the kwargs needed to apply `accelerate` in `AutoModel.from_pretrained`."""
+        num_local_processes = int(os.environ.get("LOCAL_WORLD_SIZE", 1))
+        num_machines = int(os.environ.get("WORLD_SIZE", 0)) // num_local_processes
+        if num_machines == 0:
+            eval_logger.info("We are not in a distributed setting. Setting model_parallel to False.")
+            parallelize = False
+
+        if parallelize is None: 
+            # If parallelism is unset by the user, we automatically assign model parallelism
+            # if enough extra GPUs are available
+            max_memory_all_gpus = get_max_memory()
+            # We just want gpu, not cpu, max memory
+            if "cpu" in max_memory_all_gpus:
+                del max_memory_all_gpus["cpu"]
+            model_parallel = bool(num_local_processes < len(max_memory_all_gpus))
+            eval_logger.info(
+                f"Setting model parallel to {model_parallel} since "
+                f"the number of local processes is {num_local_processes} "
+                f"and the number of GPUs is {len(max_memory_all_gpus)}"
+            )
+
+        args = {}
+        if parallelize: # Model parallelism will be used
+            max_memory = {}
+            if max_memory_per_gpu is not None: # Using the provided memory requirements
+                max_memory_per_gpu_map = {device_idx: max_memory_per_gpu for device_idx in range(gpus)}
+            else: # Estimating the possible memory requirements
+                max_memory_all_gpus = get_max_memory() 
+                if "cpu" in max_memory_all_gpus:
+                    del max_memory_all_gpus["cpu"]
+                max_memory_per_gpu_map = {
+                    k: v
+                    for k, v in max_memory_all_gpus.items()
+                    if k % num_local_processes == (self.accelerator.process_index % num_local_processes)
+                }
+            args["max_memory"] = max_memory_per_gpu_map
+            args["device_map"] = "auto"
+            eval_logger.info(
+                f"Model parallel was set to True, setting max memory per GPU to {max_memory_per_gpu_map} and device map to 'auto'"
+            )
+
+            if max_cpu_memory is not None:
+                max_memory["cpu"] = max_cpu_memory
+
+            args["offload_folder"] = offload_folder
+        elif device_map is None: # No model parallelism, we use the default provided device for our model
+            if hasattr(self, "accelerator"):
+                device_map = {"": f"{self.accelerator.device}"}
+            else:
+                device_map = {"": str(self.device)}
+            args["max_memory"] = None
+            args["device_map"] = device_map
+            eval_logger.info(
+                f"Model parallel was set to False, max memory was not set, and device map was set to {device_map}"
+            )
+        else:
+            args["max_memory"] = None
+            args["device_map"] = None
+            eval_logger.info("Model parallel was set to False.")
+
+        return args
 
     @property
     def config(self):
@@ -489,7 +518,6 @@ class HFLM(TemplateLM):
         # (accelerate naive PP (device_map) options)
         parallelize: Optional[bool] = False,
         gpus: Optional[int] = None,
-        device_map_option: Optional[str] = "auto",
         max_memory_per_gpu: Optional[Union[int, str]] = None,
         max_cpu_memory: Optional[Union[int, str]] = None,
         offload_folder: Optional[str] = "./offload",
@@ -513,25 +541,16 @@ class HFLM(TemplateLM):
 
         model_kwargs = kwargs if kwargs else {}
 
-        if parallelize:
-            model_kwargs.update(
-                _get_accelerate_args(
-                    device_map_option,  # TODO: phase out device_map_option?
-                    max_memory_per_gpu,
-                    max_cpu_memory,
-                    offload_folder,
-                    gpus,
-                )
+        model_kwargs.update(
+            self._get_accelerate_args(
+                parallelize=parallelize,
+                device_map=kwargs.get("device_map", None),
+                max_memory_per_gpu=max_memory_per_gpu,
+                max_cpu_memory=max_cpu_memory,
+                offload_folder=offload_folder,
+                gpus=gpus,
             )
-        elif "device_map" not in model_kwargs:
-            # set a device_map to initialize model on the right GPU.
-            # this is needed because it seems that the default behavior
-            # for quantized models now seems to be device_map="auto"
-            # which breaks data-parallel mode.
-            if hasattr(self, "accelerator"):
-                model_kwargs.update({"device_map": {"": f"{self.accelerator.device}"}})
-            else:
-                model_kwargs.update({"device_map": {"": str(self.device)}})
+        )
 
         if not autogptq:
             if model_kwargs.get("load_in_4bit", None):
