@@ -21,7 +21,8 @@ from lm_eval.evaluator_utils import (
     print_writeout,
     run_task_tests,
 )
-from lm_eval.logging.utils import add_env_info, get_git_commit_hash
+from lm_eval.loggers import EvaluationTracker
+from lm_eval.loggers.utils import add_env_info, get_git_commit_hash
 from lm_eval.tasks import TaskManager, get_task_dict
 from lm_eval.utils import (
     eval_logger,
@@ -55,6 +56,10 @@ def simple_evaluate(
     check_integrity: bool = False,
     write_out: bool = False,
     log_samples: bool = True,
+    evaluation_tracker: Optional[EvaluationTracker] = None,
+    system_instruction: Optional[str] = None,
+    apply_chat_template: bool = False,
+    fewshot_as_multiturn: bool = False,
     gen_kwargs: Optional[str] = None,
     task_manager: Optional[TaskManager] = None,
     verbosity: str = "INFO",
@@ -92,13 +97,19 @@ def simple_evaluate(
     :param limit: int or float, optional
         Limit the number of examples per task (only use this for testing), If <1, limit is a percentage of the total number of examples.
     :param bootstrap_iters:
-        Number of iterations for bootstrap statistics
+        Number of iterations for bootstrap statistics, used when calculating stderrs. set to 0 for no stderr calculations to be performed.
     :param check_integrity: bool
         Whether to run the relevant part of the test suite for the tasks
     :param write_out: bool
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param system_instruction: str
+        System instruction to be applied to the prompt
+    :param apply_chat_template: bool
+        If True, apply chat template to the prompt
+    :param fewshot_as_multiturn: bool
+        Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
@@ -241,17 +252,26 @@ def simple_evaluate(
                     f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
                 )
                 task_obj.set_config(key="num_fewshot", value=num_fewshot)
-            task_obj.set_fewshot_seed(seed=fewshot_random_seed)
-            eval_logger.info(
-                f"Setting fewshot random generator seed to {fewshot_random_seed}"
-            )
         else:
             # if num_fewshot not provided, and the task does not define a default one, default to 0
             if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
                 task_obj.set_config(key="num_fewshot", value=0)
+        # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
+        task_obj.set_fewshot_seed(seed=fewshot_random_seed)
+        eval_logger.info(
+            f"Setting fewshot random generator seed to {fewshot_random_seed}"
+        )
 
     if check_integrity:
         run_task_tests(task_list=tasks)
+
+    if evaluation_tracker is not None:
+        evaluation_tracker.general_config_tracker.log_experiment_args(
+            model_source=model,
+            model_args=model_args,
+            system_instruction=system_instruction,
+            chat_template=lm.chat_template if apply_chat_template else None,
+        )
 
     results = evaluate(
         lm=lm,
@@ -262,6 +282,9 @@ def simple_evaluate(
         bootstrap_iters=bootstrap_iters,
         write_out=write_out,
         log_samples=log_samples,
+        system_instruction=system_instruction,
+        apply_chat_template=apply_chat_template,
+        fewshot_as_multiturn=fewshot_as_multiturn,
         verbosity=verbosity,
     )
 
@@ -317,6 +340,9 @@ def evaluate(
     bootstrap_iters: Optional[int] = 100000,
     write_out: bool = False,
     log_samples: bool = True,
+    system_instruction: Optional[str] = None,
+    apply_chat_template: bool = False,
+    fewshot_as_multiturn: bool = False,
     verbosity: str = "INFO",
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -328,11 +354,17 @@ def evaluate(
     :param limit: int, optional
         Limit the number of examples per task (only use this for testing)
     :param bootstrap_iters:
-        Number of iterations for bootstrap statistics
+        Number of iterations for bootstrap statistics, used when calculating stderr. Set to 0 for skipping all stderr calculations.
     :param write_out: bool
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param system_instruction: str
+        System instruction to be applied to the prompt
+    :param apply_chat_template: bool
+        If True, apply chat template to the prompt
+    :param fewshot_as_multiturn: bool
+        Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
     :return
         Dictionary of results
     """
@@ -362,6 +394,10 @@ def evaluate(
             world_size=lm.world_size,
             cache_requests=cache_requests,
             rewrite_requests_cache=rewrite_requests_cache,
+            system_instruction=system_instruction,
+            apply_chat_template=apply_chat_template,
+            fewshot_as_multiturn=fewshot_as_multiturn,
+            lm=lm,
         )
         eval_logger.debug(
             f"Task: {task_output.task_name}; number of requests on this rank: {len(task.instances)}"
@@ -503,9 +539,14 @@ def evaluate(
         # aggregate results ; run bootstrap CIs
         for task_output in eval_tasks:
             task_output.calculate_aggregate_metric(bootstrap_iters=bootstrap_iters)
-        results, samples, configs, versions, num_fewshot = consolidate_results(
-            eval_tasks
-        )
+        (
+            results,
+            samples,
+            configs,
+            versions,
+            num_fewshot,
+            higher_is_better,
+        ) = consolidate_results(eval_tasks)
 
         ### Calculate group metrics ###
         if bool(results):
@@ -516,6 +557,27 @@ def evaluate(
                     # or `task_name: []`.
                     # we only want to operate on groups here.
                     continue
+
+                # collect all higher_is_better values for metrics
+                # in the group's subtasks.
+                # TODO: clean this up ; unify with the below metric_list loop?
+                _higher_is_better = {}
+                for task in task_list:
+                    for m, h in higher_is_better[task].items():
+                        if m not in _higher_is_better.keys():
+                            _higher_is_better[m] = h
+                    if (
+                        m in _higher_is_better
+                        and _higher_is_better[m] is not None
+                        and _higher_is_better[m] != h
+                    ):
+                        eval_logger.warning(
+                            f"Higher_is_better values for metric {m} in group {group} are not consistent. Defaulting to None."
+                        )
+                        _higher_is_better[m] = None
+                higher_is_better[group] = _higher_is_better
+
+                # collect all metric keys used by a subtask in the group.
                 metric_list = list(
                     {
                         key
@@ -591,6 +653,7 @@ def evaluate(
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
             "n-shot": dict(sorted(num_fewshot.items())),
+            "higher_is_better": dict(sorted(higher_is_better.items())),
             "n-samples": {
                 task_output.task_name: {
                     "original": len(task_output.task.eval_docs),

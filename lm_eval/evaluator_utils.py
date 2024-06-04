@@ -97,7 +97,7 @@ class TaskOutput:
             metric_key = f"{metric},{filter_key}"
             self.agg_metrics[metric_key] = agg_fn(items)
             self.sample_len = len(items)  # TODO: same sample size for each metric?
-            if bootstrap_iters:
+            if isinstance(bootstrap_iters, int):
                 stderr_fn = metrics.stderr_for_metric(
                     metric=agg_fn,
                     bootstrap_iters=min(bootstrap_iters, 100)
@@ -106,6 +106,10 @@ class TaskOutput:
                 )
                 self.agg_metrics[f"{metric}_stderr,{filter_key}"] = (
                     stderr_fn(items) if (stderr_fn and len(items) > 1) else "N/A"
+                )
+            else:
+                raise ValueError(
+                    f"Received bootstrap_iters '{bootstrap_iters}' but expected an integer. Set to 0 to turn off stderr calculations."
                 )
 
     def __repr__(self):
@@ -249,6 +253,9 @@ def consolidate_results(
     configs = collections.defaultdict(dict)
     # Tracks each task's version.
     versions = collections.defaultdict(dict)
+    # Track `higher_is_better` for each metric
+    higher_is_better = collections.defaultdict(dict)
+
     for task_output in eval_tasks:
         if "task_alias" in (task_config := task_output.task_config):
             results[task_output.task_name]["alias"] = task_config["task_alias"]
@@ -259,6 +266,7 @@ def consolidate_results(
         configs[task_output.task_name] = task_output.task_config
         versions[task_output.task_name] = task_output.version
         samples[task_output.task_name] = task_output.logged_samples
+        higher_is_better[task_output.task_name] = task_output.task.higher_is_better()
         for (metric, filter_key), items in task_output.sample_metrics.items():
             metric_key = f"{metric},{filter_key}"
             results[task_output.task_name][metric_key] = task_output.agg_metrics[
@@ -268,7 +276,7 @@ def consolidate_results(
             results[task_output.task_name][
                 f"{metric}_stderr,{filter_key}"
             ] = task_output.agg_metrics[f"{metric}_stderr,{filter_key}"]
-    return results, samples, configs, versions, num_fewshot
+    return results, samples, configs, versions, num_fewshot, higher_is_better
 
 
 @positional_deprecated
