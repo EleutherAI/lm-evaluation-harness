@@ -257,13 +257,10 @@ class HFLM(TemplateLM):
                         )
             # multigpu data-parallel support when launched with accelerate
             if gpus > 1:
-                if parallelize:
-                    if accelerator.num_processes > 1:
-                        raise RuntimeError(
-                            "Attempted to use both a HF Accelerate `device_map` and to launch via `accelerate launch`. If this is the case, please either remove `parallelize=True` from --model_args or launch outside of the Accelerate launcher."
-                        )
-                    else:
-                        pass
+                if parallelize and accelerator.num_processes > 1:
+                    eval_logger.warning(
+                        "You are both using a HF Accelerate `device_map` and launching via `accelerate launch`. This will attempt to do model and data parallelism depending on the resources available."
+                    )
                 elif accelerator.num_processes == 1:
                     # if we aren't launching via accelerate, ditch
                     self._rank = 0
