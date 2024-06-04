@@ -183,6 +183,17 @@ class TaskManager:
                 name_or_config = {"task": name_or_config, **update_config}
             elif self._name_is_task(name_or_config):
                 task_config = self._get_config(name_or_config)
+                doc_to_text = task_config.get("doc_to_text", None)
+                if isinstance(doc_to_text, list):
+                    _task_list = {}
+                    for idx, _doc_to_text in enumerate(doc_to_text):
+                        _task_config = task_config.copy()
+                        _task_config["doc_to_text"] = _doc_to_text
+                        _task_list = {
+                            **_task_list,
+                            **_load_task(_task_config, task=f"{name_or_config}-{idx}")
+                            }
+                    return _task_list
                 return _load_task(task_config, task=name_or_config)
             else:
                 subtask_list = self._get_tasklist(name_or_config)
@@ -243,6 +254,17 @@ class TaskManager:
                         }
                     else:
                         task_config = name_or_config
+                    doc_to_text = task_config.get("doc_to_text", None)
+                    if isinstance(doc_to_text, list):
+                        _task_list = {}
+                        for idx, _doc_to_text in enumerate(doc_to_text):
+                            _task_config = task_config.copy()
+                            _task_config["doc_to_text"] = _doc_to_text
+                            _task_list = {
+                                **_task_list,
+                                **_load_task(_task_config, task=f"{name}-{idx}")
+                                }
+                        return _task_list
                     return _load_task(task_config, task=name)
             else:
                 group_config, update_config = _process_group_config(name_or_config)
