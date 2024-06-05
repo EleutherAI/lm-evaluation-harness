@@ -9,6 +9,15 @@ Paloma is a comprehensive benchmark designed to evaluate open language models ac
 
 Homepage: https://allenai.org/olmo
 
+
+### Note
+
+If you are running the entire `paloma` benchmark (or just `paloma_dolma_100_programing_languages`) with a HuggingFace model, make sure to pass `logits_cache=False` to `--model_args`, for example:
+```
+lm_eval --model hf --model_args pretrained=EleutherAI/pythia-160m,logits_cache=False --tasks paloma
+```
+
+
 ### Citation
 ```
 @article{paloma,
