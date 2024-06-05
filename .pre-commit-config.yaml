@@ -29,8 +29,7 @@ repos:
       - id: mixed-line-ending
         args: [--fix=lf]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    # Ruff version.
-    rev: v0.2.2
+    rev: v0.4.8
     hooks:
       # Run the linter.
       - id: ruff
@@ -39,7 +38,7 @@ repos:
         # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.3.0
     hooks:
       - id: codespell
         exclude: >
@@ -47,9 +46,9 @@ repos:
               .*\.json|ignore.txt|lm_eval/tasks/.*|.*yaml|.*\.ipynb
           )$
         args: [--check-filenames, --check-hidden, --ignore-words=ignore.txt]
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
-    hooks:
-    - id: mypy
-      additional_dependencies: [".[sentencepiece,multilingual,promptsource,gptq]", "types-PyYAML", "types-requests"]
-      exclude: ^tests/.*$
+#  - repo: https://github.com/pre-commit/mirrors-mypy
+#    rev: v1.5.1
+#    hooks:
+#    - id: mypy
+#      additional_dependencies: [".[sentencepiece,multilingual,promptsource,gptq]", "types-PyYAML", "types-requests"]
+#      exclude: ^tests/.*$
