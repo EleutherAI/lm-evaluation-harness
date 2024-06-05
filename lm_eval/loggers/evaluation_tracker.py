@@ -17,9 +17,14 @@ from huggingface_hub import (
 
 from lm_eval.utils import (
     eval_logger,
+    get_file_datetime,
+    get_file_task_name,
+    get_results_filenames,
+    get_sample_results_filenames,
     handle_non_serializable,
     hash_string,
     sanitize_list,
+    sanitize_task_name,
 )
 
 
@@ -319,23 +324,14 @@ class EvaluationTracker:
         Creates a metadata card for the evaluation results dataset and pushes it to the Hugging Face hub.
         """
 
-        def get_file_task_name(filename: str) -> str:
-            return filename[filename.find("_") + 1 : filename.rfind("_")]
-
-        def get_file_datetime(filename: str) -> str:
-            return filename[filename.rfind("_") + 1 :].replace(".json", "")
-
-        def sanitize_task_name(task_name: str) -> str:
-            return re.sub(r"\W", "_", task_name)
-
         eval_logger.info("Recreating metadata card")
         repo_id = (
             self.hub_results_repo if self.public_repo else self.hub_results_repo_private
         )
 
         files_in_repo = self.api.list_repo_files(repo_id=repo_id, repo_type="dataset")
-        results_files = [f for f in files_in_repo if "/results_" in f and ".json" in f]
-        sample_files = [f for f in files_in_repo if "/samples_" in f and ".json" in f]
+        results_files = get_results_filenames(files_in_repo)
+        sample_files = get_sample_results_filenames(files_in_repo)
 
         # Build a dictionary to store the latest evaluation datetime for:
         # - Each tested model and its aggregated results
