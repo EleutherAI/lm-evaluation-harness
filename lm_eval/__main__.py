@@ -318,9 +318,13 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         eval_logger.error("Need to specify task to evaluate.")
         sys.exit()
     elif args.tasks == "list":
-        eval_logger.info(
-            "Available Tasks:\n - {}".format("\n - ".join(task_manager.all_tasks))
-        )
+        eval_logger.info(task_manager.list_all_tasks())
+        sys.exit()
+    elif args.tasks == "list_groups":
+        eval_logger.info(task_manager.list_all_tasks(list_subtasks=False))
+        sys.exit()
+    elif args.tasks == "list_subtasks":
+        eval_logger.info(task_manager.list_all_tasks(list_groups=False))
         sys.exit()
     else:
         if os.path.isdir(args.tasks):
