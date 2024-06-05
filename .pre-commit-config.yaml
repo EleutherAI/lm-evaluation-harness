@@ -10,6 +10,7 @@ repos:
       - id: check-case-conflict
       - id: check-json
       - id: check-merge-conflict
+        args: [--assume-in-merge]
       - id: check-symlinks
       - id: check-yaml
         args: ["--unsafe"]
