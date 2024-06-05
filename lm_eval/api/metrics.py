@@ -119,11 +119,9 @@ def ter(items):
 @register_aggregation("brier_score")
 def brier_score(items):  # This is a passthrough function
     gold, predictions = list(zip(*items))
-    bs, num_class = np.array(predictions).shape
-
-    gold = list(gold)
-    gold_one_hot = np.eye(num_class)[gold]
-    return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
+    predictions = np.array(predictions)
+    gold = np.expand_dims(np.array(gold), axis=1)
+    return np.mean(np.sum((1 - predictions[gold]) ** 2, axis=1))
 
 
 @register_metric(
