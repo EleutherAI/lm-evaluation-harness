@@ -1,3 +1,4 @@
 include: paloma.yaml
 task: paloma_twitterAAE_HELM_fixed
+task_alias: twitterAAE_HELM_fixed
 dataset_name: twitterAAE_HELM_fixed

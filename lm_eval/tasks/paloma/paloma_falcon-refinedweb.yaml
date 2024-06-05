@@ -1,3 +1,4 @@
 include: paloma.yaml
 task: paloma_falcon-refinedweb
+task_alias: falcon-refinedweb
 dataset_name: falcon-refinedweb
