@@ -16,5 +16,5 @@ All tasks are multiple choice questions with 4 options, only one correct option.
 
 - `glianorex`: Evaluates all tasks listed below.
 
-- `glianorex_en`: Evaluates the accuracy on 264 questions in English. 
-- `glianorex_fr`: Evaluates the accuracy on 264 questions in French. 
+- `glianorex_en`: Evaluates the accuracy on 264 questions in English.
+- `glianorex_fr`: Evaluates the accuracy on 264 questions in French.
