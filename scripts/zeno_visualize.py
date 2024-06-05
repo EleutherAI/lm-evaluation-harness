@@ -56,7 +56,7 @@ def main():
     model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
     model_results_filenames = get_results_filenames(model_files)
     latest_results = get_latest_filename(model_results_filenames)
-    tasks = set(tasks_for_model(latest_results))
+    tasks = set(tasks_for_results(latest_results))
 
     # Get tasks names from the latest results file for each model
     # Get intersection of tasks for all models
@@ -67,7 +67,7 @@ def main():
         model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
         model_results_filenames = get_results_filenames(model_files)
         latest_results = get_latest_filename(model_results_filenames)
-        model_tasks = set(tasks_for_model(Path(latest_results)))
+        model_tasks = set(tasks_for_results(Path(latest_results)))
         tasks.intersection(set(model_tasks))
 
         if task_count != len(tasks):
@@ -145,7 +145,7 @@ def main():
             )
 
 
-def tasks_for_model(results_filename: str) -> List[str]:
+def tasks_for_results(results_filename: str) -> List[str]:
     """Get the tasks from a specific results file.
 
     Args:
@@ -155,6 +155,23 @@ def tasks_for_model(results_filename: str) -> List[str]:
         list: A list of tasks for the model.
     """
     config = (json.load(open(results_filename, encoding="utf-8"))["configs"],)
+    return list(config[0].keys())
+
+
+def tasks_for_model(model: str, data_path: str):
+    """Get the tasks for a specific model.
+
+    Args:
+        model (str): The name of the model.
+        data_path (str): The path to the data.
+
+    Returns:
+        list: A list of tasks for the model.
+    """
+    dir_path = Path(data_path, model)
+    config = (
+        json.load(open(Path(dir_path, "results.json"), encoding="utf-8"))["configs"],
+    )
     return list(config[0].keys())
 
 
