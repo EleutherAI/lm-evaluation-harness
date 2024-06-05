@@ -1,6 +1,7 @@
+import string
+
 import evaluate
-import json 
-import string 
+
 
 def clean_text(text: str) -> str:
     # Remove punctuation
@@ -15,6 +16,7 @@ def clean_text(text: str) -> str:
 
     return text
 
+
 def rouge1(items):
     """
     # passthrough for efficiency
@@ -28,16 +30,17 @@ def average_len(items):
     """
     return items
 
+
 def rouge1_agg(items):
     """
     Higher is better
     """
-    
+
     refs = list(zip(*items))[0]
     refs = [[clean_text(ref)] for ref in refs]
-    #print("refs", refs)
+    # print("refs", refs)
     preds = [clean_text(x) for x in list(zip(*items))[1]]
-    #print("preds", preds)
+    # print("preds", preds)
     rouge_scorer = evaluate.load("rouge")
     return rouge_scorer.compute(predictions=preds, references=refs)["rouge1"]
 
@@ -46,18 +49,7 @@ def average_len_agg(items):
     """
     Higher is better
     """
-    
 
     preds = [clean_text(x) for x in list(zip(*items))[1]]
-    
+
     return sum(len(x.split()) for x in preds) / len(preds)
-
-
-def process_results_gen(doc, results):
-
-    print("results",results)
-    print("doc", doc)
-
-
-def doc_to_target(doc):
-    return doc["summary"]
