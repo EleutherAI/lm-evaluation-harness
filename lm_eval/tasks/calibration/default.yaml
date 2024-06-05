@@ -1,0 +1,228 @@
+group: calibration
+task:
+  - task: adv_glue
+    metric_list:
+      - metric: brier_score
+        aggregation: brier_score
+        higher_is_better: true 
+  # - task: advanced_ai_risk
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true 
+  # - task: agieval
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: anli
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: bbh
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: bbq
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: bbq_multiple_choice
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: beavertails
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: bigbench_bbq_lite_json_multiple_choice
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: bold
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: crows_pairs_english
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: decoding_trust
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: discrim_eval
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: eq_bench
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: glue
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: gpqa
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: hendrycks_ethics
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: lambada_openai
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: logiqa
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: mc_taco
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: medqa_4options
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: minerva_math
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: moralchoice
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: persona
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: pile_10k
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: piqa
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: safety_bench
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: scrolls_quality
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: scruples
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: simple_cooccurrence_bias
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: sycophancy
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: toxigen
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: wikitext
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: winogender
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: wmdp
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: xstest
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: steer
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: drop
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: gsm8k
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: hellaswag
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: arc_challenge
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: mmlu
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: truthfulqa_mc1
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: winogrande
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+  # - task: super-glue-lm-eval-v1 
+  #   metric_list:
+  #     - metric: brier_score
+  #       aggregation: brier_score
+  #       higher_is_better: true
+    
