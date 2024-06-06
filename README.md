@@ -61,9 +61,10 @@ To evaluate a model hosted on the [HuggingFace Hub](https://huggingface.co/model
 
 ```bash
 lm_eval --model hf \
-    --model_args pretrained=google/flan-t5-small \
-    --tasks unitxt_test \
-    --device cpu
+    --model_args pretrained=EleutherAI/gpt-j-6B \
+    --tasks hellaswag \
+    --device cuda:0 \
+    --batch_size 8
 ```
 
 Additional arguments can be provided to the model constructor using the `--model_args` flag. Most notably, this supports the common practice of using the `revisions` feature on the Hub to store partially trained checkpoints, or to specify the datatype for running a model:
