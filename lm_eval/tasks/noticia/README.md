@@ -14,7 +14,7 @@ Homepage: https://github.com/ikergarcia1996/NoticIA
 
 ```
 @article{noticia2024,
-      title={NoticIA: A Clickbait Article Summarization Dataset in Spanish}, 
+      title={NoticIA: A Clickbait Article Summarization Dataset in Spanish},
       author={Iker García-Ferrero and Begoña Altuna},
       year={2024},
       journal = {Procesamiento del Lenguaje Natural},
@@ -37,7 +37,7 @@ Homepage: https://github.com/ikergarcia1996/NoticIA
 
 #### Metrics
 
-Following the original implementation, this task will compute the 'Rouge1 score' and 'Average Summary Length.' 
+Following the original implementation, this task will compute the 'Rouge1 score' and 'Average Summary Length.'
 
 ### Checklist
 
