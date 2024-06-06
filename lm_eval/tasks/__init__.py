@@ -150,7 +150,7 @@ class TaskManager:
                     **config,
                 }
             if self._config_is_python_task(config):
-                task_object = config["class"]()
+                task_object = config["class"](config=config)
             else:
                 task_object = ConfigurableTask(config=config)
             return {task: task_object}
@@ -193,9 +193,16 @@ class TaskManager:
                         group_config
                     )
                 else:
-                    group_name = ConfigurableGroup(
-                        config={"group": name_or_config, "task": subtask_list}
-                    )
+                    if self._name_is_tag(name_or_config):
+                        fn = partial(
+                            self._load_individual_task_or_group,
+                            update_config=name_or_config if isinstance(name_or_config, dict) else None,
+                        )
+                        return dict(collections.ChainMap(*map(fn, reversed(subtask_list))))
+                    else:
+                        group_name = ConfigurableGroup(
+                            config={"group": name_or_config, "task": subtask_list}
+                        )
 
         if isinstance(name_or_config, dict):
             if self._config_is_task(name_or_config):
@@ -350,11 +357,12 @@ class TaskManager:
                                 if attr == "group" and print_info:
                                     self.logger.info(
                                         "`group` and `group_alias` will no longer be used in the next release of lm-eval. "
-                                        "`tags` will be used to allow to call a collection of tasks just like `group`. "
+                                        "`tag` will be used to allow to call a collection of tasks just like `group`. "
                                         "`group` will be removed in order to not cause confusion with the new ConfigurableGroup "
                                         "which will be the offical way to create groups with addition of group-wide configuations."
                                     )
                                     print_info = False
+                                    # attr = "tag"
 
                                 attr_list = config[attr]
                                 if isinstance(attr_list, str):
