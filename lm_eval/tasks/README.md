@@ -52,7 +52,8 @@
 | [kormedmcqa](kormedmcqa/README.md) | Medical question answering tasks in Korean to test specialized domain knowledge. | Korean |
 | [lambada](lambada/README.md) | Tasks designed to predict the endings of text passages, testing language prediction skills. | English |
 | [lambada_cloze](lambada_cloze/README.md) | Cloze-style LAMBADA dataset. | English |
-| [lambada_multilingual](lambada_multilingual/README.md) | Multilingual LAMBADA dataset. | German, English, Spanish, French, Italian |
+| [lambada_multilingual](lambada_multilingual/README.md) | Multilingual LAMBADA dataset. This is a legacy version of the multilingual dataset, and users should instead use `lambada_multilingual_stablelm`. | German, English, Spanish, French, Italian |
+| [lambada_multilingual_stablelm](lambada_multilingual_stablelm/README.md) | Multilingual LAMBADA dataset. Users should prefer evaluating on this version of the multilingual dataset instead of on `lambada_multilingual`. | German, English, Spanish, French, Italian, Dutch, Portuguese |
 | [logiqa](logiqa/README.md) | Logical reasoning tasks requiring advanced inference and deduction. | English, Chinese |
 | [logiqa2](logiqa2/README.md) | Large-scale logical reasoning dataset adapted from the Chinese Civil Service Examination. | English, Chinese |
 | [mathqa](mathqa/README.md) | Question answering tasks involving mathematical reasoning and problem-solving. | English |
