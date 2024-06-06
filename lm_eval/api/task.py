@@ -61,8 +61,8 @@ class GroupConfig(dict):
     aggregate_metric: Optional[str] = False
     aggregate_fn: Optional[str] = "mean"
     weight_by_size: Optional[str] = False
-    metric_alias: Optional[str] = None
-    version: Optional[str] = 0
+    metric_alias: Optional[str] = None # Still a placeholder
+    version: Optional[int] = 0
 
     def __getitem__(self, item):
         return getattr(self, item)

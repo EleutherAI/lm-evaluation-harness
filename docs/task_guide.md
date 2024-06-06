@@ -16,7 +16,8 @@ Tasks are configured via the `TaskConfig` object. Below, we describe all fields 
 
 Task naming + registration:
 - **task** (`str`, defaults to None) — name of the task.
-- **group** (`str`, *optional*) — name of the task group(s) a task belongs to. Enables one to run all tasks with a specified tag or group name at once.
+- **task_alias** (`str`, defaults to None) - Alias of the task name that will be printed in the final table results.
+- **tag** (`str`, *optional*) — name of the task tags(s) a task belongs to. Enables one to run all tasks with a specified tag name at once.
 
 Dataset configuration options:
 - **dataset_path** (`str`) — The name of the dataset as listed by HF in the datasets Hub.
@@ -295,12 +296,29 @@ Generative tasks:
 Tasks using complex filtering:
 - GSM8k with CoT (+ with Self-Consistency): (`lm_eval/tasks/gsm8k/gsm8k-cot.yaml` ; `lm_eval/tasks/gsm8k/gsm8k-cot-self-consistency.yaml`)
 
-
-## Benchmarks
+# Group Configuration
 
 When evaluating a language model, it's is not unusual to test across a number of tasks that may not be related to one another in order to assess a variety of capabilities. To this end, it may be combursome to have to list the set of tasks or add a new group name to each yaml of each individual task.
 
-To solve this, we can create a benchmark yaml config. This is a config that contains the names of the tasks that should be included in a particular benchmark. The config consists of two main keys `group` which denotes the name of the benchmark and `task` which is where we can list the tasks. The tasks listed in `task` are the task names that have been registered. A good example would be the list of tasks used to evaluate the Pythia Suite.
+To solve this, we can create a group yaml config. This is a config that contains the names of the tasks that should be included in a particular group. The config consists of two main keys `group` which denotes the name of the group and `task` which is where we can list the tasks. The tasks listed in `task` are the task names that have been registered. A good example would be the list of tasks used to evaluate the Pythia Suite.
+
+## Configurations
+
+Tasks are configured via the `TaskConfig` object. Below, we describe all fields usable within the object, and their role in defining a task.
+
+### Parameters
+
+- **group** (`str`, defaults to `None`) — name of the group.
+- **group_alias** (`str`, defaults to `None`) - Alternative name for the group that will be printed in the table output.
+- **task** (`Union[str, list]`, defaults to `None`) - List of tasks that constitute the group.
+- **tag_to_task** (`str`, defaults to `False`) - Convert `tag` that are listed in task to be a considered as a group.
+- **aggregate_metric** (`str`, defaults to `False`) - If `True` aggregate the scores from all metrics in the tasks.
+- **aggregate_fn** (`str`, defaults to `"mean"`) - Type of aggregation done, default to average the scores per metric.
+- **weight_by_size** (`str`, defaults to `False`) - Paired with `aggregate_metric`, aggregation for each task will be averaged by number of samples over all tasks instead of averaging across tasks.
+- **metric_alias** - Still in Development
+- **version** (`int`, defaults to `0`) - Version of group config.
+
+The simplest usage of a group yaml is to just list all tasks we want in one group.
 
 ```yaml
 group: pythia
@@ -327,10 +345,8 @@ task:
   - medqa_4options
   - task: mmlu_anatomy
     task_alias: "anatomy (mmlu)"
-    group_alias: null
   - task: mmlu_clinical_knowledge
     task_alias: "clinical_knowledge (mmlu)"
-    group_alias: null
   ...
 ```
 
