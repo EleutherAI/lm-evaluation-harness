@@ -145,7 +145,7 @@ class TaskManager:
                     **config,
                 }
             if self._config_is_python_task(config):
-                task_object = config["class"]()
+                task_object = config["class"](config=config)
             else:
                 config = self._process_alias(config, group=group)
                 task_object = ConfigurableTask(config=config)
