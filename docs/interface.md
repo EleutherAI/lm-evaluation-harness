@@ -44,6 +44,12 @@ This mode supports a number of command-line arguments, the details of which can 
 
 - `--include_path` : Accepts a path to a folder. If passed, then all YAML files containing `lm-eval` compatible task configurations will be added to the task registry as available tasks. Used for when one is writing config files for their own task in a folder other than `lm_eval/tasks/`.
 
+- `--system_instruction`: Specifies a system instruction string to prepend to the prompt.
+
+- `--apply_chat_template` : If this flag is on, a chat template will be applied to the prompt. For Hugging Face models, the chat template is taken from the tokenizer, if the tokenizer does not have a chat template, a default one will be applied. For other models, chat templating is not currently implemented.
+
+- `--fewshot_as_multiturn` : If this flag is on, the Fewshot examples are treated as a multi-turn conversation. Questions are provided as user content and answers are provided as assistant responses. Requires `--num_fewshot` to be set to be greater than 0, and `--apply_chat_template` to be on.
+
 - `--predict_only`: Generates the model outputs without computing metrics. Use with `--log_samples` to retrieve decoded results.
 
 * `--seed`: Set seed for python's random, numpy and torch.  Accepts a comma-separated list of 3 values for python's random, numpy, and torch seeds, respectively, or a single integer to set the same seed for all three.  The values are either an integer or 'None' to not set the seed. Default is `0,1234,1234` (for backward compatibility).  E.g. `--seed 0,None,8` sets `random.seed(0)` and `torch.manual_seed(8)`. Here numpy's seed is not set since the second value is `None`.  E.g, `--seed 42` sets all three seeds to 42.
@@ -51,11 +57,13 @@ This mode supports a number of command-line arguments, the details of which can 
 * `--wandb_args`:  Tracks logging to Weights and Biases for evaluation runs and includes args passed to `wandb.init`, such as `project` and `job_type`. Full list [here](https://docs.wandb.ai/ref/python/init). e.g., ```--wandb_args project=test-project,name=test-run```
 
 * `--hf_hub_log_args` : Logs evaluation results to Hugging Face Hub. Accepts a string with the arguments separated by commas. Available arguments:
-    * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`,
+    * `hub_results_org` - organization name on Hugging Face Hub, e.g., `EleutherAI`. If not provided, the results will be pushed to the owner of the Hugging Face token,
     * `hub_repo_name` - repository name on Hugging Face Hub, e.g., `lm-eval-results`,
     * `push_results_to_hub` - whether to push results to Hugging Face Hub, can be `True` or `False`,
     * `push_samples_to_hub` - whether to push samples results to Hugging Face Hub, can be `True` or `False`. Requires `--log_samples` to be set,
     * `public_repo` - whether the repository is public, can be `True` or `False`,
+    * `leaderboard_url` - URL to the leaderboard, e.g., `https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard`.
+    * `point_of_contact` - Point of contact for the results dataset, e.g., `yourname@example.com`.
 
 ## External Library Usage
 

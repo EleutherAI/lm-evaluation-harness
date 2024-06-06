@@ -14,14 +14,14 @@ Homepage: https://cs.rochester.edu/nlp/rocstories/
 
 ```
 @misc{mostafazadeh2016corpus,
-      title={A Corpus and Evaluation Framework for Deeper Understanding of Commonsense Stories}, 
-      author={Nasrin Mostafazadeh and 
-      Nathanael Chambers and 
-      Xiaodong He and 
-      Devi Parikh and 
-      Dhruv Batra and 
-      Lucy Vanderwende and 
-      Pushmeet Kohli and 
+      title={A Corpus and Evaluation Framework for Deeper Understanding of Commonsense Stories},
+      author={Nasrin Mostafazadeh and
+      Nathanael Chambers and
+      Xiaodong He and
+      Devi Parikh and
+      Dhruv Batra and
+      Lucy Vanderwende and
+      Pushmeet Kohli and
       James Allen},
       year={2016},
       eprint={1604.01696},

@@ -41,7 +41,7 @@ def test_get_rolling_token_windows_v1():
     pred_length = 0
     output = []
     for input_tokens, pred_tokens in generator:
-        output.append((input_tokens, pred_tokens))
+        output.extend([(input_tokens, pred_tokens)])
         pred_length += len(pred_tokens)
     assert pred_length == len(x)
     assert gold == output
@@ -70,7 +70,7 @@ def test_get_rolling_token_windows_v2():
     pred_length = 0
     output = []
     for input_tokens, pred_tokens in generator:
-        output.append((input_tokens, pred_tokens))
+        output.extend([(input_tokens, pred_tokens)])
         pred_length += len(pred_tokens)
     assert pred_length == len(x)
     assert gold == output
@@ -115,7 +115,7 @@ def test_get_rolling_token_windows_v3():
     pred_length = 0
     output = []
     for input_tokens, pred_tokens in generator:
-        output.append((input_tokens, pred_tokens))
+        output.extend([(input_tokens, pred_tokens)])
         pred_length += len(pred_tokens)
     assert pred_length == len(x)
     assert gold == output
@@ -156,7 +156,7 @@ def test_get_rolling_token_windows_v4():
     pred_length = 0
     output = []
     for input_tokens, pred_tokens in generator:
-        output.append((input_tokens, pred_tokens))
+        output.extend([(input_tokens, pred_tokens)])
         pred_length += len(pred_tokens)
     assert pred_length == len(x)
     assert gold == output
@@ -185,7 +185,7 @@ def test_get_rolling_token_windows_v5():
     pred_length = 0
     output = []
     for input_tokens, pred_tokens in generator:
-        output.append((input_tokens, pred_tokens))
+        output.extend([(input_tokens, pred_tokens)])
         pred_length += len(pred_tokens)
     assert pred_length == len(x)
     assert gold == output
@@ -210,7 +210,7 @@ def test_get_rolling_token_windows_v6():
     pred_length = 0
     output = []
     for input_tokens, pred_tokens in generator:
-        output.append((input_tokens, pred_tokens))
+        output.extend([(input_tokens, pred_tokens)])
         pred_length += len(pred_tokens)
     assert pred_length == len(x)
     assert gold == output
@@ -273,26 +273,26 @@ class TestCollator:
 
         generation_samples = self.make_generate_sample(int(end))
         gens = Collator(generation_samples, _collate_gen, group_by="gen_kwargs")
-        chunks = gens.get_batched(n=int(batch_size), batch_fn=None)
+        chunks_gen = gens.get_batched(n=int(batch_size), batch_fn=None)
         output = []
-        for chunks in chunks:
+        group_one = end // 2
+        group_two = end - end // 2
+        is_batch = batch_size != 0
+        for chunks in chunks_gen:
             # check batching
-            group_one = end // 2
-            group_two = end - end // 2
             assert (
                 len(chunks) <= batch_size
-                if batch_size != 0
+                if is_batch
                 else len(chunks) in [group_one, group_two]
             )
             # check if reorder-er is working correctly
-            assert all(
-                len(chunks[i][0]) <= len(chunks[i - 1][0])
-                for i in range(1, len(chunks))
-            )
+            chunk_lengths = [len(chunk[0]) for chunk in chunks]
+            assert chunk_lengths == sorted(chunk_lengths, reverse=True)
             # check if grouping correctly
-            assert all(x[1] == chunks[0][1] for x in chunks)
+            chunk_to_compare = chunks[0][1]
+            assert all(x[1] == chunk_to_compare for x in chunks)
             for x in chunks:
-                output.append(x)
+                output.extend([x])
         reordered_output = gens.get_original(output)
         # check get original
         assert reordered_output == generation_samples
@@ -305,18 +305,17 @@ class TestCollator:
             loglikelihood_samples,
             _collate_log,
         )
-        chunks = loglikelihoods.get_batched(n=int(batch_size), batch_fn=None)
+        chunks_gen = loglikelihoods.get_batched(n=int(batch_size), batch_fn=None)
         output = []
-        for chunks in chunks:
+        is_batch = batch_size != 0
+        for chunks in chunks_gen:
             # check batching
-            assert len(chunks) <= batch_size if batch_size != 0 else len(chunks) == end
+            assert len(chunks) <= batch_size if is_batch else len(chunks) == end
             # check reorder
-            assert all(
-                len(chunks[i][1]) <= len(chunks[i - 1][1])
-                for i in range(1, len(chunks))
-            )
+            chunk_lengths = [len(chunk[1]) for chunk in chunks]
+            assert chunk_lengths == sorted(chunk_lengths, reverse=True)
             for x in chunks:
-                output.append(x[1])
+                output.extend([x[1]])
         # check indices
         reordered_output = loglikelihoods.get_original(output)
         assert reordered_output == [x[1] for x in loglikelihood_samples]
@@ -335,18 +334,17 @@ class TestCollator:
             group_fn=lambda a: a[-2] + a[-1][:-1],
             group_by="contexts",
         )
-        chunks = loglikelihoods.get_batched(n=int(batch_size), batch_fn=None)
+        chunks_gen = loglikelihoods.get_batched(n=int(batch_size), batch_fn=None)
         output = []
         outputs_ = []
-        for chunks in chunks:
+        is_batch = batch_size != 0
+        for chunks in chunks_gen:
             # check batching
-            if batch_size != 0:
+            if is_batch:
                 assert len(chunks) <= batch_size
             # check reorder
-            assert all(
-                len(chunks[i][1]) <= len(chunks[i - 1][1])
-                for i in range(1, len(chunks))
-            )
+            chunk_lengths = [len(chunk[1]) for chunk in chunks]
+            assert chunk_lengths == sorted(chunk_lengths, reverse=True)
             for x in chunks:
                 for request_str, cont_toks, logits in loglikelihoods.get_cache(
                     req_str="".join(x[0]),
@@ -356,8 +354,8 @@ class TestCollator:
                     .unsqueeze(0)
                     .unsqueeze(0),
                 ):
-                    output.append(x[1])
-                    outputs_.append(cont_toks)
+                    output.extend([x[1]])
+                    outputs_.extend([cont_toks])
         assert len(output) == len(outputs_)
         # check indices
         reordered_output = loglikelihoods.get_original(output)

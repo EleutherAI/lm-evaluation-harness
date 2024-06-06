@@ -15,11 +15,11 @@ base_url = "https://matthoffner-ggml-llm-api.hf.space"
 def gguf_completion_mock(base_url=None, **kwargs):
     # Generate a hash from the parameters
     hash_kwargs = {"base_url": base_url, **kwargs}
-    hash = hashlib.sha256(
+    parameters_hash = hashlib.sha256(
         json.dumps(hash_kwargs, sort_keys=True).encode("utf-8")
     ).hexdigest()
 
-    fname = f"./tests/testdata/gguf_test_{hash}.pkl"
+    fname = f"./tests/testdata/gguf_test_{parameters_hash}.pkl"
 
     if os.path.exists(fname):
         with open(fname, "rb") as fh:

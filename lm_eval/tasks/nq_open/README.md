@@ -4,7 +4,11 @@ Question Answering dataset based on aggregated user queries from Google Search.
 
 Homepage: https://research.google/pubs/natural-questions-a-benchmark-for-question-answering-research/
 
-Paper: https://storage.googleapis.com/gweb-research2023-media/pubtools/pdf/1f7b46b5378d757553d3e92ead36bda2e4254244.pdf
+Homepage: [google-research-datasets/natural-questions@master/nq_open](https://github.com/google-research-datasets/natural-questions/tree/master/nq_open)
+
+Paper: [aclanthology.org/P19-1612](https://aclanthology.org/P19-1612/)
+
+Derived from the Natural Questions dataset, introduced in https://storage.googleapis.com/gweb-research2023-media/pubtools/pdf/1f7b46b5378d757553d3e92ead36bda2e4254244.pdf .
 
 
 ### Citation
