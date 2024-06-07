@@ -1,0 +1,21 @@
+group:
+  - hellaswag_es
+task: latam_hellaswag
+dataset_path: alexandrainst/m_hellaswag
+dataset_name: es
+training_split: null
+validation_split: val
+test_split: null
+process_docs: !function utils.process_docs
+doc_to_text: "query"
+doc_to_target: "{{label.lstrip()}}"
+doc_to_choice: "choices"
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+metadata:
+  version: 1.0
