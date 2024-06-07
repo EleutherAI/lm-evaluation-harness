@@ -697,15 +697,16 @@ def evaluate(
                 for m, h in higher_is_better[task].items():
                     if m not in _higher_is_better.keys():
                         _higher_is_better[m] = h
-                if (
-                    m in _higher_is_better
-                    and _higher_is_better[m] is not None
-                    and _higher_is_better[m] != h
-                ):
-                    eval_logger.warning(
-                        f"Higher_is_better values for metric {m} in group {group} are not consistent. Defaulting to None."
-                    )
-                    _higher_is_better[m] = None
+
+                    if (
+                        m in _higher_is_better
+                        and _higher_is_better[m] is not None
+                        and _higher_is_better[m] != h
+                    ):
+                        eval_logger.warning(
+                            f"Higher_is_better values for metric {m} in group {group} are not consistent. Defaulting to None."
+                        )
+                        _higher_is_better[m] = None
             higher_is_better[group] = _higher_is_better
 
         results_dict = {
