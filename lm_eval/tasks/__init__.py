@@ -88,18 +88,34 @@ class TaskManager:
 
         subtask_table = MarkdownTableWriter()
         subtask_table.table_name = "Subtasks"
-        subtask_table.headers = ["Task", "Config Location"]
+        subtask_table.headers = ["Task", "Config Location", "Output Type"]
         st_values = []
         for t in self.all_subtasks:
             path = self.task_index[t]["yaml_path"]
+
+            output_type = ""
+
+            # read the yaml file to determine the output type
+            if path != -1:
+                config = utils.load_yaml_config(path, mode="simple")
+                if "output_type" in config:
+                    output_type = config["output_type"]
+                elif (
+                    "include" in config
+                ):  # if no output type, check if there is an include with an output type
+                    include_path = path.split("/")[:-1] + config["include"]
+                    include_config = utils.load_yaml_config(include_path, mode="simple")
+                    if "output_type" in include_config:
+                        output_type = include_config["output_type"]
+
             if path == -1:
                 path = ""
             else:
                 path = "lm_eval/tasks/" + path.split("lm_eval/tasks/")[-1]
-            st_values.append([t, path])
+            st_values.append([t, path, output_type])
         subtask_table.value_matrix = st_values
 
-        result = ""
+        result = "\n"
         if list_groups:
             result += group_table.dumps() + "\n\n"
         if list_subtasks:
