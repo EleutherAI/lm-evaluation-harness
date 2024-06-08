@@ -23,9 +23,13 @@ class TaskManager:
         self._task_index = self.initialize_tasks(include_path=include_path)
         self._all_tasks = sorted(list(self._task_index.keys()))
 
-        self._all_groups = sorted([x for x in self._all_tasks if self._task_index[x]["type"] == "group"])
-        self._all_subtasks = sorted([x for x in self._all_tasks if self._task_index[x]["type"] == "task"])
-        
+        self._all_groups = sorted(
+            [x for x in self._all_tasks if self._task_index[x]["type"] == "group"]
+        )
+        self._all_subtasks = sorted(
+            [x for x in self._all_tasks if self._task_index[x]["type"] == "task"]
+        )
+
         self.task_group_map = collections.defaultdict(list)
 
     def initialize_tasks(self, include_path: Optional[str] = None):
@@ -57,27 +61,50 @@ class TaskManager:
     @property
     def all_groups(self):
         return self._all_groups
-    
+
     @property
     def all_subtasks(self):
         return self._all_subtasks
-    
+
     @property
     def task_index(self):
         return self._task_index
-    
-    def list_all_tasks(self, list_groups = True, list_subtasks = True) -> str:            
-        list_string = ""
-        if list_groups:
-            list_string += "\nGroups:\n"
-            for g in self.all_groups:
-                list_string += f" - {g}\n"
-        if list_subtasks:
-            list_string += "\nTasks:\n"
-            for t in self.all_subtasks:
-                list_string += f" - {t}\n"
 
-        return list_string
+    def list_all_tasks(self, list_groups=True, list_subtasks=True) -> str:
+        from pytablewriter import MarkdownTableWriter
+
+        group_table = MarkdownTableWriter()
+        group_table.table_name = "Groups"
+        group_table.headers = ["Group", "Config Location"]
+        gt_values = []
+        for g in self.all_groups:
+            path = self.task_index[g]["yaml_path"]
+            if path == -1:
+                path = ""
+            else:
+                path = "lm_eval/tasks/" + path.split("lm_eval/tasks/")[-1]
+            gt_values.append([g, path])
+        group_table.value_matrix = gt_values
+
+        subtask_table = MarkdownTableWriter()
+        subtask_table.table_name = "Subtasks"
+        subtask_table.headers = ["Task", "Config Location"]
+        st_values = []
+        for t in self.all_subtasks:
+            path = self.task_index[t]["yaml_path"]
+            if path == -1:
+                path = ""
+            else:
+                path = "lm_eval/tasks/" + path.split("lm_eval/tasks/")[-1]
+            st_values.append([t, path])
+        subtask_table.value_matrix = st_values
+
+        result = ""
+        if list_groups:
+            result += group_table.dumps() + "\n\n"
+        if list_subtasks:
+            result += subtask_table.dumps() + "\n\n"
+        return result
 
     def match_tasks(self, task_list):
         return utils.pattern_match(task_list, self.all_tasks)
