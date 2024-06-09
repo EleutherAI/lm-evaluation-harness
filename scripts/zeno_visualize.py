@@ -3,7 +3,6 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import List
 
 import pandas as pd
 from zeno_client import ZenoClient, ZenoMetric
@@ -52,22 +51,14 @@ def main():
     assert len(models) > 0, "No model directories found in the data_path."
 
     # Get the tasks from the latest results file of the first model.
-    model_dir = Path(args.data_path, models[0])
-    model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
-    model_results_filenames = get_results_filenames(model_files)
-    latest_results = get_latest_filename(model_results_filenames)
-    tasks = set(tasks_for_results(latest_results))
+    tasks = set(tasks_for_model(models[0], args.data_path))
 
     # Get tasks names from the latest results file for each model
     # Get intersection of tasks for all models
     for model in models:
         old_tasks = tasks.copy()
         task_count = len(tasks)
-        model_dir = Path(args.data_path, model)
-        model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
-        model_results_filenames = get_results_filenames(model_files)
-        latest_results = get_latest_filename(model_results_filenames)
-        model_tasks = set(tasks_for_results(Path(latest_results)))
+        model_tasks = set(tasks_for_model(model, args.data_path))
         tasks.intersection(set(model_tasks))
 
         if task_count != len(tasks):
@@ -145,19 +136,6 @@ def main():
             )
 
 
-def tasks_for_results(results_filename: str) -> List[str]:
-    """Get the tasks from a specific results file.
-
-    Args:
-        results_filename (str): The path to the results file.
-
-    Returns:
-        list: A list of tasks for the model.
-    """
-    config = (json.load(open(results_filename, encoding="utf-8"))["configs"],)
-    return list(config[0].keys())
-
-
 def tasks_for_model(model: str, data_path: str):
     """Get the tasks for a specific model.
 
@@ -168,10 +146,12 @@ def tasks_for_model(model: str, data_path: str):
     Returns:
         list: A list of tasks for the model.
     """
-    dir_path = Path(data_path, model)
-    config = (
-        json.load(open(Path(dir_path, "results.json"), encoding="utf-8"))["configs"],
-    )
+    # get latest model results for a given name
+    model_dir = Path(data_path, model)
+    model_files = [f.as_posix() for f in model_dir.iterdir() if f.is_file()]
+    model_results_filenames = get_results_filenames(model_files)
+    latest_results = get_latest_filename(model_results_filenames)
+    config = (json.load(open(latest_results, encoding="utf-8"))["configs"],)
     return list(config[0].keys())
 
 
