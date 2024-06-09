@@ -237,7 +237,7 @@ def setup_parser() -> argparse.ArgumentParser:
         help=(
             "Set seed for python's random, numpy, torch, and fewshot sampling.\n"
             "Accepts a comma-separated list of 4 values for python's random, numpy, torch, and fewshot sampling seeds, "
-            "respectively, or a single integer to set the same seed for all three.\n"
+            "respectively, or a single integer to set the same seed for all four.\n"
             f"The values are either an integer or 'None' to not set the seed. Default is `{default_seed_string}` "
             "(for backward compatibility).\n"
             "E.g. `--seed 0,None,8,52` sets `random.seed(0)`, `torch.manual_seed(8)`, and fewshot sampling seed to 52. "
