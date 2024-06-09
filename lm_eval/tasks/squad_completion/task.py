@@ -14,7 +14,7 @@ class SQUADCompletion(ConfigurableTask):
     DATASET_PATH = "hazyresearch/based-squad"
     DATASET_NAME = "default"
 
-    def __init__(self):
+    def __init__(self, config=None):
         super().__init__(config={"metadata": {"version": self.VERSION}})
 
     def has_training_docs(self):
