@@ -62,7 +62,9 @@ class GroupConfig(dict):
     aggregate_fn: Optional[str] = "mean"
     weight_by_size: Optional[str] = False
     metric_alias: Optional[str] = None  # Still a placeholder
-    version: Optional[int] = 0
+    metadata: Optional[
+        dict
+    ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
 
     def __getitem__(self, item):
         return getattr(self, item)
