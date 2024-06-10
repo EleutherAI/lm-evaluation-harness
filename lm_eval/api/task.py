@@ -69,7 +69,7 @@ class GroupConfig(dict):
     group_alias: Optional[str] = None
     task: Optional[Union[str, list]] = None
     tag_to_task: Optional[str] = False
-    aggregate_metric_list: Optional[
+    aggregate_metric: Optional[
         Union[List[AggMetricConfig], AggMetricConfig, dict]
     ] = None
     metadata: Optional[
