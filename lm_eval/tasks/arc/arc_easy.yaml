@@ -1,8 +1,11 @@
 group:
   - ai2_arc
 task: arc_easy
-dataset_path: allenai/ai2_arc
-dataset_name: ARC-Easy
+# dataset_path: allenai/ai2_arc
+dataset_path: parquet
+# dataset_name: ARC-Easy
+dataset_kwargs:
+  data_dir: /root/packages/lm-evaluation-harness/lm_eval/tasks/arc/ai2_arc/ARC-Easy/
 output_type: multiple_choice
 training_split: train
 validation_split: validation

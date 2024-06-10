@@ -1,3 +1,5 @@
 include: arc_easy.yaml
 task: arc_challenge
-dataset_name: ARC-Challenge
+# dataset_name: ARC-Challenge
+dataset_kwargs:
+  data_dir: /root/packages/lm-evaluation-harness/lm_eval/tasks/arc/ai2_arc/ARC-Challenge/
