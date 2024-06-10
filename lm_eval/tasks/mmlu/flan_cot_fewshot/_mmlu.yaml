@@ -23,3 +23,5 @@ task:
     weight_by_size: True
 aggregate_metric: True
 weight_by_size: True
+metadata:
+  version: 1
