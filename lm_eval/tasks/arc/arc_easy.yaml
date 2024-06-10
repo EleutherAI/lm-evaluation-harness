@@ -5,7 +5,7 @@ task: arc_easy
 dataset_path: parquet
 # dataset_name: ARC-Easy
 dataset_kwargs:
-  data_dir: /root/packages/lm-evaluation-harness/lm_eval/tasks/arc/ai2_arc/ARC-Easy/
+  data_dir: ai2_arc/ARC-Easy/
 output_type: multiple_choice
 training_split: train
 validation_split: validation

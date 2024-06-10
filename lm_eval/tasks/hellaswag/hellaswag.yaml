@@ -4,9 +4,9 @@ task: hellaswag
 dataset_path: arrow
 dataset_kwargs:
   data_files:
-    train: /root/packages/lm-evaluation-harness/lm_eval/tasks/hellaswag/hellaswag_savedisk/train/data-00000-of-00001.arrow
-    validation: /root/packages/lm-evaluation-harness/lm_eval/tasks/hellaswag/hellaswag_savedisk/validation/data-00000-of-00001.arrow
-    test: /root/packages/lm-evaluation-harness/lm_eval/tasks/hellaswag/hellaswag_savedisk/test/data-00000-of-00001.arrow
+    train: hellaswag/train/data-00000-of-00001.arrow
+    validation: hellaswag/validation/data-00000-of-00001.arrow
+    test: hellaswag/test/data-00000-of-00001.arrow
 # dataset_name: null
 output_type: multiple_choice
 training_split: train

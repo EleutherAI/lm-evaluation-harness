@@ -7,6 +7,8 @@
 
 New updates and features include:
 
+- Fixed the [issue #1757](https://github.com/EleutherAI/lm-evaluation-harness/issues/1757) by editing the `yaml` files. In order to work properly, it is also necessary to manually download the datasets (such as [ai2_arc](https://huggingface.co/datasets/allenai/ai2_arc), [hellaswag](https://huggingface.co/datasets/Rowan/hellaswag), etc.) to the work path.
+
 - Internal refactoring
 - Config-based task creation and configuration
 - Easier import and sharing of externally-defined task config YAMLs
