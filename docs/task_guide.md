@@ -308,7 +308,7 @@ Tasks are configured via the `TaskConfig` object. Below, we describe all fields 
 
 ### Parameters
 
-- **group** (`str`, defaults to `None`) — name of the group.
+- **group** (`str`, defaults to `None`) — name of the group. Used to invoke it from the command line.
 - **group_alias** (`str`, defaults to `None`) - Alternative name for the group that will be printed in the table output.
 - **task** (`Union[str, list]`, defaults to `None`) - List of tasks that constitute the group.
 - **tag_to_task** (`str`, defaults to `False`) - Convert `tag` that are listed in task to be a considered as a group.
