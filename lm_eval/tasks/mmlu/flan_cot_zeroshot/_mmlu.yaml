@@ -4,24 +4,29 @@ task:
   - group: stem
     task:
       - mmlu_flan_cot_zeroshot_stem
-    aggregate_metric: True
-    weight_by_size: True
+    aggregate_metric:
+      - metric: acc
+        weight_by_size: True
   - group: other
     task:
       - mmlu_flan_cot_zeroshot_other
-    aggregate_metric: True
-    weight_by_size: True
+    aggregate_metric:
+      - metric: acc
+        weight_by_size: True
   - group: social sciences
     task:
       - mmlu_flan_cot_zeroshot_social_sciences
-    aggregate_metric: True
-    weight_by_size: True
+    aggregate_metric:
+      - metric: acc
+        weight_by_size: True
   - group: humanities
     task:
       - mmlu_flan_cot_zeroshot_humanities
-    aggregate_metric: True
+    aggregate_metric:
+      - metric: acc
+        weight_by_size: True
+aggregate_metric:
+  - metric: acc
     weight_by_size: True
-aggregate_metric: True
-weight_by_size: True
 metadata:
   version: 1
