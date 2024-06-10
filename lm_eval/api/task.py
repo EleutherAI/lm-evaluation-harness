@@ -150,7 +150,6 @@ class TaskConfig(dict):
     task_alias: Optional[str] = None
     tag: Optional[Union[str, list]] = None
     group: Optional[Union[str, list]] = None
-    group_alias: Optional[Union[str, list]] = None
     # HF dataset options.
     # which dataset to use,
     # and what splits for what purpose
