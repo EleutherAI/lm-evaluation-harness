@@ -616,13 +616,16 @@ def evaluate(
                             )
 
                         if (group_config is None) or (
-                            group_config["aggregate_metric"] is False
+                            group_config["aggregate_metric"] is None
                         ):
                             results[group_or_task][" "] = " "
                             continue
 
-                        show_group_table = (
-                            show_group_table | group_config["aggregate_metric"]
+                        if "aggregate_metric" in group_config:
+                            agg_metric_list = group_config["aggregate_metric"]
+
+                        show_group_table = show_group_table | bool(
+                            group_config["aggregate_metric"]
                         )
 
                         task_list = _task_aggregation_list[group_or_task]
@@ -656,26 +659,36 @@ def evaluate(
                                 if metric in results[task]
                             ]
 
-                            # compute group's pooled metric and stderr
-                            results[group_or_task][
-                                metric
-                            ] = lm_eval.api.metrics.aggregate_subtask_metrics(
-                                metrics,
-                                sizes,
-                                group_config["weight_by_size"],
-                            )
-                            # TODO: calculate grouped metric using aggregation fn
-                            if "N/A" in stderrs:
-                                results[group_or_task][stderr] = "N/A"
-                            else:
-                                results[group_or_task][
-                                    stderr
-                                ] = lm_eval.api.metrics.pooled_sample_stderr(
-                                    stderrs, sizes
-                                )
-                                # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
-                                # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
-                                # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
+                            for metric_config in agg_metric_list:
+                                for filter in metric_config["filter_list"]:
+                                    if metric != ",".join([metric_config["metric"], filter]):
+                                        continue
+
+                                    # compute group's pooled metric and stderr
+                                    if metric_config["aggregation"] == "mean":
+                                        aggregate_fn = (
+                                            lm_eval.api.metrics.aggregate_subtask_metrics
+                                        )
+                                    else:
+                                        aggregate_fn = metric_config["aggregation"]
+
+                                    results[group_or_task][metric] = aggregate_fn(
+                                        metrics,
+                                        sizes,
+                                        metric_config["weight_by_size"],
+                                    )
+                                    # TODO: calculate grouped metric using aggregation fn
+                                    if "N/A" in stderrs:
+                                        results[group_or_task][stderr] = "N/A"
+                                    else:
+                                        results[group_or_task][
+                                            stderr
+                                        ] = lm_eval.api.metrics.pooled_sample_stderr(
+                                            stderrs, sizes
+                                        )
+                                        # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
+                                        # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
+                                        # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
 
                             results[group_or_task]["samples"] = sum(sizes)
                             group_metadata = group_config.get("metadata", None)
@@ -683,6 +696,7 @@ def evaluate(
                                 versions[group_or_task] = group_metadata.get(
                                     "version", None
                                 )
+                # print(results)
                 return results, versions, show_group_table, task_aggregation_list
 
             results, versions, show_group_table, *_ = process_group(

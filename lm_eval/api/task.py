@@ -5,7 +5,7 @@ import random
 import re
 from collections.abc import Callable
 from copy import deepcopy
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from inspect import getsource
 from typing import (
     Any,
@@ -51,6 +51,17 @@ ALL_OUTPUT_TYPES = [
 
 eval_logger = logging.getLogger("lm-eval")
 
+@dataclass
+class AggMetricConfig(dict):
+    metric: Optional[str] = "acc"
+    metric_alias: Optional[str] = "acc"
+    aggregation: Optional[str] = "mean"
+    weight_by_size: Optional[str] = False
+    filter_list: Optional[Union[str,list]] = "none"
+
+    def __post_init__(self):
+        if isinstance(self.filter_list, str):
+            self.filter_list = [self.filter_list]
 
 @dataclass
 class GroupConfig(dict):
@@ -58,10 +69,9 @@ class GroupConfig(dict):
     group_alias: Optional[str] = None
     task: Optional[Union[str, list]] = None
     tag_to_task: Optional[str] = False
-    aggregate_metric: Optional[str] = False
-    aggregate_fn: Optional[str] = "mean"
-    weight_by_size: Optional[str] = False
-    metric_alias: Optional[str] = None  # Still a placeholder
+    aggregate_metric_list: Optional[
+        Union[List[AggMetricConfig], AggMetricConfig, dict]
+    ] = None
     metadata: Optional[
         dict
     ] = None  # by default, not used in the code. allows for users to pass arbitrary info to tasks
@@ -71,6 +81,16 @@ class GroupConfig(dict):
 
     def __setitem__(self, item, value):
         return setattr(self, item, value)
+
+    def __post_init__(self):
+        if self.aggregate_metric_list is not None:
+            if isinstance(self.aggregate_metric_list, dict):
+                self.aggregate_metric_list = [self.aggregate_metric_list]
+
+            self.aggregate_metric_list = [
+                AggMetricConfig(**item) if isinstance(item, dict) else item
+                for item in self.aggregate_metric_list
+            ]
 
     def to_dict(self, keep_callable: bool = False) -> dict:
         """dumps the current config as a dictionary object, as a printable format.
