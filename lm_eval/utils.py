@@ -304,16 +304,13 @@ def make_table(result_dict, column: str = "results", sort_results: bool = False)
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
                 continue
-            if v != " ":
-                v = "%.4f" % v
 
             hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
 
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
-                if se != "N/A":
-                    se = "%.4f" % se
-                values.append([k, version, f, n, m, hib, v, "±", se])
+                se = "   N/A" if se == "N/A" else "%.4f" % se
+                values.append([k, version, f, n, m, hib, "%.4f" % v, "±", se])
             else:
                 values.append([k, version, f, n, m, hib, v, "", ""])
             k = ""

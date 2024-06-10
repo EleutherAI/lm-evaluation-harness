@@ -678,7 +678,11 @@ def evaluate(
                                 # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
 
                             results[group_or_task]["samples"] = sum(sizes)
-                            versions[group_or_task] = group_config["version"]
+                            group_metadata = group_config.get("metadata", None)
+                            if group_metadata is not None:
+                                versions[group_or_task] = group_metadata.get(
+                                    "version", None
+                                )
                 return results, versions, show_group_table, task_aggregation_list
 
             results, versions, show_group_table, *_ = process_group(
