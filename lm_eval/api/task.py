@@ -5,7 +5,7 @@ import random
 import re
 from collections.abc import Callable
 from copy import deepcopy
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from inspect import getsource
 from typing import (
     Any,
@@ -51,17 +51,19 @@ ALL_OUTPUT_TYPES = [
 
 eval_logger = logging.getLogger("lm-eval")
 
+
 @dataclass
 class AggMetricConfig(dict):
     metric: Optional[str] = "acc"
-    metric_alias: Optional[str] = "acc"
+    metric_alias: Optional[str] = None
     aggregation: Optional[str] = "mean"
     weight_by_size: Optional[str] = False
-    filter_list: Optional[Union[str,list]] = "none"
+    filter_list: Optional[Union[str, list]] = "none"
 
     def __post_init__(self):
         if isinstance(self.filter_list, str):
             self.filter_list = [self.filter_list]
+
 
 @dataclass
 class GroupConfig(dict):
@@ -83,13 +85,13 @@ class GroupConfig(dict):
         return setattr(self, item, value)
 
     def __post_init__(self):
-        if self.aggregate_metric_list is not None:
-            if isinstance(self.aggregate_metric_list, dict):
-                self.aggregate_metric_list = [self.aggregate_metric_list]
+        if self.aggregate_metric is not None:
+            if isinstance(self.aggregate_metric, dict):
+                self.aggregate_metric = [self.aggregate_metric]
 
-            self.aggregate_metric_list = [
+            self.aggregate_metric = [
                 AggMetricConfig(**item) if isinstance(item, dict) else item
-                for item in self.aggregate_metric_list
+                for item in self.aggregate_metric
             ]
 
     def to_dict(self, keep_callable: bool = False) -> dict:

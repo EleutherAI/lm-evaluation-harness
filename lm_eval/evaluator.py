@@ -661,14 +661,14 @@ def evaluate(
 
                             for metric_config in agg_metric_list:
                                 for filter in metric_config["filter_list"]:
-                                    if metric != ",".join([metric_config["metric"], filter]):
+                                    if metric != ",".join(
+                                        [metric_config["metric"], filter]
+                                    ):
                                         continue
 
                                     # compute group's pooled metric and stderr
                                     if metric_config["aggregation"] == "mean":
-                                        aggregate_fn = (
-                                            lm_eval.api.metrics.aggregate_subtask_metrics
-                                        )
+                                        aggregate_fn = lm_eval.api.metrics.aggregate_subtask_metrics
                                     else:
                                         aggregate_fn = metric_config["aggregation"]
 
