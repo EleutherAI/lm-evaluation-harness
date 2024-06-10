@@ -24,6 +24,7 @@ from lm_eval.utils import (
     handle_non_serializable,
     hash_string,
     sanitize_list,
+    sanitize_model_name,
     sanitize_task_name,
 )
 
@@ -83,9 +84,7 @@ class GeneralConfigTracker:
         """Logs model parameters and job ID."""
         self.model_source = model_source
         self.model_name = GeneralConfigTracker._get_model_name(model_args)
-        self.model_name_sanitized = re.sub(
-            r"[\"<>:/\|\\?\*\[\]]+", "__", self.model_name
-        )
+        self.model_name_sanitized = sanitize_model_name(self.model_name)
         self.system_instruction = system_instruction
         self.system_instruction_sha = (
             hash_string(system_instruction) if system_instruction else None

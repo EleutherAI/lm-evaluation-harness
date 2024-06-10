@@ -166,6 +166,13 @@ def get_file_datetime(filename: str) -> str:
     return filename[filename.rfind("_") + 1 :].replace(".json", "")
 
 
+def sanitize_model_name(model_name: str) -> str:
+    """
+    Given the model name, returns a sanitized version of it.
+    """
+    return re.sub(r"[\"<>:/\|\\?\*\[\]]+", "__", model_name)
+
+
 def sanitize_task_name(task_name: str) -> str:
     """
     Given the task name, returns a sanitized version of it.
