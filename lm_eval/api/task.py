@@ -1423,7 +1423,9 @@ class ConfigurableTask(Task):
                 **({"acc_norm": acc_norm} if "acc_norm" in use_metric else {}),
                 **({"exact_match": exact_match} if "exact_match" in use_metric else {}),
                 **({"brier_score": (gold, prob_norm)} if "brier_score" in use_metric else {}),
-                **({"rmsce": (gold_one_hot, prob_norm)} if "rmsce" in use_metric else {})
+                **({"brier_score_binary": (gold, prob_norm)} if "brier_score_binary" in use_metric else {}),
+                **({"rmsce": (gold, prob_norm)} if "rmsce" in use_metric else {}),
+                **({"rmsce_temp_tuned": (gold, lls)} if "rmsce_temp_tuned" in use_metric else {})
             }
 
             if "acc_mutual_info" in use_metric:

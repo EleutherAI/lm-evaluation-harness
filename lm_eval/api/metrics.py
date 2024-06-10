@@ -8,6 +8,7 @@ import evaluate as hf_evaluate
 import numpy as np
 import sacrebleu
 import sklearn.metrics
+import sklearn.calibration
 
 from lm_eval.api.registry import register_aggregation, register_metric
 
@@ -115,6 +116,20 @@ def ter(items):
     return sacrebleu.corpus_ter(preds, refs).score
 
 
+@register_aggregation("brier_score_binary")
+def brier_score_binary(items):  # This is a passthrough function
+    gold, predictions = list(zip(*items))
+    bs, num_class = np.array(predictions).shape
+
+    gold = list(gold)
+    gold_one_hot = np.eye(num_class)[gold]
+    
+    preds = np.array(predictions)
+    golds = np.expand_dims(np.array(gold), axis=1)
+    return np.mean(np.sum((1 - preds[golds]) ** 2, axis=1))
+
+
+
 @register_aggregation("brier_score")
 def brier_score(items):  # This is a passthrough function
     gold, predictions = list(zip(*items))
@@ -124,32 +139,24 @@ def brier_score(items):  # This is a passthrough function
     gold_one_hot = np.eye(num_class)[gold]
     return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
 
+
 @register_aggregation("rmsce")
 def rmsce(items): 
     # Unpack true and predicted probabilities
-    prob_true, prob_pred = zip(*items)
-    prob_true = np.array(prob_true)
-    prob_pred = np.array(prob_pred)
+    gold, predictions = zip(*items)
 
-    num_bins = 15
-    bin_edges = np.linspace(0, 1, num_bins + 1)  # creating evenly sized num_bins+1 spaces between 0 and 1 for "bins"
-    bin_indices = np.digitize(prob_pred, bin_edges) - 1 #returns indices of bins to which each value belongs to
+    prob_true, prob_pred = sklearn.metrics.calibration_curve(labels, predictions, n_bins=n_bins, strategy='uniform')
+    rmsce = np.sqrt(np.mean((prob_true - prob_pred) ** 2))
+    return rmsce
 
-    bin_accuracies = []
-    bin_confidences = []
-    for i in range(num_bins):
-        mask = (bin_indices == i)
-        if np.sum(mask) > 0:  # Check if bin is not empty
-            bin_accuracy = np.mean(prob_true[mask]) # calculating the mean accuracy of all elements within each bin
-            bin_confidence = np.mean(prob_pred[mask])
-            bin_accuracies.append(bin_accuracy)
-            bin_confidences.append(bin_confidence)
-        else:
-            bin_accuracies.append(0)  # Adding zero for empty bins to avoid misalignment
-            bin_confidences.append(0)  # Adding zero for empty bins to avoid misalignment
+@register_aggregation("rmsce_temp_tuned")
+def rmsce_temp_tuned(items): 
+    # Unpack true and predicted probabilities
+    gold, lls = zip(*items)
+    print("lls", lls)
 
-    squared_differences = [(acc - conf)**2 for acc, conf in zip(bin_accuracies, bin_confidences)]
-    rmsce = np.sqrt(np.mean(squared_differences))
+    prob_true, prob_pred = sklearn.metrics.calibration_curve(labels, predictions, n_bins=n_bins, strategy='uniform')
+    rmsce = np.sqrt(np.mean((prob_true - prob_pred) ** 2))
     return rmsce
 
 @register_metric(
@@ -162,12 +169,29 @@ def brier_score_fn(items):  # This is a passthrough function
     return items
 
 @register_metric(
+    metric="brier_score_binary",
+    higher_is_better=False,
+    output_type=["multiple_choice"],
+    aggregation="brier_score_binary",
+)
+def brier_score_fn(items):  # This is a passthrough function
+    return items
+
+@register_metric(
     metric="rmsce",
     higher_is_better=False,
     output_type=["multiple_choice"],
     aggregation="rmsce",
 )
+def rmsce_fn(items): # Passthrough function
+    return items
 
+@register_metric(
+    metric="rmsce_temp_tuned",
+    higher_is_better=False,
+    output_type=["multiple_choice"],
+    aggregation="rmsce_temp_tuned",
+)
 def rmsce_fn(items): # Passthrough function
     return items
 

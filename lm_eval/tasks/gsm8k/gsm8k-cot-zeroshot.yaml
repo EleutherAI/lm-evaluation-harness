@@ -20,12 +20,6 @@ metric_list:
       - "\\$"
       - "(?s).*#### "
       - "\\.$"
-  - metric: brier_score
-    aggregation: brier_score
-    higher_is_better: false
-  - metric: rmsce
-    aggregation: rmsce
-    higher_is_better: false
 generation_kwargs:
   until:
     - "Q:"

@@ -19,11 +19,5 @@ metric_list:
   - metric: acc_norm
     aggregation: mean
     higher_is_better: true
-  - metric: brier_score
-    aggregation: brier_score
-    higher_is_better: false
-  - metric: rmsce
-    aggregation: rmsce
-    higher_is_better: false
 metadata:
   version: 1.0
