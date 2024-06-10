@@ -318,7 +318,7 @@ Tasks are configured via the `TaskConfig` object. Below, we describe all fields 
 - **metric_alias** - Still in Development
 - **version** (`int`, defaults to `0`) - Version of group config.
 
-The simplest usage of a group yaml is to just list all tasks we want in one group.
+The simplest usage of a group yaml is to just list all tasks we want in one group. This ends up with behavior analogous to a `tag`--it is predominantly a way to invoke a group of tasks one expects to frequently call in conjunction with one another.
 
 ```yaml
 group: pythia
