@@ -119,6 +119,12 @@ class VLLM(TemplateLM):
             tokenizer_revision=tokenizer_revision,
         )
         self.add_bos_token = add_bos_token
+        if "gemma" in pretrained.lower():
+            self.add_bos_token = True
+            eval_logger.info(
+                "Found 'gemma' in model name, a BOS token will be used as Gemma underperforms without it."
+            )
+
         self.custom_prefix_token_id = prefix_token_id
         if prefix_token_id is not None:
             eval_logger.info(
