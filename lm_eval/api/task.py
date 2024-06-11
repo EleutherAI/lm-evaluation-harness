@@ -1313,7 +1313,7 @@ class ConfigurableTask(Task):
             return request_list
 
         elif self.OUTPUT_TYPE == "generate_until":
-            arguments = (ctx, deepcopy(self.config.generation_kwargs))
+            arguments: Tuple[str, dict] = (ctx, deepcopy(self.config.generation_kwargs))
 
         return Instance(
             request_type=self.OUTPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs

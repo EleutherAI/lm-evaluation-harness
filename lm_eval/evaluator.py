@@ -1,3 +1,4 @@
+import gc
 import itertools
 import json
 import logging
@@ -450,6 +451,8 @@ def evaluate(
 
     RANK = lm.rank
     WORLD_SIZE = lm.world_size
+    del lm
+    gc.collect()
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)
     for task_output in eval_tasks:
