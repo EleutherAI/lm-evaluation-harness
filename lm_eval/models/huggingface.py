@@ -141,13 +141,17 @@ class HFLM(TemplateLM):
                         if torch.cuda.is_available()
                         else torch.device("cpu")
                     )
-            else: # Parallelism managed by accelerate
+            else:  # Parallelism managed by accelerate
                 if device != "cuda":
                     eval_logger.info(
                         f"Using `accelerate launch` or `parallelize=True`, device '{device}' will be overridden when placing model."
                     )
                 # TODO: include in warning that `load_in_8bit` etc. affect this too
-                self._device = self.accelerator.device if self.accelerator is not None else torch.device(device)
+                self._device = (
+                    self.accelerator.device
+                    if self.accelerator is not None
+                    else torch.device(device)
+                )
 
             # TODO: update this to be less of a hack once subfolder is fixed in HF
             revision = revision + ("/" + subfolder if subfolder is not None else "")
@@ -155,7 +159,7 @@ class HFLM(TemplateLM):
             self._get_config(
                 pretrained,
                 revision=revision,
-                trust_remote_code=trust_remote_code, 
+                trust_remote_code=trust_remote_code,
             )
 
         # determine which of 'causal' and 'seq2seq' backends to use
@@ -247,7 +251,7 @@ class HFLM(TemplateLM):
             self.batch_size_per_gpu = int(batch_size)
 
         if isinstance(pretrained, str):
-            if (gpus >= 1 or str(self.device) == "mps"):
+            if gpus >= 1 or str(self.device) == "mps":
                 # TODO: can remove this whole snippet except in the mps case, perhaps?
                 if not (parallelize or autogptq or hasattr(self, "accelerator")):
                     # place model onto device requested manually,
@@ -326,10 +330,12 @@ class HFLM(TemplateLM):
         num_local_processes = int(os.environ.get("LOCAL_WORLD_SIZE", 1))
         num_machines = int(os.environ.get("WORLD_SIZE", 0)) // num_local_processes
         if num_machines == 0:
-            eval_logger.info("We are not in a distributed setting. Setting model_parallel to False.")
+            eval_logger.info(
+                "We are not in a distributed setting. Setting model_parallel to False."
+            )
             parallelize = False
 
-        if parallelize is None: 
+        if parallelize is None:
             # If parallelism is unset by the user, we automatically assign model parallelism
             # if enough extra GPUs are available
             max_memory_all_gpus = get_max_memory()
@@ -344,18 +350,21 @@ class HFLM(TemplateLM):
             )
 
         args = {}
-        if parallelize: # Model parallelism will be used
+        if parallelize:  # Model parallelism will be used
             max_memory = {}
-            if max_memory_per_gpu is not None: # Using the provided memory requirements
-                max_memory_per_gpu_map = {device_idx: max_memory_per_gpu for device_idx in range(gpus)}
-            else: # Estimating the possible memory requirements
-                max_memory_all_gpus = get_max_memory() 
+            if max_memory_per_gpu is not None:  # Using the provided memory requirements
+                max_memory_per_gpu_map = {
+                    device_idx: max_memory_per_gpu for device_idx in range(gpus)
+                }
+            else:  # Estimating the possible memory requirements
+                max_memory_all_gpus = get_max_memory()
                 if "cpu" in max_memory_all_gpus:
                     del max_memory_all_gpus["cpu"]
                 max_memory_per_gpu_map = {
                     k: v
                     for k, v in max_memory_all_gpus.items()
-                    if k % num_local_processes == (self.accelerator.process_index % num_local_processes)
+                    if k % num_local_processes
+                    == (self.accelerator.process_index % num_local_processes)
                 }
             args["max_memory"] = max_memory_per_gpu_map
             args["device_map"] = "auto"
@@ -367,7 +376,9 @@ class HFLM(TemplateLM):
                 max_memory["cpu"] = max_cpu_memory
 
             args["offload_folder"] = offload_folder
-        elif device_map is None: # No model parallelism, we use the default provided device for our model
+        elif (
+            device_map is None
+        ):  # No model parallelism, we use the default provided device for our model
             if hasattr(self, "accelerator"):
                 device_map = {"": f"{self.accelerator.device}"}
             else:
