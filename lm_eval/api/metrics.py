@@ -3,6 +3,8 @@ import math
 import random
 from collections.abc import Iterable
 from typing import List
+import torch
+import torch.nn.functional as F
 
 import evaluate as hf_evaluate
 import numpy as np
@@ -129,7 +131,6 @@ def brier_score_binary(items):  # This is a passthrough function
     return np.mean(np.sum((1 - preds[golds]) ** 2, axis=1))
 
 
-
 @register_aggregation("brier_score")
 def brier_score(items):  # This is a passthrough function
     gold, predictions = list(zip(*items))
@@ -143,21 +144,75 @@ def brier_score(items):  # This is a passthrough function
 @register_aggregation("rmsce")
 def rmsce(items): 
     # Unpack true and predicted probabilities
-    gold, predictions = zip(*items)
+    gold, probs = zip(*items)
+    n_bins=15
 
-    prob_true, prob_pred = sklearn.metrics.calibration_curve(labels, predictions, n_bins=n_bins, strategy='uniform')
+    top1_probs = np.max(probs, axis=1)
+    top1_labels = (np.argmax(probs, axis=1) == gold).astype(int)
+
+    prob_true, prob_pred = sklearn.calibration.calibration_curve(top1_labels, top1_probs, n_bins=n_bins, strategy='uniform')
     rmsce = np.sqrt(np.mean((prob_true - prob_pred) ** 2))
     return rmsce
+
+
+def _tune_temp(logits, labels, binary_search=True, lower=0.2, upper=5.0, eps=0.0001):
+    logits = np.array(logits)
+
+    if binary_search:
+        import torch
+        import torch.nn.functional as F
+
+        logits = torch.FloatTensor(logits)
+        labels = torch.LongTensor(labels)
+        t_guess = torch.FloatTensor([0.5*(lower + upper)]).requires_grad_()
+
+        while upper - lower > eps:
+            if torch.autograd.grad(F.cross_entropy(logits / t_guess, labels), t_guess)[0] > 0:
+                upper = 0.5 * (lower + upper)
+            else:
+                lower = 0.5 * (lower + upper)
+            t_guess = t_guess * 0 + 0.5 * (lower + upper)
+
+        t = min([lower, 0.5 * (lower + upper), upper], key=lambda x: float(F.cross_entropy(logits / x, labels)))
+    else:
+        import cvxpy as cx
+
+        set_size = np.array(logits).shape[0]
+
+        t = cx.Variable()
+
+        expr = sum((cx.Minimize(cx.log_sum_exp(logits[i, :] * t) - logits[i, labels[i]] * t)
+                    for i in range(set_size)))
+        p = cx.Problem(expr, [lower <= t, t <= upper])
+
+        p.solve()   # p.solve(solver=cx.SCS)
+        t = 1 / t.value
+
+    return t
+
 
 @register_aggregation("rmsce_temp_tuned")
 def rmsce_temp_tuned(items): 
     # Unpack true and predicted probabilities
     gold, lls = zip(*items)
-    print("lls", lls)
+    n_bins=15
 
-    prob_true, prob_pred = sklearn.metrics.calibration_curve(labels, predictions, n_bins=n_bins, strategy='uniform')
+    lls = np.array(lls)
+    # Tune temperature
+    temp = _tune_temp(lls, gold)
+    scaled_logits = lls / temp
+
+    # Compute probabilities with the tuned temperature
+    all_probs = F.softmax(torch.tensor(scaled_logits), dim=1).numpy()
+
+    top1_probs = np.max(all_probs, axis=1)
+    top1_labels = (np.argmax(all_probs, axis=1) == gold).astype(int)
+
+    # print("lls", lls, "\n\n", f"{top1_probs=}")
+    prob_true, prob_pred = sklearn.calibration.calibration_curve(top1_labels, top1_probs, n_bins=n_bins, strategy='uniform')
     rmsce = np.sqrt(np.mean((prob_true - prob_pred) ** 2))
     return rmsce
+
 
 @register_metric(
     metric="brier_score",

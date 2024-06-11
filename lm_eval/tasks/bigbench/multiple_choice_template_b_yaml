@@ -10,6 +10,5 @@ doc_to_target: "{{multiple_choice_scores.index(1)}}"
 doc_to_choice: "{{multiple_choice_targets}}"
 metric_list:
   - metric: acc
-  # TODO: brier score and other metrics
 metadata:
   version: 1.0
