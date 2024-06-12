@@ -313,7 +313,8 @@ class TaskManager:
             Dictionary of task names as key and task metadata
         """
         tasks_and_groups = collections.defaultdict()
-        for root, _, file_list in os.walk(task_dir):
+        for root, dirs, file_list in os.walk(task_dir):
+            dirs[:] = [d for d in dirs if d != ".ipynb_checkpoints"]
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
