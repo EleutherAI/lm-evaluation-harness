@@ -33,6 +33,12 @@ Homepage: https://github.com/inverse-scaling/prize
 - `inverse_scaling_quote_repetition`
 - `inverse_scaling_neqa`
 - `inverse_scaling_winobias_antistereotype`
+- `inverse_scaling_into_the_unknown`
+- `inverse_scaling_memo_trap`
+- `inverse_scaling_modus_tollens`
+- `inverse_scaling_pattern_matching_suppression`
+- `inverse_scaling_repetitive_algebra`
+- `inverse_scaling_sig_figs`
 
 
 ### Checklist
