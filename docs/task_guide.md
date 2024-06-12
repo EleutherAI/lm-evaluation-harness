@@ -155,6 +155,21 @@ Our final filter pipeline, "maj@8", does majority voting across the first 8 of t
 Thus, given the 64 responses from our LM on each document, we can report metrics on these responses in these 3 different ways, as defined by our filter pipelines.
 
 
+### Adding a custom filter
+
+Just like adding a custom model with `register_model` decorator one is able to do the same with filters, for example
+
+```python
+from lm_eval.api.filter import Filter
+from lm_eval.api.registry import register_filter
+
+@register_filter("new_filter")
+class NewFilter(Filter)
+    ...
+```
+
+
+
 ## Embedded Python Code
 
 Use can use python functions for certain arguments by using the `!function` operator after the argument name followed by `<filename>.<pythonfunctionname>`. This feature can be used for the following arguments:
