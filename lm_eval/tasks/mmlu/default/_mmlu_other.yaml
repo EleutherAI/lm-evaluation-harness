@@ -1,9 +1,7 @@
-group: mmlu
+group: mmlu_other
+group_alias: other
 task:
-  - mmlu_stem
-  - mmlu_other
-  - mmlu_social_sciences
-  - mmlu_humanities
+  - mmlu_other_tasks
 aggregate_metric:
   - metric: acc
     weight_by_size: True

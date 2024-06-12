@@ -11,11 +11,13 @@ import torch
 
 import lm_eval.api.metrics
 import lm_eval.api.registry
+import lm_eval.api.task
 import lm_eval.models
 from lm_eval.caching.cache import delete_cache
 from lm_eval.evaluator_utils import (
     consolidate_results,
     get_sample_size,
+    get_subtask_list,
     get_task_list,
     prepare_print_tasks,
     print_writeout,
@@ -23,7 +25,12 @@ from lm_eval.evaluator_utils import (
 )
 from lm_eval.loggers import EvaluationTracker
 from lm_eval.loggers.utils import add_env_info, get_git_commit_hash
-from lm_eval.tasks import TaskManager, get_task_dict
+from lm_eval.tasks import (
+    ConfigurableGroup,
+    ConfigurableTask,
+    TaskManager,
+    get_task_dict,
+)
 from lm_eval.utils import (
     eval_logger,
     handle_non_serializable,
@@ -219,48 +226,59 @@ def simple_evaluate(
         task_manager = TaskManager(verbosity)
 
     task_dict = get_task_dict(tasks, task_manager)
-    for task_name in task_dict.keys():
-        task_obj = task_dict[task_name]
-        if isinstance(task_obj, tuple):
-            _, task_obj = task_obj
-            if task_obj is None:
-                continue
 
-        if task_obj.get_config("output_type") == "generate_until":
-            if gen_kwargs is not None:
-                task_obj.set_config(
-                    key="generation_kwargs", value=gen_kwargs, update=True
-                )
+    def _adjust_config(task_dict, predict_only):
+        adjusted_task_dict = {}
+        for task_name, task_obj in task_dict.items():
+            if isinstance(task_obj, dict):
+                adjusted_task_dict = {
+                    **adjusted_task_dict,
+                    **{task_name: _adjust_config(task_obj, predict_only)},
+                }
 
-        if predict_only:
-            log_samples = True
-            eval_logger.info(
-                f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
-            )
-            # we have to change the class properties post-hoc. This is pretty hacky.
-            task_obj.override_metric(metric_name="bypass")
-
-        # override tasks' fewshot values to the provided num_fewshot arg value
-        # except if tasks have it set to 0 manually in their configs--then we should never overwrite that
-        if num_fewshot is not None:
-            if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
-                eval_logger.info(
-                    f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
-                )
             else:
-                eval_logger.warning(
-                    f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
+                if task_obj.get_config("output_type") == "generate_until":
+                    if gen_kwargs is not None:
+                        task_obj.set_config(
+                            key="generation_kwargs", value=gen_kwargs, update=True
+                        )
+
+                if predict_only:
+                    eval_logger.info(
+                        f"Processing {task_name} in output-only mode. Metrics will not be calculated!"
+                    )
+                    # we have to change the class properties post-hoc. This is pretty hacky.
+                    task_obj.override_metric(metric_name="bypass")
+
+                # override tasks' fewshot values to the provided num_fewshot arg value
+                # except if tasks have it set to 0 manually in their configs--then we should never overwrite that
+                if num_fewshot is not None:
+                    if (default_num_fewshot := task_obj.get_config("num_fewshot")) == 0:
+                        eval_logger.info(
+                            f"num_fewshot has been set to 0 for {task_name} in its config. Manual configuration will be ignored."
+                        )
+                    else:
+                        eval_logger.warning(
+                            f"Overwriting default num_fewshot of {task_name} from {default_num_fewshot} to {num_fewshot}"
+                        )
+                        task_obj.set_config(key="num_fewshot", value=num_fewshot)
+                else:
+                    # if num_fewshot not provided, and the task does not define a default one, default to 0
+                    if (
+                        default_num_fewshot := task_obj.get_config("num_fewshot")
+                    ) is None:
+                        task_obj.set_config(key="num_fewshot", value=0)
+                # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
+                task_obj.set_fewshot_seed(seed=fewshot_random_seed)
+                eval_logger.info(
+                    f"Setting fewshot random generator seed to {fewshot_random_seed}"
                 )
-                task_obj.set_config(key="num_fewshot", value=num_fewshot)
-        else:
-            # if num_fewshot not provided, and the task does not define a default one, default to 0
-            if (default_num_fewshot := task_obj.get_config("num_fewshot")) is None:
-                task_obj.set_config(key="num_fewshot", value=0)
-        # fewshot_random_seed set for tasks, even with a default num_fewshot (e.g. in the YAML file)
-        task_obj.set_fewshot_seed(seed=fewshot_random_seed)
-        eval_logger.info(
-            f"Setting fewshot random generator seed to {fewshot_random_seed}"
-        )
+
+                adjusted_task_dict[task_name] = task_obj
+
+        return adjusted_task_dict
+
+    task_dict = _adjust_config(task_dict, predict_only)
 
     if check_integrity:
         run_task_tests(task_list=tasks)
@@ -281,7 +299,7 @@ def simple_evaluate(
         rewrite_requests_cache=rewrite_requests_cache,
         bootstrap_iters=bootstrap_iters,
         write_out=write_out,
-        log_samples=log_samples,
+        log_samples=True if predict_only else log_samples,
         system_instruction=system_instruction,
         apply_chat_template=apply_chat_template,
         fewshot_as_multiturn=fewshot_as_multiturn,
@@ -378,7 +396,7 @@ def evaluate(
     padding_requests = defaultdict(int)
 
     # get lists of group hierarchy and each type of request
-    task_hierarchy, eval_tasks = get_task_list(task_dict)
+    eval_tasks = get_task_list(task_dict)
     if not log_samples:
         if not all(
             "bypass" not in getattr(task_output.task, "_metric_fn_list", {}).keys()
@@ -550,22 +568,154 @@ def evaluate(
 
         ### Calculate group metrics ###
         if bool(results):
-            for group, task_list in reversed(task_hierarchy.items()):
-                if len(task_list) == 0:
-                    # task_hierarchy entries are either
-                    # `group_name: [subtask1, subtask2, ...]`
-                    # or `task_name: []`.
-                    # we only want to operate on groups here.
-                    continue
 
-                # collect all higher_is_better values for metrics
-                # in the group's subtasks.
-                # TODO: clean this up ; unify with the below metric_list loop?
-                _higher_is_better = {}
-                for task in task_list:
-                    for m, h in higher_is_better[task].items():
-                        if m not in _higher_is_better.keys():
-                            _higher_is_better[m] = h
+            def process_group(
+                results,
+                versions,
+                task_dict,
+                task_root=None,
+                show_group_table=False,
+                task_aggregation_list=None,
+            ):
+                if task_root is None:
+                    task_root = {}
+
+                if task_aggregation_list is None:
+                    task_aggregation_list = {}
+
+                for group_or_task, group_or_task_info in task_dict.items():
+                    # Convert to string
+                    if isinstance(group_or_task, ConfigurableGroup):
+                        group_config = group_or_task.config
+                        group_or_task = group_or_task.task_id
+                    else:
+                        group_config = None
+
+                    if isinstance(group_or_task_info, ConfigurableTask):
+                        if task_root:
+                            task_aggregation_list.setdefault(task_root, []).append(
+                                group_or_task_info.task_id
+                            )
+                    else:
+                        (
+                            results,
+                            versions,
+                            show_group_table,
+                            _task_aggregation_list,
+                        ) = process_group(
+                            results,
+                            versions,
+                            group_or_task_info,
+                            group_or_task,
+                            show_group_table,
+                            task_aggregation_list,
+                        )
+                        if task_root:
+                            task_aggregation_list.setdefault(task_root, []).extend(
+                                task_aggregation_list.get(group_or_task, [])
+                            )
+
+                        if (group_config is None) or (
+                            group_config["aggregate_metric"] is None
+                        ):
+                            results[group_or_task][" "] = " "
+                            continue
+
+                        if "aggregate_metric" in group_config:
+                            agg_metric_list = group_config["aggregate_metric"]
+
+                        show_group_table = show_group_table | bool(
+                            group_config["aggregate_metric"]
+                        )
+
+                        task_list = _task_aggregation_list[group_or_task]
+
+                        metric_list = list(
+                            {
+                                key
+                                for task in task_list
+                                for key in results[task].keys()
+                                if "_stderr" not in key
+                                and key not in ["task", "alias", "samples"]
+                            }
+                        )
+                        for metric in metric_list:
+                            stderr = "_stderr,".join(metric.split(","))
+
+                            # gather metrics, sizes, and stderrs from subtasks
+                            metrics = [
+                                results[task][metric]
+                                for task in task_list
+                                if metric in results[task]
+                            ]  # TODO: copy?
+                            stderrs = [
+                                results[task][stderr]
+                                for task in task_list
+                                if stderr in results[task]
+                            ]
+                            sizes = [
+                                results[task]["samples"]
+                                for task in task_list
+                                if metric in results[task]
+                            ]
+
+                            for metric_config in agg_metric_list:
+                                for filter in metric_config["filter_list"]:
+                                    if metric != ",".join(
+                                        [metric_config["metric"], filter]
+                                    ):
+                                        continue
+
+                                    # compute group's pooled metric and stderr
+                                    if metric_config["aggregation"] == "mean":
+                                        aggregate_fn = lm_eval.api.metrics.aggregate_subtask_metrics
+                                    else:
+                                        aggregate_fn = metric_config["aggregation"]
+
+                                    results[group_or_task][metric] = aggregate_fn(
+                                        metrics,
+                                        sizes,
+                                        metric_config["weight_by_size"],
+                                    )
+                                    # TODO: calculate grouped metric using aggregation fn
+                                    if "N/A" in stderrs:
+                                        results[group_or_task][stderr] = "N/A"
+                                    else:
+                                        results[group_or_task][
+                                            stderr
+                                        ] = lm_eval.api.metrics.pooled_sample_stderr(
+                                            stderrs, sizes
+                                        )
+                                        # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
+                                        # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
+                                        # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
+
+                            results[group_or_task]["samples"] = sum(sizes)
+                            group_metadata = group_config.get("metadata", None)
+                            if group_metadata is not None:
+                                versions[group_or_task] = group_metadata.get(
+                                    "version", None
+                                )
+                # print(results)
+                return results, versions, show_group_table, task_aggregation_list
+
+            results, versions, show_group_table, *_ = process_group(
+                results, versions, task_dict
+            )
+
+        results_agg, group_agg = prepare_print_tasks(task_dict, results)
+        subtask_list = get_subtask_list(task_dict)
+
+        # collect all higher_is_better values for metrics
+        # in the group's subtasks.
+        # TODO: clean this up ; unify with the below metric_list loop?
+        _higher_is_better = {}
+        for group, task_list in subtask_list.items():
+            for task in task_list:
+                for m, h in higher_is_better[task].items():
+                    if m not in _higher_is_better.keys():
+                        _higher_is_better[m] = h
+
                     if (
                         m in _higher_is_better
                         and _higher_is_better[m] is not None
@@ -575,81 +725,16 @@ def evaluate(
                             f"Higher_is_better values for metric {m} in group {group} are not consistent. Defaulting to None."
                         )
                         _higher_is_better[m] = None
-                higher_is_better[group] = _higher_is_better
-
-                # collect all metric keys used by a subtask in the group.
-                metric_list = list(
-                    {
-                        key
-                        for task in task_list
-                        for key in results[task].keys()
-                        if "_stderr" not in key and key not in ["alias", "samples"]
-                    }
-                )
-                for metric in metric_list:
-                    stderr = "_stderr,".join(metric.split(","))
-
-                    # gather metrics, sizes, and stderrs from subtasks
-                    metrics = [
-                        results[task][metric]
-                        for task in task_list
-                        if metric in results[task]
-                    ]  # TODO: copy?
-                    stderrs = [
-                        results[task][stderr]
-                        for task in task_list
-                        if stderr in results[task]
-                    ]
-                    sizes = [
-                        results[task]["samples"]
-                        for task in task_list
-                        if metric in results[task]
-                    ]
-
-                    # compute group's pooled metric and stderr
-                    results[group][
-                        metric
-                    ] = lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
-                    # TODO: calculate grouped metric using aggregation fn
-                    if "N/A" in stderrs:
-                        results[group][stderr] = "N/A"
-                    else:
-                        results[group][
-                            stderr
-                        ] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
-                        # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
-                        # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
-                        # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
-
-                    results[group]["samples"] = sum(sizes)
-
-        results_agg = defaultdict(dict)
-        groups_agg = defaultdict(dict)
-        all_tasks_list = list(task_hierarchy.keys())
-        while True:
-            add_tasks_list = list(k for k in results_agg.keys())
-            left_tasks_list = sorted(list(set(all_tasks_list) - set(add_tasks_list)))
-            if len(left_tasks_list) == 0:
-                break
-
-            _task_hierarchy = {
-                k: v for k, v in task_hierarchy.items() if k in left_tasks_list
-            }
-            _results_agg, _groups_agg = prepare_print_tasks(_task_hierarchy, results)
-
-            results_agg = {**results_agg, **_results_agg}
-            groups_agg = {**groups_agg, **_groups_agg}
-
-        for group_name, task_list in task_hierarchy.items():
-            if task_list:
-                num_fewshot[group_name] = num_fewshot[
-                    task_list[0]
-                ]  # TODO: validate this
+            higher_is_better[group] = _higher_is_better
 
         results_dict = {
             "results": dict(results_agg.items()),
-            **({"groups": dict(groups_agg.items())} if bool(groups_agg) else {}),
-            "group_subtasks": dict(reversed(task_hierarchy.items())),
+            **(
+                {"groups": dict(group_agg.items())}
+                if (bool(group_agg) & show_group_table)
+                else {}
+            ),
+            "group_subtasks": dict(reversed(subtask_list.items())),
             "configs": dict(sorted(configs.items())),
             "versions": dict(sorted(versions.items())),
             "n-shot": dict(sorted(num_fewshot.items())),

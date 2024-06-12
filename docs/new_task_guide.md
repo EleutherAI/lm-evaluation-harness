@@ -285,7 +285,7 @@ As a heuristic check:
 
 For more detail on the task system and advanced features, see [`docs/task_guide.md`](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/task_guide.md) . If none of the above sound like they apply to your task, it's time to continue onto checking your task performance!
 
-### Task name + groups (registering a task)
+### Task name + tags (registering a task)
 
 To test a task conveniently, it helps to *register* the task--that is, to give it a name and make the `lm-eval` library aware it exists!
 
@@ -296,14 +296,14 @@ task: <name of the task>
 ```
 Including a task name is mandatory.
 
-It is often also convenient to label your task with several `groups`, or tags, though this field is optional:
+It is often also convenient to label your task with several `tag` though this field is optional:
 
 ```yaml
-group:
-  - group1
-  - group2
+tag:
+  - tag1
+  - tag2
 ```
-This will add your task to the `group1` and `group2` groups, enabling people to know how to categorize your task, and if desired run all tasks in one of these groups at once, your task along with them.
+This will add your task to the `tag1` and `tag2` tags, enabling people to know how to categorize your task, and if desired run all tasks in one of these groups at once, your task along with them.
 
 
 If your task is not in the `lm_eval/tasks` folder, you'll need to tell the Eval Harness where to look for YAML files.
@@ -321,7 +321,7 @@ Passing `--tasks /path/to/yaml/file` is also accepted.
 
 You can make more complete group config while also tailoring parameters for individual tasks.
 
-For example, let's build a config for evaluating MMLU and a few natural language inference tasks. For MMLU, we can write the name for the benchmark as a subtask written under `task`. You can configure the parameters such as `num_fewshot`. If the task being configured is a group such as `mmlu` or `super_glue`, the parameter set will be applied to all of the subtasks.
+For example, let's build a config for evaluating MMLU and a few natural language inference tasks. For MMLU, we can write the name for the benchmark as a subtask written under `task`. You can configure the parameters such as `num_fewshot`. If the task being configured is a group such as `mmlu` or `super_glue`, the parameter set will be applied to all of the subtasks. By default, group configs do not aggregate the scores from all the tasks in it. To get a aggregate score, use the `aggregate_metric` and set it to `true`.
 
 ```yaml
 group: nli_and_mmlu
@@ -331,6 +331,7 @@ task:
       - cb
       - anli_r1
       - rte
+    aggregate_metric: true
   - task: mmlu
     num_fewshot: 2
 ```

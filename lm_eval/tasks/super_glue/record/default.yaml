@@ -1,4 +1,4 @@
-group:
+tag:
   - super-glue-lm-eval-v1
 task: record
 dataset_path: super_glue
