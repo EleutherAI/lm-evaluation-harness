@@ -147,7 +147,7 @@ task_dict = lm_eval.tasks.get_task_dict(
     task_manager # A task manager that allows lm_eval to
                  # load the task during evaluation.
                  # If none is provided, `get_task_dict`
-                 # will instantiated one itself, but this
+                 # will instantiate one itself, but this
                  # only includes the stock tasks so users
                  # will need to set this if including
                  # custom paths is required.
