@@ -1,0 +1,4 @@
+task: basquetrivia_en_mt_gemma-7b
+include: basquetrivia.yaml
+dataset_name: en_mt_gemma-7b
+doc_to_text: "Question: {{question}}\nA: {{candidates[0]}}\nB: {{candidates[1]}}\nC: {{candidates[2]}}\nAnswer:"
