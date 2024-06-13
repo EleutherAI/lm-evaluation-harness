@@ -1,0 +1,8 @@
+"dataset_name": "psychology"
+"description": "The following are multiple choice questions (with answers) about psychology.\n\
+  \n"
+"group": "mmlu_pro_social_sciences"
+"group_alias": "social_sciences"
+"include": "_default_template_yaml"
+"task": "mmlu_pro_psychology"
+"task_alias": "psychology"

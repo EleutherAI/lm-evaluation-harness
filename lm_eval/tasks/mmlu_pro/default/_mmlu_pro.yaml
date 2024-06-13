@@ -1,0 +1,6 @@
+group: mmlu_pro
+task:
+  - mmlu_pro_stem
+  - mmlu_pro_other
+  - mmlu_pro_social_sciences
+  - mmlu_pro_humanities
