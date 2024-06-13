@@ -1,0 +1,8 @@
+"dataset_name": "business"
+"description": "The following are multiple choice questions (with answers) about business.\n\
+  \n"
+"group": "mmlu_pro_other_generative"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "mmlu_pro_business_generative"
+"task_alias": "business"
