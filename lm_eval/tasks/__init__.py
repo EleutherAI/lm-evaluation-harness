@@ -14,27 +14,43 @@ class TaskManager:
 
     """
 
-    def __init__(self, verbosity="INFO", include_path: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        verbosity="INFO",
+        include_path: Optional[Union[str, List]] = None,
+        include_defaults: bool = True,
+    ) -> None:
         self.verbosity = verbosity
         self.include_path = include_path
         self.logger = utils.eval_logger
         self.logger.setLevel(getattr(logging, f"{verbosity}"))
 
-        self._task_index = self.initialize_tasks(include_path=include_path)
+        self._task_index = self.initialize_tasks(
+            include_path=include_path, include_defaults=include_defaults
+        )
         self._all_tasks = sorted(list(self._task_index.keys()))
 
         self.task_group_map = collections.defaultdict(list)
 
-    def initialize_tasks(self, include_path: Optional[str] = None):
+    def initialize_tasks(
+        self,
+        include_path: Optional[Union[str, List]] = None,
+        include_defaults: bool = True,
+    ):
         """Creates a dictionary of tasks index.
 
-        :param include_path: str = None
-            An additional path to be searched for tasks
-
+        :param include_path: Union[str, List] = None
+            An additional path to be searched for tasks recursively.
+            Can provide more than one such path as a list.
+        :param include_defaults: bool = True
+            If set to false, default tasks (those in lm_eval/tasks/) are not indexed.
         :return
             Dictionary of task names as key and task metadata
         """
-        all_paths = [os.path.dirname(os.path.abspath(__file__)) + "/"]
+        if include_defaults:
+            all_paths = [os.path.dirname(os.path.abspath(__file__)) + "/"]
+        else:
+            all_paths = []
         if include_path is not None:
             if isinstance(include_path, str):
                 include_path = [include_path]
@@ -413,7 +429,9 @@ def get_task_dict(
         )
 
     string_task_name_list = [task for task in task_name_list if isinstance(task, str)]
-    others_task_name_list = [task for task in task_name_list if ~isinstance(task, str)]
+    others_task_name_list = [
+        task for task in task_name_list if not isinstance(task, str)
+    ]
     if len(string_task_name_list) > 0:
         if task_manager is None:
             task_manager = TaskManager()

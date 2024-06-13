@@ -25,7 +25,6 @@ filter_list:
       - function: "regex"
         regex_pattern: "(?<=the answer is )(.*)(?=.)"
       - function: "take_first"
-num_fewshot: 0
+num_fewshot: 3
 metadata:
   version: 2.0
-  num_fewshot: 3 # controls what is printed in n-shot
