@@ -3,7 +3,7 @@
 # this is a multi-node SLURM script using `accelerate` launcher
 
 #SBATCH --job-name=eval-harness
-#SBATCH --partition=defq
+#SBATCH --partition=no_multi,defq
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1          # crucial - only 1 task per node
 #SBATCH --gres=gpu:8                 # EDIT this if it's not 8-gpus per node
