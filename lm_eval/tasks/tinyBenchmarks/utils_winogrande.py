@@ -1,4 +1,4 @@
-""" This code mirrors the utils of the original winogrande task """
+"""This code mirrors the utils of the original winogrande task"""
 
 
 def doc_to_text(doc):
