@@ -308,7 +308,7 @@ class Reorderer:
         return res
 
 
-def make_table(result_dict, column: str = "results", sort_results: bool = True):
+def make_table(result_dict, column: str = "results", sort_results: bool = False):
     """Generate table of results."""
     from pytablewriter import LatexTableWriter, MarkdownTableWriter
 
@@ -342,8 +342,8 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
         keys = sorted(keys)
     for k in keys:
         dic = result_dict[column][k]
-        version = result_dict["versions"].get(k, "N/A")
-        n = str(result_dict["n-shot"][k])
+        version = result_dict["versions"].get(k, "    N/A")
+        n = str(result_dict.get("n-shot", " ").get(k, " "))
         higher_is_better = result_dict.get("higher_is_better", {}).get(k, {})
 
         if "alias" in dic:
@@ -357,6 +357,8 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
                 continue
+            if v != " ":
+                v = "%.4f" % v
 
             hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
 
@@ -364,9 +366,9 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
                 se = dic[m + "_stderr" + "," + f]
                 if se != "N/A":
                     se = "%.4f" % se
-                values.append([k, version, f, n, m, hib, "%.4f" % v, "±", se])
+                values.append([k, version, f, n, m, hib, v, "±", se])
             else:
-                values.append([k, version, f, n, m, hib, "%.4f" % v, "", ""])
+                values.append([k, version, f, n, m, hib, v, "", ""])
             k = ""
             version = ""
     md_writer.value_matrix = values

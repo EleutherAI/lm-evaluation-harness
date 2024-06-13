@@ -2,9 +2,10 @@ import collections
 import math
 import pathlib
 import sys
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from lm_eval.api import metrics
+from lm_eval.tasks import ConfigurableGroup, ConfigurableTask
 from lm_eval.utils import eval_logger, positional_deprecated
 
 
@@ -39,6 +40,7 @@ class TaskOutput:
         self,
         task=None,
         task_name=None,
+        task_id=None,
         task_config=None,
         version=None,
         group_name=None,
@@ -50,6 +52,7 @@ class TaskOutput:
         self.task = task
         self.task_config = task_config
         self.task_name = task_name
+        self.task_id = task_id
         self.group_name = group_name
         self.version = version
         self.n_shot = n_shot
@@ -75,6 +78,7 @@ class TaskOutput:
                 task=task, task_name=task_name, is_group=is_group, group_name=group_name
             )
         version = task.VERSION
+        task_id = task.task_id
         task_config = dict(task.dump_config())
         if (n_shot := task_config.get("num_fewshot")) == 0:
             n_shot = task_config.get("metadata", {}).get("num_fewshot", 0)
@@ -83,6 +87,7 @@ class TaskOutput:
         return cls(
             task=task,
             task_name=task_name,
+            task_id=task_id,
             task_config=task_config,
             group_name=group_name,
             version=version,
@@ -116,23 +121,71 @@ class TaskOutput:
         return (
             f"TaskOutput(task_name={self.task_name}, "
             f"group_name={self.group_name}, "
-            f"version={self.version},"
-            f"n_shot={self.n_shot}"
-            f"task_alias={self.task_alias}, group_alias={self.group_alias})"
+            f"version={self.version}, "
+            f"n_shot={self.n_shot}, "
+            f"task_alias={self.task_alias}, "
+            f"group_alias={self.group_alias})"
         )
 
 
-def get_task_list(task_dict: dict) -> Tuple[Dict[str, list], List[TaskOutput]]:
-    task_hierarchy = collections.defaultdict(list)
-    outputs = list(TaskOutput.from_taskdict(x, y) for x, y in task_dict.items())
-    for task_output in outputs:
-        if group_name := task_output.group_name:
-            task_hierarchy[group_name].append(task_output.task_name)
+def get_task_list(task_dict: dict) -> List[TaskOutput]:
+    outputs = []
+    for task_name, task_obj in task_dict.items():
+        if isinstance(task_obj, dict):
+            _outputs = get_task_list(task_obj)
+            outputs.extend(_outputs)
         else:
-            task_hierarchy[task_output.task_name] = []
-    # returns task_hierarchy tracking which groups contain which subtasks,
-    # and a list of TaskOutput classes for each non-group subtask
-    return task_hierarchy, [x for x in outputs if x.task]
+            task_output = TaskOutput.from_taskdict(task_name, task_obj)
+            outputs.append(task_output)
+
+    return outputs
+
+
+def get_subtask_list(task_dict, task_root=None, depth=0):
+    subtask_list = {}
+    for group_obj, task_obj in task_dict.items():
+        if isinstance(group_obj, ConfigurableGroup):
+            # group_name = group_obj.group_name
+            group_name = group_obj.task_id
+        else:
+            group_name = group_obj
+        if isinstance(task_obj, dict):
+            _subtask_list = get_subtask_list(
+                task_obj, task_root=group_name, depth=depth + 1
+            )
+            if task_root:
+                subtask_list.setdefault((task_root, depth), []).extend(
+                    [
+                        _task
+                        for (_task, _depth) in _subtask_list.keys()
+                        if (_depth - 1) == depth
+                    ]
+                )
+
+            subtask_list = {**subtask_list, **_subtask_list}
+        else:
+            if isinstance(task_obj, ConfigurableGroup):
+                # group_or_task_name = task_obj.group_name
+                group_or_task_name = task_obj.task_id
+            elif isinstance(task_obj, ConfigurableTask):
+                # group_or_task_name = task_obj.task_name
+                group_or_task_name = task_obj.task_id
+
+            if task_root is None:
+                subtask_list.setdefault((group_or_task_name, depth), [])
+            else:
+                subtask_list.setdefault((task_root, depth), []).append(
+                    group_or_task_name
+                )
+
+    if depth == 0:
+        _subtask_list = {}
+        for group_key, task_list in subtask_list.items():
+            group_name, depth = group_key
+            _subtask_list[group_name] = task_list
+        subtask_list = _subtask_list
+
+    return subtask_list
 
 
 def print_writeout(task) -> None:
@@ -155,70 +208,77 @@ def get_sample_size(task, limit: Optional[int]) -> Union[int, None]:
 
 
 def prepare_print_tasks(
-    task_hierarchy: dict, results: dict, tab=0
+    task_dict: dict,
+    results: dict,
+    task_depth=0,
+    group_depth=0,
 ) -> Tuple[dict, dict]:
     """
-    @param task_hierarchy: Dictionary representing the group hierarchy of tasks. Each key is a group name and its
+    @param task_dict: Dictionary representing the group hierarchy of tasks. Each key is a group name and its
     value is a list of task names.
     @param results: Dictionary containing the results of each task. Each key is a
     group name and its value is a dictionary of task results.
-    @param tab: The indentation level for printing the task
+    @param task_depth: The indentation level for printing the task
+    hierarchy. Default is 0.
+    @param group_depth: The indentation level for printing the group
     hierarchy. Default is 0.
     @return: A tuple of two dictionaries: results_agg and groups_agg. results_agg contains
     aggregated results for each task, and groups_agg contains aggregated results for each group.
 
     Prepares the task hierarchy and aggregates the results for each task and group recursively for printing.
     """
-    results_agg = collections.defaultdict(dict)
-    groups_agg = collections.defaultdict(dict)
+    task_agg = collections.defaultdict(dict)
+    group_agg = collections.defaultdict(dict)
+    for task_or_group_name, task_or_group_obj in task_dict.items():
+        tab_string = " " * task_depth + "- " if task_depth > 0 else ""
+        if isinstance(task_or_group_name, ConfigurableGroup):
+            # string_name = task_or_group_name.group_name
+            name = task_or_group_name.task_id
+            from_configurable_group = True
+        elif isinstance(task_or_group_name, str):
+            name = task_or_group_name
+            if isinstance(task_or_group_obj, ConfigurableTask):
+                # string_name = task_or_group_obj.task_name
+                name = task_or_group_obj.task_id
+            from_configurable_group = False
 
-    (group_name, task_list), *_ = task_hierarchy.items()
-    task_list = sorted(task_list)
-
-    results_agg[group_name] = results[group_name].copy()
-    # results_agg[group_name]["tab"] = tab
-    if "samples" in results_agg[group_name]:
-        results_agg[group_name].pop("samples")
-
-    tab_string = " " * tab + "- " if tab > 0 else ""
-
-    if "alias" in results_agg[group_name]:
-        results_agg[group_name]["alias"] = tab_string + results_agg[group_name]["alias"]
-    else:
-        results_agg[group_name]["alias"] = tab_string + group_name
-
-    if len(task_list) > 0:
-        groups_agg[group_name] = results[group_name].copy()
-        # groups_agg[group_name]["tab"] = tab
-        if "samples" in groups_agg[group_name]:
-            groups_agg[group_name].pop("samples")
-
-        if "alias" in groups_agg[group_name]:
-            groups_agg[group_name]["alias"] = (
-                tab_string + groups_agg[group_name]["alias"]
-            )
-        else:
-            groups_agg[group_name]["alias"] = tab_string + group_name
-
-        for task_name in task_list:
-            if task_name in task_hierarchy:
-                _task_hierarchy = {
-                    **{task_name: task_hierarchy[task_name]},
-                    **task_hierarchy,
-                }
+        task_agg[name] = results[name].copy()
+        if from_configurable_group:
+            if task_or_group_name.group_alias is not None:
+                alias = task_or_group_name.group_alias
             else:
-                _task_hierarchy = {
-                    **{task_name: []},
-                    **task_hierarchy,
-                }
+                alias = task_or_group_name.group
+        else:
+            if "alias" in task_agg[name]:
+                alias = task_agg[name]["alias"]
+            else:
+                alias = name
 
-            _results_agg, _groups_agg = prepare_print_tasks(
-                _task_hierarchy, results, tab + 1
+        task_agg[name]["alias"] = tab_string + alias
+        if "samples" in task_agg[name]:
+            task_agg[name].pop("samples")
+
+        if from_configurable_group and (" " not in results[name]):
+            group_tab_string = " " * group_depth + "- " if group_depth > 0 else ""
+            group_agg[name] = results[name].copy()
+            group_agg[name]["alias"] = group_tab_string + alias
+            if "samples" in group_agg[name]:
+                group_agg[name].pop("samples")
+
+        if isinstance(task_or_group_obj, dict):
+            task_depth += 1
+            group_depth += 1
+            _task_agg, _group_agg = prepare_print_tasks(
+                task_or_group_obj, results, task_depth, group_depth
             )
-            results_agg = {**results_agg, **_results_agg}
-            groups_agg = {**groups_agg, **_groups_agg}
-
-    return results_agg, groups_agg
+            task_agg = {
+                **task_agg,
+                **_task_agg,
+            }
+            group_agg = {**group_agg, **_group_agg}
+            task_depth -= 1
+            group_depth -= 1
+    return task_agg, group_agg
 
 
 def consolidate_results(
@@ -259,23 +319,26 @@ def consolidate_results(
     higher_is_better = collections.defaultdict(dict)
 
     for task_output in eval_tasks:
+        # results[task_output.task_id]["task"] = task_output.task_name
         if "task_alias" in (task_config := task_output.task_config):
-            results[task_output.task_name]["alias"] = task_config["task_alias"]
+            results[task_output.task_id]["alias"] = task_config["task_alias"]
+        else:
+            results[task_output.task_id]["alias"] = task_output.task_name
         if group_alias := task_output.group_alias:
             if group_alias not in results and (group_name := task_output.group_name):
                 results[group_name]["alias"] = group_alias
-        num_fewshot[task_output.task_name] = task_output.n_shot
-        configs[task_output.task_name] = task_output.task_config
-        versions[task_output.task_name] = task_output.version
-        samples[task_output.task_name] = task_output.logged_samples
-        higher_is_better[task_output.task_name] = task_output.task.higher_is_better()
+        num_fewshot[task_output.task_id] = task_output.n_shot
+        configs[task_output.task_id] = task_output.task_config
+        versions[task_output.task_id] = task_output.version
+        samples[task_output.task_id] = task_output.logged_samples
+        higher_is_better[task_output.task_id] = task_output.task.higher_is_better()
         for (metric, filter_key), items in task_output.sample_metrics.items():
             metric_key = f"{metric},{filter_key}"
-            results[task_output.task_name][metric_key] = task_output.agg_metrics[
+            results[task_output.task_id][metric_key] = task_output.agg_metrics[
                 metric_key
             ]
-            results[task_output.task_name]["samples"] = task_output.sample_len
-            results[task_output.task_name][
+            results[task_output.task_id]["samples"] = task_output.sample_len
+            results[task_output.task_id][
                 f"{metric}_stderr,{filter_key}"
             ] = task_output.agg_metrics[f"{metric}_stderr,{filter_key}"]
     return results, samples, configs, versions, num_fewshot, higher_is_better

@@ -22,6 +22,7 @@ from typing import (
 
 import datasets
 import numpy as np
+import shortuuid
 from tqdm import tqdm
 
 from lm_eval import utils
@@ -52,10 +53,102 @@ eval_logger = logging.getLogger("lm-eval")
 
 
 @dataclass
+class GroupConfig(dict):
+    group: Optional[str] = None
+    group_alias: Optional[str] = None
+    task: Optional[Union[str, list]] = None
+    tag_to_task: Optional[str] = False
+    aggregate_metric: Optional[str] = False
+    aggregate_fn: Optional[str] = "mean"
+    weight_by_size: Optional[str] = False
+    metric_alias: Optional[str] = None
+    version: Optional[str] = 0
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+    def __setitem__(self, item, value):
+        return setattr(self, item, value)
+
+    def to_dict(self, keep_callable: bool = False) -> dict:
+        """dumps the current config as a dictionary object, as a printable format.
+        null fields will not be printed.
+        Used for dumping results alongside full task configuration
+
+        :return: dict
+            A printable dictionary version of the TaskConfig object.
+
+        # TODO: should any default value in the TaskConfig not be printed?
+        """
+        cfg_dict = asdict(self)
+        # remove values that are `None`
+        for k, v in list(cfg_dict.items()):
+            if callable(v):
+                cfg_dict[k] = self.serialize_function(v, keep_callable=keep_callable)
+        return cfg_dict
+
+    def serialize_function(
+        self, value: Union[Callable, str], keep_callable=False
+    ) -> Union[Callable, str]:
+        """Serializes a given function or string.
+
+        If 'keep_callable' is True, the original callable is returned.
+        Otherwise, attempts to return the source code of the callable using 'getsource'.
+        """
+        if keep_callable:
+            return value
+        else:
+            try:
+                return getsource(value)
+            except (TypeError, OSError):
+                return str(value)
+
+
+class ConfigurableGroup(abc.ABC):
+    def __init__(
+        self,
+        config: Optional[dict] = None,
+    ) -> None:
+        # Create a unique identifier ID
+        self._task_id = shortuuid.uuid()[:8]
+        self._config = GroupConfig(**config)
+
+    @property
+    def group(self):
+        return self._config.group
+
+    @property
+    def group_alias(self):
+        return self._config.group_alias
+
+    @property
+    def version(self):
+        return self._config.version
+
+    @property
+    def config(self):
+        return self._config.to_dict()
+
+    @property
+    def task_id(self) -> Any:
+        return "-".join((self.group_name, self._task_id))
+
+    @property
+    def group_name(self) -> Any:
+        return self._config.group
+
+    def __repr__(self):
+        return (
+            f"ConfigurableGroup(group={self.group}," f"group_alias={self.group_alias})"
+        )
+
+
+@dataclass
 class TaskConfig(dict):
     # task naming/registry
     task: Optional[str] = None
     task_alias: Optional[str] = None
+    tag: Optional[Union[str, list]] = None
     group: Optional[Union[str, list]] = None
     group_alias: Optional[Union[str, list]] = None
     # HF dataset options.
@@ -226,6 +319,8 @@ class Task(abc.ABC):
         self._fewshot_docs: Optional[list] = None
         self._instances: Optional[List[Instance]] = None
 
+        # Create a unique identifier ID
+        self._task_id = shortuuid.uuid()[:8]
         self._config: TaskConfig = TaskConfig({**config}) if config else TaskConfig()
 
         self._filters = [build_filter_ensemble("none", [["take_first", None]])]
@@ -682,6 +777,10 @@ class Task(abc.ABC):
         )
         return doc_iterator
 
+    @property
+    def task_id(self) -> Any:
+        return self._task_id
+
 
 class ConfigurableTask(Task):
     VERSION = "Yaml"
@@ -695,6 +794,9 @@ class ConfigurableTask(Task):
         download_mode=None,
         config: Optional[dict] = None,
     ) -> None:  # TODO no super() call here
+        # Create a unique identifier ID
+        self._task_id = shortuuid.uuid()[:8]
+
         # Get pre-configured attributes
         self._config = self.CONFIG
 
@@ -979,7 +1081,7 @@ class ConfigurableTask(Task):
         else:
             if (self.config.num_fewshot is not None) and (self.config.num_fewshot > 0):
                 eval_logger.warning(
-                    f"Task '{self.config.task}': "
+                    f"[Task: {self.config.task}] "
                     "num_fewshot > 0 but fewshot_split is None. "
                     "using preconfigured rule."
                 )
@@ -1519,10 +1621,17 @@ class ConfigurableTask(Task):
     def get_config(self, key: str) -> Any:
         return getattr(self._config, key, None)
 
+    @property
+    def task_id(self) -> Any:
+        return "-".join((self.task_name, self._task_id))
+
+    @property
+    def task_name(self) -> Any:
+        return getattr(self.config, "task", None)
+
     def __repr__(self):
         return (
             f"ConfigurableTask(task_name={getattr(self.config, 'task', None)},"
-            f"group_name={getattr(self.config, 'group', None)},"
             f"output_type={self.OUTPUT_TYPE},"
             f"num_fewshot={getattr(self.config, 'num_fewshot', None)},"
             f"num_samples={len(self.eval_docs)})"

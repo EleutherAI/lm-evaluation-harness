@@ -4,6 +4,8 @@ task:
   # ANLI R1
   - group: anli_r1_flan
     group_alias: ANLI R1
+    group_config:
+      aggregate_metric: True
     task:
       - task: anli_r1
         task_alias: prompt-0
@@ -53,6 +55,8 @@ task:
   # ANLI R2
   - group: anli_r2_flan
     group_alias: ANLI R2
+    group_config:
+      aggregate_metric: True
     task:
       - task: anli_r2
         task_alias: prompt-0
@@ -102,6 +106,8 @@ task:
   # ANLI R3
   - group: anli_r3_flan
     group_alias: ANLI R3
+    group_config:
+      aggregate_metric: True
     task:
       - task: anli_r3
         task_alias: prompt-0
@@ -151,6 +157,8 @@ task:
   # Arc Easy
   - group: arc_easy_flan
     group_alias: Arc Easy
+    group_config:
+      aggregate_metric: True
     task:
       - task: arc_easy
         task_alias: prompt-0
@@ -190,6 +198,8 @@ task:
   # Arc Challenge
   - group: arc_challenge_flan
     group_alias: Arc Challenge
+    group_config:
+      aggregate_metric: True
     task:
       - task: arc_challenge
         task_alias: prompt-0
@@ -229,6 +239,8 @@ task:
   # BoolQ
   - group: boolq_flan
     group_alias: BoolQ
+    group_config:
+      aggregate_metric: True
     task:
       - task: boolq
         task_alias: prompt-0
@@ -283,6 +295,8 @@ task:
   # RTE
   - group: rte_flan
     group_alias: RTE
+    group_config:
+      aggregate_metric: True
     task:
       - task: rte
         task_alias: prompt-0
