@@ -318,7 +318,7 @@ class TaskManager:
         ]
         tasks_and_groups = collections.defaultdict()
         for root, dirs, file_list in os.walk(task_dir):
-            dirs[:] = [d for d in dirs if d in ignore_dirs]
+            dirs[:] = [d for d in dirs if d not in ignore_dirs]
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
