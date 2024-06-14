@@ -1,0 +1,23 @@
+dataset_name: engineering
+description: The following are multiple choice questions (with answers) about engineering.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: "A point pole has a strength of 4π * 10^-4 weber. The force in newtons on a point pole of 4π * 1.5 * 10^-4 weber placed at a distance of 10 cm from it will be
+      (A) 25 N. (B) 12.5 N. (C) 15 N. (D) 10 N. (E) 7.5 N. (F) 20 N. (G) 5 N. (H) 3.75 N. (I) N/A (J) N/A"
+    target: "Let's think step by step. The force between two point poles is given by \( \frac{m_1 m_2}{\mu_0 4 \pi r^2} \), in analogy to Coulomb’s law. Plugging in the values given in the question, we calculate that the force is approximately 15 N. The answer is (C)."
+  - question: "The coil of a moving coil meter has 100 turns, is 40 mm long and 30 mm wide. The control torque is \( 240 \times 10^{-6} \) N-m on full scale. If magnetic flux density is 1 Wb/m² range of meter is
+      (A) 2 mA. (B) 5 mA. (C) 1.5 mA. (D) 0.5 mA. (E) 6 mA. (F) 4 mA. (G) 3 mA. (H) 1 mA. (I) 2.5 mA. (J) 3.5 mA."
+    target: "Let's think step by step. The torque on a coil in a uniform magnetic field is given by \( BANI \), where \( B \) is the magnetic flux density, \( A \) is the area of the coil, \( N \) is the number of turns, and \( I \) is the current. So we have that \( I = \frac{\text{Torque}}{BAN} \), or \( \frac{240 \times 10^{-6}}{1200 \times 10^{-6} \times 100 \times 1} = 2 \times 10^{-3} \). The answer is (A)."
+  - question: "In an SR latch built from NOR gates, which condition is not allowed
+      (A) S=0, R=2 (B) S=2, R=2 (C) S=1, R=1 (D) S=1, R=-1 (E) S=1, R=2 (F) S=0, R=0 (G) S=2, R=0 (H) S=1, R=0 (I) S=2, R=1 (J) S=0, R=1"
+    target: "Let's think step by step. An SR latch is a set-reset latch; in the case where \( S=1 \) and \( R=1 \), the circuit has no stable state; instead a race condition will be produced within the circuit, so the device will be in an undefined state. So \( S=1 \), \( R=1 \) is an illegal input. The answer is (C)."
+  - question: "Two long parallel conductors carry 100 A. If the conductors are separated by 20 mm, the force per meter of length of each conductor will be
+      (A) 100 N. (B) 0.01 N. (C) 10 N. (D) 0.5 N. (E) 0.001 N. (F) 5 N. (G) 1 N. (H) 50 N. (I) 0.1 N. (J) 0.0001 N."
+    target: "Let's think step by step. The magnetic force-per-length between two current-carrying conductors is given by \( \frac{\mu_0 I_1 I_2}{2 \pi r} \), where \( r \) is the separation distance and \( I_1 \) and \( I_2 \) are the currents. Plugging in 100 A for \( I_1 \) and \( I_2 \), and 20 mm for \( r \), gives 0.1 N. The answer is (I)."
+  - question: "In a 2 pole lap winding dc machine, the resistance of one conductor is 2Ω and the total number of conductors is 100. Find the total resistance
+      (A) 50Ω (B) 1Ω (C) 25Ω (D) 200Ω (E) 10Ω (F) 100Ω (G) 500Ω (H) 150Ω (I) 75Ω (J) 20Ω"
+    target: "Let's think step by step. In lap winding, effectively two resistors are connected in parallel, so the actual resistance of each pair is 1 Ohm. Since we have 50 pairs, we get a total resistance of 50 Ohms. The answer is (A)."
+group: mmlu_pro_flan_cot_fewshot_stem
+include: _mmlu_pro_flan_cot_fewshot_template_yaml
+task: mmlu_pro_flan_cot_fewshot_engineering

@@ -1,0 +1,29 @@
+dataset_name: philosophy
+description: The following are multiple choice questions (with answers) about philosophy.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: "Which of the given formulas of PL is the best symbolization of the following sentence?
+    Turtles live long lives and are happy creatures, unless they are injured.
+      (A) (L • H) ≡ I (B) (L • H) ∨ I (C) L • (H ∨ I) (D) L • (H ⊃ R). (E) N/A (F) N/A (G) N/A (H) N/A (I) N/A (J) N/A"
+    target: "Let's think step by step. We refer to Wikipedia articles on formal logic for help. Let’s solve this step by step. Let “L” denote “living long”, H “being happy”, and “I” “being injured”. Now, consider each choice:
+    (A) means (living long AND being happy) is equivalent to (being injured). 
+    (B) means (living long AND being happy) OR (being injured). 
+    (C) means (living long) AND (being happy OR being injured). 
+    (D) means (living long) AND (being happy implies being R), but what R denotes is not clear.
+    Obviously, (B) is the best symbolization of the original sentence. The answer is (B)."
+  - question: "Select the best translation into predicate logic. George borrows Hector's lawnmower. (g: George; h: Hector; l: Hector's lawnmower; Bxyx: x borrows y from z).
+      (A) Bhgh (B) Bggh (C) Bhlh (D) Bghl (E) Bhlg (F) Blhg (G) Bllg (H) Blgh (I) Bhhg (J) Bglh"
+    target: "Let's think step by step. We refer to Wikipedia articles on formal logic for help. Let’s solve this step by step. We are told that “Bxyx” means “x borrows y from z”. We can rewrite “George borrows Hector's lawnmower” as “George borrows a lawnmower from Hector”, which can then be translated into predicate logic as “Bglh”. The answer “Bglh” appears in (J); therefore, (J) must be the correct answer. The answer is (J)."
+  - question: "The study of reality in the broadest sense, an inquiry into the elemental nature of the universe and the things in it, is known as _____.
+      (A) quantum physics (B) metaphysics (C) ontology (D) phenomenology (E) cosmology (F) teleology (G) epistemology (H) axiology (I) N/A (J) N/A"
+    target: "Let's think step by step. We refer to Wikipedia articles on philosophy for help. Among the options, only metaphysics studies the nature of reality and existence. The answer is (B)."
+  - question: "According to Moore’s “ideal utilitarianism,” the right action is the one that brings about the greatest amount of:
+      (A) wealth. (B) virtue. (C) fairness. (D) pleasure. (E) peace. (F) justice. (G) happiness. (H) power. (I) good. (J) knowledge."
+    target: "Let's think step by step. We refer to Wikipedia articles on philosophy for help. Moore's 'ideal utilitarianism' states that one's actions should maximize intrinsic goods. The answer is (I)."
+  - question: "What is the sign of the covenant for Jewish males?
+      (A) Fasting on Yom Kippur (B) Lighting Shabbat candles (C) The rainbow (D) Circumcision (E) The Torah (F) Bar mitzvah (G) Keeping kosher (H) Wearing a kippah (I) A son (J) The Star of David"
+    target: "Let's think step by step. We refer to Wikipedia articles on world religions for help. In Judaism, the most distinctive sign of the covenant is circumcision (brit milah). The answer is (D)."
+group: mmlu_pro_flan_cot_fewshot_humanities
+include: _mmlu_pro_flan_cot_fewshot_template_yaml
+task: mmlu_pro_flan_cot_fewshot_philosophy

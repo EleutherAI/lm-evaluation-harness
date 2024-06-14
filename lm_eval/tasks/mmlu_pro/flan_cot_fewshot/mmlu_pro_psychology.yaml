@@ -1,0 +1,23 @@
+dataset_name: psychology
+description: The following are multiple choice questions (with answers) about psychology.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: "Pascale is interested in the processing strategies children use to learn new information. Pascale would best be classified as what type of psychologist?
+      (A) social (B) school (C) sociocultural (D) forensic (E) behaviorist (F) health (G) clinical (H) cognitive (I) psychoanalytic (J) developmental"
+    target: "Let's think step by step. We refer to Wikipedia articles on psychology for help. Sociocultural psychologists focus on the effect of societal factors on people. Clinical psychologists focus on people with mental issues. Cognitive psychologists focus on how people think and learn, including the processing strategies. Behaviorists focus more on the environment and experience effect on people. The answer is (H)."
+  - question: "According to Caplan's model of consultee-centered case consultation, the consultant is primarily interested in
+      (A) identifying the causes and solutions of the client's presenting problems (B) establishing a hierarchy of authority to enable effective decision making (C) ensuring the consultee adheres strictly to a predetermined action plan (D) proposing multiple alternative solutions for the consultee to choose from (E) identifying the strengths and weaknesses of the consultee's current approach (F) presenting a single, well-defined and unambiguous course of action for the consultant to overcome skills deficits (G) developing a comprehensive treatment plan for the client (H) identifying and eliminating the causes of the consultee's difficulties in handling a problem (I) focusing on the consultant's personal growth and development (J) focusing on the relationship between the client and the consultee"
+    target: "Let's think step by step. We refer to Wikipedia articles on psychology for help. Caplan defines two types of consultation. Client-centered case consultation aims to handle the client's problems, while consultee-centered case consultation aims to identify the reason of the consultee's difficulty to solve problems. The answer is (H)."
+  - question: "According to the Individuals with Disabilities Education Improvement Act, which of the following must an educational agency do before it changes the educational placement of a student with a disability?
+      (A) Notify the parents in writing (B) Obtain the child's consent (C) Obtain a court order (D) Conduct a new evaluation of the child's disability (E) Discuss with the child's psychologist (F) Give the child a trial period in the new environment (G) Obtain parental consent (H) Notify the local education authority (I) Arrange a meeting with all teachers and administrators (J) Obtain school board approval"
+    target: "Let's think step by step. We refer to Wikipedia articles on psychology for help. When the decision to change the educational placement of a student with a disability is made, the educational agency must notify the parents in writing on that date. The answer is (A)."
+  - question: "Ani believes that her attitudes and behavior play a central role in what happens to her. Such a belief is likely to be associated with
+      (A) low self-esteem. (B) a strong id. (C) a high level of anxiety. (D) a strong superego. (E) high levels of self-consciousness. (F) an external locus of control. (G) an inferiority complex. (H) a low level of self-awareness. (I) low self-efficacy. (J) an internal locus of control."
+    target: "Let's think step by step. We refer to Wikipedia articles on psychology for help. People with an external locus of control believe fate and luck play an important role in their lives, while people with an internal locus of control believe they control their lives. The answer is (J)."
+  - question: "In terms of Hofstede’s (1980) five cultural dimensions, the United States scores at the top of the scale on:
+      (A) individualism and long-term orientation. (B) individualism and power distance. (C) uncertainty avoidance. (D) long-term orientation. (E) individualism. (F) individualism and masculinity. (G) long-term orientation and uncertainty avoidance. (H) power distance. (I) power distance and masculinity. (J) N/A"
+    target: "Let's think step by step. We refer to Wikipedia articles on psychology for help. The US scores highest on individualism among the five cultural dimensions. The answer is (E)."
+group: mmlu_pro_flan_cot_fewshot_social_sciences
+include: _mmlu_pro_flan_cot_fewshot_template_yaml
+task: mmlu_pro_flan_cot_fewshot_psychology

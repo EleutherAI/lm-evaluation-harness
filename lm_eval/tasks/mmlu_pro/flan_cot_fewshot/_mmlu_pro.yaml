@@ -1,0 +1,6 @@
+group: mmlu_pro_flan_cot_fewshot
+task:
+  - mmlu_pro_flan_cot_fewshot_stem
+  - mmlu_pro_flan_cot_fewshot_other
+  - mmlu_pro_flan_cot_fewshot_social_sciences
+  - mmlu_pro_flan_cot_fewshot_humanities

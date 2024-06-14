@@ -1,0 +1,36 @@
+dataset_name: economics
+description: The following are multiple choice questions (with answers) about economics.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: "For a stationary autoregressive process, shocks will
+      (A) Never occur (B) Persist indefinitely (C) Cause a permanent change in the trend (D) Grow exponentially (E) Only affect the next period (F) Eventually die away (G) Cause the process to become non-stationary (H) Immediately disappear (I) Lead to a cyclical pattern (J) Be balanced out by subsequent shocks"
+    target: "Let's think step by step. We refer to Wikipedia articles on econometrics for help. This is a formal logic problem about stationary processes. For a stationary autoregressive process, shocks will eventually die away. The answer is (F)."
+  - question: "Consider the following AR(1) model with the disturbances having zero mean and unit variance
+      yt = 0.2 + 0.4 yt-1 + ut
+    The (unconditional) mean of y will be given by
+      (A) 0.45 (B) 0.2 (C) 0.4 (D) 0.1 (E) 0.3 (F) 0.55 (G) 0.25 (H) 0.33 (I) 0.6 (J) 0.5"
+    target: "Let's think step by step. We refer to Wikipedia articles on econometrics for help. Let’s solve this problem step by step. If we have an AR(1) model with the disturbances having zero mean and unit variance, then the unconditional mean of y is equal to the following:
+    unconditional mean of y = (the intercept term) / (1 - autoregressive coefficient)
+    We know that the intercept term is 0.2 and the autoregressive coefficient is 0.4; thus, we have:
+    unconditional mean of y = (0.2) / (1 - 0.4) = (0.2) / (0.6) = 2 / 6 = 1 / 3, which is approximately 0.33. That means that the answer should be (H) 0.33. The answer is (H)."
+  - question: "Suppose that a test statistic has associated with it a p-value of 0.08. Which one of the following statements is true?
+    (i) If the size of the test were exactly 8%, we would be indifferent between rejecting and not rejecting the null hypothesis
+    (ii) The null would be rejected if a 10% size of test were used
+    (iii) The null would not be rejected if a 1% size of test were used
+    (iv) The null would be rejected if a 5% size of test were used.
+      (A) (iii) and (iv) only (B) (i) and (iv) only (C) (i), (ii), and (iii) only (D) (i) and (ii) only (E) (i) and (iii) only (F) (i), (ii), (iii), and (iv) (G) (ii), (iii), and (iv) only (H) (ii) and (iii) only (I) (ii) and (iv) only (J) (i), (iii), and (iv) only"
+    target: "Let's think step by step. We refer to Wikipedia articles on econometrics for help. Let’s reason about each of the options.
+    (i) is a true statement.
+    (ii) is a true statement.
+    (iii) is a true statement.
+    (iv) is not a true statement. Thus, (i), (ii), and (iii) are true. The answer is (C)."
+  - question: "Which of the following policies best describes supply-side fiscal policy?
+      (A) Higher taxes on household income (B) Increased government spending (C) Increased taxes on corporate profits (D) Increased import tariffs (E) Decreased interest rates (F) Lower taxes on consumer goods (G) Lower taxes on research and development of new technology (H) Reduced government spending (I) Higher taxes on capital gains (J) An increase in the money supply"
+    target: "Let's think step by step. We refer to Wikipedia articles on macroeconomics for help. Supply-side fiscal policy stimulates the economy by encouraging more production of goods and services through reduction in taxes and deregulation. The answer is (G)."
+  - question: "The concentration ratio for a monopoly is
+      (A) 50 (B) 5 (C) 10 (D) 90 (E) 15 (F) 100 (G) 0 (H) 25 (I) 75 (J) N/A"
+    target: "Let's think step by step. We refer to Wikipedia articles on microeconomics for help. The concentration ratio is calculated as the sum of market share of a specific number of largest companies. Monopoly means one company or entity controls the entire market, therefore, the concentration ratio is 100 percent. The answer is (F)."
+group: mmlu_pro_flan_cot_fewshot_social_sciences
+include: _mmlu_pro_flan_cot_fewshot_template_yaml
+task: mmlu_pro_flan_cot_fewshot_economics

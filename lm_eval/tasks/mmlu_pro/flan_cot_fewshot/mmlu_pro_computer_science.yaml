@@ -1,0 +1,63 @@
+dataset_name: computer_science
+description: The following are multiple choice questions (with answers) about computer science.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: "A certain pipelined RISC machine has 8 general-purpose registers R0, R1, . . . , R7 and supports the following operations:
+      ADD Rs1, Rs2, Rd (Add Rs1 to Rs2 and put the sum in Rd)
+      MUL Rs1, Rs2, Rd (Multiply Rs1 by Rs2 and put the product in Rd)
+    An operation normally takes one cycle; however, an operation takes two cycles if it produces a result required by the immediately following operation in an operation sequence.
+    Consider the expression AB + ABC + BC, where variables A, B, C are located in registers R0, R1, R2. If the contents of these three registers must not be modified, what is the minimum number of clock cycles required for an operation sequence that computes the value of AB + ABC + BC?
+      (A) 10 (B) 6 (C) 9 (D) 5 (E) 12 (F) 4 (G) 7 (H) 8 (I) N/A (J) N/A"
+    target: "Let's think step by step. First, we are given that A is in R0, B is in R1, and C is in R2.
+    Next, we can see that we must compute three multiplies (AB, BC, and ABC) and two adds (AB + ABC, (AB + ABC) + BC) to compute our final answer, resulting in a minimum of five clock cycles.
+    Next, we can see that there is no way to avoid at least one pipeline stall when computing our final answer, because to compute our final sum we must wait at least one cycle for the results from the previous stage to be ready. Thus, our minimum number of cycles must be 6.
+    We can verify that we can create a solution that requires only six cycles as follows:
+    compute AB: MUL R0, R1, R3
+    compute BC: MUL R1, R2, R4
+    compute ABC: MUL R3, R4, R5
+    compute AB + BC: ADD R3, R4, R6
+    STALL
+    compute AB + ABC + BC: ADD R5, R6, R7
+    So there are 6 cycles. The answer is (B)."
+  - question: "A compiler generates code for the following assignment statement.
+      G := (A + B) * C - (D + E) * F
+    The target machine has a single accumulator and a single-address instruction set consisting of instructions load, store, add, subtract, and multiply. For the arithmetic operations, the left operand is taken from the accumulator and the result appears in the accumulator. The smallest possible number of instructions in the resulting code is
+      (A) 7 (B) 5 (C) 12 (D) 4 (E) 11 (F) 6 (G) 8 (H) 10 (I) 9 (J) 3"
+    target: "Let's think step by step. We can compute the final answer with the following sequence of operations:
+    1. LOAD D  (accumulator = D)
+    2. ADD E  (accumulator = D+E)
+    3. MUL F  (accumulator = (D+E)*F)
+    4. STORE X (X = (D+E)*F)
+    5. LOAD A  (accumulator = A)
+    6. ADD B  (accumulator = A+B)
+    7. MUL C  (accumulator = (A+B)*C)
+    8. SUB X  (accumulator = (A+B)*C - (D+E)*F)
+    9. STORE G (G = (A+B)*C - (D+E)*F)
+    This sequence takes 9 instructions. The answer is (I)."
+  - question: "SHA-1 has a message digest of
+      (A) 628 bits (B) 780 bits (C) 160 bits (D) 256 bits (E) 2048 bits (F) 820 bits (G) 128 bits (H) 512 bits (I) 1024 bits (J) 64 bits"
+    target: "Let's think step by step. Since SHA-1 is a hash function which takes an input and produces a 160-bit (20-byte) hash value, its message digest is 160 bits. The answer is (C)."
+  - question: "_____________ can modify data on your system – so that your system doesn’t run correctly or you can no longer access specific data, or it may even ask for ransom in order to give your access.
+      (A) Email Trojans (B) Backdoor Trojans (C) Rootkit Trojans (D) Banking Trojans (E) Trojan-Downloader (F) Spyware Trojans (G) Network Trojans (H) Worm Trojans (I) Ransom Trojan (J) IM – Trojans"
+    target: "Let's think step by step. The system is asking for trojans, which are for ransom, which means ransom trojan. The answer is (I)."
+  - question: "In the program below, the initial value of X is 5 and the initial value of Y is 10.
+    IF (X < 0){
+      DISPLAY (\"Foxtrot\")
+    } ELSE {
+      IF (X > Y){
+        DISPLAY (\"Hotel\")
+      } ELSE {
+        IF (Y > 0){
+          DISPLAY (\"November\")
+        } ELSE {
+          DISPLAY (\"Yankee\")
+        }
+      }
+    }
+    What is displayed as a result of running the program?
+      (A) November (B) Foxtrot (C) Zulu (D) Alpha (E) Charlie (F) Bravo (G) Yankee (H) Echo (I) Hotel (J) Delta"
+    target: "Let's think step by step. Because X has the value 5, the first conditional IF (X < 0) is false, so we move to the first ELSE clause. Because X is 5 and Y is 10, the second conditional IF (X > Y) is false, so we move to the following ELSE clause. Since Y is 10, the conditional IF (Y > 0) is true, so the command DISPLAY (\"November\") is executed. The answer is (A)."
+group: mmlu_pro_flan_cot_fewshot_stem
+include: _mmlu_pro_flan_cot_fewshot_template_yaml
+task: mmlu_pro_flan_cot_fewshot_computer_science

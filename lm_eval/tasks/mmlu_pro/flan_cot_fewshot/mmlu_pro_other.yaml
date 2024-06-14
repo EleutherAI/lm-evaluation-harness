@@ -1,0 +1,23 @@
+dataset_name: other
+description: The following are multiple choice questions (with answers) about other.
+fewshot_config:
+  sampler: first_n
+  samples:
+  - question: "As of 2017, how many of the world’s 1-year-old children today have been vaccinated against some disease?
+      (A) 30% (B) 60% (C) 10% (D) 90% (E) 80% (F) 40% (G) 100% (H) 50% (I) N/A (J) N/A"
+    target: "Let's think step by step. We refer to Wikipedia articles on global facts for help. According to data published by the World Health Organization, the number of 1-year-old children vaccinated in 2017 exceeds 80%. The answer is (E)."
+  - question: "Which one of the following items is an example of nonmaterial culture?
+      (A) A dove feather (B) Dove symbol (C) Dove body lotion (D) Dove deodorant (E) Dove soap (F) Dove candy bar (G) Dove conditioner (H) A dove (bird). (I) Dove chocolate (J) Dove shampoo"
+    target: "Let's think step by step. We refer to Wikipedia articles on geography for help. Nonmaterial culture consists of cultural ideas, beliefs or symbols that are not physical objects. The answer is (B)."
+  - question: "Which of the following cases established the precedent that a defendant must be informed of the right to remain silent, the right to a lawyer, and protection from self-incrimination?
+      (A) Brown v. Board of Education (B) Miranda v. Arizona (C) Roe v. Wade (D) Betts v. Brady (E) Plessy v. Ferguson (F) Dred Scott v. Sandford (G) Weeks v. United States (H) Gideon v. Wainwright (I) Marbury v. Madison (J) Mapp v. Ohio"
+    target: "Let's think step by step. We refer to Wikipedia articles on government and politics for help. In the landmark Miranda v. Arizona in 1966, the US Supreme Court, based on the Fifth and Sixth Amendment of the US Constitution, guaranteed a defendant's right to an attorney and protection from self-incrimination. The answer is (B)."
+  - question: "A woman who knows she has active herpes and untreated syphilis but continues to have sex without informing her partners of her condition has, in psychoanalytic terms:
+      (A) a weak conscious mind (B) a strong conscious mind (C) a weak id (D) a weak ego (E) a weak unconscious mind (F) a strong id (G) a strong ego (H) a strong superego (I) a strong preconscious mind (J) a weak superego"
+    target: "Let's think step by step. We refer to Wikipedia articles on human sexuality for help. A person with weak superego tends to be delinquent, criminal or have antisocial personality. The action of the woman who knows she has active venereal disease but still have sex with her partners indicate she may have antisocial personality. The answer is (J)."
+  - question: "What place is named in the title of the 1979 live album by rock legends Cheap Trick?
+      (A) Brooklyn (B) Beijing (C) Budapest (D) Boston (E) Bhutan (F) Barcelona (G) Britain (H) Brisbane (I) Bruges (J) Budokan"
+    target: "Let's think step by step. We refer to Wikipedia for help. Nippon Budokan is an indoor arena in Tokyo, Japan renowned for hosting rock music concerts including Cheap Trick in 1978. 'Cheap Trick at Budokan' became the name of their album. The answer is (J)."
+group: mmlu_pro_flan_cot_fewshot_other
+include: _mmlu_pro_flan_cot_fewshot_template_yaml
+task: mmlu_pro_flan_cot_fewshot_other
