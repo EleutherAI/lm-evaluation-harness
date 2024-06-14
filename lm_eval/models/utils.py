@@ -613,3 +613,46 @@ class Collator:
 
         if arr:
             yield arr
+
+
+def handle_pad_token(tokenizer, model_config=None):
+    """
+    This function handles the padding token for a given tokenizer.
+    It checks if the tokenizer has a padding token and sets it if not present.
+    The function also handles special cases for certain types of tokenizers.
+
+    Args:
+        tokenizer: The tokenizer for which the padding token is to be handled.
+        model_config: The configuration of the model. Default is None.
+
+    Returns:
+        The tokenizer after the padding token has been handled.
+
+    Raises:
+        AssertionError: If the tokenizer is of type RWKVWorldTokenizer or Rwkv5Tokenizer and the padding token id is not 0.
+    """
+    if tokenizer.pad_token:
+        pass
+    elif tokenizer.unk_token:
+        tokenizer.pad_token_id = tokenizer.unk_token_id
+    elif tokenizer.eos_token:
+        tokenizer.pad_token_id = tokenizer.eos_token_id
+    else:
+        # handle special cases
+        if model_config and getattr(model_config, "model_type", None) == "qwen":
+            # Qwen's trust_remote_code tokenizer does not allow for adding special tokens
+            tokenizer.pad_token = "<|endoftext|>"
+        elif (
+            tokenizer.__class__.__name__ == "RWKVWorldTokenizer"
+            or tokenizer.__class__.__name__ == "Rwkv5Tokenizer"
+        ):
+            # The RWKV world tokenizer, does not allow for adding special tokens / setting the pad token (which is set as 0)
+            # The additional tokenizer name check is needed, as there exists rwkv4 models with neox tokenizer
+            # ---
+            # Note that the world tokenizer class name, might change in the future for the final huggingface merge
+            # https://github.com/huggingface/transformers/pull/26963
+            assert tokenizer.pad_token_id == 0
+        else:
+            tokenizer.add_special_tokens({"pad_token": "<|pad|>"})
+
+    return tokenizer
