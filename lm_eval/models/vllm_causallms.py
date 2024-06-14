@@ -179,15 +179,15 @@ class VLLM(TemplateLM):
 
     def tok_encode(
         self,
-        string: str,
-        left_truncate_len=None,
-        add_special_tokens=None,
-        truncation=False,
+        string: List[str],
+        left_truncate_len: Optional[int] = None,
+        add_special_tokens: Optional[bool] = None,
+        truncation: bool = False,
     ):
         """ """
         if not add_special_tokens:
             add_special_tokens = False or self.add_bos_token
-        encoding = self.tokenizer.encode(
+        encoding = self.tokenizer(
             string, add_special_tokens=add_special_tokens, truncation=truncation
         )
 
@@ -195,7 +195,7 @@ class VLLM(TemplateLM):
         if left_truncate_len:
             encoding = encoding[-left_truncate_len:]
 
-        return encoding
+        return encoding.input_ids
 
     def _model_generate(
         self,
@@ -291,7 +291,7 @@ class VLLM(TemplateLM):
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
-        context_encoding = self.tokenizer(context, add_special_tokens=False).input_ids
+        context_encoding = self.tok_encode(context)
         requests = [
             ((a, b), c) for a, b, c in zip(context, context_encoding, all_gen_kwargs)
         ]

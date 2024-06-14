@@ -323,7 +323,10 @@ class TemplateLM(LM):
         return self.eot_token_id
 
     @abc.abstractmethod
-    def tok_encode(self, string: str, **kwargs):
+    def tok_encode(self, string: str, **kwargs) -> List[int]:
+        """
+        Tokenize a string using the model's tokenizer and return a list of token IDs.
+        """
         pass
 
     @abc.abstractmethod
