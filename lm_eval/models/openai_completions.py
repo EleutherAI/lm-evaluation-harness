@@ -27,10 +27,11 @@ def get_result(response) -> Tuple[float, bool]:
     """
     is_greedy = True
     logprobs = response.logprobs.token_logprobs
+    tokens = response.logprobs.tokens
     continuation_logprobs = sum(logprobs)
 
     for i in range(len(response.logprobs.token_logprobs)):
-        token = response.logprobs.token_logprobs[i]
+        token = tokens[i]
         top_tokens = response.logprobs.top_logprobs[i]
         top_token = max(top_tokens.keys(), key=lambda x: top_tokens[x])
         if top_token != token:
@@ -87,6 +88,7 @@ class OpenaiCompletionsLM(TemplateLM):
         batch_size: int = 1,
         seed: int = 1234,
         max_length: Optional[int] = None,
+        num_logprobs: Optional[int] = 5,
     ) -> None:
         """
 
@@ -112,6 +114,7 @@ class OpenaiCompletionsLM(TemplateLM):
         self._batch_size = int(batch_size)
         self._max_gen_toks = max_gen_toks
         self._max_length = max_length
+        self._num_logprobs = num_logprobs
 
         # if we have a local model, use HF tokenizer over tiktoken
         if self.tokenizer_backend == "huggingface":
@@ -210,9 +213,9 @@ class OpenaiCompletionsLM(TemplateLM):
                 client=self.client,
                 model=self.model,
                 prompt=inps,
-                max_tokens=0,
+                max_tokens=self._max_gen_toks,
                 temperature=0.0,
-                logprobs=10,
+                logprobs=self._num_logprobs,
                 seed=self.seed,
             )
 
