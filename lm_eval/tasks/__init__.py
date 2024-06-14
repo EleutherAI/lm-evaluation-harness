@@ -312,8 +312,13 @@ class TaskManager:
         :return
             Dictionary of task names as key and task metadata
         """
+        ignore_dirs = [
+            "__pycache__",
+            ".ipynb_checkpoints",
+        ]
         tasks_and_groups = collections.defaultdict()
-        for root, _, file_list in os.walk(task_dir):
+        for root, dirs, file_list in os.walk(task_dir):
+            dirs[:] = [d for d in dirs if d not in ignore_dirs]
             for f in file_list:
                 if f.endswith(".yaml"):
                     yaml_path = os.path.join(root, f)
