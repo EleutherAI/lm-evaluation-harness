@@ -101,14 +101,13 @@ class LM(abc.ABC):
         """Generate greedily until a stopping sequence
 
         :param requests: list[Instance]
-            A list of Instance objects with property `args` which returns a tuple (context, until).
+            A list of Instance objects with property `args` which returns a tuple (context, gen_kwargs).
             context: str
                 Context string
-            until: [str]
-                The string sequences to generate until. These string sequences
-                may each span across multiple tokens, or may be part of one token.
+            gen_kwargs: dict
+                A dictionary of keyword arguments to pass to the generation function e.g. top_k, until, etc.
         :return: list[str]
-            A list of strings continuation
+            A list of model generated continuations.
             continuation: str
                 The generated continuation.
         """
