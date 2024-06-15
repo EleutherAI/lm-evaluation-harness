@@ -1,0 +1,6 @@
+"dataset_name": "sociology_word_generation"
+"task": "sociology_word_generation"
+"description": "The following are word generation questions (with answers) about sociology.\n\n"
+"group": "social_science"
+"group_alias": "social_science"
+"include": "_default_word_generation_template_yaml"

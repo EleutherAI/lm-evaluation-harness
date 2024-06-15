@@ -1,0 +1,6 @@
+"dataset_name": "literature_multiple_choice"
+"task": "literature_multiple_choice"
+"description": "The following are multiple choice questions (with answers) about literature.\n\n"
+"group": "literature"
+"group_alias": "literature"
+"include": "_default_multiple_choice_template_yaml"

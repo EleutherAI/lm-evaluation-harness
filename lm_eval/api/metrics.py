@@ -317,6 +317,33 @@ def acc_all(items):
     return acc
 
 
+@register_metric(
+    metric="multi_choice_em_unordered",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="mean",
+)
+def multi_choice_em_unordered(items):
+    gold, pred = items
+
+    gold_answers = gold.split(",")
+    pred_answers = pred.split(",")
+    return set(gold_answers) == set(pred_answers)
+
+
+@register_metric(
+    metric="word_in_set",
+    higher_is_better=True,
+    output_type="generate_until",
+    aggregation="mean",
+)
+def word_in_set(items):
+    gold, pred_answer = items
+    gold_answers = gold.split(",")
+
+    return pred_answer.strip() in gold_answers
+
+
 def acc_all_stderr(items):
     # Only count as correct if all answers are labeled correctly for each question
     question_scoring_dict = {}
