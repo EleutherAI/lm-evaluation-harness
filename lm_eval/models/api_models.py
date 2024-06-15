@@ -71,7 +71,7 @@ class TemplateAPI(TemplateLM):
                 self.tokenizer = transformers.AutoTokenizer.from_pretrained(
                     self._tokenizer if self._tokenizer else self.model
                 )
-                handle_pad_token(self.tokenizer)
+                self.tokenizer = handle_pad_token(self.tokenizer)
             elif self.tokenizer_backend == "tiktoken":
                 try:
                     import tiktoken
@@ -313,6 +313,7 @@ class TemplateAPI(TemplateLM):
         )
         chunked = re_ord.get_batched(n=self._batch_size if self._concurrent <= 1 else 0)
         if self._concurrent == 1:
+            pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
                 inputs, ctxlens, cache_keys = self.batch_logliklehood_requests(chunk)
                 outputs = self.model_call(messages=inputs, generate=False)
@@ -329,6 +330,7 @@ class TemplateAPI(TemplateLM):
                             self.cache_hook.add_partial(
                                 "loglikelihood", cache_key, answer_
                             )
+                        pbar.update(1)
         else:
             inputs = [self.batch_logliklehood_requests(chunk) for chunk in chunked]
             inputs, ctxlens, cache_keys = zip(*inputs)
@@ -379,6 +381,7 @@ class TemplateAPI(TemplateLM):
             n=self._batch_size if self._concurrent <= 1 else 0, batch_fn=None
         )
         if self._concurrent <= 1:
+            pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
                 context_and_encoding, all_gen_kwargs = zip(*chunk)
                 contexts, context_encoding = zip(*context_and_encoding)
@@ -406,6 +409,7 @@ class TemplateAPI(TemplateLM):
                                 (context, all_gen_kwargs[0]),
                                 generated_text,
                             )
+                            pbar.update(1)
         else:
             for chunk in chunked:
                 context_and_encoding, all_gen_kwargs = zip(*chunk)
