@@ -362,8 +362,10 @@ class Collator:
         sort_fn: Callable = lambda x: x,
         group_fn: Callable = lambda x: x[1],
         group_by: Union[Literal["gen_kwargs", "contexts"], None] = None,
+        reorder=True,
     ) -> None:
         self._group_by = group_by
+        self.reorder = reorder
         # 0 indices are enumerated indices. Apply functions to original arr.
         self._sort_fn = lambda x: sort_fn(x[1])
         self._group_fn = lambda x: group_fn(x[1])
@@ -415,7 +417,7 @@ class Collator:
                 key,
                 values,
             ) in self._arr_with_indices.items():  # type: ignore
-                values = self._reorder(values)
+                values = self._reorder(values, reorder=self.reorder)
                 batch = self.get_chunks(values, n=n, fn=batch_fn)
                 yield from batch
         elif self._group_by == "contexts":
@@ -492,7 +494,9 @@ class Collator:
         else:
             yield req_str, cont_toks, logits
 
-    def _reorder(self, arr: Union[List, Tuple[Tuple[int, Any], ...]]) -> Iterator:
+    def _reorder(
+        self, arr: Union[List, Tuple[Tuple[int, Any], ...]], reorder=True
+    ) -> Iterator:
         """
         Reorders the elements in the array based on the sorting function.
 
@@ -502,7 +506,8 @@ class Collator:
         Yields:
             Iterator
         """
-        arr = sorted(arr, key=self._sort_fn)
+        if reorder:
+            arr = sorted(arr, key=self._sort_fn)
         if not self._group_by == "contexts":
             # If grouped by contexts then indices will be set in get_cache()
             self._reorder_indices.extend([x[0] for x in arr])

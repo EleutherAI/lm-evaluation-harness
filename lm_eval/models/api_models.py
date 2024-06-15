@@ -2,13 +2,16 @@ import abc
 import asyncio
 import os
 from functools import cached_property
-from typing import Any, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import aiohttp
 import requests
 from aiohttp import ClientSession
+from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
+from tqdm import tqdm
 from tqdm.asyncio import tqdm_asyncio
 
+from lm_eval import utils
 from lm_eval.api.model import TemplateLM, eval_logger
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator, chunks, handle_pad_token
@@ -38,7 +41,7 @@ class TemplateAPI(TemplateLM):
         self.model = model or pretrained
         self.base_url = base_url
         self._tokenizer = tokenizer
-        if "auto" in batch_size:
+        if not isinstance(batch_size, int) and "auto" in batch_size:
             eval_logger.warning(
                 "Automatic batch size is not supported for API models. Defaulting to batch size 1."
             )
@@ -109,9 +112,6 @@ class TemplateAPI(TemplateLM):
     ) -> str:
         raise NotImplementedError
 
-    def loglikelihood_rolling(self, requests, **kwargs):
-        return ""
-
     @cached_property
     def api_key(self):
         return ""
@@ -119,6 +119,35 @@ class TemplateAPI(TemplateLM):
     @cached_property
     def header(self):
         return {"Authorization": f"Bearer {self.api_key}"}
+
+    @property
+    def chat_template(self) -> str:
+        """Must be defined for LM subclasses that implement Chat Templating.
+        Should return the structure of the chat template applied to user/assistant messages.
+        This is used only to save in the experiment results for reproducibility.
+        """
+        return ""
+
+    @property
+    def tokenizer_name(self) -> str:
+        """Must be defined for LM subclasses which implement Chat Templating.
+        Should return the name of the tokenizer or chat template used.
+        Used only to properly fingerprint caches when requests are being cached with `--cache_requests`, otherwise not used.
+        """
+        return ""
+
+    def apply_chat_template(
+        self, chat_history: List[Dict[str, str]]
+    ) -> Union[str, Dict[str, str]]:
+        """
+        Method to apply a chat template to a list of chat history between user and model.
+        """
+        if self.tokenizer_backend == "huggingface":
+            return self.tokenizer.apply_chat_template(
+                chat_history, tokenize=False, add_generation_prompt=True
+            )
+        else:
+            return chat_history
 
     @cached_property
     def eot_token_id(self) -> Optional[int]:
@@ -143,14 +172,13 @@ class TemplateAPI(TemplateLM):
 
     def tok_encode(
         self,
-        string: str,
+        string: Union[str, Any],
         left_truncate_len=None,
         add_special_tokens=None,
         **kwargs,
-    ) -> Union[List[str], List[int]]:
-        if self.tokenizer is None:
-            encoding = [string]
-            return encoding
+    ) -> Union[List[str], List[int], Any]:
+        if self.tokenizer_backend is None:
+            return string
         elif self.tokenizer_backend == "huggingface":
             # by default for CausalLM - false or self.add_bos_token is set
             if add_special_tokens is None:
@@ -167,27 +195,28 @@ class TemplateAPI(TemplateLM):
             if left_truncate_len:
                 encoding = encoding[-left_truncate_len:]
 
-            return encoding.input_ids
+            return encoding
 
         else:
             # if not isinstance(string, (list, tuple)):
             #     string = [string]
-            encoding = self.tokenizer.encode(string)
+            try:
+                encoding = self.tokenizer.encode(string)
+            except Exception:
+                encoding = self.tokenizer.encode_batch(string)
             return encoding
 
-    # @retry(
-    #     stop=stop_after_attempt(5),
-    #     wait=wait_exponential(multiplier=1, min=2, max=10),
-    #     reraise=True,
-    # )
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        reraise=True,
+    )
     def model_call(
         self,
         messages: List[Union[List[int], List[str], List[dict]]],
         generate=True,
         **kwargs,
     ) -> Optional[dict]:
-        if isinstance(messages[0][0], str):
-            messages = [m for sublist in messages for m in sublist]
         try:
             response = requests.post(
                 self.base_url,
@@ -200,11 +229,11 @@ class TemplateAPI(TemplateLM):
             print(e)
             return None
 
-    # @retry(
-    #     stop=stop_after_attempt(5),
-    #     wait=wait_exponential(multiplier=1, min=2, max=10),
-    #     reraise=True,
-    # )
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        reraise=True,
+    )
     async def amodel_call(
         self,
         session: ClientSession,
@@ -215,17 +244,20 @@ class TemplateAPI(TemplateLM):
         # if messages are strings then we need List[str, ...] for the json payload
         if isinstance(messages[0][0], str):
             messages = [m for sublist in messages for m in sublist]
+        if isinstance(messages[0][0], dict):
+            messages = messages[0]
         # try:
         payload = self._create_payload(messages, generate=generate, **kwargs)
-        async with session.post(
-            self.base_url,
-            json=payload,
-            headers=self.header,
-        ) as response:
-            # response.raise_for_status()
-            return await response.json()
-        # except RetryError:
-        #     return None
+        try:
+            async with session.post(
+                self.base_url,
+                json=payload,
+                headers=self.header,
+            ) as response:
+                response.raise_for_status()
+                return await response.json()
+        except RetryError:
+            return None
 
     def batch_logliklehood_requests(
         self, chunk: List[Tuple[Tuple[str, str], List[int], List[int]]]
@@ -337,6 +369,8 @@ class TemplateAPI(TemplateLM):
             requests,
             sort_fn=_collate_gen,
             group_by="gen_kwargs",
+            # if we are not encoding the context, we can't reorder the requests
+            reorder=False if not isinstance(encodings_list[0][0], dict) else False,
         )
         chunked = re_ord.get_batched(
             n=self._batch_size if self._concurrent <= 1 else 0, batch_fn=None
@@ -345,6 +379,8 @@ class TemplateAPI(TemplateLM):
             for chunk in chunked:
                 context_and_encoding, all_gen_kwargs = zip(*chunk)
                 context, context_encoding = zip(*context_and_encoding)
+                if isinstance(context_encoding[0][0], dict):
+                    context, context_encoding = context[0], context_encoding[0]
                 outputs = self.model_call(
                     messages=context_encoding,
                     generate=True,
@@ -391,12 +427,48 @@ class TemplateAPI(TemplateLM):
 
         return re_ord.get_original(res)
 
+    def loglikelihood_rolling(
+        self, requests, disable_tqdm: bool = False
+    ) -> List[float]:
+        loglikelihoods = []
+
+        for (string,) in tqdm([req.args for req in requests], disable=disable_tqdm):
+            rolling_token_windows = list(
+                map(
+                    utils.make_disjoint_window,
+                    utils.get_rolling_token_windows(
+                        token_list=self.tok_encode(string),
+                        prefix_token=self.eot_token_id,
+                        max_seq_len=self.max_length,
+                        context_len=1,
+                    ),
+                )
+            )
+
+            # TODO: Right now, we pass single EOT token to the Encoder and the full context to the decoder, in seq2seq case
+            rolling_token_windows = [(None,) + x for x in rolling_token_windows]
+
+            string_nll = self._loglikelihood_tokens(
+                rolling_token_windows,
+                disable_tqdm=True,
+            )
+
+            # discard is_greedy
+            string_nll = [x[0] for x in string_nll]
+
+            string_nll = sum(string_nll)
+            loglikelihoods.append(string_nll)
+        return loglikelihoods
+
 
 @register_model("openai-completions", "local-completions")
 class OpenAICompletionsAPI(TemplateAPI):
-    def __init__(self, **kwargs):
-        base_url = "https://api.openai.com/v1/completions"
-        tokenizer_backend = "tiktoken"
+    def __init__(
+        self,
+        base_url="https://api.openai.com/v1/completions",
+        tokenizer_backend="tiktoken",
+        **kwargs,
+    ):
         super().__init__(
             base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
         )
@@ -461,6 +533,135 @@ class OpenAICompletionsAPI(TemplateAPI):
                 res.append(choices["text"])
         return res
 
-    @cached_property
+    @property
     def api_key(self):
         return os.environ.get("OPENAI_API_KEY", "")
+
+
+@register_model("openai-chatcompletions")
+class OpenAIChatCompletion(OpenAICompletionsAPI):
+    def __init__(
+        self,
+        base_url="https://api.openai.com/v1/chat/completions",
+        tokenizer_backend=None,
+        **kwargs,
+    ):
+        super().__init__(
+            base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
+        )
+        eval_logger.warning(
+            "Chat completions does not support batching. Defaulting to batch size 1."
+        )
+        self._batch_size = 1
+
+    def _create_payload(
+        self, messages: List[Dict], generate=False, gen_kwargs: dict = None, **kwargs
+    ) -> dict:
+        gen_kwargs.pop("do_sample", False)
+        max_tokens = gen_kwargs.pop("max_tokens", self._max_gen_toks)
+        temperature = gen_kwargs.pop("temperature", 0)
+        stop = gen_kwargs.pop("until", "<|endoftext|>")
+        return {
+            "messages": messages,
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "stop": stop,
+            **gen_kwargs,
+        }
+
+    def parse_generations(
+        self, outputs: Union[Any, List[Any]], contexts: List[str], **kwargs
+    ) -> List[str]:
+        res = []
+        if not isinstance(outputs, list):
+            outputs = [outputs]
+        for out in outputs:
+            for choices in out["choices"]:
+                res.append(choices["message"]["content"])
+        return res
+
+    def tok_encode(
+        self,
+        string: Union[str, Any],
+        left_truncate_len=None,
+        add_special_tokens=None,
+        **kwargs,
+    ) -> Union[List[str], List[int], Any]:
+        return string
+
+    def _loglikelihood_tokens(self, requests, **kwargs):
+        raise NotImplementedError("Loglikelihood is not supported for chat completions")
+
+
+@register_model("anthropic-chat")
+class AnthropicChat(TemplateAPI):
+    def __init__(
+        self,
+        base_url="https://api.anthropic.com/v1/messages",
+        tokenizer_backend=None,
+        **kwargs,
+    ):
+        super().__init__(
+            base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
+        )
+        eval_logger.warning(
+            "Chat completions does not support batching. Defaulting to batch size 1."
+        )
+        self._batch_size = 1
+        self.anthropic_version = "2023-06-01"
+        eval_logger.warning(
+            f"Using Anthropic Version: {self.anthropic_version}. Confirm it is current: https://docs.anthropic.com/en/api/versioning"
+        )
+
+    @cached_property
+    def api_key(self):
+        return os.environ["ANTHROPIC_API_KEY"]
+
+    @cached_property
+    def header(self):
+        return {"x-api-key": f"{self.api_key}", "anthropic-version": "2023-06-01"}
+
+    def _create_payload(
+        self, messages: List[Dict], generate=False, gen_kwargs: dict = None, **kwargs
+    ) -> dict:
+        gen_kwargs.pop("do_sample", False)
+        max_tokens = gen_kwargs.pop("max_tokens", self._max_gen_toks)
+        temperature = gen_kwargs.pop("temperature", 0)
+        stop = gen_kwargs.pop("until", ["<|endoftext|>"])
+        if not isinstance(stop, list):
+            stop = [stop]
+        return {
+            "messages": messages,
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "stop_sequences": stop,
+            **gen_kwargs,
+        }
+
+    def parse_generations(
+        self, outputs: Union[Any, List[Any]], contexts: List[str], **kwargs
+    ) -> List[str]:
+        res = []
+        if not isinstance(outputs, list):
+            outputs = [outputs]
+        for out in outputs:
+            for choices in out["content"]:
+                res.append(choices["text"])
+        return res
+
+    def tok_encode(
+        self,
+        string: Union[str, Any],
+        left_truncate_len=None,
+        add_special_tokens=None,
+        **kwargs,
+    ) -> Union[List[str], List[int], Any]:
+        return string
+
+    def _loglikelihood_tokens(self, requests, **kwargs):
+        raise NotImplementedError("Loglikelihood is not supported for chat completions")
+
+    def parse_logprobs(self, **kwargs):
+        raise NotImplementedError("Loglikelihood is not supported for chat completions")

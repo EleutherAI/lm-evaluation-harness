@@ -478,6 +478,12 @@ def evaluate(
                 )
                 if log_samples:
                     target = task.doc_to_target(doc)
+                    try:
+                        prompt_hash = hash_string(requests[0].arguments[0])
+                        target_hash = hash_string(str(target))
+                    except Exception:
+                        prompt_hash = None
+                        target_hash = None
                     example = {
                         "doc_id": doc_id,
                         "doc": doc,
@@ -495,8 +501,8 @@ def evaluate(
                                 ensure_ascii=False,
                             )
                         ),
-                        "prompt_hash": hash_string(requests[0].arguments[0]),
-                        "target_hash": hash_string(str(target)),
+                        "prompt_hash": prompt_hash,
+                        "target_hash": target_hash,
                     }
                     example.update(metrics)
                     task_output.logged_samples.append(example)
