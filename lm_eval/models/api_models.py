@@ -102,28 +102,32 @@ class TemplateAPI(TemplateLM):
         tokens: List[List[int]] = None,
         ctxlen: List[int] = None,
         **kwargs,
-    ) -> Tuple[float, bool]:
+    ) -> List[Tuple[float, bool]]:
+        """Method used to parse the logprobs from the (optionally batched) API response. This method should return a list of tuples"""
         raise NotImplementedError
 
     @abc.abstractmethod
     def parse_generations(
-        self, outputs: Union[Any, List[Any]], contexts: str, **kwargs
-    ) -> str:
+        self, outputs: Union[Any, List[Any]], contexts: List[str], **kwargs
+    ) -> List[str]:
+        """Method used to parse the generations from the (optionally batched) API response. This method should return a list of str"""
         raise NotImplementedError
 
     @cached_property
     def api_key(self):
+        """Override this property to return the API key for the model. This is used to authenticate with the API."""
         return ""
 
     @cached_property
     def header(self):
+        """Override this property to return the header for the model. This is used to authenticate with the API."""
         return {"Authorization": f"Bearer {self.api_key}"}
 
     @property
     def chat_template(self) -> str:
         """Must be defined for LM subclasses that implement Chat Templating.
         Should return the structure of the chat template applied to user/assistant messages.
-        This is used only to save in the experiment results for reproducibility.
+        Only used for logging and reproducibility.
         """
         return ""
 
@@ -171,11 +175,11 @@ class TemplateAPI(TemplateLM):
 
     def tok_encode(
         self,
-        string: Union[str, Any],
+        string: Union[str, List[Any]],
         left_truncate_len=None,
         add_special_tokens=None,
         **kwargs,
-    ) -> Union[List[str], List[int], Any]:
+    ) -> Union[List[int], List[Any]]:
         if self.tokenizer_backend is None:
             return string
         elif self.tokenizer_backend == "huggingface":
@@ -212,8 +216,8 @@ class TemplateAPI(TemplateLM):
     )
     def model_call(
         self,
-        messages: List[Union[List[int], List[str], List[dict]]],
-        generate=True,
+        messages: List[Union[List[int], List[dict]]],
+        generate: bool = True,
         **kwargs,
     ) -> Optional[dict]:
         try:
@@ -236,8 +240,8 @@ class TemplateAPI(TemplateLM):
     async def amodel_call(
         self,
         session: ClientSession,
-        messages: List[Union[List[int], List[str], List[dict]]],
-        generate=True,
+        messages: List[Union[List[int], List[dict]]],
+        generate: bool = True,
         **kwargs,
     ) -> Optional[dict]:
         # if messages are strings then we need List[str, ...] for the json payload
