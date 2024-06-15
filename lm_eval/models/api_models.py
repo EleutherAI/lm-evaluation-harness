@@ -319,14 +319,17 @@ class TemplateAPI(TemplateLM):
                 outputs = self.model_call(messages=inputs, generate=False)
                 if isinstance(outputs, dict):
                     outputs = [outputs]
-                for answer, cache_key in zip(
+                for answer_, cache_key in zip(
                     self.parse_logprobs(outputs=outputs, tokens=inputs, ctxlen=ctxlens),
                     cache_keys,
                 ):
-                    res.append(answer)
-                    # partial caching
-                    if cache_key is not None:
-                        self.cache_hook.add_partial("loglikelihood", cache_key, answer)
+                    if answer_ is not None:
+                        res.append(answer_)
+                        # partial caching
+                        if cache_key is not None:
+                            self.cache_hook.add_partial(
+                                "loglikelihood", cache_key, answer_
+                            )
         else:
             inputs = [self.batch_logliklehood_requests(chunk) for chunk in chunked]
             inputs, ctxlens, cache_keys = zip(*inputs)
@@ -339,10 +342,11 @@ class TemplateAPI(TemplateLM):
             )
 
             for answer_, cached in zip(answers, cache_keys):
-                res.append(answer_)
-                # partial caching
-                if cached is not None:
-                    self.cache_hook.add_partial("loglikelihood", cached, answer_)
+                if answer_ is not None:
+                    res.append(answer_)
+                    # partial caching
+                    if cached is not None:
+                        self.cache_hook.add_partial("loglikelihood", cached, answer_)
 
         return re_ord.get_original(res)
 
@@ -378,9 +382,9 @@ class TemplateAPI(TemplateLM):
         if self._concurrent <= 1:
             for chunk in chunked:
                 context_and_encoding, all_gen_kwargs = zip(*chunk)
-                context, context_encoding = zip(*context_and_encoding)
+                contexts, context_encoding = zip(*context_and_encoding)
                 if isinstance(context_encoding[0][0], dict):
-                    context, context_encoding = context[0], context_encoding[0]
+                    contexts, context_encoding = context[0], context_encoding[0]
                 outputs = self.model_call(
                     messages=context_encoding,
                     generate=True,
@@ -389,40 +393,39 @@ class TemplateAPI(TemplateLM):
                 for generated_text, context in zip(
                     self.parse_generations(
                         outputs=outputs,
-                        contexts=context,
+                        contexts=contexts,
                     ),
-                    context_encoding,
+                    contexts,
+                ):
+                    if generated_text is not None:
+                        res.append(generated_text)
+
+                        # partial caching
+                        if context is not None:
+                            self.cache_hook.add_partial(
+                                "generate_until",
+                                (context, all_gen_kwargs[0]),
+                                generated_text,
+                            )
+        else:
+            for chunk in chunked:
+                context_and_encoding, all_gen_kwargs = zip(*chunk)
+                contexts, context_encoding = zip(*context_and_encoding)
+                outputs = asyncio.run(
+                    self.get_batched_requests(
+                        context_encoding, generate=True, gen_kwargs=all_gen_kwargs[0]
+                    )
+                )
+                for generated_text, context in zip(
+                    self.parse_generations(outputs, contexts=contexts), contexts
                 ):
                     res.append(generated_text)
-
                     # partial caching
                     if context is not None:
                         self.cache_hook.add_partial(
                             "generate_until",
                             (context, all_gen_kwargs[0]),
                             generated_text,
-                        )
-        else:
-            for chunk in chunked:
-                context_and_encoding, all_gen_kwargs = zip(*chunk)
-                context, context_encoding = zip(*context_and_encoding)
-                outputs = asyncio.run(
-                    self.get_batched_requests(
-                        context_encoding, generate=True, gen_kwargs=all_gen_kwargs[0]
-                    )
-                )
-                # generated_texts = [
-                #     self.parse_generations(outputs=out, contexts=ctx)
-                #     for out, ctx in zip(outputs, context)
-                # ]
-                for gen_text, cached in zip(
-                    self.parse_generations(outputs, contexts=context), context
-                ):
-                    res.append(gen_text)
-                    # partial caching
-                    if cached is not None:
-                        self.cache_hook.add_partial(
-                            "generate_until", (cached, all_gen_kwargs[0]), gen_text
                         )
 
         return re_ord.get_original(res)
