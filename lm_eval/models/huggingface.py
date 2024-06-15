@@ -2,7 +2,7 @@ import copy
 import os
 from datetime import timedelta
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Dict, Iterator, List, Literal, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
@@ -982,7 +982,9 @@ class HFLM(TemplateLM):
             else None
         )
 
-        chunks = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
+        chunks: Iterator[
+            Tuple[Tuple[str, str], List[int], List[int]]
+        ] = re_ord.get_batched(n=batch_size, batch_fn=batch_fn)
         pbar = tqdm(
             total=len(requests),
             disable=(disable_tqdm or (self.rank != 0)),
