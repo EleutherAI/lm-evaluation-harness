@@ -259,7 +259,7 @@ class EvaluationTracker:
                 path.mkdir(parents=True, exist_ok=True)
 
                 file_results_samples = path.joinpath(
-                    f"samples_{task_name}_{self.date_id}.json"
+                    f"samples_{task_name}_{self.date_id}.jsonl"
                 )
 
                 for sample in samples:
