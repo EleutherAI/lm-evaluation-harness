@@ -2,6 +2,7 @@ from . import (
     anthropic_llms,
     dummy,
     gguf,
+    gigachat_model,
     huggingface,
     mamba_lm,
     nemo_lm,
