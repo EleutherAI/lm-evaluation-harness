@@ -1,0 +1,7 @@
+"dataset_name": "dzo_Tibt-isl_Latn"
+"doc_to_target": "{{sentence_isl_Latn}}"
+"doc_to_text": "{{sentence_dzo_Tibt}} ="
+"fewshot_split": "dev"
+"include": "_default_template_yaml"
+"task": "flores200_dzo_Tibt-isl_Latn"
+"test_split": "dev"
