@@ -41,11 +41,10 @@ def gigachat_completion(
             Additional instructions from yaml task config. Add at the end of the prompt.
         kwargs: Any
             Additional model_args to pass to the API client. May be:
-            profanity check: bool, turn onn censor. Default: False
+            profanity check: bool, censor status. Default: False
             top_p: float, nucleus params
             repetition_penalty: float, repetition_penalty.
-            do_sample: sampling type.
-            For more: https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/post-chat
+            do_sample: bool, sampling type
     """
     try:
         import gigachat
