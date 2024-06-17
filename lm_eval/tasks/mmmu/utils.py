@@ -1,9 +1,11 @@
-from collections import defaultdict
-import re
 import ast
-import random
-import numpy as np
 import logging
+import random
+import re
+from collections import defaultdict
+
+import numpy as np
+
 
 lmms_logger = logging.getLogger("lm-eval")
 

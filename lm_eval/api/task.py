@@ -26,7 +26,7 @@ from tqdm import tqdm
 
 from lm_eval import utils
 from lm_eval.api import samplers
-from lm_eval.api.instance import Instance, OutputType, InputType
+from lm_eval.api.instance import InputType, Instance, OutputType
 from lm_eval.api.metrics import bits_per_byte, mean, weighted_perplexity
 from lm_eval.api.registry import (
     AGGREGATION_REGISTRY,
@@ -1279,7 +1279,7 @@ class ConfigurableTask(Task):
             raise TypeError
 
     def doc_to_visual(self, doc:dict) -> Union[int, str, list]:
-        if type(self.config.doc_to_visual) is str:
+        if isinstance(self.config.doc_to_visual, str):
             assert self.config.doc_to_visual in self.features
             # Single Image. Still return a list for consistency
             return doc[self.config.doc_to_visual]

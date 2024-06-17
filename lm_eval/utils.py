@@ -10,7 +10,7 @@ import os
 import re
 from dataclasses import asdict, is_dataclass
 from itertools import islice
-from typing import Any, Callable, List, Union, Tuple, Iterable, Optional, Iterator
+from typing import Any, Callable, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 import yaml
@@ -364,7 +364,7 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
                 se = dic[m + "_stderr" + "," + f]
                 if se != "N/A":
                     se = "%.4f" % se
-                if type(v) is dict:
+                if isinstance(v, dict):
                     for v_key, v_v in v.items():
                         values.append([k, version, f, n, m + "_" + v_key, "%.4f" % v_v, "±", se])
                 else:

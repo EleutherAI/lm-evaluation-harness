@@ -1,27 +1,34 @@
-import copy
+import logging
+import warnings
+from typing import List, Optional, Tuple, Union
+
+import torch
+from accelerate import Accelerator, DistributedType
+from accelerate.state import AcceleratorState
 from tqdm import tqdm
-from lm_eval import utils
+
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-
-from accelerate import Accelerator, DistributedType
-from accelerate.state import AcceleratorState
-import logging
-import torch
-from typing import List, Optional, Union, Tuple
-import warnings
 from lm_eval.models.utils import Collator
+
+
 warnings.filterwarnings("ignore")
 
 eval_logger = logging.getLogger("lm-eval")
 
 try:
+    from llava.constants import (
+        DEFAULT_IMAGE_TOKEN,
+        IMAGE_TOKEN_INDEX,
+    )
+    from llava.conversation import conv_templates
+    from llava.mm_utils import (
+        get_model_name_from_path,
+        process_images,
+        tokenizer_image_token,
+    )
     from llava.model.builder import load_pretrained_model
-    from llava.mm_utils import get_model_name_from_path, process_images, tokenizer_image_token
-    from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN, \
-        IGNORE_INDEX
-    from llava.conversation import conv_templates, SeparatorStyle
 except ImportError:
     eval_logger.error("LLaVA is not installed. Please install LLaVA to use this model.")
 
@@ -168,7 +175,7 @@ class Llava(LM):
 
         for contexts, doc_to_target, doc_to_visual, doc, task in [reg.args for reg in requests]:
             # encode, pad, and truncate contexts for this batch
-            if type(doc_to_target) == str:
+            if isinstance(doc_to_target, str):
                 continuation = doc_to_target
             else:
                 continuation = doc_to_target(doc)
@@ -176,7 +183,7 @@ class Llava(LM):
             visuals = self.flatten(visuals)
             if visuals:
                 image = process_images(visuals, self._image_processor, self._config)
-                if type(image) is list:
+                if isinstance(image, list):
                     image = [_image.to(dtype=torch.float16, device=self.device) for _image in image]
                 else:
                     image = image.to(dtype=torch.float16, device=self.device)
@@ -200,7 +207,6 @@ class Llava(LM):
             conv.append_message(conv.roles[0], prompts_input)
             conv.append_message(conv.roles[1], None)
             prompt = conv.get_prompt()
-            pad_token_id = self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else self.tokenizer.eos_token_id
             contxt_id = tokenizer_image_token(prompt, self.tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt").unsqueeze(
                 0).to(self.device)
             # Add the answer of the second role
@@ -291,7 +297,7 @@ class Llava(LM):
             # encode, pad, and truncate contexts for this batch
             if visuals:
                 image_tensor = process_images(visuals, self._image_processor, self._config)
-                if type(image_tensor) is list:
+                if isinstance(image_tensor, list):
                     image_tensor = [_image.to(dtype=torch.float16, device=self.device) for _image in image_tensor]
                 else:
                     image_tensor = image_tensor.to(dtype=torch.float16, device=self.device)
@@ -360,6 +366,7 @@ class Llava(LM):
                     attention_mask=attention_masks,
                     pad_token_id=pad_token_ids,
                     images=image_tensor,
+                    image_sizes=gen_kwargs["image_sizes"],
                     do_sample=gen_kwargs["do_sample"],
                     temperature=gen_kwargs["temperature"],
                     top_p=gen_kwargs["top_p"],
