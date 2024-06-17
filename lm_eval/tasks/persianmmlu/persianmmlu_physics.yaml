@@ -1,0 +1,7 @@
+"dataset_name": "physics"
+"description": "The following are multiple choice questions (with answers) about physics"
+"group": "persianmmlu_natural_sciences"
+"group_alias": "natural_sciences"
+"include": "_default_template"
+"task": "persianmmlu_physics"
+"task_alias": "physics"

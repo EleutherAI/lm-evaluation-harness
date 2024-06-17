@@ -1,0 +1,7 @@
+"dataset_name": "intelligence"
+"description": "The following are multiple choice questions (with answers) about intelligence"
+"group": "persianmmlu_intelligence"
+"group_alias": "intelligence"
+"include": "_default_template"
+"task": "persianmmlu_intelligence"
+"task_alias": "intelligence"

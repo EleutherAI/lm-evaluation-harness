@@ -1,0 +1,7 @@
+"dataset_name": "islamic_life"
+"description": "The following are multiple choice questions (with answers) about Islamic life"
+"group": "persianmmlu_islamic_life"
+"group_alias": "islamic_life"
+"include": "_default_template"
+"task": "persianmmlu_islamic_life"
+"task_alias": "islamic_life"
