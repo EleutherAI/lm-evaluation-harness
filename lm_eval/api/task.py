@@ -1278,7 +1278,7 @@ class ConfigurableTask(Task):
         else:
             raise TypeError
 
-    def doc_to_visual(self, doc:dict) -> Union[int, str, list]:
+    def doc_to_visual(self, doc: dict) -> Union[int, str, list]:
         if isinstance(self.config.doc_to_visual, str):
             assert self.config.doc_to_visual in self.features
             # Single Image. Still return a list for consistency
@@ -1341,12 +1341,23 @@ class ConfigurableTask(Task):
 
         elif self.OUTPUT_TYPE == "generate_until":
             if self.INPUT_TYPE == "text_image":
-                arguments = (ctx, deepcopy(self.config.generation_kwargs), self.doc_to_visual, doc, self.config.task)
+                arguments = (
+                    ctx,
+                    deepcopy(self.config.generation_kwargs),
+                    self.doc_to_visual,
+                    doc,
+                    self.config.task,
+                )
             elif self.INPUT_TYPE == "text":
                 arguments = (ctx, deepcopy(self.config.generation_kwargs))
 
         return Instance(
-            request_type=self.OUTPUT_TYPE, input_type=self.INPUT_TYPE, doc=doc, arguments=arguments, idx=0, **kwargs
+            request_type=self.OUTPUT_TYPE,
+            input_type=self.INPUT_TYPE,
+            doc=doc,
+            arguments=arguments,
+            idx=0,
+            **kwargs,
         )
 
     def process_results(self, doc, results):
@@ -1556,7 +1567,7 @@ class ConfigurableTask(Task):
             f"output_type={self.OUTPUT_TYPE},"
             f"input_type={self.INPUT_TYPE}",
             f"num_fewshot={getattr(self.config, 'num_fewshot', None)},"
-            f"num_samples={len(self.eval_docs)})"
+            f"num_samples={len(self.eval_docs)})",
         )
 
 

@@ -366,7 +366,9 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
                     se = "%.4f" % se
                 if isinstance(v, dict):
                     for v_key, v_v in v.items():
-                        values.append([k, version, f, n, m + "_" + v_key, "%.4f" % v_v, "±", se])
+                        values.append(
+                            [k, version, f, n, m + "_" + v_key, "%.4f" % v_v, "±", se]
+                        )
                 else:
                     values.append([k, version, f, n, m, hib, "%.4f" % v, "±", se])
             else:
@@ -490,6 +492,7 @@ def create_iterator(raw_iterator, *, rank=0, world_size=1, limit=None):
     """
     return islice(raw_iterator, rank, limit, world_size)
 
+
 class Collator:
     """
     A class for reordering and batching elements of an array.
@@ -514,7 +517,9 @@ class Collator:
             self.group_by_index()
 
     def group_by_index(self) -> None:
-        self.arr_with_indices = self.group(self.arr_with_indices, fn=self.group_fn, values=False)
+        self.arr_with_indices = self.group(
+            self.arr_with_indices, fn=self.group_fn, values=False
+        )
 
     def get_batched(self, n: int = 1, batch_fn: Optional[Callable] = None) -> Iterator:
         """
@@ -597,7 +602,9 @@ class Collator:
                 hashable_dict = tuple(
                     (
                         key,
-                        tuple(value) if isinstance(value, collections.abc.Iterable) else value,
+                        tuple(value)
+                        if isinstance(value, collections.abc.Iterable)
+                        else value,
                     )
                     for key, value in sorted(fn(ob).items())
                 )

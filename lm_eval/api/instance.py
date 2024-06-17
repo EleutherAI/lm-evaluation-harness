@@ -6,9 +6,7 @@ OutputType = Literal[
     "loglikelihood", "loglikelihood_rolling", "generate_until", "multiple_choice"
 ]
 
-InputType = Literal[
-    "text", "text_image"
-]
+InputType = Literal["text", "text_image"]
 
 
 @dataclass
@@ -31,7 +29,6 @@ class Instance:
     task_name: Optional[str] = None
     doc_id: Optional[int] = None
     repeats: Optional[int] = None
-
 
     def __post_init__(self) -> None:
         # unpack metadata field
