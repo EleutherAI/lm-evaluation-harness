@@ -1,0 +1,33 @@
+dataset_path: "csv"
+dataset_name: null
+dataset_kwargs: 
+  data_files: 
+    train: "lm_eval/tasks/bias_classification/Dataset/train.csv"
+    test: "lm_eval/tasks/bias_classification/Dataset/test.csv"
+
+training_split: train
+validation_split: train
+test_split: test
+
+process_docs: !function utils.process_docs
+
+output_type: multiple_choice
+
+doc_to_text: "Given a sentence, predict if the sentence contains a bias or not.\nSentence: {{Sentence}}\nA. not a bias\nB. bias\nAnswer:"
+doc_to_target: gold
+doc_to_choice: choices
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+  - metric: f1
+    higher_is_better: true
+
+task: bias_classification
+
+metadata:
+  version: 0

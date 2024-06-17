@@ -53,7 +53,7 @@ def f1_score(items):
     unzipped_list = list(zip(*items))
     golds = unzipped_list[0]
     preds = unzipped_list[1]
-    fscore = sklearn.metrics.f1_score(golds, preds)
+    fscore = sklearn.metrics.f1_score(golds, preds, average='weighted')
 
     return np.max(fscore)
 

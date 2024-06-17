@@ -1,0 +1,118 @@
+{
+  "results": {
+    "bias_classification": {
+      "acc,none": 0.5106732348111659,
+      "acc_stderr,none": 0.020273057132342585,
+      "f1,none": 0.6566820276497696,
+      "f1_stderr,none": 0.018636138198694738,
+      "acc_norm,none": 0.5106732348111659,
+      "acc_norm_stderr,none": 0.020273057132342585,
+      "alias": "bias_classification"
+    }
+  },
+  "group_subtasks": {
+    "bias_classification": []
+  },
+  "configs": {
+    "bias_classification": {
+      "task": "bias_classification",
+      "dataset_path": "csv",
+      "dataset_kwargs": {
+        "data_files": {
+          "train": "lm_eval/tasks/bias_classification/Dataset/train.csv",
+          "test": "lm_eval/tasks/bias_classification/Dataset/test.csv"
+        }
+      },
+      "training_split": "train",
+      "validation_split": "train",
+      "test_split": "test",
+      "process_docs": "def process_docs(dataset: Dataset):\n    def _helper(doc):\n        doc[\"choices\"] = ['A', 'B']\n        doc[\"gold\"] = 'A' if doc[\"Bias\"]=='No' else 'B'\n        return doc\n    \n    return dataset.map(_helper)\n",
+      "doc_to_text": "Given a sentence, predict if the sentence contains a bias or not.\nSentence: {{Sentence}}\nA. not a bias\nB. bias\nAnswer:",
+      "doc_to_target": "gold",
+      "doc_to_choice": "choices",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "acc_norm",
+          "aggregation": "mean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "f1",
+          "average": "weighted",
+          "higher_is_better": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 0
+      }
+    }
+  },
+  "versions": {
+    "bias_classification": 0
+  },
+  "n-shot": {
+    "bias_classification": 0
+  },
+  "higher_is_better": {
+    "bias_classification": {
+      "acc": true,
+      "acc_norm": true,
+      "f1": true
+    }
+  },
+  "n-samples": {
+    "bias_classification": {
+      "original": 609,
+      "effective": 609
+    }
+  },
+  "config": {
+    "model": "hf",
+    "model_args": "pretrained=meta-llama/Meta-Llama-3-8B",
+    "model_num_parameters": 8030261248,
+    "model_dtype": "torch.bfloat16",
+    "model_revision": "main",
+    "model_sha": "62bd457b6fe961a42a631306577e622c83876cb6",
+    "batch_size": 1,
+    "batch_sizes": [],
+    "device": "cuda",
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": null,
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": "793469e",
+  "date": 1718619232.0124314,
+  "pretty_env_info": "PyTorch version: 2.3.1+cu121\nIs debug build: False\nCUDA used to build PyTorch: 12.1\nROCM used to build PyTorch: N/A\n\nOS: CentOS Linux 7 (Core) (x86_64)\nGCC version: (GCC) 4.8.5 20150623 (Red Hat 4.8.5-44)\nClang version: Could not collect\nCMake version: Could not collect\nLibc version: glibc-2.17\n\nPython version: 3.12.3 | packaged by conda-forge | (main, Apr 15 2024, 18:38:13) [GCC 12.3.0] (64-bit runtime)\nPython platform: Linux-3.10.0-1160.102.1.el7.x86_64-x86_64-with-glibc2.17\nIs CUDA available: True\nCUDA runtime version: 11.7.64\nCUDA_MODULE_LOADING set to: LAZY\nGPU models and configuration: \nGPU 0: NVIDIA A100 80GB PCIe\nGPU 1: NVIDIA A100 80GB PCIe\n\nNvidia driver version: 535.54.03\ncuDNN version: Could not collect\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:          x86_64\nCPU op-mode(s):        32-bit, 64-bit\nByte Order:            Little Endian\nCPU(s):                112\nOn-line CPU(s) list:   0-111\nThread(s) per core:    2\nCore(s) per socket:    28\nSocket(s):             2\nNUMA node(s):          2\nVendor ID:             GenuineIntel\nCPU family:            6\nModel:                 106\nModel name:            Intel(R) Xeon(R) Gold 6348 CPU @ 2.60GHz\nStepping:              6\nCPU MHz:               800.000\nCPU max MHz:           3500.0000\nCPU min MHz:           800.0000\nBogoMIPS:              5200.00\nVirtualization:        VT-x\nL1d cache:             48K\nL1i cache:             32K\nL2 cache:              1280K\nL3 cache:              43008K\nNUMA node0 CPU(s):     0-27,56-83\nNUMA node1 CPU(s):     28-55,84-111\nFlags:                 fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc aperfmperf eagerfpu pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch epb cat_l3 invpcid_single ssbd mba rsb_ctxsw ibrs ibpb stibp ibrs_enhanced tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local dtherm ida arat pln pts avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq md_clear pconfig spec_ctrl intel_stibp flush_l1d arch_capabilities\n\nVersions of relevant libraries:\n[pip3] numpy==1.26.4\n[pip3] torch==2.3.1\n[conda] numpy                     1.26.4                   pypi_0    pypi\n[conda] torch                     2.3.1                    pypi_0    pypi",
+  "transformers_version": "4.41.2",
+  "upper_git_hash": null,
+  "task_hashes": {
+    "bias_classification": "a633d4138a8fd60ac0b2ef96ed500bf8f0f6e2bf2dc4d71698dffa18145c9d9d"
+  },
+  "model_source": "hf",
+  "model_name": "meta-llama/Meta-Llama-3-8B",
+  "model_name_sanitized": "meta-llama__Meta-Llama-3-8B",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "chat_template": null,
+  "chat_template_sha": null,
+  "start_time": 4399867.685122824,
+  "end_time": 4399917.058682921,
+  "total_evaluation_time_seconds": "49.37356009706855"
+}
