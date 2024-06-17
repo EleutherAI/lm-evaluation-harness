@@ -1,0 +1,7 @@
+"dataset_name": "logic"
+"description": "The following are multiple choice questions (with answers) about logic"
+"group": "persianmmlu_humanities"
+"group_alias": "humanities"
+"include": "_default_template"
+"task": "persianmmlu_logic"
+"task_alias": "logic"

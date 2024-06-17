@@ -1,0 +1,7 @@
+"dataset_name": "chemistry"
+"description": "The following are multiple choice questions (with answers) about chemistry"
+"group": "persianmmlu_natural_sciences"
+"group_alias": "natural_sciences"
+"include": "_default_template"
+"task": "persianmmlu_chemistry"
+"task_alias": "chemistry"

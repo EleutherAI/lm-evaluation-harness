@@ -1,0 +1,7 @@
+"dataset_name": "geology"
+"description": "The following are multiple choice questions (with answers) about geology"
+"group": "persianmmlu_natural_sciences"
+"group_alias": "natural_sciences"
+"include": "_default_template"
+"task": "persianmmlu_geology"
+"task_alias": "geology"

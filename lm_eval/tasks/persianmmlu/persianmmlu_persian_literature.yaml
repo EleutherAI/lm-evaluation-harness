@@ -1,0 +1,7 @@
+"dataset_name": "persian_literature"
+"description": "The following are multiple choice questions (with answers) about Persian literature"
+"group": "persianmmlu_persian_lit"
+"group_alias": "persian_lit"
+"include": "_default_template"
+"task": "persianmmlu_persian_literature"
+"task_alias": "persian_literature"

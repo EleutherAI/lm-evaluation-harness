@@ -1,0 +1,7 @@
+"dataset_name": "analytics"
+"description": "The following are multiple choice questions (with answers) about analytics"
+"group": "persianmmlu_intelligence"
+"group_alias": "intelligence"
+"include": "_default_template"
+"task": "persianmmlu_analytics"
+"task_alias": "analytics"

@@ -1,0 +1,8 @@
+group: persianmmlu
+task:
+  - persianmmlu_humanities
+  - persianmmlu_math_sciences
+  - persianmmlu_natural_sciences
+  - persianmmlu_persian_lit
+  - persianmmlu_islamic_life
+  - persianmmlu_intelligence

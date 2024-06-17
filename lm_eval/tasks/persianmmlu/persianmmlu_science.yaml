@@ -1,0 +1,7 @@
+"dataset_name": "science"
+"description": "The following are multiple choice questions (with answers) about science"
+"group": "persianmmlu_natural_sciences"
+"group_alias": "natural_sciences"
+"include": "_default_template"
+"task": "persianmmlu_science"
+"task_alias": "science"

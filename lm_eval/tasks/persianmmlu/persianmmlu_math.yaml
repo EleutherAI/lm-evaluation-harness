@@ -1,0 +1,7 @@
+"dataset_name": "math"
+"description": "The following are multiple choice questions (with answers) about math"
+"group": "persianmmlu_math_sciences"
+"group_alias": "math_sciences"
+"include": "_default_template"
+"task": "persianmmlu_math"
+"task_alias": "math"
