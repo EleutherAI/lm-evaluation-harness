@@ -1,0 +1,6 @@
+"dataset_name": "Driving Test"
+"group": "ammlu_other"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "ammlu_driving_test"
+"task_alias": "Driving Test"

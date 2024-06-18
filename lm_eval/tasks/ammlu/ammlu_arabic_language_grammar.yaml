@@ -1,0 +1,6 @@
+"dataset_name": "Arabic Language (Grammar)"
+"group": "ammlu_language"
+"group_alias": "language"
+"include": "_default_template_yaml"
+"task": "ammlu_arabic_language_(grammar)"
+"task_alias": "Arabic Language (Grammar)"

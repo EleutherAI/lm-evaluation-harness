@@ -1,0 +1,6 @@
+"dataset_name": "High Computer Science"
+"group": "ammlu_stem"
+"group_alias": "stem"
+"include": "_default_template_yaml"
+"task": "ammlu_high_computer_science"
+"task_alias": "High Computer Science"

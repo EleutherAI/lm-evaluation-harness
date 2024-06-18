@@ -1,0 +1,6 @@
+"dataset_name": "High Arabic Language"
+"group": "ammlu_language"
+"group_alias": "language"
+"include": "_default_template_yaml"
+"task": "ammlu_high_arabic_language"
+"task_alias": "High Arabic Language"
