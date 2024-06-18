@@ -46,7 +46,7 @@ def oa_completion(client, chat: bool = False, **kwargs):
     Retry with back-off until they respond
     """
     if not find_spec("openai") or not find_spec("tiktoken"):
-        raise Exception(
+        raise ModuleNotFoundError(
             "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. "
             "Please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`"
         )
@@ -101,7 +101,7 @@ class OpenaiCompletionsLM(TemplateLM):
             import openai  # noqa: E401
             import tiktoken
         except ModuleNotFoundError:
-            raise Exception(
+            raise ModuleNotFoundError(
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
     please install these via `pip install lm-eval[openai]` or `pip install -e .\"[openai]\"`",
             )
@@ -364,7 +364,7 @@ class OpenaiChatCompletionsLM(LM):
         try:
             import openai  # noqa: E401
         except ModuleNotFoundError:
-            raise Exception(
+            raise ModuleNotFoundError(
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )

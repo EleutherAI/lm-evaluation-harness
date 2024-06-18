@@ -40,7 +40,7 @@ def _patch_pretrained_cfg(
     try:
         import omegaconf
     except ModuleNotFoundError:
-        raise Exception(
+        raise ModuleNotFoundError(
             "Attempted to use 'nemo_lm' model type, but package `nemo` is not installed"
             "Please install nemo following the instructions in the README: either with a NVIDIA PyTorch or NeMo container, "
             "or installing nemo following https://github.com/NVIDIA/NeMo.",
@@ -80,7 +80,7 @@ def load_model(
         )
         from nemo.collections.nlp.parts.nlp_overrides import NLPSaveRestoreConnector
     except ModuleNotFoundError:
-        raise Exception(
+        raise ModuleNotFoundError(
             "Attempted to use 'nemo_lm' model type, but package `nemo` is not installed"
             "Please install nemo following the instructions in the README: either with a NVIDIA PyTorch or NeMo container, "
             "or installing nemo following https://github.com/NVIDIA/NeMo.",
@@ -141,7 +141,7 @@ def setup_distributed_environment(trainer):
     try:
         from nemo.utils.app_state import AppState
     except ModuleNotFoundError:
-        raise Exception(
+        raise ModuleNotFoundError(
             "Attempted to use 'nemo_lm' model type, but package `nemo` is not installed"
             "Please install nemo following the instructions in the README: either with a NVIDIA PyTorch or NeMo container, "
             "or installing nemo following https://github.com/NVIDIA/NeMo.",
@@ -195,7 +195,7 @@ class NeMoLM(LM):
 
             self.generate = generate
         except ModuleNotFoundError:
-            raise Exception(
+            raise ModuleNotFoundError(
                 "Attempted to use 'nemo_lm' model type, but package `nemo` is not installed"
                 "Please install nemo following the instructions in the README: either with a NVIDIA PyTorch or NeMo container, "
                 "or installing nemo following https://github.com/NVIDIA/NeMo.",

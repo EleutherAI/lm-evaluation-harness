@@ -118,7 +118,7 @@ class PromptString:
 
         # TODO need a way to process doc_to_choice
         if "doc_to_choice" in self.prompt_string:
-            raise Exception("Not yet implemented to accept doc_to_choice")
+            raise NotImplementedError("Not yet implemented to accept doc_to_choice")
 
         text_string = utils.apply_template(doc_to_text, doc)
         target_string = utils.apply_template(doc_to_target, doc)

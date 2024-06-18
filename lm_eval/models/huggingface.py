@@ -570,7 +570,7 @@ class HFLM(TemplateLM):
             try:
                 from auto_gptq import AutoGPTQForCausalLM
             except ModuleNotFoundError:
-                raise Exception(
+                raise ModuleNotFoundError(
                     "Tried to load auto_gptq, but auto-gptq is not installed ",
                     "please install auto-gptq via pip install lm-eval[gptq] or pip install -e .[gptq]",
                 )
