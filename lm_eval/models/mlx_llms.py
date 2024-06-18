@@ -82,6 +82,8 @@ class MLX(TemplateLM):
             )
         }
 
+        info = {req.args: None for req in requests}
+
         # sort the requests by their length (changes order)
         idx = sorted(
             range(len(requests)),
@@ -98,6 +100,13 @@ class MLX(TemplateLM):
             idx[i : i + self.batch_size]
             for i in range(0, len(idx) - self.batch_size + 1, self.batch_size)
         ]
+        if len(idx) % self.batch_size != 0:
+            # If the total requests size is not a multiple of the batch size, there will be a final
+            # batch with the remainder
+            batch_idx.append(idx[self.batch_size * len(batch_idx) :])
+        eval_logger.info(
+            f"{len(requests):,} requests and {len(batch_idx):,} {self.batch_size:,}-or-less-item batches"
+        )
 
         # randomize the batches
         indices = np.random.permutation(len(batch_idx))
@@ -164,6 +173,8 @@ class MLX(TemplateLM):
                 context = context_batch[idx]
                 continuation = continuation_batch[idx]
 
+                del info[(context, continuation)]
+
                 # Extract log prob scores at token sequence positions in the logits
                 target_end_idx = input_length + target_length
                 target_sequence = self.tok_encode(continuation)
@@ -187,11 +198,14 @@ class MLX(TemplateLM):
             pbar.update(1)
 
         pbar.close()
+        eval_logger.info(f"{len(res):,} response objects")
+        eval_logger.info(f"{len(info):,} unprocessed")
         # Return the answers in the original order (lost by the batch creation process, which )
         return list(map(lambda i: i[1:], sorted(res, key=lambda i: i[0])))
 
     # Mostly from https://github.com/chimezie/mlx-tuning-fork/blob/main/src/mlx_tuning_fork/tuning/utils.py
     def delineated_batches(self, batch_size, context_text, continuation_text):
+        batch_size = min(batch_size, len(context_text))
         encoded_context_batch = [self.tok_encode(record) for record in context_text]
         encoded_continuation_batch = [
             self.tok_encode(record) for record in continuation_text
