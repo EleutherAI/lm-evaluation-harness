@@ -1,0 +1,6 @@
+"dataset_name": "Primary Math"
+"group": "ammlu_stem"
+"group_alias": "stem"
+"include": "_default_template_yaml"
+"task": "ammlu_primary_math"
+"task_alias": "Primary Math"

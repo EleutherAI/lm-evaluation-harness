@@ -1,0 +1,7 @@
+group: ammlu
+task:
+- ammlu_other
+- ammlu_social_science
+- ammlu_humanities
+- ammlu_stem
+- ammlu_language

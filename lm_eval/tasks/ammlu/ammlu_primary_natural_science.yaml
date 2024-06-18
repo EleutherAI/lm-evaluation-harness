@@ -1,0 +1,6 @@
+"dataset_name": "Primary Natural Science"
+"group": "ammlu_stem"
+"group_alias": "stem"
+"include": "_default_template_yaml"
+"task": "ammlu_primary_natural_science"
+"task_alias": "Primary Natural Science"
