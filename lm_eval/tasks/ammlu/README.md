@@ -9,6 +9,8 @@ Abstract: https://arxiv.org/abs/2402.12840
 The focus of language model evaluation has
 transitioned towards reasoning and knowledge intensive tasks, driven by advancements in pretraining large models. While state-of-the-art models are partially trained on large Arabic texts, evaluating their performance in Arabic remains challenging due to the limited availability of relevant datasets. To bridge this gap, we present ArabicMMLU, the first multi-task language understanding benchmark for Arabic language, sourced from school exams across diverse educational levels in different countries spanning North Africa, the Levant, and the Gulf regions. Our data comprises 40 tasks and 14,575 multiple-choice questions in Modern Standard Arabic (MSA), and is carefully constructed by collaborating with native speakers in the region. Our comprehensive evaluations of 35 models reveal substantial room for improvement, particularly among the best open-source models. Notably, BLOOMZ, mT0, LLama2, and Falcon struggle to achieve a score of 50%, while even the top-performing Arabic centric model only achieves a score of 62.3%.
 
+The authors of the paper conducted studies by varying the language of the initial prompt and answer keys between English and Arabic. However, they set English initial prompts and answer keys as the standard, which is the version implemented in this task.
+
 Homepage: https://github.com/mbzuai-nlp/ArabicMMLU
 
 
