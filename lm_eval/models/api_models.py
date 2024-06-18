@@ -1,11 +1,12 @@
 import abc
 import asyncio
+import json
+from collections import namedtuple
 from functools import cached_property
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
-import aiohttp
 import requests
-from aiohttp import ClientSession
+from aiohttp import ClientSession, TCPConnector
 from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
 from tqdm import tqdm
 from tqdm.asyncio import tqdm_asyncio
@@ -16,30 +17,42 @@ from lm_eval.api.registry import register_model
 from lm_eval.models.utils import Collator, chunks, handle_pad_token
 
 
+class APINontokenizedInput(namedtuple):
+    messages: List[str]
+
+
+class APItokenizedInput(namedtuple):
+    messages: List[List[int]]
+
+
+class RawChatString(namedtuple):
+    messages: str
+
+
 @register_model("test")
 class TemplateAPI(TemplateLM):
     def __init__(
-        self,
-        model: str = None,
-        pretrained: str = None,
-        base_url: str = None,
-        tokenizer: Optional[str] = None,
-        tokenizer_backend: Optional[
-            Literal["tiktoken", "huggingface", None]
-        ] = "huggingface",
-        truncate: bool = False,
-        concurrent=1,
-        max_gen_toks: int = 256,
-        batch_size: Union[str, int] = 1,
-        seed: int = 1234,
-        max_length: Optional[int] = 2058,
-        add_bos_token: bool = False,
-        custom_prefix_token_id=None,
+            self,
+            model: str = None,
+            pretrained: str = None,
+            base_url: str = None,
+            tokenizer: Optional[str] = None,
+            tokenizer_backend: Optional[
+                Literal["tiktoken", "huggingface", None]
+            ] = "huggingface",
+            truncate: bool = False,
+            concurrent=1,
+            max_gen_toks: int = 256,
+            batch_size: Union[str, int] = 1,
+            seed: int = 1234,
+            max_length: Optional[int] = 2058,
+            add_bos_token: bool = False,
+            custom_prefix_token_id=None,
     ) -> None:
         super().__init__()
         self.model = model or pretrained
         self.base_url = base_url
-        self._tokenizer = tokenizer
+        self.tokenizer = tokenizer
         if not isinstance(batch_size, int) and "auto" in batch_size:
             eval_logger.warning(
                 "Automatic batch size is not supported for API models. Defaulting to batch size 1."
@@ -69,14 +82,14 @@ class TemplateAPI(TemplateLM):
                 import transformers  # noqa: E401
 
                 self.tokenizer = transformers.AutoTokenizer.from_pretrained(
-                    self._tokenizer if self._tokenizer else self.model
+                    self.tokenizer if self.tokenizer else self.model
                 )
                 self.tokenizer = handle_pad_token(self.tokenizer)
             elif self.tokenizer_backend == "tiktoken":
                 try:
                     import tiktoken
-
-                    self.tokenizer = tiktoken.encoding_for_model(self.model)
+            #
+            #         self.tokenizer = tiktoken.encoding_for_model(self.model)
                 except ModuleNotFoundError:
                     raise Exception(
                         "attempted to use 'openai' LM type, but package`tiktoken` is not installed. \
@@ -90,25 +103,25 @@ class TemplateAPI(TemplateLM):
 
     @abc.abstractmethod
     def _create_payload(
-        self, messages, generate=True, gen_kwargs: dict = None, **kwargs
+            self, messages, generate=True, gen_kwargs: dict = None, **kwargs
     ) -> dict:
         """This method is responsible for creating the json payload that will be sent to the API."""
         raise NotImplementedError
 
     @abc.abstractmethod
     def parse_logprobs(
-        self,
-        outputs: Union[Any, List[Any]],
-        tokens: List[List[int]] = None,
-        ctxlen: List[int] = None,
-        **kwargs,
+            self,
+            outputs: Union[Any, List[Any]],
+            tokens: List[List[int]] = None,
+            ctxlen: List[int] = None,
+            **kwargs,
     ) -> List[Tuple[float, bool]]:
         """Method used to parse the logprobs from the (optionally batched) API response. This method should return a list of tuples"""
         raise NotImplementedError
 
     @abc.abstractmethod
     def parse_generations(
-        self, outputs: Union[Any, List[Any]], contexts: List[str], **kwargs
+            self, outputs: Union[Any, List[Any]], contexts: List[str], **kwargs
     ) -> List[str]:
         """Method used to parse the generations from the (optionally batched) API response. This method should return a list of str"""
         raise NotImplementedError
@@ -140,8 +153,8 @@ class TemplateAPI(TemplateLM):
         return ""
 
     def apply_chat_template(
-        self, chat_history: List[Dict[str, str]]
-    ) -> Union[str, Dict[str, str]]:
+            self, chat_history: List[Dict[str, str]]
+    ) -> Union[str, RawChatString]:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
@@ -150,7 +163,7 @@ class TemplateAPI(TemplateLM):
                 chat_history, tokenize=False, add_generation_prompt=True
             )
         else:
-            return chat_history
+            return RawChatString(json.dumps(chat_history))
 
     @cached_property
     def eot_token_id(self) -> Optional[int]:
@@ -174,12 +187,12 @@ class TemplateAPI(TemplateLM):
             return self.tokenizer.eos_token_id
 
     def tok_encode(
-        self,
-        string: Union[str, List[Any]],
-        left_truncate_len=None,
-        add_special_tokens=None,
-        **kwargs,
-    ) -> Union[List[int], List[Any]]:
+            self,
+            string: str,
+            left_truncate_len=None,
+            add_special_tokens=None,
+            **kwargs,
+    ) -> Union[List[int], str]:
         if self.tokenizer_backend is None:
             return string
         elif self.tokenizer_backend == "huggingface":
@@ -215,11 +228,14 @@ class TemplateAPI(TemplateLM):
         reraise=True,
     )
     def model_call(
-        self,
-        messages: List[Union[List[int], List[dict]]],
-        generate: bool = True,
-        **kwargs,
+            self,
+            messages: List[Union[List[int], str]],
+            generate: bool = True,
+            **kwargs,
     ) -> Optional[dict]:
+        if isinstance(messages[0], RawChatString):
+            assert self._batch_size == 1, "non-tokenized chat requests are only supported with batch_size=1"
+            messages = json.loads(messages[0])
         try:
             response = requests.post(
                 self.base_url,
@@ -228,8 +244,7 @@ class TemplateAPI(TemplateLM):
             )
             response.raise_for_status()
             return response.json()
-        except Exception as e:
-            print(e)
+        except RetryError:
             return None
 
     @retry(
@@ -238,24 +253,27 @@ class TemplateAPI(TemplateLM):
         reraise=True,
     )
     async def amodel_call(
-        self,
-        session: ClientSession,
-        messages: List[Union[List[int], List[dict]]],
-        generate: bool = True,
-        **kwargs,
+            self,
+            session: ClientSession,
+            messages: List[Union[List[int], str]],
+            generate: bool = True,
+            **kwargs,
     ) -> Optional[dict]:
+        if isinstance(messages[0], RawChatString):
+            assert self._batch_size == 1, "non-tokenized chat requests are only supported with batch_size=1"
+            messages: List[Dict] = json.loads(messages[0])
         # if messages are strings then we need List[str, ...] for the json payload
-        if isinstance(messages[0][0], str):
-            messages = [m for sublist in messages for m in sublist]
-        if isinstance(messages[0][0], dict):
-            messages = messages[0]
+        # if isinstance(messages[0][0], str):
+        #     messages = [m for sublist in messages for m in sublist]
+        # if isinstance(messages[0][0], dict):
+        #     messages = messages[0]
         # try:
         payload = self._create_payload(messages, generate=generate, **kwargs)
         try:
             async with session.post(
-                self.base_url,
-                json=payload,
-                headers=self.header,
+                    self.base_url,
+                    json=payload,
+                    headers=self.header,
             ) as response:
                 response.raise_for_status()
                 return await response.json()
@@ -263,13 +281,13 @@ class TemplateAPI(TemplateLM):
             return None
 
     def batch_logliklehood_requests(
-        self, chunk: List[Tuple[Tuple[str, str], List[int], List[int]]]
+            self, chunk: List[Tuple[Tuple[str, str], List[int], List[int]]]
     ) -> Tuple[List[List[int]], List[int], List[Tuple[str, str]]]:
         inputs = []
         ctxlens = []
         cache_keys = []
         for cache_key, context_enc, continuation_enc in chunk:
-            inp = (context_enc + continuation_enc)[-(self.max_length) :]
+            inp = (context_enc + continuation_enc)[-(self.max_length):]
             ctxlen = len(context_enc) - max(
                 0, len(context_enc) + len(continuation_enc) - (self.max_length)
             )
@@ -280,9 +298,9 @@ class TemplateAPI(TemplateLM):
         return inputs, ctxlens, cache_keys
 
     async def get_batched_requests(
-        self, requests: List, generate: bool = True, **kwargs
+            self, requests: List, generate: bool = True, **kwargs
     ):
-        conn = aiohttp.TCPConnector(limit=self._concurrent)
+        conn = TCPConnector(limit=self._concurrent)
         async with ClientSession(connector=conn) as session:
             tasks = [
                 asyncio.create_task(
@@ -295,7 +313,7 @@ class TemplateAPI(TemplateLM):
     def _loglikelihood_tokens(self, requests, **kwargs):
         res = []
         assert (
-            self.tokenizer is not None
+                self.tokenizer is not None
         ), "Tokenizer is required for loglikelihood tasks"
 
         def _collate(req: Tuple[Tuple[str, str], List[int], List[int]]):
@@ -324,8 +342,8 @@ class TemplateAPI(TemplateLM):
                 if isinstance(outputs, dict):
                     outputs = [outputs]
                 for answer_, cache_key in zip(
-                    self.parse_logprobs(outputs=outputs, tokens=inputs, ctxlen=ctxlens),
-                    cache_keys,
+                        self.parse_logprobs(outputs=outputs, tokens=inputs, ctxlen=ctxlens),
+                        cache_keys,
                 ):
                     if answer_ is not None:
                         res.append(answer_)
@@ -338,7 +356,7 @@ class TemplateAPI(TemplateLM):
         else:
             inputs = [self.batch_logliklehood_requests(chunk) for chunk in chunked]
             inputs, ctxlens, cache_keys = zip(*inputs)
-            inputs, ctxlens, cache_keys = inputs[0], ctxlens[0], cache_keys[0]
+            # inputs, ctxlens, cache_keys = inputs[0], ctxlens[0], cache_keys[0]
             outputs = asyncio.run(self.get_batched_requests(inputs, generate=False))
             answers = self.parse_logprobs(
                 outputs=outputs,
@@ -365,22 +383,20 @@ class TemplateAPI(TemplateLM):
             #   padded context length. this is useful to simplify the batching logic and more importantly to make
             #   automatic adaptive batches much much easier to implement
             # - any OOMs will happen right away rather than near the end
-            return -len(_requests[0][1]), _requests[0][0]
+            return -len(_requests[1]), _requests[0]
 
         # batch tokenize contexts
         context, all_gen_kwargs = zip(*(req.args for req in requests))
         encodings_list = [self.tok_encode(ctx) for ctx in context]
         requests = [
-            ((a, b), c) for a, b, c in zip(context, encodings_list, all_gen_kwargs)
+            (a, b, c) for a, b, c in zip(context, encodings_list, all_gen_kwargs)
         ]
 
         re_ord = Collator(
             requests,
             sort_fn=_collate_gen,
             group_by="gen_kwargs",
-            # if we are not encoding the context, we can't reorder the requests
-            reorder=False if not isinstance(encodings_list[0][0], dict) else False,
-        )
+            )
         chunked = re_ord.get_batched(
             n=self._batch_size if self._concurrent <= 1 else 0, batch_fn=None
         )
@@ -389,19 +405,19 @@ class TemplateAPI(TemplateLM):
             for chunk in chunked:
                 context_and_encoding, all_gen_kwargs = zip(*chunk)
                 contexts, context_encoding = zip(*context_and_encoding)
-                if isinstance(context_encoding[0][0], dict):
-                    contexts, context_encoding = context[0], context_encoding[0]
+                # if isinstance(context_encoding[0][0], dict):
+                #     contexts, context_encoding = context[0], context_encoding[0]
                 outputs = self.model_call(
                     messages=context_encoding,
                     generate=True,
                     gen_kwargs=all_gen_kwargs[0],
                 )
                 for generated_text, context in zip(
-                    self.parse_generations(
-                        outputs=outputs,
-                        contexts=contexts,
-                    ),
-                    contexts,
+                        self.parse_generations(
+                            outputs=outputs,
+                            contexts=contexts,
+                        ),
+                        contexts,
                 ):
                     if generated_text is not None:
                         res.append(generated_text)
@@ -424,7 +440,7 @@ class TemplateAPI(TemplateLM):
                     )
                 )
                 for generated_text, context in zip(
-                    self.parse_generations(outputs, contexts=contexts), contexts
+                        self.parse_generations(outputs, contexts=contexts), contexts
                 ):
                     res.append(generated_text)
                     # partial caching
@@ -438,7 +454,7 @@ class TemplateAPI(TemplateLM):
         return re_ord.get_original(res)
 
     def loglikelihood_rolling(
-        self, requests, disable_tqdm: bool = False
+            self, requests, disable_tqdm: bool = False
     ) -> List[float]:
         loglikelihoods = []
 
