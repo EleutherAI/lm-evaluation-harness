@@ -1,4 +1,4 @@
 include: paloma.yaml
 task: paloma_dolma_100_programing_languages
-task_alias: dolma_100_programing_languages
+task_alias: Dolma-100-programming-languages
 dataset_name: dolma_100_programing_languages
