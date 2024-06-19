@@ -1,6 +1,0 @@
-"dataset_name": "High Physics"
-"group": "ammlu_stem"
-"group_alias": "stem"
-"include": "_default_template_yaml"
-"task": "ammlu_high_physics"
-"task_alias": "High Physics"

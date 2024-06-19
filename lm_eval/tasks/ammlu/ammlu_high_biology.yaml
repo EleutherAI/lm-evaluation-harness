@@ -1,6 +1,0 @@
-"dataset_name": "High Biology"
-"group": "ammlu_stem"
-"group_alias": "stem"
-"include": "_default_template_yaml"
-"task": "ammlu_high_biology"
-"task_alias": "High Biology"
