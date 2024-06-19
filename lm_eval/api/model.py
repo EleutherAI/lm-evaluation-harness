@@ -330,10 +330,10 @@ class TemplateLM(LM):
         pass
 
     @abc.abstractmethod
-    def _loglikelihood_tokens(self, requests, **kwargs):
+    def _loglikelihood_tokens(self, requests, **kwargs) -> List[Tuple[float, bool]]:
         pass
 
-    def _encode_pair(self, context, continuation):
+    def _encode_pair(self, context: str, continuation: str) -> Tuple[List[int], List[int]]:
         n_spaces = len(context) - len(context.rstrip())
         if n_spaces > 0:
             continuation = context[-n_spaces:] + continuation
