@@ -23,7 +23,7 @@ Homepage: https://github.com/inverse-scaling/prize
 
 #### Groups
 
-* `inverse_scaling_mc`: `mcqa version of all tasks of Inverse Scaling Prize`
+* `inverse_scaling_mc`: `all tasks of Inverse Scaling Prize`
 
 
 #### Tasks
@@ -39,6 +39,7 @@ Homepage: https://github.com/inverse-scaling/prize
 - `inverse_scaling_pattern_matching_suppression`
 - `inverse_scaling_repetitive_algebra`
 - `inverse_scaling_sig_figs`
+- `inverse_scaling_prompt_injection`
 
 
 ### Checklist
@@ -46,7 +47,7 @@ Homepage: https://github.com/inverse-scaling/prize
 For adding novel benchmarks/datasets to the library:
 * [x] Is the task an existing benchmark in the literature?
   * [x] Have you referenced the original paper that introduced the task?
-  * [] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
+  * [x] If yes, does the original paper provide a reference implementation? If so, have you checked against the reference implementation and documented how to run such a test?
 
 
 If other tasks on this dataset are already supported:

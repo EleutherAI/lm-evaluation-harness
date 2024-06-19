@@ -1,0 +1,14 @@
+group:
+  - inverse_scaling_mc
+task: inverse_scaling_prompt_injection
+dataset_path: Albertmade/prompt-injection
+output_type: loglikelihood
+test_split: train
+doc_to_text: prompt
+doc_to_target: completion
+metric_list:
+  - metric: perplexity
+    aggregation: perplexity
+    higher_is_better: false
+metadata:
+  version: 0
