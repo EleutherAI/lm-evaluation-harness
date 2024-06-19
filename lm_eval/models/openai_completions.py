@@ -100,8 +100,8 @@ class OpenaiCompletionsLM(TemplateLM):
         try:
             import openai  # noqa: E401
             import tiktoken
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
     please install these via `pip install lm-eval[openai]` or `pip install -e .\"[openai]\"`",
             )
@@ -363,8 +363,8 @@ class OpenaiChatCompletionsLM(LM):
         super().__init__()
         try:
             import openai  # noqa: E401
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError(
+        except ModuleNotFoundError as exception:
+            raise type(exception)(
                 "attempted to use 'openai' LM type, but package `openai` or `tiktoken` are not installed. \
     please install these via `pip install lm-eval[openai]` or `pip install -e .[openai]`",
             )
