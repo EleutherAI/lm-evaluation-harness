@@ -1,0 +1,4 @@
+include: paloma.yaml
+task: paloma_manosphere_meta_sep
+task_alias: Manosphere Corpus
+dataset_name: manosphere_meta_sep

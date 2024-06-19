@@ -1,0 +1,4 @@
+include: paloma.yaml
+task: paloma_m2d2_wikipedia_unsplit
+task_alias: M2D2 Wikipedia
+dataset_name: m2d2_wikipedia_unsplit
