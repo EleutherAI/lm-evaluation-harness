@@ -1,4 +1,4 @@
-include: paloma.yaml
+include: _paloma_template
 task: paloma_mc4
 task_alias: mC4-en
 dataset_name: mc4
