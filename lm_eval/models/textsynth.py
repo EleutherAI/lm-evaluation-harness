@@ -1,4 +1,4 @@
-""" TextSynth API
+"""TextSynth API
 Implementation provided by Fabrice Bellard:
     https://github.com/EleutherAI/lm-evaluation-harness/issues/295
 
@@ -11,6 +11,7 @@ Example usage:
 
 Homepage: https://textsynth.com/index.html
 """
+
 import logging
 import os
 
