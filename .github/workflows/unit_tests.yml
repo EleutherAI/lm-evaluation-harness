@@ -32,7 +32,7 @@ jobs:
       env:
         SKIP: "no-commit-to-branch,mypy"
 
-      uses: pre-commit/action@v3.0.0
+      uses: pre-commit/action@v3.0.1
 #       # mypy turned off for now
 #    - name: Lint with mypy
 #      run: mypy . --ignore-missing-imports --check-untyped-defs --explicit-package-bases --warn-unreachable

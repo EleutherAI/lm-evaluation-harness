@@ -2,7 +2,7 @@ from typing import List
 
 import pytest
 
-import lm_eval.tasks as tasks
+from lm_eval import tasks
 from lm_eval.api.instance import Instance
 
 
