@@ -271,6 +271,7 @@ def simple_evaluate(
             model_args=model_args,
             system_instruction=system_instruction,
             chat_template=lm.chat_template if apply_chat_template else None,
+            fewshot_as_multiturn=fewshot_as_multiturn,
         )
 
     results = evaluate(
@@ -607,16 +608,16 @@ def evaluate(
                     ]
 
                     # compute group's pooled metric and stderr
-                    results[group][
-                        metric
-                    ] = lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
+                    results[group][metric] = (
+                        lm_eval.api.metrics.aggregate_subtask_metrics(metrics, sizes)
+                    )
                     # TODO: calculate grouped metric using aggregation fn
                     if "N/A" in stderrs:
                         results[group][stderr] = "N/A"
                     else:
-                        results[group][
-                            stderr
-                        ] = lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
+                        results[group][stderr] = (
+                            lm_eval.api.metrics.pooled_sample_stderr(stderrs, sizes)
+                        )
                         # TODO: allow GroupConfigs to choose which variance formula is used, for back-compatibility
                         # To use the old (likely incorrect) variance formula, comment out the above and uncomment this line:
                         # results[group][stderr] = lm_eval.api.metrics.combined_sample_stderr(stderrs, sizes, metrics=metrics)
