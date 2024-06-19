@@ -45,6 +45,7 @@
 | [hellaswag](hellaswag/README.md) | Tasks to predict the ending of stories or scenarios, testing comprehension and creativity. | English |
 | [hendrycks_ethics](hendrycks_ethics/README.md)     | Tasks designed to evaluate the ethical reasoning capabilities of models. | English |
 | [hendrycks_math](hendrycks_math/README.md) | Mathematical problem-solving tasks to test numerical reasoning and problem-solving. | English |
+| [humaneval](humaneval/README.md) | Code generation task that measure functional correctness for synthesizing programs from docstrings. | Python |
 | [ifeval](ifeval/README.md) | Interactive fiction evaluation tasks for narrative understanding and reasoning. | English |
 | [kmmlu](kmmlu/README.md) | Knowledge-based multi-subject multiple choice questions for academic evaluation. | Korean |
 | [kobest](kobest/README.md) | A collection of tasks designed to evaluate understanding in Korean language. | Korean |
