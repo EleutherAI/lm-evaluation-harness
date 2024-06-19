@@ -1,0 +1,4 @@
+include: paloma.yaml
+task: paloma_dolma_100_subreddits
+task_alias: Dolma-100-subreddits
+dataset_name: dolma_100_subreddits

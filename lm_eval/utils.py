@@ -152,6 +152,55 @@ def general_detokenize(string):
     return string
 
 
+def get_file_task_name(filename: str) -> str:
+    """
+    Given the sample results filenames, extracts and returns the task name.
+    """
+    return filename[filename.find("_") + 1 : filename.rfind("_")]
+
+
+def get_file_datetime(filename: str) -> str:
+    """
+    Given the results and sample results filenames, extracts and returns the datetime.
+    """
+    return filename[filename.rfind("_") + 1 :].replace(".json", "")
+
+
+def sanitize_model_name(model_name: str) -> str:
+    """
+    Given the model name, returns a sanitized version of it.
+    """
+    return re.sub(r"[\"<>:/\|\\?\*\[\]]+", "__", model_name)
+
+
+def sanitize_task_name(task_name: str) -> str:
+    """
+    Given the task name, returns a sanitized version of it.
+    """
+    return re.sub(r"\W", "_", task_name)
+
+
+def get_latest_filename(filenames: List[str]) -> str:
+    """
+    Given a list of filenames, returns the filename with the latest datetime.
+    """
+    return max(filenames, key=lambda f: get_file_datetime(f))
+
+
+def get_results_filenames(filenames: List[str]) -> List[str]:
+    """
+    Extracts filenames that correspond to aggregated results.
+    """
+    return [f for f in filenames if "/results_" in f and ".json" in f]
+
+
+def get_sample_results_filenames(filenames: List[str]) -> List[str]:
+    """
+    Extracts filenames that correspond to sample results.
+    """
+    return [f for f in filenames if "/samples_" in f and ".json" in f]
+
+
 def get_rolling_token_windows(token_list, prefix_token, max_seq_len, context_len):
     """
     - context_len allows for a rolling window context, allowing each prediction window to potentially
@@ -300,7 +349,11 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
         if "alias" in dic:
             k = dic.pop("alias")
 
-        for (mf), v in dic.items():
+        metric_items = dic.items()
+        if sort_results:
+            metric_items = sorted(metric_items)
+
+        for (mf), v in metric_items:
             m, _, f = mf.partition(",")
             if m.endswith("_stderr"):
                 continue
