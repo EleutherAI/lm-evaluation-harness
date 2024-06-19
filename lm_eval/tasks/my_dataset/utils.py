@@ -13,8 +13,6 @@ LABEL_MAPPING = {
 
 def process_docs(dataset: datasets.Dataset):
     def _helper(doc):
-        # Assuming the dataset has fields 'claim', 'evidence', and 'label'
-        
         doc["choices"] = ['A', 'B', 'C', 'D', 'E', 'F']
         doc["gold"] = LABEL_MAPPING[doc["label"]]
         return doc
