@@ -27,4 +27,4 @@ def build_predictions(resps, docs):
         pred = [doc["prompt"] + r for r in resp]
         preds.append(pred)
 
-        return preds
+    return preds
