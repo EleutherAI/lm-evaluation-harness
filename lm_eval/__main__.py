@@ -357,7 +357,6 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         eval_logger.info(
             "Passed `--trust_remote_code`, setting environment variable `HF_DATASETS_TRUST_REMOTE_CODE=true`"
         )
-        os.environ["HF_DATASETS_TRUST_REMOTE_CODE"] = "YES"
         # HACK: import datasets and override its HF_DATASETS_TRUST_REMOTE_CODE value internally,
         # because it's already been determined based on the prior env var before launching our
         # script--`datasets` gets imported by lm_eval internally before these lines can update the env.
@@ -365,10 +364,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
 
         datasets.config.HF_DATASETS_TRUST_REMOTE_CODE = True
 
-        args.model_args = (
-            args.model_args
-            + f",trust_remote_code={os.environ['HF_DATASETS_TRUST_REMOTE_CODE']}"
-        )
+        args.model_args = args.model_args + ",trust_remote_code=True"
 
     eval_logger.info(f"Selected Tasks: {task_names}")
 
