@@ -1,0 +1,48 @@
+dataset_path: "json"
+dataset_name: null
+dataset_kwargs:
+  data_files: "lm_eval/tasks/my_dataset/test.json"
+
+training_split: train
+validation_split: train
+test_split: null
+fewshot_split: null
+
+process_docs: !function utils.process_docs
+
+output_type: multiple_choice
+
+# doc_to_text: "Claim: {{claim}}\nEvidence: {{evidence}}\nClassify given claim based on evidence into one of the 6 label: true, mostly-true, half-true, mostly-false, false, or pants-fire?\nAnswer: "
+doc_to_text: |
+  <s>[INST]
+  You are tasked with evaluating the truthfulness of claims based on provided evidence. Each claim can be categorized into one of six labels: "true", "mostly-true", "half-true", "mostly-false", "false", or "pants-fire". Assess the claim given the evidence and classify it appropriately without providing an explanation.
+  [/INST]</s>
+  [Label Descriptions]
+  "true": The claim is entirely accurate and includes all relevant information. There are no omissions or distortions that could mislead the audience.
+  "mostly-true": The claim is accurate, but it might benefit from additional context to provide a complete picture. However, the absence of this context does not alter the claim's accuracy.
+  "half-true": The claim is true in a limited context. However, it omits crucial information that could significantly alter its interpretation, leading to potential misunderstanding or misinterpretation.
+  "mostly-false": The claim contains some elements of truth but distorts or misrepresents critical facts. Important information is omitted, which could lead to a misleading impression despite some truthful elements.
+  "false": The claim is entirely inaccurate and contradicts established facts. There is no truth to the claim, and it is likely to mislead those who encounter it.
+  "pants-fire": The claim is completely false, fabricated, and lacks any basis in evidence or reality. It is deliberately misleading and designed to deceive.
+  [INPUT]
+  Claim: {{claim}}
+  Evidence: {{evidence}}
+  Classify given claim based on evidence into one of the 6 label: true, mostly-true, half-true, mostly-false, false, or pants-fire?
+  Answer:
+
+doc_to_target: !function utils.get_target
+doc_to_choice: !function utils.get_choices
+
+metric_list:
+  - metric: acc
+    aggregation: mean
+    higher_is_better: true
+  - metric: acc_norm
+    aggregation: mean
+    higher_is_better: true
+
+task: halftruthdetection
+
+metadata:
+  version: 0
+
