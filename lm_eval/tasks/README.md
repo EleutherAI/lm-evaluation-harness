@@ -11,6 +11,7 @@
 | [aexams](aexams/README.md) | Tasks in Arabic related to various academic exams covering a range of subjects. | Arabic |
 | [agieval](agieval/README.md) | Tasks involving historical data or questions related to history and historical texts. | English, Chinese |
 | [anli](anli/README.md) | Adversarial natural language inference tasks designed to test model robustness. | English |
+| [arabicmmlu](arabicmmlu/README.md) | Localized Arabic version of MMLU with multiple-choice questions from 40 subjects. | Arabic |
 | [arc](arc/README.md) | Tasks involving complex reasoning over a diverse set of questions.  | English |
 | [arithmetic](arithmetic/README.md) | Tasks involving numerical computations and arithmetic reasoning. | English |
 | [asdiv](asdiv/README.md) | Tasks involving arithmetic and mathematical reasoning challenges. | English |
