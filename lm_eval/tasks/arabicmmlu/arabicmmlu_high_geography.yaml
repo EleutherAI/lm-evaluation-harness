@@ -1,0 +1,6 @@
+"dataset_name": "High Geography"
+"group": "arabicmmlu_social_science"
+"group_alias": "social science"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_high_geography"
+"task_alias": "High Geography"

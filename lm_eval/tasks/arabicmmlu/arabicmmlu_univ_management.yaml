@@ -1,0 +1,6 @@
+"dataset_name": "Univ Management"
+"group": "arabicmmlu_other"
+"group_alias": "other"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_univ_management"
+"task_alias": "Univ Management"
