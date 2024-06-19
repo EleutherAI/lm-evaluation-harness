@@ -67,14 +67,6 @@ def matthews_corrcoef(items):
     return sklearn.metrics.matthews_corrcoef(golds, preds)
 
 
-@register_aggregation("confusion_matrix")
-def confusion_matrix(items, labels):
-    unzipped_list = list(zip(*items))
-    golds = unzipped_list[0]
-    preds = unzipped_list[1]
-    return sklearn.metrics.confusion_matrix(golds, preds, labels=labels)
-
-
 @register_aggregation("bleu")
 def bleu(items):
     """The Bilingual Evaluation Understudy Score, or BLEU for short, is a metric
@@ -161,16 +153,6 @@ def acc_fn(items):  # This is a passthrough function
     aggregation="mean",
 )
 def acc_norm_fn(items):  # This is a passthrough function
-    return items
-
-
-@register_metric(
-    metric="cm",
-    higher_is_better=True,
-    output_type="multiple_choice",
-    aggregation="confusion_matrix",
-)
-def cm_fn(items):  # This is a passthrough function
     return items
 
 

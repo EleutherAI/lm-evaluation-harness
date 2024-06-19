@@ -95,12 +95,7 @@ class TaskOutput:
         for (metric, filter_key), items in self.sample_metrics.items():
             agg_fn = self.task.aggregation()[metric]
             metric_key = f"{metric},{filter_key}"
-            if metric == "cm":
-                labels = self.task.doc_to_choice(None)
-                labels_idx = [i for i, _ in enumerate(labels)]
-                self.agg_metrics[metric_key] = agg_fn(items, labels_idx)
-            else:
-                self.agg_metrics[metric_key] = agg_fn(items)
+            self.agg_metrics[metric_key] = agg_fn(items)
             self.sample_len = len(items)  # TODO: same sample size for each metric?
             if isinstance(bootstrap_iters, int):
                 stderr_fn = metrics.stderr_for_metric(

@@ -360,10 +360,6 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
 
             hib = HIGHER_IS_BETTER_SYMBOLS.get(higher_is_better.get(m), "")
 
-            # plot confusion matrix separately
-            if m == "cm":
-                continue
-
             if m + "_stderr" + "," + f in dic:
                 se = dic[m + "_stderr" + "," + f]
                 if se != "N/A":
@@ -380,29 +376,6 @@ def make_table(result_dict, column: str = "results", sort_results: bool = True):
     # print(latex_writer.dumps())
 
     return md_writer.dumps()
-
-
-def make_confusion_matrix(result_dict):
-    from pytablewriter import MarkdownTableWriter
-
-    keys = result_dict["results"].keys()
-    for k in keys:
-        print(f"Confusion Matrix for task: {k}")
-        res_dic = result_dict["results"][k]
-        for (mf), v in res_dic.items():
-            m, _, f = mf.partition(",")
-            # plot confusion matrix
-            if m == "cm":
-                cm = v
-                md_writer = MarkdownTableWriter()
-                classes = [f"C{n}" for n in range(cm.shape[0])]
-                # true classes in row, predicted classes in column
-                md_writer.headers = ["t/p"] + classes
-                values = []
-                for i, c in enumerate(classes):
-                    values.append([c] + cm[i].tolist())
-                md_writer.value_matrix = values
-                return md_writer.dumps()
 
 
 def positional_deprecated(fn):
