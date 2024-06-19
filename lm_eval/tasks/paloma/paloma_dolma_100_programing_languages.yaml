@@ -1,4 +1,4 @@
-include: paloma.yaml
+include: _paloma_template
 task: paloma_dolma_100_programing_languages
-task_alias: Dolma-100-programming-languages
+task_alias: 100 PLs
 dataset_name: dolma_100_programing_languages
