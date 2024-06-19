@@ -27,7 +27,7 @@ Homepage: https://github.com/juletx/BertaQA
 
 #### Groups
 
-- `bertaqa`: Group of BasqueTrivia tasks.
+- `bertaqa`: Group of BertaQA tasks.
 
 #### Tasks
 
