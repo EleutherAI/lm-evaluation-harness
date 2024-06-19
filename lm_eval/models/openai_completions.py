@@ -292,7 +292,7 @@ class OpenaiCompletionsLM(TemplateLM):
 
                 # partial caching
                 self.cache_hook.add_partial(
-                    "generate_until", (context, {"until": until_}), s
+                    "generate_until", (context, args_), s
                 )
 
                 res.append(s)
@@ -461,7 +461,7 @@ class OpenaiChatCompletionsLM(LM):
                     res[key].append(s)
 
                     self.cache_hook.add_partial(
-                        "generate_until", (context, {"until": until}), s
+                        "generate_until", (context, args_), s
                     )
                     pbar.update(1)
             # reorder this group of results back to original unsorted form
