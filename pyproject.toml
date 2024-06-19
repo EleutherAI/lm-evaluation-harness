@@ -60,7 +60,7 @@ Repository = "https://github.com/EleutherAI/lm-evaluation-harness"
 anthropic = ["anthropic"]
 dev = ["pytest", "pytest-cov", "pytest-xdist", "pre-commit", "mypy"]
 deepsparse = ["deepsparse-nightly[llm]>=1.8.0.20240404"]
-gigachat = ["gigachat", "ast"]
+gigachat = ["gigachat"]
 gptq = ["auto-gptq[triton]>=0.6.0"]
 hf_transfer = ["hf_transfer"]
 ifeval = ["langdetect", "immutabledict"]

@@ -1,5 +1,5 @@
 import os
-from typing import Any, List, Tuple, Dict, Union
+from typing import Dict, List, Tuple, Union
 
 from tqdm import tqdm
 
@@ -11,6 +11,12 @@ from lm_eval.models.utils import retry_on_specific_exceptions
 
 eval_logger = utils.eval_logger
 
+model_context = {
+    "GigaChat": 8192,
+    "GigaChat-Plus": 32768,
+    "GigaChat Pro": 8192,
+}  # GigaChat:latest-???
+
 
 def gigachat_completion(
     client,  #: gigachat.GigaChat,
@@ -19,7 +25,7 @@ def gigachat_completion(
     max_tokens_to_sample: int,
     temperature: float,
     until: List[str],
-    user_end: str,
+    chat_history: Union[List[Dict[str, str]], List],
     **kwargs,
 ) -> str:
     """Wrapper function around the GigaChat API client with exponential back-off
@@ -28,7 +34,7 @@ def gigachat_completion(
         client: gigachat.GigaChat
             GigaChat API client
         model: str
-            GigaChat model e.g. 'GigaChat-Pro', 'GigaChat'
+            GigaChat model, possible values: [GigaChat, GigaChat:latest, GigaChat-Plus, GigaChat-Pro]
         prompt: str
             Prompt to feed to the model
         max_tokens: int
@@ -37,51 +43,46 @@ def gigachat_completion(
             Sampling temperature
         until: List[str]
             List of stop-words
-        user_end: str
-            Additional instructions from yaml task config. Add at the end of the prompt.
+        chat_history: Union[List[Dict[str, str]], List]
+            Either messages from request if apply_chat_template is True or empty list otherwise
         kwargs: Any
             Additional model_args to pass to the API client. May be:
-            profanity check: bool, turn onn censor. Default: False
-            top_p: float, nucleus params
-            repetition_penalty: float, repetition_penalty.
-            do_sample: sampling type.
-            For more: https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/post-chat
+            profanity check: bool, censor status. Default: True
+            top_p: float, nucleus params. The default value depends on the selected model and may change with model updates
+            repetition_penalty: float, repetition_penalty. The default value depends on the selected model and may change with model updates
+            n: int, the number of response options to be generated for each input message. Possible values: [1; 4]. Default: 1
+            stream: bool, specifies that messages should be sent in parts in the stream. Default: False
     """
     try:
         import gigachat
-        import ast
     except ModuleNotFoundError:
         raise Exception(
-            "attempted to use 'gigachat' LM type, but package `gigachat` or `ast` are not installed. \
+            "attempted to use 'gigachat' LM type, but package `gigachat` is not installed. \
 please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .[gigachat]`",
         )
 
-    prompt = ast.literal_eval(prompt)
     messages = []
-    if isinstance(prompt, list):
-        for num, message in enumerate(prompt):
-            if num == (len(message) - 1):
-                message["content"] += user_end
+    if chat_history:
+        for message in chat_history:
             messages.append(
                 gigachat.models.Messages(
                     role=message["role"],
                     content=message["content"],
                 )
             )
-    elif isinstance(prompt, str):
+    else:
+        eval_logger.warning(
+            "You are trying to use GigaChat without chat_template. It may lead to inappropriate model behavior. \
+                Please, set `--apply_chat_template` and `--system_instruction`  arguments."
+        )
         messages.append(
             gigachat.models.Messages(
                 role=gigachat.models.MessagesRole.USER,
-                content=prompt + user_end,
+                content=prompt,
             )
         )
-    else:
-        raise TypeError("Unknown input type")
 
     def _exception_callback(e: Exception, sleep_time: float = 10) -> None:
-        """
-        ReadTimeout - if there is no responce from the server.
-        """
         eval_logger.warning(
             f"GigaChatError occurred: {e.__cause__}\n Retrying in {sleep_time} seconds"
         )
@@ -96,7 +97,6 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
         on_exception_callback=_exception_callback,
     )
     def completion():
-
         payload = gigachat.models.Chat(
             messages=messages,
             model=model,
@@ -117,7 +117,6 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
 
 @register_model("gigachat_llms")
 class GigaChatLM(LM):
-
     def __init__(
         self,
         model: str = "GigaChat",
@@ -128,13 +127,13 @@ class GigaChatLM(LM):
         """GigaChat API wrapper.
 
         :param model: str
-            GC model e.g. 'GigaChat', 'GigaChar-Pro'
+            GigaChat model, possible values: [GigaChat, GigaChat:latest, GigaChat-Plus, GigaChat-Pro]
         :param max_tokens_to_sample: int
             Maximum number of tokens to sample from the model
         :param temperature: float
-            Sampling temperature
+            Sampling temperature. Cannot be set to zero!
         :param kwargs: Any
-            Additional model_args to pass to the API client
+            Additional model_args to pass to the API client.
         """
         super().__init__()
 
@@ -142,11 +141,12 @@ class GigaChatLM(LM):
             import gigachat
         except ModuleNotFoundError:
             raise Exception(
-                "attempted to use 'gigachat' LM type, but package `gigachat` or `ast` are not installed. \
+                "attempted to use 'gigachat' LM type, but package `gigachat` is not installed. \
 please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .[gigachat]`",
             )
 
         self.model = model
+        self.chat_history = []
         self.client = gigachat.GigaChat(
             credentials=os.environ.get("GIGACHAT_API_KEY"),
             scope="GIGACHAT_API_CORP",
@@ -162,7 +162,7 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
 
     @property
     def max_length(self) -> int:
-        return 2048
+        return model_context[self.model]
 
     @property
     def max_gen_toks(self) -> int:
@@ -192,7 +192,7 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
             import gigachat
         except ModuleNotFoundError:
             raise Exception(
-                "attempted to use 'gigachat' LM type, but package `gigachat` or `ast` are not installed. \
+                "attempted to use 'gigachat' LM type, but package `gigachat` is not installed. \
 please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .[gigachat]`",
             )
 
@@ -210,7 +210,6 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
                 if isinstance(until, str):
                     until = [until]
                 # generation_kwargs
-                user_end = request_args.get("user_end", "")
                 max_gen_toks = request_args.get("max_gen_toks", self.max_length)
                 temperature = request_args.get("temperature", self.temperature)
                 if temperature == 0:
@@ -222,38 +221,37 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
                     max_tokens_to_sample=max_gen_toks,
                     temperature=temperature,
                     until=until,
-                    user_end=user_end,
+                    chat_history=self.chat_history,
                     **self.kwargs,
                 )
                 res.append(response)
 
                 self.cache_hook.add_partial("generate_until", request, response)
-            except gigachat.exceptions.AuthenticationError as e:
+            except (
+                gigachat.exceptions.AuthenticationError,
+                gigachat.exceptions.ResponseError,
+            ) as e:
                 eval_logger.critical(
                     f"""API error {e.args[1]}: {e.args[2].decode('utf8').split('"message":')[-1][:-1]}"""
                 )
                 break
-            except gigachat.exceptions.ResponseError as e:
-                eval_logger.critical(
-                    f"""API error {e.args[1]}: {e.args[2].decode('utf8').split('"message":')[-1][:-1]}"""
-                )
-                break
-
         return res
 
     def apply_chat_template(self, chat_history: List[Dict[str, str]]) -> str:
         """
         Apply chat template in the gigachat_completion func using gigachat library
-        We do not have acess to gigachat tokenizer.
-        Return Dict as str and then use it as a Dict again to process in through gigachat meassages.
+        We do not have access to gigachat tokenizer. This is our solution:
+        Set chat_history as an attribute and pass it to chat completion func.
+        Return a list as a string to avoid raising errors.
         """
+        self.chat_history = chat_history
         return str(chat_history)
 
     @property
     def tokenizer_name(self) -> str:
         """
         Apply chat template in the gigachat_completion func using gigachat library.
-        We do not have acess to gigachat tokenizer.
+        We do not have access to gigachat tokenizer.
         Return gigachat_tokenizer as a name.
         """
         return str("gigachat_tokenizer")
@@ -262,7 +260,7 @@ please install gigachat via `pip install lm-eval[gigachat]` or `pip install -e .
     def chat_template(self) -> str:
         """
         Apply chat template in the gigachat_completion func using gigachat library.
-        We do not have acess to gigachat tokenizer.
+        We do not have access to gigachat tokenizer.
         """
         return str("No idea about gc tokenization.")
 
@@ -290,6 +288,5 @@ def cut_generation(generation, stop):
 
     stop_idxs = [generation.find(sub) for sub in stop if generation.find(sub) != -1]
     if stop_idxs:
-        return generation[: min(stop_idxs)]
-    else:
-        return generation
+        generation = generation[: min(stop_idxs)]
+    return generation
