@@ -37,6 +37,7 @@ def get_model(model_name):
     except KeyError:
         raise ValueError(
             f"Attempted to load model '{model_name}', but no model for this name found! Supported model names: {', '.join(MODEL_REGISTRY.keys())}"
+            "\nIf you are trying to load a model from Hugging Face, please use the `hf` model type and please ensure torch is installed."
         )
 
 

@@ -1,18 +1,54 @@
 import os
 import re
-from typing import List
+from typing import List, Tuple
 
 import pytest
 
 import lm_eval.api as api
 import lm_eval.evaluator as evaluator
 from lm_eval import tasks
+from lm_eval.api.model import LM
+from lm_eval.models.dummy import DummyLM
 from lm_eval.utils import make_table
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # TODO: more fine grained unit tests rather than this big honking integration
 # test once we break evaluator into smaller, more manageable pieces
+
+
+class FakeLM(LM):
+    def loglikelihood(self, requests) -> List[Tuple[float, bool]]:
+        return [(-100.0, False) for _ in requests]
+
+    def loglikelihood_rolling(self, requests) -> List[Tuple[float]]:
+        return [(-100.0,) for _ in requests]
+
+    def generate_until(self, requests) -> List[str]:
+        output = []
+        for request in requests:
+            output.append("ZZZ" + request.until)
+
+        return output
+
+
+def test_evaluator_with_dummy_lm():
+    task_name = "hellaswag"
+    limit = 10
+    lm = DummyLM()
+
+    task_manager = tasks.TaskManager()
+    task_dict = tasks.get_task_dict([task_name], task_manager)
+
+    e = evaluator.evaluate(
+        lm=lm,
+        task_dict=task_dict,
+        limit=limit,
+        bootstrap_iters=0,
+    )
+
+    # mostly just checking it has a pulse
+    del e
 
 
 @pytest.mark.parametrize(
