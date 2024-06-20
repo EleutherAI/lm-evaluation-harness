@@ -1,6 +1,7 @@
 import re
 from abc import abstractmethod
 from functools import reduce
+from datasets import Dataset
 
 import numpy as np
 import transformers.data.metrics.squad_metrics as squad_metrics
@@ -9,7 +10,7 @@ from transformers import AutoTokenizer
 
 from lm_eval.api.instance import Instance
 from lm_eval.api.metrics import mean
-from lm_eval.api.task import Task
+from lm_eval.api.task import ConfigurableTask
 
 
 _CITATION = """
@@ -108,7 +109,7 @@ def _num_cpu_cores():
         return len(os.sched_getaffinity(0))
 
 
-class _SCROLLSTask(Task):
+class _SCROLLSTask(ConfigurableTask):
     VERSION = 2
     DATASET_PATH = "tau/scrolls"
     DATASET_NAME = None
@@ -117,7 +118,7 @@ class _SCROLLSTask(Task):
     PRUNE_NUM_PROC = None
 
     def __init__(self):
-        super().__init__()
+        super().__init__(config={"metadata": {"version": self.VERSION}})
         if self.DATASET_NAME is not None:
             self.metric = load_metric(_download_metric(), config_name=self.DATASET_NAME)
 
@@ -131,12 +132,34 @@ class _SCROLLSTask(Task):
         return False
 
     def training_docs(self):
-        for doc in self.dataset["train"]:
-            yield from self._process_doc(doc)
+        # for doc in self.dataset["train"]:
+        #     yield from self._process_doc(doc)
+        # Process each document and collect the results
+        processed_docs = list(map(self._process_doc, self.dataset["train"]))
+        
+        # Flatten the list of lists since _process_doc returns a list of one element
+        processed_docs = [item for sublist in processed_docs for item in sublist]
+        
+        # Convert the list of processed documents into a dictionary
+        processed_dict = {key: [d[key] for d in processed_docs] for key in processed_docs[0]}
+        
+        # Create a new Dataset from the processed dictionary
+        return Dataset.from_dict(processed_dict)
 
     def validation_docs(self):
-        for doc in self.dataset["validation"]:
-            yield from self._process_doc(doc)
+        # for doc in self.dataset["validation"]:
+        #     yield from self._process_doc(doc)
+        # Process each document and collect the results
+        processed_docs = list(map(self._process_doc, self.dataset["validation"]))
+        
+        # Flatten the list of lists since _process_doc returns a list of one element
+        processed_docs = [item for sublist in processed_docs for item in sublist]
+        
+        # Convert the list of processed documents into a dictionary
+        processed_dict = {key: [d[key] for d in processed_docs] for key in processed_docs[0]}
+        
+        # Create a new Dataset from the processed dictionary
+        return Dataset.from_dict(processed_dict)
 
     def should_decontaminate(self):
         return True
