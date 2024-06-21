@@ -141,7 +141,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
     return messages()
 
 
-@register_model("anthropic")
+@register_model("anthropic-completions")
 class AnthropicLM(LM):
     REQ_CHUNK_SIZE = 20  # TODO: not used
 
@@ -290,7 +290,7 @@ class AnthropicChat(TemplateCompletionsAPI):
         self._batch_size = 1
         self.anthropic_version = "2023-06-01"
         eval_logger.warning(
-            f"Using Anthropic Version: {self.anthropic_version}. Confirm it is current: https://docs.anthropic.com/en/api/versioning"
+            f"Using Anthropic Version: {self.anthropic_version}. Confirm it is current here: https://docs.anthropic.com/en/api/versioning"
         )
 
     @cached_property
@@ -299,18 +299,26 @@ class AnthropicChat(TemplateCompletionsAPI):
 
     @cached_property
     def header(self):
-        return {"x-api-key": f"{self.api_key}", "anthropic-version": "2023-06-01"}
+        return {
+            "x-api-key": f"{self.api_key}",
+            "anthropic-version": self.anthropic_version,
+        }
 
     def _create_payload(
-        self, messages: List[Dict], generate=False, gen_kwargs: dict = None, **kwargs
+        self, messages: List[Dict], generate=True, gen_kwargs: dict = None, **kwargs
     ) -> dict:
+        system = (
+            messages[0].get("content") if messages[0].get("role") == "system" else None
+        )
+        if system:
+            messages = messages[1:]
         gen_kwargs.pop("do_sample", False)
         max_tokens = gen_kwargs.pop("max_tokens", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
-        stop = gen_kwargs.pop("until", ["<|endoftext|>"])
+        stop = gen_kwargs.pop("until", ["\n\nHuman:"])
         if not isinstance(stop, list):
             stop = [stop]
-        return {
+        out = {
             "messages": messages,
             "model": self.model,
             "max_tokens": max_tokens,
@@ -318,9 +326,12 @@ class AnthropicChat(TemplateCompletionsAPI):
             "stop_sequences": stop,
             **gen_kwargs,
         }
+        if system:
+            out["system"] = system
+        return out
 
     def parse_generations(
-        self, outputs: Union[Any, List[Any]], contexts: List[str], **kwargs
+        self, outputs: Union[Dict, List[Dict]], contexts: List[str], **kwargs
     ) -> List[str]:
         res = []
         if not isinstance(outputs, list):
@@ -332,12 +343,12 @@ class AnthropicChat(TemplateCompletionsAPI):
 
     def tok_encode(
         self,
-        string: Union[str, Any],
+        string: str,
         left_truncate_len=None,
         add_special_tokens=None,
         **kwargs,
-    ) -> Union[List[str], List[int], Any]:
-        return string
+    ) -> List[str]:
+        return [string]
 
     def _loglikelihood_tokens(self, requests, **kwargs):
         raise NotImplementedError("Loglikelihood is not supported for chat completions")

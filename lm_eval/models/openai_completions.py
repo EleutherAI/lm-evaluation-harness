@@ -45,7 +45,7 @@ class OpenAICompletionsAPI(TemplateCompletionsAPI):
 
     def parse_logprobs(
         self,
-        outputs: Union[Any, List[Any]],
+        outputs: Union[Dict, List[Dict]],
         tokens: List[List[int]] = None,
         ctxlens: List[int] = None,
         **kwargs,
@@ -68,7 +68,7 @@ class OpenAICompletionsAPI(TemplateCompletionsAPI):
         return res
 
     def parse_generations(
-        self, outputs: Union[Any, List[Any]], contexts: List[str], **kwargs
+        self, outputs: Union[Dict, List[Dict]], contexts: List[str], **kwargs
     ) -> List[str]:
         res = []
         if not isinstance(outputs, list):
@@ -119,7 +119,7 @@ class OpenAIChatCompletion(OpenAICompletionsAPI):
         }
 
     def parse_generations(
-        self, outputs: Union[Any, List[Any]], contexts: List[str], **kwargs
+        self, outputs: Union[Dict, List[Dict]], contexts: List[str], **kwargs
     ) -> List[str]:
         res = []
         if not isinstance(outputs, list):

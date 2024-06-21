@@ -1,5 +1,6 @@
 import abc
 import asyncio
+import copy
 import json
 from collections import namedtuple
 from functools import cached_property
@@ -17,15 +18,7 @@ from lm_eval.api.model import TemplateLM, eval_logger
 from lm_eval.models.utils import Collator, chunks, handle_pad_token
 
 
-# class APINonTokenizedInput(namedtuple):
-#     messages: List[str]
-
-
-# class APITokenizedInput(namedtuple):
-#     messages: List[List[int]]
-
-
-RawChatString = namedtuple("RawChatString", ["prompt"])
+JsonChatStr = namedtuple("JsonChatStr", ["prompt"])
 
 
 class TemplateCompletionsAPI(TemplateLM):
@@ -50,6 +43,7 @@ class TemplateCompletionsAPI(TemplateLM):
         max_length: Optional[int] = 2058,
         add_bos_token: bool = False,
         custom_prefix_token_id=None,
+        # send the requests as tokens or strings
         tokenized_requests=True,
     ) -> None:
         super().__init__()
@@ -81,6 +75,7 @@ class TemplateCompletionsAPI(TemplateLM):
 
         if self.tokenizer_backend is None:
             self.tokenizer = None
+            self.tokenized_requests = False
         else:
             if self.tokenizer_backend == "huggingface":
                 import transformers
@@ -114,12 +109,12 @@ class TemplateCompletionsAPI(TemplateLM):
 
     def create_message(
         self,
-        messages: Union[List[List[int]], List[str], List[RawChatString]],
+        messages: Union[List[List[int]], List[str], List[JsonChatStr]],
         generate=False,
     ) -> Union[List[List[int]], List[dict], List[str], str]:
         """Helper method to"""
 
-        if isinstance(messages[0], RawChatString):
+        if isinstance(messages[0], JsonChatStr):
             # for chat completions we need to decode the json string to list[dict,...]
             assert (
                 self._batch_size == 1
@@ -128,6 +123,8 @@ class TemplateCompletionsAPI(TemplateLM):
 
         if not self.tokenized_requests:
             if isinstance(messages[0][0], int):
+                # assuming decoding is lossless. However, this is only for logliklehood requests
+                # as we need to compute the context length. For generations, we don't need to tokenize.
                 messages = self.decode_batch(messages)
             if self._batch_size <= 1:
                 # if batch is 1 return str
@@ -184,7 +181,7 @@ class TemplateCompletionsAPI(TemplateLM):
 
     def apply_chat_template(
         self, chat_history: List[Dict[str, str]]
-    ) -> Union[str, RawChatString]:
+    ) -> Union[str, JsonChatStr]:
         """
         Method to apply a chat template to a list of chat history between user and model.
         """
@@ -193,7 +190,8 @@ class TemplateCompletionsAPI(TemplateLM):
                 chat_history, tokenize=False, add_generation_prompt=True
             )
         else:
-            return RawChatString(json.dumps(chat_history))
+            # bit of a hack. We'll re-encode back before sending to the API
+            return JsonChatStr(json.dumps(chat_history))
 
     @cached_property
     def eot_token_id(self) -> Optional[int]:
@@ -203,18 +201,21 @@ class TemplateCompletionsAPI(TemplateLM):
             if self.tokenizer_backend == "huggingface":
                 return self.tokenizer.eos_token_id
             elif self.tokenizer_backend == "tiktoken":
-                return self.tokenizer.eot_token_id
+                return self.tokenizer.eot_token
 
     @cached_property
     def prefix_token_id(self) -> Optional[int]:
         if self.tokenizer is None:
             return None
         else:
-            if self.custom_prefix_token_id is not None:
-                return self.custom_prefix_token_id
-            if self.tokenizer.bos_token_id is not None:
-                return self.tokenizer.bos_token_id
-            return self.tokenizer.eos_token_id
+            if self.tokenizer_backend == "huggingface":
+                if self.custom_prefix_token_id is not None:
+                    return self.custom_prefix_token_id
+                if self.tokenizer.bos_token_id is not None:
+                    return self.tokenizer.bos_token_id
+                return self.tokenizer.eos_token_id
+            else:
+                return self.tokenizer.eot_token
 
     def tok_encode(
         self,
@@ -265,7 +266,7 @@ class TemplateCompletionsAPI(TemplateLM):
     )
     def model_call(
         self,
-        messages: Union[List[List[int]], List[str], List[RawChatString]],
+        messages: Union[List[List[int]], List[str], List[JsonChatStr]],
         generate: bool = True,
         **kwargs,
     ) -> Optional[dict]:
@@ -291,9 +292,11 @@ class TemplateCompletionsAPI(TemplateLM):
         self,
         session: ClientSession,
         messages: List[Union[List[int], str]],
+        cache_keys=None,
+        ctxlens=None,
         generate: bool = True,
         **kwargs,
-    ) -> Optional[dict]:
+    ) -> Optional[List[Union[str, Tuple[float, bool]]]]:
         payload = self._create_payload(
             self.create_message(messages), generate=generate, **kwargs
         )
@@ -304,7 +307,29 @@ class TemplateCompletionsAPI(TemplateLM):
                 headers=self.header,
             ) as response:
                 response.raise_for_status()
-                return await response.json()
+                outputs = await response.json()
+                if generate:
+                    answers = self.parse_generations(
+                        outputs=outputs,
+                        contexts=messages,
+                    )
+                    for res, cache in zip(answers, cache_keys):
+                        self.cache_hook.add_partial(
+                            "generate_until",
+                            cache,
+                            res,
+                        )
+                    return answers
+                else:
+                    answers = self.parse_logprobs(
+                        outputs=outputs,
+                        tokens=messages,
+                        ctxlens=ctxlens,
+                    )
+                    for res, cache in zip(answers, cache_keys):
+                        self.cache_hook.add_partial("loglikelihood", cache, res)
+
+                    return answers
         except RetryError:
             return None
 
@@ -326,13 +351,23 @@ class TemplateCompletionsAPI(TemplateLM):
         return inputs, ctxlens, cache_keys
 
     async def get_batched_requests(
-        self, requests: List, generate: bool = True, **kwargs
+        self,
+        requests: List,
+        cache_keys,
+        generate: bool = True,
+        **kwargs,
     ):
         conn = TCPConnector(limit=self._concurrent)
         async with ClientSession(connector=conn) as session:
             tasks = [
                 asyncio.create_task(
-                    self.amodel_call(session, message, generate=generate, **kwargs)
+                    self.amodel_call(
+                        session,
+                        message,
+                        cache_keys=cache_keys,
+                        generate=generate,
+                        **kwargs,
+                    )
                 )
                 for message in chunks(requests, n=self._batch_size)
             ]
@@ -390,26 +425,16 @@ class TemplateCompletionsAPI(TemplateLM):
             inputs = [self.batch_logliklehood_requests(chunk) for chunk in chunked]
             inputs, ctxlens, cache_keys = zip(*inputs)
             # inputs, ctxlens, cache_keys = inputs[0], ctxlens[0], cache_keys[0]
-            outputs = asyncio.run(self.get_batched_requests(inputs, generate=False))
-            answers = self.parse_logprobs(
-                outputs=outputs,
-                tokens=inputs,
-                ctxlens=ctxlens,
+            outputs = asyncio.run(
+                self.get_batched_requests(inputs, cache_keys, generate=False)
             )
-
-            for answer_, cached in zip(answers, cache_keys):
-                if answer_ is not None:
-                    res.append(answer_)
-                    # partial caching
-                    if cached is not None:
-                        self.cache_hook.add_partial("loglikelihood", cached, answer_)
+            res.extend(outputs)
 
         return re_ord.get_original(res)
 
     def generate_until(
         self, requests: List[Instance], disable_tqdm: bool = False
     ) -> List[str]:
-        # For generations it's much simpler if we let the API deal with tokenization
         res = []
 
         def _collate_gen(_requests):
@@ -423,7 +448,7 @@ class TemplateCompletionsAPI(TemplateLM):
         else:
             encodings_list = [None] * len(requests)
         requests = [
-            (a, b, c) for a, b, c in zip(requests, encodings_list, all_gen_kwargs)
+            (a, b, c) for a, b, c in zip(requests, all_gen_kwargs, encodings_list)
         ]
 
         re_ord = Collator(
@@ -438,7 +463,7 @@ class TemplateCompletionsAPI(TemplateLM):
         if self._concurrent <= 1:
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
-                contexts, encodings_list, all_gen_kwargs = zip(*chunk)
+                contexts, all_gen_kwargs, encodings_list = zip(*chunk)
                 if self.tokenized_requests:
                     req = encodings_list
                 else:
@@ -475,20 +500,15 @@ class TemplateCompletionsAPI(TemplateLM):
                     req = contexts
                 outputs = asyncio.run(
                     self.get_batched_requests(
-                        req, generate=True, gen_kwargs=all_gen_kwargs[0]
+                        req,
+                        generate=True,
+                        cache_keys=[
+                            (ctx, gen_k) for ctx, gen_k in zip(contexts, all_gen_kwargs)
+                        ],
+                        gen_kwargs=copy.deepcopy(all_gen_kwargs[0]),
                     )
                 )
-                for generated_text, context in zip(
-                    self.parse_generations(outputs, contexts=contexts), contexts
-                ):
-                    res.append(generated_text)
-                    # partial caching
-                    if context is not None:
-                        self.cache_hook.add_partial(
-                            "generate_until",
-                            (context, all_gen_kwargs[0]),
-                            generated_text,
-                        )
+                res.extend(outputs)
 
         return re_ord.get_original(res)
 
