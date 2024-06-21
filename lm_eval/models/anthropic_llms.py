@@ -7,7 +7,7 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.models.api_models import TemplateAPI
+from lm_eval.models.api_models import TemplateCompletionsAPI
 from lm_eval.models.utils import retry_on_specific_exceptions
 
 
@@ -274,7 +274,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
 
 
 @register_model("anthropic-chat", "anthropic-chat-completions")
-class AnthropicChat(TemplateAPI):
+class AnthropicChat(TemplateCompletionsAPI):
     def __init__(
         self,
         base_url="https://api.anthropic.com/v1/messages",

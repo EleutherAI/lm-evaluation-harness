@@ -17,17 +17,15 @@ from lm_eval.api.model import TemplateLM, eval_logger
 from lm_eval.models.utils import Collator, chunks, handle_pad_token
 
 
-class APINonTokenizedInput(namedtuple):
-    messages: List[str]
+# class APINonTokenizedInput(namedtuple):
+#     messages: List[str]
 
 
-class APITokenizedInput(namedtuple):
-    messages: List[List[int]]
+# class APITokenizedInput(namedtuple):
+#     messages: List[List[int]]
 
 
-class RawChatString(namedtuple):
-    # raw chat string will be a json string. Will be decoded before sending to the API.
-    messages: str
+RawChatString = namedtuple("RawChatString", ["prompt"])
 
 
 class TemplateCompletionsAPI(TemplateLM):
@@ -53,7 +51,6 @@ class TemplateCompletionsAPI(TemplateLM):
         add_bos_token: bool = False,
         custom_prefix_token_id=None,
         tokenized_requests=True,
-        # send the requests as a str rather than list[str].
     ) -> None:
         super().__init__()
         self.model = model or pretrained
@@ -127,17 +124,17 @@ class TemplateCompletionsAPI(TemplateLM):
             assert (
                 self._batch_size == 1
             ), "non-tokenized chat requests are only supported with batch_size=1"
-            return json.loads(messages[0].messages)
+            return json.loads(messages[0].prompt)
 
         if not self.tokenized_requests:
-            if self.tokenizer:
-                messages = self.tokenizer.batch_decode(messages)
-                if self._batch_size <= 1:
-                    # if batch is 1 return str
-                    return messages[0]
-                else:
-                    # list[str,...]
-                    return messages
+            if isinstance(messages[0][0], int):
+                messages = self.decode_batch(messages)
+            if self._batch_size <= 1:
+                # if batch is 1 return str
+                return messages[0]
+            else:
+                # list[str,...]
+                return messages
         # list[list[int], ...]
         return messages
 
@@ -420,14 +417,18 @@ class TemplateCompletionsAPI(TemplateLM):
             return -len(_requests[0])
 
         # Let the API deal with tokenization
-        # requests, all_gen_kwargs = zip(*(req.args for req in requests))
-        # encodings_list = [self.tok_encode(ctx) for ctx in context]
-        # requests = [
-        #     (a, b, c) for a, b, c in zip(context, encodings_list, all_gen_kwargs)
-        # ]
+        requests, all_gen_kwargs = zip(*(req.args for req in requests))
+        if self.tokenized_requests:
+            encodings_list = self.tok_encode(requests)
+        else:
+            encodings_list = [None] * len(requests)
+        requests = [
+            (a, b, c) for a, b, c in zip(requests, encodings_list, all_gen_kwargs)
+        ]
 
         re_ord = Collator(
-            [req.args for req in requests],
+            # [req.args for req in requests],
+            requests,
             sort_fn=_collate_gen,
             group_by="gen_kwargs",
         )
@@ -437,13 +438,13 @@ class TemplateCompletionsAPI(TemplateLM):
         if self._concurrent <= 1:
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
-                contexts, all_gen_kwargs = zip(*chunk)
-                # context_and_encoding, all_gen_kwargs = zip(*chunk)
-                # contexts, context_encoding = zip(*context_and_encoding)
-                # # if isinstance(context_encoding[0][0], dict):
-                # #     contexts, context_encoding = context[0], context_encoding[0]
+                contexts, encodings_list, all_gen_kwargs = zip(*chunk)
+                if self.tokenized_requests:
+                    req = encodings_list
+                else:
+                    req = contexts
                 outputs = self.model_call(
-                    messages=contexts,
+                    messages=req,
                     generate=True,
                     gen_kwargs=all_gen_kwargs[0],
                 )
@@ -467,11 +468,14 @@ class TemplateCompletionsAPI(TemplateLM):
                             pbar.update(1)
         else:
             for chunk in chunked:
-                context_and_encoding, all_gen_kwargs = zip(*chunk)
-                contexts, context_encoding = zip(*context_and_encoding)
+                contexts, encodings_list, all_gen_kwargs = zip(*chunk)
+                if self.tokenized_requests:
+                    req = encodings_list
+                else:
+                    req = contexts
                 outputs = asyncio.run(
                     self.get_batched_requests(
-                        context_encoding, generate=True, gen_kwargs=all_gen_kwargs[0]
+                        req, generate=True, gen_kwargs=all_gen_kwargs[0]
                     )
                 )
                 for generated_text, context in zip(
