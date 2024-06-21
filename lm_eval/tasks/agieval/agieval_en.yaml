@@ -1,0 +1,18 @@
+group: agieval_en
+task:
+  - agieval_aqua_rat
+  - agieval_gaokao_english
+  - agieval_logiqa_en
+  - agieval_lsat_ar
+  - agieval_lsat_lr
+  - agieval_lsat_rc
+  - agieval_math
+  - agieval_sat_en_without_passage
+  - agieval_sat_en
+  - agieval_sat_math
+aggregate_metric:
+  - metric: acc
+    aggregation: mean
+    weight_by_size: true
+metadata:
+  version: 0.0
