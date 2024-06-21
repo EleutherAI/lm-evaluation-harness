@@ -81,16 +81,12 @@ class TemplateCompletionsAPI(TemplateLM):
         self.add_bos_token = add_bos_token
         self.custom_prefix_token_id = custom_prefix_token_id
         self.tokenized_requests = tokenized_requests
-        # self.batched = batched
-
-        # if not self.batched:
-        #     assert self._batch_size <= 1, "batched=False only supports batch_size=1."
 
         if self.tokenizer_backend is None:
             self.tokenizer = None
         else:
             if self.tokenizer_backend == "huggingface":
-                import transformers  # noqa: E401
+                import transformers
 
                 self.tokenizer = transformers.AutoTokenizer.from_pretrained(
                     self.tokenizer if self.tokenizer else self.model
@@ -106,7 +102,7 @@ class TemplateCompletionsAPI(TemplateLM):
                         "attempted to use 'openai' LM type, but package`tiktoken` is not installed. \
             please install these via `pip install lm-eval[api]` or `pip install -e .\"[api]\"`",
                     )
-                if self.base_url:
+                if self.base_url and self.tokenizer_backend == "tiktoken":
                     eval_logger.warning(
                         f"Passed `base_url={self.base_url}` but using (OpenAI) Tiktoken tokenizer backend. "
                         "Pass `tokenizer_backend=huggingface` and provide the HF tokenizer name if your model does not use Tiktoken."

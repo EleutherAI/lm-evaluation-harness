@@ -25,7 +25,7 @@ class OpenAICompletionsAPI(TemplateCompletionsAPI):
             gen_kwargs.pop("do_sample", False)
             max_tokens = gen_kwargs.pop("max_tokens", self._max_gen_toks)
             temperature = gen_kwargs.pop("temperature", 0)
-            stop = gen_kwargs.pop("until", "<|endoftext|>")
+            stop = gen_kwargs.pop("until", ["<|endoftext|>"])
             return {
                 "prompt": messages,
                 "model": self.model,
@@ -39,7 +39,7 @@ class OpenAICompletionsAPI(TemplateCompletionsAPI):
                 "model": self.model,
                 "prompt": messages,
                 "max_tokens": 1,
-                "logprobs": 2,
+                "logprobs": 1,
                 "echo": True,
             }
 
@@ -139,4 +139,6 @@ class OpenAIChatCompletion(OpenAICompletionsAPI):
         return string
 
     def _loglikelihood_tokens(self, requests, **kwargs):
-        raise NotImplementedError("Loglikelihood is not supported for chat completions")
+        raise NotImplementedError(
+            "Loglikelihood is not supported for chat completions. Consider using the completions API instead."
+        )
