@@ -433,10 +433,6 @@ class Task(abc.ABC):
             fewshot_ctx = self.fewshot_context(
                 doc,
                 0 if self.config.num_fewshot is None else self.config.num_fewshot,
-                system_instruction,
-                apply_chat_template,
-                fewshot_as_multiturn,
-                lm,
             )
 
             # TODO: we should override self.config.repeats if doing greedy gen so users don't waste time+compute
