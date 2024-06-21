@@ -1,7 +1,7 @@
 dataset_path: "json"
 dataset_name: null
 dataset_kwargs:
-  data_files: "lm_eval/tasks/my_dataset/test.json"
+  data_files: "lm_eval/tasks/my_dataset/val.json"
 
 training_split: train
 validation_split: train
