@@ -1,4 +1,4 @@
-include: paloma.yaml
+include: _paloma_template
 task: paloma_redpajama
 task_alias: RedPajama
 dataset_name: redpajama

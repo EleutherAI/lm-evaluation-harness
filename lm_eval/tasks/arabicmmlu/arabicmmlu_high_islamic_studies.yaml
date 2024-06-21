@@ -1,0 +1,6 @@
+"dataset_name": "High Islamic Studies"
+"group": "arabicmmlu_humanities"
+"group_alias": "humanities"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_high_islamic_studies"
+"task_alias": "High Islamic Studies"

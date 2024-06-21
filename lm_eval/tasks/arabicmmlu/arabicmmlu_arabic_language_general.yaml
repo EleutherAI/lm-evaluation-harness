@@ -1,0 +1,6 @@
+"dataset_name": "Arabic Language (General)"
+"group": "arabicmmlu_language"
+"group_alias": "language"
+"include": "_default_template_yaml"
+"task": "arabicmmlu_arabic_language_(general)"
+"task_alias": "Arabic Language (General)"
