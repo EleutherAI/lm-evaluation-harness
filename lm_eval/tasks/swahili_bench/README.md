@@ -2,7 +2,7 @@
 
 ### Paper
 
-Title: `paper titles goes here`
+Title: `paper titles goes `
 
 Abstract: `link to paper PDF or arXiv abstract goes here`
 
