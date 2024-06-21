@@ -2,12 +2,12 @@ import os
 from typing import Any, Dict, List, Tuple, Union
 
 from lm_eval.api.registry import register_model
-from lm_eval.models.api_models import TemplateAPI
+from lm_eval.models.api_models import TemplateCompletionsAPI
 from lm_eval.utils import eval_logger
 
 
 @register_model("openai-completions", "local-completions")
-class OpenAICompletionsAPI(TemplateAPI):
+class OpenAICompletionsAPI(TemplateCompletionsAPI):
     def __init__(
         self,
         base_url="https://api.openai.com/v1/completions",
@@ -19,7 +19,7 @@ class OpenAICompletionsAPI(TemplateAPI):
         )
 
     def _create_payload(
-        self, messages, generate=False, gen_kwargs: dict = None, **kwargs
+        self, messages: List, generate=False, gen_kwargs: dict = None, **kwargs
     ) -> dict:
         if generate:
             gen_kwargs.pop("do_sample", False)
@@ -94,10 +94,11 @@ class OpenAIChatCompletion(OpenAICompletionsAPI):
         super().__init__(
             base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
         )
-        eval_logger.warning(
-            "Chat completions does not support batching. Defaulting to batch size 1."
-        )
-        self._batch_size = 1
+        if self._batch_size > 1:
+            eval_logger.warning(
+                "Chat completions does not support batching. Defaulting to batch size 1."
+            )
+            self._batch_size = 1
 
     def _create_payload(
         self, messages: List[Dict], generate=False, gen_kwargs: dict = None, **kwargs
@@ -105,13 +106,15 @@ class OpenAIChatCompletion(OpenAICompletionsAPI):
         gen_kwargs.pop("do_sample", False)
         max_tokens = gen_kwargs.pop("max_tokens", self._max_gen_toks)
         temperature = gen_kwargs.pop("temperature", 0)
-        stop = gen_kwargs.pop("until", "<|endoftext|>")
+        stop = gen_kwargs.pop("until", ["<|endoftext|>"])
+        if not isinstance(stop, (list, tuple)):
+            stop = [stop]
         return {
             "messages": messages,
             "model": self.model,
             "max_tokens": max_tokens,
             "temperature": temperature,
-            "stop": stop,
+            "stop": stop[:4],
             **gen_kwargs,
         }
 
