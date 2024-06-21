@@ -56,8 +56,6 @@ Other:
 
 ## Filters
 
-Explain: What are filters? What is their place in the pipeline?
-
 A key component of the `lm-evaluation-harness` library is the `Filter` object. In a typical evaluation run of the harness, we take the formatted inputs and run them through our LM, with the appropriate output type (greedy or free-form generation, or loglikelihood-based comparative scoring).
 
 After getting scores or output text from our LM on each `Instance` or document in the dataset, we then need to feed these responses into a metric or scoring function to return scores to a user.
@@ -300,7 +298,7 @@ Tasks using complex filtering:
 
 When evaluating a language model, it's is not unusual to test across a number of tasks that may not be related to one another in order to assess a variety of capabilities. To this end, it may be combursome to have to list the set of tasks or add a new group name to each yaml of each individual task.
 
-To solve this, we can create a **group** yaml config. This is a config that contains the names of the tasks that should be included in a particular group. The config consists of two main keys: a `group` key which denotes the name of the group (as it would be called from the command line, e.g. `mmlu`) and a `task` key which is where we can list the tasks. The tasks listed in `task` are the task names that have been registered. A good example would be the list of tasks used to evaluate the Pythia Suite.
+To solve this, we can create a **group** yaml config. This is a config that contains the names of the tasks that should be included in a particular group. The config consists of two main keys: a `group` key which denotes the name of the group (as it would be called from the command line, e.g. `mmlu`) and a `task` key which is where we can list the tasks. The tasks listed in `task` are the task names that have been registered. A good example of a group yaml config can be found at [../lm_eval/tasks/mmlu/default/_mmlu.yaml].
 
 ## Configurations
 
@@ -315,10 +313,9 @@ Tasks are configured via the `TaskConfig` object. Below, we describe all fields 
 - **aggregate_metric** (`str`, defaults to `False`) - If `True` aggregate the scores from all metrics in the tasks.
 - **aggregate_fn** (`str`, defaults to `"mean"`) - Type of aggregation done, default to average the scores per metric.
 - **weight_by_size** (`str`, defaults to `False`) - Paired with `aggregate_metric`, aggregation for each task will be averaged by number of samples over all tasks instead of averaging across tasks.
-- **metric_alias** - Still in Development
-- **version** (`int`, defaults to `0`) - Version of group config.
+- **metadata** (`dict`, *optional*) - As with TaskConfigs, a field where extra config metadata can be passed. set the `num_fewshot` key within this to override the printed n_shot value in a results table for your group, for example.
 
-The simplest usage of a group yaml is to just list all tasks we want in one group. This ends up with behavior analogous to a `tag`--it is predominantly a way to invoke a group of tasks one expects to frequently call in conjunction with one another.
+The simplest usage of a group yaml is to just list all tasks we want in one group. This ends up with behavior analogous to a `tag`--it is predominantly a convenient way on the CLI to invoke a group of tasks one expects to frequently call in conjunction with one another.
 
 ```yaml
 group: pythia
@@ -332,10 +329,12 @@ task:
   - arc
   - logiqa
   - blimp
-  - hendrycksTest*
+  - mmlu
 ```
 
-It is also possible to list an existing task in your benchmark configuration with some adjustments. For example, a few tasks from mmlu is included `multimedqa`. There, the `task_alias` and `group_alias` (See [here](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/new_task_guide.md#beautifying-table-display) for more details) are modified to suit the benchmark.
+running with `--tasks pythia` will thus simply collect all listed tasks in this config, and run them, printing the same tables of results out as if we'd have simply called `--tasks lambada_openai,wikitext,piqa,sciq,wsc,winogrande,arc,logiqa,blimp,mmlu`.
+
+It is also possible to list an existing task in your benchmark configuration with some adjustments and overrides. For example, a few tasks from mmlu are included in `multimedqa`. There, the `task_alias` and `group_alias` (See [here](https://github.com/EleutherAI/lm-evaluation-harness/blob/main/docs/new_task_guide.md#beautifying-table-display) for more details) are modified to suit the benchmark.
 
 ```yaml
 group: multimedqa
@@ -412,4 +411,4 @@ task:
         ignore_punctuation: true
 ```
 
-Calling the benchmark is done the same way we would call any task with `--tasks`. Benchmarks can be added in `lm_eval/tasks/benchmarks/`
+Calling the benchmark is done the same way we would call any task with `--tasks`.
