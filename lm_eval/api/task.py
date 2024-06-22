@@ -373,7 +373,7 @@ class Task(abc.ABC):
         world_size: int = None,
         cache_requests: bool = False,
         rewrite_requests_cache: bool = False,
-        system_instruction: str = None,
+        system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
         chat_template: Optional[Callable[[List[Dict[str, str]]], str]] = None,
@@ -1015,7 +1015,7 @@ class ConfigurableTask(Task):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template: Callable[[List[Dict[str, str]]], str] = None,
+        chat_template: Optional[Callable[[List[Dict[str, str]]], str]] = None,
     ) -> Union[str, List[str]]:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
