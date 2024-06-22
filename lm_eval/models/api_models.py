@@ -24,7 +24,13 @@ try:
     from tqdm import tqdm
     from tqdm.asyncio import tqdm_asyncio
 except ModuleNotFoundError:
-    pass
+    # hack to deal with retry decorator
+    def retry(func):
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapper
+
 
 from lm_eval import utils
 from lm_eval.api.instance import Instance
