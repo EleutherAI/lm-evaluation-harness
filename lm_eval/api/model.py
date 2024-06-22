@@ -124,9 +124,7 @@ class LM(abc.ABC):
         :return: str
             A string representing the chat history in a format that can be used as input to the LM.
         """
-        raise NotImplementedError(
-            "To use this model with chat templates, please implement the 'apply_chat_template' method for your model type."
-        )
+        return ""
 
     @classmethod
     def create_from_arg_string(
