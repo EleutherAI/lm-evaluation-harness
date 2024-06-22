@@ -376,7 +376,7 @@ class Task(abc.ABC):
         system_instruction=None,
         apply_chat_template=False,
         fewshot_as_multiturn=False,
-        chat_template: Optional[Callable[List[Dict[str, str]]], str] = None,
+        chat_template: Optional[Callable[[List[Dict[str, str]]], str]] = None,
         tokenizer_name: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
@@ -1015,7 +1015,7 @@ class ConfigurableTask(Task):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template: Optional[Callable[List[Dict[str, str]]], str] = None,
+        chat_template: Optional[Callable[[List[Dict[str, str]]], str]] = None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
