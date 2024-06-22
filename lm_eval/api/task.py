@@ -376,7 +376,8 @@ class Task(abc.ABC):
         system_instruction=None,
         apply_chat_template=False,
         fewshot_as_multiturn=False,
-        chat_template: Optional[Callable[[List[Dict[str, str]]], str]] = None,
+        # chat_template is callable
+        chat_template=None,
         tokenizer_name: str = "",
     ) -> None:
         """Build a set of Instances for a task, and store them in task.instances"""
@@ -1015,7 +1016,7 @@ class ConfigurableTask(Task):
         system_instruction: Optional[str] = None,
         apply_chat_template: bool = False,
         fewshot_as_multiturn: bool = False,
-        chat_template: Optional[Callable[[List[Dict[str, str]]], str]] = None,
+        chat_template=None,
     ) -> str:
         """Returns a fewshot context string that is made up of a prepended description
         (if provided), the `num_fewshot` number of examples, and an appended prompt example.
@@ -1030,7 +1031,7 @@ class ConfigurableTask(Task):
             Whether to apply the chat template to the fewshot context.
         :param fewshot_as_multiturn: bool
             Whether to provide the fewshot examples as a multiturn conversation or a single user turn.
-        :param chat_template:
+        :param chat_template: Callable
             Chat template to be applied to the fewshot context.
         :returns: str
             The fewshot context.
