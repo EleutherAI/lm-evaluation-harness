@@ -42,6 +42,8 @@ except ModuleNotFoundError:
         return (multiplier, min, max)
 
 
+from importlib.util import find_spec
+
 from lm_eval import utils
 from lm_eval.api.instance import Instance
 from lm_eval.api.model import TemplateLM, eval_logger
@@ -76,15 +78,17 @@ class TemplateAPI(TemplateLM):
         # send the requests as tokens or strings
         tokenized_requests=True,
     ) -> None:
-        try:
-            pass
-        except Exception:
+        super().__init__()
+        missing_packages = [
+            pkg
+            for pkg in ["aiohttp", "tqdm", "tenacity", "requests"]
+            if find_spec(pkg) is None
+        ]
+        if missing_packages:
             raise Exception(
                 "Attempted to use an API model, but the required packages are not installed. "
                 'Please install these via `pip install lm-eval[api]` or `pip install -e ."[api]"`'
             )
-
-        super().__init__()
         self.model = model or pretrained
         self.base_url = base_url
         self.tokenizer = tokenizer
