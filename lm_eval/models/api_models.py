@@ -410,7 +410,9 @@ class TemplateCompletionsAPI(TemplateLM):
                 if isinstance(outputs, dict):
                     outputs = [outputs]
                 for answer_, cache_key in zip(
-                    self.parse_logprobs(outputs=outputs, tokens=inputs, ctxlen=ctxlens),
+                    self.parse_logprobs(
+                        outputs=outputs, tokens=inputs, ctxlens=ctxlens
+                    ),
                     cache_keys,
                 ):
                     if answer_ is not None:
@@ -426,7 +428,9 @@ class TemplateCompletionsAPI(TemplateLM):
             inputs, ctxlens, cache_keys = zip(*inputs)
             # inputs, ctxlens, cache_keys = inputs[0], ctxlens[0], cache_keys[0]
             outputs = asyncio.run(
-                self.get_batched_requests(inputs, cache_keys, generate=False)
+                self.get_batched_requests(
+                    inputs, cache_keys, generate=False, ctxlens=ctxlens
+                )
             )
             res.extend(outputs)
 
