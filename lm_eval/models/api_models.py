@@ -15,11 +15,15 @@ from typing import (
     Union,
 )
 
-import requests
-from aiohttp import ClientSession, TCPConnector
-from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
-from tqdm import tqdm
-from tqdm.asyncio import tqdm_asyncio
+
+try:
+    import requests
+    from aiohttp import ClientSession, TCPConnector
+    from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
+    from tqdm import tqdm
+    from tqdm.asyncio import tqdm_asyncio
+except ModuleNotFoundError:
+    pass
 
 from lm_eval import utils
 from lm_eval.api.instance import Instance
@@ -55,6 +59,14 @@ class TemplateAPI(TemplateLM):
         # send the requests as tokens or strings
         tokenized_requests=True,
     ) -> None:
+        try:
+            pass
+        except Exception:
+            raise Exception(
+                "Attempted to use an API model, but the required packages are not installed. "
+                'Please install these via `pip install lm-eval[api]` or `pip install -e ."[api]"`'
+            )
+
         super().__init__()
         self.model = model or pretrained
         self.base_url = base_url
