@@ -1,0 +1,6 @@
+dataset_name: icd9proc_easy
+group: icd9proc
+group_alias: icd9proc
+include: _default_template_yaml
+task: med_concepts_qa_icd9proc_easy
+task_alias: icd9proc_easy

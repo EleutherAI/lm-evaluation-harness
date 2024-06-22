@@ -1,0 +1,6 @@
+dataset_name: atc_medium
+group: atc
+group_alias: atc
+include: _default_template_yaml
+task: med_concepts_qa_atc_medium
+task_alias: atc_medium

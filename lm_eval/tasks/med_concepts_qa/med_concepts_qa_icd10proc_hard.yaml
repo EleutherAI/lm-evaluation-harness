@@ -1,0 +1,6 @@
+dataset_name: icd10proc_hard
+group: icd10proc
+group_alias: icd10proc
+include: _default_template_yaml
+task: med_concepts_qa_icd10proc_hard
+task_alias: icd10proc_hard
