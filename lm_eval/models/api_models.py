@@ -134,8 +134,7 @@ class TemplateAPI(TemplateLM):
         messages: Union[List[List[int]], List[str], List[JsonChatStr]],
         generate=False,
     ) -> Union[List[List[int]], List[dict], List[str], str]:
-        """Helper method to"""
-
+        """Helper method to transform the prompt into the expected API input format."""
         if isinstance(messages[0], JsonChatStr):
             # for chat completions we need to decode the json string to list[dict,...]
             assert (
@@ -165,12 +164,12 @@ class TemplateAPI(TemplateLM):
         ctxlen: List[int] = None,
         **kwargs,
     ) -> List[Tuple[float, bool]]:
-        """Method used to parse the logprobs from the (optionally batched) API response. This method should return a list of tuples"""
+        """Method used to parse the logprobs from the (batched) API response. This method should return a list of tuples"""
         raise NotImplementedError
 
     @abc.abstractmethod
     def parse_generations(self, outputs: Union[Any, List[Any]], **kwargs) -> List[str]:
-        """Method used to parse the generations from the (optionally batched) API response. This method should return a list of str"""
+        """Method used to parse the generations from the (batched) API response. This method should return a list of str"""
         raise NotImplementedError
 
     @cached_property
@@ -228,9 +227,9 @@ class TemplateAPI(TemplateLM):
         if self.tokenizer is None:
             return None
         else:
+            if self.custom_prefix_token_id is not None:
+                return self.custom_prefix_token_id
             if self.tokenizer_backend == "huggingface":
-                if self.custom_prefix_token_id is not None:
-                    return self.custom_prefix_token_id
                 if self.tokenizer.bos_token_id is not None:
                     return self.tokenizer.bos_token_id
                 return self.tokenizer.eos_token_id
@@ -550,7 +549,7 @@ class TemplateAPI(TemplateLM):
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.eot_token_id,
+                        prefix_token=self.prefix_token_id,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),
