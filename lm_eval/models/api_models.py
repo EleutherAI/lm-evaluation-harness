@@ -25,11 +25,21 @@ try:
     from tqdm.asyncio import tqdm_asyncio
 except ModuleNotFoundError:
     # hack to deal with retry decorator
-    def retry(func):
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
+    def retry(stop=None, wait=None, reraise=False):
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
 
-        return wrapper
+            return wrapper
+
+        return decorator
+
+    # Dummy functions for stop_after_attempt and wait_exponential
+    def stop_after_attempt(attempts):
+        return attempts
+
+    def wait_exponential(multiplier=1, min=2, max=10):
+        return (multiplier, min, max)
 
 
 from lm_eval import utils
