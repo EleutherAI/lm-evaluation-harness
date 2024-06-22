@@ -30,7 +30,7 @@ from lm_eval.models.utils import Collator, chunks, handle_pad_token
 JsonChatStr = namedtuple("JsonChatStr", ["prompt"])
 
 
-class TemplateCompletionsAPI(TemplateLM):
+class TemplateAPI(TemplateLM):
     def __init__(
         self,
         model: str = None,
@@ -260,7 +260,7 @@ class TemplateCompletionsAPI(TemplateLM):
 
     def decode_batch(self, tokens: List[List[int]]) -> List[str]:
         if self.tokenizer_backend == "huggingface":
-            return self.tokenizer.decode_batch(tokens)
+            return self.tokenizer.batch_decode(tokens)
         elif self.tokenizer_backend == "tiktoken":
             return self.tokenizer.decode_batch(tokens)
 

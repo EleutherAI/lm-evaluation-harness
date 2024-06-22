@@ -7,7 +7,7 @@ from tqdm import tqdm
 from lm_eval import utils
 from lm_eval.api.model import LM
 from lm_eval.api.registry import register_model
-from lm_eval.models.api_models import TemplateCompletionsAPI
+from lm_eval.models.api_models import TemplateAPI
 from lm_eval.models.utils import retry_on_specific_exceptions
 
 
@@ -274,7 +274,7 @@ please install anthropic via `pip install 'lm-eval[anthropic]'` or `pip install 
 
 
 @register_model("anthropic-chat", "anthropic-chat-completions")
-class AnthropicChat(TemplateCompletionsAPI):
+class AnthropicChat(TemplateAPI):
     def __init__(
         self,
         base_url="https://api.anthropic.com/v1/messages",
@@ -290,7 +290,7 @@ class AnthropicChat(TemplateCompletionsAPI):
         self._batch_size = 1
         self.anthropic_version = "2023-06-01"
         eval_logger.warning(
-            f"Using Anthropic Version: {self.anthropic_version}. Confirm it is current here: https://docs.anthropic.com/en/api/versioning"
+            f"Using Anthropic Version: {self.anthropic_version}. Confirm the current version here: https://docs.anthropic.com/en/api/versioning"
         )
 
     @cached_property
@@ -331,7 +331,7 @@ class AnthropicChat(TemplateCompletionsAPI):
         return out
 
     def parse_generations(
-        self, outputs: Union[Dict, List[Dict]], contexts: List[str], **kwargs
+        self, outputs: Union[Dict, List[Dict]], **kwargs
     ) -> List[str]:
         res = []
         if not isinstance(outputs, list):

@@ -2,16 +2,16 @@ import os
 from typing import Any, Dict, List, Tuple, Union
 
 from lm_eval.api.registry import register_model
-from lm_eval.models.api_models import TemplateCompletionsAPI
+from lm_eval.models.api_models import TemplateAPI
 from lm_eval.utils import eval_logger
 
 
-@register_model("openai-completions", "local-completions")
-class OpenAICompletionsAPI(TemplateCompletionsAPI):
+@register_model("local-completions")
+class LocalCompletionsAPI(TemplateAPI):
     def __init__(
         self,
-        base_url="https://api.openai.com/v1/completions",
-        tokenizer_backend="tiktoken",
+        base_url=None,
+        tokenizer_backend="huggingface",
         **kwargs,
     ):
         super().__init__(
@@ -83,16 +83,20 @@ class OpenAICompletionsAPI(TemplateCompletionsAPI):
         return os.environ.get("OPENAI_API_KEY", "")
 
 
-@register_model("openai-chatcompletions")
-class OpenAIChatCompletion(OpenAICompletionsAPI):
+@register_model("local-chatcompletions")
+class LocalChatCompletion(LocalCompletionsAPI):
     def __init__(
         self,
-        base_url="https://api.openai.com/v1/chat/completions",
-        tokenizer_backend=None,
+        base_url=None,
+        tokenizer_backend="huggingface",
+        tokenized_requests=False,
         **kwargs,
     ):
         super().__init__(
-            base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
+            base_url=base_url,
+            tokenizer_backend=tokenizer_backend,
+            tokenized_requests=tokenized_requests,
+            **kwargs,
         )
         if self._batch_size > 1:
             eval_logger.warning(
@@ -141,4 +145,41 @@ class OpenAIChatCompletion(OpenAICompletionsAPI):
     def _loglikelihood_tokens(self, requests, **kwargs):
         raise NotImplementedError(
             "Loglikelihood is not supported for chat completions. Consider using the completions API instead."
+        )
+
+
+@register_model(
+    "openai-completions",
+)
+class OpenAICompletionsAPI(LocalCompletionsAPI):
+    def __init__(
+        self,
+        base_url="https://api.openai.com/v1/completions",
+        tokenizer_backend="tiktoken",
+        **kwargs,
+    ):
+        super().__init__(
+            base_url=base_url, tokenizer_backend=tokenizer_backend, **kwargs
+        )
+
+
+@register_model("openai-chatcompletions")
+class OpenAIChatCompletion(LocalChatCompletion):
+    def __init__(
+        self,
+        base_url="https://api.openai.com/v1/chat/completions",
+        tokenizer_backend=None,
+        tokenized_requests=False,
+        **kwargs,
+    ):
+        super().__init__(
+            base_url=base_url,
+            tokenizer_backend=tokenizer_backend,
+            tokenized_requests=tokenized_requests,
+            **kwargs,
+        )
+
+    def _loglikelihood_tokens(self, requests, **kwargs):
+        raise NotImplementedError(
+            "Loglikelihood is not supported for chat completions."
         )
