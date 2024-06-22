@@ -1,6 +1,7 @@
 import abc
 import asyncio
 import copy
+import itertools
 import json
 from collections import namedtuple
 from functools import cached_property
@@ -447,12 +448,13 @@ class TemplateAPI(TemplateLM):
                         pbar.update(1)
         else:
             inputs, ctxlens, cache_keys = self.batch_logliklehood_requests(chunked)
-            outputs = asyncio.run(
-                self.get_batched_requests(
-                    inputs, cache_keys, generate=False, ctxlens=ctxlens
+            res = itertools.chain.from_iterable(
+                asyncio.run(
+                    self.get_batched_requests(
+                        inputs, cache_keys, generate=False, ctxlens=ctxlens
+                    )
                 )
             )
-            res.extend(outputs)
 
         return re_ord.get_original(res)
 
@@ -516,22 +518,24 @@ class TemplateAPI(TemplateLM):
                             pbar.update(1)
         else:
             for chunk in chunked:
-                contexts, encodings_list, all_gen_kwargs = zip(*chunk)
+                contexts, all_gen_kwargs, encodings_list = zip(*chunk)
                 if self.tokenized_requests:
                     req = encodings_list
                 else:
                     req = contexts
-                outputs = asyncio.run(
-                    self.get_batched_requests(
-                        req,
-                        generate=True,
-                        cache_keys=[
-                            (ctx, gen_k) for ctx, gen_k in zip(contexts, all_gen_kwargs)
-                        ],
-                        gen_kwargs=copy.deepcopy(all_gen_kwargs[0]),
+                res = itertools.chain.from_iterable(
+                    asyncio.run(
+                        self.get_batched_requests(
+                            req,
+                            generate=True,
+                            cache_keys=[
+                                (ctx, gen_k)
+                                for ctx, gen_k in zip(contexts, all_gen_kwargs)
+                            ],
+                            gen_kwargs=copy.deepcopy(all_gen_kwargs[0]),
+                        )
                     )
                 )
-                res.extend(outputs)
 
         return re_ord.get_original(res)
 
