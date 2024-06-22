@@ -464,7 +464,6 @@ class TemplateAPI(TemplateLM):
         ]
 
         re_ord = Collator(
-            # [req.args for req in requests],
             requests,
             sort_fn=_collate_gen,
             group_by="gen_kwargs",
