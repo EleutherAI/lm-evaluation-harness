@@ -445,7 +445,7 @@ class VLLM(TemplateLM):
             Length of context (so we can slice them away and only keep the predictions)
         :return:
             continuation_logprobs: float
-                Log probabilities of continuation tokens of len(continuations + 1)
+                Log probabilities of continuation tokens of len(continuations)
             is_greedy: bool
                 Whether argmax matches given continuation exactly
         """
