@@ -68,7 +68,7 @@ class OpenAICompletionsAPI(TemplateCompletionsAPI):
         return res
 
     def parse_generations(
-        self, outputs: Union[Dict, List[Dict]], contexts: List[str], **kwargs
+        self, outputs: Union[Dict, List[Dict]], **kwargs
     ) -> List[str]:
         res = []
         if not isinstance(outputs, list):
@@ -119,7 +119,7 @@ class OpenAIChatCompletion(OpenAICompletionsAPI):
         }
 
     def parse_generations(
-        self, outputs: Union[Dict, List[Dict]], contexts: List[str], **kwargs
+        self, outputs: Union[Dict, List[Dict]], **kwargs
     ) -> List[str]:
         res = []
         if not isinstance(outputs, list):

@@ -4,7 +4,16 @@ import copy
 import json
 from collections import namedtuple
 from functools import cached_property
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import requests
 from aiohttp import ClientSession, TCPConnector
@@ -102,7 +111,7 @@ class TemplateCompletionsAPI(TemplateLM):
 
     @abc.abstractmethod
     def _create_payload(
-        self, messages, generate=True, gen_kwargs: dict = None, **kwargs
+        self, messages, *, generate=True, gen_kwargs: dict = None, **kwargs
     ) -> dict:
         """This method is responsible for creating the json payload that will be sent to the API."""
         raise NotImplementedError
@@ -147,9 +156,7 @@ class TemplateCompletionsAPI(TemplateLM):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def parse_generations(
-        self, outputs: Union[Any, List[Any]], contexts: List[str], **kwargs
-    ) -> List[str]:
+    def parse_generations(self, outputs: Union[Any, List[Any]], **kwargs) -> List[str]:
         """Method used to parse the generations from the (optionally batched) API response. This method should return a list of str"""
         raise NotImplementedError
 
@@ -245,8 +252,6 @@ class TemplateCompletionsAPI(TemplateLM):
             return encoding
 
         else:
-            # if not isinstance(string, (list, tuple)):
-            #     string = [string]
             try:
                 encoding = self.tokenizer.encode(string)
             except Exception:
@@ -267,6 +272,7 @@ class TemplateCompletionsAPI(TemplateLM):
     def model_call(
         self,
         messages: Union[List[List[int]], List[str], List[JsonChatStr]],
+        *,
         generate: bool = True,
         **kwargs,
     ) -> Optional[dict]:
@@ -292,8 +298,9 @@ class TemplateCompletionsAPI(TemplateLM):
         self,
         session: ClientSession,
         messages: List[Union[List[int], str]],
+        *,
         cache_keys=None,
-        ctxlens=None,
+        ctxlens: Optional[List[int]] = None,
         generate: bool = True,
         **kwargs,
     ) -> Optional[List[Union[str, Tuple[float, bool]]]]:
@@ -311,7 +318,6 @@ class TemplateCompletionsAPI(TemplateLM):
                 if generate:
                     answers = self.parse_generations(
                         outputs=outputs,
-                        contexts=messages,
                     )
                     for res, cache in zip(answers, cache_keys):
                         self.cache_hook.add_partial(
@@ -334,27 +340,30 @@ class TemplateCompletionsAPI(TemplateLM):
             return None
 
     def batch_logliklehood_requests(
-        self, chunk: List[Tuple[Tuple[str, str], List[int], List[int]]]
+        self, chunks: Iterable[List[Tuple[Tuple[str, str], List[int], List[int]]]]
     ) -> Tuple[List[List[int]], List[int], List[Tuple[str, str]]]:
         inputs = []
         ctxlens = []
         cache_keys = []
-        for cache_key, context_enc, continuation_enc in chunk:
-            inp = (context_enc + continuation_enc)[-(self.max_length) :]
-            ctxlen = len(context_enc) - max(
-                0, len(context_enc) + len(continuation_enc) - (self.max_length)
-            )
+        for chunk in chunks:
+            for cache_key, context_enc, continuation_enc in chunk:
+                inp = (context_enc + continuation_enc)[-(self.max_length) :]
+                ctxlen = len(context_enc) - max(
+                    0, len(context_enc) + len(continuation_enc) - (self.max_length)
+                )
 
-            inputs.append(inp)
-            ctxlens.append(ctxlen)
-            cache_keys.append(cache_key)
+                inputs.append(inp)
+                ctxlens.append(ctxlen)
+                cache_keys.append(cache_key)
         return inputs, ctxlens, cache_keys
 
     async def get_batched_requests(
         self,
         requests: List,
         cache_keys,
+        *,
         generate: bool = True,
+        ctxlens=None,
         **kwargs,
     ):
         conn = TCPConnector(limit=self._concurrent)
@@ -366,6 +375,7 @@ class TemplateCompletionsAPI(TemplateLM):
                         message,
                         cache_keys=cache_keys,
                         generate=generate,
+                        ctxlens=ctxlens,
                         **kwargs,
                     )
                 )
@@ -403,7 +413,7 @@ class TemplateCompletionsAPI(TemplateLM):
         if self._concurrent <= 1:
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
-                inputs, ctxlens, cache_keys = self.batch_logliklehood_requests(chunk)
+                inputs, ctxlens, cache_keys = self.batch_logliklehood_requests([chunk])
                 outputs = self.model_call(
                     messages=self.create_message(inputs), generate=False
                 )
@@ -424,9 +434,7 @@ class TemplateCompletionsAPI(TemplateLM):
                             )
                         pbar.update(1)
         else:
-            inputs = [self.batch_logliklehood_requests(chunk) for chunk in chunked]
-            inputs, ctxlens, cache_keys = zip(*inputs)
-            # inputs, ctxlens, cache_keys = inputs[0], ctxlens[0], cache_keys[0]
+            inputs, ctxlens, cache_keys = self.batch_logliklehood_requests(chunked)
             outputs = asyncio.run(
                 self.get_batched_requests(
                     inputs, cache_keys, generate=False, ctxlens=ctxlens
