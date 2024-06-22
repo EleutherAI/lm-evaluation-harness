@@ -18,7 +18,7 @@ Homepage: https://github.com/mbzuai-nlp/ArabicMMLU
 
 ```
 @misc{koto2024arabicmmlu,
-      title={ArabicMMLU: Assessing Massive Multitask Language Understanding in Arabic}, 
+      title={ArabicMMLU: Assessing Massive Multitask Language Understanding in Arabic},
       author={Fajri Koto and Haonan Li and Sara Shatnawi and Jad Doughman and Abdelrahman Boda Sadallah and Aisha Alraeesi and Khalid Almubarak and Zaid Alyafeai and Neha Sengupta and Shady Shehata and Nizar Habash and Preslav Nakov and Timothy Baldwin},
       year={2024},
       eprint={2402.12840},
