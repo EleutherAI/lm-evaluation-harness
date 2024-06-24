@@ -368,9 +368,9 @@ class Task(abc.ABC):
     def build_all_requests(
         self,
         *,
-        limit: int = None,
-        rank: int = None,
-        world_size: int = None,
+        limit: Union[int, None] = None,
+        rank: int = 0,
+        world_size: int = 1,
         cache_requests: bool = False,
         rewrite_requests_cache: bool = False,
         system_instruction: Optional[str] = None,
