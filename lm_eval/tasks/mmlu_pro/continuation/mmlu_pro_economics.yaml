@@ -1,0 +1,6 @@
+"dataset_name": "economics"
+"description": "The following are multiple choice questions (with answers) about economics.\n\
+  \n"
+"group": "mmlu_continuation_social_sciences"
+"include": "_continuation_template_yaml"
+"task": "mmlu_continuation_economics"
