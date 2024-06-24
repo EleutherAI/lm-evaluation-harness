@@ -86,7 +86,7 @@ class TemplateAPI(TemplateLM):
         ]
         if missing_packages:
             raise Exception(
-                "Attempted to use an API model, but the required packages are not installed. "
+                f"Attempted to use an API model, but the required packages {missing_packages} are not installed. "
                 'Please install these via `pip install lm-eval[api]` or `pip install -e ."[api]"`'
             )
         self.model = model or pretrained
